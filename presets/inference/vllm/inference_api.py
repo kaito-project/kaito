@@ -25,7 +25,7 @@ def make_arg_parser(parser: FlexibleArgumentParser) -> FlexibleArgumentParser:
 
     # See https://docs.vllm.ai/en/latest/models/engine_args.html for more args
     engine_default_args = {
-        "model": "/workspace/tfs/weights",
+        "model": "/workspace/vllm/weights",
         "cpu-offload-gb": 0,
         "gpu-memory-utilization": 0.9,
         "swap-space": 4,

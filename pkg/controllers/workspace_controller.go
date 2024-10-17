@@ -830,7 +830,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1a
 			} else if apierrors.IsNotFound(err) {
 				var workloadObj client.Object
 				// Need to create a new workload
-				workloadObj, err = inference.CreatePresetInference(ctx, wObj, revisionStr, inferenceParam, model.SupportDistributedInference(), c.Client)
+				workloadObj, err = inference.CreatePresetInference(ctx, wObj, revisionStr, model, c.Client)
 				if err != nil {
 					return
 				}

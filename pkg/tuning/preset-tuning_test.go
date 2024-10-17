@@ -416,9 +416,13 @@ func TestPrepareTuningParameters(t *testing.T) {
 			},
 			modelCommand: "model-command",
 			tuningObj: &model.PresetParam{
-				BaseCommand:         "python train.py",
-				TorchRunParams:      map[string]string{},
-				TorchRunRdzvParams:  map[string]string{},
+				BackendParam: model.BackendParam{
+					Transformers: model.HuggingfaceTransformersParam{
+						BaseCommand:        "python train.py",
+						TorchRunParams:     map[string]string{},
+						TorchRunRdzvParams: map[string]string{},
+					},
+				},
 				GPUCountRequirement: "2",
 			},
 			expectedCommands: []string{"/bin/sh", "-c", "python train.py --num_processes=1 model-command"},

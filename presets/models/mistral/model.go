@@ -36,6 +36,11 @@ var (
 	mistralRunParams                  = map[string]string{
 		"torch_dtype": "bfloat16",
 		"pipeline":    "text-generation",
+		"chat_template": "/workspace/chat_templates/mistral-instruct.jinja",
+	}
+	mistralRunParamsVLLM = map[string]string{
+		"dtype": "bfloat16",
+		"chat-template": "/workspace/chat_templates/mistral-instruct.jinja",
 	}
 )
 
@@ -51,11 +56,19 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "14Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Mistral using native vertical model parallel, no per GPU memory requirement.
-		TorchRunParams:            inference.DefaultAccelerateParams,
-		ModelRunParams:            mistralRunParams,
-		ReadinessTimeout:          time.Duration(30) * time.Minute,
-		BaseCommand:               baseCommandPresetMistralInference,
-		Tag:                       PresetMistralTagMap["Mistral7B"],
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				TorchRunParams: inference.DefaultAccelerateParams,
+				ModelRunParams: mistralRunParams,
+				BaseCommand:    baseCommandPresetMistralInference,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3",
+				ModelRunParams: mistralRunParamsVLLM,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+		Tag:              PresetMistralTagMap["Mistral7B"],
 	}
 
 }
@@ -67,10 +80,14 @@ func (*mistral7b) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
 		PerGPUMemoryRequirement:   "16Gi",
-		//TorchRunParams:            tuning.DefaultAccelerateParams,
-		//ModelRunParams:            mistralRunParams,
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				//TorchRunParams:            tuning.DefaultAccelerateParams,
+				//ModelRunParams:            mistralRunParams,
+				BaseCommand: baseCommandPresetMistralTuning,
+			},
+		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		BaseCommand:      baseCommandPresetMistralTuning,
 		Tag:              PresetMistralTagMap["Mistral7B"],
 	}
 }
@@ -94,11 +111,19 @@ func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run mistral using native vertical model parallel, no per GPU memory requirement.
-		TorchRunParams:            inference.DefaultAccelerateParams,
-		ModelRunParams:            mistralRunParams,
-		ReadinessTimeout:          time.Duration(30) * time.Minute,
-		BaseCommand:               baseCommandPresetMistralInference,
-		Tag:                       PresetMistralTagMap["Mistral7BInstruct"],
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				TorchRunParams: inference.DefaultAccelerateParams,
+				ModelRunParams: mistralRunParams,
+				BaseCommand:    baseCommandPresetMistralInference,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3",
+				ModelRunParams: mistralRunParamsVLLM,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+		Tag:              PresetMistralTagMap["Mistral7BInstruct"],
 	}
 
 }

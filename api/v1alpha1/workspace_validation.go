@@ -169,7 +169,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 	// Currently require a preset to specified, in future we can consider defining a template
 	if r.Preset == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset"))
-	} else if presetName := string(r.Preset.Name); !utils.IsValidPreset(presetName) {
+	} else if presetName := string(r.Preset.Name); !plugin.IsValidPreset(presetName) {
 		errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported tuning preset name %s", presetName), "presetName"))
 	}
 	return errs
@@ -407,7 +407,7 @@ func (i *InferenceSpec) validateCreate() (errs *apis.FieldError) {
 	if i.Preset != nil {
 		presetName := string(i.Preset.Name)
 		// Validate preset name
-		if !utils.IsValidPreset(presetName) {
+		if !plugin.IsValidPreset(presetName) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
 		}
 		// Validate private preset has private image specified

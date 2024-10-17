@@ -1,14 +1,14 @@
 # Dependencies for TFS
 
 # Core Dependencies
-transformers==4.41.2
-torch==2.2.0
+transformers >= 4.45.0
+torch==2.4.0
 accelerate==0.30.1
 fastapi>=0.111.0,<0.112.0  # Allow patch updates
-pydantic==2.7.4
+pydantic>=2.9
 uvicorn[standard]>=0.29.0,<0.30.0  # Allow patch updates
 peft==0.11.1
-numpy==1.22.4
+numpy<3.0,>=1.25.0
 sentencepiece==0.2.0
 
 # Utility libraries

@@ -60,3 +60,7 @@ func (reg *ModelRegister) Has(name string) bool {
 	_, ok := reg.models[name]
 	return ok
 }
+
+func IsValidPreset(preset string) bool {
+	return KaitoModelRegister.Has(preset)
+}

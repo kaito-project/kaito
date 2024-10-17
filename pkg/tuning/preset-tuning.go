@@ -490,7 +490,7 @@ func handleURLDataSource(ctx context.Context, workspaceObj *kaitov1alpha1.Worksp
 }
 
 func prepareModelRunParameters(ctx context.Context, tuningObj *model.PresetParam) (string, error) {
-	modelCommand := utils.BuildCmdStr(TuningFile, tuningObj.ModelRunParams)
+	modelCommand := utils.BuildCmdStr(TuningFile, tuningObj.Transformers.ModelRunParams)
 	return modelCommand, nil
 }
 
@@ -500,14 +500,14 @@ func prepareModelRunParameters(ctx context.Context, tuningObj *model.PresetParam
 // Returns the command and resource configuration.
 func prepareTuningParameters(ctx context.Context, wObj *kaitov1alpha1.Workspace, modelCommand string,
 	tuningObj *model.PresetParam, skuNumGPUs string) ([]string, corev1.ResourceRequirements) {
-	if tuningObj.TorchRunParams == nil {
-		tuningObj.TorchRunParams = make(map[string]string)
+	hfParam := tuningObj.Transformers // Only support Huggingface for now
+	if hfParam.TorchRunParams == nil {
+		hfParam.TorchRunParams = make(map[string]string)
 	}
 	// Set # of processes to GPU Count
 	numProcesses := getInstanceGPUCount(wObj.Resource.InstanceType)
-	tuningObj.TorchRunParams["num_processes"] = fmt.Sprintf("%d", numProcesses)
-	torchCommand := utils.BuildCmdStr(tuningObj.BaseCommand, tuningObj.TorchRunParams)
-	torchCommand = utils.BuildCmdStr(torchCommand, tuningObj.TorchRunRdzvParams)
+	hfParam.TorchRunParams["num_processes"] = fmt.Sprintf("%d", numProcesses)
+	torchCommand := utils.BuildCmdStr(hfParam.BaseCommand, hfParam.TorchRunParams, hfParam.TorchRunRdzvParams)
 	commands := utils.ShellCmd(torchCommand + " " + modelCommand)
 
 	resourceRequirements := corev1.ResourceRequirements{

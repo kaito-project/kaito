@@ -50,6 +50,9 @@ var (
 		"pipeline":          "text-generation",
 		"trust_remote_code": "",
 	}
+	phiRunParamsVLLM = map[string]string{
+		"dtype": "auto",
+	}
 )
 
 var phi3MiniA phi3Mini4KInst
@@ -64,11 +67,19 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "9Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
-		TorchRunParams:            inference.DefaultAccelerateParams,
-		ModelRunParams:            phiRunParams,
-		ReadinessTimeout:          time.Duration(30) * time.Minute,
-		BaseCommand:               baseCommandPresetPhiInference,
-		Tag:                       PresetPhiTagMap["Phi3Mini4kInstruct"],
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:    baseCommandPresetPhiInference,
+				TorchRunParams: inference.DefaultAccelerateParams,
+				ModelRunParams: phiRunParams,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3",
+				ModelRunParams: phiRunParamsVLLM,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+		Tag:              PresetPhiTagMap["Phi3Mini4kInstruct"],
 	}
 }
 func (*phi3Mini4KInst) GetTuningParameters() *model.PresetParam {
@@ -82,8 +93,12 @@ func (*phi3Mini4KInst) GetTuningParameters() *model.PresetParam {
 		// TorchRunParams:            inference.DefaultAccelerateParams,
 		// ModelRunParams:            phiRunParams,
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		BaseCommand:      baseCommandPresetPhiTuning,
-		Tag:              PresetPhiTagMap["Phi3Mini4kInstruct"],
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand: baseCommandPresetPhiTuning,
+			},
+		},
+		Tag: PresetPhiTagMap["Phi3Mini4kInstruct"],
 	}
 }
 func (*phi3Mini4KInst) SupportDistributedInference() bool { return false }
@@ -103,11 +118,19 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "9Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
-		TorchRunParams:            inference.DefaultAccelerateParams,
-		ModelRunParams:            phiRunParams,
-		ReadinessTimeout:          time.Duration(30) * time.Minute,
-		BaseCommand:               baseCommandPresetPhiInference,
-		Tag:                       PresetPhiTagMap["Phi3Mini128kInstruct"],
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:    baseCommandPresetPhiInference,
+				TorchRunParams: inference.DefaultAccelerateParams,
+				ModelRunParams: phiRunParams,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3",
+				ModelRunParams: phiRunParamsVLLM,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+		Tag:              PresetPhiTagMap["Phi3Mini128kInstruct"],
 	}
 }
 func (*phi3Mini128KInst) GetTuningParameters() *model.PresetParam {
@@ -118,11 +141,17 @@ func (*phi3Mini128KInst) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
 		PerGPUMemoryRequirement:   "72Gi",
-		// TorchRunParams:            inference.DefaultAccelerateParams,
-		// ModelRunParams:            phiRunParams,
-		ReadinessTimeout: time.Duration(30) * time.Minute,
-		BaseCommand:      baseCommandPresetPhiTuning,
-		Tag:              PresetPhiTagMap["Phi3Mini128kInstruct"],
+		ReadinessTimeout:          time.Duration(30) * time.Minute,
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand: baseCommandPresetPhiTuning,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3",
+				ModelRunParams: phiRunParamsVLLM,
+			},
+		},
+		Tag: PresetPhiTagMap["Phi3Mini128kInstruct"],
 	}
 }
 func (*phi3Mini128KInst) SupportDistributedInference() bool { return false }
@@ -142,11 +171,19 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "28Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
-		TorchRunParams:            inference.DefaultAccelerateParams,
-		ModelRunParams:            phiRunParams,
-		ReadinessTimeout:          time.Duration(30) * time.Minute,
-		BaseCommand:               baseCommandPresetPhiInference,
-		Tag:                       PresetPhiTagMap["Phi3Medium4kInstruct"],
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:    baseCommandPresetPhiInference,
+				TorchRunParams: inference.DefaultAccelerateParams,
+				ModelRunParams: phiRunParams,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3",
+				ModelRunParams: phiRunParamsVLLM,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+		Tag:              PresetPhiTagMap["Phi3Medium4kInstruct"],
 	}
 }
 func (*Phi3Medium4kInstruct) GetTuningParameters() *model.PresetParam {
@@ -160,8 +197,12 @@ func (*Phi3Medium4kInstruct) GetTuningParameters() *model.PresetParam {
 		// TorchRunParams:            inference.DefaultAccelerateParams,
 		// ModelRunParams:            phiRunParams,
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		BaseCommand:      baseCommandPresetPhiTuning,
-		Tag:              PresetPhiTagMap["Phi3Medium4kInstruct"],
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand: baseCommandPresetPhiTuning,
+			},
+		},
+		Tag: PresetPhiTagMap["Phi3Medium4kInstruct"],
 	}
 }
 func (*Phi3Medium4kInstruct) SupportDistributedInference() bool { return false }
@@ -181,11 +222,15 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "28Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
-		TorchRunParams:            inference.DefaultAccelerateParams,
-		ModelRunParams:            phiRunParams,
-		ReadinessTimeout:          time.Duration(30) * time.Minute,
-		BaseCommand:               baseCommandPresetPhiInference,
-		Tag:                       PresetPhiTagMap["Phi3Medium128kInstruct"],
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:    baseCommandPresetPhiInference,
+				TorchRunParams: inference.DefaultAccelerateParams,
+				ModelRunParams: phiRunParams,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+		Tag:              PresetPhiTagMap["Phi3Medium128kInstruct"],
 	}
 }
 func (*Phi3Medium128kInstruct) GetTuningParameters() *model.PresetParam {
@@ -196,11 +241,13 @@ func (*Phi3Medium128kInstruct) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "80Gi",
 		PerGPUMemoryRequirement:   "80Gi",
-		// TorchRunParams:            inference.DefaultAccelerateParams,
-		// ModelRunParams:            phiRunParams,
-		ReadinessTimeout: time.Duration(30) * time.Minute,
-		BaseCommand:      baseCommandPresetPhiTuning,
-		Tag:              PresetPhiTagMap["Phi3Medium128kInstruct"],
+		ReadinessTimeout:          time.Duration(30) * time.Minute,
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand: baseCommandPresetPhiTuning,
+			},
+		},
+		Tag: PresetPhiTagMap["Phi3Medium128kInstruct"],
 	}
 }
 func (*Phi3Medium128kInstruct) SupportDistributedInference() bool { return false }

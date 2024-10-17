@@ -319,11 +319,11 @@ azure-karpenter-helm:  ## Update Azure client env vars and settings in helm valu
 ##@ Build
 .PHONY: build
 build: manifests generate fmt vet ## Build manager binary.
-	go build -o bin/manager cmd/*.go
+	go build -o bin/manager cmd/workspace/*.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./cmd/main.go
+	go run ./cmd/workspace/main.go
 
 ##@ Build Dependencies
 ## Location to install dependencies to

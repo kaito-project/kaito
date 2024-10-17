@@ -3,6 +3,8 @@
 
 package v1alpha1
 
+import "github.com/azure/kaito/pkg/model"
+
 const (
 
 	// Non-prefixed labels/annotations are reserved for end-use.
@@ -27,4 +29,25 @@ const (
 
 	// WorkspaceRevisionAnnotation is the Annotations for revision number
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"
+
+	// AnnotationWorkspaceBackend is the annotation for backend selection.
+	AnnotationWorkspaceBackend = KAITOPrefix + "backend"
 )
+
+// GetWorkspaceBackendName returns the runtime name of the workspace.
+func GetWorkspaceBackendName(ws *Workspace) model.BackendName {
+	if ws == nil {
+		panic("workspace is nil")
+	}
+	runtime := model.BackendNameVLLM
+
+	name := ws.Annotations[AnnotationWorkspaceBackend]
+	switch name {
+	case string(model.BackendNameHuggingfaceTransformers):
+		runtime = model.BackendNameHuggingfaceTransformers
+	case string(model.BackendNameVLLM):
+		runtime = model.BackendNameVLLM
+	}
+
+	return runtime
+}

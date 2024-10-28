@@ -32,7 +32,7 @@ var (
 	}
 
 	baseCommandPresetMistralInference = "accelerate launch"
-	baseCommandPresetMistralTuning    = "python3 metrics_server.py & accelerate launch"
+	baseCommandPresetMistralTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	mistralRunParams                  = map[string]string{
 		"torch_dtype": "bfloat16",
 		"pipeline":    "text-generation",

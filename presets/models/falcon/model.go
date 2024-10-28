@@ -46,7 +46,7 @@ var (
 	}
 
 	baseCommandPresetFalconInference = "accelerate launch"
-	baseCommandPresetFalconTuning    = "python3 metrics_server.py & accelerate launch"
+	baseCommandPresetFalconTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	falconRunParams                  = map[string]string{
 		"torch_dtype":   "bfloat16",
 		"pipeline":      "text-generation",

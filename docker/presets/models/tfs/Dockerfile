@@ -1,4 +1,4 @@
-FROM python:3.10-slim@sha256:684b1aaf96a7942b3c3af438d162e0baa3510aa7af25ad76d238e0c746bdec79
+FROM mcr.microsoft.com/cbl-mariner/distroless/python:3.9
 
 ARG WEIGHTS_PATH
 ARG MODEL_TYPE

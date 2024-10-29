@@ -35,7 +35,7 @@ spec:
             - |
               echo "MASTER_ADDR: $MASTER_ADDR"
               NODE_RANK=$(echo $HOSTNAME | grep -o '[^-]*$')
-              cd /workspace/llama/llama-2 && torchrun --nnodes 2 --nproc_per_node 1 --node_rank $NODE_RANK --master_addr $MASTER_ADDR --master_port 29500 inference_api.py
+              cd /workspace/llama/llama-2 && torchrun --nnodes 2 --nproc_per_node 1 --node_rank $NODE_RANK --master_addr $MASTER_ADDR --master_port 29500 /workspace/tfs/inference_api.py
           resources:
             limits:
               nvidia.com/gpu: "1"
@@ -43,13 +43,13 @@ spec:
               nvidia.com/gpu: "1"
           livenessProbe:
             httpGet:
-              path: /healthz
+              path: /health
               port: 5000
             initialDelaySeconds: 600 # 10 Min
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /health
               port: 5000
             initialDelaySeconds: 30
             periodSeconds: 10

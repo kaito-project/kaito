@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -e
 
 if [ "$#" -ne 2 ]; then
     echo "Usage: $0 <test_dir> <requirements.txt>"
@@ -20,7 +20,7 @@ trap cleanup EXIT
 
 cd $VENV_DIR
 printf "Creating virtual environment in %s\n" "$VENV_DIR"
-python3 -m virtualenv venv
+python3 -m virtualenv --system-site-packages venv
 source "$VENV_DIR/venv/bin/activate"
 if [ "$?" -ne 0 ]; then
     printf "Failed to activate virtual environment\n"

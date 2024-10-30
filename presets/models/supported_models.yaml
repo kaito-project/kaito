@@ -104,8 +104,9 @@ models:
     type: text-generation 
     version: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/commit/d269012bea6fbe38ce7752c8940fea010eea3383
     runtime: tfs
-    tag: 0.0.2
+    tag: 0.0.3
     # Tag history:
+    # 0.0.3 - Add vllm inference backend
     # 0.0.2 - Add Logging & Metrics Server
     # 0.0.1 - Initial Release
 

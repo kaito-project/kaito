@@ -15,7 +15,15 @@ type testModel struct{}
 func (*testModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement: "1",
-		ReadinessTimeout:    time.Duration(30) * time.Minute,
+		BackendParam: model.BackendParam{
+			VLLM: model.VLLMParam{
+				BaseCommand: "python3",
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand: "accelerate launch",
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
 }
 func (*testModel) GetTuningParameters() *model.PresetParam {
@@ -36,7 +44,15 @@ type testDistributedModel struct{}
 func (*testDistributedModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement: "1",
-		ReadinessTimeout:    time.Duration(30) * time.Minute,
+		BackendParam: model.BackendParam{
+			VLLM: model.VLLMParam{
+				BaseCommand: "python3",
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand: "accelerate launch",
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
 }
 func (*testDistributedModel) GetTuningParameters() *model.PresetParam {

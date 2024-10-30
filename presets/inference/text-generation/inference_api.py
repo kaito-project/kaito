@@ -2,9 +2,12 @@
 # Licensed under the MIT license.
 import logging
 import os
-import subprocess
+import sys
+import signal
+import codecs
+from pathlib import Path
 from dataclasses import asdict, dataclass, field
-from typing import Annotated, Any, Dict, List, Optional
+from typing import Annotated, Any, Dict, List, Optional, Union
 
 import GPUtil
 import psutil
@@ -30,7 +33,7 @@ class ModelConfig:
     """
     Transformers Model Configuration Parameters
     """
-    pipeline: str = field(metadata={"help": "The model pipeline for the pre-trained model"})
+    pipeline: Optional[str] = field(default="text-generation", metadata={"help": "The model pipeline for the pre-trained model"})
     pretrained_model_name_or_path: Optional[str] = field(default="/workspace/tfs/weights", metadata={"help": "Path to the pretrained model or model identifier from huggingface.co/models"})
     combination_type: Optional[str]=field(default="svd", metadata={"help": "The combination type of multi adapters"})
     state_dict: Optional[Dict[str, Any]] = field(default=None, metadata={"help": "State dictionary for the model"})
@@ -47,6 +50,7 @@ class ModelConfig:
     load_in_8bit: bool = field(default=False, metadata={"help": "Load model in 8-bit mode"})
     torch_dtype: Optional[str] = field(default=None, metadata={"help": "The torch dtype for the pre-trained model"})
     device_map: str = field(default="auto", metadata={"help": "The device map for the pre-trained model"})
+    chat_template: Optional[str] = field(default=None, metadata={"help": "The file path to the chat template, or the template in single-line form for the specified model"})
 
     # Method to process additional arguments
     def process_additional_args(self, addt_args: List[str]):
@@ -83,7 +87,22 @@ class ModelConfig:
         supported_pipelines = {"conversational", "text-generation"}
         if self.pipeline not in supported_pipelines:
             raise ValueError(f"Unsupported pipeline: {self.pipeline}")
-        
+
+def load_chat_template(chat_template: Optional[str]) -> Optional[str]:
+    logger.info(chat_template)
+    if chat_template is None:
+        return None
+
+    JINJA_CHARS = "{}\n"
+    if any(c in chat_template for c in JINJA_CHARS):
+        resolved_chat_template = codecs.decode(chat_template, "unicode_escape")
+    else:
+        resolved_chat_template = Path(chat_template).read_text()
+
+    logger.info("Chat template loaded successfully")
+    logger.info("Chat template: %s", resolved_chat_template)
+    return resolved_chat_template
+
 
 parser = HfArgumentParser(ModelConfig)
 args, additional_args = parser.parse_args_into_dataclasses(
@@ -98,7 +117,10 @@ model_pipeline = model_args.pop('pipeline')
 combination_type = model_args.pop('combination_type')
 
 app = FastAPI()
+resovled_chat_template = load_chat_template(model_args.pop('chat_template'))
 tokenizer = AutoTokenizer.from_pretrained(**model_args)
+if resovled_chat_template is not None:
+    tokenizer.chat_template = resovled_chat_template
 base_model = AutoModelForCausalLM.from_pretrained(**model_args)
 
 if not os.path.exists(ADAPTERS_DIR):
@@ -153,7 +175,7 @@ if args.torch_dtype:
     pipeline_kwargs["torch_dtype"] = args.torch_dtype
 
 pipeline = transformers.pipeline(
-    model_pipeline,
+    task="text-generation",
     model=model,
     tokenizer=tokenizer,
     **pipeline_kwargs
@@ -492,7 +514,11 @@ def get_metrics():
         logger.error(f"Error fetching metrics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+def shutdown_handler(sig, frame):
+    sys.exit(0)
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, shutdown_handler)
     local_rank = int(os.environ.get("LOCAL_RANK", 0)) # Default to 0 if not set
     port = 5000 + local_rank # Adjust port based on local rank
     logger.info(f"Starting server on port {port}")

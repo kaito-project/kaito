@@ -26,10 +26,13 @@ var (
 	}
 
 	baseCommandPresetPhiInference = "accelerate launch"
-	baseCommandPresetPhiTuning    = "python3 metrics_server.py & accelerate launch"
+	baseCommandPresetPhiTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	phiRunParams                  = map[string]string{
 		"torch_dtype": "float16",
 		"pipeline":    "text-generation",
+	}
+	phiRunParamsVLLM = map[string]string{
+		"dtype": "float16",
 	}
 )
 
@@ -45,11 +48,19 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "12Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
-		TorchRunParams:            inference.DefaultAccelerateParams,
-		ModelRunParams:            phiRunParams,
-		ReadinessTimeout:          time.Duration(30) * time.Minute,
-		BaseCommand:               baseCommandPresetPhiInference,
-		Tag:                       PresetPhiTagMap["Phi2"],
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				TorchRunParams: inference.DefaultAccelerateParams,
+				ModelRunParams: phiRunParams,
+				BaseCommand:    baseCommandPresetPhiInference,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3",
+				ModelRunParams: phiRunParamsVLLM,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+		Tag:              PresetPhiTagMap["Phi2"],
 	}
 }
 func (*phi2) GetTuningParameters() *model.PresetParam {
@@ -60,10 +71,14 @@ func (*phi2) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
 		PerGPUMemoryRequirement:   "16Gi",
-		// TorchRunParams:            inference.DefaultAccelerateParams,
-		// ModelRunParams:            phiRunParams,
+		BackendParam: model.BackendParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				// TorchRunParams:            inference.DefaultAccelerateParams,
+				// ModelRunParams:            phiRunParams,
+				BaseCommand: baseCommandPresetPhiTuning,
+			},
+		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		BaseCommand:      baseCommandPresetPhiTuning,
 		Tag:              PresetPhiTagMap["Phi2"],
 	}
 }

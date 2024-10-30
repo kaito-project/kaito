@@ -355,6 +355,98 @@ func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1alpha1
 	}
 }
 
+func GenerateRAGDeploymentManifest(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine, imageName string,
+	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
+	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
+	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount) *appsv1.Deployment {
+
+	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ragEngineObj.Spec.Compute.LabelSelector.MatchLabels))
+	for key, value := range ragEngineObj.Spec.Compute.LabelSelector.MatchLabels {
+		nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
+			Key:      key,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{value},
+		})
+	}
+
+	selector := map[string]string{
+		kaitov1alpha1.LabelRAGEngineName: ragEngineObj.Name,
+	}
+	labelselector := &v1.LabelSelector{
+		MatchLabels: selector,
+	}
+	initContainers := []corev1.Container{}
+	envs := []corev1.EnvVar{}
+
+	return &appsv1.Deployment{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      ragEngineObj.Name,
+			Namespace: ragEngineObj.Namespace,
+			OwnerReferences: []v1.OwnerReference{
+				{
+					APIVersion: kaitov1alpha1.GroupVersion.String(),
+					Kind:       "RAGEngine",
+					UID:        ragEngineObj.UID,
+					Name:       ragEngineObj.Name,
+					Controller: &controller,
+				},
+			},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: lo.ToPtr(int32(replicas)),
+			Strategy: appsv1.DeploymentStrategy{
+				Type: appsv1.RollingUpdateDeploymentStrategyType,
+				RollingUpdate: &appsv1.RollingUpdateDeployment{
+					MaxSurge: &intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: 0,
+					},
+					MaxUnavailable: &intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: 1,
+					},
+				}, // Configuration for rolling updates: allows no extra pods during the update and permits at most one unavailable pod at a time。
+			},
+			Selector: labelselector,
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: v1.ObjectMeta{
+					Labels: selector,
+				},
+				Spec: corev1.PodSpec{
+					ImagePullSecrets: imagePullSecretRefs,
+					Affinity: &corev1.Affinity{
+						NodeAffinity: &corev1.NodeAffinity{
+							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+								NodeSelectorTerms: []corev1.NodeSelectorTerm{
+									{
+										MatchExpressions: nodeRequirements,
+									},
+								},
+							},
+						},
+					},
+					InitContainers: initContainers,
+					Containers: []corev1.Container{
+						{
+							Name:           ragEngineObj.Name,
+							Image:          imageName,
+							Command:        commands,
+							Resources:      resourceRequirements,
+							LivenessProbe:  livenessProbe,
+							ReadinessProbe: readinessProbe,
+							Ports:          containerPorts,
+							VolumeMounts:   volumeMount,
+							Env:            envs,
+						},
+					},
+					Tolerations: tolerations,
+					Volumes:     volumes,
+				},
+			},
+		},
+	}
+}
+
 func GenerateInitContainers(wObj *kaitov1alpha1.Workspace, volumeMount []corev1.VolumeMount) ([]corev1.Container, []corev1.EnvVar) {
 	var initContainers []corev1.Container
 	var envs []corev1.EnvVar

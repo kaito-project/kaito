@@ -14,10 +14,13 @@ import (
 	"github.com/azure/kaito/pkg/featuregates"
 	"github.com/azure/kaito/pkg/machine"
 	"github.com/azure/kaito/pkg/nodeclaim"
+	"github.com/azure/kaito/pkg/rag"
 	"github.com/azure/kaito/pkg/resources"
+	"github.com/azure/kaito/pkg/utils"
 	"github.com/azure/kaito/pkg/utils/consts"
 	"github.com/go-logr/logr"
 	"github.com/samber/lo"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -97,6 +100,31 @@ func (c *RAGEngineReconciler) ensureFinalizer(ctx context.Context, ragEngineObj 
 func (c *RAGEngineReconciler) addRAGEngine(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine) (reconcile.Result, error) {
 	err := c.applyRAGEngineResource(ctx, ragEngineObj)
 	if err != nil {
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
+			"ragengineFailed", err.Error()); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
+			return reconcile.Result{}, updateErr
+		}
+		// if error is	due to machine/nodeClaim instance types unavailability, stop reconcile.
+		if err.Error() == machine.ErrorInstanceTypesUnavailable ||
+			err.Error() == nodeclaim.ErrorInstanceTypesUnavailable {
+			return reconcile.Result{Requeue: false}, err
+		}
+		return reconcile.Result{}, err
+	}
+	if err = c.applyRAG(ctx, ragEngineObj); err != nil {
+		// TODO: revision
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
+			"ragengineFailed", err.Error()); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
+			return reconcile.Result{}, updateErr
+		}
+		return reconcile.Result{}, err
+	}
+
+	if err = c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGEngineConditionTypeSucceeded, metav1.ConditionTrue,
+		"ragengineSucceeded", "ragengine succeeds"); err != nil {
+		klog.ErrorS(err, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
 		return reconcile.Result{}, err
 	}
 	return reconcile.Result{}, nil
@@ -387,6 +415,131 @@ func (c *RAGEngineReconciler) ensureNodePlugins(ctx context.Context, ragEngineOb
 			return nil
 		}
 	}
+}
+
+func (c *RAGEngineReconciler) applyRAG(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine) error {
+	var err error
+	func() {
+
+		var existingObj client.Object
+		existingObj = &appsv1.Deployment{}
+
+		if err = resources.GetResource(ctx, ragEngineObj.Name, ragEngineObj.Namespace, c.Client, existingObj); err == nil {
+			klog.InfoS("An inference workload already exists for ragengine", "ragengine", klog.KObj(ragEngineObj))
+
+			deployment := existingObj.(*appsv1.Deployment)
+
+			var volumes []corev1.Volume
+			var volumeMounts []corev1.VolumeMount
+			shmVolume, shmVolumeMount := utils.ConfigSHMVolume(*ragEngineObj.Spec.Compute.Count)
+			if shmVolume.Name != "" {
+				volumes = append(volumes, shmVolume)
+			}
+			if shmVolumeMount.Name != "" {
+				volumeMounts = append(volumeMounts, shmVolumeMount)
+			}
+			var embeddingType string
+			var envs []corev1.EnvVar
+			if ragEngineObj.Spec.Embedding.Remote != nil {
+				embeddingType = "remote"
+				if ragEngineObj.Spec.Embedding.Local.ModelID != "" {
+					modelID := ragEngineObj.Spec.Embedding.Local.ModelID
+					modelIDEnv := corev1.EnvVar{
+						Name:  "MODEL_ID",
+						Value: modelID,
+					}
+					envs = append(envs, modelIDEnv)
+				}
+				if ragEngineObj.Spec.Embedding.Local.ModelAccessSecret != "" {
+					accessSecret := ragEngineObj.Spec.Embedding.Local.ModelAccessSecret
+					accessSecretEnv := corev1.EnvVar{
+						Name:  "ACCESS_SECRET",
+						Value: accessSecret,
+					}
+					envs = append(envs, accessSecretEnv)
+				}
+			} else if ragEngineObj.Spec.Embedding.Local != nil {
+				embeddingType = "local"
+				// TODO: Model ID Env
+			}
+			embeddingTypeEnv := corev1.EnvVar{
+				Name:  "EMBEDDING_TYPE",
+				Value: embeddingType,
+			}
+			envs = append(envs, embeddingTypeEnv)
+
+			stoageEnv := corev1.EnvVar{
+				Name:  "VECTOR_DB_TYPE",
+				Value: "faiss", // TODO: get storage done
+			}
+			envs = append(envs, stoageEnv)
+
+			inferenceServiceURL := ragEngineObj.Spec.InferenceService.URL
+			inferenceServiceURLEnv := corev1.EnvVar{
+				Name:  "INFERENCE_URL",
+				Value: inferenceServiceURL,
+			}
+			envs = append(envs, inferenceServiceURLEnv)
+
+			if ragEngineObj.Spec.InferenceService.AccessSecret != "" {
+				accessSecretEnv := corev1.EnvVar{
+					Name:  "INFERENCE_ACCESS_SECRET",
+					Value: ragEngineObj.Spec.InferenceService.AccessSecret,
+				}
+				envs = append(envs, accessSecretEnv)
+			}
+			if ragEngineObj.Spec.IndexServiceName != "" {
+				indexServiceNameEnv := corev1.EnvVar{
+					Name:  "INDEX_SERVICE_NAME",
+					Value: ragEngineObj.Spec.IndexServiceName,
+				}
+				envs = append(envs, indexServiceNameEnv)
+			}
+
+			spec := &deployment.Spec
+
+			spec.Template.Spec.Containers[0].Env = envs
+			spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
+
+			spec.Template.Spec.Volumes = volumes
+
+			if err := c.Update(ctx, deployment); err != nil {
+				return
+			}
+
+			if err = resources.CheckResourceStatus(existingObj, c.Client, time.Duration(10)*time.Minute); err != nil {
+				return
+			}
+		} else if apierrors.IsNotFound(err) {
+			var workloadObj client.Object
+			// Need to create a new workload
+			workloadObj, err = rag.CreatePresetRAG(ctx, ragEngineObj, c.Client)
+			if err != nil {
+				return
+			}
+			if err = resources.CheckResourceStatus(workloadObj, c.Client, time.Duration(10)*time.Minute); err != nil {
+				return
+			}
+		}
+
+	}()
+
+	if err != nil {
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGConditionTypeServiceStatus, metav1.ConditionFalse,
+			"RAGEngineServiceStatusFailed", err.Error()); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
+			return updateErr
+		} else {
+			return err
+		}
+	}
+
+	if err := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGConditionTypeServiceStatus, metav1.ConditionTrue,
+		"RAGEngineServiceStatusSuccess", "Service has been deployed successfully"); err != nil {
+		klog.ErrorS(err, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
+		return err
+	}
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

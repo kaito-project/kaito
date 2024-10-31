@@ -30,7 +30,7 @@ spec:
         command:
           - /bin/sh
           - -c
-          - accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all inference_api.py --pipeline text-generation --torch_dtype bfloat16
+          - accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype bfloat16
         resources:
           requests:
             nvidia.com/gpu: 2
@@ -38,13 +38,13 @@ spec:
             nvidia.com/gpu: 2  # Requesting 2 GPUs
         livenessProbe:
           httpGet:
-            path: /healthz
+            path: /health
             port: 5000
           initialDelaySeconds: 600 # 10 Min
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /healthz
+            path: /health
             port: 5000
           initialDelaySeconds: 30
           periodSeconds: 10

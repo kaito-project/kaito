@@ -16,6 +16,7 @@ func (*testModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement: "1",
 		ReadinessTimeout:    time.Duration(30) * time.Minute,
+		BaseCommand: "python3",
 	}
 }
 func (*testModel) GetTuningParameters() *model.PresetParam {
@@ -37,6 +38,7 @@ func (*testDistributedModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement: "1",
 		ReadinessTimeout:    time.Duration(30) * time.Minute,
+		BaseCommand: "python3",
 	}
 }
 func (*testDistributedModel) GetTuningParameters() *model.PresetParam {

@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	ProbePath     = "/healthz"
+	ProbePath     = "/health"
 	Port5000      = int32(5000)
-	InferenceFile = "inference_api.py"
+	InferenceFile = "/workspace/tfs/inference_api.py"
 )
 
 var (

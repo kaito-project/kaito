@@ -46,7 +46,7 @@ func TestCreatePresetInference(t *testing.T) {
 			workload: "Deployment",
 			// No BaseCommand, TorchRunParams, TorchRunRdzvParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c  inference_api.py",
+			expectedCmd: "/bin/sh -c python3 /workspace/tfs/inference_api.py",
 			hasAdapters: false,
 		},
 
@@ -58,7 +58,7 @@ func TestCreatePresetInference(t *testing.T) {
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
 			},
 			workload:    "StatefulSet",
-			expectedCmd: "/bin/sh -c  inference_api.py",
+			expectedCmd: "/bin/sh -c python3 /workspace/tfs/inference_api.py",
 			hasAdapters: false,
 		},
 
@@ -69,7 +69,7 @@ func TestCreatePresetInference(t *testing.T) {
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload:       "Deployment",
-			expectedCmd:    "/bin/sh -c  inference_api.py",
+			expectedCmd:    "/bin/sh -c python3 /workspace/tfs/inference_api.py",
 			hasAdapters:    true,
 			expectedVolume: "adapter-volume",
 		},

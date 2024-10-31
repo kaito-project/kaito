@@ -160,7 +160,7 @@ jobs:
           AKS_K8S_VERSION: ${{ inputs.k8s_version }}
 
       - name: Az login
-        uses: azure/login@6c251865b4e6290e7b78be643ea2d005bc51f69a # v2.1.1
+        uses: azure/login@a65d910e8af852a8061c627c456678983e180302 # v2.2.0
         with:
           client-id: ${{ secrets.E2E_CLIENT_ID }}
           tenant-id: ${{ secrets.E2E_TENANT_ID }}
@@ -201,7 +201,7 @@ jobs:
           KARPENTER_VERSION: ${{ vars.KARPENTER_VERSION }}
           KARPENTER_NAMESPACE: ${{ env.KARPENTER_NAMESPACE }}
 
-      - uses: azure/login@6c251865b4e6290e7b78be643ea2d005bc51f69a # v2.1.1
+      - uses: azure/login@a65d910e8af852a8061c627c456678983e180302 # v2.2.0
         with:
           client-id: ${{ secrets.E2E_CLIENT_ID }}
           tenant-id: ${{ secrets.E2E_TENANT_ID }}

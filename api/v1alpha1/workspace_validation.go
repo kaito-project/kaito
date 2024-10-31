@@ -53,7 +53,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
 			errs = errs.Also(w.Resource.validateCreateWithTuning(w.Tuning).ViaField("resource"),
-				w.Tuning.validateCreate(ctx, w.Namespace).ViaField("tuning"))
+				w.Tuning.validateCreate(ctx, w.Namespace, w.Resource.InstanceType).ViaField("tuning"))
 		}
 	} else {
 		klog.InfoS("Validate update", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
@@ -131,7 +131,7 @@ func (r *AdapterSpec) validateCreateorUpdate() (errs *apis.FieldError) {
 	return errs
 }
 
-func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace string) (errs *apis.FieldError) {
+func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace string, sku string) (errs *apis.FieldError) {
 	methodLowerCase := strings.ToLower(string(r.Method))
 	if methodLowerCase != string(TuningMethodLora) && methodLowerCase != string(TuningMethodQLora) {
 		errs = errs.Also(apis.ErrInvalidValue(r.Method, "Method"))
@@ -148,11 +148,11 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 		} else if methodLowerCase == string(TuningMethodQLora) {
 			defaultConfigMapTemplateName = DefaultQloraConfigMapTemplate
 		}
-		if err := r.validateConfigMap(ctx, releaseNamespace, methodLowerCase, defaultConfigMapTemplateName); err != nil {
+		if err := r.validateConfigMap(ctx, releaseNamespace, methodLowerCase, sku, defaultConfigMapTemplateName); err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
 		}
 	} else {
-		if err := r.validateConfigMap(ctx, workspaceNamespace, methodLowerCase, r.Config); err != nil {
+		if err := r.validateConfigMap(ctx, workspaceNamespace, methodLowerCase, sku, r.Config); err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
 		}
 	}

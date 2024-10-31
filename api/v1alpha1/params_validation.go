@@ -16,6 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -107,7 +108,7 @@ func UnmarshalTrainingConfig(cm *corev1.ConfigMap) (*Config, *apis.FieldError) {
 	return &config, nil
 }
 
-func validateTrainingArgsViaConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
+func validateTrainingArgsViaConfigMap(cm *corev1.ConfigMap, modelName, methodLowerCase, sku string) *apis.FieldError {
 	config, err := UnmarshalTrainingConfig(cm)
 	if err != nil {
 		return err
@@ -136,9 +137,43 @@ func validateTrainingArgsViaConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
 				}
 			}
 
-			// TODO: Here we perform the tuning GPU Memory Checks!
-			fmt.Println(trainingArgsRaw)
+			// Validate GPU Memory Requirements for batch size of 1 using model and tuning method
+			errs := validateTuningParameters(modelName, methodLowerCase, sku)
+			if errs != nil {
+				return errs
+			}
 		}
+	}
+	return nil
+}
+
+func validateTuningParameters(modelName, methodLowerCase, sku string) *apis.FieldError {
+	skuHandler, err := utils.GetSKUHandler()
+	if err != nil {
+		return apis.ErrInvalidValue(fmt.Sprintf("Failed to get SKU handler: %v", err), "sku")
+	}
+
+	skuConfig, skuExists := skuHandler.GetGPUConfigs()[sku]
+	if !skuExists {
+		return apis.ErrInvalidValue(fmt.Sprintf("Unsupported SKU: '%s'", sku), "sku")
+	}
+	skuGPUMem := skuConfig.GPUMem
+
+	modelTuningConfig, modelExists := modelTuningConfigs[modelName]
+	if !modelExists {
+		//klog.Infof("Model '%s' hasn't been tested yet for fine-tuning. Proceed at your own risk.", modelName)
+		return nil
+	}
+
+	minGPURequired, methodExists := modelTuningConfig[methodLowerCase]
+	if !methodExists {
+		//klog.Infof("Tuning method '%s' for model '%s' hasn't been tested yet.", methodLowerCase, modelName)
+		return nil
+	}
+
+	if skuGPUMem < minGPURequired {
+		klog.Warningf("Insufficient GPU memory: For model '%s' with tuning method '%s', the SKU '%s' with %dGi GPU memory does not support even a batch size of 1 in testing. Proceed at your own risk.", modelName, methodLowerCase, sku, skuGPUMem)
+		return nil
 	}
 	return nil
 }
@@ -249,7 +284,7 @@ func validateConfigMapSchema(cm *corev1.ConfigMap) *apis.FieldError {
 	return nil
 }
 
-func (r *TuningSpec) validateConfigMap(ctx context.Context, namespace string, methodLowerCase string, configMapName string) (errs *apis.FieldError) {
+func (r *TuningSpec) validateConfigMap(ctx context.Context, namespace, methodLowerCase, sku string, configMapName string) (errs *apis.FieldError) {
 	var cm corev1.ConfigMap
 	if k8sclient.Client == nil {
 		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
@@ -269,7 +304,10 @@ func (r *TuningSpec) validateConfigMap(ctx context.Context, namespace string, me
 		if err := validateMethodViaConfigMap(&cm, methodLowerCase); err != nil {
 			errs = errs.Also(err)
 		}
-		if err := validateTrainingArgsViaConfigMap(&cm); err != nil {
+
+		if r.Preset == nil {
+			errs = errs.Also(apis.ErrMissingField("Preset"))
+		} else if err := validateTrainingArgsViaConfigMap(&cm, string(r.Preset.Name), methodLowerCase, sku); err != nil {
 			errs = errs.Also(err)
 		}
 	}

@@ -5,10 +5,12 @@ package sku
 
 import (
 	"testing"
+
+	"github.com/azure/kaito/pkg/utils/consts"
 )
 
 func TestAzureSKUHandler(t *testing.T) {
-	handler := NewAzureSKUHandler()
+	handler := GetCloudSKUHandler(consts.AzureCloudName)
 
 	// Test GetSupportedSKUs
 	skus := handler.GetSupportedSKUs()
@@ -36,7 +38,7 @@ func TestAzureSKUHandler(t *testing.T) {
 }
 
 func TestAwsSKUHandler(t *testing.T) {
-	handler := NewAwsSKUHandler()
+	handler := GetCloudSKUHandler(consts.AWSCloudName)
 
 	// Test GetSupportedSKUs
 	skus := handler.GetSupportedSKUs()

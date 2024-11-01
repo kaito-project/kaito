@@ -1,0 +1,10 @@
+# Dependencies for diffusers
+diffusers==0.26.3
+transformers==4.37.2
+torch==2.2.0
+accelerate==0.23.0
+fastapi==0.109.1
+pydantic==1.10.9
+uvicorn[standard]==0.23.2
+invisible_watermark
+safetensors

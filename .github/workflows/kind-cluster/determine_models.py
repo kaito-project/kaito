@@ -21,7 +21,7 @@ supp_models_yaml = 'presets/models/supported_models.yaml'
 YAML_PR = read_yaml(supp_models_yaml)
 # Format: {falcon-7b : {model_name:falcon-7b, type:text-generation, version: #, tag: #}}
 MODELS = {model['name']: model for model in YAML_PR['models']}
-KAITO_REPO_URL = "https://github.com/Azure/kaito.git"
+KAITO_REPO_URL = "https://github.com/kaito-repo/kaito.git"
 
 def set_multiline_output(name, value):
     with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:

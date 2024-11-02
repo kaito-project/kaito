@@ -6,7 +6,7 @@ domain: io
 layout:
 - go.kubebuilder.io/v4
 projectName: kaito
-repo: github.com/azure/kaito
+repo: github.com/kaito-project/kaito
 resources:
 - api:
     crdVersion: v1
@@ -15,6 +15,6 @@ resources:
   domain: io
   group: kaito
   kind: Workspace
-  path: github.com/azure/kaito/api/v1alpha1
+  path: github.com/kaito-project/kaito/api/v1alpha1
   version: v1alpha1
 version: "3"

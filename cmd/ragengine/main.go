@@ -14,11 +14,11 @@ import (
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
 	"github.com/aws/karpenter-core/pkg/apis/v1alpha5"
 	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
-	"github.com/azure/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	"github.com/azure/kaito/pkg/controllers"
-	"github.com/azure/kaito/pkg/webhooks"
+	"github.com/kaito-project/kaito/pkg/controllers"
+	"github.com/kaito-project/kaito/pkg/webhooks"
 	"k8s.io/api/apps/v1beta1"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/injection/sharedmain"
@@ -36,7 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	kaitov1alpha1 "github.com/azure/kaito/api/v1alpha1"
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 

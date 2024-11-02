@@ -5,7 +5,7 @@ package test
 
 import (
 	"github.com/aws/karpenter-core/pkg/apis/v1alpha5"
-	"github.com/azure/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"

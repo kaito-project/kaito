@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	kaitov1alpha1 "github.com/azure/kaito/api/v1alpha1"
-	"github.com/azure/kaito/test/e2e/utils"
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/test/e2e/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -64,6 +64,7 @@ var expectedInitContainers2 = []corev1.Container{
 
 func validateInitContainers(workspaceObj *kaitov1alpha1.Workspace, expectedInitContainers []corev1.Container) {
 	By("Checking the InitContainers", func() {
+		GinkgoWriter.Printf("Starting to check InitContainers...\n")
 		Eventually(func() bool {
 			var err error
 			var initContainers []corev1.Container
@@ -79,6 +80,7 @@ func validateInitContainers(workspaceObj *kaitov1alpha1.Workspace, expectedInitC
 				Name:      workspaceObj.Name,
 			}, dep)
 			initContainers = dep.Spec.Template.Spec.InitContainers
+			GinkgoWriter.Printf("initContainers:%v\n", initContainers)
 
 			if err != nil {
 				GinkgoWriter.Printf("Error fetching resource: %v\n", err)
@@ -93,9 +95,11 @@ func validateInitContainers(workspaceObj *kaitov1alpha1.Workspace, expectedInitC
 			}
 			initContainer, expectedInitContainer := initContainers[0], expectedInitContainers[0]
 
-			// GinkgoWriter.Printf("Resource '%s' not ready. Ready replicas: %d\n", workspaceObj.Name, readyReplicas)
+			GinkgoWriter.Printf("adapter output: initContainer.Image=%s, expectedInitContainer.Image=%s, equal=%v\n", initContainer.Image, expectedInitContainer.Image, initContainer.Image == expectedInitContainer.Image)
+			GinkgoWriter.Printf("adapter output: initContainer.Name=%s, expectedInitContainer.Name=%s, equal=%v\n", initContainer.Name, expectedInitContainer.Name, initContainer.Name == expectedInitContainer.Name)
+
 			return initContainer.Image == expectedInitContainer.Image && initContainer.Name == expectedInitContainer.Name
-		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for initContainers to be ready")
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for initContainers to be ready")
 	})
 }
 
@@ -157,6 +161,7 @@ var _ = Describe("Workspace Preset", func() {
 		} else {
 			utils.ValidateMachineCreation(ctx, workspaceObj, numOfNode)
 		}
+
 		validateResourceStatus(workspaceObj)
 
 		time.Sleep(30 * time.Second)

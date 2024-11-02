@@ -5,7 +5,7 @@ package inference
 import (
 	"context"
 	"errors"
-	"github.com/azure/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/utils/test"
 	"testing"
 
 	"github.com/stretchr/testify/mock"

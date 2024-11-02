@@ -1,7 +1,7 @@
 FROM python:3.10-slim@sha256:684b1aaf96a7942b3c3af438d162e0baa3510aa7af25ad76d238e0c746bdec79
 
 # Specify the repository source URL for reference and access in Kaito packages.
-LABEL org.opencontainers.image.source=https://github.com/azure/kaito
+LABEL org.opencontainers.image.source=https://github.com/kaito-project/kaito
 
 ARG MODEL_TYPE
 ARG VERSION

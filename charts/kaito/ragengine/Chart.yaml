@@ -13,9 +13,9 @@ version: 0.0.1
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
 appVersion: 0.0.1
-home: https://github.com/Azure/kaito
+home: https://github.com/kaito-project/kaito
 sources:
-  - https://github.com/Azure/kaito
+  - https://github.com/kaito-project/kaito
 maintainers:
   - name: Fei-Guo
     email: vrgf2003@gmail.com

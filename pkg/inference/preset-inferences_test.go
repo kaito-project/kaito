@@ -10,13 +10,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/azure/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 
-	"github.com/azure/kaito/api/v1alpha1"
-	"github.com/azure/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/utils/test"
 
-	"github.com/azure/kaito/pkg/model"
-	"github.com/azure/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"

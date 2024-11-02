@@ -10,8 +10,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/azure/kaito/pkg/sku"
-	"github.com/azure/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"

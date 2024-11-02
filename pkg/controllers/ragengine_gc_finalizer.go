@@ -6,11 +6,11 @@ package controllers
 import (
 	"context"
 
-	kaitov1alpha1 "github.com/azure/kaito/api/v1alpha1"
-	"github.com/azure/kaito/pkg/featuregates"
-	"github.com/azure/kaito/pkg/machine"
-	"github.com/azure/kaito/pkg/nodeclaim"
-	"github.com/azure/kaito/pkg/utils/consts"
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/machine"
+	"github.com/kaito-project/kaito/pkg/nodeclaim"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

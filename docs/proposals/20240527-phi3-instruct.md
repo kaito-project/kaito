@@ -50,4 +50,4 @@ This section describes how to configure the runtime framework to support the inf
 # History
 
 - [x] 05/27/2024: Open proposal PR.
-- [x] 06/13/2024: Phi-3 Mini Merged [#469](https://github.com/Azure/kaito/pull/469)
+- [x] 06/13/2024: Phi-3 Mini Merged [#469](https://github.com/kaito-project/kaito/pull/469)

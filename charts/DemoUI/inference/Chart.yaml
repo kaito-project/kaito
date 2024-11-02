@@ -5,7 +5,7 @@ type: application
 version: 0.1.0
 appVersion: "0.1.0"
 sources:
-  - https://github.com/Azure/kaito
+  - https://github.com/kaito-project/kaito
 maintainers:
   - name: ishaansehgal99
     email: ishaanforthewin@gmail.com

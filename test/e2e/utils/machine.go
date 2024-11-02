@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/aws/karpenter-core/pkg/apis/v1alpha5"
-	"github.com/azure/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"github.com/samber/lo"

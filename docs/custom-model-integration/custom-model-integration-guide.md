@@ -12,7 +12,7 @@ If you want to avoid building a Docker image with model weights, use our pre-bui
 ### Step 1: Clone the Repository
 
 ```sh
-git clone https://github.com/Azure/kaito.git
+git clone https://github.com/kaito-project/kaito.git
 ```
 
 ### Step 2: Download Your Private/Custom Model Weights

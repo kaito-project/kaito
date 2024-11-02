@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/azure/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/utils/test"
 
 	"testing"
 
-	kaitov1alpha1 "github.com/azure/kaito/api/v1alpha1"
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 )
 

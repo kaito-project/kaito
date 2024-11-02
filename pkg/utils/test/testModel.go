@@ -6,8 +6,8 @@ package test
 import (
 	"time"
 
-	"github.com/azure/kaito/pkg/model"
-	"github.com/azure/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 type testModel struct{}

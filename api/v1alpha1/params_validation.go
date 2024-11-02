@@ -10,8 +10,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/azure/kaito/pkg/k8sclient"
-	"github.com/azure/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/utils"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

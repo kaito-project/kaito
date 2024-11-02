@@ -10,12 +10,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/azure/kaito/pkg/k8sclient"
-	"github.com/azure/kaito/pkg/utils/consts"
-	"github.com/azure/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/azure/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/model"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"

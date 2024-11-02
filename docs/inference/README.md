@@ -67,7 +67,7 @@ Currently, only images are supported as adapter sources. The `strength` field sp
 
 **Note:** When building a container image for an existing adapter, ensure all adapter files are copied to the **/data** directory inside the container.
 
-For detailed `InferenceSpec` API definitions, refer to the [documentation](https://github.com/Azure/kaito/blob/2ccc93daf9d5385649f3f219ff131ee7c9c47f3e/api/v1alpha1/workspace_types.go#L75).
+For detailed `InferenceSpec` API definitions, refer to the [documentation](https://github.com/kaito-project/kaito/blob/2ccc93daf9d5385649f3f219ff131ee7c9c47f3e/api/v1alpha1/workspace_types.go#L75).
 
 
 # Inference workload

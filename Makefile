@@ -3,7 +3,7 @@
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
 VERSION ?= v0.3.1
-GPU_PROVISIONER_VERSION ?= 0.2.0
+GPU_PROVISIONER_VERSION ?= 0.2.1
 IMG_TAG ?= $(subst v,,$(VERSION))
 
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -120,7 +120,7 @@ GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
 GINKGO_NODES ?= 1
 GINKGO_NO_COLOR ?= false
-GINKGO_TIMEOUT ?= 120m
+GINKGO_TIMEOUT ?= 180m
 GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT)
 
 $(E2E_TEST):
@@ -243,8 +243,8 @@ docker-build-dataset: docker-buildx
 .PHONY: docker-build-llm-reference-preset
 docker-build-llm-reference-preset: docker-buildx
 	docker buildx build \
-		-t ghcr.io/azure/kaito/llm-reference-preset:$(VERSION) \
-		-t ghcr.io/azure/kaito/llm-reference-preset:latest \
+		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:$(VERSION) \
+		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:latest \
 		-f docs/custom-model-integration/Dockerfile.reference \
 		--build-arg MODEL_TYPE=text-generation \
 		--build-arg VERSION=$(VERSION) .
@@ -291,6 +291,7 @@ gpu-provisioner-helm:  ## Update Azure client env vars and settings in helm valu
 	helm install $(GPU_PROVISIONER_NAMESPACE) \
 	--values gpu-provisioner-values.yaml \
 	--set settings.azure.clusterName=$(AZURE_CLUSTER_NAME) \
+	--namespace $(GPU_PROVISIONER_NAMESPACE) --create-namespace \
 	https://github.com/Azure/gpu-provisioner/raw/gh-pages/charts/gpu-provisioner-$(GPU_PROVISIONER_VERSION).tgz
 
 	kubectl wait --for=condition=available deploy "gpu-provisioner" -n gpu-provisioner --timeout=300s

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/azure/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"github.com/samber/lo"

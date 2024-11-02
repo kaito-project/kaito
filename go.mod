@@ -1,4 +1,4 @@
-module github.com/azure/kaito
+module github.com/kaito-project/kaito
 
 go 1.22.3
 

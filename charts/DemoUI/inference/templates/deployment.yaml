@@ -39,7 +39,7 @@ spec:
             - |
               mkdir -p /app/frontend && \
               pip install chainlit requests && \
-              wget -O /app/frontend/inference.py https://raw.githubusercontent.com/Azure/kaito/main/demo/inferenceUI/chainlit.py && \
+              wget -O /app/frontend/inference.py https://raw.githubusercontent.com/kaito-project/kaito/main/demo/inferenceUI/chainlit.py && \
               chainlit run frontend/inference.py -w
           env:
             - name: WORKSPACE_SERVICE_URL

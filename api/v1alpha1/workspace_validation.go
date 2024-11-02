@@ -12,10 +12,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/azure/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 
-	"github.com/azure/kaito/pkg/utils"
-	"github.com/azure/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	"k8s.io/apimachinery/pkg/api/resource"

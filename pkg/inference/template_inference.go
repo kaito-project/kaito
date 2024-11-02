@@ -5,8 +5,8 @@ package inference
 import (
 	"context"
 
-	kaitov1alpha1 "github.com/azure/kaito/api/v1alpha1"
-	"github.com/azure/kaito/pkg/resources"
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/resources"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

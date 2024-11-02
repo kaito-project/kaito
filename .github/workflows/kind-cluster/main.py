@@ -6,7 +6,7 @@ import subprocess
 import time
 from pathlib import Path
 
-KAITO_REPO_URL = "https://github.com/Azure/kaito.git"
+KAITO_REPO_URL = "https://github.com/kaito-project/kaito.git"
 WEIGHTS_FOLDER = os.environ.get("WEIGHTS_DIR", None)
 
 def get_weights_path(model_name):

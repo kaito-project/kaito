@@ -4,7 +4,7 @@
 package sku
 
 import (
-	"github.com/azure/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type CloudSKUHandler interface {

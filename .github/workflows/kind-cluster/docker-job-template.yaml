@@ -27,7 +27,7 @@ spec:
 
             # Additional setup
             apk add --no-cache git
-            git clone -b $PR_BRANCH https://github.com/Azure/kaito.git
+            git clone -b $PR_BRANCH https://github.com/kaito-project/kaito.git
 
             # Print Project Files
             echo 'Print Project Files'

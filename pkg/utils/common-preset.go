@@ -3,7 +3,7 @@
 package utils
 
 import (
-	"github.com/azure/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	corev1 "k8s.io/api/core/v1"
 )
 

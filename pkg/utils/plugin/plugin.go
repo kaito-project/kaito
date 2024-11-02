@@ -5,7 +5,7 @@ package plugin
 import (
 	"sync"
 
-	"github.com/azure/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/model"
 )
 
 type Registration struct {

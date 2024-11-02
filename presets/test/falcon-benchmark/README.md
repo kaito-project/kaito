@@ -23,7 +23,7 @@ Ensure your `accelerate` configuration aligns with the values provided during be
    - If you haven't already, you can use the Azure CLI or the Azure Portal to create and configure a GPU node pool in your AKS cluster.
 <!-- markdown-link-check-disable -->
 2. Building and Pushing the Docker Image:
-    - First, you need to build a Docker image from the provided [Dockerfile](https://github.com/Azure/kaito/blob/main/docker/presets/models/tfs/Dockerfile) and push it to a container registry accessible by your AKS cluster
+    - First, you need to build a Docker image from the provided [Dockerfile](https://github.com/kaito-project/kaito/blob/main/docker/presets/models/tfs/Dockerfile) and push it to a container registry accessible by your AKS cluster
 <!-- markdown-link-check-enable -->
     - Example:
     ```

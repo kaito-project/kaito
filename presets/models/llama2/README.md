@@ -12,7 +12,7 @@
 
 #### 1. Clone kaito repository
 ```
-git clone https://github.com/Azure/kaito.git
+git clone https://github.com/kaito-project/kaito.git
 ```
 The sample docker files and the source code of the inference API server are in the repo.
 

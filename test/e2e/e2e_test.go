@@ -10,7 +10,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/azure/kaito/test/e2e/utils"
+	"github.com/kaito-project/kaito/test/e2e/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/apps/v1"

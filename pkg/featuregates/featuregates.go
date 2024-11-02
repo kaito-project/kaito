@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/azure/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	cliflag "k8s.io/component-base/cli/flag"
 )
 

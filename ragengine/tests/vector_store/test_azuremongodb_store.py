@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from ragengine.vector_store.base import BaseVectorStore
-from ragengine.vector_store.faiss_store import FaissVectorStoreHandler
+from ragengine.vector_store.azuremongodb_store import AzureCosmosDBMongoDBVectorStoreHandler
 from ragengine.models import Document
 from ragengine.embedding.huggingface_local import LocalHuggingFaceEmbedding
 from ragengine.config import MODEL_ID, INFERENCE_URL, INFERENCE_ACCESS_SECRET
@@ -20,8 +20,10 @@ def vector_store_manager(init_embed_manager):
     with TemporaryDirectory() as temp_dir:
         print(f"Saving temporary test storage at: {temp_dir}")
         # Mock the persistence directory
-        os.environ['PERSIST_DIR'] = temp_dir
-        yield FaissVectorStoreHandler(init_embed_manager)
+        os.environ['AZURE_COSMOSDB_MONGODB_URI'] = "<URI_HERE>"
+        manager = AzureCosmosDBMongoDBVectorStoreHandler(init_embed_manager)
+        manager._clear_collection_and_indexes()
+        yield manager
 
 def test_index_documents(vector_store_manager):
     first_doc_text, second_doc_text = "First document", "Second document"
@@ -49,14 +51,12 @@ def test_index_documents_isolation(vector_store_manager):
     vector_store_manager.index_documents(index_name_1, documents1)
     vector_store_manager.index_documents(index_name_2, documents2)
 
-    assert vector_store_manager.list_all_indexed_documents() == {
-        'index1': {"87117028123498eb7d757b1507aa3e840c63294f94c27cb5ec83c939dedb32fd":
-                       {'hash': '1e64a170be48c45efeaa8667ab35919106da0489ec99a11d0029f2842db133aa',
-                        'text': 'First document in index1'}},
-        'index2': {"49b198c0e126a99e1975f17b564756c25b4ad691a57eda583e232fd9bee6de91":
-                       {'hash': 'a222f875b83ce8b6eb72b3cae278b620de9bcc7c6b73222424d3ce979d1a463b',
-                        'text': 'First document in index2'}}
-    }
+    indexed_docs = vector_store_manager.list_all_indexed_documents()
+    assert len(indexed_docs) == 2
+    assert list(indexed_docs[index_name_1].values())[0]["text"] == "First document in index1"
+    assert list(indexed_docs[index_name_1].values())[0]["content_vector"] == "Vector of dimension 384"
+    assert list(indexed_docs[index_name_2].values())[0]["text"] == "First document in index2"
+    assert list(indexed_docs[index_name_2].values())[0]["content_vector"] == "Vector of dimension 384"
 
 @patch('requests.post')
 def test_query_documents(mock_post, vector_store_manager):
@@ -81,7 +81,7 @@ def test_query_documents(mock_post, vector_store_manager):
     assert query_result is not None
     assert query_result["response"] == "{'result': 'This is the completion from the API'}"
     assert query_result["source_nodes"][0]["text"] == "First document"
-    assert query_result["source_nodes"][0]["score"] == pytest.approx(0.5795239210128784, rel=1e-6)
+    assert query_result["source_nodes"][0]["score"] == pytest.approx(0.7102378952219661, rel=1e-6)
 
     mock_post.assert_called_once_with(
         INFERENCE_URL,

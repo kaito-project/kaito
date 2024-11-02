@@ -291,6 +291,7 @@ gpu-provisioner-helm:  ## Update Azure client env vars and settings in helm valu
 	helm install $(GPU_PROVISIONER_NAMESPACE) \
 	--values gpu-provisioner-values.yaml \
 	--set settings.azure.clusterName=$(AZURE_CLUSTER_NAME) \
+	--namespace $(GPU_PROVISIONER_NAMESPACE) --create-namespace \
 	https://github.com/Azure/gpu-provisioner/raw/gh-pages/charts/gpu-provisioner-$(GPU_PROVISIONER_VERSION).tgz
 
 	kubectl wait --for=condition=available deploy "gpu-provisioner" -n gpu-provisioner --timeout=300s

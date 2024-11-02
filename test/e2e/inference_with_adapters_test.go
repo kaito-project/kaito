@@ -85,13 +85,16 @@ func validateInitContainers(workspaceObj *kaitov1alpha1.Workspace, expectedInitC
 				return false
 			}
 
-			if dep.Spec.Template.Spec.ImagePullSecrets == nil || len(dep.Spec.Template.Spec.ImagePullSecrets) == 0 {
-				return false
-			}
 			if len(initContainers) != len(expectedInitContainers) {
 				return false
 			}
 			initContainer, expectedInitContainer := initContainers[0], expectedInitContainers[0]
+			if expectedInitContainer.Name == imageName2 { //only the second adapter need to check imagePullSecrets
+				GinkgoWriter.Printf("dep: %v\n", dep)
+				if dep.Spec.Template.Spec.ImagePullSecrets == nil || len(dep.Spec.Template.Spec.ImagePullSecrets) == 0 {
+					return false
+				}
+			}
 
 			// GinkgoWriter.Printf("Resource '%s' not ready. Ready replicas: %d\n", workspaceObj.Name, readyReplicas)
 			return initContainer.Image == expectedInitContainer.Image && initContainer.Name == expectedInitContainer.Name

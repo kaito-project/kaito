@@ -90,6 +90,7 @@ func validateInitContainers(workspaceObj *kaitov1alpha1.Workspace, expectedInitC
 			}
 			initContainer, expectedInitContainer := initContainers[0], expectedInitContainers[0]
 			if expectedInitContainer.Name == imageName2 { //only the second adapter need to check imagePullSecrets
+				GinkgoWriter.Printf("dep: %v\n", dep)
 				if dep.Spec.Template.Spec.ImagePullSecrets == nil || len(dep.Spec.Template.Spec.ImagePullSecrets) == 0 {
 					return false
 				}

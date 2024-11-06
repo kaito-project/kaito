@@ -112,7 +112,7 @@ jobs:
           AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
 
       - name: Create Azure Identity
-        uses: azure/CLI@v2.0.0
+        uses: azure/CLI@v2.1.0
         with:
           inlineScript: |
             az identity create --name ${{ inputs.node_provisioner }}Identity --resource-group  ${{ env.CLUSTER_NAME }}
@@ -283,7 +283,7 @@ jobs:
 
       - name: Cleanup e2e resources
         if: ${{ always() }}
-        uses: azure/CLI@v2.0.0
+        uses: azure/CLI@v2.1.0
         with:
           inlineScript: |
             set +e

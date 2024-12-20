@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: llama-container
-          image: REPO_HERE.azurecr.io/llama-2-7b:TAG_HERE
+          image: REPO/llama-2-7b:TAG
           command:
             - /bin/sh
             - -c
@@ -54,3 +54,18 @@ spec:
           operator: Exists
       nodeSelector:
         pool: llama27b
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llama-2-7b
+spec:
+  selector:
+    app: llama
+    statefulset.kubernetes.io/pod-name: llama-2-7b-0
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: ClusterIP
+  publishNotReadyAddresses: true

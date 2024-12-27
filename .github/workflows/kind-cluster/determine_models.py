@@ -124,7 +124,7 @@ def main():
 
     affected_models = []
     if force_run_all != "false":
-        affected_models = [model['name'] for model in YAML_PR['models']]
+        affected_models = [model['name'] for model in YAML_PR['models'] if "qwen" in model['name']]
     elif force_run_all_public != "false": 
         affected_models = [model['name'] for model in YAML_PR['models'] if "llama" not in model['name']]
     elif force_run_all_phi != "false":

@@ -14,36 +14,14 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/utils/pointer"
 )
 
 func normalize(s string) string {
 	return strings.Join(strings.Fields(s), " ")
-}
-
-// Saves state of current env, and returns function to restore to saved state
-func saveEnv(key string) func() {
-	envVal, envExists := os.LookupEnv(key)
-	return func() {
-		if envExists {
-			err := os.Setenv(key, envVal)
-			if err != nil {
-				return
-			}
-		} else {
-			err := os.Unsetenv(key)
-			if err != nil {
-				return
-			}
-		}
-	}
 }
 
 func TestGetInstanceGPUCount(t *testing.T) {
@@ -170,76 +148,6 @@ func TestGetDataSrcImageInfo(t *testing.T) {
 			resultImage, resultSecrets := GetDataSrcImageInfo(context.Background(), tc.wObj)
 			assert.Equal(t, tc.expectedImage, resultImage)
 			assert.Equal(t, tc.expectedSecrets, resultSecrets)
-		})
-	}
-}
-
-func TestEnsureTuningConfigMap(t *testing.T) {
-	testcases := map[string]struct {
-		setupEnv      func()
-		callMocks     func(c *test.MockClient)
-		workspaceObj  *kaitov1alpha1.Workspace
-		expectedError string
-	}{
-		"Config already exists in workspace namespace": {
-			setupEnv: func() {
-				os.Setenv(consts.DefaultReleaseNamespaceEnvVar, "release-namespace")
-			},
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-			},
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Config: "config-template",
-				},
-			},
-			expectedError: "",
-		},
-		"Error finding release namespace": {
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(errors.NewNotFound(schema.GroupResource{}, "config-template"))
-			},
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Config: "config-template",
-				},
-			},
-			expectedError: "failed to get release namespace: failed to determine release namespace from file /var/run/secrets/kubernetes.io/serviceaccount/namespace and env var RELEASE_NAMESPACE",
-		},
-		"Config doesn't exist in template namespace": {
-			setupEnv: func() {
-				os.Setenv(consts.DefaultReleaseNamespaceEnvVar, "release-namespace")
-			},
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(errors.NewNotFound(schema.GroupResource{}, "config-template"))
-			},
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Config: "config-template",
-				},
-			},
-			expectedError: "failed to get ConfigMap from template namespace:  \"config-template\" not found",
-		},
-	}
-
-	for name, tc := range testcases {
-		t.Run(name, func(t *testing.T) {
-			cleanupEnv := saveEnv(consts.DefaultReleaseNamespaceEnvVar)
-			defer cleanupEnv()
-
-			if tc.setupEnv != nil {
-				tc.setupEnv()
-			}
-			mockClient := test.NewClient()
-			tc.callMocks(mockClient)
-			tc.workspaceObj.SetNamespace("workspace-namespace")
-			_, err := EnsureTuningConfigMap(context.Background(), tc.workspaceObj, mockClient)
-			if tc.expectedError != "" {
-				assert.EqualError(t, err, tc.expectedError)
-			} else {
-				assert.NoError(t, err)
-			}
-			mockClient.AssertExpectations(t)
 		})
 	}
 }

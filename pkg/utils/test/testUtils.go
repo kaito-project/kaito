@@ -4,6 +4,8 @@
 package test
 
 import (
+	"os"
+
 	"github.com/aws/karpenter-core/pkg/apis/v1alpha5"
 	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -947,4 +949,22 @@ func NotFoundError() error {
 
 func IsAlreadyExistsError() error {
 	return &apierrors.StatusError{ErrStatus: metav1.Status{Reason: metav1.StatusReasonAlreadyExists}}
+}
+
+// Saves state of current env, and returns function to restore to saved state
+func SaveEnv(key string) func() {
+	envVal, envExists := os.LookupEnv(key)
+	return func() {
+		if envExists {
+			err := os.Setenv(key, envVal)
+			if err != nil {
+				return
+			}
+		} else {
+			err := os.Unsetenv(key)
+			if err != nil {
+				return
+			}
+		}
+	}
 }

@@ -636,3 +636,84 @@ func TestApplyRAG(t *testing.T) {
 		})
 	}
 }
+
+func TestEnsureService(t *testing.T) {
+	test.RegisterTestModel()
+	testcases := map[string]struct {
+		callMocks     func(c *test.MockClient)
+		expectedError error
+		ragengine     v1alpha1.RAGEngine
+		verifyCalls   func(c *test.MockClient)
+	}{
+
+		"Existing service is found for RAGEngine": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+			},
+			expectedError: nil,
+			ragengine:     *test.MockRAGEngineWithPreset,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 0)
+				c.AssertNumberOfCalls(t, "Create", 0)
+				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 0)
+			},
+		},
+
+		"Service creation fails": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(test.NotFoundError())
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&corev1.Service{}), mock.Anything).Return(errors.New("cannot create service"))
+			},
+			expectedError: errors.New("cannot create service"),
+			ragengine:     *test.MockRAGEngineWithPreset,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 0)
+				c.AssertNumberOfCalls(t, "Create", 4)
+				c.AssertNumberOfCalls(t, "Get", 4)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 0)
+			},
+		},
+
+		"Successfully creates a new service": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(test.NotFoundError())
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+			},
+			expectedError: nil,
+			ragengine:     *test.MockRAGEngineWithPreset,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 0)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 4)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 0)
+			},
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			mockClient := test.NewClient()
+			tc.callMocks(mockClient)
+
+			reconciler := &RAGEngineReconciler{
+				Client: mockClient,
+				Scheme: test.NewTestScheme(),
+			}
+			ctx := context.Background()
+
+			err := reconciler.ensureService(ctx, &tc.ragengine)
+			if tc.expectedError == nil {
+				assert.Check(t, err == nil, "Not expected to return error")
+			} else {
+				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			}
+			if tc.verifyCalls != nil {
+				tc.verifyCalls(mockClient)
+			}
+		})
+	}
+}

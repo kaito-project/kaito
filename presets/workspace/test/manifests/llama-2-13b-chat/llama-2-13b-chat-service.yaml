@@ -15,5 +15,5 @@ spec:
       protocol: TCP
       port: 29500
       targetPort: 29500
-  type: LoadBalancer
+  type: ClusterIP
   publishNotReadyAddresses: true

@@ -624,6 +624,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 		},
 		"Create preset inference because inference workload did not exist": {
 			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(test.NotFoundError()).Times(4)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 					depObj := &appsv1.Deployment{}
@@ -692,9 +693,10 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			}
 			ctx := context.Background()
 
+			os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			err := reconciler.applyInference(ctx, &tc.workspace)
 			if tc.expectedError == nil {
-				assert.Check(t, err == nil, "Not expected to return error")
+				assert.Check(t, err == nil, fmt.Sprintf("Not expected to return error: %v", err))
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}

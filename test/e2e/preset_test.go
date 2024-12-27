@@ -680,6 +680,7 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -699,6 +700,7 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -718,6 +720,7 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -741,6 +744,7 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -768,6 +772,7 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), true)
 
@@ -805,6 +810,7 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -860,4 +866,28 @@ func validateCreateNode(workspaceObj *kaitov1alpha1.Workspace, numOfNode int) {
 	} else {
 		utils.ValidateMachineCreation(ctx, workspaceObj, numOfNode)
 	}
+}
+
+// validateInferenceConfig validates that the inference config exists and contains data
+func validateInferenceConfig(workspaceObj *kaitov1alpha1.Workspace) {
+	By("Checking the inference config exists", func() {
+		Eventually(func() bool {
+			configMap := &v1.ConfigMap{}
+			configName := kaitov1alpha1.DefaultInferenceConfigTemplate
+			if workspaceObj.Inference.Config != "" {
+				configName = workspaceObj.Inference.Config
+			}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      configName,
+			}, configMap)
+
+			if err != nil {
+				GinkgoWriter.Printf("Error fetching config: %v\n", err)
+				return false
+			}
+
+			return len(configMap.Data) > 0
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for inference config to be ready")
+	})
 }

@@ -40,6 +40,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -59,6 +60,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -78,6 +80,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -97,6 +100,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -117,6 +121,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 

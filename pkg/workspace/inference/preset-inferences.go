@@ -131,8 +131,21 @@ func CreatePresetInference(ctx context.Context, workspaceObj *kaitov1alpha1.Work
 	model model.Model, kubeClient client.Client) (client.Object, error) {
 	inferenceParam := model.GetInferenceParameters().DeepCopy()
 
+	configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx, kubeClient,
+		client.ObjectKey{
+			Name:      workspaceObj.Inference.Config,
+			Namespace: workspaceObj.Namespace,
+		},
+		client.ObjectKey{
+			Name: kaitov1alpha1.DefaultInferenceConfigTemplate,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	if model.SupportDistributedInference() {
-		if err := updateTorchParamsForDistributedInference(ctx, kubeClient, workspaceObj, inferenceParam); err != nil { //
+		if err := updateTorchParamsForDistributedInference(ctx, kubeClient, workspaceObj, inferenceParam); err != nil {
 			klog.ErrorS(err, "failed to update torch params", "workspace", workspaceObj)
 			return nil, err
 		}
@@ -157,6 +170,12 @@ func CreatePresetInference(ctx context.Context, workspaceObj *kaitov1alpha1.Work
 	// additional volume
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
+
+	// Add config volume mount
+	cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
+	volumes = append(volumes, cmVolume)
+	volumeMounts = append(volumeMounts, cmVolumeMount)
+
 	// add share memory for cross process communication
 	shmVolume, shmVolumeMount := utils.ConfigSHMVolume(skuGPUCount)
 	if shmVolume.Name != "" {
@@ -173,7 +192,7 @@ func CreatePresetInference(ctx context.Context, workspaceObj *kaitov1alpha1.Work
 
 	// inference command
 	runtimeName := kaitov1alpha1.GetWorkspaceRuntimeName(workspaceObj)
-	commands := inferenceParam.GetInferenceCommand(runtimeName, skuNumGPUs)
+	commands := inferenceParam.GetInferenceCommand(runtimeName, skuNumGPUs, &cmVolumeMount)
 
 	image, imagePullSecrets := GetInferenceImageInfo(ctx, workspaceObj, inferenceParam)
 

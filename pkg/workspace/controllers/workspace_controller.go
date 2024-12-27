@@ -749,6 +749,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1a
 				if !model.SupportDistributedInference() {
 					deployment := existingObj.(*appsv1.Deployment)
 					if deployment.Annotations[kaitov1alpha1.WorkspaceRevisionAnnotation] != revisionStr {
+						// TODO: respect updates to other fields
 						var volumes []corev1.Volume
 						var volumeMounts []corev1.VolumeMount
 						shmVolume, shmVolumeMount := utils.ConfigSHMVolume(*wObj.Resource.Count)

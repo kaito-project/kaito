@@ -197,3 +197,5 @@ KAITO has adopted the [Cloud Native Compute Foundation Code of Conduct](https://
 ## Contact
 
 "Kaito devs" <kaito-dev@microsoft.com>
+
+[Kaito Community Slack](https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-2wm17rttz-t4E6_rMIuY03DwBHaJq1sg)

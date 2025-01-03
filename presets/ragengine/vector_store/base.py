@@ -3,7 +3,7 @@
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List
 import hashlib
 import os
 
@@ -92,17 +92,17 @@ class BaseVectorStore(ABC):
               query: str,
               top_k: int,
               llm_params: dict,
-              rerank_params: Optional[Dict] = None
+              rerank_params: dict
     ):
         """
-        Query the indexed documents with optional LLM-based reranking.
+        Query the indexed documents
 
         Args:
             index_name (str): Name of the index to query
             query (str): Query string
             top_k (int): Number of initial top results to retrieve
-            llm_params (dict): Parameters for the language model
-            rerank_params (Optional[Dict]): Optional configuration for reranking
+            llm_params (dict): Optional parameters for the language model
+            rerank_params (dict): Optional configuration for reranking
                 - 'top_n' (int): Number of documents to process in each batch
                 - 'batch_size' (int):  Number of top documents to return after reranking
 
@@ -133,7 +133,6 @@ class BaseVectorStore(ABC):
         query_engine = self.index_map[index_name].as_query_engine(
             llm=self.llm,
             similarity_top_k=top_k,
-            streaming=True,
             node_postprocessors=node_postprocessors
         )
         query_result = query_engine.query(query)

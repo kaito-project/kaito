@@ -216,7 +216,7 @@ func getStructInstances(s any) map[string]any {
 	return instances
 }
 
-func validateConfigMapSchema(cm *corev1.ConfigMap) *apis.FieldError {
+func validateTuningConfigMapSchema(cm *corev1.ConfigMap) *apis.FieldError {
 	trainingConfigData, ok := cm.Data["training_config.yaml"]
 	if !ok {
 		return apis.ErrMissingField("training_config.yaml in ConfigMap")
@@ -263,7 +263,7 @@ func (r *TuningSpec) validateConfigMap(ctx context.Context, namespace string, me
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get ConfigMap '%s' in namespace '%s': %v", r.Config, namespace, err), "config"))
 		}
 	} else {
-		if err := validateConfigMapSchema(&cm); err != nil {
+		if err := validateTuningConfigMapSchema(&cm); err != nil {
 			errs = errs.Also(err)
 		}
 		if err := validateMethodViaConfigMap(&cm, methodLowerCase); err != nil {

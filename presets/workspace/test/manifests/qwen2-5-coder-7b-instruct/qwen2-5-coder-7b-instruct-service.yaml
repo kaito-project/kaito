@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: phi-3-mini-4k-instruct
+  name: qwen2-5-coder-7b-instruct
 spec:
   selector:
-    app: phi-3-mini-4k-instruct
+    app: qwen2-5-coder-7b-instruct
   ports:
   - protocol: TCP
     port: 80

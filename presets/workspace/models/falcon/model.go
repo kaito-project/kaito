@@ -38,10 +38,10 @@ var (
 	PresetFalcon40BInstructModel = PresetFalcon40BModel + "-instruct"
 
 	PresetFalconTagMap = map[string]string{
-		"Falcon7B":          "0.0.7",
-		"Falcon7BInstruct":  "0.0.7",
-		"Falcon40B":         "0.0.8",
-		"Falcon40BInstruct": "0.0.8",
+		"Falcon7B":          "0.0.8",
+		"Falcon7BInstruct":  "0.0.8",
+		"Falcon40B":         "0.0.9",
+		"Falcon40BInstruct": "0.0.9",
 	}
 
 	baseCommandPresetFalconInference = "accelerate launch"

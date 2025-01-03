@@ -82,6 +82,10 @@ type InferenceSpec struct {
 	// +kubebuilder:validation:Schemaless
 	// +optional
 	Template *v1.PodTemplateSpec `json:"template,omitempty"`
+	// Config specifies the name of a custom ConfigMap that contains inference arguments.
+	// If specified, the ConfigMap must be in the same namespace as the Workspace custom resource.
+	// +optional
+	Config string `json:"config,omitempty"`
 	// Adapters are integrated into the base model for inference.
 	// Users can specify multiple adapters for the model and the respective weight of using each of them.
 	// +optional

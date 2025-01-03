@@ -4,7 +4,6 @@
 package v1alpha1
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -97,7 +96,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			wantErr: false,
 		},
 	}
-	os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.ragEngine.validateCreate()

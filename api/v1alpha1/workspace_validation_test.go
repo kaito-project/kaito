@@ -6,7 +6,6 @@ package v1alpha1
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -365,7 +364,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		},
 	}
 
-	os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -503,6 +502,31 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 
 func TestInferenceSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
+	ctx := context.Background()
+
+	// Create fake client with default ConfigMap
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		&v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "valid-config",
+			},
+			Data: map[string]string{
+				"inference_config.yaml": "a: b",
+			},
+		},
+		&v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "missing-key-config",
+			},
+			Data: map[string]string{
+				"other_key": "some value",
+			},
+		},
+	).Build()
+	k8sclient.SetGlobalClient(client)
+
 	tests := []struct {
 		name          string
 		inferenceSpec *InferenceSpec
@@ -638,6 +662,48 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			errContent: "Duplicate adapter source name found:",
 			expectErrs: false,
 		},
+		{
+			name: "Config specified but ConfigMap not found",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name:       ModelName("test-validation"),
+						AccessMode: ModelImageAccessModePublic,
+					},
+				},
+				Config: "nonexistent-config",
+			},
+			errContent: "ConfigMap 'nonexistent-config' specified in 'config' not found in namespace",
+			expectErrs: true,
+		},
+		{
+			name: "Config specified with valid ConfigMap",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name:       ModelName("test-validation"),
+						AccessMode: ModelImageAccessModePublic,
+					},
+				},
+				Config: "valid-config",
+			},
+			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "ConfigMap missing required inference_config.yaml",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name:       ModelName("test-validation"),
+						AccessMode: ModelImageAccessModePublic,
+					},
+				},
+				Config: "missing-key-config",
+			},
+			errContent: "missing field(s): inference_config.yaml in ConfigMap",
+			expectErrs: true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -654,7 +720,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 					}
 				}()
 			}
-			errs := tc.inferenceSpec.validateCreate()
+			errs := tc.inferenceSpec.validateCreate(ctx, "")
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -945,7 +1011,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 		},
 	}
 	RegisterValidationTestModels()
-	os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	tests := []struct {
 		name          string
 		workspaceName string
@@ -1065,8 +1131,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 func TestTuningSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
 	// Set ReleaseNamespace Env
-	os.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
-	defer os.Unsetenv(consts.DefaultReleaseNamespaceEnvVar)
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()

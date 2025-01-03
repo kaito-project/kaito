@@ -4,7 +4,6 @@ package controllers
 
 import (
 	"context"
-	"os"
 	"strings"
 	"testing"
 
@@ -37,7 +36,8 @@ func TestCreatePresetRAG(t *testing.T) {
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
-			os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 

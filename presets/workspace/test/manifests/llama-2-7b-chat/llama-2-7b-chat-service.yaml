@@ -10,5 +10,5 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 5000
-  type: LoadBalancer
+  type: ClusterIP
   publishNotReadyAddresses: true

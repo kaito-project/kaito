@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -17,8 +18,10 @@ import (
 	"strings"
 	"time"
 
+	pkgscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/remotecommand"
 
 	"github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
@@ -46,7 +49,7 @@ var (
 func GetEnv(envVar string) string {
 	env := os.Getenv(envVar)
 	if env == "" {
-		fmt.Printf("%s is not set or is empty", envVar)
+		fmt.Printf("%s is not set or is empty\n", envVar)
 		return ""
 	}
 	return env
@@ -105,7 +108,7 @@ func GetPodNameForDeployment(coreClient *kubernetes.Clientset, namespace, deploy
 	return podList.Items[0].Name, nil
 }
 
-func GetK8sConfig() (*kubernetes.Clientset, error) {
+func GetK8sConfig() (*rest.Config, error) {
 	var config *rest.Config
 	var err error
 
@@ -123,6 +126,14 @@ func GetK8sConfig() (*kubernetes.Clientset, error) {
 		}
 	}
 
+	return config, err
+}
+
+func GetK8sClientset() (*kubernetes.Clientset, error) {
+	config, err := GetK8sConfig()
+	if err != nil {
+		log.Fatalf("Failed to get k8s config: %v", err)
+	}
 	coreClient, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Fatalf("Failed to create core client: %v", err)
@@ -152,8 +163,37 @@ func GetPodLogs(coreClient *kubernetes.Clientset, namespace, podName, containerN
 	return buf.String(), nil
 }
 
+func ExecSync(ctx context.Context, config *rest.Config, coreClient *kubernetes.Clientset, namespace, podName string, options v1.PodExecOptions) (string, error) {
+	req := coreClient.CoreV1().RESTClient().Post().
+		Resource("pods").
+		Name(podName).
+		Namespace(namespace).
+		SubResource("exec")
+	req.VersionedParams(&options, pkgscheme.ParameterCodec)
+
+	exec, err := remotecommand.NewSPDYExecutor(config, "POST", req.URL())
+	if err != nil {
+		return "", fmt.Errorf("failed to initialize SPDY executor: %w", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	err = exec.StreamWithContext(ctx, remotecommand.StreamOptions{
+		Stdout: &stdout,
+		Stderr: &stderr,
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to execute command: %w, stderr: %q", err, stderr.String())
+	}
+
+	if stderr.Len() > 0 {
+		return "", fmt.Errorf("command error: %s", stderr.String())
+	}
+
+	return stdout.String(), nil
+}
+
 func PrintPodLogsOnFailure(namespace, labelSelector string) {
-	coreClient, err := GetK8sConfig()
+	coreClient, err := GetK8sClientset()
 	if err != nil {
 		log.Printf("Failed to create core client: %v", err)
 	}

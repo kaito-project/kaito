@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qwen2-5-coder-7b-instruct
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qwen2-5-coder-7b-instruct
+  template:
+    metadata:
+      labels:
+        app: qwen2-5-coder-7b-instruct
+    spec:
+      containers:
+      - name: qwen2-5-coder-7b-instruct-container
+        image: REPO_HERE.azurecr.io/qwen2.5-coder-7b-instruct:TAG_HERE
+        command:
+          - /bin/sh
+          - -c
+          - python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml
+        resources:
+          requests:
+            nvidia.com/gpu: 2
+          limits:
+            nvidia.com/gpu: 2
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 600 # 10 Min
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: dshm
+          mountPath: /dev/shm
+        - mountPath: /mnt/config
+          name: config-volume
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      - configMap:
+          defaultMode: 420
+          name: qwen2-5-coder-7b-inference-params
+        name: config-volume
+      tolerations:
+      - effect: NoSchedule
+        key: sku
+        operator: Equal
+        value: gpu
+      - effect: NoSchedule
+        key: nvidia.com/gpu
+        operator: Exists
+      nodeSelector:
+        pool: qwen25coder7
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qwen2-5-coder-7b-inference-params
+data:
+  inference_config.yaml: |
+    # Maximum number of steps to find the max available seq len fitting in the GPU memory.
+    max_probe_steps: 6
+
+    vllm:
+      cpu-offload-gb: 0
+      gpu-memory-utilization: 0.95
+      swap-space: 4
+      served-model-name: test
+      dtype: float16
+      tensor-parallel-size: 2
+
+      # max-seq-len-to-capture: 8192
+      # num-scheduler-steps: 1
+      # enable-chunked-prefill: false
+      # see https://docs.vllm.ai/en/stable/models/engine_args.html for more options.

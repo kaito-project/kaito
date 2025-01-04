@@ -79,7 +79,8 @@ class BaseVectorStoreTest(ABC):
         vector_store_manager.index_documents("test_index", documents)
 
         params = {"temperature": 0.7}
-        query_result = vector_store_manager.query("test_index", "First", top_k=1, llm_params=params)
+        query_result = vector_store_manager.query("test_index", "First", top_k=1,
+                                                  llm_params=params, rerank_params={})
 
         assert query_result is not None
         assert query_result["response"] == "{'result': 'This is the completion from the API'}"

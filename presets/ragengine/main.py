@@ -61,7 +61,8 @@ async def index_documents(request: IndexRequest): # TODO: Research async/sync wh
 async def query_index(request: QueryRequest):
     try:
         llm_params = request.llm_params or {} # Default to empty dict if no params provided
-        return rag_ops.query(request.index_name, request.query, request.top_k, llm_params)
+        rerank_params = request.rerank_params or {} # Default to empty dict if no params provided
+        return rag_ops.query(request.index_name, request.query, request.top_k, llm_params, rerank_params)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -23,6 +23,7 @@ class QueryRequest(BaseModel):
     query: str
     top_k: int = 10
     llm_params: Optional[Dict] = None  # Accept a dictionary for parameters
+    rerank_params: Optional[Dict] = None # Accept a dictionary for parameters
 
 class ListDocumentsResponse(BaseModel):
     documents: Dict[str, Dict[str, Dict[str, str]]]

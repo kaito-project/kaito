@@ -12,12 +12,16 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -29,9 +33,10 @@ const (
 	N_SERIES_PREFIX = "Standard_N"
 	D_SERIES_PREFIX = "Standard_D"
 
-	DefaultLoraConfigMapTemplate  = "lora-params-template"
-	DefaultQloraConfigMapTemplate = "qlora-params-template"
-	MaxAdaptersNumber             = 10
+	DefaultLoraConfigMapTemplate   = "lora-params-template"
+	DefaultQloraConfigMapTemplate  = "qlora-params-template"
+	DefaultInferenceConfigTemplate = "inference-params-template"
+	MaxAdaptersNumber              = 10
 )
 
 func (w *Workspace) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -53,7 +58,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.Inference != nil {
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference).ViaField("resource"),
-				w.Inference.validateCreate().ViaField("inference"))
+				w.Inference.validateCreate(ctx, w.Namespace).ViaField("inference"))
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
@@ -390,7 +395,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
-func (i *InferenceSpec) validateCreate() (errs *apis.FieldError) {
+func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -426,6 +431,35 @@ func (i *InferenceSpec) validateCreate() (errs *apis.FieldError) {
 	if len(i.Adapters) > 0 {
 		nameMap := make(map[string]bool)
 		errs = errs.Also(validateDuplicateName(i.Adapters, nameMap))
+	}
+
+	if i.Config != "" {
+		errs = errs.Also(i.validateConfigMap(ctx, namespace))
+	}
+
+	return errs
+}
+
+func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string) (errs *apis.FieldError) {
+	var cm corev1.ConfigMap
+	if k8sclient.Client == nil {
+		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
+		return errs
+	}
+	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: i.Config, Namespace: namespace}, &cm)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("ConfigMap '%s' specified in 'config' not found in namespace '%s'", i.Config, namespace), "config"))
+		} else {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get ConfigMap '%s' in namespace '%s': %v", i.Config, namespace, err), "config"))
+		}
+		return errs
+	}
+
+	// basic check here, it's hard to validate the content of the configmap in controller
+	_, ok := cm.Data["inference_config.yaml"]
+	if !ok {
+		return apis.ErrMissingField("inference_config.yaml in ConfigMap")
 	}
 
 	return errs

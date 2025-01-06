@@ -40,6 +40,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -59,6 +60,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -78,6 +80,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -97,16 +100,17 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a mistral workspace with preset public mode and 2 gpu successfully", func() {
+	It("should create a qwen2.5 coder workspace with preset public mode and 2 gpu successfully", func() {
 		// single node with 2 gpu
 		numOfNode := 1
-		workspaceObj := createMistralWorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode)
+		workspaceObj := createQwen2_5WorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -117,10 +121,35 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
 		validateWorkspaceReadiness(workspaceObj)
+	})
+
+	It("should create a falcon workspace with adapter successfully", func() {
+		numOfNode := 1
+		workspaceObj := createFalconWorkspaceWithAdapterAndVLLM(numOfNode, validAdapters2)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		validateInitContainers(workspaceObj, expectedInitContainers2)
+
+		validateAdapterLoadedInVLLM(workspaceObj, workspaceObj.Name, imageName2)
 	})
 })
 
@@ -132,6 +161,20 @@ func createFalconWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1alp
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-falcon-vllm"},
 			}, nil, PresetFalcon7BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createFalconWorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1alpha1.AdapterSpec) *kaitov1alpha1.Workspace {
+	workspaceObj := &kaitov1alpha1.Workspace{}
+	By("Creating a workspace CR with Falcon 7B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-falcon-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-falcon-adapter-vllm"},
+			}, nil, PresetFalcon7BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, validAdapters)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -180,14 +223,14 @@ func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1alpha
 	return workspaceObj
 }
 
-func createMistralWorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode int) *kaitov1alpha1.Workspace {
+func createQwen2_5WorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode int) *kaitov1alpha1.Workspace {
 	workspaceObj := &kaitov1alpha1.Workspace{}
-	By("Creating a workspace CR with Mistral 7B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-mistral-2gpu-", rand.Intn(1000))
+	By("Creating a workspace CR with Qwen2.5 Coder 7B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-qwen-2gpu-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-mistral-2gpu-vllm"},
-			}, nil, PresetMistral7BInstructModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen-2gpu-vllm"},
+			}, nil, PresetQwen2_5Coder7BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})

@@ -4,6 +4,7 @@
 package e2e
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -131,7 +132,7 @@ func validateImagePullSecrets(workspaceObj *kaitov1alpha1.Workspace, expectedIma
 func validateAdapterAdded(workspaceObj *kaitov1alpha1.Workspace, deploymentName string, adapterName string) {
 	By("Checking the Adapters", func() {
 		Eventually(func() bool {
-			coreClient, err := utils.GetK8sConfig()
+			coreClient, err := utils.GetK8sClientset()
 			if err != nil {
 				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
 				return false
@@ -155,6 +156,47 @@ func validateAdapterAdded(workspaceObj *kaitov1alpha1.Workspace, deploymentName 
 
 			return strings.Contains(logs, searchStringAdapter) && strings.Contains(logs, searchStringModelSuccess)
 		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for adapter resource to be ready")
+	})
+}
+
+func validateAdapterLoadedInVLLM(workspaceObj *kaitov1alpha1.Workspace, deploymentName string, adapterName string) {
+	execOption := corev1.PodExecOptions{
+		Command:   []string{"bash", "-c", "apt-get update && apt-get install curl -y; curl -s 127.0.0.1:5000/v1/models | grep " + adapterName},
+		Container: deploymentName,
+		Stdout:    true,
+		Stderr:    true,
+	}
+
+	By("Checking the loaded Adapters", func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+
+			namespace := workspaceObj.Namespace
+			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
+				return false
+			}
+
+			k8sConfig, err := utils.GetK8sConfig()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
+				return false
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
+			_, err = utils.ExecSync(ctx, k8sConfig, coreClient, namespace, podName, execOption)
+			if err != nil {
+				GinkgoWriter.Printf("validate command fails: %v\n", err)
+				return false
+			}
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for adapter to be loaded")
 	})
 }
 

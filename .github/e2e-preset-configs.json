@@ -99,6 +99,15 @@
         "loads_adapter": false
       },
       {
+        "name": "qwen2.5-coder-7b-instruct",
+        "workload": "qwen2-5-coder-7b-instruct",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC12s_v3",
+        "node-osdisk-size": 100,
+        "OSS": true,
+        "loads_adapter": false
+      },
+      {
         "name": "llama-2-7b",
         "node-count": 1,
         "node-vm-size": "Standard_NC12s_v3",

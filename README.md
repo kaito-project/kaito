@@ -7,7 +7,7 @@
 
 | ![notification](docs/img/bell.svg) What is NEW! |
 |-------------------------------------------------|
-| Latest Release: Dec 5th, 2024. Kaito v0.4.0.    |
+| Latest Release: Jan 3rd, 2025. Kaito v0.4.1.    |
 | First Release: Nov 15th, 2023. Kaito v0.1.0.    |
 
 Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
@@ -197,3 +197,5 @@ KAITO has adopted the [Cloud Native Compute Foundation Code of Conduct](https://
 ## Contact
 
 "Kaito devs" <kaito-dev@microsoft.com>
+
+[Kaito Community Slack](https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-2wm17rttz-t4E6_rMIuY03DwBHaJq1sg)

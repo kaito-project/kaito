@@ -94,6 +94,11 @@ spec:
                       type: string
                   type: object
                 type: array
+              config:
+                description: |-
+                  Config specifies the name of a custom ConfigMap that contains inference arguments.
+                  If specified, the ConfigMap must be in the same namespace as the Workspace custom resource.
+                type: string
               preset:
                 description: Preset describes the base model that will be deployed
                   with preset configurations.

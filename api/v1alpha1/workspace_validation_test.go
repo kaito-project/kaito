@@ -6,7 +6,6 @@ package v1alpha1
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -365,7 +364,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		},
 	}
 
-	os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1012,7 +1011,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 		},
 	}
 	RegisterValidationTestModels()
-	os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	tests := []struct {
 		name          string
 		workspaceName string
@@ -1132,8 +1131,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 func TestTuningSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
 	// Set ReleaseNamespace Env
-	os.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
-	defer os.Unsetenv(consts.DefaultReleaseNamespaceEnvVar)
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()

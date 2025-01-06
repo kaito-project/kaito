@@ -5,7 +5,6 @@ package tuning
 
 import (
 	"context"
-	"os"
 	"strings"
 	"testing"
 
@@ -25,7 +24,7 @@ func normalize(s string) string {
 }
 
 func TestGetInstanceGPUCount(t *testing.T) {
-	os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	testcases := map[string]struct {
 		sku              string
@@ -54,12 +53,6 @@ func TestGetInstanceGPUCount(t *testing.T) {
 }
 
 func TestGetTuningImageInfo(t *testing.T) {
-	// Setting up test environment
-	originalRegistryName := os.Getenv("PRESET_REGISTRY_NAME")
-	defer func() {
-		os.Setenv("PRESET_REGISTRY_NAME", originalRegistryName) // Reset after tests
-	}()
-
 	testcases := map[string]struct {
 		registryName string
 		wObj         *kaitov1alpha1.Workspace
@@ -102,7 +95,8 @@ func TestGetTuningImageInfo(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			os.Setenv("PRESET_REGISTRY_NAME", tc.registryName)
+			t.Setenv("PRESET_REGISTRY_NAME", tc.registryName)
+
 			result, _ := GetTuningImageInfo(context.Background(), tc.wObj, tc.presetObj)
 			assert.Equal(t, tc.expected, result)
 		})
@@ -347,6 +341,8 @@ func TestPrepareTuningParameters(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
 			commands, resources := prepareTuningParameters(ctx, tc.workspaceObj, tc.modelCommand, tc.tuningObj, "2")
 			assert.Equal(t, tc.expectedCommands, commands)
 			assert.Equal(t, tc.expectedRequirements.Requests, resources.Requests)

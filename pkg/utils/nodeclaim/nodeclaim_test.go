@@ -5,7 +5,6 @@ package nodeclaim
 import (
 	"context"
 	"errors"
-	"os"
 	"testing"
 
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
@@ -77,7 +76,7 @@ func TestCreateNodeClaim(t *testing.T) {
 
 			mockNodeClaim := &test.MockNodeClaim
 			mockNodeClaim.Status.Conditions = tc.nodeClaimConditions
-			os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			err := CreateNodeClaim(context.Background(), mockNodeClaim, mockClient)
 			if tc.expectedError == nil {
 				assert.Check(t, err == nil, "Not expected to return error")
@@ -178,7 +177,8 @@ func TestWaitForPendingNodeClaims(t *testing.T) {
 func TestGenerateNodeClaimManifest(t *testing.T) {
 	t.Run("Should generate a nodeClaim object from the given workspace when cloud provider set to azure", func(t *testing.T) {
 		mockWorkspace := test.MockWorkspaceWithPreset
-		os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
 		nodeClaim := GenerateNodeClaimManifest(context.Background(), "0", mockWorkspace)
 
 		assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
@@ -196,7 +196,8 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 
 	t.Run("Should generate a nodeClaim object from the given workspace when cloud provider set to aws", func(t *testing.T) {
 		mockWorkspace := test.MockWorkspaceWithPreset
-		os.Setenv("CLOUD_PROVIDER", "aws")
+		t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
+
 		nodeClaim := GenerateNodeClaimManifest(context.Background(), "0", mockWorkspace)
 
 		assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
@@ -241,7 +242,8 @@ func TestGenerateAKSNodeClassManifest(t *testing.T) {
 
 func TestGenerateEC2NodeClassManifest(t *testing.T) {
 	t.Run("Should generate a valid EC2NodeClass object with correct name and annotations", func(t *testing.T) {
-		os.Setenv("CLUSTER_NAME", "test-cluster")
+		t.Setenv("CLUSTER_NAME", "test-cluster")
+
 		nodeClass := GenerateEC2NodeClassManifest(context.Background())
 
 		assert.Check(t, nodeClass != nil, "EC2NodeClass must not be nil")
@@ -252,7 +254,8 @@ func TestGenerateEC2NodeClassManifest(t *testing.T) {
 	})
 
 	t.Run("Should generate a valid EC2NodeClass object with correct subnet and security group selectors", func(t *testing.T) {
-		os.Setenv("CLUSTER_NAME", "test-cluster")
+		t.Setenv("CLUSTER_NAME", "test-cluster")
+
 		nodeClass := GenerateEC2NodeClassManifest(context.Background())
 
 		assert.Check(t, nodeClass != nil, "EC2NodeClass must not be nil")
@@ -261,7 +264,8 @@ func TestGenerateEC2NodeClassManifest(t *testing.T) {
 	})
 
 	t.Run("Should handle missing CLUSTER_NAME environment variable", func(t *testing.T) {
-		os.Unsetenv("CLUSTER_NAME")
+		t.Setenv("CLUSTER_NAME", "")
+
 		nodeClass := GenerateEC2NodeClassManifest(context.Background())
 
 		assert.Check(t, nodeClass != nil, "EC2NodeClass must not be nil")
@@ -273,7 +277,8 @@ func TestGenerateEC2NodeClassManifest(t *testing.T) {
 
 func TestCreateKarpenterNodeClass(t *testing.T) {
 	t.Run("Should create AKSNodeClass when cloud provider is Azure", func(t *testing.T) {
-		os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
 		mockClient := test.NewClient()
 		mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
 
@@ -283,8 +288,9 @@ func TestCreateKarpenterNodeClass(t *testing.T) {
 	})
 
 	t.Run("Should create EC2NodeClass when cloud provider is AWS", func(t *testing.T) {
-		os.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
-		os.Setenv("CLUSTER_NAME", "test-cluster")
+		t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
+		t.Setenv("CLUSTER_NAME", "test-cluster")
+
 		mockClient := test.NewClient()
 		mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&awsv1beta1.EC2NodeClass{}), mock.Anything).Return(nil)
 
@@ -294,7 +300,8 @@ func TestCreateKarpenterNodeClass(t *testing.T) {
 	})
 
 	t.Run("Should return error when cloud provider is unsupported", func(t *testing.T) {
-		os.Setenv("CLOUD_PROVIDER", "unsupported")
+		t.Setenv("CLOUD_PROVIDER", "unsupported")
+
 		mockClient := test.NewClient()
 
 		err := CreateKarpenterNodeClass(context.Background(), mockClient)
@@ -302,7 +309,8 @@ func TestCreateKarpenterNodeClass(t *testing.T) {
 	})
 
 	t.Run("Should return error when Create call fails", func(t *testing.T) {
-		os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
 		mockClient := test.NewClient()
 		mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(errors.New("create failed"))
 

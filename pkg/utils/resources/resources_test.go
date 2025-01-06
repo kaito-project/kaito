@@ -5,7 +5,6 @@ package resources
 import (
 	"context"
 	"errors"
-	"os"
 	"testing"
 	"time"
 
@@ -275,15 +274,13 @@ func TestEnsureInferenceConfigMap(t *testing.T) {
 	}
 
 	testcases := map[string]struct {
-		setupEnv      func()
-		callMocks     func(c *test.MockClient)
-		userProvided  client.ObjectKey
-		expectedError string
+		callMocks        func(c *test.MockClient)
+		releaseNamespace string
+		userProvided     client.ObjectKey
+		expectedError    string
 	}{
 		"Config already exists in workspace namespace": {
-			setupEnv: func() {
-				os.Setenv(consts.DefaultReleaseNamespaceEnvVar, "release-namespace")
-			},
+			releaseNamespace: "release-namespace",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 			},
@@ -303,9 +300,7 @@ func TestEnsureInferenceConfigMap(t *testing.T) {
 			expectedError: "failed to get release namespace: failed to determine release namespace from file /var/run/secrets/kubernetes.io/serviceaccount/namespace and env var RELEASE_NAMESPACE",
 		},
 		"Config doesn't exist in namespace": {
-			setupEnv: func() {
-				os.Setenv(consts.DefaultReleaseNamespaceEnvVar, "release-namespace")
-			},
+			releaseNamespace: "release-namespace",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(apierrors.NewNotFound(schema.GroupResource{}, "inference-config-template"))
 			},
@@ -316,9 +311,7 @@ func TestEnsureInferenceConfigMap(t *testing.T) {
 			expectedError: "user specified ConfigMap inference-config-template not found in namespace workspace-namespace",
 		},
 		"Generate default config": {
-			setupEnv: func() {
-				os.Setenv(consts.DefaultReleaseNamespaceEnvVar, "release-namespace")
-			},
+			releaseNamespace: "release-namespace",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).
 					Return(apierrors.NewNotFound(schema.GroupResource{}, "inference-params-template")).Times(4)
@@ -342,11 +335,8 @@ func TestEnsureInferenceConfigMap(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			cleanupEnv := test.SaveEnv(consts.DefaultReleaseNamespaceEnvVar)
-			defer cleanupEnv()
-
-			if tc.setupEnv != nil {
-				tc.setupEnv()
+			if tc.releaseNamespace != "" {
+				t.Setenv(consts.DefaultReleaseNamespaceEnvVar, tc.releaseNamespace)
 			}
 
 			mockClient := test.NewClient()

@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -270,6 +269,7 @@ func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 	test.RegisterTestModel()
 	testcases := map[string]struct {
 		callMocks             func(c *test.MockClient)
+		cloudProvider         string
 		objectConditions      apis.Conditions
 		ragengine             v1alpha1.RAGEngine
 		karpenterFeatureGates bool
@@ -281,6 +281,7 @@ func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha5.Machine{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
 			},
+			cloudProvider: consts.AzureCloudName,
 			objectConditions: apis.Conditions{
 				{
 					Type:   apis.ConditionReady,
@@ -297,8 +298,8 @@ func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-				os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			},
+			cloudProvider: consts.AzureCloudName,
 			objectConditions: apis.Conditions{
 				{
 					Type:   apis.ConditionReady,
@@ -316,8 +317,8 @@ func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-				os.Setenv("CLOUD_PROVIDER", "aws")
 			},
+			cloudProvider: consts.AWSCloudName,
 			objectConditions: apis.Conditions{
 				{
 					Type:   apis.ConditionReady,
@@ -346,6 +347,11 @@ func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 					mockNodeClaim.Status.Conditions = tc.objectConditions
 					mockClient.CreateOrUpdateObjectInMap(mockNodeClaim)
 				}
+			}
+
+			if tc.cloudProvider != "" {
+				t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
+
 			}
 
 			tc.callMocks(mockClient)
@@ -550,7 +556,6 @@ func TestApplyRAG(t *testing.T) {
 
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
-				os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			},
 			ragengine: *test.MockRAGEngineWithRevision1,
 			verifyCalls: func(c *test.MockClient) {
@@ -568,7 +573,7 @@ func TestApplyRAG(t *testing.T) {
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						dep := args.Get(2).(*appsv1.Deployment)
-						*dep = test.MockRAGDeploymentUpdated
+						*dep = *test.MockRAGDeploymentUpdated.DeepCopy()
 					}).
 					Return(nil)
 
@@ -592,7 +597,7 @@ func TestApplyRAG(t *testing.T) {
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						dep := args.Get(2).(*appsv1.Deployment)
-						*dep = test.MockRAGDeploymentUpdated
+						*dep = *test.MockRAGDeploymentUpdated.DeepCopy()
 					}).
 					Return(nil)
 
@@ -615,6 +620,8 @@ func TestApplyRAG(t *testing.T) {
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 

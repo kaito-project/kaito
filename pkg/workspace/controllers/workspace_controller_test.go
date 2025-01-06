@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"sort"
 	"testing"
@@ -329,6 +328,7 @@ func TestCreateAndValidateMachineNode(t *testing.T) {
 		workspace             v1alpha1.Workspace
 		karpenterFeatureGates bool
 		expectedError         error
+		cloudProvider         string
 	}{
 		"Node is not created because machine creation fails": {
 			callMocks: func(c *test.MockClient) {
@@ -369,8 +369,8 @@ func TestCreateAndValidateMachineNode(t *testing.T) {
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-				os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			},
+			cloudProvider: consts.AzureCloudName,
 			objectConditions: apis.Conditions{
 				{
 					Type:   apis.ConditionReady,
@@ -388,8 +388,8 @@ func TestCreateAndValidateMachineNode(t *testing.T) {
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-				os.Setenv("CLOUD_PROVIDER", "aws")
 			},
+			cloudProvider: consts.AWSCloudName,
 			objectConditions: apis.Conditions{
 				{
 					Type:   apis.ConditionReady,
@@ -408,8 +408,8 @@ func TestCreateAndValidateMachineNode(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.Workspace{}), mock.Anything).Return(nil)
-				os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			},
+			cloudProvider: consts.AzureCloudName,
 			objectConditions: apis.Conditions{
 				{
 					Type:    v1beta1.Launched,
@@ -441,6 +441,11 @@ func TestCreateAndValidateMachineNode(t *testing.T) {
 				}
 			}
 
+			if tc.cloudProvider != "" {
+				t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
+
+			}
+
 			tc.callMocks(mockClient)
 
 			reconciler := &WorkspaceReconciler{
@@ -465,6 +470,7 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 	test.RegisterTestModel()
 	testcases := map[string]struct {
 		callMocks             func(c *test.MockClient)
+		cloudProvider         string
 		karpenterFeatureGates bool
 		nodeClaimConditions   apis.Conditions
 		workspace             v1alpha1.Workspace
@@ -478,8 +484,8 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.Workspace{}), mock.Anything).Return(nil)
-				os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			},
+			cloudProvider:         consts.AzureCloudName,
 			karpenterFeatureGates: true,
 			nodeClaimConditions: apis.Conditions{
 				{
@@ -499,6 +505,7 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
 			},
+			cloudProvider:         consts.AzureCloudName,
 			karpenterFeatureGates: true,
 			nodeClaimConditions: apis.Conditions{
 				{
@@ -520,6 +527,11 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 				mockClient.GetObjectFromMap(mockNodeClaim, key)
 				mockNodeClaim.Status.Conditions = tc.nodeClaimConditions
 				mockClient.CreateOrUpdateObjectInMap(mockNodeClaim)
+			}
+
+			if tc.cloudProvider != "" {
+				t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
+
 			}
 
 			tc.callMocks(mockClient)
@@ -693,7 +705,8 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			}
 			ctx := context.Background()
 
-			os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
 			err := reconciler.applyInference(ctx, &tc.workspace)
 			if tc.expectedError == nil {
 				assert.Check(t, err == nil, fmt.Sprintf("Not expected to return error: %v", err))

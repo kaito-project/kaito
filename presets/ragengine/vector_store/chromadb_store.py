@@ -35,10 +35,10 @@ class ChromaDBVectorStoreHandler(BaseVectorStore):
     def list_all_indexed_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
         indexed_docs = {} # Accumulate documents across all indexes
         try:
-            for collection in self.chroma_client.list_collections():
-                collection_info = collection.get()
+            for collection_name in self.chroma_client.list_collections():
+                collection_info = self.chroma_client.get_collection(collection_name).get()
                 for doc in zip(collection_info["ids"], collection_info["documents"], collection_info["metadatas"]):
-                    indexed_docs.setdefault(collection.name, {})[doc[0]] = {
+                    indexed_docs.setdefault(collection_name, {})[doc[0]] = {
                         "text": doc[1],
                         "metadata": json.dumps(doc[2]),
                     }
@@ -54,11 +54,10 @@ class ChromaDBVectorStoreHandler(BaseVectorStore):
         """
         try:
            # Get all collections
-            collections = self.chroma_client.list_collections()
+            collection_names = self.chroma_client.list_collections()
 
             # Delete each collection
-            for collection in collections:
-                collection_name = collection.name
+            for collection_name in collection_names:
                 self.chroma_client.delete_collection(name=collection_name)
                 print(f"Collection '{collection_name}' has been deleted.")
 

@@ -6,7 +6,6 @@ toolchain go1.22.5
 
 require (
 	github.com/Azure/karpenter-provider-azure v0.5.4
-	github.com/aws/karpenter-core v0.29.2
 	github.com/aws/karpenter-provider-aws v0.36.2
 	github.com/go-logr/logr v1.4.2
 	github.com/onsi/ginkgo/v2 v2.22.2

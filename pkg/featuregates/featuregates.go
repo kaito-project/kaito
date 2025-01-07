@@ -14,8 +14,7 @@ import (
 var (
 	// FeatureGates is a map that holds	the feature gates and their default values for Kaito.
 	FeatureGates = map[string]bool{
-		consts.FeatureFlagKarpenter: false,
-		consts.FeatureFlagVLLM:      true,
+		consts.FeatureFlagVLLM: true,
 		//	Add more feature gates here
 	}
 )

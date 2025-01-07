@@ -115,8 +115,6 @@ github.com/avast/retry-go v3.0.0+incompatible h1:4SOWQ7Qs+oroOTQOYnAHqelpCO0biHS
 github.com/avast/retry-go v3.0.0+incompatible/go.mod h1:XtSnn+n/sHqQIpZ10K1qAevBhOOCWBLXXy3hyiqqBrY=
 github.com/aws/aws-sdk-go v1.51.16 h1:vnWKK8KjbftEkuPX8bRj3WHsLy1uhotn0eXptpvrxJI=
 github.com/aws/aws-sdk-go v1.51.16/go.mod h1:LF8svs817+Nz+DmiMQKTO3ubZ/6IaTpq3TjupRn3Eqk=
-github.com/aws/karpenter-core v0.29.2 h1:iS8bjC1911LA459gLEl7Jkr0QRbyKMeXB2b4NEVGQIE=
-github.com/aws/karpenter-core v0.29.2/go.mod h1:GzFITbd2ijUiV4UJ0wox4RJQsFD2ncyJYtLmUlYnmJY=
 github.com/aws/karpenter-provider-aws v0.36.2 h1:4JEK2OMLDOkNthITDyngbvFo2FZRd8JJFQuDLQoGc9s=
 github.com/aws/karpenter-provider-aws v0.36.2/go.mod h1:sLDYiuoQr4PPTE9c3ZwFtVCTz6my+bjxIiO5SF5/M1A=
 github.com/awslabs/amazon-eks-ami/nodeadm v0.0.0-20240229193347-cfab22a10647 h1:8yRBVsjGmI7qQsPWtIrbWP+XfwHO9Wq7gdLVzjqiZFs=

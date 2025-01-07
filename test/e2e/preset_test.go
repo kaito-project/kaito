@@ -862,11 +862,7 @@ var _ = Describe("Workspace Preset", func() {
 })
 
 func validateCreateNode(workspaceObj *kaitov1alpha1.Workspace, numOfNode int) {
-	if nodeProvisionerName == "azkarpenter" {
-		utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
-	} else {
-		utils.ValidateMachineCreation(ctx, workspaceObj, numOfNode)
-	}
+	utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
 }
 
 // validateInferenceConfig validates that the inference config exists and contains data

@@ -7,9 +7,6 @@ package v1alpha1
 type ConditionType string
 
 const (
-	// ConditionTypeMachineStatus is the state when checking machine status.
-	ConditionTypeMachineStatus = ConditionType("MachineReady")
-
 	// ConditionTypeNodeClaimStatus is the state when checking nodeClaim status.
 	ConditionTypeNodeClaimStatus = ConditionType("NodeClaimReady")
 

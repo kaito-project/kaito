@@ -274,15 +274,17 @@ func WaitForPendingNodeClaims(ctx context.Context, obj interface{}, kubeClient c
 				lo.Contains(requirement.Values, instanceType)
 		})
 		if nodeClaimInstanceType {
-			_, found := lo.Find(nodeClaims.Items[i].GetConditions(), func(condition apis.Condition) bool {
-				return condition.Type == v1beta1.Initialized && condition.Status == v1.ConditionFalse
+			_, nodeClaimIsInitalized := lo.Find(nodeClaims.Items[i].GetConditions(), func(condition apis.Condition) bool {
+				return condition.Type == v1beta1.Initialized && condition.Status == v1.ConditionTrue
 			})
 
-			if found || nodeClaims.Items[i].GetConditions() == nil { // Check if conditions==nil is a workaround for condition delays in setting the nodeClaim object
-				// wait until the nodeClaim is initialized
-				if err := CheckNodeClaimStatus(ctx, &nodeClaims.Items[i], kubeClient); err != nil {
-					return err
-				}
+			if nodeClaimIsInitalized {
+				continue
+			}
+
+			// wait until the nodeClaim is initialized
+			if err := CheckNodeClaimStatus(ctx, &nodeClaims.Items[i], kubeClient); err != nil {
+				return err
 			}
 		}
 	}

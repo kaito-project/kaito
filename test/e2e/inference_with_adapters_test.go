@@ -222,11 +222,7 @@ var _ = Describe("Workspace Preset", func() {
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
 
-		if nodeProvisionerName == "azkarpenter" {
-			utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
-		} else {
-			utils.ValidateMachineCreation(ctx, workspaceObj, numOfNode)
-		}
+		utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
 		validateResourceStatus(workspaceObj)
 
 		time.Sleep(30 * time.Second)

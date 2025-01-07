@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"gopkg.in/yaml.v2"
@@ -218,10 +217,9 @@ func SelectNodes(qualified []*v1.Node, preferred []string, previous []string, co
 				_, jCreatedByGPUProvisioner = qualified[j].Labels[consts.LabelGPUProvisionerCustom]
 				// Choose node created by gpu-provisioner and karpenter since it is more likely to be empty to use.
 				var iCreatedByKarpenter, jCreatedByKarpenter bool
-				if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-					_, iCreatedByKarpenter = qualified[i].Labels[consts.LabelNodePool]
-					_, jCreatedByKarpenter = qualified[j].Labels[consts.LabelNodePool]
-				}
+				_, iCreatedByKarpenter = qualified[i].Labels[consts.LabelNodePool]
+				_, jCreatedByKarpenter = qualified[j].Labels[consts.LabelNodePool]
+
 				if (iCreatedByGPUProvisioner && !jCreatedByGPUProvisioner) ||
 					(iCreatedByKarpenter && !jCreatedByKarpenter) {
 					return true

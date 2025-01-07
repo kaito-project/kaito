@@ -4,9 +4,6 @@
 package test
 
 import (
-	"github.com/aws/karpenter-core/pkg/apis/v1alpha5"
-	"github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -15,6 +12,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+
+	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/model"
 )
 
 const (
@@ -805,11 +805,6 @@ var (
 )
 
 var (
-	machineLabels = map[string]string{
-		"karpenter.sh/provisioner-name": "default",
-		"kaito.sh/workspace":            "none",
-	}
-
 	nodeClaimLabels = map[string]string{
 		"karpenter.sh/nodepool": "kaito",
 		"kaito.sh/workspace":    "none",
@@ -817,30 +812,6 @@ var (
 )
 
 var (
-	MockMachine = v1alpha5.Machine{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   "testmachine",
-			Labels: machineLabels,
-		},
-		Spec: v1alpha5.MachineSpec{
-			MachineTemplateRef: &v1alpha5.MachineTemplateRef{
-				Name: "test-machine",
-			},
-			Requirements: []corev1.NodeSelectorRequirement{
-				{
-					Key:      corev1.LabelInstanceTypeStable,
-					Operator: corev1.NodeSelectorOpIn,
-					Values:   []string{"Standard_NC12s_v3"},
-				},
-				{
-					Key:      "karpenter.sh/provisioner-name",
-					Operator: corev1.NodeSelectorOpIn,
-					Values:   []string{"default"},
-				},
-			},
-		},
-	}
-
 	MockNodeClaim = v1beta1.NodeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "testnodeclaim",
@@ -862,12 +833,6 @@ var (
 )
 
 var (
-	MockMachineList = &v1alpha5.MachineList{
-		Items: []v1alpha5.Machine{
-			MockMachine,
-		},
-	}
-
 	MockNodeClaimList = &v1beta1.NodeClaimList{
 		Items: []v1beta1.NodeClaim{
 			MockNodeClaim,

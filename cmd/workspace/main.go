@@ -15,12 +15,10 @@ import (
 	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
 
-	"github.com/aws/karpenter-core/pkg/apis/v1alpha5"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 	"k8s.io/klog/v2"
@@ -60,7 +58,6 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(kaitov1alpha1.AddToScheme(scheme))
-	utilruntime.Must(v1alpha5.SchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(v1beta1.SchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(azurev1alpha2.SchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(awsv1beta1.SchemeBuilder.AddToScheme(scheme))
@@ -168,11 +165,9 @@ func main() {
 		exitWithErrorFunc()
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-		err = nodeclaim.CheckNodeClass(ctx, kClient)
-		if err != nil {
-			exitWithErrorFunc()
-		}
+	err = nodeclaim.CheckNodeClass(ctx, kClient)
+	if err != nil {
+		exitWithErrorFunc()
 	}
 
 	klog.InfoS("starting manager")

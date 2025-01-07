@@ -9,7 +9,7 @@ require (
 	github.com/aws/karpenter-core v0.29.2
 	github.com/aws/karpenter-provider-aws v0.36.2
 	github.com/go-logr/logr v1.4.2
-	github.com/onsi/ginkgo/v2 v2.22.1
+	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
 	github.com/samber/lo v1.47.0
 	github.com/stretchr/testify v1.10.0

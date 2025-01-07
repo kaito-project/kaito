@@ -103,8 +103,8 @@ class BaseVectorStore(ABC):
             top_k (int): Number of initial top results to retrieve
             llm_params (dict): Optional parameters for the language model
             rerank_params (dict): Optional configuration for reranking
-                - 'top_n' (int): Number of documents to process in each batch
-                - 'batch_size' (int):  Number of top documents to return after reranking
+                - 'top_n' (int): Number of top documents to return after reranking
+                - 'batch_size' (int):  Number of documents to process in each batch
 
         Returns:
             dict: A dictionary containing the response and source nodes.
@@ -125,6 +125,7 @@ class BaseVectorStore(ABC):
             # Add LLMRerank to postprocessors
             node_postprocessors.append(
                 LLMRerank(
+                    llm=self.llm,
                     choice_batch_size=rerank_params['choice_batch_size'],
                     top_n=rerank_params['top_n']
                 )

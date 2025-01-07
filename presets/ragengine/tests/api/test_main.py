@@ -167,7 +167,7 @@ def test_reranker_and_query_with_index(mock_post):
 
     # Verify the number of mock API calls
     assert mock_post.call_count == len(mock_http_responses)
-g
+
 def test_query_index_failure():
     # Prepare request data for querying.
     request_data = {

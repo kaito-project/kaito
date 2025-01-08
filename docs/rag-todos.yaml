@@ -1,0 +1,53 @@
+apiVersion: kaito.sh/v1alpha1
+kind: RAG_Workspace
+metadata:
+  name: random
+
+resources:
+   - instanceType: "Standard_NC12s_v3"
+     labelSelector:
+        matchLabels:
+          apps: RAG
+rag:
+  index: # Dataset input
+    # Optional
+    storage: # Need to handle following: azure, aws, (gcp?), postgresql, data via api
+      # Example #1
+      AzureCosmosDB: URI
+      secret: <secret_store> # Auth (CSI Secret Store)
+      # Example #2
+      AWSDocDB: URI
+      secret: <secret_store> # Auth (CSI Secret Store)
+      # Example #3
+      # If blank use data via API and FAISS
+      # Example #4
+      # Perssitent Volume - local files (SimpleDirectoryReader)
+  query: # FAISS (Take out of CRD and put in POST Request)
+    search_method: "l2" # Voronoi Search, product search
+ 
+  models:
+    llm:
+      endpoint: "URL" # Service Endpoint
+      # -- OR --
+      secret: # OpenAI Secret (Prorjected Volume)
+
+  
+    embedding_model:
+      endpoint: "URL" # Service Endpoint - need to add presets for embedding
+      # -- OR --
+      secret: # OpenAI Secret (Prorjected Volume)
+      # -- OR --
+      hf_model:
+         - name: "BAAI/bge-small-en-v1.5" # model_id
+           token: # Optional
+           remote: false # can also run remotely
+
+
+
+
+
+Whole RAG workflow runs on one node
+POST Request for handling Indexing Uses CRD information for Storage Info (Optional)
+
+
+

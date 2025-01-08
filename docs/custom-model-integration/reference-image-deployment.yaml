@@ -12,7 +12,7 @@ inference:
     spec:
       containers:
       - name: custom-llm-container
-        image: ghcr.io/azure/kaito/llm-reference-preset:latest
+        image: ghcr.io/kaito-project/kaito/llm-reference-preset:latest
         command: ["accelerate"]
         args: 
           - "launch"

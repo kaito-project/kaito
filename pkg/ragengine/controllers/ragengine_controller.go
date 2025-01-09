@@ -32,7 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
@@ -561,7 +561,7 @@ func (c *RAGEngineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&kaitov1alpha1.RAGEngine{}).
 		Owns(&appsv1.ControllerRevision{}).
 		Owns(&appsv1.Deployment{}).
-		Watches(&v1beta1.NodeClaim{}, c.watchNodeClaims()). // watches for nodeClaim with labels indicating ragengine name.
+		Watches(&karpenterv1.NodeClaim{}, c.watchNodeClaims()). // watches for nodeClaim with labels indicating ragengine name.
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
 	return builder.Complete(c)
@@ -571,7 +571,7 @@ func (c *RAGEngineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 func (c *RAGEngineReconciler) watchNodeClaims() handler.EventHandler {
 	return handler.EnqueueRequestsFromMapFunc(
 		func(ctx context.Context, o client.Object) []reconcile.Request {
-			nodeClaimObj := o.(*v1beta1.NodeClaim)
+			nodeClaimObj := o.(*karpenterv1.NodeClaim)
 			name, ok := nodeClaimObj.Labels[kaitov1alpha1.LabelRAGEngineName]
 			if !ok {
 				return nil

@@ -14,7 +14,7 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -70,8 +70,8 @@ var (
 	}
 )
 
-func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient client.Client, wObj *kaitov1alpha1.Workspace, inferenceParam *model.PresetParam) error {
-	runtimeName := kaitov1alpha1.GetWorkspaceRuntimeName(wObj)
+func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient client.Client, wObj *v1alpha1.Workspace, inferenceParam *model.PresetParam) error {
+	runtimeName := v1alpha1.GetWorkspaceRuntimeName(wObj)
 	if runtimeName != model.RuntimeNameHuggingfaceTransformers {
 		return fmt.Errorf("distributed inference is not supported for runtime %s", runtimeName)
 	}
@@ -100,7 +100,7 @@ func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient cl
 	return nil
 }
 
-func GetInferenceImageInfo(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, presetObj *model.PresetParam) (string, []corev1.LocalObjectReference) {
+func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1alpha1.Workspace, presetObj *model.PresetParam) (string, []corev1.LocalObjectReference) {
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 	// Check if the workspace preset's access mode is private
 	if len(workspaceObj.Inference.Adapters) > 0 {
@@ -110,7 +110,7 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *kaitov1alpha1.Work
 			}
 		}
 	}
-	if string(workspaceObj.Inference.Preset.AccessMode) == string(kaitov1alpha1.ModelImageAccessModePrivate) {
+	if string(workspaceObj.Inference.Preset.AccessMode) == string(v1alpha1.ModelImageAccessModePrivate) {
 		imageName := workspaceObj.Inference.Preset.PresetOptions.Image
 		for _, secretName := range workspaceObj.Inference.Preset.PresetOptions.ImagePullSecrets {
 			imagePullSecretRefs = append(imagePullSecretRefs, corev1.LocalObjectReference{Name: secretName})
@@ -126,7 +126,7 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *kaitov1alpha1.Work
 	}
 }
 
-func CreatePresetInference(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, revisionNum string,
+func CreatePresetInference(ctx context.Context, workspaceObj *v1alpha1.Workspace, revisionNum string,
 	model model.Model, kubeClient client.Client) (client.Object, error) {
 	inferenceParam := model.GetInferenceParameters().DeepCopy()
 
@@ -136,7 +136,7 @@ func CreatePresetInference(ctx context.Context, workspaceObj *kaitov1alpha1.Work
 			Namespace: workspaceObj.Namespace,
 		},
 		client.ObjectKey{
-			Name: kaitov1alpha1.DefaultInferenceConfigTemplate,
+			Name: v1alpha1.DefaultInferenceConfigTemplate,
 		},
 	)
 	if err != nil {
@@ -190,7 +190,7 @@ func CreatePresetInference(ctx context.Context, workspaceObj *kaitov1alpha1.Work
 	}
 
 	// inference command
-	runtimeName := kaitov1alpha1.GetWorkspaceRuntimeName(workspaceObj)
+	runtimeName := v1alpha1.GetWorkspaceRuntimeName(workspaceObj)
 	commands := inferenceParam.GetInferenceCommand(runtimeName, skuNumGPUs, &cmVolumeMount)
 
 	image, imagePullSecrets := GetInferenceImageInfo(ctx, workspaceObj, inferenceParam)

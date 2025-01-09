@@ -34,7 +34,7 @@ jobs:
       id-token: write # This is required for requesting the JWT
     environment: e2e-test
     env:
-      GO_VERSION: "1.22"
+      GO_VERSION: "1.23"
       KARPENTER_NAMESPACE: "karpenter"
       GPU_PROVISIONER_NAMESPACE: "gpu-provisioner"
 

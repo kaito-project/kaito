@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	k8sClient "sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 )
 
 // MockClient Client is a mock for the controller-runtime dynamic client interface.
@@ -104,10 +104,10 @@ func (m *MockClient) getObjectListFromMap(list k8sClient.ObjectList) k8sClient.O
 			}
 		}
 		return nodeList
-	case *v1beta1.NodeClaimList:
-		nodeClaimList := &v1beta1.NodeClaimList{}
+	case *karpenterv1.NodeClaimList:
+		nodeClaimList := &karpenterv1.NodeClaimList{}
 		for _, obj := range relevantMap {
-			if m, ok := obj.(*v1beta1.NodeClaim); ok {
+			if m, ok := obj.(*karpenterv1.NodeClaim); ok {
 				nodeClaimList.Items = append(nodeClaimList.Items, *m)
 			}
 		}

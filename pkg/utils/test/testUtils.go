@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -812,13 +812,13 @@ var (
 )
 
 var (
-	MockNodeClaim = v1beta1.NodeClaim{
+	MockNodeClaim = karpenterv1.NodeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "testnodeclaim",
 			Labels: nodeClaimLabels,
 		},
-		Spec: v1beta1.NodeClaimSpec{
-			Requirements: []v1beta1.NodeSelectorRequirementWithMinValues{
+		Spec: karpenterv1.NodeClaimSpec{
+			Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
 				{
 					NodeSelectorRequirement: corev1.NodeSelectorRequirement{
 						Key:      corev1.LabelInstanceTypeStable,
@@ -833,8 +833,8 @@ var (
 )
 
 var (
-	MockNodeClaimList = &v1beta1.NodeClaimList{
-		Items: []v1beta1.NodeClaim{
+	MockNodeClaimList = &karpenterv1.NodeClaimList{
+		Items: []karpenterv1.NodeClaim{
 			MockNodeClaim,
 		},
 	}

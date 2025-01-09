@@ -9,7 +9,7 @@ on:
     paths-ignore: ['docs/**', '**.md', '**.mdx', '**.png', '**.jpg']
 
 env:
-  GO_VERSION: "1.22"
+  GO_VERSION: "1.23"
 
 permissions:
   id-token: write # This is required for requesting the JWT

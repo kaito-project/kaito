@@ -14,6 +14,7 @@ import (
 	"time"
 
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
+	"github.com/awslabs/operatorpkg/status"
 	"github.com/stretchr/testify/mock"
 	"gotest.tools/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -24,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -316,7 +317,7 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks           func(c *test.MockClient)
 		cloudProvider       string
-		nodeClaimConditions apis.Conditions
+		nodeClaimConditions []status.Condition
 		workspace           v1alpha1.Workspace
 		expectedError       error
 	}{
@@ -324,16 +325,16 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.Workspace{}), mock.Anything).Return(nil)
 			},
 			cloudProvider: consts.AzureCloudName,
-			nodeClaimConditions: apis.Conditions{
+			nodeClaimConditions: []status.Condition{
 				{
-					Type:    v1beta1.Launched,
-					Status:  corev1.ConditionFalse,
+					Type:    karpenterv1.ConditionTypeLaunched,
+					Status:  v1.ConditionFalse,
 					Message: consts.ErrorInstanceTypesUnavailable,
 				},
 			},
@@ -344,15 +345,15 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
 			},
 			cloudProvider: consts.AzureCloudName,
-			nodeClaimConditions: apis.Conditions{
+			nodeClaimConditions: []status.Condition{
 				{
-					Type:   apis.ConditionReady,
-					Status: corev1.ConditionTrue,
+					Type:   string(apis.ConditionReady),
+					Status: v1.ConditionTrue,
 				},
 			},
 			workspace:     *test.MockWorkspaceDistributedModel,
@@ -363,7 +364,7 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
 			mockClient := test.NewClient()
-			mockNodeClaim := &v1beta1.NodeClaim{}
+			mockNodeClaim := &karpenterv1.NodeClaim{}
 
 			mockClient.UpdateCb = func(key types.NamespacedName) {
 				mockClient.GetObjectFromMap(mockNodeClaim, key)
@@ -769,7 +770,7 @@ func TestApplyWorkspaceResource(t *testing.T) {
 	}{
 		"Fail to apply workspace because associated nodeClaim cannot be retrieved": {
 			callMocks: func(c *test.MockClient) {
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaimList{}), mock.Anything).Return(errors.New("failed to retrieve nodeClaims"))
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(errors.New("failed to retrieve nodeClaims"))
 
 			},
 			workspace:     *test.MockWorkspaceDistributedModel,
@@ -788,8 +789,8 @@ func TestApplyWorkspaceResource(t *testing.T) {
 
 					relevantMap[objKey] = &m
 				}
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaimList{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(errors.New("failed to list nodes"))
 			},
@@ -808,8 +809,8 @@ func TestApplyWorkspaceResource(t *testing.T) {
 					relevantMap[objKey] = &n
 				}
 
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaimList{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 
@@ -827,14 +828,14 @@ func TestApplyWorkspaceResource(t *testing.T) {
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 
-			mockNodeClaim := &v1beta1.NodeClaim{}
+			mockNodeClaim := &karpenterv1.NodeClaim{}
 
 			mockClient.UpdateCb = func(key types.NamespacedName) {
 				mockClient.GetObjectFromMap(mockNodeClaim, key)
-				mockNodeClaim.Status.Conditions = apis.Conditions{
+				mockNodeClaim.Status.Conditions = []status.Condition{
 					{
-						Type:   apis.ConditionReady,
-						Status: corev1.ConditionTrue,
+						Type:   string(apis.ConditionReady),
+						Status: v1.ConditionTrue,
 					},
 				}
 				mockClient.CreateOrUpdateObjectInMap(mockNodeClaim)

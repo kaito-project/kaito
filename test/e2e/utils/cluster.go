@@ -5,7 +5,6 @@ package utils
 
 import (
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
-	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
 	"github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -14,9 +13,9 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 )
 
 const (
@@ -45,9 +44,9 @@ func NewCluster(scheme *runtime.Scheme) *Cluster {
 func GetClusterClient(cluster *Cluster) {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(kaitov1alpha1.AddToScheme(scheme))
-	utilruntime.Must(v1beta1.SchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(kaitoutils.KarpenterSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(azurev1alpha2.SchemeBuilder.AddToScheme(scheme))
-	utilruntime.Must(awsv1beta1.SchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
 
 	restConfig := config.GetConfigOrDie()
 

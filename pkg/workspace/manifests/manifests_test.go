@@ -11,7 +11,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
@@ -40,7 +40,7 @@ func TestGenerateStatefulSetManifest(t *testing.T) {
 		}
 
 		appSelector := map[string]string{
-			kaitov1alpha1.LabelWorkspaceName: workspace.Name,
+			v1alpha1.LabelWorkspaceName: workspace.Name,
 		}
 
 		if !reflect.DeepEqual(appSelector, obj.Spec.Selector.MatchLabels) {
@@ -80,7 +80,7 @@ func TestGenerateDeploymentManifest(t *testing.T) {
 		)
 
 		appSelector := map[string]string{
-			kaitov1alpha1.LabelWorkspaceName: workspace.Name,
+			v1alpha1.LabelWorkspaceName: workspace.Name,
 		}
 
 		if !reflect.DeepEqual(appSelector, obj.Spec.Selector.MatchLabels) {
@@ -108,7 +108,7 @@ func TestGenerateDeploymentManifestWithPodTemplate(t *testing.T) {
 		obj := GenerateDeploymentManifestWithPodTemplate(context.TODO(), workspace, nil)
 
 		appSelector := map[string]string{
-			kaitov1alpha1.LabelWorkspaceName: workspace.Name,
+			v1alpha1.LabelWorkspaceName: workspace.Name,
 		}
 
 		if !reflect.DeepEqual(appSelector, obj.Spec.Selector.MatchLabels) {
@@ -146,7 +146,7 @@ func TestGenerateServiceManifest(t *testing.T) {
 			obj := GenerateServiceManifest(context.TODO(), workspace, v1.ServiceTypeClusterIP, isStatefulSet)
 
 			svcSelector := map[string]string{
-				kaitov1alpha1.LabelWorkspaceName: workspace.Name,
+				v1alpha1.LabelWorkspaceName: workspace.Name,
 			}
 			if isStatefulSet {
 				svcSelector["statefulset.kubernetes.io/pod-name"] = fmt.Sprintf("%s-0", workspace.Name)
@@ -165,7 +165,7 @@ func TestGenerateHeadlessServiceManifest(t *testing.T) {
 		obj := GenerateHeadlessServiceManifest(context.TODO(), workspace)
 
 		svcSelector := map[string]string{
-			kaitov1alpha1.LabelWorkspaceName: workspace.Name,
+			v1alpha1.LabelWorkspaceName: workspace.Name,
 		}
 		if !reflect.DeepEqual(svcSelector, obj.Spec.Selector) {
 			t.Errorf("svc selector is wrong")

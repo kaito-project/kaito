@@ -5,6 +5,7 @@ go 1.22.3
 toolchain go1.22.5
 
 require (
+	dev.azure.com/msazure/msk8s/_git/k8s-precheck-service.git v0.0.3
 	github.com/Azure/karpenter-provider-azure v0.5.4
 	github.com/aws/karpenter-core v0.29.2
 	github.com/aws/karpenter-provider-aws v0.36.2

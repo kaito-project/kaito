@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	precheckv1 "dev.azure.com/msazure/msk8s/_git/k8s-precheck-service.git/precheck-operator/api/v1"
+
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
 	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -64,6 +66,7 @@ func init() {
 	utilruntime.Must(v1beta1.SchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(azurev1alpha2.SchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(awsv1beta1.SchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(precheckv1.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
 	klog.InitFlags(nil)

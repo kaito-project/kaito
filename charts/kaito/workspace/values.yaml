@@ -3,10 +3,11 @@
 # Declare variables to be passed into your templates.
 replicaCount: 1
 image:
-  repository: mcr.microsoft.com/aks/kaito/workspace
-  pullPolicy: IfNotPresent
+  repository: chendi.azurecr.io/workspace
+  pullPolicy: Always
   tag: 0.4.1
-imagePullSecrets: []
+imagePullSecrets: 
+  - name: chendiacr
 podAnnotations: {}
 podSecurityContext:
   runAsNonRoot: true

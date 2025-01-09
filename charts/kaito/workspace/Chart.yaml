@@ -16,6 +16,10 @@ appVersion: 0.4.1
 home: https://github.com/kaito-project/kaito
 sources:
   - https://github.com/kaito-project/kaito
+dependencies:
+- name: precheck-chart
+  version: "0.3.6"
+  repository: "oci://chendi.azurecr.io/helm"
 maintainers:
   - name: Fei-Guo
     email: vrgf2003@gmail.com

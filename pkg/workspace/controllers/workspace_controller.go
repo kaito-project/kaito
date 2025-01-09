@@ -51,6 +51,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	precheckv1 "dev.azure.com/msazure/msk8s/_git/k8s-precheck-service.git/precheck-operator/api/v1"
+	precheckutils "dev.azure.com/msazure/msk8s/_git/k8s-precheck-service.git/precheck-operator/pkg/precheckutils"
 )
 
 const (
@@ -716,6 +719,25 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1alph
 	return nil
 }
 
+func convertGiStringToMB(memStr string) (int64, error) {
+	// Example input: "14Gi", "8Gi", "50Gi", etc.
+	// A more complete parser would handle "Mi", "Gi", etc.
+
+	if !strings.HasSuffix(memStr, "Gi") {
+		return 0, fmt.Errorf("unsupported GPU memory format: %s (only Gi suffix supported)", memStr)
+	}
+	numericPart := strings.TrimSuffix(memStr, "Gi")
+	val, err := strconv.Atoi(numericPart)
+	if err != nil {
+		return 0, err
+	}
+	// 1 Gi = 1024 Mi = 1024 * 1024 Ki = 1024 * 1024 * 1024 bytes
+	// If you need MB specifically: 1 Gi ~ 1024 Mi -> 1 Gi ~ 1024 MB
+	return int64(val) * 1024, nil
+}
+
+// +kubebuilder:rbac:groups=precheck.precheck.arc.microsoft.com,resources=precheckrequests,verbs=get;list;watch;create;update;patch;delete
+
 // applyInference applies inference spec.
 func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1alpha1.Workspace) error {
 	var err error
@@ -735,6 +757,51 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1a
 			model := plugin.KaitoModelRegister.MustGet(presetName)
 
 			inferenceParam := model.GetInferenceParameters()
+
+			// Grab GPU requirements from the model
+			gpuCount, parseErr := strconv.Atoi(inferenceParam.GPUCountRequirement)
+			if parseErr != nil {
+				err = fmt.Errorf("failed to parse GPUCountRequirement for model %s: %w", presetName, parseErr)
+				klog.ErrorS(err, "Invalid ineference param")
+				return
+			}
+
+			// Convert something like "14Gi" -> integer MB
+			totalGPUMemMB, parseErr := convertGiStringToMB(inferenceParam.TotalGPUMemoryRequirement)
+			if parseErr != nil {
+				err = fmt.Errorf("failed to parse TotalGPUMemoryRequirement for model %s: %w", presetName, parseErr)
+				klog.ErrorS(err, "Invalid ineference param")
+				return
+			}
+
+			// Build up the slice of PodResourceRequirements
+			var reqs []precheckv1.PodResourceRequirement
+			req := precheckv1.PodResourceRequirement{
+				Name:           fmt.Sprintf("precheck-%s", wObj.ObjectMeta.Name),
+				CPUInMilliCore: 1000,
+				MemoryInMB:     totalGPUMemMB,
+				GPUCount:       gpuCount,
+				GPUMemoryInMB:  totalGPUMemMB,
+				GPUVendor:      "NVIDIA",
+				NodeSelector:   wObj.Resource.LabelSelector.MatchLabels,
+			}
+			reqs = append(reqs, req)
+
+			klog.Info("Sending precheck request", reqs)
+			// Actually run the precheck
+			precheckStatus, precheckErr := precheckutils.PerformPreCheckRequest(ctx, c.Client, reqs, wObj.Namespace)
+			if precheckErr != nil {
+				// If your precheck CR failed, skip precheck
+				klog.ErrorS(precheckErr, "Precheck request failed", "workspace", klog.KObj(wObj))
+			} else {
+				klog.InfoS("PreCheck completed", "workspace", klog.KObj(wObj), "overallResult", precheckStatus.OverallResult)
+				if precheckStatus.OverallResult == "Fail" {
+					// Parse `precheckStatus.Details` to get more info
+					err = fmt.Errorf("PreCheck failed, details: %s", precheckutils.FormatPrecheckFailureMessage(ctx, *precheckStatus))
+					klog.ErrorS(err, "PreCheck failed")
+					return
+				}
+			}
 
 			var existingObj client.Object
 			if model.SupportDistributedInference() {
@@ -800,6 +867,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1a
 	}()
 
 	if err != nil {
+		klog.ErrorS(err, "Failed to apply inference")
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
 			"WorkspaceInferenceStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))

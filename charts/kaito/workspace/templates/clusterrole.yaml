@@ -58,3 +58,15 @@ rules:
     resources: ["validatingwebhookconfigurations"]
     verbs: ["update"]
     resourceNames: ["validation.workspace.kaito.sh"]
+  - apiGroups:
+    - precheck.precheck.arc.microsoft.com
+    resources:
+    - precheckrequests
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch

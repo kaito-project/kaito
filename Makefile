@@ -99,20 +99,20 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 unit-test: ## Run unit tests.
 	go test -v $(shell go list ./pkg/... ./api/... | \
 	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /pkg/utils/test/...) \
-	-race -coverprofile=coverage.txt -covermode=atomic
-	go tool cover -func=coverage.txt
+	-race -coverprofile=coverage.out && ./hack/test/exclude-from-code-coverage.sh && \
+	go tool cover -html=coverage.txt
 
 .PHONY: rag-service-test
 rag-service-test:
 	pip install -r presets/ragengine/requirements.txt
 	pip install pytest-cov
-	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
+	pytest --cov=preset.ragengine --cov-report=xml:preset-ragengine-coverage.xml -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
 
 .PHONY: tuning-metrics-server-test
 tuning-metrics-server-test:
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
 	pip install pytest-cov
-	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
+	pytest --cov=tuning.metrics --cov-report=xml:tuning-metrics-coverage.xml -o log_cli=true -o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
 
 ## --------------------------------------
 ## E2E tests
@@ -122,7 +122,7 @@ inference-api-e2e:
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
 	pip install pytest-cov
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
-	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
+	pytest --cov=preset.inference --cov-report=xml:preset-inference-coverage.xml -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
 
 # Ginkgo configurations
 GINKGO_FOCUS ?=

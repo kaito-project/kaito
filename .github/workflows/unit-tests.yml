@@ -55,5 +55,8 @@ jobs:
 
       - name: Upload Codecov report
         uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303 # v5.1.2
+        with:
+          ## Comma-separated list of files to upload
+          files: ./coverage.out
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

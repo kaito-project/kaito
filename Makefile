@@ -98,9 +98,9 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 .PHONY: unit-test
 unit-test: ## Run unit tests.
 	go test -v $(shell go list ./pkg/... ./api/... | \
-	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /pkg/utils/test/...) \
-	-race -coverprofile=coverage.out && ./hack/test/exclude-from-code-coverage.sh && \
-	go tool cover -html=coverage.txt
+	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /pkg/utils/common-preset.go \
+	-e /pkg/utils/test/... ) -race -coverprofile=coverage.out && \
+	go tool cover -html=coverage.out
 
 .PHONY: rag-service-test
 rag-service-test:

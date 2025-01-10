@@ -1,2 +1,0 @@
-pkg/utils/common-preset.go
-api/v1alpha1/zz_generated.deepcopy.go

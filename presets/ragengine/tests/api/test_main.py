@@ -114,8 +114,7 @@ def test_reranker_and_query_with_index(mock_post):
         "The capital of France is great.",
         "The capital of France is huge.",
         "The capital of France is beautiful.",
-        """Have you ever visited Paris? It is a beautiful city where you can eat delicious food and see the Eiffel Tower.
-        I really enjoyed all the cities in France, but its capital with the Eiffel Tower is my favorite city.""",
+        "Have you ever visited Paris? It is a beautiful city where you can eat delicious food and see the Eiffel Tower. I really enjoyed all the cities in France, but its capital with the Eiffel Tower is my favorite city.",
         "I really enjoyed my trip to Paris, France. The city is beautiful and the food is delicious. I would love to visit again. "
         "Such a great capital city."
     ]
@@ -123,7 +122,7 @@ def test_reranker_and_query_with_index(mock_post):
     # Indexing request payload
     index_request_payload = {
         "index_name": "test_index",
-        "documents": [{"text": doc} for doc in documents]
+        "documents": [{"text": doc.strip()} for doc in documents]
     }
 
     # Perform indexing
@@ -151,9 +150,7 @@ def test_reranker_and_query_with_index(mock_post):
 
     # Validate each source node in the query response
     expected_source_nodes = [
-        {"text": "Have you ever visited Paris? It is a beautiful city where you can eat "
-                 "delicious food and see the Eiffel Tower. I really enjoyed all the cities in "
-                 "France, but its capital with the Eiffel Tower is my favorite city.",
+        {"text": "Have you ever visited Paris? It is a beautiful city where you can eat delicious food and see the Eiffel Tower. I really enjoyed all the cities in France, but its capital with the Eiffel Tower is my favorite city.",
          "score": 10.0, "metadata": {}},
         {"text": "I really enjoyed my trip to Paris, France. The city is beautiful and the "
                  "food is delicious. I would love to visit again. Such a great capital city.",

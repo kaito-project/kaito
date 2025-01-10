@@ -50,7 +50,7 @@ kind: Workspace
 metadata:
   name: workspace-phi-3-5-mini
 resource:
-  instanceType: "Standard_NC6s_v3"
+  instanceType: "Standard_NC24ads_A100_v4"
   labelSelector:
     matchLabels:
       apps: phi-3-5
@@ -65,8 +65,8 @@ The workspace status can be tracked by running the following command. When the W
 
 ```sh
 $ kubectl get workspace workspace-phi-3-5-mini
-NAME                     INSTANCE           RESOURCEREADY   INFERENCEREADY   JOBSTARTED   WORKSPACESUCCEEDED   AGE
-workspace-phi-3-5-mini   Standard_NC6s_v3   True            True                          True                 4h15m
+NAME                     INSTANCE                   RESOURCEREADY   INFERENCEREADY   JOBSTARTED   WORKSPACESUCCEEDED   AGE
+workspace-phi-3-5-mini   Standard_NC24ads_A100_v4   True            True                          True                 4h15m
 ```
 
 Next, one can find the inference service's cluster ip and use a temporal `curl` pod to test the service endpoint in the cluster.

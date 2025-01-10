@@ -12,7 +12,7 @@ kind: Workspace
 metadata:
   name: workspace-falcon-7b
 resource:
-  instanceType: "Standard_NC6s_v3"
+  instanceType: "Standard_NC24ads_A100_v4"
   labelSelector:
     matchLabels:
       apps: falcon-7b
@@ -54,7 +54,7 @@ metadata:
   annotations:
     kaito.sh/runtime: "transformers"
 resource:
-  instanceType: "Standard_NC12s_v3"
+  instanceType: "Standard_NC24ads_A100_v4"
   labelSelector:
     matchLabels:
       apps: falcon-7b
@@ -73,7 +73,7 @@ kind: Workspace
 metadata:
   name: workspace-falcon-7b
 resource:
-  instanceType: "Standard_NC12s_v3"
+  instanceType: "Standard_NC24ads_A100_v4"
   labelSelector:
     matchLabels:
       apps: falcon-7b

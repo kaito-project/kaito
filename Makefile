@@ -121,7 +121,7 @@ tuning-metrics-server-test:
 inference-api-e2e:
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
 	pip install pytest-cov
-	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
+	pytest --cov=preset.vllm --cov-report=xml:preset-vllm.xml -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
 	pytest --cov=preset.inference --cov-report=xml:preset-inference-coverage.xml -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
 
 # Ginkgo configurations

@@ -105,12 +105,14 @@ unit-test: ## Run unit tests.
 .PHONY: rag-service-test
 rag-service-test:
 	pip install -r presets/ragengine/requirements.txt
-	pytest -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
+	pip install pytest-cov
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
 
 .PHONY: tuning-metrics-server-test
 tuning-metrics-server-test:
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
-	pytest -o log_cli=true -o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
+	pip install pytest-cov
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
 
 ## --------------------------------------
 ## E2E tests
@@ -118,8 +120,9 @@ tuning-metrics-server-test:
 
 inference-api-e2e:
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
-	pytest -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
-	pytest -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
+	pip install pytest-cov
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
 
 # Ginkgo configurations
 GINKGO_FOCUS ?=
@@ -241,8 +244,8 @@ docker-build-ragengine: docker-buildx
                 --tag $(REGISTRY)/$(RAGENGINE_IMG_NAME):$(RAGENGINE_IMG_TAG) .
 
 .PHONY: docker-build-rag-service
-docker-build-ragservice: docker buildx
-    docker buildx build \
+docker-build-ragservice: docker-buildx
+	docker buildx build \
         --platform="linux/$(ARCH)" \
         --output=$(OUTPUT_TYPE) \
         --file ./docker/ragengine/service/Dockerfile \

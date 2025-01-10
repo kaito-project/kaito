@@ -106,13 +106,15 @@ unit-test: ## Run unit tests.
 rag-service-test:
 	pip install -r presets/ragengine/requirements.txt
 	pip install pytest-cov
-	pytest --cov=preset.ragengine --cov-report=xml:preset-ragengine-coverage.xml -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
+	pytest --cov=ragengine --cov-report=xml:preset-ragengine-coverage.xml -o log_cli=true \
+	-o log_cli_level=INFO presets/ragengine/tests
 
 .PHONY: tuning-metrics-server-test
 tuning-metrics-server-test:
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
 	pip install pytest-cov
-	pytest --cov=tuning.metrics --cov-report=xml:tuning-metrics-coverage.xml -o log_cli=true -o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
+	pytest --cov=workspace.tuning.text-generation.metrics --cov-report=xml:tuning-metrics-coverage.xml -o log_cli=true \
+	-o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
 
 ## --------------------------------------
 ## E2E tests
@@ -121,8 +123,10 @@ tuning-metrics-server-test:
 inference-api-e2e:
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
 	pip install pytest-cov
-	pytest --cov=preset.vllm --cov-report=xml:preset-vllm.xml -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
-	pytest --cov=preset.inference --cov-report=xml:preset-inference-coverage.xml -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
+	pytest --cov=workspace.inference.vllm --cov-report=xml:preset-vllm.xml -o log_cli=true \
+	-o log_cli_level=INFO presets/workspace/inference/vllm
+	pytest --cov=workspace.inference.text-generation --cov-report=xml:preset-inference-coverage.xml -o log_cli=true \
+	-o log_cli_level=INFO presets/workspace/inference/text-generation
 
 # Ginkgo configurations
 GINKGO_FOCUS ?=

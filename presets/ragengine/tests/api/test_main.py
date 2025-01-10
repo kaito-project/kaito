@@ -146,7 +146,7 @@ def test_reranker_and_query_with_index(mock_post):
     query_response = response.json()
 
     # Validate query response
-    assert query_response["response"] == query_response["result"]
+    assert query_response["response"] == str(query_mock_response)
     assert len(query_response["source_nodes"]) == top_n
 
     # Validate each source node in the query response

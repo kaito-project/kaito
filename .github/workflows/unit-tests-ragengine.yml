@@ -29,6 +29,11 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12.7
+
       - name: Check out the code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -38,3 +43,16 @@ jobs:
       - name: Run unit tests
         run: |
           make rag-service-test
+
+      - name: Generate Report
+        run: |
+          pip install coverage
+          coverage run -m unittest
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303 # v5.1.2
+        with:
+          ## Comma-separated list of files to upload
+          files: ./coverage-rag.txt
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

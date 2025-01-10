@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 import os
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import pytest
 from abc import ABC, abstractmethod
 
@@ -66,7 +66,15 @@ class BaseVectorStoreTest(ABC):
         pass
 
     @patch('requests.post')
-    def test_query_documents(self, mock_post, vector_store_manager):
+    @patch('requests.get') 
+    def test_query_documents(self, mock_get, mock_post, vector_store_manager):
+        mock_get.return_value = MagicMock(
+            status_code=200,
+            json=lambda: {
+                "data": [{"id": "test-model"}]
+            }
+        )
+
         mock_response = {
             "result": "This is the completion from the API"
         }
@@ -87,13 +95,23 @@ class BaseVectorStoreTest(ABC):
         assert query_result["source_nodes"][0]["text"] == "First document"
         assert query_result["source_nodes"][0]["score"] == pytest.approx(self.expected_query_score, rel=1e-6)
 
+        mock_get.assert_called_once()
+        
         mock_post.assert_called_once_with(
             LLM_INFERENCE_URL,
-            json={"prompt": "Context information is below.\n---------------------\ntype: text\n\nFirst document\n---------------------\nGiven the context information and not prior knowledge, answer the query.\nQuery: First\nAnswer: ", "formatted": True, 'temperature': 0.7},
+            json={"prompt": "Context information is below.\n---------------------\ntype: text\n\nFirst document\n---------------------\nGiven the context information and not prior knowledge, answer the query.\nQuery: First\nAnswer: ", "model": "test-model", 'temperature': 0.7},
             headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}"}
         )
 
-    def test_add_document(self, vector_store_manager):
+    @patch('requests.get')  
+    def test_add_document(self, mock_get, vector_store_manager):
+        mock_get.return_value = MagicMock(
+            status_code=200,
+            json=lambda: {
+                "data": [{"id": "test-model"}]
+            }
+        )
+        
         documents = [Document(text="Third document", metadata={"type": "text"})]
         vector_store_manager.index_documents("test_index", documents)
 

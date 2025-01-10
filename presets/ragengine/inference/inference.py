@@ -6,6 +6,7 @@ from llama_index.core.llms import CustomLLM, CompletionResponse, LLMMetadata, Co
 from llama_index.llms.openai import OpenAI
 from llama_index.core.llms.callbacks import llm_completion_callback
 import requests
+from urllib.parse import urlparse, urljoin
 from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET #, LLM_RESPONSE_FIELD
 
 OPENAI_URL_PREFIX = "https://api.openai.com"
@@ -13,12 +14,41 @@ HUGGINGFACE_URL_PREFIX = "https://api-inference.huggingface.co"
 
 class Inference(CustomLLM):
     params: dict = {}
+    model: str = ""
 
     def set_params(self, params: dict) -> None:
         self.params = params
 
     def get_param(self, key, default=None):
         return self.params.get(key, default)
+    # Get base URL 
+    def _get_base_url(self) -> str:
+        parsed = urlparse(LLM_INFERENCE_URL)
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+        return urljoin(base_url, "/v1/models")
+    
+    #Fetch and set the model from the inference endpoint
+    def set_model(self) -> None:
+        
+        try:
+            models_url = self._get_base_url()
+            headers = {"Authorization": f"Bearer {LLM_ACCESS_SECRET}"}
+            response = requests.get(models_url, headers=headers)
+
+            if response.status_code == 404:
+                self.model = None
+                return
+            
+            response.raise_for_status()
+            
+            data = response.json()
+            if data.get("data") and len(data["data"]) > 0:
+                self.model = data["data"][0]["id"]
+            else:
+                raise ValueError("No model found in response")
+                
+        except requests.RequestException as e:
+            raise Exception(f"Failed to fetch model information: {str(e)}")
 
     @llm_completion_callback()
     def stream_complete(self, prompt: str, **kwargs: Any) -> CompletionResponseGen:
@@ -53,8 +83,14 @@ class Inference(CustomLLM):
 
     def _custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         headers = {"Authorization": f"Bearer {LLM_ACCESS_SECRET}"}
-        data = {"prompt": prompt, **kwargs}
-
+        if self.model != None:
+            data = {"prompt": prompt, "model":self.model}
+        else:
+            data = {"prompt": prompt}
+ 
+        for param in self.params:
+            data[param] = self.params[param]
+                
         response = requests.post(LLM_INFERENCE_URL, json=data, headers=headers)
         response_data = response.json()
 

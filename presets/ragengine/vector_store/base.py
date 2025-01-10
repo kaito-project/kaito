@@ -111,6 +111,9 @@ class BaseVectorStore(ABC):
         """
         if index_name not in self.index_map:
             raise ValueError(f"No such index: '{index_name}' exists.")
+        if self.llm.model == "":
+            self.llm.set_model()
+
         self.llm.set_params(llm_params)
 
         node_postprocessors = []

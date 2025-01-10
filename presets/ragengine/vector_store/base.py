@@ -104,7 +104,7 @@ class BaseVectorStore(ABC):
             llm_params (dict): Optional parameters for the language model
             rerank_params (dict): Optional configuration for reranking
                 - 'top_n' (int): Number of top documents to return after reranking
-                - 'batch_size' (int):  Number of documents to process in each batch
+                - 'choice_batch_size' (int):  Number of documents to process in each batch
 
         Returns:
             dict: A dictionary containing the response and source nodes.

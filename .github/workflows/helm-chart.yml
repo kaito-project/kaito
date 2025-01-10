@@ -2,7 +2,7 @@ name: publish_helm_chart
 
 on:
   repository_dispatch:
-    types: [ create-release ]
+    types: [ publish-helm-chart ]
   workflow_dispatch:
 
 permissions:
@@ -36,3 +36,15 @@ jobs:
           charts_dir: charts/kaito
           target_dir: charts/kaito
           linting: off
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [ publish-helm ]
+    steps:
+      - name: 'Dispatch release tag to create a release'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: create-release
+          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}'
+

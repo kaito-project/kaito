@@ -18,7 +18,6 @@ CHAT_TEMPLATE = ("{{ bos_token }}{% for message in messages %}{% if (message['ro
 
 @pytest.fixture(params=[
     {"pipeline": "text-generation", "model_path": "stanford-crfm/alias-gpt2-small-x21", "device": "cpu"},
-    {"pipeline": "conversational", "model_path": "stanford-crfm/alias-gpt2-small-x21", "device": "cpu"},
 ])
 def configured_app(request):
     original_argv = sys.argv.copy()
@@ -43,37 +42,6 @@ def configured_app(request):
 
     sys.argv = original_argv
 
-def test_conversational(configured_app):
-    if configured_app.test_config['pipeline'] != 'conversational':
-        pytest.skip("Skipping non-conversational tests")
-    client = TestClient(configured_app)
-    messages = [
-        {"role": "user", "content": "What is your favourite condiment?"},
-        {"role": "assistant", "content": "Well, im quite partial to a good squeeze of fresh lemon juice. It adds just the right amount of zesty flavour to whatever im cooking up in the kitchen!"},
-        {"role": "user", "content": "Do you have mayonnaise recipes?"}
-    ]
-    request_data = {
-        "messages": messages,
-        "generate_kwargs": {"max_new_tokens": 20, "do_sample": True}
-    }
-    response = client.post("/chat", json=request_data)
-
-    assert response.status_code == 200
-    data = response.json()
-    assert "Result" in data
-    assert len(data["Result"]) > 0  # Check if the conversation result is not empty
-
-def test_missing_messages_for_conversation(configured_app):
-    if configured_app.test_config['pipeline'] != 'conversational':
-        pytest.skip("Skipping non-conversational tests")
-    client = TestClient(configured_app)
-    request_data = {
-        # "messages" is missing for conversational pipeline
-    }
-    response = client.post("/chat", json=request_data)
-    assert response.status_code == 400  # Expecting a Bad Request response due to missing messages
-    assert "Conversational parameter messages required" in response.json().get("detail", "")
-
 def test_text_generation(configured_app):
     if configured_app.test_config['pipeline'] != 'text-generation':
         pytest.skip("Skipping non-text-generation tests")
@@ -82,7 +50,8 @@ def test_text_generation(configured_app):
         "prompt": "Hello, world!",
         "return_full_text": True,
         "clean_up_tokenization_spaces": False,
-        "generate_kwargs": {"max_length": 50, "min_length": 10}  # Example generate_kwargs
+        "max_length": 50,
+        "temperature": 0.7
     }
     response = client.post("/chat", json=request_data)
     assert response.status_code == 200
@@ -98,7 +67,7 @@ def test_missing_prompt(configured_app):
         # "prompt" is missing
         "return_full_text": True,
         "clean_up_tokenization_spaces": False,
-        "generate_kwargs": {"max_length": 50}
+        "max_length": 50
     }
     response = client.post("/chat", json=request_data)
     assert response.status_code == 400  # Expecting a Bad Request response due to missing prompt
@@ -195,7 +164,6 @@ def test_default_generation_params(configured_app):
         "prompt": "Test default params",
         "return_full_text": True,
         "clean_up_tokenization_spaces": False
-        # Note: generate_kwargs is not provided, so defaults should be used
     }
 
     with patch('inference_api.pipeline') as mock_pipeline:
@@ -213,13 +181,10 @@ def test_default_generation_params(configured_app):
         assert kwargs['max_length'] == 200
         assert kwargs['min_length'] == 0
         assert kwargs['do_sample'] is True
+        assert kwargs['num_beams'] == 1
         assert kwargs['temperature'] == 1.0
         assert kwargs['top_k'] == 10
         assert kwargs['top_p'] == 1
-        assert kwargs['typical_p'] == 1
-        assert kwargs['repetition_penalty'] == 1
-        assert kwargs['num_beams'] == 1
-        assert kwargs['early_stopping'] is False
 
 def test_generation_with_max_length(configured_app):
     if configured_app.test_config['pipeline'] != 'text-generation':

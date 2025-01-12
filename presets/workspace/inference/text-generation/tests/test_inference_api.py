@@ -17,7 +17,7 @@ CHAT_TEMPLATE = ("{{ bos_token }}{% for message in messages %}{% if (message['ro
     "{% elif (message['role'] == 'assistant') %}{{message['content'] + '<|end|>' + '\n'}}{% endif %}{% endfor %}")
 
 @pytest.fixture(params=[
-    {"pipeline": "text-generation", "model_path": "stanford-crfm/alias-gpt2-small-x21", "device": "cpu"},
+    {"model_path": "stanford-crfm/alias-gpt2-small-x21", "device": "cpu"},
 ])
 def configured_app(request):
     original_argv = sys.argv.copy()
@@ -42,8 +42,6 @@ def configured_app(request):
     sys.argv = original_argv
 
 def test_text_generation(configured_app):
-    if configured_app.test_config['pipeline'] != 'text-generation':
-        pytest.skip("Skipping non-text-generation tests")
     client = TestClient(configured_app)
     request_data = {
         "prompt": "Hello, world!",
@@ -59,8 +57,6 @@ def test_text_generation(configured_app):
     assert len(data["Result"]) > 0  # Check if the result text is not empty
 
 def test_missing_prompt(configured_app):
-    if configured_app.test_config['pipeline'] != 'text-generation':
-        pytest.skip("Skipping non-text-generation tests")
     client = TestClient(configured_app)
     request_data = {
         # "prompt" is missing
@@ -154,15 +150,19 @@ def test_get_metrics_no_gpus(configured_app):
         assert data["cpu_info"]["memory"]["total"] == "16.00 GB"
 
 def test_default_generation_params(configured_app):
-    if configured_app.test_config['pipeline'] != 'text-generation':
-        pytest.skip("Skipping non-text-generation tests")
-
     client = TestClient(configured_app)
 
     request_data = {
         "prompt": "Test default params",
         "return_full_text": True,
-        "clean_up_tokenization_spaces": False
+        "clean_up_tokenization_spaces": False,
+        "max_length": 200,
+        "min_length": 0,
+        "do_sample": True,
+        "num_beams": 1,
+        "temperature": 1.0,
+        "top_k": 10,
+        "top_p": 1,
     }
 
     with patch('inference_api.pipeline') as mock_pipeline:
@@ -186,9 +186,6 @@ def test_default_generation_params(configured_app):
         assert kwargs['top_p'] == 1
 
 def test_generation_with_max_length(configured_app):
-    if configured_app.test_config['pipeline'] != 'text-generation':
-        pytest.skip("Skipping non-text-generation tests")
-
     client = TestClient(configured_app)
     prompt = "This prompt requests a response of a certain minimum length to test the functionality."
     avg_res_len = 15
@@ -198,7 +195,7 @@ def test_generation_with_max_length(configured_app):
         "prompt": prompt,
         "return_full_text": True,
         "clean_up_tokenization_spaces": False,
-        "generate_kwargs": {"max_length": max_length}
+        "max_length": max_length,
     }
 
     response = client.post("/v1/completions", json=request_data)
@@ -221,9 +218,6 @@ def test_generation_with_max_length(configured_app):
     assert len(total_tokens) <= max_length, "Total # of tokens has to be less than or equal to max_length"
 
 def test_generation_with_min_length(configured_app):
-    if configured_app.test_config['pipeline'] != 'text-generation':
-        pytest.skip("Skipping non-text-generation tests")
-
     client = TestClient(configured_app)
     prompt = "This prompt requests a response of a certain minimum length to test the functionality."
     min_length = 30
@@ -233,7 +227,8 @@ def test_generation_with_min_length(configured_app):
         "prompt": prompt,
         "return_full_text": True,
         "clean_up_tokenization_spaces": False,
-        "generate_kwargs": {"min_length": min_length, "max_length": max_length}
+        "min_length": min_length,
+        "max_length": max_length,
     }
 
     response = client.post("/v1/completions", json=request_data)

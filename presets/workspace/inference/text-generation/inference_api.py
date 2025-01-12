@@ -86,10 +86,6 @@ class ModelConfig:
         else:
             self.torch_dtype = getattr(torch, self.torch_dtype) if self.torch_dtype else None
 
-        supported_pipelines = {"conversational", "text-generation"}
-        if self.pipeline not in supported_pipelines:
-            raise ValueError(f"Unsupported pipeline: {self.pipeline}")
-
 def load_chat_template(chat_template: Optional[str]) -> Optional[str]:
     logger.info(chat_template)
     if chat_template is None:
@@ -342,11 +338,13 @@ def generate_text(
         ],
 ):
     """
-    Processes chat requests, generating text based on the specified pipeline.
+    Processes chat requests, generating text based on the specified text-generation pipeline.
     """
     user_generate_kwargs = request_model.dict(exclude_unset=True)
 
-    if not request_model.prompt:
+    # Extract the prompt separately and remove it from model kwargs
+    prompt = user_generate_kwargs.pop("prompt", None)
+    if not prompt:
         logger.error("Text generation parameter prompt required")
         raise HTTPException(status_code=400, detail="Text generation parameter prompt required")
 

@@ -24,7 +24,6 @@ def configured_app(request):
     # Use request.param to set correct test arguments for each configuration
     test_args = [
         'program_name',
-        '--pipeline', request.param['pipeline'],
         '--pretrained_model_name_or_path', request.param['model_path'],
         '--device_map', request.param['device'],
         '--allow_remote_files', 'True',

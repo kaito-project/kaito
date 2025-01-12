@@ -42,7 +42,7 @@ class QueryRequest(BaseModel):
         # Validate LLM parameters
         if "temperature" in llm_params and not (0.0 <= llm_params["temperature"] <= 1.0):
             raise ValueError("Temperature must be between 0.0 and 1.0.")
-
+        # TODO: More LLM Param Validations here
         # Validate rerank parameters
         top_k = values.get("top_k")
         if "top_n" in rerank_params and rerank_params["top_n"] > top_k:

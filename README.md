@@ -146,18 +146,17 @@ Within the deployment specification, locate and modify the command field.
 #### Original
 
 ```sh
-accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all inference_api.py --pipeline text-generation --torch_dtype bfloat16
+accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all inference_api.py --torch_dtype bfloat16
 ```
 
 #### Modify to enable 4-bit Quantization
 
 ```sh
-accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all inference_api.py --pipeline text-generation --torch_dtype bfloat16 --load_in_4bit
+accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all inference_api.py --torch_dtype bfloat16 --load_in_4bit
 ```
 
 Currently, we allow users to change the following paramenters manually:
 
-- `pipeline`: For text-generation models this can be either `text-generation` or `conversational`.
 - `load_in_4bit` or `load_in_8bit`: Model quantization resolution.
 
 Should you need to customize other parameters, kindly file an issue for potential future inclusion.

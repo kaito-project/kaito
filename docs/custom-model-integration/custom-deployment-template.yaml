@@ -23,8 +23,6 @@ inference:
           - "--gpu_ids"
           - "all"
           - "tfs/inference_api.py"
-          - "--pipeline"
-          - "text-generation"
           - "--torch_dtype"
           - "float16"  # Set to "float16" for compatibility with V100 GPUs; use "bfloat16" for A100, H100 or newer GPUs
         volumeMounts:

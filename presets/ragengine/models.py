@@ -3,7 +3,8 @@
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, root_validator, ValidationError
+from pydantic import BaseModel, Field, model_validator
+
 
 class Document(BaseModel):
     text: str
@@ -33,8 +34,8 @@ class QueryRequest(BaseModel):
         description="Optional parameters for reranking, e.g., top_n, batch_size",
     )
 
-    @root_validator(pre=True)
-    def validate_params(cls, values):
+    @model_validator(mode="before")
+    def validate_params(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         llm_params = values.get("llm_params", {})
         rerank_params = values.get("rerank_params", {})
 
@@ -43,7 +44,7 @@ class QueryRequest(BaseModel):
             raise ValueError("Temperature must be between 0.0 and 1.0.")
 
         # Validate rerank parameters
-        top_k = values["top_k"]
+        top_k = values.get("top_k")
         if "top_n" in rerank_params and rerank_params["top_n"] > top_k:
             raise ValueError("Invalid configuration: 'top_n' for reranking cannot exceed 'top_k' from the RAG query.")
 

@@ -283,7 +283,7 @@ class ErrorResponse(BaseModel):
     detail: str
 
 @app.post(
-    "/chat",
+    "/v1/completions",
     summary="Chat Endpoint",
     responses={
         200: {
@@ -381,7 +381,7 @@ class MetricsResponse(BaseModel):
     cpu_info: Optional[CPUInfo] = None
 
 @app.get(
-    "/metrics",
+    "/v1/metrics",
     response_model=MetricsResponse,
     summary="Metrics Endpoint",
     responses={

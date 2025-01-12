@@ -53,7 +53,7 @@ def test_text_generation(configured_app):
         "max_length": 50,
         "temperature": 0.7
     }
-    response = client.post("/chat", json=request_data)
+    response = client.post("/v1/completions", json=request_data)
     assert response.status_code == 200
     data = response.json()
     assert "Result" in data
@@ -69,7 +69,7 @@ def test_missing_prompt(configured_app):
         "clean_up_tokenization_spaces": False,
         "max_length": 50
     }
-    response = client.post("/chat", json=request_data)
+    response = client.post("/v1/completions", json=request_data)
     assert response.status_code == 400  # Expecting a Bad Request response due to missing prompt
     assert "Text generation parameter prompt required" in response.json().get("detail", "")
 
@@ -87,7 +87,7 @@ def test_health_check(configured_app):
 
 def test_get_metrics(configured_app):
     client = TestClient(configured_app)
-    response = client.get("/metrics")
+    response = client.get("/v1/metrics")
     assert response.status_code == 200
     assert "gpu_info" in response.json()
 
@@ -117,7 +117,7 @@ def test_get_metrics_with_gpus(configured_app):
     # Mock GPUtil.getGPUs to return a list containing the mock GPU object
     with patch('torch.cuda.is_available', return_value=True), \
             patch('GPUtil.getGPUs', return_value=[mock_gpu]):
-        response = client.get("/metrics")
+        response = client.get("/v1/metrics")
         assert response.status_code == 200
         data = response.json()
 
@@ -143,7 +143,7 @@ def test_get_metrics_no_gpus(configured_app):
             patch('psutil.virtual_memory') as mock_virtual_memory:
         mock_virtual_memory.return_value.used = 4 * (1024 ** 3)  # 4 GB
         mock_virtual_memory.return_value.total = 16 * (1024 ** 3)  # 16 GB
-        response = client.get("/metrics")
+        response = client.get("/v1/metrics")
         assert response.status_code == 200
         data = response.json()
         assert data["gpu_info"] is None  # No GPUs available
@@ -169,7 +169,7 @@ def test_default_generation_params(configured_app):
     with patch('inference_api.pipeline') as mock_pipeline:
         mock_pipeline.return_value = [{"generated_text": "Mocked response"}]  # Mock the response of the pipeline function
 
-        response = client.post("/chat", json=request_data)
+        response = client.post("/v1/completions", json=request_data)
 
         assert response.status_code == 200
         data = response.json()
@@ -202,7 +202,7 @@ def test_generation_with_max_length(configured_app):
         "generate_kwargs": {"max_length": max_length}
     }
 
-    response = client.post("/chat", json=request_data)
+    response = client.post("/v1/completions", json=request_data)
 
     assert response.status_code == 200
     data = response.json()
@@ -237,7 +237,7 @@ def test_generation_with_min_length(configured_app):
         "generate_kwargs": {"min_length": min_length, "max_length": max_length}
     }
 
-    response = client.post("/chat", json=request_data)
+    response = client.post("/v1/completions", json=request_data)
 
     assert response.status_code == 200
     data = response.json()

@@ -175,7 +175,7 @@ def test_query_index_failure():
     }
 
     response = client.post("/query", json=request_data)
-    assert response.status_code == 500
+    assert response.status_code == 400
     assert response.json()["detail"] == "No such index: 'non_existent_index' exists."
 
 

@@ -2,17 +2,20 @@
 # Licensed under the MIT license.
 
 from typing import Any
+from dataclasses import field
 from llama_index.core.llms import CustomLLM, CompletionResponse, LLMMetadata, CompletionResponseGen
 from llama_index.llms.openai import OpenAI
 from llama_index.core.llms.callbacks import llm_completion_callback
 import requests
+from urllib.parse import urlparse, urljoin
 from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET #, LLM_RESPONSE_FIELD
 
 OPENAI_URL_PREFIX = "https://api.openai.com"
 HUGGINGFACE_URL_PREFIX = "https://api-inference.huggingface.co"
 
 class Inference(CustomLLM):
-    params: dict = {}
+    params: dict = field(default_factory=dict)
+    _default_model: str = None
 
     def set_params(self, params: dict) -> None:
         self.params = params
@@ -38,30 +41,80 @@ class Inference(CustomLLM):
             self.params = {}
 
     def _openai_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        llm = OpenAI(
-            api_key=LLM_ACCESS_SECRET,
-            **kwargs  # Pass all kwargs directly; kwargs may include model, temperature, max_tokens, etc.
-        )
-        return llm.complete(prompt)
+        return OpenAI(api_key=LLM_ACCESS_SECRET, **kwargs).complete(prompt)
 
     def _huggingface_remote_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        headers = {"Authorization": f"Bearer {LLM_ACCESS_SECRET}"}
-        data = {"messages": [{"role": "user", "content": prompt}]}
-        response = requests.post(LLM_INFERENCE_URL, json=data, headers=headers)
-        response_data = response.json()
-        return CompletionResponse(text=str(response_data))
+        return self._post_request(
+            {"messages": [{"role": "user", "content": prompt}]},
+            headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}"}
+        )
 
     def _custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        headers = {"Authorization": f"Bearer {LLM_ACCESS_SECRET}"}
+        model = kwargs.pop("model", self._get_default_model())
         data = {"prompt": prompt, **kwargs}
+        if model:
+            data["model"] = model # Include the model only if it is not None
 
-        response = requests.post(LLM_INFERENCE_URL, json=data, headers=headers)
-        response_data = response.json()
+        # For Debugging Purposes
+        # import json
+        # # Construct curl command
+        # curl_command = (
+        #         f"curl -X POST {LLM_INFERENCE_URL} "
+        #         + " ".join([f'-H "{key}: {value}"' for key, value in {"Authorization": f"Bearer {LLM_ACCESS_SECRET}", "Content-Type": "application/json"}.items()])
+        #         + f" -d '{json.dumps(data)}'"
+        # )
+        # print("Equivalent curl command:")
+        # print(curl_command)
 
-        # Dynamically extract the field from the response based on the specified response_field
-        # completion_text = response_data.get(RESPONSE_FIELD, "No response field found") # not necessary for now
-        return CompletionResponse(text=str(response_data))
+        return self._post_request(
+            data,
+            headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}", "Content-Type": "application/json"}
+        )
 
+    def _get_models_endpoint(self) -> str:
+        """
+        Constructs the URL for the /v1/models endpoint based on LLM_INFERENCE_URL.
+        """
+        parsed = urlparse(LLM_INFERENCE_URL)
+        return urljoin(f"{parsed.scheme}://{parsed.netloc}", "/v1/models")
+
+    def _fetch_default_model(self) -> str:
+        """
+        Fetch the default model from the /v1/models endpoint.
+        """
+        try:
+            models_url = self._get_models_endpoint()
+            headers = {
+                "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
+                "Content-Type": "application/json"
+            }
+
+            response = requests.get(models_url, headers=headers)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+
+            models = response.json().get("data", [])
+            return models[0].get("id") if models else None
+        except Exception as e:
+            print(f"Error fetching default model from {models_url}: {e}")
+            return None
+
+    def _get_default_model(self) -> str:
+        """
+        Returns the cached default model if available; otherwise fetches and caches it.
+        """
+        if not self._default_model:
+            self._default_model = self._fetch_default_model()
+        return self._default_model
+
+    def _post_request(self, data: dict, headers: dict) -> CompletionResponse:
+        try:
+            response = requests.post(LLM_INFERENCE_URL, json=data, headers=headers)
+            response.raise_for_status()  # Raise exception for HTTP errors
+            response_data = response.json()
+            return CompletionResponse(text=str(response_data))
+        except requests.RequestException as e:
+            print(f"Error during POST request to {LLM_INFERENCE_URL}: {e}")
+            raise
     @property
     def metadata(self) -> LLMMetadata:
         """Get LLM metadata."""

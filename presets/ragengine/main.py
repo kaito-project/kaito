@@ -60,11 +60,17 @@ async def index_documents(request: IndexRequest): # TODO: Research async/sync wh
 @app.post("/query", response_model=QueryResponse)
 async def query_index(request: QueryRequest):
     try:
-        llm_params = request.llm_params or {} # Default to empty dict if no params provided
-        rerank_params = request.rerank_params or {} # Default to empty dict if no params provided
-        return rag_ops.query(request.index_name, request.query, request.top_k, llm_params, rerank_params)
+        llm_params = request.llm_params or {}  # Default to empty dict if no params provided
+        rerank_params = request.rerank_params or {}  # Default to empty dict if no params provided
+        return rag_ops.query(
+            request.index_name, request.query, request.top_k, llm_params, rerank_params
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500, detail=f"An unexpected error occurred: {str(e)}"
+        )
 
 @app.get("/indexed-documents", response_model=ListDocumentsResponse)
 async def list_all_indexed_documents():

@@ -38,7 +38,7 @@ LLM_RERANKER_TOP_N = int(os.getenv("LLM_RERANKER_TOP_N", 3))  # Default top 3 re
 """
 
 # LLM (Large Language Model) configuration
-LLM_INFERENCE_URL = os.getenv("LLM_INFERENCE_URL", "http://localhost:5000/v1/completions")
+LLM_INFERENCE_URL = os.getenv("LLM_INFERENCE_URL", "http://localhost:5000/chat")
 LLM_ACCESS_SECRET = os.getenv("LLM_ACCESS_SECRET", "default-access-secret")
 # LLM_RESPONSE_FIELD = os.getenv("LLM_RESPONSE_FIELD", "result")  # Uncomment if needed in the future
 

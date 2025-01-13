@@ -90,7 +90,7 @@ class BaseVectorStoreTest(ABC):
         mock_post.assert_called_once_with(
             LLM_INFERENCE_URL,
             json={"prompt": "Context information is below.\n---------------------\ntype: text\n\nFirst document\n---------------------\nGiven the context information and not prior knowledge, answer the query.\nQuery: First\nAnswer: ", "formatted": True, 'temperature': 0.7},
-            headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}", 'Content-Type': 'application/json'}
+            headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}"}
         )
 
     def test_add_document(self, vector_store_manager):

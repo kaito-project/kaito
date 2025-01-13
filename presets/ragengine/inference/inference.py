@@ -29,6 +29,9 @@ class Inference(CustomLLM):
 
     @llm_completion_callback()
     def complete(self, prompt: str, **kwargs) -> CompletionResponse:
+        # The `llm_completion_callback` from llama_index adds a `formatted` parameter by default.
+        # We remove it here as it is unnecessary and errors as an unrecognized param in downstream API calls.
+        kwargs.pop("formatted", None)
         try:
             if LLM_INFERENCE_URL.startswith(OPENAI_URL_PREFIX):
                 return self._openai_complete(prompt, **kwargs, **self.params)
@@ -55,16 +58,8 @@ class Inference(CustomLLM):
         if model:
             data["model"] = model # Include the model only if it is not None
 
-        # For Debugging Purposes
-        # import json
-        # # Construct curl command
-        # curl_command = (
-        #         f"curl -X POST {LLM_INFERENCE_URL} "
-        #         + " ".join([f'-H "{key}: {value}"' for key, value in {"Authorization": f"Bearer {LLM_ACCESS_SECRET}", "Content-Type": "application/json"}.items()])
-        #         + f" -d '{json.dumps(data)}'"
-        # )
-        # print("Equivalent curl command:")
-        # print(curl_command)
+        # DEBUG: Call the debugging function
+        # self._debug_curl_command(data)
 
         return self._post_request(
             data,
@@ -95,7 +90,7 @@ class Inference(CustomLLM):
             models = response.json().get("data", [])
             return models[0].get("id") if models else None
         except Exception as e:
-            print(f"Error fetching default model from {models_url}: {e}")
+            print(f"Error fetching models from {models_url}: {e}. \"model\" parameter will not be included with inference call.")
             return None
 
     def _get_default_model(self) -> str:
@@ -115,6 +110,24 @@ class Inference(CustomLLM):
         except requests.RequestException as e:
             print(f"Error during POST request to {LLM_INFERENCE_URL}: {e}")
             raise
+
+    def _debug_curl_command(self, data: dict) -> None:
+        """
+        Constructs and prints the equivalent curl command for debugging purposes.
+        """
+        import json
+        # Construct curl command
+        curl_command = (
+                f"curl -X POST {LLM_INFERENCE_URL} "
+                + " ".join([f'-H "{key}: {value}"' for key, value in {
+            "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
+            "Content-Type": "application/json"
+        }.items()])
+                + f" -d '{json.dumps(data)}'"
+        )
+        print("Equivalent curl command:")
+        print(curl_command)
+
     @property
     def metadata(self) -> LLMMetadata:
         """Get LLM metadata."""

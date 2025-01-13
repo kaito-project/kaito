@@ -28,10 +28,7 @@ class Inference(CustomLLM):
         pass
 
     @llm_completion_callback()
-    def complete(self, prompt: str, **kwargs) -> CompletionResponse:
-        # The `llm_completion_callback` from llama_index adds a `formatted` parameter by default.
-        # We remove it here as it is unnecessary and errors as an unrecognized param in downstream API calls.
-        kwargs.pop("formatted", None)
+    def complete(self, prompt: str, formatted: bool, **kwargs) -> CompletionResponse:
         try:
             if LLM_INFERENCE_URL.startswith(OPENAI_URL_PREFIX):
                 return self._openai_complete(prompt, **kwargs, **self.params)

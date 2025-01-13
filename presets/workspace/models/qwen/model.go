@@ -29,6 +29,7 @@ var (
 	baseCommandPresetQwenTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	qwenRunParams                  = map[string]string{
 		"torch_dtype": "bfloat16",
+		"pipeline":    "text-generation",
 	}
 	qwenRunParamsVLLM = map[string]string{
 		"dtype": "float16",

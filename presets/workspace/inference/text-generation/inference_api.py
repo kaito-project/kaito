@@ -36,6 +36,7 @@ class ModelConfig:
     """
     Transformers Model Configuration Parameters
     """
+    pipeline: Optional[str] = field(default="text-generation", metadata={"help": "The model pipeline for the pre-trained model"})
     pretrained_model_name_or_path: Optional[str] = field(default="/workspace/tfs/weights", metadata={"help": "Path to the pretrained model or model identifier from huggingface.co/models"})
     combination_type: Optional[str]=field(default="svd", metadata={"help": "The combination type of multi adapters"})
     state_dict: Optional[Dict[str, Any]] = field(default=None, metadata={"help": "State dictionary for the model"})
@@ -86,6 +87,10 @@ class ModelConfig:
         else:
             self.torch_dtype = getattr(torch, self.torch_dtype) if self.torch_dtype else None
 
+        supported_pipelines = {"conversational", "text-generation"}
+        if self.pipeline not in supported_pipelines:
+            raise ValueError(f"Unsupported pipeline: {self.pipeline}")
+
 def load_chat_template(chat_template: Optional[str]) -> Optional[str]:
     logger.info(chat_template)
     if chat_template is None:
@@ -111,13 +116,14 @@ args.process_additional_args(additional_args)
 
 model_args = asdict(args)
 model_args["local_files_only"] = not model_args.pop('allow_remote_files')
+model_pipeline = model_args.pop('pipeline')
 combination_type = model_args.pop('combination_type')
 
 app = FastAPI()
-resolved_chat_template = load_chat_template(model_args.pop('chat_template'))
+resovled_chat_template = load_chat_template(model_args.pop('chat_template'))
 tokenizer = AutoTokenizer.from_pretrained(**model_args)
-if resolved_chat_template is not None:
-    tokenizer.chat_template = resolved_chat_template
+if resovled_chat_template is not None:
+    tokenizer.chat_template = resovled_chat_template
 base_model = AutoModelForCausalLM.from_pretrained(**model_args)
 
 if not os.path.exists(ADAPTERS_DIR):
@@ -171,16 +177,12 @@ pipeline_kwargs = {
 if args.torch_dtype:
     pipeline_kwargs["torch_dtype"] = args.torch_dtype
 
-try:
-    pipeline = transformers.pipeline(
-        task="text-generation",
-        model=model,
-        tokenizer=tokenizer,
-        **pipeline_kwargs
-    )
-except Exception as e:
-    logger.critical(f"Failed to initialize the pipeline: {e}")
-    raise RuntimeError("Pipeline initialization failed. Check logs for details.")
+pipeline = transformers.pipeline(
+    task="text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    **pipeline_kwargs
+)
 
 try:
     # Attempt to load the generation configuration
@@ -238,47 +240,59 @@ class HealthStatus(BaseModel):
 def health_check():
     if not model:
         logger.error("Model not initialized")
-        raise HTTPException(status_code=500, detail="Model loading failed. Check configuration or weights.")
+        raise HTTPException(status_code=500, detail="Model not initialized")
     if not pipeline:
         logger.error("Pipeline not initialized")
-        raise HTTPException(status_code=500, detail="Pipeline setup failed. Check transformer configurations.")
+        raise HTTPException(status_code=500, detail="Pipeline not initialized")
     return {"status": "Healthy"}
 
-class UnifiedRequestModel(BaseModel):
-    # Fields for text generation
-    prompt: Optional[str] = Field(None, description="Prompt for text generation. Required for text-generation pipeline.")
-    return_full_text: Optional[bool] = Field(True, description="Return full text if True, else only added text")
-    clean_up_tokenization_spaces: Optional[bool] = Field(False, description="Clean up extra spaces in text output")
-    prefix: Optional[str] = Field(None, description="Prefix added to prompt")
-    handle_long_generation: Optional[str] = Field(None, description="Strategy to handle long generation")
-
-    # Common Generation parameters (formerly in generate_kwargs)
-    max_length: int = 200  # Length of input prompt + max_new_tokens
+class GenerateKwargs(BaseModel):
+    max_length: int = 200 # Length of input prompt+max_new_tokens
     min_length: int = 0
     do_sample: bool = True
+    early_stopping: bool = False
     num_beams: int = 1
     temperature: float = 1.0
     top_k: int = 10
     top_p: float = 1
-
+    typical_p: float = 1
+    repetition_penalty: float = 1
+    pad_token_id: Optional[int] = tokenizer.pad_token_id
+    eos_token_id: Optional[int] = tokenizer.eos_token_id
     class Config:
-        extra = "allow"  # Allows for additional, unspecified fields
+        extra = 'allow' # Allows for additional fields not explicitly defined
         json_schema_extra = {
             "example": {
-                "prompt": "Tell me a joke",
                 "max_length": 200,
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "return_full_text": True,
-                "clean_up_tokenization_spaces": False,
                 "additional_param": "Example value"
             }
         }
+
+class Message(BaseModel):
+    role: str
+    content: str
+
+class UnifiedRequestModel(BaseModel):
+    # Fields for text generation
+    prompt: Optional[str] = Field(None, description="Prompt for text generation. Required for text-generation pipeline. Do not use with 'messages'.")
+    return_full_text: Optional[bool] = Field(True, description="Return full text if True, else only added text")
+    clean_up_tokenization_spaces: Optional[bool] = Field(False, description="Clean up extra spaces in text output")
+    prefix: Optional[str] = Field(None, description="Prefix added to prompt")
+    handle_long_generation: Optional[str] = Field(None, description="Strategy to handle long generation")
+    generate_kwargs: Optional[GenerateKwargs] = Field(default_factory=GenerateKwargs, description="Additional kwargs for generate method")
+
+    # Field for conversational model
+    messages: Optional[List[Message]] = Field(None, description="Messages for conversational model. Required for conversational pipeline. Do not use with 'prompt'.")
+    def messages_to_dict_list(self):
+        return [message.dict() for message in self.messages] if self.messages else []
+
 class ErrorResponse(BaseModel):
     detail: str
 
 @app.post(
-    "/v1/completions",
+    "/chat",
     summary="Chat Endpoint",
     responses={
         200: {
@@ -290,6 +304,12 @@ class ErrorResponse(BaseModel):
                             "summary": "Text Generation Response",
                             "value": {
                                 "Result": "Generated text based on the prompt."
+                            }
+                        },
+                        "conversation": {
+                            "summary": "Conversation Response",
+                            "value": {
+                                "Result": "Response to the last message in the conversation."
                             }
                         }
                     }
@@ -305,6 +325,10 @@ class ErrorResponse(BaseModel):
                         "missing_prompt": {
                             "summary": "Missing Prompt",
                             "value": {"detail": "Text generation parameter prompt required"}
+                        },
+                        "missing_messages": {
+                            "summary": "Missing Messages",
+                            "value": {"detail": "Conversational parameter messages required"}
                         }
                     }
                 }
@@ -330,7 +354,23 @@ def generate_text(
                             "clean_up_tokenization_spaces": False,
                             "prefix": None,
                             "handle_long_generation": None,
-                            "temperature": 1.0,
+                            "generate_kwargs": GenerateKwargs().dict(),
+                        },
+                    },
+                    "conversation_example": {
+                        "summary": "Conversation Example",
+                        "description": "An example of a conversational request.",
+                        "value": {
+                            "messages": [
+                                {"role": "user", "content": "What is your favourite condiment?"},
+                                {"role": "assistant", "content": "Well, im quite partial to a good squeeze of fresh lemon juice. It adds just the right amount of zesty flavour to whatever im cooking up in the kitchen!"},
+                                {"role": "user", "content": "Do you have mayonnaise recipes?"}
+                            ],
+                            "return_full_text": True,
+                            "clean_up_tokenization_spaces": False,
+                            "prefix": None,
+                            "handle_long_generation": None,
+                            "generate_kwargs": GenerateKwargs().dict(),
                         },
                     },
                 },
@@ -338,23 +378,49 @@ def generate_text(
         ],
 ):
     """
-    Processes chat requests, generating text based on the specified text-generation pipeline.
+    Processes chat requests, generating text based on the specified pipeline (text generation or conversational).
+    Validates required parameters based on the pipeline and returns the generated text.
     """
-    user_generate_kwargs = request_model.dict(exclude_unset=True)
+    user_generate_kwargs = request_model.generate_kwargs.dict() if request_model.generate_kwargs else {}
+    generate_kwargs = {**default_generate_config, **user_generate_kwargs}
 
-    # Extract the prompt separately and remove it from model kwargs
-    prompt = user_generate_kwargs.pop("prompt", None)
-    if not prompt:
-        logger.error("Text generation parameter prompt required")
-        raise HTTPException(status_code=400, detail="Text generation parameter prompt required")
+    if args.pipeline == "text-generation":
+        if not request_model.prompt:
+            logger.error("Text generation parameter prompt required")
+            raise HTTPException(status_code=400, detail="Text generation parameter prompt required")
+        sequences = pipeline(
+            request_model.prompt,
+            # return_tensors=request_model.return_tensors,
+            # return_text=request_model.return_text,
+            return_full_text=request_model.return_full_text,
+            clean_up_tokenization_spaces=request_model.clean_up_tokenization_spaces,
+            prefix=request_model.prefix,
+            handle_long_generation=request_model.handle_long_generation,
+            **generate_kwargs
+        )
 
-    try:
-        sequences = pipeline(request_model.prompt, **user_generate_kwargs)
-        result = "".join(seq["generated_text"] for seq in sequences)
+        result = ""
+        for seq in sequences:
+            logger.debug(f"Result: {seq['generated_text']}")
+            result += seq['generated_text']
+
         return {"Result": result}
-    except Exception as e:
-        logger.error(f"Error during text generation: {e}")
-        raise HTTPException(status_code=500, detail="Error during text generation")
+
+    elif args.pipeline == "conversational":
+        if not request_model.messages:
+            logger.error("Conversational parameter messages required")
+            raise HTTPException(status_code=400, detail="Conversational parameter messages required")
+
+        response = pipeline(
+            request_model.messages_to_dict_list(),
+            clean_up_tokenization_spaces=request_model.clean_up_tokenization_spaces,
+            **generate_kwargs
+        )
+        return {"Result": str(response[-1])}
+
+    else:
+        logger.error("Invalid pipeline type")
+        raise HTTPException(status_code=400, detail="Invalid pipeline type")
 
 class MemoryInfo(BaseModel):
     used: str
@@ -378,7 +444,7 @@ class MetricsResponse(BaseModel):
     cpu_info: Optional[CPUInfo] = None
 
 @app.get(
-    "/v1/metrics",
+    "/metrics",
     response_model=MetricsResponse,
     summary="Metrics Endpoint",
     responses={

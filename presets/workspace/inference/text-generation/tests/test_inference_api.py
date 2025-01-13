@@ -17,13 +17,15 @@ CHAT_TEMPLATE = ("{{ bos_token }}{% for message in messages %}{% if (message['ro
     "{% elif (message['role'] == 'assistant') %}{{message['content'] + '<|end|>' + '\n'}}{% endif %}{% endfor %}")
 
 @pytest.fixture(params=[
-    {"model_path": "stanford-crfm/alias-gpt2-small-x21", "device": "cpu"},
+    {"pipeline": "text-generation", "model_path": "stanford-crfm/alias-gpt2-small-x21", "device": "cpu"},
+    {"pipeline": "conversational", "model_path": "stanford-crfm/alias-gpt2-small-x21", "device": "cpu"},
 ])
 def configured_app(request):
     original_argv = sys.argv.copy()
     # Use request.param to set correct test arguments for each configuration
     test_args = [
         'program_name',
+        '--pipeline', request.param['pipeline'],
         '--pretrained_model_name_or_path', request.param['model_path'],
         '--device_map', request.param['device'],
         '--allow_remote_files', 'True',
@@ -41,30 +43,64 @@ def configured_app(request):
 
     sys.argv = original_argv
 
+def test_conversational(configured_app):
+    if configured_app.test_config['pipeline'] != 'conversational':
+        pytest.skip("Skipping non-conversational tests")
+    client = TestClient(configured_app)
+    messages = [
+        {"role": "user", "content": "What is your favourite condiment?"},
+        {"role": "assistant", "content": "Well, im quite partial to a good squeeze of fresh lemon juice. It adds just the right amount of zesty flavour to whatever im cooking up in the kitchen!"},
+        {"role": "user", "content": "Do you have mayonnaise recipes?"}
+    ]
+    request_data = {
+        "messages": messages,
+        "generate_kwargs": {"max_new_tokens": 20, "do_sample": True}
+    }
+    response = client.post("/chat", json=request_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "Result" in data
+    assert len(data["Result"]) > 0  # Check if the conversation result is not empty
+
+def test_missing_messages_for_conversation(configured_app):
+    if configured_app.test_config['pipeline'] != 'conversational':
+        pytest.skip("Skipping non-conversational tests")
+    client = TestClient(configured_app)
+    request_data = {
+        # "messages" is missing for conversational pipeline
+    }
+    response = client.post("/chat", json=request_data)
+    assert response.status_code == 400  # Expecting a Bad Request response due to missing messages
+    assert "Conversational parameter messages required" in response.json().get("detail", "")
+
 def test_text_generation(configured_app):
+    if configured_app.test_config['pipeline'] != 'text-generation':
+        pytest.skip("Skipping non-text-generation tests")
     client = TestClient(configured_app)
     request_data = {
         "prompt": "Hello, world!",
         "return_full_text": True,
         "clean_up_tokenization_spaces": False,
-        "max_length": 50,
-        "temperature": 0.7
+        "generate_kwargs": {"max_length": 50, "min_length": 10}  # Example generate_kwargs
     }
-    response = client.post("/v1/completions", json=request_data)
+    response = client.post("/chat", json=request_data)
     assert response.status_code == 200
     data = response.json()
     assert "Result" in data
     assert len(data["Result"]) > 0  # Check if the result text is not empty
 
 def test_missing_prompt(configured_app):
+    if configured_app.test_config['pipeline'] != 'text-generation':
+        pytest.skip("Skipping non-text-generation tests")
     client = TestClient(configured_app)
     request_data = {
         # "prompt" is missing
         "return_full_text": True,
         "clean_up_tokenization_spaces": False,
-        "max_length": 50
+        "generate_kwargs": {"max_length": 50}
     }
-    response = client.post("/v1/completions", json=request_data)
+    response = client.post("/chat", json=request_data)
     assert response.status_code == 400  # Expecting a Bad Request response due to missing prompt
     assert "Text generation parameter prompt required" in response.json().get("detail", "")
 
@@ -82,7 +118,7 @@ def test_health_check(configured_app):
 
 def test_get_metrics(configured_app):
     client = TestClient(configured_app)
-    response = client.get("/v1/metrics")
+    response = client.get("/metrics")
     assert response.status_code == 200
     assert "gpu_info" in response.json()
 
@@ -112,7 +148,7 @@ def test_get_metrics_with_gpus(configured_app):
     # Mock GPUtil.getGPUs to return a list containing the mock GPU object
     with patch('torch.cuda.is_available', return_value=True), \
             patch('GPUtil.getGPUs', return_value=[mock_gpu]):
-        response = client.get("/v1/metrics")
+        response = client.get("/metrics")
         assert response.status_code == 200
         data = response.json()
 
@@ -138,7 +174,7 @@ def test_get_metrics_no_gpus(configured_app):
             patch('psutil.virtual_memory') as mock_virtual_memory:
         mock_virtual_memory.return_value.used = 4 * (1024 ** 3)  # 4 GB
         mock_virtual_memory.return_value.total = 16 * (1024 ** 3)  # 16 GB
-        response = client.get("/v1/metrics")
+        response = client.get("/metrics")
         assert response.status_code == 200
         data = response.json()
         assert data["gpu_info"] is None  # No GPUs available
@@ -150,25 +186,22 @@ def test_get_metrics_no_gpus(configured_app):
         assert data["cpu_info"]["memory"]["total"] == "16.00 GB"
 
 def test_default_generation_params(configured_app):
+    if configured_app.test_config['pipeline'] != 'text-generation':
+        pytest.skip("Skipping non-text-generation tests")
+
     client = TestClient(configured_app)
 
     request_data = {
         "prompt": "Test default params",
         "return_full_text": True,
-        "clean_up_tokenization_spaces": False,
-        "max_length": 200,
-        "min_length": 0,
-        "do_sample": True,
-        "num_beams": 1,
-        "temperature": 1.0,
-        "top_k": 10,
-        "top_p": 1,
+        "clean_up_tokenization_spaces": False
+        # Note: generate_kwargs is not provided, so defaults should be used
     }
 
     with patch('inference_api.pipeline') as mock_pipeline:
         mock_pipeline.return_value = [{"generated_text": "Mocked response"}]  # Mock the response of the pipeline function
 
-        response = client.post("/v1/completions", json=request_data)
+        response = client.post("/chat", json=request_data)
 
         assert response.status_code == 200
         data = response.json()
@@ -180,12 +213,18 @@ def test_default_generation_params(configured_app):
         assert kwargs['max_length'] == 200
         assert kwargs['min_length'] == 0
         assert kwargs['do_sample'] is True
-        assert kwargs['num_beams'] == 1
         assert kwargs['temperature'] == 1.0
         assert kwargs['top_k'] == 10
         assert kwargs['top_p'] == 1
+        assert kwargs['typical_p'] == 1
+        assert kwargs['repetition_penalty'] == 1
+        assert kwargs['num_beams'] == 1
+        assert kwargs['early_stopping'] is False
 
 def test_generation_with_max_length(configured_app):
+    if configured_app.test_config['pipeline'] != 'text-generation':
+        pytest.skip("Skipping non-text-generation tests")
+
     client = TestClient(configured_app)
     prompt = "This prompt requests a response of a certain minimum length to test the functionality."
     avg_res_len = 15
@@ -195,10 +234,10 @@ def test_generation_with_max_length(configured_app):
         "prompt": prompt,
         "return_full_text": True,
         "clean_up_tokenization_spaces": False,
-        "max_length": max_length,
+        "generate_kwargs": {"max_length": max_length}
     }
 
-    response = client.post("/v1/completions", json=request_data)
+    response = client.post("/chat", json=request_data)
 
     assert response.status_code == 200
     data = response.json()
@@ -218,6 +257,9 @@ def test_generation_with_max_length(configured_app):
     assert len(total_tokens) <= max_length, "Total # of tokens has to be less than or equal to max_length"
 
 def test_generation_with_min_length(configured_app):
+    if configured_app.test_config['pipeline'] != 'text-generation':
+        pytest.skip("Skipping non-text-generation tests")
+
     client = TestClient(configured_app)
     prompt = "This prompt requests a response of a certain minimum length to test the functionality."
     min_length = 30
@@ -227,11 +269,10 @@ def test_generation_with_min_length(configured_app):
         "prompt": prompt,
         "return_full_text": True,
         "clean_up_tokenization_spaces": False,
-        "min_length": min_length,
-        "max_length": max_length,
+        "generate_kwargs": {"min_length": min_length, "max_length": max_length}
     }
 
-    response = client.post("/v1/completions", json=request_data)
+    response = client.post("/chat", json=request_data)
 
     assert response.status_code == 200
     data = response.json()

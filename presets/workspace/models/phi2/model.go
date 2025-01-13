@@ -29,6 +29,7 @@ var (
 	baseCommandPresetPhiTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	phiRunParams                  = map[string]string{
 		"torch_dtype": "float16",
+		"pipeline":    "text-generation",
 	}
 	phiRunParamsVLLM = map[string]string{
 		"dtype": "float16",

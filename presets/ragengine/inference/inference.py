@@ -61,7 +61,7 @@ class Inference(CustomLLM):
         )
 
     def _custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        model = kwargs.pop("model", self.get_default_model())
+        model = kwargs.pop("model", self._get_default_model())
         data = {"prompt": prompt, **kwargs}
         if model:
             data["model"] = model # Include the model only if it is not None

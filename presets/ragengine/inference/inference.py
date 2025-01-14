@@ -73,8 +73,8 @@ class Inference(CustomLLM):
         except HTTPError as e:
             if e.response.status_code == 400:
                 logger.warning(
-                    f"Detected missing 'model' parameter in API response. "
-                    f"Response: {str(e)}. Attempting to fetch the default model..."
+                    f"Potential issue with 'model' parameter in API response. "
+                    f"Response: {str(e)}. Attempting to update the model name as a mitigation..."
                 )
                 self._default_model = self._fetch_default_model()  # Fetch default model dynamically
                 if self._default_model:

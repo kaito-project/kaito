@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 OPENAI_URL_PREFIX = "https://api.openai.com"
 HUGGINGFACE_URL_PREFIX = "https://api-inference.huggingface.co"
+DEFAULT_HEADERS = {
+    "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
+    "Content-Type": "application/json"
+}
 
 class Inference(CustomLLM):
     params: dict = field(default_factory=dict)
@@ -64,23 +68,23 @@ class Inference(CustomLLM):
         # DEBUG: Call the debugging function
         # self._debug_curl_command(data)
         try:
-            return self._post_request(data, headers={
-                "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
-                "Content-Type": "application/json"
-            })
+            return self._post_request(data, headers=DEFAULT_HEADERS)
         except Exception as e:
+            err_msg = str(e)
             # Check for vLLM-specific missing model error
-            if "missing" in str(e) and "model" in str(e):
-                logger.warning("Detected missing 'model' parameter. Fetching default model and retrying...")
+            if "missing" in err_msg and "model" in err_msg and "Field required" in err_msg:
+                logger.warning(
+                    f"Detected missing 'model' parameter in API response. "
+                    f"Response: {err_msg}. Attempting to fetch the default model..."
+                )
                 self._default_model = self._fetch_default_model()  # Fetch default model dynamically
                 if self._default_model:
+                    logger.info(f"Default model '{self._default_model}' fetched successfully. Retrying request...")
                     data["model"] = self._default_model
-                    return self._post_request(data, headers={
-                        "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
-                        "Content-Type": "application/json"
-                    })
+                    return self._post_request(data, headers=DEFAULT_HEADERS)
+                else:
+                    logger.error("Failed to fetch a default model. Aborting retry.")
             raise # Re-raise the exception if not recoverable
-
 
     def _get_models_endpoint(self) -> str:
         """
@@ -95,12 +99,7 @@ class Inference(CustomLLM):
         """
         try:
             models_url = self._get_models_endpoint()
-            headers = {
-                "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
-                "Content-Type": "application/json"
-            }
-
-            response = requests.get(models_url, headers=headers)
+            response = requests.get(models_url, headers=DEFAULT_HEADERS)
             response.raise_for_status()  # Raise an exception for HTTP errors (includes 404)
 
             models = response.json().get("data", [])

@@ -9,14 +9,15 @@ import (
 	"strings"
 	"time"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/test/e2e/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
 var DefaultStrength = "1.0"
@@ -222,11 +223,7 @@ var _ = Describe("Workspace Preset", func() {
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
 
-		if nodeProvisionerName == "azkarpenter" {
-			utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
-		} else {
-			utils.ValidateMachineCreation(ctx, workspaceObj, numOfNode)
-		}
+		utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
 		validateResourceStatus(workspaceObj)
 
 		time.Sleep(30 * time.Second)

@@ -14,9 +14,6 @@ import (
 
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
 	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/samber/lo"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -28,6 +25,10 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
 
 var (
@@ -274,15 +275,17 @@ func WaitForPendingNodeClaims(ctx context.Context, obj interface{}, kubeClient c
 				lo.Contains(requirement.Values, instanceType)
 		})
 		if nodeClaimInstanceType {
-			_, found := lo.Find(nodeClaims.Items[i].GetConditions(), func(condition apis.Condition) bool {
-				return condition.Type == v1beta1.Initialized && condition.Status == v1.ConditionFalse
+			_, nodeClaimIsInitalized := lo.Find(nodeClaims.Items[i].GetConditions(), func(condition apis.Condition) bool {
+				return condition.Type == v1beta1.Initialized && condition.Status == v1.ConditionTrue
 			})
 
-			if found || nodeClaims.Items[i].GetConditions() == nil { // Check if conditions==nil is a workaround for condition delays in setting the nodeClaim object
-				// wait until the nodeClaim is initialized
-				if err := CheckNodeClaimStatus(ctx, &nodeClaims.Items[i], kubeClient); err != nil {
-					return err
-				}
+			if nodeClaimIsInitalized {
+				continue
+			}
+
+			// wait until the nodeClaim is initialized
+			if err := CheckNodeClaimStatus(ctx, &nodeClaims.Items[i], kubeClient); err != nil {
+				return err
 			}
 		}
 	}

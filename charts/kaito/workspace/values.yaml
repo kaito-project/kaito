@@ -16,7 +16,6 @@ securityContext:
     drop:
       - "ALL"
 featureGates:
-  Karpenter: "false"
   vLLM: "true"
 webhook:
   port: 9443

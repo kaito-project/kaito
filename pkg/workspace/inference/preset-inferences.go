@@ -8,19 +8,18 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-
-	"github.com/kaito-project/kaito/api/v1alpha1"
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
-	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
 const (
@@ -72,7 +71,7 @@ var (
 )
 
 func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient client.Client, wObj *kaitov1alpha1.Workspace, inferenceParam *model.PresetParam) error {
-	runtimeName := v1alpha1.GetWorkspaceRuntimeName(wObj)
+	runtimeName := kaitov1alpha1.GetWorkspaceRuntimeName(wObj)
 	if runtimeName != model.RuntimeNameHuggingfaceTransformers {
 		return fmt.Errorf("distributed inference is not supported for runtime %s", runtimeName)
 	}

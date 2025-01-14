@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/test/e2e/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/samber/lo"
@@ -23,6 +21,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
 const (
@@ -862,11 +863,7 @@ var _ = Describe("Workspace Preset", func() {
 })
 
 func validateCreateNode(workspaceObj *kaitov1alpha1.Workspace, numOfNode int) {
-	if nodeProvisionerName == "azkarpenter" {
-		utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
-	} else {
-		utils.ValidateMachineCreation(ctx, workspaceObj, numOfNode)
-	}
+	utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
 }
 
 // validateInferenceConfig validates that the inference config exists and contains data

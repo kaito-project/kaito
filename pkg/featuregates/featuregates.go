@@ -7,15 +7,15 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	cliflag "k8s.io/component-base/cli/flag"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 var (
 	// FeatureGates is a map that holds	the feature gates and their default values for Kaito.
 	FeatureGates = map[string]bool{
-		consts.FeatureFlagKarpenter: false,
-		consts.FeatureFlagVLLM:      true,
+		consts.FeatureFlagVLLM: true,
 		//	Add more feature gates here
 	}
 )

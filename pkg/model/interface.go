@@ -6,8 +6,9 @@ import (
 	"path"
 	"time"
 
-	"github.com/kaito-project/kaito/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/kaito-project/kaito/pkg/utils"
 )
 
 type Model interface {

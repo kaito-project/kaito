@@ -6,20 +6,19 @@ package utils
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func Contains(s []string, e string) bool {
@@ -96,7 +95,7 @@ func GetReleaseNamespace() (string, error) {
 	namespaceFilePath := "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 
 	// Attempt to read the namespace from the file
-	if content, err := ioutil.ReadFile(namespaceFilePath); err == nil {
+	if content, err := os.ReadFile(namespaceFilePath); err == nil {
 		return string(content), nil
 	}
 
@@ -218,10 +217,9 @@ func SelectNodes(qualified []*v1.Node, preferred []string, previous []string, co
 				_, jCreatedByGPUProvisioner = qualified[j].Labels[consts.LabelGPUProvisionerCustom]
 				// Choose node created by gpu-provisioner and karpenter since it is more likely to be empty to use.
 				var iCreatedByKarpenter, jCreatedByKarpenter bool
-				if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-					_, iCreatedByKarpenter = qualified[i].Labels[consts.LabelNodePool]
-					_, jCreatedByKarpenter = qualified[j].Labels[consts.LabelNodePool]
-				}
+				_, iCreatedByKarpenter = qualified[i].Labels[consts.LabelNodePool]
+				_, jCreatedByKarpenter = qualified[j].Labels[consts.LabelNodePool]
+
 				if (iCreatedByGPUProvisioner && !jCreatedByGPUProvisioner) ||
 					(iCreatedByKarpenter && !jCreatedByKarpenter) {
 					return true

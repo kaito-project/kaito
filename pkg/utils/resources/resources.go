@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kaito-project/kaito/pkg/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -15,6 +14,8 @@ import (
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/kaito-project/kaito/pkg/utils"
 )
 
 func CreateResource(ctx context.Context, resource client.Object, kubeClient client.Client) error {
@@ -74,9 +75,9 @@ func CheckResourceStatus(obj client.Object, kubeClient client.Client, timeoutDur
 			case *appsv1.Deployment:
 				for _, condition := range k8sResource.Status.Conditions {
 					if condition.Type == appsv1.DeploymentProgressing && condition.Status == corev1.ConditionFalse {
-						errorMessage := fmt.Sprintf("deployment %s is not progressing: %s", k8sResource.Name, condition.Message)
-						klog.ErrorS(fmt.Errorf(errorMessage), "deployment", k8sResource.Name, "reason", condition.Reason, "message", condition.Message)
-						return fmt.Errorf(errorMessage)
+						err := fmt.Errorf("deployment %s is not progressing: %s", k8sResource.Name, condition.Message)
+						klog.ErrorS(err, "deployment", k8sResource.Name, "reason", condition.Reason, "message", condition.Message)
+						return err
 					}
 				}
 

@@ -8,9 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/test"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	goassert "gotest.tools/assert"
@@ -22,6 +19,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func int32Ptr(i int32) *int32 {

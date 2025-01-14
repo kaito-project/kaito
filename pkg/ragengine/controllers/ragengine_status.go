@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"sort"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -18,6 +17,8 @@ import (
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 )
 
 func (c *RAGEngineReconciler) updateRAGEngineStatus(ctx context.Context, name *client.ObjectKey, condition *metav1.Condition, workerNodes []string) error {

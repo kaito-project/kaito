@@ -7,21 +7,20 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/pointer"
-	"knative.dev/pkg/apis"
-
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
+	"knative.dev/pkg/apis"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/klog/v2"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -346,7 +345,7 @@ func handleImageDataDestination(ctx context.Context, outputDir, image, imagePush
 		Name:  "docker-sidecar",
 		Image: "docker:dind",
 		SecurityContext: &corev1.SecurityContext{
-			Privileged: pointer.BoolPtr(true),
+			Privileged: ptr.To(true),
 		},
 		Command: []string{"/bin/sh", "-c"},
 		Args:    []string{dockerSidecarScriptPushImage(outputDir, image)},

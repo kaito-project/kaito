@@ -6,10 +6,10 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/test/e2e/utils"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("Workspace Preset on vllm runtime", func() {

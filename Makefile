@@ -3,7 +3,7 @@
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
 VERSION ?= v0.4.1
-GPU_PROVISIONER_VERSION ?= 0.2.1
+GPU_PROVISIONER_VERSION ?= 0.3.0
 IMG_TAG ?= $(subst v,,$(VERSION))
 
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -12,7 +12,7 @@ BIN_DIR := $(abspath $(ROOT_DIR)/bin)
 TOOLS_DIR := hack/tools
 TOOLS_BIN_DIR := $(abspath $(TOOLS_DIR)/bin)
 
-GOLANGCI_LINT_VER := v1.57.2
+GOLANGCI_LINT_VER := v1.63.4
 GOLANGCI_LINT_BIN := golangci-lint
 GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT_VER))
 
@@ -130,7 +130,7 @@ GINKGO_SKIP ?=
 GINKGO_NODES ?= 2
 GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 120m
-GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) --output-interceptor-mode=none -timeout=$(GINKGO_TIMEOUT) --fail-fast
+GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT) --fail-fast
 
 $(E2E_TEST):
 	(cd test/e2e && go test -c . -o $(E2E_TEST))

@@ -10,14 +10,15 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/kaito-project/kaito/pkg/k8sclient"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/utils"
 )
 
 type Config struct {

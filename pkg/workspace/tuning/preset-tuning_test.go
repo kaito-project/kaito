@@ -8,15 +8,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func normalize(s string) string {
@@ -230,7 +230,7 @@ func TestHandleImageDataSource(t *testing.T) {
 		"Handle Image Data Source": {
 			workspaceObj: &kaitov1alpha1.Workspace{
 				Resource: kaitov1alpha1.ResourceSpec{
-					Count: pointer.Int(1),
+					Count: ptr.To(1),
 				},
 				Tuning: &kaitov1alpha1.TuningSpec{
 					Input: &kaitov1alpha1.DataSource{

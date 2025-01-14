@@ -8,15 +8,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"github.com/samber/lo"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+
+	"github.com/kaito-project/kaito/api/v1alpha1"
 )
 
 // ValidateNodeClaimCreation Logic to validate the nodeClaim creation.

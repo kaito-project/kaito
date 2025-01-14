@@ -7,12 +7,13 @@ import (
 	"context"
 	"fmt"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 )
 
 const (
@@ -28,9 +29,6 @@ func GetNode(ctx context.Context, nodeName string, kubeClient client.Client) (*c
 	err := kubeClient.Get(ctx, client.ObjectKey{Name: nodeName}, node, &client.GetOptions{})
 	if err != nil {
 		return nil, err
-	}
-	if node == nil {
-		return nil, fmt.Errorf("no node has been found with nodeName %s", nodeName)
 	}
 	return node, nil
 }

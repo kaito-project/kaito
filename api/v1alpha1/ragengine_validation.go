@@ -11,12 +11,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {

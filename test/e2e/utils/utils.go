@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
@@ -18,25 +17,24 @@ import (
 	"strings"
 	"time"
 
+	"github.com/samber/lo"
+	"gopkg.in/yaml.v2"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	pkgscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/remotecommand"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/samber/lo"
-	"gopkg.in/yaml.v2"
-	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
 const (
 	InferenceModeCustomTemplate kaitov1alpha1.ModelImageAccessMode = "customTemplate"
-	ExampleDatasetURL                                              = "https://huggingface.co/datasets/philschmid/dolly-15k-oai-style/resolve/main/data/train-00000-of-00001-54e3756291ca09c6.parquet?download=true"
+
+	ExampleDatasetURL = "https://huggingface.co/datasets/philschmid/dolly-15k-oai-style/resolve/main/data/train-00000-of-00001-54e3756291ca09c6.parquet?download=true"
 )
 
 var (
@@ -57,15 +55,15 @@ func GetEnv(envVar string) string {
 
 // GenerateRandomString generates a random number between 0 and 1000 and returns it as a string.
 func GenerateRandomString() string {
-	rand.Seed(time.Now().UnixNano()) // Seed the random number generator
-	randomNumber := rand.Intn(1001)  // Generate a random number between 0 and 1000
+	newRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	randomNumber := newRand.Intn(1001) // Generate a random number between 0 and 1000
 	return fmt.Sprintf("%d", randomNumber)
 }
 
 func GetModelConfigInfo(configFilePath string) (map[string]interface{}, error) {
 	var data map[string]interface{}
 
-	yamlData, err := ioutil.ReadFile(configFilePath)
+	yamlData, err := os.ReadFile(configFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading YAML file: %w", err)
 	}
@@ -142,7 +140,7 @@ func GetK8sClientset() (*kubernetes.Clientset, error) {
 }
 
 func GetPodLogs(coreClient *kubernetes.Clientset, namespace, podName, containerName string) (string, error) {
-	options := &v1.PodLogOptions{}
+	options := &corev1.PodLogOptions{}
 	if containerName != "" {
 		options.Container = containerName
 	}
@@ -163,7 +161,7 @@ func GetPodLogs(coreClient *kubernetes.Clientset, namespace, podName, containerN
 	return buf.String(), nil
 }
 
-func ExecSync(ctx context.Context, config *rest.Config, coreClient *kubernetes.Clientset, namespace, podName string, options v1.PodExecOptions) (string, error) {
+func ExecSync(ctx context.Context, config *rest.Config, coreClient *kubernetes.Clientset, namespace, podName string, options corev1.PodExecOptions) (string, error) {
 	req := coreClient.CoreV1().RESTClient().Post().
 		Resource("pods").
 		Name(podName).
@@ -268,7 +266,7 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 			Name:      name,
 			Namespace: namespace,
 			Annotations: map[string]string{
-				v1alpha1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
+				kaitov1alpha1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
 			},
 		},
 		Resource: kaitov1alpha1.ResourceSpec{

@@ -6,16 +6,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
 
 const (

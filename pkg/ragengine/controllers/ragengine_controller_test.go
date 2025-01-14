@@ -12,12 +12,7 @@ import (
 	"time"
 
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
-	"github.com/aws/karpenter-core/pkg/apis/v1alpha5"
 	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
-	"github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/stretchr/testify/mock"
 	"gotest.tools/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -29,54 +24,26 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+
+	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func TestApplyRAGEngineResource(t *testing.T) {
 	test.RegisterTestModel()
 	testcases := map[string]struct {
-		callMocks                   func(c *test.MockClient)
-		karpenterFeatureGateEnabled bool
-		expectedError               error
-		ragengine                   v1alpha1.RAGEngine
+		callMocks     func(c *test.MockClient)
+		expectedError error
+		ragengine     v1alpha1.RAGEngine
 	}{
-		"Fail to apply ragengine because associated machines cannot be retrieved": {
-			callMocks: func(c *test.MockClient) {
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1alpha5.MachineList{}), mock.Anything).Return(errors.New("failed to retrieve machines"))
-			},
-			ragengine:     *test.MockRAGEngineDistributedModel,
-			expectedError: errors.New("failed to retrieve machines"),
-		},
-		"Fail to apply ragengine because can't get qualified nodes": {
-			callMocks: func(c *test.MockClient) {
-				machineList := test.MockMachineList
-				relevantMap := c.CreateMapWithType(machineList)
-				c.CreateOrUpdateObjectInMap(&test.MockMachine)
-
-				//insert machine objects into the map
-				for _, obj := range machineList.Items {
-					m := obj
-					objKey := client.ObjectKeyFromObject(&m)
-
-					relevantMap[objKey] = &m
-				}
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1alpha5.MachineList{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha5.Machine{}), mock.Anything).Return(nil)
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(errors.New("failed to list nodes"))
-			},
-			ragengine:     *test.MockRAGEngineDistributedModel,
-			expectedError: errors.New("failed to list nodes"),
-		},
 		"Fail to apply ragengine because associated nodeClaim cannot be retrieved": {
 			callMocks: func(c *test.MockClient) {
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1alpha5.MachineList{}), mock.Anything).Return(nil)
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaimList{}), mock.Anything).Return(errors.New("failed to retrieve nodeClaims"))
 
 			},
-			karpenterFeatureGateEnabled: true,
-			ragengine:                   *test.MockRAGEngineDistributedModel,
-			expectedError:               errors.New("failed to retrieve nodeClaims"),
+			ragengine:     *test.MockRAGEngineDistributedModel,
+			expectedError: errors.New("failed to retrieve nodeClaims"),
 		},
 		"Fail to apply ragengine with nodeClaims because can't get qualified nodes": {
 			callMocks: func(c *test.MockClient) {
@@ -91,39 +58,13 @@ func TestApplyRAGEngineResource(t *testing.T) {
 
 					relevantMap[objKey] = &m
 				}
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1alpha5.MachineList{}), mock.Anything).Return(nil)
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaimList{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(errors.New("failed to list nodes"))
 			},
-			karpenterFeatureGateEnabled: true,
-			ragengine:                   *test.MockRAGEngineDistributedModel,
-			expectedError:               errors.New("failed to list nodes"),
-		},
-		"Successfully apply ragengine resource with machine": {
-			callMocks: func(c *test.MockClient) {
-				nodeList := test.MockNodeList
-				relevantMap := c.CreateMapWithType(nodeList)
-				//insert node objects into the map
-				for _, obj := range test.MockNodeList.Items {
-					n := obj
-					objKey := client.ObjectKeyFromObject(&n)
-
-					relevantMap[objKey] = &n
-				}
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1alpha5.MachineList{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha5.Machine{}), mock.Anything).Return(nil)
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
-
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
-				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
-
-			},
 			ragengine:     *test.MockRAGEngineDistributedModel,
-			expectedError: nil,
+			expectedError: errors.New("failed to list nodes"),
 		},
 		"Successfully apply ragengine resource with nodeClaim": {
 			callMocks: func(c *test.MockClient) {
@@ -137,9 +78,6 @@ func TestApplyRAGEngineResource(t *testing.T) {
 					relevantMap[objKey] = &n
 				}
 
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1alpha5.MachineList{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha5.Machine{}), mock.Anything).Return(nil)
-
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&v1beta1.NodeClaimList{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.NodeClaim{}), mock.Anything).Return(nil)
 
@@ -149,9 +87,8 @@ func TestApplyRAGEngineResource(t *testing.T) {
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
 
 			},
-			karpenterFeatureGateEnabled: true,
-			ragengine:                   *test.MockRAGEngineDistributedModel,
-			expectedError:               nil,
+			ragengine:     *test.MockRAGEngineDistributedModel,
+			expectedError: nil,
 		},
 	}
 
@@ -160,19 +97,9 @@ func TestApplyRAGEngineResource(t *testing.T) {
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 
-			mockMachine := &v1alpha5.Machine{}
 			mockNodeClaim := &v1beta1.NodeClaim{}
 
 			mockClient.UpdateCb = func(key types.NamespacedName) {
-				mockClient.GetObjectFromMap(mockMachine, key)
-				mockMachine.Status.Conditions = apis.Conditions{
-					{
-						Type:   apis.ConditionReady,
-						Status: corev1.ConditionTrue,
-					},
-				}
-				mockClient.CreateOrUpdateObjectInMap(mockMachine)
-
 				mockClient.GetObjectFromMap(mockNodeClaim, key)
 				mockNodeClaim.Status.Conditions = apis.Conditions{
 					{
@@ -187,7 +114,6 @@ func TestApplyRAGEngineResource(t *testing.T) {
 				Client: mockClient,
 				Scheme: test.NewTestScheme(),
 			}
-			featuregates.FeatureGates[consts.FeatureFlagKarpenter] = tc.karpenterFeatureGateEnabled
 			ctx := context.Background()
 
 			err := reconciler.applyRAGEngineResource(ctx, &tc.ragengine)
@@ -268,29 +194,12 @@ func TestGetAllQualifiedNodesforRAGEngine(t *testing.T) {
 func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 	test.RegisterTestModel()
 	testcases := map[string]struct {
-		callMocks             func(c *test.MockClient)
-		cloudProvider         string
-		objectConditions      apis.Conditions
-		ragengine             v1alpha1.RAGEngine
-		karpenterFeatureGates bool
-		expectedError         error
+		callMocks        func(c *test.MockClient)
+		cloudProvider    string
+		objectConditions apis.Conditions
+		ragengine        v1alpha1.RAGEngine
+		expectedError    error
 	}{
-		"A machine is successfully created": {
-			callMocks: func(c *test.MockClient) {
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1alpha5.Machine{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha5.Machine{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-			},
-			cloudProvider: consts.AzureCloudName,
-			objectConditions: apis.Conditions{
-				{
-					Type:   apis.ConditionReady,
-					Status: corev1.ConditionTrue,
-				},
-			},
-			ragengine:     *test.MockRAGEngineDistributedModel,
-			expectedError: nil,
-		},
 		"An Azure nodeClaim is successfully created": {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
@@ -306,9 +215,8 @@ func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 					Status: corev1.ConditionTrue,
 				},
 			},
-			ragengine:             *test.MockRAGEngineDistributedModel,
-			karpenterFeatureGates: true,
-			expectedError:         nil,
+			ragengine:     *test.MockRAGEngineDistributedModel,
+			expectedError: nil,
 		},
 		"An AWS nodeClaim is successfully created": {
 			callMocks: func(c *test.MockClient) {
@@ -325,28 +233,20 @@ func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 					Status: corev1.ConditionTrue,
 				},
 			},
-			ragengine:             *test.MockRAGEngineDistributedModel,
-			karpenterFeatureGates: true,
-			expectedError:         nil,
+			ragengine:     *test.MockRAGEngineDistributedModel,
+			expectedError: nil,
 		},
 	}
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
 			mockClient := test.NewClient()
-			mockMachine := &v1alpha5.Machine{}
 			mockNodeClaim := &v1beta1.NodeClaim{}
 
 			mockClient.UpdateCb = func(key types.NamespacedName) {
-				mockClient.GetObjectFromMap(mockMachine, key)
-				mockMachine.Status.Conditions = tc.objectConditions
-				mockClient.CreateOrUpdateObjectInMap(mockMachine)
-
-				if tc.karpenterFeatureGates {
-					mockClient.GetObjectFromMap(mockNodeClaim, key)
-					mockNodeClaim.Status.Conditions = tc.objectConditions
-					mockClient.CreateOrUpdateObjectInMap(mockNodeClaim)
-				}
+				mockClient.GetObjectFromMap(mockNodeClaim, key)
+				mockNodeClaim.Status.Conditions = tc.objectConditions
+				mockClient.CreateOrUpdateObjectInMap(mockNodeClaim)
 			}
 
 			if tc.cloudProvider != "" {
@@ -361,7 +261,6 @@ func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 				Scheme: test.NewTestScheme(),
 			}
 			ctx := context.Background()
-			featuregates.FeatureGates[consts.FeatureFlagKarpenter] = tc.karpenterFeatureGates
 
 			node, err := reconciler.createAndValidateNode(ctx, &tc.ragengine)
 			if tc.expectedError == nil {

@@ -72,12 +72,10 @@ class Inference(CustomLLM):
             return self._post_request(data, headers=DEFAULT_HEADERS)
         except HTTPError as e:
             if e.response.status_code == 400:
-                err_msg = str(e)
-                # Check for vLLM-specific missing model error
                 self._model_retrieval_attempted = False
                 logger.warning(
                     f"Detected missing 'model' parameter in API response. "
-                    f"Response: {err_msg}. Attempting to fetch the default model..."
+                    f"Response: {str(e)}. Attempting to fetch the default model..."
                 )
                 self._default_model = self._fetch_default_model()  # Fetch default model dynamically
                 if self._default_model:

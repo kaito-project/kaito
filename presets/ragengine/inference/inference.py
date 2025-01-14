@@ -23,9 +23,9 @@ DEFAULT_HEADERS = {
 }
 
 class Inference(CustomLLM):
-    params: dict = field(default_factory=dict)
+    params: dict = {}
     _default_model: str = None
-    _custom_api_endpoint_type: str = None  # "vllm", "non-vllm", or None
+    _model_retrieval_attempted: bool = False
 
     def set_params(self, params: dict) -> None:
         self.params = params
@@ -67,24 +67,7 @@ class Inference(CustomLLM):
 
         # DEBUG: Call the debugging function
         # self._debug_curl_command(data)
-        try:
-            return self._post_request(data, headers=DEFAULT_HEADERS)
-        except Exception as e:
-            err_msg = str(e)
-            # Check for vLLM-specific missing model error
-            if "missing" in err_msg and "model" in err_msg and "Field required" in err_msg:
-                logger.warning(
-                    f"Detected missing 'model' parameter in API response. "
-                    f"Response: {err_msg}. Attempting to fetch the default model..."
-                )
-                self._default_model = self._fetch_default_model()  # Fetch default model dynamically
-                if self._default_model:
-                    logger.info(f"Default model '{self._default_model}' fetched successfully. Retrying request...")
-                    data["model"] = self._default_model
-                    return self._post_request(data, headers=DEFAULT_HEADERS)
-                else:
-                    logger.error("Failed to fetch a default model. Aborting retry.")
-            raise # Re-raise the exception if not recoverable
+        return self._post_request(data, headers=DEFAULT_HEADERS)
 
     def _get_models_endpoint(self) -> str:
         """
@@ -103,18 +86,17 @@ class Inference(CustomLLM):
             response.raise_for_status()  # Raise an exception for HTTP errors (includes 404)
 
             models = response.json().get("data", [])
-            self._custom_api_endpoint_type = "vllm"
             return models[0].get("id") if models else None
         except Exception as e:
             logger.error(f"Error fetching models from {models_url}: {e}. \"model\" parameter will not be included with inference call.")
-            self._custom_api_endpoint_type = "non-vllm"
             return None
 
     def _get_default_model(self) -> str:
         """
         Returns the cached default model if available, otherwise fetches and caches it.
         """
-        if not self._default_model:
+        if not self._default_model and not self._model_retrieval_attempted:
+            self._model_retrieval_attempted = True
             self._default_model = self._fetch_default_model()
         return self._default_model
 

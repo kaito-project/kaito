@@ -74,21 +74,18 @@ class Inference(CustomLLM):
             if e.response.status_code == 400:
                 err_msg = str(e)
                 # Check for vLLM-specific missing model error
-                if "missing" in err_msg and "model" in err_msg and "Field required" in err_msg:
-                    self._model_retrieval_attempted = False
-                    logger.warning(
-                        f"Detected missing 'model' parameter in API response. "
-                        f"Response: {err_msg}. Attempting to fetch the default model..."
-                    )
-                    self._default_model = self._fetch_default_model()  # Fetch default model dynamically
-                    if self._default_model:
-                        logger.info(f"Default model '{self._default_model}' fetched successfully. Retrying request...")
-                        data["model"] = self._default_model
-                        return self._post_request(data, headers=DEFAULT_HEADERS)
-                    else:
-                        logger.error("Failed to fetch a default model. Aborting retry.")
+                self._model_retrieval_attempted = False
+                logger.warning(
+                    f"Detected missing 'model' parameter in API response. "
+                    f"Response: {err_msg}. Attempting to fetch the default model..."
+                )
+                self._default_model = self._fetch_default_model()  # Fetch default model dynamically
+                if self._default_model:
+                    logger.info(f"Default model '{self._default_model}' fetched successfully. Retrying request...")
+                    data["model"] = self._default_model
+                    return self._post_request(data, headers=DEFAULT_HEADERS)
                 else:
-                    logger.error(f"HTTP 400 error occurred: {err_msg}")
+                    logger.error("Failed to fetch a default model. Aborting retry.")
             raise  # Re-raise the exception if not recoverable
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")

@@ -8,6 +8,7 @@ from llama_index.core.llms import CustomLLM, CompletionResponse, LLMMetadata, Co
 from llama_index.llms.openai import OpenAI
 from llama_index.core.llms.callbacks import llm_completion_callback
 import requests
+from requests.exceptions import HTTPError
 from urllib.parse import urlparse, urljoin
 from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET #, LLM_RESPONSE_FIELD
 
@@ -60,14 +61,38 @@ class Inference(CustomLLM):
         )
 
     def _custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        model = kwargs.pop("model", self._get_default_model())
+        model = kwargs.pop("model", self.get_default_model())
         data = {"prompt": prompt, **kwargs}
         if model:
             data["model"] = model # Include the model only if it is not None
 
         # DEBUG: Call the debugging function
         # self._debug_curl_command(data)
-        return self._post_request(data, headers=DEFAULT_HEADERS)
+        try:
+            return self._post_request(data, headers=DEFAULT_HEADERS)
+        except HTTPError as e:
+            if e.response.status_code == 400:
+                err_msg = str(e)
+                # Check for vLLM-specific missing model error
+                if "missing" in err_msg and "model" in err_msg and "Field required" in err_msg:
+                    self._model_retrieval_attempted = False
+                    logger.warning(
+                        f"Detected missing 'model' parameter in API response. "
+                        f"Response: {err_msg}. Attempting to fetch the default model..."
+                    )
+                    self._default_model = self._fetch_default_model()  # Fetch default model dynamically
+                    if self._default_model:
+                        logger.info(f"Default model '{self._default_model}' fetched successfully. Retrying request...")
+                        data["model"] = self._default_model
+                        return self._post_request(data, headers=DEFAULT_HEADERS)
+                    else:
+                        logger.error("Failed to fetch a default model. Aborting retry.")
+                else:
+                    logger.error(f"HTTP 400 error occurred: {err_msg}")
+            raise  # Re-raise the exception if not recoverable
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
+            raise
 
     def _get_models_endpoint(self) -> str:
         """

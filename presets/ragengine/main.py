@@ -60,7 +60,9 @@ async def index_documents(request: IndexRequest): # TODO: Research async/sync wh
 @app.post("/query", response_model=QueryResponse)
 async def query_index(request: QueryRequest):
     try:
-        llm_params = request.llm_params or {} # Default to empty dict if no params provided
+        llm_params = {}        
+        for key, value in request.model_extra.items():
+            llm_params[key] = value  
         rerank_params = request.rerank_params or {} # Default to empty dict if no params provided
         return rag_ops.query(request.index_name, request.query, request.top_k, llm_params, rerank_params)
     except Exception as e:

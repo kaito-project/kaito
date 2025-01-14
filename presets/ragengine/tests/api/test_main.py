@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from llama_index.core.storage.index_store import SimpleIndexStore
 
@@ -39,7 +39,15 @@ def test_index_documents_success():
     assert not doc2["metadata"]
 
 @patch('requests.post')
-def test_query_index_success(mock_post):
+@patch('requests.get') 
+def test_query_index_success(mock_get, mock_post):
+    mock_get.return_value = MagicMock(
+        status_code=200,
+        json=lambda: {
+            "data": [{"id": "test-model"}]
+        }
+    )
+    
     # Define Mock Response for Custom Inference API
     mock_response = {
         "result": "This is the completion from the API"
@@ -62,7 +70,7 @@ def test_query_index_success(mock_post):
         "index_name": "test_index",
         "query": "test query",
         "top_k": 1,
-        "llm_params": {"temperature": 0.7}
+        "temperature": 0.7
     }
 
     response = client.post("/query", json=request_data)
@@ -135,7 +143,7 @@ def test_reranker_and_query_with_index(mock_post):
         "index_name": "test_index",
         "query": "what is the capital of france?",
         "top_k": 5,
-        "llm_params": {"temperature": 0.7},
+        "temperature": 0.7,
         "rerank_params": {"top_n": top_n}
     }
 
@@ -171,13 +179,12 @@ def test_query_index_failure():
         "index_name": "non_existent_index",  # Use an index name that doesn't exist
         "query": "test query",
         "top_k": 1,
-        "llm_params": {"temperature": 0.7}
+        "temperature": 0.7
     }
 
     response = client.post("/query", json=request_data)
     assert response.status_code == 500
     assert response.json()["detail"] == "No such index: 'non_existent_index' exists."
-
 
 def test_list_all_indexed_documents_success():
     response = client.get("/indexed-documents")

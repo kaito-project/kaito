@@ -3,7 +3,7 @@
 
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 class Document(BaseModel):
     text: str
@@ -22,7 +22,7 @@ class QueryRequest(BaseModel):
     index_name: str
     query: str
     top_k: int = 10
-    llm_params: Optional[Dict] = None  # Accept a dictionary for parameters
+    model_config = ConfigDict(extra='allow')
     rerank_params: Optional[Dict] = None # Accept a dictionary for parameters
 
 class ListDocumentsResponse(BaseModel):

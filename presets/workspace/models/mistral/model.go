@@ -35,7 +35,6 @@ var (
 	baseCommandPresetMistralTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	mistralRunParams                  = map[string]string{
 		"torch_dtype":   "bfloat16",
-		"pipeline":      "text-generation",
 		"chat_template": "/workspace/chat_templates/mistral-instruct.jinja",
 	}
 	mistralRunParamsVLLM = map[string]string{

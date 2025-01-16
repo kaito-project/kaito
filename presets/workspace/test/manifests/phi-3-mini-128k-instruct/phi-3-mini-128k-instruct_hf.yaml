@@ -18,7 +18,7 @@ spec:
         command:
           - /bin/sh
           - -c
-          - accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code
+          - accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --torch_dtype auto --trust_remote_code
         resources:
           requests:
             nvidia.com/gpu: 1

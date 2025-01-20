@@ -30,6 +30,8 @@ spec:
             - /bin/sh
             - -c
             - |
+              apt-get update
+              apt-get install -y dnsutils
               MASTER_ADDR=$(dig +short llama-2-13b.default.svc.cluster.local)
               echo "MASTER_ADDR: $MASTER_ADDR"
               NODE_RANK=$(echo $HOSTNAME | grep -o '[^-]*$')

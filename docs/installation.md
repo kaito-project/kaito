@@ -42,14 +42,15 @@ az aks install-cli
 Install the Workspace controller.
 
 ```bash
-helm install workspace ./charts/kaito/workspace --namespace kaito-workspace --create-namespace
+export KAITO_WORKSPACE_VERSION=0.4.2
+
+helm install kaito-workspace  --set clusterName=$MY_CLUSTER --wait \
+https://github.com/kaito-project/kaito/raw/gh-pages/charts/kaito/workspace-$KAITO_WORKSPACE_VERSION.tgz --namespace kaito-workspace --create-namespace
 ```
 
 Note that if you have installed another node provisioning controller that supports Karpenter-core APIs, the following steps for installing `gpu-provisioner` can be skipped.
 
-
 ## Install gpu-provisioner controller
-
 
 #### Enable Workload Identity and OIDC Issuer features
 The *gpu-provisioner* controller requires the [workload identity](https://learn.microsoft.com/azure/aks/workload-identity-overview?tabs=dotnet) feature to acquire the access token to the AKS cluster. 
@@ -73,6 +74,10 @@ az role assignment create --assignee $IDENTITY_PRINCIPAL_ID --scope /subscriptio
 ```
 
 #### Install helm charts
+
+**Important Note**:
+For kaito 0.4.2 and above, please use gpu-provisioner 0.3.1 or higher. For versions below kaito 0.4.2, please use gpu-provisioner 0.2.1.
+
 Install the Node provisioner controller.
 ```bash
 # get additional values for helm chart install

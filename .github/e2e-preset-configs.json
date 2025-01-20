@@ -34,8 +34,8 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --dtype float16 --chat-template /workspace/chat_templates/falcon-instruct.jinja --tensor-parallel-size 2",
-            "gpu_count": 2
+            "command": "python3 /workspace/vllm/inference_api.py --dtype float16 --chat-template /workspace/chat_templates/falcon-instruct.jinja",
+            "gpu_count": 1
           }
         }
       },

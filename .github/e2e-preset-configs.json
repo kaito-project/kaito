@@ -264,7 +264,7 @@
         "node-osdisk-size": 150,
         "OSS": false,
         "loads_adapter": false,
-        "node_pool": "llama213bchat"
+        "node_pool": "llama213bcha"
       },
       {
         "name": "tuning",

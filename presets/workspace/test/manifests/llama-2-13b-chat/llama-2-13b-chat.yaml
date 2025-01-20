@@ -69,7 +69,7 @@ spec:
           key: nvidia.com/gpu
           operator: Exists
       nodeSelector:
-        pool: llama213bchat
+        pool: llama213bcha
 ---
 apiVersion: v1
 kind: Service

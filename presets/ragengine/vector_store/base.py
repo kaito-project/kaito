@@ -87,7 +87,7 @@ class BaseVectorStore(ABC):
             self._persist(index_name)
         return list(indexed_doc_ids)
 
-    def query(self,
+    async def query(self,
               index_name: str,
               query: str,
               top_k: int,
@@ -136,7 +136,7 @@ class BaseVectorStore(ABC):
             similarity_top_k=top_k,
             node_postprocessors=node_postprocessors
         )
-        query_result = query_engine.query(query)
+        query_result = await query_engine.query(query)
         return {
             "response": query_result.response,
             "source_nodes": [

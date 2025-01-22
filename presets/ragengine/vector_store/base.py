@@ -136,7 +136,7 @@ class BaseVectorStore(ABC):
             similarity_top_k=top_k,
             node_postprocessors=node_postprocessors
         )
-        query_result = await query_engine.query(query)
+        query_result = await query_engine.aquery(query)
         return {
             "response": query_result.response,
             "source_nodes": [

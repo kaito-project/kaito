@@ -31,9 +31,8 @@ vector_store_handler = FaissVectorStoreHandler(embedding_manager)
 rag_ops = VectorStoreManager(vector_store_handler)
 
 @app.get("/health", response_model=HealthStatus)
-async def health_check():
+def health_check():
     try:
-
         if embedding_manager is None:
             raise HTTPException(status_code=500, detail="Embedding manager not initialized")
         

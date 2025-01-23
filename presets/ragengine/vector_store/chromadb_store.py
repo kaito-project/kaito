@@ -20,10 +20,10 @@ class ChromaDBVectorStoreHandler(BaseVectorStore):
         super().__init__(embedding_manager)
         self.chroma_client = chromadb.EphemeralClient()
 
-    def _create_new_index(self, index_name: str, documents: List[Document]) -> List[str]:
+    async def _create_new_index(self, index_name: str, documents: List[Document]) -> List[str]:
         chroma_collection = self.chroma_client.create_collection(index_name)
         vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-        return self._create_index_common(index_name, documents, vector_store)
+        return await self._create_index_common(index_name, documents, vector_store)
 
     def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
         """ChromaDB for checking document existence."""

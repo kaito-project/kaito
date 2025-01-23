@@ -46,9 +46,9 @@ async def health_check():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/index", response_model=List[DocumentResponse])
-async def index_documents(request: IndexRequest): # TODO: Research async/sync what to use (inference is calling)
+async def index_documents(request: IndexRequest):
     try:
-        doc_ids = rag_ops.index(request.index_name, request.documents)
+        doc_ids = await rag_ops.index(request.index_name, request.documents)
         documents = [
             DocumentResponse(doc_id=doc_id, text=doc.text, metadata=doc.metadata)
             for doc_id, doc in zip(doc_ids, request.documents)

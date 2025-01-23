@@ -34,14 +34,14 @@ class BaseVectorStore(ABC):
         """Generates a unique document ID based on the hash of the document text."""
         return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
-    def index_documents(self, index_name: str, documents: List[Document]) -> List[str]:
+    async def index_documents(self, index_name: str, documents: List[Document]) -> List[str]:
         """Common indexing logic for all vector stores."""
         if index_name in self.index_map:
-            return self._append_documents_to_index(index_name, documents)
+            return await self._append_documents_to_index(index_name, documents)
         else:
-            return self._create_new_index(index_name, documents)
+            return await self._create_new_index(index_name, documents)
 
-    def _append_documents_to_index(self, index_name: str, documents: List[Document]) -> List[str]:
+    async def _append_documents_to_index(self, index_name: str, documents: List[Document]) -> List[str]:
         """Common logic for appending documents to existing index."""
         logger.info(f"Index {index_name} already exists. Appending documents to existing index.")
         indexed_doc_ids = set()
@@ -49,21 +49,21 @@ class BaseVectorStore(ABC):
         for doc in documents:
             doc_id = self.generate_doc_id(doc.text)
             if not self.document_exists(index_name, doc, doc_id):
-                self.add_document_to_index(index_name, doc, doc_id)
+                await self.add_document_to_index(index_name, doc, doc_id)
                 indexed_doc_ids.add(doc_id)
             else:
                 logger.info(f"Document {doc_id} already exists in index {index_name}. Skipping.")
 
         if indexed_doc_ids:
-            self._persist(index_name)
+            await self._persist(index_name)
         return list(indexed_doc_ids)
     
     @abstractmethod
-    def _create_new_index(self, index_name: str, documents: List[Document]) -> List[str]:
+    async def _create_new_index(self, index_name: str, documents: List[Document]) -> List[str]:
         """Create a new index - implementation specific to each vector store."""
         pass
     
-    def _create_index_common(self, index_name: str, documents: List[Document], vector_store) -> List[str]:
+    async def _create_index_common(self, index_name: str, documents: List[Document], vector_store) -> List[str]:
         """Common logic for creating a new index with documents."""
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         llama_docs = []
@@ -80,11 +80,12 @@ class BaseVectorStore(ABC):
                 llama_docs,
                 storage_context=storage_context,
                 embed_model=self.embed_model,
+                use_async=True,
             )
-            index.set_index_id(index_name)
+            await index.set_index_id(index_name)
             self.index_map[index_name] = index
             self.index_store.add_index_struct(index.index_struct)
-            self._persist(index_name)
+            await self._persist(index_name)
         return list(indexed_doc_ids)
 
     async def query(self,
@@ -151,12 +152,12 @@ class BaseVectorStore(ABC):
             "metadata": query_result.metadata,
         }
 
-    def add_document_to_index(self, index_name: str, document: Document, doc_id: str):
+    async def add_document_to_index(self, index_name: str, document: Document, doc_id: str):
         """Common logic for adding a single document."""
         if index_name not in self.index_map:
             raise ValueError(f"No such index: '{index_name}' exists.")
         llama_doc = LlamaDocument(text=document.text, metadata=document.metadata, id_=doc_id)
-        self.index_map[index_name].insert(llama_doc)
+        await self.index_map[index_name].insert(llama_doc)
 
     def list_all_indexed_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
         """Common logic for listing all documents."""
@@ -184,7 +185,7 @@ class BaseVectorStore(ABC):
         for idx in self.index_store.index_structs():
             self._persist(idx.index_id)
 
-    def _persist(self, index_name: str):
+    async def _persist(self, index_name: str):
         """Common persistence logic for individual index."""
         try:
             logger.info(f"Persisting index {index_name}.")
@@ -192,7 +193,7 @@ class BaseVectorStore(ABC):
             assert index_name in self.index_map, f"No such index: '{index_name}' exists."
             storage_context = self.index_map[index_name].storage_context
             # Persist the specific index
-            storage_context.persist(persist_dir=os.path.join(VECTOR_DB_PERSIST_DIR, index_name))
+            await storage_context.persist(persist_dir=os.path.join(VECTOR_DB_PERSIST_DIR, index_name))
             logger.info(f"Successfully persisted index {index_name}.")
         except Exception as e:
             logger.error(f"Failed to persist index {index_name}. Error: {str(e)}")

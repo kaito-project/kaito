@@ -21,8 +21,9 @@ class TestChromaDBVectorStore(BaseVectorStoreTest):
             manager._clear_collection_and_indexes()
             yield manager
 
-    def check_indexed_documents(self, vector_store_manager):
-        indexed_docs = vector_store_manager.list_all_indexed_documents()
+    @pytest.mark.asyncio
+    async def check_indexed_documents(self, vector_store_manager):
+        indexed_docs = await vector_store_manager.list_all_documents()
         assert len(indexed_docs) == 2
         assert list(indexed_docs["index1"].values())[0]["text"] == "First document in index1"
         assert list(indexed_docs["index2"].values())[0]["text"] == "First document in index2"

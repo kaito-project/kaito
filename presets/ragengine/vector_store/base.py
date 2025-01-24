@@ -17,6 +17,8 @@ from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
 from ragengine.config import (LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N, VECTOR_DB_PERSIST_DIR)
 
+from llama_index.core.storage.docstore import SimpleDocumentStore
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,7 +50,8 @@ class BaseVectorStore(ABC):
 
         for doc in documents:
             doc_id = self.generate_doc_id(doc.text)
-            if not self.document_exists(index_name, doc, doc_id):
+            doc = await self.index_map[index_name].docstore.aget_document(doc_id)
+            if not doc:
                 await self.add_document_to_index(index_name, doc, doc_id)
                 indexed_doc_ids.add(doc_id)
             else:
@@ -82,7 +85,7 @@ class BaseVectorStore(ABC):
                 embed_model=self.embed_model,
                 use_async=True,
             )
-            await index.set_index_id(index_name)
+            index.set_index_id(index_name)
             self.index_map[index_name] = index
             self.index_store.add_index_struct(index.index_struct)
             await self._persist(index_name)
@@ -159,17 +162,56 @@ class BaseVectorStore(ABC):
         llama_doc = LlamaDocument(text=document.text, metadata=document.metadata, id_=doc_id)
         await self.index_map[index_name].insert(llama_doc)
 
-    def list_all_indexed_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
-        """Common logic for listing all documents."""
-        return {
-            index_name: {
-                doc_info.ref_doc_id: {
-                    "text": doc_info.text, 
+    def list_indexes(self) -> List[str]:
+        return list(self.index_map.keys())
+
+    async def list_documents_in_index(self, index_name: str) -> Dict[str, Dict[str, str]]:
+        """Return a dictionary of document metadata for the given index."""
+        vector_store_index = self.index_map[index_name]
+        doc_store = vector_store_index.docstore
+
+        is_simple_doc_store = isinstance(doc_store, SimpleDocumentStore)
+        doc_map: Dict[str, Dict[str, str]] = {}
+
+        for doc_id, doc_stub in doc_store.docs.items():
+            if is_simple_doc_store:
+                # Here 'doc_stub' should already be the full doc info
+                doc_map[doc_stub.ref_doc_id] = {
+                    "text": doc_stub.text,
+                    "hash": doc_stub.hash
+                }
+            else:
+                # Use async retrieval for non-simple doc_store
+                doc_info = await doc_store.aget_document(doc_id)
+                doc_map[doc_info.ref_doc_id] = {
+                    "text": doc_info.text,
                     "hash": doc_info.hash
-                } for _, doc_info in vector_store_index.docstore.docs.items()
-            }
-            for index_name, vector_store_index in self.index_map.items()
-        }
+                }
+        return doc_map
+
+    async def list_all_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
+        """Common logic for listing all documents."""
+        indexes: Dict[str, Dict[str, Dict[str, str]]] = {}
+        for index_name, vector_store_index in self.index_map.items():
+            doc_store = vector_store_index.docstore
+            doc_map: Dict[str, Dict[str, str]] = {}
+
+            for doc_id, doc_stub in doc_store.docs.items():
+                if isinstance(doc_store, SimpleDocumentStore):
+                    # Here 'doc_stub' should already be the full doc info
+                    doc_map[doc_stub.ref_doc_id] = {
+                        "text": doc_stub.text,
+                        "hash": doc_stub.hash
+                    }
+                else:
+                    # Use async retrieval for non-simple doc_store
+                    doc_info = await doc_store.aget_document(doc_id)
+                    doc_map[doc_info.ref_doc_id] = {
+                        "text": doc_info.text,
+                        "hash": doc_info.hash
+                    }
+            indexes[index_name] = doc_map
+        return indexes
 
     def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
         """Common logic for checking document existence."""
@@ -178,12 +220,12 @@ class BaseVectorStore(ABC):
             return False
         return doc_id in self.index_map[index_name].ref_doc_info
 
-    def _persist_all(self):
+    async def _persist_all(self):
         """Common persistence logic."""
         logger.info("Persisting all indexes.")
         self.index_store.persist(os.path.join(VECTOR_DB_PERSIST_DIR, "store.json"))
         for idx in self.index_store.index_structs():
-            self._persist(idx.index_id)
+            await self._persist(idx.index_id)
 
     async def _persist(self, index_name: str):
         """Common persistence logic for individual index."""
@@ -193,7 +235,7 @@ class BaseVectorStore(ABC):
             assert index_name in self.index_map, f"No such index: '{index_name}' exists."
             storage_context = self.index_map[index_name].storage_context
             # Persist the specific index
-            await storage_context.persist(persist_dir=os.path.join(VECTOR_DB_PERSIST_DIR, index_name))
+            storage_context.persist(persist_dir=os.path.join(VECTOR_DB_PERSIST_DIR, index_name))
             logger.info(f"Successfully persisted index {index_name}.")
         except Exception as e:
             logger.error(f"Failed to persist index {index_name}. Error: {str(e)}")

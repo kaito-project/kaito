@@ -31,9 +31,8 @@ vector_store_handler = FaissVectorStoreHandler(embedding_manager)
 rag_ops = VectorStoreManager(vector_store_handler)
 
 @app.get("/health", response_model=HealthStatus)
-async def health_check():
+def health_check():
     try:
-
         if embedding_manager is None:
             raise HTTPException(status_code=500, detail="Embedding manager not initialized")
         
@@ -72,14 +71,29 @@ async def query_index(request: QueryRequest):
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )
 
-@app.get("/indexed-documents", response_model=ListDocumentsResponse)
-async def list_all_indexed_documents():
+@app.get("/indexes", response_model=List[str])
+def list_indexes():
     try:
-        documents = rag_ops.list_all_indexed_documents()
+        return rag_ops.list_indexes()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/indexes/{index_name}/documents", response_model=ListDocumentsResponse)
+async def list_documents_in_index(index_name: str):
+    try:
+        documents = await rag_ops.list_documents_in_index(index_name)
+        return ListDocumentsResponse(documents=documents)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/documents", response_model=ListDocumentsResponse)
+async def list_all_documents():
+    try:
+        documents = await rag_ops.list_all_documents()
         return ListDocumentsResponse(documents=documents)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

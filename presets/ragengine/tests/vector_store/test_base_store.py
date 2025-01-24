@@ -31,20 +31,22 @@ class BaseVectorStoreTest(ABC):
         """Override this in implementation-specific test classes."""
         pass
 
-    def test_index_documents(self, vector_store_manager):
+    @pytest.mark.asyncio
+    async def test_index_documents(self, vector_store_manager):
         first_doc_text, second_doc_text = "First document", "Second document"
         documents = [
             Document(text=first_doc_text, metadata={"type": "text"}),
             Document(text=second_doc_text, metadata={"type": "text"})
         ]
         
-        doc_ids = vector_store_manager.index_documents("test_index", documents)
+        doc_ids = await vector_store_manager.index_documents("test_index", documents)
         
         assert len(doc_ids) == 2
         assert set(doc_ids) == {BaseVectorStore.generate_doc_id(first_doc_text),
                                 BaseVectorStore.generate_doc_id(second_doc_text)}
 
-    def test_index_documents_isolation(self, vector_store_manager):
+    @pytest.mark.asyncio
+    async def test_index_documents_isolation(self, vector_store_manager):
         documents1 = [
             Document(text="First document in index1", metadata={"type": "text"}),
         ]
@@ -54,19 +56,20 @@ class BaseVectorStoreTest(ABC):
 
         # Index documents in separate indices
         index_name_1, index_name_2 = "index1", "index2"
-        vector_store_manager.index_documents(index_name_1, documents1)
-        vector_store_manager.index_documents(index_name_2, documents2)
+        await vector_store_manager.index_documents(index_name_1, documents1)
+        await vector_store_manager.index_documents(index_name_2, documents2)
 
         # Call the backend-specific check method
-        self.check_indexed_documents(vector_store_manager)
+        await self.check_indexed_documents(vector_store_manager)
 
     @abstractmethod
     def check_indexed_documents(self, vector_store_manager):
         """Abstract method to check indexed documents in backend-specific format."""
         pass
 
+    @pytest.mark.asyncio
     @patch('requests.post')
-    def test_query_documents(self, mock_post, vector_store_manager):
+    async def test_query_documents(self, mock_post, vector_store_manager):
         mock_response = {
             "result": "This is the completion from the API"
         }
@@ -76,10 +79,10 @@ class BaseVectorStoreTest(ABC):
             Document(text="First document", metadata={"type": "text"}),
             Document(text="Second document", metadata={"type": "text"})
         ]
-        vector_store_manager.index_documents("test_index", documents)
+        await vector_store_manager.index_documents("test_index", documents)
 
         params = {"temperature": 0.7}
-        query_result = vector_store_manager.query("test_index", "First", top_k=1,
+        query_result = await vector_store_manager.query("test_index", "First", top_k=1,
                                                   llm_params=params, rerank_params={})
 
         assert query_result is not None
@@ -93,28 +96,31 @@ class BaseVectorStoreTest(ABC):
             headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}", 'Content-Type': 'application/json'}
         )
 
-    def test_add_document(self, vector_store_manager):
+    @pytest.mark.asyncio
+    async def test_add_document(self, vector_store_manager):
         documents = [Document(text="Third document", metadata={"type": "text"})]
-        vector_store_manager.index_documents("test_index", documents)
+        await vector_store_manager.index_documents("test_index", documents)
 
         new_document = [Document(text="Fourth document", metadata={"type": "text"})]
-        vector_store_manager.index_documents("test_index", new_document)
+        await vector_store_manager.index_documents("test_index", new_document)
 
         assert vector_store_manager.document_exists("test_index", new_document[0],
                                                     BaseVectorStore.generate_doc_id("Fourth document"))
 
-    def test_persist_index_1(self, vector_store_manager):
+    @pytest.mark.asyncio
+    async def test_persist_index_1(self, vector_store_manager):
         documents = [Document(text="Test document", metadata={"type": "text"})]
-        vector_store_manager.index_documents("test_index", documents)
-        vector_store_manager._persist("test_index")
+        await vector_store_manager.index_documents("test_index", documents)
+        await vector_store_manager._persist("test_index")
         assert os.path.exists(VECTOR_DB_PERSIST_DIR)
 
-    def test_persist_index_2(self, vector_store_manager):
+    @pytest.mark.asyncio
+    async def test_persist_index_2(self, vector_store_manager):
         documents = [Document(text="Test document", metadata={"type": "text"})]
-        vector_store_manager.index_documents("test_index", documents)
+        await vector_store_manager.index_documents("test_index", documents)
 
         documents = [Document(text="Another Test document", metadata={"type": "text"})]
-        vector_store_manager.index_documents("another_test_index", documents)
+        await vector_store_manager.index_documents("another_test_index", documents)
 
-        vector_store_manager._persist_all()
+        await vector_store_manager._persist_all()
         assert os.path.exists(VECTOR_DB_PERSIST_DIR)

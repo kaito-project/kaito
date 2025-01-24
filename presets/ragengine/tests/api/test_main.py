@@ -179,8 +179,8 @@ def test_query_index_failure():
     assert response.json()["detail"] == "No such index: 'non_existent_index' exists."
 
 
-def test_list_all_indexed_documents_success():
-    response = client.get("/indexed-documents")
+def test_list_all_documents_success():
+    response = client.get("/documents")
     assert response.status_code == 200
     assert response.json() == {'documents': {}}
 
@@ -195,7 +195,7 @@ def test_list_all_indexed_documents_success():
     response = client.post("/index", json=request_data)
     assert response.status_code == 200
 
-    response = client.get("/indexed-documents")
+    response = client.get("/documents")
     assert response.status_code == 200
     assert "test_index" in response.json()["documents"]
     response_idx = response.json()["documents"]["test_index"]

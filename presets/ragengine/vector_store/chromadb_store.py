@@ -30,13 +30,26 @@ class ChromaDBVectorStoreHandler(BaseVectorStore):
         if index_name not in self.index_map:
             logger.warning(f"No such index: '{index_name}' exists in vector store.")
             return False
-        return doc.text in self.chroma_client.get_collection(name=index_name).get()["documents"]
+        return doc.text in self.chroma_client.get_collection(index_name).get()["documents"]
 
-    def list_all_indexed_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
+    async def list_documents_in_index(self, index_name: str) -> Dict[str, Dict[str, str]]:
+        doc_map: Dict[str, Dict[str, str]] = {}
+        try:
+            collection_info = await self.chroma_client.get_collection(index_name).aget()
+            for doc in zip(collection_info["ids"], collection_info["documents"], collection_info["metadatas"]):
+                doc_map[doc[0]] = {
+                    "text": doc[1],
+                    "metadata": json.dumps(doc[2])
+                }
+        except Exception as e:
+            print(f"Failed to get documents from collection '{index_name}': {e}")
+        return doc_map
+
+    async def list_all_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
         indexed_docs = {} # Accumulate documents across all indexes
         try:
             for collection_name in self.chroma_client.list_collections():
-                collection_info = self.chroma_client.get_collection(collection_name).get()
+                collection_info = await self.chroma_client.get_collection(collection_name).aget()
                 for doc in zip(collection_info["ids"], collection_info["documents"], collection_info["metadatas"]):
                     indexed_docs.setdefault(collection_name, {})[doc[0]] = {
                         "text": doc[1],

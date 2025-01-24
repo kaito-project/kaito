@@ -314,9 +314,6 @@ az-patch-install-helm: ## Update Azure client env vars and settings in helm valu
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    ./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/workspace/values.yaml
-	if [ $(TEST_SUITE) = "azkarpenter" ]; then \
-		yq -i '(.featureGates.Karpenter)                                    = "true"'                                       ./charts/kaito/workspace/values.yaml; \
-	fi
 	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/workspace/values.yaml
 
 	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace

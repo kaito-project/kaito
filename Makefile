@@ -104,7 +104,7 @@ unit-test: ## Run unit tests.
 
 .PHONY: rag-service-test
 rag-service-test:
-	pip install -r presets/ragengine/requirements.txt
+	pip install -r presets/ragengine/requirements-test.txt
 	pip install pytest-cov
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
 

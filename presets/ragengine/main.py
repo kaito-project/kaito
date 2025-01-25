@@ -2,6 +2,8 @@
 # Licensed under the MIT license.
 
 from typing import List
+
+from presets.ragengine.vector_store.chromadb_store import ChromaDBVectorStoreHandler
 from vector_store_manager.manager import VectorStoreManager
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
@@ -11,7 +13,7 @@ from models import (IndexRequest, ListDocumentsResponse,
 from vector_store.faiss_store import FaissVectorStoreHandler
 
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
-                              EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID)
+                              EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID, VECTOR_DB_IMPLEMENTATION)
 
 app = FastAPI()
 
@@ -25,7 +27,12 @@ else:
 
 # Initialize vector store
 # TODO: Dynamically set VectorStore from EnvVars (which ultimately comes from CRD StorageSpec)
-vector_store_handler = FaissVectorStoreHandler(embedding_manager)
+if VECTOR_DB_IMPLEMENTATION.lower() == "faiss":
+    vector_store_handler = FaissVectorStoreHandler(embedding_manager)
+elif VECTOR_DB_IMPLEMENTATION.lower() == "chromadb":
+    vector_store_handler = ChromaDBVectorStoreHandler(embedding_manager)
+else:
+    raise ValueError("Invalid VECTOR_DB_IMPLEMENTATION Specified")
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)

@@ -104,7 +104,7 @@ class BaseVectorStoreTest(ABC):
         new_document = [Document(text="Fourth document", metadata={"type": "text"})]
         await vector_store_manager.index_documents("test_index", new_document)
 
-        assert vector_store_manager.document_exists("test_index", new_document[0],
+        assert await vector_store_manager.document_exists("test_index", new_document[0],
                                                     BaseVectorStore.generate_doc_id("Fourth document"))
 
     @pytest.mark.asyncio

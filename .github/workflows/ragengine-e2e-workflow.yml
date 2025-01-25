@@ -1,4 +1,4 @@
-name: kaito-e2e-workflow
+name: ragengine-e2e-workflow
 
 on:
   workflow_call:
@@ -47,7 +47,7 @@ jobs:
     
     env:
       AZURE_CLUSTER_NAME: ${{ needs.base-setup.outputs.cluster_name }}
-      RUN_LLAMA_13B: ${{ needs.base-setup.outputs.run_llama_13b }}
+      AZURE_RESOURCE_GROUP: ${{ needs.base-setup.outputs.cluster_name }}
       TEST_SUITE: ${{ inputs.node_provisioner }}
       E2E_ACR_REGISTRY: ${{ needs.base-setup.outputs.cluster_name }}.azurecr.io
       E2E_ACR_REGISTRY_SECRET: ${{ needs.base-setup.outputs.cluster_name }}-acr-secret
@@ -61,18 +61,12 @@ jobs:
         run: |
           echo "REGISTRY=${{ inputs.registry }}" >> $GITHUB_ENV
           echo "VERSION=$(echo ${{ inputs.tag }} | tr -d v)" >> $GITHUB_ENV
-              
-      - name: build adapter image
+      
+      - name: build kaito RAG Engine image
+        if: ${{ !inputs.isRelease }}
         shell: bash
         run: |
-          make docker-build-adapter
-        env:
-          REGISTRY: ${{ env.E2E_ACR_REGISTRY }}
-
-      - name: build dataset image
-        shell: bash
-        run: |
-          make docker-build-dataset
+          make docker-build-ragengine
         env:
           REGISTRY: ${{ env.E2E_ACR_REGISTRY }}
       
@@ -83,6 +77,17 @@ jobs:
         uses: actions/setup-go@v5.2.0
         with:
           go-version: ${{ env.GO_VERSION  }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+      
+      - name: Install KAITO RAG Engine helm chart
+        shell: bash
+        run: |
+          make az-patch-install-ragengine-helm
+          kubectl wait --for=condition=available deploy "kaito-ragengine" -n kaito-ragengine --timeout=300s
+        env:
+          REGISTRY: ${{ env.E2E_ACR_REGISTRY }}
 
       - name: Log ${{ inputs.node_provisioner }}
         run: |
@@ -95,12 +100,16 @@ jobs:
       - name: Log kaito-workspace
         run: |
           kubectl get pods -n kaito-workspace -o name | grep "^pod/kaito-workspace" | sed 's/^pod\///' | xargs -I {} kubectl logs -n kaito-workspace {}
-
+      
+      - name: Log kaito-ragengine
+        run: |
+          kubectl get pods -n kaito-ragengine -o name | grep "^pod/kaito-ragengine" | sed 's/^pod\///' | xargs -I {} kubectl logs -n kaito-ragengine {}
+      
       - name: Run e2e test
         run: |
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
-          make kaito-workspace-e2e-test
+          make kaito-ragengine-e2e-test
 
       - name: Cleanup e2e resources
         if: ${{ always() }}

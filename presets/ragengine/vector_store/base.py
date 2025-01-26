@@ -50,8 +50,8 @@ class BaseVectorStore(ABC):
 
         for doc in documents:
             doc_id = self.generate_doc_id(doc.text)
-            doc = await self.index_map[index_name].docstore.aget_document(doc_id)
-            if not doc:
+            retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
+            if not retrieved_doc:
                 await self.add_document_to_index(index_name, doc, doc_id)
                 indexed_doc_ids.add(doc_id)
             else:
@@ -159,8 +159,8 @@ class BaseVectorStore(ABC):
         """Common logic for adding a single document."""
         if index_name not in self.index_map:
             raise ValueError(f"No such index: '{index_name}' exists.")
-        llama_doc = LlamaDocument(text=document.text, metadata=document.metadata, id_=doc_id)
-        await self.index_map[index_name].insert(llama_doc)
+        llama_doc = LlamaDocument(id_=doc_id, text=document.text, metadata=document.metadata)
+        self.index_map[index_name].insert(llama_doc)
 
     def list_indexes(self) -> List[str]:
         return list(self.index_map.keys())
@@ -213,7 +213,7 @@ class BaseVectorStore(ABC):
             indexes[index_name] = doc_map
         return indexes
 
-    def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
+    async def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
         """Common logic for checking document existence."""
         if index_name not in self.index_map:
             logger.warning(f"No such index: '{index_name}' exists in vector store.")

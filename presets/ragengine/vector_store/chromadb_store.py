@@ -4,6 +4,7 @@
 from typing import Dict, List
 from ragengine.models import Document
 import logging
+import asyncio
 
 import chromadb
 import json
@@ -25,17 +26,22 @@ class ChromaDBVectorStoreHandler(BaseVectorStore):
         vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
         return await self._create_index_common(index_name, documents, vector_store)
 
-    def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
+    async def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
         """ChromaDB for checking document existence."""
         if index_name not in self.index_map:
             logger.warning(f"No such index: '{index_name}' exists in vector store.")
             return False
-        return doc.text in self.chroma_client.get_collection(index_name).get()["documents"]
+        collection = await asyncio.to_thread(
+            lambda: self.chroma_client.get_collection(index_name).get()
+        )
+        return doc.text in collection["documents"]
 
     async def list_documents_in_index(self, index_name: str) -> Dict[str, Dict[str, str]]:
         doc_map: Dict[str, Dict[str, str]] = {}
         try:
-            collection_info = await self.chroma_client.get_collection(index_name).aget()
+            collection_info = await asyncio.to_thread(
+                lambda: self.chroma_client.get_collection(index_name).get()
+            )
             for doc in zip(collection_info["ids"], collection_info["documents"], collection_info["metadatas"]):
                 doc_map[doc[0]] = {
                     "text": doc[1],
@@ -48,8 +54,12 @@ class ChromaDBVectorStoreHandler(BaseVectorStore):
     async def list_all_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
         indexed_docs = {} # Accumulate documents across all indexes
         try:
-            for collection_name in self.chroma_client.list_collections():
-                collection_info = await self.chroma_client.get_collection(collection_name).aget()
+            # Wrap collection operations to avoid blocking
+            collection_names = await asyncio.to_thread(self.chroma_client.list_collections)
+            for collection_name in collection_names:
+                collection_info = await asyncio.to_thread(
+                    lambda: self.chroma_client.get_collection(collection_name).get()
+                )
                 for doc in zip(collection_info["ids"], collection_info["documents"], collection_info["metadatas"]):
                     indexed_docs.setdefault(collection_name, {})[doc[0]] = {
                         "text": doc[1],

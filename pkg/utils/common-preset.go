@@ -3,7 +3,6 @@
 package utils
 
 import (
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -149,8 +148,4 @@ func ConfigAdapterVolume() (corev1.Volume, corev1.VolumeMount) {
 		MountPath: DefaultAdapterVolumePath,
 	}
 	return volume, volumeMount
-}
-
-func IsValidPreset(preset string) bool {
-	return plugin.KaitoModelRegister.Has(preset)
 }

@@ -1,0 +1,113 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tuning-example
+spec:
+  backoffLimit: 0
+  completionMode: NonIndexed
+  completions: 1
+  manualSelector: false
+  parallelism: 1
+  podReplacementPolicy: TerminatingOrFailed
+  suspend: false
+  template:
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - cd /workspace/tfs && python3 metrics_server.py & accelerate launch --num_processes=1 /workspace/tfs/fine_tuning.py
+        env:
+        - name: DEFAULT_TARGET_MODULES
+          value: query_key_value
+        - name: PYTORCH_CUDA_ALLOC_CONF
+          value: expandable_segments:True
+        image: REPO_HERE.azurecr.io/falcon-7b:TAG_HERE
+        imagePullPolicy: Always
+        name: tuning
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+        resources:
+          limits:
+            nvidia.com/gpu: "1"
+          requests:
+            nvidia.com/gpu: "1"
+        volumeMounts:
+        - mountPath: /mnt/config
+          name: config-volume
+        - mountPath: /mnt/results
+          name: results-volume
+        - mountPath: /mnt/data
+          name: data-volume
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - ls -la /data && cp -r /data/* /mnt/data && ls -la /mnt/data
+        image: REPO_HERE.azurecr.io/e2e-dataset:0.0.1
+        imagePullPolicy: IfNotPresent
+        name: data-extractor
+        volumeMounts:
+        - mountPath: /mnt/data
+          name: data-volume
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: gpu
+        operator: Equal
+      - effect: NoSchedule
+        key: sku
+        value: gpu
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: e2e-qlora-params-template
+        name: config-volume
+      - emptyDir: {}
+        name: results-volume
+      - emptyDir: {}
+        name: data-volume
+      nodeSelector:
+        pool: tuning
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: e2e-qlora-params-template
+data:
+  training_config.yaml: |
+    training_config:
+      ModelConfig:
+        torch_dtype: "bfloat16"
+        local_files_only: true
+        device_map: "auto"
+        chat_template: "/workspace/chat_templates/falcon-instruct.jinja"
+
+      QuantizationConfig:
+        load_in_4bit: true
+        bnb_4bit_quant_type: "nf4"
+        bnb_4bit_compute_dtype: "bfloat16"
+        bnb_4bit_use_double_quant: true
+
+      LoraConfig:
+        r: 8
+        lora_alpha: 8
+        lora_dropout: 0.0
+        target_modules: ['query_key_value']
+
+      TrainingArguments:
+        output_dir: "/mnt/results"
+        ddp_find_unused_parameters: false
+        save_strategy: "epoch"
+        per_device_train_batch_size: 1
+        max_steps: 2  # Adding this line to limit training to 2 steps
+
+      DataCollator:
+        mlm: true
+
+      DatasetConfig:
+        shuffle_dataset: true
+        train_test_split: 1

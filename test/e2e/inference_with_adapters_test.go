@@ -31,7 +31,7 @@ var validAdapters1 = []kaitov1alpha1.AdapterSpec{
 			Name:  imageName1,
 			Image: fullImageName1,
 			ImagePullSecrets: []string{
-				aiModelsRegistrySecret,
+				utils.GetEnv("AI_MODELS_REGISTRY_SECRET"),
 			},
 		},
 		Strength: &DefaultStrength,
@@ -43,6 +43,9 @@ var validAdapters2 = []kaitov1alpha1.AdapterSpec{
 		Source: &kaitov1alpha1.DataSource{
 			Name:  imageName2,
 			Image: fullImageName2,
+			ImagePullSecrets: []string{
+				utils.GetEnv("E2E_ACR_REGISTRY_SECRET"),
+			},
 		},
 		Strength: &DefaultStrength,
 	},
@@ -89,15 +92,39 @@ func validateInitContainers(workspaceObj *kaitov1alpha1.Workspace, expectedInitC
 				return false
 			}
 			initContainer, expectedInitContainer := initContainers[0], expectedInitContainers[0]
-			if expectedInitContainer.Name == imageName1 { //only the first adapter need to check imagePullSecrets
-				if dep.Spec.Template.Spec.ImagePullSecrets == nil || len(dep.Spec.Template.Spec.ImagePullSecrets) == 0 {
-					return false
-				}
-			}
 
 			// GinkgoWriter.Printf("Resource '%s' not ready. Ready replicas: %d\n", workspaceObj.Name, readyReplicas)
 			return initContainer.Image == expectedInitContainer.Image && initContainer.Name == expectedInitContainer.Name
 		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for initContainers to be ready")
+	})
+}
+
+func validateImagePullSecrets(workspaceObj *kaitov1alpha1.Workspace, expectedImagePullSecrets []string) {
+	By("Checking the ImagePullSecrets", func() {
+		Eventually(func() bool {
+			var err error
+
+			dep := &appsv1.Deployment{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      workspaceObj.Name,
+					Namespace: workspaceObj.Namespace,
+				},
+			}
+			err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, dep)
+
+			if err != nil {
+				GinkgoWriter.Printf("Error fetching resource: %v\n", err)
+				return false
+			}
+			if dep.Spec.Template.Spec.ImagePullSecrets == nil {
+				return false
+			}
+
+			return utils.CompareSecrets(dep.Spec.Template.Spec.ImagePullSecrets, expectedImagePullSecrets)
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for ImagePullSecrets to be ready")
 	})
 }
 
@@ -134,7 +161,6 @@ func validateAdapterAdded(workspaceObj *kaitov1alpha1.Workspace, deploymentName 
 var _ = Describe("Workspace Preset", func() {
 	BeforeEach(func() {
 		loadTestEnvVars()
-
 		loadModelVersions()
 	})
 
@@ -172,6 +198,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateRevision(workspaceObj, "1")
 
 		validateInitContainers(workspaceObj, expectedInitContainers1)
+		validateImagePullSecrets(workspaceObj, validAdapters1[0].Source.ImagePullSecrets)
 		validateAdapterAdded(workspaceObj, workspaceObj.Name, imageName1)
 
 		workspaceObj = updateCustomWorkspaceWithAdapter(workspaceObj, validAdapters2)
@@ -187,7 +214,7 @@ var _ = Describe("Workspace Preset", func() {
 
 		validateRevision(workspaceObj, "2")
 		validateInitContainers(workspaceObj, expectedInitContainers2)
+		validateImagePullSecrets(workspaceObj, validAdapters2[0].Source.ImagePullSecrets)
 		validateAdapterAdded(workspaceObj, workspaceObj.Name, imageName2)
 	})
-
 })

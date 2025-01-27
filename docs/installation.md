@@ -1,6 +1,6 @@
 # Installation 
 
-The following guidance assumes **Azure Kubernetes Service(AKS)** is used to host the Kubernetes cluster.
+The following guidance assumes **Azure Kubernetes Service(AKS)** is used to host the Kubernetes cluster. If you want to use Elastic Kubernetes Service (EKS) instead, please follow the installation guide [here](./aws/aws_installation.md)
 
 Before you begin, ensure you have the following tools installed:
 
@@ -69,7 +69,6 @@ export SUBSCRIPTION=$(az account show --query id -o tsv)
 export IDENTITY_NAME="kaitoprovisioner"
 az identity create --name $IDENTITY_NAME -g $RESOURCE_GROUP
 export IDENTITY_PRINCIPAL_ID=$(az identity show --name $IDENTITY_NAME -g $RESOURCE_GROUP --subscription $SUBSCRIPTION --query 'principalId' -o tsv)
-export IDENTITY_CLIENT_ID=$(az identity show --name $IDENTITY_NAME -g $RESOURCE_GROUP --subscription $SUBSCRIPTION --query 'clientId' -o tsv)
 az role assignment create --assignee $IDENTITY_PRINCIPAL_ID --scope /subscriptions/$SUBSCRIPTION/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ContainerService/managedClusters/$MY_CLUSTER  --role "Contributor"
 ```
 
@@ -77,13 +76,13 @@ az role assignment create --assignee $IDENTITY_PRINCIPAL_ID --scope /subscriptio
 Install the Node provisioner controller.
 ```bash
 # get additional values for helm chart install
-export GPU_PROVISIONER_VERSION=0.2.0
+export GPU_PROVISIONER_VERSION=0.2.1
 
 curl -sO https://raw.githubusercontent.com/Azure/gpu-provisioner/main/hack/deploy/configure-helm-values.sh
 chmod +x ./configure-helm-values.sh && ./configure-helm-values.sh $MY_CLUSTER $RESOURCE_GROUP $IDENTITY_NAME
 
 helm install gpu-provisioner --values gpu-provisioner-values.yaml --set settings.azure.clusterName=$MY_CLUSTER --wait \
-https://github.com/Azure/gpu-provisioner/raw/gh-pages/charts/gpu-provisioner-$GPU_PROVISIONER_VERSION.tgz
+https://github.com/Azure/gpu-provisioner/raw/gh-pages/charts/gpu-provisioner-$GPU_PROVISIONER_VERSION.tgz --namespace gpu-provisioner --create-namespace
 ```
 
 #### Create the federated credential
@@ -105,7 +104,8 @@ You can run the following commands to verify the installation of the controllers
 Check status of the Helm chart installations.
 
 ```bash
-helm list -n default
+helm list -n kaito-workspace
+helm list -n gpu-provisioner
 ```
 
 Check status of the `workspace`.

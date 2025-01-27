@@ -11,7 +11,6 @@ const (
 	// RAGEngineFinalizer is used to make sure that ragengine controller handles garbage collection.
 	RAGEngineFinalizer            = "ragengine.finalizer.kaito.sh"
 	DefaultReleaseNamespaceEnvVar = "RELEASE_NAMESPACE"
-	FeatureFlagKarpenter          = "Karpenter"
 	AzureCloudName                = "azure"
 	AWSCloudName                  = "aws"
 	GPUString                     = "gpu"
@@ -19,6 +18,10 @@ const (
 	MaxRevisionHistoryLimit       = 10
 	GiBToBytes                    = 1024 * 1024 * 1024 // Conversion factor from GiB to bytes
 	NvidiaGPU                     = "nvidia.com/gpu"
+
+	// Feature flags
+	FeatureFlagKarpenter = "Karpenter"
+	FeatureFlagVLLM      = "vLLM"
 
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"

@@ -68,13 +68,15 @@ func MergeConfigMaps(baseMap, overrideMap map[string]string) map[string]string {
 	return merged
 }
 
-func BuildCmdStr(baseCommand string, runParams map[string]string) string {
+func BuildCmdStr(baseCommand string, runParams ...map[string]string) string {
 	updatedBaseCommand := baseCommand
-	for key, value := range runParams {
-		if value == "" {
-			updatedBaseCommand = fmt.Sprintf("%s --%s", updatedBaseCommand, key)
-		} else {
-			updatedBaseCommand = fmt.Sprintf("%s --%s=%s", updatedBaseCommand, key, value)
+	for _, runParam := range runParams {
+		for key, value := range runParam {
+			if value == "" {
+				updatedBaseCommand = fmt.Sprintf("%s --%s", updatedBaseCommand, key)
+			} else {
+				updatedBaseCommand = fmt.Sprintf("%s --%s=%s", updatedBaseCommand, key, value)
+			}
 		}
 	}
 

@@ -12,13 +12,17 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"reflect"
+	"sort"
 	"strings"
 	"time"
 
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/samber/lo"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
@@ -223,6 +227,9 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
+			Annotations: map[string]string{
+				v1alpha1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
+			},
 		},
 		Resource: kaitov1alpha1.ResourceSpec{
 			Count:          lo.ToPtr(resourceCount),
@@ -257,6 +264,20 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 
 	workspace.Inference = &workspaceInference
 
+	return workspace
+}
+
+func GenerateInferenceWorkspaceManifestWithVLLM(name, namespace, imageName string, resourceCount int, instanceType string,
+	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1alpha1.ModelName,
+	accessMode kaitov1alpha1.ModelImageAccessMode, imagePullSecret []string,
+	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1alpha1.AdapterSpec) *kaitov1alpha1.Workspace {
+	workspace := GenerateInferenceWorkspaceManifest(name, namespace, imageName, resourceCount, instanceType,
+		labelSelector, preferredNodes, presetName, accessMode, imagePullSecret, podTemplate, adapters)
+
+	if workspace.Annotations == nil {
+		workspace.Annotations = make(map[string]string)
+	}
+	workspace.Annotations[kaitov1alpha1.AnnotationWorkspaceRuntime] = string(model.RuntimeNameVLLM)
 	return workspace
 }
 
@@ -400,4 +421,20 @@ func GeneratePodTemplate(name, namespace, image string, labels map[string]string
 			},
 		},
 	}
+}
+
+func CompareSecrets(refs []corev1.LocalObjectReference, secrets []string) bool {
+	if len(refs) != len(secrets) {
+		return false
+	}
+
+	refSecrets := make([]string, len(refs))
+	for i, ref := range refs {
+		refSecrets[i] = ref.Name
+	}
+
+	sort.Strings(refSecrets)
+	sort.Strings(secrets)
+
+	return reflect.DeepEqual(refSecrets, secrets)
 }

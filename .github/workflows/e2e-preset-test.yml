@@ -15,12 +15,17 @@ on:
                 type: boolean
                 default: false
                 description: "Test all Phi models for E2E"
+            test-on-vllm:
+                type: boolean
+                default: false
+                description: "Test on VLLM runtime"
 
 env:
     GO_VERSION: "1.22"
     BRANCH_NAME: ${{ github.head_ref || github.ref_name}} 
     FORCE_RUN_ALL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all == 'true' }}
     FORCE_RUN_ALL_PHI:  ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all-phi-models== 'true' }}
+    RUNTIME: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.test-on-vllm == 'true') && 'vllm' || 'hf' }}
 
 permissions:
     id-token: write
@@ -209,7 +214,7 @@ jobs:
             fi
 
       - name: Create Service
-        run: kubectl apply -f presets/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}-service.yaml
+        run: kubectl apply -f presets/workspace/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}-service.yaml
       
       - name: Retrieve External Service IP
         id: get_ip
@@ -229,10 +234,11 @@ jobs:
       
       - name: Replace IP and Deploy Resource to K8s
         run: |
-            sed -i "s/MASTER_ADDR_HERE/${{ steps.get_ip.outputs.SERVICE_IP }}/g" presets/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}.yaml
-            sed -i "s/TAG_HERE/${{ matrix.model.tag }}/g" presets/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}.yaml
-            sed -i "s/REPO_HERE/${{ secrets.ACR_AMRT_USERNAME }}/g" presets/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}.yaml
-            kubectl apply -f presets/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}.yaml
+            POSTFIX=$(echo "${{ matrix.model.name }}" | grep -q "llama" && echo "" || echo "_${{ env.RUNTIME }}")
+            sed -i "s/MASTER_ADDR_HERE/${{ steps.get_ip.outputs.SERVICE_IP }}/g" presets/workspace/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}$POSTFIX.yaml
+            sed -i "s/TAG_HERE/${{ matrix.model.tag }}/g" presets/workspace/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}$POSTFIX.yaml
+            sed -i "s/REPO_HERE/${{ secrets.ACR_AMRT_USERNAME }}/g" presets/workspace/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}$POSTFIX.yaml
+            kubectl apply -f presets/workspace/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}$POSTFIX.yaml
 
       - name: Wait for Resource to be ready
         run: |
@@ -243,20 +249,23 @@ jobs:
         run: |
             POD_NAME=$(kubectl get pods -l app=${{ matrix.model.name }} -o jsonpath="{.items[0].metadata.name}")
             kubectl logs $POD_NAME | grep "Adapter added:" | grep "${{ matrix.model.expected_adapter }}" || (echo "Adapter not loaded or incorrect adapter loaded" && exit 1)
-          
-      - name: Test home endpoint
+
+      - name: Install testing commands
         run: |
-            curl http://${{ steps.get_ip.outputs.SERVICE_IP }}:80/
+            kubectl exec ${{steps.resource.outputs.RESOURCE_TYPE}}/${{ matrix.model.name }} -- apt-get update
+            kubectl exec ${{steps.resource.outputs.RESOURCE_TYPE}}/${{ matrix.model.name }} -- apt-get install -y curl
 
       - name: Test healthz endpoint
         run: |
-            curl http://${{ steps.get_ip.outputs.SERVICE_IP }}:80/healthz
-    
+            kubectl exec ${{steps.resource.outputs.RESOURCE_TYPE}}/${{ matrix.model.name }} -- \
+            curl -s http://localhost:5000/health
+
       - name: Test inference endpoint
         run: |
+            echo "Testing inference for ${{ matrix.model.name }}"
             if [[ "${{ matrix.model.name }}" == *"llama"* && "${{ matrix.model.name }}" == *"-chat"* ]]; then
-                echo "Testing inference for ${{ matrix.model.name }}"
-                curl -X POST \
+                kubectl exec ${{steps.resource.outputs.RESOURCE_TYPE}}/${{ matrix.model.name }} -- \
+                curl -s -X POST \
                 -H "Content-Type: application/json" \
                 -d '{
                     "input_data": {
@@ -274,10 +283,10 @@ jobs:
                         ]
                     }
                 }' \
-                http://${{ steps.get_ip.outputs.SERVICE_IP }}:80/chat
+                http://localhost:5000/chat
             elif [[ "${{ matrix.model.name }}" == *"llama"* ]]; then
-                echo "Testing inference for ${{ matrix.model.name }}"
-                curl -X POST \
+                kubectl exec ${{steps.resource.outputs.RESOURCE_TYPE}}/${{ matrix.model.name }} -- \
+                curl -s -X POST \
                 -H "Content-Type: application/json" \
                 -d '{
                     "prompts": [
@@ -290,10 +299,29 @@ jobs:
                         "max_gen_len": 128
                     }
                 }' \
-                http://${{ steps.get_ip.outputs.SERVICE_IP }}:80/generate
+                http://localhost:5000/generate
+            elif [[ "${{ env.RUNTIME }}" == *"vllm"* ]]; then
+                kubectl exec ${{steps.resource.outputs.RESOURCE_TYPE}}/${{ matrix.model.name }} -- \
+                curl -s -X POST \
+                -H "accept: application/json" \
+                -H "Content-Type: application/json" \
+                -d '{
+                    "model": "test",
+                    "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a helpful assistant."
+                    },
+                    {
+                        "role": "user",
+                        "content": "Hello!"
+                    }
+                    ]
+                    }' \
+                http://localhost:5000/v1/chat/completions
             else
-                echo "Testing inference for ${{ matrix.model.name }}"
-                curl -X POST \
+                kubectl exec ${{steps.resource.outputs.RESOURCE_TYPE}}/${{ matrix.model.name }} -- \
+                curl -s -X POST \
                 -H "accept: application/json" \
                 -H "Content-Type: application/json" \
                 -d '{
@@ -327,7 +355,7 @@ jobs:
                             "remove_invalid_values":null
                         }
                     }' \
-                http://${{ steps.get_ip.outputs.SERVICE_IP }}:80/chat                
+                http://localhost:5000/chat
             fi
       
       - name: Cleanup
@@ -340,6 +368,7 @@ jobs:
                 
                 # Check and Delete K8s Resource (Deployment or StatefulSet)
                 if kubectl get $RESOURCE_TYPE ${{ matrix.model.name }} > /dev/null 2>&1; then
+                    kubectl logs $RESOURCE_TYPE/${{ matrix.model.name }}
                     kubectl delete $RESOURCE_TYPE ${{ matrix.model.name }}
                 fi
             fi
@@ -364,4 +393,3 @@ jobs:
                     --resource-group llm-test
                 fi
             fi
-          

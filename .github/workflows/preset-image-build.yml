@@ -9,21 +9,24 @@ on:
     branches:
       - main
     paths:
-      - 'presets/inference/**'
-      - 'presets/models/supported_models.yaml'
+      - 'presets/workspace/inference/**'
+      - 'presets/workspace/models/supported_models.yaml'
   push:
     branches:
       - main
     paths:
-      - 'presets/inference/**'
-      - 'presets/models/supported_models.yaml'
+      - 'presets/workspace/inference/**'
+      - 'presets/workspace/models/supported_models.yaml'
   workflow_dispatch:
     inputs:
       force-run-all:
         type: boolean
         default: false
         description: "Run all models for build"
-
+      force-run-all-public:
+        type: boolean
+        default: false
+        description: "Run all public models for build"
 env:
     GO_VERSION: "1.22"
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
@@ -49,14 +52,17 @@ jobs:
       
       - name: Set FORCE_RUN_ALL Flag
         id: set_force_run_all
-        run: echo "FORCE_RUN_ALL=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all == 'true' }}" >> $GITHUB_OUTPUT
-      
+        run: |
+          echo "FORCE_RUN_ALL=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all == 'true' }}" >> $GITHUB_OUTPUT
+          echo "FORCE_RUN_ALL_PUBLIC=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all-public == 'true' }}" >> $GITHUB_OUTPUT
+
       # This script should output a JSON array of model names
       - name: Determine Affected Models
         id: affected_models
         run: |
           PR_BRANCH=${{ env.BRANCH_NAME }} \
           FORCE_RUN_ALL=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL }} \
+          FORCE_RUN_ALL_PUBLIC=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL_PUBLIC }} \
           python3 .github/workflows/kind-cluster/determine_models.py
             
       - name: Print Determined Models

@@ -1,4 +1,4 @@
-FROM python:3.10-slim@sha256:684b1aaf96a7942b3c3af438d162e0baa3510aa7af25ad76d238e0c746bdec79
+FROM python:3.12-slim
 
 # Specify the repository source URL for reference and access in Kaito packages.
 LABEL org.opencontainers.image.source=https://github.com/kaito-project/kaito
@@ -16,7 +16,7 @@ RUN echo $VERSION > /workspace/tfs/version.txt
 # This is done before copying the code to utilize Docker's layer caching and
 # avoid reinstalling dependencies unless the requirements file changes.
 # Inference
-COPY presets/dependencies/requirements.txt /workspace/tfs/inference-requirements.txt
+COPY presets/workspace/dependencies/requirements.txt /workspace/tfs/inference-requirements.txt
 RUN pip install --no-cache-dir -r inference-requirements.txt
 
-COPY presets/inference/${MODEL_TYPE}/inference_api.py /workspace/tfs/inference_api.py
+COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py /workspace/tfs/inference_api.py

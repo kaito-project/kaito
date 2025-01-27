@@ -1,0 +1,12 @@
+apiVersion: kaito.sh/v1alpha1
+kind: Workspace
+metadata:
+  name: workspace-phi-3-5-mini
+resource:
+  instanceType: "Standard_NC6s_v3"
+  labelSelector:
+    matchLabels:
+      apps: phi-3-5
+inference:
+  preset:
+    name: phi-3.5-mini-instruct

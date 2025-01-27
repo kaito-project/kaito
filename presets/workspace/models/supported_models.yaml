@@ -1,0 +1,155 @@
+models:
+  # Llama
+  - name: llama-2-7b
+    type: llama2-completion
+    runtime: llama-2
+    tag: 0.0.4
+  - name: llama-2-7b-chat
+    type: llama2-chat
+    runtime: llama-2
+    tag: 0.0.4
+  - name: llama-2-13b
+    type: llama2-completion
+    runtime: llama-2
+    tag: 0.0.4
+  - name: llama-2-13b-chat
+    type: llama2-chat
+    runtime: llama-2
+    tag: 0.0.4
+  - name: llama-2-70b
+    type: llama2-completion
+    runtime: llama-2
+    tag: 0.0.4
+  - name: llama-2-70b-chat
+    type: llama2-chat
+    runtime: llama-2
+    tag: 0.0.4
+    # Tag history:
+    # 0.0.4 - Update endpoint /healthz -> /health (#738)
+    # 0.0.3 - Inference API Cleanup (#233)
+    # 0.0.2 - Eliminate Unnecessary Process Group Creation in Worker Initialization (#244)
+    # 0.0.1 - Initial Release
+
+  # Falcon
+  - name: falcon-7b
+    type: text-generation
+    version: https://huggingface.co/tiiuae/falcon-7b/commit/898df1396f35e447d5fe44e0a3ccaaaa69f30d36
+    runtime: tfs
+    tag: 0.0.7
+  - name: falcon-7b-instruct
+    type: text-generation
+    version: https://huggingface.co/tiiuae/falcon-7b-instruct/commit/cf4b3c42ce2fdfe24f753f0f0d179202fea59c99
+    runtime: tfs
+    tag: 0.0.7
+    # Tag history:
+    # 0.0.7 - Support VLLM runtime
+    # 0.0.6 - Add Logging & Metrics Server
+    # 0.0.5 - Tuning and Adapters
+    # 0.0.4 - Adjust default model params (#310)
+    # 0.0.3 - Update Default Params (#294)
+    # 0.0.2 - Inference API Cleanup (#233)
+    # 0.0.1 - Initial Release
+  - name: falcon-40b
+    type: text-generation
+    version: https://huggingface.co/tiiuae/falcon-40b/commit/4a70170c215b36a3cce4b4253f6d0612bb7d4146
+    runtime: tfs
+    tag: 0.0.8
+  - name: falcon-40b-instruct
+    type: text-generation
+    version: https://huggingface.co/tiiuae/falcon-40b-instruct/commit/ecb78d97ac356d098e79f0db222c9ce7c5d9ee5f
+    runtime: tfs
+    tag: 0.0.8
+    # Tag history for 40b models:
+    # 0.0.8 - Support VLLM runtime
+    # 0.0.7 - Add Logging & Metrics Server
+    # 0.0.6 - Tuning and Adapters
+    # 0.0.5 - Adjust default model params (#310)
+    # 0.0.4 - Skipped due to incomplete upload issue
+    # 0.0.3 - Update Default Params (#294)
+    # 0.0.2 - Inference API Cleanup (#233)
+    # 0.0.1 - Initial Release
+
+  # Mistral
+  - name: mistral-7b
+    type: text-generation 
+    version: https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff
+    runtime: tfs
+    tag: 0.0.8
+  - name: mistral-7b-instruct
+    type: text-generation
+    version: https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3/commit/e0bc86c23ce5aae1db576c8cca6f06f1f73af2db
+    runtime: tfs
+    tag: 0.0.8
+    # Tag history:
+    # 0.0.8 - Support VLLM runtime
+    # 0.0.7 - Add Logging & Metrics Server
+    # 0.0.6 - Update model version and Address missing weights files fix
+    # 0.0.5 - Tuning and Adapters
+    # 0.0.4 - Adjust default model params (#310)
+    # 0.0.3 - Update Default Params (#294)
+    # 0.0.2 - Inference API Cleanup (#233)
+    # 0.0.1 - Initial Release
+
+  # Phi-2
+  - name: phi-2
+    type: text-generation 
+    version: https://huggingface.co/microsoft/phi-2/commit/ef382358ec9e382308935a992d908de099b64c23
+    runtime: tfs
+    tag: 0.0.6
+    # Tag history:
+    # 0.0.6 - Support VLLM runtime
+    # 0.0.5 - Add Logging & Metrics Server
+    # 0.0.4 - Tuning and Adapters
+    # 0.0.3 - Adjust default model params (#310)
+    # 0.0.2 - Update Default Params (#294)
+    # 0.0.1 - Initial Release
+  
+  # Phi-3
+  - name: phi-3-mini-4k-instruct
+    type: text-generation 
+    version: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/commit/0a67737cc96d2554230f90338b163bc6380a2a85
+    runtime: tfs
+    tag: 0.0.3
+    # Tag history:
+    # 0.0.3 - Support VLLM runtime
+    # 0.0.2 - Add Logging & Metrics Server
+    # 0.0.1 - Initial Release
+
+  - name: phi-3-mini-128k-instruct
+    type: text-generation 
+    version: https://huggingface.co/microsoft/Phi-3-mini-128k-instruct/commit/a90b62ae09941edff87a90ced39ba5807e6b2ade
+    runtime: tfs
+    tag: 0.0.3
+    # Tag history:
+    # 0.0.3 - Support VLLM runtime
+    # 0.0.2 - Add Logging & Metrics Server
+    # 0.0.1 - Initial Release
+
+  - name: phi-3-medium-4k-instruct
+    type: text-generation
+    version: https://huggingface.co/microsoft/Phi-3-medium-4k-instruct/commit/ae004ae82eb6eddc32906dfacb1d6dfea8f91996
+    runtime: tfs
+    tag: 0.0.3
+    # Tag history:
+    # 0.0.3 - Support VLLM runtime
+    # 0.0.2 - Add Logging & Metrics Server
+    # 0.0.1 - Initial Release
+
+  - name: phi-3-medium-128k-instruct
+    type: text-generation
+    version: https://huggingface.co/microsoft/Phi-3-medium-128k-instruct/commit/fa7d2aa4f5ea69b2e36b20d050cdae79c9bfbb3f
+    runtime: tfs
+    tag: 0.0.3
+    # Tag history:
+    # 0.0.3 - Support VLLM runtime
+    # 0.0.2 - Add Logging & Metrics Server
+    # 0.0.1 - Initial Release
+
+  - name: phi-3.5-mini-instruct
+    type: text-generation
+    version: https://huggingface.co/microsoft/Phi-3.5-mini-instruct/commit/af0dfb8029e8a74545d0736d30cb6b58d2f0f3f0
+    runtime: tfs
+    tag: 0.0.1
+    # Tag history:
+    # 0.0.1 - New Model! Support VLLM Runtime
+  

@@ -1,0 +1,116 @@
+name: Create, Scan and Publish RAG Controller Image
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'tag to be created for this image (i.e. vxx.xx.xx)'
+        required: true
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+env:
+  GO_VERSION: '1.22'
+  IMAGE_NAME: 'kaito-rag-engine'
+  REGISTRY: ghcr.io
+
+jobs:
+  check-tag:
+    runs-on: ubuntu-latest
+    environment: preset-env
+    outputs:
+      tag: ${{ steps.get-tag.outputs.tag }}
+    steps:
+      - name: validate version
+        run: |
+          echo "${{ github.event.inputs.release_version }}" | grep -E 'v[0-9]+\.[0-9]+\.[0-9]+$'
+
+      - id: get-tag
+        name: Get tag
+        run: |
+          echo "tag=$(echo ${{ github.event.inputs.release_version }})" >> $GITHUB_OUTPUT
+
+      - name: Harden Runner
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - id: check-tag
+        name: Check for Tag
+        run: |
+          TAG="${{ steps.get-tag.outputs.tag }}"
+          if git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
+            echo "create_tag=$(echo 'false' )" >> $GITHUB_OUTPUT
+          else
+            echo "create_tag=$(echo 'true' )" >> $GITHUB_OUTPUT
+          fi
+      - name: 'Create tag'
+        if:  steps.check-tag.outputs.create_tag == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ steps.get-tag.outputs.tag }}',
+              sha: context.sha
+            })
+
+  build-scan-publish-gh-images:
+    runs-on: ubuntu-latest
+    needs: [ check-tag ]
+    environment: preset-env
+    outputs:
+      registry_repository: ${{ steps.get-registry.outputs.registry_repository }}
+    steps:
+      - id: get-registry
+        run: |
+          # registry must be in lowercase
+          echo "registry_repository=$(echo "${{ env.REGISTRY }}/${{ github.repository }}" | tr [:upper:] [:lower:])" >> $GITHUB_OUTPUT
+
+      - id: get-tag
+        name: Get tag
+        run: |
+          echo "IMG_TAG=$(echo ${{ needs.check-tag.outputs.tag }} | tr -d v)" >> $GITHUB_ENV
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: true
+          fetch-depth: 0
+          ref: ${{ needs.check-tag.outputs.tag }}
+
+      - name: Login to ${{ steps.get-registry.outputs.registry_repository }}
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        run: |
+          make docker-build-ragengine
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          RAGENGINE_IMG_NAME: ${{ env.IMAGE_NAME }}
+          RAGENGINE_IMG_TAG: ${{ needs.check-tag.outputs.tag }}
+
+      - name: Scan ${{ steps.get-registry.outputs.registry_repository }}/${{ env.IMAGE_NAME }}:${{ env.IMG_TAG }}
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.get-registry.outputs.registry_repository }}/${{ env.IMAGE_NAME }}:${{ env.IMG_TAG }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          timeout: '5m0s'
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

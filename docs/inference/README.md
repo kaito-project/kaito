@@ -12,7 +12,7 @@ kind: Workspace
 metadata:
   name: workspace-falcon-7b
 resource:
-  instanceType: "Standard_NC12s_v3"
+  instanceType: "Standard_NC6s_v3"
   labelSelector:
     matchLabels:
       apps: falcon-7b
@@ -39,6 +39,29 @@ $ kubectl get node $NODE_NAME -o json | jq .status.allocatable
 Next, the user needs to add the node names in the `preferredNodes` field in the `resource` spec. As a result, the Kaito controller will skip the steps for GPU node provisioning and use the prepared nodes to run the inference workload.
 > [!IMPORTANT]
 > The node objects of the preferred nodes need to contain the same matching labels as specified in the `resource` spec. Otherwise, the Kaito controller would not recognize them.
+
+### Inference runtime selection
+
+KAITO now supports both [vLLM](https://github.com/vllm-project/vllm) and [transformers](https://github.com/huggingface/transformers) runtime. `vLLM` provides better serving latency and throughput. `transformers` provides more compatibility with models in the Huggingface model hub.
+
+From KAITO v0.4.0, the default runtime is switched to `vLLM`. If you want to use `transformers` runtime, you can specify the runtime in the `inference` spec using an annotation. For example,
+
+```yaml
+apiVersion: kaito.sh/v1alpha1
+kind: Workspace
+metadata:
+  name: workspace-falcon-7b
+  annotations:
+    kaito.sh/runtime: "transformers"
+resource:
+  instanceType: "Standard_NC12s_v3"
+  labelSelector:
+    matchLabels:
+      apps: falcon-7b
+inference:
+  preset:
+    name: "falcon-7b"
+```
 
 ### Inference with LoRA adapters 
 
@@ -69,6 +92,9 @@ Currently, only images are supported as adapter sources. The `strength` field sp
 
 For detailed `InferenceSpec` API definitions, refer to the [documentation](https://github.com/kaito-project/kaito/blob/2ccc93daf9d5385649f3f219ff131ee7c9c47f3e/api/v1alpha1/workspace_types.go#L75).
 
+### Inference API
+
+The OpenAPI specification for the inference API is available at [vLLM API](../../presets/workspace/inference/vllm/api_spec.json), [transformers API](../../presets/workspace/inference/text-generation/api_spec.json).
 
 # Inference workload
 
@@ -80,7 +106,7 @@ When adapters are specified in the `inference` spec, the Kaito controller adds a
   <img src="../img/kaito-inference-adapter.png" width=40% title="Kaito inference adapter" alt="Kaito inference adapter">
 </div>
 
-If an image is specified as the adapter source, the corresponding initcontainer uses that image as its container image. These initcontainers ensure all adapter data is available locally before the inference service starts. The main container uses a supported model image, launching the [inference_api.py](../../presets/inference/text-generation/inference_api.py) script.
+If an image is specified as the adapter source, the corresponding initcontainer uses that image as its container image. These initcontainers ensure all adapter data is available locally before the inference service starts. The main container uses a supported model image, launching the [inference_api.py](../../presets/workspace/inference/text-generation/inference_api.py) script.
 
 All containers share local volumes by mounting the same `EmptyDir` volumes, avoiding file copies between containers.
 

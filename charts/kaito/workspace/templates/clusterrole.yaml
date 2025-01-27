@@ -39,9 +39,15 @@ rules:
   - apiGroups: ["karpenter.sh"]
     resources: ["machines", "machines/status", "nodeclaims", "nodeclaims/status"]
     verbs: ["get","list","watch","create", "delete", "update", "patch"]
+  {{- if eq .Values.cloudProviderName "azure" }}
   - apiGroups: [ "karpenter.azure.com" ]
     resources: [ "aksnodeclasses"]
     verbs: [ "get","list","watch","create", "delete", "update", "patch" ]
+  {{- else if eq .Values.cloudProviderName "aws" }}
+  - apiGroups: [ "karpenter.k8s.aws" ]
+    resources: [ "ec2nodeclasses"]
+    verbs: [ "get","list","watch","create", "delete", "update", "patch" ]
+  {{- end }}
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
     verbs: ["get","list","watch"]

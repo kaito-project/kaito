@@ -7,15 +7,16 @@
 
 | ![notification](docs/img/bell.svg) What is NEW! |
 |-------------------------------------------------|
-| Latest Release: Sep 9th, 2024. Kaito v0.3.1.    |
+| Latest Release: Dec 5th, 2024. Kaito v0.4.0.    |
 | First Release: Nov 15th, 2023. Kaito v0.1.0.    |
 
 Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
 The target models are popular open-sourced large models such as [falcon](https://huggingface.co/tiiuae) and [phi-3](https://huggingface.co/docs/transformers/main/en/model_doc/phi3).
 Kaito has the following key differentiations compared to most of the mainstream model deployment methodologies built on top of virtual machine infrastructures:
 
-- Manage large model files using container images. A http server is provided to perform inference calls using the model library.
+- Manage large model files using container images. An OpenAI-compatible server is provided to perform inference calls.
 - Provide preset configurations to avoid adjusting workload parameters based on GPU hardware.
+- Provide support for popular open-sourced inference runtimes: [vLLM](https://github.com/vllm-project/vllm) and [transformers](https://github.com/huggingface/transformers).
 - Auto-provision GPU nodes based on model requirements.
 - Host large model images in the public Microsoft Container Registry (MCR) if the license allows.
 
@@ -31,7 +32,7 @@ Kaito follows the classic Kubernetes Custom Resource Definition(CRD)/controller 
 The above figure presents the Kaito architecture overview. Its major components consist of:
 
 - **Workspace controller**: It reconciles the `workspace` custom resource, creates `machine` (explained below) custom resources to trigger node auto provisioning, and creates the inference or tuning workload (`deployment`, `statefulset` or `job`) based on the model preset configurations.
-- **Node provisioner controller**: The controller's name is *gpu-provisioner* in [gpu-provisioner helm chart](https://github.com/Azure/gpu-provisioner/tree/main/charts/gpu-provisioner). It uses the `machine` CRD originated from [Karpenter](https://sigs.k8s.io/karpenter) to interact with the workspace controller. It integrates with Azure Resource Manager REST APIs to add new GPU nodes to the AKS cluster.
+- **Node provisioner controller**: The controller's name is *gpu-provisioner* in [gpu-provisioner helm chart](https://github.com/Azure/gpu-provisioner/tree/main/charts/gpu-provisioner). It uses the `machine` CRD originated from [Karpenter](https://sigs.k8s.io/karpenter) to interact with the workspace controller. It integrates with Azure Resource Manager REST APIs to add new GPU nodes to the AKS or AKS Arc cluster.
 > Note: The [*gpu-provisioner*](https://github.com/Azure/gpu-provisioner) is an open sourced component. It can be replaced by other controllers if they support [Karpenter-core](https://sigs.k8s.io/karpenter) APIs.
 
 ## Installation
@@ -40,43 +41,69 @@ Please check the installation guidance [here](./docs/installation.md) for deploy
 
 ## Quick start
 
-After installing Kaito, one can try following commands to start a falcon-7b inference service.
+After installing Kaito, one can try following commands to start a phi-3.5-mini-instruct inference service.
 
 ```sh
-$ cat examples/inference/kaito_workspace_falcon_7b.yaml
+$ cat examples/inference/kaito_workspace_phi_3.5-instruct.yaml
 apiVersion: kaito.sh/v1alpha1
 kind: Workspace
 metadata:
-  name: workspace-falcon-7b
+  name: workspace-phi-3-5-mini
 resource:
-  instanceType: "Standard_NC12s_v3"
+  instanceType: "Standard_NC6s_v3"
   labelSelector:
     matchLabels:
-      apps: falcon-7b
+      apps: phi-3-5
 inference:
   preset:
-    name: "falcon-7b"
+    name: phi-3.5-mini-instruct
 
-$ kubectl apply -f examples/inference/kaito_workspace_falcon_7b.yaml
+$ kubectl apply -f examples/inference/kaito_workspace_phi_3.5-instruct.yaml
 ```
 
 The workspace status can be tracked by running the following command. When the WORKSPACEREADY column becomes `True`, the model has been deployed successfully.
 
 ```sh
-$ kubectl get workspace workspace-falcon-7b
-NAME                  INSTANCE            RESOURCEREADY   INFERENCEREADY   WORKSPACEREADY   AGE
-workspace-falcon-7b   Standard_NC12s_v3   True            True             True             10m
+$ kubectl get workspace workspace-phi-3-5-mini
+NAME                     INSTANCE           RESOURCEREADY   INFERENCEREADY   JOBSTARTED   WORKSPACESUCCEEDED   AGE
+workspace-phi-3-5-mini   Standard_NC6s_v3   True            True                          True                 4h15m
 ```
 
 Next, one can find the inference service's cluster ip and use a temporal `curl` pod to test the service endpoint in the cluster.
 
 ```sh
-$ kubectl get svc workspace-falcon-7b
-NAME                  TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)            AGE
-workspace-falcon-7b   ClusterIP   <CLUSTERIP>  <none>        80/TCP,29500/TCP   10m
+# find service endpoint
+$ kubectl get svc workspace-phi-3-5-mini
+NAME                     TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)            AGE
+workspace-phi-3-5-mini   ClusterIP   <CLUSTERIP>  <none>        80/TCP,29500/TCP   10m
+$ export CLUSTERIP=$(kubectl get svc workspace-phi-3-5-mini -o jsonpath="{.spec.clusterIPs[0]}")
 
-export CLUSTERIP=$(kubectl get svc workspace-falcon-7b -o jsonpath="{.spec.clusterIPs[0]}") 
-$ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POST http://$CLUSTERIP/chat -H "accept: application/json" -H "Content-Type: application/json" -d "{\"prompt\":\"YOUR QUESTION HERE\"}"
+# find availalbe models
+$ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -s  http://$CLUSTERIP/v1/models | jq
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "phi-3.5-mini-instruct",
+      "object": "model",
+      "created": 1733370094,
+      "owned_by": "vllm",
+      "root": "/workspace/vllm/weights",
+      "parent": null,
+      "max_model_len": 16384
+    }
+  ]
+}
+
+# make an inference call using the model id (phi-3.5-mini-instruct) from previous step
+$ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POST http://$CLUSTERIP/v1/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "phi-3.5-mini-instruct",
+    "prompt": "What is kubernetes?",
+    "max_tokens": 7,
+    "temperature": 0
+  }'
 ```
 
 ## Usage

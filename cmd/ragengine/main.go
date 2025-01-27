@@ -18,7 +18,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
-	"github.com/kaito-project/kaito/pkg/webhooks"
+	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
 	"k8s.io/api/apps/v1beta1"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/injection/sharedmain"

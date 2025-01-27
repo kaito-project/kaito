@@ -5,7 +5,9 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -19,8 +21,11 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/stretchr/testify/mock"
 	"gotest.tools/assert"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -358,6 +363,147 @@ func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 				assert.Check(t, node != nil, "Response node should not be nil")
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			}
+		})
+	}
+}
+
+func TestUpdateControllerRevision1(t *testing.T) {
+	testcases := map[string]struct {
+		callMocks     func(c *test.MockClient)
+		ragengine     v1alpha1.RAGEngine
+		expectedError error
+		verifyCalls   func(c *test.MockClient)
+	}{
+
+		"No new revision needed": {
+			callMocks: func(c *test.MockClient) {
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*appsv1.ControllerRevision)
+						*dep = appsv1.ControllerRevision{
+							ObjectMeta: v1.ObjectMeta{
+								Annotations: map[string]string{
+									RAGEngineHashAnnotation: "7985249e078eb041e38c10c3637032b2d352616c609be8542a779460d3ff1d67",
+								},
+							},
+						}
+					}).
+					Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).
+					Return(nil)
+			},
+			ragengine:     test.MockRAGEngineWithComputeHash,
+			expectedError: nil,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 1)
+				c.AssertNumberOfCalls(t, "Create", 0)
+				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 1)
+			},
+		},
+
+		"Fail to create ControllerRevision": {
+			callMocks: func(c *test.MockClient) {
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(errors.New("failed to create ControllerRevision"))
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockRAGEngineFailToCreateCR.Name))
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).
+					Return(nil)
+			},
+			ragengine:     test.MockRAGEngineFailToCreateCR,
+			expectedError: errors.New("failed to create new ControllerRevision: failed to create ControllerRevision"),
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 1)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 0)
+			},
+		},
+		"Successfully create new ControllerRevision": {
+			callMocks: func(c *test.MockClient) {
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockRAGEngineFailToCreateCR.Name))
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).
+					Return(nil)
+			},
+			ragengine:     test.MockRAGEngineSuccessful,
+			expectedError: nil,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 1)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 1)
+			},
+		},
+
+		"Successfully delete old ControllerRevision": {
+			callMocks: func(c *test.MockClient) {
+				revisions := &appsv1.ControllerRevisionList{}
+				jsonData, _ := json.Marshal(test.MockRAGEngineWithUpdatedDeployment)
+
+				for i := 0; i <= consts.MaxRevisionHistoryLimit; i++ {
+					revision := &appsv1.ControllerRevision{
+						ObjectMeta: v1.ObjectMeta{
+							Name: fmt.Sprintf("revision-%d", i),
+						},
+						Revision: int64(i),
+						Data:     runtime.RawExtension{Raw: jsonData},
+					}
+					revisions.Items = append(revisions.Items, *revision)
+				}
+				relevantMap := c.CreateMapWithType(revisions)
+
+				for _, obj := range revisions.Items {
+					m := obj
+					objKey := client.ObjectKeyFromObject(&m)
+					relevantMap[objKey] = &m
+				}
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockRAGEngineFailToCreateCR.Name))
+				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).
+					Return(nil)
+			},
+			ragengine:     test.MockRAGEngineWithDeleteOldCR,
+			expectedError: nil,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 1)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Delete", 1)
+				c.AssertNumberOfCalls(t, "Update", 1)
+			},
+		},
+	}
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			mockClient := test.NewClient()
+			tc.callMocks(mockClient)
+
+			reconciler := &RAGEngineReconciler{
+				Client: mockClient,
+				Scheme: test.NewTestScheme(),
+			}
+			ctx := context.Background()
+
+			err := reconciler.syncControllerRevision(ctx, &tc.ragengine)
+			if tc.expectedError == nil {
+				assert.Check(t, err == nil, "Not expected to return error")
+			} else {
+				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			}
+			if tc.verifyCalls != nil {
+				tc.verifyCalls(mockClient)
 			}
 		})
 	}

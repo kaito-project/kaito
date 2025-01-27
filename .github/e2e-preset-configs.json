@@ -4,7 +4,7 @@
       {
         "name": "falcon-7b",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NC6s_v3",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false
@@ -21,7 +21,7 @@
       {
         "name": "falcon-7b-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NC6s_v3",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false
@@ -29,7 +29,7 @@
       {
         "name": "falcon-40b",
         "node-count": 1,
-        "node-vm-size": "Standard_NC24s_v3",
+        "node-vm-size": "Standard_NC48ads_A100_v4",
         "node-osdisk-size": 400,
         "OSS": true,
         "loads_adapter": false
@@ -37,7 +37,7 @@
       {
         "name": "falcon-40b-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC24s_v3",
+        "node-vm-size": "Standard_NC48ads_A100_v4",
         "node-osdisk-size": 400,
         "OSS": true,
         "loads_adapter": false
@@ -45,7 +45,7 @@
       {
         "name": "mistral-7b",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NC6s_v3",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false
@@ -53,7 +53,7 @@
       {
         "name": "mistral-7b-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NC6s_v3",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false
@@ -128,6 +128,14 @@
         "node-vm-size": "Standard_NC12s_v3",
         "node-osdisk-size": 150,
         "OSS": false,
+        "loads_adapter": false
+      },
+      {
+        "name": "tuning",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC6s_v3",
+        "node-osdisk-size": 100,
+        "OSS": true,
         "loads_adapter": false
       }
     ]

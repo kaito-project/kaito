@@ -63,6 +63,29 @@ func (*testModel) SupportTuning() bool {
 	return true
 }
 
+type testModelStatic struct{}
+
+func (*testModelStatic) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "16Gi",
+		PerGPUMemoryRequirement:   "16Gi",
+	}
+}
+func (*testModelStatic) GetTuningParameters() *model.PresetParam {
+	return &model.PresetParam{
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "16Gi",
+		PerGPUMemoryRequirement:   "16Gi",
+	}
+}
+func (*testModelStatic) SupportDistributedInference() bool {
+	return false
+}
+func (*testModelStatic) SupportTuning() bool {
+	return true
+}
+
 type testModelPrivate struct{}
 
 func (*testModelPrivate) GetInferenceParameters() *model.PresetParam {
@@ -91,6 +114,7 @@ func (*testModelPrivate) SupportTuning() bool {
 func RegisterValidationTestModels() {
 	var test testModel
 	var testPrivate testModelPrivate
+	var testStatic testModelStatic
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation",
 		Instance: &test,
@@ -98,6 +122,10 @@ func RegisterValidationTestModels() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "private-test-validation",
 		Instance: &testPrivate,
+	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-validation-static",
+		Instance: &testStatic,
 	})
 }
 
@@ -703,14 +731,14 @@ func TestAdapterSpecValidateCreateorUpdate(t *testing.T) {
 				},
 				Strength: &ValidStrength,
 			},
-			errContent: "Name of Adapter must be a valid DNS subdomain value",
+			errContent: "invalid value",
 			expectErrs: true,
 		},
 		{
 			name: "Valid Adapter",
 			adapterSpec: &AdapterSpec{
 				Source: &DataSource{
-					Name:  "Adapter-1",
+					Name:  "adapter-1",
 					Image: "fake.kaito.com/kaito-image:0.0.1",
 				},
 			},
@@ -893,6 +921,66 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 			}
 			if errs != nil && !strings.Contains(errs.Error(), tt.errField) {
 				t.Errorf("validateCreate() expected error to contain field %s, but got %s", tt.errField, errs.Error())
+			}
+		})
+	}
+}
+
+func TestWorkspaceValidateName(t *testing.T) {
+	testWorkspace := &Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testWorkspace",
+			Namespace: "kaito",
+		},
+		Resource: ResourceSpec{
+			InstanceType: "Standard_NC12s_v3",
+			Count:        pointerToInt(1),
+		},
+		Inference: &InferenceSpec{
+			Preset: &PresetSpec{
+				PresetMeta: PresetMeta{
+					Name: ModelName("test-validation-static"),
+				},
+			},
+		},
+	}
+	RegisterValidationTestModels()
+	os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	tests := []struct {
+		name          string
+		workspaceName string
+		wantErr       bool
+		errField      string
+	}{
+		{
+			name:          "Valid name",
+			workspaceName: "valid-name",
+			wantErr:       false,
+		},
+		{
+			name:          "Name with invdalid characters",
+			workspaceName: "phi-3.5-mini",
+			wantErr:       true,
+			errField:      "name",
+		},
+		{
+			name:          "Name start with invalid character",
+			workspaceName: "-mini",
+			wantErr:       true,
+			errField:      "name",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			workspace := testWorkspace.DeepCopy()
+			workspace.Name = tt.workspaceName
+			errs := workspace.Validate(context.Background())
+			if (errs != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", errs, tt.wantErr)
+			}
+			if errs != nil && !strings.Contains(errs.Error(), tt.errField) {
+				t.Errorf("Validate() expected error to contain field %s, but got %s", tt.errField, errs.Error())
 			}
 		})
 	}

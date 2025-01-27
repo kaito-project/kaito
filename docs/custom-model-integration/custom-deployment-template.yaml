@@ -22,7 +22,7 @@ inference:
           - "1"
           - "--gpu_ids"
           - "all"
-          - "inference_api.py"
+          - "tfs/inference_api.py"
           - "--pipeline"
           - "text-generation"
           - "--torch_dtype"

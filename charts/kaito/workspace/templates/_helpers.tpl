@@ -50,3 +50,14 @@ Selector labels
 app.kubernetes.io/name: {{ include "kaito.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Utils function
+*/}}
+{{- define "utils.joinKeyValuePairs" -}}
+{{- $pairs := list -}}
+{{- range $key, $value := . -}}
+{{- $pairs = append $pairs (printf "%s=%s" $key $value) -}}
+{{- end -}}
+{{- join "," $pairs -}}
+{{- end -}}

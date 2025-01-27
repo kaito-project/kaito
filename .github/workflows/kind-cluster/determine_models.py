@@ -17,11 +17,11 @@ def read_yaml(file_path):
         print(f"Error reading {file_path}: {e}")
         return None
 
-supp_models_yaml = 'presets/models/supported_models.yaml'
+supp_models_yaml = 'presets/workspace/models/supported_models.yaml'
 YAML_PR = read_yaml(supp_models_yaml)
 # Format: {falcon-7b : {model_name:falcon-7b, type:text-generation, version: #, tag: #}}
 MODELS = {model['name']: model for model in YAML_PR['models']}
-KAITO_REPO_URL = "https://github.com/kaito-repo/kaito.git"
+KAITO_REPO_URL = "https://github.com/kaito-project/kaito.git"
 
 def set_multiline_output(name, value):
     with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
@@ -85,7 +85,7 @@ def models_to_build(files_changed):
         models.update(detect_changes_in_yaml(yaml_main, YAML_PR))
     for model, model_info in MODELS.items():
         if model_info["type"] not in seen_model_types: 
-            if any(file.startswith(f'presets/inference/{model_info["type"]}') for file in files_changed):
+            if any(file.startswith(f'presets/workspace/inference/{model_info["type"]}') for file in files_changed):
                 models.add(model)
                 seen_model_types.add(model_info["type"])
     return list(models)
@@ -119,11 +119,14 @@ def main():
     pr_branch = os.environ.get("PR_BRANCH", "main") # If not specified default to 'main'
     force_run_all = os.environ.get("FORCE_RUN_ALL", "false") # If not specified default to False
     force_run_all_phi = os.environ.get("FORCE_RUN_ALL_PHI", "false") # If not specified default to False
+    force_run_all_public = os.environ.get("FORCE_RUN_ALL_PUBLIC", "false") # If not specified default to False
 
     affected_models = []
     if force_run_all != "false":
         affected_models = [model['name'] for model in YAML_PR['models']]
-    elif force_run_all_phi != "false": 
+    elif force_run_all_public != "false": 
+        affected_models = [model['name'] for model in YAML_PR['models'] if "llama" not in model['name']]
+    elif force_run_all_phi != "false":
         affected_models = [model['name'] for model in YAML_PR['models'] if 'phi-3' in model['name']]
     else:
         # Logic to determine affected models

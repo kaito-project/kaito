@@ -30,4 +30,4 @@ ARG VERSION
 RUN echo $VERSION > /workspace/llama/version.txt
 
 ADD ${WEIGHTS_PATH} /workspace/llama/llama-2/weights
-ADD presets/inference/${MODEL_TYPE} /workspace/llama/llama-2
+ADD kaito/presets/workspace/inference/${MODEL_TYPE} /workspace/llama/llama-2

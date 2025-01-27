@@ -23,23 +23,11 @@ on:
         default: "eastus"
       k8s_version:
         type: string
-    secrets:
-      E2E_CLIENT_ID:
-        required: true
-      E2E_TENANT_ID:
-        required: true
-      E2E_SUBSCRIPTION_ID:
-        required: true
-      E2E_AMRT_SECRET_NAME:
-        required: true
-      E2E_ACR_AMRT_USERNAME:
-        required: true
-      E2E_ACR_AMRT_PASSWORD:
-        required: true
+        default: "1.30.0"
 
 jobs:
   e2e-tests:
-    runs-on: ubuntu-latest
+    runs-on: [ "self-hosted", "hostname:kaito-e2e-github-runner" ]
     name: e2e-tests-${{ inputs.node_provisioner }}
     permissions:
       contents: read
@@ -49,9 +37,10 @@ jobs:
       GO_VERSION: "1.22"
       KARPENTER_NAMESPACE: "karpenter"
       GPU_PROVISIONER_NAMESPACE: "gpu-provisioner"
+
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
         with:
           egress-policy: audit
 
@@ -78,22 +67,29 @@ jobs:
         run: |
           echo "REGISTRY=${{ inputs.registry }}" >> $GITHUB_ENV
           echo "VERSION=$(echo ${{ inputs.tag }} | tr -d v)" >> $GITHUB_ENV
-
+      
+      - name: Remove existing Go modules directory
+        run: sudo rm -rf ~/go/pkg/mod
+      
       - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@v5.0.2
+        uses: actions/setup-go@v5.1.0
         with:
           go-version: ${{ env.GO_VERSION  }}
 
-      - name: Az login
-        uses: azure/login@v2.2.0
-        with:
-          client-id: ${{ secrets.E2E_CLIENT_ID }}
-          tenant-id: ${{ secrets.E2E_TENANT_ID }}
-          subscription-id: ${{ secrets.E2E_SUBSCRIPTION_ID }}
+      - name: Install Azure CLI latest
+        run: |
+          if ! which az > /dev/null; then
+            echo "Azure CLI not found. Installing..."
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          else
+            echo "Azure CLI already installed."
+          fi
+
+      - name: Azure CLI Login
+        run: |
+          az login --identity
 
       - uses: azure/setup-helm@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
         id: install
 
       - name: Create Resource Group
@@ -159,62 +155,39 @@ jobs:
           AZURE_LOCATION: ${{ inputs.region }}
           AKS_K8S_VERSION: ${{ inputs.k8s_version }}
 
-      - name: Az login
-        uses: azure/login@a65d910e8af852a8061c627c456678983e180302 # v2.2.0
-        with:
-          client-id: ${{ secrets.E2E_CLIENT_ID }}
-          tenant-id: ${{ secrets.E2E_TENANT_ID }}
-          subscription-id: ${{ secrets.E2E_SUBSCRIPTION_ID }}
-
       - name: Create Identities and Permissions for ${{ inputs.node_provisioner }}
         shell: bash
         run: |
+          AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
           make generate-identities
         env:
           AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           TEST_SUITE: ${{ inputs.node_provisioner }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.E2E_SUBSCRIPTION_ID }}
 
       - name: Install gpu-provisioner helm chart
         if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
         shell: bash
         run: |
+          AZURE_TENANT_ID=$E2E_TENANT_ID \
+          AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
           make gpu-provisioner-helm
         env:
           AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-          AZURE_TENANT_ID: ${{ secrets.E2E_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.E2E_SUBSCRIPTION_ID }}
-          GPU_PROVISIONER_VERSION: ${{ vars.GPU_PROVISIONER_VERSION }}
 
       - name: Install karpenter Azure provider helm chart
         if: ${{ inputs.node_provisioner == 'azkarpenter' }}
         shell: bash
         run: |
+          AZURE_TENANT_ID=$E2E_TENANT_ID \
+          AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
           make azure-karpenter-helm
         env:
           AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-          AZURE_TENANT_ID: ${{ secrets.E2E_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.E2E_SUBSCRIPTION_ID }}
           KARPENTER_VERSION: ${{ vars.KARPENTER_VERSION }}
           KARPENTER_NAMESPACE: ${{ env.KARPENTER_NAMESPACE }}
-
-      - uses: azure/login@a65d910e8af852a8061c627c456678983e180302 # v2.2.0
-        with:
-          client-id: ${{ secrets.E2E_CLIENT_ID }}
-          tenant-id: ${{ secrets.E2E_TENANT_ID }}
-          subscription-id: ${{ secrets.E2E_SUBSCRIPTION_ID }}
-
-      - name: build KAITO image
-        if: ${{ !inputs.isRelease }}
-        shell: bash
-        run: |
-          make docker-build-workspace
-        env:
-          REGISTRY: ${{ env.REGISTRY }}
-          VERSION: ${{ env.VERSION }}
 
       - name: Install KAITO Workspace helm chart
         shell: bash
@@ -251,10 +224,18 @@ jobs:
       # Add Private-Hosted ACR secret for private models like llama
       - name: Add Private-Hosted ACR Secret Credentials
         run: |
-          kubectl create secret docker-registry ${{ secrets.E2E_AMRT_SECRET_NAME }} \
-          --docker-server=${{ secrets.E2E_ACR_AMRT_USERNAME }}.azurecr.io \
-          --docker-username=${{ secrets.E2E_ACR_AMRT_USERNAME }} \
-          --docker-password=${{ secrets.E2E_ACR_AMRT_PASSWORD }}
+          # Ensure E2E_AMRT_SECRET_NAME is sanitized to remove any accidental quotes
+          E2E_AMRT_SECRET_NAME=$(echo "$E2E_AMRT_SECRET_NAME" | sed 's/[\"'\'']//g')
+
+          if kubectl get secret "$E2E_AMRT_SECRET_NAME" >/dev/null 2>&1; then
+            echo "Secret $E2E_AMRT_SECRET_NAME already exists. Skipping creation."
+          else
+            kubectl create secret docker-registry "$E2E_AMRT_SECRET_NAME" \
+              --docker-server="$E2E_ACR_AMRT_USERNAME.azurecr.io" \
+              --docker-username="$E2E_ACR_AMRT_USERNAME" \
+              --docker-password="$E2E_ACR_AMRT_PASSWORD"
+            echo "Secret $E2E_AMRT_SECRET_NAME created successfully."
+          fi
 
       - name: Log ${{ inputs.node_provisioner }}
         run: |
@@ -270,13 +251,13 @@ jobs:
 
       - name: Run e2e test
         run: |
+          AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
+          AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
           make kaito-workspace-e2e-test
         env:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           RUN_LLAMA_13B: ${{ env.RUN_LLAMA_13B }}
           REGISTRY: ${{ env.REGISTRY }}
-          AI_MODELS_REGISTRY: ${{ secrets.E2E_ACR_AMRT_USERNAME }}.azurecr.io
-          AI_MODELS_REGISTRY_SECRET: ${{ secrets.E2E_AMRT_SECRET_NAME }}
           TEST_SUITE: ${{ inputs.node_provisioner }}
           E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
           E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret

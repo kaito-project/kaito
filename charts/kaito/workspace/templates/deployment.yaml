@@ -33,7 +33,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-            - --feature-gates={{- range $k, $v := .Values.featureGates }}{{ $k }}={{ $v}}{{- end }}
+            - --feature-gates={{ include "utils.joinKeyValuePairs" .Values.featureGates }}
           env:
             - name: WEBHOOK_SERVICE
               value: {{ include "kaito.fullname" . }}
@@ -47,6 +47,8 @@ spec:
               value: {{ .Values.presetRegistryName }}
             - name: CLOUD_PROVIDER
               value: {{ .Values.cloudProviderName }}
+            - name: CLUSTER_NAME
+              value: {{ .Values.clusterName }}
           ports:
             - name: http-metrics
               containerPort: 8080

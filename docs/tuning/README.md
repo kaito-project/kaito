@@ -73,12 +73,14 @@ TrainingArguments([full list](https://huggingface.co/docs/transformers/v4.40.2/e
 DataCollator([full list](https://huggingface.co/docs/transformers/v4.40.2/en/main_classes/data_collator#transformers.DataCollatorForLanguageModeling))
 - mlm: Masked language modeling flag.
 
-DatasetConfig([full list](https://github.com/kaito-project/kaito/blob/main/presets/tuning/text-generation/cli.py#L44))
+DatasetConfig([full list](https://github.com/kaito-project/kaito/blob/main/presets/workspace/tuning/text-generation/cli.py#L44))
 - shuffle_dataset: Whether to shuffle the dataset.
 - train_test_split: Proportion of data used for training, typically set to 1 for using all data.
 
 ## Input dataset format
-The input dataset for fine tuning should follow specific formats defined in the huggingface trainer library. Supported formats include conversational and instruction formats.
+The input dataset for fine-tuning should follow specific formats defined in the HuggingFace trainer library. Supported formats include conversational and instruction formats.
+
+For example, [HuggingFace Dolly 15k OAI-style dataset](https://huggingface.co/datasets/philschmid/dolly-15k-oai-style/tree/main)
 
 - Conversational format
   ```json
@@ -90,17 +92,13 @@ The input dataset for fine tuning should follow specific formats defined in the 
     ]
   }
   ```
-For example, [HuggingFace Dolly 15k OAI-style dataset](https://huggingface.co/datasets/philschmid/dolly-15k-oai-style/tree/main).
+
+For example, [HuggingFace Instruction Dataset](https://huggingface.co/datasets/HuggingFaceH4/instruction-dataset/tree/main)
 
 - Instruction format
   ```json
   {"prompt": "<prompt text>", "completion": "<ideal generated text>"}
-  {"prompt": "<prompt text>", "completion": "<ideal generated text>"}
-  {"prompt": "<prompt text>", "completion": "<ideal generated text>"}
   ```
-
-For example, [HuggingFace Instruction Dataset](https://huggingface.co/datasets/HuggingFaceH4/instruction-dataset/tree/main)
-
 
 If your dataset is not in one of these formats, it will be passed directly to the training library ([SFTTrainer](https://huggingface.co/docs/trl/en/sft_trainer)) without any preprocessing. This may result in undefined behavior if the dataset does not align with the trainer's expected input structure. To ensure proper functionality, you may need to preprocess the dataset to match one of the supported formats. For more details, please refer to this [documentation](https://huggingface.co/docs/trl/v0.9.4/sft_trainer#dataset-format-support).
 
@@ -118,7 +116,7 @@ Figure 1. Kaito tuning pod structure.
 
 - Sidecar container: It is introduced to support automatically pushing the tuning results to a container registry. This container, with `docker` installed, runs a script to periodically check the training progress. Once the training is done, indicated by a sentinel file created by the training process, the script builds a container image containing the training results and pushes the image to the specified container registry.
 
-- Main container: It uses one of the supported model images. The image entry launches the [fine\_tuning.py](https://github.com/kaito-project/kaito/blob/main/presets/tuning/text-generation/fine_tuning.py) script.
+- Main container: It uses one of the supported model images. The image entry launches the [fine\_tuning.py](https://github.com/kaito-project/kaito/blob/main/presets/workspace/tuning/text-generation/fine_tuning.py) script.
 
 All three containers use shared local volumes (by mounting the same `EmptyDir` volumes), hence file copies between containers are avoided.
 

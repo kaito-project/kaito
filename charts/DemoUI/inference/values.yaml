@@ -4,7 +4,7 @@ replicaCount: 1
 image:
   repository: python
   pullPolicy: IfNotPresent
-  tag: "3.8"
+  tag: "3.12"
 imagePullSecrets: []
 podAnnotations: {}
 serviceAccount:
@@ -18,9 +18,9 @@ service:
   # Specify the URL for the Workspace Service inference endpoint. Use the DNS name within the cluster for reliability.
   #
   # Examples:
-  # Cluster IP: "http://<CLUSTER_IP>:80/chat"
-  # DNS name: "http://<SERVICE_NAME>.<NAMESPACE>.svc.cluster.local:80/chat"
-  # e.g., "http://workspace-falcon-7b.default.svc.cluster.local:80/chat"
+  # Cluster IP: "http://<CLUSTER_IP>:80"
+  # DNS name: "http://<SERVICE_NAME>.<NAMESPACE>.svc.cluster.local:80"
+  # e.g., "http://workspace-falcon-7b.default.svc.cluster.local:80"
   #
   # workspaceServiceURL: "<YOUR_SERVICE_URL>"
 resources:
@@ -44,6 +44,8 @@ readinessProbe:
   periodSeconds: 10
   successThreshold: 1
   timeoutSeconds: 1
+env:
+  runtime: "vllm" # "vllm" or "transformers"
 nodeSelector: {}
 tolerations: []
 affinity: {}

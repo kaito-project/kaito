@@ -2,8 +2,8 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.4.0
-GPU_PROVISIONER_VERSION ?= 0.2.1
+VERSION ?= v0.4.2
+GPU_PROVISIONER_VERSION ?= 0.3.1
 IMG_TAG ?= $(subst v,,$(VERSION))
 
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -12,7 +12,7 @@ BIN_DIR := $(abspath $(ROOT_DIR)/bin)
 TOOLS_DIR := hack/tools
 TOOLS_BIN_DIR := $(abspath $(TOOLS_DIR)/bin)
 
-GOLANGCI_LINT_VER := v1.57.2
+GOLANGCI_LINT_VER := v1.63.4
 GOLANGCI_LINT_BIN := golangci-lint
 GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT_VER))
 
@@ -105,12 +105,14 @@ unit-test: ## Run unit tests.
 .PHONY: rag-service-test
 rag-service-test:
 	pip install -r presets/ragengine/requirements.txt
-	pytest -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
+	pip install pytest-cov
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
 
 .PHONY: tuning-metrics-server-test
 tuning-metrics-server-test:
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
-	pytest -o log_cli=true -o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
+	pip install pytest-cov
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
 
 ## --------------------------------------
 ## E2E tests
@@ -118,8 +120,9 @@ tuning-metrics-server-test:
 
 inference-api-e2e:
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
-	pytest -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
-	pytest -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
+	pip install pytest-cov
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
 
 # Ginkgo configurations
 GINKGO_FOCUS ?=
@@ -127,7 +130,7 @@ GINKGO_SKIP ?=
 GINKGO_NODES ?= 2
 GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 120m
-GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) --output-interceptor-mode=none -timeout=$(GINKGO_TIMEOUT) --fail-fast
+GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT) --fail-fast
 
 $(E2E_TEST):
 	(cd test/e2e && go test -c . -o $(E2E_TEST))
@@ -241,8 +244,8 @@ docker-build-ragengine: docker-buildx
                 --tag $(REGISTRY)/$(RAGENGINE_IMG_NAME):$(RAGENGINE_IMG_TAG) .
 
 .PHONY: docker-build-rag-service
-docker-build-ragservice: docker buildx
-    docker buildx build \
+docker-build-ragservice: docker-buildx
+	docker buildx build \
         --platform="linux/$(ARCH)" \
         --output=$(OUTPUT_TYPE) \
         --file ./docker/ragengine/service/Dockerfile \
@@ -311,9 +314,6 @@ az-patch-install-helm: ## Update Azure client env vars and settings in helm valu
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    ./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/workspace/values.yaml
-	if [ $(TEST_SUITE) = "azkarpenter" ]; then \
-		yq -i '(.featureGates.Karpenter)                                    = "true"'                                       ./charts/kaito/workspace/values.yaml; \
-	fi
 	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/workspace/values.yaml
 
 	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace
@@ -461,8 +461,9 @@ release-manifest:
 	@sed -i -e "s/appVersion: .*/appVersion: ${IMG_TAG}/" ./charts/kaito/workspace/Chart.yaml
 	@sed -i -e "s/tag: .*/tag: ${IMG_TAG}/" ./charts/kaito/workspace/values.yaml
 	@sed -i -e 's/IMG_TAG=.*/IMG_TAG=${IMG_TAG}/' ./charts/kaito/workspace/README.md
+	@sed -i -e 's/export KAITO_WORKSPACE_VERSION=.*/export KAITO_WORKSPACE_VERSION=${IMG_TAG}/' ./docs/installation.md
 	git checkout -b release-${VERSION}
-	git add ./Makefile ./charts/kaito/workspace/Chart.yaml ./charts/kaito/workspace/values.yaml ./charts/kaito/workspace/README.md
+	git add ./Makefile ./charts/kaito/workspace/Chart.yaml ./charts/kaito/workspace/values.yaml ./charts/kaito/workspace/README.md ./docs/installation.md
 	git commit -s -m "release: update manifest and helm charts for ${VERSION}"
 
 ## --------------------------------------

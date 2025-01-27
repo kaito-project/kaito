@@ -11,33 +11,28 @@ import (
 	"syscall"
 	"time"
 
+	//+kubebuilder:scaffold:imports
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
-	"github.com/aws/karpenter-core/pkg/apis/v1alpha5"
-	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
-	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
-
-	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
-	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
-	"k8s.io/api/apps/v1beta1"
-	"k8s.io/klog/v2"
-	"knative.dev/pkg/injection/sharedmain"
-	"knative.dev/pkg/webhook"
-
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	// to ensure that exec-entrypoint and run can make use of them.
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/klog/v2"
+	"knative.dev/pkg/injection/sharedmain"
+	"knative.dev/pkg/webhook"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
+	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+	// to ensure that exec-entrypoint and run can make use of them.
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	//+kubebuilder:scaffold:imports
+	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
+	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
+	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 )
 
 const (
@@ -57,10 +52,9 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(kaitov1alpha1.AddToScheme(scheme))
-	utilruntime.Must(v1alpha5.SchemeBuilder.AddToScheme(scheme))
-	utilruntime.Must(v1beta1.SchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(kaitoutils.KarpenterSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(azurev1alpha2.SchemeBuilder.AddToScheme(scheme))
-	utilruntime.Must(awsv1beta1.SchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
 	klog.InitFlags(nil)
@@ -79,7 +73,7 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhook, "webhook", true,
 		"Enable webhook for controller manager. Default is true.")
-	flag.StringVar(&featureGates, "feature-gates", "Karpenter=false", "Enable Kaito feature gates. Default,	Karpenter=false.")
+	flag.StringVar(&featureGates, "feature-gates", "vLLM=true", "Enable Kaito feature gates. Default,	vLLM=true.")
 	opts := zap.Options{
 		Development: true,
 	}

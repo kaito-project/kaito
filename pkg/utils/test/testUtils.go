@@ -4,9 +4,6 @@
 package test
 
 import (
-	"github.com/aws/karpenter-core/pkg/apis/v1alpha5"
-	"github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -14,7 +11,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+
+	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/model"
 )
 
 const (
@@ -204,6 +204,58 @@ var (
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
+		},
+		Spec: &v1alpha1.RAGEngineSpec{
+			Compute: &v1alpha1.ResourceSpec{
+				Count:        &gpuNodeCount,
+				InstanceType: "Standard_NC12s_v3",
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"ragengine.kaito.io/name": "testRAGEngine",
+					},
+				},
+			},
+			Embedding: &v1alpha1.EmbeddingSpec{
+				Local: &v1alpha1.LocalEmbeddingSpec{
+					ModelID: "BAAI/bge-small-en-v1.5",
+				},
+			},
+			InferenceService: &v1alpha1.InferenceServiceSpec{
+				URL: "http://localhost:5000/chat",
+			},
+		},
+	}
+	MockRAGEngineWithRevision1 = &v1alpha1.RAGEngine{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        "testRAGEngine",
+			Namespace:   "kaito",
+			Annotations: map[string]string{v1alpha1.RAGEngineRevisionAnnotation: "1"},
+		},
+		Spec: &v1alpha1.RAGEngineSpec{
+			Compute: &v1alpha1.ResourceSpec{
+				Count:        &gpuNodeCount,
+				InstanceType: "Standard_NC12s_v3",
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"ragengine.kaito.io/name": "testRAGEngine",
+					},
+				},
+			},
+			Embedding: &v1alpha1.EmbeddingSpec{
+				Local: &v1alpha1.LocalEmbeddingSpec{
+					ModelID: "BAAI/bge-small-en-v1.5",
+				},
+			},
+			InferenceService: &v1alpha1.InferenceServiceSpec{
+				URL: "http://localhost:5000/chat",
+			},
+		},
+	}
+	MockRAGEngineWithRevision2 = &v1alpha1.RAGEngine{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        "testRAGEngine",
+			Namespace:   "kaito",
+			Annotations: map[string]string{v1alpha1.RAGEngineRevisionAnnotation: "2"},
 		},
 		Spec: &v1alpha1.RAGEngineSpec{
 			Compute: &v1alpha1.ResourceSpec{
@@ -620,6 +672,60 @@ var (
 		},
 	}
 )
+var MockRAGDeploymentUpdated = appsv1.Deployment{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:        "testRAGEngine",
+		Namespace:   "kaito",
+		Annotations: map[string]string{v1alpha1.RAGEngineRevisionAnnotation: "1"},
+	},
+	Spec: appsv1.DeploymentSpec{
+		Replicas: &numRep,
+		Template: corev1.PodTemplateSpec{
+			ObjectMeta: metav1.ObjectMeta{
+				Labels: map[string]string{
+					"app": "test-app",
+				},
+			},
+			Spec: corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name:  "test-container",
+						Image: "nginx:latest",
+						Ports: []corev1.ContainerPort{
+							{
+								ContainerPort: 80,
+								Protocol:      corev1.ProtocolTCP,
+							},
+						},
+						Env: []corev1.EnvVar{
+							{
+								Name:  "ENV_VAR_NAME",
+								Value: "ENV_VAR_VALUE",
+							},
+						},
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name:      "volume-name",
+								MountPath: "/mount/path",
+							},
+						},
+					},
+				},
+				Volumes: []corev1.Volume{
+					{
+						Name: "volume-name",
+						VolumeSource: corev1.VolumeSource{
+							EmptyDir: &corev1.EmptyDirVolumeSource{},
+						},
+					},
+				},
+			},
+		},
+	},
+	Status: appsv1.DeploymentStatus{
+		ReadyReplicas: 1,
+	},
+}
 
 var (
 	MockWorkspaceWithInferenceTemplate = &v1alpha1.Workspace{
@@ -699,11 +805,6 @@ var (
 )
 
 var (
-	machineLabels = map[string]string{
-		"karpenter.sh/provisioner-name": "default",
-		"kaito.sh/workspace":            "none",
-	}
-
 	nodeClaimLabels = map[string]string{
 		"karpenter.sh/nodepool": "kaito",
 		"kaito.sh/workspace":    "none",
@@ -711,37 +812,13 @@ var (
 )
 
 var (
-	MockMachine = v1alpha5.Machine{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   "testmachine",
-			Labels: machineLabels,
-		},
-		Spec: v1alpha5.MachineSpec{
-			MachineTemplateRef: &v1alpha5.MachineTemplateRef{
-				Name: "test-machine",
-			},
-			Requirements: []corev1.NodeSelectorRequirement{
-				{
-					Key:      corev1.LabelInstanceTypeStable,
-					Operator: corev1.NodeSelectorOpIn,
-					Values:   []string{"Standard_NC12s_v3"},
-				},
-				{
-					Key:      "karpenter.sh/provisioner-name",
-					Operator: corev1.NodeSelectorOpIn,
-					Values:   []string{"default"},
-				},
-			},
-		},
-	}
-
-	MockNodeClaim = v1beta1.NodeClaim{
+	MockNodeClaim = karpenterv1.NodeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "testnodeclaim",
 			Labels: nodeClaimLabels,
 		},
-		Spec: v1beta1.NodeClaimSpec{
-			Requirements: []v1beta1.NodeSelectorRequirementWithMinValues{
+		Spec: karpenterv1.NodeClaimSpec{
+			Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
 				{
 					NodeSelectorRequirement: corev1.NodeSelectorRequirement{
 						Key:      corev1.LabelInstanceTypeStable,
@@ -756,14 +833,8 @@ var (
 )
 
 var (
-	MockMachineList = &v1alpha5.MachineList{
-		Items: []v1alpha5.Machine{
-			MockMachine,
-		},
-	}
-
-	MockNodeClaimList = &v1beta1.NodeClaimList{
-		Items: []v1beta1.NodeClaim{
+	MockNodeClaimList = &karpenterv1.NodeClaimList{
+		Items: []karpenterv1.NodeClaim{
 			MockNodeClaim,
 		},
 	}

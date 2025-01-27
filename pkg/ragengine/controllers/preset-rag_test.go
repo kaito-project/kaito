@@ -4,14 +4,14 @@ package controllers
 
 import (
 	"context"
-	"os"
 	"strings"
 	"testing"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func TestCreatePresetRAG(t *testing.T) {
@@ -37,7 +37,8 @@ func TestCreatePresetRAG(t *testing.T) {
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
-			os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 

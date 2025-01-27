@@ -8,19 +8,18 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-
-	"github.com/kaito-project/kaito/api/v1alpha1"
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
-	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
 const (
@@ -71,7 +70,7 @@ var (
 	}
 )
 
-func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient client.Client, wObj *kaitov1alpha1.Workspace, inferenceParam *model.PresetParam) error {
+func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient client.Client, wObj *v1alpha1.Workspace, inferenceParam *model.PresetParam) error {
 	runtimeName := v1alpha1.GetWorkspaceRuntimeName(wObj)
 	if runtimeName != model.RuntimeNameHuggingfaceTransformers {
 		return fmt.Errorf("distributed inference is not supported for runtime %s", runtimeName)
@@ -101,7 +100,7 @@ func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient cl
 	return nil
 }
 
-func GetInferenceImageInfo(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, presetObj *model.PresetParam) (string, []corev1.LocalObjectReference) {
+func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1alpha1.Workspace, presetObj *model.PresetParam) (string, []corev1.LocalObjectReference) {
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 	// Check if the workspace preset's access mode is private
 	if len(workspaceObj.Inference.Adapters) > 0 {
@@ -111,7 +110,7 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *kaitov1alpha1.Work
 			}
 		}
 	}
-	if string(workspaceObj.Inference.Preset.AccessMode) == string(kaitov1alpha1.ModelImageAccessModePrivate) {
+	if string(workspaceObj.Inference.Preset.AccessMode) == string(v1alpha1.ModelImageAccessModePrivate) {
 		imageName := workspaceObj.Inference.Preset.PresetOptions.Image
 		for _, secretName := range workspaceObj.Inference.Preset.PresetOptions.ImagePullSecrets {
 			imagePullSecretRefs = append(imagePullSecretRefs, corev1.LocalObjectReference{Name: secretName})
@@ -127,12 +126,25 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *kaitov1alpha1.Work
 	}
 }
 
-func CreatePresetInference(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, revisionNum string,
+func CreatePresetInference(ctx context.Context, workspaceObj *v1alpha1.Workspace, revisionNum string,
 	model model.Model, kubeClient client.Client) (client.Object, error) {
 	inferenceParam := model.GetInferenceParameters().DeepCopy()
 
+	configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx, kubeClient,
+		client.ObjectKey{
+			Name:      workspaceObj.Inference.Config,
+			Namespace: workspaceObj.Namespace,
+		},
+		client.ObjectKey{
+			Name: v1alpha1.DefaultInferenceConfigTemplate,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	if model.SupportDistributedInference() {
-		if err := updateTorchParamsForDistributedInference(ctx, kubeClient, workspaceObj, inferenceParam); err != nil { //
+		if err := updateTorchParamsForDistributedInference(ctx, kubeClient, workspaceObj, inferenceParam); err != nil {
 			klog.ErrorS(err, "failed to update torch params", "workspace", workspaceObj)
 			return nil, err
 		}
@@ -157,6 +169,12 @@ func CreatePresetInference(ctx context.Context, workspaceObj *kaitov1alpha1.Work
 	// additional volume
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
+
+	// Add config volume mount
+	cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
+	volumes = append(volumes, cmVolume)
+	volumeMounts = append(volumeMounts, cmVolumeMount)
+
 	// add share memory for cross process communication
 	shmVolume, shmVolumeMount := utils.ConfigSHMVolume(skuGPUCount)
 	if shmVolume.Name != "" {
@@ -172,8 +190,8 @@ func CreatePresetInference(ctx context.Context, workspaceObj *kaitov1alpha1.Work
 	}
 
 	// inference command
-	runtimeName := kaitov1alpha1.GetWorkspaceRuntimeName(workspaceObj)
-	commands := inferenceParam.GetInferenceCommand(runtimeName, skuNumGPUs)
+	runtimeName := v1alpha1.GetWorkspaceRuntimeName(workspaceObj)
+	commands := inferenceParam.GetInferenceCommand(runtimeName, skuNumGPUs, &cmVolumeMount)
 
 	image, imagePullSecrets := GetInferenceImageInfo(ctx, workspaceObj, inferenceParam)
 

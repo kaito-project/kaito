@@ -14,9 +14,15 @@ class VectorStoreManager:
         """Index new documents."""
         return self.vector_store.index_documents(index_name, documents)
 
-    def query(self, index_name: str, query: str, top_k: int, llm_params: dict):
+    def query(self,
+              index_name: str,
+              query: str,
+              top_k: int,
+              llm_params: dict,
+              rerank_params: dict
+    ):
         """Query the indexed documents."""
-        return self.vector_store.query(index_name, query, top_k, llm_params)
+        return self.vector_store.query(index_name, query, top_k, llm_params, rerank_params)
 
     def list_all_indexed_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
         """List all documents."""

@@ -5,7 +5,7 @@ replicaCount: 1
 image:
   repository: mcr.microsoft.com/aks/kaito/workspace
   pullPolicy: IfNotPresent
-  tag: 0.4.0
+  tag: 0.4.2
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -16,7 +16,6 @@ securityContext:
     drop:
       - "ALL"
 featureGates:
-  Karpenter: "false"
   vLLM: "true"
 webhook:
   port: 9443

@@ -3,12 +3,16 @@
 import logging
 import gc
 import os
-from typing import Callable
+import argparse
+from typing import Callable, Optional, List, Any
+import yaml
+from dataclasses import dataclass
 
 import uvloop
 import torch
 from vllm.utils import FlexibleArgumentParser
 import vllm.entrypoints.openai.api_server as api_server
+from vllm.entrypoints.openai.serving_engine import LoRAModulePath
 from vllm.engine.llm_engine import (LLMEngine, EngineArgs, EngineConfig)
 from vllm.executor.executor_base import ExecutorBase
 
@@ -20,31 +24,104 @@ logging.basicConfig(
     format='%(levelname)s %(asctime)s %(filename)s:%(lineno)d] %(message)s',
     datefmt='%m-%d %H:%M:%S')
 
-def make_arg_parser(parser: FlexibleArgumentParser) -> FlexibleArgumentParser:
-    local_rank = int(os.environ.get("LOCAL_RANK",
-                                    0))  # Default to 0 if not set
-    port = 5000 + local_rank  # Adjust port based on local rank
+class KAITOArgumentParser(argparse.ArgumentParser):
+    vllm_parser = FlexibleArgumentParser(description="vLLM serving server")
 
-    server_default_args = {
-        "disable-frontend-multiprocessing": False,
-        "port": port
-    }
-    parser.set_defaults(**server_default_args)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    # See https://docs.vllm.ai/en/latest/models/engine_args.html for more args
-    engine_default_args = {
-        "model": "/workspace/vllm/weights",
-        "cpu_offload_gb": 0,
-        "gpu_memory_utilization": 0.95,
-        "swap_space": 4,
-        "disable_log_stats": False,
-        "uvicorn_log_level": "error"
-    }
-    parser.set_defaults(**engine_default_args)
+        # Initialize vllm parser
+        self.vllm_parser = api_server.make_arg_parser(self.vllm_parser)
+        self._reset_vllm_defaults()
 
-    return parser
+        # KAITO only args
+        # They should start with "kaito-" prefix to avoid conflict with vllm args
+        self.add_argument("--kaito-adapters-dir", type=str, default="/mnt/adapter", help="Directory where adapters are stored in KAITO preset.")
+        self.add_argument("--kaito-config-file", type=str, default="", help="Additional args for KAITO preset.")
+        self.add_argument("--kaito-max-probe-steps", type=int, default=6, help="Maximum number of steps to find the max available seq len fitting in the GPU memory.")
 
-def find_max_available_seq_len(engine_config: EngineConfig) -> int:
+    def _reset_vllm_defaults(self):
+        local_rank = int(os.environ.get("LOCAL_RANK",
+                                        0))  # Default to 0 if not set
+        port = 5000 + local_rank  # Adjust port based on local rank
+
+        server_default_args = {
+            "disable_frontend_multiprocessing": False,
+            "port": port,
+        }
+        self.vllm_parser.set_defaults(**server_default_args)
+
+        # See https://docs.vllm.ai/en/stable/models/engine_args.html for more args
+        engine_default_args = {
+            "model": "/workspace/vllm/weights",
+            "cpu_offload_gb": 0,
+            "gpu_memory_utilization": 0.95,
+            "swap_space": 4,
+            "disable_log_stats": False,
+            "uvicorn_log_level": "error"
+        }
+        self.vllm_parser.set_defaults(**engine_default_args)
+
+    def parse_args(self, *args, **kwargs):
+        args = super().parse_known_args(*args, **kwargs)
+        kaito_args = args[0]
+        runtime_args = args[1] # Remaining args
+
+        # Load KAITO config
+        if kaito_args.kaito_config_file:
+            file_config = KaitoConfig.from_yaml(kaito_args.kaito_config_file)
+            if kaito_args.kaito_max_probe_steps is None:
+                kaito_args.kaito_max_probe_steps = file_config.max_probe_steps
+
+            for key, value in file_config.vllm.items():
+                runtime_args.append(f"--{key}")
+                runtime_args.append(str(value))
+
+        vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
+        # Merge KAITO and vLLM args
+        return argparse.Namespace(**vars(kaito_args), **vars(vllm_args))
+
+    def print_help(self, file=None):
+        super().print_help(file)
+        print("\norignal vLLM server arguments:\n")
+        self.vllm_parser.print_help(file)
+
+@dataclass
+class KaitoConfig:
+    # Extra arguments for the vllm serving server, will be forwarded to the vllm server.
+    # This should be in key-value format.
+    vllm: dict[str, Any]
+
+    # Maximum number of steps to find the max available seq len fitting in the GPU memory.
+    max_probe_steps: int
+
+    @staticmethod
+    def from_yaml(yaml_file: str) -> 'KaitoConfig':
+        with open(yaml_file, 'r') as file:
+            config_data = yaml.safe_load(file)
+        return KaitoConfig(
+            vllm=config_data.get('vllm', {}),
+            max_probe_steps=config_data.get('max_probe_steps', 6)
+        )
+
+    def to_yaml(self) -> str:
+        return yaml.dump(self.__dict__)
+
+def load_lora_adapters(adapters_dir: str) -> Optional[LoRAModulePath]:
+    lora_list: List[LoRAModulePath] = []
+
+    logger.info(f"Loading LoRA adapters from {adapters_dir}")
+    if not os.path.exists(adapters_dir):
+        return lora_list
+
+    for adapter in os.listdir(adapters_dir):
+        adapter_path = os.path.join(adapters_dir, adapter)
+        if os.path.isdir(adapter_path):
+            lora_list.append(LoRAModulePath(adapter, adapter_path))
+
+    return lora_list
+
+def find_max_available_seq_len(engine_config: EngineConfig, max_probe_steps: int) -> int:
     """
     Load model and run profiler to find max available seq len.
     """
@@ -62,13 +139,6 @@ def find_max_available_seq_len(engine_config: EngineConfig) -> int:
         prompt_adapter_config=engine_config.prompt_adapter_config,
         observability_config=engine_config.observability_config,
     )
-
-    max_probe_steps = 6
-    if os.getenv("MAX_PROBE_STEPS") is not None:
-        try:
-            max_probe_steps = int(os.getenv("MAX_PROBE_STEPS"))
-        except ValueError:
-            raise ValueError("MAX_PROBE_STEPS must be an integer.")
 
     model_max_blocks = int(engine_config.model_config.max_model_len / engine_config.cache_config.block_size)
     res = binary_search_with_limited_steps(model_max_blocks, max_probe_steps, lambda x: is_context_length_safe(executor, x))
@@ -118,6 +188,7 @@ def is_context_length_safe(executor: ExecutorBase, num_gpu_blocks: int) -> bool:
     executor.scheduler_config.max_num_batched_tokens = context_length
 
     try:
+        logger.info(f"Try to determine available gpu blocks for context length {context_length}")
         # see https://github.com/vllm-project/vllm/blob/v0.6.3/vllm/engine/llm_engine.py#L477
         available_gpu_blocks, _ = executor.determine_num_available_blocks()
     except torch.OutOfMemoryError as e:
@@ -125,35 +196,52 @@ def is_context_length_safe(executor: ExecutorBase, num_gpu_blocks: int) -> bool:
 
     return available_gpu_blocks >= num_gpu_blocks
 
+def try_set_max_available_seq_len(args: argparse.Namespace):
+    if args.max_model_len is not None:
+        logger.info(f"max_model_len is set to {args.max_model_len}, skip probing.")
+        return
+
+    max_probe_steps = 0
+    if args.kaito_max_probe_steps is not None:
+        try:
+            max_probe_steps = int(args.kaito_max_probe_steps)
+        except ValueError:
+            raise ValueError("kaito_max_probe_steps must be an integer.")
+
+    if max_probe_steps <= 0:
+        return
+
+    engine_args = EngineArgs.from_cli_args(args)
+    # read the model config from hf weights path.
+    # vllm will perform different parser for different model architectures
+    # and read it into a unified EngineConfig.
+    engine_config = engine_args.create_engine_config()
+
+    max_model_len = engine_config.model_config.max_model_len
+    available_seq_len = max_model_len
+    logger.info("Try run profiler to find max available seq len")
+    available_seq_len = find_max_available_seq_len(engine_config, max_probe_steps)
+    # see https://github.com/vllm-project/vllm/blob/v0.6.3/vllm/worker/worker.py#L262
+    if available_seq_len <= 0:
+        raise ValueError("No available memory for the cache blocks. "
+                        "Try increasing `gpu_memory_utilization` when "
+                        "initializing the engine.")
+
+    if available_seq_len != max_model_len:
+        logger.info(f"Set max_model_len from {max_model_len} to {available_seq_len}")
+        args.max_model_len = available_seq_len
+    else:
+        logger.info(f"Using model default max_model_len {max_model_len}")
+
 if __name__ == "__main__":
-    parser = FlexibleArgumentParser(description='vLLM serving server')
-    parser = api_server.make_arg_parser(parser)
-    parser = make_arg_parser(parser)
+    parser = KAITOArgumentParser(description='KAITO wrapper of vLLM serving server')
     args = parser.parse_args()
 
-    if args.max_model_len is None:
-        engine_args = EngineArgs.from_cli_args(args)
-        # read the model config from hf weights path.
-        # vllm will perform different parser for different model architectures
-        # and read it into a unified EngineConfig.
-        engine_config = engine_args.create_engine_config()
+    # set LoRA adapters
+    if args.lora_modules is None:
+        args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
 
-        logger.info("Try run profiler to find max available seq len")
-        available_seq_len = find_max_available_seq_len(engine_config)
-        # see https://github.com/vllm-project/vllm/blob/v0.6.3/vllm/worker/worker.py#L262
-        if available_seq_len <= 0:
-            raise ValueError("No available memory for the cache blocks. "
-                         "Try increasing `gpu_memory_utilization` when "
-                         "initializing the engine.")
-        max_model_len = engine_config.model_config.max_model_len
-        if available_seq_len > max_model_len:
-            available_seq_len = max_model_len
-
-        if available_seq_len != max_model_len:
-            logger.info(f"Set max_model_len from {max_model_len} to {available_seq_len}")
-            args.max_model_len = available_seq_len
-        else:
-            logger.info(f"Using model default max_model_len {max_model_len}")
+    try_set_max_available_seq_len(args)
 
     # Run the serving server
     logger.info(f"Starting server on port {args.port}")

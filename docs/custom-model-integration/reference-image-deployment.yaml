@@ -3,7 +3,7 @@ kind: Workspace
 metadata:
   name: workspace-custom-llm
 resource:
-  instanceType: "Standard_NC12s_v3" # Replace with the required VM SKU based on model requirements
+  instanceType: "Standard_NC24ads_A100_v4" # Replace with the required VM SKU based on model requirements
   labelSelector:
     matchLabels:
       apps: custom-llm
@@ -12,7 +12,7 @@ inference:
     spec:
       containers:
       - name: custom-llm-container
-        image: ghcr.io/azure/kaito/llm-reference-preset:latest
+        image: ghcr.io/kaito-project/kaito/llm-reference-preset:latest
         command: ["accelerate"]
         args: 
           - "launch"

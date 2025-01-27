@@ -37,13 +37,26 @@ spec:
           args:
             - -c
             - |
-              mkdir -p /app/frontend && \
-              pip install chainlit requests && \
-              wget -O /app/frontend/inference.py https://raw.githubusercontent.com/kaito-project/kaito/main/demo/inferenceUI/chainlit.py && \
-              chainlit run frontend/inference.py -w
+              mkdir -p /app/frontend
+              pip install chainlit pydantic==2.10.1 requests openai --quiet
+              case "$RUNTIME" in
+                vllm)
+                  wget -O /app/frontend/inference.py https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/demo/inferenceUI/chainlit_openai.py
+                  ;;
+                transformers)
+                  wget -O /app/frontend/inference.py https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/demo/inferenceUI/chainlit_transformers.py
+                  ;;
+                *)
+                  echo "Error: Unsupported RUNTIME value" >&2
+                  exit 1
+                  ;;
+              esac
+              chainlit run --host 0.0.0.0 /app/frontend/inference.py -w
           env:
             - name: WORKSPACE_SERVICE_URL
               value: "{{ .Values.env.workspaceServiceURL }}"
+            - name: RUNTIME
+              value: "{{ .Values.env.runtime }}"
           workingDir: /app
           ports:
             - name: http

@@ -7,22 +7,20 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/pointer"
-	"knative.dev/pkg/apis"
-
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
+	"knative.dev/pkg/apis"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/klog/v2"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -90,61 +88,6 @@ func GetDataSrcImageInfo(ctx context.Context, wObj *kaitov1alpha1.Workspace) (st
 		imagePullSecretRefs[i] = corev1.LocalObjectReference{Name: secretName}
 	}
 	return wObj.Tuning.Input.Image, imagePullSecretRefs
-}
-
-// EnsureTuningConfigMap handles two scenarios:
-// 1. Custom config template specified:
-//   - Check if it exists in the target namespace.
-//   - If not, check the release namespace and copy it to the target namespace if found.
-//
-// 2. No custom config template specified:
-//   - Use the default config template based on the tuning method (e.g., LoRA or QLoRA).
-//   - Check if it exists in the target namespace.
-//   - If not, check the release namespace and copy it to the target namespace if found.
-func EnsureTuningConfigMap(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace,
-	kubeClient client.Client) (*corev1.ConfigMap, error) {
-	tuningConfigMapName := workspaceObj.Tuning.Config
-	if tuningConfigMapName == "" {
-		if workspaceObj.Tuning.Method == kaitov1alpha1.TuningMethodLora {
-			tuningConfigMapName = kaitov1alpha1.DefaultLoraConfigMapTemplate
-		} else if workspaceObj.Tuning.Method == kaitov1alpha1.TuningMethodQLora {
-			tuningConfigMapName = kaitov1alpha1.DefaultQloraConfigMapTemplate
-		}
-	}
-
-	// Check if intended configmap already exists in target namespace
-	existingCM := &corev1.ConfigMap{}
-	err := resources.GetResource(ctx, tuningConfigMapName, workspaceObj.Namespace, kubeClient, existingCM)
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			return nil, err
-		}
-	} else {
-		klog.Infof("ConfigMap already exists in target namespace: %s, no action taken.\n", workspaceObj.Namespace)
-		return existingCM, nil
-	}
-
-	releaseNamespace, err := utils.GetReleaseNamespace()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get release namespace: %v", err)
-	}
-	templateCM := &corev1.ConfigMap{}
-	err = resources.GetResource(ctx, tuningConfigMapName, releaseNamespace, kubeClient, templateCM)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get ConfigMap from template namespace: %v", err)
-	}
-
-	templateCM.Namespace = workspaceObj.Namespace
-	templateCM.ResourceVersion = "" // Clear metadata not needed for creation
-	templateCM.UID = ""             // Clear UID
-
-	// TODO: Any Custom Preset override logic for the configmap can go here
-	err = resources.CreateResource(ctx, templateCM, kubeClient)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create ConfigMap in target namespace, %s: %v", workspaceObj.Namespace, err)
-	}
-
-	return templateCM, nil
 }
 
 func dockerSidecarScriptPushImage(outputDir, image string) string {
@@ -290,16 +233,29 @@ func setupDefaultSharedVolumes(workspaceObj *kaitov1alpha1.Workspace, cmName str
 
 func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, revisionNum string,
 	tuningObj *model.PresetParam, kubeClient client.Client) (client.Object, error) {
-	cm, err := EnsureTuningConfigMap(ctx, workspaceObj, kubeClient)
+
+	var defaultConfigName string
+	if workspaceObj.Tuning.Method == kaitov1alpha1.TuningMethodLora {
+		defaultConfigName = kaitov1alpha1.DefaultLoraConfigMapTemplate
+	} else if workspaceObj.Tuning.Method == kaitov1alpha1.TuningMethodQLora {
+		defaultConfigName = kaitov1alpha1.DefaultQloraConfigMapTemplate
+	}
+	configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx, kubeClient,
+		client.ObjectKey{
+			Namespace: workspaceObj.Namespace,
+			Name:      workspaceObj.Tuning.Config,
+		},
+		client.ObjectKey{Name: defaultConfigName},
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	var initContainers, sidecarContainers []corev1.Container
-	volumes, volumeMounts := setupDefaultSharedVolumes(workspaceObj, cm.Name)
+	volumes, volumeMounts := setupDefaultSharedVolumes(workspaceObj, configVolume.Name)
 
 	// Add shared volume for training output
-	trainingOutputVolume, trainingOutputVolumeMount, outputDir := SetupTrainingOutputVolume(ctx, cm)
+	trainingOutputVolume, trainingOutputVolumeMount, outputDir := SetupTrainingOutputVolume(ctx, configVolume)
 	volumes = append(volumes, trainingOutputVolume)
 	volumeMounts = append(volumeMounts, trainingOutputVolumeMount)
 
@@ -389,7 +345,7 @@ func handleImageDataDestination(ctx context.Context, outputDir, image, imagePush
 		Name:  "docker-sidecar",
 		Image: "docker:dind",
 		SecurityContext: &corev1.SecurityContext{
-			Privileged: pointer.BoolPtr(true),
+			Privileged: ptr.To(true),
 		},
 		Command: []string{"/bin/sh", "-c"},
 		Args:    []string{dockerSidecarScriptPushImage(outputDir, image)},

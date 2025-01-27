@@ -2,7 +2,7 @@ name: publish_helm_chart
 
 on:
   repository_dispatch:
-    types: [ create-release ]
+    types: [ publish-helm-chart ]
   workflow_dispatch:
 
 permissions:
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
         with:
           egress-policy: audit
 
@@ -36,3 +36,15 @@ jobs:
           charts_dir: charts/kaito
           target_dir: charts/kaito
           linting: off
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [ publish-helm ]
+    steps:
+      - name: 'Dispatch release tag to create a release'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: create-release
+          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}'
+

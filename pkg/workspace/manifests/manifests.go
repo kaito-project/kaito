@@ -7,16 +7,15 @@ import (
 	"context"
 	"fmt"
 
-	batchv1 "k8s.io/api/batch/v1"
-	"k8s.io/utils/pointer"
-
-	"k8s.io/apimachinery/pkg/util/intstr"
-
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 )
 
 var controller = true
@@ -234,7 +233,7 @@ func GenerateTuningJobManifest(ctx context.Context, wObj *kaitov1alpha1.Workspac
 					Kind:       "Workspace",
 					Name:       wObj.Name,
 					UID:        wObj.UID,
-					Controller: pointer.BoolPtr(true),
+					Controller: ptr.To(true),
 				},
 			},
 		},

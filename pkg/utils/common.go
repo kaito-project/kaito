@@ -6,20 +6,49 @@ package utils
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	awsapis "github.com/aws/karpenter-provider-aws/pkg/apis"
+	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	karpenterapis "sigs.k8s.io/karpenter/pkg/apis"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+
+	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+var (
+	karpenterSchemeGroupVersion = schema.GroupVersion{Group: karpenterapis.Group, Version: "v1"}
+	awsSchemeGroupVersion       = schema.GroupVersion{Group: awsapis.Group, Version: "v1beta1"}
+
+	KarpenterSchemeBuilder = runtime.NewSchemeBuilder(func(scheme *runtime.Scheme) error {
+		scheme.AddKnownTypes(karpenterSchemeGroupVersion,
+			&karpenterv1.NodePool{},
+			&karpenterv1.NodePoolList{},
+			&karpenterv1.NodeClaim{},
+			&karpenterv1.NodeClaimList{},
+		)
+		metav1.AddToGroupVersion(scheme, karpenterSchemeGroupVersion)
+		return nil
+	})
+	AwsSchemeBuilder = runtime.NewSchemeBuilder(func(scheme *runtime.Scheme) error {
+		scheme.AddKnownTypes(awsSchemeGroupVersion,
+			&awsv1beta1.EC2NodeClass{},
+			&awsv1beta1.EC2NodeClassList{},
+		)
+		metav1.AddToGroupVersion(scheme, awsSchemeGroupVersion)
+		return nil
+	})
 )
 
 func Contains(s []string, e string) bool {
@@ -96,7 +125,7 @@ func GetReleaseNamespace() (string, error) {
 	namespaceFilePath := "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 
 	// Attempt to read the namespace from the file
-	if content, err := ioutil.ReadFile(namespaceFilePath); err == nil {
+	if content, err := os.ReadFile(namespaceFilePath); err == nil {
 		return string(content), nil
 	}
 
@@ -218,10 +247,9 @@ func SelectNodes(qualified []*v1.Node, preferred []string, previous []string, co
 				_, jCreatedByGPUProvisioner = qualified[j].Labels[consts.LabelGPUProvisionerCustom]
 				// Choose node created by gpu-provisioner and karpenter since it is more likely to be empty to use.
 				var iCreatedByKarpenter, jCreatedByKarpenter bool
-				if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-					_, iCreatedByKarpenter = qualified[i].Labels[consts.LabelNodePool]
-					_, jCreatedByKarpenter = qualified[j].Labels[consts.LabelNodePool]
-				}
+				_, iCreatedByKarpenter = qualified[i].Labels[consts.LabelNodePool]
+				_, jCreatedByKarpenter = qualified[j].Labels[consts.LabelNodePool]
+
 				if (iCreatedByGPUProvisioner && !jCreatedByGPUProvisioner) ||
 					(iCreatedByKarpenter && !jCreatedByKarpenter) {
 					return true

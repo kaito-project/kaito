@@ -1,13 +1,13 @@
 # Kubernetes AI Toolchain Operator (Kaito)
 
-![GitHub Release](https://img.shields.io/github/v/release/Azure/kaito)
+![GitHub Release](https://img.shields.io/github/v/release/kaito-project/kaito)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kaito-project/kaito)](https://goreportcard.com/report/github.com/kaito-project/kaito)
-![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Azure/kaito)
-[![codecov](https://codecov.io/gh/Azure/kaito/graph/badge.svg?token=XAQLLPB2AR)](https://codecov.io/gh/Azure/kaito)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/kaito-project/kaito)
+[![codecov](https://codecov.io/gh/kaito-project/kaito/graph/badge.svg?token=XAQLLPB2AR)](https://codecov.io/gh/kaito-project/kaito)
 
 | ![notification](docs/img/bell.svg) What is NEW! |
 |-------------------------------------------------|
-| Latest Release: Dec 5th, 2024. Kaito v0.4.0.    |
+| Latest Release: Jan 3rd, 2025. Kaito v0.4.1.    |
 | First Release: Nov 15th, 2023. Kaito v0.1.0.    |
 
 Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
@@ -50,7 +50,7 @@ kind: Workspace
 metadata:
   name: workspace-phi-3-5-mini
 resource:
-  instanceType: "Standard_NC6s_v3"
+  instanceType: "Standard_NC24ads_A100_v4"
   labelSelector:
     matchLabels:
       apps: phi-3-5
@@ -65,8 +65,8 @@ The workspace status can be tracked by running the following command. When the W
 
 ```sh
 $ kubectl get workspace workspace-phi-3-5-mini
-NAME                     INSTANCE           RESOURCEREADY   INFERENCEREADY   JOBSTARTED   WORKSPACESUCCEEDED   AGE
-workspace-phi-3-5-mini   Standard_NC6s_v3   True            True                          True                 4h15m
+NAME                     INSTANCE                   RESOURCEREADY   INFERENCEREADY   JOBSTARTED   WORKSPACESUCCEEDED   AGE
+workspace-phi-3-5-mini   Standard_NC24ads_A100_v4   True            True                          True                 4h15m
 ```
 
 Next, one can find the inference service's cluster ip and use a temporal `curl` pod to test the service endpoint in the cluster.
@@ -197,3 +197,5 @@ KAITO has adopted the [Cloud Native Compute Foundation Code of Conduct](https://
 ## Contact
 
 "Kaito devs" <kaito-dev@microsoft.com>
+
+[Kaito Community Slack](https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-2wm17rttz-t4E6_rMIuY03DwBHaJq1sg)

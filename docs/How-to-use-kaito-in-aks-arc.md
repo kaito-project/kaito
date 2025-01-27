@@ -6,7 +6,7 @@ AKS Arc, or Azure Kubernetes Service (AKS) on Azure Arc, is a service that exten
 Follow the workflow below to enable this feature.
 
 ## Supported Models
-Currently KAITO supports models such as Falcon, Phi2, Phi3, Llama2, Llama2Chat, Mistral. Please refer to KAITO’s [readme](https://github.com/Azure/kaito/blob/main/presets/README.md) file for the latest models. 
+Currently KAITO supports models such as Falcon, Phi2, Phi3, Llama2, Llama2Chat, Mistral. Please refer to KAITO’s [readme](https://github.com/kaito-project/kaito/blob/main/presets/README.md) file for the latest models. 
 
 ## Prerequisite
 1.	Before you begin, please make sure you have the following details from your infrastructure administrator:

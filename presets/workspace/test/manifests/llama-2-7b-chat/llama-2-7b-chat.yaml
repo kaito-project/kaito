@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: llama-container
-          image: REPO_HERE.azurecr.io/llama-2-7b-chat:TAG_HERE
+          image: REPO/llama-2-7b-chat:TAG
           command:
             - /bin/sh
             - -c
@@ -54,3 +54,18 @@ spec:
           operator: Exists
       nodeSelector:
         pool: llama27bchat
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llama-2-7b-chat
+spec:
+  selector:
+    app: llama
+    statefulset.kubernetes.io/pod-name: llama-2-7b-chat-0
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: ClusterIP
+  publishNotReadyAddresses: true

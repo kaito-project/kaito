@@ -8,18 +8,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kaito-project/kaito/pkg/utils/test"
-
-	appsv1 "k8s.io/api/apps/v1"
-	batchv1 "k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	goassert "gotest.tools/assert"
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func int32Ptr(i int32) *int32 {
@@ -262,6 +264,91 @@ func TestGetResource(t *testing.T) {
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}
+		})
+	}
+}
+
+func TestEnsureInferenceConfigMap(t *testing.T) {
+	systemDefault := client.ObjectKey{
+		Name: "inference-params-template",
+	}
+
+	testcases := map[string]struct {
+		callMocks        func(c *test.MockClient)
+		releaseNamespace string
+		userProvided     client.ObjectKey
+		expectedError    string
+	}{
+		"Config already exists in workspace namespace": {
+			releaseNamespace: "release-namespace",
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+			},
+			userProvided: client.ObjectKey{
+				Namespace: "workspace-namespace",
+				Name:      "inference-config-template",
+			},
+			expectedError: "",
+		},
+		"Error finding release namespace": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(apierrors.NewNotFound(schema.GroupResource{}, "inference-config-template"))
+			},
+			userProvided: client.ObjectKey{
+				Namespace: "workspace-namespace",
+			},
+			expectedError: "failed to get release namespace: failed to determine release namespace from file /var/run/secrets/kubernetes.io/serviceaccount/namespace and env var RELEASE_NAMESPACE",
+		},
+		"Config doesn't exist in namespace": {
+			releaseNamespace: "release-namespace",
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(apierrors.NewNotFound(schema.GroupResource{}, "inference-config-template"))
+			},
+			userProvided: client.ObjectKey{
+				Namespace: "workspace-namespace",
+				Name:      "inference-config-template",
+			},
+			expectedError: "user specified ConfigMap inference-config-template not found in namespace workspace-namespace",
+		},
+		"Generate default config": {
+			releaseNamespace: "release-namespace",
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).
+					Return(apierrors.NewNotFound(schema.GroupResource{}, "inference-params-template")).Times(4)
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						cm := args.Get(2).(*corev1.ConfigMap)
+						cm.Name = "inference-params-template"
+					}).Return(nil)
+
+				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(cm *corev1.ConfigMap) bool {
+					return cm.Name == "inference-params-template" && cm.Namespace == "workspace-namespace"
+				}), mock.Anything).Return(nil)
+			},
+			userProvided: client.ObjectKey{
+				Namespace: "workspace-namespace",
+			},
+			expectedError: "",
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			if tc.releaseNamespace != "" {
+				t.Setenv(consts.DefaultReleaseNamespaceEnvVar, tc.releaseNamespace)
+			}
+
+			mockClient := test.NewClient()
+			tc.callMocks(mockClient)
+
+			_, err := EnsureConfigOrCopyFromDefault(context.Background(), mockClient, tc.userProvided, systemDefault)
+			if tc.expectedError != "" {
+				assert.EqualError(t, err, tc.expectedError)
+			} else {
+				assert.NoError(t, err)
+			}
+			mockClient.AssertExpectations(t)
 		})
 	}
 }

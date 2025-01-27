@@ -3,7 +3,10 @@
 package model
 
 import (
+	"path"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/kaito-project/kaito/pkg/utils"
 )
@@ -21,6 +24,8 @@ type RuntimeName string
 const (
 	RuntimeNameHuggingfaceTransformers RuntimeName = "transformers"
 	RuntimeNameVLLM                    RuntimeName = "vllm"
+
+	ConfigfileNameVLLM = "inference_config.yaml"
 )
 
 // PresetParam defines the preset inference parameters for a model.
@@ -133,7 +138,7 @@ func (v *VLLMParam) DeepCopy() VLLMParam {
 
 // builds the container command:
 // eg. torchrun <TORCH_PARAMS> <OPTIONAL_RDZV_PARAMS> baseCommand <MODEL_PARAMS>
-func (p *PresetParam) GetInferenceCommand(runtime RuntimeName, skuNumGPUs string) []string {
+func (p *PresetParam) GetInferenceCommand(runtime RuntimeName, skuNumGPUs string, configVolume *corev1.VolumeMount) []string {
 	switch runtime {
 	case RuntimeNameHuggingfaceTransformers:
 		torchCommand := utils.BuildCmdStr(p.Transformers.BaseCommand, p.Transformers.TorchRunParams, p.Transformers.TorchRunRdzvParams)
@@ -145,6 +150,9 @@ func (p *PresetParam) GetInferenceCommand(runtime RuntimeName, skuNumGPUs string
 		}
 		if !p.DisableTensorParallelism {
 			p.VLLM.ModelRunParams["tensor-parallel-size"] = skuNumGPUs
+		}
+		if configVolume != nil {
+			p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(configVolume.MountPath, ConfigfileNameVLLM)
 		}
 		modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
 		return utils.ShellCmd(modelCommand)

@@ -8,15 +8,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/awslabs/operatorpkg/status"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"github.com/samber/lo"
-	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+
+	"github.com/kaito-project/kaito/api/v1alpha1"
 )
 
 // ValidateNodeClaimCreation Logic to validate the nodeClaim creation.
@@ -34,8 +36,8 @@ func ValidateNodeClaimCreation(ctx context.Context, workspaceObj *v1alpha1.Works
 			}
 
 			for _, nodeClaim := range nodeClaimList.Items {
-				_, conditionFound := lo.Find(nodeClaim.GetConditions(), func(condition apis.Condition) bool {
-					return condition.Type == apis.ConditionReady && condition.Status == v1.ConditionTrue
+				_, conditionFound := lo.Find(nodeClaim.GetConditions(), func(condition status.Condition) bool {
+					return condition.Type == string(apis.ConditionReady) && condition.Status == metav1.ConditionTrue
 				})
 				if !conditionFound {
 					return false
@@ -47,8 +49,8 @@ func ValidateNodeClaimCreation(ctx context.Context, workspaceObj *v1alpha1.Works
 }
 
 // GetAllValidNodeClaims get all valid nodeClaims.
-func GetAllValidNodeClaims(ctx context.Context, workspaceObj *v1alpha1.Workspace) (*v1beta1.NodeClaimList, error) {
-	nodeClaimList := &v1beta1.NodeClaimList{}
+func GetAllValidNodeClaims(ctx context.Context, workspaceObj *v1alpha1.Workspace) (*karpenterv1.NodeClaimList, error) {
+	nodeClaimList := &karpenterv1.NodeClaimList{}
 	ls := labels.Set{
 		v1alpha1.LabelWorkspaceName:      workspaceObj.Name,
 		v1alpha1.LabelWorkspaceNamespace: workspaceObj.Namespace,

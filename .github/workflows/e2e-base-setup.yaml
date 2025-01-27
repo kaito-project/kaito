@@ -1,0 +1,215 @@
+name: e2e-base-setup
+
+on:
+  workflow_call:
+    inputs:
+      git_sha:
+        type: string
+        required: true
+      node_provisioner:
+        type: string
+        required: false
+        default: gpuprovisioner
+      tag:
+        type: string
+      isRelease:
+        type: boolean
+        default: false
+      registry:
+        type: string
+      region:
+        type: string
+        description: "the azure location to run the e2e test in"
+        default: "eastus"
+      k8s_version:
+        type: string
+        default: "1.30.0"
+    outputs:
+      cluster_name:
+        value: ${{ jobs.base-setup.outputs.cluster_name }}
+      registry:
+        value: ${{ jobs.base-setup.outputs.registry }}
+      run_llama_13b:
+        value: ${{ jobs.base-setup.outputs.run_llama_13b }}
+
+jobs:
+  base-setup:
+    runs-on: [ "self-hosted", "hostname:kaito-e2e-github-runner" ]
+    permissions:
+      contents: read
+    environment: e2e-test
+    outputs:
+      cluster_name: ${{ steps.set-outputs.outputs.cluster_name }}
+      registry: ${{ steps.set-outputs.outputs.registry }}
+      run_llama_13b: ${{ steps.set-outputs.outputs.run_llama_13b }}
+
+    env:
+      GO_VERSION: "1.23"
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.git_sha }}
+
+      - name: Set e2e Resource and Cluster Name
+        run: |
+          rand=$(git rev-parse --short ${{ inputs.git_sha }})
+          
+          if [ "$rand" = "" ]; then
+             rand=$RANDOM
+          fi
+
+          echo "VERSION=${rand}" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=${{ inputs.node_provisioner }}${rand}" >> $GITHUB_ENV
+          echo "REGISTRY=${{ inputs.node_provisioner }}${rand}.azurecr.io" >> $GITHUB_ENV
+          echo "RUN_LLAMA_13B=false" >> $GITHUB_ENV
+
+      - id: set-outputs
+        run: |
+          echo "cluster_name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
+          echo "registry=${REGISTRY}" >> $GITHUB_OUTPUT
+          echo "run_llama_13b=${RUN_LLAMA_13B}" >> $GITHUB_OUTPUT
+
+      - name: Remove existing Go modules directory
+        run: sudo rm -rf ~/go/pkg/mod
+
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5.2.0
+        with:
+          go-version: ${{ env.GO_VERSION  }}
+
+      - name: Install Azure CLI latest
+        run: |
+          if ! which az > /dev/null; then
+            echo "Azure CLI not found. Installing..."
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          else
+            echo "Azure CLI already installed."
+          fi
+
+      - name: Azure CLI Login
+        run: |
+          az login --identity
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Create Resource Group
+        shell: bash
+        run: |
+          make create-rg
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+
+      - name: Create ACR
+        shell: bash
+        run: |
+          make create-acr
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+          AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
+
+      - name: Create Azure Identity
+        uses: azure/CLI@v2.1.0
+        with:
+          inlineScript: |
+            az identity create --name ${{ inputs.node_provisioner }}Identity --resource-group  ${{ env.CLUSTER_NAME }}
+
+      - name: Generate APIs
+        run: |
+          make generate
+
+      - name: build KAITO image
+        if: ${{ !inputs.isRelease }}
+        shell: bash
+        run: |
+          make docker-build-workspace
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          VERSION: ${{ env.VERSION }}
+
+      - name: create cluster
+        shell: bash
+        run: |
+          if [ "${{ inputs.node_provisioner }}" == "gpuprovisioner" ]; then
+             make create-aks-cluster
+          else
+            make create-aks-cluster-for-karpenter
+          fi
+        env:
+          AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          AZURE_LOCATION: ${{ inputs.region }}
+          AKS_K8S_VERSION: ${{ inputs.k8s_version }}
+
+      - name: Create Identities and Permissions for ${{ inputs.node_provisioner }}
+        shell: bash
+        run: |
+          AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
+          make generate-identities
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          TEST_SUITE: ${{ inputs.node_provisioner }}
+
+      - name: Install gpu-provisioner helm chart
+        if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
+        shell: bash
+        run: |
+          AZURE_TENANT_ID=$E2E_TENANT_ID \
+          AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
+          make gpu-provisioner-helm
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+
+      - name: Install KAITO Workspace helm chart
+        shell: bash
+        run: |
+          make az-patch-install-helm
+          kubectl wait --for=condition=available deploy "kaito-workspace" -n kaito-workspace --timeout=300s
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          REGISTRY: ${{ env.REGISTRY }}
+          VERSION: ${{ env.VERSION }}
+          TEST_SUITE: ${{ inputs.node_provisioner }}
+
+      - name: Set up E2E ACR Credentials and Secret
+        shell: bash
+        run: |
+          ACR_USERNAME=$(az acr credential show --name ${{ env.CLUSTER_NAME }} --resource-group ${{ env.CLUSTER_NAME }} --query "username" -o tsv)
+          ACR_PASSWORD=$(az acr credential show --name ${{ env.CLUSTER_NAME }} --resource-group ${{ env.CLUSTER_NAME }} --query "passwords[0].value" -o tsv)
+
+          if [ -z "$ACR_USERNAME" ] || [ -z "$ACR_PASSWORD" ]; then
+            echo "Failed to retrieve ACR credentials"
+            exit 1
+          fi
+
+          kubectl create secret docker-registry ${{ env.CLUSTER_NAME }}-acr-secret \
+            --docker-server=${{ env.CLUSTER_NAME }}.azurecr.io \
+            --docker-username=${ACR_USERNAME} \
+            --docker-password=${ACR_PASSWORD}
+
+      # Add Private-Hosted ACR secret for private models like llama
+      - name: Add Private-Hosted ACR Secret Credentials
+        run: |
+          # Ensure E2E_AMRT_SECRET_NAME is sanitized to remove any accidental quotes
+          E2E_AMRT_SECRET_NAME=$(echo "$E2E_AMRT_SECRET_NAME" | sed 's/[\"'\'']//g')
+
+          if kubectl get secret "$E2E_AMRT_SECRET_NAME" >/dev/null 2>&1; then
+            echo "Secret $E2E_AMRT_SECRET_NAME already exists. Skipping creation."
+          else
+            kubectl create secret docker-registry "$E2E_AMRT_SECRET_NAME" \
+              --docker-server="$E2E_ACR_AMRT_USERNAME.azurecr.io" \
+              --docker-username="$E2E_ACR_AMRT_USERNAME" \
+              --docker-password="$E2E_ACR_AMRT_PASSWORD"
+            echo "Secret $E2E_AMRT_SECRET_NAME created successfully."
+          fi

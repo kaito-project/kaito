@@ -10,9 +10,12 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/kaito-project/kaito/pkg/utils"
 )
 
 func CreateResource(ctx context.Context, resource client.Object, kubeClient client.Client) error {
@@ -72,9 +75,9 @@ func CheckResourceStatus(obj client.Object, kubeClient client.Client, timeoutDur
 			case *appsv1.Deployment:
 				for _, condition := range k8sResource.Status.Conditions {
 					if condition.Type == appsv1.DeploymentProgressing && condition.Status == corev1.ConditionFalse {
-						errorMessage := fmt.Sprintf("deployment %s is not progressing: %s", k8sResource.Name, condition.Message)
-						klog.ErrorS(fmt.Errorf(errorMessage), "deployment", k8sResource.Name, "reason", condition.Reason, "message", condition.Message)
-						return fmt.Errorf(errorMessage)
+						err := fmt.Errorf("deployment %s is not progressing: %s", k8sResource.Name, condition.Message)
+						klog.ErrorS(err, "deployment", k8sResource.Name, "reason", condition.Reason, "message", condition.Message)
+						return err
 					}
 				}
 
@@ -101,4 +104,72 @@ func CheckResourceStatus(obj client.Object, kubeClient client.Client, timeoutDur
 			}
 		}
 	}
+}
+
+// EnsureConfigOrCopyFromDefault handles two scenarios:
+// 1. User provided config:
+//   - Check if it exists in the target namespace
+//   - If not found, return error as this is user-specified
+//
+// 2. No user config specified:
+//   - Use the default config template
+//   - Check if it exists in the target namespace
+//   - If not, copy from release namespace to target namespace
+func EnsureConfigOrCopyFromDefault(ctx context.Context, kubeClient client.Client,
+	userProvided, systemDefault client.ObjectKey,
+) (*corev1.ConfigMap, error) {
+
+	// If user specified a config, use that
+	if userProvided.Name != "" {
+		userCM := &corev1.ConfigMap{}
+		err := GetResource(ctx, userProvided.Name, userProvided.Namespace, kubeClient, userCM)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				return nil, fmt.Errorf("user specified ConfigMap %s not found in namespace %s",
+					userProvided.Name, userProvided.Namespace)
+			}
+			return nil, err
+		}
+
+		return userCM, nil
+	}
+
+	// Check if default configmap already exists in target namespace
+	existingCM := &corev1.ConfigMap{}
+	err := GetResource(ctx, systemDefault.Name, userProvided.Namespace, kubeClient, existingCM)
+	if err != nil {
+		if !errors.IsNotFound(err) {
+			return nil, err
+		}
+	} else {
+		klog.Infof("Default ConfigMap already exists in target namespace: %s, no action taken.", userProvided.Namespace)
+		return existingCM, nil
+	}
+
+	// Copy default template from release namespace if not found
+	if systemDefault.Namespace == "" {
+		releaseNamespace, err := utils.GetReleaseNamespace()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get release namespace: %v", err)
+		}
+		systemDefault.Namespace = releaseNamespace
+	}
+
+	templateCM := &corev1.ConfigMap{}
+	err = GetResource(ctx, systemDefault.Name, systemDefault.Namespace, kubeClient, templateCM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get default ConfigMap from template namespace: %v", err)
+	}
+
+	templateCM.Namespace = userProvided.Namespace
+	templateCM.ResourceVersion = "" // Clear metadata not needed for creation
+	templateCM.UID = ""             // Clear UID
+
+	err = CreateResource(ctx, templateCM, kubeClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create default ConfigMap in target namespace %s: %v",
+			userProvided.Namespace, err)
+	}
+
+	return templateCM, nil
 }

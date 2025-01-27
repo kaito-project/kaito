@@ -4,18 +4,20 @@
 package e2e
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/test/e2e/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
 var DefaultStrength = "1.0"
@@ -131,7 +133,7 @@ func validateImagePullSecrets(workspaceObj *kaitov1alpha1.Workspace, expectedIma
 func validateAdapterAdded(workspaceObj *kaitov1alpha1.Workspace, deploymentName string, adapterName string) {
 	By("Checking the Adapters", func() {
 		Eventually(func() bool {
-			coreClient, err := utils.GetK8sConfig()
+			coreClient, err := utils.GetK8sClientset()
 			if err != nil {
 				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
 				return false
@@ -158,6 +160,47 @@ func validateAdapterAdded(workspaceObj *kaitov1alpha1.Workspace, deploymentName 
 	})
 }
 
+func validateAdapterLoadedInVLLM(workspaceObj *kaitov1alpha1.Workspace, deploymentName string, adapterName string) {
+	execOption := corev1.PodExecOptions{
+		Command:   []string{"bash", "-c", "apt-get update && apt-get install curl -y; curl -s 127.0.0.1:5000/v1/models | grep " + adapterName},
+		Container: deploymentName,
+		Stdout:    true,
+		Stderr:    true,
+	}
+
+	By("Checking the loaded Adapters", func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+
+			namespace := workspaceObj.Namespace
+			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
+				return false
+			}
+
+			k8sConfig, err := utils.GetK8sConfig()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
+				return false
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
+			_, err = utils.ExecSync(ctx, k8sConfig, coreClient, namespace, podName, execOption)
+			if err != nil {
+				GinkgoWriter.Printf("validate command fails: %v\n", err)
+				return false
+			}
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for adapter to be loaded")
+	})
+}
+
 var _ = Describe("Workspace Preset", func() {
 	BeforeEach(func() {
 		loadTestEnvVars()
@@ -180,11 +223,7 @@ var _ = Describe("Workspace Preset", func() {
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
 
-		if nodeProvisionerName == "azkarpenter" {
-			utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
-		} else {
-			utils.ValidateMachineCreation(ctx, workspaceObj, numOfNode)
-		}
+		utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
 		validateResourceStatus(workspaceObj)
 
 		time.Sleep(30 * time.Second)

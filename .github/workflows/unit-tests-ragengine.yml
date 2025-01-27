@@ -17,7 +17,7 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: "1.22"
+  GO_VERSION: "1.23"
 
 jobs:
   unit-tests:
@@ -25,7 +25,7 @@ jobs:
     environment: unit-tests
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
         with:
           egress-policy: audit
 
@@ -38,3 +38,10 @@ jobs:
       - name: Run unit tests
         run: |
           make rag-service-test
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303 # v5.1.2
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true

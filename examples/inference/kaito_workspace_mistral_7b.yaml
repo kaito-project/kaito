@@ -3,7 +3,7 @@ kind: Workspace
 metadata:
   name: workspace-mistral-7b
 resource:
-  instanceType: "Standard_NC12s_v3"
+  instanceType: "Standard_NC24ads_A100_v4"
   labelSelector:
     matchLabels:
       apps: mistral-7b

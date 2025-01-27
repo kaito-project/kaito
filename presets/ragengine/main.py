@@ -31,7 +31,7 @@ vector_store_handler = FaissVectorStoreHandler(embedding_manager)
 rag_ops = VectorStoreManager(vector_store_handler)
 
 @app.get("/health", response_model=HealthStatus)
-def health_check():
+async def health_check():
     try:
         if embedding_manager is None:
             raise HTTPException(status_code=500, detail="Embedding manager not initialized")
@@ -61,7 +61,7 @@ async def query_index(request: QueryRequest):
     try:
         llm_params = request.llm_params or {}  # Default to empty dict if no params provided
         rerank_params = request.rerank_params or {}  # Default to empty dict if no params provided
-        return rag_ops.query(
+        return await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params
         )
     except ValueError as ve:

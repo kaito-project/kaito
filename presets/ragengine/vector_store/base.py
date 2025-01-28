@@ -83,7 +83,8 @@ class BaseVectorStore(ABC):
             indexed_doc_ids.add(doc_id)
 
         if llama_docs:
-            index = VectorStoreIndex.from_documents(
+            index = await asyncio.to_thread(
+                VectorStoreIndex.from_documents,
                 llama_docs,
                 storage_context=storage_context,
                 embed_model=self.embed_model,

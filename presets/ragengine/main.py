@@ -12,6 +12,7 @@ from vector_store.faiss_store import FaissVectorStoreHandler
 
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
                               EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID)
+from urllib.parse import unquote
 
 app = FastAPI()
 
@@ -81,7 +82,9 @@ def list_indexes():
 @app.get("/indexes/{index_name}/documents", response_model=ListDocumentsResponse)
 async def list_documents_in_index(index_name: str):
     try:
-        documents = await rag_ops.list_documents_in_index(index_name)
+        # Decode the index_name in case it was URL-encoded by the client
+        decoded_index_name = unquote(index_name)
+        documents = await rag_ops.list_documents_in_index(decoded_index_name)
         return ListDocumentsResponse(documents=documents)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

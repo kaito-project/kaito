@@ -98,21 +98,23 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 .PHONY: unit-test
 unit-test: ## Run unit tests.
 	go test -v $(shell go list ./pkg/... ./api/... | \
-	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /pkg/utils/test/...) \
-	-race -coverprofile=coverage.txt -covermode=atomic
-	go tool cover -func=coverage.txt
+	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /pkg/utils/common-preset.go \
+	-e /pkg/utils/test/... ) -race -coverprofile=coverage.out && \
+	go tool cover -html=coverage.out
 
 .PHONY: rag-service-test
 rag-service-test:
 	pip install -r presets/ragengine/requirements-test.txt
 	pip install pytest-cov
-	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
+	pytest --cov=ragengine --cov-report=xml:ragengine-coverage.xml -o log_cli=true \
+	-o log_cli_level=INFO presets/ragengine/tests
 
 .PHONY: tuning-metrics-server-test
 tuning-metrics-server-test:
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
 	pip install pytest-cov
-	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
+	pytest --cov=workspace.tuning.text-generation --cov-report=xml:tuning-txt-gen-metrics-coverage.xml -o log_cli=true \
+	-o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
 
 ## --------------------------------------
 ## E2E tests
@@ -121,8 +123,10 @@ tuning-metrics-server-test:
 inference-api-e2e:
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
 	pip install pytest-cov
-	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
-	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
+	pytest --cov=workspace.inference --cov-report=xml:inference-vllm.xml -o log_cli=true \
+	-o log_cli_level=INFO presets/workspace/inference/vllm
+	pytest --cov=workspace.inference --cov-report=xml:inference-txt-gen-coverage.xml -o log_cli=true \
+	-o log_cli_level=INFO presets/workspace/inference/text-generation
 
 # Ginkgo configurations
 GINKGO_FOCUS ?=

@@ -13,6 +13,8 @@ from vector_store.faiss_store import FaissVectorStoreHandler
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
                               EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID)
 from urllib.parse import unquote
+import nest_asyncio
+nest_asyncio.apply() # Allow nested async calls
 
 app = FastAPI()
 
@@ -99,4 +101,4 @@ async def list_all_documents():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=5000, loop="asyncio")

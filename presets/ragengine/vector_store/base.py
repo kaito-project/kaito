@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List
 import hashlib
 import os
+import asyncio
 
 from llama_index.core import Document as LlamaDocument
 from llama_index.core.storage.index_store import SimpleIndexStore
@@ -48,7 +49,7 @@ class BaseVectorStore(ABC):
         logger.info(f"Index {index_name} already exists. Appending documents to existing index.")
         indexed_doc_ids = set()
 
-        for doc in documents:
+        async def handle_document(doc: Document):
             doc_id = self.generate_doc_id(doc.text)
             retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
             if not retrieved_doc:
@@ -56,6 +57,9 @@ class BaseVectorStore(ABC):
                 indexed_doc_ids.add(doc_id)
             else:
                 logger.info(f"Document {doc_id} already exists in index {index_name}. Skipping.")
+
+        # Gather all coroutines for processing documents
+        await asyncio.gather(*(handle_document(doc) for doc in documents))
 
         if indexed_doc_ids:
             await self._persist(index_name)

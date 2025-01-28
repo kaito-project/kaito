@@ -4,6 +4,7 @@ REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
 VERSION ?= v0.4.2
 GPU_PROVISIONER_VERSION ?= 0.3.1
+RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -19,6 +20,9 @@ GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT
 E2E_TEST_BIN := e2e.test
 E2E_TEST := $(BIN_DIR)/$(E2E_TEST_BIN)
 
+RAGENGINE_E2E_TEST_BIN := rage2e.test
+RAGENGINE_E2E_TEST := $(BIN_DIR)/$(RAGENGINE_E2E_TEST_BIN)
+
 GINKGO_VER := v2.19.0
 GINKGO_BIN := ginkgo
 GINKGO := $(TOOLS_BIN_DIR)/$(GINKGO_BIN)-$(GINKGO_VER)
@@ -32,6 +36,7 @@ AZURE_CLUSTER_NAME ?= kaito-demo
 AZURE_RESOURCE_GROUP_MC=MC_$(AZURE_RESOURCE_GROUP)_$(AZURE_CLUSTER_NAME)_$(AZURE_LOCATION)
 GPU_PROVISIONER_NAMESPACE ?= gpu-provisioner
 KAITO_NAMESPACE ?= kaito-workspace
+KAITO_RAGENGINE_NAMESPACE ?= kaito-ragengine
 GPU_PROVISIONER_MSI_NAME ?= gpuprovisionerIdentity
 
 ## Azure Karpenter parameters
@@ -135,6 +140,9 @@ GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_N
 $(E2E_TEST):
 	(cd test/e2e && go test -c . -o $(E2E_TEST))
 
+$(RAGENGINE_E2E_TEST):
+	(cd test/rage2e && go test -c . -o $(RAGENGINE_E2E_TEST))
+
 .PHONY: kaito-workspace-e2e-test
 kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO)
 	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) RUN_LLAMA_13B=$(RUN_LLAMA_13B) \
@@ -142,6 +150,14 @@ kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO)
  	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_NAMESPACE=$(KAITO_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
 	SUPPORTED_MODELS_YAML_PATH=$(SUPPORTED_MODELS_YAML_PATH) \
  	$(GINKGO) -v -trace $(GINKGO_ARGS) $(E2E_TEST)
+
+.PHONY: kaito-ragengine-e2e-test
+kaito-ragengine-e2e-test: $(RAGENGINE_E2E_TEST) $(GINKGO)
+	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) RUN_LLAMA_13B=$(RUN_LLAMA_13B) \
+	AI_MODELS_REGISTRY=$(AI_MODELS_REGISTRY) GPU_PROVISIONER_NAMESPACE=$(GPU_PROVISIONER_NAMESPACE)  KAITO_NAMESPACE=$(KAITO_NAMESPACE) \
+	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_RAGENGINE_NAMESPACE=$(KAITO_RAGENGINE_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
+	SUPPORTED_MODELS_YAML_PATH=$(SUPPORTED_MODELS_YAML_PATH) \
+	$(GINKGO) -v -trace $(GINKGO_ARGS) $(RAGENGINE_E2E_TEST)
 
 ## --------------------------------------
 ## Azure resources
@@ -237,11 +253,11 @@ docker-build-workspace: docker-buildx
 .PHONY: docker-build-ragengine
 docker-build-ragengine: docker-buildx
 	docker buildx build \
-                --file ./docker/ragengine/Dockerfile \
-                --output=$(OUTPUT_TYPE) \
-                --platform="linux/$(ARCH)" \
-                --pull \
-                --tag $(REGISTRY)/$(RAGENGINE_IMG_NAME):$(RAGENGINE_IMG_TAG) .
+		--file ./docker/ragengine/Dockerfile \
+		--output=$(OUTPUT_TYPE) \
+		--platform="linux/$(ARCH)" \
+		--pull \
+		--tag $(REGISTRY)/$(RAGENGINE_IMAGE_NAME):$(IMG_TAG) .
 
 .PHONY: docker-build-rag-service
 docker-build-ragservice: docker-buildx
@@ -317,6 +333,16 @@ az-patch-install-helm: ## Update Azure client env vars and settings in helm valu
 	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/workspace/values.yaml
 
 	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace
+
+.PHONY: az-patch-install-ragengine-helm
+az-patch-install-ragengine-helm:
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+
+	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
+	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/ragengine/values.yaml
+	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/ragengine/values.yaml
+
+	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace
 
 .PHONY: aws-patch-install-helm ##install kaito on AWS cluster
 aws-patch-install-helm: 

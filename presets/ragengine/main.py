@@ -81,6 +81,19 @@ def list_indexes():
 
 @app.get("/indexes/{index_name}/documents", response_model=ListDocumentsResponse)
 async def list_documents_in_index(index_name: str):
+    """
+    Handles URL-encoded index names sent by the client.
+
+    Examples:
+    Raw Index Name    | URL-Encoded Form   | Decoded Form
+    ------------------|--------------------|--------------
+    my_index          | my_index          | my_index
+    my index          | my%20index        | my index
+    index/name        | index%2Fname      | index/name
+    index@name        | index%40name      | index@name
+    index#1           | index%231         | index#1
+    index?query       | index%3Fquery     | index?query
+    """
     try:
         # Decode the index_name in case it was URL-encoded by the client
         decoded_index_name = unquote(index_name)

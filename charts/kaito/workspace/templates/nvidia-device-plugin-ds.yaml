@@ -46,7 +46,7 @@ spec:
           effect: "NoSchedule"
       priorityClassName: high-priority-nonpreempting
       containers:
-        - image: nvcr.io/nvidia/k8s-device-plugin:v0.16.2
+        - image: mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.17.0
           name: nvidia-device-plugin-ctr
           env:
             - name: FAIL_ON_INIT_ERROR

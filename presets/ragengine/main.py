@@ -13,8 +13,6 @@ from vector_store.faiss_store import FaissVectorStoreHandler
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
                               EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID)
 from urllib.parse import unquote
-import nest_asyncio
-nest_asyncio.apply() # Allow nested async calls
 
 app = FastAPI()
 

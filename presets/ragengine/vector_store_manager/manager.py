@@ -3,7 +3,7 @@
 
 from typing import Dict, List
 
-from ragengine.models import Document
+from ragengine.models import Document, DocumentResponse
 from ragengine.vector_store.base import BaseVectorStore
 
 class VectorStoreManager:
@@ -28,10 +28,28 @@ class VectorStoreManager:
         """List all indexes."""
         return self.vector_store.list_indexes()
 
-    async def list_documents_in_index(self, index_name: str):
+    async def list_documents_in_index(self,
+            index_name: str,
+            limit: int,
+            offset: int,
+            max_text_length: int
+    ) -> Dict[str, DocumentResponse]:
         """List all documents in index."""
-        return await self.vector_store.list_documents_in_index(index_name)
+        return await self.vector_store.list_documents_in_index(
+            index_name,
+            limit,
+            offset,
+            max_text_length
+        )
 
-    async def list_all_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
+    async def list_all_documents(self, 
+            limit: int,
+            offset: int,
+            max_text_length: int
+    ) -> Dict[str, List[DocumentResponse]]:
         """List all documents."""
-        return await self.vector_store.list_all_documents()
+        return await self.vector_store.list_all_documents(
+            limit,
+            offset,
+            max_text_length
+        )

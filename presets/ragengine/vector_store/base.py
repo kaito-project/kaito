@@ -3,17 +3,19 @@
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Dict, List, Optional
 import hashlib
 import os
 import asyncio
+from itertools import islice
+from collections import defaultdict
 
 from llama_index.core import Document as LlamaDocument
 from llama_index.core.storage.index_store import SimpleIndexStore
 from llama_index.core import (StorageContext, VectorStoreIndex)
 from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 
-from ragengine.models import Document
+from ragengine.models import Document, DocumentResponse
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
 from ragengine.config import (LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N, VECTOR_DB_PERSIST_DIR)
@@ -170,53 +172,110 @@ class BaseVectorStore(ABC):
     def list_indexes(self) -> List[str]:
         return list(self.index_map.keys())
 
-    async def list_documents_in_index(self, index_name: str) -> Dict[str, Dict[str, str]]:
-        """Return a dictionary of document metadata for the given index."""
-        vector_store_index = self.index_map[index_name]
-        doc_store = vector_store_index.docstore
-
-        is_simple_doc_store = isinstance(doc_store, SimpleDocumentStore)
-        doc_map: Dict[str, Dict[str, str]] = {}
-
-        for doc_id, doc_stub in doc_store.docs.items():
-            if is_simple_doc_store:
-                # Here 'doc_stub' should already be the full doc info
-                doc_map[doc_stub.ref_doc_id] = {
-                    "text": doc_stub.text,
-                    "hash": doc_stub.hash
-                }
+    async def _process_document(self, doc_id: str, doc_stub, doc_store, max_text_length: Optional[int]) -> Optional[DocumentResponse]:
+        """
+        Helper to process and format a single document.
+        """
+        try:
+            if isinstance(doc_store, SimpleDocumentStore):
+                text, hash_value = doc_stub.text, doc_stub.hash
             else:
-                # Use async retrieval for non-simple doc_store
                 doc_info = await doc_store.aget_document(doc_id)
-                doc_map[doc_info.ref_doc_id] = {
-                    "text": doc_info.text,
-                    "hash": doc_info.hash
-                }
-        return doc_map
+                text, hash_value = doc_info.text, doc_info.hash
 
-    async def list_all_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
-        """Common logic for listing all documents."""
-        indexes: Dict[str, Dict[str, Dict[str, str]]] = {}
-        for index_name, vector_store_index in self.index_map.items():
+            # Truncate if needed
+            is_truncated = max_text_length and len(text) > max_text_length
+            truncated_text = text[:max_text_length] if is_truncated else text
+
+            return DocumentResponse(
+                doc_id=doc_id,
+                text=truncated_text,
+                hash_value=hash_value,
+                metadata=getattr(doc_stub, "metadata", None),
+                is_truncated=is_truncated,
+            )
+        except Exception as e:
+            logger.error(f"Error processing document {doc_id}: {str(e)}")
+            return None  # Explicitly return None for failed documents
+
+    async def list_documents_in_index(self, 
+            index_name: str, 
+            limit: int, 
+            offset: int, 
+            max_text_length: Optional[int] = None
+        ) -> Dict[str, DocumentResponse]:
+        """
+        Return a dictionary of document metadata for the given index.
+        """
+        vector_store_index = self.index_map.get(index_name)
+        if not vector_store_index:
+            raise ValueError(f"Index '{index_name}' not found.")
+        
+        doc_store = vector_store_index.docstore
+        docs_items = islice(doc_store.docs.items(), offset, offset + limit)
+
+        # Process documents concurrently, handling exceptions
+        docs = await asyncio.gather(
+            *(self._process_document(doc_id, doc_stub, doc_store, max_text_length) for doc_id, doc_stub in docs_items),
+            return_exceptions=True
+        )
+
+        # Filter valid results
+        return {doc.doc_id: doc for doc in docs if isinstance(doc, DocumentResponse)}
+
+    async def list_all_documents(
+            self,
+            limit: int,
+            offset: int,
+            max_text_length: Optional[int] = None
+    ) -> Dict[str, List[DocumentResponse]]:
+        """
+        List documents across all indexes with fair distribution and global pagination.
+        """
+        index_names = list(self.index_map.keys())
+        if not index_names:
+            return {}  # No indexes available
+
+        result: Dict[str, List[DocumentResponse]] = defaultdict(list)
+
+        # Calculate per-index limits and offsets
+        docs_per_index = limit // len(index_names)
+        remainder = limit % len(index_names)
+        offset_per_index = offset // len(index_names)
+        offset_remainder = offset % len(index_names)
+
+        # Iterate over indexes
+        for idx, index_name in enumerate(index_names):
+            if limit <= 0:  # Stop when the global limit is reached
+                break
+
+            vector_store_index = self.index_map[index_name]
             doc_store = vector_store_index.docstore
-            doc_map: Dict[str, Dict[str, str]] = {}
 
-            for doc_id, doc_stub in doc_store.docs.items():
-                if isinstance(doc_store, SimpleDocumentStore):
-                    # Here 'doc_stub' should already be the full doc info
-                    doc_map[doc_stub.ref_doc_id] = {
-                        "text": doc_stub.text,
-                        "hash": doc_stub.hash
-                    }
-                else:
-                    # Use async retrieval for non-simple doc_store
-                    doc_info = await doc_store.aget_document(doc_id)
-                    doc_map[doc_info.ref_doc_id] = {
-                        "text": doc_info.text,
-                        "hash": doc_info.hash
-                    }
-            indexes[index_name] = doc_map
-        return indexes
+            # Adjust limit and offset for this index
+            index_limit = docs_per_index + (1 if idx < remainder else 0)
+            index_offset = offset_per_index + (1 if idx < offset_remainder else 0)
+
+            if index_limit <= 0:
+                continue
+
+            # Fetch document slices lazily
+            docs_items = islice(doc_store.docs.items(), index_offset, index_offset + index_limit)
+
+            # Process documents concurrently using a generator
+            docs = await asyncio.gather(
+                *(self._process_document(doc_id, doc_stub, doc_store, max_text_length) for doc_id, doc_stub in docs_items),
+                return_exceptions=True
+            )
+
+            # **Only add valid documents** to the result
+            valid_docs = [doc for doc in docs if isinstance(doc, DocumentResponse)]
+            if valid_docs:
+                result[index_name].extend(valid_docs)
+
+            limit -= len(valid_docs)  # Decrement the remaining global limit
+
+        return result
 
     async def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
         """Common logic for checking document existence."""

@@ -5,7 +5,7 @@ from typing import List
 from vector_store_manager.manager import VectorStoreManager
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from models import (IndexRequest, ListDocumentsResponse,
                     QueryRequest, QueryResponse, DocumentResponse, HealthStatus)
 from vector_store.faiss_store import FaissVectorStoreHandler
@@ -80,7 +80,12 @@ def list_indexes():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/indexes/{index_name}/documents", response_model=ListDocumentsResponse)
-async def list_documents_in_index(index_name: str):
+async def list_documents_in_index(
+    index_name: str,
+    limit: int = Query(10, ge=1, le=100, description="Maximum number of documents to return"),
+    offset: int = Query(0, ge=0, description="Starting point for the document list"),
+    max_text_length: Optional[int] = Query(None, ge=1, description="Maximum text length to return"),
+):
     """
     Handles URL-encoded index names sent by the client.
 
@@ -90,23 +95,47 @@ async def list_documents_in_index(index_name: str):
     my_index          | my_index          | my_index
     my index          | my%20index        | my index
     index/name        | index%2Fname      | index/name
-    index@name        | index%40name      | index@name
-    index#1           | index%231         | index#1
-    index?query       | index%3Fquery     | index?query
     """
     try:
         # Decode the index_name in case it was URL-encoded by the client
         decoded_index_name = unquote(index_name)
-        documents = await rag_ops.list_documents_in_index(decoded_index_name)
-        return ListDocumentsResponse(documents=documents)
+        documents = await rag_ops.list_documents_in_index(
+            index_name=decoded_index_name,
+            limit=limit+1, # Fetch one extra to check for more results
+            offset=offset,
+            max_text_length=max_text_length
+        )
+        has_more = len(documents) > limit
+        documents = dict(list(documents.items())[:limit]) # Limit the results to the requested count
+
+        return ListDocumentsResponse(
+            documents=documents,
+            count=len(documents),
+            next_offset=offset + limit if has_more else None
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/documents", response_model=ListDocumentsResponse)
-async def list_all_documents():
+async def list_all_documents(
+    limit: int = Query(10, ge=1, le=100, description="Maximum number of documents to return"),
+    offset: int = Query(0, ge=0, description="Starting point for the document list"),
+    max_text_length: Optional[int] = Query(None, ge=1, description="Maximum text length to return"),
+):
     try:
-        documents = await rag_ops.list_all_documents()
-        return ListDocumentsResponse(documents=documents)
+        documents = await rag_ops.list_all_documents(
+            limit=limit+1, # Fetch one extra to check for more results
+            offset=offset,
+            max_text_length=max_text_length
+        )
+        has_more = len(documents) > limit
+        documents = dict(list(documents.items())[:limit]) # Limit the results to the requested count
+
+        return ListDocumentsResponse(
+            documents=documents,
+            count=len(documents),
+            next_offset=offset + limit if has_more else None
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

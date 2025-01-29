@@ -13,7 +13,9 @@ class Document(BaseModel):
 class DocumentResponse(BaseModel):
     doc_id: str
     text: str
+    hash_value: Optional[str] = None
     metadata: Optional[dict] = None
+    is_truncated: Optional[bool] = False
 
 class IndexRequest(BaseModel):
     index_name: str
@@ -51,7 +53,9 @@ class QueryRequest(BaseModel):
         return values
 
 class ListDocumentsResponse(BaseModel):
-    documents: Dict[str, Dict[str, Dict[str, str]]]
+    documents: Dict[str, DocumentResponse]  # Mapping of document IDs to DocumentResponse
+    count: int  # Number of documents in the current response
+    next_offset: Optional[int]  # Offset for the next batch of results, None if no more
 
 # Define models for NodeWithScore, and QueryResponse
 class NodeWithScore(BaseModel):

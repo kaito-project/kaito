@@ -172,7 +172,7 @@ class BaseVectorStore(ABC):
     def list_indexes(self) -> List[str]:
         return list(self.index_map.keys())
 
-    async def _process_document(self, doc_id: str, doc_stub, doc_store, max_text_length: Optional[int]) -> Optional[DocumentResponse]:
+    async def _process_document(self, doc_id: str, doc_stub, doc_store, max_text_length: Optional[int]):
         """
         Helper to process and format a single document.
         """
@@ -184,16 +184,16 @@ class BaseVectorStore(ABC):
                 text, hash_value = doc_info.text, doc_info.hash
 
             # Truncate if needed
-            is_truncated = max_text_length and len(text) > max_text_length
+            is_truncated = bool(max_text_length and len(text) > max_text_length)
             truncated_text = text[:max_text_length] if is_truncated else text
 
-            return DocumentResponse(
-                doc_id=doc_id,
-                text=truncated_text,
-                hash_value=hash_value,
-                metadata=getattr(doc_stub, "metadata", None),
-                is_truncated=is_truncated,
-            )
+            return {
+                "doc_id": doc_id,
+                "text": truncated_text,
+                "hash_value": hash_value,
+                "metadata": getattr(doc_stub, "metadata", {}),
+                "is_truncated": is_truncated,
+            }
         except Exception as e:
             logger.error(f"Error processing document {doc_id}: {str(e)}")
             return None  # Explicitly return None for failed documents
@@ -203,7 +203,7 @@ class BaseVectorStore(ABC):
             limit: int, 
             offset: int, 
             max_text_length: Optional[int] = None
-        ) -> Dict[str, DocumentResponse]:
+        ) -> Dict[str, Dict[str, any]]:
         """
         Return a dictionary of document metadata for the given index.
         """
@@ -220,15 +220,14 @@ class BaseVectorStore(ABC):
             return_exceptions=True
         )
 
-        # Filter valid results
-        return {doc.doc_id: doc for doc in docs if isinstance(doc, DocumentResponse)}
+        return {doc["doc_id"]: doc for doc in docs if isinstance(doc, dict)}
 
     async def list_all_documents(
             self,
             limit: int,
             offset: int,
             max_text_length: Optional[int] = None
-    ) -> Dict[str, List[DocumentResponse]]:
+    ) -> Dict[str, List[Dict[str, any]]]:
         """
         List documents across all indexes with fair distribution and global pagination.
         """
@@ -236,7 +235,7 @@ class BaseVectorStore(ABC):
         if not index_names:
             return {}  # No indexes available
 
-        result: Dict[str, List[DocumentResponse]] = defaultdict(list)
+        result: Dict[str, List[Dict[str, any]]] = defaultdict(list)
 
         # Calculate per-index limits and offsets
         docs_per_index = limit // len(index_names)
@@ -269,7 +268,7 @@ class BaseVectorStore(ABC):
             )
 
             # **Only add valid documents** to the result
-            valid_docs = [doc for doc in docs if isinstance(doc, DocumentResponse)]
+            valid_docs = [doc for doc in docs if isinstance(doc, dict)]
             if valid_docs:
                 result[index_name].extend(valid_docs)
 

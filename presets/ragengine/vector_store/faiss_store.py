@@ -14,7 +14,7 @@ class FaissVectorStoreHandler(BaseVectorStore):
         super().__init__(embedding_manager)
         self.dimension = self.embedding_manager.get_embedding_dimension()
 
-    def _create_new_index(self, index_name: str, documents: List[Document]) -> List[str]:
+    async def _create_new_index(self, index_name: str, documents: List[Document]) -> List[str]:
         faiss_index = faiss.IndexFlatL2(self.dimension)
         vector_store = FaissVectorStore(faiss_index=faiss_index)
-        return self._create_index_common(index_name, documents, vector_store)
+        return await self._create_index_common(index_name, documents, vector_store)

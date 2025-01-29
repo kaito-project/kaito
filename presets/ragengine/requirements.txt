@@ -13,5 +13,4 @@ llama-index-vector-stores-faiss
 llama-index-vector-stores-chroma
 llama-index-vector-stores-azurecosmosmongo
 uvicorn
-# For UTs
-pytest
+asyncio

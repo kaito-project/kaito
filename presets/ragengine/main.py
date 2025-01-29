@@ -12,6 +12,7 @@ from vector_store.faiss_store import FaissVectorStoreHandler
 
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
                               EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID)
+from urllib.parse import unquote
 
 app = FastAPI()
 
@@ -45,9 +46,9 @@ def health_check():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/index", response_model=List[DocumentResponse])
-async def index_documents(request: IndexRequest): # TODO: Research async/sync what to use (inference is calling)
+async def index_documents(request: IndexRequest):
     try:
-        doc_ids = rag_ops.index(request.index_name, request.documents)
+        doc_ids = await rag_ops.index(request.index_name, request.documents)
         documents = [
             DocumentResponse(doc_id=doc_id, text=doc.text, metadata=doc.metadata)
             for doc_id, doc in zip(doc_ids, request.documents)
@@ -61,7 +62,7 @@ async def query_index(request: QueryRequest):
     try:
         llm_params = request.llm_params or {}  # Default to empty dict if no params provided
         rerank_params = request.rerank_params or {}  # Default to empty dict if no params provided
-        return rag_ops.query(
+        return await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params
         )
     except ValueError as ve:
@@ -71,14 +72,44 @@ async def query_index(request: QueryRequest):
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )
 
-@app.get("/indexed-documents", response_model=ListDocumentsResponse)
-async def list_all_indexed_documents():
+@app.get("/indexes", response_model=List[str])
+def list_indexes():
     try:
-        documents = rag_ops.list_all_indexed_documents()
+        return rag_ops.list_indexes()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/indexes/{index_name}/documents", response_model=ListDocumentsResponse)
+async def list_documents_in_index(index_name: str):
+    """
+    Handles URL-encoded index names sent by the client.
+
+    Examples:
+    Raw Index Name    | URL-Encoded Form   | Decoded Form
+    ------------------|--------------------|--------------
+    my_index          | my_index          | my_index
+    my index          | my%20index        | my index
+    index/name        | index%2Fname      | index/name
+    index@name        | index%40name      | index@name
+    index#1           | index%231         | index#1
+    index?query       | index%3Fquery     | index?query
+    """
+    try:
+        # Decode the index_name in case it was URL-encoded by the client
+        decoded_index_name = unquote(index_name)
+        documents = await rag_ops.list_documents_in_index(decoded_index_name)
+        return ListDocumentsResponse(documents=documents)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/documents", response_model=ListDocumentsResponse)
+async def list_all_documents():
+    try:
+        documents = await rag_ops.list_all_documents()
         return ListDocumentsResponse(documents=documents)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=5000, loop="asyncio")

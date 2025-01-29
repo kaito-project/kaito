@@ -18,7 +18,8 @@ class TestFaissVectorStore(BaseVectorStoreTest):
             os.environ['PERSIST_DIR'] = temp_dir
             yield FaissVectorStoreHandler(init_embed_manager)
 
-    def check_indexed_documents(self, vector_store_manager):
+    @pytest.mark.asyncio
+    async def check_indexed_documents(self, vector_store_manager):
         expected_output = {
             'index1': {"87117028123498eb7d757b1507aa3e840c63294f94c27cb5ec83c939dedb32fd": {
                 'hash': '1e64a170be48c45efeaa8667ab35919106da0489ec99a11d0029f2842db133aa',
@@ -29,7 +30,7 @@ class TestFaissVectorStore(BaseVectorStoreTest):
                 'text': 'First document in index2'
             }}
         }
-        assert vector_store_manager.list_all_indexed_documents() == expected_output
+        assert await vector_store_manager.list_all_documents() == expected_output
 
     @property
     def expected_query_score(self):

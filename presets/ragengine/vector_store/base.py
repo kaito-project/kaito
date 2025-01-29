@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List
 import hashlib
 import os
+import asyncio
 
 from llama_index.core import Document as LlamaDocument
 from llama_index.core.storage.index_store import SimpleIndexStore
@@ -16,6 +17,8 @@ from ragengine.models import Document
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
 from ragengine.config import (LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N, VECTOR_DB_PERSIST_DIR)
+
+from llama_index.core.storage.docstore import SimpleDocumentStore
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -34,36 +37,40 @@ class BaseVectorStore(ABC):
         """Generates a unique document ID based on the hash of the document text."""
         return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
-    def index_documents(self, index_name: str, documents: List[Document]) -> List[str]:
+    async def index_documents(self, index_name: str, documents: List[Document]) -> List[str]:
         """Common indexing logic for all vector stores."""
         if index_name in self.index_map:
-            return self._append_documents_to_index(index_name, documents)
+            return await self._append_documents_to_index(index_name, documents)
         else:
-            return self._create_new_index(index_name, documents)
+            return await self._create_new_index(index_name, documents)
 
-    def _append_documents_to_index(self, index_name: str, documents: List[Document]) -> List[str]:
+    async def _append_documents_to_index(self, index_name: str, documents: List[Document]) -> List[str]:
         """Common logic for appending documents to existing index."""
         logger.info(f"Index {index_name} already exists. Appending documents to existing index.")
         indexed_doc_ids = set()
 
-        for doc in documents:
+        async def handle_document(doc: Document):
             doc_id = self.generate_doc_id(doc.text)
-            if not self.document_exists(index_name, doc, doc_id):
-                self.add_document_to_index(index_name, doc, doc_id)
+            retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
+            if not retrieved_doc:
+                await self.add_document_to_index(index_name, doc, doc_id)
                 indexed_doc_ids.add(doc_id)
             else:
                 logger.info(f"Document {doc_id} already exists in index {index_name}. Skipping.")
 
+        # Gather all coroutines for processing documents
+        await asyncio.gather(*(handle_document(doc) for doc in documents))
+
         if indexed_doc_ids:
-            self._persist(index_name)
+            await self._persist(index_name)
         return list(indexed_doc_ids)
     
     @abstractmethod
-    def _create_new_index(self, index_name: str, documents: List[Document]) -> List[str]:
+    async def _create_new_index(self, index_name: str, documents: List[Document]) -> List[str]:
         """Create a new index - implementation specific to each vector store."""
         pass
     
-    def _create_index_common(self, index_name: str, documents: List[Document], vector_store) -> List[str]:
+    async def _create_index_common(self, index_name: str, documents: List[Document], vector_store) -> List[str]:
         """Common logic for creating a new index with documents."""
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         llama_docs = []
@@ -76,18 +83,20 @@ class BaseVectorStore(ABC):
             indexed_doc_ids.add(doc_id)
 
         if llama_docs:
-            index = VectorStoreIndex.from_documents(
+            index = await asyncio.to_thread(
+                VectorStoreIndex.from_documents,
                 llama_docs,
                 storage_context=storage_context,
                 embed_model=self.embed_model,
+                use_async=True,
             )
             index.set_index_id(index_name)
             self.index_map[index_name] = index
             self.index_store.add_index_struct(index.index_struct)
-            self._persist(index_name)
+            await self._persist(index_name)
         return list(indexed_doc_ids)
 
-    def query(self,
+    async def query(self,
               index_name: str,
               query: str,
               top_k: int,
@@ -136,7 +145,7 @@ class BaseVectorStore(ABC):
             similarity_top_k=top_k,
             node_postprocessors=node_postprocessors
         )
-        query_result = query_engine.query(query)
+        query_result = await query_engine.aquery(query)
         return {
             "response": query_result.response,
             "source_nodes": [
@@ -151,40 +160,79 @@ class BaseVectorStore(ABC):
             "metadata": query_result.metadata,
         }
 
-    def add_document_to_index(self, index_name: str, document: Document, doc_id: str):
+    async def add_document_to_index(self, index_name: str, document: Document, doc_id: str):
         """Common logic for adding a single document."""
         if index_name not in self.index_map:
             raise ValueError(f"No such index: '{index_name}' exists.")
-        llama_doc = LlamaDocument(text=document.text, metadata=document.metadata, id_=doc_id)
+        llama_doc = LlamaDocument(id_=doc_id, text=document.text, metadata=document.metadata)
         self.index_map[index_name].insert(llama_doc)
 
-    def list_all_indexed_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
-        """Common logic for listing all documents."""
-        return {
-            index_name: {
-                doc_info.ref_doc_id: {
-                    "text": doc_info.text, 
-                    "hash": doc_info.hash
-                } for _, doc_info in vector_store_index.docstore.docs.items()
-            }
-            for index_name, vector_store_index in self.index_map.items()
-        }
+    def list_indexes(self) -> List[str]:
+        return list(self.index_map.keys())
 
-    def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
+    async def list_documents_in_index(self, index_name: str) -> Dict[str, Dict[str, str]]:
+        """Return a dictionary of document metadata for the given index."""
+        vector_store_index = self.index_map[index_name]
+        doc_store = vector_store_index.docstore
+
+        is_simple_doc_store = isinstance(doc_store, SimpleDocumentStore)
+        doc_map: Dict[str, Dict[str, str]] = {}
+
+        for doc_id, doc_stub in doc_store.docs.items():
+            if is_simple_doc_store:
+                # Here 'doc_stub' should already be the full doc info
+                doc_map[doc_stub.ref_doc_id] = {
+                    "text": doc_stub.text,
+                    "hash": doc_stub.hash
+                }
+            else:
+                # Use async retrieval for non-simple doc_store
+                doc_info = await doc_store.aget_document(doc_id)
+                doc_map[doc_info.ref_doc_id] = {
+                    "text": doc_info.text,
+                    "hash": doc_info.hash
+                }
+        return doc_map
+
+    async def list_all_documents(self) -> Dict[str, Dict[str, Dict[str, str]]]:
+        """Common logic for listing all documents."""
+        indexes: Dict[str, Dict[str, Dict[str, str]]] = {}
+        for index_name, vector_store_index in self.index_map.items():
+            doc_store = vector_store_index.docstore
+            doc_map: Dict[str, Dict[str, str]] = {}
+
+            for doc_id, doc_stub in doc_store.docs.items():
+                if isinstance(doc_store, SimpleDocumentStore):
+                    # Here 'doc_stub' should already be the full doc info
+                    doc_map[doc_stub.ref_doc_id] = {
+                        "text": doc_stub.text,
+                        "hash": doc_stub.hash
+                    }
+                else:
+                    # Use async retrieval for non-simple doc_store
+                    doc_info = await doc_store.aget_document(doc_id)
+                    doc_map[doc_info.ref_doc_id] = {
+                        "text": doc_info.text,
+                        "hash": doc_info.hash
+                    }
+            indexes[index_name] = doc_map
+        return indexes
+
+    async def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
         """Common logic for checking document existence."""
         if index_name not in self.index_map:
             logger.warning(f"No such index: '{index_name}' exists in vector store.")
             return False
         return doc_id in self.index_map[index_name].ref_doc_info
 
-    def _persist_all(self):
+    async def _persist_all(self):
         """Common persistence logic."""
         logger.info("Persisting all indexes.")
         self.index_store.persist(os.path.join(VECTOR_DB_PERSIST_DIR, "store.json"))
         for idx in self.index_store.index_structs():
-            self._persist(idx.index_id)
+            await self._persist(idx.index_id)
 
-    def _persist(self, index_name: str):
+    async def _persist(self, index_name: str):
         """Common persistence logic for individual index."""
         try:
             logger.info(f"Persisting index {index_name}.")

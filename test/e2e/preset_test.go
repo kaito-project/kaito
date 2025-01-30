@@ -27,15 +27,17 @@ import (
 )
 
 const (
-	PresetLlama2AChat            = "llama-2-7b-chat"
-	PresetLlama2BChat            = "llama-2-13b-chat"
-	PresetFalcon7BModel          = "falcon-7b"
-	PresetFalcon40BModel         = "falcon-40b"
-	PresetMistral7BInstructModel = "mistral-7b-instruct"
-	PresetQwen2_5Coder7BModel    = "qwen2.5-coder-7b-instruct"
-	PresetPhi2Model              = "phi-2"
-	PresetPhi3Mini128kModel      = "phi-3-mini-128k-instruct"
-	WorkspaceHashAnnotation      = "workspace.kaito.io/hash"
+	PresetLlama2AChat                   = "llama-2-7b-chat"
+	PresetLlama2BChat                   = "llama-2-13b-chat"
+	PresetFalcon7BModel                 = "falcon-7b"
+	PresetFalcon40BModel                = "falcon-40b"
+	PresetMistral7BInstructModel        = "mistral-7b-instruct"
+	PresetQwen2_5Coder7BModel           = "qwen2.5-coder-7b-instruct"
+	PresetPhi2Model                     = "phi-2"
+	PresetPhi3Mini128kModel             = "phi-3-mini-128k-instruct"
+	PresetDeepSeekR1DistillLlama8BModel = "deepseek-r1-distill-llama-8b"
+	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
+	WorkspaceHashAnnotation             = "workspace.kaito.io/hash"
 	// WorkspaceRevisionAnnotation represents the revision number of the workload managed by the workspace
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"
 )

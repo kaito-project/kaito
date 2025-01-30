@@ -70,11 +70,17 @@ jobs:
           echo "REGISTRY=${{ inputs.node_provisioner }}${rand}.azurecr.io" >> $GITHUB_ENV
           echo "RUN_LLAMA_13B=false" >> $GITHUB_ENV
 
+      - name: Set Registry
+        if: ${{ inputs.isRelease }}
+        run: |
+          echo "REGISTRY=${{ inputs.registry }}" >> $GITHUB_ENV
+          echo "VERSION=$(echo ${{ inputs.tag }} | tr -d v)" >> $GITHUB_ENV
+
       - id: set-outputs
         run: |
           echo "cluster_name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
-          echo "registry=${REGISTRY}" >> $GITHUB_OUTPUT
-          echo "run_llama_13b=${RUN_LLAMA_13B}" >> $GITHUB_OUTPUT
+          echo "registry=${{ env.REGISTRY }}" >> $GITHUB_OUTPUT
+          echo "run_llama_13b=${{ env.RUN_LLAMA_13B }}" >> $GITHUB_OUTPUT
 
       - name: Remove existing Go modules directory
         run: sudo rm -rf ~/go/pkg/mod

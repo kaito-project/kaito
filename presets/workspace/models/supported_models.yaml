@@ -144,9 +144,24 @@ models:
     # 0.0.2 - Support adapter and config file for VLLM runtime
     # 0.0.1 - New Model! Support VLLM Runtime
 
+  # Qwen
   - name: qwen2.5-coder-7b-instruct
     type: text-generation
     version: https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct/commit/0eb6b1ed2d0c4306bc637d09ecef51e59d3dfe05
+    runtime: tfs
+    tag: 0.0.1
+    # Tag history:
+    # 0.0.1 - New Model!
+
+  # Deepseek
+  - name: deepseek-r1-distill-qwen-14b
+    type: text-generation
+    version: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B/commit/43388607a61ba60e6dd3e349eb5f55c94e984bc0
+    runtime: tfs
+    tag: 0.0.1
+  - name: deepseek-r1-distill-llama-8b
+    type: text-generation
+    version: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Llama-8B/commit/24ae87a9c340aa4207dd46509414c019998e0161
     runtime: tfs
     tag: 0.0.1
     # Tag history:

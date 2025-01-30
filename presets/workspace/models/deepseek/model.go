@@ -9,7 +9,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
-	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 )
 
 func init() {
@@ -35,22 +34,18 @@ var (
 	baseCommandPresetDeepseekInference = "accelerate launch"
 	baseCommandPresetDeepseekTuning   = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	deepseekLlama8bRunParams = map[string]string{
-		"torch_dtype":   "bfloat16",
-		"pipeline":      "text-generation",
-		"chat_template": "/workspace/chat_templates/deepseek-r1-distill-llama-8b.jinja",
+		"torch_dtype": "bfloat16",
+		"pipeline":    "text-generation",
 	}
 	deepseekLlama8bRunParamsVLLM = map[string]string{
-		"dtype":         "float16",
-		"chat-template": "/workspace/chat_templates/deepseek-r1-distill-llama-8b.jinja",
+		"dtype": "float16",
 	}
 	deepseekQwen14bRunParams = map[string]string{
-		"torch_dtype":   "bfloat16",
-		"pipeline":      "text-generation",
-		"chat_template": "/workspace/chat_templates/deepseek-r1-distill-qwen-14b.jinja",
+		"torch_dtype": "bfloat16",
+		"pipeline":    "text-generation",
 	}
 	deepseekQwen14bRunParamsVLLM = map[string]string{
-		"dtype":         "float16",
-		"chat-template": "/workspace/chat_templates/deepseek-r1-distill-qwen-14b.jinja",
+		"dtype": "float16",
 	}
 )
 

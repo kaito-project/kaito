@@ -177,7 +177,7 @@ func createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *k
 	workspaceObj := &kaitov1alpha1.Workspace{}
 	By("Creating a workspace CR with DeepSeek Distilled Llama 8B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-deepseek-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-deepseek-vllm"},
 			}, nil, PresetDeepSeekR1DistillLlama8BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)

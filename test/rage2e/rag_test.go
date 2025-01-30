@@ -51,7 +51,7 @@ var supportedModelsYamlPath string
 var modelInfo map[string]string
 var azureClusterName string
 
-var _ = Describe("RAGEngine preset", func() {
+var _ = Describe("RAGEngine", func() {
 	BeforeEach(func() {
 		loadTestEnvVars()
 		loadModelVersions()
@@ -60,23 +60,24 @@ var _ = Describe("RAGEngine preset", func() {
 	AfterEach(func() {
 		if CurrentSpecReport().Failed() {
 			utils.PrintPodLogsOnFailure(namespaceName, "")     // The Preset Pod
-			utils.PrintPodLogsOnFailure("kaito-ragengine", "") // The Kaito Workspace Pod
+			utils.PrintPodLogsOnFailure("kaito-workspace", "") // The Kaito Workspace Pod
+			utils.PrintPodLogsOnFailure("kaito-ragengine", "") // The Kaito ragengine Pod
 			utils.PrintPodLogsOnFailure("gpu-provisioner", "") // The gpu-provisioner Pod
 			Fail("Fail threshold reached")
 		}
 	})
 
-	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
+	It("should create RAG with localembedding and huggingface API successfully", func() {
 		numOfNode := 1
 
 		ragengineObj := createLocalEmbeddingHFURLRAGEngine()
 
 		defer cleanupResources(nil, ragengineObj)
 
-		validateRAGEngineResourceStatus(ragengineObj)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
 		validateAssociatedService(ragengineObj.ObjectMeta)
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfNode), false)
-		validateRAGEngineReadiness(ragengineObj)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
 	})
 })
@@ -98,7 +99,7 @@ func createAndValidateRAGEngine(ragEngineObj *kaitov1alpha1.RAGEngine) {
 	})
 }
 
-func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceURL *kaitov1alpha1.InferenceServiceSpec) *kaitov1alpha1.RAGEngine {
+func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1alpha1.InferenceServiceSpec) *kaitov1alpha1.RAGEngine {
 	return &kaitov1alpha1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -114,7 +115,7 @@ func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embe
 					ModelID: embeddingModelID,
 				},
 			},
-			InferenceService: inferenceURL,
+			InferenceService: inferenceSpec,
 		},
 	}
 }
@@ -147,8 +148,10 @@ func cleanupResources(
 			err := deleteRAGEngine(ragengineObj)
 			Expect(err).NotTo(HaveOccurred(), "Failed to delete RAGEngine")
 
-			err = deleteWorkspace(workspaceObj)
-			Expect(err).NotTo(HaveOccurred(), "Failed to delete Workspace")
+			if workspaceObj != nil {
+				err = deleteWorkspace(workspaceObj)
+				Expect(err).NotTo(HaveOccurred(), "Failed to delete Workspace")
+			}
 		} else {
 			if ragengineObj != nil {
 				GinkgoWriter.Printf("Test failed, keep Workspace %s and RAGEngine %s\n",
@@ -157,28 +160,6 @@ func cleanupResources(
 				GinkgoWriter.Printf("Test failed, keep Workspace %s\n", workspaceObj.Name)
 			}
 		}
-	})
-}
-
-// validateRAGEngineResourceStatus validates resource status
-func validateRAGEngineResourceStatus(ragengineObj *kaitov1alpha1.RAGEngine) {
-	By("Checking the resource status", func() {
-		Eventually(func() bool {
-			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: ragengineObj.Namespace,
-				Name:      ragengineObj.Name,
-			}, ragengineObj, &client.GetOptions{})
-
-			if err != nil {
-				return false
-			}
-
-			_, conditionFound := lo.Find(ragengineObj.Status.Conditions, func(condition metav1.Condition) bool {
-				return condition.Type == string(kaitov1alpha1.ConditionTypeResourceStatus) &&
-					condition.Status == metav1.ConditionTrue
-			})
-			return conditionFound
-		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for ragengineObj resource status to be ready")
 	})
 }
 
@@ -286,25 +267,23 @@ func validateAssociatedService(objectMeta metav1.ObjectMeta) {
 	})
 }
 
-// validateRAGEngineReadiness validates ragengine readiness
-func validateRAGEngineReadiness(ragengineObj *kaitov1alpha1.RAGEngine) {
-	By("Checking the ragengine status is ready", func() {
+// validateRAGEngineReadiness validates ragengine conditions
+func validateRAGEngineCondition(ragengineObj *kaitov1alpha1.RAGEngine, conditionType string, description string) {
+	By(fmt.Sprintf("Checking %s", description), func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: ragengineObj.Namespace,
 				Name:      ragengineObj.Name,
 			}, ragengineObj, &client.GetOptions{})
-
 			if err != nil {
 				return false
 			}
-
 			_, conditionFound := lo.Find(ragengineObj.Status.Conditions, func(condition metav1.Condition) bool {
-				return condition.Type == string(kaitov1alpha1.RAGEngineConditionTypeSucceeded) &&
+				return condition.Type == conditionType &&
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
-		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for ragengine to be ready")
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), fmt.Sprintf("Failed to wait for %s", description))
 	})
 }
 

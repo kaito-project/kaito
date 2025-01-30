@@ -10,4 +10,5 @@ import (
 	_ "github.com/kaito-project/kaito/presets/workspace/models/phi2"
 	_ "github.com/kaito-project/kaito/presets/workspace/models/phi3"
 	_ "github.com/kaito-project/kaito/presets/workspace/models/qwen"
+	_ "github.com/kaito-project/kaito/presets/workspace/models/deepseek"
 )

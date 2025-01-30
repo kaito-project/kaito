@@ -23,17 +23,16 @@ func init() {
 }
 
 var (
-	PresetDeepSeekR1DistillLlama8BModel         = "deepseek-r1-distill-llama-8b"
-	PresetDeepSeekR1DistillQwen14BModel         = "deepseek-r1-distill-qwen-14b"
+	PresetDeepSeekR1DistillLlama8BModel = "deepseek-r1-distill-llama-8b"
+	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
 
 	PresetDeepSeekTagMap = map[string]string{
-		"DeepSeekDistillLlama8B":          "0.0.1",
-		"DeepSeekDistillQwen14B":          "0.0.1",
+		"DeepSeekDistillLlama8B": "0.0.1",
+		"DeepSeekDistillQwen14B": "0.0.1",
 	}
 
 	baseCommandPresetDeepseekInference = "accelerate launch"
-	baseCommandPresetDeepseekTuning   = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	deepseekLlama8bRunParams = map[string]string{
+	deepseekLlama8bRunParams           = map[string]string{
 		"torch_dtype": "bfloat16",
 		"pipeline":    "text-generation",
 	}

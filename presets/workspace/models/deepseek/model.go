@@ -68,7 +68,7 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    deepseekLlama8bRunParams,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    baseCommandPresetDeepseekInference,
+				BaseCommand:    inference.DefaultVLLMCommand,
 				ModelName:      "/workspace/vllm/weights",
 				ModelRunParams: deepseekLlama8bRunParamsVLLM,
 			},

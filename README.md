@@ -78,7 +78,7 @@ NAME                     TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)         
 workspace-phi-3-5-mini   ClusterIP   <CLUSTERIP>  <none>        80/TCP,29500/TCP   10m
 $ export CLUSTERIP=$(kubectl get svc workspace-phi-3-5-mini -o jsonpath="{.spec.clusterIPs[0]}")
 
-# find availalbe models
+# find available models
 $ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -s  http://$CLUSTERIP/v1/models | jq
 {
   "object": "list",

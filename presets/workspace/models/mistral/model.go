@@ -61,7 +61,7 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 				TorchRunParams:    inference.DefaultAccelerateParams,
 				ModelRunParams:    mistralRunParams,
 				BaseCommand:       baseCommandPresetMistralInference,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
@@ -118,7 +118,7 @@ func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 				TorchRunParams:    inference.DefaultAccelerateParams,
 				ModelRunParams:    mistralRunParams,
 				BaseCommand:       baseCommandPresetMistralInference,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,

@@ -73,7 +73,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
 				TorchRunParams:    inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
 			VLLM: model.VLLMParam{
@@ -135,7 +135,7 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
 				TorchRunParams:    inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
 			VLLM: model.VLLMParam{
@@ -180,7 +180,7 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
 				TorchRunParams:    inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
 			VLLM: model.VLLMParam{
@@ -235,7 +235,7 @@ func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
 				TorchRunParams:    inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
 			VLLM: model.VLLMParam{

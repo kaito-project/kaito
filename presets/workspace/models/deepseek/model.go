@@ -69,7 +69,7 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "deepseek-r1-distill-llama-8b",
+				ModelName:      PresetDeepSeekR1DistillLlama8BModel,
 				ModelRunParams: deepseekLlama8bRunParamsVLLM,
 			},
 			// vllm requires the model specification to be exactly divisible by
@@ -111,7 +111,7 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "deepseek-r1-distill-qwen-14b",
+				ModelName:      PresetDeepSeekR1DistillQwen14BModel,
 				ModelRunParams: deepseekQwen14bRunParamsVLLM,
 			},
 			// vllm requires the model specification to be exactly divisible by

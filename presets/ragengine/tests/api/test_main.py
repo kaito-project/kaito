@@ -182,7 +182,7 @@ def test_query_index_failure():
 def test_list_all_documents_success():
     response = client.get("/documents")
     assert response.status_code == 200
-    assert response.json() == {'documents': {}}
+    assert response.json() == {'count': 0, 'documents': {}, 'next_offset': None}
 
     request_data = {
         "index_name": "test_index",
@@ -200,7 +200,7 @@ def test_list_all_documents_success():
     assert "test_index" in response.json()["documents"]
     response_idx = response.json()["documents"]["test_index"]
     assert len(response_idx) == 2 # Two Documents Indexed
-    assert ({item["text"] for item in response_idx.values()}
+    assert ({item["text"] for item in response_idx}
             == {item["text"] for item in request_data["documents"]})
 
 

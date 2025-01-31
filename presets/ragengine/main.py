@@ -84,7 +84,7 @@ async def list_documents_in_index(
     index_name: str,
     limit: int = Query(10, ge=1, le=100, description="Maximum number of documents to return"),
     offset: int = Query(0, ge=0, description="Starting point for the document list"),
-    max_text_length: Optional[int] = Query(None, ge=1, description="Maximum text length to return"),
+    max_text_length: Optional[int] = Query(1000, ge=1, description="Maximum text length to return"),
 ):
     """
     Handles URL-encoded index names sent by the client.
@@ -120,7 +120,7 @@ async def list_documents_in_index(
 async def list_all_documents(
     limit: int = Query(10, ge=1, le=100, description="Maximum number of documents to return"),
     offset: int = Query(0, ge=0, description="Starting point for the document list"),
-    max_text_length: Optional[int] = Query(None, ge=1, description="Maximum text length to return"),
+    max_text_length: Optional[int] = Query(1000, ge=1, description="Maximum text length to return"),
 ):
     try:
         documents = await rag_ops.list_all_documents(

@@ -21,16 +21,41 @@ class TestFaissVectorStore(BaseVectorStoreTest):
     @pytest.mark.asyncio
     async def check_indexed_documents(self, vector_store_manager):
         expected_output = {
-            'index1': {"87117028123498eb7d757b1507aa3e840c63294f94c27cb5ec83c939dedb32fd": {
-                'hash': '1e64a170be48c45efeaa8667ab35919106da0489ec99a11d0029f2842db133aa',
-                'text': 'First document in index1'
-            }},
-            'index2': {"49b198c0e126a99e1975f17b564756c25b4ad691a57eda583e232fd9bee6de91": {
-                'hash': 'a222f875b83ce8b6eb72b3cae278b620de9bcc7c6b73222424d3ce979d1a463b',
-                'text': 'First document in index2'
-            }}
+            'index1': [
+                {
+                    'hash_value': '1e64a170be48c45efeaa8667ab35919106da0489ec99a11d0029f2842db133aa',
+                    'text': 'First document in index1',
+                    'is_truncated': False,
+                    'metadata': {
+                        'type': 'text',
+                    },
+                }
+            ],
+            'index2': [
+                {
+                    'hash_value': 'a222f875b83ce8b6eb72b3cae278b620de9bcc7c6b73222424d3ce979d1a463b',
+                    'text': 'First document in index2',
+                    'is_truncated': False,
+                    'metadata': {
+                        'type': 'text',
+                    },
+                }
+            ]
         }
-        assert await vector_store_manager.list_all_documents() == expected_output
+
+        response = await vector_store_manager.list_all_documents(
+            limit=10,
+            offset=0,
+            max_text_length=1000
+        )
+        # Remove `doc_id` from response before asserting
+        def remove_doc_id(data):
+            return {
+                index: [{k: v for k, v in doc.items() if k != 'doc_id'} for doc in docs]
+                for index, docs in data.items()
+            }
+
+        assert remove_doc_id(response) == expected_output
 
     @property
     def expected_query_score(self):

@@ -6,7 +6,7 @@ variable "location" {
 
 variable "kaito_gpu_provisioner_version" {
   type        = string
-  default     = "0.2.1"
+  default     = "0.3.1"
   description = "kaito gpu provisioner version"
 }
 

@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.14.0"
+      version = "=4.16.0"
     }
 
     random = {
@@ -17,7 +17,7 @@ terraform {
 
     helm = {
       source  = "hashicorp/helm"
-      version = "=2.17.0"
+      version = "=3.0.0-pre1"
     }
   }
 }
@@ -40,7 +40,7 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = azurerm_kubernetes_cluster.example.kube_config.0.host
     username               = azurerm_kubernetes_cluster.example.kube_config.0.username
     password               = azurerm_kubernetes_cluster.example.kube_config.0.password

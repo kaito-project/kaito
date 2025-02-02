@@ -77,7 +77,7 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
 				TorchRunParams:    inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},
 			VLLM: model.VLLMParam{
@@ -130,7 +130,7 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
 				TorchRunParams:    inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},
 			VLLM: model.VLLMParam{
@@ -181,7 +181,7 @@ func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
 				TorchRunParams:    inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},
 			VLLM: model.VLLMParam{
@@ -234,7 +234,7 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
 				TorchRunParams:    inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},
 			VLLM: model.VLLMParam{
@@ -287,7 +287,7 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
 				TorchRunParams:    inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},
 			VLLM: model.VLLMParam{

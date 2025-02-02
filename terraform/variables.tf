@@ -6,13 +6,13 @@ variable "location" {
 
 variable "kaito_gpu_provisioner_version" {
   type        = string
-  default     = "0.2.1"
+  default     = "0.3.1"
   description = "kaito gpu provisioner version"
 }
 
 variable "kaito_workspace_version" {
   type        = string
-  default     = "0.4.1"
+  default     = "0.4.4"
   description = "kaito workspace version"
 }
 

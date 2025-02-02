@@ -54,8 +54,8 @@ var (
 		"gpu_ids":       DefaultGPUIds,
 	}
 
-	DefaultVLLMCommand         = "python3 /workspace/vllm/inference_api.py"
-	DefautTransformersMainFile = "/workspace/tfs/inference_api.py"
+	DefaultVLLMCommand          = "python3 /workspace/vllm/inference_api.py"
+	DefaultTransformersMainFile = "/workspace/tfs/inference_api.py"
 
 	DefaultImagePullSecrets = []corev1.LocalObjectReference{}
 )

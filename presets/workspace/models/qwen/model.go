@@ -53,7 +53,7 @@ func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 				TorchRunParams:    inference.DefaultAccelerateParams,
 				ModelRunParams:    qwenRunParams,
 				BaseCommand:       baseCommandPresetQwenInference,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,

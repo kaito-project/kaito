@@ -64,12 +64,12 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
 				TorchRunParams:    inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    deepseekLlama8bRunParams,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "/workspace/vllm/weights",
+				ModelName:      PresetDeepSeekR1DistillLlama8BModel,
 				ModelRunParams: deepseekLlama8bRunParamsVLLM,
 			},
 			// vllm requires the model specification to be exactly divisible by
@@ -106,12 +106,12 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
 				TorchRunParams:    inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    deepseekQwen14bRunParams,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "/workspace/vllm/weights",
+				ModelName:      PresetDeepSeekR1DistillQwen14BModel,
 				ModelRunParams: deepseekQwen14bRunParamsVLLM,
 			},
 			// vllm requires the model specification to be exactly divisible by

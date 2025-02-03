@@ -118,6 +118,7 @@ var _ = Describe("RAGEngine", func() {
 		validateAssociatedService(ragengineObj.ObjectMeta)
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+		time.Sleep(1000)
 
 	})
 })

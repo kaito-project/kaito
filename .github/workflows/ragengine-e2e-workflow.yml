@@ -80,6 +80,7 @@ jobs:
 
       - name: Install Helm
         uses: azure/setup-helm@v4
+
       
       - name: Install KAITO RAG Engine helm chart
         shell: bash
@@ -88,6 +89,14 @@ jobs:
           kubectl wait --for=condition=available deploy "kaito-ragengine" -n kaito-ragengine --timeout=300s
         env:
           REGISTRY: ${{ env.E2E_ACR_REGISTRY }}
+
+      - name: Create HF token secret in Kubernetes
+        run: |
+          kubectl create secret generic huggingface-token \
+            --from-literal=REMOTE_EMBEDDING_ACCESS_SECRET="${HF_TOKEN}" \
+            -n kaito-ragengine
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
       
       - name: Run e2e test
         run: |

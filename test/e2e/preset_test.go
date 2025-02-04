@@ -45,11 +45,7 @@ const (
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"
 )
 
-const (
-	maxRetries     = 5
-	initialBackoff = 1 * time.Second
-	maxBackoff     = 16 * time.Second
-)
+const curlPodName = "curl-debug-pod"
 
 var (
 	datasetImageName1     = "e2e-dataset"
@@ -617,120 +613,140 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 	})
 }
 
-// Retry function with exponential backoff
-func retryRequest(req *http.Request, client *http.Client) (*http.Response, error) {
-	var resp *http.Response
-	var err error
-	backoff := initialBackoff
+// Create a temporary debug pod with curl
+func createCurlDebugPod(namespace string) error {
+	By("Creating a temporary curl debug pod")
 
-	for i := 0; i < maxRetries; i++ {
-		resp, err = client.Do(req)
-		if err == nil && resp.StatusCode == http.StatusOK {
-			return resp, nil
-		}
-
-		if resp != nil {
-			resp.Body.Close()
-		}
-
-		fmt.Printf("Request failed (attempt %d/%d), retrying in %v...\n", i+1, maxRetries, backoff)
-		time.Sleep(backoff)
-		backoff *= 2
-		if backoff > maxBackoff {
-			backoff = maxBackoff
-		}
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      curlPodName,
+			Namespace: namespace,
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  "curl-container",
+					Image: "curlimages/curl",
+					Command: []string{
+						"sleep", "3600", // Keeps the pod running for a while
+					},
+				},
+			},
+			RestartPolicy: v1.RestartPolicyNever,
+		},
 	}
-	return nil, fmt.Errorf("request failed after %d retries: %v", maxRetries, err)
+
+	// Create the pod if it doesn't already exist
+	err := utils.TestingCluster.KubeClient.Create(context.TODO(), pod)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return fmt.Errorf("failed to create curl debug pod: %v", err)
+	}
+
+	// Wait for the pod to reach the Running state
+	Eventually(func() bool {
+		fetchedPod := &v1.Pod{}
+		err := utils.TestingCluster.KubeClient.Get(context.TODO(), client.ObjectKey{
+			Namespace: namespace,
+			Name:      curlPodName,
+		}, fetchedPod)
+		if err != nil {
+			return false
+		}
+		return fetchedPod.Status.Phase == v1.PodRunning
+	}, 60*time.Second, 2*time.Second).Should(BeTrue(), "Curl debug pod did not reach Running state")
+
+	return nil
+}
+
+func execCurlInPod(namespace string, cmd []string) (string, error) {
+	By(fmt.Sprintf("Executing curl command in %s", curlPodName))
+
+	// Retry with Eventually() in case the exec fails due to slow pod readiness
+	var stdout, stderr bytes.Buffer
+	Eventually(func() error {
+		stdout.Reset()
+		stderr.Reset()
+
+		req := utils.TestingCluster.KubeClientset.CoreV1().RESTClient().
+			Post().
+			Resource("pods").
+			Name(curlPodName).
+			Namespace(namespace).
+			SubResource("exec").
+			VersionedParams(&v1.PodExecOptions{
+				Container: "curl-container",
+				Command:   cmd,
+				Stdout:    true,
+				Stderr:    true,
+				TTY:       false,
+			}, metav1.ParameterCodec)
+
+		exec, err := remotecommand.NewSPDYExecutor(utils.TestingCluster.KubeConfig, "POST", req.URL())
+		if err != nil {
+			return fmt.Errorf("failed to initialize exec command: %v", err)
+		}
+
+		return exec.Stream(remotecommand.StreamOptions{
+			Stdout: &stdout,
+			Stderr: &stderr,
+		})
+	}, 30*time.Second, 2*time.Second).Should(Succeed(), "Failed to execute curl in debug pod")
+
+	return stdout.String(), nil
 }
 
 func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
-	By("Validating the /v1/models endpoint", func() {
-		serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/models",
-			workspaceObj.Name, namespaceName)
+	By("Validating the /v1/models endpoint using a curl debug pod")
 
-		// Get the model name directly from workspaceObj
-		if workspaceObj.Inference == nil || workspaceObj.Inference.Preset == nil {
-			Fail(fmt.Sprintf("No preset inference model found in workspace %s", workspaceObj.Name))
-		}
-		modelName := workspaceObj.Inference.Preset.Name // Dynamically retrieved
+	namespace := workspaceObj.Namespace
+	serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/models",
+		workspaceObj.Name, namespace)
 
-		req, err := http.NewRequest("GET", serviceURL, nil)
-		if err != nil {
-			Fail(fmt.Sprintf("Failed to create request: %v", err))
-		}
+	Expect(createCurlDebugPod(namespace)).To(Succeed(), "Failed to create curl debug pod")
 
-		client := &http.Client{Timeout: 10 * time.Second}
-		resp, err := retryRequest(req, client)
-		if err != nil {
-			Fail(fmt.Sprintf("Failed to send request to /v1/models: %v", err))
-		}
-		defer resp.Body.Close()
+	curlCmd := []string{"curl", "-s", "-X", "GET", serviceURL}
 
-		if resp.StatusCode != http.StatusOK {
-			Fail(fmt.Sprintf("Unexpected response code from /v1/models: %d", resp.StatusCode))
-		}
+	response, err := execCurlInPod(namespace, curlCmd)
+	Expect(err).ToNot(HaveOccurred(), "Failed to execute curl GET in debug pod")
 
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			Fail(fmt.Sprintf("Failed to read response body: %v", err))
-		}
+	fmt.Printf("Response from /v1/models: %s\n", response)
 
-		fmt.Printf("Response from /v1/models: %s\n", string(body))
+	modelName := workspaceObj.Inference.Preset.Name
+	expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
+	Expect(response).To(ContainSubstring(expectedModelID), "Expected model ID '%s' not found in response", modelName)
 
-		// Validate that the response contains the correct model ID from workspaceObj
-		expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
-		if !strings.Contains(string(body), expectedModelID) {
-			Fail(fmt.Sprintf("Expected model ID '%s' not found in response", modelName))
-		}
-	})
+	cleanupCurlDebugPod(namespace)
 }
 
+
 func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
-	By("Validating the /v1/completions endpoint", func() {
-		serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/completions",
-			workspaceObj.Name, namespaceName)
+	By("Validating the /v1/completions endpoint using a curl debug pod")
 
-		// Get the model name directly from workspaceObj
-		if workspaceObj.Inference == nil || workspaceObj.Inference.Preset == nil {
-			Fail(fmt.Sprintf("No preset inference model found in workspace %s", workspaceObj.Name))
-		}
-		modelName := workspaceObj.Inference.Preset.Name
+	namespace := workspaceObj.Namespace
+	serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/completions",
+		workspaceObj.Name, namespace)
 
-		requestBody := fmt.Sprintf(`{
+	modelName := workspaceObj.Inference.Preset.Name
+	requestBody := fmt.Sprintf(`{
             "model": "%s",
             "prompt": "What is Kubernetes?",
             "max_tokens": 7,
             "temperature": 0
         }`, modelName)
 
-		req, err := http.NewRequest("POST", serviceURL, bytes.NewBuffer([]byte(requestBody)))
-		if err != nil {
-			Fail(fmt.Sprintf("Failed to create request: %v", err))
-		}
-		req.Header.Set("Content-Type", "application/json")
+	Expect(createCurlDebugPod(namespace)).To(Succeed(), "Failed to create curl debug pod")
 
-		client := &http.Client{Timeout: 10 * time.Second}
-		resp, err := retryRequest(req, client)
-		if err != nil {
-			Fail(fmt.Sprintf("Failed to send request to /v1/completions: %v", err))
-		}
-		defer resp.Body.Close()
+	// Explicitly pass the curl command for POST request
+	curlCmd := []string{"curl", "-s", "-X", "POST", "-H", "Content-Type: application/json", "-d", requestBody, serviceURL}
 
-		if resp.StatusCode != http.StatusOK {
-			Fail(fmt.Sprintf("Unexpected response code from /v1/completions: %d", resp.StatusCode))
-		}
+	response, err := execCurlInPod(namespace, curlCmd)
+	Expect(err).ToNot(HaveOccurred(), "Failed to execute curl POST in debug pod")
 
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			Fail(fmt.Sprintf("Failed to read response body: %v", err))
-		}
+	fmt.Printf("Response from /v1/completions: %s\n", response)
 
-		fmt.Printf("Response from /v1/completions: %s\n", string(body))
+	Expect(response).To(ContainSubstring(`"object":"text_completion"`), "Expected 'text_completion' object not found in response")
 
-		if !strings.Contains(string(body), `"object":"text_completion"`) {
-			Fail("Expected 'text_completion' object not found in response")
-		}
-	})
+	cleanupCurlDebugPod(namespace)
 }
 
 func cleanupResources(workspaceObj *kaitov1alpha1.Workspace) {

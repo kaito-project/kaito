@@ -735,6 +735,7 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 		workspaceObj.Name, namespace)
 
 	Expect(createCurlDebugPod(namespace)).To(Succeed(), "Failed to create curl debug pod")
+	defer cleanupCurlDebugPod(namespace) // Ensure cleanup
 
 	curlCmd := []string{"curl", "-s", "-X", "GET", serviceURL}
 
@@ -746,8 +747,6 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 	modelName := workspaceObj.Inference.Preset.Name
 	expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
 	Expect(response).To(ContainSubstring(expectedModelID), "Expected model ID '%s' not found in response", modelName)
-
-	defer cleanupCurlDebugPod(namespace) // Ensure cleanup
 }
 
 func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
@@ -766,6 +765,7 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
         }`, modelName)
 
 	Expect(createCurlDebugPod(namespace)).To(Succeed(), "Failed to create curl debug pod")
+	defer cleanupCurlDebugPod(namespace) // Ensure cleanup
 
 	// Explicitly pass the curl command for POST request
 	curlCmd := []string{"curl", "-s", "-X", "POST", "-H", "Content-Type: application/json", "-d", requestBody, serviceURL}
@@ -776,8 +776,6 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 	fmt.Printf("Response from /v1/completions: %s\n", response)
 
 	Expect(response).To(ContainSubstring(`"object":"text_completion"`), "Expected 'text_completion' object not found in response")
-
-	defer cleanupCurlDebugPod(namespace) // Ensure cleanup
 }
 
 func cleanupResources(workspaceObj *kaitov1alpha1.Workspace) {

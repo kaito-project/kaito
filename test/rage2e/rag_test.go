@@ -110,6 +110,7 @@ var _ = Describe("RAGEngine", func() {
 	It("should create RAG with localembedding and huggingface API successfully", func() {
 		numOfReplica := 1
 
+		createAndValidateSecret()
 		ragengineObj := createLocalEmbeddingHFURLRAGEngine()
 
 		defer cleanupResources(nil, ragengineObj)
@@ -118,7 +119,6 @@ var _ = Describe("RAGEngine", func() {
 		validateAssociatedService(ragengineObj.ObjectMeta)
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
-		time.Sleep(1000)
 
 	})
 })
@@ -143,6 +143,35 @@ func createAndValidateWorkspace(workspaceObj *kaitov1alpha1.Workspace) {
 			return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
 		}, utils.PollTimeout, utils.PollInterval).
 			Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+	})
+}
+
+func createAndValidateSecret() {
+	hfToken := os.Getenv("HF_TOKEN")
+	GinkgoWriter.Printf("HF_TOKEN %q \n", hfToken)
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "huggingface-token",
+			Namespace: namespaceName,
+		},
+		Data: map[string][]byte{
+			"REMOTE_EMBEDDING_ACCESS_SECRET": []byte(hfToken),
+		},
+		Type: v1.SecretTypeOpaque,
+	}
+	By("Creating secret", func() {
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, secret, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create secret   %s", secret.Name)
+
+		By("Validating secret creation", func() {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: secret.Namespace,
+				Name:      secret.Name,
+			}, secret, &client.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+		})
 	})
 }
 
@@ -235,7 +264,8 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
 			&kaitov1alpha1.InferenceServiceSpec{
-				URL: hfURL,
+				URL:          hfURL,
+				AccessSecret: "huggingface-token",
 			},
 		)
 

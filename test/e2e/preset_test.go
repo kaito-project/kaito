@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"math/rand"
 	"net/http"

@@ -5,14 +5,14 @@ package e2e
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
-	"io"
-	"net/http"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -650,10 +650,10 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 			workspaceObj.Name, namespaceName)
 
 		// Get the model name directly from workspaceObj
-		if workspaceObj.Spec.Inference.Preset == nil {
+		if workspaceObj.Inference == nil || workspaceObj.Inference.Preset == nil {
 			Fail(fmt.Sprintf("No preset inference model found in workspace %s", workspaceObj.Name))
 		}
-		modelName := workspaceObj.Spec.Inference.Preset.Name
+		modelName := workspaceObj.Inference.Preset.Name
 
 		requestBody := fmt.Sprintf(`{
             "model": "%s",

@@ -4,6 +4,7 @@
 package e2e
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"

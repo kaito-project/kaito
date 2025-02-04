@@ -124,3 +124,51 @@ class BaseVectorStoreTest(ABC):
 
         await vector_store_manager._persist_all()
         assert os.path.exists(VECTOR_DB_PERSIST_DIR)
+
+    @pytest.mark.asyncio
+    async def test_list_documents_pagination(self, vector_store_manager):
+        """Test various pagination scenarios with different limit and offset values."""
+        # Create multiple documents
+        documents = [
+            Document(text=f"Document {i}", metadata={"type": "text"})
+            for i in range(10)
+        ]
+        
+        await vector_store_manager.index_documents("test_index", documents)
+
+        # 1. Offset 0, Limit 5 (Basic Case)
+        result = await vector_store_manager.list_documents_paginated(limit=5, offset=0)
+        assert len(result["test_index"]) == 5
+
+        # 2. Offset 5, Limit 5 (Next Batch)
+        result = await vector_store_manager.list_documents_paginated(limit=5, offset=5)
+        assert len(result["test_index"]) == 5
+
+        # 3. Offset at max (Empty Case)
+        result = await vector_store_manager.list_documents_paginated(limit=5, offset=10)
+        assert "test_index" not in result or len(result["test_index"]) == 0
+
+        # 4. Limit larger than available docs
+        result = await vector_store_manager.list_documents_paginated(limit=15, offset=0)
+        assert len(result["test_index"]) == 10  # Should return only available docs
+
+        # 5. Limit exactly matches available docs
+        result = await vector_store_manager.list_documents_paginated(limit=10, offset=0)
+        assert len(result["test_index"]) == 10
+
+        # 6. Limit of 1 (Single-Doc Retrieval)
+        result = await vector_store_manager.list_documents_paginated(limit=1, offset=0)
+        assert len(result["test_index"]) == 1
+
+        # 7. max_text_length truncation check
+        truncated_result = await vector_store_manager.list_documents_paginated(limit=1, offset=0, max_text_length=5)
+        assert len(truncated_result["test_index"][0]["text"]) == 5  # Ensure truncation
+
+        # 8. Limit + offset spanning multiple indexes
+        await vector_store_manager.index_documents("another_index", documents)
+        result = await vector_store_manager.list_documents_paginated(limit=6, offset=8)
+        assert sum(len(docs) for docs in result.values()) == 6  # Ensure documents split across indexes
+
+        # 9. max_text_length is None (Full text should return)
+        full_text_result = await vector_store_manager.list_documents_paginated(limit=1, offset=0, max_text_length=None)
+        assert "Document" in full_text_result["test_index"][0]["text"]  # Ensure no truncation

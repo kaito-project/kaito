@@ -682,7 +682,7 @@ func execCurlInPod(namespace string, cmd []string) (string, error) {
 		stdout.Reset()
 		stderr.Reset()
 
-		req := utils.TestingCluster.KubeClientset.CoreV1().RESTClient().
+		req := utils.TestingCluster.KubeClient.RESTClient().
 			Post().
 			Resource("pods").
 			Name(curlPodName).

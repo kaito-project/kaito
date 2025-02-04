@@ -45,6 +45,12 @@ const (
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"
 )
 
+const (
+	maxRetries     = 5
+	initialBackoff = 1 * time.Second
+	maxBackoff     = 16 * time.Second
+)
+
 var (
 	datasetImageName1     = "e2e-dataset"
 	fullDatasetImageName1 = utils.GetEnv("E2E_ACR_REGISTRY") + "/" + datasetImageName1 + ":0.0.1"
@@ -611,6 +617,32 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 	})
 }
 
+// Retry function with exponential backoff
+func retryRequest(req *http.Request, client *http.Client) (*http.Response, error) {
+	var resp *http.Response
+	var err error
+	backoff := initialBackoff
+
+	for i := 0; i < maxRetries; i++ {
+		resp, err = client.Do(req)
+		if err == nil && resp.StatusCode == http.StatusOK {
+			return resp, nil
+		}
+
+		if resp != nil {
+			resp.Body.Close()
+		}
+
+		fmt.Printf("Request failed (attempt %d/%d), retrying in %v...\n", i+1, maxRetries, backoff)
+		time.Sleep(backoff)
+		backoff *= 2
+		if backoff > maxBackoff {
+			backoff = maxBackoff
+		}
+	}
+	return nil, fmt.Errorf("request failed after %d retries: %v", maxRetries, err)
+}
+
 func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 	By("Validating the /v1/models endpoint", func() {
 		serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/models",
@@ -628,7 +660,7 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 		}
 
 		client := &http.Client{Timeout: 10 * time.Second}
-		resp, err := client.Do(req)
+		resp, err := retryRequest(req, client)
 		if err != nil {
 			Fail(fmt.Sprintf("Failed to send request to /v1/models: %v", err))
 		}
@@ -678,7 +710,7 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 		req.Header.Set("Content-Type", "application/json")
 
 		client := &http.Client{Timeout: 10 * time.Second}
-		resp, err := client.Do(req)
+		resp, err := retryRequest(req, client)
 		if err != nil {
 			Fail(fmt.Sprintf("Failed to send request to /v1/completions: %v", err))
 		}

@@ -33,6 +33,7 @@ var _ = BeforeSuite(func() {
 	GinkgoWriter.Printf("Namespace %q for e2e tests\n", namespaceName)
 
 	kaitoNamespace := os.Getenv("KAITO_NAMESPACE")
+	Expect(createCurlDebugPod(kaitoNamespace)).To(Succeed(), "Failed to create curl debug pod")
 
 	if nodeProvisionerName == "azkarpenter" {
 		karpenterNamespace := os.Getenv("KARPENTER_NAMESPACE")

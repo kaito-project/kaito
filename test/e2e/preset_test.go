@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/test/e2e/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/samber/lo"
@@ -22,10 +24,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"k8s.io/client-go/tools/remotecommand"
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/test/e2e/utils"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -674,7 +674,7 @@ func createCurlDebugPod(namespace string) error {
 func execCurlInPod(namespace string, cmd []string) (string, error) {
 	By(fmt.Sprintf("Executing curl command in %s", curlPodName))
 
-	// Get Kubernetes clientset
+	// Get Kubernetes clientset and config
 	coreClient, err := utils.GetK8sClientset()
 	if err != nil {
 		return "", fmt.Errorf("failed to get k8s clientset: %v", err)
@@ -686,38 +686,20 @@ func execCurlInPod(namespace string, cmd []string) (string, error) {
 		return "", fmt.Errorf("failed to get k8s config: %v", err)
 	}
 
-	// Retry execution in case of slow pod readiness
-	var stdout, stderr bytes.Buffer
-	Eventually(func() error {
-		stdout.Reset()
-		stderr.Reset()
+	// Use the existing ExecSync function
+	output, err := utils.ExecSync(context.TODO(), k8sConfig, coreClient, namespace, curlPodName, v1.PodExecOptions{
+		Container: "curl-container",
+		Command:   cmd,
+		Stdout:    true,
+		Stderr:    true,
+		TTY:       false,
+	})
 
-		req := coreClient.CoreV1().RESTClient().
-			Post().
-			Resource("pods").
-			Name(curlPodName).
-			Namespace(namespace).
-			SubResource("exec").
-			VersionedParams(&v1.PodExecOptions{
-				Container: "curl-container",
-				Command:   cmd,
-				Stdout:    true,
-				Stderr:    true,
-				TTY:       false,
-			}, metav1.ParameterCodec)
+	if err != nil {
+		return "", fmt.Errorf("failed to execute curl command: %w", err)
+	}
 
-		exec, err := remotecommand.NewSPDYExecutor(k8sConfig, "POST", req.URL())
-		if err != nil {
-			return fmt.Errorf("failed to initialize exec command: %v", err)
-		}
-
-		return exec.Stream(remotecommand.StreamOptions{
-			Stdout: &stdout,
-			Stderr: &stderr,
-		})
-	}, 30*time.Second, 2*time.Second).Should(Succeed(), "Failed to execute curl in debug pod")
-
-	return stdout.String(), nil
+	return output, nil
 }
 
 // Cleanup the debug pod after use
@@ -743,9 +725,6 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 	namespace := workspaceObj.Namespace
 	serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/models",
 		workspaceObj.Name, namespace)
-
-	Expect(createCurlDebugPod(namespace)).To(Succeed(), "Failed to create curl debug pod")
-	defer cleanupCurlDebugPod(namespace) // Ensure cleanup
 
 	curlCmd := []string{"curl", "-s", "-X", "GET", serviceURL}
 
@@ -773,9 +752,6 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
             "max_tokens": 7,
             "temperature": 0
         }`, modelName)
-
-	Expect(createCurlDebugPod(namespace)).To(Succeed(), "Failed to create curl debug pod")
-	defer cleanupCurlDebugPod(namespace) // Ensure cleanup
 
 	// Explicitly pass the curl command for POST request
 	curlCmd := []string{"curl", "-s", "-X", "POST", "-H", "Content-Type: application/json", "-d", requestBody, serviceURL}

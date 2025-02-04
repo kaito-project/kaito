@@ -609,85 +609,85 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 }
 
 func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
-    By("Validating the /v1/models endpoint", func() {
-        serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/models",
-            workspaceObj.Name, namespaceName)
+	By("Validating the /v1/models endpoint", func() {
+		serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/models",
+			workspaceObj.Name, namespaceName)
 
-        req, err := http.NewRequest("GET", serviceURL, nil)
-        if err != nil {
-            Fail(fmt.Sprintf("Failed to create request: %v", err))
-        }
+		req, err := http.NewRequest("GET", serviceURL, nil)
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to create request: %v", err))
+		}
 
-        client := &http.Client{Timeout: 10 * time.Second}
-        resp, err := client.Do(req)
-        if err != nil {
-            Fail(fmt.Sprintf("Failed to send request to /v1/models: %v", err))
-        }
-        defer resp.Body.Close()
+		client := &http.Client{Timeout: 10 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to send request to /v1/models: %v", err))
+		}
+		defer resp.Body.Close()
 
-        if resp.StatusCode != http.StatusOK {
-            Fail(fmt.Sprintf("Unexpected response code from /v1/models: %d", resp.StatusCode))
-        }
+		if resp.StatusCode != http.StatusOK {
+			Fail(fmt.Sprintf("Unexpected response code from /v1/models: %d", resp.StatusCode))
+		}
 
-        body, err := io.ReadAll(resp.Body)
-        if err != nil {
-            Fail(fmt.Sprintf("Failed to read response body: %v", err))
-        }
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to read response body: %v", err))
+		}
 
-        fmt.Printf("Response from /v1/models: %s\n", string(body))
+		fmt.Printf("Response from /v1/models: %s\n", string(body))
 
-        if !strings.Contains(string(body), `"id":"phi-3-mini-128k-instruct"`) {
-            Fail("Expected model ID 'phi-3-mini-128k-instruct' not found in response")
-        }
-    })
+		if !strings.Contains(string(body), `"id":"phi-3-mini-128k-instruct"`) {
+			Fail("Expected model ID 'phi-3-mini-128k-instruct' not found in response")
+		}
+	})
 }
 
 func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
-    By("Validating the /v1/completions endpoint", func() {
-        serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/completions",
-            workspaceObj.Name, namespaceName)
+	By("Validating the /v1/completions endpoint", func() {
+		serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/completions",
+			workspaceObj.Name, namespaceName)
 
-        // Get the model name directly from workspaceObj
-        if workspaceObj.Spec.Inference.Preset == nil {
-            Fail(fmt.Sprintf("No preset inference model found in workspace %s", workspaceObj.Name))
-        }
-        modelName := workspaceObj.Spec.Inference.Preset.Name
+		// Get the model name directly from workspaceObj
+		if workspaceObj.Spec.Inference.Preset == nil {
+			Fail(fmt.Sprintf("No preset inference model found in workspace %s", workspaceObj.Name))
+		}
+		modelName := workspaceObj.Spec.Inference.Preset.Name
 
-        requestBody := fmt.Sprintf(`{
+		requestBody := fmt.Sprintf(`{
             "model": "%s",
             "prompt": "What is Kubernetes?",
             "max_tokens": 7,
             "temperature": 0
         }`, modelName)
 
-        req, err := http.NewRequest("POST", serviceURL, bytes.NewBuffer([]byte(requestBody)))
-        if err != nil {
-            Fail(fmt.Sprintf("Failed to create request: %v", err))
-        }
-        req.Header.Set("Content-Type", "application/json")
+		req, err := http.NewRequest("POST", serviceURL, bytes.NewBuffer([]byte(requestBody)))
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to create request: %v", err))
+		}
+		req.Header.Set("Content-Type", "application/json")
 
-        client := &http.Client{Timeout: 10 * time.Second}
-        resp, err := client.Do(req)
-        if err != nil {
-            Fail(fmt.Sprintf("Failed to send request to /v1/completions: %v", err))
-        }
-        defer resp.Body.Close()
+		client := &http.Client{Timeout: 10 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to send request to /v1/completions: %v", err))
+		}
+		defer resp.Body.Close()
 
-        if resp.StatusCode != http.StatusOK {
-            Fail(fmt.Sprintf("Unexpected response code from /v1/completions: %d", resp.StatusCode))
-        }
+		if resp.StatusCode != http.StatusOK {
+			Fail(fmt.Sprintf("Unexpected response code from /v1/completions: %d", resp.StatusCode))
+		}
 
-        body, err := io.ReadAll(resp.Body)
-        if err != nil {
-            Fail(fmt.Sprintf("Failed to read response body: %v", err))
-        }
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to read response body: %v", err))
+		}
 
-        fmt.Printf("Response from /v1/completions: %s\n", string(body))
+		fmt.Printf("Response from /v1/completions: %s\n", string(body))
 
-        if !strings.Contains(string(body), `"object":"text_completion"`) {
-            Fail("Expected 'text_completion' object not found in response")
-        }
-    })
+		if !strings.Contains(string(body), `"object":"text_completion"`) {
+			Fail("Expected 'text_completion' object not found in response")
+		}
+	})
 }
 
 func cleanupResources(workspaceObj *kaitov1alpha1.Workspace) {

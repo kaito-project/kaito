@@ -5,6 +5,7 @@ package e2e
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -613,9 +614,22 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 	})
 }
 
-// Create a temporary debug pod with curl
+// Create a temporary debug pod with curl if it doesn't already exist
 func createCurlDebugPod(namespace string) error {
 	By("Creating a temporary curl debug pod")
+
+	existingPod := &v1.Pod{}
+	err := utils.TestingCluster.KubeClient.Get(context.TODO(), client.ObjectKey{
+		Namespace: namespace,
+		Name:      curlPodName,
+	}, existingPod)
+
+	if err == nil {
+		By(fmt.Sprintf("Debug pod %s already exists", curlPodName))
+		return nil
+	} else if !errors.IsNotFound(err) {
+		return fmt.Errorf("failed to check existing pod: %v", err)
+	}
 
 	pod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -628,7 +642,7 @@ func createCurlDebugPod(namespace string) error {
 					Name:  "curl-container",
 					Image: "curlimages/curl",
 					Command: []string{
-						"sleep", "3600", // Keeps the pod running for a while
+						"sleep", "3600", // Keeps the pod running for long enough
 					},
 				},
 			},
@@ -636,13 +650,13 @@ func createCurlDebugPod(namespace string) error {
 		},
 	}
 
-	// Create the pod if it doesn't already exist
-	err := utils.TestingCluster.KubeClient.Create(context.TODO(), pod)
-	if err != nil && !errors.IsAlreadyExists(err) {
+	// Create the pod
+	err = utils.TestingCluster.KubeClient.Create(context.TODO(), pod)
+	if err != nil {
 		return fmt.Errorf("failed to create curl debug pod: %v", err)
 	}
 
-	// Wait for the pod to reach the Running state
+	// Wait for the pod to be Running
 	Eventually(func() bool {
 		fetchedPod := &v1.Pod{}
 		err := utils.TestingCluster.KubeClient.Get(context.TODO(), client.ObjectKey{
@@ -658,6 +672,7 @@ func createCurlDebugPod(namespace string) error {
 	return nil
 }
 
+// Execute a curl command inside the debug pod
 func execCurlInPod(namespace string, cmd []string) (string, error) {
 	By(fmt.Sprintf("Executing curl command in %s", curlPodName))
 
@@ -695,6 +710,23 @@ func execCurlInPod(namespace string, cmd []string) (string, error) {
 	return stdout.String(), nil
 }
 
+// Cleanup the debug pod after use
+func cleanupCurlDebugPod(namespace string) {
+	By("Cleaning up curl debug pod")
+
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      curlPodName,
+			Namespace: namespace,
+		},
+	}
+
+	err := utils.TestingCluster.KubeClient.Delete(context.TODO(), pod)
+	if err != nil && !errors.IsNotFound(err) {
+		GinkgoWriter.Printf("Failed to delete debug pod: %v\n", err)
+	}
+}
+
 func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 	By("Validating the /v1/models endpoint using a curl debug pod")
 
@@ -715,9 +747,8 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 	expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
 	Expect(response).To(ContainSubstring(expectedModelID), "Expected model ID '%s' not found in response", modelName)
 
-	cleanupCurlDebugPod(namespace)
+	defer cleanupCurlDebugPod(namespace) // Ensure cleanup
 }
-
 
 func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 	By("Validating the /v1/completions endpoint using a curl debug pod")
@@ -746,7 +777,7 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 
 	Expect(response).To(ContainSubstring(`"object":"text_completion"`), "Expected 'text_completion' object not found in response")
 
-	cleanupCurlDebugPod(namespace)
+	defer cleanupCurlDebugPod(namespace) // Ensure cleanup
 }
 
 func cleanupResources(workspaceObj *kaitov1alpha1.Workspace) {

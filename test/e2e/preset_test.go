@@ -700,23 +700,6 @@ func execCurlInPod(namespace string, cmd []string) (string, error) {
 	return output, nil
 }
 
-// Cleanup the debug pod after use
-func cleanupCurlDebugPod(namespace string) {
-	By("Cleaning up curl debug pod")
-
-	pod := &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      curlPodName,
-			Namespace: namespace,
-		},
-	}
-
-	err := utils.TestingCluster.KubeClient.Delete(context.TODO(), pod)
-	if err != nil && !errors.IsNotFound(err) {
-		GinkgoWriter.Printf("Failed to delete debug pod: %v\n", err)
-	}
-}
-
 func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 	By("Validating the /v1/models endpoint using a curl debug pod")
 

@@ -53,7 +53,7 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 				TorchRunParams:    inference.DefaultAccelerateParams,
 				ModelRunParams:    phiRunParams,
 				BaseCommand:       baseCommandPresetPhiInference,
-				InferenceMainFile: inference.DefautTransformersMainFile,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,

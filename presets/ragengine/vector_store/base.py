@@ -222,7 +222,7 @@ class BaseVectorStore(ABC):
 
         return {doc["doc_id"]: doc for doc in docs if isinstance(doc, dict)}
 
-    async def list_all_documents(
+    async def list_documents_paginated(
             self,
             limit: int,
             offset: int,

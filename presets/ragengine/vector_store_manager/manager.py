@@ -42,13 +42,13 @@ class VectorStoreManager:
             max_text_length
         )
 
-    async def list_all_documents(self, 
+    async def list_documents_paginated(self, 
             limit: int,
             offset: int,
             max_text_length: int
     ) -> Dict[str, List[Dict[str, any]]]:
         """List all documents."""
-        return await self.vector_store.list_all_documents(
+        return await self.vector_store.list_documents_paginated(
             limit,
             offset,
             max_text_length

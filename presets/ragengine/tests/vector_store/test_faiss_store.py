@@ -43,7 +43,7 @@ class TestFaissVectorStore(BaseVectorStoreTest):
             ]
         }
 
-        response = await vector_store_manager.list_all_documents(
+        response = await vector_store_manager.list_documents_paginated(
             limit=10,
             offset=0,
             max_text_length=1000

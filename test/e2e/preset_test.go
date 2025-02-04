@@ -676,13 +676,25 @@ func createCurlDebugPod(namespace string) error {
 func execCurlInPod(namespace string, cmd []string) (string, error) {
 	By(fmt.Sprintf("Executing curl command in %s", curlPodName))
 
-	// Retry with Eventually() in case the exec fails due to slow pod readiness
+	// Get Kubernetes clientset
+	coreClient, err := utils.GetK8sClientset()
+	if err != nil {
+		return "", fmt.Errorf("failed to get k8s clientset: %v", err)
+	}
+
+	// Get REST config for creating the SPDYExecutor
+	k8sConfig, err := utils.GetK8sConfig()
+	if err != nil {
+		return "", fmt.Errorf("failed to get k8s config: %v", err)
+	}
+
+	// Retry execution in case of slow pod readiness
 	var stdout, stderr bytes.Buffer
 	Eventually(func() error {
 		stdout.Reset()
 		stderr.Reset()
 
-		req := utils.GetK8sClientset().CoreV1().RESTClient().
+		req := coreClient.CoreV1().RESTClient().
 			Post().
 			Resource("pods").
 			Name(curlPodName).
@@ -696,7 +708,7 @@ func execCurlInPod(namespace string, cmd []string) (string, error) {
 				TTY:       false,
 			}, metav1.ParameterCodec)
 
-		exec, err := remotecommand.NewSPDYExecutor(utils.TestingCluster.KubeConfig, "POST", req.URL())
+		exec, err := remotecommand.NewSPDYExecutor(k8sConfig, "POST", req.URL())
 		if err != nil {
 			return fmt.Errorf("failed to initialize exec command: %v", err)
 		}

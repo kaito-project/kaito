@@ -616,6 +616,12 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 		serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/models",
 			workspaceObj.Name, namespaceName)
 
+		// Get the model name directly from workspaceObj
+		if workspaceObj.Inference == nil || workspaceObj.Inference.Preset == nil {
+			Fail(fmt.Sprintf("No preset inference model found in workspace %s", workspaceObj.Name))
+		}
+		modelName := workspaceObj.Inference.Preset.Name // Dynamically retrieved
+
 		req, err := http.NewRequest("GET", serviceURL, nil)
 		if err != nil {
 			Fail(fmt.Sprintf("Failed to create request: %v", err))
@@ -639,8 +645,10 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 
 		fmt.Printf("Response from /v1/models: %s\n", string(body))
 
-		if !strings.Contains(string(body), `"id":"phi-3-mini-128k-instruct"`) {
-			Fail("Expected model ID 'phi-3-mini-128k-instruct' not found in response")
+		// Validate that the response contains the correct model ID from workspaceObj
+		expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
+		if !strings.Contains(string(body), expectedModelID) {
+			Fail(fmt.Sprintf("Expected model ID '%s' not found in response", modelName))
 		}
 	})
 }

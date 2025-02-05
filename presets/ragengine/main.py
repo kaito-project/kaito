@@ -187,6 +187,7 @@ def list_indexes():
             "metadata": {"author": "John Doe"},
             "is_truncated": true
           }
+          ...
         ]
       },
       "count": 5,
@@ -253,7 +254,17 @@ async def list_documents_in_index(
             "text": "Shortened sample document...",
             "metadata": {"category": "example"},
             "is_truncated": true
-          }
+          },
+          ...
+        ],
+        "another_index": [
+          {
+            "doc_id": "ghijkl",
+            "text": "Another sample document...",
+            "metadata": {"category": "example"},
+            "is_truncated": false
+          },
+          ...
         ]
       },
       "count": 5,

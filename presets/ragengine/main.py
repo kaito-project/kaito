@@ -173,7 +173,7 @@ def list_indexes():
 
     ## Request Example:
     ```
-    GET /indexes/test_index/documents?limit=5&offset=0&max_text_length=500
+    GET /indexes/test_index/documents?limit=5&offset=5&max_text_length=500
     ```
 
     ## Response Example:

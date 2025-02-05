@@ -33,7 +33,7 @@ class VectorStoreManager:
             limit: int,
             offset: int,
             max_text_length: int
-    ) -> Dict[str, List[Dict[str, Any]]]:
+    ) -> List[Dict[str, Any]]:
         """List all documents in index."""
         return await self.vector_store.list_documents_in_index(
             index_name,

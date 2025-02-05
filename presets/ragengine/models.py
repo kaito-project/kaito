@@ -18,7 +18,7 @@ class DocumentResponse(BaseModel):
     is_truncated: bool = False
 
 class ListDocumentsResponse(BaseModel):
-    documents: Dict[str, List[DocumentResponse]] # Mapping of index names to DocumentResponse
+    documents: List[DocumentResponse] # List of DocumentResponses
     count: int  # Number of documents in the current response
 
 class IndexRequest(BaseModel):

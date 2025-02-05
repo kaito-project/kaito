@@ -201,17 +201,13 @@ def test_list_documents_in_index_success():
 
     # Retrieve documents for the specific index
     response = client.get(f"/indexes/{index_name}/documents")
-    print(response.json())
     assert response.status_code == 200
     response_json = response.json()
 
-    # Ensure documents exist in the specific index
-    assert index_name in response_json["documents"]
-    response_idx = response_json["documents"][index_name]
-
-    # Validate retrieved documents
-    assert len(response_idx) == 2  # Two Documents Indexed
-    assert ({item["text"] for item in response_idx}
+    # Ensure documents exist correctly in the specific index
+    assert response_json["count"] == 2
+    assert len(response_json["documents"]) == 2
+    assert ({item["text"] for item in response_json["documents"]}
             == {item["text"] for item in request_data["documents"]})
 
 

@@ -20,31 +20,27 @@ class TestFaissVectorStore(BaseVectorStoreTest):
 
     @pytest.mark.asyncio
     async def check_indexed_documents(self, vector_store_manager):
-        expected_output_1 = {
-            'index1': [
-                {
-                    'hash_value': '1e64a170be48c45efeaa8667ab35919106da0489ec99a11d0029f2842db133aa',
-                    'text': 'First document in index1',
-                    'is_truncated': False,
-                    'metadata': {
-                        'type': 'text',
-                    },
-                }
-            ]
-        }
+        expected_output_1 = [
+            {
+                'hash_value': '1e64a170be48c45efeaa8667ab35919106da0489ec99a11d0029f2842db133aa',
+                'text': 'First document in index1',
+                'is_truncated': False,
+                'metadata': {
+                    'type': 'text',
+                },
+            }
+        ]
 
-        expected_output_2 = {
-            'index2': [
-                {
-                    'hash_value': 'a222f875b83ce8b6eb72b3cae278b620de9bcc7c6b73222424d3ce979d1a463b',
-                    'text': 'First document in index2',
-                    'is_truncated': False,
-                    'metadata': {
-                        'type': 'text',
-                    },
-                }
-            ]
-        }
+        expected_output_2 = [
+            {
+                'hash_value': 'a222f875b83ce8b6eb72b3cae278b620de9bcc7c6b73222424d3ce979d1a463b',
+                'text': 'First document in index2',
+                'is_truncated': False,
+                'metadata': {
+                    'type': 'text',
+                },
+            }
+        ]
 
         for index, expected_output in zip(["index1", "index2"], [expected_output_1, expected_output_2]):
             response = await vector_store_manager.list_documents_in_index(
@@ -55,15 +51,10 @@ class TestFaissVectorStore(BaseVectorStoreTest):
             )
 
             # Remove "doc_id" from each document in the specified index
-            def remove_doc_id(data: dict, index_name: str) -> dict:
-                if index_name in data:
-                    data[index_name] = [
-                        {k: v for k, v in doc.items() if k != "doc_id"}
-                        for doc in data[index_name]
-                    ]
-                return data
+            def remove_doc_id(data: list) -> list:
+                return [{k: v for k, v in doc.items() if k != "doc_id"} for doc in data]
 
-            assert remove_doc_id(response, index) == expected_output
+            assert remove_doc_id(response) == expected_output
 
     @property
     def expected_query_score(self):

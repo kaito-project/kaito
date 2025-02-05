@@ -203,7 +203,7 @@ class BaseVectorStore(ABC):
             limit: int, 
             offset: int, 
             max_text_length: Optional[int] = None
-        ) -> Dict[str, List[Dict[str, Any]]]:
+        ) -> List[Dict[str, Any]]:
         """
         Return a dictionary of document metadata for the given index.
         """
@@ -219,11 +219,9 @@ class BaseVectorStore(ABC):
             *(self._process_document(doc_id, doc_stub, doc_store, max_text_length) for doc_id, doc_stub in docs_items),
             return_exceptions=True
         )
-        # Ensure only valid documents are included
-        filtered_docs = [doc for doc in docs if isinstance(doc, dict)]
 
-        # Return index_name mapped to a list of documents
-        return {index_name: filtered_docs}
+        # Return list of valid documents
+        return [doc for doc in docs if isinstance(doc, dict)]
 
     async def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
         """Common logic for checking document existence."""

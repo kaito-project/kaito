@@ -8,12 +8,18 @@ from pydantic import BaseModel, Field, model_validator
 
 class Document(BaseModel):
     text: str
-    metadata: Optional[dict] = {}
+    metadata: Optional[dict] = Field(default_factory=dict)
 
 class DocumentResponse(BaseModel):
     doc_id: str
     text: str
-    metadata: Optional[dict] = None
+    hash_value: Optional[str] = None
+    metadata: Optional[dict] = Field(default_factory=dict)
+    is_truncated: bool = False
+
+class ListDocumentsResponse(BaseModel):
+    documents: List[DocumentResponse] # List of DocumentResponses
+    count: int  # Number of documents in the current response
 
 class IndexRequest(BaseModel):
     index_name: str
@@ -49,9 +55,6 @@ class QueryRequest(BaseModel):
             raise ValueError("Invalid configuration: 'top_n' for reranking cannot exceed 'top_k' from the RAG query.")
 
         return values
-
-class ListDocumentsResponse(BaseModel):
-    documents: Dict[str, Dict[str, Dict[str, str]]]
 
 # Define models for NodeWithScore, and QueryResponse
 class NodeWithScore(BaseModel):

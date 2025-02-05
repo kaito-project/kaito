@@ -124,3 +124,47 @@ class BaseVectorStoreTest(ABC):
 
         await vector_store_manager._persist_all()
         assert os.path.exists(VECTOR_DB_PERSIST_DIR)
+
+    @pytest.mark.asyncio
+    async def test_list_documents_in_index(self, vector_store_manager):
+        """Test various list document scenarios with different limit and offset values."""
+        index_name = "test_index"
+        # Create multiple documents
+        documents = [
+            Document(text=f"Document {i}", metadata={"type": "text"})
+            for i in range(10)
+        ]
+        
+        await vector_store_manager.index_documents(index_name, documents)
+
+        # 1. Offset 0, Limit 5 (Basic Case)
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=0)
+        assert len(result) == 5
+
+        # 2. Offset 5, Limit 5 (Next Batch)
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=5)
+        assert len(result) == 5
+
+        # 3. Offset at max (Empty Case)
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=10)
+        assert index_name not in result or len(result) == 0
+
+        # 4. Limit larger than available docs
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=15, offset=0)
+        assert len(result) == 10  # Should return only available docs
+
+        # 5. Limit exactly matches available docs
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=10, offset=0)
+        assert len(result) == 10
+
+        # 6. Limit of 1 (Single-Doc Retrieval)
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=1, offset=0)
+        assert len(result) == 1
+
+        # 7. max_text_length truncation check
+        truncated_result = await vector_store_manager.list_documents_in_index(index_name, limit=1, offset=0, max_text_length=5)
+        assert len(next(iter(truncated_result))['text']) == 5  # Ensure truncation
+
+        # 8. max_text_length is None (Full text should return)
+        full_text_result = await vector_store_manager.list_documents_in_index(index_name, limit=1, offset=0, max_text_length=None)
+        assert "Document" in next(iter(full_text_result))['text']  # Ensure no truncation

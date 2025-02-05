@@ -179,17 +179,20 @@ def list_indexes():
     ## Response Example:
     ```json
     {
-      "documents": {
-        "test_index": [
-          {
-            "doc_id": "123456",
-            "text": "Sample document text.",
-            "metadata": {"author": "John Doe"},
-            "is_truncated": true
-          }
-          ...
-        ]
-      },
+      "documents": [
+        {
+          "doc_id": "123456",
+          "text": "Sample document text.",
+          "metadata": {"author": "John Doe"},
+          "is_truncated": true
+        },
+        {
+          "doc_id": "123457",
+          "text": "Another document text.",
+          "metadata": {"author": "Jane Doe"},
+          "is_truncated": false
+        }
+      ],
       "count": 5
     }
     ```

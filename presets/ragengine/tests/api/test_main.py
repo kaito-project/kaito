@@ -179,13 +179,17 @@ def test_query_index_failure():
     assert response.json()["detail"] == "No such index: 'non_existent_index' exists."
 
 
-def test_list_all_documents_success():
-    response = client.get("/documents")
-    assert response.status_code == 200
-    assert response.json() == {'count': 0, 'documents': {}, 'next_offset': None}
+def test_list_documents_in_index_success():
+    index_name = "test_index"
+
+    # Ensure no documents are present initially
+    response = client.get(f"/indexes/{index_name}/documents")
+
+    assert response.status_code == 500
+    assert response.json() == {'detail': "Index 'test_index' not found."}
 
     request_data = {
-        "index_name": "test_index",
+        "index_name": index_name,
         "documents": [
             {"text": "This is a test document"},
             {"text": "Another test document"}
@@ -195,11 +199,18 @@ def test_list_all_documents_success():
     response = client.post("/index", json=request_data)
     assert response.status_code == 200
 
-    response = client.get("/documents")
+    # Retrieve documents for the specific index
+    response = client.get(f"/indexes/{index_name}/documents")
+    print(response.json())
     assert response.status_code == 200
-    assert "test_index" in response.json()["documents"]
-    response_idx = response.json()["documents"]["test_index"]
-    assert len(response_idx) == 2 # Two Documents Indexed
+    response_json = response.json()
+
+    # Ensure documents exist in the specific index
+    assert index_name in response_json["documents"]
+    response_idx = response_json["documents"][index_name]
+
+    # Validate retrieved documents
+    assert len(response_idx) == 2  # Two Documents Indexed
     assert ({item["text"] for item in response_idx}
             == {item["text"] for item in request_data["documents"]})
 

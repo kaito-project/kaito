@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Dict, List
+from typing import Dict, List, Any
 
 from ragengine.models import Document
 from ragengine.vector_store.base import BaseVectorStore
@@ -33,22 +33,10 @@ class VectorStoreManager:
             limit: int,
             offset: int,
             max_text_length: int
-    ) -> Dict[str, Dict[str, any]]:
+    ) -> Dict[str, List[Dict[str, Any]]]:
         """List all documents in index."""
         return await self.vector_store.list_documents_in_index(
             index_name,
-            limit,
-            offset,
-            max_text_length
-        )
-
-    async def list_documents_paginated(self, 
-            limit: int,
-            offset: int,
-            max_text_length: int
-    ) -> Dict[str, List[Dict[str, any]]]:
-        """List all documents."""
-        return await self.vector_store.list_documents_paginated(
             limit,
             offset,
             max_text_length

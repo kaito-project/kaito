@@ -20,7 +20,7 @@ class TestFaissVectorStore(BaseVectorStoreTest):
 
     @pytest.mark.asyncio
     async def check_indexed_documents(self, vector_store_manager):
-        expected_output = {
+        expected_output_1 = {
             'index1': [
                 {
                     'hash_value': '1e64a170be48c45efeaa8667ab35919106da0489ec99a11d0029f2842db133aa',
@@ -30,7 +30,10 @@ class TestFaissVectorStore(BaseVectorStoreTest):
                         'type': 'text',
                     },
                 }
-            ],
+            ]
+        }
+
+        expected_output_2 = {
             'index2': [
                 {
                     'hash_value': 'a222f875b83ce8b6eb72b3cae278b620de9bcc7c6b73222424d3ce979d1a463b',
@@ -43,19 +46,24 @@ class TestFaissVectorStore(BaseVectorStoreTest):
             ]
         }
 
-        response = await vector_store_manager.list_documents_paginated(
-            limit=10,
-            offset=0,
-            max_text_length=1000
-        )
-        # Remove `doc_id` from response before asserting
-        def remove_doc_id(data):
-            return {
-                index: [{k: v for k, v in doc.items() if k != 'doc_id'} for doc in docs]
-                for index, docs in data.items()
-            }
+        for index, expected_output in zip(["index1", "index2"], [expected_output_1, expected_output_2]):
+            response = await vector_store_manager.list_documents_in_index(
+                index,
+                limit=10,
+                offset=0,
+                max_text_length=1000
+            )
 
-        assert remove_doc_id(response) == expected_output
+            # Remove "doc_id" from each document in the specified index
+            def remove_doc_id(data: dict, index_name: str) -> dict:
+                if index_name in data:
+                    data[index_name] = [
+                        {k: v for k, v in doc.items() if k != "doc_id"}
+                        for doc in data[index_name]
+                    ]
+                return data
+
+            assert remove_doc_id(response, index) == expected_output
 
     @property
     def expected_query_score(self):

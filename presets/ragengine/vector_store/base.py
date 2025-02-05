@@ -3,7 +3,7 @@
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import hashlib
 import os
 import asyncio
@@ -203,7 +203,7 @@ class BaseVectorStore(ABC):
             limit: int, 
             offset: int, 
             max_text_length: Optional[int] = None
-        ) -> Dict[str, Dict[str, any]]:
+        ) -> Dict[str, List[Dict[str, Any]]]:
         """
         Return a dictionary of document metadata for the given index.
         """
@@ -219,62 +219,11 @@ class BaseVectorStore(ABC):
             *(self._process_document(doc_id, doc_stub, doc_store, max_text_length) for doc_id, doc_stub in docs_items),
             return_exceptions=True
         )
+        # Ensure only valid documents are included
+        filtered_docs = [doc for doc in docs if isinstance(doc, dict)]
 
-        return {doc["doc_id"]: doc for doc in docs if isinstance(doc, dict)}
-
-    async def list_documents_paginated(
-            self,
-            limit: int,
-            offset: int,
-            max_text_length: Optional[int] = None
-    ) -> Dict[str, List[Dict[str, any]]]:
-        """
-        List documents across all indexes with fair distribution and global pagination.
-        """
-        index_names = list(self.index_map.keys())
-        if not index_names:
-            return {}  # No indexes available
-
-        result: Dict[str, List[Dict[str, any]]] = defaultdict(list)
-
-        # Calculate per-index limits and offsets
-        docs_per_index = limit // len(index_names)
-        remainder = limit % len(index_names)
-        offset_per_index = offset // len(index_names)
-        offset_remainder = offset % len(index_names)
-
-        # Iterate over indexes
-        for idx, index_name in enumerate(index_names):
-            if limit <= 0:  # Stop when the global limit is reached
-                break
-
-            vector_store_index = self.index_map[index_name]
-            doc_store = vector_store_index.docstore
-
-            # Adjust limit and offset for this index
-            index_limit = docs_per_index + (1 if idx < remainder else 0)
-            index_offset = offset_per_index + (1 if idx < offset_remainder else 0)
-
-            if index_limit <= 0:
-                continue
-
-            # Fetch document slices lazily
-            docs_items = islice(doc_store.docs.items(), index_offset, index_offset + index_limit)
-
-            # Process documents concurrently using a generator
-            docs = await asyncio.gather(
-                *(self._process_document(doc_id, doc_stub, doc_store, max_text_length) for doc_id, doc_stub in docs_items),
-                return_exceptions=True
-            )
-
-            # **Only add valid documents** to the result
-            valid_docs = [doc for doc in docs if isinstance(doc, dict)]
-            if valid_docs:
-                result[index_name].extend(valid_docs)
-
-            limit -= len(valid_docs)  # Decrement the remaining global limit
-
-        return result
+        # Return index_name mapped to a list of documents
+        return {index_name: filtered_docs}
 
     async def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
         """Common logic for checking document existence."""

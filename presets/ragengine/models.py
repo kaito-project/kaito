@@ -20,7 +20,6 @@ class DocumentResponse(BaseModel):
 class ListDocumentsResponse(BaseModel):
     documents: Dict[str, List[DocumentResponse]] # Mapping of index names to DocumentResponse
     count: int  # Number of documents in the current response
-    next_offset: Optional[int]  # Offset for the next batch of results, None if no more
 
 class IndexRequest(BaseModel):
     index_name: str

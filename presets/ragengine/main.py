@@ -217,80 +217,14 @@ async def list_documents_in_index(
         decoded_index_name = unquote(index_name)
         documents = await rag_ops.list_documents_in_index(
             index_name=decoded_index_name,
-            limit=limit+1, # Fetch one extra to check for more results
+            limit=limit,
             offset=offset,
             max_text_length=max_text_length
         )
-        has_more = len(documents) > limit
-        documents = dict(list(documents.items())[:limit]) # Limit the results to the requested count
 
         return ListDocumentsResponse(
             documents=documents,
-            count=len(documents),
-            next_offset=offset + limit if has_more else None
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get(
-    "/documents",
-    response_model=ListDocumentsResponse,
-    summary="List All Documents Across Indexes",
-    description="""
-    Retrieve a paginated list of documents across all indexes.
-
-    ## Request Example:
-    ```
-    GET /documents?limit=5&offset=0&max_text_length=200
-    ```
-
-    ## Response Example:
-    ```json
-    {
-      "documents": {
-        "test_index": [
-          {
-            "doc_id": "abcdef",
-            "text": "Shortened sample document...",
-            "metadata": {"category": "example"},
-            "is_truncated": true
-          },
-          ...
-        ],
-        "another_index": [
-          {
-            "doc_id": "ghijkl",
-            "text": "Another sample document...",
-            "metadata": {"category": "example"},
-            "is_truncated": false
-          },
-          ...
-        ]
-      },
-      "count": 5,
-      "next_offset": 5
-    }
-    ```
-    """,
-)
-async def list_documents_paginated(
-    limit: int = Query(10, ge=1, le=100, description="Maximum number of documents to return"),
-    offset: int = Query(0, ge=0, description="Starting point for the document list"),
-    max_text_length: Optional[int] = Query(1000, ge=1, description="Maximum text length to return"),
-):
-    try:
-        documents = await rag_ops.list_documents_paginated(
-            limit=limit+1, # Fetch one extra to check for more results
-            offset=offset,
-            max_text_length=max_text_length
-        )
-        has_more = len(documents) > limit
-        documents = dict(list(documents.items())[:limit]) # Limit the results to the requested count
-
-        return ListDocumentsResponse(
-            documents=documents,
-            count=len(documents),
-            next_offset=offset + limit if has_more else None
+            count=len(documents)
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

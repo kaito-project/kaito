@@ -190,8 +190,7 @@ def list_indexes():
           ...
         ]
       },
-      "count": 5,
-      "next_offset": 10
+      "count": 5
     }
     ```
     """,

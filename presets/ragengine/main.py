@@ -121,7 +121,7 @@ async def index_documents(request: IndexRequest):
     ## Response Example:
     ```json
     {
-      "response": "RAG is retrieval-augmented generation...",
+      "response": "...",
       "source_nodes": [{"node_id": "node1", "text": "RAG explanation...", "score": 0.95, "metadata": {}}],
       "metadata": {}
     }
@@ -202,7 +202,11 @@ async def list_documents_in_index(
     index_name: str,
     limit: int = Query(10, ge=1, le=100, description="Maximum number of documents to return"),
     offset: int = Query(0, ge=0, description="Starting point for the document list"),
-    max_text_length: Optional[int] = Query(1000, ge=1, description="Maximum text length to return"),
+    max_text_length: Optional[int] = Query(
+        1000, 
+        ge=1, 
+        description="Maximum text length to return **per document**. This does not impose a limit on the total length of all documents returned."
+    ),
 ):
     """
     Handles URL-encoded index names sent by the client.

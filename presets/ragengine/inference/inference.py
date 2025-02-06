@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import asyncio
 import logging
 import json
 import aiohttp
@@ -78,37 +79,32 @@ class Inference(CustomLLM):
 
     @llm_completion_callback()
     def complete(self, prompt: str, formatted: bool, stream: bool, **kwargs) -> CompletionResponse:
-        if stream:
-            # Since this is sync code, use asyncio.run to execute the async method
-            return asyncio.run(self.complete_async(prompt, **kwargs))
-        return self.complete_sync(prompt, **kwargs)
+        try:
+            if stream:
+                # Since this is sync code, use asyncio.run to execute the async method
+                return asyncio.run(self.complete_async(prompt, **kwargs))
+            return self.complete_sync(prompt, **kwargs)
+        finally:
+            # Clear params once we've returned the response
+            self.params = {}
 
     async def complete_async(self, prompt: str, **kwargs) -> CompletionResponseGen:
         """
         Handles asynchronous inference requests, including streaming.
         """
-        try:
-            # Return the async generator directly
-            return self.stream_complete(prompt, **kwargs)
-        finally:
-            # Clear params once we've returned the generator
-            self.params = {}
+        return self.stream_complete(prompt, **kwargs)
 
     def complete_sync(self, prompt: str, **kwargs) -> CompletionResponse:
         """
-        Handles synchronous requests with exception handling.
+        Handles synchronous requests.
         """
-        try:
-            if LLM_INFERENCE_URL.startswith(OPENAI_URL_PREFIX):
-                return self._openai_complete(prompt, **kwargs, **self.params)
-            elif LLM_INFERENCE_URL.startswith(HUGGINGFACE_URL_PREFIX):
-                return self._huggingface_remote_complete(prompt, **kwargs, **self.params)
-            else:
-                return self._custom_api_complete(prompt, **kwargs, **self.params)
-        finally:
-            # Clear params after the completion is done
-            self.params = {}
-
+        if LLM_INFERENCE_URL.startswith(OPENAI_URL_PREFIX):
+            return self._openai_complete(prompt, **kwargs, **self.params)
+        elif LLM_INFERENCE_URL.startswith(HUGGINGFACE_URL_PREFIX):
+            return self._huggingface_remote_complete(prompt, **kwargs, **self.params)
+        else:
+            return self._custom_api_complete(prompt, **kwargs, **self.params)
+    
     def _openai_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         return OpenAI(api_key=LLM_ACCESS_SECRET, **kwargs).complete(prompt)
 

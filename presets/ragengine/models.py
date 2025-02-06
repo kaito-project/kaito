@@ -39,6 +39,7 @@ class QueryRequest(BaseModel):
         default_factory=dict,
         description="Optional parameters for reranking, e.g., top_n, batch_size",
     )
+    stream: Optional[bool] = False
 
     @model_validator(mode="before")
     def validate_params(cls, values: Dict[str, Any]) -> Dict[str, Any]:

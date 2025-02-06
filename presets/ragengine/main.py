@@ -6,6 +6,7 @@ from vector_store_manager.manager import VectorStoreManager
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from models import (IndexRequest, ListDocumentsResponse,
                     QueryRequest, QueryResponse, DocumentResponse, HealthStatus)
 from vector_store.faiss_store import FaissVectorStoreHandler
@@ -132,8 +133,20 @@ async def query_index(request: QueryRequest):
     try:
         llm_params = request.llm_params or {}  # Default to empty dict if no params provided
         rerank_params = request.rerank_params or {}  # Default to empty dict if no params provided
+        stream = request.stream if hasattr(request, "stream") else False # Check if streaming is requested
+
+        if stream:
+            async def streaming_generator():
+                streaming_response = await rag_ops.query(
+                    request.index_name, request.query, request.top_k, llm_params, rerank_params, stream=True
+                )
+
+                async for chunk in streaming_response:
+                    yield chunk
+
+            return StreamingResponse(streaming_generator(), media_type="text/event-stream")
         return await rag_ops.query(
-            request.index_name, request.query, request.top_k, llm_params, rerank_params
+            request.index_name, request.query, request.top_k, llm_params, rerank_params, stream
         )
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue

@@ -19,10 +19,11 @@ class VectorStoreManager:
               query: str,
               top_k: int,
               llm_params: dict,
-              rerank_params: dict
+              rerank_params: dict,
+              stream: bool
     ):
         """Query the indexed documents."""
-        return await self.vector_store.query(index_name, query, top_k, llm_params, rerank_params)
+        return await self.vector_store.query(index_name, query, top_k, llm_params, rerank_params, stream)
 
     def list_indexes(self):
         """List all indexes."""

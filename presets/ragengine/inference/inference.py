@@ -2,8 +2,9 @@
 # Licensed under the MIT license.
 
 import logging
-from typing import Any
-from dataclasses import field
+import json
+import aiohttp
+from typing import Any, AsyncIterator
 from llama_index.core.llms import CustomLLM, CompletionResponse, LLMMetadata, CompletionResponseGen
 from llama_index.llms.openai import OpenAI
 from llama_index.core.llms.callbacks import llm_completion_callback
@@ -35,16 +36,42 @@ class Inference(CustomLLM):
         return self.params.get(key, default)
 
     @llm_completion_callback()
-    def stream_complete(self, prompt: str, **kwargs: Any) -> CompletionResponseGen:
-        pass
+    async def stream_complete(self, prompt: str, **kwargs: Any) -> CompletionResponseGen:
+        """
+        Asynchronous streaming completion method.
+        """
+        try:
+            async for chunk in self._custom_api_stream_complete(prompt, **kwargs, **self.params):
+                yield chunk
+        finally:
+            self.params = {}
+
+    async def _custom_api_stream_complete(self, prompt: str, **kwargs: Any) -> AsyncIterator[str]:
+        """
+        Async streaming request to the vLLM endpoint.
+        """
+        model = kwargs.pop("model", self._get_default_model())
+        data = {"prompt": prompt, **kwargs}
+        if model:
+            data["model"] = model
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(LLM_INFERENCE_URL, json=data, headers=DEFAULT_HEADERS) as resp:
+                async for line in resp.content:
+                    yield line.decode("utf-8")
 
     @llm_completion_callback()
-    def complete(self, prompt: str, formatted: bool, **kwargs) -> CompletionResponse:
+    def complete(self, prompt: str, formatted: bool, stream: bool = False, **kwargs) -> CompletionResponse:
+        """
+        Handles synchronous and streaming requests.
+        """
         try:
             if LLM_INFERENCE_URL.startswith(OPENAI_URL_PREFIX):
                 return self._openai_complete(prompt, **kwargs, **self.params)
             elif LLM_INFERENCE_URL.startswith(HUGGINGFACE_URL_PREFIX):
                 return self._huggingface_remote_complete(prompt, **kwargs, **self.params)
+            elif stream:
+                return self.stream_complete(prompt, **kwargs)
             else:
                 return self._custom_api_complete(prompt, **kwargs, **self.params)
         finally:
@@ -61,6 +88,9 @@ class Inference(CustomLLM):
         )
 
     def _custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
+        """
+        Non-streaming request to the vLLM endpoint.
+        """
         model = kwargs.pop("model", self._get_default_model())
         data = {"prompt": prompt, **kwargs}
         if model:
@@ -133,8 +163,6 @@ class Inference(CustomLLM):
         """
         Constructs and prints the equivalent curl command for debugging purposes.
         """
-        import json
-        # Construct curl command
         curl_command = (
                 f"curl -X POST {LLM_INFERENCE_URL} "
                 + " ".join([f'-H "{key}: {value}"' for key, value in {

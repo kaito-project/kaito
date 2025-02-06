@@ -138,13 +138,14 @@ async def query_index(request: QueryRequest):
         if stream:
             async def streaming_generator():
                 streaming_response = await rag_ops.query(
-                    request.index_name, request.query, request.top_k, llm_params, rerank_params, stream=True
+                    request.index_name, request.query, request.top_k, llm_params, rerank_params, stream
                 )
 
                 async for chunk in streaming_response:
-                    yield chunk
+                    yield f"data: {chunk}\n\n"  # SSE format (event-stream)
 
             return StreamingResponse(streaming_generator(), media_type="text/event-stream")
+        
         return await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params, stream
         )

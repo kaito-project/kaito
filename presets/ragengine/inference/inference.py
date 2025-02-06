@@ -57,7 +57,6 @@ class Inference(CustomLLM):
         data = {"prompt": prompt, **kwargs}
         if model:
             data["model"] = model
-
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(LLM_INFERENCE_URL, json=data, headers=DEFAULT_HEADERS) as resp:
@@ -78,17 +77,32 @@ class Inference(CustomLLM):
             yield f"Error: {str(e)}"
 
     @llm_completion_callback()
-    async def complete(self, prompt: str, formatted: bool, stream: bool = False, **kwargs) -> CompletionResponse:
+    def complete(self, prompt: str, formatted: bool, stream: bool, **kwargs) -> CompletionResponse:
+        if stream:
+            # Since this is sync code, use asyncio.run to execute the async method
+            return asyncio.run(self.complete_async(prompt, **kwargs))
+        return self.complete_sync(prompt, **kwargs)
+
+    async def complete_async(self, prompt: str, **kwargs) -> CompletionResponseGen:
         """
-        Handles synchronous and streaming requests with exception handling.
+        Handles asynchronous inference requests, including streaming.
+        """
+        try:
+            # Return the async generator directly
+            return self.stream_complete(prompt, **kwargs)
+        finally:
+            # Clear params once we've returned the generator
+            self.params = {}
+
+    def complete_sync(self, prompt: str, **kwargs) -> CompletionResponse:
+        """
+        Handles synchronous requests with exception handling.
         """
         try:
             if LLM_INFERENCE_URL.startswith(OPENAI_URL_PREFIX):
                 return self._openai_complete(prompt, **kwargs, **self.params)
             elif LLM_INFERENCE_URL.startswith(HUGGINGFACE_URL_PREFIX):
                 return self._huggingface_remote_complete(prompt, **kwargs, **self.params)
-            elif stream:
-                return await self.stream_complete(prompt, **kwargs)
             else:
                 return self._custom_api_complete(prompt, **kwargs, **self.params)
         finally:

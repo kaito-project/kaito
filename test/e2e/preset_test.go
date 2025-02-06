@@ -6,6 +6,13 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"log"
+	"math/rand"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 	. "github.com/onsi/ginkgo/v2"
@@ -16,13 +23,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"log"
-	"math/rand"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strconv"
-	"strings"
-	"time"
 )
 
 const (

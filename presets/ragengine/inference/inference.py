@@ -11,7 +11,7 @@ from llama_index.core.llms.callbacks import llm_completion_callback
 import requests
 from requests.exceptions import HTTPError
 from urllib.parse import urlparse, urljoin
-from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET #, LLM_RESPONSE_FIELD
+from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,32 +38,49 @@ class Inference(CustomLLM):
     @llm_completion_callback()
     async def stream_complete(self, prompt: str, **kwargs: Any) -> CompletionResponseGen:
         """
-        Asynchronous streaming completion method.
+        Asynchronous streaming completion method with exception handling.
         """
         try:
             async for chunk in self._custom_api_stream_complete(prompt, **kwargs, **self.params):
                 yield chunk
+        except Exception as e:
+            logger.error(f"Streaming error: {e}")
+            yield f"Error: {str(e)}"
         finally:
             self.params = {}
 
     async def _custom_api_stream_complete(self, prompt: str, **kwargs: Any) -> AsyncIterator[str]:
         """
-        Async streaming request to the vLLM endpoint.
+        Async streaming request to the vLLM endpoint with error handling.
         """
         model = kwargs.pop("model", self._get_default_model())
         data = {"prompt": prompt, **kwargs}
         if model:
             data["model"] = model
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(LLM_INFERENCE_URL, json=data, headers=DEFAULT_HEADERS) as resp:
-                async for line in resp.content:
-                    yield line.decode("utf-8")
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(LLM_INFERENCE_URL, json=data, headers=DEFAULT_HEADERS) as resp:
+                    if resp.status != 200:
+                        error_msg = await resp.text()
+                        logger.error(f"Streaming request failed: {resp.status} {error_msg}")
+                        yield f"Error: {resp.status} {error_msg}"
+                        return  # Stop the generator on error
+
+                    async for line in resp.content:
+                        yield line.decode("utf-8")
+
+        except aiohttp.ClientError as e:
+            logger.error(f"HTTP Client Error during streaming: {e}")
+            yield f"Error: {str(e)}"
+        except Exception as e:
+            logger.error(f"Unexpected error during streaming: {e}")
+            yield f"Error: {str(e)}"
 
     @llm_completion_callback()
-    def complete(self, prompt: str, formatted: bool, stream: bool = False, **kwargs) -> CompletionResponse:
+    async def complete(self, prompt: str, formatted: bool, stream: bool = False, **kwargs) -> CompletionResponse:
         """
-        Handles synchronous and streaming requests.
+        Handles synchronous and streaming requests with exception handling.
         """
         try:
             if LLM_INFERENCE_URL.startswith(OPENAI_URL_PREFIX):
@@ -71,7 +88,7 @@ class Inference(CustomLLM):
             elif LLM_INFERENCE_URL.startswith(HUGGINGFACE_URL_PREFIX):
                 return self._huggingface_remote_complete(prompt, **kwargs, **self.params)
             elif stream:
-                return self.stream_complete(prompt, **kwargs)
+                return await self.stream_complete(prompt, **kwargs)
             else:
                 return self._custom_api_complete(prompt, **kwargs, **self.params)
         finally:
@@ -133,7 +150,6 @@ class Inference(CustomLLM):
             models_url = self._get_models_endpoint()
             response = requests.get(models_url, headers=DEFAULT_HEADERS)
             response.raise_for_status()  # Raise an exception for HTTP errors (includes 404)
-
             models = response.json().get("data", [])
             return models[0].get("id") if models else None
         except Exception as e:

@@ -19,6 +19,10 @@ import (
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
+const (
+	PresetPhi3Mini128kModel = "phi-3-mini-128k-instruct"
+)
+
 func loadTestEnvVars() {
 	// Required for Llama models
 	aiModelsRegistry = utils.GetEnv("AI_MODELS_REGISTRY")
@@ -67,8 +71,44 @@ var _ = Describe("RAGEngine", func() {
 		}
 	})
 
+	It("should create RAG with localembedding and kaito VLLM workspace successfully", func() {
+		numOfReplica := 1
+		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
+
+		time.Sleep(30 * time.Second)
+
+		validateWorkspaceResourceStatus(workspaceObj)
+
+		validateAssociatedService(workspaceObj.ObjectMeta)
+
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		serviceName := workspaceObj.Name
+		serviceNamespace := workspaceObj.Namespace
+		service := &v1.Service{}
+
+		_ = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: serviceNamespace,
+			Name:      serviceName,
+		}, service)
+
+		clusterIP := service.Spec.ClusterIP
+
+		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngine(clusterIP)
+
+		defer cleanupResources(workspaceObj, ragengineObj)
+
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateAssociatedService(ragengineObj.ObjectMeta)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+	})
+
 	It("should create RAG with localembedding and huggingface API successfully", func() {
-		numOfNode := 1
+		numOfReplica := 1
 
 		ragengineObj := createLocalEmbeddingHFURLRAGEngine()
 
@@ -76,11 +116,34 @@ var _ = Describe("RAGEngine", func() {
 
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
 		validateAssociatedService(ragengineObj.ObjectMeta)
-		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfNode), false)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
 	})
 })
+
+func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1alpha1.Workspace {
+	workspaceObj := &kaitov1alpha1.Workspace{}
+	By("Creating a workspace CR with Phi-3-mini-128k-instruct preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-phi3-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfReplica, "Standard_NC6s_v3",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "rag-e2e-test-phi-3-mini-128k-instruct-vllm"},
+			}, nil, PresetPhi3Mini128kModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createAndValidateWorkspace(workspaceObj *kaitov1alpha1.Workspace) {
+	By("Creating workspace", func() {
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+	})
+}
 
 func createAndValidateRAGEngine(ragEngineObj *kaitov1alpha1.RAGEngine) {
 	By("Creating ragEngine", func() {
@@ -118,6 +181,47 @@ func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embe
 			InferenceService: inferenceSpec,
 		},
 	}
+}
+
+// validateWorkspaceReadiness validates workspace readiness
+func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
+	By("Checking the workspace status is ready", func() {
+		Eventually(func() bool {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, workspaceObj, &client.GetOptions{})
+
+			if err != nil {
+				return false
+			}
+
+			_, conditionFound := lo.Find(workspaceObj.Status.Conditions, func(condition metav1.Condition) bool {
+				return condition.Type == string(kaitov1alpha1.WorkspaceConditionTypeSucceeded) &&
+					condition.Status == metav1.ConditionTrue
+			})
+			return conditionFound
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace to be ready")
+	})
+}
+
+func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL string) *kaitov1alpha1.RAGEngine {
+	ragEngineObj := &kaitov1alpha1.RAGEngine{}
+	serviceURL := fmt.Sprintf("http://%s/v1/completions", baseURL)
+	By("Creating RAG with localembedding and kaito vllm inference", func() {
+		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC6s_v3", "BAAI/bge-small-en-v1.5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"apps": "phi-3"},
+			},
+			&kaitov1alpha1.InferenceServiceSpec{
+				URL: serviceURL,
+			},
+		)
+
+		createAndValidateRAGEngine(ragEngineObj)
+	})
+	return ragEngineObj
 }
 
 func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
@@ -160,6 +264,28 @@ func cleanupResources(
 				GinkgoWriter.Printf("Test failed, keep Workspace %s\n", workspaceObj.Name)
 			}
 		}
+	})
+}
+
+// validateWorkspacResourceStatus validates resource status
+func validateWorkspaceResourceStatus(workspaceObj *kaitov1alpha1.Workspace) {
+	By("Checking the resource status", func() {
+		Eventually(func() bool {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, workspaceObj, &client.GetOptions{})
+
+			if err != nil {
+				return false
+			}
+
+			_, conditionFound := lo.Find(workspaceObj.Status.Conditions, func(condition metav1.Condition) bool {
+				return condition.Type == string(kaitov1alpha1.ConditionTypeResourceStatus) &&
+					condition.Status == metav1.ConditionTrue
+			})
+			return conditionFound
+		}, 25*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace resource status to be ready")
 	})
 }
 

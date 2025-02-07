@@ -112,6 +112,7 @@ var _ = Describe("RAGEngine", func() {
 
 		createAndValidateSecret()
 		ragengineObj := createLocalEmbeddingHFURLRAGEngine()
+		time.Sleep(1 * time.Hour)
 
 		defer cleanupResources(nil, ragengineObj)
 

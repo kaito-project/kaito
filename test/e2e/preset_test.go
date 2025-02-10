@@ -621,7 +621,7 @@ func createCurlDebugPod(namespace string) error {
 	}, existingPod)
 
 	if err == nil {
-		By(fmt.Sprintf("Debug pod %s already exists", curlPodName))
+		It(fmt.Sprintf("Debug pod %s already exists", curlPodName))
 		return nil
 	} else if !errors.IsNotFound(err) {
 		return fmt.Errorf("failed to check existing pod: %v", err)
@@ -638,7 +638,7 @@ func createCurlDebugPod(namespace string) error {
 					Name:  "curl-container",
 					Image: "curlimages/curl",
 					Command: []string{
-						"sleep", "3600", // Keeps the pod running for long enough
+						"sleep", "infinity",
 					},
 				},
 			},

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -105,6 +106,9 @@ var _ = Describe("RAGEngine", func() {
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
+		createIndexPod(ragengineObj)
+		createAndValidateQueryPod(ragengineObj)
+
 	})
 
 	It("should create RAG with localembedding and huggingface API successfully", func() {
@@ -118,6 +122,9 @@ var _ = Describe("RAGEngine", func() {
 		validateAssociatedService(ragengineObj.ObjectMeta)
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+		createIndexPod(ragengineObj)
+		//TODO: add the createAndValidateQueryPod here in the next PR
 
 	})
 })
@@ -210,7 +217,7 @@ func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL string) *kaitov1alpha1.RAGEn
 	serviceURL := fmt.Sprintf("http://%s/v1/completions", baseURL)
 	By("Creating RAG with localembedding and kaito vllm inference", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
-		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC6s_v3", "BAAI/bge-small-en-v1.5",
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC24s_v3", "BAAI/bge-small-en-v1.5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
@@ -229,7 +236,7 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 	hfURL := "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta/v1/completions"
 	By("Creating RAG with localembedding and huggingface API", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
-		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC6s_v3", "BAAI/bge-small-en-v1.5",
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC12s_v3", "BAAI/bge-small-en-v1.5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
@@ -439,4 +446,119 @@ func deleteWorkspace(workspaceObj *kaitov1alpha1.Workspace) error {
 	})
 
 	return nil
+}
+
+func createIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
+	By("Creating index pod", func() {
+		pod := GenerateIndexPodManifest(ragengineObj.Namespace, ragengineObj.Name)
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create index pod")
+	})
+	time.Sleep(60 * time.Second)
+
+	return nil
+}
+
+func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
+	By("Creating query pod", func() {
+		pod := GenerateQueryPodManifest(ragengineObj.Namespace, ragengineObj.Name)
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create query pod")
+	})
+	time.Sleep(30 * time.Second)
+	By("Checking the query logs", func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+
+			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, "querypod", "")
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", "querypod", err)
+				return false
+			}
+
+			searchQuerySuccess := "'text': '\\\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\\\n"
+
+			return strings.Contains(logs, searchQuerySuccess)
+		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for query logs to be ready")
+	})
+
+	return nil
+}
+
+func GenerateIndexPodManifest(namespace, serviceName string) *v1.Pod {
+
+	curlCommand := `curl -X POST ` + serviceName + `:80/index \
+-H "Content-Type: application/json" \
+-d '{
+    "index_name": "kaito",
+    "documents": [
+        {
+            "text": "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster",
+            "metadata": {"author": "kaito", "category": "kaito"}
+        }
+    ]
+}'`
+
+	indexPod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "indexpod",
+			Namespace: namespace,
+		},
+		Spec: v1.PodSpec{
+			RestartPolicy: v1.RestartPolicyNever,
+			Containers: []v1.Container{
+				{
+					Name:    "curl",
+					Image:   "curlimages/curl:latest",
+					Command: []string{"/bin/sh", "-c"},
+					Args:    []string{curlCommand},
+				},
+			},
+		},
+	}
+
+	return indexPod
+}
+
+func GenerateQueryPodManifest(namespace, serviceName string) *v1.Pod { // TODO: add another model param for the remote inference service in the next PR
+
+	curlCommand := `curl -X POST ` + serviceName + `:80/query \
+-H "Content-Type: application/json" \
+-d '{
+	"index_name": "kaito",
+    "model": "phi-3-mini-128k-instruct",
+    "query": "what is kaito?",
+    "llm_params": {
+      "max_tokens": 50,
+      "temperature": 0
+    }
+}'`
+
+	indexPod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "querypod",
+			Namespace: namespace,
+		},
+		Spec: v1.PodSpec{
+			RestartPolicy: v1.RestartPolicyNever,
+			Containers: []v1.Container{
+				{
+					Name:    "curl",
+					Image:   "curlimages/curl:latest",
+					Command: []string{"/bin/sh", "-c"},
+					Args:    []string{curlCommand},
+				},
+			},
+		},
+	}
+
+	return indexPod
 }

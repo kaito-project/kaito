@@ -609,22 +609,46 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 }
 
 func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
-	By("Validating the /v1/models endpoint using a curl debug pod")
-
-	namespace := workspaceObj.Namespace
-	serviceURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/models",
-		workspaceObj.Name, namespace)
-
-	curlCmd := []string{"curl", "-s", "-X", "GET", serviceURL}
-
-	response, err := execCurlInPod(namespace, curlCmd)
-	Expect(err).ToNot(HaveOccurred(), "Failed to execute curl GET in debug pod")
-
-	fmt.Printf("Response from /v1/models: %s\n", response)
-
 	modelName := workspaceObj.Inference.Preset.Name
 	expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
-	Expect(response).To(ContainSubstring(expectedModelID), "Expected model ID '%s' not found in response", modelName)
+	execOption := corev1.PodExecOptions{
+		Command:   []string{"bash", "-c", "apt-get update && apt-get install curl -y; curl -s 127.0.0.1:5000/v1/models | grep " + expectedModelID},
+		Container: deploymentName,
+		Stdout:    true,
+		Stderr:    true,
+	}
+
+	By("Validating the /v1/models endpoint", func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+
+			namespace := workspaceObj.Namespace
+			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
+				return false
+			}
+
+			k8sConfig, err := utils.GetK8sConfig()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
+				return false
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
+			_, err = utils.ExecSync(ctx, k8sConfig, coreClient, namespace, podName, execOption)
+			if err != nil {
+				GinkgoWriter.Printf("validate command fails: %v\n", err)
+				return false
+			}
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for /v1/models endpoint to be ready")
+	})
 }
 
 func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {

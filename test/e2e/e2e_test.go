@@ -33,7 +33,7 @@ var _ = BeforeSuite(func() {
 	GinkgoWriter.Printf("Namespace %q for e2e tests\n", namespaceName)
 
 	kaitoNamespace := os.Getenv("KAITO_NAMESPACE")
-	
+
 	if nodeProvisionerName == "azkarpenter" {
 		karpenterNamespace := os.Getenv("KARPENTER_NAMESPACE")
 		//check karpenter deployment is up and running

@@ -4,7 +4,6 @@
 package e2e
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"math/rand"
@@ -13,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/test/e2e/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/samber/lo"
@@ -24,6 +21,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
 const (
@@ -41,8 +41,6 @@ const (
 	// WorkspaceRevisionAnnotation represents the revision number of the workload managed by the workspace
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"
 )
-
-const curlPodName = "curl-debug-pod"
 
 var (
 	datasetImageName1     = "e2e-dataset"
@@ -608,96 +606,6 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 			return conditionFound
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace to be ready")
 	})
-}
-
-// Create a temporary debug pod with curl if it doesn't already exist
-func createCurlDebugPod(namespace string) error {
-	By("Creating a temporary curl debug pod")
-
-	existingPod := &v1.Pod{}
-	err := utils.TestingCluster.KubeClient.Get(context.TODO(), client.ObjectKey{
-		Namespace: namespace,
-		Name:      curlPodName,
-	}, existingPod)
-
-	if err == nil {
-		It(fmt.Sprintf("Debug pod %s already exists", curlPodName))
-		return nil
-	} else if !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to check existing pod: %v", err)
-	}
-
-	pod := &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      curlPodName,
-			Namespace: namespace,
-		},
-		Spec: v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:  "curl-container",
-					Image: "curlimages/curl",
-					Command: []string{
-						"sleep", "infinity",
-					},
-				},
-			},
-			RestartPolicy: v1.RestartPolicyNever,
-		},
-	}
-
-	// Create the pod
-	err = utils.TestingCluster.KubeClient.Create(context.TODO(), pod)
-	if err != nil {
-		return fmt.Errorf("failed to create curl debug pod: %v", err)
-	}
-
-	// Wait for the pod to be Running
-	Eventually(func() bool {
-		fetchedPod := &v1.Pod{}
-		err := utils.TestingCluster.KubeClient.Get(context.TODO(), client.ObjectKey{
-			Namespace: namespace,
-			Name:      curlPodName,
-		}, fetchedPod)
-		if err != nil {
-			return false
-		}
-		return fetchedPod.Status.Phase == v1.PodRunning
-	}, 60*time.Second, 2*time.Second).Should(BeTrue(), "Curl debug pod did not reach Running state")
-
-	return nil
-}
-
-// Execute a curl command inside the debug pod
-func execCurlInPod(namespace string, cmd []string) (string, error) {
-	By(fmt.Sprintf("Executing curl command in %s", curlPodName))
-
-	// Get Kubernetes clientset and config
-	coreClient, err := utils.GetK8sClientset()
-	if err != nil {
-		return "", fmt.Errorf("failed to get k8s clientset: %v", err)
-	}
-
-	// Get REST config for creating the SPDYExecutor
-	k8sConfig, err := utils.GetK8sConfig()
-	if err != nil {
-		return "", fmt.Errorf("failed to get k8s config: %v", err)
-	}
-
-	// Use the existing ExecSync function
-	output, err := utils.ExecSync(context.TODO(), k8sConfig, coreClient, namespace, curlPodName, v1.PodExecOptions{
-		Container: "curl-container",
-		Command:   cmd,
-		Stdout:    true,
-		Stderr:    true,
-		TTY:       false,
-	})
-
-	if err != nil {
-		return "", fmt.Errorf("failed to execute curl command: %w", err)
-	}
-
-	return output, nil
 }
 
 func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {

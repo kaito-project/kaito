@@ -160,7 +160,8 @@ func validateAdapterAdded(workspaceObj *kaitov1alpha1.Workspace, deploymentName 
 	})
 }
 
-func validateAdapterLoadedInVLLM(workspaceObj *kaitov1alpha1.Workspace, deploymentName string, adapterName string) {
+func validateAdapterLoadedInVLLM(workspaceObj *kaitov1alpha1.Workspace, adapterName string) {
+	deploymentName := workspaceObj.Name
 	execOption := corev1.PodExecOptions{
 		Command:   []string{"bash", "-c", "apt-get update && apt-get install curl -y; curl -s 127.0.0.1:5000/v1/models | grep " + adapterName},
 		Container: deploymentName,

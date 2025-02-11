@@ -208,7 +208,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInitContainers(workspaceObj, expectedInitContainers2)
 
-		validateAdapterLoadedInVLLM(workspaceObj, workspaceObj.Name, imageName2)
+		validateAdapterLoadedInVLLM(workspaceObj, imageName2)
 	})
 })
 

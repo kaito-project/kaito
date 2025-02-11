@@ -610,6 +610,7 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 }
 
 func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
+	deploymentName := workspaceObj.Name
 	modelName := workspaceObj.Inference.Preset.Name
 	expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
 	execOption := corev1.PodExecOptions{
@@ -653,6 +654,7 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 }
 
 func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
+	deploymentName := workspaceObj.Name
 	expectedCompletion := `"object":"text_completion"`
 	execOption := corev1.PodExecOptions{
 		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X POST -H "Content-Type: application/json" -d '{"model":"%s","prompt":"What is Kubernetes?","max_tokens":7,"temperature":0}' 127.0.0.1:5000/v1/completions | grep %s`, workspaceObj.Inference.Preset.Name, expectedCompletion)},

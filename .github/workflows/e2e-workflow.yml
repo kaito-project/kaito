@@ -95,11 +95,6 @@ jobs:
       - name: Log kaito-workspace
         run: |
           kubectl get pods -n kaito-workspace -o name | grep "^pod/kaito-workspace" | sed 's/^pod\///' | xargs -I {} kubectl logs -n kaito-workspace {}
-      
-      - name: Install testing commands
-        run: |
-          kubectl get pods -n kaito-workspace -o name | grep "^pod/kaito-workspace" | sed 's/^pod\///' | xargs -I {} kubectl exec -n kaito-workspace {} -- apt-get update
-          kubectl get pods -n kaito-workspace -o name | grep "^pod/kaito-workspace" | sed 's/^pod\///' | xargs -I {} kubectl exec -n kaito-workspace {} -- apt-get install -y curl
 
       - name: Run e2e test
         run: |

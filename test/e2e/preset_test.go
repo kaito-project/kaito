@@ -611,17 +611,17 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 }
 
 func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
-	deploymentName := "debug-curl"
+	debugPodName := "debug-curl"
 	modelName := workspaceObj.Inference.Preset.Name
 	expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
 	execOption := corev1.PodExecOptions{
 		Command:   []string{"sh", "-c", fmt.Sprintf(`curl -s -X GET http://%s.%s.svc.cluster.local:80/v1/models | grep %s`, workspaceObj.Name, workspaceObj.Namespace, expectedModelID)},
-		Container: deploymentName,
+		Container: debugPodName,
 		Stdout:    true,
 		Stderr:    true,
 	}
 
-	By("Validating the /v1/models endpoint", func() {
+	By("Validating the /v1/models endpoint using debug-curl pod", func() {
 		Eventually(func() bool {
 			coreClient, err := utils.GetK8sClientset()
 			if err != nil {
@@ -630,12 +630,6 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 			}
 
 			namespace := workspaceObj.Namespace
-			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
-			if err != nil {
-				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
-				return false
-			}
-
 			k8sConfig, err := utils.GetK8sConfig()
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
@@ -644,7 +638,7 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 
 			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 			defer cancel()
-			_, err = utils.ExecSync(ctx, k8sConfig, coreClient, namespace, podName, execOption)
+			_, err = utils.ExecSync(ctx, k8sConfig, coreClient, namespace, debugPodName, execOption)
 			if err != nil {
 				GinkgoWriter.Printf("validate command fails: %v\n", err)
 				return false
@@ -655,16 +649,16 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 }
 
 func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
-	deploymentName := "debug-curl"
+	debugPodName := "debug-curl"
 	expectedCompletion := `"object":"text_completion"`
 	execOption := corev1.PodExecOptions{
 		Command:   []string{"sh", "-c", fmt.Sprintf(`curl -s -X POST -H "Content-Type: application/json" -d '{"model":"%s","prompt":"What is Kubernetes?","max_tokens":7,"temperature":0}' http://%s.%s.svc.cluster.local:80/v1/completions | grep %s`, workspaceObj.Inference.Preset.Name, workspaceObj.Name, workspaceObj.Namespace, expectedCompletion)},
-		Container: deploymentName,
+		Container: debugPodName,
 		Stdout:    true,
 		Stderr:    true,
 	}
 
-	By("Validating the /v1/completions endpoint", func() {
+	By("Validating the /v1/completions endpoint using debug-curl pod", func() {
 		Eventually(func() bool {
 			coreClient, err := utils.GetK8sClientset()
 			if err != nil {
@@ -673,12 +667,6 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 			}
 
 			namespace := workspaceObj.Namespace
-			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
-			if err != nil {
-				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
-				return false
-			}
-
 			k8sConfig, err := utils.GetK8sConfig()
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
@@ -687,7 +675,7 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 
 			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 			defer cancel()
-			_, err = utils.ExecSync(ctx, k8sConfig, coreClient, namespace, podName, execOption)
+			_, err = utils.ExecSync(ctx, k8sConfig, coreClient, namespace, debugPodName, execOption)
 			if err != nil {
 				GinkgoWriter.Printf("validate command fails: %v\n", err)
 				return false

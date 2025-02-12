@@ -98,7 +98,7 @@ jobs:
       
       - name: Create debug curl pod
         run: |
-          kubectl run debug-curl --image=curlimages/curl --restart=Never -- sleep infinity
+          kubectl run debug-curl -n kaito-workspace --image=curlimages/curl --restart=Never -- sleep infinity
 
       - name: Run e2e test
         run: |

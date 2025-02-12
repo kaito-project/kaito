@@ -45,8 +45,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
 		validateWorkspaceReadiness(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
 	})
 
 	It("should create a deepseek-distilled-qwen-14b workspace with preset public mode successfully", func() {
@@ -70,8 +70,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
 		validateWorkspaceReadiness(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
 	})
 
 	It("should create a falcon workspace with preset public mode successfully", func() {
@@ -92,8 +92,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
 		validateWorkspaceReadiness(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
 	})
 
 	It("should create a mistral workspace with preset public mode successfully", func() {
@@ -114,8 +114,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
 		validateWorkspaceReadiness(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
 	})
 
 	It("should create a Phi-2 workspace with preset public mode successfully", func() {
@@ -136,8 +136,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
 		validateWorkspaceReadiness(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
 	})
 
 	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
@@ -158,8 +158,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
 		validateWorkspaceReadiness(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
 	})
 
 	It("should create a qwen2.5 coder workspace with preset public mode and 2 gpu successfully", func() {
@@ -181,8 +181,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
 		validateWorkspaceReadiness(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
 	})
 
 	It("should create a falcon workspace with adapter successfully", func() {
@@ -203,8 +203,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
 		validateWorkspaceReadiness(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
 
 		validateInitContainers(workspaceObj, expectedInitContainers2)
 

@@ -103,7 +103,8 @@ class BaseVectorStore(ABC):
               query: str,
               top_k: int,
               llm_params: dict,
-              rerank_params: dict
+              rerank_params: dict,
+              stream: bool
     ):
         """
         Query the indexed documents
@@ -116,7 +117,7 @@ class BaseVectorStore(ABC):
             rerank_params (dict): Optional configuration for reranking
                 - 'top_n' (int): Number of top documents to return after reranking
                 - 'choice_batch_size' (int):  Number of documents to process in each batch
-
+            stream (bool): Whether to stream the response
         Returns:
             dict: A dictionary containing the response and source nodes.
         """
@@ -145,22 +146,26 @@ class BaseVectorStore(ABC):
         query_engine = self.index_map[index_name].as_query_engine(
             llm=self.llm,
             similarity_top_k=top_k,
-            node_postprocessors=node_postprocessors
+            node_postprocessors=node_postprocessors,
+            streaming=stream
         )
-        query_result = await query_engine.aquery(query)
-        return {
-            "response": query_result.response,
-            "source_nodes": [
-                {
-                    "node_id": node.node_id,
-                    "text": node.text,
-                    "score": node.score,
-                    "metadata": node.metadata
-                }
-                for node in query_result.source_nodes
-            ],
-            "metadata": query_result.metadata,
-        }
+        if stream: 
+            return await query_engine.query(query)
+        else:
+            query_result = await query_engine.aquery(query)
+            return {
+                "response": query_result.response,
+                "source_nodes": [
+                    {
+                        "node_id": node.node_id,
+                        "text": node.text,
+                        "score": node.score,
+                        "metadata": node.metadata
+                    }
+                    for node in query_result.source_nodes
+                ],
+                "metadata": query_result.metadata,
+            }
 
     async def add_document_to_index(self, index_name: str, document: Document, doc_id: str):
         """Common logic for adding a single document."""

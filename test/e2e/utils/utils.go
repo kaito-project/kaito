@@ -180,7 +180,7 @@ func ExecSync(ctx context.Context, config *rest.Config, coreClient *kubernetes.C
 		Stderr: &stderr,
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to execute command: %w, stderr: %q", err, stderr.String())
+		return "", fmt.Errorf("failed to execute command %v: %w, stderr: %q", options.Command, err, stderr.String())
 	}
 
 	if stderr.Len() > 0 {

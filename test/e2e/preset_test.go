@@ -611,11 +611,11 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 }
 
 func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
-	deploymentName := workspaceObj.Name
+	deploymentName := "debug-curl"
 	modelName := workspaceObj.Inference.Preset.Name
 	expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
 	execOption := corev1.PodExecOptions{
-		Command:   []string{"bash", "-c", fmt.Sprintf(`curl -s -X GET 127.0.0.1:5000/v1/models | grep %s`, expectedModelID)},
+		Command:   []string{"sh", "-c", fmt.Sprintf(`curl -s -X GET http://%s.%s.svc.cluster.local:80/v1/models | grep %s`, workspaceObj.Name, workspaceObj.Namespace, expectedModelID)},
 		Container: deploymentName,
 		Stdout:    true,
 		Stderr:    true,
@@ -655,10 +655,10 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 }
 
 func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
-	deploymentName := workspaceObj.Name
+	deploymentName := "debug-curl"
 	expectedCompletion := `"object":"text_completion"`
 	execOption := corev1.PodExecOptions{
-		Command:   []string{"bash", "-c", fmt.Sprintf(`curl -s -X POST -H "Content-Type: application/json" -d '{"model":"%s","prompt":"What is Kubernetes?","max_tokens":7,"temperature":0}' 127.0.0.1:5000/v1/completions | grep %s`, workspaceObj.Inference.Preset.Name, expectedCompletion)},
+		Command:   []string{"sh", "-c", fmt.Sprintf(`curl -s -X POST -H "Content-Type: application/json" -d '{"model":"%s","prompt":"What is Kubernetes?","max_tokens":7,"temperature":0}' http://%s.%s.svc.cluster.local:80/v1/completions | grep %s`, workspaceObj.Inference.Preset.Name, workspaceObj.Name, workspaceObj.Namespace, expectedCompletion)},
 		Container: deploymentName,
 		Stdout:    true,
 		Stderr:    true,

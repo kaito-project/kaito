@@ -95,6 +95,10 @@ jobs:
       - name: Log kaito-workspace
         run: |
           kubectl get pods -n kaito-workspace -o name | grep "^pod/kaito-workspace" | sed 's/^pod\///' | xargs -I {} kubectl logs -n kaito-workspace {}
+      
+      - name: Create debug curl pod
+        run: |
+          kubectl run debug-curl --image=curlimages/curl --restart=Never -- sleep infinity
 
       - name: Run e2e test
         run: |

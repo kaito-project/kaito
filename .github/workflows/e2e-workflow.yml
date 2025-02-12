@@ -99,6 +99,8 @@ jobs:
       - name: Create debug curl pod
         run: |
           kubectl run debug-curl -n kaito-workspace --image=curlimages/curl --restart=Never -- sleep infinity
+          echo "Waiting for debug-curl pod to be ready..."
+          kubectl wait --for=condition=Ready pod/debug-curl -n kaito-workspace --timeout=60s
 
       - name: Run e2e test
         run: |

@@ -629,7 +629,7 @@ func validateModelsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 				return false
 			}
 
-			namespace := workspaceObj.Namespace
+			namespace := "kaito-workspace"
 			k8sConfig, err := utils.GetK8sConfig()
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
@@ -666,7 +666,7 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1alpha1.Workspace) {
 				return false
 			}
 
-			namespace := workspaceObj.Namespace
+			namespace := "kaito-workspace"
 			k8sConfig, err := utils.GetK8sConfig()
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)

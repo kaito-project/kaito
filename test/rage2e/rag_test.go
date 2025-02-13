@@ -484,7 +484,7 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
 				return false
 			}
 
-			searchQuerySuccess := "'text': '\\\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\\\n"
+			searchQuerySuccess := "\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\n\\n\\n"
 
 			return strings.Contains(logs, searchQuerySuccess)
 		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for query logs to be ready")
@@ -542,7 +542,7 @@ func GenerateQueryPodManifest(namespace, serviceName string) *v1.Pod { // TODO: 
     }
 }'`
 
-	indexPod := &v1.Pod{
+	queryPod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "querypod",
 			Namespace: namespace,
@@ -560,5 +560,5 @@ func GenerateQueryPodManifest(namespace, serviceName string) *v1.Pod { // TODO: 
 		},
 	}
 
-	return indexPod
+	return queryPod
 }

@@ -108,6 +108,7 @@ var _ = Describe("RAGEngine", func() {
 
 		createIndexPod(ragengineObj)
 		createAndValidateQueryPod(ragengineObj)
+		time.Sleep(60 * time.Minute)
 
 	})
 

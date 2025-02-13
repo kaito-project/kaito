@@ -132,10 +132,11 @@ inference-api-e2e:
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
+GINKGO_LABEL ?=
 GINKGO_NODES ?= 2
 GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 120m
-GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT) --fail-fast
+GINKGO_ARGS ?= --label-filter="$(GINKGO_LABEL)" -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT) --fail-fast
 
 $(E2E_TEST):
 	(cd test/e2e && go test -c . -o $(E2E_TEST))

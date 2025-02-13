@@ -140,7 +140,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
+	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -162,7 +162,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a qwen2.5 coder workspace with preset public mode and 2 gpu successfully", func() {
+	It("should create a qwen2.5 coder workspace with preset public mode and 2 gpu successfully", utils.GinkgoLabelFastCheck, func() {
 		// single node with 2 gpu
 		numOfNode := 1
 		workspaceObj := createQwen2_5WorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode)
@@ -185,7 +185,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a falcon workspace with adapter successfully", func() {
+	It("should create a falcon workspace with adapter successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createFalconWorkspaceWithAdapterAndVLLM(numOfNode, validAdapters2)
 

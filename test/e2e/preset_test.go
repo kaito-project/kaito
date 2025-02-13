@@ -872,7 +872,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a custom template workspace successfully", func() {
+	It("should create a custom template workspace successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		imageName := "nginx:latest"
 		workspaceObj := createCustomWorkspaceWithPresetCustomMode(imageName, numOfNode)
@@ -890,7 +890,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
+	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicMode(numOfNode)
 
@@ -910,7 +910,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image", func() {
+	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		err := copySecretToNamespace(e2eACRSecret, namespaceName)
 		if err != nil {

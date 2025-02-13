@@ -217,7 +217,7 @@ var _ = Describe("Workspace Preset", func() {
 		}
 	})
 
-	It("should create a falcon workspace with adapter, and update the workspace with another adapter", func() {
+	It("should create a falcon workspace with adapter, and update the workspace with another adapter", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createCustomWorkspaceWithAdapter(numOfNode, validAdapters1)
 

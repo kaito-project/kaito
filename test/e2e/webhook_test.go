@@ -29,7 +29,7 @@ var (
 	alternativeTuningMethod = kaitov1alpha1.TuningMethodQLora
 )
 
-var _ = Describe("Workspace Validation Webhook", func() {
+var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, func() {
 	It("should validate the workspace resource spec at creation ", func() {
 		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_Bad",
 			&metav1.LabelSelector{

@@ -96,10 +96,19 @@ jobs:
         run: |
           kubectl get pods -n kaito-workspace -o name | grep "^pod/kaito-workspace" | sed 's/^pod\///' | xargs -I {} kubectl logs -n kaito-workspace {}
 
-      - name: Run e2e test
+      - name: Run full e2e test
+        if: ${{ inputs.isRelease }}
         run: |
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
+          make kaito-workspace-e2e-test
+
+      - name: Run fast e2e test
+        if: ${{ !inputs.isRelease }}
+        run: |
+          AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
+          AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
+          GINKGO_LABEL=FastCheck \
           make kaito-workspace-e2e-test
 
       - name: Cleanup e2e resources

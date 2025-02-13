@@ -52,7 +52,7 @@ class Inference(CustomLLM):
             elif LLM_INFERENCE_URL.startswith(HUGGINGFACE_URL_PREFIX):
                 return await self._huggingface_remote_complete(prompt, **kwargs, **self.params)
             else:
-                return await self._acustom_api_complete(prompt, **kwargs, **self.params)
+                return await self._async_custom_api_complete(prompt, **kwargs, **self.params)
         finally:
             # Clear params after the completion is done
             self.params = {}
@@ -63,7 +63,7 @@ class Inference(CustomLLM):
     async def _huggingface_remote_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         return await self._async_post_request({"messages": [{"role": "user", "content": prompt}]}, headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}"})
 
-    async def _acustom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
+    async def _async_custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         model = kwargs.pop("model", self._get_default_model())
         data = {"prompt": prompt, **kwargs}
         if model:

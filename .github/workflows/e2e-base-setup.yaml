@@ -171,6 +171,7 @@ jobs:
         if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
         shell: bash
         run: |
+          echo "HF_TOKEN=$HF_TOKEN"
           AZURE_TENANT_ID=$E2E_TENANT_ID \
           AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
           make gpu-provisioner-helm

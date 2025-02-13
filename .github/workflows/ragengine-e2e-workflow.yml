@@ -43,7 +43,7 @@ jobs:
     needs: base-setup
     permissions:
       contents: read
-      id-token: write # This is required for requesting the JWT
+      id-token: write
     
     env:
       AZURE_CLUSTER_NAME: ${{ needs.base-setup.outputs.cluster_name }}
@@ -80,6 +80,7 @@ jobs:
 
       - name: Install Helm
         uses: azure/setup-helm@v4
+
       
       - name: Install KAITO RAG Engine helm chart
         shell: bash
@@ -88,9 +89,11 @@ jobs:
           kubectl wait --for=condition=available deploy "kaito-ragengine" -n kaito-ragengine --timeout=300s
         env:
           REGISTRY: ${{ env.E2E_ACR_REGISTRY }}
+
       
       - name: Run e2e test
         run: |
+          echo "HF_TOKEN=$HF_TOKEN"
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
           make kaito-ragengine-e2e-test

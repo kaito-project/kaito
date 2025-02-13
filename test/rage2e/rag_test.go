@@ -542,7 +542,7 @@ func GenerateQueryPodManifest(namespace, serviceName string) *v1.Pod { // TODO: 
     }
 }'`
 
-	indexPod := &v1.Pod{
+	queryPod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "querypod",
 			Namespace: namespace,
@@ -560,5 +560,5 @@ func GenerateQueryPodManifest(namespace, serviceName string) *v1.Pod { // TODO: 
 		},
 	}
 
-	return indexPod
+	return queryPod
 }

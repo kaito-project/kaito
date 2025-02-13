@@ -122,6 +122,11 @@ jobs:
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
           GINKGO_LABEL=FastCheck \
           make kaito-workspace-e2e-test
+        env:
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
+          E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
+
 
       - name: Cleanup e2e resources
         if: ${{ always() }}
@@ -131,4 +136,4 @@ jobs:
         with:
           inlineScript: |
             set +e
-            az group delete --name "${AZURE_CLUSTER_NAME}" --yes --no-wait || true
+            az group delete --name "${AZURE_RESOURCE_GROUP}" --yes --no-wait || true

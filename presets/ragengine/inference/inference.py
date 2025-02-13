@@ -2,8 +2,9 @@
 # Licensed under the MIT license.
 
 import logging
+import asyncio
+import httpx
 from typing import Any
-from dataclasses import field
 from llama_index.core.llms import CustomLLM, CompletionResponse, LLMMetadata, CompletionResponseGen
 from llama_index.llms.openai import OpenAI
 from llama_index.core.llms.callbacks import llm_completion_callback
@@ -39,28 +40,30 @@ class Inference(CustomLLM):
         pass
 
     @llm_completion_callback()
-    def complete(self, prompt: str, formatted: bool, **kwargs) -> CompletionResponse:
+    def complete(self, prompt: str, formatted: bool = False, **kwargs: Any) -> CompletionResponse:
+        # since acomplete is async, we can run it in a blocking way here
+        return asyncio.run(self.acomplete(prompt, formatted=formatted, **kwargs))
+
+    @llm_completion_callback()
+    async def acomplete(self, prompt: str, formatted: bool = False, **kwargs: Any) -> CompletionResponse:
         try:
             if LLM_INFERENCE_URL.startswith(OPENAI_URL_PREFIX):
-                return self._openai_complete(prompt, **kwargs, **self.params)
+                return await self._openai_complete(prompt, **kwargs, **self.params)
             elif LLM_INFERENCE_URL.startswith(HUGGINGFACE_URL_PREFIX):
-                return self._huggingface_remote_complete(prompt, **kwargs, **self.params)
+                return await self._huggingface_remote_complete(prompt, **kwargs, **self.params)
             else:
-                return self._custom_api_complete(prompt, **kwargs, **self.params)
+                return await self._acustom_api_complete(prompt, **kwargs, **self.params)
         finally:
             # Clear params after the completion is done
             self.params = {}
 
-    def _openai_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        return OpenAI(api_key=LLM_ACCESS_SECRET, **kwargs).complete(prompt)
+    async def _openai_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
+        return await OpenAI(api_key=LLM_ACCESS_SECRET, **kwargs).acomplete(prompt)
 
-    def _huggingface_remote_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        return self._post_request(
-            {"messages": [{"role": "user", "content": prompt}]},
-            headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}"}
-        )
+    async def _huggingface_remote_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
+        return await self._async_post_request({"messages": [{"role": "user", "content": prompt}]}, headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}"})
 
-    def _custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
+    async def _acustom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         model = kwargs.pop("model", self._get_default_model())
         data = {"prompt": prompt, **kwargs}
         if model:
@@ -69,7 +72,7 @@ class Inference(CustomLLM):
         # DEBUG: Call the debugging function
         # self._debug_curl_command(data)
         try:
-            return self._post_request(data, headers=DEFAULT_HEADERS)
+            return await self._async_post_request(data, headers=DEFAULT_HEADERS)
         except HTTPError as e:
             if e.response.status_code == 400:
                 logger.warning(
@@ -80,7 +83,7 @@ class Inference(CustomLLM):
                 if self._default_model:
                     logger.info(f"Default model '{self._default_model}' fetched successfully. Retrying request...")
                     data["model"] = self._default_model
-                    return self._post_request(data, headers=DEFAULT_HEADERS)
+                    return await self._async_post_request(data, headers=DEFAULT_HEADERS)
                 else:
                     logger.error("Failed to fetch a default model. Aborting retry.")
             raise  # Re-raise the exception if not recoverable
@@ -119,13 +122,14 @@ class Inference(CustomLLM):
             self._default_model = self._fetch_default_model()
         return self._default_model
 
-    def _post_request(self, data: dict, headers: dict) -> CompletionResponse:
+    async def _async_post_request(self, data: dict, headers: dict) -> CompletionResponse:
         try:
-            response = requests.post(LLM_INFERENCE_URL, json=data, headers=headers)
-            response.raise_for_status()  # Raise exception for HTTP errors
-            response_data = response.json()
-            return CompletionResponse(text=str(response_data))
-        except requests.RequestException as e:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(LLM_INFERENCE_URL, json=data, headers=headers)
+                response.raise_for_status()  # Raise exception for HTTP errors
+                response_data = response.json()
+                return CompletionResponse(text=str(response_data))
+        except httpx.RequestError as e:
             logger.error(f"Error during POST request to {LLM_INFERENCE_URL}: {e}")
             raise
 

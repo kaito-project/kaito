@@ -39,6 +39,9 @@ class BaseVectorStore(ABC):
         """Generates a unique document ID based on the hash of the document text."""
         return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
+    async def shutdown(self):
+        self.llm.aclose()
+
     async def index_documents(self, index_name: str, documents: List[Document]) -> List[str]:
         """Common indexing logic for all vector stores."""
         if index_name in self.index_map:

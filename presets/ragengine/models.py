@@ -40,19 +40,23 @@ class QueryRequest(BaseModel):
         description="Optional parameters for reranking, e.g., top_n, batch_size",
     )
 
-    @model_validator(mode="before")
-    def validate_params(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        llm_params = values.get("llm_params", {})
-        rerank_params = values.get("rerank_params", {})
+    @model_validator(mode="after")
+    def validate_params(cls, values: "QueryRequest") -> "QueryRequest":
+        # Access fields as attributes instead of treating as a dictionary
+        llm_params = values.llm_params
+        rerank_params = values.rerank_params
+        top_k = values.top_k
 
         # Validate LLM parameters
         if "temperature" in llm_params and not (0.0 <= llm_params["temperature"] <= 1.0):
             raise ValueError("Temperature must be between 0.0 and 1.0.")
-        # TODO: More LLM Param Validations here
+
         # Validate rerank parameters
-        top_k = values.get("top_k")
-        if "top_n" in rerank_params and rerank_params["top_n"] > top_k:
-            raise ValueError("Invalid configuration: 'top_n' for reranking cannot exceed 'top_k' from the RAG query.")
+        if "top_n" in rerank_params:
+            if not isinstance(rerank_params["top_n"], int):
+                raise ValueError("Invalid type: 'top_n' must be an integer.")
+            if rerank_params["top_n"] > top_k:
+                raise ValueError("Invalid configuration: 'top_n' for reranking cannot exceed 'top_k' from the RAG query.")
 
         return values
 

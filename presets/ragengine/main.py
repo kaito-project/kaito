@@ -235,6 +235,14 @@ async def list_documents_in_index(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.on_event("shutdown")
+async def shutdown_event():
+    """ Ensure the client is properly closed when the server shuts down. """
+    await rag_ops.shutdown()
+
 if __name__ == "__main__":
+    # DEBUG: Arize Phoenix
+    # import llama_index.core
+    # llama_index.core.set_global_handler("arize_phoenix")
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5000, loop="asyncio")

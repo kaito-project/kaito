@@ -170,7 +170,7 @@ class BaseVectorStore(ABC):
         if index_name not in self.index_map:
             raise ValueError(f"No such index: '{index_name}' exists.")
         llama_doc = LlamaDocument(id_=doc_id, text=document.text, metadata=document.metadata)
-        self.index_map[index_name].insert(llama_doc)
+        await asyncio.to_thread(self.index_map[index_name].insert, llama_doc)
 
     def list_indexes(self) -> List[str]:
         return list(self.index_map.keys())

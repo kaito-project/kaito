@@ -114,9 +114,23 @@ async def index_documents(request: IndexRequest):
     {
       "index_name": "example_index",
       "query": "What is RAG?",
-      "top_k": 5
+      "top_k": 5,
+      "llm_params": {"temperature": 0.7, "max_tokens": 2048},
+      "rerank_params": {"top_n": 3}  # ⚠️ Experimental Feature
     }
     ```
+
+    ## Experimental Warning:
+    - The `rerank_params` option is **experimental** and may cause the query to fail in some cases.
+    - If `LLMRerank` produces an unparsable response (not in the expected format), the query will **return an empty response**.
+    - Expected format:
+      ```
+      Answer:
+      Doc: 9, Relevance: 7
+      Doc: 3, Relevance: 4
+      Doc: 7, Relevance: 3
+      ```
+    - Use `rerank_params` **at your own risk** and validate responses before relying on them.
 
     ## Response Example:
     ```json

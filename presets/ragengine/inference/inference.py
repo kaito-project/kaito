@@ -101,15 +101,14 @@ class Inference(CustomLLM):
         if model_max_len and data.get("max_tokens"):
             if data["max_tokens"] > model_max_len:
                 logger.error(f"Requested max_tokens ({data['max_tokens']}) exceeds model's max length ({model_max_len}).")
-                # TODO: Need to ensure message from VLLM is raised up here ({"object":"error","message":"This model's maximum context length is 131072 tokens. However, you requested 500500500500505361 tokens (361 in the messages, 500500500500505000 in the completion). Please reduce the length of the messages or completion.","type":"BadRequestError","param":null,"code":400})
-                # raise ValueError("")
+                # vLLM will raise error ({"object":"error","message":"This model's maximum context length is 131072 tokens. However, you requested 500500500500505361 tokens (361 in the messages, 500500500500505000 in the completion). Please reduce the length of the messages or completion.","type":"BadRequestError","param":null,"code":400})
 
         # DEBUG: Call the debugging function
         # self._debug_curl_command(data)
         try:
             return await self._async_post_request(data, headers=DEFAULT_HEADERS)
         except HTTPError as e:
-            if e.response.status_code == 400:
+            if not model_name and e.response.status_code == 400:
                 logger.warning(
                     f"Potential issue with 'model' parameter in API response. "
                     f"Response: {str(e)}. Attempting to update the model name as a mitigation..."

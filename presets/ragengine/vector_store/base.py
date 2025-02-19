@@ -22,6 +22,8 @@ from ragengine.config import (LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N, VECTO
 
 from llama_index.core.storage.docstore import SimpleDocumentStore
 
+import threading
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,11 +35,15 @@ class BaseVectorStore(ABC):
         self.index_map = {}
         self.index_store = SimpleIndexStore()
         self.llm = Inference()
+        self.lock = threading.Lock()
 
     @staticmethod
     def generate_doc_id(text: str) -> str:
         """Generates a unique document ID based on the hash of the document text."""
         return hashlib.sha256(text.encode('utf-8')).hexdigest()
+
+    async def shutdown(self):
+        await self.llm.aclose()
 
     async def index_documents(self, index_name: str, documents: List[Document]) -> List[str]:
         """Common indexing logic for all vector stores."""
@@ -167,7 +173,12 @@ class BaseVectorStore(ABC):
         if index_name not in self.index_map:
             raise ValueError(f"No such index: '{index_name}' exists.")
         llama_doc = LlamaDocument(id_=doc_id, text=document.text, metadata=document.metadata)
-        self.index_map[index_name].insert(llama_doc)
+
+        # Perform insertion within a locked context to ensure thread safety
+        def insert_with_lock():
+            with self.lock:  # Ensure only one insert runs at a time
+                self.index_map[index_name].insert(llama_doc)
+        await asyncio.to_thread(insert_with_lock)
 
     def list_indexes(self) -> List[str]:
         return list(self.index_map.keys())

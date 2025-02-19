@@ -114,9 +114,23 @@ async def index_documents(request: IndexRequest):
     {
       "index_name": "example_index",
       "query": "What is RAG?",
-      "top_k": 5
+      "top_k": 5,
+      "llm_params": {"temperature": 0.7, "max_tokens": 2048},
+      "rerank_params": {"top_n": 3}  # ⚠️ Experimental Feature
     }
     ```
+
+    ## Experimental Warning:
+    - The `rerank_params` option is **experimental** and may cause the query to fail.
+    - If `LLMRerank` produces an invalid or unparsable response, an **error will be raised**.
+    - Expected format:
+      ```
+      Answer:
+      Doc: 9, Relevance: 7
+      Doc: 3, Relevance: 4
+      Doc: 7, Relevance: 3
+      ```
+    - If reranking fails, the request will not return results and will instead raise an error.
 
     ## Response Example:
     ```json
@@ -135,6 +149,9 @@ async def query_index(request: QueryRequest):
         return await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params
         )
+    except HTTPException as http_exc:
+        # Preserve HTTP exceptions like 422 from reranker
+        raise http_exc
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:
@@ -235,6 +252,14 @@ async def list_documents_in_index(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.on_event("shutdown")
+async def shutdown_event():
+    """ Ensure the client is properly closed when the server shuts down. """
+    await rag_ops.shutdown()
+
 if __name__ == "__main__":
+    # DEBUG: Arize Phoenix
+    # import llama_index.core
+    # llama_index.core.set_global_handler("arize_phoenix")
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5000, loop="asyncio")

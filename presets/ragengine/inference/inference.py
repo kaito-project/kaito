@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from pydantic import PrivateAttr
 import logging
 import asyncio
 import httpx
@@ -12,6 +13,7 @@ import requests
 from requests.exceptions import HTTPError
 from urllib.parse import urlparse, urljoin
 from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET #, LLM_RESPONSE_FIELD
+from fastapi import HTTPException
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,11 +25,21 @@ DEFAULT_HEADERS = {
     "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
     "Content-Type": "application/json"
 }
+DEFAULT_HTTP_TIMEOUT = 300.0 # Seconds
+DEFAULT_HTTP_SUCCESS_CODE = 200
 
 class Inference(CustomLLM):
     params: dict = {}
     _default_model: str = None
+    _default_max_model_len: int = None
     _model_retrieval_attempted: bool = False
+    _async_http_client : httpx.AsyncClient = PrivateAttr(default=None)
+
+    async def _get_httpx_client(self):
+        """ Lazily initializes the HTTP client on first request. """
+        if self._async_http_client is None:
+            self._async_http_client = httpx.AsyncClient(timeout=DEFAULT_HTTP_TIMEOUT)
+        return self._async_http_client
 
     def set_params(self, params: dict) -> None:
         self.params = params
@@ -41,40 +53,62 @@ class Inference(CustomLLM):
 
     @llm_completion_callback()
     def complete(self, prompt: str, formatted: bool = False, **kwargs: Any) -> CompletionResponse:
-        # since acomplete is async, we can run it in a blocking way here
-        return asyncio.run(self.acomplete(prompt, formatted=formatted, **kwargs))
+        # Required implementation - Only called by LlamaIndex reranker because LLMRerank library doesn't use async call
+        try:
+            result = asyncio.run(self.acomplete(prompt, formatted=formatted, **kwargs))
+            if result.text == "Empty Response":
+                logger.error("LLMRerank Request returned an unparsable or invalid response")
+                raise HTTPException(status_code=422, detail="Rerank operation failed: Invalid response from LLM. This feature is experimental.")
+            return result
+        except HTTPException as http_exc:
+            # If it's already an HTTPException (e.g., 422), re-raise it as is
+            raise http_exc
+        except Exception as e:
+            logger.error(f"Unexpected exception in complete(): {e}")
+            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
     @llm_completion_callback()
     async def acomplete(self, prompt: str, formatted: bool = False, **kwargs: Any) -> CompletionResponse:
         try:
             if LLM_INFERENCE_URL.startswith(OPENAI_URL_PREFIX):
-                return await self._openai_complete(prompt, **kwargs, **self.params)
+                return await self._async_openai_complete(prompt, **kwargs, **self.params)
             elif LLM_INFERENCE_URL.startswith(HUGGINGFACE_URL_PREFIX):
-                return await self._huggingface_remote_complete(prompt, **kwargs, **self.params)
+                return await self._async_huggingface_remote_complete(prompt, **kwargs, **self.params)
             else:
                 return await self._async_custom_api_complete(prompt, **kwargs, **self.params)
+        except HTTPException as http_exc:
+            raise http_exc
+        except Exception as e:
+            logger.error(f"Unexpected exception in acomplete(): {e}")
+            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
         finally:
             # Clear params after the completion is done
             self.params = {}
 
-    async def _openai_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
+    async def _async_openai_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         return await OpenAI(api_key=LLM_ACCESS_SECRET, **kwargs).acomplete(prompt)
 
-    async def _huggingface_remote_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
+    async def _async_huggingface_remote_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         return await self._async_post_request({"messages": [{"role": "user", "content": prompt}]}, headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}"})
 
     async def _async_custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        model = kwargs.pop("model", self._get_default_model())
+        model_name, model_max_len = self._get_default_model_info()
+        if kwargs.get("model"):
+            model_name = kwargs.pop("model")
         data = {"prompt": prompt, **kwargs}
-        if model:
-            data["model"] = model # Include the model only if it is not None
+        if model_name:
+            data["model"] = model_name # Include the model only if it is not None
+        if model_max_len and data.get("max_tokens"):
+            if data["max_tokens"] > model_max_len:
+                logger.error(f"Requested max_tokens ({data['max_tokens']}) exceeds model's max length ({model_max_len}).")
+                # vLLM will raise error ({"object":"error","message":"This model's maximum context length is 131072 tokens. However, you requested 500500500500505361 tokens (361 in the messages, 500500500500505000 in the completion). Please reduce the length of the messages or completion.","type":"BadRequestError","param":null,"code":400})
 
         # DEBUG: Call the debugging function
         # self._debug_curl_command(data)
         try:
             return await self._async_post_request(data, headers=DEFAULT_HEADERS)
         except HTTPError as e:
-            if e.response.status_code == 400:
+            if not model_name and e.response.status_code == 400:
                 logger.warning(
                     f"Potential issue with 'model' parameter in API response. "
                     f"Response: {str(e)}. Attempting to update the model name as a mitigation..."
@@ -98,9 +132,9 @@ class Inference(CustomLLM):
         parsed = urlparse(LLM_INFERENCE_URL)
         return urljoin(f"{parsed.scheme}://{parsed.netloc}", "/v1/models")
 
-    def _fetch_default_model(self) -> str:
+    def _fetch_default_model_info(self) -> (str, int):
         """
-        Fetch the default model from the /v1/models endpoint.
+        Fetch the default model name and max_length from the /v1/models endpoint.
         """
         try:
             models_url = self._get_models_endpoint()
@@ -108,29 +142,44 @@ class Inference(CustomLLM):
             response.raise_for_status()  # Raise an exception for HTTP errors (includes 404)
 
             models = response.json().get("data", [])
-            return models[0].get("id") if models else None
+            if models:
+                return models[0].get("id", None), models[0].get("max_model_len", None)
+            return None, None
+
         except Exception as e:
             logger.error(f"Error fetching models from {models_url}: {e}. \"model\" parameter will not be included with inference call.")
             return None
 
-    def _get_default_model(self) -> str:
+    def _get_default_model_info(self) -> (str, int):
         """
         Returns the cached default model if available, otherwise fetches and caches it.
         """
         if not self._default_model and not self._model_retrieval_attempted:
             self._model_retrieval_attempted = True
-            self._default_model = self._fetch_default_model()
-        return self._default_model
+            self._default_model, self._default_max_model_len = self._fetch_default_model_info()
+        return self._default_model, self._default_max_model_len
 
     async def _async_post_request(self, data: dict, headers: dict) -> CompletionResponse:
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(LLM_INFERENCE_URL, json=data, headers=headers)
-                response.raise_for_status()  # Raise exception for HTTP errors
-                response_data = response.json()
-                return CompletionResponse(text=str(response_data))
+            client = await self._get_httpx_client()
+            response = await client.post(LLM_INFERENCE_URL, json=data, headers=headers)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            response_data = response.json()
+            # Check if the request was successful
+            if response.status_code == DEFAULT_HTTP_SUCCESS_CODE:
+                # OAI Spec returns array of choices, we choose the first one
+                if "choices" in response_data and response_data["choices"]:
+                    return CompletionResponse(text=response_data["choices"][0].get("text", ""))
+            # Return full response as text if no specific parsing is possible
+            return CompletionResponse(text=str(response_data))
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error {e.response.status_code} during POST request to {LLM_INFERENCE_URL}: {e.response.text}")
+            raise
         except httpx.RequestError as e:
             logger.error(f"Error during POST request to {LLM_INFERENCE_URL}: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during POST request: {e}")
             raise
 
     def _debug_curl_command(self, data: dict) -> None:
@@ -154,3 +203,8 @@ class Inference(CustomLLM):
     def metadata(self) -> LLMMetadata:
         """Get LLM metadata."""
         return LLMMetadata()
+
+    async def aclose(self):
+        """ Closes the HTTP client when shutting down. """
+        if self._async_http_client:
+            await self._async_http_client.aclose()

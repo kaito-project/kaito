@@ -13,6 +13,7 @@ import requests
 from requests.exceptions import HTTPError
 from urllib.parse import urlparse, urljoin
 from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET #, LLM_RESPONSE_FIELD
+from fastapi import HTTPException
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -52,11 +53,19 @@ class Inference(CustomLLM):
 
     @llm_completion_callback()
     def complete(self, prompt: str, formatted: bool = False, **kwargs: Any) -> CompletionResponse:
-        # Required implementation - Called by LlamaIndex reranker
-        result = asyncio.run(self.acomplete(prompt, formatted=formatted, **kwargs))
-        if result.text == "Empty Response":
-            logger.error("LLMRerank Request returned an unparsable or invalid response")
-        return result
+        # Required implementation - Only called by LlamaIndex reranker because LLMRerank library doesn't use async call
+        try:
+            result = asyncio.run(self.acomplete(prompt, formatted=formatted, **kwargs))
+            if result.text == "Empty Response":
+                logger.error("LLMRerank Request returned an unparsable or invalid response")
+                raise HTTPException(status_code=422, detail="Rerank operation failed: Invalid response from LLM. This feature is experimental.")
+            return result
+        except HTTPException as http_exc:
+            # If it's already an HTTPException (e.g., 422), re-raise it as is
+            raise http_exc
+        except Exception as e:
+            logger.error(f"Unexpected exception in complete(): {e}")
+            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
     @llm_completion_callback()
     async def acomplete(self, prompt: str, formatted: bool = False, **kwargs: Any) -> CompletionResponse:
@@ -67,6 +76,11 @@ class Inference(CustomLLM):
                 return await self._async_huggingface_remote_complete(prompt, **kwargs, **self.params)
             else:
                 return await self._async_custom_api_complete(prompt, **kwargs, **self.params)
+        except HTTPException as http_exc:
+            raise http_exc
+        except Exception as e:
+            logger.error(f"Unexpected exception in acomplete(): {e}")
+            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
         finally:
             # Clear params after the completion is done
             self.params = {}
@@ -86,8 +100,9 @@ class Inference(CustomLLM):
             data["model"] = model_name # Include the model only if it is not None
         if model_max_len and data.get("max_tokens"):
             if data["max_tokens"] > model_max_len:
-                logger.warning(f"Requested max_tokens ({data['max_tokens']}) exceeds model's max length ({model_max_len}). Clipping to {model_max_len}.")
-                data["max_tokens"] = model_max_len
+                logger.error(f"Requested max_tokens ({data['max_tokens']}) exceeds model's max length ({model_max_len}).")
+                # TODO: Need to ensure message from VLLM is raised up here ({"object":"error","message":"This model's maximum context length is 131072 tokens. However, you requested 500500500500505361 tokens (361 in the messages, 500500500500505000 in the completion). Please reduce the length of the messages or completion.","type":"BadRequestError","param":null,"code":400})
+                # raise ValueError("")
 
         # DEBUG: Call the debugging function
         # self._debug_curl_command(data)
@@ -153,7 +168,7 @@ class Inference(CustomLLM):
             response_data = response.json()
             # Check if the request was successful
             if response.status_code == DEFAULT_HTTP_SUCCESS_CODE:
-                # Ensure the expected response structure exists before accessing it
+                # OAI Spec returns array of choices, we choose the first one
                 if "choices" in response_data and response_data["choices"]:
                     return CompletionResponse(text=response_data["choices"][0].get("text", ""))
             # Return full response as text if no specific parsing is possible

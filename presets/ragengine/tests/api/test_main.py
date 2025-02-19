@@ -190,6 +190,65 @@ def test_reranker_and_query_with_index(mock_get):
     # Ensure the model fetch was called once
     mock_get.assert_called_once_with("http://localhost:5000/v1/models", headers=ANY)
 
+@respx.mock
+@patch("requests.get")  # Mock the requests.get call for fetching model metadata
+def test_reranker_failed_and_query_with_index(mock_get):
+    """
+    Test a failed reranker request with query.
+    """
+    # Mock the response for the default model fetch
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    # Mock HTTPX response for reranker and query API calls
+    reranker_mock_response = {"choices": [{"text": "Empty Response"}]}
+
+    # Mock reranker response
+    respx.post("http://localhost:5000/v1/completions", content__contains="A list of documents is shown below") \
+        .mock(return_value=httpx.Response(200, json=reranker_mock_response))
+
+    # Define input documents for indexing
+    documents = [
+        "The capital of France is great.",
+        "The capital of France is huge.",
+        "The capital of France is beautiful.",
+        "Have you ever visited Paris? It is a beautiful city where you can eat delicious food and see the Eiffel Tower. I really enjoyed all the cities in France, but its capital with the Eiffel Tower is my favorite city.",
+        "I really enjoyed my trip to Paris, France. The city is beautiful and the food is delicious. I would love to visit again. "
+        "Such a great capital city."
+    ]
+
+    # Indexing request payload
+    index_request_payload = {
+        "index_name": "test_index",
+        "documents": [{"text": doc.strip()} for doc in documents]
+    }
+
+    # Perform indexing
+    response = client.post("/index", json=index_request_payload)
+    assert response.status_code == 200
+
+    # Query request payload with reranking
+    top_n = 2  # The number of relevant docs returned in reranker response
+    query_request_payload = {
+        "index_name": "test_index",
+        "query": "what is the capital of france?",
+        "top_k": 5,
+        "llm_params": {"temperature": 0, "max_tokens": 2000},
+        "rerank_params": {"top_n": top_n}
+    }
+
+    # Perform query
+    response = client.post("/query", json=query_request_payload)
+    assert response.status_code == 422
+    assert response.content == b'{"detail":"Rerank operation failed: Invalid response from LLM. This feature is experimental."}'
+
+    # Ensure HTTPX requests were made
+    assert respx.calls.call_count == 1  # One for rerank
+    # Ensure the model fetch was called once
+    mock_get.assert_called_once_with("http://localhost:5000/v1/models", headers=ANY)
+
 def test_query_index_failure():
     # Prepare request data for querying.
     request_data = {

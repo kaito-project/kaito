@@ -121,8 +121,8 @@ async def index_documents(request: IndexRequest):
     ```
 
     ## Experimental Warning:
-    - The `rerank_params` option is **experimental** and may cause the query to fail in some cases.
-    - If `LLMRerank` produces an unparsable response (not in the expected format), the query will **return an empty response**.
+    - The `rerank_params` option is **experimental** and may cause the query to fail.
+    - If `LLMRerank` produces an invalid or unparsable response, an **error will be raised**.
     - Expected format:
       ```
       Answer:
@@ -130,7 +130,7 @@ async def index_documents(request: IndexRequest):
       Doc: 3, Relevance: 4
       Doc: 7, Relevance: 3
       ```
-    - Use `rerank_params` **at your own risk** and validate responses before relying on them.
+    - If reranking fails, the request will not return results and will instead raise an error.
 
     ## Response Example:
     ```json
@@ -149,6 +149,9 @@ async def query_index(request: QueryRequest):
         return await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params
         )
+    except HTTPException as http_exc:
+        # Preserve HTTP exceptions like 422 from reranker
+        raise http_exc
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:

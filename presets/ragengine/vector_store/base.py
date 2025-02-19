@@ -43,7 +43,7 @@ class BaseVectorStore(ABC):
         return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
     async def shutdown(self):
-        self.llm.aclose()
+        await self.llm.aclose()
 
     async def index_documents(self, index_name: str, documents: List[Document]) -> List[str]:
         """Common indexing logic for all vector stores."""

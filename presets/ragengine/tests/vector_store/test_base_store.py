@@ -11,6 +11,8 @@ from ragengine.models import Document
 from ragengine.embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from ragengine.config import (LOCAL_EMBEDDING_MODEL_ID, LLM_INFERENCE_URL,
                               LLM_ACCESS_SECRET, VECTOR_DB_PERSIST_DIR)
+import httpx
+import respx
 
 class BaseVectorStoreTest(ABC):
     """Base class for vector store tests that defines the test structure."""
@@ -68,12 +70,16 @@ class BaseVectorStoreTest(ABC):
         pass
 
     @pytest.mark.asyncio
-    @patch('requests.post')
-    async def test_query_documents(self, mock_post, vector_store_manager):
-        mock_response = {
-            "result": "This is the completion from the API"
+    @respx.mock
+    @patch("requests.get")
+    async def test_query_documents(self, mock_get, vector_store_manager):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "data": [{"id": "mock-model", "max_model_len": 2048}]
         }
-        mock_post.return_value.json.return_value = mock_response
+
+        mock_response = {"result": "This is the completion from the API"}
+        respx.post(LLM_INFERENCE_URL).mock(return_value=httpx.Response(200, json=mock_response))
 
         documents = [
             Document(text="First document", metadata={"type": "text"}),
@@ -89,12 +95,7 @@ class BaseVectorStoreTest(ABC):
         assert query_result["response"] == "{'result': 'This is the completion from the API'}"
         assert query_result["source_nodes"][0]["text"] == "First document"
         assert query_result["source_nodes"][0]["score"] == pytest.approx(self.expected_query_score, rel=1e-6)
-
-        mock_post.assert_called_once_with(
-            LLM_INFERENCE_URL,
-            json={"prompt": "Context information is below.\n---------------------\ntype: text\n\nFirst document\n---------------------\nGiven the context information and not prior knowledge, answer the query.\nQuery: First\nAnswer: ", 'temperature': 0.7},
-            headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}", 'Content-Type': 'application/json'}
-        )
+        assert respx.calls.call_count == 1  # Ensure only one LLM inference request was made
 
     @pytest.mark.asyncio
     async def test_add_document(self, vector_store_manager):

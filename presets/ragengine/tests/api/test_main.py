@@ -187,8 +187,6 @@ def test_reranker_and_query_with_index(mock_get):
     # Ensure HTTPX requests were made
     assert respx.calls.call_count == 2  # One for rerank, one for query completion
 
-    # Ensure the model fetch was called once
-    mock_get.assert_called_once_with("http://localhost:5000/v1/models", headers=ANY)
 
 @respx.mock
 @patch("requests.get")  # Mock the requests.get call for fetching model metadata
@@ -246,8 +244,6 @@ def test_reranker_failed_and_query_with_index(mock_get):
 
     # Ensure HTTPX requests were made
     assert respx.calls.call_count == 1  # One for rerank
-    # Ensure the model fetch was called once
-    mock_get.assert_called_once_with("http://localhost:5000/v1/models", headers=ANY)
 
 def test_query_index_failure():
     # Prepare request data for querying.

@@ -37,19 +37,15 @@ class QueryRequest(BaseModel):
     # Accept a dictionary for rerank parameters
     rerank_params: Optional[Dict[str, Any]] = Field(
         default_factory=dict,
-        description="Optional parameters for reranking, e.g., top_n, batch_size",
+        description="Experimental: Optional parameters for reranking. Only 'top_n' and 'choice_batch_size' are supported.",
     )
 
     @model_validator(mode="after")
     def validate_params(cls, values: "QueryRequest") -> "QueryRequest":
         # Access fields as attributes instead of treating as a dictionary
-        llm_params = values.llm_params
+        llm_params = values.llm_params # Validate LLM parameters on vLLM side
         rerank_params = values.rerank_params
         top_k = values.top_k
-
-        # Validate LLM parameters
-        if "temperature" in llm_params and not (0.0 <= llm_params["temperature"] <= 1.0):
-            raise ValueError("Temperature must be between 0.0 and 1.0.")
 
         # Validate rerank parameters
         if "top_n" in rerank_params:

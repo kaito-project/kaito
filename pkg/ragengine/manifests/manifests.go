@@ -158,8 +158,15 @@ func RAGSetEnv(ragEngineObj *kaitov1alpha1.RAGEngine) []corev1.EnvVar {
 
 	if ragEngineObj.Spec.InferenceService.AccessSecret != "" {
 		accessSecretEnv := corev1.EnvVar{
-			Name:  "INFERENCE_ACCESS_SECRET",
-			Value: ragEngineObj.Spec.InferenceService.AccessSecret,
+			Name: "REMOTE_EMBEDDING_ACCESS_SECRET",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: ragEngineObj.Spec.InferenceService.AccessSecret,
+					},
+					Key: "REMOTE_EMBEDDING_ACCESS_SECRET",
+				},
+			},
 		}
 		envs = append(envs, accessSecretEnv)
 	}
@@ -176,7 +183,7 @@ func GenerateRAGServiceManifest(ctx context.Context, ragObj *kaitov1alpha1.RAGEn
 			Name:       "http",
 			Protocol:   corev1.ProtocolTCP,
 			Port:       80,
-			TargetPort: intstr.FromInt32(5000),
+			TargetPort: intstr.FromInt32(8000),
 		},
 	}
 

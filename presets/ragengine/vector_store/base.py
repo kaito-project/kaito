@@ -21,8 +21,7 @@ from ragengine.inference.inference import Inference
 from ragengine.config import (LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N, VECTOR_DB_PERSIST_DIR)
 
 from llama_index.core.storage.docstore import SimpleDocumentStore
-
-import threading
+import aiorwlock
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -35,7 +34,7 @@ class BaseVectorStore(ABC):
         self.index_map = {}
         self.index_store = SimpleIndexStore()
         self.llm = Inference()
-        self.lock = threading.Lock()
+        self.rwlock = aiorwlock.RWLock()
 
     @staticmethod
     def generate_doc_id(text: str) -> str:
@@ -59,7 +58,8 @@ class BaseVectorStore(ABC):
 
         async def handle_document(doc: Document):
             doc_id = self.generate_doc_id(doc.text)
-            retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
+            async with self.rwlock.reader_lock:
+                retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
             if not retrieved_doc:
                 await self.add_document_to_index(index_name, doc, doc_id)
                 indexed_doc_ids.add(doc_id)
@@ -91,16 +91,17 @@ class BaseVectorStore(ABC):
             indexed_doc_ids.add(doc_id)
 
         if llama_docs:
-            index = await asyncio.to_thread(
-                VectorStoreIndex.from_documents,
-                llama_docs,
-                storage_context=storage_context,
-                embed_model=self.embed_model,
-                use_async=True,
-            )
-            index.set_index_id(index_name)
-            self.index_map[index_name] = index
-            self.index_store.add_index_struct(index.index_struct)
+            async with self.rwlock.writer_lock:
+                index = await asyncio.to_thread(
+                    VectorStoreIndex.from_documents,
+                    llama_docs,
+                    storage_context=storage_context,
+                    embed_model=self.embed_model,
+                    use_async=True,
+                )
+                index.set_index_id(index_name)
+                self.index_map[index_name] = index
+                self.index_store.add_index_struct(index.index_struct)
             await self._persist(index_name)
         return list(indexed_doc_ids)
 
@@ -153,7 +154,8 @@ class BaseVectorStore(ABC):
             similarity_top_k=top_k,
             node_postprocessors=node_postprocessors
         )
-        query_result = await query_engine.aquery(query)
+        async with self.rwlock.reader_lock:
+            query_result = await query_engine.aquery(query)
         return {
             "response": query_result.response,
             "source_nodes": [
@@ -174,11 +176,8 @@ class BaseVectorStore(ABC):
             raise ValueError(f"No such index: '{index_name}' exists.")
         llama_doc = LlamaDocument(id_=doc_id, text=document.text, metadata=document.metadata)
 
-        # Perform insertion within a locked context to ensure thread safety
-        def insert_with_lock():
-            with self.lock:  # Ensure only one insert runs at a time
-                self.index_map[index_name].insert(llama_doc)
-        await asyncio.to_thread(insert_with_lock)
+        async with self.rwlock.writer_lock:
+            await asyncio.to_thread(self.index_map[index_name].insert, llama_doc)
 
     def list_indexes(self) -> List[str]:
         return list(self.index_map.keys())

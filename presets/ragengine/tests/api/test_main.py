@@ -41,7 +41,7 @@ def test_index_documents_success():
     assert not doc2["metadata"]
 
 @respx.mock
-@patch("requests.get")  # Mock the requests.get call
+@patch("requests.get")  # Mock the requests.get call for fetching model metadata
 def test_query_index_success(mock_get):
     # Mock the response for the default model fetch
     mock_get.return_value.status_code = 200
@@ -87,8 +87,9 @@ def test_query_index_success(mock_get):
     # Ensure the model fetch was called once
     mock_get.assert_called_once_with("http://localhost:5000/v1/models", headers=ANY)
 
-# @patch('requests.post')
-def test_reranker_and_query_with_index():
+@respx.mock
+@patch("requests.get")  # Mock the requests.get call for fetching model metadata
+def test_reranker_and_query_with_index(mock_get):
     """
     Test reranker and query functionality with indexed documents.
 
@@ -114,12 +115,22 @@ def test_reranker_and_query_with_index():
     Doc: 3, Relevance: 4
     Doc: 7, Relevance: 3
     """
-    # Mock responses for the reranker and query API calls
-    # reranker_mock_response = "Doc: 4, Relevance: 10\nDoc: 5, Relevance: 10"
-    # query_mock_response = {"result": "This is the completion from the API"}
-    # mock_http_responses = [reranker_mock_response, query_mock_response]
+    # Mock the response for the default model fetch
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
 
-    # mock_post.return_value.json.side_effect = mock_http_responses
+    # Mock HTTPX response for reranker and query API calls
+    reranker_mock_response = {"choices": [{"text": "Doc: 4, Relevance: 10\nDoc: 5, Relevance: 10"}]}
+    query_mock_response = {"choices": [{"text": "his is the completion from the API"}]}
+
+    # Mock reranker response
+    respx.post("http://localhost:5000/v1/completions", content__contains="A list of documents is shown below") \
+        .mock(return_value=httpx.Response(200, json=reranker_mock_response))
+
+    # Mock query response
+    respx.post("http://localhost:5000/v1/completions").mock(return_value=httpx.Response(200, json=query_mock_response))
 
     # Define input documents for indexing
     documents = [
@@ -142,7 +153,7 @@ def test_reranker_and_query_with_index():
     assert response.status_code == 200
 
     # Query request payload with reranking
-    top_n = 3 #len(reranker_mock_response.split("\n"))  # Extract top_n from mock reranker response
+    top_n = 2  # The number of relevant docs returned in reranker response
     query_request_payload = {
         "index_name": "test_index",
         "query": "what is the capital of france?",
@@ -157,7 +168,6 @@ def test_reranker_and_query_with_index():
     query_response = response.json()
 
     # Validate query response
-    #assert query_response["response"] == str(query_mock_response)
     assert len(query_response["source_nodes"]) == top_n
 
     # Validate each source node in the query response
@@ -174,8 +184,11 @@ def test_reranker_and_query_with_index():
         assert actual_node["score"] == expected_node["score"]
         assert actual_node["metadata"] == expected_node["metadata"]
 
-    # Verify the number of mock API calls
-    #assert mock_post.call_count == len(mock_http_responses)
+    # Ensure HTTPX requests were made
+    assert respx.calls.call_count == 2  # One for rerank, one for query completion
+
+    # Ensure the model fetch was called once
+    mock_get.assert_called_once_with("http://localhost:5000/v1/models", headers=ANY)
 
 def test_query_index_failure():
     # Prepare request data for querying.

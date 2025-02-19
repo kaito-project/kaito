@@ -14,3 +14,4 @@ llama-index-vector-stores-chroma
 llama-index-vector-stores-azurecosmosmongo
 uvicorn
 asyncio
+aiorwlock

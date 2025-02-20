@@ -62,7 +62,7 @@ class BaseVectorStore(ABC):
             doc_id = self.generate_doc_id(doc.text)
             if self.use_rwlock:
                 async with self.rwlock.reader_lock:
-                    retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info_doc_info(doc_id)
+                    retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
             else:
                 retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
             if not retrieved_doc:

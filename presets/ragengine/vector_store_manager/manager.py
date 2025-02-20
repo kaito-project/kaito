@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 from ragengine.models import Document
 from ragengine.vector_store.base import BaseVectorStore
@@ -41,6 +41,10 @@ class VectorStoreManager:
             offset,
             max_text_length
         )
+
+    async def persist(self, index_name: str, path: str) -> None:
+        """Persist existing index(es)."""
+        return await self.vector_store.persist(index_name, path)
 
     async def shutdown(self):
         """Shutdown the manager."""

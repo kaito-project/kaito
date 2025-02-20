@@ -11,7 +11,7 @@ from models import (IndexRequest, ListDocumentsResponse,
 from vector_store.faiss_store import FaissVectorStoreHandler
 
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
-                              EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID)
+                              EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID, DEFAULT_VECTOR_DB_PERSIST_DIR)
 from urllib.parse import unquote
 
 app = FastAPI()
@@ -251,6 +251,36 @@ async def list_documents_in_index(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/persist/{index_name}",
+    summary="Persist Index Data to Disk",
+    description="""
+    Persist the existing index data to disk at a specified location. This ensures that indexed data is saved and can be reloaded upon restarting the server.
+
+    ## Request Example:
+    ```json
+    {
+      "index_name": "example_index",
+      "path": "./custom_path/example_index"
+    }
+    ```
+
+    If no path is provided, the index will be persisted in the default directory.
+
+    ## Response Example:
+    ```json
+    {
+      "message": "Successfully persisted index example_index to ./custom_path/example_index."
+    }
+    ```
+    """
+)
+async def persist_index(index_name: str, path: str = DEFAULT_VECTOR_DB_PERSIST_DIR):
+    try:
+        return await rag_ops.persist(index_name, path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")
 
 @app.on_event("shutdown")
 async def shutdown_event():

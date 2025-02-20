@@ -18,7 +18,8 @@ from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 from ragengine.models import Document, DocumentResponse
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
-from ragengine.config import (LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N, VECTOR_DB_PERSIST_DIR)
+from ragengine.config import (LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N)
+from fastapi import HTTPException
 
 from llama_index.core.storage.docstore import SimpleDocumentStore
 import aiorwlock
@@ -73,9 +74,6 @@ class BaseVectorStore(ABC):
 
         # Gather all coroutines for processing documents
         await asyncio.gather(*(handle_document(doc) for doc in documents))
-
-        if indexed_doc_ids:
-            await self._persist(index_name)
         return list(indexed_doc_ids)
     
     @abstractmethod
@@ -119,7 +117,6 @@ class BaseVectorStore(ABC):
                 index.set_index_id(index_name)
                 self.index_map[index_name] = index
                 self.index_store.add_index_struct(index.index_struct)
-            await self._persist(index_name)
         return list(indexed_doc_ids)
 
     async def query(self,
@@ -268,22 +265,28 @@ class BaseVectorStore(ABC):
             return False
         return doc_id in self.index_map[index_name].ref_doc_info
 
-    async def _persist_all(self):
+    async def persist_all(self, path: str):
         """Common persistence logic."""
         logger.info("Persisting all indexes.")
-        self.index_store.persist(os.path.join(VECTOR_DB_PERSIST_DIR, "store.json"))
+        self.index_store.persist(os.path.join(path, "store.json"))
         for idx in self.index_store.index_structs():
-            await self._persist(idx.index_id)
+            await self.persist(idx.index_id, path)
 
-    async def _persist(self, index_name: str):
+    async def persist(self, index_name: str, path: str):
         """Common persistence logic for individual index."""
         try:
-            logger.info(f"Persisting index {index_name}.")
-            self.index_store.persist(os.path.join(VECTOR_DB_PERSIST_DIR, "store.json"))
-            assert index_name in self.index_map, f"No such index: '{index_name}' exists."
-            storage_context = self.index_map[index_name].storage_context
+            # Ensure the directory exists
+            os.makedirs(path, exist_ok=True)
+            if index_name not in self.index_map:
+                raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
+
+            logger.info(f"Persisting index {index_name} into {path}.")
+            await asyncio.to_thread(self.index_store.persist, os.path.join(path, "store.json"))
+
             # Persist the specific index
-            storage_context.persist(persist_dir=os.path.join(VECTOR_DB_PERSIST_DIR, index_name))
+            storage_context = self.index_map[index_name].storage_context
+            await asyncio.to_thread(storage_context.persist, os.path.join(path, index_name))
             logger.info(f"Successfully persisted index {index_name}.")
         except Exception as e:
             logger.error(f"Failed to persist index {index_name}. Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")

@@ -259,11 +259,8 @@ async def list_documents_in_index(
     Persist the existing index data to disk at a specified location. This ensures that indexed data is saved.
 
     ## Request Example:
-    ```json
-    {
-      "index_name": "example_index",
-      "path": "./custom_path/example_index"
-    }
+    ```
+    POST /persist/example_index?path=./custom_path
     ```
 
     If no path is provided, the index will be persisted in the default directory.
@@ -276,7 +273,10 @@ async def list_documents_in_index(
     ```
     """
 )
-async def persist_index(index_name: str, path: str = DEFAULT_VECTOR_DB_PERSIST_DIR): # TODO: Provide endpoint for loading existing index(es)
+async def persist_index(
+        index_name: str,
+        path: str = Query(DEFAULT_VECTOR_DB_PERSIST_DIR, description="Path where the index will be persisted")
+):  # TODO: Provide endpoint for loading existing index(es)
     # TODO: Extend support for other vector databases/integrations besides FAISS
     try:
         await rag_ops.persist(index_name, path)

@@ -26,36 +26,44 @@ on:
         default: "1.30.0"
 
 jobs:
-  base-setup:
-    uses: ./.github/workflows/e2e-base-setup.yaml
-    with:
-      git_sha: ${{ inputs.git_sha }}
-      node_provisioner: ${{ inputs.node_provisioner }}
-      tag: ${{ inputs.tag }}
-      isRelease: ${{ inputs.isRelease }}
-      registry: ${{ inputs.registry }}
-      region: ${{ inputs.region }}
-      k8s_version: ${{ inputs.k8s_version }}
-
   e2e-tests:
     runs-on: [ "self-hosted", "hostname:kaito-e2e-github-runner" ]
     name: e2e-tests-${{ inputs.node_provisioner }}
-    needs: base-setup
+    environment: e2e-test
     permissions:
       contents: read
       id-token: write # This is required for requesting the JWT
     
     env:
-      AZURE_CLUSTER_NAME: ${{ needs.base-setup.outputs.cluster_name }}
-      RUN_LLAMA_13B: ${{ needs.base-setup.outputs.run_llama_13b }}
       TEST_SUITE: ${{ inputs.node_provisioner }}
-      E2E_ACR_REGISTRY: ${{ needs.base-setup.outputs.cluster_name }}.azurecr.io
-      E2E_ACR_REGISTRY_SECRET: ${{ needs.base-setup.outputs.cluster_name }}-acr-secret
       GO_VERSION: "1.23"
       KARPENTER_NAMESPACE: "karpenter"
       GPU_PROVISIONER_NAMESPACE: "gpu-provisioner"
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
+        with:
+          egress-policy: audit
+          disable-sudo: true
+          disable-telemetry: true
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.git_sha }}
+
+      - name: Run e2e-base-setup composite action
+        id: base-setup
+        uses: ./.github/actions/e2e-base-setup
+        with:
+          git_sha: ${{ inputs.git_sha }}
+          node_provisioner: ${{ inputs.node_provisioner }}
+          tag: ${{ inputs.tag }}
+          isRelease: ${{ inputs.isRelease }}
+          region: ${{ inputs.region }}
+          k8s_version: ${{ inputs.k8s_version }}
+
       - name: Set Registry
         if: ${{ inputs.isRelease }}
         run: |
@@ -67,14 +75,14 @@ jobs:
         run: |
           make docker-build-adapter
         env:
-          REGISTRY: ${{ env.E2E_ACR_REGISTRY }}
+          REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
 
       - name: build dataset image
         shell: bash
         run: |
           make docker-build-dataset
         env:
-          REGISTRY: ${{ env.E2E_ACR_REGISTRY }}
+          REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
       
       - name: Remove existing Go modules directory
         run: sudo rm -rf ~/go/pkg/mod
@@ -102,6 +110,10 @@ jobs:
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
           make kaito-workspace-e2e-test
+        env:
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
+          E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
 
       - name: Run fast e2e test
         if: ${{ !inputs.isRelease }}
@@ -113,6 +125,8 @@ jobs:
 
       - name: Cleanup e2e resources
         if: ${{ always() }}
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         uses: azure/CLI@v2.1.0
         with:
           inlineScript: |

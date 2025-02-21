@@ -6,6 +6,9 @@ from unittest.mock import patch, ANY
 from llama_index.core.storage.index_store import SimpleIndexStore
 
 from ragengine.main import app, vector_store_handler, rag_ops
+from ragengine.config import DEFAULT_VECTOR_DB_PERSIST_DIR
+
+import os
 
 import pytest
 import pytest_asyncio
@@ -306,6 +309,42 @@ async def test_list_documents_in_index_success(async_client):
     assert ({item["text"] for item in response_json["documents"]}
             == {item["text"] for item in request_data["documents"]})
 
+
+@pytest.mark.asyncio
+async def test_persist_documents(async_client):
+    index_name = "test_index"
+
+    # Ensure no documents are present initially
+    response = await async_client.get(f"/indexes/{index_name}/documents")
+
+    assert response.status_code == 500
+    assert response.json() == {'detail': "Index 'test_index' not found."}
+
+    request_data = {
+        "index_name": index_name,
+        "documents": [
+            {"text": "This is a test document"},
+            {"text": "Another test document"}
+        ]
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+
+    # Persist documents for the specific index
+    response = await async_client.post(f"/persist/{index_name}")
+    assert response.status_code == 200
+    response_json = response.json()
+    assert response_json == {"message": f"Successfully persisted index {index_name} to {DEFAULT_VECTOR_DB_PERSIST_DIR}."}
+    assert os.path.exists(os.path.join(DEFAULT_VECTOR_DB_PERSIST_DIR, index_name))
+
+    # Persist documents for the specific index at a custom path
+    custom_path = "./custom_test_path"
+    response = await async_client.post(f"/persist/{index_name}?path={custom_path}")
+    assert response.status_code == 200
+    response_json = response.json()
+    assert response_json == {"message": f"Successfully persisted index {index_name} to {custom_path}."}
+    assert os.path.exists(os.path.join(custom_path, index_name))
 
 """
 Example of a live query test. This test is currently commented out as it requires a valid 

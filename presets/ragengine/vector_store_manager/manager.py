@@ -42,6 +42,10 @@ class VectorStoreManager:
             max_text_length
         )
 
+    async def persist(self, index_name: str, path: str) -> None:
+        """Persist existing index(es)."""
+        return await self.vector_store.persist(index_name, path)
+
     async def shutdown(self):
         """Shutdown the manager."""
         await self.vector_store.shutdown()

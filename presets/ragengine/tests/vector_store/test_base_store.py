@@ -22,7 +22,7 @@ class BaseVectorStoreTest(ABC):
         return LocalHuggingFaceEmbedding(LOCAL_EMBEDDING_MODEL_ID)
 
     @pytest.fixture
-    @abstractmethodgi
+    @abstractmethod
     def vector_store_manager(self, init_embed_manager):
         """Each implementation must provide its own vector store manager."""
         pass

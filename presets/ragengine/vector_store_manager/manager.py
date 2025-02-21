@@ -41,3 +41,7 @@ class VectorStoreManager:
             offset,
             max_text_length
         )
+
+    async def shutdown(self):
+        """Shutdown the manager."""
+        await self.vector_store.shutdown()

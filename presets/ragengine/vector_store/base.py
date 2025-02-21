@@ -21,23 +21,30 @@ from ragengine.inference.inference import Inference
 from ragengine.config import (LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N, VECTOR_DB_PERSIST_DIR)
 
 from llama_index.core.storage.docstore import SimpleDocumentStore
+import aiorwlock
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class BaseVectorStore(ABC):
-    def __init__(self, embedding_manager: BaseEmbeddingModel):
+    def __init__(self, embedding_manager: BaseEmbeddingModel, use_rwlock: bool = False):
         self.embedding_manager = embedding_manager
         self.embed_model = self.embedding_manager.model
         self.index_map = {}
         self.index_store = SimpleIndexStore()
         self.llm = Inference()
+        # Use a reader/writer lock only if needed
+        self.use_rwlock = use_rwlock
+        self.rwlock = aiorwlock.RWLock() if self.use_rwlock else None
 
     @staticmethod
     def generate_doc_id(text: str) -> str:
         """Generates a unique document ID based on the hash of the document text."""
         return hashlib.sha256(text.encode('utf-8')).hexdigest()
+
+    async def shutdown(self):
+        await self.llm.aclose()
 
     async def index_documents(self, index_name: str, documents: List[Document]) -> List[str]:
         """Common indexing logic for all vector stores."""
@@ -53,7 +60,11 @@ class BaseVectorStore(ABC):
 
         async def handle_document(doc: Document):
             doc_id = self.generate_doc_id(doc.text)
-            retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
+            if self.use_rwlock:
+                async with self.rwlock.reader_lock:
+                    retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
+            else:
+                retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
             if not retrieved_doc:
                 await self.add_document_to_index(index_name, doc, doc_id)
                 indexed_doc_ids.add(doc_id)
@@ -85,16 +96,29 @@ class BaseVectorStore(ABC):
             indexed_doc_ids.add(doc_id)
 
         if llama_docs:
-            index = await asyncio.to_thread(
-                VectorStoreIndex.from_documents,
-                llama_docs,
-                storage_context=storage_context,
-                embed_model=self.embed_model,
-                use_async=True,
-            )
-            index.set_index_id(index_name)
-            self.index_map[index_name] = index
-            self.index_store.add_index_struct(index.index_struct)
+            if self.use_rwlock:
+                async with self.rwlock.writer_lock:
+                    index = await asyncio.to_thread(
+                        VectorStoreIndex.from_documents,
+                        llama_docs,
+                        storage_context=storage_context,
+                        embed_model=self.embed_model,
+                        use_async=True,
+                    )
+                    index.set_index_id(index_name)
+                    self.index_map[index_name] = index
+                    self.index_store.add_index_struct(index.index_struct)
+            else:
+                index = await asyncio.to_thread(
+                    VectorStoreIndex.from_documents,
+                    llama_docs,
+                    storage_context=storage_context,
+                    embed_model=self.embed_model,
+                    use_async=True,
+                )
+                index.set_index_id(index_name)
+                self.index_map[index_name] = index
+                self.index_store.add_index_struct(index.index_struct)
             await self._persist(index_name)
         return list(indexed_doc_ids)
 
@@ -147,7 +171,11 @@ class BaseVectorStore(ABC):
             similarity_top_k=top_k,
             node_postprocessors=node_postprocessors
         )
-        query_result = await query_engine.aquery(query)
+        if self.use_rwlock:
+            async with self.rwlock.reader_lock:
+                query_result = await query_engine.aquery(query)
+        else:
+            query_result = await query_engine.aquery(query)
         return {
             "response": query_result.response,
             "source_nodes": [
@@ -167,7 +195,17 @@ class BaseVectorStore(ABC):
         if index_name not in self.index_map:
             raise ValueError(f"No such index: '{index_name}' exists.")
         llama_doc = LlamaDocument(id_=doc_id, text=document.text, metadata=document.metadata)
-        self.index_map[index_name].insert(llama_doc)
+
+        if self.use_rwlock:
+            async with self.rwlock.writer_lock:
+                retrieved_doc = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
+                if retrieved_doc:
+                    logger.info(f"Document {doc_id} already exists in index {index_name} (double-check). Skipping insertion.")
+                    return
+                # Proceed with insertion only if the document is absent
+                await asyncio.to_thread(self.index_map[index_name].insert, llama_doc)
+        else:
+            await asyncio.to_thread(self.index_map[index_name].insert, llama_doc)
 
     def list_indexes(self) -> List[str]:
         return list(self.index_map.keys())

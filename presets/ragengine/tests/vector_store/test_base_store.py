@@ -112,7 +112,7 @@ class BaseVectorStoreTest(ABC):
     async def test_persist_index(self, vector_store_manager):
         documents = [Document(text="Test document", metadata={"type": "text"})]
         await vector_store_manager.index_documents("test_index", documents)
-        await vector_store_manager._persist("test_index")
+        await vector_store_manager.persist("test_index", DEFAULT_VECTOR_DB_PERSIST_DIR)
         assert os.path.exists(DEFAULT_VECTOR_DB_PERSIST_DIR)
 
     @pytest.mark.asyncio

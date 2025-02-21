@@ -1,9 +1,9 @@
 # Dependencies for TFS
 
 # Core Dependencies
-vllm==0.6.3
-transformers == 4.45.0
-torch==2.4.0
+vllm==0.7.2
+transformers == 4.49.0
+torch==2.5.1
 accelerate==1.0.0
 fastapi>=0.111.0,<0.112.0  # Allow patch updates
 pydantic>=2.9

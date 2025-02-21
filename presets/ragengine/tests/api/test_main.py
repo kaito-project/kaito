@@ -6,21 +6,37 @@ from unittest.mock import patch, ANY
 from llama_index.core.storage.index_store import SimpleIndexStore
 
 from ragengine.main import app, vector_store_handler, rag_ops
-from fastapi.testclient import TestClient
+from ragengine.config import DEFAULT_VECTOR_DB_PERSIST_DIR
+
+import os
+
 import pytest
+import pytest_asyncio
+import asyncio
 import httpx
 import respx
 
 AUTO_GEN_DOC_ID_LEN = 64
 
-client = TestClient(app)
+@pytest_asyncio.fixture
+async def async_client():
+    """Use an async HTTP client to interact with FastAPI app."""
+    async with httpx.AsyncClient(app=app, base_url="http://localhost") as client:
+        yield client
+
+@pytest.fixture(scope="session")
+def event_loop():
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
 
 @pytest.fixture(autouse=True)
 def clear_index():
     vector_store_handler.index_map.clear()
     vector_store_handler.index_store = SimpleIndexStore()
 
-def test_index_documents_success():
+@pytest.mark.asyncio
+async def test_index_documents_success(async_client):
     request_data = {
         "index_name": "test_index",
         "documents": [
@@ -29,7 +45,7 @@ def test_index_documents_success():
         ]
     }
 
-    response = client.post("/index", json=request_data)
+    response = await async_client.post("/index", json=request_data)
     assert response.status_code == 200
     doc1, doc2 = response.json()
     assert (doc1["text"] == "This is a test document")
@@ -40,9 +56,10 @@ def test_index_documents_success():
     assert len(doc2["doc_id"]) == AUTO_GEN_DOC_ID_LEN
     assert not doc2["metadata"]
 
+@pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")  # Mock the requests.get call for fetching model metadata
-def test_query_index_success(mock_get):
+async def test_query_index_success(mock_get, async_client):
     # Mock the response for the default model fetch
     mock_get.return_value.status_code = 200
     mock_get.return_value.json.return_value = {
@@ -62,7 +79,7 @@ def test_query_index_success(mock_get):
         ]
     }
 
-    response = client.post("/index", json=request_data)
+    response = await async_client.post("/index", json=request_data)
     assert response.status_code == 200
 
     # Query Request
@@ -73,7 +90,7 @@ def test_query_index_success(mock_get):
         "llm_params": {"temperature": 0.7}
     }
 
-    response = client.post("/query", json=request_data)
+    response = await async_client.post("/query", json=request_data)
     assert response.status_code == 200
     assert response.json()["response"] == "{'result': 'This is the completion from the API'}"
     assert len(response.json()["source_nodes"]) == 1
@@ -87,9 +104,10 @@ def test_query_index_success(mock_get):
     # Ensure the model fetch was called once
     mock_get.assert_called_once_with("http://localhost:5000/v1/models", headers=ANY)
 
+@pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")  # Mock the requests.get call for fetching model metadata
-def test_reranker_and_query_with_index(mock_get):
+async def test_reranker_and_query_with_index(mock_get, async_client):
     """
     Test reranker and query functionality with indexed documents.
 
@@ -149,7 +167,7 @@ def test_reranker_and_query_with_index(mock_get):
     }
 
     # Perform indexing
-    response = client.post("/index", json=index_request_payload)
+    response = await async_client.post("/index", json=index_request_payload)
     assert response.status_code == 200
 
     # Query request payload with reranking
@@ -163,7 +181,7 @@ def test_reranker_and_query_with_index(mock_get):
     }
 
     # Perform query
-    response = client.post("/query", json=query_request_payload)
+    response = await async_client.post("/query", json=query_request_payload)
     assert response.status_code == 200
     query_response = response.json()
 
@@ -187,10 +205,10 @@ def test_reranker_and_query_with_index(mock_get):
     # Ensure HTTPX requests were made
     assert respx.calls.call_count == 2  # One for rerank, one for query completion
 
-
+@pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")  # Mock the requests.get call for fetching model metadata
-def test_reranker_failed_and_query_with_index(mock_get):
+async def test_reranker_failed_and_query_with_index(mock_get, async_client):
     """
     Test a failed reranker request with query.
     """
@@ -224,7 +242,7 @@ def test_reranker_failed_and_query_with_index(mock_get):
     }
 
     # Perform indexing
-    response = client.post("/index", json=index_request_payload)
+    response = await async_client.post("/index", json=index_request_payload)
     assert response.status_code == 200
 
     # Query request payload with reranking
@@ -238,14 +256,15 @@ def test_reranker_failed_and_query_with_index(mock_get):
     }
 
     # Perform query
-    response = client.post("/query", json=query_request_payload)
+    response = await async_client.post("/query", json=query_request_payload)
     assert response.status_code == 422
     assert response.content == b'{"detail":"Rerank operation failed: Invalid response from LLM. This feature is experimental."}'
 
     # Ensure HTTPX requests were made
     assert respx.calls.call_count == 1  # One for rerank
 
-def test_query_index_failure():
+@pytest.mark.asyncio
+async def test_query_index_failure(async_client):
     # Prepare request data for querying.
     request_data = {
         "index_name": "non_existent_index",  # Use an index name that doesn't exist
@@ -254,16 +273,16 @@ def test_query_index_failure():
         "llm_params": {"temperature": 0.7}
     }
 
-    response = client.post("/query", json=request_data)
+    response = await async_client.post("/query", json=request_data)
     assert response.status_code == 400
     assert response.json()["detail"] == "No such index: 'non_existent_index' exists."
 
-
-def test_list_documents_in_index_success():
+@pytest.mark.asyncio
+async def test_list_documents_in_index_success(async_client):
     index_name = "test_index"
 
     # Ensure no documents are present initially
-    response = client.get(f"/indexes/{index_name}/documents")
+    response = await async_client.get(f"/indexes/{index_name}/documents")
 
     assert response.status_code == 500
     assert response.json() == {'detail': "Index 'test_index' not found."}
@@ -276,11 +295,11 @@ def test_list_documents_in_index_success():
         ]
     }
 
-    response = client.post("/index", json=request_data)
+    response = await async_client.post("/index", json=request_data)
     assert response.status_code == 200
 
     # Retrieve documents for the specific index
-    response = client.get(f"/indexes/{index_name}/documents")
+    response = await async_client.get(f"/indexes/{index_name}/documents")
     assert response.status_code == 200
     response_json = response.json()
 
@@ -290,6 +309,42 @@ def test_list_documents_in_index_success():
     assert ({item["text"] for item in response_json["documents"]}
             == {item["text"] for item in request_data["documents"]})
 
+
+@pytest.mark.asyncio
+async def test_persist_documents(async_client):
+    index_name = "test_index"
+
+    # Ensure no documents are present initially
+    response = await async_client.get(f"/indexes/{index_name}/documents")
+
+    assert response.status_code == 500
+    assert response.json() == {'detail': "Index 'test_index' not found."}
+
+    request_data = {
+        "index_name": index_name,
+        "documents": [
+            {"text": "This is a test document"},
+            {"text": "Another test document"}
+        ]
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+
+    # Persist documents for the specific index
+    response = await async_client.post(f"/persist/{index_name}")
+    assert response.status_code == 200
+    response_json = response.json()
+    assert response_json == {"message": f"Successfully persisted index {index_name} to {DEFAULT_VECTOR_DB_PERSIST_DIR}."}
+    assert os.path.exists(os.path.join(DEFAULT_VECTOR_DB_PERSIST_DIR, index_name))
+
+    # Persist documents for the specific index at a custom path
+    custom_path = "./custom_test_path"
+    response = await async_client.post(f"/persist/{index_name}?path={custom_path}")
+    assert response.status_code == 200
+    response_json = response.json()
+    assert response_json == {"message": f"Successfully persisted index {index_name} to {custom_path}."}
+    assert os.path.exists(os.path.join(custom_path, index_name))
 
 """
 Example of a live query test. This test is currently commented out as it requires a valid 

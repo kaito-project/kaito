@@ -11,7 +11,7 @@ from .base import BaseVectorStore
 
 class FaissVectorStoreHandler(BaseVectorStore):
     def __init__(self, embedding_manager):
-        super().__init__(embedding_manager)
+        super().__init__(embedding_manager, use_rwlock=True)
         self.dimension = self.embedding_manager.get_embedding_dimension()
 
     async def _create_new_index(self, index_name: str, documents: List[Document]) -> List[str]:

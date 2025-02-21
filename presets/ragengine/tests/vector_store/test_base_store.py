@@ -10,7 +10,7 @@ from ragengine.vector_store.base import BaseVectorStore
 from ragengine.models import Document
 from ragengine.embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from ragengine.config import (LOCAL_EMBEDDING_MODEL_ID, LLM_INFERENCE_URL,
-                              LLM_ACCESS_SECRET, VECTOR_DB_PERSIST_DIR)
+                              LLM_ACCESS_SECRET, DEFAULT_VECTOR_DB_PERSIST_DIR)
 import httpx
 import respx
 
@@ -109,22 +109,11 @@ class BaseVectorStoreTest(ABC):
                                                     BaseVectorStore.generate_doc_id("Fourth document"))
 
     @pytest.mark.asyncio
-    async def test_persist_index_1(self, vector_store_manager):
+    async def test_persist_index(self, vector_store_manager):
         documents = [Document(text="Test document", metadata={"type": "text"})]
         await vector_store_manager.index_documents("test_index", documents)
-        await vector_store_manager._persist("test_index")
-        assert os.path.exists(VECTOR_DB_PERSIST_DIR)
-
-    @pytest.mark.asyncio
-    async def test_persist_index_2(self, vector_store_manager):
-        documents = [Document(text="Test document", metadata={"type": "text"})]
-        await vector_store_manager.index_documents("test_index", documents)
-
-        documents = [Document(text="Another Test document", metadata={"type": "text"})]
-        await vector_store_manager.index_documents("another_test_index", documents)
-
-        await vector_store_manager._persist_all()
-        assert os.path.exists(VECTOR_DB_PERSIST_DIR)
+        await vector_store_manager.persist("test_index", DEFAULT_VECTOR_DB_PERSIST_DIR)
+        assert os.path.exists(DEFAULT_VECTOR_DB_PERSIST_DIR)
 
     @pytest.mark.asyncio
     async def test_list_documents_in_index(self, vector_store_manager):

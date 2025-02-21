@@ -114,7 +114,9 @@ var _ = Describe("RAGEngine", func() {
 	It("should create RAG with localembedding and huggingface API successfully", func() {
 		numOfReplica := 1
 
+		createAndValidateSecret()
 		ragengineObj := createLocalEmbeddingHFURLRAGEngine()
+		time.Sleep(1 * time.Hour)
 
 		defer cleanupResources(nil, ragengineObj)
 
@@ -241,7 +243,8 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
 			&kaitov1alpha1.InferenceServiceSpec{
-				URL: hfURL,
+				URL:          hfURL,
+				AccessSecret: "huggingface-token",
 			},
 		)
 
@@ -542,7 +545,7 @@ func GenerateQueryPodManifest(namespace, serviceName string) *v1.Pod { // TODO: 
     }
 }'`
 
-	indexPod := &v1.Pod{
+	queryPod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "querypod",
 			Namespace: namespace,
@@ -560,5 +563,34 @@ func GenerateQueryPodManifest(namespace, serviceName string) *v1.Pod { // TODO: 
 		},
 	}
 
-	return indexPod
+	return queryPod
+}
+
+func createAndValidateSecret() {
+	hfToken := os.Getenv("HF_TOKEN")
+	GinkgoWriter.Printf("HF_TOKEN %q \n", hfToken)
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "huggingface-token",
+			Namespace: namespaceName,
+		},
+		Data: map[string][]byte{
+			"REMOTE_EMBEDDING_ACCESS_SECRET": []byte(hfToken),
+		},
+		Type: v1.SecretTypeOpaque,
+	}
+	By("Creating secret", func() {
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, secret, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create secret   %s", secret.Name)
+
+		By("Validating secret creation", func() {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: secret.Namespace,
+				Name:      secret.Name,
+			}, secret, &client.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
 }

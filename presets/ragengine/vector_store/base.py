@@ -265,13 +265,6 @@ class BaseVectorStore(ABC):
             return False
         return doc_id in self.index_map[index_name].ref_doc_info
 
-    async def persist_all(self, path: str):
-        """Common persistence logic."""
-        logger.info("Persisting all indexes.")
-        self.index_store.persist(os.path.join(path, "store.json"))
-        for idx in self.index_store.index_structs():
-            await self.persist(idx.index_id, path)
-
     async def persist(self, index_name: str, path: str):
         """Common persistence logic for individual index."""
         try:

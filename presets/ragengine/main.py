@@ -256,7 +256,7 @@ async def list_documents_in_index(
     "/persist/{index_name}",
     summary="Persist Index Data to Disk",
     description="""
-    Persist the existing index data to disk at a specified location. This ensures that indexed data is saved and can be reloaded upon restarting the server.
+    Persist the existing index data to disk at a specified location. This ensures that indexed data is saved.
 
     ## Request Example:
     ```json
@@ -276,9 +276,11 @@ async def list_documents_in_index(
     ```
     """
 )
-async def persist_index(index_name: str, path: str = DEFAULT_VECTOR_DB_PERSIST_DIR):
+async def persist_index(index_name: str, path: str = DEFAULT_VECTOR_DB_PERSIST_DIR): # TODO: Provide endpoint for loading existing index(es)
+    # TODO: Extend support for other vector databases/integrations besides FAISS
     try:
-        return await rag_ops.persist(index_name, path)
+        await rag_ops.persist(index_name, path)
+        return {"message": f"Successfully persisted index {index_name} to {path}."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")
 

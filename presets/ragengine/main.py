@@ -13,6 +13,7 @@ from vector_store.faiss_store import FaissVectorStoreHandler
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
                               EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID, DEFAULT_VECTOR_DB_PERSIST_DIR)
 from urllib.parse import unquote
+import os
 
 app = FastAPI()
 
@@ -279,10 +280,43 @@ async def persist_index(
 ):  # TODO: Provide endpoint for loading existing index(es)
     # TODO: Extend support for other vector databases/integrations besides FAISS
     try:
+        # Append index to save path to prevent saving conflicts/overwriting
+        path = os.path.join(path, index_name) if path == DEFAULT_VECTOR_DB_PERSIST_DIR else path
         await rag_ops.persist(index_name, path)
         return {"message": f"Successfully persisted index {index_name} to {path}."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")
+
+@app.post(
+    "/load/{index_name}",
+    summary="Load Index Data from Disk",
+    description="""
+    Load an existing index from disk at a specified location.
+
+    ## Request Example:
+    ```
+    POST /load/example_index?path=./custom_path/example_index
+    ```
+
+    If no path is provided, will attempt to load from the default directory.
+
+    ## Response Example:
+    ```json
+    {
+      "message": "Successfully loaded index example_index from ./custom_path/example_index."
+    }
+    ```
+    """
+)
+async def load_index(
+        index_name: str,
+        path: str = Query(DEFAULT_VECTOR_DB_PERSIST_DIR, description="Path to load the index from")
+):
+    try:
+        await rag_ops.load(index_name, path)
+        return {"message": f"Successfully loaded index {index_name} from {path}."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
 @app.on_event("shutdown")
 async def shutdown_event():

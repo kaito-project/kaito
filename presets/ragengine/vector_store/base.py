@@ -8,11 +8,10 @@ import hashlib
 import os
 import asyncio
 from itertools import islice
-from collections import defaultdict
 
 from llama_index.core import Document as LlamaDocument
 from llama_index.core.storage.index_store import SimpleIndexStore
-from llama_index.core import (StorageContext, VectorStoreIndex)
+from llama_index.core import (StorageContext, VectorStoreIndex, load_index_from_storage)
 from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 
 from ragengine.models import Document, DocumentResponse
@@ -281,13 +280,42 @@ class BaseVectorStore(ABC):
             if index_name not in self.index_map:
                 raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
 
-            logger.info(f"Persisting index {index_name} into {path}.")
-            await asyncio.to_thread(self.index_store.persist, os.path.join(path, "store.json"))
-
             # Persist the specific index
             storage_context = self.index_map[index_name].storage_context
-            await asyncio.to_thread(storage_context.persist, os.path.join(path, index_name))
+            await asyncio.to_thread(storage_context.persist, path)
             logger.info(f"Successfully persisted index {index_name}.")
         except Exception as e:
             logger.error(f"Failed to persist index {index_name}. Error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")
+
+    async def load(self, index_name: str, path: str):
+        """Common logic for loading an index."""
+        if self.use_rwlock:
+            async with self.rwlock.reader_lock:
+                await self._load_internal(index_name, path)
+        else:
+            await self._load_internal(index_name, path)
+
+    async def _load_internal(self, index_name: str, path: str):
+        """Common logic for loading an index."""
+        try:
+            if not os.path.exists(path):
+                raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
+
+            try:
+                storage_context = StorageContext.from_defaults(persist_dir=path)
+            except UnicodeDecodeError as ude:
+                # Failed to load the index in the default json format, trying faissdb
+                faiss_vs = FaissVectorStore.from_persist_path(persist_path=path)
+                storage_context = StorageContext.from_defaults(vector_store=faiss_vs)
+            except Exception as e:
+                logger.error(f"Failed to load index '{index_name}'. Error: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
+
+            logger.info(f"Loading index {index_name} from {path}.")
+            loaded_index = await asyncio.to_thread(load_index_from_storage, storage_context)
+            self.index_map[index_name] = loaded_index
+            logger.info(f"Successfully loaded index {index_name}.")
+        except Exception as e:
+            logger.error(f"Failed to load index {index_name}. Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")

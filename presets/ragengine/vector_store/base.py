@@ -290,6 +290,9 @@ class BaseVectorStore(ABC):
 
     async def load(self, index_name: str, path: str):
         """Common logic for loading an index."""
+        # Check path existence before acquiring any lock
+        if not os.path.exists(path):
+            raise HTTPException(status_code=404, detail=f"Path does not exist: {path}")
         if self.use_rwlock:
             async with self.rwlock.reader_lock:
                 await self._load_internal(index_name, path)
@@ -299,8 +302,13 @@ class BaseVectorStore(ABC):
     async def _load_internal(self, index_name: str, path: str):
         """Common logic for loading an index."""
         try:
-            if not os.path.exists(path):
-                raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
+            if index_name in self.index_map:
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"Index '{index_name}' already exists. Use a different name or delete the existing index first."
+                )
+
+            logger.info(f"Loading index {index_name} from {path}.")
 
             try:
                 storage_context = StorageContext.from_defaults(persist_dir=path)
@@ -312,7 +320,6 @@ class BaseVectorStore(ABC):
                 logger.error(f"Failed to load index '{index_name}'. Error: {str(e)}")
                 raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
-            logger.info(f"Loading index {index_name} from {path}.")
             loaded_index = await asyncio.to_thread(load_index_from_storage, storage_context)
             self.index_map[index_name] = loaded_index
             logger.info(f"Successfully loaded index {index_name}.")

@@ -322,8 +322,13 @@ class BaseVectorStore(ABC):
                 logger.error(f"Failed to load index '{index_name}'. Error: {str(e)}")
                 raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
+            logger.info(f"Loading index '{index_name}' using the workspace's embedding model: {self.embed_model.__class__.__name__}")
+            # Load the index using the workspace's embedding model, assuming all indices
+            # were created using the same embedding model currently in use.
             loaded_index = await asyncio.to_thread(load_index_from_storage,
-                                                   storage_context, embed_model=self.embed_model, show_progress=True)
+                                                   storage_context,
+                                                   embed_model=self.embed_model,
+                                                   show_progress=True)
             self.index_map[index_name] = loaded_index
             logger.info(f"Successfully loaded index {index_name}.")
         except Exception as e:

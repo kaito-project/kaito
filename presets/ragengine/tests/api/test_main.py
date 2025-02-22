@@ -335,7 +335,7 @@ async def test_persist_documents(async_client):
     response = await async_client.post(f"/persist/{index_name}")
     assert response.status_code == 200
     response_json = response.json()
-    assert response_json == {"message": f"Successfully persisted index {index_name} to {DEFAULT_VECTOR_DB_PERSIST_DIR}."}
+    assert response_json == {"message": f"Successfully persisted index {index_name} to {DEFAULT_VECTOR_DB_PERSIST_DIR}/{index_name}."}
     assert os.path.exists(os.path.join(DEFAULT_VECTOR_DB_PERSIST_DIR, index_name))
 
     # Persist documents for the specific index at a custom path
@@ -344,7 +344,29 @@ async def test_persist_documents(async_client):
     assert response.status_code == 200
     response_json = response.json()
     assert response_json == {"message": f"Successfully persisted index {index_name} to {custom_path}."}
-    assert os.path.exists(os.path.join(custom_path, index_name))
+    assert os.path.exists(custom_path)
+
+@pytest.mark.asyncio
+async def test_load_documents(async_client):
+    index_name = "test_index"
+    response = await async_client.post(f"/load/{index_name}?path={DEFAULT_VECTOR_DB_PERSIST_DIR}/{index_name}")
+
+    assert response.status_code == 200
+    assert response.json() == {'message': 'Successfully loaded index test_index from storage/test_index.'}
+
+    response = await async_client.get(f"/indexes")
+    assert response.status_code == 200
+    assert response.json() == [index_name]
+
+    response = await async_client.get(f"/indexes/test_index/documents")
+    assert response.status_code == 200
+    response_data = response.json()
+
+    assert response_data["count"] == 2
+    assert len(response_data["documents"]) == 2
+    assert response_data["documents"][0]["text"] == "This is a test document"
+    assert response_data["documents"][1]["text"] == "Another test document"
+
 
 """
 Example of a live query test. This test is currently commented out as it requires a valid 

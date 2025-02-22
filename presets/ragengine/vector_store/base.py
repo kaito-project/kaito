@@ -30,12 +30,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class BaseVectorStore(ABC):
-    def __init__(self, embedding_manager: BaseEmbeddingModel, use_rwlock: bool = False):
-        self.embedding_manager = embedding_manager
-        self.embed_model = self.embedding_manager.model
+    def __init__(self, embed_model: BaseEmbeddingModel, use_rwlock: bool = False):
+        super().__init__()
+        self.llm = Inference()
+        self.embed_model = embed_model
         self.index_map = {}
         self.index_store = SimpleIndexStore()
-        self.llm = Inference()
         # Use a reader/writer lock only if needed
         self.use_rwlock = use_rwlock
         self.rwlock = aiorwlock.RWLock() if self.use_rwlock else None
@@ -296,7 +296,7 @@ class BaseVectorStore(ABC):
         if not os.path.exists(path):
             raise HTTPException(status_code=404, detail=f"Path does not exist: {path}")
         if self.use_rwlock:
-            async with self.rwlock.reader_lock:
+            async with self.rwlock.writer_lock:
                 await self._load_internal(index_name, path)
         else:
             await self._load_internal(index_name, path)
@@ -316,13 +316,14 @@ class BaseVectorStore(ABC):
                 storage_context = StorageContext.from_defaults(persist_dir=path)
             except UnicodeDecodeError as ude:
                 # Failed to load the index in the default json format, trying faissdb
-                faiss_vs = FaissVectorStore.from_persist_path(persist_path=path)
-                storage_context = StorageContext.from_defaults(vector_store=faiss_vs)
+                faiss_vs = FaissVectorStore.from_persist_dir(persist_dir=path)
+                storage_context = StorageContext.from_defaults(persist_dir=path, vector_store=faiss_vs)
             except Exception as e:
                 logger.error(f"Failed to load index '{index_name}'. Error: {str(e)}")
                 raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
-            loaded_index = await asyncio.to_thread(load_index_from_storage, storage_context)
+            loaded_index = await asyncio.to_thread(load_index_from_storage,
+                                                   storage_context, embed_model=self.embed_model, show_progress=True)
             self.index_map[index_name] = loaded_index
             logger.info(f"Successfully loaded index {index_name}.")
         except Exception as e:

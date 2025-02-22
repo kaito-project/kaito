@@ -14,6 +14,8 @@ from llama_index.core.storage.index_store import SimpleIndexStore
 from llama_index.core import (StorageContext, VectorStoreIndex, load_index_from_storage)
 from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 
+from llama_index.vector_stores.faiss import FaissVectorStore
+
 from ragengine.models import Document, DocumentResponse
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference

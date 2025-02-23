@@ -267,6 +267,14 @@ class BaseVectorStore(ABC):
 
     async def persist(self, index_name: str, path: str):
         """Common persistence logic for individual index."""
+        if self.use_rwlock:
+            async with self.rwlock.writer_lock:
+                await self._persist_internal(index_name, path)
+        else:
+            await self._persist_internal(index_name, path)
+            
+    async def _persist_internal(self, index_name: str, path: str):
+        """Common persistence logic for individual index."""
         try:
             # Ensure the directory exists
             os.makedirs(path, exist_ok=True)

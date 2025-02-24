@@ -28,7 +28,7 @@ class IndexRequest(BaseModel):
 class QueryRequest(BaseModel):
     index_name: str
     query: str
-    top_k: int = 10
+    top_k: int = 5
     # Accept a dictionary for our LLM parameters
     llm_params: Optional[Dict[str, Any]] = Field(
         default_factory=dict,

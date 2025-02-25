@@ -46,9 +46,9 @@ class VectorStoreManager:
         """Persist existing index."""
         return await self.vector_store.persist(index_name, path)
 
-    async def load(self, index_name: str, path: str) -> None:
+    async def load(self, index_name: str, path: str, overwrite: bool) -> None:
         """Load existing index."""
-        return await self.vector_store.load(index_name, path)
+        return await self.vector_store.load(index_name, path, overwrite)
 
     async def shutdown(self):
         """Shutdown the manager."""

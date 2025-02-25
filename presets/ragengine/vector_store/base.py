@@ -290,21 +290,21 @@ class BaseVectorStore(ABC):
             logger.error(f"Failed to persist index {index_name}. Error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")
 
-    async def load(self, index_name: str, path: str):
+    async def load(self, index_name: str, path: str, overwrite: bool):
         """Common logic for loading an index."""
         # Check path existence before acquiring any lock
         if not os.path.exists(path):
             raise HTTPException(status_code=404, detail=f"Path does not exist: {path}")
         if self.use_rwlock:
             async with self.rwlock.writer_lock:
-                await self._load_internal(index_name, path)
+                await self._load_internal(index_name, path, overwrite)
         else:
-            await self._load_internal(index_name, path)
+            await self._load_internal(index_name, path, overwrite)
 
-    async def _load_internal(self, index_name: str, path: str):
+    async def _load_internal(self, index_name: str, path: str, overwrite: bool):
         """Common logic for loading an index."""
         try:
-            if index_name in self.index_map:
+            if index_name in self.index_map and not overwrite:
                 raise HTTPException(
                     status_code=409,
                     detail=f"Index '{index_name}' already exists. Use a different name or delete the existing index first."

@@ -310,10 +310,11 @@ async def persist_index(
 )
 async def load_index(
         index_name: str,
-        path: str = Query(DEFAULT_VECTOR_DB_PERSIST_DIR, description="Path to load the index from")
+        path: str = Query(DEFAULT_VECTOR_DB_PERSIST_DIR, description="Path to load the index from"),
+        overwrite: bool = Query(False, description="Overwrite the existing index if it already exists")
 ):
     try:
-        await rag_ops.load(index_name, path)
+        await rag_ops.load(index_name, path, overwrite)
         return {"message": f"Successfully loaded index {index_name} from {path}."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")

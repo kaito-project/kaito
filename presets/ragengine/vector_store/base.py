@@ -191,7 +191,7 @@ class BaseVectorStore(ABC):
         """Common logic for adding a single document."""
         if index_name not in self.index_map:
             raise ValueError(f"No such index: '{index_name}' exists.")
-        llama_doc = LlamaDocument(id_=doc_id, text=document.text, metadata=document.metadata)
+        llama_doc = LlamaDocument(id_=doc_id, text=document.text, metadata=document.metadata, excluded_llm_metadata_keys=[key for key in document.metadata.keys()])
 
         if self.use_rwlock:
             async with self.rwlock.writer_lock:

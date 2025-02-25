@@ -89,8 +89,8 @@ class Inference(CustomLLM):
         return await OpenAI(api_key=LLM_ACCESS_SECRET, **kwargs).acomplete(prompt)
 
     async def _async_huggingface_remote_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        return await self._async_post_request({"messages": [{"role": "user", "content": prompt}]}, headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}"})
-
+        data = {"prompt": prompt, **kwargs}
+        return await self._async_post_request(data, headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}", "Content-Type": "application/json"})
     async def _async_custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         model_name, model_max_len = self._get_default_model_info()
         if kwargs.get("model"):

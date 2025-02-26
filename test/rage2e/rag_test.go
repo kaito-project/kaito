@@ -72,6 +72,24 @@ var _ = Describe("RAGEngine", func() {
 		}
 	})
 
+	It("should create RAG with localembedding and huggingface API successfully", func() {
+		numOfReplica := 1
+
+		createAndValidateSecret()
+		ragengineObj := createLocalEmbeddingHFURLRAGEngine()
+
+		defer cleanupResources(nil, ragengineObj)
+
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateAssociatedService(ragengineObj.ObjectMeta)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+		createIndexPod(ragengineObj)
+		//TODO: add the createAndValidateQueryPod here in the next PR
+
+	})
+
 	It("should create RAG with localembedding and kaito VLLM workspace successfully", func() {
 		numOfReplica := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
@@ -111,22 +129,6 @@ var _ = Describe("RAGEngine", func() {
 
 	})
 
-	It("should create RAG with localembedding and huggingface API successfully", func() {
-		numOfReplica := 1
-
-		ragengineObj := createLocalEmbeddingHFURLRAGEngine()
-
-		defer cleanupResources(nil, ragengineObj)
-
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
-		validateAssociatedService(ragengineObj.ObjectMeta)
-		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
-
-		createIndexPod(ragengineObj)
-		//TODO: add the createAndValidateQueryPod here in the next PR
-
-	})
 })
 
 func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1alpha1.Workspace {
@@ -217,7 +219,7 @@ func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL string) *kaitov1alpha1.RAGEn
 	serviceURL := fmt.Sprintf("http://%s/v1/completions", baseURL)
 	By("Creating RAG with localembedding and kaito vllm inference", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
-		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC24s_v3", "BAAI/bge-small-en-v1.5",
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC24ads_A100_v4", "BAAI/bge-small-en-v1.5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
@@ -241,7 +243,8 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
 			&kaitov1alpha1.InferenceServiceSpec{
-				URL: hfURL,
+				URL:          hfURL,
+				AccessSecret: "huggingface-token",
 			},
 		)
 
@@ -456,7 +459,7 @@ func createIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
 		}, utils.PollTimeout, utils.PollInterval).
 			Should(Succeed(), "Failed to create index pod")
 	})
-	time.Sleep(60 * time.Second)
+	time.Sleep(600 * time.Second)
 
 	return nil
 }
@@ -561,4 +564,33 @@ func GenerateQueryPodManifest(namespace, serviceName string) *v1.Pod { // TODO: 
 	}
 
 	return queryPod
+}
+
+func createAndValidateSecret() {
+	hfToken := os.Getenv("HF_TOKEN")
+	GinkgoWriter.Printf("HF_TOKEN %q \n", hfToken)
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "huggingface-token",
+			Namespace: namespaceName,
+		},
+		Data: map[string][]byte{
+			"LLM_ACCESS_SECRET": []byte(hfToken),
+		},
+		Type: v1.SecretTypeOpaque,
+	}
+	By("Creating secret", func() {
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, secret, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create secret   %s", secret.Name)
+
+		By("Validating secret creation", func() {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: secret.Namespace,
+				Name:      secret.Name,
+			}, secret, &client.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
 }

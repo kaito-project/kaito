@@ -32,6 +32,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
@@ -161,9 +162,11 @@ func main() {
 		exitWithErrorFunc()
 	}
 
-	err = nodeclaim.CheckNodeClass(ctx, kClient)
-	if err != nil {
-		exitWithErrorFunc()
+	if featuregates.FeatureGates[consts.FeatureFlagEnsureNodeClass] {
+		err := nodeclaim.CheckNodeClass(ctx, kClient)
+		if err != nil {
+			exitWithErrorFunc()
+		}
 	}
 
 	klog.InfoS("starting manager")

@@ -31,7 +31,7 @@ func TestCreatePresetRAG(t *testing.T) {
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			expectedCmd:   "/bin/sh -c python3 main.py",
-			expectedImage: "aimodelsregistrytest.azurecr.io/kaito-rag-service:0.1.2", //TODO: Change to the mcr image when release
+			expectedImage: "aimodelsregistrytest.azurecr.io/kaito-rag-service:0.3.0", //TODO: Change to the mcr image when release
 		},
 	}
 

@@ -20,7 +20,8 @@ const (
 	NvidiaGPU                     = "nvidia.com/gpu"
 
 	// Feature flags
-	FeatureFlagVLLM = "vLLM"
+	FeatureFlagVLLM            = "vLLM"
+	FeatureFlagEnsureNodeClass = "ensureNodeClass"
 
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"

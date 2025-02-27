@@ -72,6 +72,25 @@ var _ = Describe("RAGEngine", func() {
 		}
 	})
 
+	It("should create RAG with localembedding and huggingface API successfully", func() {
+		numOfReplica := 1
+
+		createAndValidateSecret()
+		ragengineObj := createLocalEmbeddingHFURLRAGEngine()
+
+		defer cleanupResources(nil, ragengineObj)
+
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateAssociatedService(ragengineObj.ObjectMeta)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+		createAndValidateIndexPod(ragengineObj)
+		searchQuerySuccess := "\\n\\nKaito is an operator that is designed to automate the AI/ML model inference or tuning workload in a Kubernetes cluster."
+		createAndValidateQueryPod(ragengineObj, searchQuerySuccess, true)
+
+	})
+
 	It("should create RAG with localembedding and kaito VLLM workspace successfully", func() {
 		numOfReplica := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
@@ -106,27 +125,12 @@ var _ = Describe("RAGEngine", func() {
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
-		createIndexPod(ragengineObj)
-		createAndValidateQueryPod(ragengineObj)
+		createAndValidateIndexPod(ragengineObj)
+		searchQuerySuccess := "\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\n\\n\\n"
+		createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
 
 	})
 
-	It("should create RAG with localembedding and huggingface API successfully", func() {
-		numOfReplica := 1
-
-		ragengineObj := createLocalEmbeddingHFURLRAGEngine()
-
-		defer cleanupResources(nil, ragengineObj)
-
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
-		validateAssociatedService(ragengineObj.ObjectMeta)
-		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
-
-		createIndexPod(ragengineObj)
-		//TODO: add the createAndValidateQueryPod here in the next PR
-
-	})
 })
 
 func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1alpha1.Workspace {
@@ -241,7 +245,8 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
 			&kaitov1alpha1.InferenceServiceSpec{
-				URL: hfURL,
+				URL:          hfURL,
+				AccessSecret: "huggingface-token",
 			},
 		)
 
@@ -448,7 +453,7 @@ func deleteWorkspace(workspaceObj *kaitov1alpha1.Workspace) error {
 	return nil
 }
 
-func createIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
+func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
 	By("Creating index pod", func() {
 		pod := GenerateIndexPodManifest(ragengineObj.Namespace, ragengineObj.Name)
 		Eventually(func() error {
@@ -456,20 +461,37 @@ func createIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
 		}, utils.PollTimeout, utils.PollInterval).
 			Should(Succeed(), "Failed to create index pod")
 	})
-	time.Sleep(60 * time.Second)
+
+	By("Checking the index logs", func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+
+			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, "indexpod", "")
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", "indexpod", err)
+				return false
+			}
+
+			return strings.Contains(logs, "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster")
+		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for index logs to be ready")
+	})
 
 	return nil
 }
 
-func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
+func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSearchQueries string, remote bool) error {
 	By("Creating query pod", func() {
-		pod := GenerateQueryPodManifest(ragengineObj.Namespace, ragengineObj.Name)
+		pod := GenerateQueryPodManifest(ragengineObj.Namespace, ragengineObj.Name, remote)
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
 		}, utils.PollTimeout, utils.PollInterval).
 			Should(Succeed(), "Failed to create query pod")
 	})
-	time.Sleep(30 * time.Second)
+
 	By("Checking the query logs", func() {
 		Eventually(func() bool {
 			coreClient, err := utils.GetK8sClientset()
@@ -484,9 +506,7 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
 				return false
 			}
 
-			searchQuerySuccess := "\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\n\\n\\n"
-
-			return strings.Contains(logs, searchQuerySuccess)
+			return strings.Contains(logs, expectedSearchQueries)
 		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for query logs to be ready")
 	})
 
@@ -528,9 +548,21 @@ func GenerateIndexPodManifest(namespace, serviceName string) *v1.Pod {
 	return indexPod
 }
 
-func GenerateQueryPodManifest(namespace, serviceName string) *v1.Pod { // TODO: add another model param for the remote inference service in the next PR
-
-	curlCommand := `curl -X POST ` + serviceName + `:80/query \
+func GenerateQueryPodManifest(namespace, serviceName string, remote bool) *v1.Pod { // TODO: add another model param for the remote inference service in the next PR
+	var curlCommand string
+	if remote {
+		curlCommand = `curl -X POST ` + serviceName + `:80/query \
+-H "Content-Type: application/json" \
+-d '{
+	"index_name": "kaito",
+    "query": "what is kaito?",
+    "llm_params": {
+      "max_tokens": 50,
+      "temperature": 0
+    }
+}'`
+	} else {
+		curlCommand = `curl -X POST ` + serviceName + `:80/query \
 -H "Content-Type: application/json" \
 -d '{
 	"index_name": "kaito",
@@ -541,6 +573,7 @@ func GenerateQueryPodManifest(namespace, serviceName string) *v1.Pod { // TODO: 
       "temperature": 0
     }
 }'`
+	}
 
 	queryPod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -561,4 +594,32 @@ func GenerateQueryPodManifest(namespace, serviceName string) *v1.Pod { // TODO: 
 	}
 
 	return queryPod
+}
+
+func createAndValidateSecret() {
+	hfToken := os.Getenv("HF_TOKEN")
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "huggingface-token",
+			Namespace: namespaceName,
+		},
+		Data: map[string][]byte{
+			"LLM_ACCESS_SECRET": []byte(hfToken),
+		},
+		Type: v1.SecretTypeOpaque,
+	}
+	By("Creating secret", func() {
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, secret, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create secret   %s", secret.Name)
+
+		By("Validating secret creation", func() {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: secret.Namespace,
+				Name:      secret.Name,
+			}, secret, &client.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
 }

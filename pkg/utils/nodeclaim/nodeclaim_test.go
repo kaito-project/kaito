@@ -19,7 +19,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
@@ -186,8 +186,8 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 
 		assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
 		assert.Equal(t, nodeClaim.Namespace, mockWorkspace.Namespace, "NodeClaim must have same namespace as workspace")
-		assert.Equal(t, nodeClaim.Labels[kaitov1alpha1.LabelWorkspaceName], mockWorkspace.Name, "label must have same workspace name as workspace")
-		assert.Equal(t, nodeClaim.Labels[kaitov1alpha1.LabelWorkspaceNamespace], mockWorkspace.Namespace, "label must have same workspace namespace as workspace")
+		assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceName], mockWorkspace.Name, "label must have same workspace name as workspace")
+		assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceNamespace], mockWorkspace.Namespace, "label must have same workspace namespace as workspace")
 		assert.Equal(t, nodeClaim.Labels[consts.LabelNodePool], consts.KaitoNodePoolName, "label must have same labels as workspace label selector")
 		assert.Equal(t, nodeClaim.Annotations[karpenterv1.DoNotDisruptAnnotationKey], "true", "label must have do not disrupt annotation")
 		assert.Equal(t, len(nodeClaim.Spec.Requirements), 4, " NodeClaim must have 4 NodeSelector Requirements")
@@ -205,8 +205,8 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 
 		assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
 		assert.Equal(t, nodeClaim.Namespace, mockWorkspace.Namespace, "NodeClaim must have same namespace as workspace")
-		assert.Equal(t, nodeClaim.Labels[kaitov1alpha1.LabelWorkspaceName], mockWorkspace.Name, "label must have same workspace name as workspace")
-		assert.Equal(t, nodeClaim.Labels[kaitov1alpha1.LabelWorkspaceNamespace], mockWorkspace.Namespace, "label must have same workspace namespace as workspace")
+		assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceName], mockWorkspace.Name, "label must have same workspace name as workspace")
+		assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceNamespace], mockWorkspace.Namespace, "label must have same workspace namespace as workspace")
 		assert.Equal(t, nodeClaim.Labels[consts.LabelNodePool], consts.KaitoNodePoolName, "label must have same labels as workspace label selector")
 		assert.Equal(t, nodeClaim.Annotations[karpenterv1.DoNotDisruptAnnotationKey], "true", "label must have do not disrupt annotation")
 		assert.Equal(t, len(nodeClaim.Spec.Requirements), 4, " NodeClaim must have 4 NodeSelector Requirements")

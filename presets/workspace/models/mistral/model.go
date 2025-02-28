@@ -5,7 +5,7 @@ package mistral
 import (
 	"time"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
@@ -51,7 +51,7 @@ type mistral7b struct{}
 func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ModelFamilyName:           "Mistral",
-		ImageAccessMode:           string(kaitov1alpha1.ModelImageAccessModePublic),
+		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "14Gi",
@@ -77,7 +77,7 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 func (*mistral7b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ModelFamilyName:           "Mistral",
-		ImageAccessMode:           string(kaitov1alpha1.ModelImageAccessModePublic),
+		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
@@ -108,7 +108,7 @@ type mistral7bInst struct{}
 func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ModelFamilyName:           "Mistral",
-		ImageAccessMode:           string(kaitov1alpha1.ModelImageAccessModePublic),
+		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",

@@ -14,7 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -25,7 +25,7 @@ var ValidStrength string = "0.5"
 func TestCreatePresetInference(t *testing.T) {
 	test.RegisterTestModel()
 	testcases := map[string]struct {
-		workspace      *v1alpha1.Workspace
+		workspace      *v1beta1.Workspace
 		nodeCount      int
 		modelName      string
 		callMocks      func(c *test.MockClient)
@@ -134,9 +134,9 @@ func TestCreatePresetInference(t *testing.T) {
 			workspace.Resource.Count = &tc.nodeCount
 			expectedSecrets := []string{"fake-secret"}
 			if tc.hasAdapters {
-				workspace.Inference.Adapters = []v1alpha1.AdapterSpec{
+				workspace.Inference.Adapters = []v1beta1.AdapterSpec{
 					{
-						Source: &v1alpha1.DataSource{
+						Source: &v1beta1.DataSource{
 							Name:             "Adapter-1",
 							Image:            "fake.kaito.com/kaito-image:0.0.1",
 							ImagePullSecrets: expectedSecrets,

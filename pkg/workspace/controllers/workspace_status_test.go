@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
@@ -36,8 +36,8 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 		}
 		workerNodes := []string{"node1", "node2"}
 
-		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1alpha1.Workspace{}), mock.Anything).Return(nil)
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.Workspace{}), mock.Anything).Return(nil)
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
 
 		err := reconciler.updateWorkspaceStatus(ctx, &client.ObjectKey{Name: workspace.Name, Namespace: workspace.Namespace}, &condition, workerNodes)
 		assert.Nil(t, err)
@@ -59,7 +59,7 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 		}
 		workerNodes := []string{"node1", "node2"}
 
-		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1alpha1.Workspace{}), mock.Anything).Return(errors.New("Get operation failed"))
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(errors.New("Get operation failed"))
 
 		err := reconciler.updateWorkspaceStatus(ctx, &client.ObjectKey{Name: workspace.Name, Namespace: workspace.Namespace}, &condition, workerNodes)
 		assert.NotNil(t, err)
@@ -81,7 +81,7 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 		}
 		workerNodes := []string{"node1", "node2"}
 
-		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1alpha1.Workspace{}), mock.Anything).Return(apierrors.NewNotFound(schema.GroupResource{}, "workspace"))
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(apierrors.NewNotFound(schema.GroupResource{}, "workspace"))
 
 		err := reconciler.updateWorkspaceStatus(ctx, &client.ObjectKey{Name: workspace.Name, Namespace: workspace.Namespace}, &condition, workerNodes)
 		assert.Nil(t, err)
@@ -97,7 +97,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		}
 		ctx := context.Background()
 		workspace := test.MockWorkspaceDistributedModel
-		conditionType := kaitov1alpha1.ConditionType("TestCondition")
+		conditionType := kaitov1beta1.ConditionType("TestCondition")
 		conditionStatus := metav1.ConditionStatus("True")
 		conditionReason := "TestReason"
 		conditionMessage := "TestMessage"
@@ -123,7 +123,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		}
 		ctx := context.Background()
 		workspace := test.MockWorkspaceDistributedModel
-		conditionType := kaitov1alpha1.ConditionType("TestCondition")
+		conditionType := kaitov1beta1.ConditionType("TestCondition")
 		conditionStatus := metav1.ConditionStatus("True")
 		conditionReason := "TestReason"
 		conditionMessage := "TestMessage"
@@ -136,8 +136,8 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 				Message: "DifferentMessage",
 			},
 		}
-		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1alpha1.Workspace{}), mock.Anything).Return(nil)
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.Workspace{}), mock.Anything).Return(nil)
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
 
 		err := reconciler.updateStatusConditionIfNotMatch(ctx, workspace, conditionType, conditionStatus, conditionReason, conditionMessage)
 		assert.Nil(t, err)
@@ -151,7 +151,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		}
 		ctx := context.Background()
 		workspace := test.MockWorkspaceDistributedModel
-		conditionType := kaitov1alpha1.ConditionType("TestCondition")
+		conditionType := kaitov1beta1.ConditionType("TestCondition")
 		conditionStatus := metav1.ConditionStatus("True")
 		conditionReason := "TestReason"
 		conditionMessage := "TestMessage"
@@ -164,8 +164,8 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 				Message: conditionMessage,
 			},
 		}
-		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1alpha1.Workspace{}), mock.Anything).Return(nil)
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.Workspace{}), mock.Anything).Return(nil)
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
 
 		err := reconciler.updateStatusConditionIfNotMatch(ctx, workspace, conditionType, conditionStatus, conditionReason, conditionMessage)
 		assert.Nil(t, err)

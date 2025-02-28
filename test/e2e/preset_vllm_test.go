@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -212,112 +212,112 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 	})
 })
 
-func createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with DeepSeek Distilled Llama 8B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-deepseek-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-deepseek-llama-vllm"},
-			}, nil, PresetDeepSeekR1DistillLlama8BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetDeepSeekR1DistillLlama8BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createDeepSeekQwen14BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createDeepSeekQwen14BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with DeepSeek Distilled Qwen 14B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-deepseek-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-deepseek-qwen-vllm"},
-			}, nil, PresetDeepSeekR1DistillQwen14BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetDeepSeekR1DistillQwen14BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createFalconWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createFalconWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Falcon 7B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-falcon-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-falcon-vllm"},
-			}, nil, PresetFalcon7BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createFalconWorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1alpha1.AdapterSpec) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createFalconWorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Falcon 7B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-falcon-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-falcon-adapter-vllm"},
-			}, nil, PresetFalcon7BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, validAdapters)
+			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, validAdapters)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createMistralWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createMistralWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Mistral 7B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-mistral-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-mistral-vllm"},
-			}, nil, PresetMistral7BInstructModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetMistral7BInstructModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createPhi2WorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createPhi2WorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Phi 2 preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-phi2-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-2-vllm"},
-			}, nil, PresetPhi2Model, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetPhi2Model, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Phi-3-mini-128k-instruct preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-phi3-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-3-mini-128k-instruct-vllm"},
-			}, nil, PresetPhi3Mini128kModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetPhi3Mini128kModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createQwen2_5WorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createQwen2_5WorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Qwen2.5 Coder 7B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-qwen-2gpu-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen-2gpu-vllm"},
-			}, nil, PresetQwen2_5Coder7BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetQwen2_5Coder7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})

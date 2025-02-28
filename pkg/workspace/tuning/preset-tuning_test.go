@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/utils/ptr"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -55,16 +55,16 @@ func TestGetInstanceGPUCount(t *testing.T) {
 func TestGetTuningImageInfo(t *testing.T) {
 	testcases := map[string]struct {
 		registryName string
-		wObj         *kaitov1alpha1.Workspace
+		wObj         *kaitov1beta1.Workspace
 		presetObj    *model.PresetParam
 		expected     string
 	}{
 		"Valid Registry and Parameters": {
 			registryName: "testregistry",
-			wObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Preset: &kaitov1alpha1.PresetSpec{
-						PresetMeta: kaitov1alpha1.PresetMeta{
+			wObj: &kaitov1beta1.Workspace{
+				Tuning: &kaitov1beta1.TuningSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
 							Name: "testpreset",
 						},
 					},
@@ -77,10 +77,10 @@ func TestGetTuningImageInfo(t *testing.T) {
 		},
 		"Empty Registry Name": {
 			registryName: "",
-			wObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Preset: &kaitov1alpha1.PresetSpec{
-						PresetMeta: kaitov1alpha1.PresetMeta{
+			wObj: &kaitov1beta1.Workspace{
+				Tuning: &kaitov1beta1.TuningSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
 							Name: "testpreset",
 						},
 					},
@@ -105,14 +105,14 @@ func TestGetTuningImageInfo(t *testing.T) {
 
 func TestGetDataSrcImageInfo(t *testing.T) {
 	testcases := map[string]struct {
-		wObj            *kaitov1alpha1.Workspace
+		wObj            *kaitov1beta1.Workspace
 		expectedImage   string
 		expectedSecrets []corev1.LocalObjectReference
 	}{
 		"Multiple Image Pull Secrets": {
-			wObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Input: &kaitov1alpha1.DataSource{
+			wObj: &kaitov1beta1.Workspace{
+				Tuning: &kaitov1beta1.TuningSpec{
+					Input: &kaitov1beta1.DataSource{
 						Image:            "kaito/data-source",
 						ImagePullSecrets: []string{"secret1", "secret2"},
 					},
@@ -125,9 +125,9 @@ func TestGetDataSrcImageInfo(t *testing.T) {
 			},
 		},
 		"No Image Pull Secrets": {
-			wObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Input: &kaitov1alpha1.DataSource{
+			wObj: &kaitov1beta1.Workspace{
+				Tuning: &kaitov1beta1.TuningSpec{
+					Input: &kaitov1beta1.DataSource{
 						Image: "kaito/data-source",
 					},
 				},
@@ -222,18 +222,18 @@ training_config:
 
 func TestHandleImageDataSource(t *testing.T) {
 	testcases := map[string]struct {
-		workspaceObj              *kaitov1alpha1.Workspace
+		workspaceObj              *kaitov1beta1.Workspace
 		expectedInitContainerName string
 		expectedVolumeName        string
 		expectedVolumeMountPath   string
 	}{
 		"Handle Image Data Source": {
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Resource: kaitov1alpha1.ResourceSpec{
+			workspaceObj: &kaitov1beta1.Workspace{
+				Resource: kaitov1beta1.ResourceSpec{
 					Count: ptr.To(1),
 				},
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Input: &kaitov1alpha1.DataSource{
+				Tuning: &kaitov1beta1.TuningSpec{
+					Input: &kaitov1beta1.DataSource{
 						Image: "data-image",
 					},
 				},
@@ -261,7 +261,7 @@ func TestHandleImageDataSource(t *testing.T) {
 
 func TestHandleURLDataSource(t *testing.T) {
 	testcases := map[string]struct {
-		workspaceObj              *kaitov1alpha1.Workspace
+		workspaceObj              *kaitov1beta1.Workspace
 		expectedInitContainerName string
 		expectedImage             string
 		expectedCommands          string
@@ -269,9 +269,9 @@ func TestHandleURLDataSource(t *testing.T) {
 		expectedVolumeMountPath   string
 	}{
 		"Handle URL Data Source": {
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Input: &kaitov1alpha1.DataSource{
+			workspaceObj: &kaitov1beta1.Workspace{
+				Tuning: &kaitov1beta1.TuningSpec{
+					Input: &kaitov1beta1.DataSource{
 						URLs: []string{"http://example.com/data1.zip", "http://example.com/data2.zip"},
 					},
 				},
@@ -304,15 +304,15 @@ func TestPrepareTuningParameters(t *testing.T) {
 
 	testcases := map[string]struct {
 		name                 string
-		workspaceObj         *kaitov1alpha1.Workspace
+		workspaceObj         *kaitov1beta1.Workspace
 		modelCommand         string
 		tuningObj            *model.PresetParam
 		expectedCommands     []string
 		expectedRequirements corev1.ResourceRequirements
 	}{
 		"Basic Tuning Parameters Setup": {
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Resource: kaitov1alpha1.ResourceSpec{
+			workspaceObj: &kaitov1beta1.Workspace{
+				Resource: kaitov1beta1.ResourceSpec{
 					InstanceType: "gpu-instance-type",
 				},
 			},
@@ -354,9 +354,9 @@ func TestPrepareTuningParameters(t *testing.T) {
 func TestPrepareDataSource_ImageSource(t *testing.T) {
 	ctx := context.TODO()
 
-	workspaceObj := &kaitov1alpha1.Workspace{
-		Tuning: &kaitov1alpha1.TuningSpec{
-			Input: &kaitov1alpha1.DataSource{
+	workspaceObj := &kaitov1beta1.Workspace{
+		Tuning: &kaitov1beta1.TuningSpec{
+			Input: &kaitov1beta1.DataSource{
 				Image: "custom/data-loader-image",
 			},
 		},

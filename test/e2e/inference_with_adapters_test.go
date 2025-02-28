@@ -16,7 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -27,9 +27,9 @@ var fullImageName1 = utils.GetEnv("E2E_ACR_REGISTRY") + "/" + imageName1 + ":0.0
 var imageName2 = "e2e-adapter2"
 var fullImageName2 = utils.GetEnv("E2E_ACR_REGISTRY") + "/" + imageName2 + ":0.0.1"
 
-var validAdapters1 = []kaitov1alpha1.AdapterSpec{
+var validAdapters1 = []kaitov1beta1.AdapterSpec{
 	{
-		Source: &kaitov1alpha1.DataSource{
+		Source: &kaitov1beta1.DataSource{
 			Name:  imageName1,
 			Image: fullImageName1,
 			ImagePullSecrets: []string{
@@ -40,9 +40,9 @@ var validAdapters1 = []kaitov1alpha1.AdapterSpec{
 	},
 }
 
-var validAdapters2 = []kaitov1alpha1.AdapterSpec{
+var validAdapters2 = []kaitov1beta1.AdapterSpec{
 	{
-		Source: &kaitov1alpha1.DataSource{
+		Source: &kaitov1beta1.DataSource{
 			Name:  imageName2,
 			Image: fullImageName2,
 			ImagePullSecrets: []string{
@@ -67,7 +67,7 @@ var expectedInitContainers2 = []corev1.Container{
 	},
 }
 
-func validateInitContainers(workspaceObj *kaitov1alpha1.Workspace, expectedInitContainers []corev1.Container) {
+func validateInitContainers(workspaceObj *kaitov1beta1.Workspace, expectedInitContainers []corev1.Container) {
 	By("Checking the InitContainers", func() {
 		Eventually(func() bool {
 			var err error
@@ -101,7 +101,7 @@ func validateInitContainers(workspaceObj *kaitov1alpha1.Workspace, expectedInitC
 	})
 }
 
-func validateImagePullSecrets(workspaceObj *kaitov1alpha1.Workspace, expectedImagePullSecrets []string) {
+func validateImagePullSecrets(workspaceObj *kaitov1beta1.Workspace, expectedImagePullSecrets []string) {
 	By("Checking the ImagePullSecrets", func() {
 		Eventually(func() bool {
 			var err error
@@ -130,7 +130,7 @@ func validateImagePullSecrets(workspaceObj *kaitov1alpha1.Workspace, expectedIma
 	})
 }
 
-func validateAdapterAdded(workspaceObj *kaitov1alpha1.Workspace, deploymentName string, adapterName string) {
+func validateAdapterAdded(workspaceObj *kaitov1beta1.Workspace, deploymentName string, adapterName string) {
 	By("Checking the Adapters", func() {
 		Eventually(func() bool {
 			coreClient, err := utils.GetK8sClientset()
@@ -160,7 +160,7 @@ func validateAdapterAdded(workspaceObj *kaitov1alpha1.Workspace, deploymentName 
 	})
 }
 
-func validateAdapterLoadedInVLLM(workspaceObj *kaitov1alpha1.Workspace, adapterName string) {
+func validateAdapterLoadedInVLLM(workspaceObj *kaitov1beta1.Workspace, adapterName string) {
 	deploymentName := workspaceObj.Name
 	execOption := corev1.PodExecOptions{
 		Command:   []string{"bash", "-c", "apt-get update && apt-get install curl -y; curl -s 127.0.0.1:5000/v1/models | grep " + adapterName},

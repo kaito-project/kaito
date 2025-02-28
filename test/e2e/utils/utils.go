@@ -27,12 +27,12 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/remotecommand"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
 const (
-	InferenceModeCustomTemplate kaitov1alpha1.ModelImageAccessMode = "customTemplate"
+	InferenceModeCustomTemplate kaitov1beta1.ModelImageAccessMode = "customTemplate"
 
 	ExampleDatasetURL = "https://huggingface.co/datasets/philschmid/dolly-15k-oai-style/resolve/main/data/train-00000-of-00001-54e3756291ca09c6.parquet?download=true"
 )
@@ -257,19 +257,19 @@ func ExtractModelVersion(configs map[string]interface{}) (map[string]string, err
 }
 
 func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resourceCount int, instanceType string,
-	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1alpha1.ModelName,
-	accessMode kaitov1alpha1.ModelImageAccessMode, imagePullSecret []string,
-	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1alpha1.AdapterSpec) *kaitov1alpha1.Workspace {
+	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName,
+	accessMode kaitov1beta1.ModelImageAccessMode, imagePullSecret []string,
+	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
 
-	workspace := &kaitov1alpha1.Workspace{
+	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 			Annotations: map[string]string{
-				kaitov1alpha1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
+				kaitov1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
 			},
 		},
-		Resource: kaitov1alpha1.ResourceSpec{
+		Resource: kaitov1beta1.ResourceSpec{
 			Count:          lo.ToPtr(resourceCount),
 			InstanceType:   instanceType,
 			LabelSelector:  labelSelector,
@@ -277,15 +277,15 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 		},
 	}
 
-	var workspaceInference kaitov1alpha1.InferenceSpec
-	if accessMode == kaitov1alpha1.ModelImageAccessModePublic ||
-		accessMode == kaitov1alpha1.ModelImageAccessModePrivate {
-		workspaceInference.Preset = &kaitov1alpha1.PresetSpec{
-			PresetMeta: kaitov1alpha1.PresetMeta{
+	var workspaceInference kaitov1beta1.InferenceSpec
+	if accessMode == kaitov1beta1.ModelImageAccessModePublic ||
+		accessMode == kaitov1beta1.ModelImageAccessModePrivate {
+		workspaceInference.Preset = &kaitov1beta1.PresetSpec{
+			PresetMeta: kaitov1beta1.PresetMeta{
 				Name:       presetName,
 				AccessMode: accessMode,
 			},
-			PresetOptions: kaitov1alpha1.PresetOptions{
+			PresetOptions: kaitov1beta1.PresetOptions{
 				Image:            imageName,
 				ImagePullSecrets: imagePullSecret,
 			},
@@ -306,35 +306,35 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 }
 
 func GenerateInferenceWorkspaceManifestWithVLLM(name, namespace, imageName string, resourceCount int, instanceType string,
-	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1alpha1.ModelName,
-	accessMode kaitov1alpha1.ModelImageAccessMode, imagePullSecret []string,
-	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1alpha1.AdapterSpec) *kaitov1alpha1.Workspace {
+	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName,
+	accessMode kaitov1beta1.ModelImageAccessMode, imagePullSecret []string,
+	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
 	workspace := GenerateInferenceWorkspaceManifest(name, namespace, imageName, resourceCount, instanceType,
 		labelSelector, preferredNodes, presetName, accessMode, imagePullSecret, podTemplate, adapters)
 
 	if workspace.Annotations == nil {
 		workspace.Annotations = make(map[string]string)
 	}
-	workspace.Annotations[kaitov1alpha1.AnnotationWorkspaceRuntime] = string(model.RuntimeNameVLLM)
+	workspace.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(model.RuntimeNameVLLM)
 	return workspace
 }
 
 func GenerateTuningWorkspaceManifest(name, namespace, imageName string, resourceCount int, instanceType string,
-	labelSelector *metav1.LabelSelector, preferredNodes []string, input *kaitov1alpha1.DataSource,
-	output *kaitov1alpha1.DataDestination, preset *kaitov1alpha1.PresetSpec, method kaitov1alpha1.TuningMethod) *kaitov1alpha1.Workspace {
+	labelSelector *metav1.LabelSelector, preferredNodes []string, input *kaitov1beta1.DataSource,
+	output *kaitov1beta1.DataDestination, preset *kaitov1beta1.PresetSpec, method kaitov1beta1.TuningMethod) *kaitov1beta1.Workspace {
 
-	workspace := &kaitov1alpha1.Workspace{
+	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Resource: kaitov1alpha1.ResourceSpec{
+		Resource: kaitov1beta1.ResourceSpec{
 			Count:          lo.ToPtr(resourceCount),
 			InstanceType:   instanceType,
 			LabelSelector:  labelSelector,
 			PreferredNodes: preferredNodes,
 		},
-		Tuning: &kaitov1alpha1.TuningSpec{
+		Tuning: &kaitov1beta1.TuningSpec{
 			Method: method,
 			Input:  input,
 			Output: output,
@@ -347,14 +347,14 @@ func GenerateTuningWorkspaceManifest(name, namespace, imageName string, resource
 
 func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImageName, outputRegistry string,
 	resourceCount int, instanceType string, labelSelector *metav1.LabelSelector,
-	preferredNodes []string, presetName kaitov1alpha1.ModelName, accessMode kaitov1alpha1.ModelImageAccessMode,
-	imagePullSecret []string, customConfigMapName string) *kaitov1alpha1.Workspace {
-	workspace := &kaitov1alpha1.Workspace{
+	preferredNodes []string, presetName kaitov1beta1.ModelName, accessMode kaitov1beta1.ModelImageAccessMode,
+	imagePullSecret []string, customConfigMapName string) *kaitov1beta1.Workspace {
+	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Resource: kaitov1alpha1.ResourceSpec{
+		Resource: kaitov1beta1.ResourceSpec{
 			Count:          lo.ToPtr(resourceCount),
 			InstanceType:   instanceType,
 			LabelSelector:  labelSelector,
@@ -362,15 +362,15 @@ func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImage
 		},
 	}
 
-	var workspaceTuning kaitov1alpha1.TuningSpec
-	if accessMode == kaitov1alpha1.ModelImageAccessModePublic ||
-		accessMode == kaitov1alpha1.ModelImageAccessModePrivate {
-		workspaceTuning.Preset = &kaitov1alpha1.PresetSpec{
-			PresetMeta: kaitov1alpha1.PresetMeta{
+	var workspaceTuning kaitov1beta1.TuningSpec
+	if accessMode == kaitov1beta1.ModelImageAccessModePublic ||
+		accessMode == kaitov1beta1.ModelImageAccessModePrivate {
+		workspaceTuning.Preset = &kaitov1beta1.PresetSpec{
+			PresetMeta: kaitov1beta1.PresetMeta{
 				Name:       presetName,
 				AccessMode: accessMode,
 			},
-			PresetOptions: kaitov1alpha1.PresetOptions{
+			PresetOptions: kaitov1beta1.PresetOptions{
 				Image:            imageName,
 				ImagePullSecrets: imagePullSecret,
 			},
@@ -378,11 +378,11 @@ func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImage
 	}
 
 	workspace.Tuning = &workspaceTuning
-	workspace.Tuning.Method = kaitov1alpha1.TuningMethodQLora
-	workspace.Tuning.Input = &kaitov1alpha1.DataSource{
+	workspace.Tuning.Method = kaitov1beta1.TuningMethodQLora
+	workspace.Tuning.Input = &kaitov1beta1.DataSource{
 		Image: datasetImageName,
 	}
-	workspace.Tuning.Output = &kaitov1alpha1.DataDestination{
+	workspace.Tuning.Output = &kaitov1beta1.DataDestination{
 		Image:           outputRegistry,
 		ImagePushSecret: imagePullSecret[0],
 	}

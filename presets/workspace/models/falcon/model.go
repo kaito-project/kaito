@@ -5,7 +5,7 @@ package falcon
 import (
 	"time"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
@@ -64,7 +64,7 @@ type falcon7b struct{}
 func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1alpha1.ModelImageAccessModePublic),
+		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "14Gi",
@@ -94,7 +94,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 func (*falcon7b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1alpha1.ModelImageAccessModePublic),
+		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
@@ -126,7 +126,7 @@ type falcon7bInst struct{}
 func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1alpha1.ModelImageAccessModePublic),
+		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "14Gi",
@@ -171,7 +171,7 @@ type falcon40b struct{}
 func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1alpha1.ModelImageAccessModePublic),
+		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "400",
 		GPUCountRequirement:       "2",
 		TotalGPUMemoryRequirement: "90Gi",
@@ -196,7 +196,7 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 func (*falcon40b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1alpha1.ModelImageAccessModePublic),
+		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "2",
 		TotalGPUMemoryRequirement: "90Gi",
@@ -226,7 +226,7 @@ type falcon40bInst struct{}
 func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1alpha1.ModelImageAccessModePublic),
+		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "400",
 		GPUCountRequirement:       "2",
 		TotalGPUMemoryRequirement: "90Gi",

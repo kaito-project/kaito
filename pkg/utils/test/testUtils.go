@@ -14,6 +14,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
@@ -26,15 +27,15 @@ const (
 var ValidStrength string = "0.5"
 
 var (
-	MockWorkspaceDistributedModel = &v1alpha1.Workspace{
+	MockWorkspaceDistributedModel = &v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				v1alpha1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
+				v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
 			},
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -43,20 +44,20 @@ var (
 				},
 			},
 		},
-		Inference: &v1alpha1.InferenceSpec{
-			Preset: &v1alpha1.PresetSpec{
-				PresetMeta: v1alpha1.PresetMeta{
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-distributed-model",
 				},
 			},
 		},
 	}
-	MockWorkspaceWithPreferredNodes = &v1alpha1.Workspace{
+	MockWorkspaceWithPreferredNodes = &v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -66,20 +67,20 @@ var (
 			},
 			PreferredNodes: []string{"node-p1", "node-p2"},
 		},
-		Inference: &v1alpha1.InferenceSpec{
-			Preset: &v1alpha1.PresetSpec{
-				PresetMeta: v1alpha1.PresetMeta{
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-distributed-model",
 				},
 			},
 		},
 	}
-	MockWorkspaceCustomModel = &v1alpha1.Workspace{
+	MockWorkspaceCustomModel = &v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testCustomWorkspace",
 			Namespace: "kaito",
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -88,7 +89,7 @@ var (
 				},
 			},
 		},
-		Inference: &v1alpha1.InferenceSpec{
+		Inference: &v1beta1.InferenceSpec{
 			Template: &corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
@@ -148,15 +149,15 @@ var (
 )
 
 var (
-	MockWorkspaceWithPreset = &v1alpha1.Workspace{
+	MockWorkspaceWithPreset = &v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				v1alpha1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
+				v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
 			},
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -165,20 +166,20 @@ var (
 				},
 			},
 		},
-		Inference: &v1alpha1.InferenceSpec{
-			Preset: &v1alpha1.PresetSpec{
-				PresetMeta: v1alpha1.PresetMeta{
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-model",
 				},
 			},
 		},
 	}
-	MockWorkspaceWithPresetVLLM = &v1alpha1.Workspace{
+	MockWorkspaceWithPresetVLLM = &v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -187,9 +188,9 @@ var (
 				},
 			},
 		},
-		Inference: &v1alpha1.InferenceSpec{
-			Preset: &v1alpha1.PresetSpec{
-				PresetMeta: v1alpha1.PresetMeta{
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-model",
 				},
 			},
@@ -229,7 +230,7 @@ var (
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "testRAGEngine",
 			Namespace:   "kaito",
-			Annotations: map[string]string{v1alpha1.RAGEngineRevisionAnnotation: "1"},
+			Annotations: map[string]string{v1beta1.RAGEngineRevisionAnnotation: "1"},
 		},
 		Spec: &v1alpha1.RAGEngineSpec{
 			Compute: &v1alpha1.ResourceSpec{
@@ -282,7 +283,7 @@ var (
 var MockRAGEngineWithPresetHash = "14485768c1b67a529a71e3c87d9f2e6c1ed747534dea07e268e93475a5e21e"
 
 var (
-	MockWorkspaceWithDeleteOldCR = v1alpha1.Workspace{
+	MockWorkspaceWithDeleteOldCR = v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
@@ -291,7 +292,7 @@ var (
 				"workspace.kaito.io/revision": "1",
 			},
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -300,9 +301,9 @@ var (
 				},
 			},
 		},
-		Inference: &v1alpha1.InferenceSpec{
-			Preset: &v1alpha1.PresetSpec{
-				PresetMeta: v1alpha1.PresetMeta{
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-model-DeleteOldCR", // presetMeta name is changed
 				},
 			},
@@ -340,7 +341,7 @@ var (
 )
 
 var (
-	MockWorkspaceFailToCreateCR = v1alpha1.Workspace{
+	MockWorkspaceFailToCreateCR = v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace-failedtocreateCR",
 			Namespace: "kaito",
@@ -348,7 +349,7 @@ var (
 				"workspace.kaito.io/revision": "1",
 			},
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -357,9 +358,9 @@ var (
 				},
 			},
 		},
-		Inference: &v1alpha1.InferenceSpec{
-			Preset: &v1alpha1.PresetSpec{
-				PresetMeta: v1alpha1.PresetMeta{
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-model",
 				},
 			},
@@ -390,7 +391,7 @@ var (
 )
 
 var (
-	MockWorkspaceSuccessful = v1alpha1.Workspace{
+	MockWorkspaceSuccessful = v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace-successful",
 			Namespace: "kaito",
@@ -398,7 +399,7 @@ var (
 				"workspace.kaito.io/revision": "0",
 			},
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -407,9 +408,9 @@ var (
 				},
 			},
 		},
-		Inference: &v1alpha1.InferenceSpec{
-			Preset: &v1alpha1.PresetSpec{
-				PresetMeta: v1alpha1.PresetMeta{
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-model",
 				},
 			},
@@ -440,7 +441,7 @@ var (
 )
 
 var (
-	MockWorkspaceWithComputeHash = v1alpha1.Workspace{
+	MockWorkspaceWithComputeHash = v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
@@ -449,7 +450,7 @@ var (
 				"workspace.kaito.io/revision": "1",
 			},
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -458,9 +459,9 @@ var (
 				},
 			},
 		},
-		Inference: &v1alpha1.InferenceSpec{
-			Preset: &v1alpha1.PresetSpec{
-				PresetMeta: v1alpha1.PresetMeta{
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-model",
 				},
 			},
@@ -492,7 +493,7 @@ var (
 )
 
 var (
-	MockWorkspaceUpdateCR = v1alpha1.Workspace{
+	MockWorkspaceUpdateCR = v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
@@ -501,7 +502,7 @@ var (
 				"workspace.kaito.io/revision": "1",
 			},
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -510,9 +511,9 @@ var (
 				},
 			},
 		},
-		Inference: &v1alpha1.InferenceSpec{
-			Preset: &v1alpha1.PresetSpec{
-				PresetMeta: v1alpha1.PresetMeta{
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-model",
 				},
 			},
@@ -521,7 +522,7 @@ var (
 )
 
 var (
-	MockWorkspaceWithUpdatedDeployment = v1alpha1.Workspace{
+	MockWorkspaceWithUpdatedDeployment = v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
@@ -530,7 +531,7 @@ var (
 				"workspace.kaito.io/revision": "1",
 			},
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -539,15 +540,15 @@ var (
 				},
 			},
 		},
-		Inference: &v1alpha1.InferenceSpec{
-			Preset: &v1alpha1.PresetSpec{
-				PresetMeta: v1alpha1.PresetMeta{
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-model",
 				},
 			},
-			Adapters: []v1alpha1.AdapterSpec{
+			Adapters: []v1beta1.AdapterSpec{
 				{
-					Source: &v1alpha1.DataSource{
+					Source: &v1beta1.DataSource{
 						Name:  "Adapter-1",
 						Image: "fake.kaito.com/kaito-image:0.0.1",
 					},
@@ -587,7 +588,7 @@ var (
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "testWorkspace",
 			Namespace:   "kaito",
-			Annotations: map[string]string{v1alpha1.WorkspaceRevisionAnnotation: "1"},
+			Annotations: map[string]string{v1beta1.WorkspaceRevisionAnnotation: "1"},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &numRep,
@@ -728,12 +729,12 @@ var MockRAGDeploymentUpdated = appsv1.Deployment{
 }
 
 var (
-	MockWorkspaceWithInferenceTemplate = &v1alpha1.Workspace{
+	MockWorkspaceWithInferenceTemplate = &v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
 		},
-		Resource: v1alpha1.ResourceSpec{
+		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
@@ -742,7 +743,7 @@ var (
 				},
 			},
 		},
-		Inference: &v1alpha1.InferenceSpec{
+		Inference: &v1beta1.InferenceSpec{
 			Template: &corev1.PodTemplateSpec{},
 		},
 	}
@@ -841,57 +842,57 @@ var (
 )
 
 var (
-	Adapters1 = []v1alpha1.AdapterSpec{
+	Adapters1 = []v1beta1.AdapterSpec{
 		{
-			Source: &v1alpha1.DataSource{
+			Source: &v1beta1.DataSource{
 				Name:  "Adapter-1",
 				Image: "fake.kaito.com/kaito-image:0.0.1",
 			},
 			Strength: &ValidStrength,
 		},
 	}
-	Adapters2 = []v1alpha1.AdapterSpec{
+	Adapters2 = []v1beta1.AdapterSpec{
 		{
-			Source: &v1alpha1.DataSource{
+			Source: &v1beta1.DataSource{
 				Name:  "Adapter-1",
 				Image: "fake.kaito.com/kaito-image:0.0.1",
 			},
 			Strength: &ValidStrength,
 		},
 		{
-			Source: &v1alpha1.DataSource{
+			Source: &v1beta1.DataSource{
 				Name:  "Adapter-2",
 				Image: "fake.kaito.com/kaito-image:0.0.2",
 			},
 			Strength: &ValidStrength,
 		},
 	}
-	Adapters3 = []v1alpha1.AdapterSpec{
+	Adapters3 = []v1beta1.AdapterSpec{
 		{
-			Source: &v1alpha1.DataSource{
+			Source: &v1beta1.DataSource{
 				Name:  "Adapter-2",
 				Image: "fake.kaito.com/kaito-image:0.0.2",
 			},
 			Strength: &ValidStrength,
 		},
 		{
-			Source: &v1alpha1.DataSource{
+			Source: &v1beta1.DataSource{
 				Name:  "Adapter-1",
 				Image: "fake.kaito.com/kaito-image:0.0.1",
 			},
 			Strength: &ValidStrength,
 		},
 	}
-	Adapters4 = []v1alpha1.AdapterSpec{
+	Adapters4 = []v1beta1.AdapterSpec{
 		{
-			Source: &v1alpha1.DataSource{
+			Source: &v1beta1.DataSource{
 				Name:  "Adapter-1",
 				Image: "fake.kaito.com/kaito-image:0.0.1",
 			},
 			Strength: &ValidStrength,
 		},
 		{
-			Source: &v1alpha1.DataSource{
+			Source: &v1beta1.DataSource{
 				Name:  "Adapter-3",
 				Image: "fake.kaito.com/kaito-image:0.0.3",
 			},

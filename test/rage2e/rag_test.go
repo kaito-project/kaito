@@ -17,6 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -129,21 +130,21 @@ var _ = Describe("RAGEngine", func() {
 	})
 })
 
-func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Phi-3-mini-128k-instruct preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-phi3-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfReplica, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "rag-e2e-test-phi-3-mini-128k-instruct-vllm"},
-			}, nil, PresetPhi3Mini128kModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetPhi3Mini128kModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createAndValidateWorkspace(workspaceObj *kaitov1alpha1.Workspace) {
+func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 	By("Creating workspace", func() {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
@@ -191,7 +192,7 @@ func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embe
 }
 
 // validateWorkspaceReadiness validates workspace readiness
-func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
+func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the workspace status is ready", func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -204,7 +205,7 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 			}
 
 			_, conditionFound := lo.Find(workspaceObj.Status.Conditions, func(condition metav1.Condition) bool {
-				return condition.Type == string(kaitov1alpha1.WorkspaceConditionTypeSucceeded) &&
+				return condition.Type == string(kaitov1beta1.WorkspaceConditionTypeSucceeded) &&
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
@@ -251,7 +252,7 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 }
 
 func cleanupResources(
-	workspaceObj *kaitov1alpha1.Workspace,
+	workspaceObj *kaitov1beta1.Workspace,
 	ragengineObj *kaitov1alpha1.RAGEngine,
 ) {
 	By("Cleaning up resources", func() {
@@ -275,7 +276,7 @@ func cleanupResources(
 }
 
 // validateWorkspacResourceStatus validates resource status
-func validateWorkspaceResourceStatus(workspaceObj *kaitov1alpha1.Workspace) {
+func validateWorkspaceResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the resource status", func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -420,7 +421,7 @@ func validateRAGEngineCondition(ragengineObj *kaitov1alpha1.RAGEngine, condition
 	})
 }
 
-func deleteWorkspace(workspaceObj *kaitov1alpha1.Workspace) error {
+func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 	By("Deleting workspace", func() {
 		Eventually(func() error {
 			// Check if the workspace exists

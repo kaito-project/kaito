@@ -14,6 +14,7 @@ import (
 	"knative.dev/pkg/webhook/resourcesemantics/validation"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 func NewWorkspaceWebhooks() []knativeinjection.ControllerConstructor {
@@ -35,4 +36,5 @@ func NewWorkspaceCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) 
 
 var WorkspaceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
 	kaitov1alpha1.GroupVersion.WithKind("Workspace"): &kaitov1alpha1.Workspace{},
+	kaitov1alpha1.GroupVersion.WithKind("Workspace"): &kaitov1beta1.Workspace{},
 }

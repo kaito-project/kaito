@@ -29,6 +29,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
@@ -302,10 +303,10 @@ func ListNodeClaim(ctx context.Context, obj interface{}, kubeClient client.Clien
 
 	// Build label selector based on the type of the input object
 	switch o := obj.(type) {
-	case *kaitov1alpha1.Workspace:
+	case *kaitov1beta1.Workspace:
 		ls = labels.Set{
-			kaitov1alpha1.LabelWorkspaceName:      o.Name,
-			kaitov1alpha1.LabelWorkspaceNamespace: o.Namespace,
+			kaitov1beta1.LabelWorkspaceName:      o.Name,
+			kaitov1beta1.LabelWorkspaceNamespace: o.Namespace,
 		}
 	case *kaitov1alpha1.RAGEngine:
 		ls = labels.Set{

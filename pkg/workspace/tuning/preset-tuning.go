@@ -15,7 +15,7 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -64,10 +64,10 @@ func getInstanceGPUCount(sku string) int {
 	return gpuConfig.GPUCount
 }
 
-func GetTuningImageInfo(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, presetObj *model.PresetParam) (string, []corev1.LocalObjectReference) {
+func GetTuningImageInfo(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, presetObj *model.PresetParam) (string, []corev1.LocalObjectReference) {
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 	// Check if the workspace preset's access mode is private
-	if string(workspaceObj.Tuning.Preset.AccessMode) == string(kaitov1alpha1.ModelImageAccessModePrivate) {
+	if string(workspaceObj.Tuning.Preset.AccessMode) == string(kaitov1beta1.ModelImageAccessModePrivate) {
 		imageName := workspaceObj.Tuning.Preset.PresetOptions.Image
 		for _, secretName := range workspaceObj.Tuning.Preset.PresetOptions.ImagePullSecrets {
 			imagePullSecretRefs = append(imagePullSecretRefs, corev1.LocalObjectReference{Name: secretName})
@@ -82,7 +82,7 @@ func GetTuningImageInfo(ctx context.Context, workspaceObj *kaitov1alpha1.Workspa
 	}
 }
 
-func GetDataSrcImageInfo(ctx context.Context, wObj *kaitov1alpha1.Workspace) (string, []corev1.LocalObjectReference) {
+func GetDataSrcImageInfo(ctx context.Context, wObj *kaitov1beta1.Workspace) (string, []corev1.LocalObjectReference) {
 	imagePullSecretRefs := make([]corev1.LocalObjectReference, len(wObj.Tuning.Input.ImagePullSecrets))
 	for i, secretName := range wObj.Tuning.Input.ImagePullSecrets {
 		imagePullSecretRefs[i] = corev1.LocalObjectReference{Name: secretName}
@@ -187,7 +187,7 @@ func GetOutputDirFromTrainingArgs(trainingArgs map[string]runtime.RawExtension) 
 
 // GetTrainingOutputDir retrieves and validates the output directory from the ConfigMap.
 func GetTrainingOutputDir(ctx context.Context, configMap *corev1.ConfigMap) (string, error) {
-	config, err := kaitov1alpha1.UnmarshalTrainingConfig(configMap)
+	config, err := kaitov1beta1.UnmarshalTrainingConfig(configMap)
 	if err != nil {
 		return "", err
 	}
@@ -210,7 +210,7 @@ func SetupTrainingOutputVolume(ctx context.Context, configMap *corev1.ConfigMap)
 	return resultsVolume, resultsVolumeMount, outputDir
 }
 
-func setupDefaultSharedVolumes(workspaceObj *kaitov1alpha1.Workspace, cmName string) ([]corev1.Volume, []corev1.VolumeMount) {
+func setupDefaultSharedVolumes(workspaceObj *kaitov1beta1.Workspace, cmName string) ([]corev1.Volume, []corev1.VolumeMount) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 
@@ -231,14 +231,14 @@ func setupDefaultSharedVolumes(workspaceObj *kaitov1alpha1.Workspace, cmName str
 	return volumes, volumeMounts
 }
 
-func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, revisionNum string,
+func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, revisionNum string,
 	tuningObj *model.PresetParam, kubeClient client.Client) (client.Object, error) {
 
 	var defaultConfigName string
-	if workspaceObj.Tuning.Method == kaitov1alpha1.TuningMethodLora {
-		defaultConfigName = kaitov1alpha1.DefaultLoraConfigMapTemplate
-	} else if workspaceObj.Tuning.Method == kaitov1alpha1.TuningMethodQLora {
-		defaultConfigName = kaitov1alpha1.DefaultQloraConfigMapTemplate
+	if workspaceObj.Tuning.Method == kaitov1beta1.TuningMethodLora {
+		defaultConfigName = kaitov1beta1.DefaultLoraConfigMapTemplate
+	} else if workspaceObj.Tuning.Method == kaitov1beta1.TuningMethodQLora {
+		defaultConfigName = kaitov1beta1.DefaultQloraConfigMapTemplate
 	}
 	configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx, kubeClient,
 		client.ObjectKey{
@@ -324,7 +324,7 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1alpha1.Workspa
 }
 
 // Now there are two options for data destination 1. HostPath - 2. Image
-func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, outputDir string) (*corev1.Container, *corev1.LocalObjectReference, corev1.Volume, corev1.VolumeMount, error) {
+func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, outputDir string) (*corev1.Container, *corev1.LocalObjectReference, corev1.Volume, corev1.VolumeMount, error) {
 	var sidecarContainer *corev1.Container
 	var volume corev1.Volume
 	var volumeMount corev1.VolumeMount
@@ -355,7 +355,7 @@ func handleImageDataDestination(ctx context.Context, outputDir, image, imagePush
 }
 
 // Now there are three options for DataSource: 1. URL - 2. HostPath - 3. Image
-func prepareDataSource(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace) (*corev1.Container, []corev1.LocalObjectReference, corev1.Volume, corev1.VolumeMount, error) {
+func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) (*corev1.Container, []corev1.LocalObjectReference, corev1.Volume, corev1.VolumeMount, error) {
 	var initContainer *corev1.Container
 	var volume corev1.Volume
 	var volumeMount corev1.VolumeMount
@@ -392,7 +392,7 @@ func handleImageDataSource(ctx context.Context, image string) (*corev1.Container
 	return initContainer, volume, volumeMount
 }
 
-func handleURLDataSource(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace) (*corev1.Container, corev1.Volume, corev1.VolumeMount) {
+func handleURLDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) (*corev1.Container, corev1.Volume, corev1.VolumeMount) {
 	initContainer := &corev1.Container{
 		Name:  "data-downloader",
 		Image: "curlimages/curl",
@@ -455,7 +455,7 @@ func prepareModelRunParameters(ctx context.Context, tuningObj *model.PresetParam
 // accelerate launch <TORCH_PARAMS> baseCommand <MODEL_PARAMS>
 // and sets the GPU resources required for tuning.
 // Returns the command and resource configuration.
-func prepareTuningParameters(ctx context.Context, wObj *kaitov1alpha1.Workspace, modelCommand string,
+func prepareTuningParameters(ctx context.Context, wObj *kaitov1beta1.Workspace, modelCommand string,
 	tuningObj *model.PresetParam, skuNumGPUs string) ([]string, corev1.ResourceRequirements) {
 	hfParam := tuningObj.Transformers // Only support Huggingface for now
 	if hfParam.TorchRunParams == nil {

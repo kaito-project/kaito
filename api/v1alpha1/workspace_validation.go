@@ -294,6 +294,11 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec) (er
 	var presetName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
+		// since inference.Preset exists, we must validate preset name
+		if !plugin.IsValidPreset(presetName) {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
+			return errs
+		}
 	}
 	instanceType := string(r.InstanceType)
 

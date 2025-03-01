@@ -14,6 +14,7 @@ from requests.exceptions import HTTPError
 from urllib.parse import urlparse, urljoin
 from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET #, LLM_RESPONSE_FIELD
 from fastapi import HTTPException
+import concurrent.futures
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -51,11 +52,17 @@ class Inference(CustomLLM):
     def stream_complete(self, prompt: str, **kwargs: Any) -> CompletionResponseGen:
         pass
 
+    def run_async_coroutine(self, coro):
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            # Submit a task that creates its own event loop using asyncio.run
+            future = executor.submit(asyncio.run, coro)
+            return future.result()
+
     @llm_completion_callback()
     def complete(self, prompt: str, formatted: bool = False, **kwargs: Any) -> CompletionResponse:
         # Required implementation - Only called by LlamaIndex reranker because LLMRerank library doesn't use async call
         try:
-            result = asyncio.run(self.acomplete(prompt, formatted=formatted, **kwargs))
+            result = self.run_async_coroutine(self.acomplete(prompt, formatted=formatted, **kwargs))
             if result.text == "Empty Response":
                 logger.error("LLMRerank Request returned an unparsable or invalid response")
                 raise HTTPException(status_code=422, detail="Rerank operation failed: Invalid response from LLM. This feature is experimental.")

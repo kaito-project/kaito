@@ -36,5 +36,5 @@ func NewWorkspaceCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) 
 
 var WorkspaceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
 	kaitov1alpha1.GroupVersion.WithKind("Workspace"): &kaitov1alpha1.Workspace{},
-	kaitov1alpha1.GroupVersion.WithKind("Workspace"): &kaitov1beta1.Workspace{},
+	kaitov1beta1.GroupVersion.WithKind("Workspace"):  &kaitov1beta1.Workspace{},
 }

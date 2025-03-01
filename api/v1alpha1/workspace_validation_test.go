@@ -224,6 +224,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		modelPerGPUMemory   string
 		modelTotalGPUMemory string
 		preset              bool
+		presetNameOverride  string
 		errContent          string // Content expect error to include, if any
 		expectErrs          bool
 		validateTuning      bool // To indicate if we are testing tuning validation
@@ -362,6 +363,17 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			expectErrs:     true,
 			validateTuning: true,
 		},
+		{
+			name: "Invalid Preset Name",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC6s_v3",
+				Count:        pointerToInt(2),
+			},
+			errContent:         "Unsupported inference preset name",
+			preset:             true,
+			presetNameOverride: "Invalid-Preset-Name",
+			expectErrs:         true,
+		},
 	}
 
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -386,10 +398,15 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				var spec InferenceSpec
 
 				if tc.preset {
+					presetName := ModelName("test-validation")
+					if tc.presetNameOverride != "" {
+						presetName = ModelName(tc.presetNameOverride)
+					}
+
 					spec = InferenceSpec{
 						Preset: &PresetSpec{
 							PresetMeta: PresetMeta{
-								Name: ModelName("test-validation"),
+								Name: presetName,
 							},
 						},
 					}

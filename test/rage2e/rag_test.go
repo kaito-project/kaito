@@ -638,7 +638,6 @@ func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoa
 		}, utils.PollTimeout, utils.PollInterval).
 			Should(Succeed(), "Failed to create load pod")
 	})
-
 	// Wait for the pod to be running before attempting to fetch logs.
 	By("Waiting for load pod to be running", func() {
 		Eventually(func() bool {
@@ -653,7 +652,6 @@ func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoa
 			return pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded
 		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Load pod did not reach Running or Succeeded state")
 	})
-
 	By("Checking the load logs", func() {
 		Eventually(func() bool {
 			coreClient, err := utils.GetK8sClientset()

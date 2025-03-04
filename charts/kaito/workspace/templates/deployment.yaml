@@ -36,7 +36,7 @@ spec:
             - --feature-gates={{ include "utils.joinKeyValuePairs" .Values.featureGates }}
           env:
             - name: WEBHOOK_SERVICE
-              value: {{ include "kaito.fullname" . }}
+              value: {{ include "kaito.fullname" . }}-svc
             - name: WEBHOOK_PORT
               value: "{{ .Values.webhook.port }}"
             - name: SYSTEM_NAMESPACE

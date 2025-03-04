@@ -474,6 +474,7 @@ func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 }
 
 func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
+	podName := "index-pod"
 	By("Creating index pod", func() {
 		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/index \
 -H "Content-Type: application/json" \
@@ -486,7 +487,7 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
         }
     ]
 }'`
-		pod := GenerateCURLPodManifest("index-pod", curlCommand, ragengineObj.Namespace)
+		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
 		}, utils.PollTimeout, utils.PollInterval).
@@ -501,9 +502,9 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
 				return false
 			}
 
-			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, "indexpod", "")
+			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
 			if err != nil {
-				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", "indexpod", err)
+				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
 				return false
 			}
 
@@ -515,6 +516,7 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
 }
 
 func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSearchQueries string, remote bool) error {
+	podName := "query-pod"
 	By("Creating query pod", func() {
 		var curlCommand string
 		// Note: Request without model specified should still succeed with vLLM. As model name is dynamically fetched.
@@ -542,7 +544,7 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSe
     }
 }'`
 		}
-		pod := GenerateCURLPodManifest("query-pod", curlCommand, ragengineObj.Namespace)
+		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
 		}, utils.PollTimeout, utils.PollInterval).
@@ -557,9 +559,9 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSe
 				return false
 			}
 
-			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, "querypod", "")
+			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
 			if err != nil {
-				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", "querypod", err)
+				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
 				return false
 			}
 

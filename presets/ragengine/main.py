@@ -310,9 +310,12 @@ async def persist_index(
 )
 async def load_index(
         index_name: str,
-        path: str = Query(DEFAULT_VECTOR_DB_PERSIST_DIR, description="Path to load the index from"),
+        path: Optional[str] = Query(None, description="Path to load the index from"),
         overwrite: bool = Query(False, description="Overwrite the existing index if it already exists")
 ):
+    # If no path is provided, use the default directory joined with index_name.
+    if path is None:
+        path = os.path.join(DEFAULT_VECTOR_DB_PERSIST_DIR, index_name)
     try:
         await rag_ops.load(index_name, path, overwrite)
         return {"message": f"Successfully loaded index {index_name} from {path}."}

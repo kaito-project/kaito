@@ -616,13 +616,11 @@ func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expected
 				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
 				return false
 			}
-
 			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
 				return false
 			}
-
 			return strings.Contains(logs, expectedPersistResult)
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for persist logs to be ready")
 	})
@@ -663,13 +661,11 @@ func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoa
 				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
 				return false
 			}
-
 			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
 				return false
 			}
-
 			return strings.Contains(logs, expectedLoadResult)
 		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for load logs to be ready")
 	})

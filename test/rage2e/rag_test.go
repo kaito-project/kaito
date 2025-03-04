@@ -551,6 +551,20 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSe
 			Should(Succeed(), "Failed to create query pod")
 	})
 
+	By("Waiting for query pod to be running", func() {
+		Eventually(func() bool {
+			pod := &v1.Pod{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: ragengineObj.Namespace,
+				Name:      podName,
+			}, pod)
+			if err != nil {
+				return false
+			}
+			return pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Query pod did not reach Running or Succeeded state")
+	})
+
 	By("Checking the query logs", func() {
 		Eventually(func() bool {
 			coreClient, err := utils.GetK8sClientset()
@@ -558,13 +572,11 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSe
 				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
 				return false
 			}
-
 			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
 				return false
 			}
-
 			return strings.Contains(logs, expectedSearchQueries)
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for query logs to be ready")
 	})
@@ -583,6 +595,20 @@ func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expected
 			Should(Succeed(), "Failed to create persist pod")
 	})
 
+	By("Waiting for persist pod to be running", func() {
+		Eventually(func() bool {
+			pod := &v1.Pod{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: ragengineObj.Namespace,
+				Name:      podName,
+			}, pod)
+			if err != nil {
+				return false
+			}
+			return pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Persist pod did not reach Running or Succeeded state")
+	})
+
 	By("Checking the persist logs", func() {
 		Eventually(func() bool {
 			coreClient, err := utils.GetK8sClientset()
@@ -598,7 +624,7 @@ func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expected
 			}
 
 			return strings.Contains(logs, expectedPersistResult)
-		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for query logs to be ready")
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for persist logs to be ready")
 	})
 
 	return nil
@@ -606,16 +632,31 @@ func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expected
 
 func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoadResult string) error {
 	podName := "load-pod"
-	By("Creating Persist pod", func() {
+	By("Creating Load Pod", func() {
 		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/load/kaito`
 		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
 		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create persist pod")
+			Should(Succeed(), "Failed to create load pod")
 	})
 
-	By("Checking the persist logs", func() {
+	// Wait for the pod to be running before attempting to fetch logs.
+	By("Waiting for load pod to be running", func() {
+		Eventually(func() bool {
+			pod := &v1.Pod{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: ragengineObj.Namespace,
+				Name:      podName,
+			}, pod)
+			if err != nil {
+				return false
+			}
+			return pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Load pod did not reach Running or Succeeded state")
+	})
+
+	By("Checking the load logs", func() {
 		Eventually(func() bool {
 			coreClient, err := utils.GetK8sClientset()
 			if err != nil {
@@ -630,7 +671,7 @@ func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoa
 			}
 
 			return strings.Contains(logs, expectedLoadResult)
-		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for query logs to be ready")
+		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for load logs to be ready")
 	})
 
 	return nil

@@ -44,7 +44,7 @@ spec:
           operator: "Equal"
           value: "gpu"
           effect: "NoSchedule"
-      priorityClassName: high-priority-nonpreempting
+      priorityClassName: "system-node-critical"
       containers:
         - image: mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.17.0
           name: nvidia-device-plugin-ctr
@@ -64,15 +64,3 @@ spec:
         - name: device-plugin
           hostPath:
             path: /var/lib/kubelet/device-plugins
----
-apiVersion: scheduling.k8s.io/v1
-kind: PriorityClass
-metadata:
-  name: high-priority-nonpreempting
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "kaito.labels" . | nindent 4 }}
-value: 1000000
-preemptionPolicy: Never
-globalDefault: false
-description: "This priority class will not cause other pods to be preempted."

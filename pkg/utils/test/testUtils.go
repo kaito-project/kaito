@@ -230,7 +230,7 @@ var (
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "testRAGEngine",
 			Namespace:   "kaito",
-			Annotations: map[string]string{v1beta1.RAGEngineRevisionAnnotation: "1"},
+			Annotations: map[string]string{v1alpha1.RAGEngineRevisionAnnotation: "1"},
 		},
 		Spec: &v1alpha1.RAGEngineSpec{
 			Compute: &v1alpha1.ResourceSpec{

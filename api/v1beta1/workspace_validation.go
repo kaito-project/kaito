@@ -294,6 +294,11 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec) (er
 	var presetName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
+		// Since inference.Preset exists, we must validate preset name.
+		if !plugin.IsValidPreset(presetName) {
+			// Return to skip the rest of checks, the Inference spec validation will return proper err msg.
+			return errs
+		}
 	}
 	instanceType := string(r.InstanceType)
 
@@ -410,6 +415,8 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (e
 		// Validate preset name
 		if !plugin.IsValidPreset(presetName) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
+			// Need to return here. Otherwise, a panic will be hit when doing following checks.
+			return errs
 		}
 		// Validate private preset has private image specified
 		if plugin.KaitoModelRegister.MustGet(string(i.Preset.Name)).GetInferenceParameters().ImageAccessMode == string(ModelImageAccessModePrivate) &&

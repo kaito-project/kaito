@@ -369,10 +369,10 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NC6s_v3",
 				Count:        pointerToInt(2),
 			},
-			errContent:         "Unsupported inference preset name",
+			errContent:         "",
 			preset:             true,
 			presetNameOverride: "Invalid-Preset-Name",
-			expectErrs:         true,
+			expectErrs:         false,
 		},
 	}
 
@@ -559,7 +559,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 					},
 				},
 			},
-			errContent: "model is not registered",
+			errContent: "Unsupported inference preset name",
 			expectErrs: true,
 		},
 		{

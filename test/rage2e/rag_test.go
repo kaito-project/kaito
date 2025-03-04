@@ -631,7 +631,7 @@ func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expected
 func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoadResult string) error {
 	podName := "load-pod"
 	By("Creating Load Pod", func() {
-		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/load/kaito`
+		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/load/kaito?overwrite=True`
 		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})

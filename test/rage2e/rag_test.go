@@ -549,7 +549,7 @@ func GenerateIndexPodManifest(namespace, serviceName string) *v1.Pod {
 	return indexPod
 }
 
-func GenerateQueryPodManifest(namespace, serviceName string, remote bool) *v1.Pod { // TODO: add another model param for the remote inference service in the next PR
+func GenerateQueryPodManifest(namespace, serviceName string, remote bool) *v1.Pod {
 	var curlCommand string
 	if remote {
 		curlCommand = `curl -X POST ` + serviceName + `:80/query \

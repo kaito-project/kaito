@@ -1,0 +1,19 @@
+apiVersion: kaito.sh/v1alpha1
+kind: RAGEngine
+metadata:
+  name: ragengine-start1
+  annotations:
+      llm_model: "phi-3-medium-128k-instruct"
+spec:
+  compute:
+    instanceType: "Standard_NC6s_v3"  
+    labelSelector:
+      matchLabels:
+        apps: phi-3
+  embedding:  
+    local:
+      modelID: "BAAI/bge-small-en-v1.5"       
+  inferenceService:  
+    #url: "http://10.0.5.206:80/chat"  
+    url: "http://10.0.138.173/v1/completions" 
+   

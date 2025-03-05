@@ -667,7 +667,6 @@ func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoa
 			return strings.Contains(logs, expectedLoadResult)
 		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for load logs to be ready")
 	})
-
 	return nil
 }
 

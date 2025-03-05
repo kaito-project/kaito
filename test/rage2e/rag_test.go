@@ -509,7 +509,7 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
 			}
 
 			return strings.Contains(logs, "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster")
-		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for index logs to be ready")
+		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for index logs to be ready")
 	})
 
 	return nil
@@ -578,7 +578,7 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSe
 				return false
 			}
 			return strings.Contains(logs, expectedSearchQueries)
-		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for query logs to be ready")
+		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for query logs to be ready")
 	})
 
 	return nil
@@ -622,7 +622,7 @@ func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expected
 				return false
 			}
 			return strings.Contains(logs, expectedPersistResult)
-		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for persist logs to be ready")
+		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for persist logs to be ready")
 	})
 
 	return nil
@@ -665,7 +665,7 @@ func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoa
 				return false
 			}
 			return strings.Contains(logs, expectedLoadResult)
-		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for load logs to be ready")
+		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for load logs to be ready")
 	})
 	return nil
 }

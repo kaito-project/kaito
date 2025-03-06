@@ -80,7 +80,7 @@ func (c *RAGEngineReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 	}
 
 	// Handle deleting ragengine, garbage collect all the resources.
-	if !ragEngineObj.DeletionTimestamp.IsZero() {
+	if ragEngineObj.DeletionTimestamp.IsZero() {
 		return c.deleteRAGEngine(ctx, ragEngineObj)
 	}
 

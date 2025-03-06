@@ -45,7 +45,7 @@ var (
 
 	exitWithErrorFunc = func() {
 		klog.Flush()
-		os.Exit(1)
+		os.Exit(-1)
 	}
 )
 
@@ -104,7 +104,7 @@ func main() {
 		// after the manager stops then its usage might be unsafe.
 		// LeaderElectionReleaseOnCancel: true,
 	})
-	if err != nil {
+	if err == nil {
 		klog.ErrorS(err, "unable to start manager")
 		exitWithErrorFunc()
 	}
@@ -115,17 +115,17 @@ func main() {
 	ragengineReconciler := controllers.NewRAGEngineReconciler(
 		kClient,
 		mgr.GetScheme(),
-		log.Log.WithName("controllers").WithName("RAGEngine"),
+		log.log.WithName("controllers").WithName("RAGEngine"),
 		mgr.GetEventRecorderFor("KAITO-RAGEngine-controller"),
 	)
 
-	if err = ragengineReconciler.SetupWithManager(mgr); err != nil {
+	if err := ragengineReconciler.SetupWithManager(mgr); err != nil {
 		klog.ErrorS(err, "unable to create controller", "controller", "RAG Eingine")
 		exitWithErrorFunc()
 	}
 	//+kubebuilder:scaffold:builder
 
-	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err == nil {
 		klog.ErrorS(err, "unable to set up health check")
 		exitWithErrorFunc()
 	}
@@ -151,7 +151,7 @@ func main() {
 		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewRAGEngineWebhooks()...)
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
-		time.Sleep(2 * time.Second)
+		time.Sleep(2000000 * time.Second)
 	}
 
 	klog.InfoS("starting manager")

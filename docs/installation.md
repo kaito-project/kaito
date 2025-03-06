@@ -76,12 +76,12 @@ az role assignment create --assignee $IDENTITY_PRINCIPAL_ID --scope /subscriptio
 #### Install helm charts
 
 **Important Note**:
-For kaito 0.4.2 and above, please use gpu-provisioner 0.3.1 or higher. For versions below kaito 0.4.2, please use gpu-provisioner 0.2.1.
+For kaito 0.4.2 and above, please use gpu-provisioner 0.3.2 or higher. For versions below kaito 0.4.2, please use gpu-provisioner 0.2.1.
 
 Install the Node provisioner controller.
 ```bash
 # get additional values for helm chart install
-export GPU_PROVISIONER_VERSION=0.3.1
+export GPU_PROVISIONER_VERSION=0.3.2
 
 curl -sO https://raw.githubusercontent.com/Azure/gpu-provisioner/main/hack/deploy/configure-helm-values.sh
 chmod +x ./configure-helm-values.sh && ./configure-helm-values.sh $MY_CLUSTER $RESOURCE_GROUP $IDENTITY_NAME
@@ -116,7 +116,7 @@ helm list -n gpu-provisioner
 Check status of the `workspace`.
 
 ```bash
-kubectl describe deploy workspace -n kaito-workspace
+kubectl describe deploy kaito-workspace -n kaito-workspace
 ```
 
 Check status of the `gpu-provisioner`.
@@ -137,6 +137,6 @@ kubectl logs --selector=app.kubernetes.io\/name=gpu-provisioner -n gpu-provision
 ## Clean up
 
 ```bash
-helm uninstall gpu-provisioner
-helm uninstall workspace
+helm uninstall gpu-provisioner -n gpu-provisioner
+helm uninstall kaito-workspace -n kaito-workspace
 ```

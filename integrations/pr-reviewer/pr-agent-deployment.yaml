@@ -1,0 +1,51 @@
+# docker run --rm -it \
+#  -e CONFIG.MODEL="hosted_vllm/qwen2.5-coder-7b-instruct" \
+#  -e CONFIG.FALLBACK_MODELS="hosted_vllm/qwen2.5-coder-7b-instruct" \
+#  -e CONFIG.CUSTOM_MODEL_MAX_TOKENS="128000" \
+#  -e CONFIG.DUPLICATE_EXAMPLES="true" \
+#  -e GITHUB.USER_TOKEN="<GITHUB_TOKEN>" \
+#  -e GITHUB.DEPLOYMENT_TYPE="user" \
+#  -e OLLAMA.API_BASE="http://host.docker.internal:5000/v1" \
+#  codiumai/pr-agent:latest --pr_url https://github.com/kaito-project/kaito/pull/868 review
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pr-agent
+  labels:
+    app: pr-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pr-agent
+  template:
+    metadata:
+      labels:
+        app: pr-agent
+    spec:
+      containers:
+        - name: pr-agent
+          image: codiumai/pr-agent:latest
+          env:
+            - name: CONFIG__MODEL
+              value: "hosted_vllm/qwen2.5-coder-7b-instruct"
+            - name: CONFIG__FALLBACK_MODELS
+              value: "hosted_vllm/qwen2.5-coder-7b-instruct"
+            - name: CONFIG__CUSTOM_MODEL_MAX_TOKENS
+              value: "32768"
+            - name: CONFIG__DUPLICATE_EXAMPLES
+              value: "true"
+            - name: GITHUB__USER_TOKEN
+              value: "<GITHUB_TOKEN>"
+            - name: GITHUB__DEPLOYMENT_TYPE
+              value: "user"
+            - name: OLLAMA__API_BASE
+              value: "http://workspace-qwen-2-5-coder-7b-instruct:80/v1"
+            - name: PR_URL
+              value: "https://github.com/kaito-project/kaito/pull/868" # SET PR TO REVIEW
+            - name: OPERATION
+              value: "review" # SET OPERATION
+          command: ["/bin/sh", "-c"]
+          args:
+            - "pr-agent --pr_url $PR_URL $OPERATION"

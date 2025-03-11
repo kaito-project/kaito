@@ -1,0 +1,53 @@
+name: PRAgent
+on:
+  pull_request:
+    branches: ["*"]
+  issue_comment:
+    types: [created]
+
+jobs:
+  pr_agent_job:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+    name: Run PR Agent on every pull request, respond to user comments
+    steps:
+      - name: PR Agent action step
+        id: pragent
+        uses: Codium-ai/pr-agent@main
+        env:
+          # Environment variables for running locally with kaito
+          CONFIG_MODEL: "hosted_vllm/qwen2.5-coder-7b-instruct"
+          CONFIG_FALLBACK_MODELS: "hosted_vllm/qwen2.5-coder-7b-instruct"
+          CONFIG_CUSTOM_MODEL_MAX_TOKENS: "32768"
+          CONFIG_DUPLICATE_EXAMPLES: "true"
+          GITHUB_USER_TOKEN: ${{ secrets.API_TOKEN }}
+          GITHUB_DEPLOYMENT_TYPE: "user"
+          OLLAMA_API_BASE: ${{ secrets.KAITO_PR_REVIEWER_WORKSPACE_URL }}
+
+          # Dynamically set PR_URL for review
+          PR_URL: ${{ github.event.pull_request.html_url }}
+
+          # PR Agent configuration options
+          pr_description.use_description_markers: "true"
+          pr_description.include_generated_by_header: "true"
+          github_action.auto_review: "true"
+          github_action.auto_describe: "true"
+          github_action.auto_improve: "true"
+          pr_update_changelog.push_changelog_changes: "true"
+
+# Run using docker
+#      - name: Run PR Agent
+#        id: pragent
+#        run: |
+#          docker run --rm -it \
+#            -e CONFIG.MODEL="hosted_vllm/qwen2.5-coder-7b-instruct" \
+#            -e CONFIG.FALLBACK_MODELS="hosted_vllm/qwen2.5-coder-7b-instruct" \
+#            -e CONFIG.CUSTOM_MODEL_MAX_TOKENS="32768" \
+#            -e CONFIG.DUPLICATE_EXAMPLES="true" \
+#            -e GITHUB.USER_TOKEN="${{ secrets.API_TOKEN }}" \
+#            -e GITHUB.DEPLOYMENT_TYPE="user" \
+#            -e OLLAMA.API_BASE="http://host.docker.internal:5000/v1" \
+#            codiumai/pr-agent:latest --pr_url ${{ github.event.pull_request.html_url

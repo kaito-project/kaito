@@ -8,6 +8,7 @@ Before you begin, ensure you have the following tools installed:
 - [Helm](https://helm.sh) to install this operator
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) to view Kubernetes resources
 - [git](https://git-scm.com/downloads) to clone this repo locally
+- [yq](https://github.com/mikefarah/yq) to process yaml files
 - [jq](https://jqlang.github.io/jq/download) to process JSON files
 
 **Important Note**:

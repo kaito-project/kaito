@@ -120,7 +120,6 @@ trainer = accelerator.prepare(SFTTrainer(
     data_collator=dc_args,
     dataset_text_field=dm.dataset_text_field,
     callbacks=[empty_cache_callback]
-    # metrics = "tensorboard" or "wandb" # TODO
 ))
 trainer.train()
 os.makedirs(ta_args.output_dir, exist_ok=True)

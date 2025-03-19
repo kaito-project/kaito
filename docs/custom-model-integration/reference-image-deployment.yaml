@@ -14,7 +14,7 @@ inference:
     spec:
       containers:
         - name: custom-llm-container
-          image: ghcr.io/kaito-project/kaito/llm-reference-preset:latest  # Replace with the actual image name
+          image: ghcr.io/kaito-project/kaito/llm-reference-preset:latest # Kaito Reference Image
           resources:
             requests:
               nvidia.com/gpu: 1  # Request 1 GPU; adjust as needed

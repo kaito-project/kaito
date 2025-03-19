@@ -7,42 +7,30 @@ resource:
   labelSelector:
     matchLabels:
       apps: custom-llm
-  # preferredNodes:
-  #   - <PREFERRED_NODE_HERE>
 inference:
-  template:
+  template: 
     spec:
       containers:
-        - name: custom-llm-container
-          image: ghcr.io/kaito-project/kaito/llm-reference-preset:latest  # Replace with the actual image name
-          resources:
-            requests:
-              nvidia.com/gpu: 1  # Request 1 GPU; adjust as needed
-            limits:
-              nvidia.com/gpu: 1  # Optional: Limit to 1 GPU
-          command:
-            - "accelerate"
-          args:
-            - "launch"
-            - "--num_processes"
-            - "1"
-            - "--num_machines"
-            - "1"
-            - "--gpu_ids"
-            - "all"
-            - "inference_api.py"
-            - "--pipeline"
-            - "text-generation"
-            - "--trust_remote_code"
-            - "--allow_remote_files"
-            - "--pretrained_model_name_or_path"
-            - "microsoft/Phi-3.5-mini-instruct"  # Replace <MODEL_ID> with the specific HuggingFace model identifier
-            - "--torch_dtype"
-            - "float16"  # Set to "float16" for compatibility with V100 GPUs; use "bfloat16" for A100, H100 or newer GPUs
-          volumeMounts:
-            - name: dshm
-              mountPath: /dev/shm
-      volumes:
+      - name: custom-llm-container
+        image: modelsregistry.azurecr.io/custom-llm:0.0.1 # Replace with the actual image name
+        command: ["accelerate"]
+        args:
+          - "launch"
+          - "--num_processes"
+          - "1"
+          - "--num_machines"
+          - "1"
+          - "--gpu_ids"
+          - "all"
+          - "tfs/inference_api.py"
+          - "--pipeline"
+          - "text-generation"
+          - "--torch_dtype"
+          - "float16"  # Set to "float16" for compatibility with V100 GPUs; use "bfloat16" for A100, H100 or newer GPUs
+        volumeMounts:
         - name: dshm
-          emptyDir:
-            medium: Memory
+          mountPath: /dev/shm
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory

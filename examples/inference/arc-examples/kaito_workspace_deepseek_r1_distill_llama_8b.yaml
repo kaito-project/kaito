@@ -1,0 +1,14 @@
+apiVersion: kaito.sh/v1alpha1
+kind: Workspace
+metadata:
+  name: workspace-deepseek-r1-distill-llama-8b
+resource:
+  preferredNodes:
+    - <your-arc-node-name>
+  labelSelector:
+    matchLabels:
+      apps: llm-inference
+inference:
+  preset:
+    name: "deepseek-r1-distill-llama-8b"
+    

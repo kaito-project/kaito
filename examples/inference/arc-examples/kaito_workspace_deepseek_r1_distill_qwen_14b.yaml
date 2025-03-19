@@ -1,0 +1,15 @@
+apiVersion: kaito.sh/v1alpha1
+kind: Workspace
+metadata:
+  name: workspace-deepseek-r1-distill-qwen-14b
+resource:
+  instanceType: Standard_NC12s_v3
+  preferredNodes:
+    - <your-arc-node-name>
+  labelSelector:
+    matchLabels:
+      apps: llm-inference
+inference:
+  preset:
+    name: "deepseek-r1-distill-qwen-14b"
+    

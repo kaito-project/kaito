@@ -1,0 +1,13 @@
+apiVersion: kaito.sh/v1alpha1
+kind: Workspace
+metadata:
+  name: workspace-phi-2
+resource:
+  preferredNodes:
+    - <your-arc-node-name>
+  labelSelector:
+    matchLabels:
+      apps: llm-inference
+inference:
+  preset:
+    name: "phi-2"

@@ -1,0 +1,14 @@
+apiVersion: kaito.sh/v1alpha1
+kind: Workspace
+metadata:
+  name: workspace-phi-3-medium
+resource:
+  instanceType: Standard_NC12s_v3
+  preferredNodes:
+    - <your-arc-node-name>
+  labelSelector:
+    matchLabels:
+      apps: llm-inference
+inference:
+  preset:
+    name: phi-3-medium-4k-instruct

@@ -107,6 +107,10 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 }
 
 func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) error {
+	// Skip adding the finalizer if the workspace is already marked for deletion.
+	if !workspaceObj.DeletionTimestamp.IsZero() {
+		return nil
+	}
 	if !controllerutil.ContainsFinalizer(workspaceObj, consts.WorkspaceFinalizer) {
 		patch := client.MergeFrom(workspaceObj.DeepCopy())
 		controllerutil.AddFinalizer(workspaceObj, consts.WorkspaceFinalizer)

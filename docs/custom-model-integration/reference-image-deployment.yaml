@@ -6,7 +6,7 @@ resource:
   instanceType: "Standard_NC24ads_A100_v4" # Replace with the required VM SKU based on model requirements
   labelSelector:
     matchLabels:
-      apps: llm-inference
+      apps: custom-llm
 #  preferredNodes:
 #    - <PREFERRED_NODE_HERE>
 inference:

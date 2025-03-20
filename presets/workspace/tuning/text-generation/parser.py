@@ -47,10 +47,22 @@ def filter_unsupported_init_args(dataclass_type, config_dict):
 # Function to parse a single section
 def parse_section(section_name, section_config):
     parser = HfArgumentParser((CONFIG_CLASS_MAP[section_name],))
-    # Flatten section_config to CLI-like arguments
-    cli_args = flatten_config_to_cli_args(section_config, prefix='')
-    # Parse the CLI-like arguments into a data class instance
-    return parser.parse_args_into_dataclasses(cli_args)[0]
+    try:
+        # Try parsing normally
+        cli_args = flatten_config_to_cli_args(section_config, prefix='')
+        instance = parser.parse_args_into_dataclasses(cli_args)[0]
+    except Exception as e:
+        if section_name == "DataCollator" and section_config.get("mlm", False):
+            print("Warning: Tokenizer does not have a mask token. Retrying with mlm=False.")
+            # Update the section_config (or CLI args) to set mlm to False
+            section_config["mlm"] = False
+            # Regenerate the CLI-like arguments from the updated config
+            cli_args = flatten_config_to_cli_args(section_config, prefix='')
+            instance = parser.parse_args_into_dataclasses(cli_args)[0]
+        else:
+            # Reraise any other Error
+            raise e
+    return instance
 
 
 def parse_configs(config_yaml):

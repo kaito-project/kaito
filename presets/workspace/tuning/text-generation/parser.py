@@ -51,7 +51,7 @@ def parse_section(section_name, section_config):
         # Try parsing normally
         cli_args = flatten_config_to_cli_args(section_config, prefix='')
         instance = parser.parse_args_into_dataclasses(cli_args)[0]
-    except Exception as e:
+    except AttributeError as e:
         if section_name == "DataCollator" and section_config.get("mlm", False):
             print("Warning: Tokenizer does not have a mask token. Retrying with mlm=False.")
             # Update the section_config to set mlm to False
@@ -62,6 +62,9 @@ def parse_section(section_name, section_config):
         else:
             # Reraise any other Error
             raise e
+    except Exception as e:
+        raise e
+
     return instance
 
 

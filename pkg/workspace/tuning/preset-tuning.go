@@ -11,7 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
-	"k8s.io/utils/ptr"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -20,6 +19,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/workspace/image"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
@@ -88,66 +88,6 @@ func GetDataSrcImageInfo(ctx context.Context, wObj *kaitov1beta1.Workspace) (str
 		imagePullSecretRefs[i] = corev1.LocalObjectReference{Name: secretName}
 	}
 	return wObj.Tuning.Input.Image, imagePullSecretRefs
-}
-
-func dockerSidecarScriptPushImage(outputDir, image string) string {
-	return fmt.Sprintf(`
-# Start the Docker daemon in the background with specific options for DinD
-dockerd &
-# Wait for the Docker daemon to be ready
-while ! docker info > /dev/null 2>&1; do
-  echo "Waiting for Docker daemon to start..."
-  sleep 1
-done
-echo 'Docker daemon started'
-
-PUSH_SUCCEEDED=false
-
-while true; do
-  FILE_PATH=$(find %s -name 'fine_tuning_completed.txt')
-  if [ ! -z "$FILE_PATH" ]; then
-    if [ "$PUSH_SUCCEEDED" = false ]; then
-      echo "FOUND TRAINING COMPLETED FILE at $FILE_PATH"
-
-      PARENT_DIR=$(dirname "$FILE_PATH")
-      echo "Parent directory is $PARENT_DIR"
-
-      TEMP_CONTEXT=$(mktemp -d)
-      cp "$PARENT_DIR/adapter_config.json" "$TEMP_CONTEXT/adapter_config.json"
-      cp -r "$PARENT_DIR/adapter_model.safetensors" "$TEMP_CONTEXT/adapter_model.safetensors"
-
-      # Create a minimal Dockerfile
-      echo 'FROM busybox:latest
-      RUN mkdir -p /data
-      ADD adapter_config.json /data/
-      ADD adapter_model.safetensors /data/' > "$TEMP_CONTEXT/Dockerfile"
-
-	  # Add symbolic link to read-only mounted config.json
-      mkdir -p /root/.docker
-	  ln -s /tmp/.docker/config/config.json /root/.docker/config.json
-
-      docker build -t %s "$TEMP_CONTEXT"
-      
-      while true; do
-        if docker push %s; then
-          echo "Upload complete"
-          # Cleanup: Remove the temporary directory
-          rm -rf "$TEMP_CONTEXT"
-          # Remove the file to prevent repeated builds
-          rm "$FILE_PATH"
-          PUSH_SUCCEEDED=true
-          # Signal completion
-          touch /tmp/upload_complete
-          exit 0
-        else
-          echo "Push failed, retrying in 30 seconds..."
-          sleep 30
-        fi
-      done
-    fi
-  fi
-  sleep 10  # Check every 10 seconds
-done`, outputDir, image, image)
 }
 
 // PrepareOutputDir ensures the output directory is within the base directory.
@@ -324,72 +264,64 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 }
 
 // Now there are two options for data destination 1. HostPath - 2. Image
-func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, outputDir string) (*corev1.Container, *corev1.LocalObjectReference, corev1.Volume, corev1.VolumeMount, error) {
-	var sidecarContainer *corev1.Container
-	var volume corev1.Volume
-	var volumeMount corev1.VolumeMount
-	var imagePushSecret *corev1.LocalObjectReference
-	switch {
-	case workspaceObj.Tuning.Output.Image != "":
-		image, secret := workspaceObj.Tuning.Output.Image, workspaceObj.Tuning.Output.ImagePushSecret
-		imagePushSecret = &corev1.LocalObjectReference{Name: secret}
-		sidecarContainer, volume, volumeMount = handleImageDataDestination(ctx, outputDir, image, secret)
-		// TODO: Future PR include
-		//case workspaceObj.Tuning.Output.Volume != nil:
-	}
-	return sidecarContainer, imagePushSecret, volume, volumeMount, nil
-}
+func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, inputDirectory string) (*corev1.Container, *corev1.LocalObjectReference, corev1.Volume, corev1.VolumeMount, error) {
+	output := workspaceObj.Tuning.Output
 
-func handleImageDataDestination(ctx context.Context, outputDir, image, imagePushSecret string) (*corev1.Container, corev1.Volume, corev1.VolumeMount) {
-	sidecarContainer := &corev1.Container{
-		Name:  "docker-sidecar",
-		Image: "docker:dind",
-		SecurityContext: &corev1.SecurityContext{
-			Privileged: ptr.To(true),
-		},
-		Command: []string{"/bin/sh", "-c"},
-		Args:    []string{dockerSidecarScriptPushImage(outputDir, image)},
+	outputImage := output.Image
+	if outputImage == "" {
+		return nil, nil, corev1.Volume{}, corev1.VolumeMount{}, nil
 	}
-	volume, volumeMount := utils.ConfigImagePushSecretVolume(imagePushSecret)
-	return sidecarContainer, volume, volumeMount
+
+	pusherContainer, err := image.NewPusherContainer(inputDirectory, outputImage)
+	if err != nil {
+		return nil, nil, corev1.Volume{}, corev1.VolumeMount{}, err
+	}
+
+	imagePushSecretRef := corev1.LocalObjectReference{
+		Name: output.ImagePushSecret,
+	}
+
+	volume, volumeMount := utils.ConfigImagePushSecretVolume(imagePushSecretRef.Name)
+
+	return pusherContainer, &imagePushSecretRef, volume, volumeMount, nil
 }
 
 // Now there are three options for DataSource: 1. URL - 2. HostPath - 3. Image
 func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) (*corev1.Container, []corev1.LocalObjectReference, corev1.Volume, corev1.VolumeMount, error) {
-	var initContainer *corev1.Container
-	var volume corev1.Volume
-	var volumeMount corev1.VolumeMount
-	var imagePullSecrets []corev1.LocalObjectReference
+	input := workspaceObj.Tuning.Input
+
 	switch {
-	case workspaceObj.Tuning.Input.Image != "":
-		var image string
-		image, imagePullSecrets = GetDataSrcImageInfo(ctx, workspaceObj)
-		initContainer, volume, volumeMount = handleImageDataSource(ctx, image)
-	case len(workspaceObj.Tuning.Input.URLs) > 0:
-		initContainer, volume, volumeMount = handleURLDataSource(ctx, workspaceObj)
-		// TODO: Future PR include
-		// case workspaceObj.Tuning.Input.Volume != nil:
+	case input.Image != "":
+		volume, volumeMount := utils.ConfigDataVolume(nil)
+		image, imagePullSecrets := GetDataSrcImageInfo(ctx, workspaceObj)
+		pullerContainer, err := newPullerContainer(image)
+		return pullerContainer, imagePullSecrets, volume, volumeMount, err
+
+	case len(input.URLs) > 0:
+		initContainer, volume, volumeMount := handleURLDataSource(ctx, workspaceObj)
+		return initContainer, nil, volume, volumeMount, nil
+
+	default:
+		return nil, nil, corev1.Volume{}, corev1.VolumeMount{}, nil
 	}
-	return initContainer, imagePullSecrets, volume, volumeMount, nil
 }
 
-func handleImageDataSource(ctx context.Context, image string) (*corev1.Container, corev1.Volume, corev1.VolumeMount) {
-	// Constructing a multistep command that lists, copies, and then lists the destination
-	command := "ls -la /data && cp -r /data/* " + utils.DefaultDataVolumePath + " && ls -la " + utils.DefaultDataVolumePath
-	initContainer := &corev1.Container{
-		Name:    "data-extractor",
-		Image:   image,
-		Command: []string{"sh", "-c", command},
-		VolumeMounts: []corev1.VolumeMount{
-			{
-				Name:      "data-volume",
-				MountPath: utils.DefaultDataVolumePath,
-			},
+func newPullerContainer(inputImage string) (*corev1.Container, error) {
+	outputDirectory := utils.DefaultDataVolumePath
+
+	pullerContainer, err := image.NewPullerContainer(inputImage, outputDirectory)
+	if err != nil {
+		return nil, err
+	}
+
+	pullerContainer.VolumeMounts = []corev1.VolumeMount{
+		{
+			Name:      "data-volume",
+			MountPath: outputDirectory,
 		},
 	}
 
-	volume, volumeMount := utils.ConfigDataVolume(nil)
-	return initContainer, volume, volumeMount
+	return pullerContainer, nil
 }
 
 func handleURLDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) (*corev1.Container, corev1.Volume, corev1.VolumeMount) {

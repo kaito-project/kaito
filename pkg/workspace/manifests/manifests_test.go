@@ -21,7 +21,7 @@ func TestGenerateStatefulSetManifest(t *testing.T) {
 
 		workspace := test.MockWorkspaceWithPreset
 
-		obj := GenerateStatefulSetManifest(context.TODO(), workspace,
+		obj, err := GenerateStatefulSetManifest(context.TODO(), workspace,
 			"",  //imageName
 			nil, //imagePullSecretRefs
 			*workspace.Resource.Count,
@@ -34,6 +34,9 @@ func TestGenerateStatefulSetManifest(t *testing.T) {
 			nil, //volumes
 			nil, //volumeMount
 		)
+		if err != nil {
+			t.Error(err)
+		}
 
 		if obj.Spec.ServiceName != fmt.Sprintf("%s-headless", workspace.Name) {
 			t.Errorf("headless service name is wrong in statefullset spec")
@@ -65,7 +68,7 @@ func TestGenerateDeploymentManifest(t *testing.T) {
 
 		workspace := test.MockWorkspaceWithPreset
 
-		obj := GenerateDeploymentManifest(context.TODO(), workspace, test.MockWorkspaceWithPresetHash,
+		obj, err := GenerateDeploymentManifest(context.TODO(), workspace, test.MockWorkspaceWithPresetHash,
 			"",  //imageName
 			nil, //imagePullSecretRefs
 			*workspace.Resource.Count,
@@ -78,6 +81,9 @@ func TestGenerateDeploymentManifest(t *testing.T) {
 			nil, //volumes
 			nil, //volumeMount
 		)
+		if err != nil {
+			t.Error(err)
+		}
 
 		appSelector := map[string]string{
 			v1beta1.LabelWorkspaceName: workspace.Name,

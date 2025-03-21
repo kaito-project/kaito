@@ -6,6 +6,7 @@ package utils
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -25,6 +26,7 @@ import (
 	pkgscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/reference"
 	"k8s.io/client-go/tools/remotecommand"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -204,7 +206,39 @@ func PrintPodLogsOnFailure(namespace, labelSelector string) {
 	}
 
 	for _, pod := range pods.Items {
-		for _, container := range pod.Spec.Containers {
+		podJSON, err := json.Marshal(pod)
+		if err != nil {
+			log.Printf("Failed to marshal pod %s/%s: %v", pod.Namespace, pod.Name, err)
+		}
+		if podJSON != nil {
+			log.Printf("Pod Definition for %s/%s: %s\n", pod.Namespace, pod.Name, string(podJSON))
+		}
+
+		ref, err := reference.GetReference(scheme, &pod)
+		if err != nil {
+			log.Printf("Unable to construct reference to %s/%s: %v", pod.Namespace, pod.Name, err)
+		}
+		if ref != nil {
+			ref.Kind = ""
+
+			events, err := coreClient.CoreV1().Events(namespace).Search(scheme, ref)
+			if err != nil {
+				log.Printf("Failed to get events for pod %s/%s: %v", pod.Namespace, pod.Name, err)
+			}
+			if events != nil {
+				for _, event := range events.Items {
+					eventJSON, err := json.Marshal(event)
+					if err != nil {
+						log.Printf("Failed to marshal event for pod %s/%s: %v", pod.Namespace, pod.Name, err)
+					}
+					if eventJSON != nil {
+						log.Printf("Event for pod %s/%s: %s\n", pod.Namespace, pod.Name, string(eventJSON))
+					}
+				}
+			}
+		}
+
+		for _, container := range append(pod.Spec.InitContainers, pod.Spec.Containers...) {
 			logs, err := GetPodLogs(coreClient, namespace, pod.Name, container.Name)
 			if err != nil {
 				log.Printf("Failed to get logs from pod %s, container %s: %v", pod.Name, container.Name, err)
@@ -380,7 +414,8 @@ func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImage
 	workspace.Tuning = &workspaceTuning
 	workspace.Tuning.Method = kaitov1beta1.TuningMethodQLora
 	workspace.Tuning.Input = &kaitov1beta1.DataSource{
-		Image: datasetImageName,
+		Image:            datasetImageName,
+		ImagePullSecrets: imagePullSecret,
 	}
 	workspace.Tuning.Output = &kaitov1beta1.DataDestination{
 		Image:           outputRegistry,

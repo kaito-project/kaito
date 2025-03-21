@@ -691,17 +691,17 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 							volumes = append(volumes, adapterVolume)
 							volumeMounts = append(volumeMounts, adapterVolumeMount)
 						}
-						initContainers, envs := manifests.GenerateInitContainers(wObj, volumeMounts)
-						spec := &deployment.Spec
 
-						spec.Template.Spec.InitContainers = initContainers
-						spec.Template.Spec.Containers[0].Env = envs
-						spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
+						pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(wObj, volumeMounts)
+						volumes = append(volumes, pullerVolumes...)
+
+						spec := &deployment.Spec.Template.Spec
+						spec.Containers[0].Env = pullerEnvVars
+						spec.Containers[0].VolumeMounts = volumeMounts
+						spec.InitContainers = pullerContainers
+						spec.Volumes = volumes
+
 						deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
-						spec.Template.Spec.Volumes = volumes
-
-						_, imagePullSecrets := inference.GetInferenceImageInfo(ctx, wObj, inferenceParam)
-						deployment.Spec.Template.Spec.ImagePullSecrets = imagePullSecrets
 
 						if err := c.Update(ctx, deployment); err != nil {
 							return

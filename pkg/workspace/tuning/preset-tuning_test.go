@@ -11,12 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/utils/ptr"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
 
 func normalize(s string) string {
@@ -220,45 +220,6 @@ training_config:
 	}
 }
 
-func TestHandleImageDataSource(t *testing.T) {
-	testcases := map[string]struct {
-		workspaceObj              *kaitov1beta1.Workspace
-		expectedInitContainerName string
-		expectedVolumeName        string
-		expectedVolumeMountPath   string
-	}{
-		"Handle Image Data Source": {
-			workspaceObj: &kaitov1beta1.Workspace{
-				Resource: kaitov1beta1.ResourceSpec{
-					Count: ptr.To(1),
-				},
-				Tuning: &kaitov1beta1.TuningSpec{
-					Input: &kaitov1beta1.DataSource{
-						Image: "data-image",
-					},
-				},
-			},
-			expectedInitContainerName: "data-extractor",
-			expectedVolumeName:        "data-volume",
-			expectedVolumeMountPath:   "/mnt/data",
-		},
-	}
-
-	for name, tc := range testcases {
-		t.Run(name, func(t *testing.T) {
-			initContainer, volume, volumeMount := handleImageDataSource(context.Background(), tc.workspaceObj.Tuning.Input.Image)
-
-			assert.Equal(t, tc.expectedInitContainerName, initContainer.Name)
-			assert.Equal(t, tc.workspaceObj.Tuning.Input.Image, initContainer.Image)
-			assert.Contains(t, initContainer.Command[2], "cp -r /data/* /mnt/data")
-
-			assert.Equal(t, tc.expectedVolumeName, volume.Name)
-
-			assert.Equal(t, tc.expectedVolumeMountPath, volumeMount.MountPath)
-		})
-	}
-}
-
 func TestHandleURLDataSource(t *testing.T) {
 	testcases := map[string]struct {
 		workspaceObj              *kaitov1beta1.Workspace
@@ -351,40 +312,101 @@ func TestPrepareTuningParameters(t *testing.T) {
 	}
 }
 
+func TestPrepareDataDestination_ImageDestination(t *testing.T) {
+	ctx := context.TODO()
+
+	workspaceObj := &kaitov1beta1.Workspace{
+		Tuning: &kaitov1beta1.TuningSpec{
+			Output: &kaitov1beta1.DataDestination{
+				Image:           "custom/data-loader-image",
+				ImagePushSecret: "image-push-secret",
+			},
+		},
+	}
+
+	expectedImagePushSecret := corev1.LocalObjectReference{
+		Name: workspaceObj.Tuning.Output.ImagePushSecret,
+	}
+
+	expectedVolume, expectedVolumeMount := utils.ConfigImagePushSecretVolume(expectedImagePushSecret.Name)
+
+	outDir := "/mnt/results"
+
+	expectedSidecarContainer := image.NewPusherContainer(outDir, workspaceObj.Tuning.Output.Image, nil, nil)
+
+	sidecarContainer, imagePushSecret, volume, volumeMount := prepareDataDestination(ctx, workspaceObj, outDir)
+
+	// Assertions
+	assert.Equal(t, expectedSidecarContainer, sidecarContainer)
+	assert.Equal(t, expectedVolume, volume)
+	assert.Equal(t, expectedVolumeMount, volumeMount)
+	assert.Equal(t, expectedImagePushSecret, *imagePushSecret)
+}
+
 func TestPrepareDataSource_ImageSource(t *testing.T) {
 	ctx := context.TODO()
 
 	workspaceObj := &kaitov1beta1.Workspace{
 		Tuning: &kaitov1beta1.TuningSpec{
 			Input: &kaitov1beta1.DataSource{
+				Name:  "some-name",
 				Image: "custom/data-loader-image",
+				ImagePullSecrets: []string{
+					"image-pull-secret-name",
+				},
 			},
 		},
 	}
 
 	// Expected outputs from mocked functions
-	expectedVolume := corev1.Volume{
-		Name: "data-volume",
-		VolumeSource: corev1.VolumeSource{
-			EmptyDir: &corev1.EmptyDirVolumeSource{}, // Assume we expect an EmptyDir
+	expectedInitContainer := image.NewPullerContainer(workspaceObj.Tuning.Input.Image, "/mnt/data")
+
+	expectedVolumes := []corev1.Volume{
+		{
+			Name: "docker-config-some-name-tuning-input",
+			VolumeSource: corev1.VolumeSource{
+				Projected: &corev1.ProjectedVolumeSource{
+					Sources: []corev1.VolumeProjection{
+						{
+							Secret: &corev1.SecretProjection{
+								LocalObjectReference: corev1.LocalObjectReference{
+									Name: "image-pull-secret-name",
+								},
+								Items: []corev1.KeyToPath{
+									{
+										Key:  ".dockerconfigjson",
+										Path: "image-pull-secret-name.json",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "data-volume",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
 		},
 	}
 
-	expectedVolumeMount := corev1.VolumeMount{Name: "data-volume", MountPath: "/mnt/data"}
-	expectedImagePullSecrets := []corev1.LocalObjectReference{}
-	expectedInitContainer := &corev1.Container{
-		Name:         "data-extractor",
-		Image:        "custom/data-loader-image",
-		Command:      []string{"sh", "-c", "ls -la /data && cp -r /data/* /mnt/data && ls -la /mnt/data"},
-		VolumeMounts: []corev1.VolumeMount{expectedVolumeMount},
+	expectedVolumeMounts := []corev1.VolumeMount{
+		{
+			Name:      "docker-config-some-name-tuning-input",
+			MountPath: "/root/.docker/config.d/some-name-tuning-input",
+		},
+		{
+			Name:      "data-volume",
+			MountPath: "/mnt/data",
+		},
 	}
 
-	initContainer, imagePullSecrets, volume, volumeMount, err := prepareDataSource(ctx, workspaceObj)
+	initContainer, volumes, volumeMounts := prepareDataSource(ctx, workspaceObj)
 
 	// Assertions
-	assert.NoError(t, err)
 	assert.Equal(t, expectedInitContainer, initContainer)
-	assert.Equal(t, expectedVolume, volume)
-	assert.Equal(t, expectedVolumeMount, volumeMount)
-	assert.Equal(t, expectedImagePullSecrets, imagePullSecrets)
+	assert.Equal(t, expectedVolumes, volumes)
+	assert.Equal(t, expectedVolumeMounts, volumeMounts)
 }

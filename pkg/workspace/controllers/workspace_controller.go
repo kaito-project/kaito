@@ -184,12 +184,6 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 			}
 			return reconcile.Result{}, err
 		}
-
-		if err = c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue,
-			"workspaceSucceeded", "workspace succeeds"); err != nil {
-			klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return reconcile.Result{}, err
-		}
 	}
 
 	return reconcile.Result{}, nil
@@ -646,14 +640,32 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	var err error
 	func() {
 		if wObj.Inference.Template != nil {
-			var workloadObj client.Object
-			// TODO: handle update
-			workloadObj, err = inference.CreateTemplateInference(ctx, wObj, c.Client)
-			if err != nil {
-				return
-			}
-			if err = resources.CheckResourceStatus(workloadObj, c.Client, time.Duration(10)*time.Minute); err != nil {
-				return
+			existingDeployment := &appsv1.Deployment{}
+			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingDeployment); err == nil {
+				klog.InfoS("A template inference workload already exists for workspace", "workspace", klog.KObj(wObj))
+
+				if err := c.updateInferenceReadyStatus(ctx, wObj, existingDeployment); err != nil {
+					return
+				}
+
+				if err = resources.CheckResourceStatus(existingDeployment, c.Client, time.Duration(10)*time.Minute); err != nil {
+					return
+				}
+			} else if apierrors.IsNotFound(err) {
+				var workloadObj client.Object
+				// TODO: handle update
+				workloadObj, err = inference.CreateTemplateInference(ctx, wObj, c.Client)
+				if err != nil {
+					return
+				}
+
+				deployment := workloadObj.(*appsv1.Deployment)
+				if err := c.updateInferenceReadyStatus(ctx, wObj, deployment); err != nil {
+					return
+				}
+				if err = resources.CheckResourceStatus(existingDeployment, c.Client, time.Duration(10)*time.Minute); err != nil {
+					return
+				}
 			}
 		} else if wObj.Inference != nil && wObj.Inference.Preset != nil {
 			presetName := string(wObj.Inference.Preset.Name)
@@ -666,11 +678,23 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 				existingObj = &appsv1.StatefulSet{}
 			} else {
 				existingObj = &appsv1.Deployment{}
-
 			}
 			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
 				klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
+				deployment := existingObj.(*appsv1.Deployment)
+				klog.InfoS("bangqizhu", "Readyreplica", deployment.Status.ReadyReplicas, "SpecReplica", *deployment.Spec.Replicas, "ResourceVersion", deployment.ResourceVersion)
+				time.Sleep(3 * time.Second)
+				var newObj client.Object
+				if model.SupportDistributedInference() {
+					newObj = &appsv1.StatefulSet{}
+				} else {
+					newObj = &appsv1.Deployment{}
+				}
+				if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, newObj); err == nil {
+					newDeployment := newObj.(*appsv1.Deployment)
+					klog.InfoS("bangqizhu second time call", "Readyreplica", newDeployment.Status.ReadyReplicas, "SpecReplica", *newDeployment.Spec.Replicas, "ResourceVersion", newDeployment.ResourceVersion)
+				}
 				if !model.SupportDistributedInference() {
 					deployment := existingObj.(*appsv1.Deployment)
 					if deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] != revisionStr {
@@ -707,6 +731,12 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 						}
 					}
 				}
+				if !model.SupportDistributedInference() {
+					deployment := existingObj.(*appsv1.Deployment)
+					if err := c.updateInferenceReadyStatus(ctx, wObj, deployment); err != nil {
+						return
+					}
+				}
 				if err = resources.CheckResourceStatus(existingObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
 					return
 				}
@@ -717,13 +747,19 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 				if err != nil {
 					return
 				}
+				if !model.SupportDistributedInference() {
+					deployment := workloadObj.(*appsv1.Deployment)
+					if err := c.updateInferenceReadyStatus(ctx, wObj, deployment); err != nil {
+						return
+					}
+				}
 				if err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
 					return
 				}
 			}
 		}
 	}()
-
+	klog.InfoS("Inference update completed", "workspace", klog.KObj(wObj))
 	if err != nil {
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
 			"WorkspaceInferenceStatusFailed", err.Error()); updateErr != nil {
@@ -734,10 +770,33 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		}
 	}
 
-	if err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue,
-		"WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully"); err != nil {
-		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-		return err
+	return nil
+}
+
+func (c *WorkspaceReconciler) updateInferenceReadyStatus(ctx context.Context, wObj *kaitov1beta1.Workspace, deployment *appsv1.Deployment) error {
+	klog.InfoS("updating InferenceReadyStatus", "Readyreplicas", deployment.Status.ReadyReplicas, "SpecReplica", *deployment.Spec.Replicas)
+	if deployment.Status.ReadyReplicas == *deployment.Spec.Replicas {
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue,
+			"WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully"); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
+			return updateErr
+		}
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded,
+			metav1.ConditionTrue, "workspaceSucceeded", "workspace succeeds"); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
+			return updateErr
+		}
+	} else {
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
+			"WorkspaceInferenceStatusPending", fmt.Sprintf("Inference deployment is not ready: %d/%d", deployment.Status.ReadyReplicas, deployment.Status.Replicas)); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
+			return updateErr
+		}
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded,
+			metav1.ConditionFalse, "workspacePending", "waiting for inference to be ready"); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
+			return updateErr
+		}
 	}
 	return nil
 }

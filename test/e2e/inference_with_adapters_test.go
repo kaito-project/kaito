@@ -17,6 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/workspace/image"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -33,7 +34,7 @@ var validAdapters1 = []kaitov1beta1.AdapterSpec{
 			Name:  imageName1,
 			Image: fullImageName1,
 			ImagePullSecrets: []string{
-				utils.GetEnv("AI_MODELS_REGISTRY_SECRET"),
+				utils.GetEnv("E2E_ACR_REGISTRY_SECRET"),
 			},
 		},
 		Strength: &DefaultStrength,
@@ -53,17 +54,19 @@ var validAdapters2 = []kaitov1beta1.AdapterSpec{
 	},
 }
 
+var baseInitContainer = image.NewPullerContainer("", "")
+
 var expectedInitContainers1 = []corev1.Container{
 	{
-		Name:  imageName1,
-		Image: fullImageName1,
+		Name:  baseInitContainer.Name + "-" + imageName1,
+		Image: baseInitContainer.Image,
 	},
 }
 
 var expectedInitContainers2 = []corev1.Container{
 	{
-		Name:  imageName2,
-		Image: fullImageName2,
+		Name:  baseInitContainer.Name + "-" + imageName2,
+		Image: baseInitContainer.Image,
 	},
 }
 

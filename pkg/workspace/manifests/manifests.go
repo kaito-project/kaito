@@ -6,6 +6,7 @@ package manifests
 import (
 	"context"
 	"fmt"
+	"path"
 
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -16,6 +17,8 @@ import (
 	"k8s.io/utils/ptr"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
 
 var controller = true
@@ -194,7 +197,10 @@ func GenerateTuningJobManifest(ctx context.Context, wObj *kaitov1beta1.Workspace
 		kaitov1beta1.LabelWorkspaceName: wObj.Name,
 	}
 
-	// Add volume mounts to sidecar containers
+	for i := range initContainers {
+		initContainers[i].VolumeMounts = append(initContainers[i].VolumeMounts, volumeMounts...)
+	}
+
 	for i := range sidecarContainers {
 		sidecarContainers[i].VolumeMounts = append(sidecarContainers[i].VolumeMounts, volumeMounts...)
 	}
@@ -276,11 +282,9 @@ func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1beta1.
 	labelselector := &v1.LabelSelector{
 		MatchLabels: selector,
 	}
-	initContainers := []corev1.Container{}
-	envs := []corev1.EnvVar{}
-	if len(workspaceObj.Inference.Adapters) > 0 {
-		initContainers, envs = GenerateInitContainers(workspaceObj, volumeMount)
-	}
+
+	pullerContainers, pullerEnvVars, pullerVolumes := GeneratePullerContainers(workspaceObj, volumeMount)
+	volumes = append(volumes, pullerVolumes...)
 
 	return &appsv1.Deployment{
 		ObjectMeta: v1.ObjectMeta{
@@ -332,7 +336,7 @@ func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1beta1.
 							},
 						},
 					},
-					InitContainers: initContainers,
+					InitContainers: pullerContainers,
 					Containers: []corev1.Container{
 						{
 							Name:           workspaceObj.Name,
@@ -343,7 +347,7 @@ func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1beta1.
 							ReadinessProbe: readinessProbe,
 							Ports:          containerPorts,
 							VolumeMounts:   volumeMount,
-							Env:            envs,
+							Env:            pullerEnvVars,
 						},
 					},
 					Tolerations: tolerations,
@@ -354,28 +358,34 @@ func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1beta1.
 	}
 }
 
-func GenerateInitContainers(wObj *kaitov1beta1.Workspace, volumeMount []corev1.VolumeMount) ([]corev1.Container, []corev1.EnvVar) {
-	var initContainers []corev1.Container
-	var envs []corev1.EnvVar
-	if len(wObj.Inference.Adapters) > 0 {
-		for _, adapter := range wObj.Inference.Adapters {
-			initContainer := corev1.Container{
-				Name:            adapter.Source.Name,
-				Image:           adapter.Source.Image,
-				Command:         []string{"/bin/sh", "-c", fmt.Sprintf("mkdir -p /mnt/adapter/%s && cp -r /data/* /mnt/adapter/%s", adapter.Source.Name, adapter.Source.Name)},
-				VolumeMounts:    volumeMount,
-				ImagePullPolicy: corev1.PullAlways,
-			}
-			initContainers = append(initContainers, initContainer)
-			env := corev1.EnvVar{
-				Name:  adapter.Source.Name,
-				Value: *adapter.Strength,
-			}
-			envs = append(envs, env)
-		}
+func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, volumeMounts []corev1.VolumeMount) ([]corev1.Container, []corev1.EnvVar, []corev1.Volume) {
+	size := len(wObj.Inference.Adapters)
 
+	initContainers := make([]corev1.Container, 0, size)
+	envVars := make([]corev1.EnvVar, 0, size)
+	volumes := make([]corev1.Volume, 0, size)
+
+	for _, adapter := range wObj.Inference.Adapters {
+		source := adapter.Source
+		sourceName := source.Name
+
+		volume, volumeMount := utils.ConfigImagePullSecretVolume(sourceName+"-inference-adapter", source.ImagePullSecrets)
+		volumes = append(volumes, volume)
+
+		envVar := corev1.EnvVar{
+			Name:  sourceName,
+			Value: *adapter.Strength,
+		}
+		envVars = append(envVars, envVar)
+
+		outputDirectory := path.Join("/mnt/adapter", sourceName)
+		pullerContainer := image.NewPullerContainer(source.Image, outputDirectory)
+		pullerContainer.Name += "-" + sourceName
+		pullerContainer.VolumeMounts = append(volumeMounts, volumeMount)
+		initContainers = append(initContainers, *pullerContainer)
 	}
-	return initContainers, envs
+
+	return initContainers, envVars, volumes
 }
 
 func GenerateDeploymentManifestWithPodTemplate(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, tolerations []corev1.Toleration) *appsv1.Deployment {

@@ -1,17 +1,19 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 import os
+import logging
 from typing import Optional
 
 from datasets import load_dataset
 
 SUPPORTED_EXTENSIONS = {'csv', 'json', 'parquet', 'arrow', 'webdataset'}
+logger = logging.getLogger(__name__)
 
 class DatasetManager:
     def __init__(self, config):
         self.config = config
         self.dataset = None
-        self.dataset_text_field = None # Set this field if dataset consists of singular text column
+        self.dataset_text_field = None
 
     def check_dataset_loaded(self):
         if self.dataset is None:
@@ -42,9 +44,27 @@ class DatasetManager:
         file_ext = self.config.dataset_extension if self.config.dataset_extension else self.get_file_extension(dataset_path)
         try:
             self.dataset = load_dataset(file_ext, data_files=dataset_path, split="train")
-            print(f"Dataset loaded successfully from {dataset_path} with file type '{file_ext}'.")
+            logger.info(f"Dataset loaded successfully from {dataset_path} with file type '{file_ext}'.")
+            
+            # Set the dataset_text_field based on the configuration
+            if self.config.response_column and self.config.response_column in self.dataset.column_names:
+                self.dataset_text_field = self.config.response_column
+            elif self.config.messages_column and self.config.messages_column in self.dataset.column_names:
+                self.dataset_text_field = self.config.messages_column
+            elif self.config.context_column and self.config.context_column in self.dataset.column_names:
+                self.dataset_text_field = self.config.context_column
+            elif len(self.dataset.column_names) == 1:
+                # If there's only one column, use that
+                self.dataset_text_field = self.dataset.column_names[0]
+            else:
+                # Default to the first column as a fallback
+                self.dataset_text_field = self.dataset.column_names[0]
+                logger.warning(f"No specific text field configured. Using '{self.dataset_text_field}' as default.")
+                
+            logger.info(f"Using '{self.dataset_text_field}' as the dataset text field.")
+            
         except Exception as e:
-            print(f"Error loading dataset: {e}")
+            logger.error(f"Error loading dataset: {e}")
             raise ValueError(f"Unable to load dataset {dataset_path} with file type '{file_ext}'")
 
     def find_valid_dataset(self, data_dir):

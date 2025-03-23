@@ -17,10 +17,11 @@ jinja2>=3.1.0
 # Utility libraries
 datasets==2.19.1
 peft==0.11.1
-bitsandbytes==0.42.0
+bitsandbytes==0.45.3
 sentencepiece==0.2.0
 
 # Less critical, can be latest
 gputil
+setuptools
 psutil
 trl

@@ -29,6 +29,7 @@ func (c *WorkspaceReconciler) garbageCollectWorkspace(ctx context.Context, wObj 
 	// We should delete all the nodeClaims that are created by this workspace
 	for i := range ncList.Items {
 		if ncList.Items[i].DeletionTimestamp.IsZero() {
+			klog.InfoS("Deleting associated NodeClaim...", "nodeClaim", ncList.Items[i].Name)
 			if deleteErr := c.Delete(ctx, &ncList.Items[i], &client.DeleteOptions{}); deleteErr != nil {
 				klog.ErrorS(deleteErr, "failed to delete the nodeClaim", "nodeClaim", klog.KObj(&ncList.Items[i]))
 				return ctrl.Result{}, deleteErr

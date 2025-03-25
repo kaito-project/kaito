@@ -3,6 +3,7 @@
 import logging
 import gc
 import os
+import socket
 import argparse
 from typing import Callable, Optional, List, Any
 import yaml
@@ -43,7 +44,13 @@ class KAITOArgumentParser(argparse.ArgumentParser):
     def _reset_vllm_defaults(self):
         local_rank = int(os.environ.get("LOCAL_RANK",
                                         0))  # Default to 0 if not set
-        port = 5000 + local_rank  # Adjust port based on local rank
+        base_port = 5000 + local_rank # Adjust port based on local rank
+        # Try to find a free port near base_port
+        try:
+            port = find_free_port(start_port=base_port, max_tries=10)
+        except RuntimeError:
+            logger.warning(f"Could not find free port near {base_port}, falling back to {base_port}")
+            port = base_port  # Fall back anyway
 
         server_default_args = {
             "disable_frontend_multiprocessing": False,
@@ -227,6 +234,13 @@ def try_set_max_available_seq_len(args: argparse.Namespace):
         args.max_model_len = available_seq_len
     else:
         logger.info(f"Using model default max_model_len {max_model_len}")
+
+def find_free_port(start_port=5000, max_tries=100):
+    for port in range(start_port, start_port + max_tries):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex(('localhost', port)) != 0:
+                return port
+    raise RuntimeError("No free port found")
 
 if __name__ == "__main__":
     parser = KAITOArgumentParser(description='KAITO wrapper of vLLM serving server')

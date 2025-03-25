@@ -3,6 +3,7 @@ kind: Workspace
 metadata:
   name: workspace-deepseek-r1-distill-llama-8b
 resource:
+  instanceType: Standard_NC16_A2
   preferredNodes:
     - <your-arc-node-name>
   labelSelector:

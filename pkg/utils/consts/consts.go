@@ -13,6 +13,7 @@ const (
 	DefaultReleaseNamespaceEnvVar = "RELEASE_NAMESPACE"
 	AzureCloudName                = "azure"
 	AWSCloudName                  = "aws"
+	ArcCloudName                  = "arc"
 	GPUString                     = "gpu"
 	SKUString                     = "sku"
 	MaxRevisionHistoryLimit       = 10

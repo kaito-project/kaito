@@ -3,7 +3,7 @@ kind: Workspace
 metadata:
   name: workspace-deepseek-r1-distill-qwen-14b
 resource:
-  instanceType: Standard_NC12s_v3
+  instanceType: Standard_NC16_A2
   preferredNodes:
     - <your-arc-node-name>
   labelSelector:

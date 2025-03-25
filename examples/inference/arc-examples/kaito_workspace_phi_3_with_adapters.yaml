@@ -3,6 +3,7 @@ kind: Workspace
 metadata:
   name: workspace-phi-3-mini-adapter
 resource:
+  instanceType: Standard_NC4_A2
   preferredNodes:
     - <your-arc-node-name>
   labelSelector:

@@ -88,7 +88,7 @@ jobs:
         run: sudo rm -rf ~/go/pkg/mod
 
       - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@v5.2.0
+        uses: actions/setup-go@v5.4.0
         with:
           go-version: ${{ env.GO_VERSION  }}
 

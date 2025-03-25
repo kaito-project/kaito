@@ -30,6 +30,6 @@ resources:
 nodeSelector: {}
 tolerations: []
 affinity: {}
-# Values can be "azure" or "aws"
+# Values can be "azure" or "aws" or "arc"
 cloudProviderName: "azure"
 clusterName: "kaito"

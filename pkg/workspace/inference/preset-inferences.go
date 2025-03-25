@@ -11,6 +11,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -68,11 +69,13 @@ var (
 			Operator: corev1.TolerationOpEqual,
 		},
 	}
+
+	supportedRuntimesForDistributedInference = sets.New(model.RuntimeNameHuggingfaceTransformers, model.RuntimeNameVLLM)
 )
 
-func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient client.Client, wObj *v1beta1.Workspace, inferenceParam *model.PresetParam) error {
+func updateParamsForDistributedInference(ctx context.Context, kubeClient client.Client, wObj *v1beta1.Workspace, inferenceParam *model.PresetParam) error {
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(wObj)
-	if runtimeName != model.RuntimeNameHuggingfaceTransformers {
+	if !supportedRuntimesForDistributedInference.Has(runtimeName) {
 		return fmt.Errorf("distributed inference is not supported for runtime %s", runtimeName)
 	}
 
@@ -83,20 +86,33 @@ func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient cl
 	}
 
 	nodes := *wObj.Resource.Count
-	inferenceParam.Transformers.TorchRunParams["nnodes"] = strconv.Itoa(nodes)
-	inferenceParam.Transformers.TorchRunParams["nproc_per_node"] = strconv.Itoa(inferenceParam.WorldSize / nodes)
-	if nodes > 1 {
-		inferenceParam.Transformers.TorchRunParams["node_rank"] = "$(echo $HOSTNAME | grep -o '[^-]*$')"
-		inferenceParam.Transformers.TorchRunParams["master_addr"] = existingService.Spec.ClusterIP
-		inferenceParam.Transformers.TorchRunParams["master_port"] = "29500"
+	switch runtimeName {
+	case model.RuntimeNameHuggingfaceTransformers:
+		inferenceParam.Transformers.TorchRunParams["nnodes"] = strconv.Itoa(nodes)
+		inferenceParam.Transformers.TorchRunParams["nproc_per_node"] = strconv.Itoa(inferenceParam.WorldSize / nodes)
+		if nodes > 1 {
+			inferenceParam.Transformers.TorchRunParams["node_rank"] = "$(echo $HOSTNAME | grep -o '[^-]*$')"
+			inferenceParam.Transformers.TorchRunParams["master_addr"] = existingService.Spec.ClusterIP
+			inferenceParam.Transformers.TorchRunParams["master_port"] = "29500"
+		}
+		if inferenceParam.Transformers.TorchRunRdzvParams != nil {
+			inferenceParam.Transformers.TorchRunRdzvParams["max_restarts"] = "3"
+			inferenceParam.Transformers.TorchRunRdzvParams["rdzv_id"] = "job"
+			inferenceParam.Transformers.TorchRunRdzvParams["rdzv_backend"] = "c10d"
+			inferenceParam.Transformers.TorchRunRdzvParams["rdzv_endpoint"] =
+				fmt.Sprintf("%s-0.%s-headless.%s.svc.cluster.local:29500", wObj.Name, wObj.Name, wObj.Namespace)
+		}
+	case model.RuntimeNameVLLM:
+		if inferenceParam.VLLM.RayLeaderParams != nil {
+			inferenceParam.VLLM.RayLeaderParams["ray_cluster_size"] = strconv.Itoa(nodes)
+			inferenceParam.VLLM.RayLeaderParams["ray_port"] = "6379" // well-known port for ray
+		}
+		if inferenceParam.VLLM.RayWorkerParams != nil {
+			inferenceParam.VLLM.RayWorkerParams["ray_address"] = existingService.Spec.ClusterIP
+			inferenceParam.VLLM.RayLeaderParams["ray_port"] = "6379"
+		}
 	}
-	if inferenceParam.Transformers.TorchRunRdzvParams != nil {
-		inferenceParam.Transformers.TorchRunRdzvParams["max_restarts"] = "3"
-		inferenceParam.Transformers.TorchRunRdzvParams["rdzv_id"] = "job"
-		inferenceParam.Transformers.TorchRunRdzvParams["rdzv_backend"] = "c10d"
-		inferenceParam.Transformers.TorchRunRdzvParams["rdzv_endpoint"] =
-			fmt.Sprintf("%s-0.%s-headless.%s.svc.cluster.local:29500", wObj.Name, wObj.Name, wObj.Namespace)
-	}
+
 	return nil
 }
 
@@ -144,7 +160,7 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	}
 
 	if model.SupportDistributedInference() {
-		if err := updateTorchParamsForDistributedInference(ctx, kubeClient, workspaceObj, inferenceParam); err != nil {
+		if err := updateParamsForDistributedInference(ctx, kubeClient, workspaceObj, inferenceParam); err != nil {
 			klog.ErrorS(err, "failed to update torch params", "workspace", workspaceObj)
 			return nil, err
 		}
@@ -159,9 +175,11 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	resourceReq := corev1.ResourceRequirements{
 		Requests: corev1.ResourceList{
 			corev1.ResourceName(resources.CapacityNvidiaGPU): resource.MustParse(skuNumGPUs),
+			corev1.ResourceName("rdma/ib"):                   resource.MustParse("8"),
 		},
 		Limits: corev1.ResourceList{
 			corev1.ResourceName(resources.CapacityNvidiaGPU): resource.MustParse(skuNumGPUs),
+			corev1.ResourceName("rdma/ib"):                   resource.MustParse("8"),
 		},
 	}
 	skuGPUCount, _ := strconv.Atoi(skuNumGPUs)
@@ -191,7 +209,7 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 
 	// inference command
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(workspaceObj)
-	commands := inferenceParam.GetInferenceCommand(runtimeName, skuNumGPUs, &cmVolumeMount)
+	commands := inferenceParam.GetInferenceCommand(runtimeName, skuNumGPUs, *workspaceObj.Resource.Count, &cmVolumeMount)
 
 	image, imagePullSecrets := GetInferenceImageInfo(ctx, workspaceObj, inferenceParam)
 

@@ -32,6 +32,9 @@ var (
 		"max_seq_len":    "512",
 		"max_batch_size": "8",
 	}
+	llamaRunParamsVLLM = map[string]string{
+		"dtype": "float16",
+	}
 )
 
 var llama2chatA llama2Chat7b
@@ -116,8 +119,8 @@ func (*llama2Chat70b) GetInferenceParameters() *model.PresetParam {
 		ModelFamilyName:           "LLaMa2",
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePrivate),
 		DiskStorageRequirement:    "158Gi",
-		GPUCountRequirement:       "8",
-		TotalGPUMemoryRequirement: "192Gi",
+		GPUCountRequirement:       "16",
+		TotalGPUMemoryRequirement: "384Gi",
 		PerGPUMemoryRequirement:   "19Gi", // We run llama2 using tensor parallelism, the memory of each GPU needs to be bigger than the tensor shard size.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -126,6 +129,15 @@ func (*llama2Chat70b) GetInferenceParameters() *model.PresetParam {
 				TorchRunRdzvParams: inference.DefaultTorchRunRdzvParams,
 				InferenceMainFile:  "inference_api.py",
 				ModelRunParams:     llamaRunParams,
+			},
+			VLLM: model.VLLMParam{
+				RayLeaderCommand: inference.DefaultVLLMRayLeaderCommand,
+				RayLeaderParams:  map[string]string{},
+				RayWorkerCommand: inference.DefaultVLLMRayWorkerCommand,
+				RayWorkerParams:  map[string]string{},
+				BaseCommand:      inference.DefaultVLLMCommand,
+				ModelName:        "llama-2-70b-chat",
+				ModelRunParams:   llamaRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

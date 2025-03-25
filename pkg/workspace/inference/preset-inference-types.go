@@ -54,6 +54,8 @@ var (
 		"gpu_ids":       DefaultGPUIds,
 	}
 
+	DefaultVLLMRayLeaderCommand = "/workspace/vllm/multi-node-serving.sh leader"
+	DefaultVLLMRayWorkerCommand = "/workspace/vllm/multi-node-serving.sh worker"
 	DefaultVLLMCommand          = "python3 /workspace/vllm/inference_api.py"
 	DefaultTransformersMainFile = "/workspace/tfs/inference_api.py"
 

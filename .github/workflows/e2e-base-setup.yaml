@@ -61,15 +61,11 @@ jobs:
 
       - name: Set e2e Resource and Cluster Name
         run: |
-          rand=$(git rev-parse --short ${{ inputs.git_sha }})
-          
-          if [ "$rand" = "" ]; then
-             rand=$RANDOM
-          fi
+          ID="ri${{ github.run_id }}rn${{ github.run_number }}ra${{ github.run_attempt }}"
 
-          echo "VERSION=${rand}" >> $GITHUB_ENV
-          echo "CLUSTER_NAME=${{ inputs.node_provisioner }}${rand}" >> $GITHUB_ENV
-          echo "REGISTRY=${{ inputs.node_provisioner }}${rand}.azurecr.io" >> $GITHUB_ENV
+          echo "VERSION=${ID}" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=kaito${ID}" >> $GITHUB_ENV
+          echo "REGISTRY=kaito${ID}.azurecr.io" >> $GITHUB_ENV
           echo "RUN_LLAMA_13B=false" >> $GITHUB_ENV
 
       - name: Set Registry

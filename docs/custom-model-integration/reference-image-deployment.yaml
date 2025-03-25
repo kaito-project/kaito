@@ -15,6 +15,26 @@ inference:
       containers:
         - name: custom-llm-container
           image: ghcr.io/kaito-project/kaito/llm-reference-preset:latest # Kaito Reference Image
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: 5000
+              scheme: HTTP
+            initialDelaySeconds: 600
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: 5000
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
           resources:
             requests:
               nvidia.com/gpu: 1  # Request 1 GPU; adjust as needed

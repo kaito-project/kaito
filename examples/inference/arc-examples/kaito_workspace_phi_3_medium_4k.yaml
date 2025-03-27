@@ -3,7 +3,7 @@ kind: Workspace
 metadata:
   name: workspace-phi-3-medium
 resource:
-  instanceType: Standard_NC16_A2
+  instanceType: <your-vm-sku>
   preferredNodes:
     - <your-arc-node-name>
   labelSelector:

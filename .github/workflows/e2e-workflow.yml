@@ -36,7 +36,7 @@ jobs:
     
     env:
       TEST_SUITE: ${{ inputs.node_provisioner }}
-      GO_VERSION: "1.23"
+      GO_VERSION: "1.24"
       KARPENTER_NAMESPACE: "karpenter"
       GPU_PROVISIONER_NAMESPACE: "gpu-provisioner"
 

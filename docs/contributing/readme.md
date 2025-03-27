@@ -16,7 +16,7 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 
 ### Prerequisites
 
-- [Go 1.23](https://go.dev/doc/install) or later
+- [Go 1.24](https://go.dev/doc/install) or later
 - [Tilt](https://tilt.dev/) for rapid, local development
 - [Docker](https://docs.docker.com/get-started/get-docker/) for building container images
 - Kubernetes cluster with Karpenter supported (e.g. AKS, EKS)

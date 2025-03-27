@@ -16,7 +16,7 @@ if 'default_registry' in settings:
 def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
 
     DOCKERFILE = '''
-    FROM --platform=linux/amd64 mcr.microsoft.com/oss/go/microsoft/golang:1.23
+    FROM --platform=linux/amd64 mcr.microsoft.com/oss/go/microsoft/golang:1.24
     WORKDIR /
     COPY ./tilt_bin/manager /
     CMD ["/manager"]

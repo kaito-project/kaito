@@ -62,5 +62,3 @@ jobs:
           fail_ci_if_error: true
           verbose: true
           files: ./coverage.txt
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

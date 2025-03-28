@@ -21,7 +21,7 @@ env:
 
 jobs:
   unit-tests:
-    runs-on: ubuntu-latest
+    runs-on: [ "self-hosted", "hostname:kaito-e2e-github-runner" ]
     environment: unit-tests
     steps:
       - name: Harden Runner
@@ -46,3 +46,5 @@ jobs:
         with:
           fail_ci_if_error: true
           verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

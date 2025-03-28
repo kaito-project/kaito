@@ -168,13 +168,13 @@ func (p *PresetParam) GetInferenceCommand(runtime RuntimeName, skuNumGPUs string
 				rayLeaderCommand := utils.BuildCmdStr(p.VLLM.RayLeaderCommand, p.VLLM.RayLeaderParams)
 				modelRunCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
 				result := utils.BuildIfElseCmdStr(
-					"[ \"$(echo $HOSTNAME | grep -o '[^-]*$')\" == \"0\" ]",        // initiate as ray leader if the pod index is 0, otherwise initiate as ray worker
-					strings.Join([]string{rayLeaderCommand, modelRunCommand}, ";"), // command if true
+					"[ \"$(echo $HOSTNAME | grep -o '[^-]*$')\" = \"0\" ]",          // initiate as ray leader if the pod index is 0, otherwise initiate as ray worker
+					strings.Join([]string{rayLeaderCommand, modelRunCommand}, "; "), // command if true
 					map[string]string{},     // no parameters needed since the command is already built above
 					p.VLLM.RayWorkerCommand, // command if false
 					p.VLLM.RayWorkerParams,  // parameters for the false command
 				)
-				return utils.ShellCmd(result)
+				return utils.ShellCmd(strings.Join([]string{"apt-get -yy update && apt-get install -yy build-essential", result}, "; "))
 			}
 		}
 

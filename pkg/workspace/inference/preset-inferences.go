@@ -70,7 +70,10 @@ var (
 		},
 	}
 
-	supportedRuntimesForDistributedInference = sets.New(model.RuntimeNameHuggingfaceTransformers, model.RuntimeNameVLLM)
+	supportedRuntimesForDistributedInference = sets.New(
+		model.RuntimeNameHuggingfaceTransformers,
+		model.RuntimeNameVLLM,
+	)
 )
 
 func updateParamsForDistributedInference(ctx context.Context, kubeClient client.Client, wObj *v1beta1.Workspace, inferenceParam *model.PresetParam) error {
@@ -108,8 +111,8 @@ func updateParamsForDistributedInference(ctx context.Context, kubeClient client.
 			inferenceParam.VLLM.RayLeaderParams["ray_port"] = "6379" // well-known port for ray
 		}
 		if inferenceParam.VLLM.RayWorkerParams != nil {
-			inferenceParam.VLLM.RayWorkerParams["ray_address"] = existingService.Spec.ClusterIP
-			inferenceParam.VLLM.RayLeaderParams["ray_port"] = "6379"
+			inferenceParam.VLLM.RayWorkerParams["ray_address"] = fmt.Sprintf("%s-0.%s-headless.%s.svc.cluster.local", wObj.Name, wObj.Name, wObj.Namespace)
+			inferenceParam.VLLM.RayWorkerParams["ray_port"] = "6379"
 		}
 	}
 
@@ -175,13 +178,16 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	resourceReq := corev1.ResourceRequirements{
 		Requests: corev1.ResourceList{
 			corev1.ResourceName(resources.CapacityNvidiaGPU): resource.MustParse(skuNumGPUs),
-			corev1.ResourceName("rdma/ib"):                   resource.MustParse("8"),
 		},
 		Limits: corev1.ResourceList{
 			corev1.ResourceName(resources.CapacityNvidiaGPU): resource.MustParse(skuNumGPUs),
-			corev1.ResourceName("rdma/ib"):                   resource.MustParse("8"),
 		},
 	}
+	if model.SupportDistributedInference() && *workspaceObj.Resource.Count > 1 {
+		resourceReq.Requests[corev1.ResourceName("rdma/ib")] = resource.MustParse(skuNumGPUs)
+		resourceReq.Limits[corev1.ResourceName("rdma/ib")] = resource.MustParse(skuNumGPUs)
+	}
+
 	skuGPUCount, _ := strconv.Atoi(skuNumGPUs)
 
 	// additional volume

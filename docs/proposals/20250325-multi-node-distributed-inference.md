@@ -71,7 +71,6 @@ For pre-provisioned nodes, users may define a list in the existing API `.resourc
 ```yaml
 ...
 resource:
-  instanceType: "Standard_ND96asr_v4"
   count: 2
   preferredNodes:
     - my-favorite-node-1

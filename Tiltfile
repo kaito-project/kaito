@@ -52,7 +52,7 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
         return 'kubectl create namespace {} || true'.format(name)
 
     def manager():
-        return 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o tilt_bin/manager cmd/workspace/main.go'
+        return 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o tilt_bin/manager cmd/workspace/*.go'
 
     # Create the namespace if it doesn't exist
     local(create_namespace('kaito-workspace'), quiet=True)

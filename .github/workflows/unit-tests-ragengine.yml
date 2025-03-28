@@ -21,7 +21,7 @@ env:
 
 jobs:
   unit-tests:
-    runs-on: [ "self-hosted", "hostname:kaito-e2e-github-runner" ]
+    runs-on: ubuntu-latest
     environment: unit-tests
     steps:
       - name: Harden Runner
@@ -44,7 +44,5 @@ jobs:
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
         with:
-          fail_ci_if_error: true
           verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}

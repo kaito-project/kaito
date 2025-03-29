@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/distribution/reference"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -207,18 +207,11 @@ func (r *DataSource) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 		sourcesSpecified++
 	}
-	// Regex checks for a / and a colon followed by a tag
-	if r.Image != "" {
-		re := regexp.MustCompile(`^(.+/[^:/]+):([^:/]+)$`)
-		if !re.MatchString(r.Image) {
-			errs = errs.Also(apis.ErrInvalidValue("Invalid image format, require full input image URL", "Image"))
-		} else {
-			// Executes if image is of correct format
-			err := utils.ExtractAndValidateRepoName(r.Image)
-			if err != nil {
-				errs = errs.Also(apis.ErrInvalidValue(err.Error(), "Image"))
-			}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse input image reference: %s", err), "Image"))
 		}
+
 		sourcesSpecified++
 	}
 
@@ -237,6 +230,11 @@ func (r *DataSource) validateUpdate(old *DataSource, isTuning bool) (errs *apis.
 	if r.Volume != nil {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 	}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse input image reference: %s", err), "Image"))
+		}
+	}
 
 	return errs
 }
@@ -248,22 +246,16 @@ func (r *DataDestination) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 		destinationsSpecified++
 	}
-	if r.Image != "" {
-		// Regex checks for a / and a colon followed by a tag
-		re := regexp.MustCompile(`^(.+/[^:/]+):([^:/]+)$`)
-		if !re.MatchString(r.Image) {
-			errs = errs.Also(apis.ErrInvalidValue("Invalid image format, require full output image URL", "Image"))
-		} else {
-			// Executes if image is of correct format
-			err := utils.ExtractAndValidateRepoName(r.Image)
-			if err != nil {
-				errs = errs.Also(apis.ErrInvalidValue(err.Error(), "Image"))
-			}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse output image reference: %s", err), "Image"))
 		}
+
 		// Cloud Provider requires credentials to push image
 		if r.ImagePushSecret == "" {
 			errs = errs.Also(apis.ErrMissingField("Must specify imagePushSecret with destination image"))
 		}
+
 		destinationsSpecified++
 	}
 
@@ -278,6 +270,11 @@ func (r *DataDestination) validateUpdate() (errs *apis.FieldError) {
 	// TODO: Implement Volumes
 	if r.Volume != nil {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
+	}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse output image reference: %s", err), "Image"))
+		}
 	}
 
 	return errs

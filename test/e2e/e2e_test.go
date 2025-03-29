@@ -94,6 +94,14 @@ var _ = BeforeSuite(func() {
 		},
 	})
 	Expect(err).NotTo(HaveOccurred())
+
+	loadTestEnvVars()
+
+	err = copySecretToNamespace(aiModelsRegistrySecret, namespaceName)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = copySecretToNamespace(e2eACRSecret, namespaceName)
+	Expect(err).NotTo(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {

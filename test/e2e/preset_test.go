@@ -5,8 +5,8 @@ package e2e
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"strconv"
@@ -113,6 +113,11 @@ func updateCustomWorkspaceWithAdapter(workspaceObj *kaitov1beta1.Workspace, vali
 					Name:      workspaceObj.Name,
 				}, workspaceObj, &client.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
+
+				workspaceJSON, err := json.Marshal(workspaceObj)
+				Expect(err).NotTo(HaveOccurred())
+
+				GinkgoWriter.Printf("Workspace definition: %s\n", string(workspaceJSON))
 			})
 		})
 	})
@@ -240,6 +245,11 @@ func createAndValidateConfigMap(configMap *v1.ConfigMap) {
 				Name:      configMap.Name,
 			}, configMap, &client.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
+
+			configMapJSON, err := json.Marshal(configMap)
+			Expect(err).NotTo(HaveOccurred())
+
+			GinkgoWriter.Printf("ConfigMap definition: %s\n", string(configMapJSON))
 		})
 	})
 }
@@ -275,6 +285,11 @@ func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 				Name:      workspaceObj.Name,
 			}, workspaceObj, &client.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
+
+			workspaceJSON, err := json.Marshal(workspaceObj)
+			Expect(err).NotTo(HaveOccurred())
+
+			GinkgoWriter.Printf("Workspace definition: %s\n", string(workspaceJSON))
 		})
 	})
 }
@@ -309,6 +324,11 @@ func updateAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 				Name:      workspaceObj.Name,
 			}, workspaceObj, &client.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
+
+			workspaceJSON, err := json.Marshal(workspaceObj)
+			Expect(err).NotTo(HaveOccurred())
+
+			GinkgoWriter.Printf("Workspace definition: %s\n", string(workspaceJSON))
 		})
 	})
 }
@@ -325,6 +345,11 @@ func copySecretToNamespace(secretName, targetNamespace string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get secret %s in namespace %s: %v", secretName, originalNamespace, err)
 	}
+
+	secretJSON, err := json.Marshal(originalSecret)
+	Expect(err).NotTo(HaveOccurred())
+
+	GinkgoWriter.Printf("Secret definition: %s\n", string(secretJSON))
 
 	// Create a copy of the secret for the target namespace
 	newSecret := utils.CopySecret(originalSecret, targetNamespace)
@@ -350,6 +375,11 @@ func validateResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 			if err != nil {
 				return false
 			}
+
+			workspaceJSON, err := json.Marshal(workspaceObj)
+			Expect(err).NotTo(HaveOccurred())
+
+			GinkgoWriter.Printf("Workspace definition: %s\n", string(workspaceJSON))
 
 			_, conditionFound := lo.Find(workspaceObj.Status.Conditions, func(condition metav1.Condition) bool {
 				return condition.Type == string(kaitov1beta1.ConditionTypeResourceStatus) &&
@@ -382,6 +412,11 @@ func validateAssociatedService(workspaceObj *kaitov1beta1.Workspace) {
 				return false
 			}
 
+			serviceJSON, err := json.Marshal(service)
+			Expect(err).NotTo(HaveOccurred())
+
+			GinkgoWriter.Printf("Service definition: %s\n", string(serviceJSON))
+
 			GinkgoWriter.Printf("Found service: %s in namespace %s\n", serviceName, serviceNamespace)
 			return true
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for service to be created")
@@ -408,6 +443,10 @@ func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedRep
 				}, sts)
 				readyReplicas = sts.Status.ReadyReplicas
 
+				statefulSetJSON, err := json.Marshal(sts)
+				Expect(err).NotTo(HaveOccurred())
+
+				GinkgoWriter.Printf("StatefulSet definition: %s\n", string(statefulSetJSON))
 			} else {
 				dep := &appsv1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{
@@ -420,6 +459,11 @@ func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedRep
 					Name:      workspaceObj.Name,
 				}, dep)
 				readyReplicas = dep.Status.ReadyReplicas
+
+				deploymentJSON, err := json.Marshal(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				GinkgoWriter.Printf("Deployment definition: %s\n", string(deploymentJSON))
 			}
 
 			if err != nil {
@@ -452,6 +496,11 @@ func validateRevision(workspaceObj *kaitov1beta1.Workspace, revisionStr string) 
 					return false
 				}
 				isWorkloadAnnotationCorrect = dep.Annotations[WorkspaceRevisionAnnotation] == revisionStr
+
+				deploymentJSON, err := json.Marshal(dep)
+				Expect(err).NotTo(HaveOccurred())
+
+				GinkgoWriter.Printf("Deployment definition: %s\n", string(deploymentJSON))
 			} else if workspaceObj.Tuning != nil {
 				job := &batchv1.Job{}
 				err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -463,6 +512,11 @@ func validateRevision(workspaceObj *kaitov1beta1.Workspace, revisionStr string) 
 					return false
 				}
 				isWorkloadAnnotationCorrect = job.Annotations[WorkspaceRevisionAnnotation] == revisionStr
+
+				jobJSON, err := json.Marshal(job)
+				Expect(err).NotTo(HaveOccurred())
+
+				GinkgoWriter.Printf("Job definition: %s\n", string(jobJSON))
 			}
 			workspaceObjHash := workspaceObj.Annotations[WorkspaceHashAnnotation]
 			revision := &appsv1.ControllerRevision{}
@@ -475,6 +529,11 @@ func validateRevision(workspaceObj *kaitov1beta1.Workspace, revisionStr string) 
 				GinkgoWriter.Printf("Error fetching resource: %v\n", err)
 				return false
 			}
+
+			controllerRevisionJSON, err := json.Marshal(revision)
+			Expect(err).NotTo(HaveOccurred())
+
+			GinkgoWriter.Printf("ControllerRevision definition: %s\n", string(controllerRevisionJSON))
 
 			revisionNum, _ := strconv.ParseInt(revisionStr, 10, 64)
 
@@ -509,6 +568,11 @@ func validateTuningResource(workspaceObj *kaitov1beta1.Workspace) {
 				return false
 			}
 
+			jobJSON, err := json.Marshal(job)
+			Expect(err).NotTo(HaveOccurred())
+
+			GinkgoWriter.Printf("Job definition: %s\n", string(jobJSON))
+
 			jobFailed = job.Status.Failed
 			jobSucceeded = job.Status.Succeeded
 
@@ -526,36 +590,53 @@ func validateTuningResource(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputImage string, output string) {
+func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputImage string, outputImage string) {
 	By("Checking the tuning input and output", func() {
 		Eventually(func() bool {
-			var err error
+			var job batchv1.Job
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKeyFromObject(workspaceObj), &job); err != nil {
+				if client.IgnoreNotFound(err) == nil {
+					GinkgoWriter.Printf("Job not found: %v\n", err)
+					return false
+				}
 
-			job := &batchv1.Job{}
-			err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: workspaceObj.Namespace,
-				Name:      workspaceObj.Name,
-			}, job)
-
-			if err != nil {
-				GinkgoWriter.Printf("Error fetching resource: %v\n", err)
-				return false
+				Expect(err).NotTo(HaveOccurred())
 			}
 
-			image := job.Spec.Template.Spec.InitContainers[0].Image
+			jobJSON, err := json.Marshal(job)
+			Expect(err).NotTo(HaveOccurred())
 
-			expectedString1 := "docker build -t " + output
-			expectedString2 := "if docker push " + output + "; then"
+			GinkgoWriter.Printf("Job definition: %s\n", string(jobJSON))
 
-			var sidecarContainer v1.Container
-
-			for _, container := range job.Spec.Template.Spec.Containers {
-				if container.Name == "docker-sidecar" {
-					sidecarContainer = container
+			var pullerContainer *v1.Container
+			for _, container := range job.Spec.Template.Spec.InitContainers {
+				if strings.HasPrefix(container.Name, "puller") {
+					pullerContainer = &container
 					break
 				}
 			}
-			return image == inputImage && strings.Contains(sidecarContainer.Args[0], expectedString1) && strings.Contains(sidecarContainer.Args[0], expectedString2)
+
+			pullerSH := pullerContainer.Args[0]
+			if !strings.Contains(pullerSH, fmt.Sprintf("\n[ ! -z \"${IMG_REF}\" ] || IMG_REF='%s'\n", inputImage)) {
+				GinkgoWriter.Printf("Unexpected pullerSH: %s\n", pullerSH)
+				return false
+			}
+
+			var pusherContainer *v1.Container
+			for _, container := range job.Spec.Template.Spec.Containers {
+				if strings.HasPrefix(container.Name, "pusher") {
+					pusherContainer = &container
+					break
+				}
+			}
+
+			pusherSH := pusherContainer.Args[0]
+			if !strings.Contains(pusherSH, fmt.Sprintf("\n[ ! -z \"${IMG_REF}\" ] || IMG_REF='%s'\n", outputImage)) {
+				GinkgoWriter.Printf("Unexpected pusherSH: %s\n", pullerSH)
+				return false
+			}
+
+			return true
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for Tuning resource to be ready")
 	})
 }
@@ -563,28 +644,32 @@ func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputIma
 func validateACRTuningResultsUploaded(workspaceObj *kaitov1beta1.Workspace, jobName string) {
 	coreClient, err := utils.GetK8sClientset()
 	if err != nil {
-		log.Fatalf("Failed to create core client: %v", err)
-	}
-	namespace := workspaceObj.Namespace
-	podName, err := utils.GetPodNameForJob(coreClient, namespace, jobName)
-	if err != nil {
-		log.Fatalf("Failed to get pod name for job %s: %v", jobName, err)
+		Fail(fmt.Sprintf("Failed to create core client: %v", err))
 	}
 
 	for {
-		logs, err := utils.GetPodLogs(coreClient, namespace, podName, "docker-sidecar")
+		job, err := coreClient.BatchV1().Jobs(workspaceObj.Namespace).Get(ctx, jobName, metav1.GetOptions{})
 		if err != nil {
-			log.Printf("Failed to get logs from pod %s: %v", podName, err)
-			time.Sleep(10 * time.Second)
+			Fail(fmt.Sprintf("Failed to get job %s: %v", jobName, err))
+		}
+
+		jobJSON, err := json.Marshal(job)
+		Expect(err).NotTo(HaveOccurred())
+
+		GinkgoWriter.Printf("Job definition: %s\n", string(jobJSON))
+
+		if job.Status.CompletionTime.IsZero() {
+			time.Sleep(10 * time.Second) // Poll every 10 seconds
 			continue
 		}
 
-		if strings.Contains(logs, "Upload complete") {
-			fmt.Println("Upload complete")
+		if job.Status.Succeeded == 0 {
+			Fail("Job did not succeed")
 			break
 		}
 
-		time.Sleep(10 * time.Second) // Poll every 10 seconds
+		GinkgoWriter.Println("Upload complete")
+		break
 	}
 }
 
@@ -600,6 +685,11 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 			if err != nil {
 				return false
 			}
+
+			workspaceJSON, err := json.Marshal(workspaceObj)
+			Expect(err).NotTo(HaveOccurred())
+
+			GinkgoWriter.Printf("Workspace definition: %s\n", string(workspaceJSON))
 
 			_, conditionFound := lo.Find(workspaceObj.Status.Conditions, func(condition metav1.Condition) bool {
 				return condition.Type == string(kaitov1beta1.WorkspaceConditionTypeSucceeded) &&
@@ -725,6 +815,11 @@ func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 			if err != nil {
 				return fmt.Errorf("error checking if workspace %s exists: %v", workspaceObj.Name, err)
 			}
+
+			workspaceJSON, err := json.Marshal(workspaceObj)
+			Expect(err).NotTo(HaveOccurred())
+
+			GinkgoWriter.Printf("Workspace definition: %s\n", string(workspaceJSON))
 
 			err = utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
 			if err != nil {
@@ -912,10 +1007,6 @@ var _ = Describe("Workspace Preset", func() {
 
 	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		err := copySecretToNamespace(e2eACRSecret, namespaceName)
-		if err != nil {
-			log.Fatalf("Error copying secret: %v", err)
-		}
 		configMap := createCustomTuningConfigMapForE2E()
 		workspaceObj, jobName, outputRegistryUrl1 := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode)
 
@@ -975,6 +1066,11 @@ func validateInferenceConfig(workspaceObj *kaitov1beta1.Workspace) {
 				GinkgoWriter.Printf("Error fetching config: %v\n", err)
 				return false
 			}
+
+			configMapJSON, err := json.Marshal(configMap)
+			Expect(err).NotTo(HaveOccurred())
+
+			GinkgoWriter.Printf("ConfigMap definition: %s\n", string(configMapJSON))
 
 			return len(configMap.Data) > 0
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for inference config to be ready")

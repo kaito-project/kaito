@@ -25,6 +25,7 @@ COPY kaito/presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
 
 # 2. vLLM
 COPY kaito/presets/workspace/inference/vllm/inference_api.py /workspace/vllm/inference_api.py
+COPY kaito/presets/workspace/inference/vllm/multi-node-serving.sh /workspace/vllm/multi-node-serving.sh
 
 # Chat template
 ADD kaito/presets/workspace/inference/chat_templates /workspace/chat_templates

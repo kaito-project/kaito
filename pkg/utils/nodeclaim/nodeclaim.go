@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -26,6 +27,8 @@ import (
 	"k8s.io/utils/clock"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
@@ -37,6 +40,36 @@ import (
 var (
 	// nodeClaimStatusTimeoutInterval is the interval to check the nodeClaim status.
 	nodeClaimStatusTimeoutInterval = 240 * time.Second
+
+	NodeClaimPredicate = predicate.Funcs{
+		CreateFunc: func(e event.CreateEvent) bool {
+			return true
+		},
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			oldNodeClaim, ok := e.ObjectOld.(*karpenterv1.NodeClaim)
+			if !ok {
+				return false
+			}
+
+			newNodeClaim, ok := e.ObjectNew.(*karpenterv1.NodeClaim)
+			if !ok {
+				return false
+			}
+
+			oldNodeClaimCopy := oldNodeClaim.DeepCopy()
+			newNodeClaimCopy := newNodeClaim.DeepCopy()
+
+			// if only nodeclaim.Status.LastPodEventTime is changed, skip update event
+			oldNodeClaimCopy.ResourceVersion = ""
+			oldNodeClaimCopy.Status.LastPodEventTime = metav1.Time{}
+			newNodeClaimCopy.ResourceVersion = ""
+			newNodeClaimCopy.Status.LastPodEventTime = metav1.Time{}
+			return !reflect.DeepEqual(oldNodeClaimCopy, newNodeClaimCopy)
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			return true
+		},
+	}
 )
 
 // GenerateNodeClaimManifest generates a nodeClaim object from the given workspace or RAGEngine.

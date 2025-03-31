@@ -203,8 +203,7 @@ jobs:
                     --node-vm-size ${{ matrix.model.node-vm-size }} \
                     --node-osdisk-size ${{ matrix.model.node-osdisk-size }} \
                     --labels pool=${{ steps.workload.outputs.NODEPOOL_NAME }} \
-                    --node-taints sku=gpu:NoSchedule \
-                    --aks-custom-headers UseGPUDedicatedVHD=true
+                    --node-taints sku=gpu:NoSchedule
             else
                 NODEPOOL_STATE=$(az aks nodepool show \
                                 --name ${{ steps.workload.outputs.NODEPOOL_NAME }} \

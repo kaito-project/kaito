@@ -33,15 +33,16 @@ models:
   # Falcon
   - name: falcon-7b
     type: text-generation
-    version: https://huggingface.co/tiiuae/falcon-7b/commit/898df1396f35e447d5fe44e0a3ccaaaa69f30d36
+    version: https://huggingface.co/tiiuae/falcon-7b/commit/ec89142b67d748a1865ea4451372db8313ada0d8
     runtime: tfs
     tag: 0.1.0
   - name: falcon-7b-instruct
     type: text-generation
-    version: https://huggingface.co/tiiuae/falcon-7b-instruct/commit/cf4b3c42ce2fdfe24f753f0f0d179202fea59c99
+    version: https://huggingface.co/tiiuae/falcon-7b-instruct/commit/8782b5c5d8c9290412416618f36a133653e85285
     runtime: tfs
     tag: 0.1.0
     # Tag history:
+    # 0.1.0 - vLLM, Transformers, and several other library updates and fixes
     # 0.0.8 - Support adapter and config file for VLLM runtime
     # 0.0.7 - Support VLLM runtime
     # 0.0.6 - Add Logging & Metrics Server
@@ -52,7 +53,7 @@ models:
     # 0.0.1 - Initial Release
   - name: falcon-40b
     type: text-generation
-    version: https://huggingface.co/tiiuae/falcon-40b/commit/4a70170c215b36a3cce4b4253f6d0612bb7d4146
+    version: https://huggingface.co/tiiuae/falcon-40b/commit/05ab2ee8d6b593bdbab17d728de5c028a7a94d83
     runtime: tfs
     tag: 0.1.0
   - name: falcon-40b-instruct
@@ -61,6 +62,7 @@ models:
     runtime: tfs
     tag: 0.1.0
     # Tag history for 40b models:
+    # 0.1.0 - vLLM, Transformers, and several other library updates and fixes
     # 0.0.9 - Support adapter and config file for VLLM runtime
     # 0.0.8 - Support VLLM runtime
     # 0.0.7 - Add Logging & Metrics Server
@@ -83,6 +85,7 @@ models:
     runtime: tfs
     tag: 0.1.0
     # Tag history:
+    # 0.1.0 - vLLM, Transformers, and several other library updates and fixes
     # 0.0.9 - Support adapter and config file for VLLM runtime
     # 0.0.8 - Support VLLM runtime
     # 0.0.7 - Add Logging & Metrics Server
@@ -100,6 +103,7 @@ models:
     runtime: tfs
     tag: 0.1.0
     # Tag history:
+    # 0.1.0 - vLLM, Transformers, and several other library updates and fixes
     # 0.0.7 - Support adapter and config file for VLLM runtime
     # 0.0.6 - Support VLLM runtime
     # 0.0.5 - Add Logging & Metrics Server
@@ -116,12 +120,12 @@ models:
     tag: 0.1.0
   - name: phi-3-mini-128k-instruct
     type: text-generation 
-    version: https://huggingface.co/microsoft/Phi-3-mini-128k-instruct/commit/a90b62ae09941edff87a90ced39ba5807e6b2ade
+    version: https://huggingface.co/microsoft/Phi-3-mini-128k-instruct/commit/072cb7562cb8c4adf682a8e186aaafa49469eb5d
     runtime: tfs
     tag: 0.1.0
   - name: phi-3-medium-4k-instruct
     type: text-generation
-    version: https://huggingface.co/microsoft/Phi-3-medium-4k-instruct/commit/ae004ae82eb6eddc32906dfacb1d6dfea8f91996
+    version: https://huggingface.co/microsoft/Phi-3-medium-4k-instruct/commit/b64223aaea6fbf273c0c8cd0801d5e732dce8897
     runtime: tfs
     tag: 0.1.0
   - name: phi-3-medium-128k-instruct
@@ -130,6 +134,7 @@ models:
     runtime: tfs
     tag: 0.1.0
     # Tag history:
+    # 0.1.0 - vLLM, Transformers, and several other library updates and fixes
     # 0.0.4 - Support adapter and config file for VLLM runtime
     # 0.0.3 - Support VLLM runtime
     # 0.0.2 - Add Logging & Metrics Server
@@ -137,32 +142,35 @@ models:
 
   - name: phi-3.5-mini-instruct
     type: text-generation
-    version: https://huggingface.co/microsoft/Phi-3.5-mini-instruct/commit/af0dfb8029e8a74545d0736d30cb6b58d2f0f3f0
+    version: https://huggingface.co/microsoft/Phi-3.5-mini-instruct/commit/3145e03a9fd4cdd7cd953c34d9bbf7ad606122ca
     runtime: tfs
     tag: 0.1.0
     # Tag history:
+    # 0.1.0 - vLLM, Transformers, and several other library updates and fixes
     # 0.0.2 - Support adapter and config file for VLLM runtime
     # 0.0.1 - New Model! Support VLLM Runtime
 
   # Qwen
   - name: qwen2.5-coder-7b-instruct
     type: text-generation
-    version: https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct/commit/0eb6b1ed2d0c4306bc637d09ecef51e59d3dfe05
+    version: https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct/commit/c03e6d358207e414f1eca0bb1891e29f1db0e242
     runtime: tfs
     tag: 0.1.0
     # Tag history:
+    # 0.1.0 - vLLM, Transformers, and several other library updates and fixes
     # 0.0.1 - New Model!
 
   # Deepseek
   - name: deepseek-r1-distill-qwen-14b
     type: text-generation
-    version: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B/commit/43388607a61ba60e6dd3e349eb5f55c94e984bc0
+    version: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B/commit/1df8507178afcc1bef68cd8c393f61a886323761
     runtime: tfs
     tag: 0.1.0
   - name: deepseek-r1-distill-llama-8b
     type: text-generation
-    version: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Llama-8B/commit/24ae87a9c340aa4207dd46509414c019998e0161
+    version: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Llama-8B/commit/6a6f4aa4197940add57724a7707d069478df56b1
     runtime: tfs
     tag: 0.1.0
     # Tag history:
+    # 0.1.0 - vLLM, Transformers, and several other library updates and fixes
     # 0.0.1 - New Model!

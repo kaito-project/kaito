@@ -7,6 +7,7 @@
 
 | ![notification](docs/img/bell.svg) What is NEW! |
 |-------------------------------------------------|
+| **Coming soon:** Kaito v0.5.0. Retrieval-augmented generation (RAG) support - RagEngine will support LlamaIndex and Faiss as the default vectorDB | 
 | Latest Release: Jan 31th, 2025. Kaito v0.4.4. **DeepSeek-R1 distilled models are added! (llama-8b and qwen-14b).**  |
 | First Release: Nov 15th, 2023. Kaito v0.1.0.    |
 

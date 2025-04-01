@@ -62,7 +62,7 @@ class KAITOArgumentParser(argparse.ArgumentParser):
         }
 
         # Chunked Prefill not supported on V100 Architectures - Set to False
-        gpu_name = torch.cuda.get_device_name(0)
+        gpu_name = torch.cuda.get_device_name(0).upper()
         if "V100" in gpu_name:
             engine_default_args["enable_chunked_prefill"] = False
 

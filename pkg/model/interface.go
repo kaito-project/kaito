@@ -174,7 +174,7 @@ func (p *PresetParam) GetInferenceCommand(runtime RuntimeName, skuNumGPUs string
 					p.VLLM.RayWorkerCommand, // command if false
 					p.VLLM.RayWorkerParams,  // parameters for the false command
 				)
-				return utils.ShellCmd(strings.Join([]string{"apt-get -yy update && apt-get install -yy build-essential", result}, "; "))
+				return utils.ShellCmd(result)
 			}
 		}
 

@@ -64,9 +64,13 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "mistral-7b",
-				ModelRunParams: mistralRunParamsVLLM,
+				RayLeaderCommand: inference.DefaultVLLMRayLeaderCommand,
+				RayLeaderParams:  map[string]string{},
+				RayWorkerCommand: inference.DefaultVLLMRayWorkerCommand,
+				RayWorkerParams:  map[string]string{},
+				BaseCommand:      inference.DefaultVLLMCommand,
+				ModelName:        "mistral-7b",
+				ModelRunParams:   mistralRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -95,7 +99,7 @@ func (*mistral7b) GetTuningParameters() *model.PresetParam {
 }
 
 func (*mistral7b) SupportDistributedInference() bool {
-	return false
+	return true
 }
 func (*mistral7b) SupportTuning() bool {
 	return true
@@ -121,9 +125,13 @@ func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "mistral-7b-instruct",
-				ModelRunParams: mistralRunParamsVLLM,
+				RayLeaderCommand: inference.DefaultVLLMRayLeaderCommand,
+				RayLeaderParams:  map[string]string{},
+				RayWorkerCommand: inference.DefaultVLLMRayWorkerCommand,
+				RayWorkerParams:  map[string]string{},
+				BaseCommand:      inference.DefaultVLLMCommand,
+				ModelName:        "mistral-7b-instruct",
+				ModelRunParams:   mistralRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

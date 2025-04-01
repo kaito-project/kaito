@@ -67,8 +67,7 @@ jobs:
                     --node-vm-size ${{ steps.get_test_meta.outputs.node-vm-size }} \
                     --node-osdisk-size ${{ steps.get_test_meta.outputs.node-osdisk-size }} \
                     --labels pool=${{ steps.get_test_meta.outputs.name }} \
-                    --node-taints sku=gpu:NoSchedule \
-                    --aks-custom-headers UseGPUDedicatedVHD=true
+                    --node-taints sku=gpu:NoSchedule
             else
                 NODEPOOL_STATE=$(az aks nodepool show \
                                 --name ${{ steps.get_test_meta.outputs.name }} \

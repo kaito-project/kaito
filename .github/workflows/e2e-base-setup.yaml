@@ -44,7 +44,7 @@ jobs:
       run_llama_13b: ${{ steps.set-outputs.outputs.run_llama_13b }}
 
     env:
-      GO_VERSION: "1.23"
+      GO_VERSION: "1.24"
 
     steps:
       - name: Harden Runner

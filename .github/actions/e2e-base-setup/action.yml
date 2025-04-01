@@ -37,7 +37,7 @@ outputs:
     description: "Whether to run llama 13b"
 
 env:
-  GO_VERSION: "1.23"
+  GO_VERSION: "1.24"
 
 runs:
   using: "composite"
@@ -68,10 +68,10 @@ runs:
       shell: bash
       run: sudo rm -rf ~/go/pkg/mod
 
-    - name: Set up Go 1.23
+    - name: Set up Go 1.24
       uses: actions/setup-go@v5.2.0
       with:
-        go-version: "1.23"
+        go-version: "1.24"
 
     - name: Install Azure CLI latest
       shell: bash

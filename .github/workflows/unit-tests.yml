@@ -17,7 +17,7 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: "1.23"
+  GO_VERSION: "1.24"
 
 jobs:
   unit-tests:
@@ -58,7 +58,6 @@ jobs:
       - name: Upload Codecov report
         uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
         with:
-          ## Comma-separated list of files to upload
+          verbose: true
           files: ./coverage.txt
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}

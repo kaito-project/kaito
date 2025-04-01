@@ -3,6 +3,7 @@ kind: Workspace
 metadata:
   name: workspace-phi-3-5-mini
 resource:
+  instanceType: <your-vm-sku>
   preferredNodes:
     - <your-arc-node-name>
   labelSelector:

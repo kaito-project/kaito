@@ -14,6 +14,10 @@ COPY kaito/presets/workspace/dependencies/requirements.txt /workspace/requiremen
 
 RUN pip install --no-cache-dir -r /workspace/requirements.txt
 
+# Required for torch.compile
+RUN apt-get update -y && apt-get install gcc -y && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # 1. Huggingface transformers
 COPY kaito/presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
     kaito/presets/workspace/tuning/${MODEL_TYPE}/cli.py \

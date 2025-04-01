@@ -21,7 +21,7 @@ on:
                 description: "Test on VLLM runtime"
 
 env:
-    GO_VERSION: "1.23"
+    GO_VERSION: "1.24"
     BRANCH_NAME: ${{ github.head_ref || github.ref_name}} 
     FORCE_RUN_ALL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all == 'true' }}
     FORCE_RUN_ALL_PHI:  ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all-phi-models== 'true' }}
@@ -203,8 +203,7 @@ jobs:
                     --node-vm-size ${{ matrix.model.node-vm-size }} \
                     --node-osdisk-size ${{ matrix.model.node-osdisk-size }} \
                     --labels pool=${{ steps.workload.outputs.NODEPOOL_NAME }} \
-                    --node-taints sku=gpu:NoSchedule \
-                    --aks-custom-headers UseGPUDedicatedVHD=true
+                    --node-taints sku=gpu:NoSchedule
             else
                 NODEPOOL_STATE=$(az aks nodepool show \
                                 --name ${{ steps.workload.outputs.NODEPOOL_NAME }} \

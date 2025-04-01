@@ -17,7 +17,7 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: "1.23"
+  GO_VERSION: "1.24"
 
 jobs:
   unit-tests:
@@ -44,6 +44,5 @@ jobs:
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
         with:
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}

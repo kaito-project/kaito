@@ -60,6 +60,12 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             "disable_log_stats": False,
             "uvicorn_log_level": "error"
         }
+
+        # Chunked Prefill not supported on V100 Architectures - Set to False
+        gpu_name = torch.cuda.get_device_name(0)
+        if "V100" in gpu_name:
+            engine_default_args["enable_chunked_prefill"] = False
+
         self.vllm_parser.set_defaults(**engine_default_args)
 
     def parse_args(self, *args, **kwargs):

@@ -149,7 +149,7 @@ models:
     type: text-generation
     version: https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct/commit/0eb6b1ed2d0c4306bc637d09ecef51e59d3dfe05
     runtime: tfs
-    tag: 0.0.2
+    tag: 0.0.1
     # Tag history:
     # 0.0.1 - New Model!
 

@@ -31,14 +31,7 @@ RUN echo 'tzdata tzdata/Areas select America' | debconf-set-selections && \
 RUN apt-get -qq update && \
     apt-get -qq install -y --no-install-recommends \
     curl \
-    ibverbs-utils \
-    ibverbs-utils \
-    infiniband-diags \
-    libibumad-dev \
-    libibumad3 \
     libibverbs-dev \
-    librdmacm-dev \
-    rdmacm-utils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

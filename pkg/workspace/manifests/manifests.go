@@ -173,25 +173,6 @@ func GenerateStatefulSetManifest(ctx context.Context, workspaceObj *kaitov1beta1
 							ReadinessProbe: readinessProbe,
 							Ports:          containerPorts,
 							VolumeMounts:   volumeMount,
-							Env: []corev1.EnvVar{{
-								Name:  "NCCL_DEBUG",
-								Value: "TRACE",
-							}, {
-								Name:  "NCCL_SOCKET_IFNAME",
-								Value: "eth0",
-							}, {
-								Name:  "NCCL_IB_HCA",
-								Value: "mlx5",
-							}, {
-								Name:  "VLLM_LOGGING_LEVEL",
-								Value: "DEBUG",
-							}, {
-								Name:  "CUDA_LAUNCH_BLOCKING",
-								Value: "1",
-							}, {
-								Name:  "VLLM_TRACE_FUNCTION",
-								Value: "1",
-							}},
 							SecurityContext: &corev1.SecurityContext{
 								Capabilities: &corev1.Capabilities{
 									Add: []corev1.Capability{

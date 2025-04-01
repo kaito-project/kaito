@@ -163,9 +163,26 @@ command:
 ...
 ```
 
-### HuggingFace Transformer
+#### HuggingFace Transformer
 
 - Already supports distributed coordination with [Torch Elastic](https://pytorch.org/docs/stable/elastic/quickstart.html).
+
+
+### Pod Template Modifications
+
+To enable multi-node distributed inference, the pod template within the StatefulSet requires the following updates:
+
+- [ ] **RDMA Resource Allocation**: Include RDMA resources in the pod template specification to allow the device plugin to assign them to pods. The resource name and count vary by cloud provider and GPU configuration. For example, AWS EFA requires `vpc.amazonaws.com/efa: 32` (supporting 32 EFA interfaces for 8 GPUs), while Azure RDMA over InfiniBand uses `rdma/ib: 8`.
+- [ ] **IPC_LOCK Capability**: Add the `IPC_LOCK` capability to the container’s security context. This is essential for RDMA functionality, as it allows the container to lock memory pages in RAM, preventing swapping to disk and ensuring low-latency memory access critical for high-performance workloads.
+- [ ] **Shared Memory Mount**: Mount `/dev/shm` in the pod specification. This provides shared memory for inter-process communication and synchronization, a requirement for vLLM to operate effectively in a distributed setup.
+
+### Base Image Updates
+
+The base image for `docker/presets/models/tfs/Dockerfile` must be modified to support multi-GPU, multi-node distributed inference:
+
+- [ ] **Switch to NVIDIA CUDA Base**: Replace the current base image with [`nvidia/cuda`](https://hub.docker.com/r/nvidia/cuda), which includes pre-installed CUDA and NCCL libraries necessary for multi-GPU and multi-node operations.
+- [ ] **Install RDMA Support**: Add `libibverbs-dev` via `apt-get install`. This library enables userspace processes to leverage RDMA “verbs” as defined by the InfiniBand Architecture and RDMA Protocol specifications
+- [ ] **Add Python**: Install Python using `apt-get`, as it is not included in the `nvidia/cuda` base image. Python is required to execute the vLLM multi-node serving script effectively.
 
 ## Glossary
 

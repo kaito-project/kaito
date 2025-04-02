@@ -130,25 +130,10 @@ def find_max_available_seq_len(vllm_config: VllmConfig, max_probe_steps: int) ->
         logger.info("Chunked Prefill is enabled, skip probing.")
         return vllm_config.model_config.max_model_len
     executor = executor_class(vllm_config=vllm_config)
-    
-    available_gpu_blocks, _ = executor.determine_num_available_blocks()
-    block_size = executor.cache_config.block_size
-    
-    # For multi-GPU, blocks are distributed across GPUs
-    total_gpu_count = max(1, vllm_config.parallel_config.tensor_parallel_size * 
-                            vllm_config.parallel_config.pipeline_parallel_size)
-    
-    if total_gpu_count > 1:
-        logger.info(f"Multi-GPU Configuration:")
-    logger.info(f"- Total GPUs: {total_gpu_count}")
-    logger.info(f"- Available blocks per GPU: {available_gpu_blocks}")
-    logger.info(f"- Block size: {block_size}")
-    logger.info(f"- Model's max length: {vllm_config.model_config.max_model_len}")
-    
-    res = binary_search_with_limited_steps(vllm_config.model_config.max_model_len, max_probe_steps, 
-                                         lambda x: is_context_length_safe(executor, x))
-    
-    # Clean up
+
+    res = binary_search_with_limited_steps(vllm_config.model_config.max_model_len, max_probe_steps, lambda x: is_context_length_safe(executor, x))
+
+    # release memory
     del executor
     gc.collect()
     torch.cuda.empty_cache()
@@ -187,8 +172,7 @@ def binary_search_with_limited_steps(upper: int, max_probe_steps: int, is_valid_
 
 def is_context_length_safe(executor: ExecutorBase, context_length: int) -> bool:
     """
-    Check if the available gpu blocks is enough for the given context length.
-    Handles multi-GPU configurations.
+    Check if the avilable gpu blocks is enough for the given num_gpu_blocks.
     """
     # Profile memory usage with max_num_sequences sequences and the total
     # number of tokens equal to max_num_batched_tokens.
@@ -196,35 +180,20 @@ def is_context_length_safe(executor: ExecutorBase, context_length: int) -> bool:
     try:
         logger.info(f"Try to determine available gpu blocks for context length {context_length}")
         # see https://github.com/vllm-project/vllm/blob/v0.7.2/vllm/engine/llm_engine.py#L416
-        block_size = executor.cache_config.block_size
-        num_gpu_blocks_needed = context_length // block_size
-        
-        # Get available blocks (this already considers multi-GPU setup)
         available_gpu_blocks, _ = executor.determine_num_available_blocks()
-        
-        # For multi-GPU, consider total available blocks across all GPUs
-        total_gpu_count = max(1, executor.parallel_config.tensor_parallel_size * 
-                               executor.parallel_config.pipeline_parallel_size)
-        total_available_blocks = available_gpu_blocks * total_gpu_count
-        
-        if total_gpu_count > 1:
-            logger.info(f"Multi-GPU block analysis:")
-        logger.info(f"- GPUs: {total_gpu_count}")
-        logger.info(f"- Blocks needed: {num_gpu_blocks_needed}")
-        logger.info(f"- Blocks available per GPU: {available_gpu_blocks}")
-        logger.info(f"- Total blocks available: {total_available_blocks}")
-        
-        if total_available_blocks < num_gpu_blocks_needed:
-            logger.info("Not enough total GPU blocks available")
-            return False
-        return True
-    except Exception as e:
-        logger.info(f"Failed to allocate memory for context length {context_length}: {str(e)}")
-        return False
+    except torch.OutOfMemoryError as e:
+        return False    
+
+    num_gpu_blocks = context_length // executor.cache_config.block_size
+    return available_gpu_blocks >= num_gpu_blocks
 
 def try_set_max_available_seq_len(args: argparse.Namespace):
     if args.max_model_len is not None:
         logger.info(f"max_model_len is set to {args.max_model_len}, skip probing.")
+        return
+
+    if args.tensor_parallel_size > 1 or args.pipeline_parallel_size > 1:
+        logger.info("Multi-GPU serving is enabled, skip probing.")
         return
 
     max_probe_steps = 0
@@ -237,10 +206,6 @@ def try_set_max_available_seq_len(args: argparse.Namespace):
     if max_probe_steps <= 0:
         return
 
-    # Set GPU memory utilization if not explicitly set
-    if not hasattr(args, 'gpu_memory_utilization') or args.gpu_memory_utilization is None:
-        args.gpu_memory_utilization = 0.95
-    
     engine_args = EngineArgs.from_cli_args(args)
     # read the model config from hf weights path.
     # vllm will perform different parser for different model architectures
@@ -248,9 +213,8 @@ def try_set_max_available_seq_len(args: argparse.Namespace):
     vllm_config = engine_args.create_engine_config()
 
     max_model_len = vllm_config.model_config.max_model_len
-    logger.info(f"Original max_model_len: {max_model_len}")
-    logger.info(f"GPU configuration: {args.tensor_parallel_size}x{args.pipeline_parallel_size}")
-    logger.info("Running profiler to find max available seq len")
+    available_seq_len = max_model_len
+    logger.info("Try run profiler to find max available seq len")
     available_seq_len = find_max_available_seq_len(vllm_config, max_probe_steps)
     # see https://github.com/vllm-project/vllm/blob/v0.7.2/vllm/worker/worker.py#L539
     if available_seq_len <= 0:
@@ -259,7 +223,7 @@ def try_set_max_available_seq_len(args: argparse.Namespace):
                         "initializing the engine.")
 
     if available_seq_len != max_model_len:
-        logger.info(f"Adjusting max_model_len from {max_model_len} to {available_seq_len}")
+        logger.info(f"Set max_model_len from {max_model_len} to {available_seq_len}")
         args.max_model_len = available_seq_len
     else:
         logger.info(f"Using model default max_model_len {max_model_len}")

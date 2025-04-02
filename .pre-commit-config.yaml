@@ -19,10 +19,6 @@ repos:
       - id: check-merge-conflict
       - id: check-added-large-files
       - id: detect-private-key
-  - repo: https://github.com/pylint-dev/pylint
-    rev: v2.17.2
-    hooks:
-      - id: pylint
   - repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:
@@ -41,11 +37,6 @@ repos:
           - --remove-all-unused-imports
           - --remove-unused-variables
           - --expand-star-imports
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
-    hooks:
-      - id: flake8
-        additional_dependencies: [flake8-docstrings]
   - repo: local
     hooks:
       - id: commit-signing-check

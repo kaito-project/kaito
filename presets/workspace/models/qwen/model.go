@@ -110,7 +110,7 @@ func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "70Gi", // Requires at least A100 - TODO: Revisit for more accurate metric
-		PerGPUMemoryRequirement:   "0Gi", // We run qwen using native vertical model parallel, no per GPU memory requirement.
+		PerGPUMemoryRequirement:   "0Gi",  // We run qwen using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				TorchRunParams:    inference.DefaultAccelerateParams,
@@ -136,7 +136,7 @@ func (*qwen2_5Coder32BInstruct) GetTuningParameters() *model.PresetParam {
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "140Gi", // Requires at least 2 A100 - TODO: Revisit for more accurate metric
-		PerGPUMemoryRequirement:   "70Gi", // TODO: Revisit for more accurate metric
+		PerGPUMemoryRequirement:   "70Gi",  // TODO: Revisit for more accurate metric
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetQwenTuning,

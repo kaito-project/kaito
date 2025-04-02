@@ -131,7 +131,6 @@ def find_max_available_seq_len(vllm_config: VllmConfig, max_probe_steps: int) ->
         return vllm_config.model_config.max_model_len
     executor = executor_class(vllm_config=vllm_config)
     
-    # Calculate initial KV cache limits considering all GPUs
     available_gpu_blocks, _ = executor.determine_num_available_blocks()
     block_size = executor.cache_config.block_size
     
@@ -196,6 +195,7 @@ def is_context_length_safe(executor: ExecutorBase, context_length: int) -> bool:
     executor.scheduler_config.max_num_batched_tokens = context_length
     try:
         logger.info(f"Try to determine available gpu blocks for context length {context_length}")
+        # see https://github.com/vllm-project/vllm/blob/v0.7.2/vllm/engine/llm_engine.py#L416
         block_size = executor.cache_config.block_size
         num_gpu_blocks_needed = context_length // block_size
         

@@ -16,7 +16,53 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: detect-private-key
   - repo: https://github.com/pylint-dev/pylint
     rev: v2.17.2
     hooks:
       - id: pylint
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.2.0
+    hooks:
+      - id: autoflake
+        args:
+          - --remove-all-unused-imports
+          - --remove-unused-variables
+          - --expand-star-imports
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        additional_dependencies: [flake8-docstrings]
+  - repo: local
+    hooks:
+      - id: commit-signing-check
+        name: Check if commit is signed
+        entry: bash
+        language: system
+        pass_filenames: false
+        stages: [commit-msg]
+        args:
+          - -c
+          - |
+            SIGN="$(git log --format='%G?' -1)"
+            if [ "$SIGN" = "G" ] || [ "$SIGN" = "U" ]; then
+              echo "✓ Commit is cryptographically signed (status: $SIGN)."
+              exit 0
+            else
+              echo "❌ ERROR: Commit is not properly signed or has a bad signature (status: $SIGN)."
+              echo "Please sign your commit with GPG, SSH, or X.509. See docs: https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work"
+              exit 1
+            fi

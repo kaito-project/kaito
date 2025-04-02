@@ -150,10 +150,28 @@ models:
     # 0.0.2 - Support adapter and config file for VLLM runtime
     # 0.0.1 - New Model! Support VLLM Runtime
 
+  - name: phi-4-mini-instruct
+    type: text-generation
+    version: https://huggingface.co/microsoft/Phi-4-mini-instruct/commit/c0fb9e74abda11b496b7907a9c6c9009a7a0488f
+    runtime: tfs
+    tag: 0.1.0
+  - name: phi-4
+    type: text-generation
+    version: https://huggingface.co/microsoft/phi-4/commit/187ef0342fff0eb3333be9f00389385e95ef0b61
+    runtime: tfs
+    tag: 0.1.0
+  # Tag history:
+  # 0.1.0 - New Model!
+
   # Qwen
   - name: qwen2.5-coder-7b-instruct
     type: text-generation
     version: https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct/commit/c03e6d358207e414f1eca0bb1891e29f1db0e242
+    runtime: tfs
+    tag: 0.1.0
+  - name: qwen2.5-coder-32b-instruct
+    type: text-generation
+    version: https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct/commit/381fc969f78efac66bc87ff7ddeadb7e73c218a7
     runtime: tfs
     tag: 0.1.0
     # Tag history:

@@ -4,6 +4,8 @@ package model
 
 import (
 	"path"
+	"strconv"
+	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -66,6 +68,11 @@ type HuggingfaceTransformersParam struct {
 }
 
 type VLLMParam struct {
+	RayLeaderCommand string
+	RayLeaderParams  map[string]string
+	RayWorkerCommand string
+	RayWorkerParams  map[string]string
+	// BaseCommand is the command used to start the inference server.
 	BaseCommand string
 	// The model name used in the openai serving API.
 	// see https://platform.openai.com/docs/api-reference/chat/create#chat-create-model.
@@ -138,7 +145,7 @@ func (v *VLLMParam) DeepCopy() VLLMParam {
 
 // builds the container command:
 // eg. torchrun <TORCH_PARAMS> <OPTIONAL_RDZV_PARAMS> baseCommand <MODEL_PARAMS>
-func (p *PresetParam) GetInferenceCommand(runtime RuntimeName, skuNumGPUs string, configVolume *corev1.VolumeMount) []string {
+func (p *PresetParam) GetInferenceCommand(runtime RuntimeName, skuNumGPUs string, numNodes int, configVolume *corev1.VolumeMount) []string {
 	switch runtime {
 	case RuntimeNameHuggingfaceTransformers:
 		torchCommand := utils.BuildCmdStr(p.Transformers.BaseCommand, p.Transformers.TorchRunParams, p.Transformers.TorchRunRdzvParams)
@@ -148,12 +155,29 @@ func (p *PresetParam) GetInferenceCommand(runtime RuntimeName, skuNumGPUs string
 		if p.VLLM.ModelName != "" {
 			p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 		}
-		if !p.DisableTensorParallelism {
-			p.VLLM.ModelRunParams["tensor-parallel-size"] = skuNumGPUs
-		}
 		if configVolume != nil {
 			p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(configVolume.MountPath, ConfigfileNameVLLM)
 		}
+		if !p.DisableTensorParallelism {
+			p.VLLM.ModelRunParams["tensor-parallel-size"] = skuNumGPUs
+			p.VLLM.ModelRunParams["pipeline-parallel-size"] = strconv.Itoa(numNodes)
+			// setup multi-node Ray cluster and assume pod index 0 is the leader
+			// - leader: start as ray leader along with the model run command
+			// - worker: start as ray worker - don't need to provide the model run command
+			if numNodes > 1 {
+				rayLeaderCommand := utils.BuildCmdStr(p.VLLM.RayLeaderCommand, p.VLLM.RayLeaderParams)
+				modelRunCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
+				result := utils.BuildIfElseCmdStr(
+					"[ \"$(echo $HOSTNAME | grep -o '[^-]*$')\" = \"0\" ]",          // initiate as ray leader if the pod index is 0, otherwise initiate as ray worker
+					strings.Join([]string{rayLeaderCommand, modelRunCommand}, "; "), // command if true
+					map[string]string{},     // no parameters needed since the command is already built above
+					p.VLLM.RayWorkerCommand, // command if false
+					p.VLLM.RayWorkerParams,  // parameters for the false command
+				)
+				return utils.ShellCmd(result)
+			}
+		}
+
 		modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
 		return utils.ShellCmd(modelCommand)
 	default:

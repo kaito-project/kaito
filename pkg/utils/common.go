@@ -112,6 +112,12 @@ func BuildCmdStr(baseCommand string, runParams ...map[string]string) string {
 	return updatedBaseCommand
 }
 
+func BuildIfElseCmdStr(condition string, trueCmd string, trueCmdParams map[string]string, falseCmd string, falseCmdParams map[string]string) string {
+	trueCmdStr := BuildCmdStr(trueCmd, trueCmdParams)
+	falseCmdStr := BuildCmdStr(falseCmd, falseCmdParams)
+	return fmt.Sprintf("if %s; then %s; else %s; fi", condition, trueCmdStr, falseCmdStr)
+}
+
 func ShellCmd(command string) []string {
 	return []string{
 		"/bin/sh",

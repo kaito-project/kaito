@@ -173,6 +173,13 @@ func GenerateStatefulSetManifest(ctx context.Context, workspaceObj *kaitov1beta1
 							ReadinessProbe: readinessProbe,
 							Ports:          containerPorts,
 							VolumeMounts:   volumeMount,
+							SecurityContext: &corev1.SecurityContext{
+								Capabilities: &corev1.Capabilities{
+									Add: []corev1.Capability{
+										"IPC_LOCK",
+									},
+								},
+							},
 						},
 					},
 					Tolerations: tolerations,

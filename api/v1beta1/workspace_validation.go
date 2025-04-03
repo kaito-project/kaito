@@ -26,6 +26,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -399,6 +400,12 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
+// InferenceConfig represents the structure of the inference configuration
+type InferenceConfig struct {
+	MaxModelLength int `yaml:"max_model_length"`
+	// Add other fields as needed
+}
+
 func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
@@ -462,10 +469,38 @@ func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string)
 		return errs
 	}
 
-	// basic check here, it's hard to validate the content of the configmap in controller
-	_, ok := cm.Data["inference_config.yaml"]
+	// Check if inference_config.yaml exists
+	inferenceConfigYAML, ok := cm.Data["inference_config.yaml"]
 	if !ok {
 		return apis.ErrMissingField("inference_config.yaml in ConfigMap")
+	}
+
+	// Parse the inference config
+	var inferenceConfig InferenceConfig
+	if err := yaml.Unmarshal([]byte(inferenceConfigYAML), &inferenceConfig); err != nil {
+		return apis.ErrGeneric(fmt.Sprintf("Failed to parse inference_config.yaml: %v", err), "inference_config.yaml")
+	}
+
+	// Get the resource spec to check GPU configuration
+	resourceSpec := i.Resource
+	instanceType := string(resourceSpec.InstanceType)
+
+	// Get SKU handler to check GPU configuration
+	skuHandler, err := utils.GetSKUHandler()
+	if err != nil {
+		return apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType")
+	}
+
+	gpuConfigs := skuHandler.GetGPUConfigs()
+	if skuConfig, exists := gpuConfigs[instanceType]; exists {
+		// Check if this is a multi-GPU instance with less than 20GB per GPU
+		gpuMemPerGPU := skuConfig.GPUMem / skuConfig.GPUCount
+		if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20 {
+			// For multi-GPU instances with less than 20GB per GPU, max_model_length is required
+			if inferenceConfig.MaxModelLength == 0 { // TODO: Fix to get field correctly
+				return apis.ErrMissingField("max_model_length in inference_config.yaml is required for multi-GPU instances with less than 20GB per GPU")
+			}
+		}
 	}
 
 	return errs

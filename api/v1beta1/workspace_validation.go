@@ -406,7 +406,7 @@ type InferenceConfig struct {
 	// Other fields can be added as needed
 }
 
-func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (errs *apis.FieldError) {
+func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, instanceType string) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -447,7 +447,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (e
 	}
 
 	if i.Config != "" {
-		errs = errs.Also(i.validateConfigMap(ctx, namespace))
+		errs = errs.Also(i.validateConfigMap(ctx, namespace, instanceType))
 	}
 
 	return errs

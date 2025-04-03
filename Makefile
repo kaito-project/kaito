@@ -138,9 +138,11 @@ GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 120m
 GINKGO_ARGS ?= --label-filter="$(GINKGO_LABEL)" -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT) --fail-fast
 
+.PHONY: $(E2E_TEST)
 $(E2E_TEST):
 	(cd test/e2e && go test -c . -o $(E2E_TEST))
 
+.PHONY: $(RAGENGINE_E2E_TEST)
 $(RAGENGINE_E2E_TEST):
 	(cd test/rage2e && go test -c . -o $(RAGENGINE_E2E_TEST))
 

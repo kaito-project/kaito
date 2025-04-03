@@ -215,6 +215,30 @@ func qloraConfigMapManifest() *v1.ConfigMap {
 	}
 }
 
+func defaultInferenceConfigMapManifest() *v1.ConfigMap {
+	return &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      DefaultInferenceConfigTemplate,
+			Namespace: DefaultReleaseNamespace,
+		},
+		Data: map[string]string{
+			"inference_config.yaml": `# Maximum number of steps to find the max available seq len fitting in the GPU memory.
+max_probe_steps: 6
+
+vllm:
+  cpu-offload-gb: 0
+  gpu-memory-utilization: 0.95
+  swap-space: 4
+
+  # max-seq-len-to-capture: 8192
+  # num-scheduler-steps: 1
+  # enable-chunked-prefill: false
+  # max-model-len: 2048
+  # see https://docs.vllm.ai/en/stable/serving/engine_args.html for more options.`,
+		},
+	}
+}
+
 func TestResourceSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
 	tests := []struct {
@@ -521,13 +545,19 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
 	ctx := context.Background()
 
+	// Set environment variables
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		defaultInferenceConfigMapManifest(),
 		&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "valid-config",
+				Name:      "valid-config",
+				Namespace: DefaultReleaseNamespace,
 			},
 			Data: map[string]string{
 				"inference_config.yaml": "a: b",
@@ -535,7 +565,8 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 		},
 		&v1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "missing-key-config",
+				Name:      "missing-key-config",
+				Namespace: DefaultReleaseNamespace,
 			},
 			Data: map[string]string{
 				"other_key": "some value",
@@ -642,7 +673,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			expectErrs: true,
 		},
 		{
-			name: "Adapeters names are duplicated",
+			name: "Adapters names are duplicated",
 			inferenceSpec: func() *InferenceSpec {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{
@@ -725,6 +756,8 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			// Set CLOUD_PROVIDER environment variable for all test cases
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			// If the test expects an error, setup defer function to catch the panic.
 			if tc.expectErrs {
 				defer func() {
@@ -737,7 +770,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 					}
 				}()
 			}
-			errs := tc.inferenceSpec.validateCreate(ctx, "", model.RuntimeNameHuggingfaceTransformers)
+			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, "Standard_NC24ads_A100_v4", model.RuntimeNameHuggingfaceTransformers)
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -1010,13 +1043,27 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 }
 
 func TestWorkspaceValidateName(t *testing.T) {
+	RegisterValidationTestModels()
+
+	// Set environment variables
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+
+	// Create fake client with default ConfigMap
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		defaultInferenceConfigMapManifest(),
+	).Build()
+	k8sclient.SetGlobalClient(client)
+
 	testWorkspace := &Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
 		},
 		Resource: ResourceSpec{
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC6s_v3",
 			Count:        pointerToInt(1),
 		},
 		Inference: &InferenceSpec{
@@ -1027,8 +1074,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 			},
 		},
 	}
-	RegisterValidationTestModels()
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
 	tests := []struct {
 		name          string
 		workspaceName string
@@ -1041,7 +1087,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 			wantErr:       false,
 		},
 		{
-			name:          "Name with invdalid characters",
+			name:          "Name with invalid characters",
 			workspaceName: "phi-3.5-mini",
 			wantErr:       true,
 			errField:      "name",
@@ -1641,6 +1687,201 @@ func TestDataDestinationValidateUpdate(t *testing.T) {
 					if !strings.Contains(errs.Error(), field) {
 						t.Errorf("validateUpdate() expected errors to contain field %s, but got %s", field, errs.Error())
 					}
+				}
+			}
+		})
+	}
+}
+
+func TestInferenceConfigMapValidation(t *testing.T) {
+	RegisterValidationTestModels()
+	ctx := context.Background()
+
+	// Create fake client with test ConfigMaps
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		// ConfigMap with max-model-len set
+		&v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "valid-config-with-max-model-len",
+				Namespace: DefaultReleaseNamespace,
+			},
+			Data: map[string]string{
+				"inference_config.yaml": `
+vllm:
+  max-model-len: 2048
+  gpu-memory-utilization: 0.95
+`,
+			},
+		},
+		// ConfigMap without max-model-len set
+		&v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "invalid-config-without-max-model-len",
+				Namespace: DefaultReleaseNamespace,
+			},
+			Data: map[string]string{
+				"inference_config.yaml": `
+vllm:
+  gpu-memory-utilization: 0.95
+`,
+			},
+		},
+		// ConfigMap with empty vllm section
+		&v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "invalid-config-empty-vllm",
+				Namespace: DefaultReleaseNamespace,
+			},
+			Data: map[string]string{
+				"inference_config.yaml": `
+vllm: {}
+`,
+			},
+		},
+		// ConfigMap with vllm section missing
+		&v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "invalid-config-no-vllm",
+				Namespace: DefaultReleaseNamespace,
+			},
+			Data: map[string]string{
+				"inference_config.yaml": `
+other_field: value
+`,
+			},
+		},
+	).Build()
+	k8sclient.SetGlobalClient(client)
+
+	tests := []struct {
+		name          string
+		inferenceSpec *InferenceSpec
+		resourceSpec  *ResourceSpec
+		errContent    string // Content expected error to include, if any
+		expectErrs    bool
+	}{
+		{
+			name: "Multi-GPU with <20GB per GPU and max-model-len set",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
+				},
+				Config: "valid-config-with-max-model-len",
+			},
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+				Count:        pointerToInt(1),
+			},
+			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "Multi-GPU with <20GB per GPU and max-model-len missing",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
+				},
+				Config: "invalid-config-without-max-model-len",
+			},
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+				Count:        pointerToInt(1),
+			},
+			errContent: "max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU",
+			expectErrs: true,
+		},
+		{
+			name: "Multi-GPU with <20GB per GPU and empty vllm section",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
+				},
+				Config: "invalid-config-empty-vllm",
+			},
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+				Count:        pointerToInt(1),
+			},
+			errContent: "max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU",
+			expectErrs: true,
+		},
+		{
+			name: "Multi-GPU with <20GB per GPU and vllm section missing",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
+				},
+				Config: "invalid-config-no-vllm",
+			},
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+				Count:        pointerToInt(1),
+			},
+			errContent: "max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU",
+			expectErrs: true,
+		},
+		{
+			name: "Single-GPU instance (no max-model-len required)",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
+				},
+				Config: "invalid-config-without-max-model-len",
+			},
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NV6", // 1 GPU with 8GB
+				Count:        pointerToInt(1),
+			},
+			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "Multi-GPU with >=20GB per GPU (no max-model-len required)",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
+				},
+				Config: "invalid-config-without-max-model-len",
+			},
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC48ads_A100_v4", // 2 GPUs with 80GB each (160GB total)
+				Count:        pointerToInt(1),
+			},
+			errContent: "",
+			expectErrs: false,
+		},
+	}
+
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// Validate the inference spec
+			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, tc.resourceSpec.InstanceType, model.RuntimeNameHuggingfaceTransformers)
+			hasErrs := errs != nil
+
+			if hasErrs != tc.expectErrs {
+				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
+			}
+
+			if hasErrs && tc.errContent != "" {
+				errMsg := errs.Error()
+				if !strings.Contains(errMsg, tc.errContent) {
+					t.Errorf("validateCreate() error message = %v, expected to contain = %v", errMsg, tc.errContent)
 				}
 			}
 		})

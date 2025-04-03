@@ -13,16 +13,12 @@ import (
 
 	"github.com/distribution/reference"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -67,7 +63,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference, bypassResourceChecks).ViaField("resource"),
-				w.Inference.validateCreate(ctx, w.Namespace, runtime).ViaField("inference"))
+				w.Inference.validateCreate(ctx, w.Namespace, w.Resource.InstanceType, runtime).ViaField("inference"))
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
@@ -421,7 +417,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
-func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, runtime model.RuntimeName) (errs *apis.FieldError) {
+func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, instanceType string, runtime model.RuntimeName) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -440,10 +436,10 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, ru
 			// Need to return here. Otherwise, a panic will be hit when doing following checks.
 			return errs
 		}
+		modelPreset := plugin.KaitoModelRegister.MustGet(string(i.Preset.Name))
 		// Validate private preset has private image specified
-		modelPreset := plugin.KaitoModelRegister.MustGet(presetName)
 		if modelPreset.GetInferenceParameters().ImageAccessMode == string(ModelImageAccessModePrivate) &&
-			i.Preset.PresetMeta.AccessMode != ModelImageAccessModePrivate {
+			i.Preset.AccessMode != ModelImageAccessModePrivate {
 			errs = errs.Also(apis.ErrGeneric("This preset only supports private AccessMode, AccessMode must be private to continue"))
 		}
 		err := modelPreset.GetInferenceParameters().Validate(model.RuntimeContext{
@@ -454,7 +450,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, ru
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("vLLM runtime validation: %v", err)))
 		}
 		// Additional validations for Preset
-		if i.Preset.PresetMeta.AccessMode == ModelImageAccessModePrivate && i.Preset.PresetOptions.Image == "" {
+		if i.Preset.AccessMode == ModelImageAccessModePrivate && i.Preset.Image == "" {
 			errs = errs.Also(apis.ErrGeneric("When AccessMode is private, an image must be provided in PresetOptions"))
 		}
 		// Note: we don't enforce private access mode to have image secrets, in case anonymous pulling is enabled
@@ -469,33 +465,19 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, ru
 		errs = errs.Also(validateDuplicateName(i.Adapters, nameMap))
 	}
 
-	if i.Config != "" {
-		errs = errs.Also(i.validateConfigMap(ctx, namespace))
-	}
-
-	return errs
-}
-
-func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string) (errs *apis.FieldError) {
-	var cm corev1.ConfigMap
-	if k8sclient.Client == nil {
-		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
-		return errs
-	}
-	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: i.Config, Namespace: namespace}, &cm)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("ConfigMap '%s' specified in 'config' not found in namespace '%s'", i.Config, namespace), "config"))
-		} else {
-			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get ConfigMap '%s' in namespace '%s': %v", i.Config, namespace, err), "config"))
+	if i.Config == "" {
+		klog.InfoS("Inference config not specified. Using default:", DefaultInferenceConfigTemplate)
+		releaseNamespace, err := utils.GetReleaseNamespace()
+		if err != nil {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
 		}
-		return errs
-	}
-
-	// basic check here, it's hard to validate the content of the configmap in controller
-	_, ok := cm.Data["inference_config.yaml"]
-	if !ok {
-		return apis.ErrMissingField("inference_config.yaml in ConfigMap")
+		if err := i.validateConfigMap(ctx, releaseNamespace, DefaultInferenceConfigTemplate, instanceType); err != nil {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
+		}
+	} else {
+		if err := i.validateConfigMap(ctx, namespace, i.Config, instanceType); err != nil {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
+		}
 	}
 
 	return errs

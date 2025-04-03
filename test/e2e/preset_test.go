@@ -24,6 +24,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -264,6 +266,7 @@ func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNo
 
 func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 	By("Creating workspace", func() {
+		createConfigForWorkspace(workspaceObj)
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
 		}, utils.PollTimeout, utils.PollInterval).
@@ -276,6 +279,43 @@ func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 			}, workspaceObj, &client.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
+	})
+}
+
+func createConfigForWorkspace(workspaceObj *kaitov1beta1.Workspace) {
+	if workspaceObj.Inference == nil || workspaceObj.Resource.InstanceType == "" {
+		return
+	}
+
+	handler := sku.GetCloudSKUHandler(consts.AzureCloudName)
+	gpuConfig, ok := handler.GetGPUConfigs()[workspaceObj.Resource.InstanceType]
+	if !ok {
+		return
+	}
+	if gpuConfig.GPUCount <= 1 {
+		return
+	}
+
+	By("Creating config file", func() {
+		cm := corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "inference-config",
+				Namespace: workspaceObj.Namespace,
+			},
+			Data: map[string]string{
+				"inference_config.yaml": `
+vllm:
+  max-model-len: 1024
+`,
+			},
+		}
+		workspaceObj.Inference.Config = cm.Name
+
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Create(ctx, &cm, &client.CreateOptions{})
+			return client.IgnoreAlreadyExists(err)
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create configmap %s", cm.Name)
 	})
 }
 

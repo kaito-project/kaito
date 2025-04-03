@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-package v1beta1
+package v1alpha1
 
 import (
 	"context"
@@ -242,9 +242,12 @@ func validateTuningConfigMapSchema(cm *corev1.ConfigMap) *apis.FieldError {
 
 	// Check if valid sections
 	for section := range trainingConfigMap {
-		sectionStr := section.(string)
+		sectionStr, ok := section.(string)
+		if !ok {
+			return apis.ErrInvalidValue("Section key must be a string", "training_config.yaml")
+		}
 		if !utils.Contains(recognizedSections, sectionStr) {
-			return apis.ErrInvalidValue(fmt.Sprintf("Unrecognized section: %s", section), "training_config.yaml")
+			return apis.ErrInvalidValue(fmt.Sprintf("Unrecognized section: %s", sectionStr), "training_config.yaml")
 		}
 	}
 	return nil

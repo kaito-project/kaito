@@ -30,10 +30,23 @@ RUN echo 'tzdata tzdata/Areas select America' | debconf-set-selections && \
 # Install other dependencies
 RUN apt-get -qq update && \
     apt-get -qq install -y --no-install-recommends \
+    autoconf \
+    automake \
     curl \
+    git \
     libibverbs-dev \
+    libtool && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+RUN git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git && \
+    cd nccl-rdma-sharp-plugins && \
+    ./autogen.sh && \
+    ./configure --prefix=/usr --with-cuda=/usr/local/cuda-12 && \
+    make && \
+    make install && \
+    cd /workspace && \
+    rm -rf nccl-rdma-sharp-plugins
 
 # Model weights
 COPY ${WEIGHTS_PATH} /workspace/weights

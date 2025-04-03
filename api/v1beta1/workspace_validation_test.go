@@ -1788,15 +1788,15 @@ other_field: value
 		t.Run(tc.name, func(t *testing.T) {
 			// Set the resource spec on the inference spec
 			tc.inferenceSpec.Resource = *tc.resourceSpec
-			
+
 			// Validate the inference spec
 			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace)
 			hasErrs := errs != nil
-			
+
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
 			}
-			
+
 			if hasErrs && tc.errContent != "" {
 				errMsg := errs.Error()
 				if !strings.Contains(errMsg, tc.errContent) {

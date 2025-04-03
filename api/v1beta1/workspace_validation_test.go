@@ -642,7 +642,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			expectErrs: true,
 		},
 		{
-			name: "Adapeters names are duplicated",
+			name: "Adapters names are duplicated",
 			inferenceSpec: func() *InferenceSpec {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{

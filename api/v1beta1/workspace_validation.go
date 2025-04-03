@@ -58,7 +58,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.Inference != nil {
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference).ViaField("resource"),
-				w.Inference.validateCreate(ctx, w.Namespace).ViaField("inference"))
+				w.Inference.validateCreate(ctx, w.Namespace, string(w.Resource.InstanceType)).ViaField("inference"))
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
@@ -367,7 +367,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec) (er
 	} else {
 		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
+		if provider == consts.AzureCloudName && (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}
@@ -453,7 +453,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (e
 	return errs
 }
 
-func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string) (errs *apis.FieldError) {
+func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string, instanceType string) (errs *apis.FieldError) {
 	var cm corev1.ConfigMap
 	if k8sclient.Client == nil {
 		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
@@ -480,10 +480,6 @@ func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string)
 	if err := yaml.Unmarshal([]byte(inferenceConfigYAML), &inferenceConfig); err != nil {
 		return apis.ErrGeneric(fmt.Sprintf("Failed to parse inference_config.yaml: %v", err), "inference_config.yaml")
 	}
-
-	// Get the resource spec to check GPU configuration
-	resourceSpec := i.Resource
-	instanceType := string(resourceSpec.InstanceType)
 
 	// Get SKU handler to check GPU configuration
 	skuHandler, err := utils.GetSKUHandler()

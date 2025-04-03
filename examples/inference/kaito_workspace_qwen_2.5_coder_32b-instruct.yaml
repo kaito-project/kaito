@@ -1,0 +1,12 @@
+apiVersion: kaito.sh/v1alpha1
+kind: Workspace
+metadata:
+  name: workspace-qwen-2.5-coder-32b
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: qwen
+inference:
+  preset:
+    name: qwen2.5-coder-32b-instruct

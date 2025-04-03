@@ -48,7 +48,7 @@ AZURE_KARPENTER_MSI_NAME ?= azkarpenterIdentity
 RUN_LLAMA_13B ?= false
 AI_MODELS_REGISTRY ?= modelregistry.azurecr.io
 AI_MODELS_REGISTRY_SECRET ?= modelregistry
-SUPPORTED_MODELS_YAML_PATH ?= ~/runner/_work/kaito/kaito/presets/workspace/models/supported_models.yaml
+SUPPORTED_MODELS_YAML_PATH ?= $(ROOT_DIR)/presets/workspace/models/supported_models.yaml
 
 ## AWS parameters
 CLUSTER_CONFIG_FILE ?= ./docs/aws/clusterconfig.yaml.template

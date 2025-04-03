@@ -1,4 +1,4 @@
-name: publish_helm_chart
+name: Publish helm chart
 
 on:
   repository_dispatch:

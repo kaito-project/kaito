@@ -4,7 +4,7 @@ deployment:
   metadata:
     name: WORKLOAD_NAME
   spec:
-    progressDeadlineSeconds: 1800
+    progressDeadlineSeconds: 3600
     replicas: 1
     selector:
       matchLabels:
@@ -74,7 +74,7 @@ config:
 
       vllm:
         cpu-offload-gb: 0
-        gpu-memory-utilization: 0.95
+        gpu-memory-utilization: 0.9
         swap-space: 4
         served-model-name: test
         dtype: float16

@@ -15,7 +15,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --dtype float16 --chat-template /workspace/chat_templates/falcon-instruct.jinja",
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16 --chat-template /workspace/chat_templates/falcon-instruct.jinja",
             "gpu_count": 1
           }
         }
@@ -34,7 +34,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --dtype float16 --chat-template /workspace/chat_templates/falcon-instruct.jinja",
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16 --chat-template /workspace/chat_templates/falcon-instruct.jinja",
             "gpu_count": 1
           }
         }
@@ -91,7 +91,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --dtype float16 --chat-template /workspace/chat_templates/mistral-instruct.jinja",
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16 --chat-template /workspace/chat_templates/mistral-instruct.jinja",
             "gpu_count": 1
           }
         }
@@ -110,7 +110,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --dtype float16",
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16",
             "gpu_count": 1
           }
         }
@@ -129,7 +129,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --dtype float16",
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16",
             "gpu_count": 1
           }
         }
@@ -148,7 +148,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --dtype float16",
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16",
             "gpu_count": 1
           }
         }
@@ -167,7 +167,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --dtype float16",
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --kaito-max-probe-steps 6 --dtype float16",
             "gpu_count": 1
           }
         }
@@ -186,7 +186,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --dtype float16 --tensor-parallel-size 2",
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16 --tensor-parallel-size 2",
             "gpu_count": 2
           }
         }
@@ -205,8 +205,46 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --dtype float16 --max-model-len 1024 --tensor-parallel-size 2",
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --dtype float16 --max-model-len 1024 --tensor-parallel-size 2",
             "gpu_count": 2
+          }
+        }
+      },
+      {
+        "name": "phi-4",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC24ads_A100_v4",
+        "node-osdisk-size": 100,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "phi4",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml",
+            "gpu_count": 1
+          }
+        }
+      },
+      {
+        "name": "phi-4-mini-instruct",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC6s_v3",
+        "node-osdisk-size": 100,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "phi4mini",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --dtype float16",
+            "gpu_count": 1
           }
         }
       },
@@ -226,6 +264,64 @@
           },
           "vllm": {
             "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --tensor-parallel-size 2",
+            "gpu_count": 2
+          }
+        }
+      },
+      {
+        "name": "qwen2.5-coder-32b-instruct",
+        "workload": "qwen2-5-coder-32b-instruct",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC24ads_A100_v4",
+        "node-osdisk-size": 200,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "qwen25c32",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml",
+            "gpu_count": 1
+          }
+        }
+      },
+      {
+        "name": "deepseek-r1-distill-qwen-14b",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC24ads_A100_v4",
+        "node-osdisk-size": 200,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "dsqwen14b",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml",
+            "gpu_count": 1
+          }
+        }
+      },
+      {
+        "name": "deepseek-r1-distill-llama-8b",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC12s_v3",
+        "node-osdisk-size": 100,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "dsqwen8b",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 2 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 2
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --tensor-parallel-size 2 --max-model-len 32768",
             "gpu_count": 2
           }
         }

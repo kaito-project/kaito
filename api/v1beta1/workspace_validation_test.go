@@ -737,7 +737,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 					}
 				}()
 			}
-			errs := tc.inferenceSpec.validateCreate(ctx, "")
+			errs := tc.inferenceSpec.validateCreate(ctx, "", "Standard_NC24ads_A100_v4")
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -1790,7 +1790,7 @@ other_field: value
 			tc.inferenceSpec.Resource = *tc.resourceSpec
 
 			// Validate the inference spec
-			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace)
+			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, tc.resourceSpec.InstanceType)
 			hasErrs := errs != nil
 
 			if hasErrs != tc.expectErrs {

@@ -402,7 +402,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 
 // InferenceConfig represents the structure of the inference configuration
 type InferenceConfig struct {
-	VLLM map[string]interface{} `yaml:"vllm"`
+	VLLM map[string]string `yaml:"vllm"`
 	// Other fields can be added as needed
 }
 
@@ -494,7 +494,7 @@ func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string,
 		if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20 {
 			// For multi-GPU instances with less than 20GB per GPU, max-model-len is required
 			maxModelLen, exists := inferenceConfig.VLLM["max-model-len"]
-			if !exists || maxModelLen == nil {
+			if !exists || maxModelLen == "" {
 				return apis.ErrMissingField("max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU")
 			}
 		}

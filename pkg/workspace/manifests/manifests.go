@@ -126,6 +126,13 @@ func GenerateStatefulSetManifest(ctx context.Context, workspaceObj *kaitov1beta1
 	labelselector := &v1.LabelSelector{
 		MatchLabels: selector,
 	}
+	// Add PYTORCH_CUDA_ALLOC_CONF environment variable
+	envVars := []corev1.EnvVar{
+		{
+			Name:  "PYTORCH_CUDA_ALLOC_CONF",
+			Value: "expandable_segments:True",
+		},
+	}
 
 	ss := &appsv1.StatefulSet{
 		ObjectMeta: v1.ObjectMeta{
@@ -173,6 +180,7 @@ func GenerateStatefulSetManifest(ctx context.Context, workspaceObj *kaitov1beta1
 							ReadinessProbe: readinessProbe,
 							Ports:          containerPorts,
 							VolumeMounts:   volumeMount,
+							Env:            envVars,
 						},
 					},
 					Tolerations: tolerations,
@@ -276,8 +284,14 @@ func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1beta1.
 	labelselector := &v1.LabelSelector{
 		MatchLabels: selector,
 	}
-	initContainers := []corev1.Container{}
 	envs := []corev1.EnvVar{}
+	// Add PYTORCH_CUDA_ALLOC_CONF environment variable
+	envs = append(envs, corev1.EnvVar{
+		Name:  "PYTORCH_CUDA_ALLOC_CONF",
+		Value: "expandable_segments:True",
+	})
+
+	initContainers := []corev1.Container{}
 	if len(workspaceObj.Inference.Adapters) > 0 {
 		initContainers, envs = GenerateInitContainers(workspaceObj, volumeMount)
 	}

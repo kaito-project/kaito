@@ -725,6 +725,8 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			// Set CLOUD_PROVIDER environment variable for all test cases
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			// If the test expects an error, setup defer function to catch the panic.
 			if tc.expectErrs {
 				defer func() {
@@ -1786,9 +1788,6 @@ other_field: value
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set the resource spec on the inference spec
-			tc.inferenceSpec.Resource = *tc.resourceSpec
-
 			// Validate the inference spec
 			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, tc.resourceSpec.InstanceType)
 			hasErrs := errs != nil

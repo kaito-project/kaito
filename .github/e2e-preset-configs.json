@@ -167,7 +167,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --kaito-max-probe-steps 6 --dtype float16",
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --dtype float16",
             "gpu_count": 1
           }
         }

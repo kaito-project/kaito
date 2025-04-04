@@ -420,7 +420,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				totalGPUMemoryRequirement = tc.modelTotalGPUMemory
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
-				errs := tc.resourceSpec.validateCreateWithInference(&spec)
+				errs := tc.resourceSpec.validateCreateWithInference(&spec, false)
 				hasErrs := errs != nil
 				if hasErrs != tc.expectErrs {
 					t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)

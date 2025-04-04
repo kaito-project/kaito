@@ -30,6 +30,9 @@ const (
 
 	// AnnotationWorkspaceRuntime is the annotation for runtime selection.
 	AnnotationWorkspaceRuntime = KAITOPrefix + "runtime"
+
+	// AnnotationBypassResourceChecks allows bypassing resource requirement checks like GPU memory.
+	AnnotationBypassResourceChecks = KAITOPrefix + "bypass-resource-checks"
 )
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.

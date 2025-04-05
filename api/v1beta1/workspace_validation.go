@@ -60,7 +60,6 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			if w.GetAnnotations() != nil {
 				if _, exists := w.GetAnnotations()[AnnotationBypassResourceChecks]; exists {
 					bypassResourceChecks = true
-					klog.Warningf("Bypassing resource requirement checks due to annotation %s", AnnotationBypassResourceChecks)
 				}
 			}
 
@@ -335,7 +334,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 			// Separate the checks for specific error messages
 			if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
 				if bypassResourceChecks {
-					klog.Warningf("Insufficient number of GPUs (bypassed): Instance type %s provides %s, but preset %s requires at least %d",
+					klog.Warningf("Bypassing resource check: Insufficient number of GPUs detected but continuing due to bypass flag. Instance type %s provides %s, but preset %s requires at least %d",
 						instanceType, machineTotalNumGPUs.String(), presetName, modelGPUCount.Value())
 				} else {
 					errs = errs.Also(apis.ErrInvalidValue(
@@ -353,7 +352,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 
 			if machinePerGPUMemory.Cmp(modelPerGPUMemory) < 0 {
 				if bypassResourceChecks {
-					klog.Warningf("Insufficient per GPU memory (bypassed): Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
+					klog.Warningf("Bypassing resource check: Insufficient per GPU memory: Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
 						instanceType, machinePerGPUMemory.String(), presetName, modelPerGPUMemory.String())
 				} else {
 					errs = errs.Also(apis.ErrInvalidValue(
@@ -371,7 +370,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 
 			if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
 				if bypassResourceChecks {
-					klog.Warningf("Insufficient total GPU memory (bypassed): Instance type %s has a total of %s, but preset %s requires at least %s",
+					klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
 						instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
 				} else {
 					errs = errs.Also(apis.ErrInvalidValue(

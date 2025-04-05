@@ -352,7 +352,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 
 			if machinePerGPUMemory.Cmp(modelPerGPUMemory) < 0 {
 				if bypassResourceChecks {
-					klog.Warningf("Bypassing resource check: Insufficient per GPU memory: Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
+					klog.Warningf("Bypassing resource check: Insufficient per GPU memory but continuing due to bypass flag. Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
 						instanceType, machinePerGPUMemory.String(), presetName, modelPerGPUMemory.String())
 				} else {
 					errs = errs.Also(apis.ErrInvalidValue(

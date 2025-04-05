@@ -380,7 +380,8 @@ func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImage
 	workspace.Tuning = &workspaceTuning
 	workspace.Tuning.Method = kaitov1beta1.TuningMethodQLora
 	workspace.Tuning.Input = &kaitov1beta1.DataSource{
-		Image: datasetImageName,
+		Image:            datasetImageName,
+		ImagePullSecrets: imagePullSecret,
 	}
 	workspace.Tuning.Output = &kaitov1beta1.DataDestination{
 		Image:           outputRegistry,

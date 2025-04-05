@@ -1,4 +1,4 @@
-name: pr-e2e-test
+name: E2E Tests
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}

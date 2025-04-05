@@ -6,7 +6,6 @@ package e2e
 import (
 	"context"
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"strconv"
@@ -526,36 +525,48 @@ func validateTuningResource(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputImage string, output string) {
+func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputImage string, outputImage string) {
 	By("Checking the tuning input and output", func() {
 		Eventually(func() bool {
-			var err error
+			var job batchv1.Job
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKeyFromObject(workspaceObj), &job); err != nil {
+				if client.IgnoreNotFound(err) == nil {
+					GinkgoWriter.Printf("Job not found: %v\n", err)
+					return false
+				}
 
-			job := &batchv1.Job{}
-			err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: workspaceObj.Namespace,
-				Name:      workspaceObj.Name,
-			}, job)
-
-			if err != nil {
-				GinkgoWriter.Printf("Error fetching resource: %v\n", err)
-				return false
+				Expect(err).NotTo(HaveOccurred())
 			}
 
-			image := job.Spec.Template.Spec.InitContainers[0].Image
-
-			expectedString1 := "docker build -t " + output
-			expectedString2 := "if docker push " + output + "; then"
-
-			var sidecarContainer v1.Container
-
-			for _, container := range job.Spec.Template.Spec.Containers {
-				if container.Name == "docker-sidecar" {
-					sidecarContainer = container
+			var pullerContainer *v1.Container
+			for _, container := range job.Spec.Template.Spec.InitContainers {
+				if strings.HasPrefix(container.Name, "puller") {
+					pullerContainer = &container
 					break
 				}
 			}
-			return image == inputImage && strings.Contains(sidecarContainer.Args[0], expectedString1) && strings.Contains(sidecarContainer.Args[0], expectedString2)
+
+			pullerSH := pullerContainer.Args[0]
+			if !strings.Contains(pullerSH, fmt.Sprintf("\n[ ! -z \"${IMG_REF}\" ] || IMG_REF='%s'\n", inputImage)) {
+				GinkgoWriter.Printf("Unexpected pullerSH: %s\n", pullerSH)
+				return false
+			}
+
+			var pusherContainer *v1.Container
+			for _, container := range job.Spec.Template.Spec.Containers {
+				if strings.HasPrefix(container.Name, "pusher") {
+					pusherContainer = &container
+					break
+				}
+			}
+
+			pusherSH := pusherContainer.Args[0]
+			if !strings.Contains(pusherSH, fmt.Sprintf("\n[ ! -z \"${IMG_REF}\" ] || IMG_REF='%s'\n", outputImage)) {
+				GinkgoWriter.Printf("Unexpected pusherSH: %s\n", pullerSH)
+				return false
+			}
+
+			return true
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for Tuning resource to be ready")
 	})
 }
@@ -563,28 +574,27 @@ func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputIma
 func validateACRTuningResultsUploaded(workspaceObj *kaitov1beta1.Workspace, jobName string) {
 	coreClient, err := utils.GetK8sClientset()
 	if err != nil {
-		log.Fatalf("Failed to create core client: %v", err)
-	}
-	namespace := workspaceObj.Namespace
-	podName, err := utils.GetPodNameForJob(coreClient, namespace, jobName)
-	if err != nil {
-		log.Fatalf("Failed to get pod name for job %s: %v", jobName, err)
+		Fail(fmt.Sprintf("Failed to create core client: %v", err))
 	}
 
 	for {
-		logs, err := utils.GetPodLogs(coreClient, namespace, podName, "docker-sidecar")
+		job, err := coreClient.BatchV1().Jobs(workspaceObj.Namespace).Get(ctx, jobName, metav1.GetOptions{})
 		if err != nil {
-			log.Printf("Failed to get logs from pod %s: %v", podName, err)
-			time.Sleep(10 * time.Second)
+			Fail(fmt.Sprintf("Failed to get job %s: %v", jobName, err))
+		}
+
+		if job.Status.CompletionTime.IsZero() {
+			time.Sleep(10 * time.Second) // Poll every 10 seconds
 			continue
 		}
 
-		if strings.Contains(logs, "Upload complete") {
-			fmt.Println("Upload complete")
+		if job.Status.Succeeded == 0 {
+			Fail("Job did not succeed")
 			break
 		}
 
-		time.Sleep(10 * time.Second) // Poll every 10 seconds
+		GinkgoWriter.Println("Upload complete")
+		break
 	}
 }
 
@@ -912,10 +922,6 @@ var _ = Describe("Workspace Preset", func() {
 
 	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		err := copySecretToNamespace(e2eACRSecret, namespaceName)
-		if err != nil {
-			log.Fatalf("Error copying secret: %v", err)
-		}
 		configMap := createCustomTuningConfigMapForE2E()
 		workspaceObj, jobName, outputRegistryUrl1 := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode)
 

@@ -176,7 +176,7 @@ jobs:
             echo "WORKLOAD_NAME=$WORKLOAD_NAME" >> $GITHUB_OUTPUT
             WORKLOAD_FILE=$WORKLOAD_NAME.yaml
             echo "WORKLOAD_FILE=$WORKLOAD_FILE" >> $GITHUB_OUTPUT
-            RESOURCE_TYPE=$(echo "${{ matrix.model.name }}" | grep -q "llama" && echo "statefulset" || echo "deployment")
+            RESOURCE_TYPE=$(echo "${{ matrix.model.name }}" | grep -q "llama-2" && echo "statefulset" || echo "deployment")
             echo "RESOURCE_TYPE=$RESOURCE_TYPE" >> $GITHUB_OUTPUT
 
             pip install pyyaml
@@ -225,7 +225,7 @@ jobs:
 
       - name: Wait for Resource to be ready
         run: |
-            kubectl rollout status ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} --timeout=1800s
+            kubectl rollout status ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} --timeout=3000s
 
       - name: Check Adapter Loading from Logs
         if: matrix.model.loads_adapter == true
@@ -246,7 +246,7 @@ jobs:
       - name: Test inference endpoint
         run: |
             echo "Testing inference for ${{ matrix.model.name }}"
-            if [[ "${{ matrix.model.name }}" == *"llama"* && "${{ matrix.model.name }}" == *"-chat"* ]]; then
+            if [[ "${{ matrix.model.name }}" == *"llama-2"* && "${{ matrix.model.name }}" == *"-chat"* ]]; then
                 kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
                 curl -s -X POST \
                 -H "Content-Type: application/json" \
@@ -267,7 +267,7 @@ jobs:
                     }
                 }' \
                 http://localhost:5000/chat
-            elif [[ "${{ matrix.model.name }}" == *"llama"* ]]; then
+            elif [[ "${{ matrix.model.name }}" == *"llama-2"* ]]; then
                 kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
                 curl -s -X POST \
                 -H "Content-Type: application/json" \

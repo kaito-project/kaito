@@ -1169,8 +1169,8 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 		{
 			name: "All fields valid",
 			tuningSpec: &TuningSpec{
-				Input:  &DataSource{Name: "valid-input", Image: "AZURE_ACR.azurecr.io/test:0.0.0"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: "secret"},
+				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/test:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: "secret"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
@@ -1180,8 +1180,8 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 		{
 			name: "Verify QLoRA Config",
 			tuningSpec: &TuningSpec{
-				Input:  &DataSource{Name: "valid-input", Image: "AZURE_ACR.azurecr.io/test:0.0.0"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: "secret"},
+				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/test:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: "secret"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodQLora,
 			},
@@ -1191,7 +1191,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 		{
 			name: "Missing Input",
 			tuningSpec: &TuningSpec{
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: ""},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: ""},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
@@ -1212,7 +1212,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			name: "Missing Preset",
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: ""},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: ""},
 				Method: TuningMethodLora,
 			},
 			wantErr:   true,
@@ -1222,7 +1222,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			name: "Invalid Preset",
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: ""},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: ""},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("invalid-preset")}},
 				Method: TuningMethodLora,
 			},
@@ -1233,7 +1233,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			name: "Invalid Method",
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: ""},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: ""},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: "invalid-method",
 			},
@@ -1243,8 +1243,8 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 		{
 			name: "Invalid Input Source Casing",
 			tuningSpec: &TuningSpec{
-				Input:  &DataSource{Name: "valid-input", Image: "AZURE_ACR.azurecr.io/INPUT:0.0.0"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/output:0.0.0", ImagePushSecret: "secret"},
+				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/INPUT:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/output:0.0.0", ImagePushSecret: "secret"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
@@ -1254,8 +1254,8 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 		{
 			name: "Invalid Output Destination Casing",
 			tuningSpec: &TuningSpec{
-				Input:  &DataSource{Name: "valid-input", Image: "AZURE_ACR.azurecr.io/input:0.0.0"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/OUTPUT:0.0.0", ImagePushSecret: "secret"},
+				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/input:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/OUTPUT:0.0.0", ImagePushSecret: "secret"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
@@ -1297,13 +1297,13 @@ func TestTuningSpecValidateUpdate(t *testing.T) {
 			name: "No changes",
 			oldTuning: &TuningSpec{
 				Input:  &DataSource{Name: "input1"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
 			newTuning: &TuningSpec{
 				Input:  &DataSource{Name: "input1"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
@@ -1370,7 +1370,7 @@ func TestDataSourceValidateCreate(t *testing.T) {
 		{
 			name: "Volume specified only",
 			dataSource: &DataSource{
-				Image: "AZURE_ACR.azurecr.io/test:0.0.0",
+				Image: "kaito.azurecr.io/test:0.0.0",
 			},
 			wantErr: false,
 		},
@@ -1387,7 +1387,7 @@ func TestDataSourceValidateCreate(t *testing.T) {
 				Image:            "data-image:latest",
 				ImagePullSecrets: []string{"imagePushSecret"},
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "Image without Tag Specified",
@@ -1395,7 +1395,16 @@ func TestDataSourceValidateCreate(t *testing.T) {
 				Image:            "aimodels.azurecr.io/data-image",
 				ImagePullSecrets: []string{"imagePushSecret"},
 			},
-			wantErr: true,
+			wantErr: false,
+		},
+		{
+			name: "Invalid image",
+			dataSource: &DataSource{
+				Image:            "!ValidImage",
+				ImagePullSecrets: []string{"imagePushSecret"},
+			},
+			wantErr:  true,
+			errField: "invalid reference format",
 		},
 		{
 			name:       "None specified",
@@ -1474,6 +1483,16 @@ func TestDataSourceValidateUpdate(t *testing.T) {
 			wantErr:   true,
 			errFields: []string{"Name"},
 		},
+		{
+			name:      "Invalid image",
+			oldSource: &DataSource{},
+			newSource: &DataSource{
+				Image:            "!ValidImage",
+				ImagePullSecrets: []string{"imagePushSecret"},
+			},
+			wantErr:   true,
+			errFields: []string{"invalid reference format"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -1530,7 +1549,7 @@ func TestDataDestinationValidateCreate(t *testing.T) {
 				Image:           "data-image:latest",
 				ImagePushSecret: "imagePushSecret",
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "Image without Tag Specified",
@@ -1538,7 +1557,16 @@ func TestDataDestinationValidateCreate(t *testing.T) {
 				Image:           "aimodels.azurecr.io/data-image",
 				ImagePushSecret: "imagePushSecret",
 			},
-			wantErr: true,
+			wantErr: false,
+		},
+		{
+			name: "Invalid image",
+			dataDestination: &DataDestination{
+				Image:           "!ValidImage",
+				ImagePushSecret: "imagePushSecret",
+			},
+			wantErr:  true,
+			errField: "invalid reference format",
 		},
 		// {
 		// 	name: "Both fields specified",
@@ -1588,6 +1616,16 @@ func TestDataDestinationValidateUpdate(t *testing.T) {
 				ImagePushSecret: "old-secret",
 			},
 			wantErr: false,
+		},
+		{
+			name:    "Invalid image",
+			oldDest: &DataDestination{},
+			newDest: &DataDestination{
+				Image:           "!ValidImage",
+				ImagePushSecret: "imagePushSecret",
+			},
+			wantErr:   true,
+			errFields: []string{"invalid reference format"},
 		},
 	}
 

@@ -59,6 +59,14 @@ inference:
             - "<MODEL_ID>"  # Replace <MODEL_ID> with the specific HuggingFace model identifier
             - "--torch_dtype"
             - "float16"  # Set to "float16" for compatibility with V100 GPUs; use "bfloat16" for A100, H100 or newer GPUs
+          # env:
+          #   HF_TOKEN is required only for private or gated Hugging Face models
+          #   Uncomment and configure this block if needed
+          #   - name: HF_TOKEN
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: hf-token-secret     # Replace with your Kubernetes Secret name
+          #         key: HF_TOKEN             # Replace with the specific key holding the token
           volumeMounts:
             - name: dshm
               mountPath: /dev/shm

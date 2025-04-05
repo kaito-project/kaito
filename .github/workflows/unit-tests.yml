@@ -1,4 +1,4 @@
-name: unit-tests
+name: Unit Tests
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}

@@ -1,4 +1,4 @@
-name: Push image to MCR
+name: Publish KAITO MCR image
 on:
   repository_dispatch:
     types: [ publish-mcr-image ]

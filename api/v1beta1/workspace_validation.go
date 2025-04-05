@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"gopkg.in/yaml.v3"
 	"github.com/distribution/reference"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -57,7 +58,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.Inference != nil {
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference).ViaField("resource"),
-				w.Inference.validateCreate(ctx, w.Namespace).ViaField("inference"))
+				w.Inference.validateCreate(ctx, w.Namespace, string(w.Resource.InstanceType)).ViaField("inference"))
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
@@ -363,7 +364,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec) (er
 	} else {
 		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
+		if provider == consts.AzureCloudName && (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}
@@ -396,7 +397,13 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
-func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (errs *apis.FieldError) {
+// InferenceConfig represents the structure of the inference configuration
+type InferenceConfig struct {
+	VLLM map[string]string `yaml:"vllm"`
+	// Other fields can be added as needed
+}
+
+func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, instanceType string) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -437,13 +444,13 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (e
 	}
 
 	if i.Config != "" {
-		errs = errs.Also(i.validateConfigMap(ctx, namespace))
+		errs = errs.Also(i.validateConfigMap(ctx, namespace, instanceType))
 	}
 
 	return errs
 }
 
-func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string) (errs *apis.FieldError) {
+func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string, instanceType string) (errs *apis.FieldError) {
 	var cm corev1.ConfigMap
 	if k8sclient.Client == nil {
 		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
@@ -459,10 +466,35 @@ func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string)
 		return errs
 	}
 
-	// basic check here, it's hard to validate the content of the configmap in controller
-	_, ok := cm.Data["inference_config.yaml"]
+	// Check if inference_config.yaml exists
+	inferenceConfigYAML, ok := cm.Data["inference_config.yaml"]
 	if !ok {
 		return apis.ErrMissingField("inference_config.yaml in ConfigMap")
+	}
+
+	// Parse the inference config
+	var inferenceConfig InferenceConfig
+	if err := yaml.Unmarshal([]byte(inferenceConfigYAML), &inferenceConfig); err != nil {
+		return apis.ErrGeneric(fmt.Sprintf("Failed to parse inference_config.yaml: %v", err), "inference_config.yaml")
+	}
+
+	// Get SKU handler to check GPU configuration
+	skuHandler, err := utils.GetSKUHandler()
+	if err != nil {
+		return apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType")
+	}
+
+	gpuConfigs := skuHandler.GetGPUConfigs()
+	if skuConfig, exists := gpuConfigs[instanceType]; exists {
+		// Check if this is a multi-GPU instance with less than 20GB per GPU
+		gpuMemPerGPU := skuConfig.GPUMem / skuConfig.GPUCount
+		if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20 {
+			// For multi-GPU instances with less than 20GB per GPU, max-model-len is required
+			maxModelLen, exists := inferenceConfig.VLLM["max-model-len"]
+			if !exists || maxModelLen == "" {
+				return apis.ErrMissingField("max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU")
+			}
+		}
 	}
 
 	return errs

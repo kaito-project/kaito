@@ -4,7 +4,7 @@
 #              --build-arg VERSION={{VERSION}} \
 #              --build-arg MODEL_TYPE={{MODEL_TYPE}} \
 
-FROM python:3.8-slim@sha256:95bfecec648356cdd0b28c8b00ce00009baff10c99d1126a82d1aca716453a1a
+FROM python:3.9-slim@sha256:caaf1af9e23adc6149e5d20662b267ead9505868ff07c7673dc4a7166951cfea
 WORKDIR /workspace
 
 # Install git
@@ -12,7 +12,7 @@ RUN apt-get update && \
     apt-get install -y git && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-    
+
 RUN git clone https://github.com/facebookresearch/llama.git
 
 WORKDIR /workspace/llama
@@ -30,4 +30,4 @@ ARG VERSION
 RUN echo $VERSION > /workspace/llama/version.txt
 
 ADD ${WEIGHTS_PATH} /workspace/llama/llama-2/weights
-ADD presets/inference/${MODEL_TYPE} /workspace/llama/llama-2
+ADD kaito/presets/workspace/inference/${MODEL_TYPE} /workspace/llama/llama-2

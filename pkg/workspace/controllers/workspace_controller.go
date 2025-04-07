@@ -14,29 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/workspace/tuning"
-	batchv1 "k8s.io/api/batch/v1"
-	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
-
-	"github.com/aws/karpenter-core/pkg/apis/v1alpha5"
 	"github.com/go-logr/logr"
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/machine"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
-	"github.com/kaito-project/kaito/pkg/workspace/inference"
-	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -45,12 +27,24 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/clock"
-	"knative.dev/pkg/apis"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	"github.com/kaito-project/kaito/pkg/workspace/manifests"
+	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 )
 
 const (
@@ -76,9 +70,9 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 }
 
 func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+	workspaceObj := &kaitov1beta1.Workspace{}
 	if err := c.Client.Get(ctx, req.NamespacedName, workspaceObj); err != nil {
-		if !errors.IsNotFound(err) {
+		if !apierrors.IsNotFound(err) {
 			klog.ErrorS(err, "failed to get workspace", "workspace", req.Name)
 		}
 		return reconcile.Result{}, client.IgnoreNotFound(err)
@@ -113,7 +107,7 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 	return result, nil
 }
 
-func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace) error {
+func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) error {
 	if !controllerutil.ContainsFinalizer(workspaceObj, consts.WorkspaceFinalizer) {
 		patch := client.MergeFrom(workspaceObj.DeepCopy())
 		controllerutil.AddFinalizer(workspaceObj, consts.WorkspaceFinalizer)
@@ -125,11 +119,11 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 	return nil
 }
 
-func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1alpha1.Workspace) (reconcile.Result, error) {
+func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
 	// Read ResourceSpec
 	err := c.applyWorkspaceResource(ctx, wObj)
 	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 			"workspaceFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return reconcile.Result{}, updateErr
@@ -143,7 +137,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 
 	if wObj.Tuning != nil {
 		if err = c.applyTuning(ctx, wObj); err != nil {
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
+			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 				"workspaceFailed", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return reconcile.Result{}, updateErr
@@ -154,7 +148,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		job := &batchv1.Job{}
 		if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, job); err == nil {
 			if job.Status.Succeeded > 0 {
-				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue,
+				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue,
 					"workspaceSucceeded", "workspace succeeds"); updateErr != nil {
 					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 					return reconcile.Result{}, updateErr
@@ -164,7 +158,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 				if job.Status.Ready != nil {
 					readyPod = *job.Status.Ready
 				}
-				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
+				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 					"workspacePending", fmt.Sprintf("workspace has not completed, tuning job has %d active pod, %d ready pod", job.Status.Active, readyPod)); updateErr != nil {
 					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 					return reconcile.Result{}, updateErr
@@ -176,7 +170,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		}
 	} else if wObj.Inference != nil {
 		if err := c.ensureService(ctx, wObj); err != nil {
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
+			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 				"workspaceFailed", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return reconcile.Result{}, updateErr
@@ -184,7 +178,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 			return reconcile.Result{}, err
 		}
 		if err = c.applyInference(ctx, wObj); err != nil {
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
+			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 				"workspaceFailed", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return reconcile.Result{}, updateErr
@@ -192,7 +186,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 			return reconcile.Result{}, err
 		}
 
-		if err = c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue,
+		if err = c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue,
 			"workspaceSucceeded", "workspace succeeds"); err != nil {
 			klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return reconcile.Result{}, err
@@ -202,9 +196,9 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	return reconcile.Result{}, nil
 }
 
-func (c *WorkspaceReconciler) deleteWorkspace(ctx context.Context, wObj *kaitov1alpha1.Workspace) (reconcile.Result, error) {
+func (c *WorkspaceReconciler) deleteWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
 	klog.InfoS("deleteWorkspace", "workspace", klog.KObj(wObj))
-	err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeDeleting, metav1.ConditionTrue, "workspaceDeleted", "workspace is being deleted")
+	err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeDeleting, metav1.ConditionTrue, "workspaceDeleted", "workspace is being deleted")
 	if err != nil {
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return reconcile.Result{}, err
@@ -212,7 +206,7 @@ func (c *WorkspaceReconciler) deleteWorkspace(ctx context.Context, wObj *kaitov1
 
 	return c.garbageCollectWorkspace(ctx, wObj)
 }
-func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *kaitov1alpha1.Workspace) error {
+func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	currentHash := computeHash(wObj)
 	annotations := wObj.GetAnnotations()
 	if annotations == nil {
@@ -252,7 +246,7 @@ func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *
 				WorkspaceNameLabel: wObj.Name,
 			},
 			OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(wObj, kaitov1alpha1.GroupVersion.WithKind("Workspace")),
+				*metav1.NewControllerRef(wObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
 		},
 		Revision: revisionNum,
@@ -266,12 +260,12 @@ func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *
 		Name:      newRevision.Name,
 		Namespace: newRevision.Namespace,
 	}, controllerRevision); err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 
 			if err := c.Create(ctx, newRevision); err != nil {
 				return fmt.Errorf("failed to create new ControllerRevision: %w", err)
 			} else {
-				annotations[kaitov1alpha1.WorkspaceRevisionAnnotation] = strconv.FormatInt(revisionNum, 10)
+				annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = strconv.FormatInt(revisionNum, 10)
 			}
 
 			if len(revisions.Items) > consts.MaxRevisionHistoryLimit {
@@ -286,7 +280,7 @@ func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *
 		if controllerRevision.Annotations[WorkspaceHashAnnotation] != newRevision.Annotations[WorkspaceHashAnnotation] {
 			return fmt.Errorf("revision name conflicts, the hash values are different")
 		}
-		annotations[kaitov1alpha1.WorkspaceRevisionAnnotation] = strconv.FormatInt(controllerRevision.Revision, 10)
+		annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = strconv.FormatInt(controllerRevision.Revision, 10)
 	}
 	annotations[WorkspaceHashAnnotation] = currentHash
 	wObj.SetAnnotations(annotations)
@@ -297,7 +291,7 @@ func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *
 	return nil
 }
 
-func marshalSelectedFields(wObj *kaitov1alpha1.Workspace) ([]byte, error) {
+func marshalSelectedFields(wObj *kaitov1beta1.Workspace) ([]byte, error) {
 	partialMap := map[string]interface{}{
 		"resource":  wObj.Resource,
 		"inference": wObj.Inference,
@@ -312,7 +306,7 @@ func marshalSelectedFields(wObj *kaitov1alpha1.Workspace) ([]byte, error) {
 	return jsonData, nil
 }
 
-func computeHash(w *kaitov1alpha1.Workspace) string {
+func computeHash(w *kaitov1beta1.Workspace) string {
 	hasher := sha256.New()
 	encoder := json.NewEncoder(hasher)
 	encoder.Encode(w.Resource)
@@ -322,18 +316,10 @@ func computeHash(w *kaitov1alpha1.Workspace) string {
 }
 
 // applyWorkspaceResource applies workspace resource spec.
-func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *kaitov1alpha1.Workspace) error {
-
-	// Wait for pending machines if any before we decide whether to create new machine or not.
-	if err := machine.WaitForPendingMachines(ctx, wObj, c.Client); err != nil {
+func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	// Wait for pending nodeClaims if any before we decide whether to create new node or not.
+	if err := nodeclaim.WaitForPendingNodeClaims(ctx, wObj, c.Client); err != nil {
 		return err
-	}
-
-	if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-		// Wait for pending nodeClaims if any before we decide whether to create new node or not.
-		if err := nodeclaim.WaitForPendingNodeClaims(ctx, wObj, c.Client); err != nil {
-			return err
-		}
 	}
 
 	// Find all nodes that meet the requirements, they are not necessarily created by machines/nodeClaims.
@@ -348,16 +334,9 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 
 	if newNodesCount > 0 {
 		klog.InfoS("need to create more nodes", "NodeCount", newNodesCount)
-		if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-			if err := c.updateStatusConditionIfNotMatch(ctx, wObj,
-				kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionUnknown,
-				"CreateNodeClaimPending", fmt.Sprintf("creating %d nodeClaims", newNodesCount)); err != nil {
-				klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-				return err
-			}
-		} else if err := c.updateStatusConditionIfNotMatch(ctx, wObj,
-			kaitov1alpha1.ConditionTypeMachineStatus, metav1.ConditionUnknown,
-			"CreateMachinePending", fmt.Sprintf("creating %d machines", newNodesCount)); err != nil {
+		if err := c.updateStatusConditionIfNotMatch(ctx, wObj,
+			kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionUnknown,
+			"CreateNodeClaimPending", fmt.Sprintf("creating %d nodeClaims", newNodesCount)); err != nil {
 			klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return err
 		}
@@ -365,7 +344,7 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 		for i := 0; i < newNodesCount; i++ {
 			newNode, err := c.createAndValidateNode(ctx, wObj)
 			if err != nil {
-				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
 					"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
 					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 					return updateErr
@@ -381,7 +360,7 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 		for i := range selectedNodes {
 			err = c.ensureNodePlugins(ctx, wObj, selectedNodes[i])
 			if err != nil {
-				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
 					"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
 					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 					return updateErr
@@ -391,16 +370,9 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 		}
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-		if err = c.updateStatusConditionIfNotMatch(ctx, wObj,
-			kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
-			"installNodePluginsSuccess", "nodeClaim plugins have been installed successfully"); err != nil {
-			klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return err
-		}
-	} else if err = c.updateStatusConditionIfNotMatch(ctx, wObj,
-		kaitov1alpha1.ConditionTypeMachineStatus, metav1.ConditionTrue,
-		"installNodePluginsSuccess", "machines plugins have been installed successfully"); err != nil {
+	if err = c.updateStatusConditionIfNotMatch(ctx, wObj,
+		kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
+		"installNodePluginsSuccess", "nodeClaim plugins have been installed successfully"); err != nil {
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return err
 	}
@@ -408,7 +380,7 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 	// Add the valid nodes names to the WorkspaceStatus.WorkerNodes.
 	err = c.updateStatusNodeListIfNotMatch(ctx, wObj, selectedNodes)
 	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
 			"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return updateErr
@@ -416,7 +388,7 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 		return err
 	}
 
-	if err = c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue,
+	if err = c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue,
 		"workspaceResourceStatusSuccess", "workspace resource is ready"); err != nil {
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return err
@@ -425,7 +397,7 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 	return nil
 }
 
-func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *kaitov1alpha1.Workspace) ([]*corev1.Node, error) {
+func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, error) {
 	var qualifiedNodes []*corev1.Node
 
 	nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
@@ -471,7 +443,7 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 }
 
 // createAndValidateNode creates a new node and validates status.
-func (c *WorkspaceReconciler) createAndValidateNode(ctx context.Context, wObj *kaitov1alpha1.Workspace) (*corev1.Node, error) {
+func (c *WorkspaceReconciler) createAndValidateNode(ctx context.Context, wObj *kaitov1beta1.Workspace) (*corev1.Node, error) {
 	var nodeOSDiskSize string
 	if wObj.Inference != nil && wObj.Inference.Preset != nil && wObj.Inference.Preset.Name != "" {
 		presetName := string(wObj.Inference.Preset.Name)
@@ -482,49 +454,10 @@ func (c *WorkspaceReconciler) createAndValidateNode(ctx context.Context, wObj *k
 		nodeOSDiskSize = "0" // The default OS size is used
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-		return c.CreateNodeClaim(ctx, wObj, nodeOSDiskSize)
-	} else {
-		return c.CreateMachine(ctx, wObj, nodeOSDiskSize)
-	}
+	return c.CreateNodeClaim(ctx, wObj, nodeOSDiskSize)
 }
 
-func (c *WorkspaceReconciler) CreateMachine(ctx context.Context, wObj *kaitov1alpha1.Workspace, nodeOSDiskSize string) (*corev1.Node, error) {
-RetryWithDifferentName:
-	newMachine := machine.GenerateMachineManifest(ctx, nodeOSDiskSize, wObj)
-
-	if err := machine.CreateMachine(ctx, newMachine, c.Client); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			klog.InfoS("A machine exists with the same name, retry with a different name", "machine", klog.KObj(newMachine))
-			goto RetryWithDifferentName
-		} else {
-
-			klog.ErrorS(err, "failed to create machine", "machine", newMachine.Name)
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.ConditionTypeMachineStatus, metav1.ConditionFalse,
-				"machineFailedCreation", err.Error()); updateErr != nil {
-				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-				return nil, updateErr
-			}
-			return nil, err
-		}
-	}
-
-	// check machine status until it is ready
-	err := machine.CheckMachineStatus(ctx, newMachine, c.Client)
-	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.ConditionTypeMachineStatus, metav1.ConditionFalse,
-			"checkMachineStatusFailed", err.Error()); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return nil, updateErr
-		}
-		return nil, err
-	}
-
-	// get the node object from the machine status nodeName.
-	return resources.GetNode(ctx, newMachine.Status.NodeName, c.Client)
-}
-
-func (c *WorkspaceReconciler) CreateNodeClaim(ctx context.Context, wObj *kaitov1alpha1.Workspace, nodeOSDiskSize string) (*corev1.Node, error) {
+func (c *WorkspaceReconciler) CreateNodeClaim(ctx context.Context, wObj *kaitov1beta1.Workspace, nodeOSDiskSize string) (*corev1.Node, error) {
 RetryWithDifferentName:
 	newNodeClaim := nodeclaim.GenerateNodeClaimManifest(ctx, nodeOSDiskSize, wObj)
 
@@ -535,7 +468,7 @@ RetryWithDifferentName:
 		} else {
 
 			klog.ErrorS(err, "failed to create nodeClaim", "nodeClaim", newNodeClaim.Name)
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
+			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
 				"nodeClaimFailedCreation", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return nil, updateErr
@@ -547,7 +480,7 @@ RetryWithDifferentName:
 	// check nodeClaim status until it is ready
 	err := nodeclaim.CheckNodeClaimStatus(ctx, newNodeClaim, c.Client)
 	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
 			"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return nil, updateErr
@@ -560,7 +493,7 @@ RetryWithDifferentName:
 }
 
 // ensureNodePlugins ensures node plugins are installed.
-func (c *WorkspaceReconciler) ensureNodePlugins(ctx context.Context, wObj *kaitov1alpha1.Workspace, nodeObj *corev1.Node) error {
+func (c *WorkspaceReconciler) ensureNodePlugins(ctx context.Context, wObj *kaitov1beta1.Workspace, nodeObj *corev1.Node) error {
 	timeClock := clock.RealClock{}
 	tick := timeClock.NewTicker(consts.NodePluginInstallTimeout)
 	defer tick.Stop()
@@ -577,18 +510,10 @@ func (c *WorkspaceReconciler) ensureNodePlugins(ctx context.Context, wObj *kaito
 				if err := resources.UpdateNodeWithLabel(ctx, nodeObj.Name, resources.LabelKeyNvidia, resources.LabelValueNvidia, c.Client); err != nil {
 					if apierrors.IsNotFound(err) {
 						klog.ErrorS(err, "nvidia plugin cannot be installed, node not found", "node", nodeObj.Name)
-						if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-							if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-								"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {
-								klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-								return updateErr
-							}
-						} else {
-							if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.ConditionTypeMachineStatus, metav1.ConditionFalse,
-								"checkMachineStatusFailed", err.Error()); updateErr != nil {
-								klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-								return updateErr
-							}
+						if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
+							"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {
+							klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
+							return updateErr
 						}
 						return err
 					}
@@ -601,7 +526,7 @@ func (c *WorkspaceReconciler) ensureNodePlugins(ctx context.Context, wObj *kaito
 }
 
 // getPresetName returns the preset name from wObj if available
-func getPresetName(wObj *kaitov1alpha1.Workspace) string {
+func getPresetName(wObj *kaitov1beta1.Workspace) string {
 	if wObj.Inference != nil && wObj.Inference.Preset != nil {
 		return string(wObj.Inference.Preset.Name)
 	}
@@ -611,12 +536,12 @@ func getPresetName(wObj *kaitov1alpha1.Workspace) string {
 	return ""
 }
 
-func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1alpha1.Workspace) error {
+func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	serviceType := corev1.ServiceTypeClusterIP
 	wAnnotation := wObj.GetAnnotations()
 
 	if len(wAnnotation) != 0 {
-		val, found := wAnnotation[kaitov1alpha1.AnnotationEnableLB]
+		val, found := wAnnotation[kaitov1beta1.AnnotationEnableLB]
 		if found && val == "True" {
 			serviceType = corev1.ServiceTypeLoadBalancer
 		}
@@ -632,23 +557,28 @@ func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1al
 		return nil
 	}
 
+	supportsDistributedInference := false
 	if presetName := getPresetName(wObj); presetName != "" {
 		model := plugin.KaitoModelRegister.MustGet(presetName)
-		serviceObj := manifests.GenerateServiceManifest(ctx, wObj, serviceType, model.SupportDistributedInference())
-		if err := resources.CreateResource(ctx, serviceObj, c.Client); err != nil {
+		supportsDistributedInference = model.SupportDistributedInference()
+	}
+
+	serviceObj := manifests.GenerateServiceManifest(ctx, wObj, serviceType, supportsDistributedInference)
+	if err := resources.CreateResource(ctx, serviceObj, c.Client); err != nil {
+		return err
+	}
+
+	if supportsDistributedInference {
+		headlessService := manifests.GenerateHeadlessServiceManifest(ctx, wObj)
+		if err := resources.CreateResource(ctx, headlessService, c.Client); err != nil {
 			return err
 		}
-		if model.SupportDistributedInference() {
-			headlessService := manifests.GenerateHeadlessServiceManifest(ctx, wObj)
-			if err := resources.CreateResource(ctx, headlessService, c.Client); err != nil {
-				return err
-			}
-		}
 	}
+
 	return nil
 }
 
-func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1alpha1.Workspace) error {
+func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	var err error
 	func() {
 		if wObj.Tuning.Preset != nil {
@@ -657,11 +587,11 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1alph
 
 			tuningParam := model.GetTuningParameters()
 			existingObj := &batchv1.Job{}
-			revisionNum := wObj.Annotations[kaitov1alpha1.WorkspaceRevisionAnnotation]
+			revisionNum := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
 				klog.InfoS("A tuning workload already exists for workspace", "workspace", klog.KObj(wObj))
 
-				if existingObj.Annotations[kaitov1alpha1.WorkspaceRevisionAnnotation] != revisionNum {
+				if existingObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] != revisionNum {
 					deletePolicy := metav1.DeletePropagationForeground
 					if err := c.Delete(ctx, existingObj, &client.DeleteOptions{
 						PropagationPolicy: &deletePolicy,
@@ -695,7 +625,7 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1alph
 	}()
 
 	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionFalse,
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionFalse,
 			"WorkspaceTuningJobStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return updateErr
@@ -703,7 +633,7 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1alph
 		return err
 	}
 
-	if err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionTrue,
+	if err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionTrue,
 		"WorkspaceTuningJobStatusStarted", "Tuning job has started"); err != nil {
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return err
@@ -713,7 +643,7 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1alph
 }
 
 // applyInference applies inference spec.
-func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1alpha1.Workspace) error {
+func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	var err error
 	func() {
 		if wObj.Inference.Template != nil {
@@ -739,12 +669,13 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1a
 				existingObj = &appsv1.Deployment{}
 
 			}
-			revisionStr := wObj.Annotations[kaitov1alpha1.WorkspaceRevisionAnnotation]
+			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
 				klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
 				if !model.SupportDistributedInference() {
 					deployment := existingObj.(*appsv1.Deployment)
-					if deployment.Annotations[kaitov1alpha1.WorkspaceRevisionAnnotation] != revisionStr {
+					if deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] != revisionStr {
+						// TODO: respect updates to other fields
 						var volumes []corev1.Volume
 						var volumeMounts []corev1.VolumeMount
 						shmVolume, shmVolumeMount := utils.ConfigSHMVolume(*wObj.Resource.Count)
@@ -760,14 +691,17 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1a
 							volumes = append(volumes, adapterVolume)
 							volumeMounts = append(volumeMounts, adapterVolumeMount)
 						}
-						initContainers, envs := manifests.GenerateInitContainers(wObj, volumeMounts)
-						spec := &deployment.Spec
 
-						spec.Template.Spec.InitContainers = initContainers
-						spec.Template.Spec.Containers[0].Env = envs
-						spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
-						deployment.Annotations[kaitov1alpha1.WorkspaceRevisionAnnotation] = revisionStr
-						spec.Template.Spec.Volumes = volumes
+						pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(wObj, volumeMounts)
+						volumes = append(volumes, pullerVolumes...)
+
+						spec := &deployment.Spec.Template.Spec
+						spec.Containers[0].Env = pullerEnvVars
+						spec.Containers[0].VolumeMounts = volumeMounts
+						spec.InitContainers = pullerContainers
+						spec.Volumes = volumes
+
+						deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
 
 						if err := c.Update(ctx, deployment); err != nil {
 							return
@@ -780,7 +714,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1a
 			} else if apierrors.IsNotFound(err) {
 				var workloadObj client.Object
 				// Need to create a new workload
-				workloadObj, err = inference.CreatePresetInference(ctx, wObj, revisionStr, inferenceParam, model.SupportDistributedInference(), c.Client)
+				workloadObj, err = inference.CreatePresetInference(ctx, wObj, revisionStr, model, c.Client)
 				if err != nil {
 					return
 				}
@@ -792,7 +726,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1a
 	}()
 
 	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
 			"WorkspaceInferenceStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return updateErr
@@ -801,7 +735,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1a
 		}
 	}
 
-	if err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1alpha1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue,
+	if err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue,
 		"WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully"); err != nil {
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return err
@@ -821,63 +755,27 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	builder := ctrl.NewControllerManagedBy(mgr).
-		For(&kaitov1alpha1.Workspace{}).
+		For(&kaitov1beta1.Workspace{}).
 		Owns(&appsv1.ControllerRevision{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&batchv1.Job{}).
-		Watches(&v1alpha5.Machine{}, c.watchMachines()).
+		Watches(&karpenterv1.NodeClaim{}, c.watchNodeClaims(), builder.WithPredicates(nodeclaim.NodeClaimPredicate)).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
-	if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-		builder.
-			Watches(&v1beta1.NodeClaim{}, c.watchNodeClaims()) // watches for nodeClaim with labels indicating workspace name.
-	}
 	return builder.Complete(c)
-}
-
-// watches for machine with labels indicating workspace name.
-func (c *WorkspaceReconciler) watchMachines() handler.EventHandler {
-	return handler.EnqueueRequestsFromMapFunc(
-		func(ctx context.Context, o client.Object) []reconcile.Request {
-			machineObj := o.(*v1alpha5.Machine)
-			name, ok := machineObj.Labels[kaitov1alpha1.LabelWorkspaceName]
-			if !ok {
-				return nil
-			}
-			namespace, ok := machineObj.Labels[kaitov1alpha1.LabelWorkspaceNamespace]
-			if !ok {
-				return nil
-			}
-			_, conditionFound := lo.Find(machineObj.GetConditions(), func(condition apis.Condition) bool {
-				return condition.Type == apis.ConditionReady &&
-					condition.Status == v1.ConditionTrue
-			})
-			if conditionFound && machineObj.DeletionTimestamp.IsZero() {
-				// No need to reconcile workspace if the machine is in READY state unless machine is deleted.
-				return nil
-			}
-			return []reconcile.Request{
-				{
-					NamespacedName: client.ObjectKey{
-						Name:      name,
-						Namespace: namespace,
-					},
-				},
-			}
-		})
 }
 
 // watches for nodeClaim with labels indicating workspace name.
 func (c *WorkspaceReconciler) watchNodeClaims() handler.EventHandler {
 	return handler.EnqueueRequestsFromMapFunc(
 		func(ctx context.Context, o client.Object) []reconcile.Request {
-			nodeClaimObj := o.(*v1beta1.NodeClaim)
-			name, ok := nodeClaimObj.Labels[kaitov1alpha1.LabelWorkspaceName]
+			nodeClaimObj := o.(*karpenterv1.NodeClaim)
+			name, ok := nodeClaimObj.Labels[kaitov1beta1.LabelWorkspaceName]
 			if !ok {
 				return nil
 			}
-			namespace, ok := nodeClaimObj.Labels[kaitov1alpha1.LabelWorkspaceNamespace]
+			namespace, ok := nodeClaimObj.Labels[kaitov1beta1.LabelWorkspaceNamespace]
 			if !ok {
 				return nil
 			}

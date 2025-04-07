@@ -1,0 +1,119 @@
+name: ragengine-e2e-workflow
+
+on:
+  workflow_call:
+    inputs:
+      git_sha:
+        type: string
+        required: true
+      node_provisioner:
+        type: string
+        required: false
+        default: gpuprovisioner
+      tag:
+        type: string
+      isRelease:
+        type: boolean
+        default: false
+      registry:
+        type: string
+      region:
+        type: string
+        description: "the azure location to run the e2e test in"
+        default: "eastus"
+      k8s_version:
+        type: string
+        default: "1.30.0"
+
+jobs:
+  e2e-tests:
+    runs-on: [ "self-hosted", "hostname:kaito-e2e-github-runner" ]
+    environment: e2e-test
+    permissions:
+      contents: read
+      id-token: write
+    
+    env:
+      TEST_SUITE: ${{ inputs.node_provisioner }}      
+      GO_VERSION: "1.24"
+      KARPENTER_NAMESPACE: "karpenter"
+      GPU_PROVISIONER_NAMESPACE: "gpu-provisioner"
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        with:
+          egress-policy: audit
+          disable-sudo: true
+          disable-telemetry: true
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.git_sha }}
+      
+      - name: Run e2e-base-setup composite action
+        id: base-setup
+        uses: ./.github/actions/e2e-base-setup
+        with:
+          git_sha: ${{ inputs.git_sha }}
+          node_provisioner: ${{ inputs.node_provisioner }}
+          tag: ${{ inputs.tag }}
+          isRelease: ${{ inputs.isRelease }}
+          region: ${{ inputs.region }}
+          k8s_version: ${{ inputs.k8s_version }}
+
+      - name: Set Registry
+        if: ${{ inputs.isRelease }}
+        run: |
+          echo "REGISTRY=${{ inputs.registry }}" >> $GITHUB_ENV
+          echo "VERSION=$(echo ${{ inputs.tag }} | tr -d v)" >> $GITHUB_ENV
+      
+      - name: build kaito RAG Engine image
+        if: ${{ !inputs.isRelease }}
+        shell: bash
+        run: |
+          make docker-build-ragengine
+        env:
+          REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
+      
+      - name: Remove existing Go modules directory
+        run: sudo rm -rf ~/go/pkg/mod
+      
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+      
+      - name: Install KAITO RAG Engine helm chart
+        shell: bash
+        run: |
+          make az-patch-install-ragengine-helm
+          kubectl wait --for=condition=available deploy "kaito-ragengine" -n kaito-ragengine --timeout=300s
+        env:
+          REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+      
+      - name: Run e2e test
+        run: |
+          AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
+          AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
+          make kaito-ragengine-e2e-test
+        env:
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
+          E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
+
+      - name: Cleanup e2e resources
+        if: ${{ always() }}
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+        uses: azure/CLI@v2.1.0
+        with:
+          inlineScript: |
+            set +e
+            az group delete --name "${AZURE_RESOURCE_GROUP}" --yes --no-wait || true

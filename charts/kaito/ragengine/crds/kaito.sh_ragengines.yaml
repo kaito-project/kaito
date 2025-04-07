@@ -59,10 +59,10 @@ spec:
                     description: Count is the required number of GPU nodes.
                     type: integer
                   instanceType:
-                    default: Standard_NC12s_v3
+                    default: Standard_NC24ads_A100_v4
                     description: |-
                       InstanceType specifies the GPU node SKU.
-                      This field defaults to "Standard_NC12s_v3" if not specified.
+                      This field defaults to "Standard_NC24ads_A100_v4" if not specified.
                     type: string
                   labelSelector:
                     description: LabelSelector specifies the required labels for the

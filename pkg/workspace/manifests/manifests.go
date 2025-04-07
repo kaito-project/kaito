@@ -6,25 +6,27 @@ package manifests
 import (
 	"context"
 	"fmt"
+	"path"
 
-	batchv1 "k8s.io/api/batch/v1"
-	"k8s.io/utils/pointer"
-
-	"k8s.io/apimachinery/pkg/util/intstr"
-
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
+
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
 
 var controller = true
 
-func GenerateHeadlessServiceManifest(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace) *corev1.Service {
+func GenerateHeadlessServiceManifest(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) *corev1.Service {
 	serviceName := fmt.Sprintf("%s-headless", workspaceObj.Name)
 	selector := map[string]string{
-		kaitov1alpha1.LabelWorkspaceName: workspaceObj.Name,
+		kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
 	}
 
 	return &corev1.Service{
@@ -33,7 +35,7 @@ func GenerateHeadlessServiceManifest(ctx context.Context, workspaceObj *kaitov1a
 			Namespace: workspaceObj.Namespace,
 			OwnerReferences: []v1.OwnerReference{
 				{
-					APIVersion: kaitov1alpha1.GroupVersion.String(),
+					APIVersion: kaitov1beta1.GroupVersion.String(),
 					Kind:       "Workspace",
 					UID:        workspaceObj.UID,
 					Name:       workspaceObj.Name,
@@ -57,9 +59,9 @@ func GenerateHeadlessServiceManifest(ctx context.Context, workspaceObj *kaitov1a
 	}
 }
 
-func GenerateServiceManifest(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, serviceType corev1.ServiceType, isStatefulSet bool) *corev1.Service {
+func GenerateServiceManifest(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, serviceType corev1.ServiceType, isStatefulSet bool) *corev1.Service {
 	selector := map[string]string{
-		kaitov1alpha1.LabelWorkspaceName: workspaceObj.Name,
+		kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
 	}
 	// If statefulset, modify the selector to select the pod with index 0 as the endpoint
 	if isStatefulSet {
@@ -73,7 +75,7 @@ func GenerateServiceManifest(ctx context.Context, workspaceObj *kaitov1alpha1.Wo
 			Namespace: workspaceObj.Namespace,
 			OwnerReferences: []v1.OwnerReference{
 				{
-					APIVersion: kaitov1alpha1.GroupVersion.String(),
+					APIVersion: kaitov1beta1.GroupVersion.String(),
 					Kind:       "Workspace",
 					UID:        workspaceObj.UID,
 					Name:       workspaceObj.Name,
@@ -107,7 +109,7 @@ func GenerateServiceManifest(ctx context.Context, workspaceObj *kaitov1alpha1.Wo
 	}
 }
 
-func GenerateStatefulSetManifest(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, imageName string,
+func GenerateStatefulSetManifest(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, imageName string,
 	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
 	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount) *appsv1.StatefulSet {
@@ -122,10 +124,17 @@ func GenerateStatefulSetManifest(ctx context.Context, workspaceObj *kaitov1alpha
 	}
 
 	selector := map[string]string{
-		kaitov1alpha1.LabelWorkspaceName: workspaceObj.Name,
+		kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
 	}
 	labelselector := &v1.LabelSelector{
 		MatchLabels: selector,
+	}
+	// Add PYTORCH_CUDA_ALLOC_CONF environment variable
+	envVars := []corev1.EnvVar{
+		{
+			Name:  "PYTORCH_CUDA_ALLOC_CONF",
+			Value: "expandable_segments:True",
+		},
 	}
 
 	ss := &appsv1.StatefulSet{
@@ -134,7 +143,7 @@ func GenerateStatefulSetManifest(ctx context.Context, workspaceObj *kaitov1alpha
 			Namespace: workspaceObj.Namespace,
 			OwnerReferences: []v1.OwnerReference{
 				{
-					APIVersion: kaitov1alpha1.GroupVersion.String(),
+					APIVersion: kaitov1beta1.GroupVersion.String(),
 					Kind:       "Workspace",
 					UID:        workspaceObj.UID,
 					Name:       workspaceObj.Name,
@@ -174,6 +183,7 @@ func GenerateStatefulSetManifest(ctx context.Context, workspaceObj *kaitov1alpha
 							ReadinessProbe: readinessProbe,
 							Ports:          containerPorts,
 							VolumeMounts:   volumeMount,
+							Env:            envVars,
 						},
 					},
 					Tolerations: tolerations,
@@ -186,16 +196,21 @@ func GenerateStatefulSetManifest(ctx context.Context, workspaceObj *kaitov1alpha
 	return ss
 }
 
-func GenerateTuningJobManifest(ctx context.Context, wObj *kaitov1alpha1.Workspace, revisionNum string, imageName string,
+func GenerateTuningJobManifest(ctx context.Context, wObj *kaitov1beta1.Workspace, revisionNum string, imageName string,
 	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements, tolerations []corev1.Toleration,
 	initContainers []corev1.Container, sidecarContainers []corev1.Container, volumes []corev1.Volume, volumeMounts []corev1.VolumeMount,
 	envVars []corev1.EnvVar) *batchv1.Job {
 	labels := map[string]string{
-		kaitov1alpha1.LabelWorkspaceName: wObj.Name,
+		kaitov1beta1.LabelWorkspaceName: wObj.Name,
 	}
 
-	// Add volume mounts to sidecar containers
+	// TODO: make containers only mount the volumes they need
+
+	for i := range initContainers {
+		initContainers[i].VolumeMounts = append(initContainers[i].VolumeMounts, volumeMounts...)
+	}
+
 	for i := range sidecarContainers {
 		sidecarContainers[i].VolumeMounts = append(sidecarContainers[i].VolumeMounts, volumeMounts...)
 	}
@@ -226,15 +241,15 @@ func GenerateTuningJobManifest(ctx context.Context, wObj *kaitov1alpha1.Workspac
 			Namespace: wObj.Namespace,
 			Labels:    labels,
 			Annotations: map[string]string{
-				kaitov1alpha1.WorkspaceRevisionAnnotation: revisionNum,
+				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
 			},
 			OwnerReferences: []v1.OwnerReference{
 				{
-					APIVersion: kaitov1alpha1.GroupVersion.String(),
+					APIVersion: kaitov1beta1.GroupVersion.String(),
 					Kind:       "Workspace",
 					Name:       wObj.Name,
 					UID:        wObj.UID,
-					Controller: pointer.BoolPtr(true),
+					Controller: ptr.To(true),
 				},
 			},
 		},
@@ -245,19 +260,20 @@ func GenerateTuningJobManifest(ctx context.Context, wObj *kaitov1alpha1.Workspac
 					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
-					InitContainers:   initContainers,
-					Containers:       containers,
-					RestartPolicy:    corev1.RestartPolicyNever,
-					Volumes:          volumes,
-					Tolerations:      tolerations,
-					ImagePullSecrets: imagePullSecretRefs,
+					InitContainers:        initContainers,
+					Containers:            containers,
+					RestartPolicy:         corev1.RestartPolicyNever,
+					ShareProcessNamespace: ptr.To(true),
+					Volumes:               volumes,
+					Tolerations:           tolerations,
+					ImagePullSecrets:      imagePullSecretRefs,
 				},
 			},
 		},
 	}
 }
 
-func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, revisionNum string, imageName string,
+func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, revisionNum string, imageName string,
 	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
 	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount) *appsv1.Deployment {
@@ -272,16 +288,21 @@ func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1alpha1
 	}
 
 	selector := map[string]string{
-		kaitov1alpha1.LabelWorkspaceName: workspaceObj.Name,
+		kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
 	}
 	labelselector := &v1.LabelSelector{
 		MatchLabels: selector,
 	}
-	initContainers := []corev1.Container{}
 	envs := []corev1.EnvVar{}
-	if len(workspaceObj.Inference.Adapters) > 0 {
-		initContainers, envs = GenerateInitContainers(workspaceObj, volumeMount)
-	}
+	// Add PYTORCH_CUDA_ALLOC_CONF environment variable
+	envs = append(envs, corev1.EnvVar{
+		Name:  "PYTORCH_CUDA_ALLOC_CONF",
+		Value: "expandable_segments:True",
+	})
+
+	pullerContainers, pullerEnvVars, pullerVolumes := GeneratePullerContainers(workspaceObj, volumeMount)
+	envs = append(envs, pullerEnvVars...)
+	volumes = append(volumes, pullerVolumes...)
 
 	return &appsv1.Deployment{
 		ObjectMeta: v1.ObjectMeta{
@@ -289,7 +310,7 @@ func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1alpha1
 			Namespace: workspaceObj.Namespace,
 			OwnerReferences: []v1.OwnerReference{
 				{
-					APIVersion: kaitov1alpha1.GroupVersion.String(),
+					APIVersion: kaitov1beta1.GroupVersion.String(),
 					Kind:       "Workspace",
 					UID:        workspaceObj.UID,
 					Name:       workspaceObj.Name,
@@ -297,7 +318,7 @@ func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1alpha1
 				},
 			},
 			Annotations: map[string]string{
-				kaitov1alpha1.WorkspaceRevisionAnnotation: revisionNum,
+				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -333,7 +354,7 @@ func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1alpha1
 							},
 						},
 					},
-					InitContainers: initContainers,
+					InitContainers: pullerContainers,
 					Containers: []corev1.Container{
 						{
 							Name:           workspaceObj.Name,
@@ -355,31 +376,37 @@ func GenerateDeploymentManifest(ctx context.Context, workspaceObj *kaitov1alpha1
 	}
 }
 
-func GenerateInitContainers(wObj *kaitov1alpha1.Workspace, volumeMount []corev1.VolumeMount) ([]corev1.Container, []corev1.EnvVar) {
-	var initContainers []corev1.Container
-	var envs []corev1.EnvVar
-	if len(wObj.Inference.Adapters) > 0 {
-		for _, adapter := range wObj.Inference.Adapters {
-			initContainer := corev1.Container{
-				Name:            adapter.Source.Name,
-				Image:           adapter.Source.Image,
-				Command:         []string{"/bin/sh", "-c", fmt.Sprintf("mkdir -p /mnt/adapter/%s && cp -r /data/* /mnt/adapter/%s", adapter.Source.Name, adapter.Source.Name)},
-				VolumeMounts:    volumeMount,
-				ImagePullPolicy: corev1.PullAlways,
-			}
-			initContainers = append(initContainers, initContainer)
-			env := corev1.EnvVar{
-				Name:  adapter.Source.Name,
-				Value: *adapter.Strength,
-			}
-			envs = append(envs, env)
-		}
+func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, volumeMounts []corev1.VolumeMount) ([]corev1.Container, []corev1.EnvVar, []corev1.Volume) {
+	size := len(wObj.Inference.Adapters)
 
+	initContainers := make([]corev1.Container, 0, size)
+	envVars := make([]corev1.EnvVar, 0, size)
+	volumes := make([]corev1.Volume, 0, size)
+
+	for _, adapter := range wObj.Inference.Adapters {
+		source := adapter.Source
+		sourceName := source.Name
+
+		volume, volumeMount := utils.ConfigImagePullSecretVolume(sourceName+"-inference-adapter", source.ImagePullSecrets)
+		volumes = append(volumes, volume)
+
+		envVar := corev1.EnvVar{
+			Name:  sourceName,
+			Value: *adapter.Strength,
+		}
+		envVars = append(envVars, envVar)
+
+		outputDirectory := path.Join("/mnt/adapter", sourceName)
+		pullerContainer := image.NewPullerContainer(source.Image, outputDirectory)
+		pullerContainer.Name += "-" + sourceName
+		pullerContainer.VolumeMounts = append(volumeMounts, volumeMount)
+		initContainers = append(initContainers, *pullerContainer)
 	}
-	return initContainers, envs
+
+	return initContainers, envVars, volumes
 }
 
-func GenerateDeploymentManifestWithPodTemplate(ctx context.Context, workspaceObj *kaitov1alpha1.Workspace, tolerations []corev1.Toleration) *appsv1.Deployment {
+func GenerateDeploymentManifestWithPodTemplate(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, tolerations []corev1.Toleration) *appsv1.Deployment {
 	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(workspaceObj.Resource.LabelSelector.MatchLabels))
 	for key, value := range workspaceObj.Resource.LabelSelector.MatchLabels {
 		nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
@@ -394,10 +421,10 @@ func GenerateDeploymentManifestWithPodTemplate(ctx context.Context, workspaceObj
 	if templateCopy.ObjectMeta.Labels == nil {
 		templateCopy.ObjectMeta.Labels = make(map[string]string)
 	}
-	templateCopy.ObjectMeta.Labels[kaitov1alpha1.LabelWorkspaceName] = workspaceObj.Name
+	templateCopy.ObjectMeta.Labels[kaitov1beta1.LabelWorkspaceName] = workspaceObj.Name
 	labelselector := &v1.LabelSelector{
 		MatchLabels: map[string]string{
-			kaitov1alpha1.LabelWorkspaceName: workspaceObj.Name,
+			kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
 		},
 	}
 	// Overwrite affinity
@@ -426,7 +453,7 @@ func GenerateDeploymentManifestWithPodTemplate(ctx context.Context, workspaceObj
 			Namespace: workspaceObj.Namespace,
 			OwnerReferences: []v1.OwnerReference{
 				{
-					APIVersion: kaitov1alpha1.GroupVersion.String(),
+					APIVersion: kaitov1beta1.GroupVersion.String(),
 					Kind:       "Workspace",
 					UID:        workspaceObj.UID,
 					Name:       workspaceObj.Name,

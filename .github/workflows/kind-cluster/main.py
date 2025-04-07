@@ -134,7 +134,7 @@ def main():
     kubectl_path = get_kubectl_path()
     run_command(f"{kubectl_path} apply -f {job_name}-job.yaml")
     job_names.append(job_name)
-    
+
     if not wait_for_jobs_to_complete(job_names):
         exit(1)  # Exit with an error code if any job failed
 
@@ -191,6 +191,11 @@ def populate_job_template(image_name, model_name, model_type, model_runtime, mod
 
 def log_job_info(job_name): 
     """Log information about our Job's pod for debugging."""
+    # Describe the job
+    # command_describe_job = f"kubectl describe job {job_name}"
+    # job_desc = run_command(command_describe_job)
+    # print(f"Job Description: \n{job_desc}")
+    # print("===============================\n")
     # Find the pod(s) associated with the job
     command_find_pods = f"kubectl get pods --selector=job-name=docker-build-job-{job_name} -o jsonpath='{{.items[*].metadata.name}}'"
     pod_names = run_command(command_find_pods)

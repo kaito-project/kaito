@@ -15,12 +15,17 @@ on:
                 type: boolean
                 default: false
                 description: "Test all Phi models for E2E"
+            test-on-vllm:
+                type: boolean
+                default: false
+                description: "Test on VLLM runtime"
 
 env:
-    GO_VERSION: "1.22"
+    GO_VERSION: "1.24"
     BRANCH_NAME: ${{ github.head_ref || github.ref_name}} 
     FORCE_RUN_ALL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all == 'true' }}
     FORCE_RUN_ALL_PHI:  ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all-phi-models== 'true' }}
+    RUNTIME: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.test-on-vllm == 'true') && 'vllm' || 'hf' }}
 
 permissions:
     id-token: write
@@ -102,6 +107,7 @@ jobs:
     environment: preset-env
     strategy:
       fail-fast: false
+      max-parallel: 10
       matrix:
         # Ex matrix element:
         # {"name":"falcon-40b","type":"text-generation","version":"#",
@@ -159,43 +165,48 @@ jobs:
       - name: Set up kubectl context
         run: |
           az aks get-credentials --resource-group llm-test --name GitRunner
-    
-      - name: Get Nodepool Name
-        id: get_nodepool_name
-        run: |
-            NAME_SUFFIX=${{ matrix.model.name }}
-            NAME_SUFFIX_WITHOUT_DASHES=${NAME_SUFFIX//-/}  # Removing all '-' symbols
 
-            if [ ${#NAME_SUFFIX_WITHOUT_DASHES} -gt 12 ]; then
-                TRUNCATED_NAME_SUFFIX=${NAME_SUFFIX_WITHOUT_DASHES:0:12}
-            else
-                TRUNCATED_NAME_SUFFIX=$NAME_SUFFIX_WITHOUT_DASHES
-            fi
-            echo "Nodepool Name: $TRUNCATED_NAME_SUFFIX"
-            echo "NODEPOOL_NAME=$TRUNCATED_NAME_SUFFIX" >> $GITHUB_OUTPUT
+      - name: Get testing workload
+        id: workload
+        run: |
+            NODEPOOL_NAME=${{ matrix.model.node_pool }}
+            echo "NODEPOOL_NAME=$NODEPOOL_NAME" >> $GITHUB_OUTPUT
+
+            WORKLOAD_NAME=${{ matrix.model.workload || matrix.model.name }}
+            echo "WORKLOAD_NAME=$WORKLOAD_NAME" >> $GITHUB_OUTPUT
+            WORKLOAD_FILE=$WORKLOAD_NAME.yaml
+            echo "WORKLOAD_FILE=$WORKLOAD_FILE" >> $GITHUB_OUTPUT
+            RESOURCE_TYPE=$(echo "${{ matrix.model.name }}" | grep -q "llama-2" && echo "statefulset" || echo "deployment")
+            echo "RESOURCE_TYPE=$RESOURCE_TYPE" >> $GITHUB_OUTPUT
+
+            pip install pyyaml
+            python3 presets/workspace/test/scripts/generate_manifests.py ${{ matrix.model.name }} ${{ env.RUNTIME }} \
+                --tag ${{ matrix.model.tag }} \
+                --repo ${{ secrets.ACR_AMRT_USERNAME }}.azurecr.io > $WORKLOAD_FILE
+
+            cat $WORKLOAD_FILE
 
       - name: Create Nodepool
         run: |
             NODEPOOL_EXIST=$(az aks nodepool show \
-                            --name ${{ steps.get_nodepool_name.outputs.NODEPOOL_NAME }} \
+                            --name ${{ steps.workload.outputs.NODEPOOL_NAME }} \
                             --cluster-name GitRunner \
                             --resource-group llm-test \
                             --query 'name' -o tsv || echo "")
             echo "NODEPOOL_EXIST: $NODEPOOL_EXIST"
             if [ -z "$NODEPOOL_EXIST" ]; then
                 az aks nodepool add \
-                    --name ${{ steps.get_nodepool_name.outputs.NODEPOOL_NAME }} \
+                    --name ${{ steps.workload.outputs.NODEPOOL_NAME }} \
                     --cluster-name GitRunner \
                     --resource-group llm-test \
                     --node-count ${{ matrix.model.node-count }} \
                     --node-vm-size ${{ matrix.model.node-vm-size }} \
                     --node-osdisk-size ${{ matrix.model.node-osdisk-size }} \
-                    --labels pool=${{ steps.get_nodepool_name.outputs.NODEPOOL_NAME }} \
-                    --node-taints sku=gpu:NoSchedule \
-                    --aks-custom-headers UseGPUDedicatedVHD=true
+                    --labels pool=${{ steps.workload.outputs.NODEPOOL_NAME }} \
+                    --node-taints sku=gpu:NoSchedule
             else
                 NODEPOOL_STATE=$(az aks nodepool show \
-                                --name ${{ steps.get_nodepool_name.outputs.NODEPOOL_NAME }} \
+                                --name ${{ steps.workload.outputs.NODEPOOL_NAME }} \
                                 --cluster-name GitRunner \
                                 --resource-group llm-test \
                                 --query 'provisioningState' -o tsv)
@@ -208,55 +219,36 @@ jobs:
                 fi
             fi
 
-      - name: Create Service
-        run: kubectl apply -f presets/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}-service.yaml
-      
-      - name: Retrieve External Service IP
-        id: get_ip
+      - name: Create workload
         run: |
-            while [[ -z $SERVICE_IP ]]; do 
-                SERVICE_IP=$(kubectl get svc ${{ matrix.model.name }} -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
-                sleep 5
-            done 
-            echo "Service IP is $SERVICE_IP"
-            echo "SERVICE_IP=$SERVICE_IP" >> $GITHUB_OUTPUT
-
-      - name: Get Resource Type
-        id: resource
-        run: |
-            RESOURCE_TYPE=$(echo "${{ matrix.model.name }}" | grep -q "llama" && echo "statefulset" || echo "deployment")
-            echo "RESOURCE_TYPE=$RESOURCE_TYPE" >> $GITHUB_OUTPUT
-      
-      - name: Replace IP and Deploy Resource to K8s
-        run: |
-            sed -i "s/MASTER_ADDR_HERE/${{ steps.get_ip.outputs.SERVICE_IP }}/g" presets/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}.yaml
-            sed -i "s/TAG_HERE/${{ matrix.model.tag }}/g" presets/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}.yaml
-            sed -i "s/REPO_HERE/${{ secrets.ACR_AMRT_USERNAME }}/g" presets/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}.yaml
-            kubectl apply -f presets/test/manifests/${{ matrix.model.name }}/${{ matrix.model.name }}.yaml
+            kubectl apply -f ${{steps.workload.outputs.WORKLOAD_FILE}}
 
       - name: Wait for Resource to be ready
         run: |
-            kubectl rollout status ${{steps.resource.outputs.RESOURCE_TYPE}}/${{ matrix.model.name }} --timeout=1800s
-    
+            kubectl rollout status ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} --timeout=3000s
+
       - name: Check Adapter Loading from Logs
         if: matrix.model.loads_adapter == true
         run: |
-            POD_NAME=$(kubectl get pods -l app=${{ matrix.model.name }} -o jsonpath="{.items[0].metadata.name}")
+            POD_NAME=$(kubectl get pods -l app=${{steps.workload.outputs.WORKLOAD_NAME}} -o jsonpath="{.items[0].metadata.name}")
             kubectl logs $POD_NAME | grep "Adapter added:" | grep "${{ matrix.model.expected_adapter }}" || (echo "Adapter not loaded or incorrect adapter loaded" && exit 1)
-          
-      - name: Test home endpoint
+
+      - name: Install testing commands
         run: |
-            curl http://${{ steps.get_ip.outputs.SERVICE_IP }}:80/
+            kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- apt-get update
+            kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- apt-get install -y curl
 
       - name: Test healthz endpoint
         run: |
-            curl http://${{ steps.get_ip.outputs.SERVICE_IP }}:80/healthz
-    
+            kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
+            curl -s http://localhost:5000/health
+
       - name: Test inference endpoint
         run: |
-            if [[ "${{ matrix.model.name }}" == *"llama"* && "${{ matrix.model.name }}" == *"-chat"* ]]; then
-                echo "Testing inference for ${{ matrix.model.name }}"
-                curl -X POST \
+            echo "Testing inference for ${{ matrix.model.name }}"
+            if [[ "${{ matrix.model.name }}" == *"llama-2"* && "${{ matrix.model.name }}" == *"-chat"* ]]; then
+                kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
+                curl -s -X POST \
                 -H "Content-Type: application/json" \
                 -d '{
                     "input_data": {
@@ -274,10 +266,10 @@ jobs:
                         ]
                     }
                 }' \
-                http://${{ steps.get_ip.outputs.SERVICE_IP }}:80/chat
-            elif [[ "${{ matrix.model.name }}" == *"llama"* ]]; then
-                echo "Testing inference for ${{ matrix.model.name }}"
-                curl -X POST \
+                http://localhost:5000/chat
+            elif [[ "${{ matrix.model.name }}" == *"llama-2"* ]]; then
+                kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
+                curl -s -X POST \
                 -H "Content-Type: application/json" \
                 -d '{
                     "prompts": [
@@ -290,10 +282,29 @@ jobs:
                         "max_gen_len": 128
                     }
                 }' \
-                http://${{ steps.get_ip.outputs.SERVICE_IP }}:80/generate
+                http://localhost:5000/generate
+            elif [[ "${{ env.RUNTIME }}" == *"vllm"* ]]; then
+                kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
+                curl -s -X POST \
+                -H "accept: application/json" \
+                -H "Content-Type: application/json" \
+                -d '{
+                    "model": "test",
+                    "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a helpful assistant."
+                    },
+                    {
+                        "role": "user",
+                        "content": "Hello!"
+                    }
+                    ]
+                    }' \
+                http://localhost:5000/v1/chat/completions
             else
-                echo "Testing inference for ${{ matrix.model.name }}"
-                curl -X POST \
+                kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
+                curl -s -X POST \
                 -H "accept: application/json" \
                 -H "Content-Type: application/json" \
                 -d '{
@@ -327,41 +338,41 @@ jobs:
                             "remove_invalid_values":null
                         }
                     }' \
-                http://${{ steps.get_ip.outputs.SERVICE_IP }}:80/chat                
+                http://localhost:5000/chat
             fi
       
       - name: Cleanup
         if: always()
         run: |
             # Only proceed if RESOURCE_TYPE is set (else resource wasn't created)
-            if [ -n "${{ steps.resource.outputs.RESOURCE_TYPE }}" ]; then
+            if [ -n "${{ steps.workload.outputs.RESOURCE_TYPE }}" ]; then
                 # Use RESOURCE_TYPE from the previous step
-                RESOURCE_TYPE=${{ steps.resource.outputs.RESOURCE_TYPE }}
+                RESOURCE_TYPE=${{ steps.workload.outputs.RESOURCE_TYPE }}
                 
                 # Check and Delete K8s Resource (Deployment or StatefulSet)
-                if kubectl get $RESOURCE_TYPE ${{ matrix.model.name }} > /dev/null 2>&1; then
-                    kubectl delete $RESOURCE_TYPE ${{ matrix.model.name }}
+                if kubectl get $RESOURCE_TYPE ${{steps.workload.outputs.WORKLOAD_NAME}} > /dev/null 2>&1; then
+                    kubectl logs $RESOURCE_TYPE/${{steps.workload.outputs.WORKLOAD_NAME}}
+                    kubectl delete $RESOURCE_TYPE ${{steps.workload.outputs.WORKLOAD_NAME}}
                 fi
             fi
 
             # Check and Delete K8s Service if it exists
-            if kubectl get svc ${{ matrix.model.name }} > /dev/null 2>&1; then
-                kubectl delete svc ${{ matrix.model.name }}
+            if kubectl get svc ${{steps.workload.outputs.WORKLOAD_NAME}} > /dev/null 2>&1; then
+                kubectl delete svc ${{steps.workload.outputs.WORKLOAD_NAME}}
             fi
         
             # Check and Delete AKS Nodepool if it exists            
-            if [ -n "${{ steps.get_nodepool_name.outputs.NODEPOOL_NAME }}" ]; then
+            if [ -n "${{ steps.workload.outputs.NODEPOOL_NAME }}" ]; then
                 NODEPOOL_EXIST=$(az aks nodepool show \
-                                --name ${{ steps.get_nodepool_name.outputs.NODEPOOL_NAME }} \
+                                --name ${{ steps.workload.outputs.NODEPOOL_NAME }} \
                                 --cluster-name GitRunner \
                                 --resource-group llm-test \
                                 --query 'name' -o tsv || echo "")
 
                 if [ -n "$NODEPOOL_EXIST" ]; then
                     az aks nodepool delete \
-                    --name ${{ steps.get_nodepool_name.outputs.NODEPOOL_NAME }} \
+                    --name ${{ steps.workload.outputs.NODEPOOL_NAME }} \
                     --cluster-name GitRunner \
                     --resource-group llm-test
                 fi
             fi
-          

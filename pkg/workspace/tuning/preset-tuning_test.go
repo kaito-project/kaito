@@ -5,49 +5,26 @@ package tuning
 
 import (
 	"context"
-	"os"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/test"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/utils/pointer"
+	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
 
 func normalize(s string) string {
 	return strings.Join(strings.Fields(s), " ")
 }
 
-// Saves state of current env, and returns function to restore to saved state
-func saveEnv(key string) func() {
-	envVal, envExists := os.LookupEnv(key)
-	return func() {
-		if envExists {
-			err := os.Setenv(key, envVal)
-			if err != nil {
-				return
-			}
-		} else {
-			err := os.Unsetenv(key)
-			if err != nil {
-				return
-			}
-		}
-	}
-}
-
 func TestGetInstanceGPUCount(t *testing.T) {
-	os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	testcases := map[string]struct {
 		sku              string
@@ -76,24 +53,18 @@ func TestGetInstanceGPUCount(t *testing.T) {
 }
 
 func TestGetTuningImageInfo(t *testing.T) {
-	// Setting up test environment
-	originalRegistryName := os.Getenv("PRESET_REGISTRY_NAME")
-	defer func() {
-		os.Setenv("PRESET_REGISTRY_NAME", originalRegistryName) // Reset after tests
-	}()
-
 	testcases := map[string]struct {
 		registryName string
-		wObj         *kaitov1alpha1.Workspace
+		wObj         *kaitov1beta1.Workspace
 		presetObj    *model.PresetParam
 		expected     string
 	}{
 		"Valid Registry and Parameters": {
 			registryName: "testregistry",
-			wObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Preset: &kaitov1alpha1.PresetSpec{
-						PresetMeta: kaitov1alpha1.PresetMeta{
+			wObj: &kaitov1beta1.Workspace{
+				Tuning: &kaitov1beta1.TuningSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
 							Name: "testpreset",
 						},
 					},
@@ -106,10 +77,10 @@ func TestGetTuningImageInfo(t *testing.T) {
 		},
 		"Empty Registry Name": {
 			registryName: "",
-			wObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Preset: &kaitov1alpha1.PresetSpec{
-						PresetMeta: kaitov1alpha1.PresetMeta{
+			wObj: &kaitov1beta1.Workspace{
+				Tuning: &kaitov1beta1.TuningSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
 							Name: "testpreset",
 						},
 					},
@@ -124,7 +95,8 @@ func TestGetTuningImageInfo(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			os.Setenv("PRESET_REGISTRY_NAME", tc.registryName)
+			t.Setenv("PRESET_REGISTRY_NAME", tc.registryName)
+
 			result, _ := GetTuningImageInfo(context.Background(), tc.wObj, tc.presetObj)
 			assert.Equal(t, tc.expected, result)
 		})
@@ -133,14 +105,14 @@ func TestGetTuningImageInfo(t *testing.T) {
 
 func TestGetDataSrcImageInfo(t *testing.T) {
 	testcases := map[string]struct {
-		wObj            *kaitov1alpha1.Workspace
+		wObj            *kaitov1beta1.Workspace
 		expectedImage   string
 		expectedSecrets []corev1.LocalObjectReference
 	}{
 		"Multiple Image Pull Secrets": {
-			wObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Input: &kaitov1alpha1.DataSource{
+			wObj: &kaitov1beta1.Workspace{
+				Tuning: &kaitov1beta1.TuningSpec{
+					Input: &kaitov1beta1.DataSource{
 						Image:            "kaito/data-source",
 						ImagePullSecrets: []string{"secret1", "secret2"},
 					},
@@ -153,9 +125,9 @@ func TestGetDataSrcImageInfo(t *testing.T) {
 			},
 		},
 		"No Image Pull Secrets": {
-			wObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Input: &kaitov1alpha1.DataSource{
+			wObj: &kaitov1beta1.Workspace{
+				Tuning: &kaitov1beta1.TuningSpec{
+					Input: &kaitov1beta1.DataSource{
 						Image: "kaito/data-source",
 					},
 				},
@@ -170,76 +142,6 @@ func TestGetDataSrcImageInfo(t *testing.T) {
 			resultImage, resultSecrets := GetDataSrcImageInfo(context.Background(), tc.wObj)
 			assert.Equal(t, tc.expectedImage, resultImage)
 			assert.Equal(t, tc.expectedSecrets, resultSecrets)
-		})
-	}
-}
-
-func TestEnsureTuningConfigMap(t *testing.T) {
-	testcases := map[string]struct {
-		setupEnv      func()
-		callMocks     func(c *test.MockClient)
-		workspaceObj  *kaitov1alpha1.Workspace
-		expectedError string
-	}{
-		"Config already exists in workspace namespace": {
-			setupEnv: func() {
-				os.Setenv(consts.DefaultReleaseNamespaceEnvVar, "release-namespace")
-			},
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-			},
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Config: "config-template",
-				},
-			},
-			expectedError: "",
-		},
-		"Error finding release namespace": {
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(errors.NewNotFound(schema.GroupResource{}, "config-template"))
-			},
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Config: "config-template",
-				},
-			},
-			expectedError: "failed to get release namespace: failed to determine release namespace from file /var/run/secrets/kubernetes.io/serviceaccount/namespace and env var RELEASE_NAMESPACE",
-		},
-		"Config doesn't exist in template namespace": {
-			setupEnv: func() {
-				os.Setenv(consts.DefaultReleaseNamespaceEnvVar, "release-namespace")
-			},
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(errors.NewNotFound(schema.GroupResource{}, "config-template"))
-			},
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Config: "config-template",
-				},
-			},
-			expectedError: "failed to get ConfigMap from template namespace:  \"config-template\" not found",
-		},
-	}
-
-	for name, tc := range testcases {
-		t.Run(name, func(t *testing.T) {
-			cleanupEnv := saveEnv(consts.DefaultReleaseNamespaceEnvVar)
-			defer cleanupEnv()
-
-			if tc.setupEnv != nil {
-				tc.setupEnv()
-			}
-			mockClient := test.NewClient()
-			tc.callMocks(mockClient)
-			tc.workspaceObj.SetNamespace("workspace-namespace")
-			_, err := EnsureTuningConfigMap(context.Background(), tc.workspaceObj, mockClient)
-			if tc.expectedError != "" {
-				assert.EqualError(t, err, tc.expectedError)
-			} else {
-				assert.NoError(t, err)
-			}
-			mockClient.AssertExpectations(t)
 		})
 	}
 }
@@ -318,48 +220,9 @@ training_config:
 	}
 }
 
-func TestHandleImageDataSource(t *testing.T) {
-	testcases := map[string]struct {
-		workspaceObj              *kaitov1alpha1.Workspace
-		expectedInitContainerName string
-		expectedVolumeName        string
-		expectedVolumeMountPath   string
-	}{
-		"Handle Image Data Source": {
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Resource: kaitov1alpha1.ResourceSpec{
-					Count: pointer.Int(1),
-				},
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Input: &kaitov1alpha1.DataSource{
-						Image: "data-image",
-					},
-				},
-			},
-			expectedInitContainerName: "data-extractor",
-			expectedVolumeName:        "data-volume",
-			expectedVolumeMountPath:   "/mnt/data",
-		},
-	}
-
-	for name, tc := range testcases {
-		t.Run(name, func(t *testing.T) {
-			initContainer, volume, volumeMount := handleImageDataSource(context.Background(), tc.workspaceObj.Tuning.Input.Image)
-
-			assert.Equal(t, tc.expectedInitContainerName, initContainer.Name)
-			assert.Equal(t, tc.workspaceObj.Tuning.Input.Image, initContainer.Image)
-			assert.Contains(t, initContainer.Command[2], "cp -r /data/* /mnt/data")
-
-			assert.Equal(t, tc.expectedVolumeName, volume.Name)
-
-			assert.Equal(t, tc.expectedVolumeMountPath, volumeMount.MountPath)
-		})
-	}
-}
-
 func TestHandleURLDataSource(t *testing.T) {
 	testcases := map[string]struct {
-		workspaceObj              *kaitov1alpha1.Workspace
+		workspaceObj              *kaitov1beta1.Workspace
 		expectedInitContainerName string
 		expectedImage             string
 		expectedCommands          string
@@ -367,9 +230,9 @@ func TestHandleURLDataSource(t *testing.T) {
 		expectedVolumeMountPath   string
 	}{
 		"Handle URL Data Source": {
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Tuning: &kaitov1alpha1.TuningSpec{
-					Input: &kaitov1alpha1.DataSource{
+			workspaceObj: &kaitov1beta1.Workspace{
+				Tuning: &kaitov1beta1.TuningSpec{
+					Input: &kaitov1beta1.DataSource{
 						URLs: []string{"http://example.com/data1.zip", "http://example.com/data2.zip"},
 					},
 				},
@@ -402,23 +265,27 @@ func TestPrepareTuningParameters(t *testing.T) {
 
 	testcases := map[string]struct {
 		name                 string
-		workspaceObj         *kaitov1alpha1.Workspace
+		workspaceObj         *kaitov1beta1.Workspace
 		modelCommand         string
 		tuningObj            *model.PresetParam
 		expectedCommands     []string
 		expectedRequirements corev1.ResourceRequirements
 	}{
 		"Basic Tuning Parameters Setup": {
-			workspaceObj: &kaitov1alpha1.Workspace{
-				Resource: kaitov1alpha1.ResourceSpec{
+			workspaceObj: &kaitov1beta1.Workspace{
+				Resource: kaitov1beta1.ResourceSpec{
 					InstanceType: "gpu-instance-type",
 				},
 			},
 			modelCommand: "model-command",
 			tuningObj: &model.PresetParam{
-				BaseCommand:         "python train.py",
-				TorchRunParams:      map[string]string{},
-				TorchRunRdzvParams:  map[string]string{},
+				RuntimeParam: model.RuntimeParam{
+					Transformers: model.HuggingfaceTransformersParam{
+						BaseCommand:        "python train.py",
+						TorchRunParams:     map[string]string{},
+						TorchRunRdzvParams: map[string]string{},
+					},
+				},
 				GPUCountRequirement: "2",
 			},
 			expectedCommands: []string{"/bin/sh", "-c", "python train.py --num_processes=1 model-command"},
@@ -435,6 +302,8 @@ func TestPrepareTuningParameters(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
 			commands, resources := prepareTuningParameters(ctx, tc.workspaceObj, tc.modelCommand, tc.tuningObj, "2")
 			assert.Equal(t, tc.expectedCommands, commands)
 			assert.Equal(t, tc.expectedRequirements.Requests, resources.Requests)
@@ -443,40 +312,101 @@ func TestPrepareTuningParameters(t *testing.T) {
 	}
 }
 
+func TestPrepareDataDestination_ImageDestination(t *testing.T) {
+	ctx := context.TODO()
+
+	workspaceObj := &kaitov1beta1.Workspace{
+		Tuning: &kaitov1beta1.TuningSpec{
+			Output: &kaitov1beta1.DataDestination{
+				Image:           "custom/data-loader-image",
+				ImagePushSecret: "image-push-secret",
+			},
+		},
+	}
+
+	expectedImagePushSecret := corev1.LocalObjectReference{
+		Name: workspaceObj.Tuning.Output.ImagePushSecret,
+	}
+
+	expectedVolume, expectedVolumeMount := utils.ConfigImagePushSecretVolume(expectedImagePushSecret.Name)
+
+	outDir := "/mnt/results"
+
+	expectedSidecarContainer := image.NewPusherContainer(outDir, workspaceObj.Tuning.Output.Image, nil, nil)
+
+	sidecarContainer, imagePushSecret, volume, volumeMount := prepareDataDestination(ctx, workspaceObj, outDir)
+
+	// Assertions
+	assert.Equal(t, expectedSidecarContainer, sidecarContainer)
+	assert.Equal(t, expectedVolume, volume)
+	assert.Equal(t, expectedVolumeMount, volumeMount)
+	assert.Equal(t, expectedImagePushSecret, *imagePushSecret)
+}
+
 func TestPrepareDataSource_ImageSource(t *testing.T) {
 	ctx := context.TODO()
 
-	workspaceObj := &kaitov1alpha1.Workspace{
-		Tuning: &kaitov1alpha1.TuningSpec{
-			Input: &kaitov1alpha1.DataSource{
+	workspaceObj := &kaitov1beta1.Workspace{
+		Tuning: &kaitov1beta1.TuningSpec{
+			Input: &kaitov1beta1.DataSource{
+				Name:  "some-name",
 				Image: "custom/data-loader-image",
+				ImagePullSecrets: []string{
+					"image-pull-secret-name",
+				},
 			},
 		},
 	}
 
 	// Expected outputs from mocked functions
-	expectedVolume := corev1.Volume{
-		Name: "data-volume",
-		VolumeSource: corev1.VolumeSource{
-			EmptyDir: &corev1.EmptyDirVolumeSource{}, // Assume we expect an EmptyDir
+	expectedInitContainer := image.NewPullerContainer(workspaceObj.Tuning.Input.Image, "/mnt/data")
+
+	expectedVolumes := []corev1.Volume{
+		{
+			Name: "docker-config-some-name-tuning-input",
+			VolumeSource: corev1.VolumeSource{
+				Projected: &corev1.ProjectedVolumeSource{
+					Sources: []corev1.VolumeProjection{
+						{
+							Secret: &corev1.SecretProjection{
+								LocalObjectReference: corev1.LocalObjectReference{
+									Name: "image-pull-secret-name",
+								},
+								Items: []corev1.KeyToPath{
+									{
+										Key:  ".dockerconfigjson",
+										Path: "image-pull-secret-name.json",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "data-volume",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
 		},
 	}
 
-	expectedVolumeMount := corev1.VolumeMount{Name: "data-volume", MountPath: "/mnt/data"}
-	expectedImagePullSecrets := []corev1.LocalObjectReference{}
-	expectedInitContainer := &corev1.Container{
-		Name:         "data-extractor",
-		Image:        "custom/data-loader-image",
-		Command:      []string{"sh", "-c", "ls -la /data && cp -r /data/* /mnt/data && ls -la /mnt/data"},
-		VolumeMounts: []corev1.VolumeMount{expectedVolumeMount},
+	expectedVolumeMounts := []corev1.VolumeMount{
+		{
+			Name:      "docker-config-some-name-tuning-input",
+			MountPath: "/root/.docker/config.d/some-name-tuning-input",
+		},
+		{
+			Name:      "data-volume",
+			MountPath: "/mnt/data",
+		},
 	}
 
-	initContainer, imagePullSecrets, volume, volumeMount, err := prepareDataSource(ctx, workspaceObj)
+	initContainer, volumes, volumeMounts := prepareDataSource(ctx, workspaceObj)
 
 	// Assertions
-	assert.NoError(t, err)
 	assert.Equal(t, expectedInitContainer, initContainer)
-	assert.Equal(t, expectedVolume, volume)
-	assert.Equal(t, expectedVolumeMount, volumeMount)
-	assert.Equal(t, expectedImagePullSecrets, imagePullSecrets)
+	assert.Equal(t, expectedVolumes, volumes)
+	assert.Equal(t, expectedVolumeMounts, volumeMounts)
 }

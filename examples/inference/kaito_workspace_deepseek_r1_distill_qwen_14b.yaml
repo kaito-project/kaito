@@ -1,0 +1,13 @@
+apiVersion: kaito.sh/v1alpha1
+kind: Workspace
+metadata:
+  name: workspace-deepseek-r1-distill-qwen-14b
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: deepseek-r1-distill-qwen-14b
+inference:
+  preset:
+    name: "deepseek-r1-distill-qwen-14b"
+    

@@ -1,21 +1,37 @@
 FROM python:3.12-slim
 
+# Install system dependencies for building Python packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    && apt-get clean
+
 WORKDIR /app
 
 # Copy all files from ragengine/services into the app/services folder
-COPY services/ services/
+COPY presets/ragengine/ ragengine/
 
 # Set the PYTHONPATH environment variable
 ENV PYTHONPATH=/app
 
 # Install dependencies from requirements.txt
-RUN pip install --no-cache-dir -r services/requirements.txt
+RUN pip install --no-cache-dir -r ragengine/requirements.txt
 
 # Set the final working directory
-WORKDIR /app/services
+WORKDIR /app/ragengine
 
-# Run Using Following
-# docker build -f kaito-repo/pkg/ragengine/docker/Dockerfile.service -t kaito-rag-service:0.0.1 kaito-repo/pkg/ragengine
+# Build and Push Using Docker
+# Replace <ACR_PATH> with your Azure Container Registry path, e.g., myregistry.azurecr.io
+# docker build -f docker/ragengine/service/Dockerfile -t kaito-rag-service:0.0.1 .
 # docker tag kaito-rag-service:0.0.1 <ACR_PATH>/kaito-rag-service:0.0.1
 # docker push <ACR_PATH>/kaito-rag-service:0.0.1
 
+# Multi-Platform Build and Push Using Docker Buildx
+# Requires QEMU for cross-platform builds (linux/amd64, linux/arm64)
+# docker buildx build \
+#   --platform linux/amd64,linux/arm64 \
+#   -f docker/ragengine/service/Dockerfile \
+#   -t <ACR_PATH>/kaito-rag-service:0.0.1 \
+#   --push .

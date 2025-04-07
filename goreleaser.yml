@@ -5,7 +5,7 @@ before:
     - go mod tidy
 builds:
   - id: kaito
-    main: ./cmd
+    main: ./cmd/workspace/
     binary: bin/kaito
     goos:
       - linux

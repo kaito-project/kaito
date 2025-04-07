@@ -1,7 +1,7 @@
 # Custom Model Integration Guide
 
 ## Option 1: Use Pre-Built Docker Image Without Model Weights
-If you want to avoid building a Docker image with model weights, use our pre-built reference image (`ghcr.io/azure/kaito/llm-reference-preset:latest`). This image, built with [Dockerfile.reference](./Dockerfile.reference), dynamically downloads model weights from HuggingFace at runtime, reducing the need to create and maintain custom images.
+If you want to avoid building a Docker image with model weights, use our pre-built reference image (`ghcr.io/kaito-project/kaito/llm-reference-preset:latest`). This image, built with [Dockerfile.reference](./Dockerfile.reference), dynamically downloads model weights from HuggingFace at runtime, reducing the need to create and maintain custom images.
 
 
 - **[Sample Deployment YAML](./reference-image-deployment.yaml)**
@@ -72,7 +72,7 @@ export WEIGHTS_PATH="kaito/phi-3-mini-4k-instruct/weights"
 
 Navigate to the Kaito base directory and build the Docker image, ensuring the weights directory is included in the build context:
 ```sh
-docker build -t <IMAGE_NAME> --file docker/presets/models/tfs/Dockerfile --build-arg WEIGHTS_PATH=<WEIGHTS_PATH> --build-arg MODEL_TYPE=text-generation --build-arg VERSION=<VERSION> .
+docker build -t <IMAGE_NAME> --file docker/presets/workspace/models/tfs/Dockerfile --build-arg WEIGHTS_PATH=<WEIGHTS_PATH> --build-arg MODEL_TYPE=text-generation --build-arg VERSION=<VERSION> .
 
 docker push <IMAGE_NAME>
 ```

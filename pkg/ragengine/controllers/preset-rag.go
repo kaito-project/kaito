@@ -6,33 +6,33 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
 
 const (
 	ProbePath = "/health"
-	Port5000  = int32(5000)
+	Port5000  = 5000
 )
 
 var (
 	containerPorts = []corev1.ContainerPort{{
-		ContainerPort: Port5000,
+		ContainerPort: int32(Port5000),
 	},
 	}
 
 	livenessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt(5000),
+				Port: intstr.FromInt(Port5000),
 				Path: ProbePath,
 			},
 		},
@@ -43,7 +43,7 @@ var (
 	readinessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt(5000),
+				Port: intstr.FromInt(Port5000),
 				Path: ProbePath,
 			},
 		},
@@ -66,7 +66,7 @@ var (
 	}
 )
 
-func CreatePresetRAG(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
+func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 
@@ -98,8 +98,9 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine,
 
 	}
 	commands := utils.ShellCmd("python3 main.py")
-	// TODO: provide this image
-	image := "mcr.microsoft.com/aks/kaito/kaito-rag-service:0.0.1"
+
+	image := "aimodelsregistrytest.azurecr.io/kaito-rag-service:0.3.2" //TODO: Change to the mcr image when release
+
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 
 	depObj := manifests.GenerateRAGDeploymentManifest(ctx, ragEngineObj, revisionNum, image, imagePullSecretRefs, *ragEngineObj.Spec.Compute.Count, commands,

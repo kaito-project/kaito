@@ -2,8 +2,9 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.3.2
-GPU_PROVISIONER_VERSION ?= 0.2.1
+VERSION ?= v0.4.4
+GPU_PROVISIONER_VERSION ?= 0.3.3
+RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -12,12 +13,15 @@ BIN_DIR := $(abspath $(ROOT_DIR)/bin)
 TOOLS_DIR := hack/tools
 TOOLS_BIN_DIR := $(abspath $(TOOLS_DIR)/bin)
 
-GOLANGCI_LINT_VER := v1.57.2
+GOLANGCI_LINT_VER := v1.63.4
 GOLANGCI_LINT_BIN := golangci-lint
 GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT_VER))
 
 E2E_TEST_BIN := e2e.test
 E2E_TEST := $(BIN_DIR)/$(E2E_TEST_BIN)
+
+RAGENGINE_E2E_TEST_BIN := rage2e.test
+RAGENGINE_E2E_TEST := $(BIN_DIR)/$(RAGENGINE_E2E_TEST_BIN)
 
 GINKGO_VER := v2.19.0
 GINKGO_BIN := ginkgo
@@ -32,6 +36,7 @@ AZURE_CLUSTER_NAME ?= kaito-demo
 AZURE_RESOURCE_GROUP_MC=MC_$(AZURE_RESOURCE_GROUP)_$(AZURE_CLUSTER_NAME)_$(AZURE_LOCATION)
 GPU_PROVISIONER_NAMESPACE ?= gpu-provisioner
 KAITO_NAMESPACE ?= kaito-workspace
+KAITO_RAGENGINE_NAMESPACE ?= kaito-ragengine
 GPU_PROVISIONER_MSI_NAME ?= gpuprovisionerIdentity
 
 ## Azure Karpenter parameters
@@ -43,7 +48,12 @@ AZURE_KARPENTER_MSI_NAME ?= azkarpenterIdentity
 RUN_LLAMA_13B ?= false
 AI_MODELS_REGISTRY ?= modelregistry.azurecr.io
 AI_MODELS_REGISTRY_SECRET ?= modelregistry
-SUPPORTED_MODELS_YAML_PATH ?= ~/runner/_work/kaito/kaito/presets/models/supported_models.yaml
+SUPPORTED_MODELS_YAML_PATH ?= $(ROOT_DIR)/presets/workspace/models/supported_models.yaml
+
+## AWS parameters
+CLUSTER_CONFIG_FILE ?= ./docs/aws/clusterconfig.yaml.template
+RENDERED_CLUSTER_CONFIG_FILE ?= ./docs/aws/clusterconfig.yaml
+AWS_KARPENTER_VERSION ?=1.0.8
 
 # Scripts
 GO_INSTALL := ./hack/go-install.sh
@@ -93,38 +103,46 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 .PHONY: unit-test
 unit-test: ## Run unit tests.
 	go test -v $(shell go list ./pkg/... ./api/... | \
-	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /pkg/utils/test/...) \
+	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /api/v1beta1/zz_generated.deepcopy.go -e /pkg/utils/test/...) \
 	-race -coverprofile=coverage.txt -covermode=atomic
 	go tool cover -func=coverage.txt
 
 .PHONY: rag-service-test
 rag-service-test:
-	pip install -r pkg/ragengine/services/requirements.txt
-	pytest -o log_cli=true -o log_cli_level=INFO pkg/ragengine/services/tests
+	pip install -r presets/ragengine/requirements-test.txt
+	pip install pytest-cov
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
 
 .PHONY: tuning-metrics-server-test
 tuning-metrics-server-test:
-	pip install -r ./presets/dependencies/requirements-test.txt
-	pytest -o log_cli=true -o log_cli_level=INFO presets/tuning/text-generation/metrics
+	pip install -r ./presets/workspace/dependencies/requirements-test.txt
+	pip install pytest-cov
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
 
 ## --------------------------------------
 ## E2E tests
 ## --------------------------------------
 
 inference-api-e2e:
-	pip install -r ./presets/dependencies/requirements-test.txt
-	pytest -o log_cli=true -o log_cli_level=INFO presets/inference
+	pip install -r ./presets/workspace/dependencies/requirements-test.txt
+	pip install pytest-cov
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
 
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
+GINKGO_LABEL ?=
 GINKGO_NODES ?= 2
 GINKGO_NO_COLOR ?= false
-GINKGO_TIMEOUT ?= 180m
-GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT) --fail-fast
+GINKGO_TIMEOUT ?= 120m
+GINKGO_ARGS ?= --label-filter="$(GINKGO_LABEL)" -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT) --fail-fast
 
 $(E2E_TEST):
 	(cd test/e2e && go test -c . -o $(E2E_TEST))
+
+$(RAGENGINE_E2E_TEST):
+	(cd test/rage2e && go test -c . -o $(RAGENGINE_E2E_TEST))
 
 .PHONY: kaito-workspace-e2e-test
 kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO)
@@ -133,6 +151,14 @@ kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO)
  	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_NAMESPACE=$(KAITO_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
 	SUPPORTED_MODELS_YAML_PATH=$(SUPPORTED_MODELS_YAML_PATH) \
  	$(GINKGO) -v -trace $(GINKGO_ARGS) $(E2E_TEST)
+
+.PHONY: kaito-ragengine-e2e-test
+kaito-ragengine-e2e-test: $(RAGENGINE_E2E_TEST) $(GINKGO)
+	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) RUN_LLAMA_13B=$(RUN_LLAMA_13B) \
+	AI_MODELS_REGISTRY=$(AI_MODELS_REGISTRY) GPU_PROVISIONER_NAMESPACE=$(GPU_PROVISIONER_NAMESPACE)  KAITO_NAMESPACE=$(KAITO_NAMESPACE) \
+	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_RAGENGINE_NAMESPACE=$(KAITO_RAGENGINE_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
+	SUPPORTED_MODELS_YAML_PATH=$(SUPPORTED_MODELS_YAML_PATH) \
+	$(GINKGO) -v -trace $(GINKGO_ARGS) $(RAGENGINE_E2E_TEST)
 
 ## --------------------------------------
 ## Azure resources
@@ -173,12 +199,36 @@ create-aks-cluster-for-karpenter: ## Create test AKS cluster (with msi, cilium, 
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
 
 ## --------------------------------------
+## AWS resources
+## --------------------------------------
+.PHONY: mktemp
+mktemp:
+	$(eval TEMPOUT := $(shell mktemp))
+
+.PHONY: deploy-aws-cloudformation
+deploy-aws-cloudformation: mktemp ## Deploy AWS CloudFormation stack
+	curl -fsSL https://raw.githubusercontent.com/aws/karpenter-provider-aws/v"${AWS_KARPENTER_VERSION}"/website/content/en/preview/getting-started/getting-started-with-karpenter/cloudformation.yaml  > "${TEMPOUT}" 
+
+	aws cloudformation deploy \
+	--stack-name "Karpenter-${AWS_CLUSTER_NAME}" \
+	--template-file "${TEMPOUT}" \
+	--capabilities CAPABILITY_NAMED_IAM \
+	--parameter-overrides "ClusterName=${AWS_CLUSTER_NAME}"
+
+.PHONY: create-eks-cluster
+create-eks-cluster: ## Create test EKS cluster
+	@envsubst < $(CLUSTER_CONFIG_FILE) > $(RENDERED_CLUSTER_CONFIG_FILE)
+
+	eksctl create cluster -f $(RENDERED_CLUSTER_CONFIG_FILE)
+
+## --------------------------------------
 ## Image Docker Build
 ## --------------------------------------
 BUILDX_BUILDER_NAME ?= img-builder
 OUTPUT_TYPE ?= type=registry
 QEMU_VERSION ?= 7.2.0-1
 ARCH ?= amd64,arm64
+BUILDKIT_VERSION ?= v0.18.1
 
 RAGENGINE_IMAGE_NAME ?= ragengine
 RAGENGINE_IMAGE_TAG ?= v0.0.1
@@ -188,7 +238,7 @@ RAGENGINE_IMAGE_TAG ?= v0.0.1
 docker-buildx: ## Build and push docker image for the manager for cross-platform support
 	@if ! docker buildx ls | grep $(BUILDX_BUILDER_NAME); then \
 		docker run --rm --privileged mcr.microsoft.com/mirror/docker/multiarch/qemu-user-static:$(QEMU_VERSION) --reset -p yes; \
-		docker buildx create --name $(BUILDX_BUILDER_NAME) --use; \
+		docker buildx create --name $(BUILDX_BUILDER_NAME) --driver-opt image=mcr.microsoft.com/oss/v2/moby/buildkit:$(BUILDKIT_VERSION) --use; \
 		docker buildx inspect $(BUILDX_BUILDER_NAME) --bootstrap; \
 	fi
 
@@ -204,11 +254,20 @@ docker-build-workspace: docker-buildx
 .PHONY: docker-build-ragengine
 docker-build-ragengine: docker-buildx
 	docker buildx build \
-                --file ./docker/ragengine/Dockerfile \
-                --output=$(OUTPUT_TYPE) \
-                --platform="linux/$(ARCH)" \
-                --pull \
-                --tag $(REGISTRY)/$(RAGENGINE_IMG_NAME):$(RAGENGINE_IMG_TAG) .
+		--file ./docker/ragengine/Dockerfile \
+		--output=$(OUTPUT_TYPE) \
+		--platform="linux/$(ARCH)" \
+		--pull \
+		--tag $(REGISTRY)/$(RAGENGINE_IMAGE_NAME):$(IMG_TAG) .
+
+.PHONY: docker-build-rag-service
+docker-build-ragservice: docker-buildx
+	docker buildx build \
+        --platform="linux/$(ARCH)" \
+        --output=$(OUTPUT_TYPE) \
+        --file ./docker/ragengine/service/Dockerfile \
+        --pull \
+        -tag $(REGISTRY)/$(RAGENGINE_SERVICE_IMG_NAME):$(RAGENGINE_SERVICE_IMG_TAG) .
 
 .PHONY: docker-build-adapter
 docker-build-adapter: docker-buildx
@@ -272,11 +331,28 @@ az-patch-install-helm: ## Update Azure client env vars and settings in helm valu
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    ./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/workspace/values.yaml
-	if [ $(TEST_SUITE) = "azkarpenter" ]; then \
-		yq -i '(.featureGates.Karpenter)                                    = "true"'                                       ./charts/kaito/workspace/values.yaml; \
-	fi
 	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/workspace/values.yaml
 
+	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace
+
+.PHONY: az-patch-install-ragengine-helm
+az-patch-install-ragengine-helm:
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+
+	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
+	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/ragengine/values.yaml
+	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/ragengine/values.yaml
+
+	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace
+
+.PHONY: aws-patch-install-helm ##install kaito on AWS cluster
+aws-patch-install-helm: 
+	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    	./charts/kaito/workspace/values.yaml
+	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               	./charts/kaito/workspace/values.yaml
+	yq -i '(.featureGates.Karpenter)                                    	= "true"'                                       ./charts/kaito/workspace/values.yaml
+	yq -i '(.clusterName)                                                   = "$(AWS_CLUSTER_NAME)"'                    		./charts/kaito/workspace/values.yaml
+	yq -i '(.cloudProviderName)                                             = "aws"'                                        ./charts/kaito/workspace/values.yaml
+	
 	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace
 
 generate-identities: ## Create identities for the provisioner component.
@@ -318,6 +394,23 @@ azure-karpenter-helm:  ## Update Azure client env vars and settings in helm valu
     --set controller.resources.limits.memory=1Gi
 
 	kubectl wait --for=condition=available deploy "karpenter" -n karpenter --timeout=300s
+
+## --------------------------------------
+## AWS Karpenter Installation
+## --------------------------------------
+.PHONY: aws-karpenter-helm
+aws-karpenter-helm:  
+	helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter \
+	--version "${AWS_KARPENTER_VERSION}" \
+	--namespace "${KARPENTER_NAMESPACE}" --create-namespace \
+	--set "settings.clusterName=${AWS_CLUSTER_NAME}" \
+	--set "settings.interruptionQueue=${AWS_CLUSTER_NAME}" \
+	--set controller.resources.requests.cpu=1 \
+	--set controller.resources.requests.memory=1Gi \
+	--set controller.resources.limits.cpu=1 \
+	--set controller.resources.limits.memory=1Gi \
+
+	kubectl wait --for=condition=available deploy "karpenter" -n ${KARPENTER_NAMESPACE} --timeout=300s
 
 ##@ Build
 .PHONY: build-workspace
@@ -395,8 +488,9 @@ release-manifest:
 	@sed -i -e "s/appVersion: .*/appVersion: ${IMG_TAG}/" ./charts/kaito/workspace/Chart.yaml
 	@sed -i -e "s/tag: .*/tag: ${IMG_TAG}/" ./charts/kaito/workspace/values.yaml
 	@sed -i -e 's/IMG_TAG=.*/IMG_TAG=${IMG_TAG}/' ./charts/kaito/workspace/README.md
+	@sed -i -e 's/export KAITO_WORKSPACE_VERSION=.*/export KAITO_WORKSPACE_VERSION=${IMG_TAG}/' ./docs/installation.md
 	git checkout -b release-${VERSION}
-	git add ./Makefile ./charts/kaito/workspace/Chart.yaml ./charts/kaito/workspace/values.yaml ./charts/kaito/workspace/README.md
+	git add ./Makefile ./charts/kaito/workspace/Chart.yaml ./charts/kaito/workspace/values.yaml ./charts/kaito/workspace/README.md ./docs/installation.md
 	git commit -s -m "release: update manifest and helm charts for ${VERSION}"
 
 ## --------------------------------------

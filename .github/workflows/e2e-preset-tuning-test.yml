@@ -1,0 +1,135 @@
+name: E2E Preset tuning Test
+
+on:
+    workflow_run:
+        workflows: ["Build and Push Preset Models"]
+        types:
+            - completed
+    workflow_dispatch: {}
+
+env:
+    GO_VERSION: "1.24"
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+  e2e-preset-tuning-tests:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: preset-env
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+            submodules: true
+            fetch-depth: 0
+
+      - name: 'Az CLI login'
+        uses: azure/login@v2.2.0
+        with:
+            client-id: ${{ secrets.AZURE_CLIENT_ID }}
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            allow-no-subscriptions: true
+
+      - name: 'Set ACR Subscription'
+        run: az account set --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}}
+
+      - name: Set up kubectl context
+        run: |
+          az aks get-credentials --resource-group llm-test --name GitRunner
+
+      - name: Get test meta
+        id: get_test_meta
+        run: |
+            CONFIG=$(jq -c '.matrix.image[] | select(.name == "tuning")' .github/e2e-preset-configs.json)
+
+            echo "TAG=0.0.7" >> $GITHUB_OUTPUT
+            for row in $(echo "${CONFIG}" | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]'); do
+                echo "${row}" >> $GITHUB_OUTPUT
+            done
+
+      - name: Create Nodepool
+        run: |
+            NODEPOOL_EXIST=$(az aks nodepool show \
+                            --name ${{ steps.get_test_meta.outputs.name }} \
+                            --cluster-name GitRunner \
+                            --resource-group llm-test \
+                            --query 'name' -o tsv || echo "")
+            echo "NODEPOOL_EXIST: $NODEPOOL_EXIST"
+            if [ -z "$NODEPOOL_EXIST" ]; then
+                az aks nodepool add \
+                    --name ${{ steps.get_test_meta.outputs.name }} \
+                    --cluster-name GitRunner \
+                    --resource-group llm-test \
+                    --node-count ${{ steps.get_test_meta.outputs.node-count }} \
+                    --node-vm-size ${{ steps.get_test_meta.outputs.node-vm-size }} \
+                    --node-osdisk-size ${{ steps.get_test_meta.outputs.node-osdisk-size }} \
+                    --labels pool=${{ steps.get_test_meta.outputs.name }} \
+                    --node-taints sku=gpu:NoSchedule
+            else
+                NODEPOOL_STATE=$(az aks nodepool show \
+                                --name ${{ steps.get_test_meta.outputs.name }} \
+                                --cluster-name GitRunner \
+                                --resource-group llm-test \
+                                --query 'provisioningState' -o tsv)
+                echo "NODEPOOL_STATE: $NODEPOOL_STATE"
+                if [ "$NODEPOOL_STATE" != "Succeeded" ]; then
+                    echo "Nodepool exists but is not in a Succeeded state. Please check manually."
+                    exit 1
+                else
+                    echo "Nodepool already exists and is in a running state."
+                fi
+            fi
+
+      - name: Replace repo and Deploy Resource to K8s
+        run: |
+            sed -i "s/REPO_HERE/${{ secrets.ACR_AMRT_USERNAME }}/g" presets/workspace/test/tuning/tuning-job.yaml
+            sed -i "s/TAG_HERE/${{ steps.get_test_meta.outputs.TAG }}/g" presets/workspace/test/tuning/tuning-job.yaml
+            kubectl apply -f presets/workspace/test/tuning/tuning-job.yaml
+
+      - name: Wait for tuning job to be ready
+        shell: bash {0}
+        run: |
+            retval_complete=1
+            retval_failed=1
+            count=0
+            max_retries=60
+            while [[ $retval_complete -ne 0 ]] && [[ $retval_failed -ne 0 ]] && [[ $count -lt $max_retries ]]; do
+                sleep 10
+                output=$(kubectl wait --for=condition=failed job/tuning-example --timeout=0 2>&1)
+                retval_failed=$?
+                output=$(kubectl wait --for=condition=complete job/tuning-example --timeout=0 2>&1)
+                retval_complete=$?
+                count=$((count + 1))
+            done
+
+            if [ $retval_failed -eq 0 ]; then
+                echo "Job failed. Please check logs."
+                exit 1
+            elif [ $retval_complete -ne 0 ]; then
+                echo "Job timeout."
+                exit 1
+            else
+                echo "Job succeeded."
+            fi
+      - name: Cleanup
+        if: always()
+        run: |
+            kubectl delete --wait=true -f presets/workspace/test/tuning/tuning-job.yaml
+
+            # Check and Delete AKS Nodepool if it exists
+            NODEPOOL_EXIST=$(az aks nodepool show \
+                            --name ${{ steps.get_test_meta.outputs.name }} \
+                            --cluster-name GitRunner \
+                            --resource-group llm-test \
+                            --query 'name' -o tsv || echo "")
+
+            if [ -n "$NODEPOOL_EXIST" ]; then
+                echo "deleting nodepool"
+                az aks nodepool delete \
+                --name ${{ steps.get_test_meta.outputs.name }} \
+                --cluster-name GitRunner \
+                --resource-group llm-test
+            fi

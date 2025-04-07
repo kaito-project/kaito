@@ -6,7 +6,7 @@ AKS Arc, or Azure Kubernetes Service (AKS) on Azure Arc, is a service that exten
 Follow the workflow below to enable this feature.
 
 ## Supported Models
-Currently KAITO supports models such as Falcon, Phi2, Phi3, Llama2, Llama2Chat, Mistral. Please refer to KAITO’s [readme](https://github.com/Azure/kaito/blob/main/presets/README.md) file for the latest models. 
+Currently KAITO supports models such as Falcon, Phi2, Phi3, Llama2, Llama2Chat, Mistral. Please refer to KAITO’s [readme](https://github.com/kaito-project/kaito/blob/main/presets/README.md) file for the latest models. 
 
 ## Prerequisite
 1.	Before you begin, please make sure you have the following details from your infrastructure administrator:
@@ -14,12 +14,13 @@ Currently KAITO supports models such as Falcon, Phi2, Phi3, Llama2, Llama2Chat, 
     - We recommend using Linux machine for this feature.
     - Your local kubectl environment configured to point to your AKS cluster.
         - Run `az aksarc get-credentials --resource-group <ResourceGroupName> --name <ClusterName>  --admin` to download the kubeconfig file.
-2.	Make sure your HCI cluster is enabled with GPU, you can ask your infrastructure administrator to set it up for you. You also need to identify the right VM SKUs for your AKS cluster before creating the node pool. The instruction can be found at [use GPU for compute-intensive workloads](https://learn.microsoft.com/en-us/azure/aks/hybrid/deploy-gpu-node-pool).
+2.	Make sure your Azure Local cluster is enabled with GPU, you can ask your infrastructure administrator to set it up for you. You also need to identify the right VM SKUs for your AKS cluster before creating the node pool. The instruction can be found at [use GPU for compute-intensive workloads](https://learn.microsoft.com/en-us/azure/aks/hybrid/deploy-gpu-node-pool).
 3.	Make sure the helm and kubectl are installed in your local machine.
     - If you need to install or upgrade, please see instruction from [Install Helm](https://helm.sh/docs/intro/install/).
     - If you need to install kubectl, please see instructions from [Install kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
 
 ## Create a GPU Node Pool
+Available GPU sku can be found [here](https://learn.microsoft.com/en-us/azure/aks/hybrid/deploy-gpu-node-pool#supported-vm-sizes)
 <details>
 <summary><b>Using Azure Portal</b></summary>
 <div align="middle">
@@ -30,7 +31,7 @@ Currently KAITO supports models such as Falcon, Phi2, Phi3, Llama2, Llama2Chat, 
 <details>
 <summary><b>Using Az CLI</b></summary>
 <div align="middle">
-Run following Az command to provision node pool, available GPU sku can be found <a href="https://learn.microsoft.com/en-us/azure/aks/hybrid/deploy-gpu-node-pool#supported-vm-sizes">here</a>
+Run following Az command to provision node pool
 
 ```bash
 az aksarc nodepool add --name "samplenodepool" --cluster-name "samplecluster" --resource-group "sample-rg" –node-vm-size "samplenodepoolsize" –os-type "Linux"
@@ -97,7 +98,6 @@ kind: Workspace
 metadata:
   name: { YourDeploymentName }
 resource:
-  instanceType: Standard_NC12s_v3
   labelSelector:
     matchLabels:
       apps: { YourNodeLabel }
@@ -115,7 +115,6 @@ kind: Workspace
 metadata:
   name: workspace-falcon-7b
 resource:
-  instanceType: Standard_NC12s_v3
   labelSelector:
     matchLabels:
       apps: falcon-7b
@@ -125,7 +124,7 @@ inference:
   preset:
     name: falcon-7b-instruct
 ```
-2.	You need to label your GPU node first, `Kubectl label node samplenode app=YourNodeLabel` and then apply the YAML file
+2.	You need to label your GPU node first, `Kubectl label node samplenode apps=YourNodeLabel` and then apply the YAML file
 `kubectl apply -f sampleyamlfile.yaml`
 
  

@@ -14,10 +14,10 @@ RUN echo $VERSION > /workspace/tfs/version.txt
 # First, copy just the requirements.txt file and install dependencies
 # This is done before copying the code to utilize Docker's layer caching and
 # avoid reinstalling dependencies unless the requirements file changes.
-COPY kaito/presets/inference/${MODEL_TYPE}/requirements.txt /workspace/tfs/requirements.txt
+COPY kaito/presets/workspace/inference/${MODEL_TYPE}/requirements.txt /workspace/tfs/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY kaito/presets/inference/${MODEL_TYPE}/inference_api.py /workspace/tfs/inference_api.py
+COPY kaito/presets/workspace/inference/${MODEL_TYPE}/inference_api.py /workspace/tfs/inference_api.py
 
 # Convert to ONNX Runtime
 # RUN python convert_to_onnx.py ${MODEL_NAME} 

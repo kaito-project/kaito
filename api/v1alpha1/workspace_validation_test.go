@@ -6,19 +6,18 @@ package v1alpha1
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
-	"github.com/kaito-project/kaito/pkg/k8sclient"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"k8s.io/apimachinery/pkg/runtime"
-
-	"github.com/kaito-project/kaito/pkg/model"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const DefaultReleaseNamespace = "kaito-workspace"
@@ -63,6 +62,29 @@ func (*testModel) SupportTuning() bool {
 	return true
 }
 
+type testModelStatic struct{}
+
+func (*testModelStatic) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "16Gi",
+		PerGPUMemoryRequirement:   "16Gi",
+	}
+}
+func (*testModelStatic) GetTuningParameters() *model.PresetParam {
+	return &model.PresetParam{
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "16Gi",
+		PerGPUMemoryRequirement:   "16Gi",
+	}
+}
+func (*testModelStatic) SupportDistributedInference() bool {
+	return false
+}
+func (*testModelStatic) SupportTuning() bool {
+	return true
+}
+
 type testModelPrivate struct{}
 
 func (*testModelPrivate) GetInferenceParameters() *model.PresetParam {
@@ -91,6 +113,7 @@ func (*testModelPrivate) SupportTuning() bool {
 func RegisterValidationTestModels() {
 	var test testModel
 	var testPrivate testModelPrivate
+	var testStatic testModelStatic
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation",
 		Instance: &test,
@@ -98,6 +121,10 @@ func RegisterValidationTestModels() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "private-test-validation",
 		Instance: &testPrivate,
+	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-validation-static",
+		Instance: &testStatic,
 	})
 }
 
@@ -197,6 +224,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		modelPerGPUMemory   string
 		modelTotalGPUMemory string
 		preset              bool
+		presetNameOverride  string
 		errContent          string // Content expect error to include, if any
 		expectErrs          bool
 		validateTuning      bool // To indicate if we are testing tuning validation
@@ -335,9 +363,20 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			expectErrs:     true,
 			validateTuning: true,
 		},
+		{
+			name: "Invalid Preset Name",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC6s_v3",
+				Count:        pointerToInt(2),
+			},
+			errContent:         "",
+			preset:             true,
+			presetNameOverride: "Invalid-Preset-Name",
+			expectErrs:         false,
+		},
 	}
 
-	os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -359,10 +398,15 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				var spec InferenceSpec
 
 				if tc.preset {
+					presetName := ModelName("test-validation")
+					if tc.presetNameOverride != "" {
+						presetName = ModelName(tc.presetNameOverride)
+					}
+
 					spec = InferenceSpec{
 						Preset: &PresetSpec{
 							PresetMeta: PresetMeta{
-								Name: ModelName("test-validation"),
+								Name: presetName,
 							},
 						},
 					}
@@ -376,7 +420,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				totalGPUMemoryRequirement = tc.modelTotalGPUMemory
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
-				errs := tc.resourceSpec.validateCreateWithInference(&spec)
+				errs := tc.resourceSpec.validateCreateWithInference(&spec, false)
 				hasErrs := errs != nil
 				if hasErrs != tc.expectErrs {
 					t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -475,6 +519,31 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 
 func TestInferenceSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
+	ctx := context.Background()
+
+	// Create fake client with default ConfigMap
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		&v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "valid-config",
+			},
+			Data: map[string]string{
+				"inference_config.yaml": "a: b",
+			},
+		},
+		&v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "missing-key-config",
+			},
+			Data: map[string]string{
+				"other_key": "some value",
+			},
+		},
+	).Build()
+	k8sclient.SetGlobalClient(client)
+
 	tests := []struct {
 		name          string
 		inferenceSpec *InferenceSpec
@@ -490,7 +559,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 					},
 				},
 			},
-			errContent: "model is not registered",
+			errContent: "Unsupported inference preset name",
 			expectErrs: true,
 		},
 		{
@@ -610,6 +679,48 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			errContent: "Duplicate adapter source name found:",
 			expectErrs: false,
 		},
+		{
+			name: "Config specified but ConfigMap not found",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name:       ModelName("test-validation"),
+						AccessMode: ModelImageAccessModePublic,
+					},
+				},
+				Config: "nonexistent-config",
+			},
+			errContent: "ConfigMap 'nonexistent-config' specified in 'config' not found in namespace",
+			expectErrs: true,
+		},
+		{
+			name: "Config specified with valid ConfigMap",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name:       ModelName("test-validation"),
+						AccessMode: ModelImageAccessModePublic,
+					},
+				},
+				Config: "valid-config",
+			},
+			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "ConfigMap missing required inference_config.yaml",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name:       ModelName("test-validation"),
+						AccessMode: ModelImageAccessModePublic,
+					},
+				},
+				Config: "missing-key-config",
+			},
+			errContent: "missing field(s): inference_config.yaml in ConfigMap",
+			expectErrs: true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -626,7 +737,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 					}
 				}()
 			}
-			errs := tc.inferenceSpec.validateCreate()
+			errs := tc.inferenceSpec.validateCreate(ctx, "")
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -703,14 +814,14 @@ func TestAdapterSpecValidateCreateorUpdate(t *testing.T) {
 				},
 				Strength: &ValidStrength,
 			},
-			errContent: "Name of Adapter must be a valid DNS subdomain value",
+			errContent: "invalid value",
 			expectErrs: true,
 		},
 		{
 			name: "Valid Adapter",
 			adapterSpec: &AdapterSpec{
 				Source: &DataSource{
-					Name:  "Adapter-1",
+					Name:  "adapter-1",
 					Image: "fake.kaito.com/kaito-image:0.0.1",
 				},
 			},
@@ -898,6 +1009,66 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 	}
 }
 
+func TestWorkspaceValidateName(t *testing.T) {
+	testWorkspace := &Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testWorkspace",
+			Namespace: "kaito",
+		},
+		Resource: ResourceSpec{
+			InstanceType: "Standard_NC12s_v3",
+			Count:        pointerToInt(1),
+		},
+		Inference: &InferenceSpec{
+			Preset: &PresetSpec{
+				PresetMeta: PresetMeta{
+					Name: ModelName("test-validation-static"),
+				},
+			},
+		},
+	}
+	RegisterValidationTestModels()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	tests := []struct {
+		name          string
+		workspaceName string
+		wantErr       bool
+		errField      string
+	}{
+		{
+			name:          "Valid name",
+			workspaceName: "valid-name",
+			wantErr:       false,
+		},
+		{
+			name:          "Name with invdalid characters",
+			workspaceName: "phi-3.5-mini",
+			wantErr:       true,
+			errField:      "name",
+		},
+		{
+			name:          "Name start with invalid character",
+			workspaceName: "-mini",
+			wantErr:       true,
+			errField:      "name",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			workspace := testWorkspace.DeepCopy()
+			workspace.Name = tt.workspaceName
+			errs := workspace.Validate(context.Background())
+			if (errs != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", errs, tt.wantErr)
+			}
+			if errs != nil && !strings.Contains(errs.Error(), tt.errField) {
+				t.Errorf("Validate() expected error to contain field %s, but got %s", tt.errField, errs.Error())
+			}
+		})
+	}
+}
+
 func TestWorkspaceValidateUpdate(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -977,8 +1148,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 func TestTuningSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
 	// Set ReleaseNamespace Env
-	os.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
-	defer os.Unsetenv(consts.DefaultReleaseNamespaceEnvVar)
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
 
 	// Create fake client with default ConfigMap
 	scheme := runtime.NewScheme()
@@ -997,8 +1167,8 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 		{
 			name: "All fields valid",
 			tuningSpec: &TuningSpec{
-				Input:  &DataSource{Name: "valid-input", Image: "AZURE_ACR.azurecr.io/test:0.0.0"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: "secret"},
+				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/test:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: "secret"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
@@ -1008,8 +1178,8 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 		{
 			name: "Verify QLoRA Config",
 			tuningSpec: &TuningSpec{
-				Input:  &DataSource{Name: "valid-input", Image: "AZURE_ACR.azurecr.io/test:0.0.0"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: "secret"},
+				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/test:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: "secret"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodQLora,
 			},
@@ -1019,7 +1189,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 		{
 			name: "Missing Input",
 			tuningSpec: &TuningSpec{
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: ""},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: ""},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
@@ -1040,7 +1210,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			name: "Missing Preset",
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: ""},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: ""},
 				Method: TuningMethodLora,
 			},
 			wantErr:   true,
@@ -1050,7 +1220,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			name: "Invalid Preset",
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: ""},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: ""},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("invalid-preset")}},
 				Method: TuningMethodLora,
 			},
@@ -1061,7 +1231,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			name: "Invalid Method",
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0", ImagePushSecret: ""},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: ""},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: "invalid-method",
 			},
@@ -1071,8 +1241,8 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 		{
 			name: "Invalid Input Source Casing",
 			tuningSpec: &TuningSpec{
-				Input:  &DataSource{Name: "valid-input", Image: "AZURE_ACR.azurecr.io/INPUT:0.0.0"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/output:0.0.0", ImagePushSecret: "secret"},
+				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/INPUT:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/output:0.0.0", ImagePushSecret: "secret"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
@@ -1082,8 +1252,8 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 		{
 			name: "Invalid Output Destination Casing",
 			tuningSpec: &TuningSpec{
-				Input:  &DataSource{Name: "valid-input", Image: "AZURE_ACR.azurecr.io/input:0.0.0"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/OUTPUT:0.0.0", ImagePushSecret: "secret"},
+				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/input:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/OUTPUT:0.0.0", ImagePushSecret: "secret"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
@@ -1125,13 +1295,13 @@ func TestTuningSpecValidateUpdate(t *testing.T) {
 			name: "No changes",
 			oldTuning: &TuningSpec{
 				Input:  &DataSource{Name: "input1"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
 			newTuning: &TuningSpec{
 				Input:  &DataSource{Name: "input1"},
-				Output: &DataDestination{Image: "AZURE_ACR.azurecr.io/test:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0"},
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
@@ -1198,7 +1368,7 @@ func TestDataSourceValidateCreate(t *testing.T) {
 		{
 			name: "Volume specified only",
 			dataSource: &DataSource{
-				Image: "AZURE_ACR.azurecr.io/test:0.0.0",
+				Image: "kaito.azurecr.io/test:0.0.0",
 			},
 			wantErr: false,
 		},
@@ -1215,7 +1385,7 @@ func TestDataSourceValidateCreate(t *testing.T) {
 				Image:            "data-image:latest",
 				ImagePullSecrets: []string{"imagePushSecret"},
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "Image without Tag Specified",
@@ -1223,7 +1393,16 @@ func TestDataSourceValidateCreate(t *testing.T) {
 				Image:            "aimodels.azurecr.io/data-image",
 				ImagePullSecrets: []string{"imagePushSecret"},
 			},
-			wantErr: true,
+			wantErr: false,
+		},
+		{
+			name: "Invalid image",
+			dataSource: &DataSource{
+				Image:            "!ValidImage",
+				ImagePullSecrets: []string{"imagePushSecret"},
+			},
+			wantErr:  true,
+			errField: "invalid reference format",
 		},
 		{
 			name:       "None specified",
@@ -1302,6 +1481,16 @@ func TestDataSourceValidateUpdate(t *testing.T) {
 			wantErr:   true,
 			errFields: []string{"Name"},
 		},
+		{
+			name:      "Invalid image",
+			oldSource: &DataSource{},
+			newSource: &DataSource{
+				Image:            "!ValidImage",
+				ImagePullSecrets: []string{"imagePushSecret"},
+			},
+			wantErr:   true,
+			errFields: []string{"invalid reference format"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -1358,7 +1547,7 @@ func TestDataDestinationValidateCreate(t *testing.T) {
 				Image:           "data-image:latest",
 				ImagePushSecret: "imagePushSecret",
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "Image without Tag Specified",
@@ -1366,7 +1555,16 @@ func TestDataDestinationValidateCreate(t *testing.T) {
 				Image:           "aimodels.azurecr.io/data-image",
 				ImagePushSecret: "imagePushSecret",
 			},
-			wantErr: true,
+			wantErr: false,
+		},
+		{
+			name: "Invalid image",
+			dataDestination: &DataDestination{
+				Image:           "!ValidImage",
+				ImagePushSecret: "imagePushSecret",
+			},
+			wantErr:  true,
+			errField: "invalid reference format",
 		},
 		// {
 		// 	name: "Both fields specified",
@@ -1416,6 +1614,16 @@ func TestDataDestinationValidateUpdate(t *testing.T) {
 				ImagePushSecret: "old-secret",
 			},
 			wantErr: false,
+		},
+		{
+			name:    "Invalid image",
+			oldDest: &DataDestination{},
+			newDest: &DataDestination{
+				Image:           "!ValidImage",
+				ImagePushSecret: "imagePushSecret",
+			},
+			wantErr:   true,
+			errFields: []string{"invalid reference format"},
 		},
 	}
 

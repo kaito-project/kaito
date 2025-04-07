@@ -13,19 +13,22 @@ func TestParseFeatureGates(t *testing.T) {
 		name          string
 		featureGates  string
 		expectedError bool
-		expectedValue string
+		targetFeature string
+		expectedValue bool
 	}{
 		{
-			name:          "WithValidEnableFeatureGates",
-			featureGates:  "Karpenter=true",
+			name:          "WithValidEnableFeatureGates-vLLM",
+			featureGates:  "vLLM=true",
 			expectedError: false,
-			expectedValue: "true",
+			targetFeature: "vLLM",
+			expectedValue: true,
 		},
 		{
-			name:          "WithDuplicateFeatureGates",
-			featureGates:  "Karpenter=false,Karpenter=true",
+			name:          "WithDuplicateFeatureGates-vLLM",
+			featureGates:  "vLLM=false,vLLM=true",
 			expectedError: false,
-			expectedValue: "true", // Apply the last value.
+			targetFeature: "vLLM",
+			expectedValue: true, // Apply the last value.
 		},
 		{
 			name:          "WithInvalidFeatureGates",
@@ -34,14 +37,29 @@ func TestParseFeatureGates(t *testing.T) {
 		},
 		{
 			name:          "WithUnsupportedFeatureGate",
-			featureGates:  "unsupported=true,Karpenter=false",
+			featureGates:  "unsupported=true,vLLM=false",
 			expectedError: true,
 		},
 		{
-			name:          "WithValidDisableFeatureGates",
-			featureGates:  "Karpenter=false",
+			name:          "WithValidDisableFeatureGates-vLLM",
+			featureGates:  "vLLM=false",
 			expectedError: false,
-			expectedValue: "false",
+			targetFeature: "vLLM",
+			expectedValue: false,
+		},
+		{
+			name:          "WithValidEnableFeatureGates-ensureNodeClass",
+			featureGates:  "ensureNodeClass=true",
+			expectedError: false,
+			targetFeature: "ensureNodeClass",
+			expectedValue: true,
+		},
+		{
+			name:          "WithValidDisableFeatureGates-ensureNodeClass",
+			featureGates:  "ensureNodeClass=false",
+			expectedError: false,
+			targetFeature: "ensureNodeClass",
+			expectedValue: false,
 		},
 		{
 			name:          "WithEmptyFeatureGates",
@@ -57,6 +75,9 @@ func TestParseFeatureGates(t *testing.T) {
 				assert.Check(t, err != nil, "expected error but got nil")
 			} else {
 				assert.NilError(t, err)
+				if tt.targetFeature != "" && FeatureGates[tt.targetFeature] != tt.expectedValue {
+					t.Errorf("feature gate test %s fails", tt.name)
+				}
 			}
 		})
 	}

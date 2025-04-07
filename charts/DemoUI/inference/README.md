@@ -5,12 +5,12 @@ Before deploying the Demo front-end, you must set the `workspaceServiceURL` envi
 To set this value, modify the `values.override.yaml` file or use the `--set` flag during Helm install/upgrade:
 
 ```bash
-helm install inference-frontend ./charts/DemoUI/inference/values.yaml --set env.workspaceServiceURL="http://<CLUSTER_IP>:80/chat"
+helm install inference-frontend ./charts/DemoUI/inference --set env.workspaceServiceURL="http://<CLUSTER_IP>:80"
 ```
 
 Or through a custom `values` file (`values.override.yaml`): 
 ```bash
-helm install inference-frontend ./charts/DemoUI/inference/values.yaml -f values.override.yaml
+helm install inference-frontend ./charts/DemoUI/inference -f values.override.yaml
 ```
 
 ## Values

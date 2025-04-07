@@ -4,36 +4,41 @@
 package e2e
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/test/e2e/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
 const (
-	PresetLlama2AChat            = "llama-2-7b-chat"
-	PresetLlama2BChat            = "llama-2-13b-chat"
-	PresetFalcon7BModel          = "falcon-7b"
-	PresetFalcon40BModel         = "falcon-40b"
-	PresetMistral7BInstructModel = "mistral-7b-instruct"
-	PresetPhi2Model              = "phi-2"
-	PresetPhi3Mini128kModel      = "phi-3-mini-128k-instruct"
-	WorkspaceHashAnnotation      = "workspace.kaito.io/hash"
+	PresetLlama2AChat                   = "llama-2-7b-chat"
+	PresetLlama2BChat                   = "llama-2-13b-chat"
+	PresetFalcon7BModel                 = "falcon-7b"
+	PresetFalcon40BModel                = "falcon-40b"
+	PresetMistral7BInstructModel        = "mistral-7b-instruct"
+	PresetQwen2_5Coder7BModel           = "qwen2.5-coder-7b-instruct"
+	PresetPhi2Model                     = "phi-2"
+	PresetPhi3Mini128kModel             = "phi-3-mini-128k-instruct"
+	PresetDeepSeekR1DistillLlama8BModel = "deepseek-r1-distill-llama-8b"
+	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
+	WorkspaceHashAnnotation             = "workspace.kaito.io/hash"
 	// WorkspaceRevisionAnnotation represents the revision number of the workload managed by the workspace
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"
 )
@@ -77,21 +82,21 @@ func loadModelVersions() {
 	}
 }
 
-func createCustomWorkspaceWithAdapter(numOfNode int, validAdapters []kaitov1alpha1.AdapterSpec) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createCustomWorkspaceWithAdapter(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace with adapter", func() {
-		uniqueID := fmt.Sprint("preset-", rand.Intn(1000))
+		uniqueID := fmt.Sprint("preset-falcon-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "custom-preset-e2e-test-falcon"},
-			}, nil, PresetFalcon7BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, validAdapters)
+			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, validAdapters)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func updateCustomWorkspaceWithAdapter(workspaceObj *kaitov1alpha1.Workspace, validAdapters []kaitov1alpha1.AdapterSpec) *kaitov1alpha1.Workspace {
+func updateCustomWorkspaceWithAdapter(workspaceObj *kaitov1beta1.Workspace, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
 	By("Updating a workspace with adapter", func() {
 		workspaceObj.Inference.Adapters = validAdapters
 
@@ -113,78 +118,78 @@ func updateCustomWorkspaceWithAdapter(workspaceObj *kaitov1alpha1.Workspace, val
 	return workspaceObj
 }
 
-func createFalconWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createFalconWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Falcon 7B preset public mode", func() {
-		uniqueID := fmt.Sprint("preset-", rand.Intn(1000))
+		uniqueID := fmt.Sprint("preset-falcon-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-falcon"},
-			}, nil, PresetFalcon7BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createMistralWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createMistralWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Mistral 7B preset public mode", func() {
-		uniqueID := fmt.Sprint("preset-", rand.Intn(1000))
+		uniqueID := fmt.Sprint("preset-mistral-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-mistral"},
-			}, nil, PresetMistral7BInstructModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetMistral7BInstructModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createPhi2WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createPhi2WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Phi 2 preset public mode", func() {
-		uniqueID := fmt.Sprint("preset-", rand.Intn(1000))
+		uniqueID := fmt.Sprint("preset-phi2-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-2"},
-			}, nil, PresetPhi2Model, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetPhi2Model, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createLlama7BWorkspaceWithPresetPrivateMode(registry, registrySecret, imageVersion string, numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createLlama7BWorkspaceWithPresetPrivateMode(registry, registrySecret, imageVersion string, numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Llama 7B Chat preset private mode", func() {
-		uniqueID := fmt.Sprint("preset-", rand.Intn(1000))
+		uniqueID := fmt.Sprint("preset-llama-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, fmt.Sprintf("%s/%s:%s", registry, PresetLlama2AChat, imageVersion),
 			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "private-preset-e2e-test-llama-2-7b"},
-			}, nil, PresetLlama2AChat, kaitov1alpha1.ModelImageAccessModePrivate, []string{registrySecret}, nil, nil)
+			}, nil, PresetLlama2AChat, kaitov1beta1.ModelImageAccessModePrivate, []string{registrySecret}, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createLlama13BWorkspaceWithPresetPrivateMode(registry, registrySecret, imageVersion string, numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createLlama13BWorkspaceWithPresetPrivateMode(registry, registrySecret, imageVersion string, numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Llama 13B Chat preset private mode", func() {
-		uniqueID := fmt.Sprint("preset-", rand.Intn(1000))
+		uniqueID := fmt.Sprint("preset-llama-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, fmt.Sprintf("%s/%s:%s", registry, PresetLlama2BChat, imageVersion),
 			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "private-preset-e2e-test-llama-2-13b"},
-			}, nil, PresetLlama2BChat, kaitov1alpha1.ModelImageAccessModePrivate, []string{registrySecret}, nil, nil)
+			}, nil, PresetLlama2BChat, kaitov1beta1.ModelImageAccessModePrivate, []string{registrySecret}, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createCustomWorkspaceWithPresetCustomMode(imageName string, numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createCustomWorkspaceWithPresetCustomMode(imageName string, numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with custom workspace mode", func() {
 		uniqueID := fmt.Sprint("preset-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
@@ -197,14 +202,14 @@ func createCustomWorkspaceWithPresetCustomMode(imageName string, numOfNode int) 
 	return workspaceObj
 }
 
-func createPhi3WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1alpha1.Workspace {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createPhi3WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Phi-3-mini-128k-instruct preset public mode", func() {
-		uniqueID := fmt.Sprint("preset-", rand.Intn(1000))
+		uniqueID := fmt.Sprint("preset-phi3-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
 			numOfNode, "Standard_NC6s_v3", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-3-mini-128k-instruct"},
-			}, nil, PresetPhi3Mini128kModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetPhi3Mini128kModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -238,8 +243,8 @@ func createAndValidateConfigMap(configMap *v1.ConfigMap) {
 	})
 }
 
-func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNode int) (*kaitov1alpha1.Workspace, string, string) {
-	workspaceObj := &kaitov1alpha1.Workspace{}
+func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNode int) (*kaitov1beta1.Workspace, string, string) {
+	workspaceObj := &kaitov1beta1.Workspace{}
 	e2eOutputImageName := fmt.Sprintf("adapter-%s-e2e-test", PresetPhi3Mini128kModel)
 	e2eOutputImageTag := utils.GenerateRandomString()
 	outputRegistryUrl := fmt.Sprintf("%s.azurecr.io/%s:%s", azureClusterName, e2eOutputImageName, e2eOutputImageTag)
@@ -249,14 +254,14 @@ func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNo
 		workspaceObj = utils.GenerateE2ETuningWorkspaceManifest(uniqueID, namespaceName, "",
 			fullDatasetImageName1, outputRegistryUrl, numOfNode, "Standard_NC6s_v3", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-tuning-falcon"},
-			}, nil, PresetPhi3Mini128kModel, kaitov1alpha1.ModelImageAccessModePublic, []string{e2eACRSecret}, configMapName)
+			}, nil, PresetPhi3Mini128kModel, kaitov1beta1.ModelImageAccessModePublic, []string{e2eACRSecret}, configMapName)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj, uniqueID, outputRegistryUrl
 }
 
-func createAndValidateWorkspace(workspaceObj *kaitov1alpha1.Workspace) {
+func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 	By("Creating workspace", func() {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
@@ -273,15 +278,15 @@ func createAndValidateWorkspace(workspaceObj *kaitov1alpha1.Workspace) {
 	})
 }
 
-func updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj *kaitov1alpha1.Workspace, datasetImageName string) (*kaitov1alpha1.Workspace, string) {
+func updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj *kaitov1beta1.Workspace, datasetImageName string) (*kaitov1beta1.Workspace, string) {
 	e2eOutputImageName := fmt.Sprintf("adapter-%s-e2e-test2", PresetPhi3Mini128kModel)
 	e2eOutputImageTag := utils.GenerateRandomString()
 	outputRegistryUrl := fmt.Sprintf("%s.azurecr.io/%s:%s", azureClusterName, e2eOutputImageName, e2eOutputImageTag)
 	By("Updating a workspace Tuning CR with Phi-3 preset public mode. The update includes the tuning input and output configurations for the workspace.", func() {
-		workspaceObj.Tuning.Input = &kaitov1alpha1.DataSource{
+		workspaceObj.Tuning.Input = &kaitov1beta1.DataSource{
 			Image: datasetImageName,
 		}
-		workspaceObj.Tuning.Output = &kaitov1alpha1.DataDestination{
+		workspaceObj.Tuning.Output = &kaitov1beta1.DataDestination{
 			Image:           outputRegistryUrl,
 			ImagePushSecret: e2eACRSecret,
 		}
@@ -290,7 +295,7 @@ func updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj *kaitov1alpha1.W
 	return workspaceObj, outputRegistryUrl
 }
 
-func updateAndValidateWorkspace(workspaceObj *kaitov1alpha1.Workspace) {
+func updateAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 	By("Creating workspace", func() {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Update(ctx, workspaceObj)
@@ -333,7 +338,7 @@ func copySecretToNamespace(secretName, targetNamespace string) error {
 }
 
 // validateResourceStatus validates resource status
-func validateResourceStatus(workspaceObj *kaitov1alpha1.Workspace) {
+func validateResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the resource status", func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -346,7 +351,7 @@ func validateResourceStatus(workspaceObj *kaitov1alpha1.Workspace) {
 			}
 
 			_, conditionFound := lo.Find(workspaceObj.Status.Conditions, func(condition metav1.Condition) bool {
-				return condition.Type == string(kaitov1alpha1.ConditionTypeResourceStatus) &&
+				return condition.Type == string(kaitov1beta1.ConditionTypeResourceStatus) &&
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
@@ -354,7 +359,7 @@ func validateResourceStatus(workspaceObj *kaitov1alpha1.Workspace) {
 	})
 }
 
-func validateAssociatedService(workspaceObj *kaitov1alpha1.Workspace) {
+func validateAssociatedService(workspaceObj *kaitov1beta1.Workspace) {
 	serviceName := workspaceObj.Name
 	serviceNamespace := workspaceObj.Namespace
 
@@ -383,7 +388,7 @@ func validateAssociatedService(workspaceObj *kaitov1alpha1.Workspace) {
 }
 
 // validateInferenceResource validates inference deployment
-func validateInferenceResource(workspaceObj *kaitov1alpha1.Workspace, expectedReplicas int32, isStatefulSet bool) {
+func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedReplicas int32, isStatefulSet bool) {
 	By("Checking the inference resource", func() {
 		Eventually(func() bool {
 			var err error
@@ -431,7 +436,7 @@ func validateInferenceResource(workspaceObj *kaitov1alpha1.Workspace, expectedRe
 }
 
 // validateRevision validates the annotations of the workspace and the workload, as well as the corresponding controller revision
-func validateRevision(workspaceObj *kaitov1alpha1.Workspace, revisionStr string) {
+func validateRevision(workspaceObj *kaitov1beta1.Workspace, revisionStr string) {
 	By("Checking the revisions of the resources", func() {
 		Eventually(func() bool {
 			var isWorkloadAnnotationCorrect bool
@@ -481,7 +486,7 @@ func validateRevision(workspaceObj *kaitov1alpha1.Workspace, revisionStr string)
 }
 
 // validateTuningResource validates tuning deployment
-func validateTuningResource(workspaceObj *kaitov1alpha1.Workspace) {
+func validateTuningResource(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the tuning resource", func() {
 		Eventually(func() bool {
 			var err error
@@ -520,70 +525,81 @@ func validateTuningResource(workspaceObj *kaitov1alpha1.Workspace) {
 	})
 }
 
-func validateTuningJobInputOutput(workspaceObj *kaitov1alpha1.Workspace, inputImage string, output string) {
+func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputImage string, outputImage string) {
 	By("Checking the tuning input and output", func() {
 		Eventually(func() bool {
-			var err error
+			var job batchv1.Job
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKeyFromObject(workspaceObj), &job); err != nil {
+				if client.IgnoreNotFound(err) == nil {
+					GinkgoWriter.Printf("Job not found: %v\n", err)
+					return false
+				}
 
-			job := &batchv1.Job{}
-			err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: workspaceObj.Namespace,
-				Name:      workspaceObj.Name,
-			}, job)
-
-			if err != nil {
-				GinkgoWriter.Printf("Error fetching resource: %v\n", err)
-				return false
+				Expect(err).NotTo(HaveOccurred())
 			}
 
-			image := job.Spec.Template.Spec.InitContainers[0].Image
-
-			expectedString1 := "docker build -t " + output
-			expectedString2 := "if docker push " + output + "; then"
-
-			var sidecarContainer v1.Container
-
-			for _, container := range job.Spec.Template.Spec.Containers {
-				if container.Name == "docker-sidecar" {
-					sidecarContainer = container
+			var pullerContainer *v1.Container
+			for _, container := range job.Spec.Template.Spec.InitContainers {
+				if strings.HasPrefix(container.Name, "puller") {
+					pullerContainer = &container
 					break
 				}
 			}
-			return image == inputImage && strings.Contains(sidecarContainer.Args[0], expectedString1) && strings.Contains(sidecarContainer.Args[0], expectedString2)
+
+			pullerSH := pullerContainer.Args[0]
+			if !strings.Contains(pullerSH, fmt.Sprintf("\n[ ! -z \"${IMG_REF}\" ] || IMG_REF='%s'\n", inputImage)) {
+				GinkgoWriter.Printf("Unexpected pullerSH: %s\n", pullerSH)
+				return false
+			}
+
+			var pusherContainer *v1.Container
+			for _, container := range job.Spec.Template.Spec.Containers {
+				if strings.HasPrefix(container.Name, "pusher") {
+					pusherContainer = &container
+					break
+				}
+			}
+
+			pusherSH := pusherContainer.Args[0]
+			if !strings.Contains(pusherSH, fmt.Sprintf("\n[ ! -z \"${IMG_REF}\" ] || IMG_REF='%s'\n", outputImage)) {
+				GinkgoWriter.Printf("Unexpected pusherSH: %s\n", pullerSH)
+				return false
+			}
+
+			return true
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for Tuning resource to be ready")
 	})
 }
 
-func validateACRTuningResultsUploaded(workspaceObj *kaitov1alpha1.Workspace, jobName string) {
-	coreClient, err := utils.GetK8sConfig()
+func validateACRTuningResultsUploaded(workspaceObj *kaitov1beta1.Workspace, jobName string) {
+	coreClient, err := utils.GetK8sClientset()
 	if err != nil {
-		log.Fatalf("Failed to create core client: %v", err)
-	}
-	namespace := workspaceObj.Namespace
-	podName, err := utils.GetPodNameForJob(coreClient, namespace, jobName)
-	if err != nil {
-		log.Fatalf("Failed to get pod name for job %s: %v", jobName, err)
+		Fail(fmt.Sprintf("Failed to create core client: %v", err))
 	}
 
 	for {
-		logs, err := utils.GetPodLogs(coreClient, namespace, podName, "docker-sidecar")
+		job, err := coreClient.BatchV1().Jobs(workspaceObj.Namespace).Get(ctx, jobName, metav1.GetOptions{})
 		if err != nil {
-			log.Printf("Failed to get logs from pod %s: %v", podName, err)
-			time.Sleep(10 * time.Second)
+			Fail(fmt.Sprintf("Failed to get job %s: %v", jobName, err))
+		}
+
+		if job.Status.CompletionTime.IsZero() {
+			time.Sleep(10 * time.Second) // Poll every 10 seconds
 			continue
 		}
 
-		if strings.Contains(logs, "Upload complete") {
-			fmt.Println("Upload complete")
+		if job.Status.Succeeded == 0 {
+			Fail("Job did not succeed")
 			break
 		}
 
-		time.Sleep(10 * time.Second) // Poll every 10 seconds
+		GinkgoWriter.Println("Upload complete")
+		break
 	}
 }
 
 // validateWorkspaceReadiness validates workspace readiness
-func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
+func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the workspace status is ready", func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -596,7 +612,7 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 			}
 
 			_, conditionFound := lo.Find(workspaceObj.Status.Conditions, func(condition metav1.Condition) bool {
-				return condition.Type == string(kaitov1alpha1.WorkspaceConditionTypeSucceeded) &&
+				return condition.Type == string(kaitov1beta1.WorkspaceConditionTypeSucceeded) &&
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
@@ -604,7 +620,94 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1alpha1.Workspace) {
 	})
 }
 
-func cleanupResources(workspaceObj *kaitov1alpha1.Workspace) {
+func validateModelsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
+	deploymentName := workspaceObj.Name
+	modelName := workspaceObj.Inference.Preset.Name
+	expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
+	execOption := corev1.PodExecOptions{
+		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X GET http://%s.%s.svc.cluster.local:80/v1/models | grep -e '%s'`, workspaceObj.Name, workspaceObj.Namespace, expectedModelID)},
+		Container: deploymentName,
+		Stdout:    true,
+		Stderr:    true,
+	}
+
+	By("Validating the /v1/models endpoint", func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+
+			namespace := workspaceObj.Namespace
+			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
+				return false
+			}
+
+			k8sConfig, err := utils.GetK8sConfig()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
+				return false
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
+			_, err = utils.ExecSync(ctx, k8sConfig, coreClient, namespace, podName, execOption)
+			if err != nil {
+				GinkgoWriter.Printf("validate command fails: %v\n", err)
+				return false
+			}
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for /v1/models endpoint to be ready")
+	})
+}
+
+func validateCompletionsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
+	deploymentName := workspaceObj.Name
+	expectedCompletion := `"object":"text_completion"`
+	execOption := corev1.PodExecOptions{
+		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X POST -H "Content-Type: application/json" -d '{"model":"%s","prompt":"What is Kubernetes?","max_tokens":7,"temperature":0}' http://%s.%s.svc.cluster.local:80/v1/completions | grep -e '%s'`, workspaceObj.Inference.Preset.Name, workspaceObj.Name, workspaceObj.Namespace, expectedCompletion)},
+		Container: deploymentName,
+		Stdout:    true,
+		Stderr:    true,
+	}
+
+	By("Validating the /v1/completions endpoint", func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+
+			namespace := workspaceObj.Namespace
+			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
+				return false
+			}
+
+			k8sConfig, err := utils.GetK8sConfig()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
+				return false
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
+			_, err = utils.ExecSync(ctx, k8sConfig, coreClient, namespace, podName, execOption)
+			if err != nil {
+				GinkgoWriter.Printf("validate command fails: %v\n", err)
+				return false
+			}
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for /v1/completions endpoint to be ready")
+	})
+}
+
+func cleanupResources(workspaceObj *kaitov1beta1.Workspace) {
 	By("Cleaning up resources", func() {
 		if !CurrentSpecReport().Failed() {
 			// delete workspace
@@ -616,7 +719,7 @@ func cleanupResources(workspaceObj *kaitov1alpha1.Workspace) {
 	})
 }
 
-func deleteWorkspace(workspaceObj *kaitov1alpha1.Workspace) error {
+func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 	By("Deleting workspace", func() {
 		Eventually(func() error {
 			// Check if the workspace exists
@@ -680,6 +783,7 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -699,6 +803,7 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -718,6 +823,7 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -741,6 +847,7 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
@@ -768,13 +875,14 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a custom template workspace successfully", func() {
+	It("should create a custom template workspace successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		imageName := "nginx:latest"
 		workspaceObj := createCustomWorkspaceWithPresetCustomMode(imageName, numOfNode)
@@ -792,7 +900,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
+	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicMode(numOfNode)
 
@@ -805,18 +913,15 @@ var _ = Describe("Workspace Preset", func() {
 		time.Sleep(30 * time.Second)
 
 		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image", func() {
+	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		err := copySecretToNamespace(e2eACRSecret, namespaceName)
-		if err != nil {
-			log.Fatalf("Error copying secret: %v", err)
-		}
 		configMap := createCustomTuningConfigMapForE2E()
 		workspaceObj, jobName, outputRegistryUrl1 := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode)
 
@@ -854,10 +959,30 @@ var _ = Describe("Workspace Preset", func() {
 
 })
 
-func validateCreateNode(workspaceObj *kaitov1alpha1.Workspace, numOfNode int) {
-	if nodeProvisionerName == "azkarpenter" {
-		utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
-	} else {
-		utils.ValidateMachineCreation(ctx, workspaceObj, numOfNode)
-	}
+func validateCreateNode(workspaceObj *kaitov1beta1.Workspace, numOfNode int) {
+	utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
+}
+
+// validateInferenceConfig validates that the inference config exists and contains data
+func validateInferenceConfig(workspaceObj *kaitov1beta1.Workspace) {
+	By("Checking the inference config exists", func() {
+		Eventually(func() bool {
+			configMap := &v1.ConfigMap{}
+			configName := kaitov1beta1.DefaultInferenceConfigTemplate
+			if workspaceObj.Inference.Config != "" {
+				configName = workspaceObj.Inference.Config
+			}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      configName,
+			}, configMap)
+
+			if err != nil {
+				GinkgoWriter.Printf("Error fetching config: %v\n", err)
+				return false
+			}
+
+			return len(configMap.Data) > 0
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for inference config to be ready")
+	})
 }

@@ -7,12 +7,14 @@ import (
 	"context"
 	"fmt"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 const (
@@ -28,9 +30,6 @@ func GetNode(ctx context.Context, nodeName string, kubeClient client.Client) (*c
 	err := kubeClient.Get(ctx, client.ObjectKey{Name: nodeName}, node, &client.GetOptions{})
 	if err != nil {
 		return nil, err
-	}
-	if node == nil {
-		return nil, fmt.Errorf("no node has been found with nodeName %s", nodeName)
 	}
 	return node, nil
 }
@@ -93,13 +92,13 @@ func CheckNvidiaPlugin(ctx context.Context, nodeObj *corev1.Node) bool {
 func ExtractObjFields(obj interface{}) (instanceType, namespace, name string, labelSelector *metav1.LabelSelector,
 	nameLabel, namespaceLabel string, err error) {
 	switch o := obj.(type) {
-	case *kaitov1alpha1.Workspace:
+	case *kaitov1beta1.Workspace:
 		instanceType = o.Resource.InstanceType
 		namespace = o.Namespace
 		name = o.Name
 		labelSelector = o.Resource.LabelSelector
-		nameLabel = kaitov1alpha1.LabelWorkspaceName
-		namespaceLabel = kaitov1alpha1.LabelWorkspaceNamespace
+		nameLabel = kaitov1beta1.LabelWorkspaceName
+		namespaceLabel = kaitov1beta1.LabelWorkspaceNamespace
 	case *kaitov1alpha1.RAGEngine:
 		instanceType = o.Spec.Compute.InstanceType
 		namespace = o.Namespace

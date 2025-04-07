@@ -8,29 +8,34 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
-
+	"github.com/distribution/reference"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const (
 	N_SERIES_PREFIX = "Standard_N"
 	D_SERIES_PREFIX = "Standard_D"
 
-	DefaultLoraConfigMapTemplate  = "lora-params-template"
-	DefaultQloraConfigMapTemplate = "qlora-params-template"
-	MaxAdaptersNumber             = 10
+	DefaultLoraConfigMapTemplate   = "lora-params-template"
+	DefaultQloraConfigMapTemplate  = "qlora-params-template"
+	DefaultInferenceConfigTemplate = "inference-params-template"
+	MaxAdaptersNumber              = 10
 )
 
 func (w *Workspace) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -41,14 +46,26 @@ func (w *Workspace) SupportedVerbs() []admissionregistrationv1.OperationType {
 }
 
 func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
+	errmsgs := validation.IsDNS1123Label(w.Name)
+	if len(errmsgs) > 0 {
+		errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "name"))
+	}
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
 		if w.Inference != nil {
+			// Check if the bypass resource checks annotation is set
+			bypassResourceChecks := false
+			if w.GetAnnotations() != nil {
+				if _, exists := w.GetAnnotations()[AnnotationBypassResourceChecks]; exists {
+					bypassResourceChecks = true
+				}
+			}
+
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
-			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference).ViaField("resource"),
-				w.Inference.validateCreate().ViaField("inference"))
+			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference, bypassResourceChecks).ViaField("resource"),
+				w.Inference.validateCreate(ctx, w.Namespace).ViaField("inference"))
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
@@ -93,14 +110,6 @@ func (w *Workspace) validateUpdate(old *Workspace) (errs *apis.FieldError) {
 	return errs
 }
 
-func ValidateDNSSubdomain(name string) bool {
-	var dnsSubDomainRegexp = regexp.MustCompile(`^(?i:[a-z0-9]([-a-z0-9]*[a-z0-9])?)$`)
-	if len(name) < 1 || len(name) > 253 {
-		return false
-	}
-	return dnsSubDomainRegexp.MatchString(name)
-}
-
 func (r *AdapterSpec) validateCreateorUpdate() (errs *apis.FieldError) {
 	if r.Source == nil {
 		errs = errs.Also(apis.ErrMissingField("Source"))
@@ -109,8 +118,8 @@ func (r *AdapterSpec) validateCreateorUpdate() (errs *apis.FieldError) {
 
 		if r.Source.Name == "" {
 			errs = errs.Also(apis.ErrMissingField("Name of Adapter field must be specified"))
-		} else if !ValidateDNSSubdomain(r.Source.Name) {
-			errs = errs.Also(apis.ErrMissingField("Name of Adapter must be a valid DNS subdomain value"))
+		} else if errmsgs := validation.IsDNS1123Subdomain(r.Source.Name); len(errmsgs) > 0 {
+			errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "adapters.source.name"))
 		}
 		if r.Source.Image == "" {
 			errs = errs.Also(apis.ErrMissingField("Image of Adapter field must be specified"))
@@ -169,7 +178,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 	// Currently require a preset to specified, in future we can consider defining a template
 	if r.Preset == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset"))
-	} else if presetName := string(r.Preset.Name); !utils.IsValidPreset(presetName) {
+	} else if presetName := string(r.Preset.Name); !plugin.IsValidPreset(presetName) {
 		errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported tuning preset name %s", presetName), "presetName"))
 	}
 	return errs
@@ -206,18 +215,11 @@ func (r *DataSource) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 		sourcesSpecified++
 	}
-	// Regex checks for a / and a colon followed by a tag
-	if r.Image != "" {
-		re := regexp.MustCompile(`^(.+/[^:/]+):([^:/]+)$`)
-		if !re.MatchString(r.Image) {
-			errs = errs.Also(apis.ErrInvalidValue("Invalid image format, require full input image URL", "Image"))
-		} else {
-			// Executes if image is of correct format
-			err := utils.ExtractAndValidateRepoName(r.Image)
-			if err != nil {
-				errs = errs.Also(apis.ErrInvalidValue(err.Error(), "Image"))
-			}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse input image reference: %s", err), "Image"))
 		}
+
 		sourcesSpecified++
 	}
 
@@ -236,6 +238,11 @@ func (r *DataSource) validateUpdate(old *DataSource, isTuning bool) (errs *apis.
 	if r.Volume != nil {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 	}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse input image reference: %s", err), "Image"))
+		}
+	}
 
 	return errs
 }
@@ -247,22 +254,16 @@ func (r *DataDestination) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 		destinationsSpecified++
 	}
-	if r.Image != "" {
-		// Regex checks for a / and a colon followed by a tag
-		re := regexp.MustCompile(`^(.+/[^:/]+):([^:/]+)$`)
-		if !re.MatchString(r.Image) {
-			errs = errs.Also(apis.ErrInvalidValue("Invalid image format, require full output image URL", "Image"))
-		} else {
-			// Executes if image is of correct format
-			err := utils.ExtractAndValidateRepoName(r.Image)
-			if err != nil {
-				errs = errs.Also(apis.ErrInvalidValue(err.Error(), "Image"))
-			}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse output image reference: %s", err), "Image"))
 		}
+
 		// Cloud Provider requires credentials to push image
 		if r.ImagePushSecret == "" {
 			errs = errs.Also(apis.ErrMissingField("Must specify imagePushSecret with destination image"))
 		}
+
 		destinationsSpecified++
 	}
 
@@ -278,6 +279,11 @@ func (r *DataDestination) validateUpdate() (errs *apis.FieldError) {
 	if r.Volume != nil {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 	}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse output image reference: %s", err), "Image"))
+		}
+	}
 
 	return errs
 }
@@ -289,10 +295,15 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	return errs
 }
 
-func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec) (errs *apis.FieldError) {
+func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool) (errs *apis.FieldError) {
 	var presetName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
+		// Since inference.Preset exists, we must validate preset name.
+		if !plugin.IsValidPreset(presetName) {
+			// Return to skip the rest of checks, the Inference spec validation will return proper err msg.
+			return errs
+		}
 	}
 	instanceType := string(r.InstanceType)
 
@@ -319,42 +330,57 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec) (er
 
 			// Separate the checks for specific error messages
 			if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
-				errs = errs.Also(apis.ErrInvalidValue(
-					fmt.Sprintf(
-						"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
-						instanceType,
-						machineTotalNumGPUs.String(),
-						presetName,
-						modelGPUCount.Value(),
-					),
-					"instanceType",
-				))
+				if bypassResourceChecks {
+					klog.Warningf("Bypassing resource check: Insufficient number of GPUs detected but continuing due to bypass flag. Instance type %s provides %s, but preset %s requires at least %d",
+						instanceType, machineTotalNumGPUs.String(), presetName, modelGPUCount.Value())
+				} else {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
+							instanceType,
+							machineTotalNumGPUs.String(),
+							presetName,
+							modelGPUCount.Value(),
+						),
+						"instanceType",
+					))
+				}
 			}
 
 			if machinePerGPUMemory.Cmp(modelPerGPUMemory) < 0 {
-				errs = errs.Also(apis.ErrInvalidValue(
-					fmt.Sprintf(
-						"Insufficient per GPU memory: Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
-						instanceType,
-						machinePerGPUMemory.String(),
-						presetName,
-						modelPerGPUMemory.String(),
-					),
-					"instanceType",
-				))
+				if bypassResourceChecks {
+					klog.Warningf("Bypassing resource check: Insufficient per GPU memory but continuing due to bypass flag. Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
+						instanceType, machinePerGPUMemory.String(), presetName, modelPerGPUMemory.String())
+				} else {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"Insufficient per GPU memory: Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
+							instanceType,
+							machinePerGPUMemory.String(),
+							presetName,
+							modelPerGPUMemory.String(),
+						),
+						"instanceType",
+					))
+				}
 			}
 
 			if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
-				errs = errs.Also(apis.ErrInvalidValue(
-					fmt.Sprintf(
-						"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
-						instanceType,
-						machineTotalGPUMem.String(),
-						presetName,
-						modelTotalGPUMemory.String(),
-					),
-					"instanceType",
-				))
+				if bypassResourceChecks {
+					klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
+						instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
+				} else {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
+							instanceType,
+							machineTotalGPUMem.String(),
+							presetName,
+							modelTotalGPUMemory.String(),
+						),
+						"instanceType",
+					))
+				}
 			}
 		}
 	} else {
@@ -393,7 +419,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
-func (i *InferenceSpec) validateCreate() (errs *apis.FieldError) {
+func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -407,8 +433,10 @@ func (i *InferenceSpec) validateCreate() (errs *apis.FieldError) {
 	if i.Preset != nil {
 		presetName := string(i.Preset.Name)
 		// Validate preset name
-		if !utils.IsValidPreset(presetName) {
+		if !plugin.IsValidPreset(presetName) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
+			// Need to return here. Otherwise, a panic will be hit when doing following checks.
+			return errs
 		}
 		// Validate private preset has private image specified
 		if plugin.KaitoModelRegister.MustGet(string(i.Preset.Name)).GetInferenceParameters().ImageAccessMode == string(ModelImageAccessModePrivate) &&
@@ -429,6 +457,35 @@ func (i *InferenceSpec) validateCreate() (errs *apis.FieldError) {
 	if len(i.Adapters) > 0 {
 		nameMap := make(map[string]bool)
 		errs = errs.Also(validateDuplicateName(i.Adapters, nameMap))
+	}
+
+	if i.Config != "" {
+		errs = errs.Also(i.validateConfigMap(ctx, namespace))
+	}
+
+	return errs
+}
+
+func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string) (errs *apis.FieldError) {
+	var cm corev1.ConfigMap
+	if k8sclient.Client == nil {
+		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
+		return errs
+	}
+	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: i.Config, Namespace: namespace}, &cm)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("ConfigMap '%s' specified in 'config' not found in namespace '%s'", i.Config, namespace), "config"))
+		} else {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get ConfigMap '%s' in namespace '%s': %v", i.Config, namespace, err), "config"))
+		}
+		return errs
+	}
+
+	// basic check here, it's hard to validate the content of the configmap in controller
+	_, ok := cm.Data["inference_config.yaml"]
+	if !ok {
+		return apis.ErrMissingField("inference_config.yaml in ConfigMap")
 	}
 
 	return errs

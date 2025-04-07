@@ -25,9 +25,9 @@ type ResourceSpec struct {
 	Count *int `json:"count,omitempty"`
 
 	// InstanceType specifies the GPU node SKU.
-	// This field defaults to "Standard_NC12s_v3" if not specified.
+	// This field defaults to "Standard_NC24ads_A100_v4" if not specified.
 	// +optional
-	// +kubebuilder:default:="Standard_NC12s_v3"
+	// +kubebuilder:default:="Standard_NC24ads_A100_v4"
 	InstanceType string `json:"instanceType,omitempty"`
 
 	// LabelSelector specifies the required labels for the GPU nodes.
@@ -82,6 +82,10 @@ type InferenceSpec struct {
 	// +kubebuilder:validation:Schemaless
 	// +optional
 	Template *v1.PodTemplateSpec `json:"template,omitempty"`
+	// Config specifies the name of a custom ConfigMap that contains inference arguments.
+	// If specified, the ConfigMap must be in the same namespace as the Workspace custom resource.
+	// +optional
+	Config string `json:"config,omitempty"`
 	// Adapters are integrated into the base model for inference.
 	// Users can specify multiple adapters for the model and the respective weight of using each of them.
 	// +optional
@@ -174,7 +178,6 @@ type WorkspaceStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=workspaces,scope=Namespaced,categories=workspace,shortName={wk,wks}
-// +kubebuilder:storageversion
 // +kubebuilder:printcolumn:name="Instance",type="string",JSONPath=".resource.instanceType",description=""
 // +kubebuilder:printcolumn:name="ResourceReady",type="string",JSONPath=".status.conditions[?(@.type==\"ResourceReady\")].status",description=""
 // +kubebuilder:printcolumn:name="InferenceReady",type="string",JSONPath=".status.conditions[?(@.type==\"InferenceReady\")].status",description=""

@@ -5,13 +5,14 @@ package resources
 import (
 	"context"
 	"errors"
-	"github.com/kaito-project/kaito/pkg/utils/test"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func TestUpdateNodeWithLabel(t *testing.T) {

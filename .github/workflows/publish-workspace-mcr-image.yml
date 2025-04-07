@@ -1,0 +1,58 @@
+name: Publish KAITO MCR image
+on:
+  repository_dispatch:
+    types: [ publish-mcr-image ]
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  GO_VERSION: '1.24'
+  IMAGE_NAME: 'workspace'
+
+jobs:
+  build-publish-mcr-image:
+    runs-on:
+      labels: [ "self-hosted", "1ES.Pool=1es-aks-kaito-agent-pool-ubuntu" ]
+    environment: publish-mcr
+    steps:
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5.4.0
+        with:
+          go-version: ${{ env.GO_VERSION  }}
+
+      - name: Set Image tag
+        run: |
+          ver=${{ github.event.client_payload.tag }}
+          echo "IMG_TAG=${ver#"v"}" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+          submodules: true
+          ref: ${{ github.event.client_payload.tag }}
+
+      - name: Authenticate to ACR
+        run: |
+          az login --identity
+          az acr login -n ${{ secrets.KAITO_MCR_REGISTRY }}
+
+      - name: 'Build and Publish to MCR'
+        id: Publish
+        run: |
+          OUTPUT_TYPE=type=registry make docker-build-workspace
+        env:
+          VERSION: ${{ needs.get-tag.outputs.release-tag }}
+          REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito
+
+  publish-helm-chart:
+    runs-on: ubuntu-latest
+    needs: [ build-publish-mcr-image ]
+    steps:
+      - name: 'Dispatch release tag for helm chart'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: publish-helm-chart
+          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}'

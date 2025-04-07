@@ -14,20 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/karpenter-core/pkg/apis/v1alpha5"
 	"github.com/go-logr/logr"
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/machine"
-	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -36,14 +26,21 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/clock"
-	"knative.dev/pkg/apis"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
 
 const (
@@ -71,7 +68,7 @@ func NewRAGEngineReconciler(client client.Client, scheme *runtime.Scheme, log lo
 func (c *RAGEngineReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 	ragEngineObj := &kaitov1alpha1.RAGEngine{}
 	if err := c.Client.Get(ctx, req.NamespacedName, ragEngineObj); err != nil {
-		if !errors.IsNotFound(err) {
+		if !apierrors.IsNotFound(err) {
 			klog.ErrorS(err, "failed to get RAG Engine", "RAG Engine", req.Name)
 		}
 		return reconcile.Result{}, client.IgnoreNotFound(err)
@@ -126,6 +123,14 @@ func (c *RAGEngineReconciler) addRAGEngine(ctx context.Context, ragEngineObj *ka
 		}
 		return reconcile.Result{}, err
 	}
+	if err := c.ensureService(ctx, ragEngineObj); err != nil {
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
+			"ragEngineFailed", err.Error()); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update ragEngine status", "ragEngine", klog.KObj(ragEngineObj))
+			return reconcile.Result{}, updateErr
+		}
+		return reconcile.Result{}, err
+	}
 	if err = c.applyRAG(ctx, ragEngineObj); err != nil {
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
 			"ragengineFailed", err.Error()); updateErr != nil {
@@ -143,6 +148,39 @@ func (c *RAGEngineReconciler) addRAGEngine(ctx context.Context, ragEngineObj *ka
 	return reconcile.Result{}, nil
 }
 
+func (c *RAGEngineReconciler) ensureService(ctx context.Context, ragObj *kaitov1alpha1.RAGEngine) error {
+	serviceType := corev1.ServiceTypeClusterIP
+	ragAnnotations := ragObj.GetAnnotations()
+
+	if len(ragAnnotations) != 0 {
+		val, found := ragAnnotations[kaitov1alpha1.AnnotationEnableLB]
+		if found && val == "True" {
+			serviceType = corev1.ServiceTypeLoadBalancer
+		}
+	}
+
+	// Ensure Service for index and query
+	// TODO: ServiceName currently does not accept customization for now
+
+	serviceName := ragObj.Name
+
+	existingSVC := &corev1.Service{}
+	err := resources.GetResource(ctx, serviceName, ragObj.Namespace, c.Client, existingSVC)
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+	} else {
+		return nil
+	}
+	serviceObj := manifests.GenerateRAGServiceManifest(ctx, ragObj, serviceName, serviceType)
+	if err := resources.CreateResource(ctx, serviceObj, c.Client); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *RAGEngineReconciler) applyRAG(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine) error {
 	var err error
 	func() {
@@ -152,8 +190,22 @@ func (c *RAGEngineReconciler) applyRAG(ctx context.Context, ragEngineObj *kaitov
 
 		if err = resources.GetResource(ctx, ragEngineObj.Name, ragEngineObj.Namespace, c.Client, deployment); err == nil {
 			klog.InfoS("An inference workload already exists for ragengine", "ragengine", klog.KObj(ragEngineObj))
-			return
+			if deployment.Annotations[kaitov1alpha1.RAGEngineRevisionAnnotation] != revisionStr {
 
+				envs := manifests.RAGSetEnv(ragEngineObj)
+
+				spec := &deployment.Spec
+				// Currently, all CRD changes are only passed through environment variables (env)
+				spec.Template.Spec.Containers[0].Env = envs
+				deployment.Annotations[kaitov1alpha1.RAGEngineRevisionAnnotation] = revisionStr
+
+				if err := c.Update(ctx, deployment); err != nil {
+					return
+				}
+			}
+			if err = resources.CheckResourceStatus(deployment, c.Client, time.Duration(10)*time.Minute); err != nil {
+				return
+			}
 		} else if apierrors.IsNotFound(err) {
 			var workloadObj client.Object
 			// Need to create a new workload
@@ -253,7 +305,7 @@ func (c *RAGEngineReconciler) syncControllerRevision(ctx context.Context, ragEng
 		Name:      newRevision.Name,
 		Namespace: newRevision.Namespace,
 	}, controllerRevision); err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 
 			if err := c.Create(ctx, newRevision); err != nil {
 				return fmt.Errorf("failed to create new ControllerRevision: %w", err)
@@ -293,17 +345,9 @@ func computeHash(ragEngineObj *kaitov1alpha1.RAGEngine) string {
 
 // applyRAGEngineResource applies RAGEngine resource spec.
 func (c *RAGEngineReconciler) applyRAGEngineResource(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine) error {
-
-	// Wait for pending machines if any before we decide whether to create new machine or not.
-	if err := machine.WaitForPendingMachines(ctx, ragEngineObj, c.Client); err != nil {
+	// Wait for pending nodeClaims if any before we decide whether to create new node or not.
+	if err := nodeclaim.WaitForPendingNodeClaims(ctx, ragEngineObj, c.Client); err != nil {
 		return err
-	}
-
-	if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-		// Wait for pending nodeClaims if any before we decide whether to create new node or not.
-		if err := nodeclaim.WaitForPendingNodeClaims(ctx, ragEngineObj, c.Client); err != nil {
-			return err
-		}
 	}
 
 	// Find all nodes that match the labelSelector and instanceType, they are not necessarily created by machines/nodeClaims.
@@ -317,16 +361,9 @@ func (c *RAGEngineReconciler) applyRAGEngineResource(ctx context.Context, ragEng
 
 	if newNodesCount > 0 {
 		klog.InfoS("need to create more nodes", "NodeCount", newNodesCount)
-		if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-			if err := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj,
-				kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionUnknown,
-				"CreateNodeClaimPending", fmt.Sprintf("creating %d nodeClaims", newNodesCount)); err != nil {
-				klog.ErrorS(err, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
-				return err
-			}
-		} else if err := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj,
-			kaitov1alpha1.ConditionTypeMachineStatus, metav1.ConditionUnknown,
-			"CreateMachinePending", fmt.Sprintf("creating %d machines", newNodesCount)); err != nil {
+		if err := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj,
+			kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionUnknown,
+			"CreateNodeClaimPending", fmt.Sprintf("creating %d nodeClaims", newNodesCount)); err != nil {
 			klog.ErrorS(err, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
 			return err
 		}
@@ -360,16 +397,9 @@ func (c *RAGEngineReconciler) applyRAGEngineResource(ctx context.Context, ragEng
 		}
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-		if err = c.updateStatusConditionIfNotMatch(ctx, ragEngineObj,
-			kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
-			"installNodePluginsSuccess", "nodeClaim plugins have been installed successfully"); err != nil {
-			klog.ErrorS(err, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
-			return err
-		}
-	} else if err = c.updateStatusConditionIfNotMatch(ctx, ragEngineObj,
-		kaitov1alpha1.ConditionTypeMachineStatus, metav1.ConditionTrue,
-		"installNodePluginsSuccess", "machines plugins have been installed successfully"); err != nil {
+	if err = c.updateStatusConditionIfNotMatch(ctx, ragEngineObj,
+		kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
+		"installNodePluginsSuccess", "nodeClaim plugins have been installed successfully"); err != nil {
 		klog.ErrorS(err, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
 		return err
 	}
@@ -447,47 +477,7 @@ func (c *RAGEngineReconciler) createAndValidateNode(ctx context.Context, ragEngi
 	if nodeOSDiskSize == "" {
 		nodeOSDiskSize = "0" // The default OS size is used
 	}
-
-	if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-		return c.CreateNodeClaim(ctx, ragEngineObj, nodeOSDiskSize)
-	} else {
-		return c.CreateMachine(ctx, ragEngineObj, nodeOSDiskSize)
-	}
-}
-
-func (c *RAGEngineReconciler) CreateMachine(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine, nodeOSDiskSize string) (*corev1.Node, error) {
-RetryWithDifferentName:
-	newMachine := machine.GenerateMachineManifest(ctx, nodeOSDiskSize, ragEngineObj)
-
-	if err := machine.CreateMachine(ctx, newMachine, c.Client); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			klog.InfoS("A machine exists with the same name, retry with a different name", "machine", klog.KObj(newMachine))
-			goto RetryWithDifferentName
-		} else {
-
-			klog.ErrorS(err, "failed to create machine", "machine", newMachine.Name)
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.ConditionTypeMachineStatus, metav1.ConditionFalse,
-				"machineFailedCreation", err.Error()); updateErr != nil {
-				klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
-				return nil, updateErr
-			}
-			return nil, err
-		}
-	}
-
-	// check machine status until it is ready
-	err := machine.CheckMachineStatus(ctx, newMachine, c.Client)
-	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.ConditionTypeMachineStatus, metav1.ConditionFalse,
-			"checkMachineStatusFailed", err.Error()); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
-			return nil, updateErr
-		}
-		return nil, err
-	}
-
-	// get the node object from the machine status nodeName.
-	return resources.GetNode(ctx, newMachine.Status.NodeName, c.Client)
+	return c.CreateNodeClaim(ctx, ragEngineObj, nodeOSDiskSize)
 }
 
 func (c *RAGEngineReconciler) CreateNodeClaim(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine, nodeOSDiskSize string) (*corev1.Node, error) {
@@ -543,18 +533,10 @@ func (c *RAGEngineReconciler) ensureNodePlugins(ctx context.Context, ragEngineOb
 				if err := resources.UpdateNodeWithLabel(ctx, nodeObj.Name, resources.LabelKeyNvidia, resources.LabelValueNvidia, c.Client); err != nil {
 					if apierrors.IsNotFound(err) {
 						klog.ErrorS(err, "nvidia plugin cannot be installed, node not found", "node", nodeObj.Name)
-						if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-							if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-								"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {
-								klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
-								return updateErr
-							}
-						} else {
-							if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.ConditionTypeMachineStatus, metav1.ConditionFalse,
-								"checkMachineStatusFailed", err.Error()); updateErr != nil {
-								klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
-								return updateErr
-							}
+						if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
+							"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {
+							klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
+							return updateErr
 						}
 						return err
 					}
@@ -578,52 +560,19 @@ func (c *RAGEngineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1alpha1.RAGEngine{}).
-		Watches(&v1alpha5.Machine{}, c.watchMachines()).
+		Owns(&appsv1.ControllerRevision{}).
+		Owns(&appsv1.Deployment{}).
+		Watches(&karpenterv1.NodeClaim{}, c.watchNodeClaims(), builder.WithPredicates(nodeclaim.NodeClaimPredicate)). // watches for nodeClaim with labels indicating ragengine name.
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
-	if featuregates.FeatureGates[consts.FeatureFlagKarpenter] {
-		builder.
-			Watches(&v1beta1.NodeClaim{}, c.watchNodeClaims()) // watches for nodeClaim with labels indicating ragengine name.
-	}
-	return builder.Complete(c)
-}
 
-// watches for machine with labels indicating RAGEngine name.
-func (c *RAGEngineReconciler) watchMachines() handler.EventHandler {
-	return handler.EnqueueRequestsFromMapFunc(
-		func(ctx context.Context, o client.Object) []reconcile.Request {
-			machineObj := o.(*v1alpha5.Machine)
-			name, ok := machineObj.Labels[kaitov1alpha1.LabelRAGEngineName]
-			if !ok {
-				return nil
-			}
-			namespace, ok := machineObj.Labels[kaitov1alpha1.LabelRAGEngineNamespace]
-			if !ok {
-				return nil
-			}
-			_, conditionFound := lo.Find(machineObj.GetConditions(), func(condition apis.Condition) bool {
-				return condition.Type == apis.ConditionReady &&
-					condition.Status == v1.ConditionTrue
-			})
-			if conditionFound && machineObj.DeletionTimestamp.IsZero() {
-				// No need to reconcile ragengine if the machine is in READY state unless machine is deleted.
-				return nil
-			}
-			return []reconcile.Request{
-				{
-					NamespacedName: client.ObjectKey{
-						Name:      name,
-						Namespace: namespace,
-					},
-				},
-			}
-		})
+	return builder.Complete(c)
 }
 
 // watches for nodeClaim with labels indicating RAGEngine name.
 func (c *RAGEngineReconciler) watchNodeClaims() handler.EventHandler {
 	return handler.EnqueueRequestsFromMapFunc(
 		func(ctx context.Context, o client.Object) []reconcile.Request {
-			nodeClaimObj := o.(*v1beta1.NodeClaim)
+			nodeClaimObj := o.(*karpenterv1.NodeClaim)
 			name, ok := nodeClaimObj.Labels[kaitov1alpha1.LabelRAGEngineName]
 			if !ok {
 				return nil

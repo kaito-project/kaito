@@ -9,19 +9,21 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: '1.22'
+  GO_VERSION: '1.24'
 
 jobs:
   create-release:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
         with:
           egress-policy: audit
+          disable-sudo: true
+          disable-telemetry: true
 
       - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
         with:
           go-version: ${{ env.GO_VERSION  }}
 
@@ -33,7 +35,7 @@ jobs:
           ref: ${{ github.event.client_payload.tag }}
 
       - name: Goreleaser
-        uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # v6.0.0
+        uses: goreleaser/goreleaser-action@90a3faa9d0182683851fbfa97ca1a2cb983bfca3 # v6.2.1
         with:
           version: latest
           args: release --clean --timeout 60m --verbose

@@ -5,12 +5,13 @@ package inference
 import (
 	"context"
 	"errors"
-	"github.com/kaito-project/kaito/pkg/utils/test"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
 	"gotest.tools/assert"
 	v1 "k8s.io/api/apps/v1"
+
+	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func TestCreateTemplateInference(t *testing.T) {

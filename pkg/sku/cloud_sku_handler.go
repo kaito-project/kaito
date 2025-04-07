@@ -25,6 +25,8 @@ func GetCloudSKUHandler(cloud string) CloudSKUHandler {
 		return NewAzureSKUHandler()
 	case consts.AWSCloudName:
 		return NewAwsSKUHandler()
+	case consts.ArcCloudName:
+		return NewArcSKUHandler()
 	default:
 		return nil
 	}

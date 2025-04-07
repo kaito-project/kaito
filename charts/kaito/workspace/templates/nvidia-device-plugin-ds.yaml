@@ -21,12 +21,17 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
+              {{- if eq .Values.cloudProviderName "azure" }}
               - key: kubernetes.azure.com/cluster
                 operator: Exists
               - key: type
                 operator: NotIn
                 values:
                 - virtual-kubelet
+              {{- else if eq .Values.cloudProviderName "aws" }}
+              - key: "k8s.io/cloud-provider-aws"
+                operator: Exists
+              {{- end }}
       tolerations:
         # Allow this pod to be rescheduled while the node is in "critical add-ons only" mode.
         # This, along with the annotation above marks this pod as a critical add-on.
@@ -39,9 +44,9 @@ spec:
           operator: "Equal"
           value: "gpu"
           effect: "NoSchedule"
-      priorityClassName: high-priority-nonpreempting
+      priorityClassName: "system-node-critical"
       containers:
-        - image: nvcr.io/nvidia/k8s-device-plugin:v0.16.2
+        - image: mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.17.0
           name: nvidia-device-plugin-ctr
           env:
             - name: FAIL_ON_INIT_ERROR
@@ -59,15 +64,3 @@ spec:
         - name: device-plugin
           hostPath:
             path: /var/lib/kubelet/device-plugins
----
-apiVersion: scheduling.k8s.io/v1
-kind: PriorityClass
-metadata:
-  name: high-priority-nonpreempting
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "kaito.labels" . | nindent 4 }}
-value: 1000000
-preemptionPolicy: Never
-globalDefault: false
-description: "This priority class will not cause other pods to be preempted."

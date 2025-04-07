@@ -11,12 +11,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -31,6 +32,13 @@ func (w *RAGEngine) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if base == nil {
 		klog.InfoS("Validate creation", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
+	} else {
+		klog.InfoS("Validate update", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
+		old := base.(*RAGEngine)
+		errs = errs.Also(
+			w.validateCreate().ViaField("spec"),
+			w.Spec.Compute.validateUpdate(old.Spec.Compute).ViaField("resource"),
+		)
 	}
 	return errs
 }

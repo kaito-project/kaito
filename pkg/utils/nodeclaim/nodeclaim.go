@@ -10,13 +10,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
+	"strings"
 	"time"
 
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
 	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/awslabs/operatorpkg/status"
 	"github.com/samber/lo"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -27,16 +27,53 @@ import (
 	"k8s.io/utils/clock"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/karpenter/pkg/apis/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
 
 var (
 	// nodeClaimStatusTimeoutInterval is the interval to check the nodeClaim status.
 	nodeClaimStatusTimeoutInterval = 240 * time.Second
+
+	NodeClaimPredicate = predicate.Funcs{
+		CreateFunc: func(e event.CreateEvent) bool {
+			return true
+		},
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			oldNodeClaim, ok := e.ObjectOld.(*karpenterv1.NodeClaim)
+			if !ok {
+				return false
+			}
+
+			newNodeClaim, ok := e.ObjectNew.(*karpenterv1.NodeClaim)
+			if !ok {
+				return false
+			}
+
+			oldNodeClaimCopy := oldNodeClaim.DeepCopy()
+			newNodeClaimCopy := newNodeClaim.DeepCopy()
+
+			// if only nodeclaim.Status.LastPodEventTime is changed, skip update event
+			oldNodeClaimCopy.ResourceVersion = ""
+			oldNodeClaimCopy.Status.LastPodEventTime = metav1.Time{}
+			newNodeClaimCopy.ResourceVersion = ""
+			newNodeClaimCopy.Status.LastPodEventTime = metav1.Time{}
+			return !reflect.DeepEqual(oldNodeClaimCopy, newNodeClaimCopy)
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			return true
+		},
+	}
 )
 
 // GenerateNodeClaimManifest generates a nodeClaim object from the given workspace or RAGEngine.
-func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, obj interface{}) *v1beta1.NodeClaim {
+func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, obj interface{}) *karpenterv1.NodeClaim {
 	klog.InfoS("GenerateNodeClaimManifest", "object", obj)
 
 	// Determine the type of the input object and extract relevant fields
@@ -58,7 +95,7 @@ func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, o
 	}
 
 	nodeClaimAnnotations := map[string]string{
-		v1beta1.DoNotDisruptAnnotationKey: "true", // To prevent Karpenter from scaling down.
+		karpenterv1.DoNotDisruptAnnotationKey: "true", // To prevent Karpenter from scaling down.
 	}
 
 	cloudName := os.Getenv("CLOUD_PROVIDER")
@@ -70,15 +107,15 @@ func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, o
 	} else if cloudName == consts.AWSCloudName { //aws
 		nodeClassRefKind = "EC2NodeClass"
 	}
-	nodeClaimObj := &v1beta1.NodeClaim{
+	nodeClaimObj := &karpenterv1.NodeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        nodeClaimName,
 			Namespace:   namespace,
 			Labels:      nodeClaimLabels,
 			Annotations: nodeClaimAnnotations,
 		},
-		Spec: v1beta1.NodeClaimSpec{
-			NodeClassRef: &v1beta1.NodeClassReference{
+		Spec: karpenterv1.NodeClaimSpec{
+			NodeClassRef: &karpenterv1.NodeClassReference{
 				Name: consts.NodeClassName,
 				Kind: nodeClassRefKind,
 			},
@@ -89,7 +126,7 @@ func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, o
 					Effect: v1.TaintEffectNoSchedule,
 				},
 			},
-			Requirements: []v1beta1.NodeSelectorRequirementWithMinValues{
+			Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
 				{
 					NodeSelectorRequirement: v1.NodeSelectorRequirement{
 						Key:      consts.LabelNodePool,
@@ -112,7 +149,7 @@ func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, o
 					},
 				},
 			},
-			Resources: v1beta1.ResourceRequirements{
+			Resources: karpenterv1.ResourceRequirements{
 				Requests: v1.ResourceList{
 					v1.ResourceEphemeralStorage: resource.MustParse(storageRequirement),
 				},
@@ -121,7 +158,7 @@ func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, o
 	}
 
 	if cloudName == consts.AzureCloudName {
-		nodeSelector := v1beta1.NodeSelectorRequirementWithMinValues{
+		nodeSelector := karpenterv1.NodeSelectorRequirementWithMinValues{
 			NodeSelectorRequirement: v1.NodeSelectorRequirement{
 				Key:      azurev1alpha2.LabelSKUName,
 				Operator: v1.NodeSelectorOpIn,
@@ -130,6 +167,18 @@ func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, o
 		}
 		nodeClaimObj.Spec.Requirements = append(nodeClaimObj.Spec.Requirements, nodeSelector)
 	}
+
+	if cloudName == consts.AWSCloudName {
+		nodeSelector := karpenterv1.NodeSelectorRequirementWithMinValues{
+			NodeSelectorRequirement: v1.NodeSelectorRequirement{
+				Key:      "karpenter.k8s.aws/instance-gpu-count",
+				Operator: v1.NodeSelectorOpGt,
+				Values:   []string{"0"},
+			},
+		}
+		nodeClaimObj.Spec.Requirements = append(nodeClaimObj.Spec.Requirements, nodeSelector)
+	}
+
 	return nodeClaimObj
 }
 
@@ -170,8 +219,9 @@ func GenerateEC2NodeClassManifest(ctx context.Context) *awsv1beta1.EC2NodeClass 
 			Name: consts.NodeClassName,
 		},
 		Spec: awsv1beta1.EC2NodeClassSpec{
-			AMIFamily: lo.ToPtr(awsv1beta1.AMIFamilyAL2), // Amazon Linux 2
-			Role:      fmt.Sprintf("KarpenterNodeRole-%s", clusterName),
+			AMIFamily:           lo.ToPtr(awsv1beta1.AMIFamilyAL2), // Amazon Linux 2
+			Role:                fmt.Sprintf("KarpenterNodeRole-%s", clusterName),
+			InstanceStorePolicy: lo.ToPtr(awsv1beta1.InstanceStorePolicyRAID0), //required to share node's ephermeral storage among pods that request it
 			SubnetSelectorTerms: []awsv1beta1.SubnetSelectorTerm{
 				{
 					Tags: map[string]string{
@@ -191,7 +241,7 @@ func GenerateEC2NodeClassManifest(ctx context.Context) *awsv1beta1.EC2NodeClass 
 }
 
 // CreateNodeClaim creates a nodeClaim object.
-func CreateNodeClaim(ctx context.Context, nodeClaimObj *v1beta1.NodeClaim, kubeClient client.Client) error {
+func CreateNodeClaim(ctx context.Context, nodeClaimObj *karpenterv1.NodeClaim, kubeClient client.Client) error {
 	klog.InfoS("CreateNodeClaim", "nodeClaim", klog.KObj(nodeClaimObj))
 	return retry.OnError(retry.DefaultBackoff, func(err error) bool {
 		return err.Error() != consts.ErrorInstanceTypesUnavailable
@@ -201,19 +251,19 @@ func CreateNodeClaim(ctx context.Context, nodeClaimObj *v1beta1.NodeClaim, kubeC
 			return err
 		}
 
-		err = kubeClient.Create(ctx, nodeClaimObj, &client.CreateOptions{})
+		err = kubeClient.Create(ctx, nodeClaimObj.DeepCopy(), &client.CreateOptions{})
 		if err != nil {
 			return err
 		}
 		time.Sleep(1 * time.Second)
 
-		updatedObj := &v1beta1.NodeClaim{}
+		updatedObj := &karpenterv1.NodeClaim{}
 		err = kubeClient.Get(ctx, client.ObjectKey{Name: nodeClaimObj.Name, Namespace: nodeClaimObj.Namespace}, updatedObj, &client.GetOptions{})
 
 		// if SKU is not available, then exit.
-		_, conditionFound := lo.Find(updatedObj.GetConditions(), func(condition apis.Condition) bool {
-			return condition.Type == v1beta1.Launched &&
-				condition.Status == v1.ConditionFalse && condition.Message == consts.ErrorInstanceTypesUnavailable
+		_, conditionFound := lo.Find(updatedObj.GetConditions(), func(condition status.Condition) bool {
+			return condition.Type == karpenterv1.ConditionTypeLaunched &&
+				condition.Status == metav1.ConditionFalse && strings.Contains(condition.Message, consts.ErrorInstanceTypesUnavailable)
 		})
 		if conditionFound {
 			klog.Error(consts.ErrorInstanceTypesUnavailable, "reconcile will not continue")
@@ -255,21 +305,23 @@ func WaitForPendingNodeClaims(ctx context.Context, obj interface{}, kubeClient c
 
 	for i := range nodeClaims.Items {
 		// check if the nodeClaim being created has the requested instance type
-		_, nodeClaimInstanceType := lo.Find(nodeClaims.Items[i].Spec.Requirements, func(requirement v1beta1.NodeSelectorRequirementWithMinValues) bool {
+		_, nodeClaimInstanceType := lo.Find(nodeClaims.Items[i].Spec.Requirements, func(requirement karpenterv1.NodeSelectorRequirementWithMinValues) bool {
 			return requirement.Key == v1.LabelInstanceTypeStable &&
 				requirement.Operator == v1.NodeSelectorOpIn &&
 				lo.Contains(requirement.Values, instanceType)
 		})
 		if nodeClaimInstanceType {
-			_, found := lo.Find(nodeClaims.Items[i].GetConditions(), func(condition apis.Condition) bool {
-				return condition.Type == v1beta1.Initialized && condition.Status == v1.ConditionFalse
+			_, nodeClaimIsInitalized := lo.Find(nodeClaims.Items[i].GetConditions(), func(condition status.Condition) bool {
+				return condition.Type == karpenterv1.ConditionTypeInitialized && condition.Status == metav1.ConditionTrue
 			})
 
-			if found || nodeClaims.Items[i].GetConditions() == nil { // Check if conditions==nil is a workaround for condition delays in setting the nodeClaim object
-				// wait until the nodeClaim is initialized
-				if err := CheckNodeClaimStatus(ctx, &nodeClaims.Items[i], kubeClient); err != nil {
-					return err
-				}
+			if nodeClaimIsInitalized {
+				continue
+			}
+
+			// wait until the nodeClaim is initialized
+			if err := CheckNodeClaimStatus(ctx, &nodeClaims.Items[i], kubeClient); err != nil {
+				return err
 			}
 		}
 	}
@@ -277,17 +329,17 @@ func WaitForPendingNodeClaims(ctx context.Context, obj interface{}, kubeClient c
 }
 
 // ListNodeClaim lists all nodeClaim objects in the cluster that are created by the given workspace or RAGEngine.
-func ListNodeClaim(ctx context.Context, obj interface{}, kubeClient client.Client) (*v1beta1.NodeClaimList, error) {
-	nodeClaimList := &v1beta1.NodeClaimList{}
+func ListNodeClaim(ctx context.Context, obj interface{}, kubeClient client.Client) (*karpenterv1.NodeClaimList, error) {
+	nodeClaimList := &karpenterv1.NodeClaimList{}
 
 	var ls labels.Set
 
 	// Build label selector based on the type of the input object
 	switch o := obj.(type) {
-	case *kaitov1alpha1.Workspace:
+	case *kaitov1beta1.Workspace:
 		ls = labels.Set{
-			kaitov1alpha1.LabelWorkspaceName:      o.Name,
-			kaitov1alpha1.LabelWorkspaceNamespace: o.Namespace,
+			kaitov1beta1.LabelWorkspaceName:      o.Name,
+			kaitov1beta1.LabelWorkspaceNamespace: o.Namespace,
 		}
 	case *kaitov1alpha1.RAGEngine:
 		ls = labels.Set{
@@ -313,7 +365,7 @@ func ListNodeClaim(ctx context.Context, obj interface{}, kubeClient client.Clien
 // CheckNodeClaimStatus checks the status of the nodeClaim. If the nodeClaim is not ready, then it will wait for the nodeClaim to be ready.
 // If the nodeClaim is not ready after the timeout, then it will return an error.
 // if the nodeClaim is ready, then it will return nil.
-func CheckNodeClaimStatus(ctx context.Context, nodeClaimObj *v1beta1.NodeClaim, kubeClient client.Client) error {
+func CheckNodeClaimStatus(ctx context.Context, nodeClaimObj *karpenterv1.NodeClaim, kubeClient client.Client) error {
 	klog.InfoS("CheckNodeClaimStatus", "nodeClaim", klog.KObj(nodeClaimObj))
 	timeClock := clock.RealClock{}
 	tick := timeClock.NewTicker(nodeClaimStatusTimeoutInterval)
@@ -335,9 +387,9 @@ func CheckNodeClaimStatus(ctx context.Context, nodeClaimObj *v1beta1.NodeClaim, 
 			}
 
 			// if nodeClaim is not ready, then continue.
-			_, conditionFound := lo.Find(nodeClaimObj.GetConditions(), func(condition apis.Condition) bool {
-				return condition.Type == apis.ConditionReady &&
-					condition.Status == v1.ConditionTrue
+			_, conditionFound := lo.Find(nodeClaimObj.GetConditions(), func(condition status.Condition) bool {
+				return condition.Type == string(apis.ConditionReady) &&
+					condition.Status == metav1.ConditionTrue
 			})
 			if !conditionFound {
 				continue

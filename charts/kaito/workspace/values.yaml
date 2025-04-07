@@ -5,7 +5,7 @@ replicaCount: 1
 image:
   repository: mcr.microsoft.com/aks/kaito/workspace
   pullPolicy: IfNotPresent
-  tag: 0.3.2
+  tag: 0.4.4
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -16,7 +16,7 @@ securityContext:
     drop:
       - "ALL"
 featureGates:
-  Karpenter: "false"
+  vLLM: "true"
 webhook:
   port: 9443
 presetRegistryName: mcr.microsoft.com/aks/kaito
@@ -30,5 +30,6 @@ resources:
 nodeSelector: {}
 tolerations: []
 affinity: {}
-# Values can be "azure" or "aws"
+# Values can be "azure" or "aws" or "arc"
 cloudProviderName: "azure"
+clusterName: "kaito"

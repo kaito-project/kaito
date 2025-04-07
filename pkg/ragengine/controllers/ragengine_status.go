@@ -8,16 +8,16 @@ import (
 	"reflect"
 	"sort"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 )
 
 func (c *RAGEngineReconciler) updateRAGEngineStatus(ctx context.Context, name *client.ObjectKey, condition *metav1.Condition, workerNodes []string) error {
@@ -29,7 +29,7 @@ func (c *RAGEngineReconciler) updateRAGEngineStatus(ctx context.Context, name *c
 			// Read the latest version to avoid update conflict.
 			ragObj := &kaitov1alpha1.RAGEngine{}
 			if err := c.Client.Get(ctx, *name, ragObj); err != nil {
-				if !errors.IsNotFound(err) {
+				if !apierrors.IsNotFound(err) {
 					return err
 				}
 				return nil

@@ -20,12 +20,12 @@ Workspace Service endpoint.
 - Using the --set flag:
 
    ```
-   helm install inference-frontend ./charts/DemoUI/inference --set env.workspaceServiceURL="http://<SERVICE_NAME>.<NAMESPACE>.svc.cluster.local:80/chat"
+   helm install inference-frontend ./charts/DemoUI/inference --set env.workspaceServiceURL="http://<SERVICE_NAME>.<NAMESPACE>.svc.cluster.local:80"
    ```
  - Using a custom `values.override.yaml` file:
    ```
    env:
-      workspaceServiceURL: "http://<SERVICE_NAME>.<NAMESPACE>.svc.cluster.local:80/chat"
+      workspaceServiceURL: "http://<SERVICE_NAME>.<NAMESPACE>.svc.cluster.local:80"
    ```
    Then deploy with custom values file:
     ```

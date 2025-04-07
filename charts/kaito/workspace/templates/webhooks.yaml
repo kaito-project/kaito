@@ -9,7 +9,7 @@ webhooks:
     admissionReviewVersions: ["v1"]
     clientConfig:
       service:
-        name: {{ include "kaito.fullname" . }}
+        name: {{ include "kaito.fullname" . }}-svc
         namespace: {{ .Release.Namespace }}
         port: {{ .Values.webhook.port }}
     failurePolicy: Fail
@@ -19,6 +19,7 @@ webhooks:
           - kaito.sh
         apiVersions:
           - v1alpha1
+          - v1beta1
         resources:
           - workspaces
         operations:

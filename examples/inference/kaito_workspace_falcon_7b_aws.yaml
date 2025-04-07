@@ -1,0 +1,13 @@
+apiVersion: kaito.sh/v1alpha1
+kind: Workspace
+metadata:
+  name: aws-workspace
+resource:
+  instanceType: "g5.4xlarge"
+  labelSelector:
+    matchLabels:
+      apps: falcon-7b
+inference:
+  preset:
+    name: "falcon-7b"
+    

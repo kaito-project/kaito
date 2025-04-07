@@ -1,6 +1,6 @@
 # Installation 
 
-The following guidance assumes **Azure Kubernetes Service(AKS)** is used to host the Kubernetes cluster.
+The following guidance assumes **Azure Kubernetes Service(AKS)** is used to host the Kubernetes cluster. If you want to use Elastic Kubernetes Service (EKS) instead, please follow the installation guide [here](./aws/aws_installation.md)
 
 Before you begin, ensure you have the following tools installed:
 
@@ -8,6 +8,7 @@ Before you begin, ensure you have the following tools installed:
 - [Helm](https://helm.sh) to install this operator
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) to view Kubernetes resources
 - [git](https://git-scm.com/downloads) to clone this repo locally
+- [yq](https://github.com/mikefarah/yq) to process yaml files
 - [jq](https://jqlang.github.io/jq/download) to process JSON files
 
 **Important Note**:
@@ -42,14 +43,15 @@ az aks install-cli
 Install the Workspace controller.
 
 ```bash
-helm install workspace ./charts/kaito/workspace --namespace kaito-workspace --create-namespace
+export KAITO_WORKSPACE_VERSION=0.4.4
+
+helm install kaito-workspace  --set clusterName=$MY_CLUSTER --wait \
+https://github.com/kaito-project/kaito/raw/gh-pages/charts/kaito/workspace-$KAITO_WORKSPACE_VERSION.tgz --namespace kaito-workspace --create-namespace
 ```
 
 Note that if you have installed another node provisioning controller that supports Karpenter-core APIs, the following steps for installing `gpu-provisioner` can be skipped.
 
-
 ## Install gpu-provisioner controller
-
 
 #### Enable Workload Identity and OIDC Issuer features
 The *gpu-provisioner* controller requires the [workload identity](https://learn.microsoft.com/azure/aks/workload-identity-overview?tabs=dotnet) feature to acquire the access token to the AKS cluster. 
@@ -69,15 +71,18 @@ export SUBSCRIPTION=$(az account show --query id -o tsv)
 export IDENTITY_NAME="kaitoprovisioner"
 az identity create --name $IDENTITY_NAME -g $RESOURCE_GROUP
 export IDENTITY_PRINCIPAL_ID=$(az identity show --name $IDENTITY_NAME -g $RESOURCE_GROUP --subscription $SUBSCRIPTION --query 'principalId' -o tsv)
-export IDENTITY_CLIENT_ID=$(az identity show --name $IDENTITY_NAME -g $RESOURCE_GROUP --subscription $SUBSCRIPTION --query 'clientId' -o tsv)
 az role assignment create --assignee $IDENTITY_PRINCIPAL_ID --scope /subscriptions/$SUBSCRIPTION/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ContainerService/managedClusters/$MY_CLUSTER  --role "Contributor"
 ```
 
 #### Install helm charts
+
+**Important Note**:
+For kaito 0.4.2 and above, please use gpu-provisioner 0.3.2 or higher. For versions below kaito 0.4.2, please use gpu-provisioner 0.2.1.
+
 Install the Node provisioner controller.
 ```bash
 # get additional values for helm chart install
-export GPU_PROVISIONER_VERSION=0.2.1
+export GPU_PROVISIONER_VERSION=0.3.3
 
 curl -sO https://raw.githubusercontent.com/Azure/gpu-provisioner/main/hack/deploy/configure-helm-values.sh
 chmod +x ./configure-helm-values.sh && ./configure-helm-values.sh $MY_CLUSTER $RESOURCE_GROUP $IDENTITY_NAME
@@ -105,13 +110,14 @@ You can run the following commands to verify the installation of the controllers
 Check status of the Helm chart installations.
 
 ```bash
-helm list -n default
+helm list -n kaito-workspace
+helm list -n gpu-provisioner
 ```
 
 Check status of the `workspace`.
 
 ```bash
-kubectl describe deploy workspace -n kaito-workspace
+kubectl describe deploy kaito-workspace -n kaito-workspace
 ```
 
 Check status of the `gpu-provisioner`.
@@ -132,6 +138,6 @@ kubectl logs --selector=app.kubernetes.io\/name=gpu-provisioner -n gpu-provision
 ## Clean up
 
 ```bash
-helm uninstall gpu-provisioner
-helm uninstall workspace
+helm uninstall gpu-provisioner -n gpu-provisioner
+helm uninstall kaito-workspace -n kaito-workspace
 ```

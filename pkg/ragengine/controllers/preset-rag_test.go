@@ -4,14 +4,14 @@ package controllers
 
 import (
 	"context"
-	"os"
 	"strings"
 	"testing"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func TestCreatePresetRAG(t *testing.T) {
@@ -31,13 +31,14 @@ func TestCreatePresetRAG(t *testing.T) {
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			expectedCmd:   "/bin/sh -c python3 main.py",
-			expectedImage: "mcr.microsoft.com/aks/kaito/kaito-rag-service:0.0.1",
+			expectedImage: "aimodelsregistrytest.azurecr.io/kaito-rag-service:0.3.2", //TODO: Change to the mcr image when release
 		},
 	}
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
-			os.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 

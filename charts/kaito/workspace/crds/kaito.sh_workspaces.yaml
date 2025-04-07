@@ -94,6 +94,11 @@ spec:
                       type: string
                   type: object
                 type: array
+              config:
+                description: |-
+                  Config specifies the name of a custom ConfigMap that contains inference arguments.
+                  If specified, the ConfigMap must be in the same namespace as the Workspace custom resource.
+                type: string
               preset:
                 description: Preset describes the base model that will be deployed
                   with preset configurations.
@@ -157,10 +162,394 @@ spec:
                 description: Count is the required number of GPU nodes.
                 type: integer
               instanceType:
-                default: Standard_NC12s_v3
+                default: Standard_NC24ads_A100_v4
                 description: |-
                   InstanceType specifies the GPU node SKU.
-                  This field defaults to "Standard_NC12s_v3" if not specified.
+                  This field defaults to "Standard_NC24ads_A100_v4" if not specified.
+                type: string
+              labelSelector:
+                description: LabelSelector specifies the required labels for the GPU
+                  nodes.
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: |-
+                        A label selector requirement is a selector that contains values, a key, and an operator that
+                        relates the key and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: |-
+                            operator represents a key's relationship to a set of values.
+                            Valid operators are In, NotIn, Exists and DoesNotExist.
+                          type: string
+                        values:
+                          description: |-
+                            values is an array of string values. If the operator is In or NotIn,
+                            the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                            the values array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: atomic
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                    x-kubernetes-list-type: atomic
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                      map is equivalent to an element of matchExpressions, whose key field is "key", the
+                      operator is "In", and the values array contains only "value". The requirements are ANDed.
+                    type: object
+                type: object
+                x-kubernetes-map-type: atomic
+              preferredNodes:
+                description: |-
+                  PreferredNodes is an optional node list specified by the user.
+                  If a node in the list does not have the required labels, it will be ignored.
+                items:
+                  type: string
+                type: array
+            required:
+            - labelSelector
+            type: object
+          status:
+            description: WorkspaceStatus defines the observed state of Workspace
+            properties:
+              conditions:
+                description: Conditions report the current conditions of the workspace.
+                items:
+                  description: "Condition contains details for one aspect of the current
+                    state of this API Resource.\n---\nThis struct is intended for
+                    direct use as an array at the field path .status.conditions.  For
+                    example,\n\n\n\ttype FooStatus struct{\n\t    // Represents the
+                    observations of a foo's current state.\n\t    // Known .status.conditions.type
+                    are: \"Available\", \"Progressing\", and \"Degraded\"\n\t    //
+                    +patchMergeKey=type\n\t    // +patchStrategy=merge\n\t    // +listType=map\n\t
+                    \   // +listMapKey=type\n\t    Conditions []metav1.Condition `json:\"conditions,omitempty\"
+                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`\n\n\n\t
+                    \   // other fields\n\t}"
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: |-
+                        type of condition in CamelCase or in foo.example.com/CamelCase.
+                        ---
+                        Many .condition.type values are consistent across resources like Available, but because arbitrary conditions can be
+                        useful (see .node.status.conditions), the ability to deconflict is important.
+                        The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              workerNodes:
+                description: WorkerNodes is the list of nodes chosen to run the workload
+                  based on the workspace resource requirement.
+                items:
+                  type: string
+                type: array
+            type: object
+          tuning:
+            properties:
+              config:
+                description: |-
+                  Config specifies the name of a custom ConfigMap that contains tuning arguments.
+                  If specified, the ConfigMap must be in the same namespace as the Workspace custom resource.
+                  If not specified, a default Config is used based on the specified tuning method.
+                type: string
+              input:
+                description: Input describes the input used by the tuning method.
+                properties:
+                  image:
+                    description: |-
+                      The name of the image that contains the source data. The assumption is that the source data locates in the
+                      `data` directory in the image.
+                    type: string
+                  imagePullSecrets:
+                    description: ImagePullSecrets is a list of secret names in the
+                      same namespace used for pulling the data image.
+                    items:
+                      type: string
+                    type: array
+                  name:
+                    description: |-
+                      The name of the dataset. The same name will be used as a container name.
+                      It must be a valid DNS subdomain value,
+                    type: string
+                  urls:
+                    description: URLs specifies the links to the public data sources.
+                      E.g., files in a public github repository.
+                    items:
+                      type: string
+                    type: array
+                  volumeSource:
+                    description: The mounted volume that contains the data.
+                    x-kubernetes-preserve-unknown-fields: true
+                type: object
+              method:
+                description: Method specifies the Parameter-Efficient Fine-Tuning(PEFT)
+                  method, such as lora, qlora, used for the tuning.
+                type: string
+              output:
+                description: Output specified where to store the tuning output.
+                properties:
+                  image:
+                    description: Name of the image where the output data is pushed
+                      to.
+                    type: string
+                  imagePushSecret:
+                    description: |-
+                      ImagePushSecret is the name of the secret in the same namespace that contains the authentication
+                      information that is needed for running `docker push`.
+                    type: string
+                  volumeSource:
+                    description: The mounted volume that is used to save the output
+                      data.
+                    x-kubernetes-preserve-unknown-fields: true
+                type: object
+              preset:
+                description: Preset describes which model to load for tuning.
+                properties:
+                  accessMode:
+                    default: public
+                    description: |-
+                      AccessMode specifies whether the containerized model image is accessible via public registry
+                      or private registry. This field defaults to "public" if not specified.
+                      If this field is "private", user needs to provide the private image information in PresetOptions.
+                    enum:
+                    - public
+                    - private
+                    type: string
+                  name:
+                    description: Name of the supported models with preset configurations.
+                    type: string
+                  presetOptions:
+                    properties:
+                      image:
+                        description: Image is the name of the containerized model
+                          image.
+                        type: string
+                      imagePullSecrets:
+                        description: ImagePullSecrets is a list of secret names in
+                          the same namespace used for pulling the model image.
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                required:
+                - name
+                type: object
+            required:
+            - input
+            - output
+            type: object
+        type: object
+    served: true
+    storage: false
+    subresources:
+      status: {}
+  - additionalPrinterColumns:
+    - jsonPath: .resource.instanceType
+      name: Instance
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="ResourceReady")].status
+      name: ResourceReady
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="InferenceReady")].status
+      name: InferenceReady
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="JobStarted")].status
+      name: JobStarted
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="WorkspaceSucceeded")].status
+      name: WorkspaceSucceeded
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: Workspace is the Schema for the workspaces API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          inference:
+            properties:
+              adapters:
+                description: |-
+                  Adapters are integrated into the base model for inference.
+                  Users can specify multiple adapters for the model and the respective weight of using each of them.
+                items:
+                  properties:
+                    source:
+                      description: Source describes where to obtain the adapter data.
+                      properties:
+                        image:
+                          description: |-
+                            The name of the image that contains the source data. The assumption is that the source data locates in the
+                            `data` directory in the image.
+                          type: string
+                        imagePullSecrets:
+                          description: ImagePullSecrets is a list of secret names
+                            in the same namespace used for pulling the data image.
+                          items:
+                            type: string
+                          type: array
+                        name:
+                          description: |-
+                            The name of the dataset. The same name will be used as a container name.
+                            It must be a valid DNS subdomain value,
+                          type: string
+                        urls:
+                          description: URLs specifies the links to the public data
+                            sources. E.g., files in a public github repository.
+                          items:
+                            type: string
+                          type: array
+                        volumeSource:
+                          description: The mounted volume that contains the data.
+                          x-kubernetes-preserve-unknown-fields: true
+                      type: object
+                    strength:
+                      description: |-
+                        Strength specifies the default multiplier for applying the adapter weights to the raw model weights.
+                        It is usually a float number between 0 and 1. It is defined as a string type to be language agnostic.
+                      type: string
+                  type: object
+                type: array
+              config:
+                description: |-
+                  Config specifies the name of a custom ConfigMap that contains inference arguments.
+                  If specified, the ConfigMap must be in the same namespace as the Workspace custom resource.
+                type: string
+              preset:
+                description: Preset describes the base model that will be deployed
+                  with preset configurations.
+                properties:
+                  accessMode:
+                    default: public
+                    description: |-
+                      AccessMode specifies whether the containerized model image is accessible via public registry
+                      or private registry. This field defaults to "public" if not specified.
+                      If this field is "private", user needs to provide the private image information in PresetOptions.
+                    enum:
+                    - public
+                    - private
+                    type: string
+                  name:
+                    description: Name of the supported models with preset configurations.
+                    type: string
+                  presetOptions:
+                    properties:
+                      image:
+                        description: Image is the name of the containerized model
+                          image.
+                        type: string
+                      imagePullSecrets:
+                        description: ImagePullSecrets is a list of secret names in
+                          the same namespace used for pulling the model image.
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                required:
+                - name
+                type: object
+              template:
+                description: |-
+                  Template specifies the Pod template used to run the inference service. Users can specify custom Pod settings
+                  if the preset configurations cannot meet the requirements. Note that if Preset is specified, Template should not
+                  be specified and vice versa.
+                x-kubernetes-preserve-unknown-fields: true
+            type: object
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          resource:
+            description: |-
+              ResourceSpec describes the resource requirement of running the workload.
+              If the number of nodes in the cluster that meet the InstanceType and
+              LabelSelector requirements is small than the Count, controller
+              will provision new nodes before deploying the workload.
+              The final list of nodes used to run the workload is presented in workspace Status.
+            properties:
+              count:
+                default: 1
+                description: Count is the required number of GPU nodes.
+                type: integer
+              instanceType:
+                default: Standard_NC24ads_A100_v4
+                description: |-
+                  InstanceType specifies the GPU node SKU.
+                  This field defaults to "Standard_NC24ads_A100_v4" if not specified.
                 type: string
               labelSelector:
                 description: LabelSelector specifies the required labels for the GPU

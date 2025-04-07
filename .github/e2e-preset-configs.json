@@ -4,59 +4,116 @@
       {
         "name": "falcon-7b",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NC6s_v3",
         "node-osdisk-size": 100,
         "OSS": true,
-        "loads_adapter": false
-      },
-      {
-        "name": "falcon-7b-adapter",
-        "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
-        "node-osdisk-size": 100,
-        "OSS": true,
-        "loads_adapter": true,
-        "expected_adapter": "amod-mental-health"
+        "loads_adapter": false,
+        "node_pool": "falcon7b",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype bfloat16",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16 --chat-template /workspace/chat_templates/falcon-instruct.jinja",
+            "gpu_count": 1
+          }
+        }
       },
       {
         "name": "falcon-7b-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NC6s_v3",
         "node-osdisk-size": 100,
         "OSS": true,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "falcon7binst",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype bfloat16",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16 --chat-template /workspace/chat_templates/falcon-instruct.jinja",
+            "gpu_count": 1
+          }
+        }
       },
       {
         "name": "falcon-40b",
         "node-count": 1,
-        "node-vm-size": "Standard_NC24s_v3",
+        "node-vm-size": "Standard_NC48ads_A100_v4",
         "node-osdisk-size": 400,
         "OSS": true,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "falcon40b",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype bfloat16",
+            "gpu_count": 2
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --dtype bfloat16 --chat-template /workspace/chat_templates/falcon-instruct.jinja --tensor-parallel-size 2",
+            "gpu_count": 2
+          }
+        }
       },
       {
         "name": "falcon-40b-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC24s_v3",
+        "node-vm-size": "Standard_NC48ads_A100_v4",
         "node-osdisk-size": 400,
         "OSS": true,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "falcon40bins",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype bfloat16",
+            "gpu_count": 2
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --dtype bfloat16 --chat-template /workspace/chat_templates/falcon-instruct.jinja --tensor-parallel-size 2",
+            "gpu_count": 2
+          }
+        }
       },
       {
         "name": "mistral-7b",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NC6s_v3",
         "node-osdisk-size": 100,
         "OSS": true,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "mistral7b",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype bfloat16",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16 --chat-template /workspace/chat_templates/mistral-instruct.jinja",
+            "gpu_count": 1
+          }
+        }
       },
       {
         "name": "mistral-7b-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NC6s_v3",
         "node-osdisk-size": 100,
         "OSS": true,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "mistral7bins",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype bfloat16",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16",
+            "gpu_count": 1
+          }
+        }
       },
       {
         "name": "phi-2",
@@ -64,7 +121,18 @@
         "node-vm-size": "Standard_NC6s_v3",
         "node-osdisk-size": 50,
         "OSS": true,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "phi2",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype bfloat16",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16",
+            "gpu_count": 1
+          }
+        }
       },
       {
         "name": "phi-3-mini-4k-instruct",
@@ -72,7 +140,18 @@
         "node-vm-size": "Standard_NC6s_v3",
         "node-osdisk-size": 50,
         "OSS": true,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "phi3mini4kin",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16",
+            "gpu_count": 1
+          }
+        }
       },
       {
         "name": "phi-3-mini-128k-instruct",
@@ -80,7 +159,18 @@
         "node-vm-size": "Standard_NC6s_v3",
         "node-osdisk-size": 50,
         "OSS": true,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "phi3mini128k",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --dtype float16",
+            "gpu_count": 1
+          }
+        }
       },
       {
         "name": "phi-3-medium-4k-instruct",
@@ -88,7 +178,18 @@
         "node-vm-size": "Standard_NC12s_v3",
         "node-osdisk-size": 100,
         "OSS": true,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "phi3medium4k",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16 --tensor-parallel-size 2",
+            "gpu_count": 2
+          }
+        }
       },
       {
         "name": "phi-3-medium-128k-instruct",
@@ -96,7 +197,134 @@
         "node-vm-size": "Standard_NC12s_v3",
         "node-osdisk-size": 100,
         "OSS": true,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "phi3medium12",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --dtype float16 --max-model-len 1024 --tensor-parallel-size 2",
+            "gpu_count": 2
+          }
+        }
+      },
+      {
+        "name": "phi-4",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC24ads_A100_v4",
+        "node-osdisk-size": 100,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "phi4",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml",
+            "gpu_count": 1
+          }
+        }
+      },
+      {
+        "name": "phi-4-mini-instruct",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC6s_v3",
+        "node-osdisk-size": 100,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "phi4mini",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --dtype float16",
+            "gpu_count": 1
+          }
+        }
+      },
+      {
+        "name": "qwen2.5-coder-7b-instruct",
+        "workload": "qwen2-5-coder-7b-instruct",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC12s_v3",
+        "node-osdisk-size": 100,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "qwen25coder7",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --tensor-parallel-size 2",
+            "gpu_count": 2
+          }
+        }
+      },
+      {
+        "name": "qwen2.5-coder-32b-instruct",
+        "workload": "qwen2-5-coder-32b-instruct",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC24ads_A100_v4",
+        "node-osdisk-size": 200,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "qwen25c32",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml",
+            "gpu_count": 1
+          }
+        }
+      },
+      {
+        "name": "deepseek-r1-distill-qwen-14b",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC24ads_A100_v4",
+        "node-osdisk-size": 200,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "dsqwen14b",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 1
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml",
+            "gpu_count": 1
+          }
+        }
+      },
+      {
+        "name": "deepseek-r1-distill-llama-8b",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC12s_v3",
+        "node-osdisk-size": 100,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "dsqwen8b",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 2 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "gpu_count": 2
+          },
+          "vllm": {
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --tensor-parallel-size 2 --max-model-len 32768",
+            "gpu_count": 2
+          }
+        }
       },
       {
         "name": "llama-2-7b",
@@ -104,7 +332,8 @@
         "node-vm-size": "Standard_NC12s_v3",
         "node-osdisk-size": 100,
         "OSS": false,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "llama27b"
       },
       {
         "name": "llama-2-7b-chat",
@@ -112,7 +341,8 @@
         "node-vm-size": "Standard_NC12s_v3",
         "node-osdisk-size": 100,
         "OSS": false,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "llama27bchat"
       },
       {
         "name": "llama-2-13b",
@@ -120,7 +350,8 @@
         "node-vm-size": "Standard_NC12s_v3",
         "node-osdisk-size": 150,
         "OSS": false,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "llama213b"
       },
       {
         "name": "llama-2-13b-chat",
@@ -128,7 +359,17 @@
         "node-vm-size": "Standard_NC12s_v3",
         "node-osdisk-size": 150,
         "OSS": false,
-        "loads_adapter": false
+        "loads_adapter": false,
+        "node_pool": "llama213bcha"
+      },
+      {
+        "name": "tuning",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC6s_v3",
+        "node-osdisk-size": 100,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "tuning"
       }
     ]
   }

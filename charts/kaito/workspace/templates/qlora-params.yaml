@@ -32,7 +32,7 @@ data:
       DataCollator: # Configurable Parameters: https://huggingface.co/docs/transformers/v4.40.2/en/main_classes/data_collator#transformers.DataCollatorForLanguageModeling
         mlm: true # Default setting; included to show DataCollator can be updated.
     
-      DatasetConfig: # Configurable Parameters: https://github.com/kaito-project/kaito/blob/main/presets/tuning/text-generation/cli.py#L44
+      DatasetConfig: # Configurable Parameters: https://github.com/kaito-project/kaito/blob/main/presets/workspace/tuning/text-generation/cli.py#L44
         shuffle_dataset: true
         train_test_split: 1 # Default to using all data for fine-tuning due to strong pre-trained baseline and typically limited fine-tuning data
         # Expected Dataset format:

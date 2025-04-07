@@ -42,13 +42,13 @@ updates:
       interval: daily
 
   - package-ecosystem: pip
-    directory: /presets/inference/text-generation
+    directory: /presets/workspace/inference/text-generation
     schedule:
       interval: daily
     open-pull-requests-limit: 0
 
   - package-ecosystem: pip
-    directory: /presets/tuning/tfs
+    directory: /presets/workspace/tuning/tfs
     schedule:
       interval: daily
     open-pull-requests-limit: 0

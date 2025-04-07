@@ -4,32 +4,37 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
+	"reflect"
+	"sort"
 	"strings"
 	"time"
 
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/samber/lo"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	pkgscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/remotecommand"
+
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/model"
 )
 
 const (
-	InferenceModeCustomTemplate kaitov1alpha1.ModelImageAccessMode = "customTemplate"
-	ExampleDatasetURL                                              = "https://huggingface.co/datasets/philschmid/dolly-15k-oai-style/resolve/main/data/train-00000-of-00001-54e3756291ca09c6.parquet?download=true"
+	InferenceModeCustomTemplate kaitov1beta1.ModelImageAccessMode = "customTemplate"
+
+	ExampleDatasetURL = "https://huggingface.co/datasets/philschmid/dolly-15k-oai-style/resolve/main/data/train-00000-of-00001-54e3756291ca09c6.parquet?download=true"
 )
 
 var (
@@ -42,7 +47,7 @@ var (
 func GetEnv(envVar string) string {
 	env := os.Getenv(envVar)
 	if env == "" {
-		fmt.Printf("%s is not set or is empty", envVar)
+		fmt.Printf("%s is not set or is empty\n", envVar)
 		return ""
 	}
 	return env
@@ -50,15 +55,15 @@ func GetEnv(envVar string) string {
 
 // GenerateRandomString generates a random number between 0 and 1000 and returns it as a string.
 func GenerateRandomString() string {
-	rand.Seed(time.Now().UnixNano()) // Seed the random number generator
-	randomNumber := rand.Intn(1001)  // Generate a random number between 0 and 1000
+	newRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	randomNumber := newRand.Intn(1001) // Generate a random number between 0 and 1000
 	return fmt.Sprintf("%d", randomNumber)
 }
 
 func GetModelConfigInfo(configFilePath string) (map[string]interface{}, error) {
 	var data map[string]interface{}
 
-	yamlData, err := ioutil.ReadFile(configFilePath)
+	yamlData, err := os.ReadFile(configFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading YAML file: %w", err)
 	}
@@ -101,7 +106,7 @@ func GetPodNameForDeployment(coreClient *kubernetes.Clientset, namespace, deploy
 	return podList.Items[0].Name, nil
 }
 
-func GetK8sConfig() (*kubernetes.Clientset, error) {
+func GetK8sConfig() (*rest.Config, error) {
 	var config *rest.Config
 	var err error
 
@@ -119,6 +124,14 @@ func GetK8sConfig() (*kubernetes.Clientset, error) {
 		}
 	}
 
+	return config, err
+}
+
+func GetK8sClientset() (*kubernetes.Clientset, error) {
+	config, err := GetK8sConfig()
+	if err != nil {
+		log.Fatalf("Failed to get k8s config: %v", err)
+	}
 	coreClient, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Fatalf("Failed to create core client: %v", err)
@@ -127,7 +140,7 @@ func GetK8sConfig() (*kubernetes.Clientset, error) {
 }
 
 func GetPodLogs(coreClient *kubernetes.Clientset, namespace, podName, containerName string) (string, error) {
-	options := &v1.PodLogOptions{}
+	options := &corev1.PodLogOptions{}
 	if containerName != "" {
 		options.Container = containerName
 	}
@@ -148,8 +161,37 @@ func GetPodLogs(coreClient *kubernetes.Clientset, namespace, podName, containerN
 	return buf.String(), nil
 }
 
+func ExecSync(ctx context.Context, config *rest.Config, coreClient *kubernetes.Clientset, namespace, podName string, options corev1.PodExecOptions) (string, error) {
+	req := coreClient.CoreV1().RESTClient().Post().
+		Resource("pods").
+		Name(podName).
+		Namespace(namespace).
+		SubResource("exec")
+	req.VersionedParams(&options, pkgscheme.ParameterCodec)
+
+	exec, err := remotecommand.NewSPDYExecutor(config, "POST", req.URL())
+	if err != nil {
+		return "", fmt.Errorf("failed to initialize SPDY executor: %w", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	err = exec.StreamWithContext(ctx, remotecommand.StreamOptions{
+		Stdout: &stdout,
+		Stderr: &stderr,
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to execute command %v: %w, stderr: %q", options.Command, err, stderr.String())
+	}
+
+	if stderr.Len() > 0 {
+		return "", fmt.Errorf("command error: %s", stderr.String())
+	}
+
+	return stdout.String(), nil
+}
+
 func PrintPodLogsOnFailure(namespace, labelSelector string) {
-	coreClient, err := GetK8sConfig()
+	coreClient, err := GetK8sClientset()
 	if err != nil {
 		log.Printf("Failed to create core client: %v", err)
 	}
@@ -215,16 +257,19 @@ func ExtractModelVersion(configs map[string]interface{}) (map[string]string, err
 }
 
 func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resourceCount int, instanceType string,
-	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1alpha1.ModelName,
-	accessMode kaitov1alpha1.ModelImageAccessMode, imagePullSecret []string,
-	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1alpha1.AdapterSpec) *kaitov1alpha1.Workspace {
+	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName,
+	accessMode kaitov1beta1.ModelImageAccessMode, imagePullSecret []string,
+	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
 
-	workspace := &kaitov1alpha1.Workspace{
+	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
+			Annotations: map[string]string{
+				kaitov1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
+			},
 		},
-		Resource: kaitov1alpha1.ResourceSpec{
+		Resource: kaitov1beta1.ResourceSpec{
 			Count:          lo.ToPtr(resourceCount),
 			InstanceType:   instanceType,
 			LabelSelector:  labelSelector,
@@ -232,15 +277,15 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 		},
 	}
 
-	var workspaceInference kaitov1alpha1.InferenceSpec
-	if accessMode == kaitov1alpha1.ModelImageAccessModePublic ||
-		accessMode == kaitov1alpha1.ModelImageAccessModePrivate {
-		workspaceInference.Preset = &kaitov1alpha1.PresetSpec{
-			PresetMeta: kaitov1alpha1.PresetMeta{
+	var workspaceInference kaitov1beta1.InferenceSpec
+	if accessMode == kaitov1beta1.ModelImageAccessModePublic ||
+		accessMode == kaitov1beta1.ModelImageAccessModePrivate {
+		workspaceInference.Preset = &kaitov1beta1.PresetSpec{
+			PresetMeta: kaitov1beta1.PresetMeta{
 				Name:       presetName,
 				AccessMode: accessMode,
 			},
-			PresetOptions: kaitov1alpha1.PresetOptions{
+			PresetOptions: kaitov1beta1.PresetOptions{
 				Image:            imageName,
 				ImagePullSecrets: imagePullSecret,
 			},
@@ -260,22 +305,36 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 	return workspace
 }
 
-func GenerateTuningWorkspaceManifest(name, namespace, imageName string, resourceCount int, instanceType string,
-	labelSelector *metav1.LabelSelector, preferredNodes []string, input *kaitov1alpha1.DataSource,
-	output *kaitov1alpha1.DataDestination, preset *kaitov1alpha1.PresetSpec, method kaitov1alpha1.TuningMethod) *kaitov1alpha1.Workspace {
+func GenerateInferenceWorkspaceManifestWithVLLM(name, namespace, imageName string, resourceCount int, instanceType string,
+	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName,
+	accessMode kaitov1beta1.ModelImageAccessMode, imagePullSecret []string,
+	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
+	workspace := GenerateInferenceWorkspaceManifest(name, namespace, imageName, resourceCount, instanceType,
+		labelSelector, preferredNodes, presetName, accessMode, imagePullSecret, podTemplate, adapters)
 
-	workspace := &kaitov1alpha1.Workspace{
+	if workspace.Annotations == nil {
+		workspace.Annotations = make(map[string]string)
+	}
+	workspace.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(model.RuntimeNameVLLM)
+	return workspace
+}
+
+func GenerateTuningWorkspaceManifest(name, namespace, imageName string, resourceCount int, instanceType string,
+	labelSelector *metav1.LabelSelector, preferredNodes []string, input *kaitov1beta1.DataSource,
+	output *kaitov1beta1.DataDestination, preset *kaitov1beta1.PresetSpec, method kaitov1beta1.TuningMethod) *kaitov1beta1.Workspace {
+
+	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Resource: kaitov1alpha1.ResourceSpec{
+		Resource: kaitov1beta1.ResourceSpec{
 			Count:          lo.ToPtr(resourceCount),
 			InstanceType:   instanceType,
 			LabelSelector:  labelSelector,
 			PreferredNodes: preferredNodes,
 		},
-		Tuning: &kaitov1alpha1.TuningSpec{
+		Tuning: &kaitov1beta1.TuningSpec{
 			Method: method,
 			Input:  input,
 			Output: output,
@@ -288,14 +347,14 @@ func GenerateTuningWorkspaceManifest(name, namespace, imageName string, resource
 
 func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImageName, outputRegistry string,
 	resourceCount int, instanceType string, labelSelector *metav1.LabelSelector,
-	preferredNodes []string, presetName kaitov1alpha1.ModelName, accessMode kaitov1alpha1.ModelImageAccessMode,
-	imagePullSecret []string, customConfigMapName string) *kaitov1alpha1.Workspace {
-	workspace := &kaitov1alpha1.Workspace{
+	preferredNodes []string, presetName kaitov1beta1.ModelName, accessMode kaitov1beta1.ModelImageAccessMode,
+	imagePullSecret []string, customConfigMapName string) *kaitov1beta1.Workspace {
+	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Resource: kaitov1alpha1.ResourceSpec{
+		Resource: kaitov1beta1.ResourceSpec{
 			Count:          lo.ToPtr(resourceCount),
 			InstanceType:   instanceType,
 			LabelSelector:  labelSelector,
@@ -303,15 +362,15 @@ func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImage
 		},
 	}
 
-	var workspaceTuning kaitov1alpha1.TuningSpec
-	if accessMode == kaitov1alpha1.ModelImageAccessModePublic ||
-		accessMode == kaitov1alpha1.ModelImageAccessModePrivate {
-		workspaceTuning.Preset = &kaitov1alpha1.PresetSpec{
-			PresetMeta: kaitov1alpha1.PresetMeta{
+	var workspaceTuning kaitov1beta1.TuningSpec
+	if accessMode == kaitov1beta1.ModelImageAccessModePublic ||
+		accessMode == kaitov1beta1.ModelImageAccessModePrivate {
+		workspaceTuning.Preset = &kaitov1beta1.PresetSpec{
+			PresetMeta: kaitov1beta1.PresetMeta{
 				Name:       presetName,
 				AccessMode: accessMode,
 			},
-			PresetOptions: kaitov1alpha1.PresetOptions{
+			PresetOptions: kaitov1beta1.PresetOptions{
 				Image:            imageName,
 				ImagePullSecrets: imagePullSecret,
 			},
@@ -319,11 +378,12 @@ func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImage
 	}
 
 	workspace.Tuning = &workspaceTuning
-	workspace.Tuning.Method = kaitov1alpha1.TuningMethodQLora
-	workspace.Tuning.Input = &kaitov1alpha1.DataSource{
-		Image: datasetImageName,
+	workspace.Tuning.Method = kaitov1beta1.TuningMethodQLora
+	workspace.Tuning.Input = &kaitov1beta1.DataSource{
+		Image:            datasetImageName,
+		ImagePullSecrets: imagePullSecret,
 	}
-	workspace.Tuning.Output = &kaitov1alpha1.DataDestination{
+	workspace.Tuning.Output = &kaitov1beta1.DataDestination{
 		Image:           outputRegistry,
 		ImagePushSecret: imagePullSecret[0],
 	}
@@ -400,4 +460,20 @@ func GeneratePodTemplate(name, namespace, image string, labels map[string]string
 			},
 		},
 	}
+}
+
+func CompareSecrets(refs []corev1.LocalObjectReference, secrets []string) bool {
+	if len(refs) != len(secrets) {
+		return false
+	}
+
+	refSecrets := make([]string, len(refs))
+	for i, ref := range refs {
+		refSecrets[i] = ref.Name
+	}
+
+	sort.Strings(refSecrets)
+	sort.Strings(secrets)
+
+	return reflect.DeepEqual(refSecrets, secrets)
 }

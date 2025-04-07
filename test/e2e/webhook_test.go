@@ -8,32 +8,33 @@ import (
 	"math/rand"
 	"time"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/test/e2e/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
 var (
 	testModelImage            = utils.GetEnv("AI_MODELS_REGISTRY") + "/e2e-test:0.0.1"
-	testDataSourceConfig      = &kaitov1alpha1.DataSource{Name: PresetFalcon7BModel, Image: testModelImage}
-	testDataDestinationConfig = &kaitov1alpha1.DataDestination{Image: testModelImage, ImagePushSecret: utils.GetEnv("AI_MODELS_REGISTRY_SECRET")}
+	testDataSourceConfig      = &kaitov1beta1.DataSource{Name: PresetFalcon7BModel, Image: testModelImage}
+	testDataDestinationConfig = &kaitov1beta1.DataDestination{Image: testModelImage, ImagePushSecret: utils.GetEnv("AI_MODELS_REGISTRY_SECRET")}
 
-	initialPresetSpec = &kaitov1alpha1.PresetSpec{PresetMeta: kaitov1alpha1.PresetMeta{Name: PresetFalcon7BModel}}
-	updatedPresetSpec = &kaitov1alpha1.PresetSpec{PresetMeta: kaitov1alpha1.PresetMeta{Name: PresetFalcon40BModel}}
+	initialPresetSpec = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: PresetFalcon7BModel}}
+	updatedPresetSpec = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: PresetFalcon40BModel}}
 
-	initialTuningMethod     = kaitov1alpha1.TuningMethodLora
-	alternativeTuningMethod = kaitov1alpha1.TuningMethodQLora
+	initialTuningMethod     = kaitov1beta1.TuningMethodLora
+	alternativeTuningMethod = kaitov1beta1.TuningMethodQLora
 )
 
-var _ = Describe("Workspace Validation Webhook", func() {
+var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, func() {
 	It("should validate the workspace resource spec at creation ", func() {
 		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_Bad",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-			}, nil, PresetFalcon7BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		By("Creating a workspace with invalid instancetype", func() {
 			// Create workspace
@@ -48,7 +49,7 @@ var _ = Describe("Workspace Validation Webhook", func() {
 		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-			}, nil, "invalid-name", kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, "invalid-name", kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		By("Creating a workspace with invalid preset name", func() {
 			// Create workspace
@@ -111,7 +112,7 @@ var _ = Describe("Workspace Validation Webhook", func() {
 		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-			}, nil, PresetFalcon7BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		By("Creating a valid workspace", func() {
 			// Create workspace
@@ -195,7 +196,7 @@ var _ = Describe("Workspace Validation Webhook", func() {
 		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-			}, nil, PresetFalcon7BModel, kaitov1alpha1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
 
 		By("Creating a valid workspace", func() {
 			// Create workspace

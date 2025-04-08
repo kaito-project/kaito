@@ -27,7 +27,7 @@ var (
 	PresetQwen2_5Coder32BInstructModel = "qwen2.5-coder-32b-instruct"
 
 	PresetTagMap = map[string]string{
-		"Qwen2.5-Coder-7B-Instruct":  "0.0.1",
+		"Qwen2.5-Coder-7B-Instruct":  "0.1.0",
 		"Qwen2.5-Coder-32B-Instruct": "0.1.0",
 	}
 

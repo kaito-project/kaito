@@ -22,7 +22,7 @@ var (
 	PresetPhi2Model = "phi-2"
 
 	PresetPhiTagMap = map[string]string{
-		"Phi2": "0.0.7",
+		"Phi2": "0.1.0",
 	}
 
 	baseCommandPresetPhiInference = "accelerate launch"

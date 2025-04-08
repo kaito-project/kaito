@@ -130,7 +130,7 @@ inference-api-e2e:
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
 
 # Ginkgo configurations
-GINKGO_FOCUS ?=
+GINKGO_FOCUS ?= "should create a falcon workspace with adapter successfully"
 GINKGO_SKIP ?=
 GINKGO_LABEL ?=
 GINKGO_NODES ?= 2

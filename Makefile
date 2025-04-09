@@ -130,7 +130,7 @@ inference-api-e2e:
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
 
 # Ginkgo configurations
-GINKGO_FOCUS ?= should create a falcon workspace with adapter successfully
+GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
 GINKGO_LABEL ?=
 GINKGO_NODES ?= 2
@@ -285,6 +285,13 @@ docker-build-adapter: docker-buildx
 		--platform="linux/$(ARCH)" \
 		--pull \
 		--tag $(REGISTRY)/e2e-adapter2:0.0.1 .
+	docker buildx build \
+		--build-arg ADAPTER_PATH=docker/adapters/adapter-phi-3-mini-pycoder \
+		--file ./docker/adapters/Dockerfile \
+		--output=$(OUTPUT_TYPE) \
+		--platform="linux/$(ARCH)" \
+		--pull \
+		--tag $(REGISTRY)/adapter-phi-3-mini-pycoder:0.0.1 .
 
 .PHONY: docker-build-dataset
 docker-build-dataset: docker-buildx

@@ -23,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
@@ -62,10 +63,11 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 					bypassResourceChecks = true
 				}
 			}
+			runtime := GetWorkspaceRuntimeName(w)
 
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference, bypassResourceChecks).ViaField("resource"),
-				w.Inference.validateCreate(ctx, w.Namespace).ViaField("inference"))
+				w.Inference.validateCreate(ctx, w.Namespace, runtime).ViaField("inference"))
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
@@ -419,7 +421,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
-func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (errs *apis.FieldError) {
+func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, runtime model.RuntimeName) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -439,9 +441,17 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (e
 			return errs
 		}
 		// Validate private preset has private image specified
-		if plugin.KaitoModelRegister.MustGet(string(i.Preset.Name)).GetInferenceParameters().ImageAccessMode == string(ModelImageAccessModePrivate) &&
+		modelPreset := plugin.KaitoModelRegister.MustGet(presetName)
+		if modelPreset.GetInferenceParameters().ImageAccessMode == string(ModelImageAccessModePrivate) &&
 			i.Preset.PresetMeta.AccessMode != ModelImageAccessModePrivate {
 			errs = errs.Also(apis.ErrGeneric("This preset only supports private AccessMode, AccessMode must be private to continue"))
+		}
+		err := modelPreset.GetInferenceParameters().Validate(model.RuntimeContext{
+			RuntimeName: runtime,
+			UseAdapters: len(i.Adapters) > 0,
+		})
+		if err != nil {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("vLLM runtime validation: %v", err)))
 		}
 		// Additional validations for Preset
 		if i.Preset.PresetMeta.AccessMode == ModelImageAccessModePrivate && i.Preset.PresetOptions.Image == "" {

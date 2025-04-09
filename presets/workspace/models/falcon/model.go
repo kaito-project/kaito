@@ -80,6 +80,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 				BaseCommand:    inference.DefaultVLLMCommand,
 				ModelName:      "falcon-7b",
 				ModelRunParams: falconRunParamsVLLM,
+				DisallowLoRA:   true,
 			},
 			// vllm requires the model specification to be exactly divisible by
 			// the number of GPUs(tensor parallel level).
@@ -142,6 +143,7 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 				BaseCommand:    inference.DefaultVLLMCommand,
 				ModelName:      "falcon-7b-instruct",
 				ModelRunParams: falconRunParamsVLLM,
+				DisallowLoRA:   true,
 			},
 			// vllm requires the model specification to be exactly divisible by
 			// the number of GPUs(tensor parallel level).

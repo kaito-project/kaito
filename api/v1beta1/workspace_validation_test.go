@@ -737,7 +737,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 					}
 				}()
 			}
-			errs := tc.inferenceSpec.validateCreate(ctx, "")
+			errs := tc.inferenceSpec.validateCreate(ctx, "", model.RuntimeNameHuggingfaceTransformers)
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)

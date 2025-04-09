@@ -77,6 +77,31 @@ func (*testNoTensorParallelModel) SupportDistributedInference() bool {
 	return false
 }
 
+type testNoLoraSupportModel struct {
+	baseTestModel
+}
+
+func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		GPUCountRequirement: "1",
+		RuntimeParam: model.RuntimeParam{
+			DisableTensorParallelism: true,
+			VLLM: model.VLLMParam{
+				BaseCommand:  "python3 /workspace/vllm/inference_api.py",
+				DisallowLoRA: true,
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+func (*testNoLoraSupportModel) SupportDistributedInference() bool {
+	return false
+}
+
 func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-model",
@@ -91,5 +116,10 @@ func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-no-tensor-parallel-model",
 		Instance: &testNoTensorParallelModel{},
+	})
+
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-no-lora-support-model",
+		Instance: &testNoLoraSupportModel{},
 	})
 }

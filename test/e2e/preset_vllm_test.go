@@ -8,6 +8,7 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -187,9 +188,21 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a falcon workspace with adapter successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		workspaceObj := createFalconWorkspaceWithAdapterAndVLLM(numOfNode, validAdapters2)
+		phi4AdapterName := "adapter-phi-3-mini-pycoder"
+		var phi4Adapter = []kaitov1beta1.AdapterSpec{
+			{
+				Source: &kaitov1beta1.DataSource{
+					Name:  phi4AdapterName,
+					Image: utils.GetEnv("E2E_ACR_REGISTRY") + "/" + phi4AdapterName + ":0.0.1",
+					ImagePullSecrets: []string{
+						utils.GetEnv("E2E_ACR_REGISTRY_SECRET"),
+					},
+				},
+			},
+		}
+		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, phi4Adapter)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -208,9 +221,15 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
 
-		validateInitContainers(workspaceObj, expectedInitContainers2)
+		expectedInitContainers := []corev1.Container{
+			{
+				Name:  baseInitContainer.Name + "-" + phi4AdapterName,
+				Image: baseInitContainer.Image,
+			},
+		}
+		validateInitContainers(workspaceObj, expectedInitContainers)
 
-		validateAdapterLoadedInVLLM(workspaceObj, imageName2)
+		validateAdapterLoadedInVLLM(workspaceObj, phi4AdapterName)
 	})
 })
 
@@ -256,14 +275,14 @@ func createFalconWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1bet
 	return workspaceObj
 }
 
-func createFalconWorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
+func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Falcon 7B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-falcon-", rand.Intn(1000))
+	By("Creating a workspace CR with phi4 mini preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-phi4-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-falcon-adapter-vllm"},
-			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, validAdapters)
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi4-adapter-vllm"},
+			}, nil, PresetPhi4MiniModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, validAdapters)
 
 		createAndValidateWorkspace(workspaceObj)
 	})

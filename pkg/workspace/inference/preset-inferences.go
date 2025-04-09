@@ -16,6 +16,7 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
@@ -70,9 +71,9 @@ var (
 	}
 )
 
-func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient client.Client, wObj *v1beta1.Workspace, inferenceParam *model.PresetParam) error {
+func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient client.Client, wObj *v1beta1.Workspace, inferenceParam *pkgmodel.PresetParam) error {
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(wObj)
-	if runtimeName != model.RuntimeNameHuggingfaceTransformers {
+	if runtimeName != pkgmodel.RuntimeNameHuggingfaceTransformers {
 		return fmt.Errorf("distributed inference is not supported for runtime %s", runtimeName)
 	}
 
@@ -127,7 +128,7 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace,
 }
 
 func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
-	model model.Model, kubeClient client.Client) (client.Object, error) {
+	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
 	inferenceParam := model.GetInferenceParameters().DeepCopy()
 
 	configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx, kubeClient,
@@ -191,7 +192,12 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 
 	// inference command
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(workspaceObj)
-	commands := inferenceParam.GetInferenceCommand(runtimeName, skuNumGPUs, &cmVolumeMount)
+	commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
+		RuntimeName:  runtimeName,
+		ConfigVolume: &cmVolumeMount,
+		SKUNumGPUs:   skuNumGPUs,
+		UseAdapters:  len(workspaceObj.Inference.Adapters) > 0,
+	})
 
 	image, imagePullSecrets := GetInferenceImageInfo(ctx, workspaceObj, inferenceParam)
 

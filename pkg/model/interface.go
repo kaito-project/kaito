@@ -3,6 +3,7 @@
 package model
 
 import (
+	"fmt"
 	"path"
 	"time"
 
@@ -74,6 +75,9 @@ type VLLMParam struct {
 	DistributionParams map[string]string
 	// Parameters for running the model training/inference.
 	ModelRunParams map[string]string
+	// Indicates if vllm supports LoRA (Low-Rank Adaptation) for this model.
+	// doc: https://docs.vllm.ai/en/latest/models/supported_models.html#text-generation-task-generate
+	DisallowLoRA bool
 }
 
 func (p *PresetParam) DeepCopy() *PresetParam {
@@ -136,10 +140,18 @@ func (v *VLLMParam) DeepCopy() VLLMParam {
 	return out
 }
 
+// RuntimeContext defines the runtime context for a model.
+type RuntimeContext struct {
+	RuntimeName  RuntimeName
+	ConfigVolume *corev1.VolumeMount
+	SKUNumGPUs   string
+	UseAdapters  bool
+}
+
 // builds the container command:
 // eg. torchrun <TORCH_PARAMS> <OPTIONAL_RDZV_PARAMS> baseCommand <MODEL_PARAMS>
-func (p *PresetParam) GetInferenceCommand(runtime RuntimeName, skuNumGPUs string, configVolume *corev1.VolumeMount) []string {
-	switch runtime {
+func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
+	switch rc.RuntimeName {
 	case RuntimeNameHuggingfaceTransformers:
 		torchCommand := utils.BuildCmdStr(p.Transformers.BaseCommand, p.Transformers.TorchRunParams, p.Transformers.TorchRunRdzvParams)
 		modelCommand := utils.BuildCmdStr(p.Transformers.InferenceMainFile, p.Transformers.ModelRunParams)
@@ -149,14 +161,27 @@ func (p *PresetParam) GetInferenceCommand(runtime RuntimeName, skuNumGPUs string
 			p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 		}
 		if !p.DisableTensorParallelism {
-			p.VLLM.ModelRunParams["tensor-parallel-size"] = skuNumGPUs
+			p.VLLM.ModelRunParams["tensor-parallel-size"] = rc.SKUNumGPUs
 		}
-		if configVolume != nil {
-			p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(configVolume.MountPath, ConfigfileNameVLLM)
+		if !p.VLLM.DisallowLoRA && rc.UseAdapters {
+			p.VLLM.ModelRunParams["enable-lora"] = ""
+		}
+		if rc.ConfigVolume != nil {
+			p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(rc.ConfigVolume.MountPath, ConfigfileNameVLLM)
 		}
 		modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
 		return utils.ShellCmd(modelCommand)
 	default:
 		return nil
 	}
+}
+
+func (p *PresetParam) Validate(rc RuntimeContext) error {
+	switch rc.RuntimeName {
+	case RuntimeNameVLLM:
+		if rc.UseAdapters && p.VLLM.DisallowLoRA {
+			return fmt.Errorf("vLLM does not support LoRA adapters for this model: %s", p.VLLM.ModelName)
+		}
+	}
+	return nil
 }

@@ -38,6 +38,7 @@ const (
 	PresetPhi3Mini128kModel             = "phi-3-mini-128k-instruct"
 	PresetDeepSeekR1DistillLlama8BModel = "deepseek-r1-distill-llama-8b"
 	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
+	PresetPhi4MiniModel                 = "phi-4-mini-instruct"
 	WorkspaceHashAnnotation             = "workspace.kaito.io/hash"
 	// WorkspaceRevisionAnnotation represents the revision number of the workload managed by the workspace
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"

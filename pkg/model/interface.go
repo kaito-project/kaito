@@ -109,18 +109,9 @@ func (h *HuggingfaceTransformersParam) DeepCopy() HuggingfaceTransformersParam {
 		return HuggingfaceTransformersParam{}
 	}
 	out := *h
-	out.TorchRunParams = make(map[string]string, len(h.TorchRunParams))
-	for k, v := range h.TorchRunParams {
-		out.TorchRunParams[k] = v
-	}
-	out.TorchRunRdzvParams = make(map[string]string, len(h.TorchRunRdzvParams))
-	for k, v := range h.TorchRunRdzvParams {
-		out.TorchRunRdzvParams[k] = v
-	}
-	out.ModelRunParams = make(map[string]string, len(h.ModelRunParams))
-	for k, v := range h.ModelRunParams {
-		out.ModelRunParams[k] = v
-	}
+	out.TorchRunParams = copyStringMap(h.TorchRunParams)
+	out.TorchRunRdzvParams = copyStringMap(h.TorchRunRdzvParams)
+	out.ModelRunParams = copyStringMap(h.ModelRunParams)
 	return out
 }
 
@@ -129,15 +120,20 @@ func (v *VLLMParam) DeepCopy() VLLMParam {
 		return VLLMParam{}
 	}
 	out := *v
-	out.DistributionParams = make(map[string]string, len(v.DistributionParams))
-	for k, v := range v.DistributionParams {
-		out.DistributionParams[k] = v
-	}
-	out.ModelRunParams = make(map[string]string, len(v.ModelRunParams))
-	for k, v := range v.ModelRunParams {
-		out.ModelRunParams[k] = v
-	}
+	out.DistributionParams = copyStringMap(v.DistributionParams)
+	out.ModelRunParams = copyStringMap(v.ModelRunParams)
 	return out
+}
+
+func copyStringMap(src map[string]string) map[string]string {
+	if src == nil {
+		return nil
+	}
+	dst := make(map[string]string, len(src))
+	for k, v := range src {
+		dst[k] = v
+	}
+	return dst
 }
 
 // RuntimeContext defines the runtime context for a model.
@@ -148,32 +144,45 @@ type RuntimeContext struct {
 	UseAdapters  bool
 }
 
-// builds the container command:
-// eg. torchrun <TORCH_PARAMS> <OPTIONAL_RDZV_PARAMS> baseCommand <MODEL_PARAMS>
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
 	switch rc.RuntimeName {
 	case RuntimeNameHuggingfaceTransformers:
-		torchCommand := utils.BuildCmdStr(p.Transformers.BaseCommand, p.Transformers.TorchRunParams, p.Transformers.TorchRunRdzvParams)
-		modelCommand := utils.BuildCmdStr(p.Transformers.InferenceMainFile, p.Transformers.ModelRunParams)
-		return utils.ShellCmd(torchCommand + " " + modelCommand)
+		return p.buildHuggingfaceInferenceCommand()
 	case RuntimeNameVLLM:
-		if p.VLLM.ModelName != "" {
-			p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
-		}
-		if !p.DisableTensorParallelism {
-			p.VLLM.ModelRunParams["tensor-parallel-size"] = rc.SKUNumGPUs
-		}
-		if !p.VLLM.DisallowLoRA && rc.UseAdapters {
-			p.VLLM.ModelRunParams["enable-lora"] = ""
-		}
-		if rc.ConfigVolume != nil {
-			p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(rc.ConfigVolume.MountPath, ConfigfileNameVLLM)
-		}
-		modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
-		return utils.ShellCmd(modelCommand)
+		return p.buildVLLMInferenceCommand(rc)
 	default:
 		return nil
 	}
+}
+
+func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
+	torchCommand := utils.BuildCmdStr(
+		p.Transformers.BaseCommand,
+		p.Transformers.TorchRunParams,
+		p.Transformers.TorchRunRdzvParams,
+	)
+	modelCommand := utils.BuildCmdStr(
+		p.Transformers.InferenceMainFile,
+		p.Transformers.ModelRunParams,
+	)
+	return utils.ShellCmd(torchCommand + " " + modelCommand)
+}
+
+func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
+	if p.VLLM.ModelName != "" {
+		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
+	}
+	if !p.DisableTensorParallelism {
+		p.VLLM.ModelRunParams["tensor-parallel-size"] = rc.SKUNumGPUs
+	}
+	if !p.VLLM.DisallowLoRA && rc.UseAdapters {
+		p.VLLM.ModelRunParams["enable-lora"] = ""
+	}
+	if rc.ConfigVolume != nil {
+		p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(rc.ConfigVolume.MountPath, ConfigfileNameVLLM)
+	}
+	modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
+	return utils.ShellCmd(modelCommand)
 }
 
 func (p *PresetParam) Validate(rc RuntimeContext) error {

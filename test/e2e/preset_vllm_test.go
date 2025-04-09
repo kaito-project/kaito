@@ -200,6 +200,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 						utils.GetEnv("E2E_ACR_REGISTRY_SECRET"),
 					},
 				},
+				Strength: &DefaultStrength,
 			},
 		}
 		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, phi4Adapter)

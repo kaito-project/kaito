@@ -159,6 +159,8 @@ func TestCreatePresetInference(t *testing.T) {
 						Strength: &ValidStrength,
 					},
 				}
+			} else {
+				workspace.Inference.Adapters = nil
 			}
 
 			model := plugin.KaitoModelRegister.MustGet(tc.modelName)

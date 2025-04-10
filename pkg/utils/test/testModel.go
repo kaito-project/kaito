@@ -12,17 +12,22 @@ import (
 
 type baseTestModel struct{}
 
+var emptyParams = map[string]string{}
+
 func (*baseTestModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement: "1",
 		RuntimeParam: model.RuntimeParam{
 			VLLM: model.VLLMParam{
-				BaseCommand: "python3 /workspace/vllm/inference_api.py",
-				ModelName:   "mymodel",
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelName:      "mymodel",
+				ModelRunParams: emptyParams,
 			},
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       "accelerate launch",
-				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				BaseCommand:        "accelerate launch",
+				InferenceMainFile:  "/workspace/tfs/inference_api.py",
+				TorchRunParams:     emptyParams,
+				TorchRunRdzvParams: emptyParams,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -63,7 +68,8 @@ func (*testNoTensorParallelModel) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			DisableTensorParallelism: true,
 			VLLM: model.VLLMParam{
-				BaseCommand: "python3 /workspace/vllm/inference_api.py",
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
 			},
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       "accelerate launch",
@@ -87,8 +93,9 @@ func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			DisableTensorParallelism: true,
 			VLLM: model.VLLMParam{
-				BaseCommand:  "python3 /workspace/vllm/inference_api.py",
-				DisallowLoRA: true,
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
+				DisallowLoRA:   true,
 			},
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       "accelerate launch",

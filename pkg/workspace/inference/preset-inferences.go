@@ -84,12 +84,14 @@ func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient cl
 	}
 
 	nodes := *wObj.Resource.Count
-	inferenceParam.Transformers.TorchRunParams["nnodes"] = strconv.Itoa(nodes)
-	inferenceParam.Transformers.TorchRunParams["nproc_per_node"] = strconv.Itoa(inferenceParam.WorldSize / nodes)
-	if nodes > 1 {
-		inferenceParam.Transformers.TorchRunParams["node_rank"] = "$(echo $HOSTNAME | grep -o '[^-]*$')"
-		inferenceParam.Transformers.TorchRunParams["master_addr"] = existingService.Spec.ClusterIP
-		inferenceParam.Transformers.TorchRunParams["master_port"] = "29500"
+	if inferenceParam.Transformers.TorchRunParams != nil {
+		inferenceParam.Transformers.TorchRunParams["nnodes"] = strconv.Itoa(nodes)
+		inferenceParam.Transformers.TorchRunParams["nproc_per_node"] = strconv.Itoa(inferenceParam.WorldSize / nodes)
+		if nodes > 1 {
+			inferenceParam.Transformers.TorchRunParams["node_rank"] = "$(echo $HOSTNAME | grep -o '[^-]*$')"
+			inferenceParam.Transformers.TorchRunParams["master_addr"] = existingService.Spec.ClusterIP
+			inferenceParam.Transformers.TorchRunParams["master_port"] = "29500"
+		}
 	}
 	if inferenceParam.Transformers.TorchRunRdzvParams != nil {
 		inferenceParam.Transformers.TorchRunRdzvParams["max_restarts"] = "3"

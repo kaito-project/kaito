@@ -22,6 +22,16 @@ Kaito has the following key differentiations compared to most of the mainstream 
 - Host large model images in the public Microsoft Container Registry (MCR) if the license allows.
 
 Using Kaito, the workflow of onboarding large AI inference models in Kubernetes is largely simplified.
+1. Deploy language models such as Falcon, Phi2, Phi3, Llama2, Llama2Chat, Mistral
+2. Deploy and integrate custom models
+3. Containerize LLM inference models
+4. Deploy KAITO on AKS Arc using Helm and Infrastructure as a code with Terraform  
+5. Automates LLM deployment across available GPU resources
+6. Automate and optimize AI/ML model inferencing for cost-effective deployments, 
+7. Fine-tune (tuning guide) a model directly in a Kubernetescluster, 
+8. Perform parameter efficient fine tuning (PEFT) using low-rank adaptation (LoRA) 
+9. Perform parameter efficient fine tuning (PEFT) using quantized adaptation (QLoRA)
+10. Deploy, automate, inference and fine tune models on Azure AKS, AKS Arc and other CNCF compliant clusters
 
 ## Architecture
 

@@ -42,11 +42,11 @@ var (
 	PresetPhi3_5MiniInstruct  = "phi-3.5-mini-instruct"
 
 	PresetPhiTagMap = map[string]string{
-		"Phi3Mini4kInstruct":     "0.0.4",
-		"Phi3Mini128kInstruct":   "0.0.4",
-		"Phi3Medium4kInstruct":   "0.0.4",
-		"Phi3Medium128kInstruct": "0.0.4",
-		"Phi3_5MiniInstruct":     "0.0.2",
+		"Phi3Mini4kInstruct":     "0.1.0",
+		"Phi3Mini128kInstruct":   "0.1.0",
+		"Phi3Medium4kInstruct":   "0.1.0",
+		"Phi3Medium128kInstruct": "0.1.0",
+		"Phi3_5MiniInstruct":     "0.1.0",
 	}
 
 	baseCommandPresetPhiInference = "accelerate launch"

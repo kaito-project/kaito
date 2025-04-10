@@ -37,14 +37,18 @@ var (
 		"pipeline":    "text-generation",
 	}
 	deepseekLlama8bRunParamsVLLM = map[string]string{
-		"dtype": "float16",
+		"dtype":            "float16",
+		"enable-reasoning": "",
+		"reasoning-parser": "deepseek_r1",
 	}
 	deepseekQwen14bRunParams = map[string]string{
 		"torch_dtype": "bfloat16",
 		"pipeline":    "text-generation",
 	}
 	deepseekQwen14bRunParamsVLLM = map[string]string{
-		"dtype": "float16",
+		"dtype":            "float16",
+		"enable-reasoning": "",
+		"reasoning-parser": "deepseek_r1",
 	}
 )
 
@@ -58,7 +62,7 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "14Gi",
+		TotalGPUMemoryRequirement: "16.5Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -72,9 +76,6 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 				ModelName:      PresetDeepSeekR1DistillLlama8BModel,
 				ModelRunParams: deepseekLlama8bRunParamsVLLM,
 			},
-			// vllm requires the model specification to be exactly divisible by
-			// the number of GPUs(tensor parallel level).
-			DisableTensorParallelism: true,
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 		Tag:              PresetDeepSeekTagMap["DeepSeekDistillLlama8B"],
@@ -114,9 +115,6 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 				ModelName:      PresetDeepSeekR1DistillQwen14BModel,
 				ModelRunParams: deepseekQwen14bRunParamsVLLM,
 			},
-			// vllm requires the model specification to be exactly divisible by
-			// the number of GPUs(tensor parallel level).
-			DisableTensorParallelism: true,
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 		Tag:              PresetDeepSeekTagMap["DeepSeekDistillQwen14B"],

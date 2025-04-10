@@ -88,10 +88,7 @@ func (p *PresetParam) DeepCopy() *PresetParam {
 	out := new(PresetParam)
 	*out = *p
 	out.RuntimeParam = p.RuntimeParam.DeepCopy()
-	out.TuningPerGPUMemoryRequirement = make(map[string]int, len(p.TuningPerGPUMemoryRequirement))
-	for k, v := range p.TuningPerGPUMemoryRequirement {
-		out.TuningPerGPUMemoryRequirement[k] = v
-	}
+	out.TuningPerGPUMemoryRequirement = maps.Clone(p.TuningPerGPUMemoryRequirement)
 	return out
 }
 
@@ -110,9 +107,9 @@ func (h *HuggingfaceTransformersParam) DeepCopy() HuggingfaceTransformersParam {
 		return HuggingfaceTransformersParam{}
 	}
 	out := *h
-	out.TorchRunParams = copyStringMap(h.TorchRunParams)
-	out.TorchRunRdzvParams = copyStringMap(h.TorchRunRdzvParams)
-	out.ModelRunParams = copyStringMap(h.ModelRunParams)
+	out.TorchRunParams = maps.Clone(h.TorchRunParams)
+	out.TorchRunRdzvParams = maps.Clone(h.TorchRunRdzvParams)
+	out.ModelRunParams = maps.Clone(h.ModelRunParams)
 	return out
 }
 
@@ -121,16 +118,9 @@ func (v *VLLMParam) DeepCopy() VLLMParam {
 		return VLLMParam{}
 	}
 	out := *v
-	out.DistributionParams = copyStringMap(v.DistributionParams)
-	out.ModelRunParams = copyStringMap(v.ModelRunParams)
+	out.DistributionParams = maps.Clone(v.DistributionParams)
+	out.ModelRunParams = maps.Clone(v.ModelRunParams)
 	return out
-}
-
-func copyStringMap(src map[string]string) map[string]string {
-	if src == nil {
-		return nil
-	}
-	return maps.Clone(src)
 }
 
 // RuntimeContext defines the runtime context for a model.

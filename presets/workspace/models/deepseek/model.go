@@ -27,8 +27,8 @@ var (
 	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
 
 	PresetDeepSeekTagMap = map[string]string{
-		"DeepSeekDistillLlama8B": "0.0.1",
-		"DeepSeekDistillQwen14B": "0.0.1",
+		"DeepSeekDistillLlama8B": "0.1.0",
+		"DeepSeekDistillQwen14B": "0.1.0",
 	}
 
 	baseCommandPresetDeepseekInference = "accelerate launch"

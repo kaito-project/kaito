@@ -1,0 +1,89 @@
+apiVersion: karpenter.sh/v1
+kind: NodeClaim
+metadata:
+  name: mygpu1
+  labels:
+    karpenter.sh/nodepool: kaito
+    kaito.sh/workspace: phi-4-mini-instruct
+    kaito.sh/workspacenamespace: default
+    app: phi-4-mini-instruct
+  annotations:
+    karpenter.sh/do-not-disrupt: "true"
+spec:
+  taints:
+    - key: "sku"
+      value: "gpu"
+      effect: "NoSchedule"
+  nodeClassRef:
+    name: gpuonly1
+    kind: AKSNodeClass
+    group: karpenter.azure.com
+  requirements:
+  - key: node.kubernetes.io/instance-type
+    operator: In
+    values:
+    - Standard_NC6s_v3
+  - key: karpenter.sh/nodepool
+    operator: In
+    values:
+    - kaito
+  - key: gpu-provisioner.sh/machine-type
+    operator: In
+    values:
+    - gpu
+  - key: karpenter.azure.com/sku-name
+    operator: In
+    values:
+    - Standard_NC6s_v3
+  - key: kubernetes.io/os
+    operator: In
+    values:
+    - linux
+  resources:
+    requests:
+      ephemeral-storage: 120Gi
+---
+apiVersion: karpenter.sh/v1
+kind: NodeClaim
+metadata:
+  name: mygpu2
+  labels:
+    karpenter.sh/nodepool: kaito
+    kaito.sh/workspace: phi-4-mini-instruct
+    kaito.sh/workspacenamespace: default
+    app: phi-4-mini-instruct
+  annotations:
+    karpenter.sh/do-not-disrupt: "true"
+spec:
+  taints:
+    - key: "sku"
+      value: "gpu"
+      effect: "NoSchedule"
+  nodeClassRef:
+    name: gpuonly1
+    kind: AKSNodeClass
+    group: karpenter.azure.com
+  requirements:
+  - key: node.kubernetes.io/instance-type
+    operator: In
+    values:
+    - Standard_NC6s_v3
+  - key: karpenter.sh/nodepool
+    operator: In
+    values:
+    - kaito
+  - key: gpu-provisioner.sh/machine-type
+    operator: In
+    values:
+    - gpu
+  - key: karpenter.azure.com/sku-name
+    operator: In
+    values:
+    - Standard_NC6s_v3
+  - key: kubernetes.io/os
+    operator: In
+    values:
+    - linux
+  resources:
+    requests:
+      ephemeral-storage: 120Gi

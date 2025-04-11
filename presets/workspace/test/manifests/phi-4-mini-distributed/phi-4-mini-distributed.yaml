@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: phi-4-mini-instruct
+  namespace: default
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: Parallel
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      kaito.sh/workspace: phi-4-mini-instruct
+  serviceName: phi-4-mini-instruct-headless
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        kaito.sh/workspace: phi-4-mini-instruct
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - phi-4-mini-instruct
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - apt-get update && apt-get install curl -y &&
+          curl https://raw.githubusercontent.com/vllm-project/vllm/refs/heads/v0.8.2/examples/online_serving/multi-node-serving.sh -o /workspace/vllm/multi-node-serving.sh;
+          chmod +x /workspace/vllm/multi-node-serving.sh;
+          if [ "$(echo $HOSTNAME | grep -o '[^-]*$')" = "0" ]; then
+            /workspace/vllm/multi-node-serving.sh leader --ray_cluster_size=2 --ray_port=6379;
+            python3 /workspace/vllm/inference_api.py --dtype=float16 --served-model-name=phi-4-mini-instruct --pipeline-parallel-size=2 --max-model-len 2048;
+          else
+            /workspace/vllm/multi-node-serving.sh worker --ray_address=phi-4-mini-instruct;
+          fi
+        image: aimodelsregistrytest.azurecr.io/phi-4-mini-instruct:0.1.0
+        imagePullPolicy: IfNotPresent
+        name: phi-4-mini-instruct
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            nvidia.com/gpu: "1"
+          requests:
+            nvidia.com/gpu: "1"
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /dev/shm
+          name: dshm
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: nvidia.com/gpu
+        operator: Exists
+      - effect: NoSchedule
+        key: sku
+        operator: Equal
+        value: gpu
+      volumes:
+      - emptyDir:
+          medium: Memory
+        name: dshm
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: phi-4-mini-instruct
+spec:
+  selector:
+    kaito.sh/workspace: phi-4-mini-instruct
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 5000
+    - name: ray
+      protocol: TCP
+      port: 6379
+      targetPort: 6379
+  type: LoadBalancer
+  publishNotReadyAddresses: true

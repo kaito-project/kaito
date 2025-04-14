@@ -9,7 +9,6 @@ import (
 
 type CloudSKUHandler interface {
 	GetSupportedSKUs() []string
-	GetGPUConfigs() map[string]GPUConfig
 	GetGPUConfigBySKU(sku string) *GPUConfig
 }
 
@@ -51,10 +50,6 @@ func (b *generalSKUHandler) GetSupportedSKUs() []string {
 		keys = append(keys, k)
 	}
 	return keys
-}
-
-func (b *generalSKUHandler) GetGPUConfigs() map[string]GPUConfig {
-	return b.supportedSKUs
 }
 
 func (b *generalSKUHandler) GetGPUConfigBySKU(sku string) *GPUConfig {

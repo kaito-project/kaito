@@ -288,11 +288,8 @@ func createConfigForWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 	}
 
 	handler := sku.GetCloudSKUHandler(consts.AzureCloudName)
-	gpuConfig, ok := handler.GetGPUConfigs()[workspaceObj.Resource.InstanceType]
-	if !ok {
-		return
-	}
-	if gpuConfig.GPUCount <= 1 {
+	gpuConfig := handler.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
+	if gpuConfig == nil || gpuConfig.GPUCount <= 1 {
 		return
 	}
 

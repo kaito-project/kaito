@@ -61,13 +61,13 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 		})
 	})
 
-	It("should validate the workspace inference configfile", func() {
-		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
+	It("should validate the workspace inference adapters at creation", func() {
+		By("Creating a vllm workspace with adapter strength", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, testAdapters1)
 
-		By("Creating a 2gpu workspace without configfile", func() {
 			// Create workspace
 			Eventually(func() error {
 				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
@@ -75,7 +75,79 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 				Should(HaveOccurred(), "Failed to create workspace %s", workspaceObj.Name)
 		})
 
+		By("Creating a vllm workspace without adapter strength", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetPhi4MiniModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, phi4Adapter)
+
+			// Create workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+			// delete workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
+			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
+		})
+
+		By("Creating a transformers workspace with adapter strength", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, testAdapters1)
+			// Create workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+
+			// delete workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
+			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
+		})
+	})
+
+	It("should validate the workspace inference configfile", func() {
+		By("Creating a 2gpu vllm workspace without configfile", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
+
+			// Create workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(HaveOccurred(), "Failed to create workspace %s", workspaceObj.Name)
+		})
+
+		By("Creating a 2gpu transformers workspace without configfile", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
+
+			// Create workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+
+			// delete workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
+			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
+		})
+
 		By("Creating a 2gpu workspace with correct configfile", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
+
 			cm := corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "inference-config-webhook",
@@ -100,12 +172,11 @@ vllm:
 				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
 			}, utils.PollTimeout, utils.PollInterval).
 				Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+			// delete workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
+			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
 		})
-
-		// delete	workspace
-		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
-		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
 	})
 
 	It("should validate the workspace tuning spec at creation ", func() {

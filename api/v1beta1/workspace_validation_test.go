@@ -578,6 +578,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 	tests := []struct {
 		name          string
 		inferenceSpec *InferenceSpec
+		runtimeName   model.RuntimeName
 		errContent    string // Content expected error to include, if any
 		expectErrs    bool
 	}{
@@ -673,6 +674,77 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			expectErrs: true,
 		},
 		{
+			name: "Valid with adapters/vllm",
+			inferenceSpec: func() *InferenceSpec {
+				spec := &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name:       ModelName("test-validation"),
+							AccessMode: ModelImageAccessModePublic,
+						},
+					},
+				}
+				for i := 1; i <= 2; i++ {
+					spec.Adapters = append(spec.Adapters, AdapterSpec{
+						Source: &DataSource{
+							Name:  fmt.Sprintf("Adapter-%d", i),
+							Image: fmt.Sprintf("fake.kaito.com/kaito-image:0.0.%d", i),
+						},
+					})
+				}
+				return spec
+			}(),
+		},
+		{
+			name: "Valid with adapters/transformers",
+			inferenceSpec: func() *InferenceSpec {
+				spec := &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name:       ModelName("test-validation"),
+							AccessMode: ModelImageAccessModePublic,
+						},
+					},
+				}
+				for i := 1; i <= 2; i++ {
+					spec.Adapters = append(spec.Adapters, AdapterSpec{
+						Source: &DataSource{
+							Name:  fmt.Sprintf("Adapter-%d", i),
+							Image: fmt.Sprintf("fake.kaito.com/kaito-image:0.0.%d", i),
+						},
+						Strength: &ValidStrength,
+					})
+				}
+				return spec
+			}(),
+			runtimeName: model.RuntimeNameHuggingfaceTransformers,
+		},
+		{
+			name: "Adapters with strength/vllm",
+			inferenceSpec: func() *InferenceSpec {
+				spec := &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name:       ModelName("test-validation"),
+							AccessMode: ModelImageAccessModePublic,
+						},
+					},
+				}
+				for i := 1; i <= 2; i++ {
+					spec.Adapters = append(spec.Adapters, AdapterSpec{
+						Source: &DataSource{
+							Name:  fmt.Sprintf("Adapter-%d", i),
+							Image: fmt.Sprintf("fake.kaito.com/kaito-image:0.0.%d", i),
+						},
+						Strength: &ValidStrength,
+					})
+				}
+				return spec
+			}(),
+			errContent: "vLLM does not support adapter strength",
+			expectErrs: true,
+		},
+		{
 			name: "Adapters names are duplicated",
 			inferenceSpec: func() *InferenceSpec {
 				spec := &InferenceSpec{
@@ -752,6 +824,19 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			errContent: "missing field(s): inference_config.yaml in ConfigMap",
 			expectErrs: true,
 		},
+		{
+			name: "ConfigMap missing required inference_config.yaml/transformers",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name:       ModelName("test-validation"),
+						AccessMode: ModelImageAccessModePublic,
+					},
+				},
+				Config: "missing-key-config",
+			},
+			runtimeName: model.RuntimeNameHuggingfaceTransformers,
+		},
 	}
 
 	for _, tc := range tests {
@@ -770,7 +855,11 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 					}
 				}()
 			}
-			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, "Standard_NC24ads_A100_v4", model.RuntimeNameHuggingfaceTransformers)
+			runtime := model.RuntimeNameVLLM
+			if tc.runtimeName != "" {
+				runtime = tc.runtimeName
+			}
+			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, "Standard_NC24ads_A100_v4", runtime)
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -1759,6 +1848,7 @@ other_field: value
 		name          string
 		inferenceSpec *InferenceSpec
 		resourceSpec  *ResourceSpec
+		runtimeName   model.RuntimeName
 		errContent    string // Content expected error to include, if any
 		expectErrs    bool
 	}{
@@ -1871,7 +1961,11 @@ other_field: value
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// Validate the inference spec
-			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, tc.resourceSpec.InstanceType, model.RuntimeNameHuggingfaceTransformers)
+			runtimeName := model.RuntimeNameVLLM
+			if tc.runtimeName != "" {
+				runtimeName = tc.runtimeName
+			}
+			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, tc.resourceSpec.InstanceType, runtimeName)
 			hasErrs := errs != nil
 
 			if hasErrs != tc.expectErrs {

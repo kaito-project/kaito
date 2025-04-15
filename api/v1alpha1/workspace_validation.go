@@ -441,9 +441,19 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, in
 			i.Preset.AccessMode != ModelImageAccessModePrivate {
 			errs = errs.Also(apis.ErrGeneric("This preset only supports private AccessMode, AccessMode must be private to continue"))
 		}
+		useAdapterStrength := false
+		for _, adapter := range i.Adapters {
+			if adapter.Strength != nil {
+				useAdapterStrength = true
+				break
+			}
+		}
 		err := modelPreset.GetInferenceParameters().Validate(model.RuntimeContext{
 			RuntimeName: runtime,
-			UseAdapters: len(i.Adapters) > 0,
+			RuntimeContextExtraArguments: model.RuntimeContextExtraArguments{
+				AdaptersEnabled:        len(i.Adapters) > 0,
+				AdapterStrengthEnabled: useAdapterStrength,
+			},
 		})
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Runtime validation: %v", err)))
@@ -464,19 +474,28 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, in
 		errs = errs.Also(validateDuplicateName(i.Adapters, nameMap))
 	}
 
-	if i.Config == "" {
-		klog.InfoS("Inference config not specified. Using default:", DefaultInferenceConfigTemplate)
-		releaseNamespace, err := utils.GetReleaseNamespace()
-		if err != nil {
-			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
-		}
-		if err := i.validateConfigMap(ctx, releaseNamespace, DefaultInferenceConfigTemplate, instanceType); err != nil {
-			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
-		}
-	} else {
-		if err := i.validateConfigMap(ctx, namespace, i.Config, instanceType); err != nil {
-			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
-		}
+	// check if required fields are set
+	// this check only applies to vllm runtime
+	if runtime == model.RuntimeNameVLLM {
+		func() {
+			var (
+				cmName = i.Config
+				cmNS   = namespace
+				err    error
+			)
+			if cmName == "" {
+				klog.Infof("Inference config not specified. Using default: %q", DefaultInferenceConfigTemplate)
+				cmName = DefaultInferenceConfigTemplate
+				cmNS, err = utils.GetReleaseNamespace()
+				if err != nil {
+					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
+					return
+				}
+			}
+			if err := i.validateConfigMap(ctx, cmNS, cmName, instanceType); err != nil {
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
+			}
+		}()
 	}
 
 	return errs

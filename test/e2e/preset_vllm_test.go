@@ -190,19 +190,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 	It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		phi4AdapterName := "adapter-phi-3-mini-pycoder"
-		var phi4Adapter = []kaitov1beta1.AdapterSpec{
-			{
-				Source: &kaitov1beta1.DataSource{
-					Name:  phi4AdapterName,
-					Image: utils.GetEnv("E2E_ACR_REGISTRY") + "/" + phi4AdapterName + ":0.0.1",
-					ImagePullSecrets: []string{
-						utils.GetEnv("E2E_ACR_REGISTRY_SECRET"),
-					},
-				},
-				Strength: &DefaultStrength,
-			},
-		}
 		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, phi4Adapter)
 
 		defer cleanupResources(workspaceObj)

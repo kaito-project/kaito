@@ -28,7 +28,7 @@ var fullImageName1 = utils.GetEnv("E2E_ACR_REGISTRY") + "/" + imageName1 + ":0.0
 var imageName2 = "e2e-adapter2"
 var fullImageName2 = utils.GetEnv("E2E_ACR_REGISTRY") + "/" + imageName2 + ":0.0.1"
 
-var validAdapters1 = []kaitov1beta1.AdapterSpec{
+var testAdapters1 = []kaitov1beta1.AdapterSpec{
 	{
 		Source: &kaitov1beta1.DataSource{
 			Name:  imageName1,
@@ -41,7 +41,7 @@ var validAdapters1 = []kaitov1beta1.AdapterSpec{
 	},
 }
 
-var validAdapters2 = []kaitov1beta1.AdapterSpec{
+var testAdapters2 = []kaitov1beta1.AdapterSpec{
 	{
 		Source: &kaitov1beta1.DataSource{
 			Name:  imageName2,
@@ -54,21 +54,20 @@ var validAdapters2 = []kaitov1beta1.AdapterSpec{
 	},
 }
 
+var phi4AdapterName = "adapter-phi-3-mini-pycoder"
+var phi4Adapter = []kaitov1beta1.AdapterSpec{
+	{
+		Source: &kaitov1beta1.DataSource{
+			Name:  phi4AdapterName,
+			Image: utils.GetEnv("E2E_ACR_REGISTRY") + "/" + phi4AdapterName + ":0.0.1",
+			ImagePullSecrets: []string{
+				utils.GetEnv("E2E_ACR_REGISTRY_SECRET"),
+			},
+		},
+	},
+}
+
 var baseInitContainer = image.NewPullerContainer("", "")
-
-var expectedInitContainers1 = []corev1.Container{
-	{
-		Name:  baseInitContainer.Name + "-" + imageName1,
-		Image: baseInitContainer.Image,
-	},
-}
-
-var expectedInitContainers2 = []corev1.Container{
-	{
-		Name:  baseInitContainer.Name + "-" + imageName2,
-		Image: baseInitContainer.Image,
-	},
-}
 
 func validateInitContainers(workspaceObj *kaitov1beta1.Workspace, expectedInitContainers []corev1.Container) {
 	By("Checking the InitContainers", func() {
@@ -222,7 +221,7 @@ var _ = Describe("Workspace Preset", func() {
 
 	It("should create a falcon workspace with adapter, and update the workspace with another adapter", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		workspaceObj := createCustomWorkspaceWithAdapter(numOfNode, validAdapters1)
+		workspaceObj := createCustomWorkspaceWithAdapter(numOfNode, testAdapters1)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -240,11 +239,24 @@ var _ = Describe("Workspace Preset", func() {
 
 		validateRevision(workspaceObj, "1")
 
+		var expectedInitContainers1 = []corev1.Container{
+			{
+				Name:  baseInitContainer.Name + "-" + imageName1,
+				Image: baseInitContainer.Image,
+			},
+		}
+		var expectedInitContainers2 = []corev1.Container{
+			{
+				Name:  baseInitContainer.Name + "-" + imageName2,
+				Image: baseInitContainer.Image,
+			},
+		}
+
 		validateInitContainers(workspaceObj, expectedInitContainers1)
-		validateImagePullSecrets(workspaceObj, validAdapters1[0].Source.ImagePullSecrets)
+		validateImagePullSecrets(workspaceObj, testAdapters1[0].Source.ImagePullSecrets)
 		validateAdapterAdded(workspaceObj, workspaceObj.Name, imageName1)
 
-		workspaceObj = updateCustomWorkspaceWithAdapter(workspaceObj, validAdapters2)
+		workspaceObj = updateCustomWorkspaceWithAdapter(workspaceObj, testAdapters2)
 		validateResourceStatus(workspaceObj)
 
 		time.Sleep(30 * time.Second)
@@ -257,7 +269,7 @@ var _ = Describe("Workspace Preset", func() {
 
 		validateRevision(workspaceObj, "2")
 		validateInitContainers(workspaceObj, expectedInitContainers2)
-		validateImagePullSecrets(workspaceObj, validAdapters2[0].Source.ImagePullSecrets)
+		validateImagePullSecrets(workspaceObj, testAdapters2[0].Source.ImagePullSecrets)
 		validateAdapterAdded(workspaceObj, workspaceObj.Name, imageName2)
 	})
 })

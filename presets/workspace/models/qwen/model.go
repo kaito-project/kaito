@@ -9,7 +9,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
-	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 )
 
 func init() {
@@ -40,9 +39,6 @@ var (
 	}
 	qwenRunParamsVLLM = map[string]string{
 		"dtype": "float16",
-	}
-	qwenTuningRunParams = map[string]string{
-		"chat_template": "/workspace/chat_templates/deepseek-r1-distill-qwen-14b.jinja",
 	}
 )
 
@@ -86,9 +82,9 @@ func (*qwen2_5Coder7BInstruct) GetTuningParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "24Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:    baseCommandPresetQwenTuning,
-				TorchRunParams: tuning.DefaultAccelerateParams,
-				ModelRunParams: qwenTuningRunParams,
+				//TorchRunParams:            tuning.DefaultAccelerateParams,
+				//ModelRunParams:            qwenRunParams,
+				BaseCommand: baseCommandPresetQwenTuning,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -143,9 +139,7 @@ func (*qwen2_5Coder32BInstruct) GetTuningParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "70Gi",  // TODO: Revisit for more accurate metric
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:    baseCommandPresetQwenTuning,
-				TorchRunParams: tuning.DefaultAccelerateParams,
-				ModelRunParams: qwenTuningRunParams,
+				BaseCommand: baseCommandPresetQwenTuning,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

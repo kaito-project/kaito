@@ -9,7 +9,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
-	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 )
 
 func init() {
@@ -42,9 +41,6 @@ var (
 	mistralRunParamsVLLM = map[string]string{
 		"dtype":         "float16",
 		"chat-template": "/workspace/chat_templates/mistral-instruct.jinja",
-	}
-	mistralTuningRunParams = map[string]string{
-		"chat_template": "/workspace/chat_templates/mistral-instruct.jinja",
 	}
 )
 
@@ -88,9 +84,9 @@ func (*mistral7b) GetTuningParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				TorchRunParams: tuning.DefaultAccelerateParams,
-				ModelRunParams: mistralTuningRunParams,
-				BaseCommand:    baseCommandPresetMistralTuning,
+				//TorchRunParams:            tuning.DefaultAccelerateParams,
+				//ModelRunParams:            mistralRunParams,
+				BaseCommand: baseCommandPresetMistralTuning,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

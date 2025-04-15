@@ -102,7 +102,7 @@ func (*phi3Mini4KInst) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
 		PerGPUMemoryRequirement:   "72Gi",
-		ReadinessTimeout: time.Duration(30) * time.Minute,
+		ReadinessTimeout:          time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:    baseCommandPresetPhiTuning,
@@ -208,7 +208,7 @@ func (*phi3_5MiniInst) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
 		PerGPUMemoryRequirement:   "72Gi",
-		ReadinessTimeout: time.Duration(30) * time.Minute,
+		ReadinessTimeout:          time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:    baseCommandPresetPhiTuning,
@@ -261,7 +261,7 @@ func (*Phi3Medium4kInstruct) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "80Gi",
 		PerGPUMemoryRequirement:   "80Gi",
-		ReadinessTimeout: time.Duration(30) * time.Minute,
+		ReadinessTimeout:          time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:    baseCommandPresetPhiTuning,
@@ -314,7 +314,7 @@ func (*Phi3Medium128kInstruct) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "80Gi",
 		PerGPUMemoryRequirement:   "80Gi",
-		ReadinessTimeout: time.Duration(30) * time.Minute,
+		ReadinessTimeout:          time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:    baseCommandPresetPhiTuning,

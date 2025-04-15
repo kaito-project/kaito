@@ -7,9 +7,9 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/model/tuning"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 )
 
 func init() {

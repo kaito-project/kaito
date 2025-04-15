@@ -9,6 +9,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 )
 
 func init() {
@@ -59,6 +60,9 @@ var (
 	phiRunParamsVLLM = map[string]string{
 		"dtype": "float16",
 	}
+	phi3TuningRunParams = map[string]string{
+		"chat_template": "/workspace/chat_templates/phi-3.jinja",
+	}
 )
 
 var phi3MiniA phi3Mini4KInst
@@ -98,12 +102,12 @@ func (*phi3Mini4KInst) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
 		PerGPUMemoryRequirement:   "72Gi",
-		// TorchRunParams:            inference.DefaultAccelerateParams,
-		// ModelRunParams:            phiRunParams,
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
+				BaseCommand:    baseCommandPresetPhiTuning,
+				TorchRunParams: tuning.DefaultAccelerateParams,
+				ModelRunParams: phi3TuningRunParams,
 			},
 		},
 		Tag: PresetPhiTagMap["Phi3Mini4kInstruct"],
@@ -154,7 +158,9 @@ func (*phi3Mini128KInst) GetTuningParameters() *model.PresetParam {
 		ReadinessTimeout:          time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
+				BaseCommand:    baseCommandPresetPhiTuning,
+				TorchRunParams: tuning.DefaultAccelerateParams,
+				ModelRunParams: phi3TuningRunParams,
 			},
 		},
 		Tag: PresetPhiTagMap["Phi3Mini128kInstruct"],
@@ -202,12 +208,12 @@ func (*phi3_5MiniInst) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
 		PerGPUMemoryRequirement:   "72Gi",
-		// TorchRunParams:            inference.DefaultAccelerateParams,
-		// ModelRunParams:            phiRunParams,
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
+				BaseCommand:    baseCommandPresetPhiTuning,
+				TorchRunParams: tuning.DefaultAccelerateParams,
+				ModelRunParams: phi3TuningRunParams,
 			},
 		},
 		Tag: PresetPhiTagMap["Phi3_5MiniInstruct"],
@@ -255,12 +261,12 @@ func (*Phi3Medium4kInstruct) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "80Gi",
 		PerGPUMemoryRequirement:   "80Gi",
-		// TorchRunParams:            inference.DefaultAccelerateParams,
-		// ModelRunParams:            phiRunParams,
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
+				BaseCommand:    baseCommandPresetPhiTuning,
+				TorchRunParams: tuning.DefaultAccelerateParams,
+				ModelRunParams: phi3TuningRunParams,
 			},
 		},
 		Tag: PresetPhiTagMap["Phi3Medium4kInstruct"],
@@ -308,10 +314,12 @@ func (*Phi3Medium128kInstruct) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "80Gi",
 		PerGPUMemoryRequirement:   "80Gi",
-		ReadinessTimeout:          time.Duration(30) * time.Minute,
+		ReadinessTimeout: time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
+				BaseCommand:    baseCommandPresetPhiTuning,
+				TorchRunParams: tuning.DefaultAccelerateParams,
+				ModelRunParams: phi3TuningRunParams,
 			},
 		},
 		Tag: PresetPhiTagMap["Phi3Medium128kInstruct"],

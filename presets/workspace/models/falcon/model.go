@@ -55,6 +55,9 @@ var (
 		"dtype":         "float16",
 		"chat-template": "/workspace/chat_templates/falcon-instruct.jinja",
 	}
+	falconTuningRunParams = map[string]string{
+		"chat_template": "/workspace/chat_templates/falcon-instruct.jinja",
+	}
 )
 
 var falconA falcon7b
@@ -104,7 +107,7 @@ func (*falcon7b) GetTuningParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:    baseCommandPresetFalconTuning,
 				TorchRunParams: tuning.DefaultAccelerateParams,
-				//ModelRunPrams:             falconRunTuningParams, // TODO
+				ModelRunParams: falconTuningRunParams,
 			},
 		},
 		ReadinessTimeout:              time.Duration(30) * time.Minute,
@@ -207,7 +210,7 @@ func (*falcon40b) GetTuningParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:    baseCommandPresetFalconTuning,
 				TorchRunParams: tuning.DefaultAccelerateParams,
-				//ModelRunPrams:             falconRunTuningParams, // TODO
+				ModelRunParams: falconTuningRunParams,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

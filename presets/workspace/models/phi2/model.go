@@ -9,7 +9,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
-	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 )
 
 func init() {
@@ -34,9 +33,6 @@ var (
 	}
 	phiRunParamsVLLM = map[string]string{
 		"dtype": "float16",
-	}
-	phi2TuningRunParams = map[string]string{
-		"chat_template": "/workspace/chat_templates/phi-3.jinja",
 	}
 )
 
@@ -79,9 +75,9 @@ func (*phi2) GetTuningParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:    baseCommandPresetPhiTuning,
-				TorchRunParams: tuning.DefaultAccelerateParams,
-				ModelRunParams: phi2TuningRunParams,
+				// TorchRunParams:            inference.DefaultAccelerateParams,
+				// ModelRunParams:            phiRunParams,
+				BaseCommand: baseCommandPresetPhiTuning,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

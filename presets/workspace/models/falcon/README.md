@@ -22,7 +22,7 @@ When fine-tuning Falcon models, you must specify a chat template in your configu
 ```yaml
 ModelConfig:
   # other model parameters...
-  chat_template: "/workspace/chat_templates/falcon.yaml"
+  chat_template: "/workspace/chat_templates/falcon-instruct.jinja"
 ```
 
 You can see complete example configurations in the default templates:
@@ -43,4 +43,4 @@ spec:
     config: your-config-map-name  # Reference to your ConfigMap
 ```
 
-The falcon.yaml chat template ensures proper formatting of conversation data during fine-tuning.
+The falcon-instruct.jinja chat template ensures proper formatting of conversation data during fine-tuning.

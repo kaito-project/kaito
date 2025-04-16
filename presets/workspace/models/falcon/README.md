@@ -41,7 +41,6 @@ spec:
     preset:
       name: falcon-7b  # or falcon-7b-instruct, falcon-40b, etc.
     config: your-config-map-name  # Reference to your ConfigMap
-    # Other tuning parameters...
 ```
 
 The falcon.yaml chat template ensures proper formatting of conversation data during fine-tuning.

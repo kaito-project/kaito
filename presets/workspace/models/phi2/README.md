@@ -39,7 +39,6 @@ spec:
     preset:
       name: phi-2
     config: your-config-map-name  # Reference to your ConfigMap
-    # Other tuning parameters...
 ```
 
 The phi-3.yaml chat template is compatible with phi-2 models and ensures proper formatting of conversation data during fine-tuning.

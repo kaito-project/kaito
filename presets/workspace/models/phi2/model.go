@@ -29,8 +29,8 @@ var (
 	baseCommandPresetPhiInference = "accelerate launch"
 	baseCommandPresetPhiTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	phiRunParams                  = map[string]string{
-		"torch_dtype": "float16",
-		"pipeline":    "text-generation",
+		"torch_dtype":   "float16",
+		"pipeline":      "text-generation",
 		"chat_template": "/workspace/chat_templates/phi-4.jinja",
 	}
 	phiRunParamsVLLM = map[string]string{

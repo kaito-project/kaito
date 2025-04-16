@@ -20,7 +20,7 @@ When fine-tuning Phi-2 models, you must specify a chat template in your configur
 ```yaml
 ModelConfig:
   # other model parameters...
-  chat_template: "/workspace/chat_templates/phi-3.yaml"
+  chat_template: "/workspace/chat_templates/phi-3.jinja"
 ```
 
 You can see complete example configurations in the default templates:
@@ -41,4 +41,4 @@ spec:
     config: your-config-map-name  # Reference to your ConfigMap
 ```
 
-The phi-3.yaml chat template is compatible with phi-2 models and ensures proper formatting of conversation data during fine-tuning.
+The phi-3.jinja chat template is compatible with phi-2 models and ensures proper formatting of conversation data during fine-tuning.

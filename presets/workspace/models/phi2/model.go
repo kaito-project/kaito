@@ -31,12 +31,13 @@ var (
 	phiRunParams                  = map[string]string{
 		"torch_dtype": "float16",
 		"pipeline":    "text-generation",
+		"chat_template": "/workspace/chat_templates/phi-4.jinja",
 	}
 	phiRunParamsVLLM = map[string]string{
 		"dtype": "float16",
 	}
 	phi2TuningRunParams = map[string]string{
-		"chat_template": "/workspace/chat_templates/phi-3.jinja",
+		"chat_template": "/workspace/chat_templates/phi-4.jinja",
 	}
 )
 

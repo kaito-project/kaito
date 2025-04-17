@@ -763,6 +763,8 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Watches(&karpenterv1.NodeClaim{}, c.watchNodeClaims(), builder.WithPredicates(nodeclaim.NodeClaimPredicate)).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
+	go monitorWorkspaces(context.Background(), c.Client)
+
 	return builder.Complete(c)
 }
 

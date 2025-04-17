@@ -30,11 +30,11 @@ Based on the above understanding, we identify and address the following potentia
 
 Loading model parameters into GPU memory is a fundamental requirement for any LLM engine. Kaito records the required memory size for each supported model based on 16-bit floating-point precision, as documented in the model's HuggingFace documentation. The validation webhook checks if the specified GPU SKU has sufficient aggregated memory to meet these requirements. However, this check is skipped for SKUs not in Kaito's built-in SKU list.
 
-> **Note**: Kaito allows users to modify the default vLLM configuration through a custom ConfigMap, which may include model quantization options. In such cases, the webhook's resource check might be overly restrictive. Users can bypass this check by adding the annotation `kaito.sh/bypass-resource-checks: "true"` to the workspace custom resource when using quantized models on GPUs with limited memory.
+> **Note**: Kaito allows users to modify the default vLLM configuration through a custom ConfigMap, which may include model quantization options. In such cases, the webhook's resource check might be overly restrictive because the actual memory footprint will be smaller if 4 bits or 8 bits quantization is enabled. Users can bypass this check by adding the annotation `kaito.sh/bypass-resource-checks: "true"` to the workspace custom resource when using quantized models on GPUs with limited memory.
 
 ### Scenario 2: Insufficient Memory for Other Operations
 
-Setting a high `gpu-memory-utilization` value maximizes GPU memory utilization but can lead to OOM errors during operations like model activation if insufficient memory remains. Since different GPU SKUs have different GPU memory sizes, using a fixed percentage threshold for `gpu-memory-utilization` is suboptimal. Kaito dynamically adjusts the `gpu-memory-utilization` based on the GPU SKU's memory size, ensuring a fixed 1.5GB is reserved for ephemeral memory usage.
+Setting a high `gpu-memory-utilization` value maximizes GPU memory utilization but can lead to OOM errors during operations like model activation if insufficient memory remains. Since different GPU SKUs have different GPU memory sizes, using a fixed percentage threshold for `gpu-memory-utilization` is suboptimal. Kaito dynamically adjusts the `gpu-memory-utilization` based on the GPU SKU's memory size, ensuring a smaller threshold for GPU SKUs with less than 20GB memory and a larger threshold (capped at 95%) for GPU SKUs with larger memory.
 
 ### Scenario 3: KV Cache Size Insufficient for `max-model-len`
 

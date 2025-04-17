@@ -30,7 +30,7 @@ Based on the above understanding, we identify and address the following potentia
 
 Loading model parameters into GPU memory is a fundamental requirement for any LLM engine. Kaito records the required memory size for each supported model based on 16-bit floating-point precision, as documented in the model's HuggingFace documentation. The validation webhook checks if the specified GPU SKU has sufficient aggregated memory to meet these requirements. However, this check is skipped for SKUs not in Kaito's built-in SKU list.
 
-> **Note**: Kaito allows users to modify the default vLLM configuration through a custom ConfigMap, which may include model quantization options. In such cases, the webhook's resource check might be overly restrictive because the actual memory footprint will be smaller if 4 bits or 8 bits quantization is enabled. Users can bypass this check by adding the annotation `kaito.sh/bypass-resource-checks: "true"` to the workspace custom resource when using quantized models on GPUs with limited memory.
+> **Note**: Kaito allows users to modify the default vLLM configuration through a custom ConfigMap, which may include model quantization options. In such cases, the webhook's resource check might be overly restrictive because the actual memory footprint will be smaller if 4-bit or 8-bit quantization is enabled. Users can bypass this check by adding the annotation `kaito.sh/bypass-resource-checks: "true"` to the workspace custom resource when using quantized models on GPUs with limited memory.
 
 ### Scenario 2: Insufficient Memory for Other Operations
 

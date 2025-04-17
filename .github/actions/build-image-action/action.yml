@@ -6,7 +6,7 @@ inputs:
   weights_dir:
     description: "The directory for weights"
     required: true
-  branch_name: 
+  branch_name:
     description: "Branch name"
     required: true
   image_name:
@@ -44,6 +44,9 @@ inputs:
     required: true
   runs_on:
     description: "The runner to use"
+    required: true
+  build_target:
+    description: "The docker build target"
     required: true
 
 runs:
@@ -88,7 +91,7 @@ runs:
           echo "Creating directory for etcd storage"
           sudo mkdir -p /mnt/storage/etcd
           echo "Creating Kind cluster"
-          
+
           if [[ "${{ inputs.runs_on }}" == "hostname:model-server" ]]; then
             # Ensure clean etcd directory for mounting
             sudo rm -rf /datadrive/etcd/*
@@ -149,6 +152,7 @@ runs:
         WEIGHTS_DIR=${{ inputs.weights_dir }} \
         HF_USERNAME=${{ inputs.hf_username }} \
         HF_TOKEN=${{ inputs.hf_token }} \
+        BUILD_TARGET=${{ inputs.build_target }} \
         python3 .github/workflows/kind-cluster/main.py
       shell: bash
 

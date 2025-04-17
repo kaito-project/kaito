@@ -1,4 +1,11 @@
 models:
+  # base image with no model weights
+  - name: base
+    type: text-generation
+    runtime: tfs
+    tag: 0.0.1
+    build_target: base
+
   # Llama
   - name: llama-2-7b
     type: llama2-completion
@@ -75,7 +82,7 @@ models:
 
   # Mistral
   - name: mistral-7b
-    type: text-generation 
+    type: text-generation
     version: https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff
     runtime: tfs
     tag: 0.1.0
@@ -98,7 +105,7 @@ models:
 
   # Phi-2
   - name: phi-2
-    type: text-generation 
+    type: text-generation
     version: https://huggingface.co/microsoft/phi-2/commit/ef382358ec9e382308935a992d908de099b64c23
     runtime: tfs
     tag: 0.1.0
@@ -111,15 +118,15 @@ models:
     # 0.0.3 - Adjust default model params (#310)
     # 0.0.2 - Update Default Params (#294)
     # 0.0.1 - Initial Release
-  
+
   # Phi-3
   - name: phi-3-mini-4k-instruct
-    type: text-generation 
+    type: text-generation
     version: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/commit/0a67737cc96d2554230f90338b163bc6380a2a85
     runtime: tfs
     tag: 0.1.0
   - name: phi-3-mini-128k-instruct
-    type: text-generation 
+    type: text-generation
     version: https://huggingface.co/microsoft/Phi-3-mini-128k-instruct/commit/072cb7562cb8c4adf682a8e186aaafa49469eb5d
     runtime: tfs
     tag: 0.1.0

@@ -49,7 +49,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-      
+
       - name: Set FORCE_RUN_ALL Flag
         id: set_force_run_all
         run: |
@@ -64,11 +64,11 @@ jobs:
           FORCE_RUN_ALL=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL }} \
           FORCE_RUN_ALL_PUBLIC=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL_PUBLIC }} \
           python3 .github/workflows/kind-cluster/determine_models.py
-            
+
       - name: Print Determined Models
         run: |
           echo "Output from affected_models: ${{ steps.affected_models.outputs.matrix }}"
-      
+
       - name: Check if Matrix is Empty
         id: check_matrix_empty
         run: |
@@ -77,7 +77,7 @@ jobs:
           else
             echo "is_empty=false" >> $GITHUB_OUTPUT
           fi
-  
+
   build-models:
     needs: determine-models
     if: needs.determine-models.outputs.is_matrix_empty == 'false'
@@ -94,7 +94,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-      
+
       - name: Install Azure CLI latest
         run: |
               if ! which az > /dev/null; then
@@ -103,17 +103,17 @@ jobs:
               else
                   echo "Azure CLI already installed."
               fi
-    
+
       - name: 'Az CLI login'
         uses: azure/login@v2.3.0
         with:
             client-id: ${{ secrets.AZURE_CLIENT_ID }}
             tenant-id: ${{ secrets.AZURE_TENANT_ID }}
             allow-no-subscriptions: true
-        
+
       - name: 'Set subscription'
         run: az account set --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}}
-      
+
       - name: Call Reusable Workflow - Build Image
         uses: ./.github/actions/build-image-action
         with:
@@ -131,3 +131,4 @@ jobs:
           hf_username: ${{ secrets.HF_USERNAME }}
           hf_token: ${{ secrets.HF_TOKEN }}
           runs_on: "hostname:model-server"
+          build_target: ${{ matrix.model.build_target }}

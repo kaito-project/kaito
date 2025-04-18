@@ -149,7 +149,6 @@ runs:
         WEIGHTS_DIR=${{ inputs.weights_dir }} \
         HF_USERNAME=${{ inputs.hf_username }} \
         HF_TOKEN=${{ inputs.hf_token }} \
-        BUILD_TARGET=${{ inputs.build_target }} \
         python3 .github/workflows/kind-cluster/main.py
       shell: bash
 

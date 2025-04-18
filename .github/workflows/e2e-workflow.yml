@@ -63,6 +63,7 @@ jobs:
           isRelease: ${{ inputs.isRelease }}
           region: ${{ inputs.region }}
           k8s_version: ${{ inputs.k8s_version }}
+          registry: ${{ inputs.registry }}
 
       - name: Set Registry
         if: ${{ inputs.isRelease }}

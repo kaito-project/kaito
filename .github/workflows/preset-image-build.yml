@@ -131,4 +131,3 @@ jobs:
           hf_username: ${{ secrets.HF_USERNAME }}
           hf_token: ${{ secrets.HF_TOKEN }}
           runs_on: "hostname:model-server"
-          build_target: ${{ matrix.model.build_target }}

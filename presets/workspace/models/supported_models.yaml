@@ -4,7 +4,6 @@ models:
     type: text-generation
     runtime: tfs
     tag: 0.0.1
-    build_target: base
 
   # Llama
   - name: llama-2-7b

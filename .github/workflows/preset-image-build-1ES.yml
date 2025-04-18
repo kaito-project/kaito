@@ -235,5 +235,3 @@ jobs:
           hf_username: ${{ secrets.HF_USERNAME }}
           hf_token: ${{ secrets.HF_TOKEN }}
           runs_on: "1ES.Pool=1es-aks-kaito-image-build-agent-pool-ubuntu"
-          build_target: ${{ matrix.model.build_target }}
-

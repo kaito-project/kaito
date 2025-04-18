@@ -45,9 +45,6 @@ inputs:
   runs_on:
     description: "The runner to use"
     required: true
-  build_target:
-    description: "The docker build target"
-    required: true
 
 runs:
   using: "composite"

@@ -120,9 +120,11 @@ def main():
     model_tag = os.environ.get("MODEL_TAG", None)
     hf_username = os.environ.get("HF_USERNAME", None)
     hf_token = os.environ.get("HF_TOKEN", None)
-    build_target = os.environ.get("BUILD_TARGET", "model")
 
-    if model_version and build_target == "model":
+    # No need to pull model weights if we are building the "base" image.
+    # it is for preset models that require downloading the model weights
+    # from HuggingFace at runtime.
+    if model_version and model_name != "base":
         model_url, model_commit = get_model_git_info(model_version, hf_username, hf_token)
         download_new_model(model_name, model_url)
         update_model(model_name, model_commit)
@@ -193,7 +195,7 @@ def populate_job_template(image_name, model_name, model_type, model_runtime, mod
             "{{MODEL_TYPE}}": model_type,
             "{{DOCKERFILE_PATH}}": get_dockerfile_path(model_runtime),
             "{{VERSION}}": model_tag,
-            "{{MODEL_NAME}}": model_name,
+            "{{BUILD_TARGET}}": model_name if model_name == "base" else "model",
         }
 
         for key, value in replacements.items():

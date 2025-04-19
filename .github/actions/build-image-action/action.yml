@@ -6,7 +6,7 @@ inputs:
   weights_dir:
     description: "The directory for weights"
     required: true
-  branch_name: 
+  branch_name:
     description: "Branch name"
     required: true
   image_name:
@@ -88,7 +88,7 @@ runs:
           echo "Creating directory for etcd storage"
           sudo mkdir -p /mnt/storage/etcd
           echo "Creating Kind cluster"
-          
+
           if [[ "${{ inputs.runs_on }}" == "hostname:model-server" ]]; then
             # Ensure clean etcd directory for mounting
             sudo rm -rf /datadrive/etcd/*

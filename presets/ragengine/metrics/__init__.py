@@ -2,5 +2,5 @@
 # Licensed under the MIT license.
 
 """
-Embedding models package.
-"""
+Metrics collection package.
+""" 

@@ -2,18 +2,31 @@
 # Licensed under the MIT license.
 
 from typing import List, Optional
-from vector_store_manager.manager import VectorStoreManager
-from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
-from embedding.remote_embedding import RemoteEmbeddingModel
+from ragengine.vector_store_manager.manager import VectorStoreManager
+from ragengine.embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
+from ragengine.embedding.remote_embedding import RemoteEmbeddingModel
 from fastapi import FastAPI, HTTPException, Query
-from models import (IndexRequest, ListDocumentsResponse,
+from ragengine.models import (IndexRequest, ListDocumentsResponse,
                     QueryRequest, QueryResponse, DocumentResponse, HealthStatus)
-from vector_store.faiss_store import FaissVectorStoreHandler
+from ragengine.vector_store.faiss_store import FaissVectorStoreHandler
 
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
                               EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID, DEFAULT_VECTOR_DB_PERSIST_DIR)
 from urllib.parse import unquote
 import os
+# Import Prometheus client for metrics collection
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+import time
+from starlette.responses import Response
+from ragengine.metrics.prometheus_metrics import (
+    rag_search_latency, rag_search_failure, rag_search_success,
+    rag_query_latency, rag_query_failure, rag_query_success,
+    rag_index_latency, rag_index_failure, rag_index_success,
+    rag_indexes_latency, rag_indexes_failure, rag_indexes_success,
+    rag_indexes_document_latency, rag_indexes_document_failure, rag_indexes_document_success,
+    rag_persist_latency, rag_persist_failure, rag_persist_success,
+    rag_load_latency, rag_load_failure, rag_load_success
+)
 
 app = FastAPI()
 
@@ -31,6 +44,18 @@ vector_store_handler = FaissVectorStoreHandler(embedding_manager)
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
+
+@app.get("/metrics", tags=["Monitoring"])
+async def metrics():
+    """
+    Expose Prometheus metrics.
+    Returns metrics data in Prometheus exposition format.
+    """
+    try:
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get(
     "/health",
@@ -93,14 +118,24 @@ def health_check():
     """,
 )
 async def index_documents(request: IndexRequest):
+    # Use a context manager for measuring the time
+    start_time = time.time()
     try:
         doc_ids = await rag_ops.index(request.index_name, request.documents)
         documents = [
             DocumentResponse(doc_id=doc_id, text=doc.text, metadata=doc.metadata)
             for doc_id, doc in zip(doc_ids, request.documents)
         ]
+        # Record successful request
+        rag_index_success.inc()
+        # Record latency
+        rag_index_latency.observe(time.time() - start_time)
         return documents
     except Exception as e:
+        # Record failed request
+        rag_index_failure.inc()
+        # Record latency even for failures
+        rag_index_latency.observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post(
@@ -144,18 +179,48 @@ async def index_documents(request: IndexRequest):
     """,
 )
 async def query_index(request: QueryRequest):
+    start_time = time.time()
     try:
         llm_params = request.llm_params or {}  # Default to empty dict if no params provided
         rerank_params = request.rerank_params or {}  # Default to empty dict if no params provided
-        return await rag_ops.query(
+        
+        # Measure the search time
+        search_start_time = time.time()
+        result = await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params
         )
+        search_time = time.time() - search_start_time
+        
+        # Record metrics
+        rag_search_latency.observe(search_time)
+        rag_search_success.inc()
+        
+        # Record API metrics
+        rag_query_success.inc()
+        rag_query_latency.observe(time.time() - start_time)
+        
+        return result
     except HTTPException as http_exc:
+        # Record search failure if applicable
+        rag_search_failure.inc()
+        # Record API failure
+        rag_query_failure.inc()
+        rag_query_latency.observe(time.time() - start_time)
         # Preserve HTTP exceptions like 422 from reranker
         raise http_exc
     except ValueError as ve:
+        # Record search failure if applicable
+        rag_search_failure.inc()
+        # Record API failure
+        rag_query_failure.inc()
+        rag_query_latency.observe(time.time() - start_time)
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:
+        # Record search failure if applicable
+        rag_search_failure.inc()
+        # Record API failure
+        rag_query_failure.inc()
+        rag_query_latency.observe(time.time() - start_time)
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )
@@ -177,9 +242,19 @@ async def query_index(request: QueryRequest):
     """,
 )
 def list_indexes():
+    start_time = time.time()
     try:
-        return rag_ops.list_indexes()
+        result = rag_ops.list_indexes()
+        # Record successful request
+        rag_indexes_success.inc()
+        # Record latency
+        rag_indexes_latency.observe(time.time() - start_time)
+        return result
     except Exception as e:
+        # Record failed request
+        rag_indexes_failure.inc()
+        # Record latency even for failures
+        rag_indexes_latency.observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get(
@@ -236,6 +311,7 @@ async def list_documents_in_index(
     my index          | my%20index        | my index
     index/name        | index%2Fname      | index/name
     """
+    start_time = time.time()
     try:
         # Decode the index_name in case it was URL-encoded by the client
         decoded_index_name = unquote(index_name)
@@ -246,11 +322,22 @@ async def list_documents_in_index(
             max_text_length=max_text_length
         )
 
-        return ListDocumentsResponse(
+        result = ListDocumentsResponse(
             documents=documents,
             count=len(documents)
         )
+        
+        # Record successful request
+        rag_indexes_document_success.inc()
+        # Record latency
+        rag_indexes_document_latency.observe(time.time() - start_time)
+        
+        return result
     except Exception as e:
+        # Record failed request
+        rag_indexes_document_failure.inc()
+        # Record latency even for failures
+        rag_indexes_document_latency.observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post(
@@ -279,12 +366,24 @@ async def persist_index(
         path: str = Query(DEFAULT_VECTOR_DB_PERSIST_DIR, description="Path where the index will be persisted")
 ):  # TODO: Provide endpoint for loading existing index(es)
     # TODO: Extend support for other vector databases/integrations besides FAISS
+    start_time = time.time()
     try:
         # Append index to save path to prevent saving conflicts/overwriting
         path = os.path.join(path, index_name) if path == DEFAULT_VECTOR_DB_PERSIST_DIR else path
         await rag_ops.persist(index_name, path)
+        
+        # Record successful request
+        rag_persist_success.inc()
+        # Record latency
+        rag_persist_latency.observe(time.time() - start_time)
+        
         return {"message": f"Successfully persisted index {index_name} to {path}."}
     except Exception as e:
+        # Record failed request
+        rag_persist_failure.inc()
+        # Record latency even for failures
+        rag_persist_latency.observe(time.time() - start_time)
+        
         raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")
 
 @app.post(
@@ -316,10 +415,23 @@ async def load_index(
     # If no path is provided, use the default directory joined with index_name.
     if path is None:
         path = os.path.join(DEFAULT_VECTOR_DB_PERSIST_DIR, index_name)
+    
+    start_time = time.time()
     try:
         await rag_ops.load(index_name, path, overwrite)
+        
+        # Record successful request
+        rag_load_success.inc()
+        # Record latency
+        rag_load_latency.observe(time.time() - start_time)
+        
         return {"message": f"Successfully loaded index {index_name} from {path}."}
     except Exception as e:
+        # Record failed request
+        rag_load_failure.inc()
+        # Record latency even for failures
+        rag_load_latency.observe(time.time() - start_time)
+        
         raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
 @app.on_event("shutdown")

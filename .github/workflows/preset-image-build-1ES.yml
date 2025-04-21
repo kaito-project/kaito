@@ -23,11 +23,11 @@ on:
         type: boolean
         default: false
         description: "Run all models for build"
-      force-run-all-public: 
+      force-run-all-public:
         type: boolean
         default: false
         description: "Run all public models for build"
-      force-run-all-phi: 
+      force-run-all-phi:
         type: boolean
         default: false
         description: "Run all Phi models for build"
@@ -54,7 +54,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-      
+
       - name: Set FORCE_RUN_ALL Flag
         id: set_force_run_all
         run: |
@@ -75,7 +75,7 @@ jobs:
       - name: Print Determined Models
         run: |
           echo "Output from affected_models: ${{ steps.affected_models.outputs.matrix }}"
-      
+
       - name: Check if Matrix is Empty
         id: check_matrix_empty
         run: |
@@ -84,7 +84,7 @@ jobs:
           else
             echo "is_empty=false" >> $GITHUB_OUTPUT
           fi
-  
+
   build-models:
     needs: determine-models
     if: needs.determine-models.outputs.is_matrix_empty == 'false'
@@ -110,7 +110,7 @@ jobs:
           else
               echo "Azure CLI already installed."
           fi
-  
+
       - name: Ensure Docker is Installed
         run: |
           # Add Docker's official GPG key:
@@ -119,7 +119,7 @@ jobs:
           sudo install -m 0755 -d /etc/apt/keyrings
           sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
           sudo chmod a+r /etc/apt/keyrings/docker.asc
-          
+
           # Add the repository to Apt sources:
           echo \
             "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
@@ -127,17 +127,17 @@ jobs:
             sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
           sudo apt-get update
           sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-          
+
           # User Permissions
           sudo usermod -aG docker $(whoami)
           sudo systemctl restart docker
           sudo chmod 666 /var/run/docker.sock
-    
+
       - name: Test Docker Access
         run: |
           ls -l /var/run/docker.sock
           docker run hello-world
-      
+
       - name: List All Disks
         run: |
           lsblk
@@ -196,7 +196,7 @@ jobs:
           fi
           echo '{"data-root":"/mnt/storage/docker"}' | sudo tee /etc/docker/daemon.json
           sudo systemctl start docker
-  
+
       - name: Verify Docker Configuration
         run: |
           docker info | grep "Docker Root Dir"
@@ -205,7 +205,7 @@ jobs:
         run : |
           sudo chown -R $(whoami) /mnt/storage
           sudo chmod -R 775 /mnt/storage
-          
+
           sudo apt-get update
           sudo apt-get install acl -y
 

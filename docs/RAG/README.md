@@ -32,7 +32,7 @@ inferenceService:
 Users also need to specify the GPU SKU used for inference in the `compute` spec. For example,
 
 ```yaml
-apiVersion: kaito.sh/v1beta1
+apiVersion: kaito.sh/v1alpha1
 kind: RAGEngine
 metadata:
   name: ragengine-start

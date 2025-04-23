@@ -1,4 +1,4 @@
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-qwen-2-5-coder-7b-instruct

@@ -65,7 +65,7 @@ Once the Kaito and Karpenter controllers are installed, you can follow these com
 ```bash
 $ export kaito_workspace_aws="../../examples/inference/kaito_workspace_falcon_7b_aws.yaml"
 $ cat $kaito_workspace_aws
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: aws-workspace

@@ -46,7 +46,7 @@ After installing Kaito, one can try following commands to start a phi-3.5-mini-i
 
 ```sh
 $ cat examples/inference/kaito_workspace_phi_3.5-instruct.yaml
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-phi-3-5-mini

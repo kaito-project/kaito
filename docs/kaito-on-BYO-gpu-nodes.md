@@ -194,7 +194,7 @@ To deploy a workspace with a GPU model, run the following command:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-falcon-7b

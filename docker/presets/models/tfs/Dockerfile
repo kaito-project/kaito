@@ -11,8 +11,7 @@ COPY kaito/presets/workspace/dependencies/requirements.txt /workspace/requiremen
 RUN pip install --no-cache-dir -r /workspace/requirements.txt
 
 # Required for torch.compile
-RUN apt-get update -y && apt-get install gcc -y && \
-    apt-get install -y perl && apt-get upgrade -y perl && \
+RUN apt-get update -y && apt-get install gcc perl -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 1. Huggingface transformers

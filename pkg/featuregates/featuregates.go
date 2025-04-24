@@ -18,6 +18,7 @@ var (
 		consts.FeatureFlagVLLM:            true,
 		consts.FeatureFlagEnsureNodeClass: false,
 		//	Add more feature gates here
+		consts.FeatureFlagLWS: true,
 	}
 )
 

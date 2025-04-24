@@ -15,6 +15,13 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -35,13 +42,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
-
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	lwsv1 "sigs.k8s.io/lws/api/leaderworkerset/v1"
 )
 
 const (
@@ -124,14 +125,7 @@ func (c *RAGEngineReconciler) addRAGEngine(ctx context.Context, ragEngineObj *ka
 		}
 		return reconcile.Result{}, err
 	}
-	if err := c.ensureService(ctx, ragEngineObj); err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
-			"ragEngineFailed", err.Error()); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update ragEngine status", "ragEngine", klog.KObj(ragEngineObj))
-			return reconcile.Result{}, updateErr
-		}
-		return reconcile.Result{}, err
-	}
+
 	if err = c.applyRAG(ctx, ragEngineObj); err != nil {
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
 			"ragengineFailed", err.Error()); updateErr != nil {
@@ -186,28 +180,55 @@ func (c *RAGEngineReconciler) applyRAG(ctx context.Context, ragEngineObj *kaitov
 	var err error
 	func() {
 
-		deployment := &appsv1.Deployment{}
 		revisionStr := ragEngineObj.Annotations[kaitov1alpha1.RAGEngineRevisionAnnotation]
-
-		if err = resources.GetResource(ctx, ragEngineObj.Name, ragEngineObj.Namespace, c.Client, deployment); err == nil {
-			klog.InfoS("An inference workload already exists for ragengine", "ragengine", klog.KObj(ragEngineObj))
-			if deployment.Annotations[kaitov1alpha1.RAGEngineRevisionAnnotation] != revisionStr {
-
-				envs := manifests.RAGSetEnv(ragEngineObj)
-
-				spec := &deployment.Spec
-				// Currently, all CRD changes are only passed through environment variables (env)
-				spec.Template.Spec.Containers[0].Env = envs
-				deployment.Annotations[kaitov1alpha1.RAGEngineRevisionAnnotation] = revisionStr
-
-				if err := c.Update(ctx, deployment); err != nil {
+		var err error
+		if featuregates.FeatureGates[consts.FeatureFlagLWS] {
+			lws := &lwsv1.LeaderWorkerSet{}
+			if err = resources.GetResource(ctx, ragEngineObj.Name, ragEngineObj.Namespace, c.Client, lws); err == nil {
+				klog.InfoS("An inference workload already exists for ragengine", "ragengine", klog.KObj(ragEngineObj))
+				if lws.Annotations[kaitov1alpha1.RAGEngineRevisionAnnotation] != revisionStr {
+					envs := manifests.RAGSetEnv(ragEngineObj)
+					lws.Spec.LeaderWorkerTemplate.LeaderTemplate.Spec.Containers[0].Env = envs
+					// Currently, all CRD changes are only passed through environment variables (env)
+					lws.Annotations[kaitov1alpha1.RAGEngineRevisionAnnotation] = revisionStr
+					if err := c.Update(ctx, lws); err != nil {
+						return
+					}
+					if err = resources.CheckResourceStatus(lws, c.Client, time.Duration(10)*time.Minute); err != nil {
+						return
+					}
+				}
+			}
+		} else {
+			if err := c.ensureService(ctx, ragEngineObj); err != nil {
+				if err := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
+					"ragEngineFailed", err.Error()); err != nil {
+					klog.ErrorS(err, "failed to update ragEngine status", "ragEngine", klog.KObj(ragEngineObj))
 					return
 				}
 			}
-			if err = resources.CheckResourceStatus(deployment, c.Client, time.Duration(10)*time.Minute); err != nil {
-				return
+			deployment := &appsv1.Deployment{}
+			if err = resources.GetResource(ctx, ragEngineObj.Name, ragEngineObj.Namespace, c.Client, deployment); err == nil {
+				klog.InfoS("An inference workload already exists for ragengine", "ragengine", klog.KObj(ragEngineObj))
+				if deployment.Annotations[kaitov1alpha1.RAGEngineRevisionAnnotation] != revisionStr {
+
+					envs := manifests.RAGSetEnv(ragEngineObj)
+
+					spec := &deployment.Spec
+					// Currently, all CRD changes are only passed through environment variables (env)
+					spec.Template.Spec.Containers[0].Env = envs
+					deployment.Annotations[kaitov1alpha1.RAGEngineRevisionAnnotation] = revisionStr
+
+					if err := c.Update(ctx, deployment); err != nil {
+						return
+					}
+				}
+				if err = resources.CheckResourceStatus(deployment, c.Client, time.Duration(10)*time.Minute); err != nil {
+					return
+				}
 			}
-		} else if apierrors.IsNotFound(err) {
+		}
+		if err != nil && apierrors.IsNotFound(err) {
 			var workloadObj client.Object
 			// Need to create a new workload
 			workloadObj, err = CreatePresetRAG(ctx, ragEngineObj, revisionStr, c.Client)
@@ -218,7 +239,6 @@ func (c *RAGEngineReconciler) applyRAG(ctx context.Context, ragEngineObj *kaitov
 				return
 			}
 		}
-
 	}()
 
 	if err != nil {
@@ -565,7 +585,9 @@ func (c *RAGEngineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.Deployment{}).
 		Watches(&karpenterv1.NodeClaim{}, c.watchNodeClaims(), builder.WithPredicates(nodeclaim.NodeClaimPredicate)). // watches for nodeClaim with labels indicating ragengine name.
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
-
+	if enabled, ok := featuregates.FeatureGates[consts.FeatureFlagLWS]; ok && enabled {
+		builder.Owns(&lwsv1.LeaderWorkerSet{})
+	}
 	return builder.Complete(c)
 }
 

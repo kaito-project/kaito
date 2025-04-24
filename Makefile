@@ -421,6 +421,17 @@ aws-karpenter-helm:
 
 	kubectl wait --for=condition=available deploy "karpenter" -n ${KARPENTER_NAMESPACE} --timeout=300s
 
+## --------------------------------------
+## LeaderWorkerSet installation
+## --------------------------------------
+.PHONY: lws-install
+LWS_VERSION=v0.6.1
+lws-install: ## Install LeaderWorkerSet
+	helm upgrade --install lws https://github.com/kubernetes-sigs/lws/releases/download/${LWS_VERSION}/lws-chart-${LWS_VERSION}.tgz \
+  	--namespace lws-system \
+  	--create-namespace \
+  	--wait --timeout 300s
+
 ##@ Build
 .PHONY: build-workspace
 build-workspace: manifests generate fmt vet ## Build manager binary.

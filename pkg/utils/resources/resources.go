@@ -11,9 +11,11 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	lwsv1 "sigs.k8s.io/lws/api/leaderworkerset/v1"
 
 	"github.com/kaito-project/kaito/pkg/utils"
 )
@@ -28,21 +30,30 @@ func CreateResource(ctx context.Context, resource client.Object, kubeClient clie
 		klog.InfoS("CreateService", "service", klog.KObj(r))
 	case *corev1.ConfigMap:
 		klog.InfoS("CreateConfigMap", "configmap", klog.KObj(r))
+	case *lwsv1.LeaderWorkerSet:
+		klog.InfoS("CreateLeaderWorkerSet", "leaderworkerset", klog.KObj(r))
 	}
 
 	// Create the resource.
 	return retry.OnError(retry.DefaultBackoff, func(err error) bool {
 		return true
 	}, func() error {
-		return kubeClient.Create(ctx, resource, &client.CreateOptions{})
+		err := kubeClient.Create(ctx, resource, &client.CreateOptions{})
+		klog.ErrorS(err, "resource", resource)
+		return err
 	})
 }
 
 func GetResource(ctx context.Context, name, namespace string, kubeClient client.Client, resource client.Object) error {
 	err := retry.OnError(retry.DefaultBackoff, func(err error) bool {
+		if apierrors.IsNotFound(err) {
+			return false
+		}
 		return true
 	}, func() error {
-		return kubeClient.Get(ctx, client.ObjectKey{Name: name, Namespace: namespace}, resource, &client.GetOptions{})
+		err := kubeClient.Get(ctx, client.ObjectKey{Name: name, Namespace: namespace}, resource, &client.GetOptions{})
+		klog.ErrorS(err, "resource", resource, "namespace", namespace, "name", name)
+		return err
 	})
 
 	return err
@@ -97,6 +108,11 @@ func CheckResourceStatus(obj client.Object, kubeClient client.Client, timeoutDur
 				}
 				if k8sResource.Status.Succeeded > 0 || (k8sResource.Status.Ready != nil && *k8sResource.Status.Ready > 0) {
 					klog.InfoS("job status is active/succeeded", "name", k8sResource.Name)
+					return nil
+				}
+			case *lwsv1.LeaderWorkerSet:
+				if k8sResource.Status.ReadyReplicas == *k8sResource.Spec.Replicas {
+					klog.InfoS("leaderworker status is ready", "leaderworker", k8sResource.Name)
 					return nil
 				}
 			default:

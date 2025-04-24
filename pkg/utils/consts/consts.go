@@ -23,6 +23,7 @@ const (
 	// Feature flags
 	FeatureFlagVLLM            = "vLLM"
 	FeatureFlagEnsureNodeClass = "ensureNodeClass"
+	FeatureFlagLWS             = "enableLeaderWorkerset"
 
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"

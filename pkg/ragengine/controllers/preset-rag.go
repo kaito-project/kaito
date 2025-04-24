@@ -11,6 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -107,9 +108,14 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 	image := "aimodelsregistrytest.azurecr.io/kaito-rag-service:0.3.2" //TODO: Change to the mcr image when release
 
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
-
-	depObj := manifests.GenerateRAGDeploymentManifest(ctx, ragEngineObj, revisionNum, image, imagePullSecretRefs, *ragEngineObj.Spec.Compute.Count, commands,
-		containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts)
+	var depObj client.Object
+	if featuregates.FeatureGates[consts.FeatureFlagLWS] {
+		depObj = manifests.GenerateRAGLWSManifest(ctx, ragEngineObj, revisionNum, image, imagePullSecretRefs, *ragEngineObj.Spec.Compute.Count, commands,
+			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts)
+	} else {
+		depObj = manifests.GenerateRAGDeploymentManifest(ctx, ragEngineObj, revisionNum, image, imagePullSecretRefs, *ragEngineObj.Spec.Compute.Count, commands,
+			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts)
+	}
 
 	err := resources.CreateResource(ctx, depObj, kubeClient)
 	if client.IgnoreAlreadyExists(err) != nil {

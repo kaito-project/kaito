@@ -3,17 +3,30 @@
 package plugin
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 // Registration is a struct that holds the name and an instance of a struct
 // that implements the model.Model interface. It is used to register and manage
 // different model instances within the Kaito framework.
 type Registration struct {
-	Name     string
+	// Name is the name of the model. It is used as a key to register and
+	// retrieve the model metadata and instance.
+	Name string
+
+	// Metadata contains the metadata information about the model. It is used to
+	// provide additional information about the model, such as its model type,
+	// which HuggingFace model it is based on, and other relevant details. If empty
+	// during registration, it will be automatically populated from presets/workspace/models/supported_models.yaml.
 	Metadata *model.Metadata
+
+	// Instance is the actual model instance that implements the model.Model
+	// interface. It is used to retrieve the model's compute/storage requirements
+	// and runtime parameters.
 	Instance model.Model
 }
 
@@ -34,30 +47,16 @@ func (reg *ModelRegister) Register(r *Registration) {
 	if reg.models == nil {
 		reg.models = make(map[string]*Registration)
 	}
-	if r.Metadata != nil {
-		reg.registerMetadata(r)
-	}
-	if r.Instance != nil {
-		reg.registerInstance(r)
-	}
-}
 
-// registerMetadata allows model metadata to be added
-func (reg *ModelRegister) registerMetadata(r *Registration) {
-	if existing, ok := reg.models[r.Name]; !ok {
-		reg.models[r.Name] = r
-	} else {
-		existing.Metadata = r.Metadata
+	if r.Metadata == nil {
+		var ok bool
+		r.Metadata, ok = models.SupportedModels[r.Name]
+		if !ok {
+			panic(fmt.Sprintf("model '%s' cannot be found in supported_models.yaml", r.Name))
+		}
 	}
-}
 
-// registerInstance allows model instance to be added
-func (reg *ModelRegister) registerInstance(r *Registration) {
-	if existing, ok := reg.models[r.Name]; !ok {
-		reg.models[r.Name] = r
-	} else {
-		existing.Instance = r.Instance
-	}
+	reg.models[r.Name] = r
 }
 
 func (reg *ModelRegister) MustGet(name string) model.Model {

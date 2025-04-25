@@ -110,35 +110,27 @@ func (*testNoLoraSupportModel) SupportDistributedInference() bool {
 }
 
 func RegisterTestModel() {
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-model",
 		Instance: &testModel{},
-	})
-	plugin.KaitoModelRegister.RegisterInfo(&plugin.ModelInfo{
-		Name: "test-model",
+		Metadata: &model.Metadata{},
 	})
 
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-distributed-model",
 		Instance: &testDistributedModel{},
-	})
-	plugin.KaitoModelRegister.RegisterInfo(&plugin.ModelInfo{
-		Name: "test-distributed-model",
+		Metadata: &model.Metadata{},
 	})
 
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-no-tensor-parallel-model",
 		Instance: &testNoTensorParallelModel{},
-	})
-	plugin.KaitoModelRegister.RegisterInfo(&plugin.ModelInfo{
-		Name: "test-no-tensor-parallel-model",
+		Metadata: &model.Metadata{},
 	})
 
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-no-lora-support-model",
 		Instance: &testNoLoraSupportModel{},
-	})
-	plugin.KaitoModelRegister.RegisterInfo(&plugin.ModelInfo{
-		Name: "test-no-lora-support-model",
+		Metadata: &model.Metadata{},
 	})
 }

@@ -13,19 +13,19 @@ import (
 )
 
 func init() {
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     PresetFalcon7BModel,
 		Instance: &falconA,
 	})
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     PresetFalcon7BInstructModel,
 		Instance: &falconB,
 	})
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     PresetFalcon40BModel,
 		Instance: &falconC,
 	})
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     PresetFalcon40BInstructModel,
 		Instance: &falconD,
 	})

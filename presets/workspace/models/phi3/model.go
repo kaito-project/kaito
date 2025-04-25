@@ -12,23 +12,23 @@ import (
 )
 
 func init() {
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     PresetPhi3Mini4kModel,
 		Instance: &phi3MiniA,
 	})
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     PresetPhi3Mini128kModel,
 		Instance: &phi3MiniB,
 	})
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     PresetPhi3Medium4kModel,
 		Instance: &phi3MediumA,
 	})
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     PresetPhi3Medium128kModel,
 		Instance: &phi3MediumB,
 	})
-	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     PresetPhi3_5MiniInstruct,
 		Instance: &phi3_5MiniC,
 	})

@@ -3,142 +3,81 @@
 package plugin
 
 import (
-	"os"
 	"sync"
-
-	"gopkg.in/yaml.v2"
 
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
-// ModelInstance is a struct that holds the name and an instance of a struct
+// Registration is a struct that holds the name and an instance of a struct
 // that implements the model.Model interface. It is used to register and manage
 // different model instances within the Kaito framework.
-type ModelInstance struct {
+type Registration struct {
 	Name     string
+	Metadata *model.Metadata
 	Instance model.Model
-}
-
-// SupportModels is a struct that holds a list of supported models parsed
-// from preset/workspace/models/supported_models.yaml. The YAML file is
-// considered the source of truth for the model information, and any information
-// in the YAML file should not be hardcoded in the codebase.
-type SupportedModels struct {
-	// Models is a slice of ModelInfo structs that contains information about
-	// the supported models.
-	Models []ModelInfo `yaml:"models,omitempty"`
-}
-
-// ModelInfo is a struct that holds information about a model
-type ModelInfo struct {
-	// Name is the name of the model, which serves as a unique identifier.
-	// It is used to register the model information and retrieve it later.
-	Name string `yaml:"name"`
-
-	// ModelType is the type of the model, which indicates the kind of model
-	// it is. Currently, the only supported types are "text-generation" and
-	// "llama2-completion" (deprecated).
-	ModelType string `yaml:"type"`
-
-	// Version is the version of the model. It is a URL that points to the
-	// model's huggingface page, which contains the model's repository ID
-	// and revision ID, e.g. https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff.
-	Version string `yaml:"version"`
-
-	// Runtime is the runtime environment in which the model operates.
-	// Currently, the only supported runtime is "tfs".
-	Runtime string `yaml:"runtime"`
-
-	// Tag is the tag of the container image used to run the model.
-	// If the model uses the Kaito base image, the tag field can be ignored
-	// +optional
-	Tag string `yaml:"tag,omitempty"`
-
-	// DownloadAtRuntime indicates whether the model should be downloaded
-	// at runtime. If set to true, the model will be downloaded when the
-	// model deployment is created, and the container image will always be
-	// the Kaito base image. If set to false, a container image whose name
-	// contains the model name will be used, in which the model weights are baked.
-	// +optional
-	DownloadAtRuntime bool `yaml:"downloadAtRuntime,omitempty"`
 }
 
 type ModelRegister struct {
 	sync.RWMutex
-	instances map[string]*ModelInstance
-	info      map[string]*ModelInfo
+	models map[string]*Registration
 }
 
 var KaitoModelRegister ModelRegister
 
-// InitModelInfo initializes the KaitoModelRegister with a path to the supported_models.yaml
-// file. It reads the file, unmarshals the YAML data into a SupportedModels
-// struct, and registers each model instance using the RegisterInfo method.
-func (reg *ModelRegister) InitModelInfo(supportedModelsFilePath string) error {
-	data, err := os.ReadFile(supportedModelsFilePath)
-	if err != nil {
-		return err
-	}
-
-	supportedModels := SupportedModels{}
-	if err := yaml.Unmarshal(data, &supportedModels); err != nil {
-		return err
-	}
-
-	for _, modelInfo := range supportedModels.Models {
-		reg.RegisterInfo(&modelInfo)
-	}
-
-	return nil
-}
-
-// RegisterInfo allows model information to be added
-func (reg *ModelRegister) RegisterInfo(i *ModelInfo) {
-	reg.Lock()
-	defer reg.Unlock()
-	if i.Name == "" {
-		panic("model name is not specified")
-	}
-
-	if reg.info == nil {
-		reg.info = make(map[string]*ModelInfo)
-	}
-
-	reg.info[i.Name] = i
-}
-
-// RegisterInstance allows model to be added
-func (reg *ModelRegister) RegisterInstance(r *ModelInstance) {
+func (reg *ModelRegister) Register(r *Registration) {
 	reg.Lock()
 	defer reg.Unlock()
 	if r.Name == "" {
 		panic("model name is not specified")
 	}
 
-	if reg.instances == nil {
-		reg.instances = make(map[string]*ModelInstance)
+	if reg.models == nil {
+		reg.models = make(map[string]*Registration)
 	}
+	if r.Metadata != nil {
+		reg.registerMetadata(r)
+	}
+	if r.Instance != nil {
+		reg.registerInstance(r)
+	}
+}
 
-	reg.instances[r.Name] = r
+// registerMetadata allows model metadata to be added
+func (reg *ModelRegister) registerMetadata(r *Registration) {
+	if existing, ok := reg.models[r.Name]; !ok {
+		reg.models[r.Name] = r
+	} else {
+		existing.Metadata = r.Metadata
+	}
+}
+
+// registerInstance allows model instance to be added
+func (reg *ModelRegister) registerInstance(r *Registration) {
+	if existing, ok := reg.models[r.Name]; !ok {
+		reg.models[r.Name] = r
+	} else {
+		existing.Instance = r.Instance
+	}
 }
 
 func (reg *ModelRegister) MustGet(name string) model.Model {
 	reg.Lock()
 	defer reg.Unlock()
-	if _, ok := reg.info[name]; !ok {
-		panic("model is not defined in supported_models.yaml")
+	r, ok := reg.models[name]
+	if !ok {
+		panic("model is not registered")
 	}
-	if _, ok := reg.instances[name]; ok {
-		return reg.instances[name].Instance
+	if r.Metadata == nil {
+		panic("model metadata is not registered")
 	}
-	panic("model is supported but not registered")
+	return r.Instance
 }
 
 func (reg *ModelRegister) ListModelNames() []string {
 	reg.Lock()
 	defer reg.Unlock()
 	n := []string{}
-	for k := range reg.instances {
+	for k := range reg.models {
 		n = append(n, k)
 	}
 	return n
@@ -147,7 +86,7 @@ func (reg *ModelRegister) ListModelNames() []string {
 func (reg *ModelRegister) Has(name string) bool {
 	reg.Lock()
 	defer reg.Unlock()
-	_, ok := reg.instances[name]
+	_, ok := reg.models[name]
 	return ok
 }
 

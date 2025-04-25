@@ -259,6 +259,39 @@ class BaseVectorStore(ABC):
         # Return list of valid documents
         return [doc for doc in docs if isinstance(doc, dict)]
 
+    async def _get_index_documents_by_ids(self, 
+            index_name: str, 
+            ids: List[str],
+            max_text_length: Optional[int] = None
+        ) -> List[Dict[str, Any]]:
+        """
+        Return a dictionary of document metadata for the given ids in an index.
+        """
+        vector_store_index = self.index_map.get(index_name)
+        if not vector_store_index:
+            raise ValueError(f"Index '{index_name}' not found.")
+
+        doc_store = vector_store_index.docstore
+        docs_items = []
+        for doc_id in ids:
+            retrieved_doc = await doc_store.aget_ref_doc_info(doc_id)
+            if not retrieved_doc:
+                logger.warning(f"Document ID {doc_id} not found in index {index_name}. Skipping.")
+                continue
+            if retrieved_doc.node_ids[0] in doc_store.docs:
+                docs_items.append((doc_id, doc_store.docs[retrieved_doc.node_ids[0]]))
+            else:
+                logger.warning(f"Document ID {doc_id} not found in index {index_name}. Skipping.")
+
+        # Process documents concurrently, handling exceptions
+        docs = await asyncio.gather(
+            *(self._process_document(doc_id, doc_stub, doc_store, max_text_length) for doc_id, doc_stub in docs_items),
+            return_exceptions=True
+        )
+
+        # Return list of valid documents
+        return [doc for doc in docs if isinstance(doc, dict)]
+
     async def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
         """Common logic for checking document existence."""
         if index_name not in self.index_map:

@@ -12,11 +12,11 @@ import (
 )
 
 func init() {
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
 		Name:     PresetMistral7BModel,
 		Instance: &mistralA,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
 		Name:     PresetMistral7BInstructModel,
 		Instance: &mistralB,
 	})

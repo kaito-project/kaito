@@ -12,15 +12,15 @@ import (
 )
 
 func init() {
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
 		Name:     "llama-2-7b",
 		Instance: &llama2A,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
 		Name:     "llama-2-13b",
 		Instance: &llama2B,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
 		Name:     "llama-2-70b",
 		Instance: &llama2C,
 	})

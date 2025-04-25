@@ -114,17 +114,26 @@ func RegisterValidationTestModels() {
 	var test testModel
 	var testPrivate testModelPrivate
 	var testStatic testModelStatic
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
 		Name:     "test-validation",
 		Instance: &test,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	plugin.KaitoModelRegister.RegisterInfo(&plugin.ModelInfo{
+		Name: "test-validation",
+	})
+	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
 		Name:     "private-test-validation",
 		Instance: &testPrivate,
 	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	plugin.KaitoModelRegister.RegisterInfo(&plugin.ModelInfo{
+		Name: "private-test-validation",
+	})
+	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
 		Name:     "test-validation-static",
 		Instance: &testStatic,
+	})
+	plugin.KaitoModelRegister.RegisterInfo(&plugin.ModelInfo{
+		Name: "test-validation-static",
 	})
 }
 

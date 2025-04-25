@@ -34,13 +34,15 @@ import (
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
 const (
-	WebhookServiceName = "WEBHOOK_SERVICE"
-	WebhookServicePort = "WEBHOOK_PORT"
+	WebhookServiceName      = "WEBHOOK_SERVICE"
+	WebhookServicePort      = "WEBHOOK_PORT"
+	SupportedModelsFileName = "supported_models.yaml"
 )
 
 var (
@@ -61,6 +63,8 @@ func init() {
 
 	//+kubebuilder:scaffold:scheme
 	klog.InitFlags(nil)
+
+	utilruntime.Must(plugin.KaitoModelRegister.Init(SupportedModelsFileName))
 }
 
 func main() {

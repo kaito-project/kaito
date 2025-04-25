@@ -12,6 +12,7 @@ require (
 	github.com/go-logr/logr v1.4.2
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
+	github.com/prometheus/client_golang v1.20.5
 	github.com/samber/lo v1.49.1
 	github.com/stretchr/testify v1.10.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -26,6 +27,7 @@ require (
 	knative.dev/pkg v0.0.0-20240910170930-fdbc0b5adde7
 	sigs.k8s.io/controller-runtime v0.18.4
 	sigs.k8s.io/karpenter v1.0.4
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
@@ -77,7 +79,6 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_golang v1.20.5 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
@@ -115,7 +116,6 @@ require (
 	k8s.io/pod-security-admission v0.0.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
-	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
 replace (

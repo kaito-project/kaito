@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
+	plugin.KaitoModelRegister.RegisterInstance(&plugin.ModelInstance{
 		Name:     PresetPhi2Model,
 		Instance: &phiA,
 	})

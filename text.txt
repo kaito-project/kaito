@@ -1,0 +1,1157 @@
+go test -v github.com/kaito-project/kaito/pkg/featuregates github.com/kaito-project/kaito/pkg/k8sclient github.com/kaito-project/kaito/pkg/model github.com/kaito-project/kaito/pkg/ragengine/controllers github.com/kaito-project/kaito/pkg/ragengine/manifests github.com/kaito-project/kaito/pkg/ragengine/webhooks github.com/kaito-project/kaito/pkg/sku github.com/kaito-project/kaito/pkg/utils github.com/kaito-project/kaito/pkg/utils/consts github.com/kaito-project/kaito/pkg/utils/nodeclaim github.com/kaito-project/kaito/pkg/utils/plugin github.com/kaito-project/kaito/pkg/utils/resources github.com/kaito-project/kaito/pkg/utils/test github.com/kaito-project/kaito/pkg/workspace/controllers github.com/kaito-project/kaito/pkg/workspace/image github.com/kaito-project/kaito/pkg/workspace/inference github.com/kaito-project/kaito/pkg/workspace/manifests github.com/kaito-project/kaito/pkg/workspace/tuning github.com/kaito-project/kaito/pkg/workspace/webhooks github.com/kaito-project/kaito/api/v1alpha1 github.com/kaito-project/kaito/api/v1beta1 \
+	-race -coverprofile=coverage.txt -covermode=atomic
+=== RUN   TestParseFeatureGates
+=== RUN   TestParseFeatureGates/WithValidEnableFeatureGates-vLLM
+=== RUN   TestParseFeatureGates/WithDuplicateFeatureGates-vLLM
+=== RUN   TestParseFeatureGates/WithInvalidFeatureGates
+=== RUN   TestParseFeatureGates/WithUnsupportedFeatureGate
+=== RUN   TestParseFeatureGates/WithValidDisableFeatureGates-vLLM
+=== RUN   TestParseFeatureGates/WithValidEnableFeatureGates-ensureNodeClass
+=== RUN   TestParseFeatureGates/WithValidDisableFeatureGates-ensureNodeClass
+=== RUN   TestParseFeatureGates/WithEmptyFeatureGates
+--- PASS: TestParseFeatureGates (0.00s)
+    --- PASS: TestParseFeatureGates/WithValidEnableFeatureGates-vLLM (0.00s)
+    --- PASS: TestParseFeatureGates/WithDuplicateFeatureGates-vLLM (0.00s)
+    --- PASS: TestParseFeatureGates/WithInvalidFeatureGates (0.00s)
+    --- PASS: TestParseFeatureGates/WithUnsupportedFeatureGate (0.00s)
+    --- PASS: TestParseFeatureGates/WithValidDisableFeatureGates-vLLM (0.00s)
+    --- PASS: TestParseFeatureGates/WithValidEnableFeatureGates-ensureNodeClass (0.00s)
+    --- PASS: TestParseFeatureGates/WithValidDisableFeatureGates-ensureNodeClass (0.00s)
+    --- PASS: TestParseFeatureGates/WithEmptyFeatureGates (0.00s)
+PASS
+coverage: 100.0% of statements
+ok  	github.com/kaito-project/kaito/pkg/featuregates	1.165s	coverage: 100.0% of statements
+	github.com/kaito-project/kaito/pkg/k8sclient		coverage: 0.0% of statements
+=== RUN   TestGetGPUMemoryUtilForVLLM
+=== RUN   TestGetGPUMemoryUtilForVLLM/Nil_GPUConfig
+=== RUN   TestGetGPUMemoryUtilForVLLM/Zero_GPU_Memory
+=== RUN   TestGetGPUMemoryUtilForVLLM/Zero_GPU_Count
+=== RUN   TestGetGPUMemoryUtilForVLLM/V100
+=== RUN   TestGetGPUMemoryUtilForVLLM/V100_x_2
+=== RUN   TestGetGPUMemoryUtilForVLLM/A100
+=== RUN   TestGetGPUMemoryUtilForVLLM/Invalid
+--- PASS: TestGetGPUMemoryUtilForVLLM (0.00s)
+    --- PASS: TestGetGPUMemoryUtilForVLLM/Nil_GPUConfig (0.00s)
+    --- PASS: TestGetGPUMemoryUtilForVLLM/Zero_GPU_Memory (0.00s)
+    --- PASS: TestGetGPUMemoryUtilForVLLM/Zero_GPU_Count (0.00s)
+    --- PASS: TestGetGPUMemoryUtilForVLLM/V100 (0.00s)
+    --- PASS: TestGetGPUMemoryUtilForVLLM/V100_x_2 (0.00s)
+    --- PASS: TestGetGPUMemoryUtilForVLLM/A100 (0.00s)
+    --- PASS: TestGetGPUMemoryUtilForVLLM/Invalid (0.00s)
+PASS
+coverage: 12.9% of statements
+ok  	github.com/kaito-project/kaito/pkg/model	1.451s	coverage: 12.9% of statements
+=== RUN   TestCreatePresetRAG
+=== RUN   TestCreatePresetRAG/test-rag-model
+I0424 17:01:26.820956   65442 resources.go:24] "CreateDeployment" deployment="kaito/testRAGEngine"
+--- PASS: TestCreatePresetRAG (0.00s)
+    --- PASS: TestCreatePresetRAG/test-rag-model (0.00s)
+=== RUN   TestApplyRAGEngineResource
+=== RUN   TestApplyRAGEngineResource/Fail_to_apply_ragengine_because_associated_nodeClaim_cannot_be_retrieved
+=== RUN   TestApplyRAGEngineResource/Fail_to_apply_ragengine_with_nodeClaims_because_can't_get_qualified_nodes
+I0424 17:01:27.142864   65442 nodeclaim.go:369] "CheckNodeClaimStatus" nodeClaim="testnodeclaim"
+I0424 17:01:28.144134   65442 nodeclaim.go:398] "nodeClaim status is ready" nodeClaim="testnodeclaim"
+=== RUN   TestApplyRAGEngineResource/Successfully_apply_ragengine_resource_with_nodeClaim
+I0424 17:01:28.145176   65442 ragengine_status.go:55] "updateStatusCondition" ragengine="kaito/testRAGEngine" conditionType="NodeClaimReady" status="True" reason="installNodePluginsSuccess" message="nodeClaim plugins have been installed successfully"
+I0424 17:01:28.145450   65442 ragengine_status.go:75] "updateStatusNodeList" ragengine="kaito/testRAGEngine"
+I0424 17:01:28.145684   65442 ragengine_status.go:55] "updateStatusCondition" ragengine="kaito/testRAGEngine" conditionType="ResourceReady" status="True" reason="ragengineResourceStatusSuccess" message="ragengine resource is ready"
+--- PASS: TestApplyRAGEngineResource (1.32s)
+    --- PASS: TestApplyRAGEngineResource/Fail_to_apply_ragengine_because_associated_nodeClaim_cannot_be_retrieved (0.32s)
+    --- PASS: TestApplyRAGEngineResource/Fail_to_apply_ragengine_with_nodeClaims_because_can't_get_qualified_nodes (1.00s)
+    --- PASS: TestApplyRAGEngineResource/Successfully_apply_ragengine_resource_with_nodeClaim (0.00s)
+=== RUN   TestGetAllQualifiedNodesforRAGEngine
+=== RUN   TestGetAllQualifiedNodesforRAGEngine/Fails_to_get_qualified_nodes_because_can't_list_nodes
+=== RUN   TestGetAllQualifiedNodesforRAGEngine/Gets_all_qualified_nodes
+--- PASS: TestGetAllQualifiedNodesforRAGEngine (0.00s)
+    --- PASS: TestGetAllQualifiedNodesforRAGEngine/Fails_to_get_qualified_nodes_because_can't_list_nodes (0.00s)
+    --- PASS: TestGetAllQualifiedNodesforRAGEngine/Gets_all_qualified_nodes (0.00s)
+=== RUN   TestCreateAndValidateMachineNodeforRAGEngine
+=== RUN   TestCreateAndValidateMachineNodeforRAGEngine/An_Azure_nodeClaim_is_successfully_created
+I0424 17:01:28.147354   65442 nodeclaim.go:77] "GenerateNodeClaimManifest" object={"metadata":{"name":"testRAGEngine","namespace":"kaito","creationTimestamp":null},"spec":{"compute":{"count":1,"instanceType":"Standard_NC12s_v3","labelSelector":{"matchLabels":{"apps":"test"}}},"embedding":null,"inferenceService":null},"status":{}}
+I0424 17:01:28.147391   65442 nodeclaim.go:245] "CreateNodeClaim" nodeClaim="kaito/ws8686fbda8"
+I0424 17:01:29.149170   65442 nodeclaim.go:369] "CheckNodeClaimStatus" nodeClaim="kaito/ws8686fbda8"
+I0424 17:01:30.150523   65442 nodeclaim.go:398] "nodeClaim status is ready" nodeClaim="ws8686fbda8"
+=== RUN   TestCreateAndValidateMachineNodeforRAGEngine/An_AWS_nodeClaim_is_successfully_created
+I0424 17:01:30.151162   65442 nodeclaim.go:77] "GenerateNodeClaimManifest" object={"metadata":{"name":"testRAGEngine","namespace":"kaito","creationTimestamp":null},"spec":{"compute":{"count":1,"instanceType":"Standard_NC12s_v3","labelSelector":{"matchLabels":{"apps":"test"}}},"embedding":null,"inferenceService":null},"status":{}}
+I0424 17:01:30.151197   65442 nodeclaim.go:245] "CreateNodeClaim" nodeClaim="kaito/ws64c8cc3bf"
+I0424 17:01:31.156074   65442 nodeclaim.go:369] "CheckNodeClaimStatus" nodeClaim="kaito/ws64c8cc3bf"
+I0424 17:01:32.158002   65442 nodeclaim.go:398] "nodeClaim status is ready" nodeClaim="ws64c8cc3bf"
+--- PASS: TestCreateAndValidateMachineNodeforRAGEngine (4.01s)
+    --- PASS: TestCreateAndValidateMachineNodeforRAGEngine/An_Azure_nodeClaim_is_successfully_created (2.00s)
+    --- PASS: TestCreateAndValidateMachineNodeforRAGEngine/An_AWS_nodeClaim_is_successfully_created (2.01s)
+=== RUN   TestUpdateControllerRevision1
+=== RUN   TestUpdateControllerRevision1/Fail_to_create_ControllerRevision
+=== RUN   TestUpdateControllerRevision1/Successfully_create_new_ControllerRevision
+=== RUN   TestUpdateControllerRevision1/Successfully_delete_old_ControllerRevision
+=== RUN   TestUpdateControllerRevision1/No_new_revision_needed
+--- PASS: TestUpdateControllerRevision1 (0.01s)
+    --- PASS: TestUpdateControllerRevision1/Fail_to_create_ControllerRevision (0.00s)
+    --- PASS: TestUpdateControllerRevision1/Successfully_create_new_ControllerRevision (0.00s)
+    --- PASS: TestUpdateControllerRevision1/Successfully_delete_old_ControllerRevision (0.01s)
+    --- PASS: TestUpdateControllerRevision1/No_new_revision_needed (0.00s)
+=== RUN   TestApplyRAG
+=== RUN   TestApplyRAG/Fail_because_associated_workload_with_ragengine_cannot_be_retrieved
+I0424 17:01:32.514509   65442 ragengine_status.go:55] "updateStatusCondition" ragengine="kaito/testRAGEngine" conditionType="RAGEngineServiceReady" status="False" reason="RAGEngineServiceStatusFailed" message="Failed to get resource"
+=== RUN   TestApplyRAG/Create_preset_inference_because_inference_workload_did_not_exist
+I0424 17:01:32.841835   65442 resources.go:24] "CreateDeployment" deployment="kaito/testRAGEngine"
+I0424 17:01:34.846132   65442 resources.go:85] "deployment status is ready" deployment="testRAGEngine"
+I0424 17:01:34.846300   65442 ragengine_status.go:55] "updateStatusCondition" ragengine="kaito/testRAGEngine" conditionType="ServiceReady" status="True" reason="RAGEngineServiceSuccess" message="Inference has been deployed successfully"
+=== RUN   TestApplyRAG/Apply_inference_from_existing_workload
+I0424 17:01:34.848840   65442 ragengine_controller.go:192] "An inference workload already exists for ragengine" ragengine="kaito/testRAGEngine"
+I0424 17:01:35.850885   65442 resources.go:85] "deployment status is ready" deployment="testRAGEngine"
+I0424 17:01:35.851058   65442 ragengine_status.go:55] "updateStatusCondition" ragengine="kaito/testRAGEngine" conditionType="ServiceReady" status="True" reason="RAGEngineServiceSuccess" message="Inference has been deployed successfully"
+=== RUN   TestApplyRAG/Update_deployment_with_new_configuration
+I0424 17:01:35.854039   65442 ragengine_controller.go:192] "An inference workload already exists for ragengine" ragengine="kaito/testRAGEngine"
+I0424 17:01:36.857023   65442 resources.go:85] "deployment status is ready" deployment="testRAGEngine"
+I0424 17:01:36.857206   65442 ragengine_status.go:55] "updateStatusCondition" ragengine="kaito/testRAGEngine" conditionType="ServiceReady" status="True" reason="RAGEngineServiceSuccess" message="Inference has been deployed successfully"
+--- PASS: TestApplyRAG (4.69s)
+    --- PASS: TestApplyRAG/Fail_because_associated_workload_with_ragengine_cannot_be_retrieved (0.34s)
+    --- PASS: TestApplyRAG/Create_preset_inference_because_inference_workload_did_not_exist (2.33s)
+    --- PASS: TestApplyRAG/Apply_inference_from_existing_workload (1.01s)
+    --- PASS: TestApplyRAG/Update_deployment_with_new_configuration (1.01s)
+=== RUN   TestEnsureService
+=== RUN   TestEnsureService/Existing_service_is_found_for_RAGEngine
+=== RUN   TestEnsureService/Service_creation_fails
+I0424 17:01:37.196553   65442 resources.go:28] "CreateService" service="kaito/testRAGEngine"
+=== RUN   TestEnsureService/Successfully_creates_a_new_service
+I0424 17:01:37.842472   65442 resources.go:28] "CreateService" service="kaito/testRAGEngine"
+--- PASS: TestEnsureService (0.98s)
+    --- PASS: TestEnsureService/Existing_service_is_found_for_RAGEngine (0.00s)
+    --- PASS: TestEnsureService/Service_creation_fails (0.66s)
+    --- PASS: TestEnsureService/Successfully_creates_a_new_service (0.32s)
+=== RUN   TestUpdateRAGEngineStatus
+=== RUN   TestUpdateRAGEngineStatus/Should_update_ragengine_status_successfully
+=== RUN   TestUpdateRAGEngineStatus/Should_return_error_when_Get_operation_fails
+=== RUN   TestUpdateRAGEngineStatus/Should_return_nil_when_ragengine_is_not_found
+--- PASS: TestUpdateRAGEngineStatus (0.00s)
+    --- PASS: TestUpdateRAGEngineStatus/Should_update_ragengine_status_successfully (0.00s)
+    --- PASS: TestUpdateRAGEngineStatus/Should_return_error_when_Get_operation_fails (0.00s)
+    --- PASS: TestUpdateRAGEngineStatus/Should_return_nil_when_ragengine_is_not_found (0.00s)
+=== RUN   TestRAGEngineUpdateStatusConditionIfNotMatch
+=== RUN   TestRAGEngineUpdateStatusConditionIfNotMatch/Should_not_update_when_condition_matches
+=== RUN   TestRAGEngineUpdateStatusConditionIfNotMatch/Should_update_when_condition_does_not_match
+I0424 17:01:37.848737   65442 ragengine_status.go:55] "updateStatusCondition" ragengine="kaito/testRAGEngine" conditionType="TestCondition" status="True" reason="TestReason" message="TestMessage"
+=== RUN   TestRAGEngineUpdateStatusConditionIfNotMatch/Should_update_when_condition_is_not_found
+I0424 17:01:37.850716   65442 ragengine_status.go:55] "updateStatusCondition" ragengine="kaito/testRAGEngine" conditionType="TestCondition" status="True" reason="TestReason" message="TestMessage"
+--- PASS: TestRAGEngineUpdateStatusConditionIfNotMatch (0.00s)
+    --- PASS: TestRAGEngineUpdateStatusConditionIfNotMatch/Should_not_update_when_condition_matches (0.00s)
+    --- PASS: TestRAGEngineUpdateStatusConditionIfNotMatch/Should_update_when_condition_does_not_match (0.00s)
+    --- PASS: TestRAGEngineUpdateStatusConditionIfNotMatch/Should_update_when_condition_is_not_found (0.00s)
+PASS
+coverage: 51.4% of statements
+ok  	github.com/kaito-project/kaito/pkg/ragengine/controllers	12.741s	coverage: 51.4% of statements
+=== RUN   TestGenerateRAGDeploymentManifest
+=== RUN   TestGenerateRAGDeploymentManifest/generate_RAG_deployment
+--- PASS: TestGenerateRAGDeploymentManifest (0.00s)
+    --- PASS: TestGenerateRAGDeploymentManifest/generate_RAG_deployment (0.00s)
+PASS
+coverage: 72.2% of statements
+ok  	github.com/kaito-project/kaito/pkg/ragengine/manifests	2.378s	coverage: 72.2% of statements
+	github.com/kaito-project/kaito/pkg/ragengine/webhooks		coverage: 0.0% of statements
+=== RUN   TestAzureSKUHandler
+--- PASS: TestAzureSKUHandler (0.00s)
+=== RUN   TestAwsSKUHandler
+--- PASS: TestAwsSKUHandler (0.00s)
+PASS
+coverage: 68.2% of statements
+ok  	github.com/kaito-project/kaito/pkg/sku	1.678s	coverage: 68.2% of statements
+=== RUN   TestFetchGPUCountFromNodes
+=== RUN   TestFetchGPUCountFromNodes/Single_Node_with_GPU
+=== RUN   TestFetchGPUCountFromNodes/Multiple_Nodes_with_GPU
+=== RUN   TestFetchGPUCountFromNodes/Node_without_GPU
+=== RUN   TestFetchGPUCountFromNodes/No_Worker_Nodes
+--- PASS: TestFetchGPUCountFromNodes (0.00s)
+    --- PASS: TestFetchGPUCountFromNodes/Single_Node_with_GPU (0.00s)
+    --- PASS: TestFetchGPUCountFromNodes/Multiple_Nodes_with_GPU (0.00s)
+    --- PASS: TestFetchGPUCountFromNodes/Node_without_GPU (0.00s)
+    --- PASS: TestFetchGPUCountFromNodes/No_Worker_Nodes (0.00s)
+PASS
+coverage: 10.5% of statements
+ok  	github.com/kaito-project/kaito/pkg/utils	2.701s	coverage: 10.5% of statements
+?   	github.com/kaito-project/kaito/pkg/utils/consts	[no test files]
+=== RUN   TestCreateNodeClaim
+=== RUN   TestCreateNodeClaim/NodeClaim_creation_fails
+I0424 17:01:27.237183   65444 nodeclaim.go:245] "CreateNodeClaim" nodeClaim="testnodeclaim"
+=== RUN   TestCreateNodeClaim/NodeClaim_creation_fails_because_SKU_is_not_available
+I0424 17:01:27.560693   65444 nodeclaim.go:245] "CreateNodeClaim" nodeClaim="testnodeclaim"
+E0424 17:01:28.561385   65444 nodeclaim.go:269] all requested instance types were unavailable during launchreconcile will not continue
+=== RUN   TestCreateNodeClaim/A_nodeClaim_is_successfully_created
+I0424 17:01:28.561556   65444 nodeclaim.go:245] "CreateNodeClaim" nodeClaim="testnodeclaim"
+--- PASS: TestCreateNodeClaim (2.33s)
+    --- PASS: TestCreateNodeClaim/NodeClaim_creation_fails (0.32s)
+    --- PASS: TestCreateNodeClaim/NodeClaim_creation_fails_because_SKU_is_not_available (1.00s)
+    --- PASS: TestCreateNodeClaim/A_nodeClaim_is_successfully_created (1.00s)
+=== RUN   TestWaitForPendingNodeClaims
+=== RUN   TestWaitForPendingNodeClaims/Fail_to_list_nodeClaims_because_associated_nodeClaims_cannot_be_retrieved
+=== RUN   TestWaitForPendingNodeClaims/Fail_to_list_nodeClaims_because_nodeClaim_status_cannot_be_retrieved
+I0424 17:01:29.887714   65444 nodeclaim.go:369] "CheckNodeClaimStatus" nodeClaim="testnodeclaim"
+=== RUN   TestWaitForPendingNodeClaims/Successfully_waits_for_all_pending_nodeClaims
+I0424 17:01:30.889937   65444 nodeclaim.go:369] "CheckNodeClaimStatus" nodeClaim="testnodeclaim"
+I0424 17:01:31.891603   65444 nodeclaim.go:398] "nodeClaim status is ready" nodeClaim="testnodeclaim"
+--- PASS: TestWaitForPendingNodeClaims (2.33s)
+    --- PASS: TestWaitForPendingNodeClaims/Fail_to_list_nodeClaims_because_associated_nodeClaims_cannot_be_retrieved (0.32s)
+    --- PASS: TestWaitForPendingNodeClaims/Fail_to_list_nodeClaims_because_nodeClaim_status_cannot_be_retrieved (1.00s)
+    --- PASS: TestWaitForPendingNodeClaims/Successfully_waits_for_all_pending_nodeClaims (1.00s)
+=== RUN   TestGenerateNodeClaimManifest
+=== RUN   TestGenerateNodeClaimManifest/Should_generate_a_nodeClaim_object_from_the_given_workspace_when_cloud_provider_set_to_azure
+I0424 17:01:31.900840   65444 nodeclaim.go:77] "GenerateNodeClaimManifest" object={"metadata":{"name":"testWorkspace","namespace":"kaito","creationTimestamp":null,"annotations":{"kaito.sh/runtime":"transformers"}},"resource":{"count":1,"instanceType":"Standard_NC12s_v3","labelSelector":{"matchLabels":{"apps":"test"}}},"inference":{"preset":{"name":"test-model","presetOptions":{}}},"status":{}}
+=== RUN   TestGenerateNodeClaimManifest/Should_generate_a_nodeClaim_object_from_the_given_workspace_when_cloud_provider_set_to_aws
+I0424 17:01:31.901279   65444 nodeclaim.go:77] "GenerateNodeClaimManifest" object={"metadata":{"name":"testWorkspace","namespace":"kaito","creationTimestamp":null,"annotations":{"kaito.sh/runtime":"transformers"}},"resource":{"count":1,"instanceType":"Standard_NC12s_v3","labelSelector":{"matchLabels":{"apps":"test"}}},"inference":{"preset":{"name":"test-model","presetOptions":{}}},"status":{}}
+--- PASS: TestGenerateNodeClaimManifest (0.01s)
+    --- PASS: TestGenerateNodeClaimManifest/Should_generate_a_nodeClaim_object_from_the_given_workspace_when_cloud_provider_set_to_azure (0.01s)
+    --- PASS: TestGenerateNodeClaimManifest/Should_generate_a_nodeClaim_object_from_the_given_workspace_when_cloud_provider_set_to_aws (0.00s)
+=== RUN   TestGenerateAKSNodeClassManifest
+=== RUN   TestGenerateAKSNodeClassManifest/Should_generate_a_valid_AKSNodeClass_object_with_correct_name_and_annotations
+=== RUN   TestGenerateAKSNodeClassManifest/Should_generate_a_valid_AKSNodeClass_object_with_empty_annotations_if_not_provided
+=== RUN   TestGenerateAKSNodeClassManifest/Should_generate_a_valid_AKSNodeClass_object_with_correct_spec
+--- PASS: TestGenerateAKSNodeClassManifest (0.00s)
+    --- PASS: TestGenerateAKSNodeClassManifest/Should_generate_a_valid_AKSNodeClass_object_with_correct_name_and_annotations (0.00s)
+    --- PASS: TestGenerateAKSNodeClassManifest/Should_generate_a_valid_AKSNodeClass_object_with_empty_annotations_if_not_provided (0.00s)
+    --- PASS: TestGenerateAKSNodeClassManifest/Should_generate_a_valid_AKSNodeClass_object_with_correct_spec (0.00s)
+=== RUN   TestGenerateEC2NodeClassManifest
+=== RUN   TestGenerateEC2NodeClassManifest/Should_generate_a_valid_EC2NodeClass_object_with_correct_name_and_annotations
+=== RUN   TestGenerateEC2NodeClassManifest/Should_generate_a_valid_EC2NodeClass_object_with_correct_subnet_and_security_group_selectors
+=== RUN   TestGenerateEC2NodeClassManifest/Should_handle_missing_CLUSTER_NAME_environment_variable
+--- PASS: TestGenerateEC2NodeClassManifest (0.00s)
+    --- PASS: TestGenerateEC2NodeClassManifest/Should_generate_a_valid_EC2NodeClass_object_with_correct_name_and_annotations (0.00s)
+    --- PASS: TestGenerateEC2NodeClassManifest/Should_generate_a_valid_EC2NodeClass_object_with_correct_subnet_and_security_group_selectors (0.00s)
+    --- PASS: TestGenerateEC2NodeClassManifest/Should_handle_missing_CLUSTER_NAME_environment_variable (0.00s)
+=== RUN   TestCreateKarpenterNodeClass
+=== RUN   TestCreateKarpenterNodeClass/Should_create_AKSNodeClass_when_cloud_provider_is_Azure
+I0424 17:01:31.902872   65444 nodeclaim.go:279] "CreateKarpenterNodeClass" cloudName="azure"
+=== RUN   TestCreateKarpenterNodeClass/Should_create_EC2NodeClass_when_cloud_provider_is_AWS
+I0424 17:01:31.903389   65444 nodeclaim.go:279] "CreateKarpenterNodeClass" cloudName="aws"
+=== RUN   TestCreateKarpenterNodeClass/Should_return_error_when_cloud_provider_is_unsupported
+I0424 17:01:31.903938   65444 nodeclaim.go:279] "CreateKarpenterNodeClass" cloudName="unsupported"
+=== RUN   TestCreateKarpenterNodeClass/Should_return_error_when_Create_call_fails
+I0424 17:01:31.904158   65444 nodeclaim.go:279] "CreateKarpenterNodeClass" cloudName="azure"
+--- PASS: TestCreateKarpenterNodeClass (0.00s)
+    --- PASS: TestCreateKarpenterNodeClass/Should_create_AKSNodeClass_when_cloud_provider_is_Azure (0.00s)
+    --- PASS: TestCreateKarpenterNodeClass/Should_create_EC2NodeClass_when_cloud_provider_is_AWS (0.00s)
+    --- PASS: TestCreateKarpenterNodeClass/Should_return_error_when_cloud_provider_is_unsupported (0.00s)
+    --- PASS: TestCreateKarpenterNodeClass/Should_return_error_when_Create_call_fails (0.00s)
+PASS
+coverage: 73.4% of statements
+ok  	github.com/kaito-project/kaito/pkg/utils/nodeclaim	6.769s	coverage: 73.4% of statements
+FAIL	github.com/kaito-project/kaito/pkg/utils/plugin [build failed]
+=== RUN   TestUpdateNodeWithLabel
+=== RUN   TestUpdateNodeWithLabel/Fail_to_update_node_because_it_cannot_be_retrieved
+I0424 17:01:28.161429   65452 nodes.go:51] "UpdateNodeWithLabel" nodeName="mockNode" labelKey="fakeKey" labelValue="fakeVal"
+E0424 17:01:28.162268   65452 nodes.go:56] "cannot get node" err="Cannot retrieve node" node="mockNode"
+=== RUN   TestUpdateNodeWithLabel/Fail_to_update_node_because_node_cannot_be_updated
+I0424 17:01:28.162377   65452 nodes.go:51] "UpdateNodeWithLabel" nodeName="mockNode" labelKey="fakeKey" labelValue="fakeVal"
+E0424 17:01:28.162663   65452 nodes.go:65] "cannot update node label" err="Cannot update node" node="mockNode" fakeKey="fakeVal"
+=== RUN   TestUpdateNodeWithLabel/Successfully_updates_node
+I0424 17:01:28.162757   65452 nodes.go:51] "UpdateNodeWithLabel" nodeName="mockNode" labelKey="fakeKey" labelValue="fakeVal"
+--- PASS: TestUpdateNodeWithLabel (0.00s)
+    --- PASS: TestUpdateNodeWithLabel/Fail_to_update_node_because_it_cannot_be_retrieved (0.00s)
+    --- PASS: TestUpdateNodeWithLabel/Fail_to_update_node_because_node_cannot_be_updated (0.00s)
+    --- PASS: TestUpdateNodeWithLabel/Successfully_updates_node (0.00s)
+=== RUN   TestListNodes
+=== RUN   TestListNodes/Fails_to_list_nodes
+=== RUN   TestListNodes/Successfully_lists_all_nodes
+--- PASS: TestListNodes (0.00s)
+    --- PASS: TestListNodes/Fails_to_list_nodes (0.00s)
+    --- PASS: TestListNodes/Successfully_lists_all_nodes (0.00s)
+=== RUN   TestCheckNvidiaPlugin
+=== RUN   TestCheckNvidiaPlugin/Is_not_nvidia_plugin
+=== RUN   TestCheckNvidiaPlugin/Is_nvidia_plugin
+--- PASS: TestCheckNvidiaPlugin (0.00s)
+    --- PASS: TestCheckNvidiaPlugin/Is_not_nvidia_plugin (0.00s)
+    --- PASS: TestCheckNvidiaPlugin/Is_nvidia_plugin (0.00s)
+=== RUN   TestCheckResourceStatus
+=== RUN   TestCheckResourceStatus/Should_return_nil_for_ready_Deployment
+I0424 17:01:29.168647   65452 resources.go:85] "deployment status is ready" deployment=""
+=== RUN   TestCheckResourceStatus/Should_return_timeout_error_for_non-ready_Deployment
+=== RUN   TestCheckResourceStatus/Should_return_nil_for_ready_StatefulSet
+I0424 17:01:30.171189   65452 resources.go:90] "statefulset status is ready" statefulset=""
+=== RUN   TestCheckResourceStatus/Should_return_timeout_error_for_non-ready_StatefulSet
+=== RUN   TestCheckResourceStatus/Should_return_error_for_mocked_client_Get_error
+=== RUN   TestCheckResourceStatus/Should_return_error_for_unsupported_resource_type
+=== RUN   TestCheckResourceStatus/Should_return_error_when_DeploymentProcessing_is_False
+E0424 17:01:33.176202   65452 resources.go:79] "deployment" err="deployment  is not progressing: Deployment exceeded its progress deadline" ="reason" ProcessDeadlineExceeded="message" Deployment exceeded its progress deadline="(MISSING)"
+=== RUN   TestCheckResourceStatus/Should_return_error_for_Job_with_failed_pods
+E0424 17:01:34.180278   65452 resources.go:95] "name" err="job failed" ="failed count" %!s(int32=1)="(MISSING)"
+=== RUN   TestCheckResourceStatus/Should_return_deadline_exceeded_for_Job_with_only_active_pods
+=== RUN   TestCheckResourceStatus/Should_return_nil_for_Job_with_only_succeeded_pods
+I0424 17:01:37.184406   65452 resources.go:99] "job status is active/succeeded" name=""
+=== RUN   TestCheckResourceStatus/Should_return_nil_for_Job_with_only_ready_pods
+I0424 17:01:38.186546   65452 resources.go:99] "job status is active/succeeded" name=""
+--- PASS: TestCheckResourceStatus (10.02s)
+    --- PASS: TestCheckResourceStatus/Should_return_nil_for_ready_Deployment (1.00s)
+    --- PASS: TestCheckResourceStatus/Should_return_timeout_error_for_non-ready_Deployment (0.00s)
+    --- PASS: TestCheckResourceStatus/Should_return_nil_for_ready_StatefulSet (1.00s)
+    --- PASS: TestCheckResourceStatus/Should_return_timeout_error_for_non-ready_StatefulSet (0.00s)
+    --- PASS: TestCheckResourceStatus/Should_return_error_for_mocked_client_Get_error (1.00s)
+    --- PASS: TestCheckResourceStatus/Should_return_error_for_unsupported_resource_type (1.00s)
+    --- PASS: TestCheckResourceStatus/Should_return_error_when_DeploymentProcessing_is_False (1.00s)
+    --- PASS: TestCheckResourceStatus/Should_return_error_for_Job_with_failed_pods (1.00s)
+    --- PASS: TestCheckResourceStatus/Should_return_deadline_exceeded_for_Job_with_only_active_pods (2.00s)
+    --- PASS: TestCheckResourceStatus/Should_return_nil_for_Job_with_only_succeeded_pods (1.00s)
+    --- PASS: TestCheckResourceStatus/Should_return_nil_for_Job_with_only_ready_pods (1.00s)
+=== RUN   TestCreateResource
+=== RUN   TestCreateResource/Resource_creation_succeeds_with_Service_object
+I0424 17:01:38.187382   65452 resources.go:28] "CreateService" service=""
+=== RUN   TestCreateResource/Resource_creation_fails_with_Deployment_object
+I0424 17:01:38.188085   65452 resources.go:24] "CreateDeployment" deployment=""
+=== RUN   TestCreateResource/Resource_creation_succeeds_with_Statefulset_object
+I0424 17:01:38.522621   65452 resources.go:26] "CreateStatefulSet" statefulset=""
+--- PASS: TestCreateResource (0.34s)
+    --- PASS: TestCreateResource/Resource_creation_succeeds_with_Service_object (0.00s)
+    --- PASS: TestCreateResource/Resource_creation_fails_with_Deployment_object (0.33s)
+    --- PASS: TestCreateResource/Resource_creation_succeeds_with_Statefulset_object (0.00s)
+=== RUN   TestGetResource
+=== RUN   TestGetResource/GetResource_fails
+=== RUN   TestGetResource/Resource_creation_succeeds_with_Statefulset_object
+--- PASS: TestGetResource (0.32s)
+    --- PASS: TestGetResource/GetResource_fails (0.32s)
+    --- PASS: TestGetResource/Resource_creation_succeeds_with_Statefulset_object (0.00s)
+=== RUN   TestEnsureInferenceConfigMap
+=== RUN   TestEnsureInferenceConfigMap/Error_finding_release_namespace
+=== RUN   TestEnsureInferenceConfigMap/Config_doesn't_exist_in_namespace
+=== RUN   TestEnsureInferenceConfigMap/Generate_default_config
+I0424 17:01:39.843435   65452 resources.go:30] "CreateConfigMap" configmap="workspace-namespace/inference-params-template"
+=== RUN   TestEnsureInferenceConfigMap/Config_already_exists_in_workspace_namespace
+--- PASS: TestEnsureInferenceConfigMap (1.00s)
+    --- PASS: TestEnsureInferenceConfigMap/Error_finding_release_namespace (0.33s)
+    --- PASS: TestEnsureInferenceConfigMap/Config_doesn't_exist_in_namespace (0.33s)
+    --- PASS: TestEnsureInferenceConfigMap/Generate_default_config (0.34s)
+    --- PASS: TestEnsureInferenceConfigMap/Config_already_exists_in_workspace_namespace (0.00s)
+PASS
+coverage: 82.5% of statements
+ok  	github.com/kaito-project/kaito/pkg/utils/resources	14.608s	coverage: 82.5% of statements
+	github.com/kaito-project/kaito/pkg/utils/test		coverage: 0.0% of statements
+=== RUN   TestSelectWorkspaceNodes
+=== RUN   TestSelectWorkspaceNodes/three_qualified_nodes,_one_is_created_by__by_karpenter_(nodeClaim),_two_is_preferred,_need_two
+=== RUN   TestSelectWorkspaceNodes/two_qualified_nodes,_need_one
+=== RUN   TestSelectWorkspaceNodes/three_qualified_nodes,_prefer_two_of_them
+=== RUN   TestSelectWorkspaceNodes/three_qualified_nodes,_one_preferred,_one_previous,_need_two
+=== RUN   TestSelectWorkspaceNodes/three_qualified_nodes,_one_is_created_by_gpu-provisioner,_need_one
+=== RUN   TestSelectWorkspaceNodes/three_qualified_nodes,_two_of_them_are_selected_previously,_need_two
+=== RUN   TestSelectWorkspaceNodes/three_qualified_nodes,_one_preferred,_one_previous,_need_one
+=== RUN   TestSelectWorkspaceNodes/three_qualified_nodes,_one_is_created_by_gpu-provisioner,_one_is_preferred,_one_is_previous,_need_two
+=== RUN   TestSelectWorkspaceNodes/three_qualified_nodes,_one_is_created_by_gpu-provisioner,_one_is_preferred,_one_is_previous,_need_three
+=== RUN   TestSelectWorkspaceNodes/three_qualified_nodes,_one_is_created_by_gpu-provisioner_(machine),_the_other_created_by_karpenter_(nodeClaim),_one_is_preferred,_need_two
+--- PASS: TestSelectWorkspaceNodes (0.00s)
+    --- PASS: TestSelectWorkspaceNodes/three_qualified_nodes,_one_is_created_by__by_karpenter_(nodeClaim),_two_is_preferred,_need_two (0.00s)
+    --- PASS: TestSelectWorkspaceNodes/two_qualified_nodes,_need_one (0.00s)
+    --- PASS: TestSelectWorkspaceNodes/three_qualified_nodes,_prefer_two_of_them (0.00s)
+    --- PASS: TestSelectWorkspaceNodes/three_qualified_nodes,_one_preferred,_one_previous,_need_two (0.00s)
+    --- PASS: TestSelectWorkspaceNodes/three_qualified_nodes,_one_is_created_by_gpu-provisioner,_need_one (0.00s)
+    --- PASS: TestSelectWorkspaceNodes/three_qualified_nodes,_two_of_them_are_selected_previously,_need_two (0.00s)
+    --- PASS: TestSelectWorkspaceNodes/three_qualified_nodes,_one_preferred,_one_previous,_need_one (0.00s)
+    --- PASS: TestSelectWorkspaceNodes/three_qualified_nodes,_one_is_created_by_gpu-provisioner,_one_is_preferred,_one_is_previous,_need_two (0.00s)
+    --- PASS: TestSelectWorkspaceNodes/three_qualified_nodes,_one_is_created_by_gpu-provisioner,_one_is_preferred,_one_is_previous,_need_three (0.00s)
+    --- PASS: TestSelectWorkspaceNodes/three_qualified_nodes,_one_is_created_by_gpu-provisioner_(machine),_the_other_created_by_karpenter_(nodeClaim),_one_is_preferred,_need_two (0.00s)
+=== RUN   TestCreateAndValidateNodeClaimNode
+=== RUN   TestCreateAndValidateNodeClaimNode/Node_is_not_created_because_nodeClaim_creation_fails
+I0424 17:01:28.448824   65462 nodeclaim.go:77] "GenerateNodeClaimManifest" object={"metadata":{"name":"testWorkspace","namespace":"kaito","creationTimestamp":null,"annotations":{"kaito.sh/runtime":"transformers"}},"resource":{"count":1,"instanceType":"Standard_NC12s_v3","labelSelector":{"matchLabels":{"apps":"test"}}},"inference":{"preset":{"name":"test-model","presetOptions":{}}},"status":{}}
+I0424 17:01:28.449281   65462 nodeclaim.go:245] "CreateNodeClaim" nodeClaim="kaito/wsb3fb83909"
+E0424 17:01:29.451821   65462 nodeclaim.go:269] all requested instance types were unavailable during launchreconcile will not continue
+E0424 17:01:29.451915   65462 workspace_controller.go:470] "failed to create nodeClaim" err="all requested instance types were unavailable during launch" nodeClaim="wsb3fb83909"
+I0424 17:01:29.452108   65462 workspace_status.go:55] "updateStatusCondition" workspace="kaito/testWorkspace" conditionType="NodeClaimReady" status="False" reason="nodeClaimFailedCreation" message="all requested instance types were unavailable during launch"
+=== RUN   TestCreateAndValidateNodeClaimNode/A_nodeClaim_is_successfully_created
+I0424 17:01:29.453443   65462 nodeclaim.go:77] "GenerateNodeClaimManifest" object={"metadata":{"name":"testWorkspace","namespace":"kaito","creationTimestamp":null,"annotations":{"kaito.sh/runtime":"transformers"}},"resource":{"count":1,"instanceType":"Standard_NC12s_v3","labelSelector":{"matchLabels":{"apps":"test"}}},"inference":{"preset":{"name":"test-distributed-model","presetOptions":{}}},"status":{}}
+I0424 17:01:29.453478   65462 nodeclaim.go:245] "CreateNodeClaim" nodeClaim="kaito/ws1069f0fc7"
+I0424 17:01:30.456296   65462 nodeclaim.go:369] "CheckNodeClaimStatus" nodeClaim="kaito/ws1069f0fc7"
+I0424 17:01:31.458851   65462 nodeclaim.go:398] "nodeClaim status is ready" nodeClaim="ws1069f0fc7"
+--- PASS: TestCreateAndValidateNodeClaimNode (3.02s)
+    --- PASS: TestCreateAndValidateNodeClaimNode/Node_is_not_created_because_nodeClaim_creation_fails (1.01s)
+    --- PASS: TestCreateAndValidateNodeClaimNode/A_nodeClaim_is_successfully_created (2.01s)
+=== RUN   TestEnsureService
+=== RUN   TestEnsureService/Existing_service_is_found_for_workspace
+=== RUN   TestEnsureService/Service_creation_fails
+I0424 17:01:31.802004   65462 resources.go:28] "CreateService" service="kaito/testWorkspace"
+=== RUN   TestEnsureService/Successfully_creates_a_new_service
+I0424 17:01:32.463154   65462 resources.go:28] "CreateService" service="kaito/testWorkspace"
+I0424 17:01:32.464017   65462 resources.go:28] "CreateService" service="kaito/testWorkspace-headless"
+=== RUN   TestEnsureService/Successfully_creates_a_new_service_for_a_custom_model
+I0424 17:01:32.802902   65462 resources.go:28] "CreateService" service="kaito/testCustomWorkspace"
+--- PASS: TestEnsureService (1.34s)
+    --- PASS: TestEnsureService/Existing_service_is_found_for_workspace (0.00s)
+    --- PASS: TestEnsureService/Service_creation_fails (0.66s)
+    --- PASS: TestEnsureService/Successfully_creates_a_new_service (0.34s)
+    --- PASS: TestEnsureService/Successfully_creates_a_new_service_for_a_custom_model (0.34s)
+=== RUN   TestApplyInferenceWithPreset
+=== RUN   TestApplyInferenceWithPreset/Update_deployment_with_new_configuration
+I0424 17:01:32.804801   65462 workspace_controller.go:674] "An inference workload already exists for workspace" workspace="kaito/testWorkspace"
+I0424 17:01:33.806941   65462 resources.go:85] "deployment status is ready" deployment="testWorkspace"
+I0424 17:01:33.807067   65462 workspace_status.go:55] "updateStatusCondition" workspace="kaito/testWorkspace" conditionType="InferenceReady" status="True" reason="WorkspaceInferenceStatusSuccess" message="Inference has been deployed successfully"
+=== RUN   TestApplyInferenceWithPreset/Fail_to_get_inference_because_associated_workload_with_workspace_cannot_be_retrieved
+I0424 17:01:34.138440   65462 workspace_status.go:55] "updateStatusCondition" workspace="kaito/testWorkspace" conditionType="InferenceReady" status="False" reason="WorkspaceInferenceStatusFailed" message="Failed to get resource"
+=== RUN   TestApplyInferenceWithPreset/Create_preset_inference_because_inference_workload_did_not_exist
+I0424 17:01:34.484608   65462 resources.go:145] Default ConfigMap already exists in target namespace: kaito, no action taken.
+I0424 17:01:34.485052   65462 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+I0424 17:01:36.490205   65462 resources.go:85] "deployment status is ready" deployment="testWorkspace"
+I0424 17:01:36.490289   65462 workspace_status.go:55] "updateStatusCondition" workspace="kaito/testWorkspace" conditionType="InferenceReady" status="True" reason="WorkspaceInferenceStatusSuccess" message="Inference has been deployed successfully"
+=== RUN   TestApplyInferenceWithPreset/Apply_inference_from_existing_workload
+I0424 17:01:36.491913   65462 workspace_controller.go:674] "An inference workload already exists for workspace" workspace="kaito/testWorkspace"
+I0424 17:01:37.493904   65462 resources.go:90] "statefulset status is ready" statefulset=""
+I0424 17:01:37.494197   65462 workspace_status.go:55] "updateStatusCondition" workspace="kaito/testWorkspace" conditionType="InferenceReady" status="True" reason="WorkspaceInferenceStatusSuccess" message="Inference has been deployed successfully"
+--- PASS: TestApplyInferenceWithPreset (4.69s)
+    --- PASS: TestApplyInferenceWithPreset/Update_deployment_with_new_configuration (1.00s)
+    --- PASS: TestApplyInferenceWithPreset/Fail_to_get_inference_because_associated_workload_with_workspace_cannot_be_retrieved (0.33s)
+    --- PASS: TestApplyInferenceWithPreset/Create_preset_inference_because_inference_workload_did_not_exist (2.35s)
+    --- PASS: TestApplyInferenceWithPreset/Apply_inference_from_existing_workload (1.01s)
+=== RUN   TestApplyInferenceWithTemplate
+=== RUN   TestApplyInferenceWithTemplate/Fail_to_apply_inference_from_workspace_template
+I0424 17:01:37.498511   65462 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+I0424 17:01:37.824165   65462 workspace_status.go:55] "updateStatusCondition" workspace="kaito/testWorkspace" conditionType="InferenceReady" status="False" reason="WorkspaceInferenceStatusFailed" message="Failed to create deployment"
+=== RUN   TestApplyInferenceWithTemplate/Apply_inference_from_workspace_template
+I0424 17:01:37.826136   65462 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+I0424 17:01:38.828287   65462 resources.go:85] "deployment status is ready" deployment="testWorkspace"
+I0424 17:01:38.828387   65462 workspace_status.go:55] "updateStatusCondition" workspace="kaito/testWorkspace" conditionType="InferenceReady" status="True" reason="WorkspaceInferenceStatusSuccess" message="Inference has been deployed successfully"
+--- PASS: TestApplyInferenceWithTemplate (1.33s)
+    --- PASS: TestApplyInferenceWithTemplate/Fail_to_apply_inference_from_workspace_template (0.33s)
+    --- PASS: TestApplyInferenceWithTemplate/Apply_inference_from_workspace_template (1.00s)
+=== RUN   TestGetAllQualifiedNodes
+=== RUN   TestGetAllQualifiedNodes/Fails_to_get_qualified_nodes_because_can't_list_nodes
+=== RUN   TestGetAllQualifiedNodes/Gets_all_qualified_nodes
+=== RUN   TestGetAllQualifiedNodes/Gets_all_qualified_nodes_with_preferred
+--- PASS: TestGetAllQualifiedNodes (0.00s)
+    --- PASS: TestGetAllQualifiedNodes/Fails_to_get_qualified_nodes_because_can't_list_nodes (0.00s)
+    --- PASS: TestGetAllQualifiedNodes/Gets_all_qualified_nodes (0.00s)
+    --- PASS: TestGetAllQualifiedNodes/Gets_all_qualified_nodes_with_preferred (0.00s)
+=== RUN   TestApplyWorkspaceResource
+=== RUN   TestApplyWorkspaceResource/Fail_to_apply_workspace_because_associated_nodeClaim_cannot_be_retrieved
+=== RUN   TestApplyWorkspaceResource/Fail_to_apply_workspace_with_nodeClaims_because_can't_get_qualified_nodes
+I0424 17:01:39.159081   65462 nodeclaim.go:369] "CheckNodeClaimStatus" nodeClaim="testnodeclaim"
+I0424 17:01:40.160721   65462 nodeclaim.go:398] "nodeClaim status is ready" nodeClaim="testnodeclaim"
+=== RUN   TestApplyWorkspaceResource/Successfully_apply_workspace_resource_with_nodeClaim
+I0424 17:01:40.166892   65462 workspace_status.go:55] "updateStatusCondition" workspace="kaito/testWorkspace" conditionType="NodeClaimReady" status="True" reason="installNodePluginsSuccess" message="nodeClaim plugins have been installed successfully"
+I0424 17:01:40.169075   65462 workspace_status.go:75] "updateStatusNodeList" workspace="kaito/testWorkspace"
+I0424 17:01:40.169974   65462 workspace_status.go:55] "updateStatusCondition" workspace="kaito/testWorkspace" conditionType="ResourceReady" status="True" reason="workspaceResourceStatusSuccess" message="workspace resource is ready"
+--- PASS: TestApplyWorkspaceResource (1.34s)
+    --- PASS: TestApplyWorkspaceResource/Fail_to_apply_workspace_because_associated_nodeClaim_cannot_be_retrieved (0.32s)
+    --- PASS: TestApplyWorkspaceResource/Fail_to_apply_workspace_with_nodeClaims_because_can't_get_qualified_nodes (1.00s)
+    --- PASS: TestApplyWorkspaceResource/Successfully_apply_workspace_resource_with_nodeClaim (0.01s)
+=== RUN   TestUpdateControllerRevision1
+=== RUN   TestUpdateControllerRevision1/No_new_revision_needed
+=== RUN   TestUpdateControllerRevision1/Fail_to_create_ControllerRevision
+=== RUN   TestUpdateControllerRevision1/Successfully_create_new_ControllerRevision
+=== RUN   TestUpdateControllerRevision1/Successfully_delete_old_ControllerRevision
+=== RUN   TestUpdateControllerRevision1/Fail_to_update_Workspace_annotations
+--- PASS: TestUpdateControllerRevision1 (0.02s)
+    --- PASS: TestUpdateControllerRevision1/No_new_revision_needed (0.00s)
+    --- PASS: TestUpdateControllerRevision1/Fail_to_create_ControllerRevision (0.00s)
+    --- PASS: TestUpdateControllerRevision1/Successfully_create_new_ControllerRevision (0.00s)
+    --- PASS: TestUpdateControllerRevision1/Successfully_delete_old_ControllerRevision (0.01s)
+    --- PASS: TestUpdateControllerRevision1/Fail_to_update_Workspace_annotations (0.01s)
+=== RUN   TestGarbageCollectWorkspace
+=== RUN   TestGarbageCollectWorkspace/Fails_to_delete_workspace_because_associated_nodeClaims_cannot_be_retrieved
+I0424 17:01:40.192635   65462 workspace_gc_finalizer.go:21] "garbageCollectWorkspace" workspace="kaito/testWorkspace"
+=== RUN   TestGarbageCollectWorkspace/Fails_to_delete_workspace_because_associated_nodeClaims_cannot_be_deleted
+I0424 17:01:40.532860   65462 workspace_gc_finalizer.go:21] "garbageCollectWorkspace" workspace="kaito/testWorkspace"
+I0424 17:01:40.533701   65462 workspace_gc_finalizer.go:32] "Deleting associated NodeClaim..." nodeClaim="testnodeclaim"
+E0424 17:01:40.534050   65462 workspace_gc_finalizer.go:34] "failed to delete the nodeClaim" err="failed to delete nodeClaim" nodeClaim="testnodeclaim"
+=== RUN   TestGarbageCollectWorkspace/Delete_workspace_with_associated_nodeClaim_objects_because_finalizer_cannot_be_removed_from_workspace
+I0424 17:01:40.534838   65462 workspace_gc_finalizer.go:21] "garbageCollectWorkspace" workspace="kaito/testWorkspace"
+I0424 17:01:40.535293   65462 workspace_gc_finalizer.go:32] "Deleting associated NodeClaim..." nodeClaim="testnodeclaim"
+E0424 17:01:40.535792   65462 workspace_gc_finalizer.go:42] "failed to remove the finalizer from the workspace" err="failed to update workspace" workspace="kaito/testWorkspace"
+=== RUN   TestGarbageCollectWorkspace/Successfully_deletes_workspace_with_associated_nodeClaim_objects_and_removes_finalizer_associated_with_workspace
+I0424 17:01:40.537190   65462 workspace_gc_finalizer.go:21] "garbageCollectWorkspace" workspace="kaito/testWorkspace"
+I0424 17:01:40.537959   65462 workspace_gc_finalizer.go:32] "Deleting associated NodeClaim..." nodeClaim="testnodeclaim"
+I0424 17:01:40.538549   65462 workspace_gc_finalizer.go:48] "successfully removed the workspace finalizers" workspace="kaito/testWorkspace"
+=== RUN   TestGarbageCollectWorkspace/Delete_workspace_with_nodeClaim_objects_because_finalizer_cannot_be_removed_from_workspace
+I0424 17:01:40.539203   65462 workspace_gc_finalizer.go:21] "garbageCollectWorkspace" workspace="kaito/testWorkspace"
+I0424 17:01:40.539610   65462 workspace_gc_finalizer.go:32] "Deleting associated NodeClaim..." nodeClaim="testnodeclaim"
+E0424 17:01:40.540168   65462 workspace_gc_finalizer.go:42] "failed to remove the finalizer from the workspace" err="failed to update workspace" workspace="kaito/testWorkspace"
+=== RUN   TestGarbageCollectWorkspace/Successfully_deletes_workspace_with_machine_and_nodeClaim_objects_and_removes_finalizer_associated_with_workspace
+I0424 17:01:40.540937   65462 workspace_gc_finalizer.go:21] "garbageCollectWorkspace" workspace="kaito/testWorkspace"
+I0424 17:01:40.541446   65462 workspace_gc_finalizer.go:32] "Deleting associated NodeClaim..." nodeClaim="testnodeclaim"
+I0424 17:01:40.542098   65462 workspace_gc_finalizer.go:48] "successfully removed the workspace finalizers" workspace="kaito/testWorkspace"
+--- PASS: TestGarbageCollectWorkspace (0.35s)
+    --- PASS: TestGarbageCollectWorkspace/Fails_to_delete_workspace_because_associated_nodeClaims_cannot_be_retrieved (0.34s)
+    --- PASS: TestGarbageCollectWorkspace/Fails_to_delete_workspace_because_associated_nodeClaims_cannot_be_deleted (0.00s)
+    --- PASS: TestGarbageCollectWorkspace/Delete_workspace_with_associated_nodeClaim_objects_because_finalizer_cannot_be_removed_from_workspace (0.00s)
+    --- PASS: TestGarbageCollectWorkspace/Successfully_deletes_workspace_with_associated_nodeClaim_objects_and_removes_finalizer_associated_with_workspace (0.00s)
+    --- PASS: TestGarbageCollectWorkspace/Delete_workspace_with_nodeClaim_objects_because_finalizer_cannot_be_removed_from_workspace (0.00s)
+    --- PASS: TestGarbageCollectWorkspace/Successfully_deletes_workspace_with_machine_and_nodeClaim_objects_and_removes_finalizer_associated_with_workspace (0.00s)
+=== RUN   TestUpdateWorkspaceStatus
+=== RUN   TestUpdateWorkspaceStatus/Should_update_workspace_status_successfully
+=== RUN   TestUpdateWorkspaceStatus/Should_return_error_when_Get_operation_fails
+=== RUN   TestUpdateWorkspaceStatus/Should_return_nil_when_workspace_is_not_found
+--- PASS: TestUpdateWorkspaceStatus (0.00s)
+    --- PASS: TestUpdateWorkspaceStatus/Should_update_workspace_status_successfully (0.00s)
+    --- PASS: TestUpdateWorkspaceStatus/Should_return_error_when_Get_operation_fails (0.00s)
+    --- PASS: TestUpdateWorkspaceStatus/Should_return_nil_when_workspace_is_not_found (0.00s)
+=== RUN   TestUpdateStatusConditionIfNotMatch
+=== RUN   TestUpdateStatusConditionIfNotMatch/Should_not_update_when_condition_matches
+=== RUN   TestUpdateStatusConditionIfNotMatch/Should_update_when_condition_does_not_match
+I0424 17:01:40.546212   65462 workspace_status.go:55] "updateStatusCondition" workspace="kaito/testWorkspace" conditionType="TestCondition" status="True" reason="TestReason" message="TestMessage"
+=== RUN   TestUpdateStatusConditionIfNotMatch/Should_update_when_condition_is_not_found
+I0424 17:01:40.547361   65462 workspace_status.go:55] "updateStatusCondition" workspace="kaito/testWorkspace" conditionType="TestCondition" status="True" reason="TestReason" message="TestMessage"
+--- PASS: TestUpdateStatusConditionIfNotMatch (0.00s)
+    --- PASS: TestUpdateStatusConditionIfNotMatch/Should_not_update_when_condition_matches (0.00s)
+    --- PASS: TestUpdateStatusConditionIfNotMatch/Should_update_when_condition_does_not_match (0.00s)
+    --- PASS: TestUpdateStatusConditionIfNotMatch/Should_update_when_condition_is_not_found (0.00s)
+PASS
+coverage: 49.0% of statements
+ok  	github.com/kaito-project/kaito/pkg/workspace/controllers	14.584s	coverage: 49.0% of statements
+=== RUN   TestImage
+Running Suite: Image Suite - /Users/ernestwong/workspace/kaito/pkg/workspace/image
+==================================================================================
+Random Seed: [1m1745539288[0m
+
+Will run [1m16[0m of [1m16[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m2025/04/24 17:01:28 failed to normalize image reference `^fp4nx7dj`: invalid reference format
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m2025/04/24 17:01:28 failed to normalize image reference `!kvphlp54`: invalid reference format
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 16 of 16 Specs in 0.003 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m16 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+--- PASS: TestImage (0.00s)
+PASS
+coverage: 91.9% of statements
+ok  	github.com/kaito-project/kaito/pkg/workspace/image	2.537s	coverage: 91.9% of statements
+=== RUN   TestCreatePresetInference
+=== RUN   TestCreatePresetInference/test-model/vllm
+I0424 17:01:28.927009   65464 resources.go:145] Default ConfigMap already exists in target namespace: kaito, no action taken.
+I0424 17:01:28.927550   65464 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+=== RUN   TestCreatePresetInference/test-model-no-parallel/vllm
+I0424 17:01:28.928481   65464 resources.go:145] Default ConfigMap already exists in target namespace: kaito, no action taken.
+I0424 17:01:28.928533   65464 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+=== RUN   TestCreatePresetInference/test-model-no-lora-support/vllm
+I0424 17:01:28.929059   65464 resources.go:145] Default ConfigMap already exists in target namespace: kaito, no action taken.
+I0424 17:01:28.929102   65464 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+=== RUN   TestCreatePresetInference/test-model-with-adapters/vllm
+I0424 17:01:28.929580   65464 resources.go:145] Default ConfigMap already exists in target namespace: kaito, no action taken.
+I0424 17:01:28.929744   65464 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+=== RUN   TestCreatePresetInference/test-model/transformers
+I0424 17:01:28.930327   65464 resources.go:145] Default ConfigMap already exists in target namespace: kaito, no action taken.
+I0424 17:01:28.930357   65464 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+=== RUN   TestCreatePresetInference/test-distributed-model/transformers
+I0424 17:01:28.930817   65464 resources.go:145] Default ConfigMap already exists in target namespace: kaito, no action taken.
+I0424 17:01:28.931058   65464 resources.go:26] "CreateStatefulSet" statefulset="kaito/testWorkspace"
+=== RUN   TestCreatePresetInference/test-model-with-adapters
+I0424 17:01:28.931531   65464 resources.go:145] Default ConfigMap already exists in target namespace: kaito, no action taken.
+I0424 17:01:28.931619   65464 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+--- PASS: TestCreatePresetInference (0.01s)
+    --- PASS: TestCreatePresetInference/test-model/vllm (0.00s)
+    --- PASS: TestCreatePresetInference/test-model-no-parallel/vllm (0.00s)
+    --- PASS: TestCreatePresetInference/test-model-no-lora-support/vllm (0.00s)
+    --- PASS: TestCreatePresetInference/test-model-with-adapters/vllm (0.00s)
+    --- PASS: TestCreatePresetInference/test-model/transformers (0.00s)
+    --- PASS: TestCreatePresetInference/test-distributed-model/transformers (0.00s)
+    --- PASS: TestCreatePresetInference/test-model-with-adapters (0.00s)
+=== RUN   TestCreateTemplateInference
+=== RUN   TestCreateTemplateInference/Successfully_creates_template_inference_because_deployment_already_exists
+I0424 17:01:28.932172   65464 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+=== RUN   TestCreateTemplateInference/Successfully_creates_template_inference_by_creating_a_new_deployment
+I0424 17:01:29.270405   65464 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+=== RUN   TestCreateTemplateInference/Fail_to_create_template_inference_because_deployment_creation_fails
+I0424 17:01:29.270672   65464 resources.go:24] "CreateDeployment" deployment="kaito/testWorkspace"
+--- PASS: TestCreateTemplateInference (0.68s)
+    --- PASS: TestCreateTemplateInference/Successfully_creates_template_inference_because_deployment_already_exists (0.34s)
+    --- PASS: TestCreateTemplateInference/Successfully_creates_template_inference_by_creating_a_new_deployment (0.00s)
+    --- PASS: TestCreateTemplateInference/Fail_to_create_template_inference_because_deployment_creation_fails (0.34s)
+PASS
+coverage: 79.8% of statements
+ok  	github.com/kaito-project/kaito/pkg/workspace/inference	3.536s	coverage: 79.8% of statements
+=== RUN   TestGenerateStatefulSetManifest
+=== RUN   TestGenerateStatefulSetManifest/generate_statefulset_with_headlessSvc
+--- PASS: TestGenerateStatefulSetManifest (0.00s)
+    --- PASS: TestGenerateStatefulSetManifest/generate_statefulset_with_headlessSvc (0.00s)
+=== RUN   TestGenerateDeploymentManifest
+=== RUN   TestGenerateDeploymentManifest/generate_deployment
+--- PASS: TestGenerateDeploymentManifest (0.00s)
+    --- PASS: TestGenerateDeploymentManifest/generate_deployment (0.00s)
+=== RUN   TestGenerateDeploymentManifestWithPodTemplate
+=== RUN   TestGenerateDeploymentManifestWithPodTemplate/generate_deployment_with_pod_template
+--- PASS: TestGenerateDeploymentManifestWithPodTemplate (0.00s)
+    --- PASS: TestGenerateDeploymentManifestWithPodTemplate/generate_deployment_with_pod_template (0.00s)
+=== RUN   TestGenerateServiceManifest
+=== RUN   TestGenerateServiceManifest/generate_service,_isStatefulSet_true
+=== RUN   TestGenerateServiceManifest/generate_service,_isStatefulSet_false
+--- PASS: TestGenerateServiceManifest (0.00s)
+    --- PASS: TestGenerateServiceManifest/generate_service,_isStatefulSet_true (0.00s)
+    --- PASS: TestGenerateServiceManifest/generate_service,_isStatefulSet_false (0.00s)
+=== RUN   TestGenerateHeadlessServiceManifest
+=== RUN   TestGenerateHeadlessServiceManifest/generate_headless_service
+--- PASS: TestGenerateHeadlessServiceManifest (0.00s)
+    --- PASS: TestGenerateHeadlessServiceManifest/generate_headless_service (0.00s)
+PASS
+coverage: 69.7% of statements
+ok  	github.com/kaito-project/kaito/pkg/workspace/manifests	3.087s	coverage: 69.7% of statements
+=== RUN   TestGetInstanceGPUCount
+=== RUN   TestGetInstanceGPUCount/SKU_Exists_With_Multiple_GPUs
+=== RUN   TestGetInstanceGPUCount/SKU_Exists_With_One_GPU
+=== RUN   TestGetInstanceGPUCount/SKU_Does_Not_Exist
+--- PASS: TestGetInstanceGPUCount (0.00s)
+    --- PASS: TestGetInstanceGPUCount/SKU_Exists_With_Multiple_GPUs (0.00s)
+    --- PASS: TestGetInstanceGPUCount/SKU_Exists_With_One_GPU (0.00s)
+    --- PASS: TestGetInstanceGPUCount/SKU_Does_Not_Exist (0.00s)
+=== RUN   TestGetTuningImageInfo
+=== RUN   TestGetTuningImageInfo/Valid_Registry_and_Parameters
+=== RUN   TestGetTuningImageInfo/Empty_Registry_Name
+--- PASS: TestGetTuningImageInfo (0.00s)
+    --- PASS: TestGetTuningImageInfo/Valid_Registry_and_Parameters (0.00s)
+    --- PASS: TestGetTuningImageInfo/Empty_Registry_Name (0.00s)
+=== RUN   TestGetDataSrcImageInfo
+=== RUN   TestGetDataSrcImageInfo/No_Image_Pull_Secrets
+=== RUN   TestGetDataSrcImageInfo/Multiple_Image_Pull_Secrets
+--- PASS: TestGetDataSrcImageInfo (0.00s)
+    --- PASS: TestGetDataSrcImageInfo/No_Image_Pull_Secrets (0.00s)
+    --- PASS: TestGetDataSrcImageInfo/Multiple_Image_Pull_Secrets (0.00s)
+=== RUN   TestSetupTrainingOutputVolume
+=== RUN   TestSetupTrainingOutputVolume/Default_Output_Dir
+=== RUN   TestSetupTrainingOutputVolume/Valid_Custom_Output_Dir
+=== RUN   TestSetupTrainingOutputVolume/Output_Dir_already_includes_/mnt
+=== RUN   TestSetupTrainingOutputVolume/Invalid_Output_Dir
+I0424 17:01:29.555509   65467 preset-tuning.go:101] "Invalid output_dir specified: '%s', must be a directory. Using default output_dir: %s" ../../etc/passwd="/mnt/output"
+=== RUN   TestSetupTrainingOutputVolume/No_Output_Dir_Specified
+--- PASS: TestSetupTrainingOutputVolume (0.00s)
+    --- PASS: TestSetupTrainingOutputVolume/Default_Output_Dir (0.00s)
+    --- PASS: TestSetupTrainingOutputVolume/Valid_Custom_Output_Dir (0.00s)
+    --- PASS: TestSetupTrainingOutputVolume/Output_Dir_already_includes_/mnt (0.00s)
+    --- PASS: TestSetupTrainingOutputVolume/Invalid_Output_Dir (0.00s)
+    --- PASS: TestSetupTrainingOutputVolume/No_Output_Dir_Specified (0.00s)
+=== RUN   TestHandleURLDataSource
+=== RUN   TestHandleURLDataSource/Handle_URL_Data_Source
+--- PASS: TestHandleURLDataSource (0.00s)
+    --- PASS: TestHandleURLDataSource/Handle_URL_Data_Source (0.00s)
+=== RUN   TestPrepareTuningParameters
+=== RUN   TestPrepareTuningParameters/Basic_Tuning_Parameters_Setup
+--- PASS: TestPrepareTuningParameters (0.00s)
+    --- PASS: TestPrepareTuningParameters/Basic_Tuning_Parameters_Setup (0.00s)
+=== RUN   TestPrepareDataDestination_ImageDestination
+--- PASS: TestPrepareDataDestination_ImageDestination (0.00s)
+=== RUN   TestPrepareDataSource_ImageSource
+--- PASS: TestPrepareDataSource_ImageSource (0.00s)
+PASS
+coverage: 46.4% of statements
+ok  	github.com/kaito-project/kaito/pkg/workspace/tuning	3.181s	coverage: 46.4% of statements
+	github.com/kaito-project/kaito/pkg/workspace/webhooks		coverage: 0.0% of statements
+=== RUN   TestRAGEngineValidateCreate
+=== RUN   TestRAGEngineValidateCreate/Both_Local_and_Remote_Embedding_specified
+=== RUN   TestRAGEngineValidateCreate/Embedding_not_specified
+=== RUN   TestRAGEngineValidateCreate/None_of_Local_and_Remote_Embedding_specified
+=== RUN   TestRAGEngineValidateCreate/Only_Local_Embedding_specified
+=== RUN   TestRAGEngineValidateCreate/Only_Remote_Embedding_specified
+--- PASS: TestRAGEngineValidateCreate (0.00s)
+    --- PASS: TestRAGEngineValidateCreate/Both_Local_and_Remote_Embedding_specified (0.00s)
+    --- PASS: TestRAGEngineValidateCreate/Embedding_not_specified (0.00s)
+    --- PASS: TestRAGEngineValidateCreate/None_of_Local_and_Remote_Embedding_specified (0.00s)
+    --- PASS: TestRAGEngineValidateCreate/Only_Local_Embedding_specified (0.00s)
+    --- PASS: TestRAGEngineValidateCreate/Only_Remote_Embedding_specified (0.00s)
+=== RUN   TestLocalEmbeddingValidateCreate
+=== RUN   TestLocalEmbeddingValidateCreate/Neither_Image_nor_ModelID_specified
+=== RUN   TestLocalEmbeddingValidateCreate/Both_Image_and_ModelID_specified
+=== RUN   TestLocalEmbeddingValidateCreate/Invalid_Image_Format
+=== RUN   TestLocalEmbeddingValidateCreate/Valid_Image_Specified
+=== RUN   TestLocalEmbeddingValidateCreate/Valid_ModelID_Specified
+--- PASS: TestLocalEmbeddingValidateCreate (0.00s)
+    --- PASS: TestLocalEmbeddingValidateCreate/Neither_Image_nor_ModelID_specified (0.00s)
+    --- PASS: TestLocalEmbeddingValidateCreate/Both_Image_and_ModelID_specified (0.00s)
+    --- PASS: TestLocalEmbeddingValidateCreate/Invalid_Image_Format (0.00s)
+    --- PASS: TestLocalEmbeddingValidateCreate/Valid_Image_Specified (0.00s)
+    --- PASS: TestLocalEmbeddingValidateCreate/Valid_ModelID_Specified (0.00s)
+=== RUN   TestRemoteEmbeddingValidateCreate
+=== RUN   TestRemoteEmbeddingValidateCreate/Invalid_URL_Specified
+=== RUN   TestRemoteEmbeddingValidateCreate/Valid_URL_Specified
+--- PASS: TestRemoteEmbeddingValidateCreate (0.00s)
+    --- PASS: TestRemoteEmbeddingValidateCreate/Invalid_URL_Specified (0.00s)
+    --- PASS: TestRemoteEmbeddingValidateCreate/Valid_URL_Specified (0.00s)
+=== RUN   TestInferenceServiceValidateCreate
+=== RUN   TestInferenceServiceValidateCreate/Invalid_URL_Specified
+=== RUN   TestInferenceServiceValidateCreate/Valid_URL_Specified
+--- PASS: TestInferenceServiceValidateCreate (0.00s)
+    --- PASS: TestInferenceServiceValidateCreate/Invalid_URL_Specified (0.00s)
+    --- PASS: TestInferenceServiceValidateCreate/Valid_URL_Specified (0.00s)
+=== RUN   TestResourceSpecValidateCreate
+=== RUN   TestResourceSpecValidateCreate/Valid_Resource
+=== RUN   TestResourceSpecValidateCreate/Valid_Resource_-_SKU_Capacity_==_Model_Requirement
+=== RUN   TestResourceSpecValidateCreate/Insufficient_total_GPU_memory
+=== RUN   TestResourceSpecValidateCreate/Insufficient_number_of_GPUs
+=== RUN   TestResourceSpecValidateCreate/Insufficient_per_GPU_memory
+=== RUN   TestResourceSpecValidateCreate/Invalid_SKU
+=== RUN   TestResourceSpecValidateCreate/Only_Template_set
+=== RUN   TestResourceSpecValidateCreate/N-Prefix_SKU
+=== RUN   TestResourceSpecValidateCreate/D-Prefix_SKU
+=== RUN   TestResourceSpecValidateCreate/Tuning_validation_with_single_node
+=== RUN   TestResourceSpecValidateCreate/Tuning_validation_with_multinode
+=== RUN   TestResourceSpecValidateCreate/Invalid_Preset_Name
+--- PASS: TestResourceSpecValidateCreate (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Valid_Resource (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Valid_Resource_-_SKU_Capacity_==_Model_Requirement (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Insufficient_total_GPU_memory (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Insufficient_number_of_GPUs (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Insufficient_per_GPU_memory (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Invalid_SKU (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Only_Template_set (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/N-Prefix_SKU (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/D-Prefix_SKU (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Tuning_validation_with_single_node (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Tuning_validation_with_multinode (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Invalid_Preset_Name (0.00s)
+=== RUN   TestResourceSpecValidateUpdate
+=== RUN   TestResourceSpecValidateUpdate/Immutable_Count
+=== RUN   TestResourceSpecValidateUpdate/Immutable_InstanceType
+=== RUN   TestResourceSpecValidateUpdate/Immutable_LabelSelector
+=== RUN   TestResourceSpecValidateUpdate/Valid_Update
+--- PASS: TestResourceSpecValidateUpdate (0.00s)
+    --- PASS: TestResourceSpecValidateUpdate/Immutable_Count (0.00s)
+    --- PASS: TestResourceSpecValidateUpdate/Immutable_InstanceType (0.00s)
+    --- PASS: TestResourceSpecValidateUpdate/Immutable_LabelSelector (0.00s)
+    --- PASS: TestResourceSpecValidateUpdate/Valid_Update (0.00s)
+=== RUN   TestInferenceSpecValidateCreate
+=== RUN   TestInferenceSpecValidateCreate/Invalid_Preset_Name
+=== RUN   TestInferenceSpecValidateCreate/Only_Template_set
+I0424 17:01:29.842487   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Preset_and_Template_Unset
+I0424 17:01:29.843286   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Preset_and_Template_Set
+I0424 17:01:29.843564   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Private_Access_Without_Image
+I0424 17:01:29.843809   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Private_Preset_With_Public_AccessMode
+I0424 17:01:29.844059   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Adapeters_more_than_10
+I0424 17:01:29.844316   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Valid_with_adapters/vllm
+I0424 17:01:29.844574   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Valid_with_adapters/transformers
+=== RUN   TestInferenceSpecValidateCreate/Adapters_with_strength/vllm
+I0424 17:01:29.844863   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Adapters_names_are_duplicated
+I0424 17:01:29.845116   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Valid_Preset
+I0424 17:01:29.845350   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Config_specified_but_ConfigMap_not_found
+=== RUN   TestInferenceSpecValidateCreate/Config_specified_with_valid_ConfigMap
+=== RUN   TestInferenceSpecValidateCreate/ConfigMap_missing_required_inference_config.yaml
+=== RUN   TestInferenceSpecValidateCreate/ConfigMap_missing_required_inference_config.yaml/transformers
+--- PASS: TestInferenceSpecValidateCreate (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Invalid_Preset_Name (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Only_Template_set (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Preset_and_Template_Unset (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Preset_and_Template_Set (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Private_Access_Without_Image (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Private_Preset_With_Public_AccessMode (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Adapeters_more_than_10 (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Valid_with_adapters/vllm (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Valid_with_adapters/transformers (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Adapters_with_strength/vllm (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Adapters_names_are_duplicated (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Valid_Preset (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Config_specified_but_ConfigMap_not_found (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Config_specified_with_valid_ConfigMap (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/ConfigMap_missing_required_inference_config.yaml (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/ConfigMap_missing_required_inference_config.yaml/transformers (0.00s)
+=== RUN   TestAdapterSpecValidateCreateorUpdate
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Missing_Source
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Missing_Source_Name
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Invalid_Strength,_not_a_number
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Invalid_Strength,_larger_than_1
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Invalid_Source_Name,_longer_than_253
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Valid_Adapter
+--- PASS: TestAdapterSpecValidateCreateorUpdate (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Missing_Source (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Missing_Source_Name (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Invalid_Strength,_not_a_number (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Invalid_Strength,_larger_than_1 (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Invalid_Source_Name,_longer_than_253 (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Valid_Adapter (0.00s)
+=== RUN   TestInferenceSpecValidateUpdate
+=== RUN   TestInferenceSpecValidateUpdate/Preset_Immutable
+=== RUN   TestInferenceSpecValidateUpdate/Template_Unset
+=== RUN   TestInferenceSpecValidateUpdate/Template_Set
+=== RUN   TestInferenceSpecValidateUpdate/Template_Set#01
+=== RUN   TestInferenceSpecValidateUpdate/Valid_Update
+--- PASS: TestInferenceSpecValidateUpdate (0.00s)
+    --- PASS: TestInferenceSpecValidateUpdate/Preset_Immutable (0.00s)
+    --- PASS: TestInferenceSpecValidateUpdate/Template_Unset (0.00s)
+    --- PASS: TestInferenceSpecValidateUpdate/Template_Set (0.00s)
+    --- PASS: TestInferenceSpecValidateUpdate/Template_Set#01 (0.00s)
+    --- PASS: TestInferenceSpecValidateUpdate/Valid_Update (0.00s)
+=== RUN   TestWorkspaceValidateCreate
+=== RUN   TestWorkspaceValidateCreate/Neither_Inference_nor_Tuning_specified
+=== RUN   TestWorkspaceValidateCreate/Both_Inference_and_Tuning_specified
+=== RUN   TestWorkspaceValidateCreate/Only_Inference_specified
+=== RUN   TestWorkspaceValidateCreate/Only_Tuning_specified
+--- PASS: TestWorkspaceValidateCreate (0.00s)
+    --- PASS: TestWorkspaceValidateCreate/Neither_Inference_nor_Tuning_specified (0.00s)
+    --- PASS: TestWorkspaceValidateCreate/Both_Inference_and_Tuning_specified (0.00s)
+    --- PASS: TestWorkspaceValidateCreate/Only_Inference_specified (0.00s)
+    --- PASS: TestWorkspaceValidateCreate/Only_Tuning_specified (0.00s)
+=== RUN   TestWorkspaceValidateName
+=== RUN   TestWorkspaceValidateName/Valid_name
+I0424 17:01:29.847729   65474 workspace_validation.go:52] "Validate creation" workspace="kaito/valid-name"
+I0424 17:01:29.847759   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestWorkspaceValidateName/Name_with_invalid_characters
+I0424 17:01:29.848038   65474 workspace_validation.go:52] "Validate creation" workspace="kaito/phi-3.5-mini"
+I0424 17:01:29.848061   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestWorkspaceValidateName/Name_start_with_invalid_character
+I0424 17:01:29.848312   65474 workspace_validation.go:52] "Validate creation" workspace="kaito/-mini"
+I0424 17:01:29.848334   65474 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+--- PASS: TestWorkspaceValidateName (0.00s)
+    --- PASS: TestWorkspaceValidateName/Valid_name (0.00s)
+    --- PASS: TestWorkspaceValidateName/Name_with_invalid_characters (0.00s)
+    --- PASS: TestWorkspaceValidateName/Name_start_with_invalid_character (0.00s)
+=== RUN   TestWorkspaceValidateUpdate
+=== RUN   TestWorkspaceValidateUpdate/Inference_toggled_on
+=== RUN   TestWorkspaceValidateUpdate/Inference_toggled_off
+=== RUN   TestWorkspaceValidateUpdate/Tuning_toggled_on
+=== RUN   TestWorkspaceValidateUpdate/Tuning_toggled_off
+=== RUN   TestWorkspaceValidateUpdate/No_toggling
+--- PASS: TestWorkspaceValidateUpdate (0.00s)
+    --- PASS: TestWorkspaceValidateUpdate/Inference_toggled_on (0.00s)
+    --- PASS: TestWorkspaceValidateUpdate/Inference_toggled_off (0.00s)
+    --- PASS: TestWorkspaceValidateUpdate/Tuning_toggled_on (0.00s)
+    --- PASS: TestWorkspaceValidateUpdate/Tuning_toggled_off (0.00s)
+    --- PASS: TestWorkspaceValidateUpdate/No_toggling (0.00s)
+=== RUN   TestTuningSpecValidateCreate
+=== RUN   TestTuningSpecValidateCreate/All_fields_valid
+I0424 17:01:29.849128   65474 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Verify_QLoRA_Config
+I0424 17:01:29.850810   65474 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Missing_Input
+I0424 17:01:29.852666   65474 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Missing_Output
+I0424 17:01:29.854277   65474 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Missing_Preset
+I0424 17:01:29.855835   65474 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Invalid_Preset
+I0424 17:01:29.857381   65474 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Invalid_Method
+I0424 17:01:29.859153   65474 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+=== RUN   TestTuningSpecValidateCreate/Invalid_Input_Source_Casing
+I0424 17:01:29.859331   65474 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Invalid_Output_Destination_Casing
+I0424 17:01:29.860835   65474 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+--- PASS: TestTuningSpecValidateCreate (0.01s)
+    --- PASS: TestTuningSpecValidateCreate/All_fields_valid (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Verify_QLoRA_Config (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Missing_Input (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Missing_Output (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Missing_Preset (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Invalid_Preset (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Invalid_Method (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Invalid_Input_Source_Casing (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Invalid_Output_Destination_Casing (0.00s)
+=== RUN   TestTuningSpecValidateUpdate
+=== RUN   TestTuningSpecValidateUpdate/No_changes
+=== RUN   TestTuningSpecValidateUpdate/Preset_changed
+=== RUN   TestTuningSpecValidateUpdate/Method_changed
+--- PASS: TestTuningSpecValidateUpdate (0.00s)
+    --- PASS: TestTuningSpecValidateUpdate/No_changes (0.00s)
+    --- PASS: TestTuningSpecValidateUpdate/Preset_changed (0.00s)
+    --- PASS: TestTuningSpecValidateUpdate/Method_changed (0.00s)
+=== RUN   TestDataSourceValidateCreate
+=== RUN   TestDataSourceValidateCreate/URLs_specified_only
+=== RUN   TestDataSourceValidateCreate/Volume_specified_only
+=== RUN   TestDataSourceValidateCreate/Image_specified_only
+=== RUN   TestDataSourceValidateCreate/Image_without_URL_Specified
+=== RUN   TestDataSourceValidateCreate/Image_without_Tag_Specified
+=== RUN   TestDataSourceValidateCreate/Invalid_image
+=== RUN   TestDataSourceValidateCreate/None_specified
+=== RUN   TestDataSourceValidateCreate/All_fields_specified
+--- PASS: TestDataSourceValidateCreate (0.00s)
+    --- PASS: TestDataSourceValidateCreate/URLs_specified_only (0.00s)
+    --- PASS: TestDataSourceValidateCreate/Volume_specified_only (0.00s)
+    --- PASS: TestDataSourceValidateCreate/Image_specified_only (0.00s)
+    --- PASS: TestDataSourceValidateCreate/Image_without_URL_Specified (0.00s)
+    --- PASS: TestDataSourceValidateCreate/Image_without_Tag_Specified (0.00s)
+    --- PASS: TestDataSourceValidateCreate/Invalid_image (0.00s)
+    --- PASS: TestDataSourceValidateCreate/None_specified (0.00s)
+    --- PASS: TestDataSourceValidateCreate/All_fields_specified (0.00s)
+=== RUN   TestDataSourceValidateUpdate
+=== RUN   TestDataSourceValidateUpdate/No_changes
+=== RUN   TestDataSourceValidateUpdate/Name_changed
+=== RUN   TestDataSourceValidateUpdate/Invalid_image
+--- PASS: TestDataSourceValidateUpdate (0.00s)
+    --- PASS: TestDataSourceValidateUpdate/No_changes (0.00s)
+    --- PASS: TestDataSourceValidateUpdate/Name_changed (0.00s)
+    --- PASS: TestDataSourceValidateUpdate/Invalid_image (0.00s)
+=== RUN   TestDataDestinationValidateCreate
+=== RUN   TestDataDestinationValidateCreate/No_fields_specified
+=== RUN   TestDataDestinationValidateCreate/Image_specified_only
+=== RUN   TestDataDestinationValidateCreate/Image_without_URL_Specified
+=== RUN   TestDataDestinationValidateCreate/Image_without_Tag_Specified
+=== RUN   TestDataDestinationValidateCreate/Invalid_image
+--- PASS: TestDataDestinationValidateCreate (0.00s)
+    --- PASS: TestDataDestinationValidateCreate/No_fields_specified (0.00s)
+    --- PASS: TestDataDestinationValidateCreate/Image_specified_only (0.00s)
+    --- PASS: TestDataDestinationValidateCreate/Image_without_URL_Specified (0.00s)
+    --- PASS: TestDataDestinationValidateCreate/Image_without_Tag_Specified (0.00s)
+    --- PASS: TestDataDestinationValidateCreate/Invalid_image (0.00s)
+=== RUN   TestDataDestinationValidateUpdate
+=== RUN   TestDataDestinationValidateUpdate/No_changes
+=== RUN   TestDataDestinationValidateUpdate/Invalid_image
+--- PASS: TestDataDestinationValidateUpdate (0.00s)
+    --- PASS: TestDataDestinationValidateUpdate/No_changes (0.00s)
+    --- PASS: TestDataDestinationValidateUpdate/Invalid_image (0.00s)
+=== RUN   TestInferenceConfigMapValidation
+=== RUN   TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_max-model-len_set
+=== RUN   TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_max-model-len_missing
+=== RUN   TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_empty_vllm_section
+=== RUN   TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_vllm_section_missing
+=== RUN   TestInferenceConfigMapValidation/Single-GPU_instance_(no_max-model-len_required)
+=== RUN   TestInferenceConfigMapValidation/Multi-GPU_with_>=20GB_per_GPU_(no_max-model-len_required)
+--- PASS: TestInferenceConfigMapValidation (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_max-model-len_set (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_max-model-len_missing (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_empty_vllm_section (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_vllm_section_missing (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Single-GPU_instance_(no_max-model-len_required) (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Multi-GPU_with_>=20GB_per_GPU_(no_max-model-len_required) (0.00s)
+PASS
+coverage: 51.8% of statements
+ok  	github.com/kaito-project/kaito/api/v1alpha1	2.529s	coverage: 51.8% of statements
+=== RUN   TestResourceSpecValidateCreate
+=== RUN   TestResourceSpecValidateCreate/Valid_Resource
+=== RUN   TestResourceSpecValidateCreate/Valid_Resource_-_SKU_Capacity_==_Model_Requirement
+=== RUN   TestResourceSpecValidateCreate/Insufficient_total_GPU_memory
+=== RUN   TestResourceSpecValidateCreate/Insufficient_number_of_GPUs
+=== RUN   TestResourceSpecValidateCreate/Insufficient_per_GPU_memory
+=== RUN   TestResourceSpecValidateCreate/Invalid_SKU
+=== RUN   TestResourceSpecValidateCreate/Only_Template_set
+=== RUN   TestResourceSpecValidateCreate/N-Prefix_SKU
+=== RUN   TestResourceSpecValidateCreate/D-Prefix_SKU
+=== RUN   TestResourceSpecValidateCreate/Tuning_validation_with_single_node
+=== RUN   TestResourceSpecValidateCreate/Tuning_validation_with_multinode
+=== RUN   TestResourceSpecValidateCreate/Invalid_Preset_Name
+--- PASS: TestResourceSpecValidateCreate (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Valid_Resource (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Valid_Resource_-_SKU_Capacity_==_Model_Requirement (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Insufficient_total_GPU_memory (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Insufficient_number_of_GPUs (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Insufficient_per_GPU_memory (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Invalid_SKU (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Only_Template_set (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/N-Prefix_SKU (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/D-Prefix_SKU (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Tuning_validation_with_single_node (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Tuning_validation_with_multinode (0.00s)
+    --- PASS: TestResourceSpecValidateCreate/Invalid_Preset_Name (0.00s)
+=== RUN   TestResourceSpecValidateUpdate
+=== RUN   TestResourceSpecValidateUpdate/Immutable_Count
+=== RUN   TestResourceSpecValidateUpdate/Immutable_InstanceType
+=== RUN   TestResourceSpecValidateUpdate/Immutable_LabelSelector
+=== RUN   TestResourceSpecValidateUpdate/Valid_Update
+--- PASS: TestResourceSpecValidateUpdate (0.00s)
+    --- PASS: TestResourceSpecValidateUpdate/Immutable_Count (0.00s)
+    --- PASS: TestResourceSpecValidateUpdate/Immutable_InstanceType (0.00s)
+    --- PASS: TestResourceSpecValidateUpdate/Immutable_LabelSelector (0.00s)
+    --- PASS: TestResourceSpecValidateUpdate/Valid_Update (0.00s)
+=== RUN   TestInferenceSpecValidateCreate
+=== RUN   TestInferenceSpecValidateCreate/Invalid_Preset_Name
+=== RUN   TestInferenceSpecValidateCreate/Only_Template_set
+I0424 17:01:30.096497   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Preset_and_Template_Unset
+I0424 17:01:30.097270   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Preset_and_Template_Set
+I0424 17:01:30.097576   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Private_Access_Without_Image
+I0424 17:01:30.097847   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Private_Preset_With_Public_AccessMode
+I0424 17:01:30.098093   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Adapeters_more_than_10
+I0424 17:01:30.098352   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Valid_with_adapters/vllm
+I0424 17:01:30.098594   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Valid_with_adapters/transformers
+=== RUN   TestInferenceSpecValidateCreate/Adapters_with_strength/vllm
+I0424 17:01:30.098879   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Adapters_names_are_duplicated
+I0424 17:01:30.099538   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Valid_Preset
+I0424 17:01:30.099841   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestInferenceSpecValidateCreate/Config_specified_but_ConfigMap_not_found
+=== RUN   TestInferenceSpecValidateCreate/Config_specified_with_valid_ConfigMap
+=== RUN   TestInferenceSpecValidateCreate/ConfigMap_missing_required_inference_config.yaml
+=== RUN   TestInferenceSpecValidateCreate/ConfigMap_missing_required_inference_config.yaml/transformers
+--- PASS: TestInferenceSpecValidateCreate (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Invalid_Preset_Name (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Only_Template_set (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Preset_and_Template_Unset (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Preset_and_Template_Set (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Private_Access_Without_Image (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Private_Preset_With_Public_AccessMode (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Adapeters_more_than_10 (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Valid_with_adapters/vllm (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Valid_with_adapters/transformers (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Adapters_with_strength/vllm (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Adapters_names_are_duplicated (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Valid_Preset (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Config_specified_but_ConfigMap_not_found (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/Config_specified_with_valid_ConfigMap (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/ConfigMap_missing_required_inference_config.yaml (0.00s)
+    --- PASS: TestInferenceSpecValidateCreate/ConfigMap_missing_required_inference_config.yaml/transformers (0.00s)
+=== RUN   TestAdapterSpecValidateCreateorUpdate
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Missing_Source
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Missing_Source_Name
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Invalid_Strength,_not_a_number
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Invalid_Strength,_larger_than_1
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Invalid_Source_Name,_longer_than_253
+=== RUN   TestAdapterSpecValidateCreateorUpdate/Valid_Adapter
+--- PASS: TestAdapterSpecValidateCreateorUpdate (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Missing_Source (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Missing_Source_Name (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Invalid_Strength,_not_a_number (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Invalid_Strength,_larger_than_1 (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Invalid_Source_Name,_longer_than_253 (0.00s)
+    --- PASS: TestAdapterSpecValidateCreateorUpdate/Valid_Adapter (0.00s)
+=== RUN   TestInferenceSpecValidateUpdate
+=== RUN   TestInferenceSpecValidateUpdate/Preset_Immutable
+=== RUN   TestInferenceSpecValidateUpdate/Template_Unset
+=== RUN   TestInferenceSpecValidateUpdate/Template_Set
+=== RUN   TestInferenceSpecValidateUpdate/Template_Set#01
+=== RUN   TestInferenceSpecValidateUpdate/Valid_Update
+--- PASS: TestInferenceSpecValidateUpdate (0.00s)
+    --- PASS: TestInferenceSpecValidateUpdate/Preset_Immutable (0.00s)
+    --- PASS: TestInferenceSpecValidateUpdate/Template_Unset (0.00s)
+    --- PASS: TestInferenceSpecValidateUpdate/Template_Set (0.00s)
+    --- PASS: TestInferenceSpecValidateUpdate/Template_Set#01 (0.00s)
+    --- PASS: TestInferenceSpecValidateUpdate/Valid_Update (0.00s)
+=== RUN   TestWorkspaceValidateCreate
+=== RUN   TestWorkspaceValidateCreate/Neither_Inference_nor_Tuning_specified
+=== RUN   TestWorkspaceValidateCreate/Both_Inference_and_Tuning_specified
+=== RUN   TestWorkspaceValidateCreate/Only_Inference_specified
+=== RUN   TestWorkspaceValidateCreate/Only_Tuning_specified
+--- PASS: TestWorkspaceValidateCreate (0.00s)
+    --- PASS: TestWorkspaceValidateCreate/Neither_Inference_nor_Tuning_specified (0.00s)
+    --- PASS: TestWorkspaceValidateCreate/Both_Inference_and_Tuning_specified (0.00s)
+    --- PASS: TestWorkspaceValidateCreate/Only_Inference_specified (0.00s)
+    --- PASS: TestWorkspaceValidateCreate/Only_Tuning_specified (0.00s)
+=== RUN   TestWorkspaceValidateName
+=== RUN   TestWorkspaceValidateName/Valid_name
+I0424 17:01:30.101938   65476 workspace_validation.go:52] "Validate creation" workspace="kaito/valid-name"
+I0424 17:01:30.101968   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestWorkspaceValidateName/Name_with_invalid_characters
+I0424 17:01:30.102219   65476 workspace_validation.go:52] "Validate creation" workspace="kaito/phi-3.5-mini"
+I0424 17:01:30.102246   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+=== RUN   TestWorkspaceValidateName/Name_start_with_invalid_character
+I0424 17:01:30.102527   65476 workspace_validation.go:52] "Validate creation" workspace="kaito/-mini"
+I0424 17:01:30.102554   65476 workspace_validation.go:487] Inference config not specified. Using default: "inference-params-template"
+--- PASS: TestWorkspaceValidateName (0.00s)
+    --- PASS: TestWorkspaceValidateName/Valid_name (0.00s)
+    --- PASS: TestWorkspaceValidateName/Name_with_invalid_characters (0.00s)
+    --- PASS: TestWorkspaceValidateName/Name_start_with_invalid_character (0.00s)
+=== RUN   TestWorkspaceValidateUpdate
+=== RUN   TestWorkspaceValidateUpdate/Inference_toggled_on
+=== RUN   TestWorkspaceValidateUpdate/Inference_toggled_off
+=== RUN   TestWorkspaceValidateUpdate/Tuning_toggled_on
+=== RUN   TestWorkspaceValidateUpdate/Tuning_toggled_off
+=== RUN   TestWorkspaceValidateUpdate/No_toggling
+--- PASS: TestWorkspaceValidateUpdate (0.00s)
+    --- PASS: TestWorkspaceValidateUpdate/Inference_toggled_on (0.00s)
+    --- PASS: TestWorkspaceValidateUpdate/Inference_toggled_off (0.00s)
+    --- PASS: TestWorkspaceValidateUpdate/Tuning_toggled_on (0.00s)
+    --- PASS: TestWorkspaceValidateUpdate/Tuning_toggled_off (0.00s)
+    --- PASS: TestWorkspaceValidateUpdate/No_toggling (0.00s)
+=== RUN   TestTuningSpecValidateCreate
+=== RUN   TestTuningSpecValidateCreate/All_fields_valid
+I0424 17:01:30.103366   65476 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Verify_QLoRA_Config
+I0424 17:01:30.104977   65476 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Missing_Input
+I0424 17:01:30.106737   65476 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Missing_Output
+I0424 17:01:30.108210   65476 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Missing_Preset
+I0424 17:01:30.109755   65476 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Invalid_Preset
+I0424 17:01:30.111265   65476 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Invalid_Method
+I0424 17:01:30.112756   65476 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+=== RUN   TestTuningSpecValidateCreate/Invalid_Input_Source_Casing
+I0424 17:01:30.112903   65476 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+=== RUN   TestTuningSpecValidateCreate/Invalid_Output_Destination_Casing
+I0424 17:01:30.114374   65476 workspace_validation.go:147] "Tuning config not specified. Using default based on method."
+{[97 117 116 111 95 102 105 110 100 95 98 97 116 99 104 95 115 105 122 101 58 32 116 114 117 101 10 100 100 112 95 102 105 110 100 95 117 110 117 115 101 100 95 112 97 114 97 109 101 116 101 114 115 58 32 102 97 108 115 101 10 110 117 109 95 116 114 97 105 110 95 101 112 111 99 104 115 58 32 52 10 111 117 116 112 117 116 95 100 105 114 58 32 111 117 116 112 117 116 10 115 97 118 101 95 115 116 114 97 116 101 103 121 58 32 101 112 111 99 104 10] <nil>}
+--- PASS: TestTuningSpecValidateCreate (0.01s)
+    --- PASS: TestTuningSpecValidateCreate/All_fields_valid (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Verify_QLoRA_Config (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Missing_Input (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Missing_Output (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Missing_Preset (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Invalid_Preset (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Invalid_Method (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Invalid_Input_Source_Casing (0.00s)
+    --- PASS: TestTuningSpecValidateCreate/Invalid_Output_Destination_Casing (0.00s)
+=== RUN   TestTuningSpecValidateUpdate
+=== RUN   TestTuningSpecValidateUpdate/No_changes
+=== RUN   TestTuningSpecValidateUpdate/Preset_changed
+=== RUN   TestTuningSpecValidateUpdate/Method_changed
+--- PASS: TestTuningSpecValidateUpdate (0.00s)
+    --- PASS: TestTuningSpecValidateUpdate/No_changes (0.00s)
+    --- PASS: TestTuningSpecValidateUpdate/Preset_changed (0.00s)
+    --- PASS: TestTuningSpecValidateUpdate/Method_changed (0.00s)
+=== RUN   TestDataSourceValidateCreate
+=== RUN   TestDataSourceValidateCreate/URLs_specified_only
+=== RUN   TestDataSourceValidateCreate/Volume_specified_only
+=== RUN   TestDataSourceValidateCreate/Image_specified_only
+=== RUN   TestDataSourceValidateCreate/Image_without_URL_Specified
+=== RUN   TestDataSourceValidateCreate/Image_without_Tag_Specified
+=== RUN   TestDataSourceValidateCreate/Invalid_image
+=== RUN   TestDataSourceValidateCreate/None_specified
+=== RUN   TestDataSourceValidateCreate/All_fields_specified
+--- PASS: TestDataSourceValidateCreate (0.00s)
+    --- PASS: TestDataSourceValidateCreate/URLs_specified_only (0.00s)
+    --- PASS: TestDataSourceValidateCreate/Volume_specified_only (0.00s)
+    --- PASS: TestDataSourceValidateCreate/Image_specified_only (0.00s)
+    --- PASS: TestDataSourceValidateCreate/Image_without_URL_Specified (0.00s)
+    --- PASS: TestDataSourceValidateCreate/Image_without_Tag_Specified (0.00s)
+    --- PASS: TestDataSourceValidateCreate/Invalid_image (0.00s)
+    --- PASS: TestDataSourceValidateCreate/None_specified (0.00s)
+    --- PASS: TestDataSourceValidateCreate/All_fields_specified (0.00s)
+=== RUN   TestDataSourceValidateUpdate
+=== RUN   TestDataSourceValidateUpdate/No_changes
+=== RUN   TestDataSourceValidateUpdate/Name_changed
+=== RUN   TestDataSourceValidateUpdate/Invalid_image
+--- PASS: TestDataSourceValidateUpdate (0.00s)
+    --- PASS: TestDataSourceValidateUpdate/No_changes (0.00s)
+    --- PASS: TestDataSourceValidateUpdate/Name_changed (0.00s)
+    --- PASS: TestDataSourceValidateUpdate/Invalid_image (0.00s)
+=== RUN   TestDataDestinationValidateCreate
+=== RUN   TestDataDestinationValidateCreate/No_fields_specified
+=== RUN   TestDataDestinationValidateCreate/Image_specified_only
+=== RUN   TestDataDestinationValidateCreate/Image_without_URL_Specified
+=== RUN   TestDataDestinationValidateCreate/Image_without_Tag_Specified
+=== RUN   TestDataDestinationValidateCreate/Invalid_image
+--- PASS: TestDataDestinationValidateCreate (0.00s)
+    --- PASS: TestDataDestinationValidateCreate/No_fields_specified (0.00s)
+    --- PASS: TestDataDestinationValidateCreate/Image_specified_only (0.00s)
+    --- PASS: TestDataDestinationValidateCreate/Image_without_URL_Specified (0.00s)
+    --- PASS: TestDataDestinationValidateCreate/Image_without_Tag_Specified (0.00s)
+    --- PASS: TestDataDestinationValidateCreate/Invalid_image (0.00s)
+=== RUN   TestDataDestinationValidateUpdate
+=== RUN   TestDataDestinationValidateUpdate/No_changes
+=== RUN   TestDataDestinationValidateUpdate/Invalid_image
+--- PASS: TestDataDestinationValidateUpdate (0.00s)
+    --- PASS: TestDataDestinationValidateUpdate/No_changes (0.00s)
+    --- PASS: TestDataDestinationValidateUpdate/Invalid_image (0.00s)
+=== RUN   TestInferenceConfigMapValidation
+=== RUN   TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_max-model-len_set
+=== RUN   TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_max-model-len_missing
+=== RUN   TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_empty_vllm_section
+=== RUN   TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_vllm_section_missing
+=== RUN   TestInferenceConfigMapValidation/Single-GPU_instance_(no_max-model-len_required)
+=== RUN   TestInferenceConfigMapValidation/Multi-GPU_with_>=20GB_per_GPU_(no_max-model-len_required)
+--- PASS: TestInferenceConfigMapValidation (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_max-model-len_set (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_max-model-len_missing (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_empty_vllm_section (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Multi-GPU_with_<20GB_per_GPU_and_vllm_section_missing (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Single-GPU_instance_(no_max-model-len_required) (0.00s)
+    --- PASS: TestInferenceConfigMapValidation/Multi-GPU_with_>=20GB_per_GPU_(no_max-model-len_required) (0.00s)
+PASS
+coverage: 58.8% of statements
+ok  	github.com/kaito-project/kaito/api/v1beta1	2.460s	coverage: 58.8% of statements
+FAIL

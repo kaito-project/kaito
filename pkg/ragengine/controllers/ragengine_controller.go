@@ -558,6 +558,14 @@ func (c *RAGEngineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		}); err != nil {
 		return err
 	}
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Node{},
+		"metadata.name", func(rawObj client.Object) []string {
+			node := rawObj.(*corev1.Node)
+			return []string{node.Name}
+		}); err != nil {
+		return err
+	}
+
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1alpha1.RAGEngine{}).
 		Owns(&appsv1.ControllerRevision{}).

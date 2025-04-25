@@ -1,7 +1,7 @@
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
-  name: workspace-qwen-2.5-coder-32b
+  name: workspace-qwen-2-5-coder-32b-instruct
 resource:
   instanceType: "Standard_NC24ads_A100_v4"
   labelSelector:

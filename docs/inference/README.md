@@ -7,7 +7,7 @@ This document presents how to use the Kaito `workspace` Custom Resource Definiti
 The basic usage for inference is simple. Users just need to specify the GPU SKU used for inference in the `resource` spec and one of the Kaito supported model name in the `inference` spec in the `workspace` custom resource. For example,
 
 ```yaml
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-falcon-7b
@@ -47,7 +47,7 @@ KAITO now supports both [vLLM](https://github.com/vllm-project/vllm) and [transf
 From KAITO v0.4.0, the default runtime is switched to `vLLM`. If you want to use `transformers` runtime, you can specify the runtime in the `inference` spec using an annotation. For example,
 
 ```yaml
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-falcon-7b
@@ -68,7 +68,7 @@ inference:
 Users can customize vLLM runtime parameters by creating a ConfigMap containing an `inference_config.yaml` file and referencing it in the workspace spec. For example:
 
 ```yaml
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   namespace: myns
@@ -111,7 +111,7 @@ For the complete list of vLLM parameters, refer to the [vLLM documentation](http
 Kaito also supports running the inference workload with LoRA adapters produced by [model fine-tuning jobs](../tuning/README.md). Users can specify one or more adapters in the `adapters` field of the `inference` spec. For example,
 
 ```yaml
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-falcon-7b

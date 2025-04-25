@@ -12,7 +12,7 @@ Example 1: Tuning [`phi-3-mini`](../../examples/fine-tuning/kaito_workspace_tuni
 
 Example 2: Tuning `falcon-7b`. This example shows how to use an image as the source of input data.
 ```yaml
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-tuning-falcon

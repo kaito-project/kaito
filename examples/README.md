@@ -3,7 +3,7 @@
 ### GPU Resource Requirement Bypass
 To bypass GPU memory requirement checks, annotate your workspace resource as follows:
 ```yaml
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: my-workspace

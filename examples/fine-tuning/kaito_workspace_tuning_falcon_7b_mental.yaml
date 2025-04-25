@@ -18,4 +18,3 @@ tuning:
   output:
     image: "ACR_REPO_HERE.azurecr.io/IMAGE_NAME_HERE:0.0.1" # Tuning Output ACR Path
     imagePushSecret: ACR_REGISTRY_SECRET_HERE
-

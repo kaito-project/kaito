@@ -117,17 +117,14 @@ func RegisterValidationTestModels() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation",
 		Instance: &test,
-		Metadata: &model.Metadata{},
 	})
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "private-test-validation",
 		Instance: &testPrivate,
-		Metadata: &model.Metadata{},
 	})
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation-static",
 		Instance: &testStatic,
-		Metadata: &model.Metadata{},
 	})
 }
 

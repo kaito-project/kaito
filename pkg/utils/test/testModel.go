@@ -113,24 +113,20 @@ func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-model",
 		Instance: &testModel{},
-		Metadata: &model.Metadata{},
 	})
 
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-distributed-model",
 		Instance: &testDistributedModel{},
-		Metadata: &model.Metadata{},
 	})
 
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-no-tensor-parallel-model",
 		Instance: &testNoTensorParallelModel{},
-		Metadata: &model.Metadata{},
 	})
 
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-no-lora-support-model",
 		Instance: &testNoLoraSupportModel{},
-		Metadata: &model.Metadata{},
 	})
 }

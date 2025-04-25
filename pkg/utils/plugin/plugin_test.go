@@ -28,7 +28,7 @@ models:
     type: llama2-completion
     runtime: tfs
     tag: 0.0.4
-    download_at_runtime: true
+    downloadAtRuntime: true
 `,
 			expectError: false,
 			expectedInfo: map[string]*ModelInfo{
@@ -55,14 +55,14 @@ models:
 			yamlContent: "models: []",
 			expectError: false,
 			// Expect an initialized but empty map
-			expectedInfo: map[string]*ModelInfo{},
+			expectedInfo: nil,
 		},
 		{
 			name:        "No Models Key",
 			yamlContent: "some_other_key: value",
 			expectError: false,
 			// Expect an initialized but empty map if 'models' key is missing but YAML is valid
-			expectedInfo: map[string]*ModelInfo{},
+			expectedInfo: nil,
 		},
 	}
 
@@ -89,14 +89,13 @@ models:
 			}
 
 			reg := &ModelRegister{}
-			err = reg.Init(filePath)
+			err = reg.InitModelInfo(filePath)
 
 			if tc.expectError {
 				assert.Error(t, err)
 				assert.Nil(t, reg.info, "reg.info should be nil on error")
 			} else {
 				assert.NoError(t, err)
-				assert.NotNil(t, reg.info, "reg.info should not be nil on success")
 				assert.Equal(t, tc.expectedInfo, reg.info)
 			}
 		})

@@ -6,7 +6,7 @@ import (
 	"os"
 	"sync"
 
-	"sigs.k8s.io/yaml"
+	"gopkg.in/yaml.v2"
 
 	"github.com/kaito-project/kaito/pkg/model"
 )
@@ -26,37 +26,41 @@ type ModelInstance struct {
 type SupportedModels struct {
 	// Models is a slice of ModelInfo structs that contains information about
 	// the supported models.
-	Models []ModelInfo `json:"models,omitempty"`
+	Models []ModelInfo `yaml:"models,omitempty"`
 }
 
 // ModelInfo is a struct that holds information about a model
 type ModelInfo struct {
 	// Name is the name of the model, which serves as a unique identifier.
-	// It is used to register the model instance and retrieve it later.
-	Name string `json:"name,omitempty"`
+	// It is used to register the model information and retrieve it later.
+	Name string `yaml:"name"`
 
 	// ModelType is the type of the model, which indicates the kind of model
 	// it is. Currently, the only supported types are "text-generation" and
 	// "llama2-completion" (deprecated).
-	ModelType string `json:"type,omitempty"`
+	ModelType string `yaml:"type"`
 
 	// Version is the version of the model. It is a URL that points to the
 	// model's huggingface page, which contains the model's repository ID
 	// and revision ID, e.g. https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff.
-	Version string `json:"version,omitempty"`
+	Version string `yaml:"version"`
 
 	// Runtime is the runtime environment in which the model operates.
 	// Currently, the only supported runtime is "tfs".
-	Runtime string `json:"runtime,omitempty"`
+	Runtime string `yaml:"runtime"`
 
 	// Tag is the tag of the container image used to run the model.
-	Tag string `json:"tag,omitempty"`
+	// If the model uses the Kaito base image, the tag field can be ignored
+	// +optional
+	Tag string `yaml:"tag,omitempty"`
 
 	// DownloadAtRuntime indicates whether the model should be downloaded
 	// at runtime. If set to true, the model will be downloaded when the
-	// model deployment is created. If set to false, it will use a container
-	// image that already contains the model weights.
-	DownloadAtRuntime bool `json:"download_at_runtime,omitempty"`
+	// model deployment is created, and the container image will always be
+	// the Kaito base image. If set to false, a container image whose name
+	// contains the model name will be used, in which the model weights are baked.
+	// +optional
+	DownloadAtRuntime bool `yaml:"downloadAtRuntime,omitempty"`
 }
 
 type ModelRegister struct {
@@ -67,13 +71,10 @@ type ModelRegister struct {
 
 var KaitoModelRegister ModelRegister
 
-// Init initializes the KaitoModelRegister with a path to the supported_models.yaml
+// InitModelInfo initializes the KaitoModelRegister with a path to the supported_models.yaml
 // file. It reads the file, unmarshals the YAML data into a SupportedModels
 // struct, and registers each model instance using the RegisterInfo method.
-func (reg *ModelRegister) Init(supportedModelsFilePath string) error {
-	reg.instances = make(map[string]*ModelInstance)
-	reg.info = make(map[string]*ModelInfo)
-
+func (reg *ModelRegister) InitModelInfo(supportedModelsFilePath string) error {
 	data, err := os.ReadFile(supportedModelsFilePath)
 	if err != nil {
 		return err

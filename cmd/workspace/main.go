@@ -40,8 +40,13 @@ import (
 )
 
 const (
-	WebhookServiceName      = "WEBHOOK_SERVICE"
-	WebhookServicePort      = "WEBHOOK_PORT"
+	WebhookServiceName = "WEBHOOK_SERVICE"
+	WebhookServicePort = "WEBHOOK_PORT"
+
+	// SupportedModelsFileName is the same file as presets/workspace/models/supported_models.yaml,
+	// which contains information about all Kaito's supported preset models. It is baked into the
+	// controller image and lives in the same directory as the controller, hence, absolute path
+	// is not needed.
 	SupportedModelsFileName = "supported_models.yaml"
 )
 
@@ -64,7 +69,7 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 	klog.InitFlags(nil)
 
-	utilruntime.Must(plugin.KaitoModelRegister.Init(SupportedModelsFileName))
+	utilruntime.Must(plugin.KaitoModelRegister.InitModelInfo(SupportedModelsFileName))
 }
 
 func main() {

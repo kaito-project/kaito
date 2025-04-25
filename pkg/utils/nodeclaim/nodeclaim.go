@@ -183,7 +183,7 @@ func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *ka
 }
 
 // GenerateNodeClaimName generates a nodeClaim name from the given workspace or RAGEngine.
-func GenerateNodeClaimName(obj interface{}) string {
+func GenerateNodeClaimName(obj client.Object) string {
 	// Determine the type of the input object and extract relevant fields
 	_, namespace, name, _, _, _, err := resources.ExtractObjFields(obj)
 	if err != nil {

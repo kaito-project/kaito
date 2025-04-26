@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 package tuning
 
 import corev1 "k8s.io/api/core/v1"

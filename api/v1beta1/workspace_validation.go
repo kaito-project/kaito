@@ -477,25 +477,23 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, in
 	// check if required fields are set
 	// this check only applies to vllm runtime
 	if runtime == model.RuntimeNameVLLM {
-		func() {
-			var (
-				cmName = i.Config
-				cmNS   = namespace
-				err    error
-			)
-			if cmName == "" {
-				klog.Infof("Inference config not specified. Using default: %q", DefaultInferenceConfigTemplate)
-				cmName = DefaultInferenceConfigTemplate
-				cmNS, err = utils.GetReleaseNamespace()
-				if err != nil {
-					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
-					return
-				}
+		var (
+			cmName = i.Config
+			cmNS   = namespace
+			err    error
+		)
+		if cmName == "" {
+			klog.Infof("Inference config not specified. Using default: %q", DefaultInferenceConfigTemplate)
+			cmName = DefaultInferenceConfigTemplate
+			cmNS, err = utils.GetReleaseNamespace()
+			if err != nil {
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
+				return errs
 			}
-			if err := i.validateConfigMap(ctx, cmNS, cmName, instanceType); err != nil {
-				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
-			}
-		}()
+		}
+		if err := i.validateConfigMap(ctx, cmNS, cmName, instanceType); err != nil {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
+		}
 	}
 
 	return errs

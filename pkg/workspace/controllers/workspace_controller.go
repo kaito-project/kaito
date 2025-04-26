@@ -579,58 +579,48 @@ func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1be
 }
 
 func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
-	var err error
-	func() {
-		if wObj.Tuning.Preset != nil {
-			presetName := string(wObj.Tuning.Preset.Name)
-			model := plugin.KaitoModelRegister.MustGet(presetName)
+	if wObj.Tuning.Preset == nil {
+		return nil
+	}
 
-			tuningParam := model.GetTuningParameters()
-			existingObj := &batchv1.Job{}
-			revisionNum := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
-				klog.InfoS("A tuning workload already exists for workspace", "workspace", klog.KObj(wObj))
+	presetName := string(wObj.Tuning.Preset.Name)
+	model := plugin.KaitoModelRegister.MustGet(presetName)
+	tuningParam := model.GetTuningParameters()
 
-				if existingObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] != revisionNum {
-					deletePolicy := metav1.DeletePropagationForeground
-					if err := c.Delete(ctx, existingObj, &client.DeleteOptions{
-						PropagationPolicy: &deletePolicy,
-					}); err != nil {
-						return
-					}
+	existingObj := &batchv1.Job{}
+	revisionNum := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 
-					var workloadObj client.Object
-					workloadObj, err = tuning.CreatePresetTuning(ctx, wObj, revisionNum, tuningParam, c.Client)
-					if err != nil {
-						return
-					}
-					existingObj = workloadObj.(*batchv1.Job)
-				}
+	if err := resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
+		klog.InfoS("A tuning workload already exists for workspace", "workspace", klog.KObj(wObj))
 
-				if err = resources.CheckResourceStatus(existingObj, c.Client, tuningParam.ReadinessTimeout); err != nil {
-					return
-				}
-			} else if apierrors.IsNotFound(err) {
-				var workloadObj client.Object
-				// Need to create a new workload
-				workloadObj, err = tuning.CreatePresetTuning(ctx, wObj, revisionNum, tuningParam, c.Client)
-				if err != nil {
-					return
-				}
-				if err = resources.CheckResourceStatus(workloadObj, c.Client, tuningParam.ReadinessTimeout); err != nil {
-					return
-				}
+		if existingObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] != revisionNum {
+			deletePolicy := metav1.DeletePropagationForeground
+			if err := c.Delete(ctx, existingObj, &client.DeleteOptions{
+				PropagationPolicy: &deletePolicy,
+			}); err != nil {
+				return c.handleTuningError(ctx, wObj, err)
 			}
-		}
-	}()
 
-	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionFalse,
-			"WorkspaceTuningJobStatusFailed", err.Error()); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return updateErr
+			workloadObj, err := tuning.CreatePresetTuning(ctx, wObj, revisionNum, tuningParam, c.Client)
+			if err != nil {
+				return c.handleTuningError(ctx, wObj, err)
+			}
+			existingObj = workloadObj.(*batchv1.Job)
 		}
-		return err
+
+		if err = resources.CheckResourceStatus(existingObj, c.Client, tuningParam.ReadinessTimeout); err != nil {
+			return c.handleTuningError(ctx, wObj, err)
+		}
+	} else if apierrors.IsNotFound(err) {
+		workloadObj, err := tuning.CreatePresetTuning(ctx, wObj, revisionNum, tuningParam, c.Client)
+		if err != nil {
+			return c.handleTuningError(ctx, wObj, err)
+		}
+		if err = resources.CheckResourceStatus(workloadObj, c.Client, tuningParam.ReadinessTimeout); err != nil {
+			return c.handleTuningError(ctx, wObj, err)
+		}
+	} else {
+		return c.handleTuningError(ctx, wObj, err)
 	}
 
 	if err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionTrue,
@@ -642,96 +632,91 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta
 	return nil
 }
 
+func (c *WorkspaceReconciler) handleTuningError(ctx context.Context, wObj *kaitov1beta1.Workspace, err error) error {
+	if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionFalse,
+		"WorkspaceTuningJobStatusFailed", err.Error()); updateErr != nil {
+		klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
+		return updateErr
+	}
+	return err
+}
+
 // applyInference applies inference spec.
 func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
-	var err error
-	func() {
-		if wObj.Inference.Template != nil {
-			var workloadObj client.Object
-			// TODO: handle update
-			workloadObj, err = inference.CreateTemplateInference(ctx, wObj, c.Client)
-			if err != nil {
-				return
-			}
-			if err = resources.CheckResourceStatus(workloadObj, c.Client, time.Duration(10)*time.Minute); err != nil {
-				return
-			}
-		} else if wObj.Inference != nil && wObj.Inference.Preset != nil {
-			presetName := string(wObj.Inference.Preset.Name)
-			model := plugin.KaitoModelRegister.MustGet(presetName)
+	if wObj.Inference.Template != nil {
+		// TODO: handle update
+		workloadObj, err := inference.CreateTemplateInference(ctx, wObj, c.Client)
+		if err != nil {
+			return c.handleInferenceError(ctx, wObj, err)
+		}
+		if err = resources.CheckResourceStatus(workloadObj, c.Client, time.Duration(10)*time.Minute); err != nil {
+			return c.handleInferenceError(ctx, wObj, err)
+		}
+	} else if wObj.Inference != nil && wObj.Inference.Preset != nil {
+		presetName := string(wObj.Inference.Preset.Name)
+		model := plugin.KaitoModelRegister.MustGet(presetName)
 
-			inferenceParam := model.GetInferenceParameters()
+		inferenceParam := model.GetInferenceParameters()
 
-			var existingObj client.Object
-			if model.SupportDistributedInference() {
-				existingObj = &appsv1.StatefulSet{}
-			} else {
-				existingObj = &appsv1.Deployment{}
+		var existingObj client.Object
+		if model.SupportDistributedInference() {
+			existingObj = &appsv1.StatefulSet{}
+		} else {
+			existingObj = &appsv1.Deployment{}
 
-			}
-			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
-				klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
-				if !model.SupportDistributedInference() {
-					deployment := existingObj.(*appsv1.Deployment)
-					if deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] != revisionStr {
-						// TODO: respect updates to other fields
-						var volumes []corev1.Volume
-						var volumeMounts []corev1.VolumeMount
-						shmVolume, shmVolumeMount := utils.ConfigSHMVolume(*wObj.Resource.Count)
-						if shmVolume.Name != "" {
-							volumes = append(volumes, shmVolume)
-						}
-						if shmVolumeMount.Name != "" {
-							volumeMounts = append(volumeMounts, shmVolumeMount)
-						}
+		}
+		revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
+		if err := resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
+			klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
+			if !model.SupportDistributedInference() {
+				deployment := existingObj.(*appsv1.Deployment)
+				if deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] != revisionStr {
+					// TODO: respect updates to other fields
+					var volumes []corev1.Volume
+					var volumeMounts []corev1.VolumeMount
+					shmVolume, shmVolumeMount := utils.ConfigSHMVolume(*wObj.Resource.Count)
+					if shmVolume.Name != "" {
+						volumes = append(volumes, shmVolume)
+					}
+					if shmVolumeMount.Name != "" {
+						volumeMounts = append(volumeMounts, shmVolumeMount)
+					}
 
-						if len(wObj.Inference.Adapters) > 0 {
-							adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
-							volumes = append(volumes, adapterVolume)
-							volumeMounts = append(volumeMounts, adapterVolumeMount)
-						}
+					if len(wObj.Inference.Adapters) > 0 {
+						adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
+						volumes = append(volumes, adapterVolume)
+						volumeMounts = append(volumeMounts, adapterVolumeMount)
+					}
 
-						pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(wObj, volumeMounts)
-						volumes = append(volumes, pullerVolumes...)
+					pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(wObj, volumeMounts)
+					volumes = append(volumes, pullerVolumes...)
 
-						spec := &deployment.Spec.Template.Spec
-						spec.Containers[0].Env = pullerEnvVars
-						spec.Containers[0].VolumeMounts = volumeMounts
-						spec.InitContainers = pullerContainers
-						spec.Volumes = volumes
+					spec := &deployment.Spec.Template.Spec
+					spec.Containers[0].Env = pullerEnvVars
+					spec.Containers[0].VolumeMounts = volumeMounts
+					spec.InitContainers = pullerContainers
+					spec.Volumes = volumes
 
-						deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
+					deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
 
-						if err := c.Update(ctx, deployment); err != nil {
-							return
-						}
+					if err := c.Update(ctx, deployment); err != nil {
+						return c.handleInferenceError(ctx, wObj, err)
 					}
 				}
-				if err = resources.CheckResourceStatus(existingObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
-					return
-				}
-			} else if apierrors.IsNotFound(err) {
-				var workloadObj client.Object
-				// Need to create a new workload
-				workloadObj, err = inference.CreatePresetInference(ctx, wObj, revisionStr, model, c.Client)
-				if err != nil {
-					return
-				}
-				if err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
-					return
-				}
 			}
-		}
-	}()
-
-	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
-			"WorkspaceInferenceStatusFailed", err.Error()); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return updateErr
+			if err = resources.CheckResourceStatus(existingObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
+				return c.handleInferenceError(ctx, wObj, err)
+			}
+		} else if apierrors.IsNotFound(err) {
+			workloadObj, err := inference.CreatePresetInference(ctx, wObj, revisionStr, model, c.Client)
+			if err != nil {
+				return c.handleInferenceError(ctx, wObj, err)
+			}
+			if err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
+				return c.handleInferenceError(ctx, wObj, err)
+			}
 		} else {
-			return err
+			return c.handleInferenceError(ctx, wObj, err)
 		}
 	}
 
@@ -741,6 +726,15 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		return err
 	}
 	return nil
+}
+
+func (c *WorkspaceReconciler) handleInferenceError(ctx context.Context, wObj *kaitov1beta1.Workspace, err error) error {
+	if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
+		"WorkspaceInferenceStatusFailed", err.Error()); updateErr != nil {
+		klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
+		return updateErr
+	}
+	return err
 }
 
 // SetupWithManager sets up the controller with the Manager.

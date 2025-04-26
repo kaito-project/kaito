@@ -80,11 +80,12 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 
 	klog.InfoS("Reconciling", "workspace", req.NamespacedName)
 
-	if err := c.ensureFinalizer(ctx, workspaceObj); err != nil {
-		return reconcile.Result{}, err
-	}
-	// Handle deleting workspace, garbage collect all the resources.
-	if !workspaceObj.DeletionTimestamp.IsZero() {
+	if workspaceObj.DeletionTimestamp.IsZero() {
+		if err := c.ensureFinalizer(ctx, workspaceObj); err != nil {
+			return reconcile.Result{}, err
+		}
+	} else {
+		// Handle deleting workspace, garbage collect all the resources.
 		return c.deleteWorkspace(ctx, workspaceObj)
 	}
 

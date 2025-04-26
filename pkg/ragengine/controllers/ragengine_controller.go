@@ -76,12 +76,12 @@ func (c *RAGEngineReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 
 	klog.InfoS("Reconciling", "RAG Engine", req.NamespacedName)
 
-	if err := c.ensureFinalizer(ctx, ragEngineObj); err != nil {
-		return reconcile.Result{}, err
-	}
-
-	// Handle deleting ragengine, garbage collect all the resources.
-	if !ragEngineObj.DeletionTimestamp.IsZero() {
+	if ragEngineObj.DeletionTimestamp.IsZero() {
+		if err := c.ensureFinalizer(ctx, ragEngineObj); err != nil {
+			return reconcile.Result{}, err
+		}
+	} else {
+		// Handle deleting ragengine, garbage collect all the resources.
 		return c.deleteRAGEngine(ctx, ragEngineObj)
 	}
 

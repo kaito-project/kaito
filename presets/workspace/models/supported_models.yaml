@@ -3,7 +3,7 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.0.1
+    tag: 0.0.2
 
   # Llama
   - name: llama-2-7b

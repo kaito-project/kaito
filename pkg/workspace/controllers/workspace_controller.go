@@ -92,13 +92,6 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 		return reconcile.Result{}, err
 	}
 
-	if workspaceObj.Inference != nil && workspaceObj.Inference.Preset != nil {
-		if !plugin.KaitoModelRegister.Has(string(workspaceObj.Inference.Preset.Name)) {
-			return reconcile.Result{}, fmt.Errorf("the preset model name %s is not registered for workspace %s/%s",
-				string(workspaceObj.Inference.Preset.Name), workspaceObj.Namespace, workspaceObj.Name)
-		}
-	}
-
 	result, err := c.addOrUpdateWorkspace(ctx, workspaceObj)
 	if err != nil {
 		return result, err

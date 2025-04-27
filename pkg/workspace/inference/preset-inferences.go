@@ -129,7 +129,7 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	}
 }
 
-func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
+func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string, cloudProvider string,
 	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
 	inferenceParam := model.GetInferenceParameters().DeepCopy()
 
@@ -155,7 +155,7 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 
 	// resource requirements
 	var skuNumGPUs int
-	gpuConfig, err := utils.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
+	gpuConfig, err := utils.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType, cloudProvider)
 	if err != nil {
 		gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, kubeClient, workspaceObj.Status.WorkerNodes)
 		if err != nil {

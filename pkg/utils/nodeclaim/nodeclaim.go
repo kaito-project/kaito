@@ -73,7 +73,7 @@ var (
 )
 
 // GenerateNodeClaimManifest generates a nodeClaim object from the given workspace or RAGEngine.
-func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *karpenterv1.NodeClaim {
+func GenerateNodeClaimManifest(storageRequirement string, cloudName string, obj client.Object) *karpenterv1.NodeClaim {
 	klog.InfoS("GenerateNodeClaimManifest", "object", obj)
 
 	// Determine the type of the input object and extract relevant fields
@@ -97,8 +97,6 @@ func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *ka
 	nodeClaimAnnotations := map[string]string{
 		karpenterv1.DoNotDisruptAnnotationKey: "true", // To prevent Karpenter from scaling down.
 	}
-
-	cloudName := os.Getenv("CLOUD_PROVIDER")
 
 	var nodeClassRefKind string
 
@@ -241,12 +239,12 @@ func GenerateEC2NodeClassManifest(ctx context.Context) *awsv1beta1.EC2NodeClass 
 }
 
 // CreateNodeClaim creates a nodeClaim object.
-func CreateNodeClaim(ctx context.Context, nodeClaimObj *karpenterv1.NodeClaim, kubeClient client.Client) error {
+func CreateNodeClaim(ctx context.Context, cloudProvider string, nodeClaimObj *karpenterv1.NodeClaim, kubeClient client.Client) error {
 	klog.InfoS("CreateNodeClaim", "nodeClaim", klog.KObj(nodeClaimObj))
 	return retry.OnError(retry.DefaultBackoff, func(err error) bool {
 		return err.Error() != consts.ErrorInstanceTypesUnavailable
 	}, func() error {
-		err := CheckNodeClass(ctx, kubeClient)
+		err := CheckNodeClass(ctx, cloudProvider, kubeClient)
 		if err != nil {
 			return err
 		}
@@ -274,8 +272,7 @@ func CreateNodeClaim(ctx context.Context, nodeClaimObj *karpenterv1.NodeClaim, k
 }
 
 // CreateKarpenterNodeClass creates a nodeClass object for Karpenter.
-func CreateKarpenterNodeClass(ctx context.Context, kubeClient client.Client) error {
-	cloudName := os.Getenv("CLOUD_PROVIDER")
+func CreateKarpenterNodeClass(ctx context.Context, cloudName string, kubeClient client.Client) error {
 	klog.InfoS("CreateKarpenterNodeClass", "cloudName", cloudName)
 
 	if cloudName == consts.AzureCloudName {
@@ -417,17 +414,17 @@ func IsNodeClassAvailable(ctx context.Context, cloudName string, kubeClient clie
 
 // CheckNodeClass checks if Karpenter NodeClass is available. If not, the controller will create it automatically.
 // This is only applicable when Karpenter feature flag is enabled.
-func CheckNodeClass(ctx context.Context, kClient client.Client) error {
-	cloudProvider := os.Getenv("CLOUD_PROVIDER")
-	if cloudProvider == "" {
-		return errors.New("CLOUD_PROVIDER environment variable cannot be empty")
+func CheckNodeClass(ctx context.Context, cloudProvider string, kClient client.Client) error {
+	if IsNodeClassAvailable(ctx, cloudProvider, kClient) {
+		klog.Infof("NodeClass is already available")
+		return nil
 	}
-	if !IsNodeClassAvailable(ctx, cloudProvider, kClient) {
-		klog.Infof("NodeClass is not available, creating NodeClass")
-		if err := CreateKarpenterNodeClass(ctx, kClient); err != nil && client.IgnoreAlreadyExists(err) != nil {
-			klog.ErrorS(err, "unable to create NodeClass")
-			return errors.New("error while creating NodeClass")
-		}
+
+	klog.Infof("NodeClass is not available, creating NodeClass")
+	if err := CreateKarpenterNodeClass(ctx, cloudProvider, kClient); err != nil && client.IgnoreAlreadyExists(err) != nil {
+		klog.ErrorS(err, "unable to create NodeClass")
+		return errors.New("error while creating NodeClass")
 	}
+
 	return nil
 }

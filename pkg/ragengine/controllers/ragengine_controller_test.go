@@ -250,16 +250,14 @@ func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 				mockClient.CreateOrUpdateObjectInMap(mockNodeClaim)
 			}
 
-			if tc.cloudProvider != "" {
-				t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
-
-			}
-
 			tc.callMocks(mockClient)
 
 			reconciler := &RAGEngineReconciler{
 				Client: mockClient,
 				Scheme: test.NewTestScheme(),
+			}
+			if tc.cloudProvider != "" {
+				reconciler.CloudProvider = tc.cloudProvider
 			}
 			ctx := context.Background()
 
@@ -520,8 +518,6 @@ func TestApplyRAG(t *testing.T) {
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 
@@ -531,7 +527,7 @@ func TestApplyRAG(t *testing.T) {
 			}
 			ctx := context.Background()
 
-			err := reconciler.applyRAG(ctx, &tc.ragengine)
+			err := reconciler.applyRAG(ctx, &tc.ragengine, consts.AzureCloudName)
 			if tc.expectedError == nil {
 				assert.Check(t, err == nil, "Not expected to return error")
 			} else {

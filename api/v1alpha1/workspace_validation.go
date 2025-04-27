@@ -61,9 +61,10 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			}
 
 			runtime := GetWorkspaceRuntimeName(w)
+			cloudProvider := os.Getenv(consts.CloudProviderEnv)
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
-			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference, bypassResourceChecks).ViaField("resource"),
-				w.Inference.validateCreate(ctx, w.Namespace, w.Resource.InstanceType, runtime).ViaField("inference"))
+			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference, cloudProvider, bypassResourceChecks).ViaField("resource"),
+				w.Inference.validateCreate(ctx, w.Namespace, w.Resource.InstanceType, cloudProvider, runtime).ViaField("inference"))
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
@@ -293,7 +294,7 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	return errs
 }
 
-func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool) (errs *apis.FieldError) {
+func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, cloudProvider string, bypassResourceChecks bool) (errs *apis.FieldError) {
 	var presetName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
@@ -305,7 +306,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	}
 	instanceType := string(r.InstanceType)
 
-	skuHandler, err := utils.GetSKUHandler()
+	skuHandler, err := utils.GetSKUHandler(cloudProvider)
 	if err != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 		return errs
@@ -381,9 +382,8 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 			}
 		}
 	} else {
-		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
+		if cloudProvider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}
@@ -416,7 +416,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
-func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, instanceType string, runtime model.RuntimeName) (errs *apis.FieldError) {
+func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, instanceType string, cloudProvider string, runtime model.RuntimeName) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -492,7 +492,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, in
 					return
 				}
 			}
-			if err := i.validateConfigMap(ctx, cmNS, cmName, instanceType); err != nil {
+			if err := i.validateConfigMap(ctx, cmNS, cmName, instanceType, cloudProvider); err != nil {
 				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
 			}
 		}()

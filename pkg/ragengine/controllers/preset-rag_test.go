@@ -37,13 +37,11 @@ func TestCreatePresetRAG(t *testing.T) {
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 
 			ragEngineObj := test.MockRAGEngineWithPreset
-			createdObject, _ := CreatePresetRAG(context.TODO(), ragEngineObj, "1", mockClient)
+			createdObject, _ := CreatePresetRAG(context.TODO(), ragEngineObj, "1", consts.AzureCloudName, mockClient)
 
 			workloadCmd := strings.Join((createdObject.(*appsv1.Deployment)).Spec.Template.Spec.Containers[0].Command, " ")
 

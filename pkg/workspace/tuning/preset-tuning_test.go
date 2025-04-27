@@ -24,8 +24,6 @@ func normalize(s string) string {
 }
 
 func TestGetInstanceGPUCount(t *testing.T) {
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
 	testcases := map[string]struct {
 		sku              string
 		expectedGPUCount int
@@ -46,7 +44,7 @@ func TestGetInstanceGPUCount(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			result := getInstanceGPUCount(tc.sku)
+			result := getInstanceGPUCount(tc.sku, consts.AzureCloudName)
 			assert.Equal(t, tc.expectedGPUCount, result)
 		})
 	}
@@ -302,9 +300,7 @@ func TestPrepareTuningParameters(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
-			commands, resources := prepareTuningParameters(ctx, tc.workspaceObj, tc.modelCommand, tc.tuningObj, 2)
+			commands, resources := prepareTuningParameters(ctx, tc.workspaceObj, tc.modelCommand, consts.AzureCloudName, tc.tuningObj, 2)
 			assert.Equal(t, tc.expectedCommands, commands)
 			assert.True(t, tc.expectedRequirements.Requests.Name("nvidia.com/gpu", resource.DecimalSI).Equal(*resources.Requests.Name("nvidia.com/gpu", resource.DecimalSI)))
 			assert.True(t, tc.expectedRequirements.Limits.Name("nvidia.com/gpu", resource.DecimalSI).Equal(*resources.Limits.Name("nvidia.com/gpu", resource.DecimalSI)))

@@ -79,8 +79,7 @@ func TestCreateNodeClaim(t *testing.T) {
 
 			mockNodeClaim := &test.MockNodeClaim
 			mockNodeClaim.Status.Conditions = tc.nodeClaimConditions
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-			err := CreateNodeClaim(context.Background(), mockNodeClaim, mockClient)
+			err := CreateNodeClaim(context.Background(), consts.AzureCloudName, mockNodeClaim, mockClient)
 			if tc.expectedError == nil {
 				assert.Check(t, err == nil, "Not expected to return error")
 			} else {
@@ -180,9 +179,8 @@ func TestWaitForPendingNodeClaims(t *testing.T) {
 func TestGenerateNodeClaimManifest(t *testing.T) {
 	t.Run("Should generate a nodeClaim object from the given workspace when cloud provider set to azure", func(t *testing.T) {
 		mockWorkspace := test.MockWorkspaceWithPreset
-		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
-		nodeClaim := GenerateNodeClaimManifest("0", mockWorkspace)
+		nodeClaim := GenerateNodeClaimManifest("0", consts.AzureCloudName, mockWorkspace)
 
 		assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
 		assert.Equal(t, nodeClaim.Namespace, mockWorkspace.Namespace, "NodeClaim must have same namespace as workspace")
@@ -199,9 +197,8 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 
 	t.Run("Should generate a nodeClaim object from the given workspace when cloud provider set to aws", func(t *testing.T) {
 		mockWorkspace := test.MockWorkspaceWithPreset
-		t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
 
-		nodeClaim := GenerateNodeClaimManifest("0", mockWorkspace)
+		nodeClaim := GenerateNodeClaimManifest("0", consts.AWSCloudName, mockWorkspace)
 
 		assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
 		assert.Equal(t, nodeClaim.Namespace, mockWorkspace.Namespace, "NodeClaim must have same namespace as workspace")
@@ -280,44 +277,37 @@ func TestGenerateEC2NodeClassManifest(t *testing.T) {
 
 func TestCreateKarpenterNodeClass(t *testing.T) {
 	t.Run("Should create AKSNodeClass when cloud provider is Azure", func(t *testing.T) {
-		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
 		mockClient := test.NewClient()
 		mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
 
-		err := CreateKarpenterNodeClass(context.Background(), mockClient)
+		err := CreateKarpenterNodeClass(context.Background(), consts.AzureCloudName, mockClient)
 		assert.Check(t, err == nil, "Not expected to return error")
 		mockClient.AssertCalled(t, "Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything)
 	})
 
 	t.Run("Should create EC2NodeClass when cloud provider is AWS", func(t *testing.T) {
-		t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
 		t.Setenv("CLUSTER_NAME", "test-cluster")
 
 		mockClient := test.NewClient()
 		mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&awsv1beta1.EC2NodeClass{}), mock.Anything).Return(nil)
 
-		err := CreateKarpenterNodeClass(context.Background(), mockClient)
+		err := CreateKarpenterNodeClass(context.Background(), consts.AWSCloudName, mockClient)
 		assert.Check(t, err == nil, "Not expected to return error")
 		mockClient.AssertCalled(t, "Create", mock.IsType(context.Background()), mock.IsType(&awsv1beta1.EC2NodeClass{}), mock.Anything)
 	})
 
 	t.Run("Should return error when cloud provider is unsupported", func(t *testing.T) {
-		t.Setenv("CLOUD_PROVIDER", "unsupported")
-
 		mockClient := test.NewClient()
 
-		err := CreateKarpenterNodeClass(context.Background(), mockClient)
+		err := CreateKarpenterNodeClass(context.Background(), "unsupported", mockClient)
 		assert.Error(t, err, "unsupported cloud provider unsupported")
 	})
 
 	t.Run("Should return error when Create call fails", func(t *testing.T) {
-		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
 		mockClient := test.NewClient()
 		mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(errors.New("create failed"))
 
-		err := CreateKarpenterNodeClass(context.Background(), mockClient)
+		err := CreateKarpenterNodeClass(context.Background(), consts.AzureCloudName, mockClient)
 		assert.Error(t, err, "create failed")
 	})
 }

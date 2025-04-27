@@ -136,24 +136,18 @@ func GetReleaseNamespace() (string, error) {
 	return "", fmt.Errorf("failed to determine release namespace from file %s and env var %s", namespaceFilePath, consts.DefaultReleaseNamespaceEnvVar)
 }
 
-func GetSKUHandler() (sku.CloudSKUHandler, error) {
-	// Get the cloud provider from the environment
-	provider := os.Getenv("CLOUD_PROVIDER")
-
-	if provider == "" {
-		return nil, apis.ErrMissingField("CLOUD_PROVIDER environment variable must be set")
-	}
+func GetSKUHandler(cloudProvider string) (sku.CloudSKUHandler, error) {
 	// Select the correct SKU handler based on the cloud provider
-	skuHandler := sku.GetCloudSKUHandler(provider)
+	skuHandler := sku.GetCloudSKUHandler(cloudProvider)
 	if skuHandler == nil {
-		return nil, apis.ErrInvalidValue(fmt.Sprintf("Unsupported cloud provider %s", provider), "CLOUD_PROVIDER")
+		return nil, apis.ErrInvalidValue(fmt.Sprintf("Unsupported cloud provider %s", cloudProvider), consts.CloudProviderEnv)
 	}
 
 	return skuHandler, nil
 }
 
-func GetGPUConfigBySKU(instanceType string) (*sku.GPUConfig, error) {
-	skuHandler, err := GetSKUHandler()
+func GetGPUConfigBySKU(instanceType, cloudProvider string) (*sku.GPUConfig, error) {
+	skuHandler, err := GetSKUHandler(cloudProvider)
 	if err != nil {
 		return nil, apis.ErrInvalidValue(fmt.Sprintf("Failed to get SKU handler: %v", err), "sku")
 	}

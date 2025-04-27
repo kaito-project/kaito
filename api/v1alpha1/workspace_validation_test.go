@@ -400,8 +400,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		},
 	}
 
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.validateTuning {
@@ -444,7 +442,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				totalGPUMemoryRequirement = tc.modelTotalGPUMemory
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
-				errs := tc.resourceSpec.validateCreateWithInference(&spec, false)
+				errs := tc.resourceSpec.validateCreateWithInference(&spec, consts.AzureCloudName, false)
 				hasErrs := errs != nil
 				if hasErrs != tc.expectErrs {
 					t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -841,8 +839,6 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set CLOUD_PROVIDER environment variable for all test cases
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			// If the test expects an error, setup defer function to catch the panic.
 			if tc.expectErrs {
 				defer func() {
@@ -859,7 +855,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			if tc.runtimeName != "" {
 				runtime = tc.runtimeName
 			}
-			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, "Standard_NC24ads_A100_v4", runtime)
+			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, "Standard_NC24ads_A100_v4", consts.AzureCloudName, runtime)
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -1956,8 +1952,6 @@ other_field: value
 		},
 	}
 
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// Validate the inference spec
@@ -1965,7 +1959,7 @@ other_field: value
 			if tc.runtimeName != "" {
 				runtimeName = tc.runtimeName
 			}
-			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, tc.resourceSpec.InstanceType, runtimeName)
+			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, tc.resourceSpec.InstanceType, consts.AzureCloudName, runtimeName)
 			hasErrs := errs != nil
 
 			if hasErrs != tc.expectErrs {

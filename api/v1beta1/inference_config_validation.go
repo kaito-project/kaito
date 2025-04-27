@@ -23,7 +23,7 @@ type InferenceConfig struct {
 	// Other fields can be added as needed
 }
 
-func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace, cmName, instanceType string) (errs *apis.FieldError) {
+func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace, cmName, instanceType, cloudProvider string) (errs *apis.FieldError) {
 	var cm corev1.ConfigMap
 	if k8sclient.Client == nil {
 		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
@@ -52,7 +52,7 @@ func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace, cmName
 	}
 
 	// Get SKU handler to check GPU configuration
-	skuHandler, err := utils.GetSKUHandler()
+	skuHandler, err := utils.GetSKUHandler(cloudProvider)
 	if err != nil {
 		return apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType")
 	}

@@ -56,8 +56,8 @@ var (
 	}
 )
 
-func getInstanceGPUCount(sku string) int {
-	skuHandler, _ := utils.GetSKUHandler()
+func getInstanceGPUCount(sku, cloudProvider string) int {
+	skuHandler, _ := utils.GetSKUHandler(cloudProvider)
 	if gpuConfig := skuHandler.GetGPUConfigBySKU(sku); gpuConfig != nil {
 		return gpuConfig.GPUCount
 	}
@@ -171,7 +171,7 @@ func setupDefaultSharedVolumes(workspaceObj *kaitov1beta1.Workspace, cmName stri
 	return volumes, volumeMounts
 }
 
-func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, revisionNum string,
+func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, revisionNum string, cloudProvider string,
 	tuningObj *model.PresetParam, kubeClient client.Client) (client.Object, error) {
 
 	var defaultConfigName string
@@ -232,7 +232,7 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	}
 
 	var skuNumGPUs int
-	gpuConfig, err := utils.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
+	gpuConfig, err := utils.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType, cloudProvider)
 	if err != nil {
 		gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, kubeClient, workspaceObj.Status.WorkerNodes)
 		if err != nil {
@@ -244,7 +244,7 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 		skuNumGPUs = gpuConfig.GPUCount
 	}
 
-	commands, resourceReq := prepareTuningParameters(ctx, workspaceObj, modelCommand, tuningObj, skuNumGPUs)
+	commands, resourceReq := prepareTuningParameters(ctx, workspaceObj, modelCommand, cloudProvider, tuningObj, skuNumGPUs)
 	tuningImage, tuningImagePullSecrets := GetTuningImageInfo(ctx, workspaceObj, tuningObj)
 	if tuningImagePullSecrets != nil {
 		imagePullSecrets = append(imagePullSecrets, tuningImagePullSecrets...)
@@ -381,14 +381,14 @@ func prepareModelRunParameters(ctx context.Context, tuningObj *model.PresetParam
 // accelerate launch <TORCH_PARAMS> baseCommand <MODEL_PARAMS>
 // and sets the GPU resources required for tuning.
 // Returns the command and resource configuration.
-func prepareTuningParameters(ctx context.Context, wObj *kaitov1beta1.Workspace, modelCommand string,
+func prepareTuningParameters(ctx context.Context, wObj *kaitov1beta1.Workspace, modelCommand string, cloudProvider string,
 	tuningObj *model.PresetParam, skuNumGPUs int) ([]string, corev1.ResourceRequirements) {
 	hfParam := tuningObj.Transformers // Only support Huggingface for now
 	if hfParam.TorchRunParams == nil {
 		hfParam.TorchRunParams = make(map[string]string)
 	}
 	// Set # of processes to GPU Count
-	numProcesses := getInstanceGPUCount(wObj.Resource.InstanceType)
+	numProcesses := getInstanceGPUCount(wObj.Resource.InstanceType, cloudProvider)
 	hfParam.TorchRunParams["num_processes"] = fmt.Sprintf("%d", numProcesses)
 	torchCommand := utils.BuildCmdStr(hfParam.BaseCommand, hfParam.TorchRunParams, hfParam.TorchRunRdzvParams)
 	commands := utils.ShellCmd(torchCommand + " " + modelCommand)

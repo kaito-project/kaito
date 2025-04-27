@@ -71,15 +71,15 @@ func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
 
 func (r *ResourceSpec) validateRAGCreate() (errs *apis.FieldError) {
 	instanceType := string(r.InstanceType)
+	provider := os.Getenv(consts.CloudProviderEnv)
 
-	skuHandler, err := utils.GetSKUHandler()
+	skuHandler, err := utils.GetSKUHandler(provider)
 	if err != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 		return errs
 	}
 
 	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig == nil {
-		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
 		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))

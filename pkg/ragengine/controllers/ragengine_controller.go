@@ -55,6 +55,8 @@ type RAGEngineReconciler struct {
 	Log      logr.Logger
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
+
+	CloudProvider string
 }
 
 func NewRAGEngineReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder) *RAGEngineReconciler {
@@ -132,7 +134,7 @@ func (c *RAGEngineReconciler) addRAGEngine(ctx context.Context, ragEngineObj *ka
 		}
 		return reconcile.Result{}, err
 	}
-	if err = c.applyRAG(ctx, ragEngineObj); err != nil {
+	if err = c.applyRAG(ctx, ragEngineObj, c.CloudProvider); err != nil {
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
 			"ragengineFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
@@ -182,7 +184,7 @@ func (c *RAGEngineReconciler) ensureService(ctx context.Context, ragObj *kaitov1
 	return nil
 }
 
-func (c *RAGEngineReconciler) applyRAG(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine) error {
+func (c *RAGEngineReconciler) applyRAG(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine, cloudProvider string) error {
 	var err error
 	func() {
 
@@ -210,7 +212,7 @@ func (c *RAGEngineReconciler) applyRAG(ctx context.Context, ragEngineObj *kaitov
 		} else if apierrors.IsNotFound(err) {
 			var workloadObj client.Object
 			// Need to create a new workload
-			workloadObj, err = CreatePresetRAG(ctx, ragEngineObj, revisionStr, c.Client)
+			workloadObj, err = CreatePresetRAG(ctx, ragEngineObj, revisionStr, cloudProvider, c.Client)
 			if err != nil {
 				return
 			}
@@ -487,8 +489,8 @@ func (c *RAGEngineReconciler) CreateNodeClaim(ctx context.Context, ragEngineObj 
 	err := retry.OnError(retry.DefaultRetry, func(err error) bool {
 		return apierrors.IsAlreadyExists(err)
 	}, func() error {
-		newNodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, ragEngineObj)
-		return nodeclaim.CreateNodeClaim(ctx, newNodeClaim, c.Client)
+		newNodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, c.CloudProvider, ragEngineObj)
+		return nodeclaim.CreateNodeClaim(ctx, c.CloudProvider, newNodeClaim, c.Client)
 	})
 
 	if err != nil {

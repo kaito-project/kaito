@@ -33,6 +33,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
 	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -119,6 +120,12 @@ func main() {
 		mgr.GetEventRecorderFor("KAITO-RAGEngine-controller"),
 	)
 
+	ragengineReconciler.CloudProvider = os.Getenv(consts.CloudProviderEnv)
+	if !validCloudProvider(ragengineReconciler.CloudProvider) {
+		klog.ErrorS(nil, "invalid cloud provider env", "cloudProvider", ragengineReconciler.CloudProvider)
+		exitWithErrorFunc()
+	}
+
 	if err = ragengineReconciler.SetupWithManager(mgr); err != nil {
 		klog.ErrorS(err, "unable to create controller", "controller", "RAG Eingine")
 		exitWithErrorFunc()
@@ -175,4 +182,13 @@ func withShutdownSignal(ctx context.Context) context.Context {
 		cancel()
 	}()
 	return nctx
+}
+
+func validCloudProvider(cloudProvider string) bool {
+	switch cloudProvider {
+	case consts.AzureCloudName, consts.AWSCloudName, consts.ArcCloudName:
+		return true
+	default:
+		return false
+	}
 }

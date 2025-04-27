@@ -372,16 +372,14 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 				mockClient.CreateOrUpdateObjectInMap(mockNodeClaim)
 			}
 
-			if tc.cloudProvider != "" {
-				t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
-
-			}
-
 			tc.callMocks(mockClient)
 
 			reconciler := &WorkspaceReconciler{
 				Client: mockClient,
 				Scheme: test.NewTestScheme(),
+			}
+			if tc.cloudProvider != "" {
+				reconciler.CloudProvider = tc.cloudProvider
 			}
 			ctx := context.Background()
 
@@ -541,12 +539,11 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			tc.callMocks(mockClient)
 
 			reconciler := &WorkspaceReconciler{
-				Client: mockClient,
-				Scheme: test.NewTestScheme(),
+				Client:        mockClient,
+				Scheme:        test.NewTestScheme(),
+				CloudProvider: consts.AzureCloudName,
 			}
 			ctx := context.Background()
-
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 			err := reconciler.applyInference(ctx, &tc.workspace)
 			if tc.expectedError == nil {

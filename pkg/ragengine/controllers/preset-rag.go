@@ -65,7 +65,7 @@ var (
 	}
 )
 
-func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
+func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revisionNum string, cloudProvider string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 
@@ -81,7 +81,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 
 	if ragEngineObj.Spec.Embedding.Local != nil {
 		var skuNumGPUs int
-		gpuConfig, err := utils.GetGPUConfigBySKU(ragEngineObj.Spec.Compute.InstanceType)
+		gpuConfig, err := utils.GetGPUConfigBySKU(ragEngineObj.Spec.Compute.InstanceType, cloudProvider)
 		if err != nil {
 			gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, kubeClient, ragEngineObj.Status.WorkerNodes)
 			if err != nil {

@@ -140,8 +140,6 @@ func TestCreatePresetInference(t *testing.T) {
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 
@@ -176,7 +174,7 @@ func TestCreatePresetInference(t *testing.T) {
 			}
 			mockClient.CreateOrUpdateObjectInMap(svc)
 
-			createdObject, _ := CreatePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient)
+			createdObject, _ := CreatePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, consts.AzureCloudName, model, mockClient)
 			createdWorkload := ""
 			switch createdObject.(type) {
 			case *appsv1.Deployment:

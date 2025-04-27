@@ -11,6 +11,7 @@ const (
 	// RAGEngineFinalizer is used to make sure that ragengine controller handles garbage collection.
 	RAGEngineFinalizer            = "ragengine.finalizer.kaito.sh"
 	DefaultReleaseNamespaceEnvVar = "RELEASE_NAMESPACE"
+	CloudProviderEnv              = "CLOUD_PROVIDER"
 	AzureCloudName                = "azure"
 	AWSCloudName                  = "aws"
 	ArcCloudName                  = "arc"

@@ -743,15 +743,6 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	return nil
 }
 
-func (c *WorkspaceReconciler) handleInferenceError(ctx context.Context, wObj *kaitov1beta1.Workspace, err error) error {
-	if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
-		"WorkspaceInferenceStatusFailed", err.Error()); updateErr != nil {
-		klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-		return updateErr
-	}
-	return err
-}
-
 // SetupWithManager sets up the controller with the Manager.
 func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("Workspace")

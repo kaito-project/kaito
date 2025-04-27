@@ -239,15 +239,6 @@ func (c *RAGEngineReconciler) applyRAG(ctx context.Context, ragEngineObj *kaitov
 	return nil
 }
 
-func (c *RAGEngineReconciler) handleRAGError(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine, err error) error {
-	if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGConditionTypeServiceStatus, metav1.ConditionFalse,
-		"RAGEngineServiceStatusFailed", err.Error()); updateErr != nil {
-		klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
-		return updateErr
-	}
-	return err
-}
-
 func (c *RAGEngineReconciler) deleteRAGEngine(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine) (reconcile.Result, error) {
 	klog.InfoS("deleteRAGEngine", "ragengine", klog.KObj(ragEngineObj))
 	err := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.RAGEngineConditionTypeDeleting, metav1.ConditionTrue, "ragengineDeleted", "ragengine is being deleted")

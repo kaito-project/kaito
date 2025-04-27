@@ -17,6 +17,8 @@ securityContext:
       - "ALL"
 webhook:
   port: 9443
+metrics:
+  port: 8080
 resources:
   limits:
     cpu: 500m

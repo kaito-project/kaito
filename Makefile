@@ -456,6 +456,8 @@ endif
 KUBECTL ?= kubectl
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
+KUBEBUILDER ?= $(LOCALBIN)/kubebuilder
+KUSTOMIZE ?= $(LOCALBIN)/kustomize
 
 ## Tool Versions
 CONTROLLER_TOOLS_VERSION ?= v0.15.0
@@ -470,6 +472,22 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+.PHONY: kubebuilder
+kubebuilder: $(KUBEBUILDER) ## Download kubebuilder locally if necessary.
+$(KUBEBUILDER): $(LOCALBIN)
+	test -s $(LOCALBIN)/kubebuilder || ( curl -L -o $(LOCALBIN)/kubebuilder https://go.kubebuilder.io/dl/latest/$$(go env GOOS)/$$(go env GOARCH) && \
+	chmod +x $(LOCALBIN)/kubebuilder && \
+	$(LOCALBIN)/kubebuilder version )
+
+.PHONY: kustomize
+kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
+$(KUSTOMIZE): $(LOCALBIN)
+	test -s $(LOCALBIN)/kustomize || ( curl "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash && \
+	mv kustomize $(LOCALBIN)/kustomize && \
+	chmod +x $(LOCALBIN)/kustomize && \
+	$(LOCALBIN)/kustomize version )
+
 
 ## --------------------------------------
 ## Linting

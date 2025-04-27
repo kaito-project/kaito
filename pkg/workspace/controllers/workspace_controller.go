@@ -81,23 +81,17 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 
 	klog.InfoS("Reconciling", "workspace", req.NamespacedName)
 
-	if err := c.ensureFinalizer(ctx, workspaceObj); err != nil {
-		return reconcile.Result{}, err
-	}
-	// Handle deleting workspace, garbage collect all the resources.
-	if !workspaceObj.DeletionTimestamp.IsZero() {
+	if workspaceObj.DeletionTimestamp.IsZero() {
+		if err := c.ensureFinalizer(ctx, workspaceObj); err != nil {
+			return reconcile.Result{}, err
+		}
+	} else {
+		// Handle deleting workspace, garbage collect all the resources.
 		return c.deleteWorkspace(ctx, workspaceObj)
 	}
 
 	if err := c.syncControllerRevision(ctx, workspaceObj); err != nil {
 		return reconcile.Result{}, err
-	}
-
-	if workspaceObj.Inference != nil && workspaceObj.Inference.Preset != nil {
-		if !plugin.KaitoModelRegister.Has(string(workspaceObj.Inference.Preset.Name)) {
-			return reconcile.Result{}, fmt.Errorf("the preset model name %s is not registered for workspace %s/%s",
-				string(workspaceObj.Inference.Preset.Name), workspaceObj.Namespace, workspaceObj.Name)
-		}
 	}
 
 	result, err := c.addOrUpdateWorkspace(ctx, workspaceObj)

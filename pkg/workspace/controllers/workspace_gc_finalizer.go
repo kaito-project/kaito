@@ -43,9 +43,8 @@ func (c *WorkspaceReconciler) garbageCollectWorkspace(ctx context.Context, wObj 
 				"workspace", klog.KObj(wObj))
 			return ctrl.Result{}, updateErr
 		}
+		klog.InfoS("successfully removed the workspace finalizers", "workspace", klog.KObj(wObj))
 	}
 
-	klog.InfoS("successfully removed the workspace finalizers",
-		"workspace", klog.KObj(wObj))
 	return ctrl.Result{}, nil
 }

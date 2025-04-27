@@ -8,8 +8,17 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
+// Registration is a struct that holds the name and an instance of a struct
+// that implements the model.Model interface. It is used to register and manage
+// different model instances within the Kaito framework.
 type Registration struct {
-	Name     string
+	// Name is the name of the model. It is used as a key to register and
+	// retrieve the model metadata and instance.
+	Name string
+
+	// Instance is the actual model instance that implements the model.Model
+	// interface. It is used to retrieve the model's compute/storage requirements
+	// and runtime parameters.
 	Instance model.Model
 }
 
@@ -38,10 +47,11 @@ func (reg *ModelRegister) Register(r *Registration) {
 func (reg *ModelRegister) MustGet(name string) model.Model {
 	reg.Lock()
 	defer reg.Unlock()
-	if _, ok := reg.models[name]; ok {
-		return reg.models[name].Instance
+	r, ok := reg.models[name]
+	if !ok {
+		panic("model is not registered")
 	}
-	panic("model is not registered")
+	return r.Instance
 }
 
 func (reg *ModelRegister) ListModelNames() []string {

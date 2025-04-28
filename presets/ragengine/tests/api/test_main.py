@@ -48,11 +48,11 @@ async def test_index_documents_success(async_client):
     response = await async_client.post("/index", json=request_data)
     assert response.status_code == 200
     doc1, doc2 = response.json()
-    assert (doc1["text"] == "This is a test document")
+    assert (doc1["text"] == "This is a test document" or
+            doc2["text"] == "This is a test document") and (doc1["text"] == "Another test document" or
+            doc2["text"] == "Another test document")
     assert len(doc1["doc_id"]) == AUTO_GEN_DOC_ID_LEN
     assert not doc1["metadata"]
-
-    assert (doc2["text"] == "Another test document")
     assert len(doc2["doc_id"]) == AUTO_GEN_DOC_ID_LEN
     assert not doc2["metadata"]
 

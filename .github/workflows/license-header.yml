@@ -1,7 +1,7 @@
 name: License Header
 
 concurrency:
-  group:  ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 on:
@@ -14,9 +14,21 @@ permissions:
 
 jobs:
   check:
+    name: License Header (${{ matrix.language }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: Go
+            extension: '*.go'
+            boilerplate_file: 'hack/boilerplate.go.txt'
+            ignore_pattern: '*/*.deepcopy.go'
+          - language: Python
+            extension: '*.py'
+            boilerplate_file: 'hack/boilerplate.python.txt'
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.11.1
@@ -30,19 +42,29 @@ jobs:
           submodules: true
           fetch-depth: 0
 
-      - name: Check Go file headers
+      - name: Check ${{ matrix.language }} file headers
         run: |
-          boilerplate_file="hack/boilerplate.go.txt"
+          boilerplate_file="${{ matrix.boilerplate_file }}"
+          extension="${{ matrix.extension }}"
+          ignore_pattern="${{ matrix.ignore_pattern }}"
+
           boilerplate_content=$(cat "$boilerplate_file")
           boilerplate_lines=$(awk 'END{print NR}' "$boilerplate_file")
 
-          # Find all .go files
-          mapfile -t go_files < <(find . -type f -name '*.go' -not -name '*.deepcopy.go')
+          boilerplate_content=$(cat "$boilerplate_file")
+          boilerplate_lines=$(grep -c '^' "$boilerplate_file")
+
+          find_cmd="find . -type f -name '$extension'"
+          if [ -n "$ignore_pattern" ]; then
+            find_cmd="$find_cmd -not -path '$ignore_pattern'"
+          fi
+
+          # Find all relevant files
+          mapfile -t files < <(eval $find_cmd)
 
           exit_code=0
-          failed_files=""
 
-          for file in "${go_files[@]}"; do
+          for file in "${files[@]}"; do
             # Get the header of the current file
             header=$(head -n "$boilerplate_lines" "$file")
 
@@ -56,6 +78,6 @@ jobs:
           if [ $exit_code -ne 0 ]; then
             echo "Please add the content of '$boilerplate_file' to the beginning of the listed files."
           else
-            echo "Boilerplate check passed for all Go files."
+            echo "Boilerplate check passed for all ${{ matrix.language }} files."
           fi
           exit $exit_code

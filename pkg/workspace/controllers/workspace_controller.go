@@ -521,8 +521,6 @@ func (c *WorkspaceReconciler) ensureNodePlugins(ctx context.Context, wObj *kaito
 					return updateErr
 				}
 				return err
-			} else {
-				klog.Warning("UpdateNodeWithLabel failed", "node", freshNode.Name, "error", err)
 			}
 
 			time.Sleep(1 * time.Second)

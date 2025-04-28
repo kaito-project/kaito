@@ -9,6 +9,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func init() {
@@ -18,13 +19,11 @@ func init() {
 	})
 }
 
-var (
+const (
 	PresetPhi2Model = "phi-2"
+)
 
-	PresetPhiTagMap = map[string]string{
-		"Phi2": "0.1.0",
-	}
-
+var (
 	baseCommandPresetPhiInference = "accelerate launch"
 	baseCommandPresetPhiTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	phiRunParams                  = map[string]string{
@@ -42,7 +41,7 @@ type phi2 struct{}
 
 func (*phi2) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi",
+		Metadata:                  metadata.MustGet(PresetPhi2Model),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -57,17 +56,16 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "phi-2",
+				ModelName:      PresetPhi2Model,
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetPhiTagMap["Phi2"],
 	}
 }
 func (*phi2) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi",
+		Metadata:                  metadata.MustGet(PresetPhi2Model),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -81,7 +79,6 @@ func (*phi2) GetTuningParameters() *model.PresetParam {
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetPhiTagMap["Phi2"],
 	}
 }
 func (*phi2) SupportDistributedInference() bool {

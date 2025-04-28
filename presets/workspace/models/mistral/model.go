@@ -9,6 +9,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func init() {
@@ -22,15 +23,12 @@ func init() {
 	})
 }
 
-var (
+const (
 	PresetMistral7BModel         = "mistral-7b"
 	PresetMistral7BInstructModel = PresetMistral7BModel + "-instruct"
+)
 
-	PresetMistralTagMap = map[string]string{
-		"Mistral7B":         "0.1.0",
-		"Mistral7BInstruct": "0.1.0",
-	}
-
+var (
 	baseCommandPresetMistralInference = "accelerate launch"
 	baseCommandPresetMistralTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	mistralRunParams                  = map[string]string{
@@ -50,7 +48,7 @@ type mistral7b struct{}
 
 func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Mistral",
+		Metadata:                  metadata.MustGet(PresetMistral7BModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
@@ -65,18 +63,17 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "mistral-7b",
+				ModelName:      PresetMistral7BModel,
 				ModelRunParams: mistralRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetMistralTagMap["Mistral7B"],
 	}
 
 }
 func (*mistral7b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Mistral",
+		Metadata:                  metadata.MustGet(PresetMistral7BModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
@@ -90,7 +87,6 @@ func (*mistral7b) GetTuningParameters() *model.PresetParam {
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetMistralTagMap["Mistral7B"],
 	}
 }
 
@@ -107,7 +103,7 @@ type mistral7bInst struct{}
 
 func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Mistral",
+		Metadata:                  metadata.MustGet(PresetMistral7BInstructModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
@@ -122,12 +118,11 @@ func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "mistral-7b-instruct",
+				ModelName:      PresetMistral7BInstructModel,
 				ModelRunParams: mistralRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetMistralTagMap["Mistral7BInstruct"],
 	}
 
 }

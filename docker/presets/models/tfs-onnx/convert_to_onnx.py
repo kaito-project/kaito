@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 import sys
 import subprocess
 from optimum.onnxruntime import AutoOptimizationConfig, ORTModelForCausalLM, ORTOptimizer
@@ -6,7 +8,7 @@ import glob
 def download_and_convert(repo_name):
     """
     Download and convert a model to ONNX format.
-    
+
     Parameters:
     repo_name (str): The repository name to download the model from.
     model_name (str): The name to save the ONNX model as.
@@ -39,7 +41,7 @@ def download_and_convert(repo_name):
         return model
     except Exception as e:
         print(f"Failed to convert model to ONNX with caching: {e}")
-    
+
     try:
         model = ORTModelForCausalLM.from_pretrained(repo_name, use_cache=False, export=True, provider="CUDAExecutionProvider")
         model.save_pretrained(f"{repo_name}")
@@ -56,7 +58,7 @@ def onnx_optimize_model(model, repo_name):
         optimizer.optimize(save_dir=repo_name, optimization_config=optimization_config)
     except NotImplementedError as e:
         print("ONNX Optimization not supported for this model yet:", e)
-    except Exception as e: 
+    except Exception as e:
         print("Optimizing model failed", e)
 
 if __name__ == "__main__":

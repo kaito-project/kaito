@@ -14,7 +14,6 @@ permissions:
 
 jobs:
   check:
-    name: License Header (${{ matrix.language }})
     runs-on: ubuntu-latest
     permissions:
       contents: read

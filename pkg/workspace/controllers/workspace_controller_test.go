@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -315,10 +316,11 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 	test.RegisterTestModel()
 	testcases := map[string]struct {
-		callMocks     func(c *test.MockClient)
-		cloudProvider string
-		workspace     v1beta1.Workspace
-		expectedError error
+		callMocks           func(c *test.MockClient)
+		cloudProvider       string
+		nodeClaimConditions []status.Condition
+		workspace           v1beta1.Workspace
+		expectedError       error
 	}{
 		"Node is not created because nodeClaim creation fails": {
 			callMocks: func(c *test.MockClient) {
@@ -329,9 +331,10 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},
-			cloudProvider: consts.AzureCloudName,
-			workspace:     *test.MockWorkspaceWithPreset,
-			expectedError: errors.New("test error"),
+			cloudProvider:       consts.AzureCloudName,
+			nodeClaimConditions: []status.Condition{},
+			workspace:           *test.MockWorkspaceWithPreset,
+			expectedError:       errors.New("test error"),
 		},
 		"A nodeClaim is successfully created": {
 			callMocks: func(c *test.MockClient) {
@@ -342,14 +345,47 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
 			},
 			cloudProvider: consts.AzureCloudName,
+			nodeClaimConditions: []status.Condition{
+				{
+					Type:   string(apis.ConditionReady),
+					Status: v1.ConditionTrue,
+				},
+			},
 			workspace:     *test.MockWorkspaceDistributedModel,
 			expectedError: nil,
+		},
+		"A nodeClaim is successfully created but SKU is not available": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+			},
+			cloudProvider: consts.AzureCloudName,
+			nodeClaimConditions: []status.Condition{
+				{
+					Type:    karpenterv1.ConditionTypeLaunched,
+					Status:  v1.ConditionFalse,
+					Message: consts.ErrorInstanceTypesUnavailable,
+				},
+			},
+			workspace:     *test.MockWorkspaceWithPreset,
+			expectedError: reconcile.TerminalError(fmt.Errorf(consts.ErrorInstanceTypesUnavailable)),
 		},
 	}
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
 			mockClient := test.NewClient()
+			mockNodeClaim := &karpenterv1.NodeClaim{}
+
+			mockClient.UpdateCb = func(key types.NamespacedName) {
+				mockClient.GetObjectFromMap(mockNodeClaim, key)
+				mockNodeClaim.Status.Conditions = tc.nodeClaimConditions
+				mockClient.CreateOrUpdateObjectInMap(mockNodeClaim)
+			}
 
 			if tc.cloudProvider != "" {
 				t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)

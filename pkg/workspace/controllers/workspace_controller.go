@@ -50,6 +50,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 )
 
 const (
@@ -745,6 +746,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 // SetupWithManager sets up the controller with the Manager.
 func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("Workspace")
+
 	if err := c.setupInformers(mgr); err != nil {
 		return err
 	}
@@ -775,19 +777,21 @@ func (c *WorkspaceReconciler) setupInformers(mgr ctrl.Manager) error {
 	}
 
 	// Informer for NodeClass
-	provider := os.Getenv("CLOUD_PROVIDER")
-	if provider == "" {
-		return apis.ErrMissingField("CLOUD_PROVIDER environment variable must be set")
-	}
-	if provider == consts.AzureCloudName {
-		_, err := mgr.GetCache().GetInformer(context.Background(), &azurev1alpha2.AKSNodeClass{})
-		if err != nil {
-			return err
+	if featuregates.FeatureGates[consts.FeatureFlagEnsureNodeClass] {
+		provider := os.Getenv("CLOUD_PROVIDER")
+		if provider == "" {
+			return apis.ErrMissingField("CLOUD_PROVIDER environment variable must be set")
 		}
-	} else if provider == consts.AWSCloudName {
-		_, err := mgr.GetCache().GetInformer(context.Background(), &awsv1beta1.EC2NodeClass{})
-		if err != nil {
-			return err
+		if provider == consts.AzureCloudName {
+			_, err := mgr.GetCache().GetInformer(context.Background(), &azurev1alpha2.AKSNodeClass{})
+			if err != nil {
+				return err
+			}
+		} else if provider == consts.AWSCloudName {
+			_, err := mgr.GetCache().GetInformer(context.Background(), &awsv1beta1.EC2NodeClass{})
+			if err != nil {
+				return err
+			}
 		}
 	}
 

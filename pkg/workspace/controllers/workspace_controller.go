@@ -9,11 +9,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
+	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
+	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -28,6 +31,7 @@ import (
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/clock"
+	"knative.dev/pkg/apis"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -741,11 +745,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 // SetupWithManager sets up the controller with the Manager.
 func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("Workspace")
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Pod{},
-		"spec.nodeName", func(rawObj client.Object) []string {
-			pod := rawObj.(*corev1.Pod)
-			return []string{pod.Spec.NodeName}
-		}); err != nil {
+	if err := c.setupInformers(mgr); err != nil {
 		return err
 	}
 
@@ -761,6 +761,37 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	go monitorWorkspaces(context.Background(), c.Client)
 
 	return builder.Complete(c)
+}
+
+func (c *WorkspaceReconciler) setupInformers(mgr ctrl.Manager) error {
+	// Index the nodeName field of Pod objects to enable fast lookup.
+	// This will construct informers for all Pods in the cluster as well.
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Pod{},
+		"spec.nodeName", func(rawObj client.Object) []string {
+			pod := rawObj.(*corev1.Pod)
+			return []string{pod.Spec.NodeName}
+		}); err != nil {
+		return err
+	}
+
+	// Informer for NodeClass
+	provider := os.Getenv("CLOUD_PROVIDER")
+	if provider == "" {
+		return apis.ErrMissingField("CLOUD_PROVIDER environment variable must be set")
+	}
+	if provider == consts.AzureCloudName {
+		_, err := mgr.GetCache().GetInformer(context.Background(), &azurev1alpha2.AKSNodeClass{})
+		if err != nil {
+			return err
+		}
+	} else if provider == consts.AWSCloudName {
+		_, err := mgr.GetCache().GetInformer(context.Background(), &awsv1beta1.EC2NodeClass{})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // watches for nodeClaim with labels indicating workspace name.

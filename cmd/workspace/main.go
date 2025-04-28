@@ -122,6 +122,10 @@ func main() {
 		mgr.GetEventRecorderFor("KAITO-Workspace-controller"),
 	)
 
+	if !validCloudProvider() {
+		exitWithErrorFunc()
+	}
+
 	if err = workspaceReconciler.SetupWithManager(mgr); err != nil {
 		klog.ErrorS(err, "unable to create controller", "controller", "Workspace")
 		exitWithErrorFunc()
@@ -190,4 +194,15 @@ func withShutdownSignal(ctx context.Context) context.Context {
 		cancel()
 	}()
 	return nctx
+}
+
+func validCloudProvider() bool {
+	cloudProvider := os.Getenv("CLOUD_PROVIDER")
+	switch cloudProvider {
+	case consts.AzureCloudName, consts.AWSCloudName, consts.ArcCloudName:
+		return true
+	default:
+		klog.ErrorS(nil, "invalid cloud provider env", "cloudProvider", cloudProvider)
+		return false
+	}
 }

@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/clock"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -80,23 +81,17 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 
 	klog.InfoS("Reconciling", "workspace", req.NamespacedName)
 
-	if err := c.ensureFinalizer(ctx, workspaceObj); err != nil {
-		return reconcile.Result{}, err
-	}
-	// Handle deleting workspace, garbage collect all the resources.
-	if !workspaceObj.DeletionTimestamp.IsZero() {
+	if workspaceObj.DeletionTimestamp.IsZero() {
+		if err := c.ensureFinalizer(ctx, workspaceObj); err != nil {
+			return reconcile.Result{}, err
+		}
+	} else {
+		// Handle deleting workspace, garbage collect all the resources.
 		return c.deleteWorkspace(ctx, workspaceObj)
 	}
 
 	if err := c.syncControllerRevision(ctx, workspaceObj); err != nil {
 		return reconcile.Result{}, err
-	}
-
-	if workspaceObj.Inference != nil && workspaceObj.Inference.Preset != nil {
-		if !plugin.KaitoModelRegister.Has(string(workspaceObj.Inference.Preset.Name)) {
-			return reconcile.Result{}, fmt.Errorf("the preset model name %s is not registered for workspace %s/%s",
-				string(workspaceObj.Inference.Preset.Name), workspaceObj.Namespace, workspaceObj.Name)
-		}
 	}
 
 	result, err := c.addOrUpdateWorkspace(ctx, workspaceObj)
@@ -458,27 +453,27 @@ func (c *WorkspaceReconciler) createAndValidateNode(ctx context.Context, wObj *k
 }
 
 func (c *WorkspaceReconciler) CreateNodeClaim(ctx context.Context, wObj *kaitov1beta1.Workspace, nodeOSDiskSize string) (*corev1.Node, error) {
-RetryWithDifferentName:
-	newNodeClaim := nodeclaim.GenerateNodeClaimManifest(ctx, nodeOSDiskSize, wObj)
+	var newNodeClaim *karpenterv1.NodeClaim
 
-	if err := nodeclaim.CreateNodeClaim(ctx, newNodeClaim, c.Client); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			klog.InfoS("There exists a nodeClaim with the same name, retry with a different name", "nodeClaim", klog.KObj(newNodeClaim))
-			goto RetryWithDifferentName
-		} else {
+	err := retry.OnError(retry.DefaultRetry, func(err error) bool {
+		return apierrors.IsAlreadyExists(err)
+	}, func() error {
+		newNodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, wObj)
+		return nodeclaim.CreateNodeClaim(ctx, newNodeClaim, c.Client)
+	})
 
-			klog.ErrorS(err, "failed to create nodeClaim", "nodeClaim", newNodeClaim.Name)
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-				"nodeClaimFailedCreation", err.Error()); updateErr != nil {
-				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-				return nil, updateErr
-			}
-			return nil, err
+	if err != nil {
+		klog.ErrorS(err, "failed to create nodeClaim", "nodeClaim", newNodeClaim.Name)
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
+			"nodeClaimFailedCreation", err.Error()); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
+			return nil, updateErr
 		}
+		return nil, err
 	}
 
 	// check nodeClaim status until it is ready
-	err := nodeclaim.CheckNodeClaimStatus(ctx, newNodeClaim, c.Client)
+	err = nodeclaim.CheckNodeClaimStatus(ctx, newNodeClaim, c.Client)
 	if err != nil {
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
 			"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {

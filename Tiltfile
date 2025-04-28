@@ -19,6 +19,7 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
     FROM --platform=linux/amd64 mcr.microsoft.com/oss/go/microsoft/golang:1.24
     WORKDIR /
     COPY ./tilt_bin/manager /
+    COPY ./presets/workspace/models/supported_models.yaml /
     CMD ["/manager"]
     '''
 
@@ -52,7 +53,7 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
         return 'kubectl create namespace {} || true'.format(name)
 
     def manager():
-        return 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o tilt_bin/manager cmd/workspace/main.go'
+        return 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o tilt_bin/manager cmd/workspace/*.go'
 
     # Create the namespace if it doesn't exist
     local(create_namespace('kaito-workspace'), quiet=True)
@@ -106,9 +107,10 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
     docker_build_with_restart(IMG, '.',
      dockerfile_contents=DOCKERFILE,
      entrypoint='/manager',
-     only=['./tilt_bin/manager'],
+     only=['./tilt_bin/manager', './presets/workspace/models/supported_models.yaml'],
      live_update=[
            sync('./tilt_bin/manager', '/manager'),
+           sync('./presets/workspace/models/supported_models.yaml', '/supported_models.yaml'),
        ]
     )
 

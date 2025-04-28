@@ -89,7 +89,7 @@ func CheckNvidiaPlugin(ctx context.Context, nodeObj *corev1.Node) bool {
 	return false
 }
 
-func ExtractObjFields(obj interface{}) (instanceType, namespace, name string, labelSelector *metav1.LabelSelector,
+func ExtractObjFields(obj client.Object) (instanceType, namespace, name string, labelSelector *metav1.LabelSelector,
 	nameLabel, namespaceLabel string, err error) {
 	switch o := obj.(type) {
 	case *kaitov1beta1.Workspace:

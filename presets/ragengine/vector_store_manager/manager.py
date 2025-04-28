@@ -10,7 +10,7 @@ class VectorStoreManager:
     def __init__(self, vector_store: BaseVectorStore):
         self.vector_store = vector_store
 
-    async def index(self, index_name: str, documents: List[Document]) -> List[Dict[str, Any]]:
+    async def index(self, index_name: str, documents: List[Document]) -> List[str]:
         """Index new documents."""
         return await self.vector_store.index_documents(index_name, documents)
 

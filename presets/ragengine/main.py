@@ -94,7 +94,12 @@ def health_check():
 )
 async def index_documents(request: IndexRequest):
     try:
-        return await rag_ops.index(request.index_name, request.documents)
+        doc_ids = await rag_ops.index(request.index_name, request.documents)
+        documents = [
+            DocumentResponse(doc_id=doc_id, text=doc.text, metadata=doc.metadata)
+            for doc_id, doc in zip(doc_ids, request.documents)
+        ]
+        return documents
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

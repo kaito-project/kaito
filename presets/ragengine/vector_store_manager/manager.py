@@ -12,8 +12,7 @@ class VectorStoreManager:
 
     async def index(self, index_name: str, documents: List[Document]) -> List[Dict[str, Any]]:
         """Index new documents."""
-        ids = await self.vector_store.index_documents(index_name, documents)
-        return await self.vector_store._get_index_documents_by_ids(index_name, ids)
+        return await self.vector_store.index_documents(index_name, documents)
 
     async def query(self,
               index_name: str,

@@ -120,7 +120,9 @@ func main() {
 		mgr.GetEventRecorderFor("KAITO-RAGEngine-controller"),
 	)
 
-	if !validCloudProvider() {
+	cloudProvider := os.Getenv("CLOUD_PROVIDER")
+	if !kaitoutils.ValidCloudProvider(cloudProvider) {
+		klog.ErrorS(nil, "invalid cloud provider env", "cloudProvider", cloudProvider)
 		exitWithErrorFunc()
 	}
 

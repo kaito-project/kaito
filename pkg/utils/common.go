@@ -268,3 +268,12 @@ func SelectNodes(qualified []*v1.Node, preferred []string, previous []string, co
 
 	return qualified[0:count]
 }
+
+func ValidCloudProvider(cloudProvider string) bool {
+	switch cloudProvider {
+	case consts.AzureCloudName, consts.AWSCloudName, consts.ArcCloudName:
+		return true
+	default:
+		return false
+	}
+}

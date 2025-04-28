@@ -2,14 +2,12 @@ apiVersion: kaito.sh/v1alpha1
 kind: RAGEngine
 metadata:
   name: ragengine-start
-  annotations:
-      llm_model: "phi-3-mini-128k-instruct"
 spec:
   compute:
     instanceType: "Standard_NC6s_v3"  
     labelSelector:
       matchLabels:
-        apps: phi-3
+        apps: ragengine-example
   embedding:  
     local:
       modelID: "BAAI/bge-small-en-v1.5"       

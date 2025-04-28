@@ -73,7 +73,7 @@ var (
 )
 
 // GenerateNodeClaimManifest generates a nodeClaim object from the given workspace or RAGEngine.
-func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, obj interface{}) *karpenterv1.NodeClaim {
+func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *karpenterv1.NodeClaim {
 	klog.InfoS("GenerateNodeClaimManifest", "object", obj)
 
 	// Determine the type of the input object and extract relevant fields
@@ -183,7 +183,7 @@ func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, o
 }
 
 // GenerateNodeClaimName generates a nodeClaim name from the given workspace or RAGEngine.
-func GenerateNodeClaimName(obj interface{}) string {
+func GenerateNodeClaimName(obj client.Object) string {
 	// Determine the type of the input object and extract relevant fields
 	_, namespace, name, _, _, _, err := resources.ExtractObjFields(obj)
 	if err != nil {
@@ -290,7 +290,7 @@ func CreateKarpenterNodeClass(ctx context.Context, kubeClient client.Client) err
 }
 
 // WaitForPendingNodeClaims checks if there are any nodeClaims in provisioning condition. If so, wait until they are ready.
-func WaitForPendingNodeClaims(ctx context.Context, obj interface{}, kubeClient client.Client) error {
+func WaitForPendingNodeClaims(ctx context.Context, obj client.Object, kubeClient client.Client) error {
 
 	// Determine the type of the input object and retrieve the InstanceType
 	instanceType, _, _, _, _, _, err := resources.ExtractObjFields(obj)
@@ -329,7 +329,7 @@ func WaitForPendingNodeClaims(ctx context.Context, obj interface{}, kubeClient c
 }
 
 // ListNodeClaim lists all nodeClaim objects in the cluster that are created by the given workspace or RAGEngine.
-func ListNodeClaim(ctx context.Context, obj interface{}, kubeClient client.Client) (*karpenterv1.NodeClaimList, error) {
+func ListNodeClaim(ctx context.Context, obj client.Object, kubeClient client.Client) (*karpenterv1.NodeClaimList, error) {
 	nodeClaimList := &karpenterv1.NodeClaimList{}
 
 	var ls labels.Set

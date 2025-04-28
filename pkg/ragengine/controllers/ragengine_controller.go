@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/clock"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -76,12 +77,12 @@ func (c *RAGEngineReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 
 	klog.InfoS("Reconciling", "RAG Engine", req.NamespacedName)
 
-	if err := c.ensureFinalizer(ctx, ragEngineObj); err != nil {
-		return reconcile.Result{}, err
-	}
-
-	// Handle deleting ragengine, garbage collect all the resources.
-	if !ragEngineObj.DeletionTimestamp.IsZero() {
+	if ragEngineObj.DeletionTimestamp.IsZero() {
+		if err := c.ensureFinalizer(ctx, ragEngineObj); err != nil {
+			return reconcile.Result{}, err
+		}
+	} else {
+		// Handle deleting ragengine, garbage collect all the resources.
 		return c.deleteRAGEngine(ctx, ragEngineObj)
 	}
 
@@ -481,27 +482,27 @@ func (c *RAGEngineReconciler) createAndValidateNode(ctx context.Context, ragEngi
 }
 
 func (c *RAGEngineReconciler) CreateNodeClaim(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine, nodeOSDiskSize string) (*corev1.Node, error) {
-RetryWithDifferentName:
-	newNodeClaim := nodeclaim.GenerateNodeClaimManifest(ctx, nodeOSDiskSize, ragEngineObj)
+	var newNodeClaim *karpenterv1.NodeClaim
 
-	if err := nodeclaim.CreateNodeClaim(ctx, newNodeClaim, c.Client); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			klog.InfoS("There exists a nodeClaim with the same name, retry with a different name", "nodeClaim", klog.KObj(newNodeClaim))
-			goto RetryWithDifferentName
-		} else {
+	err := retry.OnError(retry.DefaultRetry, func(err error) bool {
+		return apierrors.IsAlreadyExists(err)
+	}, func() error {
+		newNodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, ragEngineObj)
+		return nodeclaim.CreateNodeClaim(ctx, newNodeClaim, c.Client)
+	})
 
-			klog.ErrorS(err, "failed to create nodeClaim", "nodeClaim", newNodeClaim.Name)
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-				"nodeClaimFailedCreation", err.Error()); updateErr != nil {
-				klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
-				return nil, updateErr
-			}
-			return nil, err
+	if err != nil {
+		klog.ErrorS(err, "failed to create nodeClaim", "nodeClaim", newNodeClaim.Name)
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
+			"nodeClaimFailedCreation", err.Error()); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
+			return nil, updateErr
 		}
+		return nil, err
 	}
 
 	// check nodeClaim status until it is ready
-	err := nodeclaim.CheckNodeClaimStatus(ctx, newNodeClaim, c.Client)
+	err = nodeclaim.CheckNodeClaimStatus(ctx, newNodeClaim, c.Client)
 	if err != nil {
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1alpha1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
 			"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {

@@ -42,9 +42,8 @@ func (c *RAGEngineReconciler) garbageCollectRAGEngine(ctx context.Context, ragEn
 				"ragengine", klog.KObj(ragEngineObj))
 			return ctrl.Result{}, updateErr
 		}
+		klog.InfoS("successfully removed the ragengine finalizers", "ragengine", klog.KObj(ragEngineObj))
 	}
 
-	klog.InfoS("successfully removed the ragengine finalizers",
-		"ragengine", klog.KObj(ragEngineObj))
 	return ctrl.Result{}, nil
 }

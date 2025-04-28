@@ -33,7 +33,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
 	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -182,15 +181,4 @@ func withShutdownSignal(ctx context.Context) context.Context {
 		cancel()
 	}()
 	return nctx
-}
-
-func validCloudProvider() bool {
-	cloudProvider := os.Getenv("CLOUD_PROVIDER")
-	switch cloudProvider {
-	case consts.AzureCloudName, consts.AWSCloudName, consts.ArcCloudName:
-		return true
-	default:
-		klog.ErrorS(nil, "invalid cloud provider env", "cloudProvider", cloudProvider)
-		return false
-	}
 }

@@ -17,7 +17,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"k8s.io/klog/v2"
 	"knative.dev/pkg/injection/sharedmain"
 	"knative.dev/pkg/webhook"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -41,12 +40,8 @@ const (
 )
 
 var (
-	scheme = runtime.NewScheme()
-
-	exitWithErrorFunc = func() {
-		klog.Flush()
-		os.Exit(1)
-	}
+	scheme       = runtime.NewScheme()
+	ragengineLog = ctrl.Log.WithName("ragengine")
 )
 
 func init() {
@@ -57,7 +52,6 @@ func init() {
 	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
-	klog.InitFlags(nil)
 }
 
 func main() {
@@ -105,8 +99,8 @@ func main() {
 		// LeaderElectionReleaseOnCancel: true,
 	})
 	if err != nil {
-		klog.ErrorS(err, "unable to start manager")
-		exitWithErrorFunc()
+		ragengineLog.Error(err, "unable to start manager")
+		os.Exit(1)
 	}
 
 	k8sclient.SetGlobalClient(mgr.GetClient())
@@ -120,26 +114,26 @@ func main() {
 	)
 
 	if err = ragengineReconciler.SetupWithManager(mgr); err != nil {
-		klog.ErrorS(err, "unable to create controller", "controller", "RAG Eingine")
-		exitWithErrorFunc()
+		ragengineLog.Error(err, "unable to create controller", "controller", "RAG Eingine")
+		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		klog.ErrorS(err, "unable to set up health check")
-		exitWithErrorFunc()
+		ragengineLog.Error(err, "unable to set up health check")
+		os.Exit(1)
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		klog.ErrorS(err, "unable to set up ready check")
-		exitWithErrorFunc()
+		ragengineLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
 	}
 
 	if enableWebhook {
-		klog.InfoS("starting webhook reconcilers")
+		ragengineLog.Info("starting webhook reconcilers")
 		p, err := strconv.Atoi(os.Getenv(WebhookServicePort))
 		if err != nil {
-			klog.ErrorS(err, "unable to parse the webhook port number")
-			exitWithErrorFunc()
+			ragengineLog.Error(err, "unable to parse the webhook port number")
+			os.Exit(1)
 		}
 		ctx := webhook.WithOptions(ctx, webhook.Options{
 			ServiceName: os.Getenv(WebhookServiceName),
@@ -154,10 +148,10 @@ func main() {
 		time.Sleep(2 * time.Second)
 	}
 
-	klog.InfoS("starting manager")
+	ragengineLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		klog.ErrorS(err, "problem running manager")
-		exitWithErrorFunc()
+		ragengineLog.Error(err, "problem running manager")
+		os.Exit(1)
 	}
 }
 
@@ -171,7 +165,7 @@ func withShutdownSignal(ctx context.Context) context.Context {
 
 	go func() {
 		<-signalChan
-		klog.Info("received shutdown signal")
+		ragengineLog.Info("received shutdown signal")
 		cancel()
 	}()
 	return nctx

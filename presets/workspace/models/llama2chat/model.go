@@ -9,6 +9,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func init() {
@@ -26,6 +27,12 @@ func init() {
 	})
 }
 
+const (
+	Llama7BChat  = "llama-2-7b-chat"
+	Llama13BChat = "llama-2-13b-chat"
+	Llama70BChat = "llama-2-70b-chat"
+)
+
 var (
 	baseCommandPresetLlama = "cd /workspace/llama/llama-2 && torchrun"
 	llamaRunParams         = map[string]string{
@@ -40,7 +47,7 @@ type llama2Chat7b struct{}
 
 func (*llama2Chat7b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "LLaMa2",
+		Metadata:                  metadata.MustGet(Llama7BChat),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePrivate),
 		DiskStorageRequirement:    "34Gi",
 		GPUCountRequirement:       "1",
@@ -76,7 +83,7 @@ type llama2Chat13b struct{}
 
 func (*llama2Chat13b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "LLaMa2",
+		Metadata:                  metadata.MustGet(Llama13BChat),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePrivate),
 		DiskStorageRequirement:    "46Gi",
 		GPUCountRequirement:       "2",
@@ -113,7 +120,7 @@ type llama2Chat70b struct{}
 
 func (*llama2Chat70b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "LLaMa2",
+		Metadata:                  metadata.MustGet(Llama70BChat),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePrivate),
 		DiskStorageRequirement:    "158Gi",
 		GPUCountRequirement:       "8",

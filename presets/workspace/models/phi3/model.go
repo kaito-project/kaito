@@ -9,6 +9,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func init() {
@@ -34,21 +35,15 @@ func init() {
 	})
 }
 
-var (
+const (
 	PresetPhi3Mini4kModel     = "phi-3-mini-4k-instruct"
 	PresetPhi3Mini128kModel   = "phi-3-mini-128k-instruct"
 	PresetPhi3Medium4kModel   = "phi-3-medium-4k-instruct"
 	PresetPhi3Medium128kModel = "phi-3-medium-128k-instruct"
 	PresetPhi3_5MiniInstruct  = "phi-3.5-mini-instruct"
+)
 
-	PresetPhiTagMap = map[string]string{
-		"Phi3Mini4kInstruct":     "0.1.0",
-		"Phi3Mini128kInstruct":   "0.1.0",
-		"Phi3Medium4kInstruct":   "0.1.0",
-		"Phi3Medium128kInstruct": "0.1.0",
-		"Phi3_5MiniInstruct":     "0.1.0",
-	}
-
+var (
 	baseCommandPresetPhiInference = "accelerate launch"
 	baseCommandPresetPhiTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	phiRunParams                  = map[string]string{
@@ -67,7 +62,7 @@ type phi3Mini4KInst struct{}
 
 func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi3",
+		Metadata:                  metadata.MustGet(PresetPhi3Mini4kModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -82,17 +77,16 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "phi-3-mini-4k-instruct",
+				ModelName:      PresetPhi3Mini4kModel,
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetPhiTagMap["Phi3Mini4kInstruct"],
 	}
 }
 func (*phi3Mini4KInst) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi3",
+		Metadata:                  metadata.MustGet(PresetPhi3Mini4kModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -106,7 +100,6 @@ func (*phi3Mini4KInst) GetTuningParameters() *model.PresetParam {
 				BaseCommand: baseCommandPresetPhiTuning,
 			},
 		},
-		Tag: PresetPhiTagMap["Phi3Mini4kInstruct"],
 	}
 }
 func (*phi3Mini4KInst) SupportDistributedInference() bool { return false }
@@ -120,7 +113,7 @@ type phi3Mini128KInst struct{}
 
 func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi3",
+		Metadata:                  metadata.MustGet(PresetPhi3Mini128kModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -135,17 +128,16 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "phi-3-mini-128k-instruct",
+				ModelName:      PresetPhi3Mini128kModel,
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetPhiTagMap["Phi3Mini128kInstruct"],
 	}
 }
 func (*phi3Mini128KInst) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi3",
+		Metadata:                  metadata.MustGet(PresetPhi3Mini128kModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -157,7 +149,6 @@ func (*phi3Mini128KInst) GetTuningParameters() *model.PresetParam {
 				BaseCommand: baseCommandPresetPhiTuning,
 			},
 		},
-		Tag: PresetPhiTagMap["Phi3Mini128kInstruct"],
 	}
 }
 func (*phi3Mini128KInst) SupportDistributedInference() bool { return false }
@@ -171,7 +162,7 @@ type phi3_5MiniInst struct{}
 
 func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi3_5",
+		Metadata:                  metadata.MustGet(PresetPhi3_5MiniInstruct),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -186,17 +177,16 @@ func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "phi-3.5-mini-instruct",
+				ModelName:      PresetPhi3_5MiniInstruct,
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetPhiTagMap["Phi3_5MiniInstruct"],
 	}
 }
 func (*phi3_5MiniInst) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi3_5",
+		Metadata:                  metadata.MustGet(PresetPhi3_5MiniInstruct),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -210,7 +200,6 @@ func (*phi3_5MiniInst) GetTuningParameters() *model.PresetParam {
 				BaseCommand: baseCommandPresetPhiTuning,
 			},
 		},
-		Tag: PresetPhiTagMap["Phi3_5MiniInstruct"],
 	}
 }
 func (*phi3_5MiniInst) SupportDistributedInference() bool { return false }
@@ -224,7 +213,7 @@ type Phi3Medium4kInstruct struct{}
 
 func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi3",
+		Metadata:                  metadata.MustGet(PresetPhi3Medium4kModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -239,17 +228,16 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "phi-3-medium-4k-instruct",
+				ModelName:      PresetPhi3Medium4kModel,
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetPhiTagMap["Phi3Medium4kInstruct"],
 	}
 }
 func (*Phi3Medium4kInstruct) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi3",
+		Metadata:                  metadata.MustGet(PresetPhi3Medium4kModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -263,7 +251,6 @@ func (*Phi3Medium4kInstruct) GetTuningParameters() *model.PresetParam {
 				BaseCommand: baseCommandPresetPhiTuning,
 			},
 		},
-		Tag: PresetPhiTagMap["Phi3Medium4kInstruct"],
 	}
 }
 func (*Phi3Medium4kInstruct) SupportDistributedInference() bool { return false }
@@ -277,7 +264,7 @@ type Phi3Medium128kInstruct struct{}
 
 func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi3",
+		Metadata:                  metadata.MustGet(PresetPhi3Medium128kModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -292,17 +279,16 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "phi-3-medium-128k-instruct",
+				ModelName:      PresetPhi3Medium128kModel,
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetPhiTagMap["Phi3Medium128kInstruct"],
 	}
 }
 func (*Phi3Medium128kInstruct) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi3",
+		Metadata:                  metadata.MustGet(PresetPhi3Medium128kModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -314,7 +300,6 @@ func (*Phi3Medium128kInstruct) GetTuningParameters() *model.PresetParam {
 				BaseCommand: baseCommandPresetPhiTuning,
 			},
 		},
-		Tag: PresetPhiTagMap["Phi3Medium128kInstruct"],
 	}
 }
 func (*Phi3Medium128kInstruct) SupportDistributedInference() bool { return false }

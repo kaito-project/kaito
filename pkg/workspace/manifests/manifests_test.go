@@ -4,11 +4,11 @@
 package manifests
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -21,7 +21,7 @@ func TestGenerateStatefulSetManifest(t *testing.T) {
 
 		workspace := test.MockWorkspaceWithPreset
 
-		obj := GenerateStatefulSetManifest(context.TODO(), workspace,
+		obj := GenerateStatefulSetManifest(workspace,
 			"",  //imageName
 			nil, //imagePullSecretRefs
 			*workspace.Resource.Count,
@@ -34,6 +34,14 @@ func TestGenerateStatefulSetManifest(t *testing.T) {
 			nil, //volumes
 			nil, //volumeMount
 		)
+
+		assert.Len(t, obj.OwnerReferences, 1, "Expected 1 OwnerReference")
+		ownerRef := obj.OwnerReferences[0]
+		assert.Equal(t, v1beta1.GroupVersion.String(), ownerRef.APIVersion)
+		assert.Equal(t, "Workspace", ownerRef.Kind)
+		assert.Equal(t, workspace.Name, ownerRef.Name)
+		assert.Equal(t, workspace.UID, ownerRef.UID)
+		assert.True(t, *ownerRef.Controller)
 
 		if obj.Spec.ServiceName != fmt.Sprintf("%s-headless", workspace.Name) {
 			t.Errorf("headless service name is wrong in statefullset spec")
@@ -65,7 +73,7 @@ func TestGenerateDeploymentManifest(t *testing.T) {
 
 		workspace := test.MockWorkspaceWithPreset
 
-		obj := GenerateDeploymentManifest(context.TODO(), workspace, test.MockWorkspaceWithPresetHash,
+		obj := GenerateDeploymentManifest(workspace, test.MockWorkspaceWithPresetHash,
 			"",  //imageName
 			nil, //imagePullSecretRefs
 			*workspace.Resource.Count,
@@ -78,6 +86,14 @@ func TestGenerateDeploymentManifest(t *testing.T) {
 			nil, //volumes
 			nil, //volumeMount
 		)
+
+		assert.Len(t, obj.OwnerReferences, 1, "Expected 1 OwnerReference")
+		ownerRef := obj.OwnerReferences[0]
+		assert.Equal(t, v1beta1.GroupVersion.String(), ownerRef.APIVersion)
+		assert.Equal(t, "Workspace", ownerRef.Kind)
+		assert.Equal(t, workspace.Name, ownerRef.Name)
+		assert.Equal(t, workspace.UID, ownerRef.UID)
+		assert.True(t, *ownerRef.Controller)
 
 		appSelector := map[string]string{
 			v1beta1.LabelWorkspaceName: workspace.Name,
@@ -105,7 +121,15 @@ func TestGenerateDeploymentManifestWithPodTemplate(t *testing.T) {
 
 		workspace := test.MockWorkspaceWithInferenceTemplate
 
-		obj := GenerateDeploymentManifestWithPodTemplate(context.TODO(), workspace, nil)
+		obj := GenerateDeploymentManifestWithPodTemplate(workspace, nil)
+
+		assert.Len(t, obj.OwnerReferences, 1, "Expected 1 OwnerReference")
+		ownerRef := obj.OwnerReferences[0]
+		assert.Equal(t, v1beta1.GroupVersion.String(), ownerRef.APIVersion)
+		assert.Equal(t, "Workspace", ownerRef.Kind)
+		assert.Equal(t, workspace.Name, ownerRef.Name)
+		assert.Equal(t, workspace.UID, ownerRef.UID)
+		assert.True(t, *ownerRef.Controller)
 
 		appSelector := map[string]string{
 			v1beta1.LabelWorkspaceName: workspace.Name,
@@ -143,7 +167,15 @@ func TestGenerateServiceManifest(t *testing.T) {
 	for _, isStatefulSet := range options {
 		t.Run(fmt.Sprintf("generate service, isStatefulSet %v", isStatefulSet), func(t *testing.T) {
 			workspace := test.MockWorkspaceWithPreset
-			obj := GenerateServiceManifest(context.TODO(), workspace, v1.ServiceTypeClusterIP, isStatefulSet)
+			obj := GenerateServiceManifest(workspace, v1.ServiceTypeClusterIP, isStatefulSet)
+
+			assert.Len(t, obj.OwnerReferences, 1, "Expected 1 OwnerReference")
+			ownerRef := obj.OwnerReferences[0]
+			assert.Equal(t, v1beta1.GroupVersion.String(), ownerRef.APIVersion)
+			assert.Equal(t, "Workspace", ownerRef.Kind)
+			assert.Equal(t, workspace.Name, ownerRef.Name)
+			assert.Equal(t, workspace.UID, ownerRef.UID)
+			assert.True(t, *ownerRef.Controller)
 
 			svcSelector := map[string]string{
 				v1beta1.LabelWorkspaceName: workspace.Name,
@@ -162,7 +194,15 @@ func TestGenerateHeadlessServiceManifest(t *testing.T) {
 
 	t.Run("generate headless service", func(t *testing.T) {
 		workspace := test.MockWorkspaceWithPreset
-		obj := GenerateHeadlessServiceManifest(context.TODO(), workspace)
+		obj := GenerateHeadlessServiceManifest(workspace)
+
+		assert.Len(t, obj.OwnerReferences, 1, "Expected 1 OwnerReference")
+		ownerRef := obj.OwnerReferences[0]
+		assert.Equal(t, v1beta1.GroupVersion.String(), ownerRef.APIVersion)
+		assert.Equal(t, "Workspace", ownerRef.Kind)
+		assert.Equal(t, workspace.Name, ownerRef.Name)
+		assert.Equal(t, workspace.UID, ownerRef.UID)
+		assert.True(t, *ownerRef.Controller)
 
 		svcSelector := map[string]string{
 			v1beta1.LabelWorkspaceName: workspace.Name,

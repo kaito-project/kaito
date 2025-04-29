@@ -80,8 +80,8 @@ type Metadata struct {
 
 // PresetParam defines the preset inference parameters for a model.
 type PresetParam struct {
-	Tag             string // The model image tag
-	ModelFamilyName string // The name of the model family.
+	Metadata
+
 	ImageAccessMode string // Defines where the Image is Public or Private.
 
 	DiskStorageRequirement        string         // Disk storage requirements for the model.

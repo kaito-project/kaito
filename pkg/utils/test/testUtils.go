@@ -156,6 +156,7 @@ var (
 			Annotations: map[string]string{
 				v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
 			},
+			UID: "test-uid",
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
@@ -205,6 +206,7 @@ var (
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
+			UID:       "test-uid",
 		},
 		Spec: &v1alpha1.RAGEngineSpec{
 			Compute: &v1alpha1.ResourceSpec{
@@ -733,6 +735,7 @@ var (
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
+			UID:       "testUID",
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,

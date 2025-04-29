@@ -9,6 +9,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func init() {
@@ -22,15 +23,12 @@ func init() {
 	})
 }
 
-var (
+const (
 	PresetPhi4Model             = "phi-4"
 	PresetPhi4MiniInstructModel = "phi-4-mini-instruct"
+)
 
-	PresetPhiTagMap = map[string]string{
-		"Phi4":             "0.1.0",
-		"Phi4MiniInstruct": "0.1.0",
-	}
-
+var (
 	baseCommandPresetPhiInference = "accelerate launch"
 	baseCommandPresetPhiTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	phiRunParams                  = map[string]string{
@@ -49,7 +47,7 @@ type phi4Model struct{}
 
 func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi4",
+		Metadata:                  metadata.MustGet(PresetPhi4Model),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
@@ -64,18 +62,17 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "phi-4",
+				ModelName:      PresetPhi4Model,
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetPhiTagMap["Phi4"],
 	}
 }
 
 func (*phi4Model) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi4",
+		Metadata:                  metadata.MustGet(PresetPhi4Model),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
@@ -87,7 +84,6 @@ func (*phi4Model) GetTuningParameters() *model.PresetParam {
 				BaseCommand: baseCommandPresetPhiTuning,
 			},
 		},
-		Tag: PresetPhiTagMap["Phi4"],
 	}
 }
 
@@ -102,7 +98,7 @@ type phi4MiniInstruct struct{}
 
 func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi4",
+		Metadata:                  metadata.MustGet(PresetPhi4MiniInstructModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -117,18 +113,17 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "phi-4-mini-instruct",
+				ModelName:      PresetPhi4MiniInstructModel,
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetPhiTagMap["Phi4MiniInstruct"],
 	}
 }
 
 func (*phi4MiniInstruct) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Phi4",
+		Metadata:                  metadata.MustGet(PresetPhi4MiniInstructModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -140,7 +135,6 @@ func (*phi4MiniInstruct) GetTuningParameters() *model.PresetParam {
 				BaseCommand: baseCommandPresetPhiTuning,
 			},
 		},
-		Tag: PresetPhiTagMap["Phi4MiniInstruct"],
 	}
 }
 

@@ -1,7 +1,7 @@
 # Dependencies for TFS
 
 # Core Dependencies
-vllm==0.8.2
+vllm==0.8.5
 transformers == 4.49.0
 torch==2.6.0
 accelerate==1.0.0

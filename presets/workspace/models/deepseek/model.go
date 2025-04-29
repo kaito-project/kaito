@@ -9,6 +9,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func init() {
@@ -22,15 +23,12 @@ func init() {
 	})
 }
 
-var (
+const (
 	PresetDeepSeekR1DistillLlama8BModel = "deepseek-r1-distill-llama-8b"
 	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
+)
 
-	PresetDeepSeekTagMap = map[string]string{
-		"DeepSeekDistillLlama8B": "0.1.0",
-		"DeepSeekDistillQwen14B": "0.1.0",
-	}
-
+var (
 	baseCommandPresetDeepseekInference = "accelerate launch"
 	deepseekLlama8bRunParams           = map[string]string{
 		"torch_dtype": "bfloat16",
@@ -58,7 +56,7 @@ type llama8b struct{}
 
 func (*llama8b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "DeepSeek",
+		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillLlama8BModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -78,7 +76,6 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetDeepSeekTagMap["DeepSeekDistillLlama8B"],
 	}
 }
 func (*llama8b) GetTuningParameters() *model.PresetParam {
@@ -97,7 +94,7 @@ type qwen14b struct{}
 
 func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "DeepSeek",
+		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillQwen14BModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
@@ -117,7 +114,6 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetDeepSeekTagMap["DeepSeekDistillQwen14B"],
 	}
 }
 func (*qwen14b) GetTuningParameters() *model.PresetParam {

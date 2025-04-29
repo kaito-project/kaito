@@ -71,7 +71,9 @@ func TestGetTuningImageInfo(t *testing.T) {
 				},
 			},
 			presetObj: &model.PresetParam{
-				Tag: "latest",
+				Metadata: model.Metadata{
+					Tag: "latest",
+				},
 			},
 			expected: "testregistry/kaito-testpreset:latest",
 		},
@@ -87,7 +89,9 @@ func TestGetTuningImageInfo(t *testing.T) {
 				},
 			},
 			presetObj: &model.PresetParam{
-				Tag: "latest",
+				Metadata: model.Metadata{
+					Tag: "latest",
+				},
 			},
 			expected: "/kaito-testpreset:latest",
 		},

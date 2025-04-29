@@ -86,13 +86,13 @@ class BaseVectorStore(ABC):
         """Common logic for creating a new index with documents."""
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         llama_docs = []
-        indexed_doc_ids = set()
+        indexed_doc_ids = [None] * len(documents)
 
-        for doc in documents:
+        for idx, doc in enumerate(documents):
             doc_id = self.generate_doc_id(doc.text)
             llama_doc = LlamaDocument(id_=doc_id, text=doc.text, metadata=doc.metadata)
             llama_docs.append(llama_doc)
-            indexed_doc_ids.add(doc_id)
+            indexed_doc_ids[idx] = doc_id
 
         if llama_docs:
             if self.use_rwlock:
@@ -118,7 +118,7 @@ class BaseVectorStore(ABC):
                 index.set_index_id(index_name)
                 self.index_map[index_name] = index
                 self.index_store.add_index_struct(index.index_struct)
-        return list(indexed_doc_ids)
+        return indexed_doc_ids
 
     async def query(self,
               index_name: str,

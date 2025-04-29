@@ -78,6 +78,18 @@ type Metadata struct {
 	DownloadAtRuntime bool `yaml:"downloadAtRuntime,omitempty"`
 }
 
+// Validate checks if the Metadata is valid.
+func (m *Metadata) Validate() error {
+	// Some private models may not have a version URL, so we allow it to be empty until
+	// we remove support for private preset models.
+	if m.Version == "" {
+		return nil
+	}
+
+	_, _, err := utils.ParseHuggingFaceModelVersion(m.Version)
+	return err
+}
+
 // PresetParam defines the preset inference parameters for a model.
 type PresetParam struct {
 	Metadata

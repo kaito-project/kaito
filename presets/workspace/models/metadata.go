@@ -35,6 +35,7 @@ func init() {
 	utilruntime.Must(yaml.Unmarshal(supportedModelsYAML, &catalog))
 
 	for _, m := range catalog.Models {
+		utilruntime.Must(m.Validate())
 		supportedModels.Store(m.Name, &m)
 	}
 }

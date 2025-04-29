@@ -5,10 +5,8 @@ package inference
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"os"
 	"strconv"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -108,7 +106,9 @@ func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient cl
 
 func updateParamsForDownload(wObj *v1beta1.Workspace, inferenceParams *model.PresetParam) {
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(wObj)
-	repoId, revision := parseModelVersion(inferenceParams.Version)
+	// safe to skip error checking since we already performed validation in
+	// presets/workspace/models/metadata.go
+	repoId, revision, _ := utils.ParseHuggingFaceModelVersion(inferenceParams.Version)
 	switch runtimeName {
 	case model.RuntimeNameVLLM:
 		inferenceParams.VLLM.ModelRunParams["model"] = repoId
@@ -273,40 +273,4 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 		return nil, err
 	}
 	return depObj, nil
-}
-
-// parseModelVersion parses the model version in the format of https://huggingface.co/<org>/<model>/commit/<revision>
-// and returns the repoId and revision. If the commit is not specified, it returns an empty string for revision,
-// and the main branch HEAD commit is used.
-//
-// Example 1:
-//
-//	Version: "https://huggingface.co/tiiuae/falcon-7b/commit/ec89142b67d748a1865ea4451372db8313ada0d8"
-//	RepoId: "tiiuae/falcon-7b"
-//	Revision: "ec89142b67d748a1865ea4451372db8313ada0d8"
-//
-// Example 2:
-//
-//	Version: https://huggingface.co/tiiuae/falcon-7b
-//	RepoId: "tiiuae/falcon-7b"
-//	Revision: "" (main branch HEAD commit is used)
-func parseModelVersion(version string) (repoId string, revision string) {
-	parsedURL, err := url.Parse(version)
-	if err != nil {
-		return "", ""
-	}
-
-	parts := strings.Split(strings.Trim(parsedURL.Path, "/"), "/")
-
-	// Expected path: <org>/<model>/commit/<revision>
-	if len(parts) == 4 && parts[2] == "commit" {
-		repoId, revision = parts[0]+"/"+parts[1], parts[3]
-	}
-	// Expected path: <org>/<model>
-	if len(parts) == 2 {
-		// Handle case where the URL is in the format of <user>/<model>
-		repoId, revision = parts[0]+"/"+parts[1], ""
-	}
-
-	return
 }

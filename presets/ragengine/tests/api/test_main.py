@@ -297,14 +297,12 @@ async def test_list_documents_in_index_success(async_client):
 
     response = await async_client.post("/index", json=request_data)
     assert response.status_code == 200
-    print(response.json())
     doc1, doc2 = response.json()
 
     # Retrieve documents for the specific index
     response = await async_client.get(f"/indexes/{index_name}/documents")
     assert response.status_code == 200
     response_json = response.json()
-    print(response_json)
 
     # Ensure documents exist correctly in the specific index
     assert response_json["count"] == 2

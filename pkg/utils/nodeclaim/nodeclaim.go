@@ -249,12 +249,7 @@ func CreateNodeClaim(ctx context.Context, nodeClaimObj *karpenterv1.NodeClaim, k
 		return err
 	}
 
-	err = kubeClient.Create(ctx, nodeClaimObj.DeepCopy(), &client.CreateOptions{})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return kubeClient.Create(ctx, nodeClaimObj, &client.CreateOptions{})
 }
 
 // CreateKarpenterNodeClass creates a nodeClass object for Karpenter.

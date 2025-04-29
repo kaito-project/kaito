@@ -33,6 +33,7 @@ func TestGenerateStatefulSetManifest(t *testing.T) {
 			nil, //tolerations
 			nil, //volumes
 			nil, //volumeMount
+			nil, //envVars
 		)
 
 		assert.Len(t, obj.OwnerReferences, 1, "Expected 1 OwnerReference")
@@ -85,6 +86,7 @@ func TestGenerateDeploymentManifest(t *testing.T) {
 			nil, //tolerations
 			nil, //volumes
 			nil, //volumeMount
+			nil, //envVars
 		)
 
 		assert.Len(t, obj.OwnerReferences, 1, "Expected 1 OwnerReference")

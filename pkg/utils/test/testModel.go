@@ -16,6 +16,9 @@ var emptyParams = map[string]string{}
 
 func (*baseTestModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Tag: "base-test-model",
+		},
 		GPUCountRequirement: "1",
 		RuntimeParam: model.RuntimeParam{
 			VLLM: model.VLLMParam{
@@ -64,6 +67,9 @@ type testNoTensorParallelModel struct {
 
 func (*testNoTensorParallelModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Tag: "test-no-tensor-parallel-model",
+		},
 		GPUCountRequirement: "1",
 		RuntimeParam: model.RuntimeParam{
 			DisableTensorParallelism: true,
@@ -87,8 +93,41 @@ type testNoLoraSupportModel struct {
 	baseTestModel
 }
 
+type testModelDownload struct {
+	baseTestModel
+}
+
+func (*testModelDownload) SupportDistributedInference() bool {
+	return false
+}
+
+func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Version:           "https://huggingface.co/test-repo/test-model/commit/test-revision",
+			DownloadAtRuntime: true,
+		},
+		GPUCountRequirement: "1",
+		RuntimeParam: model.RuntimeParam{
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				ModelRunParams:    emptyParams,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+
 func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Tag: "test-no-lora-support-model",
+		},
 		GPUCountRequirement: "1",
 		RuntimeParam: model.RuntimeParam{
 			DisableTensorParallelism: true,
@@ -128,5 +167,10 @@ func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-no-lora-support-model",
 		Instance: &testNoLoraSupportModel{},
+	})
+
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-model-download",
+		Instance: &testModelDownload{},
 	})
 }

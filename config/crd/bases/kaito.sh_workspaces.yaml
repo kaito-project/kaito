@@ -512,6 +512,10 @@ spec:
                         items:
                           type: string
                         type: array
+                      modelAccessSecret:
+                        description: ModelAccessSecret is the name of the secret that
+                          contains the huggingface access token.
+                        type: string
                     type: object
                 required:
                 - name
@@ -774,6 +778,10 @@ spec:
                         items:
                           type: string
                         type: array
+                      modelAccessSecret:
+                        description: ModelAccessSecret is the name of the secret that
+                          contains the huggingface access token.
+                        type: string
                     type: object
                 required:
                 - name

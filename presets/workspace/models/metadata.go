@@ -16,12 +16,9 @@ var (
 	//go:embed supported_models.yaml
 	supportedModelsYAML []byte
 
-	// mutex is used to synchronize access to the SupportedModels map.
-	mutex sync.Mutex
-
-	// SupportedModels is a global map that holds the source of truth
+	// supportedModels is a map that holds the source of truth
 	// for all supported models and their metadata.
-	SupportedModels map[string]*model.Metadata
+	supportedModels sync.Map
 )
 
 // Catalog is a struct that holds a list of supported models parsed
@@ -37,21 +34,18 @@ func init() {
 	catalog := Catalog{}
 	utilruntime.Must(yaml.Unmarshal(supportedModelsYAML, &catalog))
 
-	SupportedModels = make(map[string]*model.Metadata)
 	for _, m := range catalog.Models {
-		SupportedModels[m.Name] = &m
+		supportedModels.Store(m.Name, &m)
 	}
 }
 
 // MustGet retrieves the model metadata for the given model name or
 // panics if the model name is not found in the SupportedModels map.
 func MustGet(name string) model.Metadata {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	m, ok := SupportedModels[name]
+	m, ok := supportedModels.Load(name)
 	if !ok {
 		panic("model metadata not found: " + name)
 	}
-	return *m
+
+	return *(m.(*model.Metadata))
 }

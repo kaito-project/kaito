@@ -297,6 +297,7 @@ async def test_list_documents_in_index_success(async_client):
 
     response = await async_client.post("/index", json=request_data)
     assert response.status_code == 200
+    doc1, doc2 = response.json()
 
     # Retrieve documents for the specific index
     response = await async_client.get(f"/indexes/{index_name}/documents")
@@ -306,6 +307,8 @@ async def test_list_documents_in_index_success(async_client):
     # Ensure documents exist correctly in the specific index
     assert response_json["count"] == 2
     assert len(response_json["documents"]) == 2
+    assert response_json["documents"][0]["doc_id"] == doc1["doc_id"]
+    assert response_json["documents"][1]["doc_id"] == doc2["doc_id"]
     assert ({item["text"] for item in response_json["documents"]}
             == {item["text"] for item in request_data["documents"]})
 

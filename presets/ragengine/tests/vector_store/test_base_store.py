@@ -124,11 +124,8 @@ class BaseVectorStoreTest(ABC):
         all_docs = await vector_store_manager.list_documents_in_index("test_add_index", limit=10, offset=1)
         print(all_docs)
 
-        for idx, doc_id in enumerate(ids):
-            # list_documents_in_index returns documents with doc_id's that are not the same as the id's returned from index_documents
-            response_doc = [doc for doc in all_docs if doc['doc_id'] == vector_store_manager.index_map['test_add_index'].docstore.get_ref_doc_info(doc_id).node_ids[0]][0] or None
-            assert response_doc is not None
-            assert documents[idx].text == response_doc['text']
+        # Validate id's from index_documents match the expected ids
+        assert all(doc['doc_id'] == ids[idx] for idx, doc in enumerate(all_docs))
 
     @pytest.mark.asyncio
     async def test_persist_index(self, vector_store_manager):

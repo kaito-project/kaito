@@ -214,17 +214,17 @@ class BaseVectorStore(ABC):
         """
         try:
             if isinstance(doc_store, SimpleDocumentStore):
-                text, hash_value = doc_stub.text, doc_stub.hash
+                text, hash_value, ref_doc_id = doc_stub.text, doc_stub.hash, doc_stub.ref_doc_id
             else:
                 doc_info = await doc_store.aget_document(doc_id)
-                text, hash_value = doc_info.text, doc_info.hash
+                text, hash_value, ref_doc_id = doc_info.text, doc_info.hash, doc_stub.ref_doc_id
 
             # Truncate if needed
             is_truncated = bool(max_text_length and len(text) > max_text_length)
             truncated_text = text[:max_text_length] if is_truncated else text
 
             return {
-                "doc_id": doc_id,
+                "doc_id": ref_doc_id,
                 "text": truncated_text,
                 "hash_value": hash_value,
                 "metadata": getattr(doc_stub, "metadata", {}),

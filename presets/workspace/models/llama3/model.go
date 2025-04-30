@@ -14,16 +14,8 @@ import (
 
 func init() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
-		Name:     "llama-2-7b-chat",
-		Instance: &llama2chatA,
-	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
-		Name:     "llama-2-13b-chat",
-		Instance: &llama2chatB,
-	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
-		Name:     "llama-2-70b-chat",
-		Instance: &llama2chatC,
+		Name:     "llama3.1-8b-instruct",
+		Instance: &llama3_1_8b_instructA,
 	})
 }
 

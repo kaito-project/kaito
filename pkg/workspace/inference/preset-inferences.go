@@ -104,25 +104,6 @@ func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient cl
 	return nil
 }
 
-func updateParamsForDownload(wObj *v1beta1.Workspace, inferenceParams *model.PresetParam) {
-	runtimeName := v1beta1.GetWorkspaceRuntimeName(wObj)
-	// safe to skip error checking since we already performed validation in
-	// presets/workspace/models/metadata.go
-	repoId, revision, _ := utils.ParseHuggingFaceModelVersion(inferenceParams.Version)
-	switch runtimeName {
-	case model.RuntimeNameVLLM:
-		inferenceParams.VLLM.ModelRunParams["model"] = repoId
-		if revision != "" {
-			inferenceParams.VLLM.ModelRunParams["code-revision"] = revision
-		}
-	case model.RuntimeNameHuggingfaceTransformers:
-		inferenceParams.Transformers.ModelRunParams["pretrained_model_name_or_path"] = repoId
-		if revision != "" {
-			inferenceParams.Transformers.ModelRunParams["revision"] = revision
-		}
-	}
-}
-
 func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace, presetObj *model.PresetParam) (string, []corev1.LocalObjectReference) {
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 	// Check if the workspace preset's access mode is private
@@ -232,7 +213,6 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 		volumeMounts = append(volumeMounts, adapterVolumeMount)
 	}
 	if inferenceParam.DownloadAtRuntime {
-		updateParamsForDownload(workspaceObj, inferenceParam)
 		envVars = append(envVars, corev1.EnvVar{
 			Name: "HF_TOKEN",
 			ValueFrom: &corev1.EnvVarSource{

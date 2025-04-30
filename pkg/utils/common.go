@@ -28,6 +28,10 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
+const (
+	errInvalidModelVersionURL = "invalid model version URL: %s. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>"
+)
+
 var (
 	karpenterSchemeGroupVersion = schema.GroupVersion{Group: karpenterapis.Group, Version: "v1"}
 	awsSchemeGroupVersion       = schema.GroupVersion{Group: awsapis.Group, Version: "v1beta1"}
@@ -292,7 +296,7 @@ func ParseHuggingFaceModelVersion(version string) (repoId string, revision strin
 	}
 
 	if parsedURL.Host != "huggingface.co" {
-		return "", "", fmt.Errorf("invalid model version URL: %s. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>", version)
+		return "", "", fmt.Errorf(errInvalidModelVersionURL, version)
 	}
 
 	parts := strings.Split(strings.Trim(parsedURL.Path, "/"), "/")
@@ -308,5 +312,5 @@ func ParseHuggingFaceModelVersion(version string) (repoId string, revision strin
 		return
 	}
 
-	return "", "", fmt.Errorf("invalid model version URL: %s. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>", version)
+	return "", "", fmt.Errorf(errInvalidModelVersionURL, version)
 }

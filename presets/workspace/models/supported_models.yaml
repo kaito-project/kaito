@@ -6,34 +6,13 @@ models:
     tag: 0.0.1
 
   # Llama
-  - name: llama-2-7b
-    type: llama2-completion
-    runtime: llama-2
-    tag: 0.0.4
-  - name: llama-2-7b-chat
-    type: llama2-chat
-    runtime: llama-2
-    tag: 0.0.4
-  - name: llama-2-13b
-    type: llama2-completion
-    runtime: llama-2
-    tag: 0.0.4
-  - name: llama-2-13b-chat
-    type: llama2-chat
-    runtime: llama-2
-    tag: 0.0.4
-  - name: llama-2-70b
-    type: llama2-completion
-    runtime: llama-2
-    tag: 0.0.4
-  - name: llama-2-70b-chat
-    type: llama2-chat
-    runtime: llama-2
-    tag: 0.0.4
+  - name: llama3.1-8b-instruct
+    type: text-generation
+    version: https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/commit/0e9e39f249a16976918f6564b8830bc894c89659
+    runtime: tfs
+    tag: 0.0.1
+
     # Tag history:
-    # 0.0.4 - Update endpoint /healthz -> /health (#738)
-    # 0.0.3 - Inference API Cleanup (#233)
-    # 0.0.2 - Eliminate Unnecessary Process Group Creation in Worker Initialization (#244)
     # 0.0.1 - Initial Release
 
   # Falcon

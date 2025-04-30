@@ -56,5 +56,6 @@ class FaissVectorMapStore(FaissVectorStore):
 
         """
         if ref_doc_id in self.ref_doc_id_map:
+            # https://github.com/facebookresearch/faiss/wiki/Special-operations-on-indexes#removing-elements-from-an-index
             self._faiss_index.remove_ids(np.array([int(self.ref_doc_id_map[ref_doc_id])], dtype=np.int64))
             del self.ref_doc_id_map[ref_doc_id]

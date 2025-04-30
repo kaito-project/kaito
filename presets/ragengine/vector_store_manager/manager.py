@@ -42,6 +42,18 @@ class VectorStoreManager:
             max_text_length
         )
 
+    async def update_document(self,
+            index_name: str,
+            doc_id: str,
+            new_doc: Document
+    ) -> None:
+        """Update a document in the index."""
+        return await self.vector_store.update_document(index_name, doc_id, new_doc)
+
+    async def delete_document(self, index_name: str, doc_id: str) -> None:
+        """Delete a document from the index."""
+        return await self.vector_store.delete_document(index_name, doc_id)
+
     async def persist(self, index_name: str, path: str) -> None:
         """Persist existing index."""
         return await self.vector_store.persist(index_name, path)

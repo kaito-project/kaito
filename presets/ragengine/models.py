@@ -25,6 +25,13 @@ class IndexRequest(BaseModel):
     index_name: str
     documents: List[Document]
 
+class UpdateDocumentRequest(BaseModel):
+    doc_id: str
+    text: str
+    hash_value: Optional[str] = None
+    metadata: Optional[dict] = Field(default_factory=dict)
+    is_truncated: bool = False
+
 class QueryRequest(BaseModel):
     index_name: str
     query: str

@@ -208,6 +208,33 @@ class BaseVectorStore(ABC):
     def list_indexes(self) -> List[str]:
         return list(self.index_map.keys())
 
+    async def delete_document(self, index_name: str, doc_id: str):
+        """Common logic for deleting a document."""
+        if index_name not in self.index_map:
+            raise ValueError(f"No such index: '{index_name}' exists.")
+        if self.use_rwlock:
+            async with self.rwlock.writer_lock:
+                self.index_map[index_name].delete_ref_doc(doc_id, delete_from_docstore=True)
+                self.index_store.add_index_struct(self.index_map[index_name].index_struct)
+        else:
+            self.index_map[index_name].delete_ref_doc(doc_id, delete_from_docstore=True)
+            self.index_store.add_index_struct(self.index_map[index_name].index_struct)
+    
+    async def update_document(self, index_name: str, doc_id: str, document: Document):
+        """Common logic for updating a document."""
+        if index_name not in self.index_map:
+            raise ValueError(f"No such index: '{index_name}' exists.")
+        
+        llama_doc = LlamaDocument(id_=doc_id, text=document.text, metadata=document.metadata, excluded_llm_metadata_keys=[key for key in document.metadata.keys()])
+
+        if self.use_rwlock:
+            async with self.rwlock.writer_lock:
+                await self.index_map[index_name].update_ref_doc(llama_doc)
+                self.index_store.add_index_struct(self.index_map[index_name].index_struct)
+        else:
+            await self.index_map[index_name].update_ref_doc(llama_doc)
+            self.index_store.add_index_struct(self.index_map[index_name].index_struct)
+
     async def _process_document(self, doc_id: str, doc_stub, doc_store, max_text_length: Optional[int]):
         """
         Helper to process and format a single document.

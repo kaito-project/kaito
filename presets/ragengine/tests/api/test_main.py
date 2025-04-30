@@ -107,6 +107,86 @@ async def test_query_index_success(mock_get, async_client):
 @pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")  # Mock the requests.get call for fetching model metadata
+async def test_document_update_success(mock_get, async_client):
+    #Mock the response for the default model fetch
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    # Mock HTTPX response for Custom Inference API
+    mock_response = {"result": "This is the completion from the API"}
+    respx.post("http://localhost:5000/v1/completions").mock(return_value=httpx.Response(200, json=mock_response))
+
+    # Index Request
+    request_data = {
+        "index_name": "test_update_index",
+        "documents": [
+            {"text": "This is a test document"},
+            {"text": "Another test document"}
+        ]
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+    doc1, doc2 = response.json()
+    update_doc = doc1 if doc1["text"] == "Another test document" else doc2
+    assert update_doc["doc_id"] != ""
+
+    update_doc_id = update_doc["doc_id"]
+    update_doc["text"] = "This is an updated test document"
+    response = await async_client.post(f"/indexes/test_update_index/documents/{update_doc_id}", json=update_doc)
+    assert response.status_code == 200
+    assert response.json()["doc_id"] == update_doc_id
+    assert response.json()["text"] == "This is an updated test document"
+
+    # Query Request
+    request_data = {
+        "index_name": "test_update_index",
+        "query": "updates test query",
+        "top_k": 1,
+        "llm_params": {"temperature": 0.7}
+    }
+
+    response = await async_client.post("/query", json=request_data)
+    assert response.status_code == 200
+    assert response.json()["response"] == "{'result': 'This is the completion from the API'}"
+    assert len(response.json()["source_nodes"]) == 1
+    assert response.json()["source_nodes"][0]["text"] == "This is an updated test document"
+    assert response.json()["source_nodes"][0]["score"] == pytest.approx(0.48061275482177734, rel=1e-6)
+    assert response.json()["source_nodes"][0]["metadata"] == {}
+
+    assert respx.calls.call_count == 1
+
+@pytest.mark.asyncio
+async def test_document_delete_success(async_client):
+    # Index Request
+    request_data = {
+        "index_name": "test_delete_index",
+        "documents": [
+            {"text": "This is a test document"},
+            {"text": "Another test document"}
+        ]
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+    doc1, doc2 = response.json()
+    update_doc = doc1 if doc1["text"] == "Another test document" else doc2
+    assert update_doc["doc_id"] != ""
+
+    response = await async_client.delete(f"/indexes/test_delete_index/documents/{update_doc["doc_id"]}")
+    assert response.status_code == 200
+
+    response = await async_client.get(f"/indexes/test_delete_index/documents")
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    assert len(response.json()["documents"]) == 1
+    assert response.json()["documents"][0]["text"] == "This is a test document"
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")  # Mock the requests.get call for fetching model metadata
 async def test_reranker_and_query_with_index(mock_get, async_client):
     """
     Test reranker and query functionality with indexed documents.

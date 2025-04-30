@@ -1,7 +1,0 @@
-# Common dependencies
--r requirements.txt
-
-# Test dependencies
-pytest
-pytest-asyncio
-respx

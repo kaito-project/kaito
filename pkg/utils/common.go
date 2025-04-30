@@ -314,3 +314,12 @@ func ParseHuggingFaceModelVersion(version string) (repoId string, revision strin
 
 	return "", "", fmt.Errorf(errInvalidModelVersionURL, version)
 }
+
+func ValidCloudProvider(cloudProvider string) bool {
+	switch cloudProvider {
+	case consts.AzureCloudName, consts.AWSCloudName, consts.ArcCloudName:
+		return true
+	default:
+		return false
+	}
+}

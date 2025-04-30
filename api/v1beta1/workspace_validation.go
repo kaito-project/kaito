@@ -315,15 +315,16 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig != nil {
 		if presetName != "" {
 			model := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
+			params := model.GetInferenceParameters()
 
 			machineCount := *r.Count
 			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
 			machinePerGPUMemory := resource.NewQuantity(int64(skuConfig.GPUMemGB/skuConfig.GPUCount)*consts.GiBToBytes, resource.BinarySI) // Ensure it's per GPU
 			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI)        // Total GPU memory
 
-			modelGPUCount := resource.MustParse(model.GetInferenceParameters().GPUCountRequirement)
-			modelPerGPUMemory := resource.MustParse(model.GetInferenceParameters().PerGPUMemoryRequirement)
-			modelTotalGPUMemory := resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement)
+			modelGPUCount := resource.MustParse(params.GPUCountRequirement)
+			modelPerGPUMemory := resource.MustParse(params.PerGPUMemoryRequirement)
+			modelTotalGPUMemory := resource.MustParse(params.TotalGPUMemoryRequirement)
 
 			// Separate the checks for specific error messages
 			if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
@@ -436,8 +437,9 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, in
 			return errs
 		}
 		modelPreset := plugin.KaitoModelRegister.MustGet(string(i.Preset.Name))
+		params := modelPreset.GetInferenceParameters()
 		// Validate private preset has private image specified
-		if modelPreset.GetInferenceParameters().ImageAccessMode == string(ModelImageAccessModePrivate) &&
+		if params.ImageAccessMode == string(ModelImageAccessModePrivate) &&
 			i.Preset.AccessMode != ModelImageAccessModePrivate {
 			errs = errs.Also(apis.ErrGeneric("This preset only supports private AccessMode, AccessMode must be private to continue"))
 		}
@@ -448,7 +450,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, in
 				break
 			}
 		}
-		err := modelPreset.GetInferenceParameters().Validate(model.RuntimeContext{
+		err := params.Validate(model.RuntimeContext{
 			RuntimeName: runtime,
 			RuntimeContextExtraArguments: model.RuntimeContextExtraArguments{
 				AdaptersEnabled:        len(i.Adapters) > 0,
@@ -463,6 +465,13 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, in
 			errs = errs.Also(apis.ErrGeneric("When AccessMode is private, an image must be provided in PresetOptions"))
 		}
 		// Note: we don't enforce private access mode to have image secrets, in case anonymous pulling is enabled
+
+		// For models that require downloading at runtime, we need to check if the modelAccessSecret is provided
+		if params.DownloadAtRuntime && i.Preset.PresetOptions.ModelAccessSecret == "" {
+			errs = errs.Also(apis.ErrGeneric("This preset requires a modelAccessSecret with HF_TOKEN key under presetOptions to download the model"))
+		} else if !params.DownloadAtRuntime && i.Preset.PresetOptions.ModelAccessSecret != "" {
+			errs = errs.Also(apis.ErrGeneric("This preset does not require a modelAccessSecret with HF_TOKEN key under presetOptions"))
+		}
 	}
 	if len(i.Adapters) > MaxAdaptersNumber {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Number of Adapters exceeds the maximum limit, maximum of %s allowed", strconv.Itoa(MaxAdaptersNumber))))

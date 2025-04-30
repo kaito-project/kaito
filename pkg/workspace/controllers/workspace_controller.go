@@ -554,13 +554,13 @@ func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1be
 		supportsDistributedInference = model.SupportDistributedInference()
 	}
 
-	serviceObj := manifests.GenerateServiceManifest(ctx, wObj, serviceType, supportsDistributedInference)
+	serviceObj := manifests.GenerateServiceManifest(wObj, serviceType, supportsDistributedInference)
 	if err := resources.CreateResource(ctx, serviceObj, c.Client); err != nil {
 		return err
 	}
 
 	if supportsDistributedInference {
-		headlessService := manifests.GenerateHeadlessServiceManifest(ctx, wObj)
+		headlessService := manifests.GenerateHeadlessServiceManifest(wObj)
 		if err := resources.CreateResource(ctx, headlessService, c.Client); err != nil {
 			return err
 		}

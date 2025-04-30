@@ -32,8 +32,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
@@ -160,13 +158,6 @@ func main() {
 	if err := featuregates.ParseAndValidateFeatureGates(featureGates); err != nil {
 		klog.ErrorS(err, "unable to set `feature-gates` flag")
 		exitWithErrorFunc()
-	}
-
-	if featuregates.FeatureGates[consts.FeatureFlagEnsureNodeClass] {
-		err := nodeclaim.CheckNodeClass(ctx, kClient)
-		if err != nil {
-			exitWithErrorFunc()
-		}
 	}
 
 	klog.InfoS("starting manager")

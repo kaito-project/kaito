@@ -34,6 +34,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
@@ -244,9 +245,11 @@ func GenerateEC2NodeClassManifest(ctx context.Context) *awsv1beta1.EC2NodeClass 
 // CreateNodeClaim creates a nodeClaim object.
 func CreateNodeClaim(ctx context.Context, nodeClaimObj *karpenterv1.NodeClaim, kubeClient client.Client) error {
 	klog.InfoS("CreateNodeClaim", "nodeClaim", klog.KObj(nodeClaimObj))
-	err := CheckNodeClass(ctx, kubeClient)
-	if err != nil {
-		return err
+	if featuregates.FeatureGates[consts.FeatureFlagEnsureNodeClass] {
+		err := CheckNodeClass(ctx, kubeClient)
+		if err != nil {
+			return err
+		}
 	}
 
 	return kubeClient.Create(ctx, nodeClaimObj, &client.CreateOptions{})

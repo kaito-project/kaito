@@ -9,6 +9,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func init() {
@@ -22,15 +23,12 @@ func init() {
 	})
 }
 
-var (
+const (
 	PresetQwen2_5Coder7BInstructModel  = "qwen2.5-coder-7b-instruct"
 	PresetQwen2_5Coder32BInstructModel = "qwen2.5-coder-32b-instruct"
+)
 
-	PresetTagMap = map[string]string{
-		"Qwen2.5-Coder-7B-Instruct":  "0.1.0",
-		"Qwen2.5-Coder-32B-Instruct": "0.1.0",
-	}
-
+var (
 	baseCommandPresetQwenInference = "accelerate launch"
 	baseCommandPresetQwenTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	qwenRunParams                  = map[string]string{
@@ -48,7 +46,7 @@ type qwen2_5Coder7BInstruct struct{}
 
 func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Qwen",
+		Metadata:                  metadata.MustGet(PresetQwen2_5Coder7BInstructModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
@@ -68,13 +66,12 @@ func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetTagMap["Qwen2.5-Coder-7B-Instruct"],
 	}
 }
 
 func (*qwen2_5Coder7BInstruct) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "qwen",
+		Metadata:                  metadata.MustGet(PresetQwen2_5Coder7BInstructModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
@@ -88,7 +85,6 @@ func (*qwen2_5Coder7BInstruct) GetTuningParameters() *model.PresetParam {
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetTagMap["Qwen2.5-Coder-7B-Instruct"],
 	}
 }
 
@@ -105,7 +101,7 @@ type qwen2_5Coder32BInstruct struct{}
 
 func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Qwen",
+		Metadata:                  metadata.MustGet(PresetQwen2_5Coder32BInstructModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
@@ -125,13 +121,12 @@ func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetTagMap["Qwen2.5-Coder-32B-Instruct"],
 	}
 }
 
 func (*qwen2_5Coder32BInstruct) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "qwen",
+		Metadata:                  metadata.MustGet(PresetQwen2_5Coder32BInstructModel),
 		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
@@ -143,7 +138,6 @@ func (*qwen2_5Coder32BInstruct) GetTuningParameters() *model.PresetParam {
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetTagMap["Qwen2.5-Coder-32B-Instruct"],
 	}
 }
 

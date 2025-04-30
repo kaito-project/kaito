@@ -6,6 +6,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -25,6 +26,10 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+const (
+	errInvalidModelVersionURL = "invalid model version URL: %s. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>"
 )
 
 var (
@@ -267,4 +272,45 @@ func SelectNodes(qualified []*v1.Node, preferred []string, previous []string, co
 	}
 
 	return qualified[0:count]
+}
+
+// ParseHuggingFaceModelVersion parses the model version in the format of https://huggingface.co/<org>/<model>/commit/<revision>
+// and returns the repoId and revision. If the commit is not specified, it returns an empty string for revision,
+// and the main branch HEAD commit is used.
+//
+// Example 1:
+//
+//	Version: "https://huggingface.co/tiiuae/falcon-7b/commit/ec89142b67d748a1865ea4451372db8313ada0d8"
+//	RepoId: "tiiuae/falcon-7b"
+//	Revision: "ec89142b67d748a1865ea4451372db8313ada0d8"
+//
+// Example 2:
+//
+//	Version: https://huggingface.co/tiiuae/falcon-7b
+//	RepoId: "tiiuae/falcon-7b"
+//	Revision: "" (main branch HEAD commit is used)
+func ParseHuggingFaceModelVersion(version string) (repoId string, revision string, err error) {
+	parsedURL, err := url.Parse(version)
+	if err != nil {
+		return "", "", err
+	}
+
+	if parsedURL.Host != "huggingface.co" {
+		return "", "", fmt.Errorf(errInvalidModelVersionURL, version)
+	}
+
+	parts := strings.Split(strings.Trim(parsedURL.Path, "/"), "/")
+	switch len(parts) {
+	case 2: // Expected path: "<org>/<model>"
+		repoId, revision = parts[0]+"/"+parts[1], ""
+		return
+	case 4: // Expected path: "<org>/<model>/commit/<revision>"
+		if parts[2] != "commit" {
+			break
+		}
+		repoId, revision = parts[0]+"/"+parts[1], parts[3]
+		return
+	}
+
+	return "", "", fmt.Errorf(errInvalidModelVersionURL, version)
 }

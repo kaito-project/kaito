@@ -170,7 +170,7 @@ func (c *RAGEngineReconciler) ensureService(ctx context.Context, ragObj *kaitov1
 	} else {
 		return nil
 	}
-	serviceObj := manifests.GenerateRAGServiceManifest(ctx, ragObj, serviceName, serviceType)
+	serviceObj := manifests.GenerateRAGServiceManifest(ragObj, serviceName, serviceType)
 	if err := resources.CreateResource(ctx, serviceObj, c.Client); err != nil {
 		return err
 	}

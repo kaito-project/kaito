@@ -78,10 +78,22 @@ type Metadata struct {
 	DownloadAtRuntime bool `yaml:"downloadAtRuntime,omitempty"`
 }
 
+// Validate checks if the Metadata is valid.
+func (m *Metadata) Validate() error {
+	// Some private models may not have a version URL, so we allow it to be empty until
+	// we remove support for private preset models.
+	if m.Version == "" {
+		return nil
+	}
+
+	_, _, err := utils.ParseHuggingFaceModelVersion(m.Version)
+	return err
+}
+
 // PresetParam defines the preset inference parameters for a model.
 type PresetParam struct {
-	Tag             string // The model image tag
-	ModelFamilyName string // The name of the model family.
+	Metadata
+
 	ImageAccessMode string // Defines where the Image is Public or Private.
 
 	DiskStorageRequirement        string         // Disk storage requirements for the model.
@@ -197,6 +209,13 @@ func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
 }
 
 func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
+	if p.DownloadAtRuntime {
+		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
+		p.Transformers.ModelRunParams["pretrained_model_name_or_path"] = repoId
+		if revision != "" {
+			p.Transformers.ModelRunParams["revision"] = revision
+		}
+	}
 	torchCommand := utils.BuildCmdStr(
 		p.Transformers.BaseCommand,
 		p.Transformers.TorchRunParams,
@@ -218,6 +237,13 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	}
 	if !p.VLLM.DisallowLoRA && rc.AdaptersEnabled {
 		p.VLLM.ModelRunParams["enable-lora"] = ""
+	}
+	if p.DownloadAtRuntime {
+		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
+		p.VLLM.ModelRunParams["model"] = repoId
+		if revision != "" {
+			p.VLLM.ModelRunParams["code-revision"] = revision
+		}
 	}
 	gpuMemUtil := getGPUMemoryUtilForVLLM(rc.GPUConfig)
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = strconv.FormatFloat(gpuMemUtil, 'f', 2, 64)

@@ -62,6 +62,9 @@ type PresetOptions struct {
 	// ImagePullSecrets is a list of secret names in the same namespace used for pulling the model image.
 	// +optional
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
+	// ModelAccessSecret is the name of the secret that contains the huggingface access token.
+	// +optional
+	ModelAccessSecret string `json:"modelAccessSecret,omitempty"`
 }
 
 // PresetSpec provides the information for rendering preset configurations to run the model inference service.

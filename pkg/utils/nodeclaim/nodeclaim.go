@@ -33,6 +33,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
@@ -246,12 +247,14 @@ func CreateNodeClaim(ctx context.Context, nodeClaimObj *karpenterv1.NodeClaim, k
 	return retry.OnError(retry.DefaultBackoff, func(err error) bool {
 		return err.Error() != consts.ErrorInstanceTypesUnavailable
 	}, func() error {
-		err := CheckNodeClass(ctx, kubeClient)
-		if err != nil {
-			return err
+		if featuregates.FeatureGates[consts.FeatureFlagEnsureNodeClass] {
+			err := CheckNodeClass(ctx, kubeClient)
+			if err != nil {
+				return err
+			}
 		}
 
-		err = kubeClient.Create(ctx, nodeClaimObj.DeepCopy(), &client.CreateOptions{})
+		err := kubeClient.Create(ctx, nodeClaimObj.DeepCopy(), &client.CreateOptions{})
 		if err != nil {
 			return err
 		}

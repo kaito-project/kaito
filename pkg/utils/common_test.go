@@ -5,6 +5,7 @@ package utils
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -117,6 +118,116 @@ func TestFetchGPUCountFromNodes(t *testing.T) {
 
 			// Check the GPU count
 			assert.Equal(t, tt.expectedGPU, gpuCount)
+		})
+	}
+}
+
+func TestParseHuggingFaceModelVersion(t *testing.T) {
+	tests := []struct {
+		name             string
+		version          string
+		expectedRepoId   string
+		expectedRevision string
+		expectErr        bool
+		expectedErrMsg   string // Use Contains for url.Parse errors, Exact for custom errors
+	}{
+		{
+			name:             "Valid URL with commit revision",
+			version:          "https://huggingface.co/tiiuae/falcon-7b/commit/ec89142b67d748a1865ea4451372db8313ada0d8",
+			expectedRepoId:   "tiiuae/falcon-7b",
+			expectedRevision: "ec89142b67d748a1865ea4451372db8313ada0d8",
+			expectErr:        false,
+		},
+		{
+			name:             "Valid URL without commit revision",
+			version:          "https://huggingface.co/tiiuae/falcon-7b",
+			expectedRepoId:   "tiiuae/falcon-7b",
+			expectedRevision: "",
+			expectErr:        false,
+		},
+		{
+			name:           "Invalid URL path structure - too few parts",
+			version:        "https://huggingface.co/tiiuae",
+			expectErr:      true,
+			expectedErrMsg: "invalid model version URL: https://huggingface.co/tiiuae. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>",
+		},
+		{
+			name:           "Invalid URL path structure - incorrect middle part",
+			version:        "https://huggingface.co/tiiuae/falcon-7b/blob/main",
+			expectErr:      true,
+			expectedErrMsg: "invalid model version URL: https://huggingface.co/tiiuae/falcon-7b/blob/main. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>",
+		},
+		{
+			name:           "Invalid URL path structure - too many parts",
+			version:        "https://huggingface.co/tiiuae/falcon-7b/commit/rev/extra",
+			expectErr:      true,
+			expectedErrMsg: "invalid model version URL: https://huggingface.co/tiiuae/falcon-7b/commit/rev/extra. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>",
+		},
+		{
+			name:           "Invalid URL format - parsing error",
+			version:        "://invalid-url",
+			expectErr:      true,
+			expectedErrMsg: "missing protocol scheme", // Contains check
+		},
+		{
+			name:             "Valid URL with trailing slash",
+			version:          "https://huggingface.co/org/model/",
+			expectedRepoId:   "org/model",
+			expectedRevision: "",
+			expectErr:        false,
+		},
+		{
+			name:             "Valid URL with commit and trailing slash",
+			version:          "https://huggingface.co/org/model/commit/revision123/",
+			expectedRepoId:   "org/model",
+			expectedRevision: "revision123",
+			expectErr:        false,
+		},
+		{
+			name:           "Invalid host",
+			version:        "https://github.com/org/model",
+			expectErr:      true,
+			expectedErrMsg: "invalid model version URL: https://github.com/org/model. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>",
+		},
+		{
+			name:           "Empty input string",
+			version:        "",
+			expectErr:      true,
+			expectedErrMsg: "invalid model version URL: . Expected format: https://huggingface.co/<org>/<model>/commit/<revision>", // url.Parse("") returns empty URL, host check fails
+		},
+		{
+			name:           "URL with only host",
+			version:        "https://huggingface.co",
+			expectErr:      true,
+			expectedErrMsg: "invalid model version URL: https://huggingface.co. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>", // Path is empty, len(parts) is 0 or 1 depending on trailing slash
+		},
+		{
+			name:           "URL with path /org/model/tree/branch",
+			version:        "https://huggingface.co/org/model/tree/branch",
+			expectErr:      true,
+			expectedErrMsg: "invalid model version URL: https://huggingface.co/org/model/tree/branch. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>", // len(parts) is 4, but parts[2] is not "commit"
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repoId, revision, err := ParseHuggingFaceModelVersion(tt.version)
+
+			if tt.expectErr {
+				require.Error(t, err)
+				if tt.expectedErrMsg != "" {
+					// Use Contains for url.Parse errors which might vary slightly, exact match for our custom errors
+					if strings.Contains(tt.name, "parsing error") || strings.Contains(tt.name, "Empty input string") {
+						assert.Contains(t, err.Error(), tt.expectedErrMsg)
+					} else {
+						assert.Equal(t, tt.expectedErrMsg, err.Error())
+					}
+				}
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedRepoId, repoId)
+				assert.Equal(t, tt.expectedRevision, revision)
+			}
 		})
 	}
 }

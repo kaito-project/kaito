@@ -109,6 +109,25 @@ class BaseVectorStoreTest(ABC):
                                                     BaseVectorStore.generate_doc_id("Fourth document"))
 
     @pytest.mark.asyncio
+    async def test_add_document_on_existing_index(self, vector_store_manager):
+        # Create index with single doc
+        await vector_store_manager.index_documents("test_add_index", [Document(text=f"Initial Doc", metadata={"type": "text"})])
+
+        documents = [
+            Document(text=f"Document {i}", metadata={"type": "text"})
+            for i in range(10)
+        ]
+        # load documents into the same index
+        ids = await vector_store_manager.index_documents("test_add_index", documents)
+
+        # Check if the documents were indexed correctly
+        all_docs = await vector_store_manager.list_documents_in_index("test_add_index", limit=10, offset=1)
+        print(all_docs)
+
+        # Validate id's from index_documents match the expected ids
+        assert all(doc['doc_id'] == ids[idx] for idx, doc in enumerate(all_docs))
+
+    @pytest.mark.asyncio
     async def test_persist_index(self, vector_store_manager):
         documents = [Document(text="Test document", metadata={"type": "text"})]
         await vector_store_manager.index_documents("test_index", documents)

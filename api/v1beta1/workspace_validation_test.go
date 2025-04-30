@@ -110,10 +110,38 @@ func (*testModelPrivate) SupportTuning() bool {
 	return true
 }
 
+type testModelDownload struct{}
+
+func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Version:           "https://huggingface.co/test-repo/test-model/commit/test-revision",
+			DownloadAtRuntime: true,
+		},
+		GPUCountRequirement:       gpuCountRequirement,
+		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
+		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
+	}
+}
+func (*testModelDownload) GetTuningParameters() *model.PresetParam {
+	return &model.PresetParam{
+		GPUCountRequirement:       gpuCountRequirement,
+		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
+		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
+	}
+}
+func (*testModelDownload) SupportDistributedInference() bool {
+	return false
+}
+func (*testModelDownload) SupportTuning() bool {
+	return false
+}
+
 func RegisterValidationTestModels() {
 	var test testModel
 	var testPrivate testModelPrivate
 	var testStatic testModelStatic
+	var testDownload testModelDownload
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation",
 		Instance: &test,
@@ -125,6 +153,10 @@ func RegisterValidationTestModels() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation-static",
 		Instance: &testStatic,
+	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-validation-download",
+		Instance: &testDownload,
 	})
 }
 
@@ -836,6 +868,46 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 				Config: "missing-key-config",
 			},
 			runtimeName: model.RuntimeNameHuggingfaceTransformers,
+		},
+		{
+			name: "download model at runtime with access secret",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation-download"),
+					},
+					PresetOptions: PresetOptions{
+						ModelAccessSecret: "test-secret",
+					},
+				},
+			},
+		},
+		{
+			name: "download model at runtime but no access secret",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation-download"),
+					},
+				},
+			},
+			errContent: "This preset requires a modelAccessSecret with HF_TOKEN key under presetOptions to download the model",
+			expectErrs: true,
+		},
+		{
+			name: "Preset with model weights packaged but with access secret",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
+					PresetOptions: PresetOptions{
+						ModelAccessSecret: "test-secret",
+					},
+				},
+			},
+			errContent: "This preset does not require a modelAccessSecret with HF_TOKEN key under presetOptions",
+			expectErrs: true,
 		},
 	}
 

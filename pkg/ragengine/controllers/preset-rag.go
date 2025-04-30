@@ -108,7 +108,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 
-	depObj := manifests.GenerateRAGDeploymentManifest(ctx, ragEngineObj, revisionNum, image, imagePullSecretRefs, *ragEngineObj.Spec.Compute.Count, commands,
+	depObj := manifests.GenerateRAGDeploymentManifest(ragEngineObj, revisionNum, image, imagePullSecretRefs, *ragEngineObj.Spec.Compute.Count, commands,
 		containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts)
 
 	err := resources.CreateResource(ctx, depObj, kubeClient)

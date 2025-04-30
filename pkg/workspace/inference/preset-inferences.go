@@ -21,6 +21,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -113,20 +114,33 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace,
 			}
 		}
 	}
+
+	// Three possible cases for inference workload image selection:
+	// 1. If the preset's access mode is private, use the user-specified image.
+	// 2. If the preset is set to download at runtime, use the 'kaito-base' image.
+	// 3. Otherwise, use the preset image, which has the model weights packaged in.
+	var imageName, imageTag string
 	if string(workspaceObj.Inference.Preset.AccessMode) == string(v1beta1.ModelImageAccessModePrivate) {
-		imageName := workspaceObj.Inference.Preset.PresetOptions.Image
+		imageName = workspaceObj.Inference.Preset.PresetOptions.Image
 		for _, secretName := range workspaceObj.Inference.Preset.PresetOptions.ImagePullSecrets {
 			imagePullSecretRefs = append(imagePullSecretRefs, corev1.LocalObjectReference{Name: secretName})
 		}
 		return imageName, imagePullSecretRefs
+	} else if presetObj.DownloadAtRuntime {
+		// Force the use of kaito-base image if the preset is set to download at runtime.
+		// The kaito-base image is the same as other preset images but without the model
+		// files packaged in.
+		imageName = "base"
+		imageTag = metadata.MustGet(imageName).Tag
 	} else {
-		imageName := string(workspaceObj.Inference.Preset.Name)
-		imageTag := presetObj.Tag
-		registryName := os.Getenv("PRESET_REGISTRY_NAME")
-		imageName = fmt.Sprintf("%s/kaito-%s:%s", registryName, imageName, imageTag)
-
-		return imageName, imagePullSecretRefs
+		imageName = string(workspaceObj.Inference.Preset.Name)
+		imageTag = presetObj.Tag
 	}
+
+	registryName := os.Getenv("PRESET_REGISTRY_NAME")
+	imageName = fmt.Sprintf("%s/kaito-%s:%s", registryName, imageName, imageTag)
+
+	return imageName, imagePullSecretRefs
 }
 
 func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
@@ -178,6 +192,7 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	// additional volume
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
+	var envVars []corev1.EnvVar
 
 	// Add config volume mount
 	cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
@@ -197,6 +212,19 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 		volumes = append(volumes, adapterVolume)
 		volumeMounts = append(volumeMounts, adapterVolumeMount)
 	}
+	if inferenceParam.DownloadAtRuntime {
+		envVars = append(envVars, corev1.EnvVar{
+			Name: "HF_TOKEN",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: workspaceObj.Inference.Preset.PresetOptions.ModelAccessSecret,
+					},
+					Key: "HF_TOKEN",
+				},
+			},
+		})
+	}
 
 	// inference command
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(workspaceObj)
@@ -214,11 +242,11 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 
 	var depObj client.Object
 	if model.SupportDistributedInference() {
-		depObj = manifests.GenerateStatefulSetManifest(ctx, workspaceObj, image, imagePullSecrets, *workspaceObj.Resource.Count, commands,
-			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts)
+		depObj = manifests.GenerateStatefulSetManifest(workspaceObj, image, imagePullSecrets, *workspaceObj.Resource.Count, commands,
+			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars)
 	} else {
-		depObj = manifests.GenerateDeploymentManifest(ctx, workspaceObj, revisionNum, image, imagePullSecrets, *workspaceObj.Resource.Count, commands,
-			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts)
+		depObj = manifests.GenerateDeploymentManifest(workspaceObj, revisionNum, image, imagePullSecrets, *workspaceObj.Resource.Count, commands,
+			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars)
 	}
 	err = resources.CreateResource(ctx, depObj, kubeClient)
 	if client.IgnoreAlreadyExists(err) != nil {

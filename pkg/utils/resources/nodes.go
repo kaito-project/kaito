@@ -50,14 +50,14 @@ func ListNodes(ctx context.Context, kubeClient client.Client, labelSelector clie
 func UpdateNodeWithLabel(ctx context.Context, freshNode *corev1.Node, labelKey, labelValue string, kubeClient client.Client) error {
 	klog.InfoS("UpdateNodeWithLabel", "nodeName", freshNode.Name, "labelKey", labelKey, "labelValue", labelValue)
 
-	freshNode.Labels = lo.Assign(freshNode.Labels, map[string]string{labelKey: labelValue})
-	opt := &client.UpdateOptions{}
-
 	if nvidiaLabelVal, found := freshNode.Labels[LabelKeyNvidia]; found {
 		if nvidiaLabelVal == LabelValueNvidia {
 			return nil
 		}
 	}
+
+	freshNode.Labels = lo.Assign(freshNode.Labels, map[string]string{labelKey: labelValue})
+	opt := &client.UpdateOptions{}
 
 	err := kubeClient.Update(ctx, freshNode, opt)
 	if err != nil {

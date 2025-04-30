@@ -552,7 +552,7 @@ func (c *RAGEngineReconciler) ensureNodePlugins(ctx context.Context, ragEngineOb
 // SetupWithManager sets up the controller with the Manager.
 func (c *RAGEngineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("RAGEngine")
-	
+
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1alpha1.RAGEngine{}).
 		Owns(&appsv1.ControllerRevision{}).

@@ -1,0 +1,12 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-llama-3-1-8b-instruct
+resource:
+  instanceType: "Standard_NC96ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: llama-3-1-8b-instruct
+inference:
+  preset:
+    name: llama-3.1-8b-instruct

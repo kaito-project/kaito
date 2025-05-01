@@ -14,56 +14,69 @@ import (
 
 func init() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
-		Name:     "llama3.1-8b-instruct",
+		Name:     PresetLlama3_1_8BInstructModel,
 		Instance: &llama3_1_8b_instructA,
 	})
 }
 
 const (
-	Llama3_1_8BChat = "llama3.1-8b-instruct"
+	PresetLlama3_1_8BInstructModel = "llama3.1-8b-instruct"
 )
 
 var (
-	baseCommandPresetLlama = "cd /workspace/llama/llama-2 && torchrun"
-	llamaRunParams         = map[string]string{
-		"max_seq_len":    "512",
-		"max_batch_size": "8",
+	baseCommandPresetLlamaInference = "accelerate launch"
+	baseCommandPresetLlamaTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
+	llamaRunParams                  = map[string]string{
+		"torch_dtype":   "bfloat16",
+		"pipeline":      "text-generation",
+		"chat_template": "/workspace/chat_templates/llama-instruct.jinja",
+	}
+	llamaRunParamsVLLM = map[string]string{
+		"dtype":         "float16",
+		"chat-template": "/workspace/chat_templates/llama-instruct.jinja",
 	}
 )
 
-var llam3_1chatA Llama3_1_8BChat
+var llama3_1_8b_instructA llama3_1_8BInstruct
 
-type Llama3_1_8BChat struct{}
+type llama3_1_8BInstruct struct{}
 
-func (*llam3_1chatA) GetInferenceParameters() *model.PresetParam {
+// TODO: Get a more exact GPU Memory requirement (currently we know it must be >16Gi)
+// https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/discussions/77
+func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(Llama7BChat),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePrivate),
-		DiskStorageRequirement:    "34Gi",
+		Metadata:                  metadata.MustGet(PresetLlama3_1_8BInstructModel),
+		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
+		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "14Gi", // We run llama2 using tensor parallelism, the memory of each GPU needs to be bigger than the tensor shard size.
+		TotalGPUMemoryRequirement: "22Gi",
+		PerGPUMemoryRequirement:   "0Gi", // We run Llama using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:        baseCommandPresetLlama,
-				TorchRunParams:     inference.DefaultTorchRunParams,
-				TorchRunRdzvParams: inference.DefaultTorchRunRdzvParams,
-				InferenceMainFile:  "inference_api.py",
-				ModelRunParams:     llamaRunParams,
+				BaseCommand:       baseCommandPresetLlamaInference,
+				TorchRunParams:    inference.DefaultAccelerateParams,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelRunParams:    llamaRunParams,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:    inference.DefaultVLLMCommand,
+				ModelName:      PresetLlama3_1_8BInstructModel,
+				ModelRunParams: llamaRunParamsVLLM,
 			},
 		},
-		ReadinessTimeout: time.Duration(10) * time.Minute,
-		WorldSize:        1,
-		// Tag:  llama has private image access mode. The image tag is determined by the user.
+		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
 }
-func (*llama2Chat7b) GetTuningParameters() *model.PresetParam {
-	return nil // Currently doesn't support fine-tuning
+
+func (*llama3_1_8BInstruct) GetTuningParameters() *model.PresetParam {
+	return nil // It is not recommended/ideal to further fine-tune instruct models - Already been fine-tuned
 }
-func (*llama2Chat7b) SupportDistributedInference() bool {
+
+func (*llama3_1_8BInstruct) SupportDistributedInference() bool {
 	return false
 }
-func (*llama2Chat7b) SupportTuning() bool {
+
+func (*llama3_1_8BInstruct) SupportTuning() bool {
 	return false
 }
 

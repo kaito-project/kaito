@@ -64,11 +64,6 @@ type Metadata struct {
 	// Currently, the only supported runtime is "tfs".
 	Runtime string `yaml:"runtime"`
 
-	// Tag is the tag of the container image used to run the model.
-	// If the model uses the Kaito base image, the tag field can be ignored
-	// +optional
-	Tag string `yaml:"tag,omitempty"`
-
 	// DownloadAtRuntime indicates whether the model should be downloaded
 	// at runtime. If set to true, the model will be downloaded when the
 	// model deployment is created, and the container image will always be
@@ -76,6 +71,11 @@ type Metadata struct {
 	// contains the model name will be used, in which the model weights are baked.
 	// +optional
 	DownloadAtRuntime bool `yaml:"downloadAtRuntime,omitempty"`
+
+	// Tag is the tag of the container image used to run the model.
+	// If the model uses the Kaito base image, the tag field can be ignored
+	// +optional
+	Tag string `yaml:"tag,omitempty"`
 }
 
 // Validate checks if the Metadata is valid.

@@ -79,4 +79,3 @@ func (*llama3_1_8BInstruct) SupportDistributedInference() bool {
 func (*llama3_1_8BInstruct) SupportTuning() bool {
 	return false
 }
-

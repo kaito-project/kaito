@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	PresetLlama3_1_8BChat                = "llama3.1-8b-instruct"
+	PresetLlama3_1_8BInstruct           = "llama3.1-8b-instruct"
 	PresetFalcon7BModel                 = "falcon-7b"
 	PresetFalcon40BModel                = "falcon-40b"
 	PresetMistral7BInstructModel        = "mistral-7b-instruct"
@@ -155,8 +155,20 @@ func createPhi2WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 	return workspaceObj
 }
 
-// TOOD: Add test for llama3.1-8b-instruct - 
-// createLlama3_1_BWorkspaceWithPresetPublicMode
+// TODO: Uncomment once Llama 3.1-8B Instruct are pushed up to the registry
+// func createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(registry, registrySecret, imageVersion string, numOfNode int) *kaitov1beta1.Workspace {
+// 	workspaceObj := &kaitov1beta1.Workspace{}
+// 	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode", func() {
+// 		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
+// 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, fmt.Sprintf("%s/%s:%s", registry, PresetLlama3_1_8BInstruct, imageVersion),
+// 			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
+// 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b"},
+// 			}, nil, PresetLlama3_1_8BInstruct, kaitov1beta1.ModelImageAccessModePublic, []string{registrySecret}, nil, nil)
+
+// 		createAndValidateWorkspace(workspaceObj)
+// 	})
+// 	return workspaceObj
+// }
 
 func createCustomWorkspaceWithPresetCustomMode(imageName string, numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}

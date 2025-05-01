@@ -9,7 +9,7 @@ spec:
   type: ClusterIP
   ports:
     - name: http-metrics
-      port: 8080 
+      port: {{ .Values.metrics.port }} 
       targetPort: http-metrics
       protocol: TCP
     - name: https-webhook

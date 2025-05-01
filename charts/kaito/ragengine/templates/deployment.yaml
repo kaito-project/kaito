@@ -45,7 +45,7 @@ spec:
               value: {{ .Values.cloudProviderName }}
           ports:
             - name: http-metrics
-              containerPort: 8080
+              containerPort: {{ .Values.metrics.port }} 
               protocol: TCP
             - name: https-webhook
               containerPort: {{ .Values.webhook.port }}

@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
-package llama2chat
+package llama3
 
 import (
 	"time"

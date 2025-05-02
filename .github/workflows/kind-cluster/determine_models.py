@@ -142,8 +142,7 @@ def main():
         # Example: affected_models = ['model1', 'model2', 'model3']
         affected_models = check_modified_models()
 
-    download_at_runtime = [model['name'] for model in YAML_PR['models'] 
-                           if 'downloadAtRuntime' in model and model['downloadAtRuntime'] == True]
+    download_at_runtime = {model['name'] for model in YAML_PR['models'] if model.get('downloadAtRuntime')}
     affected_models = [model for model in affected_models if model not in download_at_runtime]
 
     # Convert the list of models into JSON matrix format

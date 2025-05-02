@@ -2,7 +2,7 @@
 
 | Model name           | Model source                                                                 | Sample workspace                                                                              | Kubernetes Workload | Distributed inference |
 |----------------------|------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|---------------------|-----------------------|
-| llama3.1-8b-instruct | [llama3.1-8b-instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) | [link](../../../../examples/inference/kaito_workspace_llama-3.1_8b_instruct.yaml)           | Deployment          | false                 |
+| llama-3.1-8b-instruct | [llama-3.1-8b-instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) | [link](../../../../examples/inference/kaito_workspace_llama-3.1_8b_instruct.yaml)           | Deployment          | false                 |
 
 ## Image Source
 

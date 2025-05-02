@@ -20,7 +20,7 @@ func init() {
 }
 
 const (
-	PresetLlama3_1_8BInstructModel = "llama3.1-8b-instruct"
+	PresetLlama3_1_8BInstructModel = "llama-3.1-8b-instruct"
 )
 
 var (

@@ -131,19 +131,20 @@ def check_modified_models():
 def main():
     force_run_all = os.environ.get("FORCE_RUN_ALL", "false")  # If not specified default to False
     force_run_all_phi = os.environ.get("FORCE_RUN_ALL_PHI", "false")  # If not specified default to False
-    force_run_all_public = os.environ.get("FORCE_RUN_ALL_PUBLIC", "false")  # If not specified default to False
 
     affected_models = []
     if force_run_all != "false":
-        affected_models = [model['name'] for model in YAML_PR['models']]
-    elif force_run_all_public != "false":
-        affected_models = [model['name'] for model in YAML_PR['models'] if "llama" not in model['name']]
+        affected_models = [model['name'] for model in YAML_PR['models'] if model['name']]
     elif force_run_all_phi != "false":
         affected_models = [model['name'] for model in YAML_PR['models'] if 'phi-3' in model['name']]
     else:
         # Logic to determine affected models
         # Example: affected_models = ['model1', 'model2', 'model3']
         affected_models = check_modified_models()
+
+    download_at_runtime = [model['name'] for model in YAML_PR['models'] 
+                           if 'downloadAtRuntime' in model and model['downloadAtRuntime'] == True]
+    affected_models = [model for model in affected_models if model not in download_at_runtime]
 
     # Convert the list of models into JSON matrix format
     matrix = create_matrix(affected_models)

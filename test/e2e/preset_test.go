@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	PresetLlama3_1_8BInstruct           = "llama3.1-8b-instruct"
+	PresetLlama3_1_8BInstruct           = "llama-3.1-8b-instruct"
 	PresetFalcon7BModel                 = "falcon-7b"
 	PresetFalcon40BModel                = "falcon-40b"
 	PresetMistral7BInstructModel        = "mistral-7b-instruct"

@@ -130,7 +130,7 @@ For the initcontainer and sidecar container, possible errors include invalid inp
 For the main container, errors may occur when CUDA reports out of GPU memory. Users should reduce the batch size (the default is 1) if it has been customized to a value larger than 1. If the batch size is already 1, the workspace must be recreated using a different GPU SKU with larger GPU memory. Note that Kaito has optimized the training memory usage by dropping the preallocated memory cache. Our internal tests show that the performance impact due to this change is negligible.
 
 ### LoraConfig target modules errors
-If you encounter the error: `ValueError: Target modules {'all-linear'} not found in the base model. Please check the target modules and try again.`, you need to manually specify the target_modules parameter in your Kaito configmap.
+If you encounter the error: `ValueError: Target modules {'target_module_here'} not found in the base model. Please check the target modules and try again.`, you need to manually specify the target_modules parameter in your Kaito configmap.
 
 This error occurs because the automatic module detection failed for your model. You must identify the specific target modules for your model and explicitly list them in the LoraConfig section. For example, a valid configuration for phi-4-mini-instruct would look like:
 ```yaml

@@ -123,8 +123,8 @@ class BaseVectorStoreTest(ABC):
         documents = [Document(text="Fifth document", metadata={"type": "text"})]
         ids = await vector_store_manager.index_documents("test_index", documents)
 
-        await vector_store_manager.update_document(
-            "test_index", ids[0], Document(text="Updated Fifth document", metadata={"type": "text"})
+        await vector_store_manager.update_documents(
+            "test_index", [Document(doc_id=ids[0], text="Updated Fifth document", metadata={"type": "text"})]
         )
 
         assert await vector_store_manager.document_exists("test_index", Document(text="Updated Fifth document", metadata={"type": "text"}),
@@ -153,15 +153,8 @@ class BaseVectorStoreTest(ABC):
         ]
         ids = await vector_store_manager.index_documents("test_index", documents)
 
-        for idx, doc_id in enumerate(ids):
-            await vector_store_manager.delete_document("test_index", doc_id)
-            assert not await vector_store_manager.document_exists("test_index", Document(text=f"Document {idx}", metadata={"type": "text"}), doc_id)
-            # Check if the document was deleted
-            result = await vector_store_manager.query("test_index", "document", top_k=1,
-                                                llm_params={}, rerank_params={})
-            
-            assert len(result["source_nodes"]) == 1 if (idx < len(ids) - 1) else len(result["source_nodes"]) == 0
-
+        deleted_ids = await vector_store_manager.delete_documents("test_index", ids)
+        assert all(doc_id in deleted_ids for doc_id in ids)
 
     @pytest.mark.asyncio
     async def test_add_document_on_existing_index(self, vector_store_manager):

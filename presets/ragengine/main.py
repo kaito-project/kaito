@@ -7,7 +7,8 @@ from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
 from fastapi import FastAPI, HTTPException, Query
 from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
-                    QueryRequest, QueryResponse, DocumentResponse, HealthStatus)
+                    QueryRequest, QueryResponse, Document, HealthStatus, DeleteDocumentRequest,
+                    DeleteDocumentResponse, UpdateDocumentResponse)
 from vector_store.faiss_store import FaissVectorStoreHandler
 
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
@@ -63,7 +64,7 @@ def health_check():
 
 @app.post(
     "/index",
-    response_model=List[DocumentResponse],
+    response_model=List[Document],
     summary="Index Documents",
     description="""
     Add documents to an index or create a new index.
@@ -96,7 +97,7 @@ async def index_documents(request: IndexRequest):
     try:
         doc_ids = await rag_ops.index(request.index_name, request.documents)
         documents = [
-            DocumentResponse(doc_id=doc_id, text=doc.text, metadata=doc.metadata)
+            Document(doc_id=doc_id, text=doc.text, metadata=doc.metadata)
             for doc_id, doc in zip(doc_ids, request.documents)
         ]
         return documents
@@ -254,79 +255,72 @@ async def list_documents_in_index(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post(
-    "/indexes/{index_name}/documents/{doc_id}",
-    response_model=DocumentResponse,
-    summary="Update document in an Index by its ID",
+    "/indexes/{index_name}/documents",
+    response_model=UpdateDocumentResponse,
+    summary="Update documents in an Index",
     description="""
-    Update document in an Index by its ID.
+    Update document in an Index.
 
     ## Request Example:
     ```json
-    POST /indexes/test_index/documents/test_doc_id
-    {"text": "Sample document text.", "metadata": {"author": "John Doe", "category": "example"}}
+    POST /indexes/test_index/documents
+    {"documents": [{"text": "Sample document text.", "metadata": {"author": "John Doe", "category": "example"}}]}
     ```
 
     ## Response Example:
     ```json
     {
-        "doc_id": "123456",
-        "text": "Sample document text.",
-        "metadata": {"author": "John Doe"},
-        "is_truncated": true
+        "updated_documents": [{"text": "Sample document text.", "metadata": {"author": "John Doe", "category": "example"}}],
+        "skipped_documents": []
     },
     ```
     """,
 )
-async def update_document_in_index(
+async def update_documents_in_index(
     index_name: str,
-    doc_id: str,
     request: UpdateDocumentRequest,
 ):
     try:
-        decoded_index_name = unquote(index_name)
-        decoded_doc_id = unquote(doc_id)
-        await rag_ops.update_document(
-            index_name=decoded_index_name,
-            doc_id=decoded_doc_id,
-            new_doc=request
+        return await rag_ops.update_documents(
+            index_name=index_name,
+            documents=request.documents
         )
-
-        return request
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.delete(
-    "/indexes/{index_name}/documents/{doc_id}",
-    summary="Delete Document in an Index by its ID",
+@app.post(
+    "/indexes/{index_name}/documents/delete",
+    response_model=DeleteDocumentResponse,
+    summary="Delete documents in an Index",
     description="""
-    Delete Document in an Index by its ID.
+    Delete document in an Index by their ids.
 
     ## Request Example:
-    ```
-    DELETE /indexes/test_index/documents/test_doc_id
+    ```json
+    POST /indexes/test_index/documents/delete
+    {"doc_ids": ["doc_id_1", "doc_id_2"]}
     ```
 
     ## Response Example:
     ```json
     {
-      "message": "Successfully deleted document test_doc_id from index test_index."
-    }
+        "deleted_doc_ids": ["doc_id_1", "doc_id_2"]
+    },
     ```
     """,
 )
-async def delete_document_in_index(
+async def delete_documents_in_index(
     index_name: str,
-    doc_id: str,
+    request: DeleteDocumentRequest,
 ):
     try:
-        decoded_index_name = unquote(index_name)
-        decoded_doc_id = unquote(doc_id)
-        await rag_ops.delete_document(
-            index_name=decoded_index_name,
-            doc_id=decoded_doc_id
+        deleted_ids = await rag_ops.delete_documents(
+            index_name=index_name,
+            doc_ids=request.doc_ids
         )
-
-        return {"message": f"Successfully deleted document {decoded_doc_id} from index {decoded_index_name}."}
+        return DeleteDocumentResponse(
+            deleted_doc_ids=deleted_ids
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

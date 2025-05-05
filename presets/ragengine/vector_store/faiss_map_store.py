@@ -1,12 +1,22 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import numpy as np
-from typing import Any, List, cast
+from typing import Any, List, Optional, cast
 
 from llama_index.core.schema import BaseNode
 from llama_index.core.bridge.pydantic import PrivateAttr
 from llama_index.vector_stores.faiss import FaissVectorStore
+from llama_index.core.vector_stores.types import (
+    VectorStoreQuery,
+    VectorStoreQueryResult,
+)
 
 class FaissVectorMapStore(FaissVectorStore):
+    # ref_doc_id_map is used to map the ref_doc_id to fiass index id
     ref_doc_id_map: dict = {}
+    # node_id_map is used to map the faiss index id to llama_index node id
+    node_id_map: dict = {}
 
     def __init__(
         self,
@@ -43,8 +53,9 @@ class FaissVectorMapStore(FaissVectorStore):
             text_embedding_np = np.array(text_embedding, dtype="float32")[np.newaxis, :]
             new_id = str(self._faiss_index.ntotal)
             self.ref_doc_id_map[node.ref_doc_id] = self._faiss_index.ntotal
+            self.node_id_map[new_id] = node.id_
             self._faiss_index.add_with_ids(text_embedding_np, self._faiss_index.ntotal)
-            new_ids.append(new_id)
+            new_ids.append(node.id_)
         return new_ids
 
     def delete(self, ref_doc_id: str, **delete_kwargs: Any) -> None:
@@ -59,3 +70,68 @@ class FaissVectorMapStore(FaissVectorStore):
             # https://github.com/facebookresearch/faiss/wiki/Special-operations-on-indexes#removing-elements-from-an-index
             self._faiss_index.remove_ids(np.array([int(self.ref_doc_id_map[ref_doc_id])], dtype=np.int64))
             del self.ref_doc_id_map[ref_doc_id]
+        # node_id_map is only used for indext_struct handling and shouldnt reference an actual document
+        if ref_doc_id in self.node_id_map:
+            del self.node_id_map[ref_doc_id]
+
+    def delete_nodes(
+        self,
+        node_ids: Optional[List[str]] = None,
+        **delete_kwargs: Any,
+    ) -> None:
+        """Delete nodes from vector store."""
+        faiss_ids = []
+        for node_id in node_ids:
+            # get the faiss id from the node_id_map
+            faiss_id = self.node_id_map.get(node_id)
+            if faiss_id is not None:
+                faiss_ids.append(faiss_id)
+        if not faiss_ids:
+            return
+
+        self._faiss_index.remove_ids(np.array(faiss_ids, dtype=np.int64))
+        for node_id in node_ids:
+            # get the faiss id from the node_id_map
+            faiss_id = self.node_id_map.get(node_id)
+            if faiss_id is not None:
+                del self.node_id_map[node_id]
+    
+    def query(
+        self,
+        query: VectorStoreQuery,
+        **kwargs: Any,
+    ) -> VectorStoreQueryResult:
+        """Query index for top k most similar nodes.
+
+        Args:
+            query_embedding (List[float]): query embedding
+            similarity_top_k (int): top k most similar nodes
+
+        """
+        if query.filters is not None:
+            raise ValueError("Metadata filters not implemented for Faiss yet.")
+
+        query_embedding = cast(List[float], query.query_embedding)
+        query_embedding_np = np.array(query_embedding, dtype="float32")[np.newaxis, :]
+        dists, indices = self._faiss_index.search(
+            query_embedding_np, query.similarity_top_k
+        )
+        dists = list(dists[0])
+        # if empty, then return an empty response
+        if len(indices) == 0:
+            return VectorStoreQueryResult(similarities=[], ids=[])
+
+        # returned dimension is 1 x k
+        node_idxs = indices[0]
+
+        filtered_dists = []
+        filtered_node_idxs = []
+        for dist, idx in zip(dists, node_idxs):
+            if idx < 0:
+                continue
+            filtered_dists.append(dist)
+            filtered_node_idxs.append(self.node_id_map[str(idx)])
+
+        return VectorStoreQueryResult(
+            similarities=filtered_dists, ids=filtered_node_idxs
+        )

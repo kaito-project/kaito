@@ -7,18 +7,12 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class Document(BaseModel):
+    doc_id: str = Field(default="")
     text: str
     metadata: Optional[dict] = Field(default_factory=dict)
-
-class DocumentResponse(BaseModel):
-    doc_id: str
-    text: str
-    hash_value: Optional[str] = None
-    metadata: Optional[dict] = Field(default_factory=dict)
-    is_truncated: bool = False
 
 class ListDocumentsResponse(BaseModel):
-    documents: List[DocumentResponse] # List of DocumentResponses
+    documents: List[Document] # List of DocumentResponses
     count: int  # Number of documents in the current response
 
 class IndexRequest(BaseModel):
@@ -26,11 +20,17 @@ class IndexRequest(BaseModel):
     documents: List[Document]
 
 class UpdateDocumentRequest(BaseModel):
-    doc_id: str
-    text: str
-    hash_value: Optional[str] = None
-    metadata: Optional[dict] = Field(default_factory=dict)
-    is_truncated: bool = False
+    documents: List[Document]
+
+class UpdateDocumentResponse(BaseModel):
+    updated_documents: List[Document]
+    skipped_documents: List[Document]
+
+class DeleteDocumentRequest(BaseModel):
+    doc_ids: List[str]
+
+class DeleteDocumentResponse(BaseModel):
+    deleted_doc_ids: List[str]
 
 class QueryRequest(BaseModel):
     index_name: str

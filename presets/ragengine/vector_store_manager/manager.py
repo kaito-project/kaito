@@ -46,11 +46,11 @@ class VectorStoreManager:
             index_name: str,
             documents: List[Document]
     ):
-        """Update a document in the index."""
+        """Update documents in the index."""
         return await self.vector_store.update_documents(index_name, documents)
 
     async def delete_documents(self, index_name: str, doc_ids: List[str]) -> List[str]:
-        """Delete a document from the index."""
+        """Delete documents from the index."""
         return await self.vector_store.delete_documents(index_name, doc_ids)
 
     async def persist(self, index_name: str, path: str) -> None:

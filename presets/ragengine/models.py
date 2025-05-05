@@ -26,13 +26,15 @@ class UpdateDocumentRequest(BaseModel):
 
 class UpdateDocumentResponse(BaseModel):
     updated_documents: List[Document]
-    skipped_documents: List[Document]
+    unchanged_documents: List[Document]
+    not_found_documents: List[Document]
 
 class DeleteDocumentRequest(BaseModel):
     doc_ids: List[str]
 
 class DeleteDocumentResponse(BaseModel):
     deleted_doc_ids: List[str]
+    not_found_doc_ids: List[str]
 
 class QueryRequest(BaseModel):
     index_name: str

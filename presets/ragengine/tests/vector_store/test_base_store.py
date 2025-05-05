@@ -123,9 +123,16 @@ class BaseVectorStoreTest(ABC):
         documents = [Document(text="Fifth document", metadata={"type": "text"})]
         ids = await vector_store_manager.index_documents("test_index", documents)
 
-        await vector_store_manager.update_documents(
+        result = await vector_store_manager.update_documents(
             "test_index", [Document(doc_id=ids[0], text="Updated Fifth document", metadata={"type": "text"})]
         )
+        assert result["updated_documents"][0].doc_id == ids[0]
+
+        # Check preexisting unchanged document case
+        result = await vector_store_manager.update_documents(
+            "test_index", [Document(doc_id=ids[0], text="Updated Fifth document", metadata={"type": "text"})]
+        )
+        assert result["unchanged_documents"][0].doc_id == ids[0]
 
         assert await vector_store_manager.document_exists("test_index", Document(text="Updated Fifth document", metadata={"type": "text"}),
                                                     ids[0])
@@ -134,6 +141,12 @@ class BaseVectorStoreTest(ABC):
         result = await vector_store_manager.query("test_index", "Updated Fifth document", top_k=1,
                                               llm_params={}, rerank_params={})
         assert result["source_nodes"][0]["text"] == "Updated Fifth document"
+
+        # Check documents not found case
+        result = await vector_store_manager.update_documents(
+            "test_index", [Document(doc_id="baddocid", text="Updated Fifth document", metadata={"type": "text"})]
+        )
+        assert result["not_found_documents"][0].doc_id == "baddocid"
     
     @pytest.mark.asyncio
     @respx.mock
@@ -153,8 +166,12 @@ class BaseVectorStoreTest(ABC):
         ]
         ids = await vector_store_manager.index_documents("test_index", documents)
 
-        deleted_ids = await vector_store_manager.delete_documents("test_index", ids)
-        assert all(doc_id in deleted_ids for doc_id in ids)
+        result = await vector_store_manager.delete_documents("test_index", ids)
+        assert all(doc_id in result["deleted_doc_ids"] for doc_id in ids)
+
+        # Check the not found case
+        result = await vector_store_manager.delete_documents("test_index", ["baddocid"])
+        assert result["not_found_doc_ids"] == ["baddocid"]
 
     @pytest.mark.asyncio
     async def test_add_document_on_existing_index(self, vector_store_manager):

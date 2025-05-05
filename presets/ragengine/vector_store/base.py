@@ -211,24 +211,34 @@ class BaseVectorStore(ABC):
         if index_name not in self.index_map:
             raise ValueError(f"No such index: '{index_name}' exists.")
         
+        not_found_docs = []
+        found_docs = []
+        for doc_id in doc_ids:
+            if doc_id in self.index_map[index_name].ref_doc_info:
+                found_docs.append(doc_id)
+            else:
+                not_found_docs.append(doc_id)
+
         try:
             if self.use_rwlock:
                 async with self.rwlock.writer_lock:
                     node_ids = []
-                    for doc_id in doc_ids:
+                    for doc_id in found_docs:
                         doc_info = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
                         if doc_info:
                             node_ids.extend(doc_info.node_ids)
+                        await self.index_map[index_name]._adelete_from_index_struct(doc_id)
                     self.index_map[index_name].delete_nodes(node_ids, delete_from_docstore=True)
             else:
                 node_ids = []
-                for doc_id in doc_ids:
+                for doc_id in found_docs:
                     doc_info = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
                     if doc_info:
                         node_ids.extend(doc_info.node_ids)
+                    await self.index_map[index_name]._adelete_from_index_struct(doc_id)
                 self.index_map[index_name].delete_nodes(node_ids, delete_from_docstore=True)
-            
-            return doc_ids
+
+            return {"deleted_doc_ids": found_docs, "not_found_doc_ids": not_found_docs}
         except NotImplementedError as e:
             logger.error(f"Delete operation is not implemented for index {index_name}.")
         except Exception as e:
@@ -239,11 +249,17 @@ class BaseVectorStore(ABC):
         if index_name not in self.index_map:
             raise ValueError(f"No such index: '{index_name}' exists.")
         
+        not_found_docs = []
+        found_docs = []
         llama_docs = []
         for document in documents:
-            llama_docs.append(
-                LlamaDocument(id_=document.doc_id, text=document.text, metadata=document.metadata, excluded_llm_metadata_keys=[key for key in document.metadata.keys()])
-            )
+            if document.doc_id in self.index_map[index_name].ref_doc_info:
+                found_docs.append(document)
+                llama_docs.append(
+                    LlamaDocument(id_=document.doc_id, text=document.text, metadata=document.metadata, excluded_llm_metadata_keys=[key for key in document.metadata.keys()])
+                )
+            else:
+                not_found_docs.append(document)
 
         try:
             if self.use_rwlock:
@@ -253,13 +269,13 @@ class BaseVectorStore(ABC):
                 refreshed_docs = self.index_map[index_name].refresh_ref_docs(llama_docs)
             
             updated_docs = []
-            skipped_docs = []
-            for doc, was_updated in zip(documents, refreshed_docs):
+            unchanged_docs = []
+            for doc, was_updated in zip(found_docs, refreshed_docs):
                 if was_updated:
                     updated_docs.append(doc)
                 else:
-                    skipped_docs.append(doc)
-            return {"updated_documents": updated_docs, "skipped_documents": skipped_docs}
+                    unchanged_docs.append(doc)
+            return {"updated_documents": updated_docs, "unchanged_documents": unchanged_docs, "not_found_documents": not_found_docs}
         except NotImplementedError as e:
             logger.error(f"Update operation is not implemented for index {index_name}.")
         except Exception as e:

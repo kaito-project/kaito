@@ -129,16 +129,22 @@ async def test_document_update_success(mock_get, async_client):
     response = await async_client.post("/index", json=request_data)
     assert response.status_code == 200
     doc1, doc2 = response.json()
-    update_doc = doc1 if doc1["text"] == "Another test document" else doc2
-    assert update_doc["doc_id"] != ""
+    assert doc2["doc_id"] != ""
 
-    update_doc["text"] = "This is an updated test document"
+    doc2["text"] = "This is an updated test document"
+    not_existing_doc = {"doc_id": "nonexistingdoc", "text": "This is a new test document"}
     update_request_data = {
-        "documents": [update_doc],
+        "documents": [
+            doc2,
+            not_existing_doc,
+            doc1
+        ],
     }
     response = await async_client.post(f"/indexes/test_update_index/documents", json=update_request_data)
     assert response.status_code == 200
     assert response.json()["updated_documents"][0]["text"] == "This is an updated test document"
+    assert response.json()["not_found_documents"][0]["doc_id"] == not_existing_doc["doc_id"]
+    assert response.json()["unchanged_documents"][0]["text"] == doc1["text"]
 
     # Query Request
     request_data = {
@@ -172,26 +178,22 @@ async def test_document_delete_success(async_client):
     response = await async_client.post("/index", json=request_data)
     assert response.status_code == 200
     doc1, doc2 = response.json()
-    update_doc = doc1 if doc1["text"] == "Another test document" else doc2
-    assert update_doc["doc_id"] != ""
+    assert doc2["doc_id"] != ""
+
 
     delete_request_data = {
-        "doc_ids": [update_doc["doc_id"]],
+        "doc_ids": [doc2["doc_id"], "nonexistingdoc"],
     }
     response = await async_client.post(f"/indexes/test_delete_index/documents/delete", json=delete_request_data)
     assert response.status_code == 200
-    assert response.json()["deleted_doc_ids"] == [update_doc["doc_id"]]
+    assert response.json()["deleted_doc_ids"] == [doc2["doc_id"]]
+    assert response.json()["not_found_doc_ids"] == ["nonexistingdoc"]
 
     response = await async_client.get(f"/indexes/test_delete_index/documents")
     assert response.status_code == 200
     assert response.json()["count"] == 1
     assert len(response.json()["documents"]) == 1
     assert response.json()["documents"][0]["text"] == "This is a test document"
-
-    # delete again, non existing doc should return 200
-    response = await async_client.post(f"/indexes/test_delete_index/documents/delete", json=delete_request_data)
-    assert response.status_code == 200
-    assert response.json()["deleted_doc_ids"] == [update_doc["doc_id"]]
 
 @pytest.mark.asyncio
 @respx.mock

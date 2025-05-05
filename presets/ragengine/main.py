@@ -314,12 +314,9 @@ async def delete_documents_in_index(
     request: DeleteDocumentRequest,
 ):
     try:
-        deleted_ids = await rag_ops.delete_documents(
+        return await rag_ops.delete_documents(
             index_name=index_name,
             doc_ids=request.doc_ids
-        )
-        return DeleteDocumentResponse(
-            deleted_doc_ids=deleted_ids
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -210,24 +210,29 @@ class BaseVectorStore(ABC):
         """Common logic for deleting a document."""
         if index_name not in self.index_map:
             raise ValueError(f"No such index: '{index_name}' exists.")
-
-        if self.use_rwlock:
-            async with self.rwlock.writer_lock:
+        
+        try:
+            if self.use_rwlock:
+                async with self.rwlock.writer_lock:
+                    node_ids = []
+                    for doc_id in doc_ids:
+                        doc_info = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
+                        if doc_info:
+                            node_ids.extend(doc_info.node_ids)
+                    self.index_map[index_name].delete_nodes(node_ids, delete_from_docstore=True)
+            else:
                 node_ids = []
                 for doc_id in doc_ids:
                     doc_info = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
                     if doc_info:
                         node_ids.extend(doc_info.node_ids)
                 self.index_map[index_name].delete_nodes(node_ids, delete_from_docstore=True)
-        else:
-            node_ids = []
-            for doc_id in doc_ids:
-                doc_info = await self.index_map[index_name].docstore.aget_ref_doc_info(doc_id)
-                if doc_info:
-                    node_ids.extend(doc_info.node_ids)
-            self.index_map[index_name].delete_nodes(node_ids, delete_from_docstore=True)
-        
-        return doc_ids
+            
+            return doc_ids
+        except NotImplementedError as e:
+            logger.error(f"Delete operation is not implemented for index {index_name}.")
+        except Exception as e:
+            logger.error(f"Error deleting documents from index {index_name}: {str(e)}")
     
     async def update_documents(self, index_name: str, documents: List[Document]):
         """Common logic for updating a document."""
@@ -240,20 +245,25 @@ class BaseVectorStore(ABC):
                 LlamaDocument(id_=document.doc_id, text=document.text, metadata=document.metadata, excluded_llm_metadata_keys=[key for key in document.metadata.keys()])
             )
 
-        if self.use_rwlock:
-            async with self.rwlock.writer_lock:
-                refreshed_docs = self.index_map[index_name].refresh_ref_docs(llama_docs)
-        else:
-            refreshed_docs = self.index_map[index_name].refresh_ref_docs(llama_docs)
-        
-        updated_docs = []
-        skipped_docs = []
-        for doc, was_updated in zip(documents, refreshed_docs):
-            if was_updated:
-                updated_docs.append(doc)
+        try:
+            if self.use_rwlock:
+                async with self.rwlock.writer_lock:
+                    refreshed_docs = self.index_map[index_name].refresh_ref_docs(llama_docs)
             else:
-                skipped_docs.append(doc)
-        return {"updated_documents": updated_docs, "skipped_documents": skipped_docs}
+                refreshed_docs = self.index_map[index_name].refresh_ref_docs(llama_docs)
+            
+            updated_docs = []
+            skipped_docs = []
+            for doc, was_updated in zip(documents, refreshed_docs):
+                if was_updated:
+                    updated_docs.append(doc)
+                else:
+                    skipped_docs.append(doc)
+            return {"updated_documents": updated_docs, "skipped_documents": skipped_docs}
+        except NotImplementedError as e:
+            logger.error(f"Update operation is not implemented for index {index_name}.")
+        except Exception as e:
+            logger.error(f"Error updating documents in index {index_name}: {str(e)}")
 
     async def _process_document(self, doc_id: str, doc_stub, doc_store, max_text_length: Optional[int]):
         """

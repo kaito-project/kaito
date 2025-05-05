@@ -10,6 +10,8 @@ class Document(BaseModel):
     doc_id: str = Field(default="")
     text: str
     metadata: Optional[dict] = Field(default_factory=dict)
+    hash_value: Optional[str] = None
+    is_truncated: bool = False
 
 class ListDocumentsResponse(BaseModel):
     documents: List[Document] # List of DocumentResponses

@@ -264,14 +264,15 @@ async def list_documents_in_index(
     ## Request Example:
     ```json
     POST /indexes/test_index/documents
-    {"documents": [{"text": "Sample document text.", "metadata": {"author": "John Doe", "category": "example"}}]}
+    {"documents": [{"doc_id": "sampleid", "text": "Sample document text.", "metadata": {"author": "John Doe", "category": "example"}}]}
     ```
 
     ## Response Example:
     ```json
     {
-        "updated_documents": [{"text": "Sample document text.", "metadata": {"author": "John Doe", "category": "example"}}],
-        "skipped_documents": []
+        "updated_documents": [{"doc_id": "sampleid", "text": "Sample document text.", "metadata": {"author": "John Doe", "category": "example"}}],
+        "unchanged_documents": [],
+        "not_found_documents": []
     },
     ```
     """,
@@ -298,13 +299,14 @@ async def update_documents_in_index(
     ## Request Example:
     ```json
     POST /indexes/test_index/documents/delete
-    {"doc_ids": ["doc_id_1", "doc_id_2"]}
+    {"doc_ids": ["doc_id_1", "doc_id_2", "doc_id_3"]}
     ```
 
     ## Response Example:
     ```json
     {
-        "deleted_doc_ids": ["doc_id_1", "doc_id_2"]
+        "deleted_doc_ids": ["doc_id_1", "doc_id_2"],
+        "not_found_doc_ids": ["doc_id_3"]
     },
     ```
     """,

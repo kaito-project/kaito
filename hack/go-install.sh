@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# https://github.com/kubernetes-sigs/cluster-api-provider-azure/blob/master/scripts/go_install.sh
+# https://github.com/kubernetes-sigs/cluster-api-provider-azure/blob/main/scripts/go_install.sh
 
 set -o errexit
 set -o nounset

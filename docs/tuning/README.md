@@ -129,6 +129,21 @@ For the initcontainer and sidecar container, possible errors include invalid inp
 
 For the main container, errors may occur when CUDA reports out of GPU memory. Users should reduce the batch size (the default is 1) if it has been customized to a value larger than 1. If the batch size is already 1, the workspace must be recreated using a different GPU SKU with larger GPU memory. Note that Kaito has optimized the training memory usage by dropping the preallocated memory cache. Our internal tests show that the performance impact due to this change is negligible.
 
+### LoraConfig target modules errors
+If you encounter the error: `ValueError: Target modules {'target_module_here'} not found in the base model. Please check the target modules and try again.`, you need to manually specify the target_modules parameter in your Kaito configmap. This is a huggingface requirement.
+
+This error occurs because the automatic module detection failed for your model. You must identify the specific target modules for your model and explicitly list them in the LoraConfig section. For example, a valid configuration for phi-4-mini-instruct would look like:
+```yaml
+LoraConfig: # Configurable Parameters: https://huggingface.co/docs/peft/v0.8.2/en/package_reference/lora#peft.LoraConfig
+    r: 8
+    lora_alpha: 8
+    lora_dropout: 0.0
+    target_modules: ["qkv_proj", "o_proj"]
+```
+You can find valid module names by checking the "Files info" tab on the model card on Huggingface and examining the model.safetensors.index.json file.
+
+For more information on target_modules configuration, see the official [PEFT documentation](https://huggingface.co/docs/peft/en/package_reference/lora#peft.LoraConfig.target_modules).
+
 ### Time for job completion
 The training job can take a long time depending on the size of the input dataset and training pipeline configurations. The total training time is largely determined by the total number of training steps, calculated as:
 ```

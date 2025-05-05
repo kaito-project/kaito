@@ -27,4 +27,4 @@ jobs:
           use-quiet-mode: "yes"
           # this will show detailed HTTP status for checked links
           use-verbose-mode: "yes"
-          config-file: ".github/markdown.links.config.json"
+          config-file: ".github/workflows/markdown-link-check.yml"

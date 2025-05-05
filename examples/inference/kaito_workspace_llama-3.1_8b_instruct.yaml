@@ -1,16 +1,12 @@
 apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
-  name: workspace-llama-2-70b
+  name: workspace-llama-3-1-8b-instruct
 resource:
   instanceType: "Standard_NC96ads_A100_v4"
-  count: 2
   labelSelector:
     matchLabels:
-      apps: llama-2-70b
+      apps: llama-3-1-8b-instruct
 inference:
   preset:
-    name: "llama-2-70b"
-    accessMode: private
-    presetOptions:
-      image: <YOUR IMAGE URL>
+    name: llama-3.1-8b-instruct

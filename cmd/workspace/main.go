@@ -21,6 +21,7 @@ import (
 	"knative.dev/pkg/injection/sharedmain"
 	"knative.dev/pkg/webhook"
 	ctrl "sigs.k8s.io/controller-runtime"
+	runtimecache "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -104,6 +105,9 @@ func main() {
 		// if you are doing or is intended to do any operation such as perform cleanups
 		// after the manager stops then its usage might be unsafe.
 		// LeaderElectionReleaseOnCancel: true,
+		Cache: runtimecache.Options{
+			DefaultTransform: runtimecache.TransformStripManagedFields(),
+		},
 	})
 	if err != nil {
 		klog.ErrorS(err, "unable to start manager")

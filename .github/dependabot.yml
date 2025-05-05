@@ -13,12 +13,6 @@ updates:
       interval: daily
 
   - package-ecosystem: docker
-    directory: /docker/presets/inference/llama-2
-    schedule:
-      interval: daily
-    open-pull-requests-limit: 0
-
-  - package-ecosystem: docker
     directory: /docker/presets/inference/tfs-onnx
     schedule:
       interval: daily

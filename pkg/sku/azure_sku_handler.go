@@ -17,7 +17,7 @@ func NewAzureSKUHandler() CloudSKUHandler {
 		{SKU: "Standard_NC48ads_A100_v4", GPUCount: 2, GPUMemGB: 160, GPUModel: "NVIDIA A100"},
 		{SKU: "Standard_NC96ads_A100_v4", GPUCount: 4, GPUMemGB: 320, GPUModel: "NVIDIA A100"},
 		{SKU: "Standard_ND96asr_A100_v4", GPUCount: 8, GPUMemGB: 320, GPUModel: "NVIDIA A100"},
-		{SKU: "Standard_ND96amsr_A100_v4", GPUCount: 8, GPUMemGB: 80, GPUModel: "NVIDIA A100"},
+		{SKU: "Standard_ND96amsr_A100_v4", GPUCount: 8, GPUMemGB: 640, GPUModel: "NVIDIA A100"},
 		// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/ncadsh100v5-series
 		{SKU: "Standard_NC40ads_H100_v5", GPUCount: 1, GPUMemGB: 94, GPUModel: "NVIDIA H100"},
 		{SKU: "Standard_NC80adis_H100_v5", GPUCount: 2, GPUMemGB: 188, GPUModel: "NVIDIA H100"},

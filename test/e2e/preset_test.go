@@ -30,8 +30,7 @@ import (
 )
 
 const (
-	PresetLlama2AChat                   = "llama-2-7b-chat"
-	PresetLlama2BChat                   = "llama-2-13b-chat"
+	PresetLlama3_1_8BInstruct           = "llama-3.1-8b-instruct"
 	PresetFalcon7BModel                 = "falcon-7b"
 	PresetFalcon40BModel                = "falcon-40b"
 	PresetMistral7BInstructModel        = "mistral-7b-instruct"
@@ -54,13 +53,6 @@ var (
 )
 
 func loadTestEnvVars() {
-	var err error
-	runLlama13B, err = strconv.ParseBool(os.Getenv("RUN_LLAMA_13B"))
-	if err != nil {
-		fmt.Print("Error: RUN_LLAMA_13B ENV Variable not set")
-		runLlama13B = false
-	}
-
 	// Required for Llama models
 	aiModelsRegistry = utils.GetEnv("AI_MODELS_REGISTRY")
 	aiModelsRegistrySecret = utils.GetEnv("AI_MODELS_REGISTRY_SECRET")
@@ -163,33 +155,20 @@ func createPhi2WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 	return workspaceObj
 }
 
-func createLlama7BWorkspaceWithPresetPrivateMode(registry, registrySecret, imageVersion string, numOfNode int) *kaitov1beta1.Workspace {
-	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Llama 7B Chat preset private mode", func() {
-		uniqueID := fmt.Sprint("preset-llama-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, fmt.Sprintf("%s/%s:%s", registry, PresetLlama2AChat, imageVersion),
-			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "private-preset-e2e-test-llama-2-7b"},
-			}, nil, PresetLlama2AChat, kaitov1beta1.ModelImageAccessModePrivate, []string{registrySecret}, nil, nil)
+// TODO: Uncomment once Llama 3.1-8B Instruct are pushed up to the registry
+// func createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(registry, registrySecret, imageVersion string, numOfNode int) *kaitov1beta1.Workspace {
+// 	workspaceObj := &kaitov1beta1.Workspace{}
+// 	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode", func() {
+// 		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
+// 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, fmt.Sprintf("%s/%s:%s", registry, PresetLlama3_1_8BInstruct, imageVersion),
+// 			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
+// 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b"},
+// 			}, nil, PresetLlama3_1_8BInstruct, kaitov1beta1.ModelImageAccessModePublic, []string{registrySecret}, nil, nil)
 
-		createAndValidateWorkspace(workspaceObj)
-	})
-	return workspaceObj
-}
-
-func createLlama13BWorkspaceWithPresetPrivateMode(registry, registrySecret, imageVersion string, numOfNode int) *kaitov1beta1.Workspace {
-	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Llama 13B Chat preset private mode", func() {
-		uniqueID := fmt.Sprint("preset-llama-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, fmt.Sprintf("%s/%s:%s", registry, PresetLlama2BChat, imageVersion),
-			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "private-preset-e2e-test-llama-2-13b"},
-			}, nil, PresetLlama2BChat, kaitov1beta1.ModelImageAccessModePrivate, []string{registrySecret}, nil, nil)
-
-		createAndValidateWorkspace(workspaceObj)
-	})
-	return workspaceObj
-}
+// 		createAndValidateWorkspace(workspaceObj)
+// 	})
+// 	return workspaceObj
+// }
 
 func createCustomWorkspaceWithPresetCustomMode(imageName string, numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
@@ -785,7 +764,6 @@ func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 	return nil
 }
 
-var runLlama13B bool
 var aiModelsRegistry string
 var aiModelsRegistrySecret string
 var e2eACRSecret string
@@ -864,58 +842,6 @@ var _ = Describe("Workspace Preset", func() {
 		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
-
-		validateWorkspaceReadiness(workspaceObj)
-	})
-
-	It("should create a llama 7b workspace with preset private mode successfully", func() {
-		numOfNode := 1
-		modelVersion, ok := modelInfo[PresetLlama2AChat]
-		if !ok {
-			Fail(fmt.Sprintf("Model version for %s not found", PresetLlama2AChat))
-		}
-		workspaceObj := createLlama7BWorkspaceWithPresetPrivateMode(aiModelsRegistry, aiModelsRegistrySecret, modelVersion, numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
-
-		validateWorkspaceReadiness(workspaceObj)
-	})
-
-	It("should create a llama 13b workspace with preset private mode successfully", func() {
-		if !runLlama13B {
-			Skip("Skipping llama 13b workspace test")
-		}
-		numOfNode := 2
-		modelVersion, ok := modelInfo[PresetLlama2BChat]
-		if !ok {
-			Fail(fmt.Sprintf("Model version for %s not found", PresetLlama2AChat))
-		}
-		workspaceObj := createLlama13BWorkspaceWithPresetPrivateMode(aiModelsRegistry, aiModelsRegistrySecret, modelVersion, numOfNode)
-
-		defer cleanupResources(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 	})

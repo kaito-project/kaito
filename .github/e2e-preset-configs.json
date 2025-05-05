@@ -327,42 +327,6 @@
         }
       },
       {
-        "name": "llama-2-7b",
-        "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
-        "node-osdisk-size": 100,
-        "OSS": false,
-        "loads_adapter": false,
-        "node_pool": "llama27b"
-      },
-      {
-        "name": "llama-2-7b-chat",
-        "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
-        "node-osdisk-size": 100,
-        "OSS": false,
-        "loads_adapter": false,
-        "node_pool": "llama27bchat"
-      },
-      {
-        "name": "llama-2-13b",
-        "node-count": 2,
-        "node-vm-size": "Standard_NC12s_v3",
-        "node-osdisk-size": 150,
-        "OSS": false,
-        "loads_adapter": false,
-        "node_pool": "llama213b"
-      },
-      {
-        "name": "llama-2-13b-chat",
-        "node-count": 2,
-        "node-vm-size": "Standard_NC12s_v3",
-        "node-osdisk-size": 150,
-        "OSS": false,
-        "loads_adapter": false,
-        "node_pool": "llama213bcha"
-      },
-      {
         "name": "tuning",
         "node-count": 1,
         "node-vm-size": "Standard_NC6s_v3",

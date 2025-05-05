@@ -52,10 +52,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a deepseek-distilled-qwen-14b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		if !runLlama13B {
-			Skip("Skipping deepseek-distilled-qwen-14b workspace test")
-		}
+	It("should create a deepseek-distilled-qwen-14b workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createDeepSeekQwen14BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 

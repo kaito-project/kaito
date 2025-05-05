@@ -45,7 +45,7 @@ type llama3_1_8BInstruct struct{}
 func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetLlama3_1_8BInstructModel),
-		DiskStorageRequirement:    "50Gi",
+		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "22Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Llama using native vertical model parallel, no per GPU memory requirement.

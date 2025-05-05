@@ -446,7 +446,7 @@ func (c *WorkspaceReconciler) createAndValidateNode(ctx context.Context, wObj *k
 			GetInferenceParameters().DiskStorageRequirement
 	}
 	if nodeOSDiskSize == "" {
-		nodeOSDiskSize = "0" // The default OS size is used
+		nodeOSDiskSize = "1024Gi" // The default OS size is used
 	}
 
 	return c.CreateNodeClaim(ctx, wObj, nodeOSDiskSize)

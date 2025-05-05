@@ -476,7 +476,7 @@ func (c *RAGEngineReconciler) createAndValidateNode(ctx context.Context, ragEngi
 	var nodeOSDiskSize string
 
 	if nodeOSDiskSize == "" {
-		nodeOSDiskSize = "0" // The default OS size is used
+		nodeOSDiskSize = "200Gi" // The default OS size is used
 	}
 	return c.CreateNodeClaim(ctx, ragEngineObj, nodeOSDiskSize)
 }

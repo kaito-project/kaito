@@ -23,16 +23,6 @@ class FaissVectorMapStore(FaissVectorStore):
         self,
         faiss_index: faiss.IndexIDMap2,
     ) -> None:
-        """Initialize params."""
-        import_err_msg = """
-            `faiss` package not found. For instructions on
-            how to install `faiss` please visit
-            https://github.com/facebookresearch/faiss/wiki/Installing-Faiss
-        """
-        try:
-            import faiss
-        except ImportError:
-            raise ImportError(import_err_msg)
         super().__init__(faiss_index=faiss_index)
         self._ref_doc_id_map = {}
         self._node_id_map = {}

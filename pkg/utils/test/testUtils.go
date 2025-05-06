@@ -46,9 +46,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-distributed-model",
-				},
+				Name: "test-distributed-model",
 			},
 		},
 	}
@@ -69,9 +67,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-distributed-model",
-				},
+				Name: "test-distributed-model",
 			},
 		},
 	}
@@ -169,9 +165,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-model",
-				},
+				Name: "test-model",
 			},
 		},
 	}
@@ -191,9 +185,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-model",
-				},
+				Name: "test-model",
 			},
 		},
 	}
@@ -213,9 +205,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-model-download",
-				},
+				Name: "test-model-download",
 				PresetOptions: v1beta1.PresetOptions{
 					ModelAccessSecret: "test-secret",
 				},
@@ -241,9 +231,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-model-download",
-				},
+				Name: "test-model-download",
 				PresetOptions: v1beta1.PresetOptions{
 					ModelAccessSecret: "test-secret",
 				},
@@ -358,9 +346,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-model-DeleteOldCR", // presetMeta name is changed
-				},
+				Name: "test-model-DeleteOldCR",
 			},
 		},
 	}
@@ -415,9 +401,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-model",
-				},
+				Name: "test-model",
 			},
 		},
 	}
@@ -465,9 +449,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-model",
-				},
+				Name: "test-model",
 			},
 		},
 	}
@@ -516,9 +498,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-model",
-				},
+				Name: "test-model",
 			},
 		},
 	}
@@ -568,9 +548,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-model",
-				},
+				Name: "test-model",
 			},
 		},
 	}
@@ -597,9 +575,7 @@ var (
 		},
 		Inference: &v1beta1.InferenceSpec{
 			Preset: &v1beta1.PresetSpec{
-				PresetMeta: v1beta1.PresetMeta{
-					Name: "test-model",
-				},
+				Name: "test-model",
 			},
 			Adapters: []v1beta1.AdapterSpec{
 				{

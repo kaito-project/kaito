@@ -104,22 +104,19 @@ func ConfigSHMVolume(instanceCount int) (corev1.Volume, corev1.VolumeMount) {
 	volume := corev1.Volume{}
 	volumeMount := corev1.VolumeMount{}
 
-	// Signifies multinode inference requirement
-	if instanceCount > 1 {
-		// Append share memory volume to any existing volumes
-		volume = corev1.Volume{
-			Name: "dshm",
-			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{
-					Medium: "Memory",
-				},
+	// Append share memory volume to any existing volumes
+	volume = corev1.Volume{
+		Name: "dshm",
+		VolumeSource: corev1.VolumeSource{
+			EmptyDir: &corev1.EmptyDirVolumeSource{
+				Medium: "Memory",
 			},
-		}
+		},
+	}
 
-		volumeMount = corev1.VolumeMount{
-			Name:      volume.Name,
-			MountPath: DefaultVolumeMountPath,
-		}
+	volumeMount = corev1.VolumeMount{
+		Name:      volume.Name,
+		MountPath: DefaultVolumeMountPath,
 	}
 
 	return volume, volumeMount

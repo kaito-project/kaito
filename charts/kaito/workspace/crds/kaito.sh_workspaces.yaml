@@ -487,6 +487,16 @@ spec:
                 description: Preset describes the base model that will be deployed
                   with preset configurations.
                 properties:
+                  accessMode:
+                    default: public
+                    description: |-
+                      AccessMode specifies whether the containerized model image is accessible via public registry
+                      or private registry. This field defaults to "public" if not specified.
+                      If this field is "private", user needs to provide the private image information in PresetOptions.
+                    enum:
+                    - public
+                    - private
+                    type: string
                   name:
                     description: Name of the supported models with preset configurations.
                     type: string
@@ -743,6 +753,16 @@ spec:
               preset:
                 description: Preset describes which model to load for tuning.
                 properties:
+                  accessMode:
+                    default: public
+                    description: |-
+                      AccessMode specifies whether the containerized model image is accessible via public registry
+                      or private registry. This field defaults to "public" if not specified.
+                      If this field is "private", user needs to provide the private image information in PresetOptions.
+                    enum:
+                    - public
+                    - private
+                    type: string
                   name:
                     description: Name of the supported models with preset configurations.
                     type: string

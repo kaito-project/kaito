@@ -50,6 +50,7 @@ type PresetOptions struct {
 
 // PresetSpec provides the information for rendering preset configurations to run the model inference service.
 type PresetSpec struct {
+	// Name of the supported models with preset configurations.
 	Name ModelName `json:"name"`
 	// +optional
 	PresetOptions `json:"presetOptions,omitempty"`

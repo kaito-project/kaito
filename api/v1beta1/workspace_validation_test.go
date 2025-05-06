@@ -656,7 +656,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
 					PresetMeta: PresetMeta{
-						Name:       ModelName("test-validation"),
+						Name: ModelName("test-validation"),
 					},
 					PresetOptions: PresetOptions{},
 				},

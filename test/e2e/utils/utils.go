@@ -277,12 +277,12 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 	}
 
 	var workspaceInference kaitov1beta1.InferenceSpec
-	// If presetName is not nil, we are using a preset, 
+	// If presetName is not nil, we are using a preset,
 	// otherwise we are using a custom template
 	if presetName != nil {
 		workspaceInference.Preset = &kaitov1beta1.PresetSpec{
 			PresetMeta: kaitov1beta1.PresetMeta{
-				Name:       presetName,
+				Name: presetName,
 			},
 			PresetOptions: kaitov1beta1.PresetOptions{
 				Image:            imageName,
@@ -346,7 +346,7 @@ func GenerateTuningWorkspaceManifest(name, namespace, imageName string, resource
 
 func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImageName, outputRegistry string,
 	resourceCount int, instanceType string, labelSelector *metav1.LabelSelector,
-	preferredNodes []string, presetName kaitov1beta1.ModelName, imagePullSecret []string, 
+	preferredNodes []string, presetName kaitov1beta1.ModelName, imagePullSecret []string,
 	customConfigMapName string) *kaitov1beta1.Workspace {
 	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -362,7 +362,7 @@ func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImage
 	}
 
 	var workspaceTuning kaitov1beta1.TuningSpec
-	// If presetName is not nil, we are using a preset, 
+	// If presetName is not nil, we are using a preset,
 	// otherwise we are using a custom template
 	if presetName != nil {
 		workspaceTuning.Preset = &kaitov1beta1.PresetSpec{

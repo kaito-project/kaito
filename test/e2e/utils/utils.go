@@ -32,8 +32,6 @@ import (
 )
 
 const (
-	InferenceModeCustomTemplate kaitov1beta1.ModelImageAccessMode = "customTemplate"
-
 	ExampleDatasetURL = "https://huggingface.co/datasets/philschmid/dolly-15k-oai-style/resolve/main/data/train-00000-of-00001-54e3756291ca09c6.parquet?download=true"
 )
 
@@ -279,22 +277,22 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 	var workspaceInference kaitov1beta1.InferenceSpec
 	// If presetName is not nil, we are using a preset,
 	// otherwise we are using a custom template
-	if presetName != nil {
+	if presetName != "" {
 		workspaceInference.Preset = &kaitov1beta1.PresetSpec{
-			Name: presetName,
+			PresetMeta: kaitov1beta1.PresetMeta{
+				Name: presetName,
+			},
 			PresetOptions: kaitov1beta1.PresetOptions{
 				Image:            imageName,
 				ImagePullSecrets: imagePullSecret,
 			},
 		}
+	} else {
+		workspaceInference.Template = podTemplate
 	}
 
 	if adapters != nil {
 		workspaceInference.Adapters = adapters
-	}
-
-	if accessMode == InferenceModeCustomTemplate {
-		workspaceInference.Template = podTemplate
 	}
 
 	workspace.Inference = &workspaceInference
@@ -303,11 +301,10 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 }
 
 func GenerateInferenceWorkspaceManifestWithVLLM(name, namespace, imageName string, resourceCount int, instanceType string,
-	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName,
-	accessMode kaitov1beta1.ModelImageAccessMode, imagePullSecret []string,
+	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName, imagePullSecret []string,
 	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
 	workspace := GenerateInferenceWorkspaceManifest(name, namespace, imageName, resourceCount, instanceType,
-		labelSelector, preferredNodes, presetName, accessMode, imagePullSecret, podTemplate, adapters)
+		labelSelector, preferredNodes, presetName, imagePullSecret, podTemplate, adapters)
 
 	if workspace.Annotations == nil {
 		workspace.Annotations = make(map[string]string)
@@ -362,9 +359,11 @@ func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImage
 	var workspaceTuning kaitov1beta1.TuningSpec
 	// If presetName is not nil, we are using a preset,
 	// otherwise we are using a custom template
-	if presetName != nil {
+	if presetName != "" {
 		workspaceTuning.Preset = &kaitov1beta1.PresetSpec{
-			Name: presetName,
+			PresetMeta: kaitov1beta1.PresetMeta{
+				Name: presetName,
+			},
 			PresetOptions: kaitov1beta1.PresetOptions{
 				Image:            imageName,
 				ImagePullSecrets: imagePullSecret,

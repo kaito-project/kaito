@@ -8,11 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	ModelImageAccessModePublic  ModelImageAccessMode = "public"
-	ModelImageAccessModePrivate ModelImageAccessMode = "private"
-)
-
 // ResourceSpec describes the resource requirement of running the workload.
 // If the number of nodes in the cluster that meet the InstanceType and
 // LabelSelector requirements is small than the Count, controller

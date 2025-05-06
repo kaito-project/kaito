@@ -137,16 +137,11 @@ func (*testModelDownload) SupportTuning() bool {
 
 func RegisterValidationTestModels() {
 	var test testModel
-	var testPrivate testModelPrivate
 	var testStatic testModelStatic
 	var testDownload testModelDownload
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation",
 		Instance: &test,
-	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
-		Name:     "private-test-validation",
-		Instance: &testPrivate,
 	})
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation-static",
@@ -459,7 +454,9 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 
 					spec = InferenceSpec{
 						Preset: &PresetSpec{
-							Name: presetName,
+							PresetMeta: PresetMeta{
+								Name: presetName,
+							},
 						},
 					}
 				} else {
@@ -614,7 +611,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			name: "Invalid Preset Name",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("Invalid-Preset-Name"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("Invalid-Preset-Name"),
+					},
 				},
 			},
 			errContent: "Unsupported inference preset name",
@@ -638,7 +637,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			name: "Preset and Template Set",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 				Template: &v1.PodTemplateSpec{}, // Assuming a non-nil TemplateSpec implies it's set
 			},
@@ -646,31 +647,13 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			expectErrs: true,
 		},
 		{
-			name: "Private Access Without Image",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
-				},
-			},
-			errContent: "When AccessMode is private, an image must be provided",
-			expectErrs: true,
-		},
-		{
-			name: "Private Preset With Public AccessMode",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					Name: ModelName("private-test-validation"),
-				},
-			},
-			errContent: "This preset only supports private AccessMode, AccessMode must be private to continue",
-			expectErrs: true,
-		},
-		{
 			name: "Adapeters more than 10",
 			inferenceSpec: func() *InferenceSpec {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{
-						Name: ModelName("test-validation"),
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
 					},
 				}
 				for i := 1; i <= 11; i++ {
@@ -692,7 +675,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			inferenceSpec: func() *InferenceSpec {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{
-						Name: ModelName("test-validation"),
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
 					},
 				}
 				for i := 1; i <= 2; i++ {
@@ -711,7 +696,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			inferenceSpec: func() *InferenceSpec {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{
-						Name: ModelName("test-validation"),
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
 					},
 				}
 				for i := 1; i <= 2; i++ {
@@ -732,7 +719,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			inferenceSpec: func() *InferenceSpec {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{
-						Name: ModelName("test-validation"),
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
 					},
 				}
 				for i := 1; i <= 2; i++ {
@@ -754,7 +743,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			inferenceSpec: func() *InferenceSpec {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{
-						Name: ModelName("test-validation"),
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
 					},
 				}
 				for i := 1; i <= 2; i++ {
@@ -775,7 +766,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			name: "Valid Preset",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 			},
 			errContent: "Duplicate adapter source name found:",
@@ -785,7 +778,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			name: "Config specified but ConfigMap not found",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 				Config: "nonexistent-config",
 			},
@@ -796,7 +791,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			name: "Config specified with valid ConfigMap",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 				Config: "valid-config",
 			},
@@ -807,7 +804,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			name: "ConfigMap missing required inference_config.yaml",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 				Config: "missing-key-config",
 			},
@@ -818,7 +817,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			name: "ConfigMap missing required inference_config.yaml/transformers",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 				Config: "missing-key-config",
 			},
@@ -828,7 +829,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			name: "download model at runtime with access secret",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation-download"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation-download"),
+					},
 					PresetOptions: PresetOptions{
 						ModelAccessSecret: "test-secret",
 					},
@@ -839,7 +842,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			name: "download model at runtime but no access secret",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation-download"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation-download"),
+					},
 				},
 			},
 			errContent: "This preset requires a modelAccessSecret with HF_TOKEN key under presetOptions to download the model",
@@ -849,7 +854,9 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			name: "Preset with model weights packaged but with access secret",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 					PresetOptions: PresetOptions{
 						ModelAccessSecret: "test-secret",
 					},
@@ -1005,12 +1012,16 @@ func TestInferenceSpecValidateUpdate(t *testing.T) {
 			name: "Preset Immutable",
 			newInference: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("new-preset"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("new-preset"),
+					},
 				},
 			},
 			oldInference: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("old-preset"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("old-preset"),
+					},
 				},
 			},
 			errContent: "field is immutable",
@@ -1174,7 +1185,9 @@ func TestWorkspaceValidateName(t *testing.T) {
 		},
 		Inference: &InferenceSpec{
 			Preset: &PresetSpec{
-				Name: ModelName("test-validation-static"),
+				PresetMeta: PresetMeta{
+					Name: ModelName("test-validation-static"),
+				},
 			},
 		},
 	}
@@ -1319,7 +1332,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/test:0.0.0"},
 				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: "secret"},
-				Preset: &PresetSpec{Name: ModelName("test-validation")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
 			wantErr:   false,
@@ -1330,7 +1343,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/test:0.0.0"},
 				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: "secret"},
-				Preset: &PresetSpec{Name: ModelName("test-validation")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodQLora,
 			},
 			wantErr:   false,
@@ -1340,7 +1353,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			name: "Missing Input",
 			tuningSpec: &TuningSpec{
 				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: ""},
-				Preset: &PresetSpec{Name: ModelName("test-validation")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
 			wantErr:   true,
@@ -1350,7 +1363,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			name: "Missing Output",
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input"},
-				Preset: &PresetSpec{Name: ModelName("test-validation")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
 			wantErr:   true,
@@ -1371,7 +1384,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input"},
 				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: ""},
-				Preset: &PresetSpec{Name: ModelName("invalid-preset")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("invalid-preset")}},
 				Method: TuningMethodLora,
 			},
 			wantErr:   true,
@@ -1382,7 +1395,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input"},
 				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: ""},
-				Preset: &PresetSpec{Name: ModelName("test-validation")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: "invalid-method",
 			},
 			wantErr:   true,
@@ -1393,7 +1406,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/INPUT:0.0.0"},
 				Output: &DataDestination{Image: "kaito.azurecr.io/output:0.0.0", ImagePushSecret: "secret"},
-				Preset: &PresetSpec{Name: ModelName("test-validation")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
 			wantErr:   true,
@@ -1404,7 +1417,7 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			tuningSpec: &TuningSpec{
 				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/input:0.0.0"},
 				Output: &DataDestination{Image: "kaito.azurecr.io/OUTPUT:0.0.0", ImagePushSecret: "secret"},
-				Preset: &PresetSpec{Name: ModelName("test-validation")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
 			wantErr:   true,
@@ -1446,13 +1459,13 @@ func TestTuningSpecValidateUpdate(t *testing.T) {
 			oldTuning: &TuningSpec{
 				Input:  &DataSource{Name: "input1"},
 				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0"},
-				Preset: &PresetSpec{Name: ModelName("test-validation")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
 			newTuning: &TuningSpec{
 				Input:  &DataSource{Name: "input1"},
 				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0"},
-				Preset: &PresetSpec{Name: ModelName("test-validation")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 				Method: TuningMethodLora,
 			},
 			expectErrs: false,
@@ -1460,10 +1473,10 @@ func TestTuningSpecValidateUpdate(t *testing.T) {
 		{
 			name: "Preset changed",
 			oldTuning: &TuningSpec{
-				Preset: &PresetSpec{Name: ModelName("test-validation")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}},
 			},
 			newTuning: &TuningSpec{
-				Preset: &PresetSpec{Name: ModelName("invalid-preset")},
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("invalid-preset")}},
 			},
 			expectErrs: true,
 			errFields:  []string{"Preset"},
@@ -1871,7 +1884,9 @@ other_field: value
 			name: "Multi-GPU with <20GB per GPU and max-model-len set",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 				Config: "valid-config-with-max-model-len",
 			},
@@ -1886,7 +1901,9 @@ other_field: value
 			name: "Multi-GPU with <20GB per GPU and max-model-len missing",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 				Config: "invalid-config-without-max-model-len",
 			},
@@ -1901,7 +1918,9 @@ other_field: value
 			name: "Multi-GPU with <20GB per GPU and empty vllm section",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 				Config: "invalid-config-empty-vllm",
 			},
@@ -1916,7 +1935,9 @@ other_field: value
 			name: "Multi-GPU with <20GB per GPU and vllm section missing",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 				Config: "invalid-config-no-vllm",
 			},
@@ -1931,7 +1952,9 @@ other_field: value
 			name: "Single-GPU instance (no max-model-len required)",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 				Config: "invalid-config-without-max-model-len",
 			},
@@ -1946,7 +1969,9 @@ other_field: value
 			name: "Multi-GPU with >=20GB per GPU (no max-model-len required)",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
-					Name: ModelName("test-validation"),
+					PresetMeta: PresetMeta{
+						Name: ModelName("test-validation"),
+					},
 				},
 				Config: "invalid-config-without-max-model-len",
 			},

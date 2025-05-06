@@ -153,7 +153,7 @@ func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *ka
 			},
 			Resources: karpenterv1.ResourceRequirements{
 				Requests: v1.ResourceList{
-					v1.ResourceEphemeralStorage: resource.MustParse(storageRequirement),
+					v1.ResourceStorage: resource.MustParse(storageRequirement),
 				},
 			},
 		},

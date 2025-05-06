@@ -52,6 +52,8 @@ type PresetMeta struct {
 	// If this field is "private", user needs to provide the private image information in PresetOptions.
 	// +kubebuilder:default:="public"
 	// +optional
+	// +kubebuilder:validation:Deprecated=true
+	// +kubebuilder:validation:DeprecatedMessage="This field is deprecated in v1beta1 and will be removed in a future version"
 	AccessMode ModelImageAccessMode `json:"accessMode,omitempty"`
 }
 

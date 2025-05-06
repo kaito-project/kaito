@@ -1,6 +1,6 @@
 # KAITO Code of Conduct
 
-This project has adopted the [Cloud Native Compute Foundation Code of Conduct](https://github.com/cncf/foundation/blob/master/code-of-conduct.md).
+This project has adopted the [Cloud Native Compute Foundation Code of Conduct](https://github.com/cncf/foundation/blob/main/code-of-conduct.md).
 
 Resources:
 

@@ -60,7 +60,6 @@ jobs:
         run: |
           echo "FORCE_RUN_ALL=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all == 'true' }}" >> $GITHUB_OUTPUT
           echo "FORCE_RUN_ALL_PHI=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all-phi == 'true' }}" >> $GITHUB_OUTPUT
-          echo "FORCE_RUN_ALL_PUBLIC=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all-public == 'true' }}" >> $GITHUB_OUTPUT
 
       # This script should output a JSON array of model names
       - name: Determine Affected Models
@@ -69,7 +68,6 @@ jobs:
           PR_BRANCH=${{ env.BRANCH_NAME }} \
           FORCE_RUN_ALL=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL }} \
           FORCE_RUN_ALL_PHI=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL_PHI }} \
-          FORCE_RUN_ALL_PUBLIC=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL_PUBLIC }} \
           python3 .github/workflows/kind-cluster/determine_models.py
 
       - name: Print Determined Models

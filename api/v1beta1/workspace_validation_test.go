@@ -85,29 +85,6 @@ func (*testModelStatic) SupportTuning() bool {
 	return true
 }
 
-type testModelPrivate struct{}
-
-func (*testModelPrivate) GetInferenceParameters() *model.PresetParam {
-	return &model.PresetParam{
-		GPUCountRequirement:       gpuCountRequirement,
-		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
-	}
-}
-func (*testModelPrivate) GetTuningParameters() *model.PresetParam {
-	return &model.PresetParam{
-		GPUCountRequirement:       gpuCountRequirement,
-		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
-	}
-}
-func (*testModelPrivate) SupportDistributedInference() bool {
-	return false
-}
-func (*testModelPrivate) SupportTuning() bool {
-	return true
-}
-
 type testModelDownload struct{}
 
 func (*testModelDownload) GetInferenceParameters() *model.PresetParam {

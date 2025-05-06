@@ -64,7 +64,9 @@ func TestGetTuningImageInfo(t *testing.T) {
 			wObj: &kaitov1beta1.Workspace{
 				Tuning: &kaitov1beta1.TuningSpec{
 					Preset: &kaitov1beta1.PresetSpec{
-						Name: "testpreset",
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "testpreset",
+						},
 					},
 				},
 			},
@@ -80,7 +82,9 @@ func TestGetTuningImageInfo(t *testing.T) {
 			wObj: &kaitov1beta1.Workspace{
 				Tuning: &kaitov1beta1.TuningSpec{
 					Preset: &kaitov1beta1.PresetSpec{
-						Name: "testpreset",
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "testpreset",
+						},
 					},
 				},
 			},

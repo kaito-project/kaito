@@ -42,7 +42,7 @@ type ModelImageAccessMode string
 type PresetMeta struct {
 	// Name of the supported models with preset configurations.
 	Name ModelName `json:"name"`
-	// AccessMode specifies whether the containerized model image is accessible via public registry
+	// Deprecated: AccessMode specifies whether the containerized model image is accessible via public registry
 	// or private registry. This field defaults to "public" if not specified.
 	// If this field is "private", user needs to provide the private image information in PresetOptions.
 	// +kubebuilder:default:="public"
@@ -53,11 +53,15 @@ type PresetMeta struct {
 }
 
 type PresetOptions struct {
-	// Image is the name of the containerized model image.
+	// Deprecated: Image is the name of the containerized model image.
 	// +optional
+	// +kubebuilder:validation:Deprecated=true
+	// +kubebuilder:validation:DeprecatedMessage="This field is deprecated in v1beta1 and will be removed in a future version"
 	Image string `json:"image,omitempty"`
-	// ImagePullSecrets is a list of secret names in the same namespace used for pulling the model image.
+	// Deprecated: ImagePullSecrets is a list of secret names in the same namespace used for pulling the model image.
 	// +optional
+	// +kubebuilder:validation:Deprecated=true
+	// +kubebuilder:validation:DeprecatedMessage="This field is deprecated in v1beta1 and will be removed in a future version"
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
 	// ModelAccessSecret is the name of the secret that contains the huggingface access token.
 	// +optional

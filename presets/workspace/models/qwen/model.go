@@ -47,7 +47,6 @@ type qwen2_5Coder7BInstruct struct{}
 func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetQwen2_5Coder7BInstructModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "24Gi",
@@ -72,7 +71,6 @@ func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 func (*qwen2_5Coder7BInstruct) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetQwen2_5Coder7BInstructModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "100Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "24Gi",
@@ -102,7 +100,6 @@ type qwen2_5Coder32BInstruct struct{}
 func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetQwen2_5Coder32BInstructModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "70Gi", // Requires at least A100 - TODO: Revisit for more accurate metric
@@ -127,7 +124,6 @@ func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 func (*qwen2_5Coder32BInstruct) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetQwen2_5Coder32BInstructModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "140Gi", // Requires at least 2 A100 - TODO: Revisit for more accurate metric

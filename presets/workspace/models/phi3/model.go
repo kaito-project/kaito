@@ -63,7 +63,6 @@ type phi3Mini4KInst struct{}
 func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi3Mini4kModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "9Gi",
@@ -87,7 +86,6 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 func (*phi3Mini4KInst) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi3Mini4kModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
@@ -114,7 +112,6 @@ type phi3Mini128KInst struct{}
 func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi3Mini128kModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "9Gi",
@@ -138,7 +135,6 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 func (*phi3Mini128KInst) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi3Mini128kModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
@@ -163,7 +159,6 @@ type phi3_5MiniInst struct{}
 func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi3_5MiniInstruct),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "8Gi",
@@ -187,7 +182,6 @@ func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 func (*phi3_5MiniInst) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi3_5MiniInstruct),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
@@ -214,7 +208,6 @@ type Phi3Medium4kInstruct struct{}
 func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi3Medium4kModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "28Gi",
@@ -238,7 +231,6 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 func (*Phi3Medium4kInstruct) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi3Medium4kModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "80Gi",
@@ -265,7 +257,6 @@ type Phi3Medium128kInstruct struct{}
 func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi3Medium128kModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "28Gi",
@@ -289,7 +280,6 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 func (*Phi3Medium128kInstruct) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi3Medium128kModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "80Gi",

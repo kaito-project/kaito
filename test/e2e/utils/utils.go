@@ -257,8 +257,7 @@ func ExtractModelVersion(configs map[string]interface{}) (map[string]string, err
 }
 
 func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resourceCount int, instanceType string,
-	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName,
-	accessMode kaitov1beta1.ModelImageAccessMode, imagePullSecret []string,
+	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName, imagePullSecret []string,
 	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
 
 	workspace := &kaitov1beta1.Workspace{
@@ -278,12 +277,12 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 	}
 
 	var workspaceInference kaitov1beta1.InferenceSpec
-	if accessMode == kaitov1beta1.ModelImageAccessModePublic ||
-		accessMode == kaitov1beta1.ModelImageAccessModePrivate {
+	// If presetName is not nil, we are using a preset, 
+	// otherwise we are using a custom template
+	if presetName != nil {
 		workspaceInference.Preset = &kaitov1beta1.PresetSpec{
 			PresetMeta: kaitov1beta1.PresetMeta{
 				Name:       presetName,
-				AccessMode: accessMode,
 			},
 			PresetOptions: kaitov1beta1.PresetOptions{
 				Image:            imageName,
@@ -347,8 +346,8 @@ func GenerateTuningWorkspaceManifest(name, namespace, imageName string, resource
 
 func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImageName, outputRegistry string,
 	resourceCount int, instanceType string, labelSelector *metav1.LabelSelector,
-	preferredNodes []string, presetName kaitov1beta1.ModelName, accessMode kaitov1beta1.ModelImageAccessMode,
-	imagePullSecret []string, customConfigMapName string) *kaitov1beta1.Workspace {
+	preferredNodes []string, presetName kaitov1beta1.ModelName, imagePullSecret []string, 
+	customConfigMapName string) *kaitov1beta1.Workspace {
 	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -363,12 +362,12 @@ func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImage
 	}
 
 	var workspaceTuning kaitov1beta1.TuningSpec
-	if accessMode == kaitov1beta1.ModelImageAccessModePublic ||
-		accessMode == kaitov1beta1.ModelImageAccessModePrivate {
+	// If presetName is not nil, we are using a preset, 
+	// otherwise we are using a custom template
+	if presetName != nil {
 		workspaceTuning.Preset = &kaitov1beta1.PresetSpec{
 			PresetMeta: kaitov1beta1.PresetMeta{
-				Name:       presetName,
-				AccessMode: accessMode,
+				Name: presetName,
 			},
 			PresetOptions: kaitov1beta1.PresetOptions{
 				Image:            imageName,

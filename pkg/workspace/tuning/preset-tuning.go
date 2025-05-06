@@ -64,22 +64,12 @@ func getInstanceGPUCount(sku string) int {
 	return 1
 }
 
-func GetTuningImageInfo(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, presetObj *model.PresetParam) (string, []corev1.LocalObjectReference) {
-	imagePullSecretRefs := []corev1.LocalObjectReference{}
-	// Check if the workspace preset's access mode is private
-	if string(workspaceObj.Tuning.Preset.AccessMode) == string(kaitov1beta1.ModelImageAccessModePrivate) {
-		imageName := workspaceObj.Tuning.Preset.PresetOptions.Image
-		for _, secretName := range workspaceObj.Tuning.Preset.PresetOptions.ImagePullSecrets {
-			imagePullSecretRefs = append(imagePullSecretRefs, corev1.LocalObjectReference{Name: secretName})
-		}
-		return imageName, imagePullSecretRefs
-	} else {
-		imageName := string(workspaceObj.Tuning.Preset.Name)
-		imageTag := presetObj.Tag
-		registryName := os.Getenv("PRESET_REGISTRY_NAME")
-		imageName = fmt.Sprintf("%s/kaito-%s:%s", registryName, imageName, imageTag)
-		return imageName, imagePullSecretRefs
-	}
+func GetTuningImageInfo(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, presetObj *model.PresetParam) string {
+	imageName := string(workspaceObj.Tuning.Preset.Name)
+	imageTag := presetObj.Tag
+	registryName := os.Getenv("PRESET_REGISTRY_NAME")
+	imageName = fmt.Sprintf("%s/kaito-%s:%s", registryName, imageName, imageTag)
+	return imageName
 }
 
 func GetDataSrcImageInfo(ctx context.Context, wObj *kaitov1beta1.Workspace) (string, []corev1.LocalObjectReference) {
@@ -245,10 +235,7 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	}
 
 	commands, resourceReq := prepareTuningParameters(ctx, workspaceObj, modelCommand, tuningObj, skuNumGPUs)
-	tuningImage, tuningImagePullSecrets := GetTuningImageInfo(ctx, workspaceObj, tuningObj)
-	if tuningImagePullSecrets != nil {
-		imagePullSecrets = append(imagePullSecrets, tuningImagePullSecrets...)
-	}
+	tuningImage := GetTuningImageInfo(ctx, workspaceObj, tuningObj)
 
 	var envVars []corev1.EnvVar
 	presetName := strings.ToLower(string(workspaceObj.Tuning.Preset.Name))

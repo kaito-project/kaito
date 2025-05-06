@@ -47,21 +47,15 @@ type PresetMeta struct {
 	// If this field is "private", user needs to provide the private image information in PresetOptions.
 	// +kubebuilder:default:="public"
 	// +optional
-	// +kubebuilder:validation:Deprecated=true
-	// +kubebuilder:validation:DeprecatedMessage="This field is deprecated in v1beta1 and will be removed in a future version"
 	AccessMode ModelImageAccessMode `json:"accessMode,omitempty"`
 }
 
 type PresetOptions struct {
 	// Deprecated: Image is the name of the containerized model image.
 	// +optional
-	// +kubebuilder:validation:Deprecated=true
-	// +kubebuilder:validation:DeprecatedMessage="This field is deprecated in v1beta1 and will be removed in a future version"
 	Image string `json:"image,omitempty"`
 	// Deprecated: ImagePullSecrets is a list of secret names in the same namespace used for pulling the model image.
 	// +optional
-	// +kubebuilder:validation:Deprecated=true
-	// +kubebuilder:validation:DeprecatedMessage="This field is deprecated in v1beta1 and will be removed in a future version"
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
 	// ModelAccessSecret is the name of the secret that contains the huggingface access token.
 	// +optional

@@ -256,7 +256,7 @@ func ExtractModelVersion(configs map[string]interface{}) (map[string]string, err
 
 func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resourceCount int, instanceType string,
 	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName, imagePullSecret []string,
-	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
+	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1beta1.Workspace {
 
 	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -283,8 +283,9 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 				Name: presetName,
 			},
 			PresetOptions: kaitov1beta1.PresetOptions{
-				Image:            imageName,
-				ImagePullSecrets: imagePullSecret,
+				Image:             imageName,
+				ImagePullSecrets:  imagePullSecret,
+				ModelAccessSecret: modelAccessSecret,
 			},
 		}
 	} else {
@@ -302,9 +303,9 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 
 func GenerateInferenceWorkspaceManifestWithVLLM(name, namespace, imageName string, resourceCount int, instanceType string,
 	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName, imagePullSecret []string,
-	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
+	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1beta1.Workspace {
 	workspace := GenerateInferenceWorkspaceManifest(name, namespace, imageName, resourceCount, instanceType,
-		labelSelector, preferredNodes, presetName, imagePullSecret, podTemplate, adapters)
+		labelSelector, preferredNodes, presetName, imagePullSecret, podTemplate, adapters, modelAccessSecret)
 
 	if workspace.Annotations == nil {
 		workspace.Annotations = make(map[string]string)

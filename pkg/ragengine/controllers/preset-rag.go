@@ -73,7 +73,6 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 	volumes = append(volumes, shmVolume)
 	volumeMounts = append(volumeMounts, shmVolumeMount)
 
-
 	var resourceReq corev1.ResourceRequirements
 
 	if ragEngineObj.Spec.Embedding.Local != nil {

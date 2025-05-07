@@ -115,7 +115,6 @@ jobs:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
           E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
       - name: Run fast e2e test
         if: ${{ !inputs.isRelease }}
@@ -128,7 +127,6 @@ jobs:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
           E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
 
       - name: Cleanup e2e resources

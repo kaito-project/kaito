@@ -48,7 +48,7 @@ type mistral7b struct{}
 func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetMistral7BModel),
-		DiskStorageRequirement:    "80Gi",
+		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "14Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Mistral using native vertical model parallel, no per GPU memory requirement.
@@ -72,7 +72,7 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 func (*mistral7b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetMistral7BModel),
-		DiskStorageRequirement:    "80Gi",
+		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
 		PerGPUMemoryRequirement:   "16Gi",
@@ -101,7 +101,7 @@ type mistral7bInst struct{}
 func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetMistral7BInstructModel),
-		DiskStorageRequirement:    "80Gi",
+		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run mistral using native vertical model parallel, no per GPU memory requirement.

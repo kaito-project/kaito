@@ -7,8 +7,13 @@ from sentence_transformers import SentenceTransformer
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from .base import BaseEmbeddingModel
 from ragengine.metrics.helpers import record_embedding_metrics
-from ragengine.metrics.prometheus_metrics import rag_embedding_requests_total, rag_embedding_latency
-
+from ragengine.metrics.prometheus_metrics import (
+    rag_embedding_requests_total, 
+    rag_embedding_latency,
+    STATUS_SUCCESS,
+    STATUS_FAILURE,
+    MODE_LOCAL
+)
 
 class LocalHuggingFaceEmbedding(HuggingFaceEmbedding, BaseEmbeddingModel):
     """HuggingFace embedding model with metrics collection."""
@@ -19,18 +24,18 @@ class LocalHuggingFaceEmbedding(HuggingFaceEmbedding, BaseEmbeddingModel):
         prompt_name: Any = None,
     ) -> List[List[float]]:
         start_time = time.time()
-        status = "success"
+        status = STATUS_SUCCESS
         
         try:
             result = super()._embed_with_retry(inputs, prompt_name)
             return result
         except Exception as e:
-            status = "failure"
+            status = STATUS_FAILURE
             raise e
         finally:
             latency = time.time() - start_time
-            rag_embedding_requests_total.labels(status=status).inc()
-            rag_embedding_latency.labels(status=status).observe(latency)
+            rag_embedding_requests_total.labels(status=status, mode=MODE_LOCAL).inc()
+            rag_embedding_latency.labels(status=status, mode=MODE_LOCAL).observe(latency)
 
     def get_embedding_dimension(self) -> int:
         """Infers the embedding dimension by making a local call to get the embedding of a dummy text."""

@@ -21,8 +21,6 @@ from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 import time
 from starlette.responses import Response
 from ragengine.metrics.prometheus_metrics import (
-    rag_embedding_latency,
-    rag_embedding_requests_total,
     rag_query_latency,
     rag_query_requests_total,
     rag_index_latency,
@@ -34,16 +32,20 @@ from ragengine.metrics.prometheus_metrics import (
     rag_persist_latency,
     rag_persist_requests_total,
     rag_load_latency,
-    rag_load_requests_total
+    rag_load_requests_total,
+    STATUS_SUCCESS,
+    STATUS_FAILURE,
+    MODE_LOCAL,
+    MODE_REMOTE
 )
 from functools import wraps
 
 app = FastAPI()
 
 # Initialize embedding model
-if EMBEDDING_SOURCE_TYPE.lower() == "local":
+if EMBEDDING_SOURCE_TYPE.lower() == MODE_LOCAL:
     embedding_manager = LocalHuggingFaceEmbedding(LOCAL_EMBEDDING_MODEL_ID)
-elif EMBEDDING_SOURCE_TYPE.lower() == "remote":
+elif EMBEDDING_SOURCE_TYPE.lower() == MODE_REMOTE:
     embedding_manager = RemoteEmbeddingModel(REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET)
 else:
     raise ValueError("Invalid Embedding Type Specified (Must be Local or Remote)")
@@ -138,15 +140,15 @@ async def index_documents(request: IndexRequest):
             for doc_id, doc in zip(doc_ids, request.documents)
         ]
         # Record successful request
-        rag_index_requests_total.labels(status="success").inc()
+        rag_index_requests_total.labels(status=STATUS_SUCCESS).inc()
         # Record latency
-        rag_index_latency.labels(status="success").observe(time.time() - start_time)
+        rag_index_latency.labels(status=STATUS_SUCCESS).observe(time.time() - start_time)
         return documents
     except Exception as e:
         # Record failed request
-        rag_index_requests_total.labels(status="fail").inc()
+        rag_index_requests_total.labels(status=STATUS_FAILURE).inc()
         # Record latency even for failures
-        rag_index_latency.labels(status="fail").observe(time.time() - start_time)
+        rag_index_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post(
@@ -204,26 +206,26 @@ async def query_index(request: QueryRequest):
         
         
         # Record API metrics
-        rag_query_requests_total.labels(status='success').inc()
-        rag_query_latency.labels(status='success').observe(search_time)
+        rag_query_requests_total.labels(status=STATUS_SUCCESS).inc()
+        rag_query_latency.labels(status=STATUS_SUCCESS).observe(search_time)
         
         return result
     except HTTPException as http_exc:
         # Record API failure
-        rag_query_requests_total.labels(status="fail").inc()
-        rag_query_latency.labels(status='fail').observe(time.time() - start_time)
+        rag_query_requests_total.labels(status=STATUS_FAILURE).inc()
+        rag_query_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         # Preserve HTTP exceptions like 422 from reranker
         raise http_exc
     except ValueError as ve:
         # Record API failure
-        rag_query_requests_total.labels(status="fail").inc()
-        rag_query_latency.labels(status='fail').observe(time.time() - start_time)
+        rag_query_requests_total.labels(status=STATUS_FAILURE).inc()
+        rag_query_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:
 
         # Record API failure
-        rag_query_requests_total.labels(status="fail").inc()
-        rag_query_latency.labels(status='fail').observe(time.time() - start_time)
+        rag_query_requests_total.labels(status=STATUS_FAILURE).inc()
+        rag_query_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )
@@ -249,15 +251,15 @@ def list_indexes():
     try:
         result = rag_ops.list_indexes()
         # Record successful request
-        rag_indexes_requests_total.labels(status="success").inc()
+        rag_indexes_requests_total.labels(status=STATUS_SUCCESS).inc()
         # Record latency
-        rag_indexes_latency.labels(status="success").observe(time.time() - start_time)
+        rag_indexes_latency.labels(status=STATUS_SUCCESS).observe(time.time() - start_time)
         return result
     except Exception as e:
         # Record failed request
-        rag_indexes_requests_total.labels(status="fail").inc()
+        rag_indexes_requests_total.labels(status=STATUS_FAILURE).inc()
         # Record latency even for failures
-        rag_indexes_latency.labels(status="fail").observe(time.time() - start_time)
+        rag_indexes_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get(
@@ -414,9 +416,9 @@ async def delete_documents_in_index(
         )
     except Exception as e:
         # Record failed request
-        rag_indexes_document_requests_total.labels(status="fail").inc()
+        rag_indexes_document_requests_total.labels(status=STATUS_FAILURE).inc()
         # Record latency even for failures
-        rag_indexes_document_latency.labels(status="fail").observe(time.time() - start_time)
+        rag_indexes_document_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post(
@@ -452,16 +454,16 @@ async def persist_index(
         await rag_ops.persist(index_name, path)
         
         # Record successful request
-        rag_persist_requests_total.labels(status="success").inc()
+        rag_persist_requests_total.labels(status=STATUS_SUCCESS).inc()
         # Record latency
-        rag_persist_latency.labels(status="success").observe(time.time() - start_time)
+        rag_persist_latency.labels(status=STATUS_SUCCESS).observe(time.time() - start_time)
         
         return {"message": f"Successfully persisted index {index_name} to {path}."}
     except Exception as e:
         # Record failed request
-        rag_persist_requests_total.labels(status="fail").inc()
+        rag_persist_requests_total.labels(status=STATUS_FAILURE).inc()
         # Record latency even for failures
-        rag_persist_latency.labels(status="fail").observe(time.time() - start_time)
+        rag_persist_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         
         raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")
 
@@ -500,16 +502,16 @@ async def load_index(
         await rag_ops.load(index_name, path, overwrite)
         
         # Record successful request
-        rag_load_requests_total.labels(status="success").inc()
+        rag_load_requests_total.labels(status=STATUS_SUCCESS).inc()
         # Record latency
-        rag_load_latency.labels(status="success").observe(time.time() - start_time)
+        rag_load_latency.labels(status=STATUS_SUCCESS).observe(time.time() - start_time)
         
         return {"message": f"Successfully loaded index {index_name} from {path}."}
     except Exception as e:
         # Record failed request
-        rag_load_requests_total.labels(status="fail").inc()
+        rag_load_requests_total.labels(status=STATUS_FAILURE).inc()
         # Record latency even for failures
-        rag_load_latency.labels(status="fail").observe(time.time() - start_time)
+        rag_load_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         
         raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 

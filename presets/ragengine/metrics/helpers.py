@@ -6,7 +6,10 @@ from functools import wraps
 import inspect
 from .prometheus_metrics import (
     rag_embedding_requests_total,
-    rag_embedding_latency
+    rag_embedding_latency,
+    STATUS_SUCCESS,
+    STATUS_FAILURE,
+    MODE_REMOTE 
 )
 
 def record_embedding_metrics(func):
@@ -21,20 +24,20 @@ def record_embedding_metrics(func):
             result = func(*args, **kwargs)
             if result is None:
                 # Record failed embedding
-                rag_embedding_requests_total.labels(status="fail").inc()
+                rag_embedding_requests_total.labels(status=STATUS_FAILURE, mode=MODE_REMOTE).inc()
                 # Record latency even for failures
-                rag_embedding_latency.labels(status="fail").observe(time.time() - start_time)
+                rag_embedding_latency.labels(status=STATUS_FAILURE, mode=MODE_REMOTE).observe(time.time() - start_time)
             else:
                 # Record successful embedding
-                rag_embedding_requests_total.labels(status="success").inc()
+                rag_embedding_requests_total.labels(status=STATUS_SUCCESS, mode=MODE_REMOTE).inc()
                 # Record latency
-                rag_embedding_latency.labels(status="success").observe(time.time() - start_time)
+                rag_embedding_latency.labels(status=STATUS_SUCCESS, mode=MODE_REMOTE).observe(time.time() - start_time)
             return result
         except Exception as e:
             # Record failed embedding
-            rag_embedding_requests_total.labels(status="fail").inc()
+            rag_embedding_requests_total.labels(status=STATUS_SUCCESS, mode=MODE_REMOTE).inc()
             # Record latency even for failures
-            rag_embedding_latency.labels(status="fail").observe(time.time() - start_time)
+            rag_embedding_latency.labels(status=STATUS_SUCCESS, mode=MODE_REMOTE).observe(time.time() - start_time)
             raise e
 
     return wrapper

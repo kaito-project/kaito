@@ -155,20 +155,19 @@ func createPhi2WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 	return workspaceObj
 }
 
-// TODO: Uncomment once Llama 3.1-8B Instruct are pushed up to the registry
-// func createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(registry, registrySecret, imageVersion string, numOfNode int) *kaitov1beta1.Workspace {
-// 	workspaceObj := &kaitov1beta1.Workspace{}
-// 	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode", func() {
-// 		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
-// 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, fmt.Sprintf("%s/%s:%s", registry, PresetLlama3_1_8BInstruct, imageVersion),
-// 			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
-// 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b"},
-// 			}, nil, PresetLlama3_1_8BInstruct, []string{registrySecret}, nil, nil)
+func createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode", func() {
+		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
+			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b"},
+			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil)
 
-// 		createAndValidateWorkspace(workspaceObj)
-// 	})
-// 	return workspaceObj
-// }
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
 
 func createCustomWorkspaceWithPresetCustomMode(imageName string, numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
@@ -829,6 +828,26 @@ var _ = Describe("Workspace Preset", func() {
 	It("should create a falcon workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createFalconWorkspaceWithPresetPublicMode(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+
+		validateWorkspaceReadiness(workspaceObj)
+	})
+
+	It("should create a llama-3.1-8b-instruct workspace with preset public mode successfully", func() {
+		numOfNode := 1
+		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)

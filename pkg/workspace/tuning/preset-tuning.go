@@ -366,13 +366,13 @@ func prepareModelRunParameters(ctx context.Context, tuningObj *model.PresetParam
 func prepareTuningParameters(ctx context.Context, wObj *kaitov1beta1.Workspace, modelCommand string,
 	tuningObj *model.PresetParam, skuNumGPUs int) ([]string, corev1.ResourceRequirements) {
 	hfParam := tuningObj.Transformers // Only support Huggingface for now
-	if hfParam.TorchRunParams == nil {
-		hfParam.TorchRunParams = make(map[string]string)
+	if hfParam.AccelerateParams == nil {
+		hfParam.AccelerateParams = make(map[string]string)
 	}
 	// Set # of processes to GPU Count
 	numProcesses := getInstanceGPUCount(wObj.Resource.InstanceType)
-	hfParam.TorchRunParams["num_processes"] = fmt.Sprintf("%d", numProcesses)
-	torchCommand := utils.BuildCmdStr(hfParam.BaseCommand, hfParam.TorchRunParams, hfParam.TorchRunRdzvParams)
+	hfParam.AccelerateParams["num_processes"] = fmt.Sprintf("%d", numProcesses)
+	torchCommand := utils.BuildCmdStr(hfParam.BaseCommand, hfParam.AccelerateParams)
 	commands := utils.ShellCmd(torchCommand + " " + modelCommand)
 
 	resourceRequirements := corev1.ResourceRequirements{

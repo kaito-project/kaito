@@ -6,12 +6,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -72,38 +70,6 @@ var (
 	}
 )
 
-func updateTorchParamsForDistributedInference(ctx context.Context, kubeClient client.Client, wObj *v1beta1.Workspace, inferenceParam *pkgmodel.PresetParam) error {
-	runtimeName := v1beta1.GetWorkspaceRuntimeName(wObj)
-	if runtimeName != pkgmodel.RuntimeNameHuggingfaceTransformers {
-		return fmt.Errorf("distributed inference is not supported for runtime %s", runtimeName)
-	}
-
-	existingService := &corev1.Service{}
-	err := resources.GetResource(ctx, wObj.Name, wObj.Namespace, kubeClient, existingService)
-	if err != nil {
-		return err
-	}
-
-	nodes := *wObj.Resource.Count
-	if inferenceParam.Transformers.TorchRunParams != nil {
-		inferenceParam.Transformers.TorchRunParams["nnodes"] = strconv.Itoa(nodes)
-		inferenceParam.Transformers.TorchRunParams["nproc_per_node"] = strconv.Itoa(inferenceParam.WorldSize / nodes)
-		if nodes > 1 {
-			inferenceParam.Transformers.TorchRunParams["node_rank"] = "$(echo $HOSTNAME | grep -o '[^-]*$')"
-			inferenceParam.Transformers.TorchRunParams["master_addr"] = existingService.Spec.ClusterIP
-			inferenceParam.Transformers.TorchRunParams["master_port"] = "29500"
-		}
-	}
-	if inferenceParam.Transformers.TorchRunRdzvParams != nil {
-		inferenceParam.Transformers.TorchRunRdzvParams["max_restarts"] = "3"
-		inferenceParam.Transformers.TorchRunRdzvParams["rdzv_id"] = "job"
-		inferenceParam.Transformers.TorchRunRdzvParams["rdzv_backend"] = "c10d"
-		inferenceParam.Transformers.TorchRunRdzvParams["rdzv_endpoint"] =
-			fmt.Sprintf("%s-0.%s-headless.%s.svc.cluster.local:29500", wObj.Name, wObj.Name, wObj.Namespace)
-	}
-	return nil
-}
-
 func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace, presetObj *model.PresetParam) (string, []corev1.LocalObjectReference) {
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 	// Check if the workspace preset's access mode is private
@@ -151,13 +117,6 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	)
 	if err != nil {
 		return nil, err
-	}
-
-	if model.SupportDistributedInference() {
-		if err := updateTorchParamsForDistributedInference(ctx, kubeClient, workspaceObj, inferenceParam); err != nil {
-			klog.ErrorS(err, "failed to update torch params", "workspace", workspaceObj)
-			return nil, err
-		}
 	}
 
 	// resource requirements

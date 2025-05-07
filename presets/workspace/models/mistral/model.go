@@ -54,7 +54,7 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "0Gi", // We run Mistral using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				ModelRunParams:    mistralRunParams,
 				BaseCommand:       baseCommandPresetMistralInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
@@ -78,8 +78,8 @@ func (*mistral7b) GetTuningParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				//TorchRunParams:            tuning.DefaultAccelerateParams,
-				//ModelRunParams:            mistralRunParams,
+				// AccelerateParams: tuning.DefaultAccelerateParams,
+				// ModelRunParams:   mistralRunParams,
 				BaseCommand: baseCommandPresetMistralTuning,
 			},
 		},
@@ -107,7 +107,7 @@ func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "0Gi", // We run mistral using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				ModelRunParams:    mistralRunParams,
 				BaseCommand:       baseCommandPresetMistralInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,

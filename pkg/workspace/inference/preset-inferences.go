@@ -193,7 +193,7 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	volumeMounts = append(volumeMounts, cmVolumeMount)
 
 	// add share memory for cross process communication
-	shmVolume, shmVolumeMount := utils.ConfigSHMVolume(skuNumGPUs)
+	shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
 	if shmVolume.Name != "" {
 		volumes = append(volumes, shmVolume)
 	}

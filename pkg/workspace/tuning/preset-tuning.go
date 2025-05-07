@@ -144,14 +144,9 @@ func setupDefaultSharedVolumes(workspaceObj *kaitov1beta1.Workspace, cmName stri
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 
-	// Add shared volume for shared memory (multi-node)
-	shmVolume, shmVolumeMount := utils.ConfigSHMVolume(*workspaceObj.Resource.Count)
-	if shmVolume.Name != "" {
-		volumes = append(volumes, shmVolume)
-	}
-	if shmVolumeMount.Name != "" {
-		volumeMounts = append(volumeMounts, shmVolumeMount)
-	}
+	shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
+	volumes = append(volumes, shmVolume)
+	volumeMounts = append(volumeMounts, shmVolumeMount)
 
 	// Add shared volume for tuning parameters
 	cmVolume, cmVolumeMount := utils.ConfigCMVolume(cmName)

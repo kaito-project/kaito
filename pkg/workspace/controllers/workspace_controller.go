@@ -681,7 +681,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 						// TODO: respect updates to other fields
 						var volumes []corev1.Volume
 						var volumeMounts []corev1.VolumeMount
-						shmVolume, shmVolumeMount := utils.ConfigSHMVolume(*wObj.Resource.Count)
+						shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
 						if shmVolume.Name != "" {
 							volumes = append(volumes, shmVolume)
 						}

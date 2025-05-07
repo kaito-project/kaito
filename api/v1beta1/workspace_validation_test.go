@@ -85,31 +85,6 @@ func (*testModelStatic) SupportTuning() bool {
 	return true
 }
 
-type testModelPrivate struct{}
-
-func (*testModelPrivate) GetInferenceParameters() *model.PresetParam {
-	return &model.PresetParam{
-		ImageAccessMode:           string(ModelImageAccessModePrivate),
-		GPUCountRequirement:       gpuCountRequirement,
-		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
-	}
-}
-func (*testModelPrivate) GetTuningParameters() *model.PresetParam {
-	return &model.PresetParam{
-		ImageAccessMode:           string(ModelImageAccessModePrivate),
-		GPUCountRequirement:       gpuCountRequirement,
-		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
-	}
-}
-func (*testModelPrivate) SupportDistributedInference() bool {
-	return false
-}
-func (*testModelPrivate) SupportTuning() bool {
-	return true
-}
-
 type testModelDownload struct{}
 
 func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
@@ -139,16 +114,11 @@ func (*testModelDownload) SupportTuning() bool {
 
 func RegisterValidationTestModels() {
 	var test testModel
-	var testPrivate testModelPrivate
 	var testStatic testModelStatic
 	var testDownload testModelDownload
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation",
 		Instance: &test,
-	})
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
-		Name:     "private-test-validation",
-		Instance: &testPrivate,
 	})
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation-static",
@@ -654,40 +624,12 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			expectErrs: true,
 		},
 		{
-			name: "Private Access Without Image",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					PresetMeta: PresetMeta{
-						Name:       ModelName("test-validation"),
-						AccessMode: ModelImageAccessModePrivate,
-					},
-					PresetOptions: PresetOptions{},
-				},
-			},
-			errContent: "When AccessMode is private, an image must be provided",
-			expectErrs: true,
-		},
-		{
-			name: "Private Preset With Public AccessMode",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					PresetMeta: PresetMeta{
-						Name: ModelName("private-test-validation"),
-					},
-					PresetOptions: PresetOptions{},
-				},
-			},
-			errContent: "This preset only supports private AccessMode, AccessMode must be private to continue",
-			expectErrs: true,
-		},
-		{
 			name: "Adapeters more than 10",
 			inferenceSpec: func() *InferenceSpec {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{
 						PresetMeta: PresetMeta{
-							Name:       ModelName("test-validation"),
-							AccessMode: ModelImageAccessModePublic,
+							Name: ModelName("test-validation"),
 						},
 					},
 				}
@@ -711,8 +653,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{
 						PresetMeta: PresetMeta{
-							Name:       ModelName("test-validation"),
-							AccessMode: ModelImageAccessModePublic,
+							Name: ModelName("test-validation"),
 						},
 					},
 				}
@@ -733,8 +674,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{
 						PresetMeta: PresetMeta{
-							Name:       ModelName("test-validation"),
-							AccessMode: ModelImageAccessModePublic,
+							Name: ModelName("test-validation"),
 						},
 					},
 				}
@@ -757,8 +697,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{
 						PresetMeta: PresetMeta{
-							Name:       ModelName("test-validation"),
-							AccessMode: ModelImageAccessModePublic,
+							Name: ModelName("test-validation"),
 						},
 					},
 				}
@@ -782,8 +721,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 				spec := &InferenceSpec{
 					Preset: &PresetSpec{
 						PresetMeta: PresetMeta{
-							Name:       ModelName("test-validation"),
-							AccessMode: ModelImageAccessModePublic,
+							Name: ModelName("test-validation"),
 						},
 					},
 				}
@@ -806,8 +744,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
 					PresetMeta: PresetMeta{
-						Name:       ModelName("test-validation"),
-						AccessMode: ModelImageAccessModePublic,
+						Name: ModelName("test-validation"),
 					},
 				},
 			},
@@ -819,8 +756,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
 					PresetMeta: PresetMeta{
-						Name:       ModelName("test-validation"),
-						AccessMode: ModelImageAccessModePublic,
+						Name: ModelName("test-validation"),
 					},
 				},
 				Config: "nonexistent-config",
@@ -833,8 +769,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
 					PresetMeta: PresetMeta{
-						Name:       ModelName("test-validation"),
-						AccessMode: ModelImageAccessModePublic,
+						Name: ModelName("test-validation"),
 					},
 				},
 				Config: "valid-config",
@@ -847,8 +782,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
 					PresetMeta: PresetMeta{
-						Name:       ModelName("test-validation"),
-						AccessMode: ModelImageAccessModePublic,
+						Name: ModelName("test-validation"),
 					},
 				},
 				Config: "missing-key-config",
@@ -861,8 +795,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
 					PresetMeta: PresetMeta{
-						Name:       ModelName("test-validation"),
-						AccessMode: ModelImageAccessModePublic,
+						Name: ModelName("test-validation"),
 					},
 				},
 				Config: "missing-key-config",

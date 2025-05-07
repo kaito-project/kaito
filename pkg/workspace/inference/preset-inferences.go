@@ -116,17 +116,10 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	}
 
 	// Three possible cases for inference workload image selection:
-	// 1. If the preset's access mode is private, use the user-specified image.
-	// 2. If the preset is set to download at runtime, use the 'kaito-base' image.
-	// 3. Otherwise, use the preset image, which has the model weights packaged in.
+	// 1. If the preset is set to download at runtime, use the 'kaito-base' image.
+	// 2. Otherwise, use the preset image, which has the model weights packaged in.
 	var imageName, imageTag string
-	if string(workspaceObj.Inference.Preset.AccessMode) == string(v1beta1.ModelImageAccessModePrivate) {
-		imageName = workspaceObj.Inference.Preset.PresetOptions.Image
-		for _, secretName := range workspaceObj.Inference.Preset.PresetOptions.ImagePullSecrets {
-			imagePullSecretRefs = append(imagePullSecretRefs, corev1.LocalObjectReference{Name: secretName})
-		}
-		return imageName, imagePullSecretRefs
-	} else if presetObj.DownloadAtRuntime {
+	if presetObj.DownloadAtRuntime {
 		// Force the use of kaito-base image if the preset is set to download at runtime.
 		// The kaito-base image is the same as other preset images but without the model
 		// files packaged in.

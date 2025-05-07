@@ -8,11 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	ModelImageAccessModePublic  ModelImageAccessMode = "public"
-	ModelImageAccessModePrivate ModelImageAccessMode = "private"
-)
-
 // ResourceSpec describes the resource requirement of running the workload.
 // If the number of nodes in the cluster that meet the InstanceType and
 // LabelSelector requirements is small than the Count, controller
@@ -47,20 +42,21 @@ type ModelImageAccessMode string
 type PresetMeta struct {
 	// Name of the supported models with preset configurations.
 	Name ModelName `json:"name"`
+	// Deprecated: This field is deprecated in v1beta1 and will be removed in a future version.
 	// AccessMode specifies whether the containerized model image is accessible via public registry
 	// or private registry. This field defaults to "public" if not specified.
 	// If this field is "private", user needs to provide the private image information in PresetOptions.
 	// +kubebuilder:default:="public"
 	// +optional
-	// +kubebuilder:validation:Deprecated=true
-	// +kubebuilder:validation:DeprecatedMessage="This field is deprecated in v1beta1 and will be removed in a future version"
 	AccessMode ModelImageAccessMode `json:"accessMode,omitempty"`
 }
 
 type PresetOptions struct {
+	// Deprecated: This field is deprecated in v1beta1 and will be removed in a future version.
 	// Image is the name of the containerized model image.
 	// +optional
 	Image string `json:"image,omitempty"`
+	// Deprecated: This field is deprecated in v1beta1 and will be removed in a future version.
 	// ImagePullSecrets is a list of secret names in the same namespace used for pulling the model image.
 	// +optional
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`

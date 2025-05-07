@@ -101,9 +101,6 @@ func ConfigImagePushSecretVolume(imagePushSecret string) (corev1.Volume, corev1.
 }
 
 func ConfigSHMVolume(instanceCount int) (corev1.Volume, corev1.VolumeMount) {
-	volume := corev1.Volume{}
-	volumeMount := corev1.VolumeMount{}
-
 	// Append share memory volume to any existing volumes
 	volume = corev1.Volume{
 		Name: "dshm",

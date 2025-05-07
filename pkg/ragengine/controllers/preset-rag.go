@@ -69,13 +69,10 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 
-	shmVolume, shmVolumeMount := utils.ConfigSHMVolume(*ragEngineObj.Spec.Compute.Count)
-	if shmVolume.Name != "" {
-		volumes = append(volumes, shmVolume)
-	}
-	if shmVolumeMount.Name != "" {
-		volumeMounts = append(volumeMounts, shmVolumeMount)
-	}
+	shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
+	volumes = append(volumes, shmVolume)
+	volumeMounts = append(volumeMounts, shmVolumeMount)
+
 
 	var resourceReq corev1.ResourceRequirements
 

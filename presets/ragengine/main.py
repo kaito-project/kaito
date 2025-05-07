@@ -146,9 +146,9 @@ async def index_documents(request: IndexRequest):
         return documents
     except Exception as e:
         # Record failed request
-        rag_index_requests_total.labels(status="fail").inc()
+        rag_index_requests_total.labels(status=STATUS_FAILURE).inc()
         # Record latency even for failures
-        rag_index_latency.labels(status="fail").observe(time.time() - start_time)
+        rag_index_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block
@@ -210,20 +210,20 @@ async def query_index(request: QueryRequest):
         return result
     except HTTPException as http_exc:
         # Record API failure
-        rag_query_requests_total.labels(status="fail").inc()
-        rag_query_latency.labels(status='fail').observe(time.time() - start_time)
+        rag_query_requests_total.labels(status=STATUS_FAILURE).inc()
+        rag_query_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         # Preserve HTTP exceptions like 422 from reranker
         raise http_exc
     except ValueError as ve:
         # Record API failure
-        rag_query_requests_total.labels(status="fail").inc()
-        rag_query_latency.labels(status='fail').observe(time.time() - start_time)
+        rag_query_requests_total.labels(status=STATUS_FAILURE).inc()
+        rag_query_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:
 
         # Record API failure
-        rag_query_requests_total.labels(status="fail").inc()
-        rag_query_latency.labels(status='fail').observe(time.time() - start_time)
+        rag_query_requests_total.labels(status=STATUS_FAILURE).inc()
+        rag_query_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )
@@ -258,9 +258,9 @@ def list_indexes():
         return result
     except Exception as e:
         # Record failed request
-        rag_indexes_requests_total.labels(status="fail").inc()
+        rag_indexes_requests_total.labels(status=STATUS_FAILURE).inc()
         # Record latency even for failures
-        rag_indexes_latency.labels(status="fail").observe(time.time() - start_time)
+        rag_indexes_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block
@@ -444,9 +444,9 @@ async def delete_documents_in_index(
         return result
     except Exception as e:
         # Record failed request
-        rag_indexes_document_requests_total.labels(status="fail").inc()
+        rag_indexes_document_requests_total.labels(status=STATUS_FAILURE).inc()
         # Record latency even for failures
-        rag_indexes_document_latency.labels(status="fail").observe(time.time() - start_time)
+        rag_indexes_document_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block
@@ -489,9 +489,9 @@ async def persist_index(
         return {"message": f"Successfully persisted index {index_name} to {path}."}
     except Exception as e:
         # Record failed request
-        rag_persist_requests_total.labels(status="fail").inc()
+        rag_persist_requests_total.labels(status=STATUS_FAILURE).inc()
         # Record latency even for failures
-        rag_persist_latency.labels(status="fail").observe(time.time() - start_time)
+        rag_persist_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         
         raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")
     finally:
@@ -539,9 +539,9 @@ async def load_index(
         return {"message": f"Successfully loaded index {index_name} from {path}."}
     except Exception as e:
         # Record failed request
-        rag_load_requests_total.labels(status="fail").inc()
+        rag_load_requests_total.labels(status=STATUS_FAILURE).inc()
         # Record latency even for failures
-        rag_load_latency.labels(status="fail").observe(time.time() - start_time)
+        rag_load_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         
         raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
     finally:

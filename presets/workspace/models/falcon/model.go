@@ -66,7 +66,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
@@ -94,9 +94,9 @@ func (*falcon7b) GetTuningParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:    baseCommandPresetFalconTuning,
-				TorchRunParams: tuning.DefaultAccelerateParams,
-				//ModelRunPrams:             falconRunTuningParams, // TODO
+				BaseCommand:      baseCommandPresetFalconTuning,
+				AccelerateParams: tuning.DefaultAccelerateParams,
+				// ModelRunPrams:    falconRunTuningParams, // TODO
 			},
 		},
 		ReadinessTimeout:              time.Duration(30) * time.Minute,
@@ -125,7 +125,7 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
@@ -169,7 +169,7 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
@@ -191,9 +191,9 @@ func (*falcon40b) GetTuningParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:    baseCommandPresetFalconTuning,
-				TorchRunParams: tuning.DefaultAccelerateParams,
-				//ModelRunPrams:             falconRunTuningParams, // TODO
+				BaseCommand:      baseCommandPresetFalconTuning,
+				AccelerateParams: tuning.DefaultAccelerateParams,
+				// ModelRunPrams:    falconRunTuningParams, // TODO
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -220,7 +220,7 @@ func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},

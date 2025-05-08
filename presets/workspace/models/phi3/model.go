@@ -69,7 +69,7 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},
@@ -89,7 +89,7 @@ func (*phi3Mini4KInst) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
 		PerGPUMemoryRequirement:   "72Gi",
-		// TorchRunParams:            inference.DefaultAccelerateParams,
+		// AccelerateParams:          inference.DefaultAccelerateParams,
 		// ModelRunParams:            phiRunParams,
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
@@ -118,7 +118,7 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},
@@ -165,7 +165,7 @@ func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},
@@ -185,7 +185,7 @@ func (*phi3_5MiniInst) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
 		PerGPUMemoryRequirement:   "72Gi",
-		// TorchRunParams:            inference.DefaultAccelerateParams,
+		// AccelerateParams:          inference.DefaultAccelerateParams,
 		// ModelRunParams:            phiRunParams,
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
@@ -214,7 +214,7 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},
@@ -234,7 +234,7 @@ func (*Phi3Medium4kInstruct) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "80Gi",
 		PerGPUMemoryRequirement:   "80Gi",
-		// TorchRunParams:            inference.DefaultAccelerateParams,
+		// AccelerateParams:          inference.DefaultAccelerateParams,
 		// ModelRunParams:            phiRunParams,
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
@@ -263,7 +263,7 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},

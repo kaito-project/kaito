@@ -1,0 +1,30 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-deepseek-r1-distill-llama-8b
+resource:
+  instanceType: <your-vm-sku>
+  preferredNodes:
+    - <your-arc-node-name>
+  labelSelector:
+    matchLabels:
+      apps: llm-inference
+inference:
+  preset:
+    name: "deepseek-r1-distill-llama-8b"
+  config: "ds-inference-params"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ds-inference-params
+data:
+  inference_config.yaml: |
+    # Maximum number of steps to find the max available seq len fitting in the GPU memory.
+    max_probe_steps: 6
+
+    vllm:
+      cpu-offload-gb: 0
+      swap-space: 4
+      max-model-len: 4096
+      # see https://docs.vllm.ai/en/latest/serving/engine_args.html for more options.

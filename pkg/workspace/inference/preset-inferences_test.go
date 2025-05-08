@@ -47,7 +47,7 @@ func TestCreatePresetInference(t *testing.T) {
 			},
 			workload:      "Deployment",
 			expectedImage: "test-registry/kaito-test-model:base-test-model",
-			// No BaseCommand, TorchRunParams, TorchRunRdzvParams, or ModelRunParams
+			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --served-model-name=mymodel --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
@@ -67,7 +67,7 @@ func TestCreatePresetInference(t *testing.T) {
 			},
 			workload:      "Deployment",
 			expectedImage: "test-registry/kaito-test-model:test-no-tensor-parallel-model",
-			// No BaseCommand, TorchRunParams, TorchRunRdzvParams, or ModelRunParams
+			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml --gpu-memory-utilization=0.90",
 			hasAdapters: false,
@@ -87,7 +87,7 @@ func TestCreatePresetInference(t *testing.T) {
 			},
 			workload:      "Deployment",
 			expectedImage: "test-registry/kaito-test-model:test-no-lora-support-model",
-			// No BaseCommand, TorchRunParams, TorchRunRdzvParams, or ModelRunParams
+			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml --gpu-memory-utilization=0.90",
 			hasAdapters: false,
@@ -129,29 +129,10 @@ func TestCreatePresetInference(t *testing.T) {
 			},
 			workload:      "Deployment",
 			expectedImage: "test-registry/kaito-test-model:base-test-model",
-			// No BaseCommand, TorchRunParams, TorchRunRdzvParams, or ModelRunParams
+			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py",
 			hasAdapters: false,
-			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}},
-		},
-
-		"test-distributed-model/transformers": {
-			workspace: test.MockWorkspaceDistributedModel,
-			nodeCount: 1,
-			modelName: "test-distributed-model",
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
-			},
-			workload:      "StatefulSet",
-			expectedImage: "test-registry/kaito-test-distributed-model:base-test-model",
-			expectedCmd:   "/bin/sh -c accelerate launch --nnodes=1 --nproc_per_node=0 --max_restarts=3 --rdzv_id=job --rdzv_backend=c10d --rdzv_endpoint=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local:29500 /workspace/tfs/inference_api.py",
-			hasAdapters:   false,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name:  "PYTORCH_CUDA_ALLOC_CONF",
 				Value: "expandable_segments:True",

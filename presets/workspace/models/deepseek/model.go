@@ -63,7 +63,7 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    deepseekLlama8bRunParams,
 			},
@@ -100,7 +100,7 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    deepseekQwen14bRunParams,
 			},

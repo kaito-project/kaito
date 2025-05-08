@@ -54,7 +54,7 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},
@@ -103,7 +103,7 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
 			},

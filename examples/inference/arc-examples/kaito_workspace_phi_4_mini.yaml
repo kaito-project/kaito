@@ -1,0 +1,14 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-phi-4-mini
+resource:
+  instanceType: <your-vm-sku>
+  preferredNodes:
+    - <your-arc-node-name>
+  labelSelector:
+    matchLabels:
+      apps: llm-inference
+inference:
+  preset:
+    name: phi-4-mini-instruct 

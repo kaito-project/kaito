@@ -52,7 +52,7 @@ func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "0Gi", // We run qwen using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				ModelRunParams:    qwenRunParams,
 				BaseCommand:       baseCommandPresetQwenInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
@@ -76,8 +76,8 @@ func (*qwen2_5Coder7BInstruct) GetTuningParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "24Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				//TorchRunParams:            tuning.DefaultAccelerateParams,
-				//ModelRunParams:            qwenRunParams,
+				// AccelerateParams: tuning.DefaultAccelerateParams,
+				// ModelRunParams:   qwenRunParams,
 				BaseCommand: baseCommandPresetQwenTuning,
 			},
 		},
@@ -105,7 +105,7 @@ func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "0Gi",  // We run qwen using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				ModelRunParams:    qwenRunParams,
 				BaseCommand:       baseCommandPresetQwenInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,

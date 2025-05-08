@@ -70,9 +70,6 @@ runs:
         echo "Initial disk usage:"
         df -h
 
-        # Remove unused Docker resources
-        docker system prune -a -f --volumes
-
         # Check Docker-related disk usage after cleanup
         echo "Docker-related disk usage after cleanup:"
         docker system df
@@ -82,31 +79,45 @@ runs:
         df -h
       shell: bash
 
-    - name: Check and Create Kind Cluster
+    - name: Install Hugging Face CLI
       run: |
-        if ! kind get clusters | grep -q kind; then
-          echo "Creating directory for etcd storage"
-          sudo mkdir -p /mnt/storage/etcd
-          echo "Creating Kind cluster"
+        echo "Installing Hugging Face CLI..."
+        pip install huggingface-hub
+      shell: bash
 
-          if [[ "${{ inputs.runs_on }}" == "hostname:model-server" ]]; then
-            # Ensure clean etcd directory for mounting
-            sudo rm -rf /datadrive/etcd/*
-            config_file=".github/workflows/kind-cluster/kind.yaml"
-          else
-            # Ensure clean etcd directory for mounting
-            sudo rm -rf /mnt/storage/etcd/*
-            config_file=".github/workflows/kind-cluster/kind-1es.yaml"
-          fi
-
-          if ! kind create cluster --config $config_file; then
-            echo "Failed to create the Kind cluster."
-            exit 1
-          fi
+    - name: Install ORAS CLI
+      run: |
+        if ! command -v oras &> /dev/null; then
+          echo "Installing ORAS CLI..."
+          ORAS_VERSION=$(curl -s https://api.github.com/repos/oras-project/oras/releases/latest | grep 'tag_name' | cut -d\" -f4)
+          curl -LO "https://github.com/oras-project/oras/releases/download/${ORAS_VERSION}/oras_${ORAS_VERSION#v}_linux_amd64.tar.gz"
+          mkdir -p oras-install/
+          tar -zxf "oras_${ORAS_VERSION#v}_linux_amd64.tar.gz" -C oras-install/
+          sudo mv oras-install/oras /usr/local/bin/
+          rm -rf oras-install "oras_${ORAS_VERSION#v}_linux_amd64.tar.gz"
         else
-          echo "Kind cluster already exists."
+          echo "ORAS CLI already installed."
         fi
-        kubectl cluster-info --context kind-kind
+        oras version
+      shell: bash
+
+    - name: Set up Docker Buildx
+      run: |
+        # Define a builder name variable that includes the current file name
+        BUILDER_NAME="img-builder"
+        echo "Using builder name: $BUILDER_NAME"
+
+        # Check if the builder instance already exists
+        if ! docker buildx inspect $BUILDER_NAME &>/dev/null; then
+          echo "Creating new Docker Buildx instance '$BUILDER_NAME'..."
+          docker buildx create --name=$BUILDER_NAME --driver=docker-container --use --bootstrap --driver-opt image=mcr.microsoft.com/oss/v2/moby/buildkit:v0.20.2
+        else
+          echo "Docker Buildx instance '$BUILDER_NAME' already exists, using it..."
+          docker buildx use $BUILDER_NAME
+        fi
+
+        # Verify the builder is working
+        docker buildx inspect --bootstrap
       shell: bash
 
     - name: Check if Image exists in target ACR
@@ -133,51 +144,61 @@ runs:
         # fi
       shell: bash
 
-    - name: Launch Python Script to Kickoff Build Jobs
-      if: steps.check_test_image.outputs.IMAGE_EXISTS == 'false'
-      id: launch_script
+    - name: Build model image
+      if: steps.check_test_image.outputs.IMAGE_EXISTS == 'false' && inputs.model_name != 'base'
       run: |
-        PR_BRANCH=${{ inputs.branch_name }} \
-        ACR_NAME=${{ inputs.acr_name }} \
-        ACR_USERNAME=${{ inputs.acr_username }} \
-        ACR_PASSWORD=${{ inputs.acr_password }} \
-        IMAGE_NAME=${{ inputs.image_name }} \
+        PR_BRANCH=${{ inputs.branch_name }}
+        ACR_NAME=${{ inputs.acr_name }}
+        ACR_USERNAME=${{ inputs.acr_username }}
+        ACR_PASSWORD=${{ inputs.acr_password }}
+        IMAGE_NAME=${{ inputs.image_name }}
+        MODEL_NAME=${{ inputs.model_name }}
+        MODEL_TYPE=${{ inputs.model_type }}
+        MODEL_VERSION=${{ inputs.model_version }}
+        MODEL_RUNTIME=${{ inputs.model_runtime }}
+        MODEL_TAG=${{ inputs.image_tag }}
+        WEIGHTS_DIR=${{ inputs.weights_dir }}
+        HF_USERNAME=${{ inputs.hf_username }}
+        HF_TOKEN=${{ inputs.hf_token }}
+
+        # Login to Docker registry
+        echo $ACR_PASSWORD | docker login $ACR_NAME.azurecr.io -u $ACR_USERNAME --password-stdin
+
+        # Download model and Generate Dockerfile
+        MODEL_DIR=$WEIGHTS_DIR/$IMAGE_NAME/weights
+
         MODEL_NAME=${{ inputs.model_name }} \
-        MODEL_TYPE=${{ inputs.model_type }} \
         MODEL_VERSION=${{ inputs.model_version }} \
-        MODEL_RUNTIME=${{ inputs.model_runtime }} \
-        MODEL_TAG=${{ inputs.image_tag }} \
-        WEIGHTS_DIR=${{ inputs.weights_dir }} \
-        HF_USERNAME=${{ inputs.hf_username }} \
+        WEIGHTS_DIR=$MODEL_DIR \
         HF_TOKEN=${{ inputs.hf_token }} \
-        python3 .github/workflows/kind-cluster/main.py
+        python3 docker/presets/models/tfs/download_and_push_model.py $ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG
+
       shell: bash
 
-    - name: Check Python Script Status
-      if: ${{ always() }}
+    - name: Build Base Model
+      if: steps.check_test_image.outputs.IMAGE_EXISTS == 'false' && inputs.model_name == 'base'
       run: |
-        if [[ "${{ steps.check_test_image.outputs.IMAGE_EXISTS }}" == "true" ]]; then
-          echo "Image already exists; skipping the status step."
-        elif [[ "${{ steps.launch_script.outcome }}" != "success" ]]; then
-          echo "Python script failed to execute successfully."
-          exit 1  # Fail the job due to script failure
-        else
-          echo "Python script executed successfully."
-        fi
-      shell: bash
+        PR_BRANCH=${{ inputs.branch_name }}
+        ACR_NAME=${{ inputs.acr_name }}
+        ACR_USERNAME=${{ inputs.acr_username }}
+        ACR_PASSWORD=${{ inputs.acr_password }}
+        IMAGE_NAME=${{ inputs.image_name }}
+        MODEL_NAME=${{ inputs.model_name }}
+        MODEL_TYPE=${{ inputs.model_type }}
+        MODEL_VERSION=${{ inputs.model_version }}
+        MODEL_RUNTIME=${{ inputs.model_runtime }}
+        MODEL_TAG=${{ inputs.image_tag }}
+        WEIGHTS_DIR=${{ inputs.weights_dir }}
+        HF_USERNAME=${{ inputs.hf_username }}
+        HF_TOKEN=${{ inputs.hf_token }}
 
-    - name: Cleanup
-      if: ${{ always() }}
-      run: |
-        echo "Cleaning up kindnet resources..."
-        kubectl delete clusterrole kindnet --ignore-not-found || true
-        kubectl delete clusterrolebinding kindnet --ignore-not-found || true
-        kubectl delete serviceaccount kindnet -n kube-system --ignore-not-found || true
-        kubectl delete daemonset kindnet -n kube-system --ignore-not-found || true
+        # Login to Docker registry
+        echo $ACR_PASSWORD | docker login $ACR_NAME.azurecr.io -u $ACR_USERNAME --password-stdin
 
-        kind delete cluster
-
-        if [[ "${{ inputs.image_already_built }}" == "false" ]]; then
-          kubectl get job --no-headers -o custom-columns=":metadata.name" | grep "^docker-build-job-${{ inputs.model_name }}-[0-9]" | xargs -r kubectl delete job
-        fi
+        docker buildx build \
+          --builder img-builder \
+          --build-arg VERSION=$MODEL_TAG \
+          --build-arg MODEL_TYPE=$MODEL_TYPE \
+          --output type=image,name=$ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG,push=true,compression=zstd \
+          -f ./docker/presets/models/tfs/Dockerfile .
       shell: bash

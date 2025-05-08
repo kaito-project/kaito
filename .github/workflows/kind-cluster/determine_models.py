@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 import json
 import os
 import shutil
@@ -17,12 +19,14 @@ def read_yaml(file_path):
         print(f"Error reading {file_path}: {e}")
         return None
 
+
 supp_models_yaml = 'presets/workspace/models/supported_models.yaml'
 YAML_PR = read_yaml(supp_models_yaml)
 # Format: {falcon-7b : {model_name:falcon-7b, type:text-generation, version: #, tag: #}}
 MODELS = {model['name']: model for model in YAML_PR['models']}
 KAITO_REPO_URL = "https://github.com/kaito-project/kaito.git"
 GITREMOTE_TARGET = "_ciupstream"
+
 
 def set_multiline_output(name, value):
     if not os.getenv('GITHUB_OUTPUT'):
@@ -35,15 +39,17 @@ def set_multiline_output(name, value):
         print(value, file=fh)
         print(delimiter, file=fh)
 
+
 def create_matrix(models_list):
     """Create GitHub Matrix"""
     matrix = [MODELS[model] for model in models_list]
     return json.dumps(matrix)
 
+
 def run_command(command):
     """Execute a shell command and return the output."""
     try:
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, 
+        process = subprocess.Popen(command, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=True)
         output, error = process.communicate()
         if process.returncode != 0:
@@ -54,15 +60,17 @@ def run_command(command):
         print(f"An error occurred: {e}")
         return None
 
+
 def get_yaml_from_branch(branch, file_path):
     """Read YAML from a branch"""
     subprocess.run(['git', 'fetch', GITREMOTE_TARGET, branch], check=True)
     subprocess.run(['git', 'checkout', f"{GITREMOTE_TARGET}/" + branch], check=True)
-    content =  read_yaml(file_path)
+    content = read_yaml(file_path)
     subprocess.run(['git', 'checkout', '-'], check=True)
     return content
 
-def detect_changes_in_yaml(yaml_main, yaml_pr): 
+
+def detect_changes_in_yaml(yaml_main, yaml_pr):
     """Detecting relevant changes in support_models.yaml"""
     yaml_main, yaml_pr = yaml_main['models'], yaml_pr['models']
 
@@ -84,6 +92,7 @@ def detect_changes_in_yaml(yaml_main, yaml_pr):
             models_to_build.append(model_pr['name'])
     return models_to_build
 
+
 def models_to_build(files_changed):
     """Models to build based on changed files."""
     models, seen_model_types = set(), set()
@@ -91,11 +100,12 @@ def models_to_build(files_changed):
         yaml_main = get_yaml_from_branch('main', supp_models_yaml)
         models.update(detect_changes_in_yaml(yaml_main, YAML_PR))
     for model, model_info in MODELS.items():
-        if model_info["type"] not in seen_model_types: 
+        if model_info["type"] not in seen_model_types:
             if any(file.startswith(f'presets/workspace/inference/{model_info["type"]}') for file in files_changed):
                 models.add(model)
                 seen_model_types.add(model_info["type"])
     return list(models)
+
 
 def check_modified_models():
     """Check for modified models in the repository."""
@@ -107,7 +117,7 @@ def check_modified_models():
     run_command(f"git remote add {GITREMOTE_TARGET} {KAITO_REPO_URL}")
     run_command(f"git fetch {GITREMOTE_TARGET}")
 
-    files = run_command(f"git diff --name-only {GITREMOTE_TARGET}/main") # Returns each file on newline
+    files = run_command(f"git diff --name-only {GITREMOTE_TARGET}/main")  # Returns each file on newline
     files = files.split("\n")
     print("Files Changed: ", files)
 
@@ -117,22 +127,23 @@ def check_modified_models():
 
     return modified_models
 
+
 def main():
-    force_run_all = os.environ.get("FORCE_RUN_ALL", "false") # If not specified default to False
-    force_run_all_phi = os.environ.get("FORCE_RUN_ALL_PHI", "false") # If not specified default to False
-    force_run_all_public = os.environ.get("FORCE_RUN_ALL_PUBLIC", "false") # If not specified default to False
+    force_run_all = os.environ.get("FORCE_RUN_ALL", "false")  # If not specified default to False
+    force_run_all_phi = os.environ.get("FORCE_RUN_ALL_PHI", "false")  # If not specified default to False
 
     affected_models = []
     if force_run_all != "false":
-        affected_models = [model['name'] for model in YAML_PR['models']]
-    elif force_run_all_public != "false": 
-        affected_models = [model['name'] for model in YAML_PR['models'] if "llama" not in model['name']]
+        affected_models = [model['name'] for model in YAML_PR['models'] if model['name']]
     elif force_run_all_phi != "false":
         affected_models = [model['name'] for model in YAML_PR['models'] if 'phi-3' in model['name']]
     else:
         # Logic to determine affected models
         # Example: affected_models = ['model1', 'model2', 'model3']
         affected_models = check_modified_models()
+
+    download_at_runtime = {model['name'] for model in YAML_PR['models'] if model.get('downloadAtRuntime')}
+    affected_models = [model for model in affected_models if model not in download_at_runtime]
 
     # Convert the list of models into JSON matrix format
     matrix = create_matrix(affected_models)
@@ -141,6 +152,6 @@ def main():
     # Set the matrix as an output for the GitHub Actions workflow
     set_multiline_output('matrix', matrix)
 
+
 if __name__ == "__main__":
     main()
-

@@ -36,13 +36,13 @@ jobs:
     
     env:
       TEST_SUITE: ${{ inputs.node_provisioner }}
-      GO_VERSION: "1.23"
+      GO_VERSION: "1.24"
       KARPENTER_NAMESPACE: "karpenter"
       GPU_PROVISIONER_NAMESPACE: "gpu-provisioner"
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
         with:
           egress-policy: audit
           disable-sudo: true
@@ -63,6 +63,7 @@ jobs:
           isRelease: ${{ inputs.isRelease }}
           region: ${{ inputs.region }}
           k8s_version: ${{ inputs.k8s_version }}
+          registry: ${{ inputs.registry }}
 
       - name: Set Registry
         if: ${{ inputs.isRelease }}
@@ -88,7 +89,7 @@ jobs:
         run: sudo rm -rf ~/go/pkg/mod
       
       - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@v5.2.0
+        uses: actions/setup-go@v5.4.0
         with:
           go-version: ${{ env.GO_VERSION  }}
 

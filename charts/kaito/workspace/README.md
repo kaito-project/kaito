@@ -5,7 +5,7 @@
 ```bash
 export REGISTRY=mcr.microsoft.com/aks/kaito
 export IMG_NAME=workspace
-export IMG_TAG=0.4.4
+export IMG_TAG=0.4.5
 helm install workspace ./charts/kaito/workspace  \
 --set image.repository=${REGISTRY}/${IMG_NAME} --set image.tag=${IMG_TAG} \
 --namespace kaito-workspace --create-namespace

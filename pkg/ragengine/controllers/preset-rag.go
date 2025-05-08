@@ -4,7 +4,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -70,29 +69,31 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 
-	shmVolume, shmVolumeMount := utils.ConfigSHMVolume(*ragEngineObj.Spec.Compute.Count)
-	if shmVolume.Name != "" {
-		volumes = append(volumes, shmVolume)
-	}
-	if shmVolumeMount.Name != "" {
-		volumeMounts = append(volumeMounts, shmVolumeMount)
-	}
+	shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
+	volumes = append(volumes, shmVolume)
+	volumeMounts = append(volumeMounts, shmVolumeMount)
 
 	var resourceReq corev1.ResourceRequirements
 
 	if ragEngineObj.Spec.Embedding.Local != nil {
-		skuNumGPUs, err := utils.GetSKUNumGPUs(ctx, kubeClient, ragEngineObj.Status.WorkerNodes,
-			ragEngineObj.Spec.Compute.InstanceType, "1")
+		var skuNumGPUs int
+		gpuConfig, err := utils.GetGPUConfigBySKU(ragEngineObj.Spec.Compute.InstanceType)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get SKU num GPUs: %v", err)
+			gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, kubeClient, ragEngineObj.Status.WorkerNodes)
+			if err != nil {
+				skuNumGPUs = 1
+			}
+		}
+		if gpuConfig != nil {
+			skuNumGPUs = gpuConfig.GPUCount
 		}
 
 		resourceReq = corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceName(resources.CapacityNvidiaGPU): resource.MustParse(skuNumGPUs),
+				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceName(resources.CapacityNvidiaGPU): resource.MustParse(skuNumGPUs),
+				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
 			},
 		}
 
@@ -103,7 +104,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 
-	depObj := manifests.GenerateRAGDeploymentManifest(ctx, ragEngineObj, revisionNum, image, imagePullSecretRefs, *ragEngineObj.Spec.Compute.Count, commands,
+	depObj := manifests.GenerateRAGDeploymentManifest(ragEngineObj, revisionNum, image, imagePullSecretRefs, *ragEngineObj.Spec.Compute.Count, commands,
 		containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts)
 
 	err := resources.CreateResource(ctx, depObj, kubeClient)

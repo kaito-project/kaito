@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 package tuning
 
 import (
@@ -11,7 +14,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
-	"k8s.io/utils/ptr"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -20,6 +22,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/workspace/image"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
@@ -55,31 +58,18 @@ var (
 
 func getInstanceGPUCount(sku string) int {
 	skuHandler, _ := utils.GetSKUHandler()
-	gpuConfigs := skuHandler.GetGPUConfigs()
-
-	gpuConfig, exists := gpuConfigs[sku]
-	if !exists {
-		return 1
+	if gpuConfig := skuHandler.GetGPUConfigBySKU(sku); gpuConfig != nil {
+		return gpuConfig.GPUCount
 	}
-	return gpuConfig.GPUCount
+	return 1
 }
 
-func GetTuningImageInfo(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, presetObj *model.PresetParam) (string, []corev1.LocalObjectReference) {
-	imagePullSecretRefs := []corev1.LocalObjectReference{}
-	// Check if the workspace preset's access mode is private
-	if string(workspaceObj.Tuning.Preset.AccessMode) == string(kaitov1beta1.ModelImageAccessModePrivate) {
-		imageName := workspaceObj.Tuning.Preset.PresetOptions.Image
-		for _, secretName := range workspaceObj.Tuning.Preset.PresetOptions.ImagePullSecrets {
-			imagePullSecretRefs = append(imagePullSecretRefs, corev1.LocalObjectReference{Name: secretName})
-		}
-		return imageName, imagePullSecretRefs
-	} else {
-		imageName := string(workspaceObj.Tuning.Preset.Name)
-		imageTag := presetObj.Tag
-		registryName := os.Getenv("PRESET_REGISTRY_NAME")
-		imageName = fmt.Sprintf("%s/kaito-%s:%s", registryName, imageName, imageTag)
-		return imageName, imagePullSecretRefs
-	}
+func GetTuningImageInfo(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, presetObj *model.PresetParam) string {
+	imageName := string(workspaceObj.Tuning.Preset.Name)
+	imageTag := presetObj.Tag
+	registryName := os.Getenv("PRESET_REGISTRY_NAME")
+	imageName = fmt.Sprintf("%s/kaito-%s:%s", registryName, imageName, imageTag)
+	return imageName
 }
 
 func GetDataSrcImageInfo(ctx context.Context, wObj *kaitov1beta1.Workspace) (string, []corev1.LocalObjectReference) {
@@ -88,66 +78,6 @@ func GetDataSrcImageInfo(ctx context.Context, wObj *kaitov1beta1.Workspace) (str
 		imagePullSecretRefs[i] = corev1.LocalObjectReference{Name: secretName}
 	}
 	return wObj.Tuning.Input.Image, imagePullSecretRefs
-}
-
-func dockerSidecarScriptPushImage(outputDir, image string) string {
-	return fmt.Sprintf(`
-# Start the Docker daemon in the background with specific options for DinD
-dockerd &
-# Wait for the Docker daemon to be ready
-while ! docker info > /dev/null 2>&1; do
-  echo "Waiting for Docker daemon to start..."
-  sleep 1
-done
-echo 'Docker daemon started'
-
-PUSH_SUCCEEDED=false
-
-while true; do
-  FILE_PATH=$(find %s -name 'fine_tuning_completed.txt')
-  if [ ! -z "$FILE_PATH" ]; then
-    if [ "$PUSH_SUCCEEDED" = false ]; then
-      echo "FOUND TRAINING COMPLETED FILE at $FILE_PATH"
-
-      PARENT_DIR=$(dirname "$FILE_PATH")
-      echo "Parent directory is $PARENT_DIR"
-
-      TEMP_CONTEXT=$(mktemp -d)
-      cp "$PARENT_DIR/adapter_config.json" "$TEMP_CONTEXT/adapter_config.json"
-      cp -r "$PARENT_DIR/adapter_model.safetensors" "$TEMP_CONTEXT/adapter_model.safetensors"
-
-      # Create a minimal Dockerfile
-      echo 'FROM busybox:latest
-      RUN mkdir -p /data
-      ADD adapter_config.json /data/
-      ADD adapter_model.safetensors /data/' > "$TEMP_CONTEXT/Dockerfile"
-
-	  # Add symbolic link to read-only mounted config.json
-      mkdir -p /root/.docker
-	  ln -s /tmp/.docker/config/config.json /root/.docker/config.json
-
-      docker build -t %s "$TEMP_CONTEXT"
-      
-      while true; do
-        if docker push %s; then
-          echo "Upload complete"
-          # Cleanup: Remove the temporary directory
-          rm -rf "$TEMP_CONTEXT"
-          # Remove the file to prevent repeated builds
-          rm "$FILE_PATH"
-          PUSH_SUCCEEDED=true
-          # Signal completion
-          touch /tmp/upload_complete
-          exit 0
-        else
-          echo "Push failed, retrying in 30 seconds..."
-          sleep 30
-        fi
-      done
-    fi
-  fi
-  sleep 10  # Check every 10 seconds
-done`, outputDir, image, image)
 }
 
 // PrepareOutputDir ensures the output directory is within the base directory.
@@ -214,14 +144,9 @@ func setupDefaultSharedVolumes(workspaceObj *kaitov1beta1.Workspace, cmName stri
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 
-	// Add shared volume for shared memory (multi-node)
-	shmVolume, shmVolumeMount := utils.ConfigSHMVolume(*workspaceObj.Resource.Count)
-	if shmVolume.Name != "" {
-		volumes = append(volumes, shmVolume)
-	}
-	if shmVolumeMount.Name != "" {
-		volumeMounts = append(volumeMounts, shmVolumeMount)
-	}
+	shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
+	volumes = append(volumes, shmVolume)
+	volumeMounts = append(volumeMounts, shmVolumeMount)
 
 	// Add shared volume for tuning parameters
 	cmVolume, cmVolumeMount := utils.ConfigCMVolume(cmName)
@@ -251,28 +176,25 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 		return nil, err
 	}
 
+	var imagePullSecrets []corev1.LocalObjectReference
 	var initContainers, sidecarContainers []corev1.Container
 	volumes, volumeMounts := setupDefaultSharedVolumes(workspaceObj, configVolume.Name)
+
+	// TODO: make containers only mount the volumes they need
 
 	// Add shared volume for training output
 	trainingOutputVolume, trainingOutputVolumeMount, outputDir := SetupTrainingOutputVolume(ctx, configVolume)
 	volumes = append(volumes, trainingOutputVolume)
 	volumeMounts = append(volumeMounts, trainingOutputVolumeMount)
 
-	initContainer, imagePullSecrets, dataSourceVolume, dataSourceVolumeMount, err := prepareDataSource(ctx, workspaceObj)
-	if err != nil {
-		return nil, err
-	}
-	volumes = append(volumes, dataSourceVolume)
-	volumeMounts = append(volumeMounts, dataSourceVolumeMount)
+	initContainer, dataSourceVolumes, dataSourceVolumeMounts := prepareDataSource(ctx, workspaceObj)
+	volumes = append(volumes, dataSourceVolumes...)
+	volumeMounts = append(volumeMounts, dataSourceVolumeMounts...)
 	if initContainer.Name != "" {
 		initContainers = append(initContainers, *initContainer)
 	}
 
-	sidecarContainer, imagePushSecret, dataDestVolume, dataDestVolumeMount, err := prepareDataDestination(ctx, workspaceObj, outputDir)
-	if err != nil {
-		return nil, err
-	}
+	sidecarContainer, imagePushSecret, dataDestVolume, dataDestVolumeMount := prepareDataDestination(ctx, workspaceObj, outputDir)
 	volumes = append(volumes, dataDestVolume)
 	volumeMounts = append(volumeMounts, dataDestVolumeMount)
 	if sidecarContainer != nil {
@@ -282,22 +204,33 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 		imagePullSecrets = append(imagePullSecrets, *imagePushSecret)
 	}
 
+	pauseContainer := corev1.Container{
+		Name:            "pause",
+		Image:           "registry.k8s.io/pause:latest",
+		ImagePullPolicy: corev1.PullAlways,
+	}
+	sidecarContainers = append(sidecarContainers, pauseContainer)
+
 	modelCommand, err := prepareModelRunParameters(ctx, tuningObj)
 	if err != nil {
 		return nil, err
 	}
 
-	skuNumGPUs, err := utils.GetSKUNumGPUs(ctx, kubeClient, workspaceObj.Status.WorkerNodes,
-		workspaceObj.Resource.InstanceType, tuningObj.GPUCountRequirement)
+	var skuNumGPUs int
+	gpuConfig, err := utils.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get SKU num GPUs: %v", err)
+		gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, kubeClient, workspaceObj.Status.WorkerNodes)
+		if err != nil {
+			defaultNumGPU := resource.MustParse(tuningObj.GPUCountRequirement)
+			skuNumGPUs = int(defaultNumGPU.Value())
+		}
+	}
+	if gpuConfig != nil {
+		skuNumGPUs = gpuConfig.GPUCount
 	}
 
 	commands, resourceReq := prepareTuningParameters(ctx, workspaceObj, modelCommand, tuningObj, skuNumGPUs)
-	tuningImage, tuningImagePullSecrets := GetTuningImageInfo(ctx, workspaceObj, tuningObj)
-	if tuningImagePullSecrets != nil {
-		imagePullSecrets = append(imagePullSecrets, tuningImagePullSecrets...)
-	}
+	tuningImage := GetTuningImageInfo(ctx, workspaceObj, tuningObj)
 
 	var envVars []corev1.EnvVar
 	presetName := strings.ToLower(string(workspaceObj.Tuning.Preset.Name))
@@ -313,7 +246,7 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 		Name:  "PYTORCH_CUDA_ALLOC_CONF",
 		Value: "expandable_segments:True",
 	})
-	jobObj := manifests.GenerateTuningJobManifest(ctx, workspaceObj, revisionNum, tuningImage, imagePullSecrets, *workspaceObj.Resource.Count, commands,
+	jobObj := manifests.GenerateTuningJobManifest(workspaceObj, revisionNum, tuningImage, imagePullSecrets, *workspaceObj.Resource.Count, commands,
 		containerPorts, nil, nil, resourceReq, tolerations, initContainers, sidecarContainers, volumes, volumeMounts, envVars)
 
 	err = resources.CreateResource(ctx, jobObj, kubeClient)
@@ -324,72 +257,53 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 }
 
 // Now there are two options for data destination 1. HostPath - 2. Image
-func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, outputDir string) (*corev1.Container, *corev1.LocalObjectReference, corev1.Volume, corev1.VolumeMount, error) {
-	var sidecarContainer *corev1.Container
-	var volume corev1.Volume
-	var volumeMount corev1.VolumeMount
-	var imagePushSecret *corev1.LocalObjectReference
-	switch {
-	case workspaceObj.Tuning.Output.Image != "":
-		image, secret := workspaceObj.Tuning.Output.Image, workspaceObj.Tuning.Output.ImagePushSecret
-		imagePushSecret = &corev1.LocalObjectReference{Name: secret}
-		sidecarContainer, volume, volumeMount = handleImageDataDestination(ctx, outputDir, image, secret)
-		// TODO: Future PR include
-		//case workspaceObj.Tuning.Output.Volume != nil:
-	}
-	return sidecarContainer, imagePushSecret, volume, volumeMount, nil
-}
+func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, inputDirectory string) (*corev1.Container, *corev1.LocalObjectReference, corev1.Volume, corev1.VolumeMount) {
+	tuning := workspaceObj.Tuning
+	output := tuning.Output
 
-func handleImageDataDestination(ctx context.Context, outputDir, image, imagePushSecret string) (*corev1.Container, corev1.Volume, corev1.VolumeMount) {
-	sidecarContainer := &corev1.Container{
-		Name:  "docker-sidecar",
-		Image: "docker:dind",
-		SecurityContext: &corev1.SecurityContext{
-			Privileged: ptr.To(true),
-		},
-		Command: []string{"/bin/sh", "-c"},
-		Args:    []string{dockerSidecarScriptPushImage(outputDir, image)},
+	outputImage := output.Image
+	if outputImage == "" {
+		return nil, nil, corev1.Volume{}, corev1.VolumeMount{}
 	}
-	volume, volumeMount := utils.ConfigImagePushSecretVolume(imagePushSecret)
-	return sidecarContainer, volume, volumeMount
+
+	var annotationsData map[string]map[string]string
+	if preset := tuning.Preset; preset != nil {
+		annotationsData = map[string]map[string]string{
+			"$manifest": {
+				"sh.kaito.model.name": string(preset.Name),
+			},
+		}
+	}
+
+	pusherContainer := image.NewPusherContainer(inputDirectory, outputImage, annotationsData, nil)
+
+	imagePushSecretRef := corev1.LocalObjectReference{
+		Name: output.ImagePushSecret,
+	}
+
+	volume, volumeMount := utils.ConfigImagePushSecretVolume(imagePushSecretRef.Name)
+
+	return pusherContainer, &imagePushSecretRef, volume, volumeMount
 }
 
 // Now there are three options for DataSource: 1. URL - 2. HostPath - 3. Image
-func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) (*corev1.Container, []corev1.LocalObjectReference, corev1.Volume, corev1.VolumeMount, error) {
-	var initContainer *corev1.Container
-	var volume corev1.Volume
-	var volumeMount corev1.VolumeMount
-	var imagePullSecrets []corev1.LocalObjectReference
+func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) (*corev1.Container, []corev1.Volume, []corev1.VolumeMount) {
+	input := workspaceObj.Tuning.Input
+
 	switch {
-	case workspaceObj.Tuning.Input.Image != "":
-		var image string
-		image, imagePullSecrets = GetDataSrcImageInfo(ctx, workspaceObj)
-		initContainer, volume, volumeMount = handleImageDataSource(ctx, image)
-	case len(workspaceObj.Tuning.Input.URLs) > 0:
-		initContainer, volume, volumeMount = handleURLDataSource(ctx, workspaceObj)
-		// TODO: Future PR include
-		// case workspaceObj.Tuning.Input.Volume != nil:
-	}
-	return initContainer, imagePullSecrets, volume, volumeMount, nil
-}
+	case input.Image != "":
+		dataVolume, dataVolumeMount := utils.ConfigDataVolume(nil)
+		imagePullSecretVolume, imagePullSecretVolumeMount := utils.ConfigImagePullSecretVolume(input.Name+"-tuning-input", input.ImagePullSecrets)
+		pullerContainer := image.NewPullerContainer(input.Image, utils.DefaultDataVolumePath)
+		return pullerContainer, []corev1.Volume{imagePullSecretVolume, dataVolume}, []corev1.VolumeMount{imagePullSecretVolumeMount, dataVolumeMount}
 
-func handleImageDataSource(ctx context.Context, image string) (*corev1.Container, corev1.Volume, corev1.VolumeMount) {
-	// Constructing a multistep command that lists, copies, and then lists the destination
-	command := "ls -la /data && cp -r /data/* " + utils.DefaultDataVolumePath + " && ls -la " + utils.DefaultDataVolumePath
-	initContainer := &corev1.Container{
-		Name:    "data-extractor",
-		Image:   image,
-		Command: []string{"sh", "-c", command},
-		VolumeMounts: []corev1.VolumeMount{
-			{
-				Name:      "data-volume",
-				MountPath: utils.DefaultDataVolumePath,
-			},
-		},
-	}
+	case len(input.URLs) > 0:
+		initContainer, volume, volumeMount := handleURLDataSource(ctx, workspaceObj)
+		return initContainer, []corev1.Volume{volume}, []corev1.VolumeMount{volumeMount}
 
-	volume, volumeMount := utils.ConfigDataVolume(nil)
-	return initContainer, volume, volumeMount
+	default:
+		return nil, nil, nil
+	}
 }
 
 func handleURLDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) (*corev1.Container, corev1.Volume, corev1.VolumeMount) {
@@ -425,12 +339,6 @@ func handleURLDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspa
 			done
 			echo "All downloads completed successfully"
 		`},
-		VolumeMounts: []corev1.VolumeMount{
-			{
-				Name:      "data-volume",
-				MountPath: utils.DefaultDataVolumePath,
-			},
-		},
 		Env: []corev1.EnvVar{
 			{
 				Name:  "DATA_URLS",
@@ -456,23 +364,23 @@ func prepareModelRunParameters(ctx context.Context, tuningObj *model.PresetParam
 // and sets the GPU resources required for tuning.
 // Returns the command and resource configuration.
 func prepareTuningParameters(ctx context.Context, wObj *kaitov1beta1.Workspace, modelCommand string,
-	tuningObj *model.PresetParam, skuNumGPUs string) ([]string, corev1.ResourceRequirements) {
+	tuningObj *model.PresetParam, skuNumGPUs int) ([]string, corev1.ResourceRequirements) {
 	hfParam := tuningObj.Transformers // Only support Huggingface for now
-	if hfParam.TorchRunParams == nil {
-		hfParam.TorchRunParams = make(map[string]string)
+	if hfParam.AccelerateParams == nil {
+		hfParam.AccelerateParams = make(map[string]string)
 	}
 	// Set # of processes to GPU Count
 	numProcesses := getInstanceGPUCount(wObj.Resource.InstanceType)
-	hfParam.TorchRunParams["num_processes"] = fmt.Sprintf("%d", numProcesses)
-	torchCommand := utils.BuildCmdStr(hfParam.BaseCommand, hfParam.TorchRunParams, hfParam.TorchRunRdzvParams)
+	hfParam.AccelerateParams["num_processes"] = fmt.Sprintf("%d", numProcesses)
+	torchCommand := utils.BuildCmdStr(hfParam.BaseCommand, hfParam.AccelerateParams)
 	commands := utils.ShellCmd(torchCommand + " " + modelCommand)
 
 	resourceRequirements := corev1.ResourceRequirements{
 		Requests: corev1.ResourceList{
-			corev1.ResourceName(resources.CapacityNvidiaGPU): resource.MustParse(skuNumGPUs),
+			corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
 		},
 		Limits: corev1.ResourceList{
-			corev1.ResourceName(resources.CapacityNvidiaGPU): resource.MustParse(skuNumGPUs),
+			corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
 		},
 	}
 

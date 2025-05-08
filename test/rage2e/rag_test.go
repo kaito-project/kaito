@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 package e2e
 
 import (
@@ -160,7 +163,7 @@ func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1be
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfReplica, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "rag-e2e-test-phi-3-mini-128k-instruct-vllm"},
-			}, nil, PresetPhi3Mini128kModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetPhi3Mini128kModel, nil, nil, nil)
 
 		createAndValidateWorkspace(workspaceObj)
 	})

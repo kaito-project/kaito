@@ -10,6 +10,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -34,7 +35,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_Bad",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetFalcon7BModel, nil, nil, nil)
 
 		By("Creating a workspace with invalid instancetype", func() {
 			// Create workspace
@@ -49,7 +50,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-			}, nil, "invalid-name", kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, "invalid-name", nil, nil, nil)
 
 		By("Creating a workspace with invalid preset name", func() {
 			// Create workspace
@@ -60,8 +61,126 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 		})
 	})
 
+	It("should validate the workspace inference adapters at creation", func() {
+		By("Creating a vllm workspace with adapter strength", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetFalcon7BModel, nil, nil, testAdapters1)
+
+			// Create workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(HaveOccurred(), "Failed to create workspace %s", workspaceObj.Name)
+		})
+
+		By("Creating a vllm workspace without adapter strength", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetPhi4MiniModel, nil, nil, phi4Adapter)
+
+			// Create workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+			// delete workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
+			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
+		})
+
+		By("Creating a transformers workspace with adapter strength", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetFalcon7BModel, nil, nil, testAdapters1)
+			// Create workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+
+			// delete workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
+			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
+		})
+	})
+
+	It("should validate the workspace inference configfile", func() {
+		By("Creating a 2gpu vllm workspace without configfile", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetFalcon7BModel, nil, nil, nil)
+
+			// Create workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(HaveOccurred(), "Failed to create workspace %s", workspaceObj.Name)
+		})
+
+		By("Creating a 2gpu transformers workspace without configfile", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetFalcon7BModel, nil, nil, nil)
+
+			// Create workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+
+			// delete workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
+			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
+		})
+
+		By("Creating a 2gpu workspace with correct configfile", func() {
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetFalcon7BModel, nil, nil, nil)
+
+			cm := corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "inference-config-webhook",
+					Namespace: namespaceName,
+				},
+				Data: map[string]string{
+					"inference_config.yaml": `
+vllm:
+  max-model-len: 1024
+`,
+				},
+			}
+			workspaceObj.Inference.Config = cm.Name
+
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, &cm, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(Succeed(), "Failed to create configmap %s", cm.Name)
+
+			// Create workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+			// delete workspace
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
+			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
+		})
+	})
+
 	It("should validate the workspace tuning spec at creation ", func() {
-		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, nil, testDataDestinationConfig, initialPresetSpec, initialTuningMethod)
@@ -76,7 +195,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 	})
 
 	It("should validate the workspace tuning spec at creation ", func() {
-		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, testDataSourceConfig, nil, initialPresetSpec, initialTuningMethod)
@@ -91,7 +210,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 	})
 
 	It("should validate the workspace tuning spec at creation ", func() {
-		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, testDataSourceConfig, testDataDestinationConfig, nil, initialTuningMethod)
@@ -109,10 +228,10 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 	//TODO custom template
 
 	It("should validate the workspace resource spec at update ", func() {
-		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetFalcon7BModel, nil, nil, nil)
 
 		By("Creating a valid workspace", func() {
 			// Create workspace
@@ -134,7 +253,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 
 		By("Updating the InstanceType", func() {
 			updatedObj := workspaceObj
-			updatedObj.Resource.InstanceType = "Standard_NC12"
+			updatedObj.Resource.InstanceType = "Standard_NV6"
 			// update workspace
 			Eventually(func() error {
 				return utils.TestingCluster.KubeClient.Update(ctx, updatedObj, &client.UpdateOptions{})
@@ -152,7 +271,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 	})
 
 	It("should validate the workspace tuning spec at update ", func() {
-		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, testDataSourceConfig, testDataDestinationConfig, initialPresetSpec, initialTuningMethod)
@@ -193,10 +312,10 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 	})
 
 	It("should validate the workspace inference spec at update ", func() {
-		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-			}, nil, PresetFalcon7BModel, kaitov1beta1.ModelImageAccessModePublic, nil, nil, nil)
+			}, nil, PresetFalcon7BModel, nil, nil, nil)
 
 		By("Creating a valid workspace", func() {
 			// Create workspace

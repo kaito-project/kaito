@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 import importlib
 import sys
 from pathlib import Path
@@ -29,7 +31,7 @@ def configured_model_config(request):
 
     # Create and configure the ModelConfig instance
     model_config = ModelConfig(
-        pipeline=request.param['pipeline'], 
+        pipeline=request.param['pipeline'],
         pretrained_model_name_or_path=request.param['model_path'],
     )
 

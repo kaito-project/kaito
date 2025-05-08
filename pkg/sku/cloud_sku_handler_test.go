@@ -18,19 +18,18 @@ func TestAzureSKUHandler(t *testing.T) {
 
 	// Test GetGPUConfigs with a SKU that is supported
 	sku := "Standard_NC6s_v3"
-	configMap := handler.GetGPUConfigs()
-	config, exists := configMap[sku]
-	if !exists {
-		t.Errorf("Supported SKU missing from GPUConfigs")
+	gpuConfig1 := handler.GetGPUConfigBySKU(sku)
+	if gpuConfig1 == nil {
+		t.Fatalf("Supported SKU missing from GPUConfigs")
 	}
-	if config.SKU != sku {
+	if gpuConfig1.SKU != sku {
 		t.Errorf("Incorrect config returned for a supported SKU")
 	}
 
 	// Test GetGPUConfigs with a SKU that is not supported
 	sku = "Unsupported_SKU"
-	config, exists = configMap[sku]
-	if exists {
+	gpuConfig2 := handler.GetGPUConfigBySKU(sku)
+	if gpuConfig2 != nil {
 		t.Errorf("Unsupported SKU found in GPUConfigs")
 	}
 }
@@ -46,19 +45,18 @@ func TestAwsSKUHandler(t *testing.T) {
 
 	// Test GetGPUConfigs with a SKU that is supported
 	sku := "p2.xlarge"
-	configMap := handler.GetGPUConfigs()
-	config, exists := configMap[sku]
-	if !exists {
-		t.Errorf("Supported SKU missing from GPUConfigs")
+	gpuConfig1 := handler.GetGPUConfigBySKU(sku)
+	if gpuConfig1 == nil {
+		t.Fatalf("Supported SKU missing from GPUConfigs")
 	}
-	if config.SKU != sku {
+	if gpuConfig1.SKU != sku {
 		t.Errorf("Incorrect config returned for a supported SKU")
 	}
 
 	// Test GetGPUConfigs with a SKU that is not supported
 	sku = "Unsupported_SKU"
-	config, exists = configMap[sku]
-	if exists {
+	gpuConfig2 := handler.GetGPUConfigBySKU(sku)
+	if gpuConfig2 != nil {
 		t.Errorf("Unsupported SKU found in GPUConfigs")
 	}
 }

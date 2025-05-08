@@ -7,7 +7,7 @@ This document presents how to use the Kaito `workspace` Custom Resource Definiti
 The basic usage for inference is simple. Users just need to specify the GPU SKU used for inference in the `resource` spec and one of the Kaito supported model name in the `inference` spec in the `workspace` custom resource. For example,
 
 ```yaml
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-falcon-7b
@@ -47,7 +47,7 @@ KAITO now supports both [vLLM](https://github.com/vllm-project/vllm) and [transf
 From KAITO v0.4.0, the default runtime is switched to `vLLM`. If you want to use `transformers` runtime, you can specify the runtime in the `inference` spec using an annotation. For example,
 
 ```yaml
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-falcon-7b
@@ -63,12 +63,55 @@ inference:
     name: "falcon-7b"
 ```
 
+### Inference with custom parameters
+
+Users can customize vLLM runtime parameters by creating a ConfigMap containing an `inference_config.yaml` file and referencing it in the workspace spec. For example:
+
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  namespace: myns
+  name: workspace-example
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: example
+inference:
+  preset:
+    name: "example-model"
+  config: "my-inference-params"  # Reference to ConfigMap name
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: myns
+  name: my-inference-params
+data:
+  inference_config.yaml: |
+    max_probe_steps: 6
+    vllm:
+      gpu-memory-utilization: 0.95  # Controls GPU memory usage (0.0-1.0)
+      tensor-parallel-size: 2        # Number of GPUs for tensor parallelism
+      max-model-len: 131072         # Maximum sequence length
+      swap-space: 4                 # CPU swap space in GB
+      cpu-offload-gb: 0             # Amount of GPU memory to offload to CPU
+```
+
+Key vLLM parameters include:
+- `gpu-memory-utilization`: Controls fraction of GPU memory allocated (between 0.0 and 1.0)
+- `tensor-parallel-size`: Number of GPUs to use for tensor parallelism
+- `max-model-len`: Maximum sequence length the model can handle
+
+For the complete list of vLLM parameters, refer to the [vLLM documentation](https://docs.vllm.ai/en/latest/serving/engine_args.html).
+
 ### Inference with LoRA adapters 
 
 Kaito also supports running the inference workload with LoRA adapters produced by [model fine-tuning jobs](../tuning/README.md). Users can specify one or more adapters in the `adapters` field of the `inference` spec. For example,
 
 ```yaml
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-falcon-7b

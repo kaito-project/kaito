@@ -12,3 +12,35 @@
 ## Usage
 
 See [document](../../../../docs/inference/README.md).
+
+## Fine-tuning Configuration
+
+When fine-tuning Falcon models, you must specify a chat template in your configuration. Use the following steps:
+
+1. Create a ConfigMap with your fine-tuning configuration that includes the `chat_template` parameter in the `ModelConfig` section:
+
+```yaml
+ModelConfig:
+  # other model parameters...
+  chat_template: "/workspace/chat_templates/falcon-instruct.jinja"
+```
+
+You can see complete example configurations in the default templates:
+- [LoRA configuration template](../../../../charts/kaito/workspace/templates/lora-params.yaml)
+- [QLoRA configuration template](../../../../charts/kaito/workspace/templates/qlora-params.yaml)
+
+2. Reference this ConfigMap in your Workspace by adding the `Config` field:
+
+```yaml
+kind: Workspace
+metadata:
+  name: workspace-tuning-falcon-7b
+spec:
+  tuning:
+    method: lora  # or qlora
+    preset:
+      name: falcon-7b  # or falcon-7b-instruct, falcon-40b, etc.
+    config: your-config-map-name  # Reference to your ConfigMap
+```
+
+The falcon-instruct.jinja chat template ensures proper formatting of conversation data during fine-tuning.

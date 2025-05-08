@@ -12,7 +12,7 @@ on:
       - '.github/**'
 
 env:
-  GO_VERSION: "1.22"
+  GO_VERSION: "1.24"
 
 permissions:
   id-token: write # This is required for requesting the JWT

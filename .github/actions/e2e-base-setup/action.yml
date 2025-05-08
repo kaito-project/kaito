@@ -33,11 +33,9 @@ outputs:
     description: "Cluster name"
   registry:
     description: "Registry value"
-  run_llama_13b:
-    description: "Whether to run llama 13b"
 
 env:
-  GO_VERSION: "1.23"
+  GO_VERSION: "1.24"
 
 runs:
   using: "composite"
@@ -50,15 +48,11 @@ runs:
     - name: Set e2e Resource and Cluster Name
       shell: bash
       run: |
-        rand=$(git rev-parse --short ${{ inputs.git_sha }})
-        if [ -z "$rand" ]; then
-          rand=$RANDOM
-        fi
+        ID="ri${{ github.run_id }}rn${{ github.run_number }}ra${{ github.run_attempt }}"
 
-        echo "VERSION=${rand}" >> $GITHUB_ENV
-        echo "CLUSTER_NAME=${{ inputs.node_provisioner }}${rand}" >> $GITHUB_ENV
-        echo "REGISTRY=${{ inputs.node_provisioner }}${rand}.azurecr.io" >> $GITHUB_ENV
-        echo "RUN_LLAMA_13B=false" >> $GITHUB_ENV
+        echo "VERSION=${ID}" >> $GITHUB_ENV
+        echo "CLUSTER_NAME=kaito${ID}" >> $GITHUB_ENV
+        echo "REGISTRY=kaito${ID}.azurecr.io" >> $GITHUB_ENV
 
     - name: Set Registry
       if: ${{ inputs.isRelease == 'true' }}
@@ -71,10 +65,10 @@ runs:
       shell: bash
       run: sudo rm -rf ~/go/pkg/mod
 
-    - name: Set up Go 1.23
+    - name: Set up Go 1.24
       uses: actions/setup-go@v5.2.0
       with:
-        go-version: "1.23"
+        go-version: "1.24"
 
     - name: Install Azure CLI latest
       shell: bash

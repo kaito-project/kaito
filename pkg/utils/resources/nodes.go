@@ -47,22 +47,21 @@ func ListNodes(ctx context.Context, kubeClient client.Client, labelSelector clie
 }
 
 // UpdateNodeWithLabel update the node object with the label key/value
-func UpdateNodeWithLabel(ctx context.Context, nodeName, labelKey, labelValue string, kubeClient client.Client) error {
-	klog.InfoS("UpdateNodeWithLabel", "nodeName", nodeName, "labelKey", labelKey, "labelValue", labelValue)
+func UpdateNodeWithLabel(ctx context.Context, freshNode *corev1.Node, labelKey, labelValue string, kubeClient client.Client) error {
+	klog.InfoS("UpdateNodeWithLabel", "nodeName", freshNode.Name, "labelKey", labelKey, "labelValue", labelValue)
 
-	// get fresh node object
-	freshNode, err := GetNode(ctx, nodeName, kubeClient)
-	if err != nil {
-		klog.ErrorS(err, "cannot get node", "node", nodeName)
-		return err
+	if nvidiaLabelVal, found := freshNode.Labels[LabelKeyNvidia]; found {
+		if nvidiaLabelVal == LabelValueNvidia {
+			return nil
+		}
 	}
 
 	freshNode.Labels = lo.Assign(freshNode.Labels, map[string]string{labelKey: labelValue})
 	opt := &client.UpdateOptions{}
 
-	err = kubeClient.Update(ctx, freshNode, opt)
+	err := kubeClient.Update(ctx, freshNode, opt)
 	if err != nil {
-		klog.ErrorS(err, "cannot update node label", "node", nodeName, labelKey, labelValue)
+		klog.ErrorS(err, "cannot update node label", "node", freshNode.Name, labelKey, labelValue)
 		return err
 	}
 	return nil
@@ -89,7 +88,7 @@ func CheckNvidiaPlugin(ctx context.Context, nodeObj *corev1.Node) bool {
 	return false
 }
 
-func ExtractObjFields(obj interface{}) (instanceType, namespace, name string, labelSelector *metav1.LabelSelector,
+func ExtractObjFields(obj client.Object) (instanceType, namespace, name string, labelSelector *metav1.LabelSelector,
 	nameLabel, namespaceLabel string, err error) {
 	switch o := obj.(type) {
 	case *kaitov1beta1.Workspace:

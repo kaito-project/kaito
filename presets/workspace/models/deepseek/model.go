@@ -5,10 +5,10 @@ package deepseek
 import (
 	"time"
 
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func init() {
@@ -22,29 +22,30 @@ func init() {
 	})
 }
 
-var (
+const (
 	PresetDeepSeekR1DistillLlama8BModel = "deepseek-r1-distill-llama-8b"
 	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
+)
 
-	PresetDeepSeekTagMap = map[string]string{
-		"DeepSeekDistillLlama8B": "0.0.1",
-		"DeepSeekDistillQwen14B": "0.0.1",
-	}
-
+var (
 	baseCommandPresetDeepseekInference = "accelerate launch"
 	deepseekLlama8bRunParams           = map[string]string{
 		"torch_dtype": "bfloat16",
 		"pipeline":    "text-generation",
 	}
 	deepseekLlama8bRunParamsVLLM = map[string]string{
-		"dtype": "float16",
+		"dtype":            "float16",
+		"enable-reasoning": "",
+		"reasoning-parser": "deepseek_r1",
 	}
 	deepseekQwen14bRunParams = map[string]string{
 		"torch_dtype": "bfloat16",
 		"pipeline":    "text-generation",
 	}
 	deepseekQwen14bRunParamsVLLM = map[string]string{
-		"dtype": "float16",
+		"dtype":            "float16",
+		"enable-reasoning": "",
+		"reasoning-parser": "deepseek_r1",
 	}
 )
 
@@ -54,16 +55,15 @@ type llama8b struct{}
 
 func (*llama8b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "DeepSeek",
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
+		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillLlama8BModel),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "14Gi",
+		TotalGPUMemoryRequirement: "16.5Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    deepseekLlama8bRunParams,
 			},
@@ -72,12 +72,8 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 				ModelName:      PresetDeepSeekR1DistillLlama8BModel,
 				ModelRunParams: deepseekLlama8bRunParamsVLLM,
 			},
-			// vllm requires the model specification to be exactly divisible by
-			// the number of GPUs(tensor parallel level).
-			DisableTensorParallelism: true,
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetDeepSeekTagMap["DeepSeekDistillLlama8B"],
 	}
 }
 func (*llama8b) GetTuningParameters() *model.PresetParam {
@@ -96,8 +92,7 @@ type qwen14b struct{}
 
 func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "DeepSeek",
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
+		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillQwen14BModel),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "25.7Gi",
@@ -105,7 +100,7 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    deepseekQwen14bRunParams,
 			},
@@ -114,12 +109,8 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 				ModelName:      PresetDeepSeekR1DistillQwen14BModel,
 				ModelRunParams: deepseekQwen14bRunParamsVLLM,
 			},
-			// vllm requires the model specification to be exactly divisible by
-			// the number of GPUs(tensor parallel level).
-			DisableTensorParallelism: true,
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetDeepSeekTagMap["DeepSeekDistillQwen14B"],
 	}
 }
 func (*qwen14b) GetTuningParameters() *model.PresetParam {

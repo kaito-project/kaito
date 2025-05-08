@@ -5,10 +5,11 @@
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/kaito-project/kaito)
 [![codecov](https://codecov.io/gh/kaito-project/kaito/graph/badge.svg?token=XAQLLPB2AR)](https://codecov.io/gh/kaito-project/kaito)
 
-| ![notification](docs/img/bell.svg) What is NEW! |
-|-------------------------------------------------|
-| Latest Release: Jan 31th, 2025. Kaito v0.4.4. **DeepSeek-R1 distilled models are added! (llama-8b and qwen-14b).**  |
-| First Release: Nov 15th, 2023. Kaito v0.1.0.    |
+| ![notification](docs/img/bell.svg) What is NEW!                                                                                                                                                                                                |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Coming soon:** Kaito v0.5.0. Retrieval-augmented generation (RAG) - RagEngine support with LlamaIndex orchestration and Faiss as the default vectorDB, learn about recent updates [here](https://github.com/kaito-project/kaito/issues/734)! |
+| Latest Release: Apr 18th, 2025. Kaito v0.4.5.                                                                                                                                                                                                  |
+| First Release: Nov 15th, 2023. Kaito v0.1.0.                                                                                                                                                                                                   |
 
 Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
 The target models are popular open-sourced large models such as [falcon](https://huggingface.co/tiiuae) and [phi-3](https://huggingface.co/docs/transformers/main/en/model_doc/phi3).
@@ -45,7 +46,7 @@ After installing Kaito, one can try following commands to start a phi-3.5-mini-i
 
 ```sh
 $ cat examples/inference/kaito_workspace_phi_3.5-instruct.yaml
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-phi-3-5-mini
@@ -118,7 +119,7 @@ Starting with version v0.3.0, Kaito supports model fine-tuning and using fine-tu
 
 ### How do I ensure preferred nodes are correctly labeled for use in my workspace?
 
-For using preferred nodes, make sure the node has the label specified in the labelSelector 
+For using preferred nodes, make sure the node has the label specified in the labelSelector
 under matchLabels. For example, if your labelSelector is:
 ```
   labelSelector:
@@ -167,7 +168,7 @@ Should you need to customize other parameters, kindly file an issue for potentia
 The main distinction lies in their intended use cases. Instruct models are fine-tuned versions optimized
 for interactive chat applications. They are typically the preferred choice for most implementations due to their enhanced performance in
 conversational contexts.
-On the other hand, non-instruct, or raw models, are designed for further fine-tuning. 
+On the other hand, non-instruct, or raw models, are designed for further fine-tuning.
 
 ## Contributing
 
@@ -181,8 +182,8 @@ When you submit a pull request, a CLA bot will automatically determine whether y
 a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
 provided by the bot. You will only need to do this once across all repos using our CLA.
 
-This project has adopted the CLAs for CNCF, please electronically sign the CLA via 
-https://easycla.lfx.linuxfoundation.org. If you encounter issues, you can submit a ticket with the 
+This project has adopted the CLAs for CNCF, please electronically sign the CLA via
+https://easycla.lfx.linuxfoundation.org. If you encounter issues, you can submit a ticket with the
 Linux Foundation ID group through the [Linux Foundation Support website](https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4/create/143).
 
 ## License
@@ -191,7 +192,7 @@ See [MIT License](LICENSE).
 
 ## Code of Conduct
 
-KAITO has adopted the [Cloud Native Compute Foundation Code of Conduct](https://github.com/cncf/foundation/blob/master/code-of-conduct.md). For more information see the [KAITO Code of Conduct](CODE_OF_CONDUCT.md).
+KAITO has adopted the [Cloud Native Compute Foundation Code of Conduct](https://github.com/cncf/foundation/blob/main/code-of-conduct.md). For more information see the [KAITO Code of Conduct](CODE_OF_CONDUCT.md).
 
 <!-- markdown-link-check-enable -->
 ## Contact

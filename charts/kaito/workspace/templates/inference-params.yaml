@@ -10,9 +10,9 @@ data:
 
     vllm:
       cpu-offload-gb: 0
-      gpu-memory-utilization: 0.95
       swap-space: 4
 
+      # gpu-memory-utilization: 0.9
       # max-seq-len-to-capture: 8192
       # num-scheduler-steps: 1
       # enable-chunked-prefill: false

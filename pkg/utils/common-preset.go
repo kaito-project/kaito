@@ -3,6 +3,8 @@
 package utils
 
 import (
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -25,6 +27,45 @@ func ConfigResultsVolume(outputPath string) (corev1.Volume, corev1.VolumeMount) 
 		MountPath: outputPath,
 	}
 	return sharedWorkspaceVolume, sharedVolumeMount
+}
+
+func ConfigImagePullSecretVolume(nameSuffix string, imagePullSecrets []string) (corev1.Volume, corev1.VolumeMount) {
+	name := fmt.Sprintf("docker-config-%s", nameSuffix)
+
+	sources := make([]corev1.VolumeProjection, 0, len(imagePullSecrets))
+	for _, imagePullSecret := range imagePullSecrets {
+		volumeProjection := corev1.VolumeProjection{
+			Secret: &corev1.SecretProjection{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: imagePullSecret,
+				},
+				Items: []corev1.KeyToPath{
+					{
+						Key:  ".dockerconfigjson",
+						Path: fmt.Sprintf("%s.json", imagePullSecret),
+					},
+				},
+			},
+		}
+
+		sources = append(sources, volumeProjection)
+	}
+
+	volume := corev1.Volume{
+		Name: name,
+		VolumeSource: corev1.VolumeSource{
+			Projected: &corev1.ProjectedVolumeSource{
+				Sources: sources,
+			},
+		},
+	}
+
+	volumeMount := corev1.VolumeMount{
+		Name:      name,
+		MountPath: fmt.Sprintf("/root/.docker/config.d/%s", nameSuffix),
+	}
+
+	return volume, volumeMount
 }
 
 func ConfigImagePushSecretVolume(imagePushSecret string) (corev1.Volume, corev1.VolumeMount) {
@@ -53,32 +94,25 @@ func ConfigImagePushSecretVolume(imagePushSecret string) (corev1.Volume, corev1.
 
 	volumeMount := corev1.VolumeMount{
 		Name:      "docker-config",
-		MountPath: "/tmp/.docker/config",
+		MountPath: "/root/.docker",
 	}
 
 	return volume, volumeMount
 }
 
-func ConfigSHMVolume(instanceCount int) (corev1.Volume, corev1.VolumeMount) {
-	volume := corev1.Volume{}
-	volumeMount := corev1.VolumeMount{}
-
-	// Signifies multinode inference requirement
-	if instanceCount > 1 {
-		// Append share memory volume to any existing volumes
-		volume = corev1.Volume{
-			Name: "dshm",
-			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{
-					Medium: "Memory",
-				},
+func ConfigSHMVolume() (corev1.Volume, corev1.VolumeMount) {
+	volume := corev1.Volume{
+		Name: "dshm",
+		VolumeSource: corev1.VolumeSource{
+			EmptyDir: &corev1.EmptyDirVolumeSource{
+				Medium: "Memory",
 			},
-		}
+		},
+	}
 
-		volumeMount = corev1.VolumeMount{
-			Name:      volume.Name,
-			MountPath: DefaultVolumeMountPath,
-		}
+	volumeMount := corev1.VolumeMount{
+		Name:      volume.Name,
+		MountPath: DefaultVolumeMountPath,
 	}
 
 	return volume, volumeMount

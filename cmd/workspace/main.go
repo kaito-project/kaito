@@ -21,6 +21,7 @@ import (
 	"knative.dev/pkg/injection/sharedmain"
 	"knative.dev/pkg/webhook"
 	ctrl "sigs.k8s.io/controller-runtime"
+	runtimecache "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -32,8 +33,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
@@ -106,6 +105,9 @@ func main() {
 		// if you are doing or is intended to do any operation such as perform cleanups
 		// after the manager stops then its usage might be unsafe.
 		// LeaderElectionReleaseOnCancel: true,
+		Cache: runtimecache.Options{
+			DefaultTransform: runtimecache.TransformStripManagedFields(),
+		},
 	})
 	if err != nil {
 		klog.ErrorS(err, "unable to start manager")
@@ -160,13 +162,6 @@ func main() {
 	if err := featuregates.ParseAndValidateFeatureGates(featureGates); err != nil {
 		klog.ErrorS(err, "unable to set `feature-gates` flag")
 		exitWithErrorFunc()
-	}
-
-	if featuregates.FeatureGates[consts.FeatureFlagEnsureNodeClass] {
-		err := nodeclaim.CheckNodeClass(ctx, kClient)
-		if err != nil {
-			exitWithErrorFunc()
-		}
 	}
 
 	klog.InfoS("starting manager")

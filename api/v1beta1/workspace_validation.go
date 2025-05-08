@@ -8,21 +8,18 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/distribution/reference"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
@@ -55,9 +52,18 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
 		if w.Inference != nil {
+			// Check if the bypass resource checks annotation is set
+			bypassResourceChecks := false
+			if w.GetAnnotations() != nil {
+				if _, exists := w.GetAnnotations()[AnnotationBypassResourceChecks]; exists {
+					bypassResourceChecks = true
+				}
+			}
+
+			runtime := GetWorkspaceRuntimeName(w)
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
-			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference).ViaField("resource"),
-				w.Inference.validateCreate(ctx, w.Namespace).ViaField("inference"))
+			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference, bypassResourceChecks).ViaField("resource"),
+				w.Inference.validateCreate(ctx, w.Namespace, w.Resource.InstanceType, runtime).ViaField("inference"))
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
@@ -207,18 +213,11 @@ func (r *DataSource) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 		sourcesSpecified++
 	}
-	// Regex checks for a / and a colon followed by a tag
-	if r.Image != "" {
-		re := regexp.MustCompile(`^(.+/[^:/]+):([^:/]+)$`)
-		if !re.MatchString(r.Image) {
-			errs = errs.Also(apis.ErrInvalidValue("Invalid image format, require full input image URL", "Image"))
-		} else {
-			// Executes if image is of correct format
-			err := utils.ExtractAndValidateRepoName(r.Image)
-			if err != nil {
-				errs = errs.Also(apis.ErrInvalidValue(err.Error(), "Image"))
-			}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse input image reference: %s", err), "Image"))
 		}
+
 		sourcesSpecified++
 	}
 
@@ -237,6 +236,11 @@ func (r *DataSource) validateUpdate(old *DataSource, isTuning bool) (errs *apis.
 	if r.Volume != nil {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 	}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse input image reference: %s", err), "Image"))
+		}
+	}
 
 	return errs
 }
@@ -248,22 +252,16 @@ func (r *DataDestination) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 		destinationsSpecified++
 	}
-	if r.Image != "" {
-		// Regex checks for a / and a colon followed by a tag
-		re := regexp.MustCompile(`^(.+/[^:/]+):([^:/]+)$`)
-		if !re.MatchString(r.Image) {
-			errs = errs.Also(apis.ErrInvalidValue("Invalid image format, require full output image URL", "Image"))
-		} else {
-			// Executes if image is of correct format
-			err := utils.ExtractAndValidateRepoName(r.Image)
-			if err != nil {
-				errs = errs.Also(apis.ErrInvalidValue(err.Error(), "Image"))
-			}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse output image reference: %s", err), "Image"))
 		}
+
 		// Cloud Provider requires credentials to push image
 		if r.ImagePushSecret == "" {
 			errs = errs.Also(apis.ErrMissingField("Must specify imagePushSecret with destination image"))
 		}
+
 		destinationsSpecified++
 	}
 
@@ -279,6 +277,11 @@ func (r *DataDestination) validateUpdate() (errs *apis.FieldError) {
 	if r.Volume != nil {
 		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 	}
+	if image := r.Image; image != "" {
+		if _, err := reference.ParseDockerRef(image); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse output image reference: %s", err), "Image"))
+		}
+	}
 
 	return errs
 }
@@ -290,7 +293,7 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	return errs
 }
 
-func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec) (errs *apis.FieldError) {
+func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool) (errs *apis.FieldError) {
 	var presetName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
@@ -307,60 +310,75 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec) (er
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 		return errs
 	}
-	gpuConfigs := skuHandler.GetGPUConfigs()
 
 	// Check if instancetype exists in our SKUs map for the particular cloud provider
-	if skuConfig, exists := gpuConfigs[instanceType]; exists {
+	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig != nil {
 		if presetName != "" {
 			model := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
+			params := model.GetInferenceParameters()
 
 			machineCount := *r.Count
 			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
-			machinePerGPUMemory := resource.NewQuantity(int64(skuConfig.GPUMem/skuConfig.GPUCount)*consts.GiBToBytes, resource.BinarySI) // Ensure it's per GPU
-			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMem)*consts.GiBToBytes, resource.BinarySI)        // Total GPU memory
+			machinePerGPUMemory := resource.NewQuantity(int64(skuConfig.GPUMemGB/skuConfig.GPUCount)*consts.GiBToBytes, resource.BinarySI) // Ensure it's per GPU
+			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI)        // Total GPU memory
 
-			modelGPUCount := resource.MustParse(model.GetInferenceParameters().GPUCountRequirement)
-			modelPerGPUMemory := resource.MustParse(model.GetInferenceParameters().PerGPUMemoryRequirement)
-			modelTotalGPUMemory := resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement)
+			modelGPUCount := resource.MustParse(params.GPUCountRequirement)
+			modelPerGPUMemory := resource.MustParse(params.PerGPUMemoryRequirement)
+			modelTotalGPUMemory := resource.MustParse(params.TotalGPUMemoryRequirement)
 
 			// Separate the checks for specific error messages
 			if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
-				errs = errs.Also(apis.ErrInvalidValue(
-					fmt.Sprintf(
-						"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
-						instanceType,
-						machineTotalNumGPUs.String(),
-						presetName,
-						modelGPUCount.Value(),
-					),
-					"instanceType",
-				))
+				if bypassResourceChecks {
+					klog.Warningf("Bypassing resource check: Insufficient number of GPUs detected but continuing due to bypass flag. Instance type %s provides %s, but preset %s requires at least %d",
+						instanceType, machineTotalNumGPUs.String(), presetName, modelGPUCount.Value())
+				} else {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
+							instanceType,
+							machineTotalNumGPUs.String(),
+							presetName,
+							modelGPUCount.Value(),
+						),
+						"instanceType",
+					))
+				}
 			}
 
 			if machinePerGPUMemory.Cmp(modelPerGPUMemory) < 0 {
-				errs = errs.Also(apis.ErrInvalidValue(
-					fmt.Sprintf(
-						"Insufficient per GPU memory: Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
-						instanceType,
-						machinePerGPUMemory.String(),
-						presetName,
-						modelPerGPUMemory.String(),
-					),
-					"instanceType",
-				))
+				if bypassResourceChecks {
+					klog.Warningf("Bypassing resource check: Insufficient per GPU memory but continuing due to bypass flag. Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
+						instanceType, machinePerGPUMemory.String(), presetName, modelPerGPUMemory.String())
+				} else {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"Insufficient per GPU memory: Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
+							instanceType,
+							machinePerGPUMemory.String(),
+							presetName,
+							modelPerGPUMemory.String(),
+						),
+						"instanceType",
+					))
+				}
 			}
 
 			if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
-				errs = errs.Also(apis.ErrInvalidValue(
-					fmt.Sprintf(
-						"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
-						instanceType,
-						machineTotalGPUMem.String(),
-						presetName,
-						modelTotalGPUMemory.String(),
-					),
-					"instanceType",
-				))
+				if bypassResourceChecks {
+					klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
+						instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
+				} else {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
+							instanceType,
+							machineTotalGPUMem.String(),
+							presetName,
+							modelTotalGPUMemory.String(),
+						),
+						"instanceType",
+					))
+				}
 			}
 		}
 	} else {
@@ -399,7 +417,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
-func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (errs *apis.FieldError) {
+func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, instanceType string, runtime model.RuntimeName) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -418,16 +436,31 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (e
 			// Need to return here. Otherwise, a panic will be hit when doing following checks.
 			return errs
 		}
-		// Validate private preset has private image specified
-		if plugin.KaitoModelRegister.MustGet(string(i.Preset.Name)).GetInferenceParameters().ImageAccessMode == string(ModelImageAccessModePrivate) &&
-			i.Preset.PresetMeta.AccessMode != ModelImageAccessModePrivate {
-			errs = errs.Also(apis.ErrGeneric("This preset only supports private AccessMode, AccessMode must be private to continue"))
+		modelPreset := plugin.KaitoModelRegister.MustGet(string(i.Preset.Name))
+		params := modelPreset.GetInferenceParameters()
+		useAdapterStrength := false
+		for _, adapter := range i.Adapters {
+			if adapter.Strength != nil {
+				useAdapterStrength = true
+				break
+			}
 		}
-		// Additional validations for Preset
-		if i.Preset.PresetMeta.AccessMode == ModelImageAccessModePrivate && i.Preset.PresetOptions.Image == "" {
-			errs = errs.Also(apis.ErrGeneric("When AccessMode is private, an image must be provided in PresetOptions"))
+		err := params.Validate(model.RuntimeContext{
+			RuntimeName: runtime,
+			RuntimeContextExtraArguments: model.RuntimeContextExtraArguments{
+				AdaptersEnabled:        len(i.Adapters) > 0,
+				AdapterStrengthEnabled: useAdapterStrength,
+			},
+		})
+		if err != nil {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Runtime validation: %v", err)))
 		}
-		// Note: we don't enforce private access mode to have image secrets, in case anonymous pulling is enabled
+		// For models that require downloading at runtime, we need to check if the modelAccessSecret is provided
+		if params.DownloadAtRuntime && i.Preset.PresetOptions.ModelAccessSecret == "" {
+			errs = errs.Also(apis.ErrGeneric("This preset requires a modelAccessSecret with HF_TOKEN key under presetOptions to download the model"))
+		} else if !params.DownloadAtRuntime && i.Preset.PresetOptions.ModelAccessSecret != "" {
+			errs = errs.Also(apis.ErrGeneric("This preset does not require a modelAccessSecret with HF_TOKEN key under presetOptions"))
+		}
 	}
 	if len(i.Adapters) > MaxAdaptersNumber {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Number of Adapters exceeds the maximum limit, maximum of %s allowed", strconv.Itoa(MaxAdaptersNumber))))
@@ -439,33 +472,28 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string) (e
 		errs = errs.Also(validateDuplicateName(i.Adapters, nameMap))
 	}
 
-	if i.Config != "" {
-		errs = errs.Also(i.validateConfigMap(ctx, namespace))
-	}
-
-	return errs
-}
-
-func (i *InferenceSpec) validateConfigMap(ctx context.Context, namespace string) (errs *apis.FieldError) {
-	var cm corev1.ConfigMap
-	if k8sclient.Client == nil {
-		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
-		return errs
-	}
-	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: i.Config, Namespace: namespace}, &cm)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("ConfigMap '%s' specified in 'config' not found in namespace '%s'", i.Config, namespace), "config"))
-		} else {
-			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get ConfigMap '%s' in namespace '%s': %v", i.Config, namespace, err), "config"))
-		}
-		return errs
-	}
-
-	// basic check here, it's hard to validate the content of the configmap in controller
-	_, ok := cm.Data["inference_config.yaml"]
-	if !ok {
-		return apis.ErrMissingField("inference_config.yaml in ConfigMap")
+	// check if required fields are set
+	// this check only applies to vllm runtime
+	if runtime == model.RuntimeNameVLLM {
+		func() {
+			var (
+				cmName = i.Config
+				cmNS   = namespace
+				err    error
+			)
+			if cmName == "" {
+				klog.Infof("Inference config not specified. Using default: %q", DefaultInferenceConfigTemplate)
+				cmName = DefaultInferenceConfigTemplate
+				cmNS, err = utils.GetReleaseNamespace()
+				if err != nil {
+					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
+					return
+				}
+			}
+			if err := i.validateConfigMap(ctx, cmNS, cmName, instanceType); err != nil {
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
+			}
+		}()
 	}
 
 	return errs

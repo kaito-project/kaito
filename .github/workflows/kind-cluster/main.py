@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 import os
 import random
 import shutil
@@ -9,17 +11,21 @@ from pathlib import Path
 KAITO_REPO_URL = "https://github.com/kaito-project/kaito.git"
 WEIGHTS_FOLDER = os.environ.get("WEIGHTS_DIR", None)
 
+
 def get_weights_path(model_name):
     return f"{WEIGHTS_FOLDER}/{model_name}/weights"
 
+
 def get_dockerfile_path(model_runtime):
     return f"/kaito/docker/presets/models/{model_runtime}/Dockerfile"
+
 
 def generate_unique_id():
     """Generate a unique identifier for a job."""
     timestamp = int(time.time())
     random_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
     return f"{timestamp}-{random_str}"
+
 
 def run_command(command):
     """Execute a shell command and return the output."""
@@ -33,12 +39,14 @@ def run_command(command):
         print(f"An error occurred: {e}")
         return None
 
-def get_kubectl_path(): 
+
+def get_kubectl_path():
     """Get the full path to kubectl."""
     kubectl_path = "/usr/local/bin/kubectl"
     if not os.path.exists(kubectl_path):
         raise FileNotFoundError("kubectl not found at /usr/local/bin/kubectl")
     return kubectl_path
+
 
 def get_model_git_info(model_version, hf_username, hf_token):
     """Get model Git Repo link and commit ID"""
@@ -49,6 +57,7 @@ def get_model_git_info(model_version, hf_username, hf_token):
     model_url = '/'.join(url_parts[:-2])
     commit_id = url_parts[-1]
     return model_url, commit_id
+
 
 def update_model(model_name, model_commit):
     """Update the model to a specific commit, including LFS files."""
@@ -77,6 +86,7 @@ def update_model(model_name, model_commit):
         # Change back to the original directory
         os.chdir(start_dir)
 
+
 def download_new_model(model_name, model_url):
     """Given URL download new model."""
     weights_path = get_weights_path(model_name)
@@ -85,13 +95,13 @@ def download_new_model(model_name, model_url):
     print("Git Files Path:", git_files_path)
 
     start_dir = os.getcwd()
-    
+
     if not os.path.exists(weights_path) and model_url:
         try:
             os.makedirs(weights_path, exist_ok=True)
             os.chdir(weights_path)
             run_command(f"git clone {model_url} .")
-            
+
             # Create git_files directory and move .git there
             os.makedirs(git_files_path, exist_ok=True)
             shutil.move(os.path.join(weights_path, ".git"), git_files_path)
@@ -100,6 +110,7 @@ def download_new_model(model_name, model_url):
             exit(1)
         finally:
             os.chdir(start_dir)
+
 
 def main():
     pr_branch = os.environ.get("PR_BRANCH", "main")
@@ -112,10 +123,20 @@ def main():
     hf_username = os.environ.get("HF_USERNAME", None)
     hf_token = os.environ.get("HF_TOKEN", None)
 
-    if model_version: 
+    # No need to pull model weights if we are building the "base" image.
+    # it is for preset models that require downloading the model weights
+    # from HuggingFace at runtime.
+    if model_version and model_name != "base":
         model_url, model_commit = get_model_git_info(model_version, hf_username, hf_token)
         download_new_model(model_name, model_url)
         update_model(model_name, model_commit)
+
+        weights = run_command(f"ls {WEIGHTS_FOLDER}")
+        print("Models Present:", weights)
+
+        output = run_command(f"ls {get_weights_path(model_name)}")
+        print("Model Weights:", output)
+
     clone_and_checkout_pr_branch(pr_branch)
 
     job_names = []
@@ -125,12 +146,6 @@ def main():
     job_yaml = populate_job_template(image_name, model_name, model_type, model_runtime, model_tag, job_name, os.environ)
     write_job_file(job_yaml, job_name)
 
-    weights = run_command(f"ls {WEIGHTS_FOLDER}")
-    print("Models Present:", weights)
-    
-    output = run_command(f"ls {get_weights_path(model_name)}")
-    print("Model Weights:", output)
-
     kubectl_path = get_kubectl_path()
     run_command(f"{kubectl_path} apply -f {job_name}-job.yaml")
     job_names.append(job_name)
@@ -138,11 +153,13 @@ def main():
     if not wait_for_jobs_to_complete(job_names):
         exit(1)  # Exit with an error code if any job failed
 
+
 def write_job_file(job_yaml, job_name):
     """Write the job yaml to a file."""
     if job_yaml:
         with open(f"{job_name}-job.yaml", "w") as file:
             file.write(job_yaml)
+
 
 def clone_and_checkout_pr_branch(pr_branch):
     """Clone and checkout PR Branch."""
@@ -160,6 +177,7 @@ def clone_and_checkout_pr_branch(pr_branch):
     run_command(f"git checkout {pr_branch}")
 
     os.chdir(Path.cwd().parent)
+
 
 def populate_job_template(image_name, model_name, model_type, model_runtime, model_tag, job_name, env_vars):
     """Populate the job template with provided values."""
@@ -179,6 +197,7 @@ def populate_job_template(image_name, model_name, model_type, model_runtime, mod
             "{{MODEL_TYPE}}": model_type,
             "{{DOCKERFILE_PATH}}": get_dockerfile_path(model_runtime),
             "{{VERSION}}": model_tag,
+            "{{BUILD_TARGET}}": model_name if model_name == "base" else "model",
         }
 
         for key, value in replacements.items():
@@ -189,7 +208,8 @@ def populate_job_template(image_name, model_name, model_type, model_runtime, mod
         print(f"An error occurred while populating job template: {e}")
         return None
 
-def log_job_info(job_name): 
+
+def log_job_info(job_name):
     """Log information about our Job's pod for debugging."""
     # Describe the job
     # command_describe_job = f"kubectl describe job {job_name}"
@@ -214,6 +234,7 @@ def log_job_info(job_name):
     else:
         print(f"No pods found for job {job_name}.")
 
+
 def check_job_status(job_name, iteration):
     """Check the status of a Kubernetes job."""
     # Every 2.5 minutes log job information
@@ -230,8 +251,9 @@ def check_job_status(job_name, iteration):
         return "succeeded"
     elif failed and int(failed) > 0:
         return "failed"
-    else: 
+    else:
         return "running"
+
 
 def wait_for_jobs_to_complete(job_names, timeout=21600):
     """Wait for all jobs to complete with a timeout."""
@@ -247,7 +269,7 @@ def wait_for_jobs_to_complete(job_names, timeout=21600):
                 if status == "failed":
                     print(f"Job {job_name} failed.")
                     return False
-            time.sleep(5) # Wait for 5 sec between requests - prevents connection errors
+            time.sleep(5)  # Wait for 5 sec between requests - prevents connection errors
         if all_completed:
             print("All jobs completed successfully.")
             return True
@@ -255,6 +277,7 @@ def wait_for_jobs_to_complete(job_names, timeout=21600):
         iteration += 1
     print("Timeout waiting for jobs to complete.")
     return False
+
 
 if __name__ == "__main__":
     main()

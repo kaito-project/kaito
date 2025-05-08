@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -26,10 +27,13 @@ import (
 	"k8s.io/utils/clock"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
@@ -37,10 +41,40 @@ import (
 var (
 	// nodeClaimStatusTimeoutInterval is the interval to check the nodeClaim status.
 	nodeClaimStatusTimeoutInterval = 240 * time.Second
+
+	NodeClaimPredicate = predicate.Funcs{
+		CreateFunc: func(e event.CreateEvent) bool {
+			return true
+		},
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			oldNodeClaim, ok := e.ObjectOld.(*karpenterv1.NodeClaim)
+			if !ok {
+				return false
+			}
+
+			newNodeClaim, ok := e.ObjectNew.(*karpenterv1.NodeClaim)
+			if !ok {
+				return false
+			}
+
+			oldNodeClaimCopy := oldNodeClaim.DeepCopy()
+			newNodeClaimCopy := newNodeClaim.DeepCopy()
+
+			// if only nodeclaim.Status.LastPodEventTime is changed, skip update event
+			oldNodeClaimCopy.ResourceVersion = ""
+			oldNodeClaimCopy.Status.LastPodEventTime = metav1.Time{}
+			newNodeClaimCopy.ResourceVersion = ""
+			newNodeClaimCopy.Status.LastPodEventTime = metav1.Time{}
+			return !reflect.DeepEqual(oldNodeClaimCopy, newNodeClaimCopy)
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			return true
+		},
+	}
 )
 
 // GenerateNodeClaimManifest generates a nodeClaim object from the given workspace or RAGEngine.
-func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, obj interface{}) *karpenterv1.NodeClaim {
+func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *karpenterv1.NodeClaim {
 	klog.InfoS("GenerateNodeClaimManifest", "object", obj)
 
 	// Determine the type of the input object and extract relevant fields
@@ -118,7 +152,7 @@ func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, o
 			},
 			Resources: karpenterv1.ResourceRequirements{
 				Requests: v1.ResourceList{
-					v1.ResourceEphemeralStorage: resource.MustParse(storageRequirement),
+					v1.ResourceStorage: resource.MustParse(storageRequirement),
 				},
 			},
 		},
@@ -150,7 +184,7 @@ func GenerateNodeClaimManifest(ctx context.Context, storageRequirement string, o
 }
 
 // GenerateNodeClaimName generates a nodeClaim name from the given workspace or RAGEngine.
-func GenerateNodeClaimName(obj interface{}) string {
+func GenerateNodeClaimName(obj client.Object) string {
 	// Determine the type of the input object and extract relevant fields
 	_, namespace, name, _, _, _, err := resources.ExtractObjFields(obj)
 	if err != nil {
@@ -213,12 +247,14 @@ func CreateNodeClaim(ctx context.Context, nodeClaimObj *karpenterv1.NodeClaim, k
 	return retry.OnError(retry.DefaultBackoff, func(err error) bool {
 		return err.Error() != consts.ErrorInstanceTypesUnavailable
 	}, func() error {
-		err := CheckNodeClass(ctx, kubeClient)
-		if err != nil {
-			return err
+		if featuregates.FeatureGates[consts.FeatureFlagEnsureNodeClass] {
+			err := CheckNodeClass(ctx, kubeClient)
+			if err != nil {
+				return err
+			}
 		}
 
-		err = kubeClient.Create(ctx, nodeClaimObj.DeepCopy(), &client.CreateOptions{})
+		err := kubeClient.Create(ctx, nodeClaimObj.DeepCopy(), &client.CreateOptions{})
 		if err != nil {
 			return err
 		}
@@ -257,7 +293,7 @@ func CreateKarpenterNodeClass(ctx context.Context, kubeClient client.Client) err
 }
 
 // WaitForPendingNodeClaims checks if there are any nodeClaims in provisioning condition. If so, wait until they are ready.
-func WaitForPendingNodeClaims(ctx context.Context, obj interface{}, kubeClient client.Client) error {
+func WaitForPendingNodeClaims(ctx context.Context, obj client.Object, kubeClient client.Client) error {
 
 	// Determine the type of the input object and retrieve the InstanceType
 	instanceType, _, _, _, _, _, err := resources.ExtractObjFields(obj)
@@ -296,7 +332,7 @@ func WaitForPendingNodeClaims(ctx context.Context, obj interface{}, kubeClient c
 }
 
 // ListNodeClaim lists all nodeClaim objects in the cluster that are created by the given workspace or RAGEngine.
-func ListNodeClaim(ctx context.Context, obj interface{}, kubeClient client.Client) (*karpenterv1.NodeClaimList, error) {
+func ListNodeClaim(ctx context.Context, obj client.Object, kubeClient client.Client) (*karpenterv1.NodeClaimList, error) {
 	nodeClaimList := &karpenterv1.NodeClaimList{}
 
 	var ls labels.Set

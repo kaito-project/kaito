@@ -3,18 +3,35 @@
 package model
 
 import (
+	"fmt"
+	"maps"
+	"math"
 	"path"
+	"strconv"
+	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 )
 
 type Model interface {
+	// GetInferenceParameters returns the preset inference parameters for the model.
 	GetInferenceParameters() *PresetParam
+
+	// GetTuningParameters returns the preset tuning parameters for the model.
 	GetTuningParameters() *PresetParam
-	SupportDistributedInference() bool //If true, the model workload will be a StatefulSet, using the torch elastic runtime framework.
+
+	// SupportDistributedInference checks if the model supports distributed inference.
+	// If true, the inference workload will use 'StatefulSet' instead of 'Deployment'
+	// as the workload type. See https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250325-distributed-inference.md
+	// for more details.
+	SupportDistributedInference() bool
+
+	// SupportTuning checks if the model supports tuning.
 	SupportTuning() bool
 }
 
@@ -25,13 +42,68 @@ const (
 	RuntimeNameHuggingfaceTransformers RuntimeName = "transformers"
 	RuntimeNameVLLM                    RuntimeName = "vllm"
 
-	ConfigfileNameVLLM = "inference_config.yaml"
+	ConfigfileNameVLLM    = "inference_config.yaml"
+	DefaultMemoryUtilVLLM = 0.9 // Default gpu memory utilization for VLLM runtime
+	UpperMemoryUtilVLLM   = 0.95
 )
+
+var (
+	// vLLM will do kvcache pre-allocation,
+	// We need to reserve enough memory for other ephemeral operations to avoid OOM.
+	// This is an empirical value.
+	ReservedNonKVCacheMemory = resource.MustParse("1.5Gi")
+)
+
+// Metadata defines the metadata for a model.
+type Metadata struct {
+	// Name is the name of the model, which serves as a unique identifier.
+	// It is used to register the model information and retrieve it later.
+	Name string `yaml:"name"`
+
+	// ModelType is the type of the model, which indicates the kind of model
+	// it is. Currently, the only supported types are "text-generation" and
+	// "llama2-completion" (deprecated).
+	ModelType string `yaml:"type"`
+
+	// Version is the version of the model. It is a URL that points to the
+	// model's huggingface page, which contains the model's repository ID
+	// and revision ID, e.g. https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff.
+	Version string `yaml:"version"`
+
+	// Runtime is the runtime environment in which the model operates.
+	// Currently, the only supported runtime is "tfs".
+	Runtime string `yaml:"runtime"`
+
+	// DownloadAtRuntime indicates whether the model should be downloaded
+	// at runtime. If set to true, the model will be downloaded when the
+	// model deployment is created, and the container image will always be
+	// the Kaito base image. If set to false, a container image whose name
+	// contains the model name will be used, in which the model weights are baked.
+	// +optional
+	DownloadAtRuntime bool `yaml:"downloadAtRuntime,omitempty"`
+
+	// Tag is the tag of the container image used to run the model.
+	// If the model uses the Kaito base image, the tag field can be ignored
+	// +optional
+	Tag string `yaml:"tag,omitempty"`
+}
+
+// Validate checks if the Metadata is valid.
+func (m *Metadata) Validate() error {
+	// Some private models may not have a version URL, so we allow it to be empty until
+	// we remove support for private preset models.
+	if m.Version == "" {
+		return nil
+	}
+
+	_, _, err := utils.ParseHuggingFaceModelVersion(m.Version)
+	return err
+}
 
 // PresetParam defines the preset inference parameters for a model.
 type PresetParam struct {
-	Tag             string // The model image tag
-	ModelFamilyName string // The name of the model family.
+	Metadata
+
 	ImageAccessMode string // Defines where the Image is Public or Private.
 
 	DiskStorageRequirement        string         // Disk storage requirements for the model.
@@ -58,11 +130,10 @@ type RuntimeParam struct {
 }
 
 type HuggingfaceTransformersParam struct {
-	BaseCommand        string            // The initial command (e.g., 'torchrun', 'accelerate launch') used in the command line.
-	TorchRunParams     map[string]string // Parameters for configuring the torchrun command.
-	TorchRunRdzvParams map[string]string // Optional rendezvous parameters for distributed training/inference using torchrun (elastic).
-	InferenceMainFile  string            // The main file for inference.
-	ModelRunParams     map[string]string // Parameters for running the model training/inference.
+	BaseCommand       string            // The initial command (e.g., 'accelerate launch') used in the command line.
+	AccelerateParams  map[string]string // Parameters for configuring the accelerate command.
+	InferenceMainFile string            // The main file for inference.
+	ModelRunParams    map[string]string // Parameters for running the model training/inference.
 }
 
 type VLLMParam struct {
@@ -74,6 +145,9 @@ type VLLMParam struct {
 	DistributionParams map[string]string
 	// Parameters for running the model training/inference.
 	ModelRunParams map[string]string
+	// Indicates if vllm supports LoRA (Low-Rank Adaptation) for this model.
+	// doc: https://docs.vllm.ai/en/latest/models/supported_models.html#text-generation-task-generate
+	DisallowLoRA bool
 }
 
 func (p *PresetParam) DeepCopy() *PresetParam {
@@ -83,10 +157,7 @@ func (p *PresetParam) DeepCopy() *PresetParam {
 	out := new(PresetParam)
 	*out = *p
 	out.RuntimeParam = p.RuntimeParam.DeepCopy()
-	out.TuningPerGPUMemoryRequirement = make(map[string]int, len(p.TuningPerGPUMemoryRequirement))
-	for k, v := range p.TuningPerGPUMemoryRequirement {
-		out.TuningPerGPUMemoryRequirement[k] = v
-	}
+	out.TuningPerGPUMemoryRequirement = maps.Clone(p.TuningPerGPUMemoryRequirement)
 	return out
 }
 
@@ -105,18 +176,8 @@ func (h *HuggingfaceTransformersParam) DeepCopy() HuggingfaceTransformersParam {
 		return HuggingfaceTransformersParam{}
 	}
 	out := *h
-	out.TorchRunParams = make(map[string]string, len(h.TorchRunParams))
-	for k, v := range h.TorchRunParams {
-		out.TorchRunParams[k] = v
-	}
-	out.TorchRunRdzvParams = make(map[string]string, len(h.TorchRunRdzvParams))
-	for k, v := range h.TorchRunRdzvParams {
-		out.TorchRunRdzvParams[k] = v
-	}
-	out.ModelRunParams = make(map[string]string, len(h.ModelRunParams))
-	for k, v := range h.ModelRunParams {
-		out.ModelRunParams[k] = v
-	}
+	out.AccelerateParams = maps.Clone(h.AccelerateParams)
+	out.ModelRunParams = maps.Clone(h.ModelRunParams)
 	return out
 }
 
@@ -125,38 +186,111 @@ func (v *VLLMParam) DeepCopy() VLLMParam {
 		return VLLMParam{}
 	}
 	out := *v
-	out.DistributionParams = make(map[string]string, len(v.DistributionParams))
-	for k, v := range v.DistributionParams {
-		out.DistributionParams[k] = v
-	}
-	out.ModelRunParams = make(map[string]string, len(v.ModelRunParams))
-	for k, v := range v.ModelRunParams {
-		out.ModelRunParams[k] = v
-	}
+	out.DistributionParams = maps.Clone(v.DistributionParams)
+	out.ModelRunParams = maps.Clone(v.ModelRunParams)
 	return out
 }
 
-// builds the container command:
-// eg. torchrun <TORCH_PARAMS> <OPTIONAL_RDZV_PARAMS> baseCommand <MODEL_PARAMS>
-func (p *PresetParam) GetInferenceCommand(runtime RuntimeName, skuNumGPUs string, configVolume *corev1.VolumeMount) []string {
-	switch runtime {
+// RuntimeContext defines the runtime context for a model.
+type RuntimeContext struct {
+	RuntimeName  RuntimeName
+	GPUConfig    *sku.GPUConfig
+	ConfigVolume *corev1.VolumeMount
+	SKUNumGPUs   int
+	RuntimeContextExtraArguments
+}
+
+type RuntimeContextExtraArguments struct {
+	AdaptersEnabled        bool
+	AdapterStrengthEnabled bool
+}
+
+func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
+	switch rc.RuntimeName {
 	case RuntimeNameHuggingfaceTransformers:
-		torchCommand := utils.BuildCmdStr(p.Transformers.BaseCommand, p.Transformers.TorchRunParams, p.Transformers.TorchRunRdzvParams)
-		modelCommand := utils.BuildCmdStr(p.Transformers.InferenceMainFile, p.Transformers.ModelRunParams)
-		return utils.ShellCmd(torchCommand + " " + modelCommand)
+		return p.buildHuggingfaceInferenceCommand()
 	case RuntimeNameVLLM:
-		if p.VLLM.ModelName != "" {
-			p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
-		}
-		if !p.DisableTensorParallelism {
-			p.VLLM.ModelRunParams["tensor-parallel-size"] = skuNumGPUs
-		}
-		if configVolume != nil {
-			p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(configVolume.MountPath, ConfigfileNameVLLM)
-		}
-		modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
-		return utils.ShellCmd(modelCommand)
+		return p.buildVLLMInferenceCommand(rc)
 	default:
 		return nil
 	}
+}
+
+func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
+	if p.DownloadAtRuntime {
+		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
+		p.Transformers.ModelRunParams["pretrained_model_name_or_path"] = repoId
+		if revision != "" {
+			p.Transformers.ModelRunParams["revision"] = revision
+		}
+	}
+	torchCommand := utils.BuildCmdStr(
+		p.Transformers.BaseCommand,
+		p.Transformers.AccelerateParams,
+	)
+	modelCommand := utils.BuildCmdStr(
+		p.Transformers.InferenceMainFile,
+		p.Transformers.ModelRunParams,
+	)
+	return utils.ShellCmd(torchCommand + " " + modelCommand)
+}
+
+func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
+	if p.VLLM.ModelName != "" {
+		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
+	}
+	if !p.DisableTensorParallelism {
+		p.VLLM.ModelRunParams["tensor-parallel-size"] = strconv.Itoa(rc.SKUNumGPUs)
+	}
+	if !p.VLLM.DisallowLoRA && rc.AdaptersEnabled {
+		p.VLLM.ModelRunParams["enable-lora"] = ""
+	}
+	if p.DownloadAtRuntime {
+		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
+		p.VLLM.ModelRunParams["model"] = repoId
+		if revision != "" {
+			p.VLLM.ModelRunParams["code-revision"] = revision
+		}
+	}
+	gpuMemUtil := getGPUMemoryUtilForVLLM(rc.GPUConfig)
+	p.VLLM.ModelRunParams["gpu-memory-utilization"] = strconv.FormatFloat(gpuMemUtil, 'f', 2, 64)
+	if rc.ConfigVolume != nil {
+		p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(rc.ConfigVolume.MountPath, ConfigfileNameVLLM)
+	}
+	modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
+	return utils.ShellCmd(modelCommand)
+}
+
+func (p *PresetParam) Validate(rc RuntimeContext) error {
+	var errs []string
+	switch rc.RuntimeName {
+	case RuntimeNameVLLM:
+		if rc.AdaptersEnabled && p.VLLM.DisallowLoRA {
+			errs = append(errs, fmt.Sprintf("vLLM does not support LoRA adapters for this model: %s", p.VLLM.ModelName))
+		}
+		if rc.AdapterStrengthEnabled {
+			errs = append(errs, "vLLM does not support adapter strength")
+		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("%s", strings.Join(errs, "; "))
+	}
+	return nil
+}
+
+func getGPUMemoryUtilForVLLM(gpuConfig *sku.GPUConfig) float64 {
+	if gpuConfig == nil || gpuConfig.GPUMemGB <= 0 || gpuConfig.GPUCount <= 0 {
+		return DefaultMemoryUtilVLLM
+	}
+
+	gpuMem := resource.MustParse(fmt.Sprintf("%dGi", gpuConfig.GPUMemGB))
+	gpuMemPerGPU := float64(gpuMem.Value()) / float64(gpuConfig.GPUCount)
+
+	if float64(ReservedNonKVCacheMemory.Value()) >= gpuMemPerGPU {
+		// looks impossible, just prevent this case
+		return DefaultMemoryUtilVLLM
+	}
+
+	util := math.Floor((1.0-float64(ReservedNonKVCacheMemory.Value())/gpuMemPerGPU)*100) / 100
+	return math.Min(util, UpperMemoryUtilVLLM)
 }

@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/oss/go/microsoft/golang:1.23 as builder
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/oss/go/microsoft/golang:1.24 as builder
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -35,6 +35,7 @@ RUN --mount=type=cache,target=${GOCACHE} \
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/cbl-mariner/distroless/minimal:2.0
 WORKDIR /
 COPY --from=builder /workspace/manager .
+COPY --from=builder /workspace/presets/workspace/models/supported_models.yaml .
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]

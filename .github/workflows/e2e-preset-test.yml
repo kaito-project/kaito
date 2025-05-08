@@ -21,7 +21,7 @@ on:
                 description: "Test on VLLM runtime"
 
 env:
-    GO_VERSION: "1.23"
+    GO_VERSION: "1.24"
     BRANCH_NAME: ${{ github.head_ref || github.ref_name}} 
     FORCE_RUN_ALL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all == 'true' }}
     FORCE_RUN_ALL_PHI:  ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all-phi-models== 'true' }}
@@ -125,7 +125,7 @@ jobs:
         run: echo "MODEL_IS_OSS=${{ matrix.model.OSS }}" >> $GITHUB_ENV
 
       - name: 'Az CLI login'
-        uses: azure/login@v2.2.0
+        uses: azure/login@v2.3.0
         with:
             client-id: ${{ secrets.AZURE_CLIENT_ID }}
             tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -176,7 +176,7 @@ jobs:
             echo "WORKLOAD_NAME=$WORKLOAD_NAME" >> $GITHUB_OUTPUT
             WORKLOAD_FILE=$WORKLOAD_NAME.yaml
             echo "WORKLOAD_FILE=$WORKLOAD_FILE" >> $GITHUB_OUTPUT
-            RESOURCE_TYPE=$(echo "${{ matrix.model.name }}" | grep -q "llama" && echo "statefulset" || echo "deployment")
+            RESOURCE_TYPE=$(echo "${{ matrix.model.name }}" | grep -q "llama-2" && echo "statefulset" || echo "deployment")
             echo "RESOURCE_TYPE=$RESOURCE_TYPE" >> $GITHUB_OUTPUT
 
             pip install pyyaml
@@ -203,8 +203,7 @@ jobs:
                     --node-vm-size ${{ matrix.model.node-vm-size }} \
                     --node-osdisk-size ${{ matrix.model.node-osdisk-size }} \
                     --labels pool=${{ steps.workload.outputs.NODEPOOL_NAME }} \
-                    --node-taints sku=gpu:NoSchedule \
-                    --aks-custom-headers UseGPUDedicatedVHD=true
+                    --node-taints sku=gpu:NoSchedule
             else
                 NODEPOOL_STATE=$(az aks nodepool show \
                                 --name ${{ steps.workload.outputs.NODEPOOL_NAME }} \
@@ -226,7 +225,7 @@ jobs:
 
       - name: Wait for Resource to be ready
         run: |
-            kubectl rollout status ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} --timeout=1800s
+            kubectl rollout status ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} --timeout=3000s
 
       - name: Check Adapter Loading from Logs
         if: matrix.model.loads_adapter == true
@@ -247,7 +246,7 @@ jobs:
       - name: Test inference endpoint
         run: |
             echo "Testing inference for ${{ matrix.model.name }}"
-            if [[ "${{ matrix.model.name }}" == *"llama"* && "${{ matrix.model.name }}" == *"-chat"* ]]; then
+            if [[ "${{ matrix.model.name }}" == *"llama-2"* && "${{ matrix.model.name }}" == *"-chat"* ]]; then
                 kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
                 curl -s -X POST \
                 -H "Content-Type: application/json" \
@@ -268,7 +267,7 @@ jobs:
                     }
                 }' \
                 http://localhost:5000/chat
-            elif [[ "${{ matrix.model.name }}" == *"llama"* ]]; then
+            elif [[ "${{ matrix.model.name }}" == *"llama-2"* ]]; then
                 kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
                 curl -s -X POST \
                 -H "Content-Type: application/json" \

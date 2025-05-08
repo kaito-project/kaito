@@ -8,7 +8,7 @@ on:
     workflow_dispatch: {}
 
 env:
-    GO_VERSION: "1.23"
+    GO_VERSION: "1.24"
 
 permissions:
     id-token: write
@@ -27,7 +27,7 @@ jobs:
             fetch-depth: 0
 
       - name: 'Az CLI login'
-        uses: azure/login@v2.2.0
+        uses: azure/login@v2.3.0
         with:
             client-id: ${{ secrets.AZURE_CLIENT_ID }}
             tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -67,8 +67,7 @@ jobs:
                     --node-vm-size ${{ steps.get_test_meta.outputs.node-vm-size }} \
                     --node-osdisk-size ${{ steps.get_test_meta.outputs.node-osdisk-size }} \
                     --labels pool=${{ steps.get_test_meta.outputs.name }} \
-                    --node-taints sku=gpu:NoSchedule \
-                    --aks-custom-headers UseGPUDedicatedVHD=true
+                    --node-taints sku=gpu:NoSchedule
             else
                 NODEPOOL_STATE=$(az aks nodepool show \
                                 --name ${{ steps.get_test_meta.outputs.name }} \

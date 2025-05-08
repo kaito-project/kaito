@@ -1,4 +1,3 @@
-
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -32,3 +31,7 @@ hack/tools/bin/*
 
 # values override file for helm chart installation
 values.override.yaml
+
+# tilt artifacts
+tilt_bin
+tilt-settings*

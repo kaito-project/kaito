@@ -2,8 +2,8 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.4.4
-GPU_PROVISIONER_VERSION ?= 0.3.2
+VERSION ?= v0.4.5
+GPU_PROVISIONER_VERSION ?= 0.3.3
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
@@ -45,10 +45,9 @@ KARPENTER_SA_NAME ?= karpenter-sa
 KARPENTER_VERSION ?= 0.5.1
 AZURE_KARPENTER_MSI_NAME ?= azkarpenterIdentity
 
-RUN_LLAMA_13B ?= false
 AI_MODELS_REGISTRY ?= modelregistry.azurecr.io
 AI_MODELS_REGISTRY_SECRET ?= modelregistry
-SUPPORTED_MODELS_YAML_PATH ?= ~/runner/_work/kaito/kaito/presets/workspace/models/supported_models.yaml
+SUPPORTED_MODELS_YAML_PATH ?= $(ROOT_DIR)/presets/workspace/models/supported_models.yaml
 
 ## AWS parameters
 CLUSTER_CONFIG_FILE ?= ./docs/aws/clusterconfig.yaml.template
@@ -138,15 +137,17 @@ GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 120m
 GINKGO_ARGS ?= --label-filter="$(GINKGO_LABEL)" -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT) --fail-fast
 
+.PHONY: $(E2E_TEST)
 $(E2E_TEST):
 	(cd test/e2e && go test -c . -o $(E2E_TEST))
 
+.PHONY: $(RAGENGINE_E2E_TEST)
 $(RAGENGINE_E2E_TEST):
 	(cd test/rage2e && go test -c . -o $(RAGENGINE_E2E_TEST))
 
 .PHONY: kaito-workspace-e2e-test
 kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO)
-	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) RUN_LLAMA_13B=$(RUN_LLAMA_13B) \
+	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) \
  	AI_MODELS_REGISTRY=$(AI_MODELS_REGISTRY) GPU_PROVISIONER_NAMESPACE=$(GPU_PROVISIONER_NAMESPACE) \
  	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_NAMESPACE=$(KAITO_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
 	SUPPORTED_MODELS_YAML_PATH=$(SUPPORTED_MODELS_YAML_PATH) \
@@ -154,7 +155,7 @@ kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO)
 
 .PHONY: kaito-ragengine-e2e-test
 kaito-ragengine-e2e-test: $(RAGENGINE_E2E_TEST) $(GINKGO)
-	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) RUN_LLAMA_13B=$(RUN_LLAMA_13B) \
+	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) \
 	AI_MODELS_REGISTRY=$(AI_MODELS_REGISTRY) GPU_PROVISIONER_NAMESPACE=$(GPU_PROVISIONER_NAMESPACE)  KAITO_NAMESPACE=$(KAITO_NAMESPACE) \
 	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_RAGENGINE_NAMESPACE=$(KAITO_RAGENGINE_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
 	SUPPORTED_MODELS_YAML_PATH=$(SUPPORTED_MODELS_YAML_PATH) \
@@ -207,7 +208,7 @@ mktemp:
 
 .PHONY: deploy-aws-cloudformation
 deploy-aws-cloudformation: mktemp ## Deploy AWS CloudFormation stack
-	curl -fsSL https://raw.githubusercontent.com/aws/karpenter-provider-aws/v"${AWS_KARPENTER_VERSION}"/website/content/en/preview/getting-started/getting-started-with-karpenter/cloudformation.yaml  > "${TEMPOUT}" 
+	curl -fsSL https://raw.githubusercontent.com/aws/karpenter-provider-aws/v"${AWS_KARPENTER_VERSION}"/website/content/en/preview/getting-started/getting-started-with-karpenter/cloudformation.yaml  > "${TEMPOUT}"
 
 	aws cloudformation deploy \
 	--stack-name "Karpenter-${AWS_CLUSTER_NAME}" \
@@ -285,6 +286,13 @@ docker-build-adapter: docker-buildx
 		--platform="linux/$(ARCH)" \
 		--pull \
 		--tag $(REGISTRY)/e2e-adapter2:0.0.1 .
+	docker buildx build \
+		--build-arg ADAPTER_PATH=docker/adapters/adapter-phi-3-mini-pycoder \
+		--file ./docker/adapters/Dockerfile \
+		--output=$(OUTPUT_TYPE) \
+		--platform="linux/$(ARCH)" \
+		--pull \
+		--tag $(REGISTRY)/adapter-phi-3-mini-pycoder:0.0.1 .
 
 .PHONY: docker-build-dataset
 docker-build-dataset: docker-buildx
@@ -346,13 +354,13 @@ az-patch-install-ragengine-helm:
 	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace
 
 .PHONY: aws-patch-install-helm ##install kaito on AWS cluster
-aws-patch-install-helm: 
+aws-patch-install-helm:
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    	./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               	./charts/kaito/workspace/values.yaml
 	yq -i '(.featureGates.Karpenter)                                    	= "true"'                                       ./charts/kaito/workspace/values.yaml
 	yq -i '(.clusterName)                                                   = "$(AWS_CLUSTER_NAME)"'                    		./charts/kaito/workspace/values.yaml
 	yq -i '(.cloudProviderName)                                             = "aws"'                                        ./charts/kaito/workspace/values.yaml
-	
+
 	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace
 
 generate-identities: ## Create identities for the provisioner component.
@@ -399,7 +407,7 @@ azure-karpenter-helm:  ## Update Azure client env vars and settings in helm valu
 ## AWS Karpenter Installation
 ## --------------------------------------
 .PHONY: aws-karpenter-helm
-aws-karpenter-helm:  
+aws-karpenter-helm:
 	helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter \
 	--version "${AWS_KARPENTER_VERSION}" \
 	--namespace "${KARPENTER_NAMESPACE}" --create-namespace \

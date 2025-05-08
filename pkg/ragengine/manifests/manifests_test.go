@@ -1,7 +1,9 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 package manifests
 
 import (
-	"context"
 	"reflect"
 	"testing"
 
@@ -27,7 +29,7 @@ func TestGenerateRAGDeploymentManifest(t *testing.T) {
 		ragEngine := test.MockRAGEngineWithPreset
 
 		// Calling the function to generate the deployment manifest
-		obj := GenerateRAGDeploymentManifest(context.TODO(), ragEngine, test.MockRAGEngineWithPresetHash,
+		obj := GenerateRAGDeploymentManifest(ragEngine, test.MockRAGEngineWithPresetHash,
 			"",                            // imageName
 			nil,                           // imagePullSecretRefs
 			*ragEngine.Spec.Compute.Count, // replicas
@@ -64,6 +66,93 @@ func TestGenerateRAGDeploymentManifest(t *testing.T) {
 			if !kvInNodeRequirement(key, value, nodeReq) {
 				t.Errorf("Node affinity requirements are wrong for key %s and value %s", key, value)
 			}
+		}
+
+		// Verify owner references
+		if len(obj.OwnerReferences) != 1 {
+			t.Errorf("Expected 1 owner reference, got %d", len(obj.OwnerReferences))
+		}
+		ownerRef := obj.OwnerReferences[0]
+		if ownerRef.APIVersion != kaitov1alpha1.GroupVersion.String() {
+			t.Errorf("Expected owner reference APIVersion %s, got %s", kaitov1alpha1.GroupVersion.String(), ownerRef.APIVersion)
+		}
+		if ownerRef.Kind != "RAGEngine" {
+			t.Errorf("Expected owner reference Kind %s, got %s", "RAGEngine", ownerRef.Kind)
+		}
+		if ownerRef.Name != ragEngine.Name {
+			t.Errorf("Expected owner reference Name %s, got %s", ragEngine.Name, ownerRef.Name)
+		}
+		if string(ownerRef.UID) != string(ragEngine.UID) {
+			t.Errorf("Expected owner reference UID %s, got %s", string(ragEngine.UID), string(ownerRef.UID))
+		}
+		if ownerRef.Controller == nil || !*ownerRef.Controller {
+			t.Error("Expected owner reference Controller to be true")
+		}
+	})
+}
+
+func TestGenerateRAGServiceManifest(t *testing.T) {
+	t.Run("generate RAG service", func(t *testing.T) {
+		// Mocking the RAGEngine object for the test
+		ragEngine := test.MockRAGEngineWithPreset
+		serviceName := "test-rag-service"
+		serviceType := v1.ServiceTypeClusterIP
+
+		// Generate the service manifest
+		service := GenerateRAGServiceManifest(ragEngine, serviceName, serviceType)
+
+		// Verify service name
+		if service.Name != serviceName {
+			t.Errorf("Expected service name %s, got %s", serviceName, service.Name)
+		}
+
+		// Verify namespace
+		if service.Namespace != ragEngine.Namespace {
+			t.Errorf("Expected namespace %s, got %s", ragEngine.Namespace, service.Namespace)
+		}
+
+		// Verify service type
+		if service.Spec.Type != serviceType {
+			t.Errorf("Expected service type %s, got %s", serviceType, service.Spec.Type)
+		}
+
+		// Verify selector
+		expectedSelector := map[string]string{
+			kaitov1alpha1.LabelRAGEngineName: ragEngine.Name,
+		}
+		if !reflect.DeepEqual(service.Spec.Selector, expectedSelector) {
+			t.Errorf("Expected selector %v, got %v", expectedSelector, service.Spec.Selector)
+		}
+
+		// Verify ports
+		if len(service.Spec.Ports) != 1 {
+			t.Errorf("Expected 1 port, got %d", len(service.Spec.Ports))
+		}
+
+		port := service.Spec.Ports[0]
+		if port.Name != "http" || port.Port != 80 || port.TargetPort.IntVal != 5000 {
+			t.Errorf("Port configuration is incorrect")
+		}
+
+		// Enhanced owner reference verification
+		if len(service.OwnerReferences) != 1 {
+			t.Errorf("Expected 1 owner reference, got %d", len(service.OwnerReferences))
+		}
+		ownerRef := service.OwnerReferences[0]
+		if ownerRef.APIVersion != kaitov1alpha1.GroupVersion.String() {
+			t.Errorf("Expected owner reference APIVersion %s, got %s", kaitov1alpha1.GroupVersion.String(), ownerRef.APIVersion)
+		}
+		if ownerRef.Kind != "RAGEngine" {
+			t.Errorf("Expected owner reference Kind %s, got %s", "RAGEngine", ownerRef.Kind)
+		}
+		if ownerRef.Name != ragEngine.Name {
+			t.Errorf("Expected owner reference Name %s, got %s", ragEngine.Name, ownerRef.Name)
+		}
+		if string(ownerRef.UID) != string(ragEngine.UID) {
+			t.Errorf("Expected owner reference UID %s, got %s", string(ragEngine.UID), string(ownerRef.UID))
+		}
+		if ownerRef.Controller == nil || !*ownerRef.Controller {
+			t.Error("Expected owner reference Controller to be true")
 		}
 	})
 }

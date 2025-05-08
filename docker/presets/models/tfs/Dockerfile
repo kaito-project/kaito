@@ -1,18 +1,18 @@
-FROM python:3.12-slim
+FROM python:3.12-slim AS base
 
-ARG WEIGHTS_PATH
 ARG MODEL_TYPE
 ARG VERSION
 
 # Set the working directory
 WORKDIR /workspace
 
-# Model weights
-COPY ${WEIGHTS_PATH} /workspace/weights
-
 COPY kaito/presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
 
 RUN pip install --no-cache-dir -r /workspace/requirements.txt
+
+# Required for torch.compile
+RUN apt-get update -y && apt-get install --no-install-recommends gcc perl -y && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 1. Huggingface transformers
 COPY kaito/presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
@@ -29,6 +29,14 @@ COPY kaito/presets/workspace/inference/vllm/inference_api.py /workspace/vllm/inf
 # Chat template
 ADD kaito/presets/workspace/inference/chat_templates /workspace/chat_templates
 
-RUN echo $VERSION > /workspace/version.txt && \
-    ln -s /workspace/weights /workspace/tfs/weights && \
+RUN echo $VERSION > /workspace/version.txt
+
+FROM base AS model
+
+ARG WEIGHTS_PATH
+
+# Model weights
+COPY ${WEIGHTS_PATH} /workspace/weights
+
+RUN ln -s /workspace/weights /workspace/tfs/weights && \
     ln -s /workspace/weights /workspace/vllm/weights

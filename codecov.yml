@@ -1,0 +1,23 @@
+comment:
+  layout: "header, diff, flags, components"  # show component info in the PR comment
+
+component_management:
+  default_rules:  # default rules that will be inherited by all components
+    statuses:
+      - type: project
+        target: auto
+        branches:
+          - "!main"
+  individual_components:
+    - component_id: module_workspace
+      name: workspace
+      paths:
+        - pkg/**
+    - component_id: module_presets
+      name: presets
+      paths:
+        - presets/**
+    - component_id: module_cmd
+      name: main
+      paths:
+        - cmd/**

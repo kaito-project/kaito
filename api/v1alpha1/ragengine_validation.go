@@ -77,9 +77,8 @@ func (r *ResourceSpec) validateRAGCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 		return errs
 	}
-	gpuConfigs := skuHandler.GetGPUConfigs()
 
-	if _, exists := gpuConfigs[instanceType]; !exists {
+	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig == nil {
 		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
 		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {

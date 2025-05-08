@@ -5,11 +5,11 @@ package falcon
 import (
 	"time"
 
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func init() {
@@ -31,19 +31,14 @@ func init() {
 	})
 }
 
-var (
+const (
 	PresetFalcon7BModel          = "falcon-7b"
 	PresetFalcon40BModel         = "falcon-40b"
 	PresetFalcon7BInstructModel  = PresetFalcon7BModel + "-instruct"
 	PresetFalcon40BInstructModel = PresetFalcon40BModel + "-instruct"
+)
 
-	PresetFalconTagMap = map[string]string{
-		"Falcon7B":          "0.0.8",
-		"Falcon7BInstruct":  "0.0.8",
-		"Falcon40B":         "0.0.9",
-		"Falcon40BInstruct": "0.0.9",
-	}
-
+var (
 	baseCommandPresetFalconInference = "accelerate launch"
 	baseCommandPresetFalconTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	falconRunParams                  = map[string]string{
@@ -63,8 +58,7 @@ type falcon7b struct{}
 
 func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
+		Metadata:                  metadata.MustGet(PresetFalcon7BModel),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "14Gi",
@@ -72,7 +66,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
@@ -80,6 +74,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 				BaseCommand:    inference.DefaultVLLMCommand,
 				ModelName:      "falcon-7b",
 				ModelRunParams: falconRunParamsVLLM,
+				DisallowLoRA:   true,
 			},
 			// vllm requires the model specification to be exactly divisible by
 			// the number of GPUs(tensor parallel level).
@@ -88,26 +83,23 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 			DisableTensorParallelism: true,
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetFalconTagMap["Falcon7B"],
 	}
 }
 func (*falcon7b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
+		Metadata:                  metadata.MustGet(PresetFalcon7BModel),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
 		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:    baseCommandPresetFalconTuning,
-				TorchRunParams: tuning.DefaultAccelerateParams,
-				//ModelRunPrams:             falconRunTuningParams, // TODO
+				BaseCommand:      baseCommandPresetFalconTuning,
+				AccelerateParams: tuning.DefaultAccelerateParams,
+				// ModelRunPrams:    falconRunTuningParams, // TODO
 			},
 		},
 		ReadinessTimeout:              time.Duration(30) * time.Minute,
-		Tag:                           PresetFalconTagMap["Falcon7B"],
 		TuningPerGPUMemoryRequirement: map[string]int{"qlora": 16},
 	}
 }
@@ -125,8 +117,7 @@ type falcon7bInst struct{}
 
 func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
+		Metadata:                  metadata.MustGet(PresetFalcon7BInstructModel),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "14Gi",
@@ -134,14 +125,15 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "falcon-7b-instruct",
+				ModelName:      PresetFalcon7BInstructModel,
 				ModelRunParams: falconRunParamsVLLM,
+				DisallowLoRA:   true,
 			},
 			// vllm requires the model specification to be exactly divisible by
 			// the number of GPUs(tensor parallel level).
@@ -150,7 +142,6 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 			DisableTensorParallelism: true,
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetFalconTagMap["Falcon7BInstruct"],
 	}
 
 }
@@ -170,8 +161,7 @@ type falcon40b struct{}
 
 func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
+		Metadata:                  metadata.MustGet(PresetFalcon40BModel),
 		DiskStorageRequirement:    "400",
 		GPUCountRequirement:       "2",
 		TotalGPUMemoryRequirement: "90Gi",
@@ -179,37 +169,34 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "falcon-40b",
+				ModelName:      PresetFalcon40BModel,
 				ModelRunParams: falconRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetFalconTagMap["Falcon40B"],
 	}
 }
 func (*falcon40b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
+		Metadata:                  metadata.MustGet(PresetFalcon40BModel),
 		DiskStorageRequirement:    "50Gi",
 		GPUCountRequirement:       "2",
 		TotalGPUMemoryRequirement: "90Gi",
 		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:    baseCommandPresetFalconTuning,
-				TorchRunParams: tuning.DefaultAccelerateParams,
-				//ModelRunPrams:             falconRunTuningParams, // TODO
+				BaseCommand:      baseCommandPresetFalconTuning,
+				AccelerateParams: tuning.DefaultAccelerateParams,
+				// ModelRunPrams:    falconRunTuningParams, // TODO
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetFalconTagMap["Falcon40B"],
 	}
 }
 func (*falcon40b) SupportDistributedInference() bool {
@@ -225,8 +212,7 @@ type falcon40bInst struct{}
 
 func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ModelFamilyName:           "Falcon",
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
+		Metadata:                  metadata.MustGet(PresetFalcon40BInstructModel),
 		DiskStorageRequirement:    "400",
 		GPUCountRequirement:       "2",
 		TotalGPUMemoryRequirement: "90Gi",
@@ -234,18 +220,17 @@ func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "falcon-40b-instruct",
+				ModelName:      PresetFalcon40BInstructModel,
 				ModelRunParams: falconRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
-		Tag:              PresetFalconTagMap["Falcon40BInstruct"],
 	}
 }
 func (*falcon40bInst) GetTuningParameters() *model.PresetParam {

@@ -182,7 +182,7 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 		mockWorkspace := test.MockWorkspaceWithPreset
 		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
-		nodeClaim := GenerateNodeClaimManifest(context.Background(), "0", mockWorkspace)
+		nodeClaim := GenerateNodeClaimManifest("0", mockWorkspace)
 
 		assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
 		assert.Equal(t, nodeClaim.Namespace, mockWorkspace.Namespace, "NodeClaim must have same namespace as workspace")
@@ -201,7 +201,7 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 		mockWorkspace := test.MockWorkspaceWithPreset
 		t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
 
-		nodeClaim := GenerateNodeClaimManifest(context.Background(), "0", mockWorkspace)
+		nodeClaim := GenerateNodeClaimManifest("0", mockWorkspace)
 
 		assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
 		assert.Equal(t, nodeClaim.Namespace, mockWorkspace.Namespace, "NodeClaim must have same namespace as workspace")

@@ -1,4 +1,4 @@
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-phi-3-mini-adapter

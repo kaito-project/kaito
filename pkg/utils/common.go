@@ -6,6 +6,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -25,6 +26,10 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+const (
+	errInvalidModelVersionURL = "invalid model version URL: %s. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>"
 )
 
 var (
@@ -152,33 +157,32 @@ func GetSKUHandler() (sku.CloudSKUHandler, error) {
 	return skuHandler, nil
 }
 
-func GetSKUNumGPUs(ctx context.Context, kubeClient client.Client, workerNodes []string, instanceType, defaultGPUCount string) (string, error) {
+func GetGPUConfigBySKU(instanceType string) (*sku.GPUConfig, error) {
 	skuHandler, err := GetSKUHandler()
 	if err != nil {
-		return "", apis.ErrInvalidValue(fmt.Sprintf("Failed to get SKU handler: %v", err), "sku")
+		return nil, apis.ErrInvalidValue(fmt.Sprintf("Failed to get SKU handler: %v", err), "sku")
 	}
 
-	skuNumGPUs := defaultGPUCount // Default to using the provided default GPU count
+	return skuHandler.GetGPUConfigBySKU(instanceType), nil
+}
 
-	skuConfig, skuExists := skuHandler.GetGPUConfigs()[instanceType]
-	if skuExists {
-		skuNumGPUs = fmt.Sprintf("%d", skuConfig.GPUCount)
-	} else {
-		skuGPUCount, err := FetchGPUCountFromNodes(ctx, kubeClient, workerNodes)
-		if err != nil {
-			fmt.Printf("Failed to fetch GPU count from nodes: %v", err)
-		} else if skuGPUCount != "" {
-			skuNumGPUs = skuGPUCount
-		}
+func TryGetGPUConfigFromNode(ctx context.Context, kubeClient client.Client, workerNodes []string) (*sku.GPUConfig, error) {
+	skuGPUCount, err := FetchGPUCountFromNodes(ctx, kubeClient, workerNodes)
+	if err != nil || skuGPUCount == 0 {
+		return nil, fmt.Errorf("failed to fetch GPU count from nodes: %w", err)
 	}
 
-	return skuNumGPUs, nil
+	return &sku.GPUConfig{
+		SKU:      "unknown", // SKU is not available from nodes
+		GPUCount: skuGPUCount,
+		GPUModel: "unknown", // GPU model is not available from nodes
+	}, nil
 }
 
 // FetchGPUCountFromNodes retrieves the GPU count from the given node names.
-func FetchGPUCountFromNodes(ctx context.Context, kubeClient client.Client, nodeNames []string) (string, error) {
+func FetchGPUCountFromNodes(ctx context.Context, kubeClient client.Client, nodeNames []string) (int, error) {
 	if len(nodeNames) == 0 {
-		return "", fmt.Errorf("no worker nodes found in the workspace")
+		return 0, fmt.Errorf("no worker nodes found in the workspace")
 	}
 
 	var allNodes v1.NodeList
@@ -198,14 +202,14 @@ func FetchGPUCountFromNodes(ctx context.Context, kubeClient client.Client, nodeN
 	return GetPerNodeGPUCountFromNodes(&allNodes), nil
 }
 
-func GetPerNodeGPUCountFromNodes(nodeList *v1.NodeList) string {
+func GetPerNodeGPUCountFromNodes(nodeList *v1.NodeList) int {
 	for _, node := range nodeList.Items {
 		gpuCount, exists := node.Status.Capacity[consts.NvidiaGPU]
 		if exists && gpuCount.String() != "" {
-			return gpuCount.String()
+			return int(gpuCount.Value())
 		}
 	}
-	return ""
+	return 0
 }
 
 func ExtractAndValidateRepoName(image string) error {
@@ -268,4 +272,45 @@ func SelectNodes(qualified []*v1.Node, preferred []string, previous []string, co
 	}
 
 	return qualified[0:count]
+}
+
+// ParseHuggingFaceModelVersion parses the model version in the format of https://huggingface.co/<org>/<model>/commit/<revision>
+// and returns the repoId and revision. If the commit is not specified, it returns an empty string for revision,
+// and the main branch HEAD commit is used.
+//
+// Example 1:
+//
+//	Version: "https://huggingface.co/tiiuae/falcon-7b/commit/ec89142b67d748a1865ea4451372db8313ada0d8"
+//	RepoId: "tiiuae/falcon-7b"
+//	Revision: "ec89142b67d748a1865ea4451372db8313ada0d8"
+//
+// Example 2:
+//
+//	Version: https://huggingface.co/tiiuae/falcon-7b
+//	RepoId: "tiiuae/falcon-7b"
+//	Revision: "" (main branch HEAD commit is used)
+func ParseHuggingFaceModelVersion(version string) (repoId string, revision string, err error) {
+	parsedURL, err := url.Parse(version)
+	if err != nil {
+		return "", "", err
+	}
+
+	if parsedURL.Host != "huggingface.co" {
+		return "", "", fmt.Errorf(errInvalidModelVersionURL, version)
+	}
+
+	parts := strings.Split(strings.Trim(parsedURL.Path, "/"), "/")
+	switch len(parts) {
+	case 2: // Expected path: "<org>/<model>"
+		repoId, revision = parts[0]+"/"+parts[1], ""
+		return
+	case 4: // Expected path: "<org>/<model>/commit/<revision>"
+		if parts[2] != "commit" {
+			break
+		}
+		repoId, revision = parts[0]+"/"+parts[1], parts[3]
+		return
+	}
+
+	return "", "", fmt.Errorf(errInvalidModelVersionURL, version)
 }

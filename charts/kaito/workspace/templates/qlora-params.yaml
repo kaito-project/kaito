@@ -10,6 +10,7 @@ data:
         torch_dtype: "bfloat16"
         local_files_only: true
         device_map: "auto"
+        # chat_template: "/workspace/chat_templates/phi-3.jinja" # Commented out to use default template
     
       QuantizationConfig: # Configurable Parameters: https://huggingface.co/docs/transformers/v4.40.2/en/main_classes/quantization#transformers.BitsAndBytesConfig
         load_in_4bit: true

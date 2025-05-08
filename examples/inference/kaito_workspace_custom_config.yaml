@@ -1,0 +1,34 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-deepseek-r1-distill-qwen-14b
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: deepseek-r1-distill-qwen-14b
+inference:
+  preset:
+    name: "deepseek-r1-distill-qwen-14b"
+  config: "ds-inference-params"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ds-inference-params
+data:
+  inference_config.yaml: |
+    # Maximum number of steps to find the max available seq len fitting in the GPU memory.
+    max_probe_steps: 6
+
+    vllm:
+      cpu-offload-gb: 0
+      gpu-memory-utilization: 0.95
+      swap-space: 4
+      max-model-len: 131072
+      tensor-parallel-size: 2
+
+      max-seq-len-to-capture: 8192
+      num-scheduler-steps: 1
+      enable-chunked-prefill: true
+      # see https://docs.vllm.ai/en/latest/serving/engine_args.html for more options.

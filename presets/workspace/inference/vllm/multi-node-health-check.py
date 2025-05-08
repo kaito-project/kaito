@@ -13,7 +13,7 @@ def liveness(args):
 
     ray.init(address=f"{args.ray_address}:{args.ray_port}", logging_level=logging.ERROR)
 
-    # Checking the Ray job"s entrypoint is the best we can do to identify the VLLM inference job
+    # Checking the Ray job's entrypoint is the best we can do to identify the VLLM inference job
     inference_job = next(filter(lambda job: job["Entrypoint"].startswith("python3 /workspace/vllm/inference_api.py"), state.jobs()), None)
     assert inference_job is not None, "Inference job not found in Ray jobs"
 
@@ -29,7 +29,7 @@ def readiness(args):
     import requests
     endpoint = f"http://{args.ray_address}:{args.vllm_port}/health"
     try:
-        response = requests.get(f"http://{args.ray_address}:{args.vllm_port}/health")
+        response = requests.get(endpoint)
         if response.status_code != 200:
             sys.exit(1)
     except requests.exceptions.RequestException as e:

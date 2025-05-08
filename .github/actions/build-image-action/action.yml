@@ -70,9 +70,6 @@ runs:
         echo "Initial disk usage:"
         df -h
 
-        # Remove unused Docker resources
-        docker system prune -a -f --volumes
-
         # Check Docker-related disk usage after cleanup
         echo "Docker-related disk usage after cleanup:"
         docker system df
@@ -81,32 +78,23 @@ runs:
         echo "Final disk usage:"
         df -h
       shell: bash
-
-    - name: Check and Create Kind Cluster
+    - name: Set up Docker Buildx
       run: |
-        if ! kind get clusters | grep -q kind; then
-          echo "Creating directory for etcd storage"
-          sudo mkdir -p /mnt/storage/etcd
-          echo "Creating Kind cluster"
+        # Define a builder name variable that includes the current file name
+        BUILDER_NAME="model-builder"
+        echo "Using builder name: $BUILDER_NAME"
 
-          if [[ "${{ inputs.runs_on }}" == "hostname:model-server" ]]; then
-            # Ensure clean etcd directory for mounting
-            sudo rm -rf /datadrive/etcd/*
-            config_file=".github/workflows/kind-cluster/kind.yaml"
-          else
-            # Ensure clean etcd directory for mounting
-            sudo rm -rf /mnt/storage/etcd/*
-            config_file=".github/workflows/kind-cluster/kind-1es.yaml"
-          fi
-
-          if ! kind create cluster --config $config_file; then
-            echo "Failed to create the Kind cluster."
-            exit 1
-          fi
+        # Check if the builder instance already exists
+        if ! docker buildx inspect $BUILDER_NAME &>/dev/null; then
+          echo "Creating new Docker Buildx instance '$BUILDER_NAME'..."
+          docker buildx create --name=$BUILDER_NAME --driver=docker-container --use --bootstrap --driver-opt image=mcr.microsoft.com/oss/v2/moby/buildkit:v0.20.2
         else
-          echo "Kind cluster already exists."
+          echo "Docker Buildx instance '$BUILDER_NAME' already exists, using it..."
+          docker buildx use $BUILDER_NAME
         fi
-        kubectl cluster-info --context kind-kind
+
+        # Verify the builder is working
+        docker buildx inspect --bootstrap
       shell: bash
 
     - name: Check if Image exists in target ACR
@@ -133,51 +121,47 @@ runs:
         # fi
       shell: bash
 
-    - name: Launch Python Script to Kickoff Build Jobs
+    - name: Build image
       if: steps.check_test_image.outputs.IMAGE_EXISTS == 'false'
-      id: launch_script
       run: |
-        PR_BRANCH=${{ inputs.branch_name }} \
-        ACR_NAME=${{ inputs.acr_name }} \
-        ACR_USERNAME=${{ inputs.acr_username }} \
-        ACR_PASSWORD=${{ inputs.acr_password }} \
-        IMAGE_NAME=${{ inputs.image_name }} \
+        PR_BRANCH=${{ inputs.branch_name }}
+        ACR_NAME=${{ inputs.acr_name }}
+        ACR_USERNAME=${{ inputs.acr_username }}
+        ACR_PASSWORD=${{ inputs.acr_password }}
+        IMAGE_NAME=${{ inputs.image_name }}
+        MODEL_NAME=${{ inputs.model_name }}
+        MODEL_TYPE=${{ inputs.model_type }}
+        MODEL_VERSION=${{ inputs.model_version }}
+        MODEL_RUNTIME=${{ inputs.model_runtime }}
+        MODEL_TAG=${{ inputs.image_tag }}
+        WEIGHTS_DIR=${{ inputs.weights_dir }}
+        HF_USERNAME=${{ inputs.hf_username }}
+        HF_TOKEN=${{ inputs.hf_token }}
+
+        # Login to Docker registry
+        echo $ACR_PASSWORD | docker login $ACR_NAME.azurecr.io -u $ACR_USERNAME --password-stdin
+
+        # Download model and Generate Dockerfile
+        MODEL_DIR=$WEIGHTS_DIR/$IMAGE_NAME/weights
+        DOCKER_CACHE_DIR=$WEIGHTS_DIR/docker-cache
+
         MODEL_NAME=${{ inputs.model_name }} \
-        MODEL_TYPE=${{ inputs.model_type }} \
         MODEL_VERSION=${{ inputs.model_version }} \
-        MODEL_RUNTIME=${{ inputs.model_runtime }} \
-        MODEL_TAG=${{ inputs.image_tag }} \
-        WEIGHTS_DIR=${{ inputs.weights_dir }} \
-        HF_USERNAME=${{ inputs.hf_username }} \
+        WEIGHTS_DIR=$MODEL_DIR \
         HF_TOKEN=${{ inputs.hf_token }} \
-        python3 .github/workflows/kind-cluster/main.py
-      shell: bash
+        python3 docker/presets/models/tfs/download_and_gen_dockerfile.py
+        echo "=========================================="
+        cat Dockerfile_$IMAGE_NAME
+        echo "=========================================="
 
-    - name: Check Python Script Status
-      if: ${{ always() }}
-      run: |
-        if [[ "${{ steps.check_test_image.outputs.IMAGE_EXISTS }}" == "true" ]]; then
-          echo "Image already exists; skipping the status step."
-        elif [[ "${{ steps.launch_script.outcome }}" != "success" ]]; then
-          echo "Python script failed to execute successfully."
-          exit 1  # Fail the job due to script failure
-        else
-          echo "Python script executed successfully."
-        fi
-      shell: bash
-
-    - name: Cleanup
-      if: ${{ always() }}
-      run: |
-        echo "Cleaning up kindnet resources..."
-        kubectl delete clusterrole kindnet --ignore-not-found || true
-        kubectl delete clusterrolebinding kindnet --ignore-not-found || true
-        kubectl delete serviceaccount kindnet -n kube-system --ignore-not-found || true
-        kubectl delete daemonset kindnet -n kube-system --ignore-not-found || true
-
-        kind delete cluster
-
-        if [[ "${{ inputs.image_already_built }}" == "false" ]]; then
-          kubectl get job --no-headers -o custom-columns=":metadata.name" | grep "^docker-build-job-${{ inputs.model_name }}-[0-9]" | xargs -r kubectl delete job
-        fi
+        # Build
+        docker buildx build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG \
+          --build-context modeldir=$MODEL_DIR \
+          --builder model-builder \
+          --cache-from=type=local,src=$DOCKER_CACHE_DIR \
+          --cache-to=type=local,dest=$DOCKER_CACHE_DIR \
+          --build-arg VERSION=$MODEL_TAG \
+          --build-arg MODEL_TYPE=$MODEL_TYPE \
+          --push \
+          -f Dockerfile_$IMAGE_NAME .
       shell: bash

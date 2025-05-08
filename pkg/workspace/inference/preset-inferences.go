@@ -210,8 +210,8 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 
 	var depObj client.Object
 	if model.SupportDistributedInference() && numNodes > 1 {
-		livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, workspaceObj, 150, 10, 5)
-		readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, workspaceObj, 150, 10, 1)
+		livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, workspaceObj, 60, 10, 5)
+		readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, workspaceObj, 60, 10, 1)
 		depObj = manifests.GenerateStatefulSetManifest(workspaceObj, image, imagePullSecrets, numNodes, commands,
 			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars)
 	} else {

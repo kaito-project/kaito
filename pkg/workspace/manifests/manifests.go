@@ -35,16 +35,9 @@ func GenerateHeadlessServiceManifest(workspaceObj *kaitov1beta1.Workspace) *core
 			},
 		},
 		Spec: corev1.ServiceSpec{
-			Selector:  selector,
-			ClusterIP: "None",
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "torchrun",
-					Protocol:   corev1.ProtocolTCP,
-					Port:       29500,
-					TargetPort: intstr.FromInt32(29500),
-				},
-			},
+			Selector:                 selector,
+			ClusterIP:                "None",
+			Ports:                    []corev1.ServicePort{},
 			PublishNotReadyAddresses: true,
 		},
 	}
@@ -77,13 +70,6 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 					Protocol:   corev1.ProtocolTCP,
 					Port:       80,
 					TargetPort: intstr.FromInt32(5000),
-				},
-				// Torch NCCL Port
-				{
-					Name:       "torch",
-					Protocol:   corev1.ProtocolTCP,
-					Port:       29500,
-					TargetPort: intstr.FromInt32(29500),
 				},
 			},
 			Selector: selector,

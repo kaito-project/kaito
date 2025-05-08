@@ -285,9 +285,8 @@ func TestPrepareTuningParameters(t *testing.T) {
 			tuningObj: &model.PresetParam{
 				RuntimeParam: model.RuntimeParam{
 					Transformers: model.HuggingfaceTransformersParam{
-						BaseCommand:        "python train.py",
-						TorchRunParams:     map[string]string{},
-						TorchRunRdzvParams: map[string]string{},
+						BaseCommand:      "python train.py",
+						AccelerateParams: map[string]string{},
 					},
 				},
 				GPUCountRequirement: "2",

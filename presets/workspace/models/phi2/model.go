@@ -47,7 +47,7 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				ModelRunParams:    phiRunParams,
 				BaseCommand:       baseCommandPresetPhiInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
@@ -70,8 +70,8 @@ func (*phi2) GetTuningParameters() *model.PresetParam {
 		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				// TorchRunParams:            inference.DefaultAccelerateParams,
-				// ModelRunParams:            phiRunParams,
+				// AccelerateParams: inference.DefaultAccelerateParams,
+				// ModelRunParams:   phiRunParams,
 				BaseCommand: baseCommandPresetPhiTuning,
 			},
 		},

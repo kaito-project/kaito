@@ -155,102 +155,76 @@ To address these issues, the following probing strategy is proposed:
 
 The following sequential diagram summarizes the expected behavior of the liveness and readiness probes during different failure scenarios:
 
-#### Leader Pod Crash Before and After Inference Service is Ready
+#### Leader Pod Crash
 
 ```mermaid
 sequenceDiagram
-    participant K as Liveness Probes
     participant P as Readiness Probes
     participant L as Leader Pod
     participant W as Worker Pod
     participant R as Ray Cluster
     participant V as Inference Service
 
-    Note over L,W: Ray Initialization Phase: Ray cluster creation, workers joining leader
-
-    %% Leader Crash During Initialization
-    L->>W: Waits for all workers to join
-    W->>L: Attempting to join Ray cluster
-    L--xL: Leader crashes and restarts
-    Note over V: Inference service unavailable (no leader)
-    K->>L: Liveness probe checks dead Ray actors
-    K-->>L: Probe fails, triggers leader container restart
-    L->>R: Recreates Ray cluster
-    W->>L: Reconnects to new leader (10-30 seconds delay)
+    L--xL: Crashes
+    Note over V: Becomes unavailable (no leader)
+    L--xL: Restarts
+    P->>W: Checks /health endpoint from leader
+    activate W
+    W->>P: Fails, marks as not ready
+    deactivate W
+    L->>R: Recreates
     Note over W: May heartbeat to old leader
-    L->>W: Waits for all workers to join
-    W->>L: All workers join
+    W->>R: Joins new cluster (10-30 seconds delay)
+    L->>R: Waits for all workers to join
+    activate R
+    R->>L: All workers join
+    deactivate R
     Note over L: vLLM Initialization Phase: Model downloading and loading to GPU memory
-    Note over V: Inference service becomes available
-
-    %% Leader Crash After Inference Service is Ready
-    V->>L: Serving inference requests
-    L--xL: Leader crashes and restarts
-    Note over V: Inference service unavailable (no leader)
-    P->>L: Readiness probe check
-    P-->>L: Probe fails, marks pod not ready
-    K->>L: Liveness probe checks dead Ray actors
-    K-->>L: Probe fails, triggers leader container restart
-    L->>R: Recreates Ray cluster
-    W->>L: Reconnects to new leader (10-30 seconds delay)
-    Note over W: May heartbeat to old leader
-    Note over L,W: Ray Initialization Phase: Ray cluster creation, workers joining leader
-    L->>W: Waits for all workers to join
-    W->>L: All workers join
-    Note over L: vLLM Initialization Phase: Model downloading and loading to GPU memory
-    Note over V: Inference service becomes available again
+    Note over V: Becomes available again
 ```
 
-#### Worker Pod Crash Before and After Inference Service is Ready
+#### Worker Pod Crash
 
 ```mermaid
 sequenceDiagram
-    participant K as Liveness Probes
-    participant P as Readiness Probes
-    participant L as Leader Pod
-    participant W as Worker Pod
-    participant R as Ray Cluster
-    participant V as Inference Service
+  participant K as Liveness Probes
+  participant P as Readiness Probes
+  participant L as Leader Pod
+  participant W as Worker Pod
+  participant R as Ray Cluster
+  participant V as Inference Service
 
-    Note over L,W: Ray Initialization Phase: Ray cluster creation, workers joining leader
-    %% Worker Crash During Initialization
-    L->>W: Waits for all workers to join
-    W->>L: Attempting to join Ray cluster
-    W--xW: Worker crashes and restarts
-    Note over V: Inference service unavailable (insufficient workers)
-    K->>L: Liveness probe checks dead/missing Ray actors
-    K-->>L: Probe fails, triggers leader container restart
-    L->>R: Recreates Ray cluster
-    W->>L: Reconnects to new leader (10-30 seconds delay)
-    Note over W: May heartbeat to old leader
-    L->>W: Waits for all workers to join
-    W->>L: All workers join
-    Note over L,W: vLLM Initialization Phase: Model downloading and loading to GPU memory
-    Note over V: Inference service becomes available
-
-    %% Worker Crash After Inference Service is Ready
-    V->>L: Serving inference requests
-    W--xW: Worker crashes and restarts
-    Note over V: Inference service unstable (dead worker)
-    P->>W: Readiness probe
-    P-->>W: Probe fails, marks pod not ready
-    K->>L: Liveness probe checks dead Ray actors
-    K-->>L: Probe fails, triggers leader container restart
-    L->>R: Recreates Ray cluster
-    W->>L: Reconnects to new leader (10-30 seconds delay)
-    Note over W: May heartbeat to old leader
-    L->>W: Waits for all workers to join
-    W->>L: All workers join
-    Note over L,W: vLLM Initialization Phase: Model downloading and loading to GPU memory
-    Note over V: Inference service becomes available again
+  W--xW: Crashes
+  Note over V: Hangs (insufficient workers)
+  P->>L: Checks /health endpoint
+  activate L
+  L->>P: Succeeds due to vLLM's assumption of all nodes being healthy
+  deactivate L
+  W--xW: Restarts
+  W->>R: Rejoins but remains idle
+  Note over V: Continues to hang due to uninitialized worker
+  K->>L: Checks for dead Ray actors
+  activate L
+  L->>K: Fails, triggers leader container restart
+  deactivate L
+  L--xL: Restarts
+  L->>R: Recreates
+  Note over W: May heartbeat to old leader
+  W->>R: Joins new cluster (10-30 seconds delay)
+  L->>R: Waits for all workers to join
+  activate R
+  R->>L: All workers join
+  deactivate R
+  Note over L,W: vLLM Initialization Phase: Model downloading and loading to GPU memory
+  Note over V: Becomes available again
 ```
 
 #### Why Restart the Leader When a Worker Crashes Regardless of the State?
 
-Restarting the leader is important for reinitializing the Ray cluster and synchronizing it with any new or restarted worker pods. This is due to:
+Restarting the leader is important for reinitializing the Ray cluster and synchronizing it with any restarted worker pods. This is due to:
 
 1.  **vLLM's Fault Tolerance Assumption**: In a distributed setup, vLLM operates under the assumption that all nodes remain healthy and available ([source](https://github.com/vllm-project/vllm/blob/d43f914d42dc00a59ca8b6d26363cf02b3b898b2/vllm/executor/ray_distributed_executor.py#L697-L700)). If a worker pod fails, the leader might not correctly recognize this change in the cluster's state, potentially leading to operational inconsistencies.
-2.  **State Synchronization**: While new or restarted worker pods might rejoin the existing Ray cluster, they may not share the same operational state as other pods (e.g., model weights loaded into GPU memory). A leader restart ensures that all pods are synchronized and operate with a consistent state.
+2.  **State Synchronization**: While restarted worker pods might rejoin the existing Ray cluster, they may not share the same operational state as other pods (e.g., model weights loaded into GPU memory). A leader restart ensures that all pods are synchronized and operate with a consistent state.
 
 #### Example Configuration
 
@@ -274,6 +248,8 @@ readinessProbe:
   initialDelaySeconds: 60
   periodSeconds: 15
 ```
+
+The health check script can use the environment variable `POD_INDEX` to determine if the pod is a leader or worker. The probe should also include an initial delay to the liveness probe to allow time for the leader to initialize the Ray cluster and wait for all worker pods to join. This delay is necessary to avoid false positives during the initial startup phase.
 
 ### Container Image Update
 

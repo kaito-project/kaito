@@ -28,11 +28,11 @@ var (
 	llamaRunParams = map[string]string{
 		"torch_dtype":   "bfloat16",
 		"pipeline":      "text-generation",
-		"chat_template": "/workspace/chat_templates/llama-instruct.jinja",
+		"chat_template": "/workspace/chat_templates/llama-3-instruct.jinja",
 	}
 	llamaRunParamsVLLM = map[string]string{
 		"dtype":         "float16",
-		"chat-template": "/workspace/chat_templates/llama-instruct.jinja",
+		"chat-template": "/workspace/chat_templates/llama-3-instruct.jinja",
 	}
 )
 

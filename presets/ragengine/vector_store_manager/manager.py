@@ -32,14 +32,16 @@ class VectorStoreManager:
             index_name: str,
             limit: int,
             offset: int,
-            max_text_length: int
+            max_text_length: int,
+            metadata_filter: dict,
     ) -> List[Dict[str, Any]]:
         """List all documents in index."""
         return await self.vector_store.list_documents_in_index(
             index_name,
             limit,
             offset,
-            max_text_length
+            max_text_length,
+            metadata_filter
         )
 
     async def persist(self, index_name: str, path: str) -> None:

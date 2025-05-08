@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from typing import List, Optional
+import json
 from vector_store_manager.manager import VectorStoreManager
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
@@ -225,6 +226,10 @@ async def list_documents_in_index(
         ge=1, 
         description="Maximum text length to return **per document**. This does not impose a limit on the total length of all documents returned."
     ),
+    metadata_filter: Optional[str | None] = Query(
+        None,
+        description="Optional metadata filter to apply when listing documents. This should be a dictionary with key-value pairs to match against document metadata."
+    )
 ):
     """
     Handles URL-encoded index names sent by the client.
@@ -237,19 +242,32 @@ async def list_documents_in_index(
     index/name        | index%2Fname      | index/name
     """
     try:
+        print(metadata_filter)
+        filter_dict = {}
+        if metadata_filter:
+            # Attempt to parse the metadata filter as a JSON string
+            try:
+                metadata_filter = json.loads(metadata_filter)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid metadata filter format. Must be a valid JSON string.")
+
         # Decode the index_name in case it was URL-encoded by the client
         decoded_index_name = unquote(index_name)
         documents = await rag_ops.list_documents_in_index(
             index_name=decoded_index_name,
             limit=limit,
             offset=offset,
-            max_text_length=max_text_length
+            max_text_length=max_text_length,
+            metadata_filter=metadata_filter
         )
 
         return ListDocumentsResponse(
             documents=documents,
             count=len(documents)
         )
+    except HTTPException as http_exc:
+        # Preserve HTTP exceptions like 422 from reranker
+        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

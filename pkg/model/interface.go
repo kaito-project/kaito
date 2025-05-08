@@ -19,9 +19,19 @@ import (
 )
 
 type Model interface {
+	// GetInferenceParameters returns the preset inference parameters for the model.
 	GetInferenceParameters() *PresetParam
+
+	// GetTuningParameters returns the preset tuning parameters for the model.
 	GetTuningParameters() *PresetParam
-	SupportDistributedInference() bool //If true, the model workload will be a StatefulSet, using the torch elastic runtime framework.
+
+	// SupportDistributedInference checks if the model supports distributed inference.
+	// If true, the inference workload will use 'StatefulSet' instead of 'Deployment'
+	// as the workload type. See https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250325-distributed-inference.md
+	// for more details.
+	SupportDistributedInference() bool
+
+	// SupportTuning checks if the model supports tuning.
 	SupportTuning() bool
 }
 
@@ -120,11 +130,10 @@ type RuntimeParam struct {
 }
 
 type HuggingfaceTransformersParam struct {
-	BaseCommand        string            // The initial command (e.g., 'torchrun', 'accelerate launch') used in the command line.
-	TorchRunParams     map[string]string // Parameters for configuring the torchrun command.
-	TorchRunRdzvParams map[string]string // Optional rendezvous parameters for distributed training/inference using torchrun (elastic).
-	InferenceMainFile  string            // The main file for inference.
-	ModelRunParams     map[string]string // Parameters for running the model training/inference.
+	BaseCommand       string            // The initial command (e.g., 'accelerate launch') used in the command line.
+	AccelerateParams  map[string]string // Parameters for configuring the accelerate command.
+	InferenceMainFile string            // The main file for inference.
+	ModelRunParams    map[string]string // Parameters for running the model training/inference.
 }
 
 type VLLMParam struct {
@@ -167,8 +176,7 @@ func (h *HuggingfaceTransformersParam) DeepCopy() HuggingfaceTransformersParam {
 		return HuggingfaceTransformersParam{}
 	}
 	out := *h
-	out.TorchRunParams = maps.Clone(h.TorchRunParams)
-	out.TorchRunRdzvParams = maps.Clone(h.TorchRunRdzvParams)
+	out.AccelerateParams = maps.Clone(h.AccelerateParams)
 	out.ModelRunParams = maps.Clone(h.ModelRunParams)
 	return out
 }
@@ -218,8 +226,7 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 	}
 	torchCommand := utils.BuildCmdStr(
 		p.Transformers.BaseCommand,
-		p.Transformers.TorchRunParams,
-		p.Transformers.TorchRunRdzvParams,
+		p.Transformers.AccelerateParams,
 	)
 	modelCommand := utils.BuildCmdStr(
 		p.Transformers.InferenceMainFile,

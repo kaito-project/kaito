@@ -242,8 +242,6 @@ async def list_documents_in_index(
     index/name        | index%2Fname      | index/name
     """
     try:
-        print(metadata_filter)
-        filter_dict = {}
         if metadata_filter:
             # Attempt to parse the metadata filter as a JSON string
             try:
@@ -266,7 +264,6 @@ async def list_documents_in_index(
             count=len(documents)
         )
     except HTTPException as http_exc:
-        # Preserve HTTP exceptions like 422 from reranker
         raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

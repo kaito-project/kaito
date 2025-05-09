@@ -209,7 +209,7 @@ class BaseVectorStore(ABC):
     async def delete_documents(self, index_name: str, doc_ids: List[str]):
         """Common logic for deleting a document."""
         if index_name not in self.index_map:
-            raise ValueError(f"No such index: '{index_name}' exists.")
+            raise HTTPException(status_code=404, detail=f"index does not exist: {index_name}")
         
         not_found_docs = []
         found_docs = []
@@ -231,13 +231,15 @@ class BaseVectorStore(ABC):
             return {"deleted_doc_ids": found_docs, "not_found_doc_ids": not_found_docs}
         except NotImplementedError as e:
             logger.error(f"Delete operation is not implemented for index {index_name}.")
+            raise HTTPException(status_code=501, detail=f"Loading failed: {str(e)}")
         except Exception as e:
             logger.error(f"Error deleting documents from index {index_name}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
     
     async def update_documents(self, index_name: str, documents: List[Document]):
         """Common logic for updating a document."""
         if index_name not in self.index_map:
-            raise ValueError(f"No such index: '{index_name}' exists.")
+            raise HTTPException(status_code=404, detail=f"index does not exist: {index_name}")
         
         not_found_docs = []
         found_docs = []
@@ -268,8 +270,10 @@ class BaseVectorStore(ABC):
             return {"updated_documents": updated_docs, "unchanged_documents": unchanged_docs, "not_found_documents": not_found_docs}
         except NotImplementedError as e:
             logger.error(f"Update operation is not implemented for index {index_name}.")
+            raise HTTPException(status_code=501, detail=f"Loading failed: {str(e)}")
         except Exception as e:
             logger.error(f"Error updating documents in index {index_name}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
     async def _process_document(self, doc_id: str, doc_stub, doc_store, max_text_length: Optional[int]):
         """

@@ -4,13 +4,10 @@
 from typing import List
 
 import faiss
-import asyncio
-import numpy as np
-from llama_index.vector_stores.faiss import FaissVectorStore
+from llama_index.vector_stores.faiss import FaissMapVectorStore
 from ragengine.models import Document
 from ragengine.embedding.base import BaseEmbeddingModel
 from .base import BaseVectorStore
-from .faiss_map_store import FaissVectorMapStore
 
 
 class FaissVectorStoreHandler(BaseVectorStore):
@@ -24,5 +21,5 @@ class FaissVectorStoreHandler(BaseVectorStore):
         # we can wrap it in the IDMap to keep the same functionality but also be able to index by ids and support delete with llama_index
         # https://github.com/facebookresearch/faiss/wiki/Faiss-indexes#supported-operations
         id_index = faiss.IndexIDMap(faiss_index)
-        vector_store = FaissVectorMapStore(faiss_index=id_index)
+        vector_store = FaissMapVectorStore(faiss_index=id_index)
         return await self._create_index_common(index_name, documents, vector_store)

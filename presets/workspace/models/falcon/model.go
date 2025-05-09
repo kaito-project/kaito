@@ -5,7 +5,6 @@ package falcon
 import (
 	"time"
 
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
@@ -60,15 +59,14 @@ type falcon7b struct{}
 func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetFalcon7BModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
-		DiskStorageRequirement:    "50Gi",
+		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "14Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Falcon using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
@@ -90,16 +88,15 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 func (*falcon7b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetFalcon7BModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
-		DiskStorageRequirement:    "50Gi",
+		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
 		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:    baseCommandPresetFalconTuning,
-				TorchRunParams: tuning.DefaultAccelerateParams,
-				//ModelRunPrams:             falconRunTuningParams, // TODO
+				BaseCommand:      baseCommandPresetFalconTuning,
+				AccelerateParams: tuning.DefaultAccelerateParams,
+				// ModelRunPrams:    falconRunTuningParams, // TODO
 			},
 		},
 		ReadinessTimeout:              time.Duration(30) * time.Minute,
@@ -121,15 +118,14 @@ type falcon7bInst struct{}
 func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetFalcon7BInstructModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
-		DiskStorageRequirement:    "50Gi",
+		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "14Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Falcon using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
@@ -166,15 +162,14 @@ type falcon40b struct{}
 func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetFalcon40BModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
-		DiskStorageRequirement:    "400",
+		DiskStorageRequirement:    "280Gi",
 		GPUCountRequirement:       "2",
 		TotalGPUMemoryRequirement: "90Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Falcon using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},
@@ -190,16 +185,15 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 func (*falcon40b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetFalcon40BModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
-		DiskStorageRequirement:    "50Gi",
+		DiskStorageRequirement:    "280Gi",
 		GPUCountRequirement:       "2",
 		TotalGPUMemoryRequirement: "90Gi",
 		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:    baseCommandPresetFalconTuning,
-				TorchRunParams: tuning.DefaultAccelerateParams,
-				//ModelRunPrams:             falconRunTuningParams, // TODO
+				BaseCommand:      baseCommandPresetFalconTuning,
+				AccelerateParams: tuning.DefaultAccelerateParams,
+				// ModelRunPrams:    falconRunTuningParams, // TODO
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -219,15 +213,14 @@ type falcon40bInst struct{}
 func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetFalcon40BInstructModel),
-		ImageAccessMode:           string(kaitov1beta1.ModelImageAccessModePublic),
-		DiskStorageRequirement:    "400",
+		DiskStorageRequirement:    "280Gi",
 		GPUCountRequirement:       "2",
 		TotalGPUMemoryRequirement: "90Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Falcon using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
-				TorchRunParams:    inference.DefaultAccelerateParams,
+				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
 			},

@@ -19,9 +19,19 @@ import (
 )
 
 type Model interface {
+	// GetInferenceParameters returns the preset inference parameters for the model.
 	GetInferenceParameters() *PresetParam
+
+	// GetTuningParameters returns the preset tuning parameters for the model.
 	GetTuningParameters() *PresetParam
-	SupportDistributedInference() bool //If true, the model workload will be a StatefulSet, using the torch elastic runtime framework.
+
+	// SupportDistributedInference checks if the model supports distributed inference.
+	// If true, the inference workload will use 'StatefulSet' instead of 'Deployment'
+	// as the workload type. See https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250325-distributed-inference.md
+	// for more details.
+	SupportDistributedInference() bool
+
+	// SupportTuning checks if the model supports tuning.
 	SupportTuning() bool
 }
 
@@ -94,9 +104,14 @@ func (m *Metadata) Validate() error {
 type PresetParam struct {
 	Metadata
 
+	DiskStorageRequirement string // Disk storage requirements for the model.
+	// DiskStorageRequirement is calculated as:
+	// (TotalGPUMemoryRequirement × 2.5 + 48) rounded up to the next multiple of 10.
+	// This formula accounts for model weights, optimization files, and runtime overhead.
+	// Example: For a 14Gi model, calculation is: 14 × 2.5 + 48 = 83, rounded up to 90Gi.
+
 	ImageAccessMode string // Defines where the Image is Public or Private.
 
-	DiskStorageRequirement        string         // Disk storage requirements for the model.
 	GPUCountRequirement           string         // Number of GPUs required for the Preset. Used for inference.
 	TotalGPUMemoryRequirement     string         // Total GPU memory required for the Preset. Used for inference.
 	PerGPUMemoryRequirement       string         // GPU memory required per GPU. Used for inference.
@@ -120,11 +135,10 @@ type RuntimeParam struct {
 }
 
 type HuggingfaceTransformersParam struct {
-	BaseCommand        string            // The initial command (e.g., 'torchrun', 'accelerate launch') used in the command line.
-	TorchRunParams     map[string]string // Parameters for configuring the torchrun command.
-	TorchRunRdzvParams map[string]string // Optional rendezvous parameters for distributed training/inference using torchrun (elastic).
-	InferenceMainFile  string            // The main file for inference.
-	ModelRunParams     map[string]string // Parameters for running the model training/inference.
+	BaseCommand       string            // The initial command (e.g., 'accelerate launch') used in the command line.
+	AccelerateParams  map[string]string // Parameters for configuring the accelerate command.
+	InferenceMainFile string            // The main file for inference.
+	ModelRunParams    map[string]string // Parameters for running the model training/inference.
 }
 
 type VLLMParam struct {
@@ -167,8 +181,7 @@ func (h *HuggingfaceTransformersParam) DeepCopy() HuggingfaceTransformersParam {
 		return HuggingfaceTransformersParam{}
 	}
 	out := *h
-	out.TorchRunParams = maps.Clone(h.TorchRunParams)
-	out.TorchRunRdzvParams = maps.Clone(h.TorchRunRdzvParams)
+	out.AccelerateParams = maps.Clone(h.AccelerateParams)
 	out.ModelRunParams = maps.Clone(h.ModelRunParams)
 	return out
 }
@@ -218,8 +231,7 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 	}
 	torchCommand := utils.BuildCmdStr(
 		p.Transformers.BaseCommand,
-		p.Transformers.TorchRunParams,
-		p.Transformers.TorchRunRdzvParams,
+		p.Transformers.AccelerateParams,
 	)
 	modelCommand := utils.BuildCmdStr(
 		p.Transformers.InferenceMainFile,

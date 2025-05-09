@@ -177,3 +177,40 @@ class BaseVectorStoreTest(ABC):
         # 8. max_text_length is None (Full text should return)
         full_text_result = await vector_store_manager.list_documents_in_index(index_name, limit=1, offset=0, max_text_length=None)
         assert "Document" in next(iter(full_text_result))['text']  # Ensure no truncation
+    
+    @pytest.mark.asyncio
+    async def test_list_documents_with_filter_index(self, vector_store_manager):
+        """Test various list document scenarios with different limit and offset values."""
+        index_name = "test_index"
+        # Create multiple documents
+        documents = [
+            Document(text=f"Document {i}", metadata={"type": "text", "filename": f"file_{i}", "branch": "main"})
+            for i in range(10)
+        ]
+        
+        await vector_store_manager.index_documents(index_name, documents)
+
+        # single filter
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=0, metadata_filter={"filename": "file_1"})
+        assert len(result) == 1
+        assert result[0]['metadata']['filename'] == "file_1"
+
+        
+        first_five_results = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=0, metadata_filter={"branch": "main"})
+        assert len(first_five_results) == 5
+        assert all(doc['metadata']['branch'] == "main" for doc in first_five_results)
+
+        second_five_results = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=5, metadata_filter={"branch": "main"})
+        assert len(second_five_results) == 5
+        assert all(doc['metadata']['branch'] == "main" for doc in second_five_results)
+        assert first_five_results != second_five_results
+
+        # multiple filters
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=0, metadata_filter={"filename": "file_5", "branch": "main"})
+        assert len(result) == 1
+        assert result[0]['metadata']['filename'] == "file_5"
+        assert result[0]['metadata']['branch'] == "main"
+
+        # no results
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=0, metadata_filter={"filename": "file_15", "branch": "main"})
+        assert len(result) == 0

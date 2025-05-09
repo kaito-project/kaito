@@ -15,6 +15,7 @@ import pytest_asyncio
 import asyncio
 import httpx
 import respx
+import json
 
 AUTO_GEN_DOC_ID_LEN = 64
 
@@ -313,6 +314,63 @@ async def test_list_documents_in_index_success(async_client):
     assert ({item["text"] for item in response_json["documents"]}
             == {item["text"] for item in request_data["documents"]})
 
+@pytest.mark.asyncio
+async def test_list_documents_with_metadata_filter_success(async_client):
+    index_name = "test_index"
+
+    # Ensure no documents are present initially
+    response = await async_client.get(f"/indexes/{index_name}/documents")
+
+    assert response.status_code == 500
+    assert response.json() == {'detail': "Index 'test_index' not found."}
+
+    request_data = {
+        "index_name": index_name,
+        "documents": [
+            {"text": "This is a test document", "metadata": {"filename": "test.txt", "branch": "main"}},
+            {"text": "Another test document", "metadata": {"filename": "main.py", "branch": "main"}}
+        ]
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+
+    # Retrieve documents for the specific index
+    filters = {
+        "filename": "test.txt",
+    }
+    response = await async_client.get(f"/indexes/{index_name}/documents?metadata_filter={json.dumps(filters)}")
+    assert response.status_code == 200
+    response_json = response.json()
+
+    # Ensure documents exist correctly in the specific index
+    assert response_json["count"] == 1
+    assert len(response_json["documents"]) == 1
+    assert response_json["documents"][0]["text"] == "This is a test document"
+
+@pytest.mark.asyncio
+async def test_list_documents_with_metadata_filter_failure(async_client):
+    index_name = "test_index"
+
+    # Ensure no documents are present initially
+    response = await async_client.get(f"/indexes/{index_name}/documents")
+
+    assert response.status_code == 500
+    assert response.json() == {'detail': "Index 'test_index' not found."}
+
+    request_data = {
+        "index_name": index_name,
+        "documents": [
+            {"text": "This is a test document", "metadata": {"filename": "test.txt", "branch": "main"}},
+            {"text": "Another test document", "metadata": {"filename": "main.py", "branch": "main"}}
+        ]
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+
+    response = await async_client.get(f"/indexes/{index_name}/documents?metadata_filter=invalidjsonstring")
+    assert response.status_code == 400
 
 @pytest.mark.asyncio
 async def test_persist_documents(async_client):

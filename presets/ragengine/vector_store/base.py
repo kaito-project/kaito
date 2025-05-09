@@ -222,9 +222,11 @@ class BaseVectorStore(ABC):
         try:
             if self.use_rwlock:
                 async with self.rwlock.writer_lock:
-                    await asyncio.gather(*(self.index_map[index_name].adelete_ref_doc(doc_id, delete_from_docstore=True) for doc_id in doc_ids))
+                    await asyncio.gather(*(self.index_map[index_name].adelete_ref_doc(doc_id, delete_from_docstore=True) for doc_id in doc_ids),
+                                        return_exceptions=True)
             else:
-                await asyncio.gather(*(self.index_map[index_name].adelete_ref_doc(doc_id, delete_from_docstore=True) for doc_id in doc_ids))
+                await asyncio.gather(*(self.index_map[index_name].adelete_ref_doc(doc_id, delete_from_docstore=True) for doc_id in doc_ids),
+                                        return_exceptions=True)
 
             return {"deleted_doc_ids": found_docs, "not_found_doc_ids": not_found_docs}
         except NotImplementedError as e:

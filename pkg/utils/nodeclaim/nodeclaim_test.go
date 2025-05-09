@@ -26,47 +26,22 @@ import (
 
 func TestCreateNodeClaim(t *testing.T) {
 	testcases := map[string]struct {
-		callMocks           func(c *test.MockClient)
-		nodeClaimConditions []status.Condition
-		expectedError       error
+		callMocks     func(c *test.MockClient)
+		expectedError error
 	}{
 		"NodeClaim creation fails": {
 			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(errors.New("failed to create nodeClaim"))
 			},
 			expectedError: errors.New("failed to create nodeClaim"),
 		},
-		"NodeClaim creation fails because SKU is not available": {
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-			},
-			nodeClaimConditions: []status.Condition{
-				{
-					Type:    karpenterv1.ConditionTypeLaunched,
-					Status:  metav1.ConditionFalse,
-					Message: consts.ErrorInstanceTypesUnavailable,
-				},
-			},
-			expectedError: errors.New(consts.ErrorInstanceTypesUnavailable),
-		},
 		"A nodeClaim is successfully created": {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-			},
-			nodeClaimConditions: []status.Condition{
-				{
-					Type:   string(apis.ConditionReady),
-					Status: metav1.ConditionTrue,
-				},
 			},
 			expectedError: nil,
 		},
@@ -78,7 +53,6 @@ func TestCreateNodeClaim(t *testing.T) {
 			tc.callMocks(mockClient)
 
 			mockNodeClaim := &test.MockNodeClaim
-			mockNodeClaim.Status.Conditions = tc.nodeClaimConditions
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			err := CreateNodeClaim(context.Background(), mockNodeClaim, mockClient)
 			if tc.expectedError == nil {

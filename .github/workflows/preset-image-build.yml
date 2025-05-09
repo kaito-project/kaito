@@ -39,7 +39,6 @@ permissions:
 jobs:
   determine-models:
     runs-on: ubuntu-latest
-    environment: preset-env
     outputs:
       matrix: ${{ steps.affected_models.outputs.matrix }}
       is_matrix_empty: ${{ steps.check_matrix_empty.outputs.is_empty }}

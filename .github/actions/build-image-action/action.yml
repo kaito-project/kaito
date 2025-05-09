@@ -78,6 +78,24 @@ runs:
         echo "Final disk usage:"
         df -h
       shell: bash
+    - name: Set up Docker Buildx
+      run: |
+        # Define a builder name variable that includes the current file name
+        BUILDER_NAME="model-builder"
+        echo "Using builder name: $BUILDER_NAME"
+
+        # Check if the builder instance already exists
+        if ! docker buildx inspect $BUILDER_NAME &>/dev/null; then
+          echo "Creating new Docker Buildx instance '$BUILDER_NAME'..."
+          docker buildx create --name=$BUILDER_NAME --driver=docker-container --use --bootstrap --driver-opt image=mcr.microsoft.com/oss/v2/moby/buildkit:v0.20.2
+        else
+          echo "Docker Buildx instance '$BUILDER_NAME' already exists, using it..."
+          docker buildx use $BUILDER_NAME
+        fi
+
+        # Verify the builder is working
+        docker buildx inspect --bootstrap
+      shell: bash
 
     - name: Check if Image exists in target ACR
       id: check_test_image
@@ -124,6 +142,7 @@ runs:
 
         # Download model and Generate Dockerfile
         MODEL_DIR=$WEIGHTS_DIR/$IMAGE_NAME/weights
+        DOCKER_CACHE_DIR=$WEIGHTS_DIR/docker-cache
 
         MODEL_NAME=${{ inputs.model_name }} \
         MODEL_VERSION=${{ inputs.model_version }} \
@@ -137,7 +156,9 @@ runs:
         # Build
         docker buildx build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG \
           --build-context modeldir=$MODEL_DIR \
-          --builder default \
+          --builder model-builder \
+          --cache-from=type=local,src=$DOCKER_CACHE_DIR \
+          --cache-to=type=local,dest=$DOCKER_CACHE_DIR \
           --build-arg VERSION=$MODEL_TAG \
           --build-arg MODEL_TYPE=$MODEL_TYPE \
           --push \

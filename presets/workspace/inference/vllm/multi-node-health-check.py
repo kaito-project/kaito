@@ -8,32 +8,31 @@ import sys
 
 
 def liveness(args):
-    import ray
-    from ray._private import state
-
-    ray.init(address=f"{args.ray_address}:{args.ray_port}", logging_level=logging.ERROR)
+    from ray.util.state import list_actors, list_jobs
+    gcs = f"{args.ray_address}:{args.ray_port}"
 
     # Checking the Ray job's entrypoint is the best we can do to identify the VLLM inference job
-    inference_job = next(filter(lambda job: job["Entrypoint"].startswith("python3 /workspace/vllm/inference_api.py"), state.jobs()), None)
+    inference_job = next(filter(lambda job: job.entrypoint.startswith("python3 /workspace/vllm/inference_api.py"), list_jobs(address=gcs)), None)
     assert inference_job is not None, "Inference job not found in Ray jobs"
 
-    for _, actor in state.actors().items():
-        if actor["JobID"] != inference_job["JobID"]:
-            continue
-        if actor["State"] != "ALIVE":
-            print(f"Actor {actor["ActorID"]} with IP {actor["Address"]["IPAddress"]} is {actor["State"]}")
-            sys.exit(1)
+    has_dead_actors = False
+    for actor in list_actors(address=gcs, filters=[("job_id", "=", inference_job.job_id), ("state", "!=", "ALIVE")]):
+        logging.error(f"Ray actor {actor.actor_id} is {actor.state}: {actor.death_cause}")
+        has_dead_actors = True
+
+    if has_dead_actors:
+        sys.exit(1)
 
 
 def readiness(args):
     import requests
-    endpoint = f"http://{args.ray_address}:{args.vllm_port}/health"
+    vllm_health_endpoint = f"http://{args.ray_address}:{args.vllm_port}/health"
     try:
-        response = requests.get(endpoint)
+        response = requests.get(vllm_health_endpoint)
         if response.status_code != 200:
             sys.exit(1)
     except requests.exceptions.RequestException as e:
-        print(f"Get \"{endpoint}\": {e}")
+        print(f"Get \"{vllm_health_endpoint}\": {e}")
         sys.exit(1)
 
 
@@ -48,7 +47,7 @@ if __name__ == "__main__":
     is_leader = os.environ.get("POD_INDEX") == "0"
 
     # only run liveness probe on the leader node because restarting workers would require
-    # restarting the leader node as well. In a sense, we are delegating the worker's
+    # restarting the leader node as well. In other words, we are delegating the worker's
     # liveness check to the leader node.
     if args.probe == "liveness" and is_leader:
         liveness(args)

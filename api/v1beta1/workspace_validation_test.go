@@ -424,7 +424,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			name: "HuggingFace Transformers + Distributed Inference",
 			resourceSpec: &ResourceSpec{
 				InstanceType: "Standard_NC6s_v3",
-				Count:        pointerToInt(4), //
+				Count:        pointerToInt(4),
 			},
 			preset:             true,
 			presetNameOverride: "test-validation-download",

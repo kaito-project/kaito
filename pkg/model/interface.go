@@ -151,8 +151,6 @@ type VLLMParam struct {
 	// The model name used in the openai serving API.
 	// see https://platform.openai.com/docs/api-reference/chat/create#chat-create-model.
 	ModelName string
-	// Parameters for distributed inference.
-	DistributionParams map[string]string
 	// Parameters for running the model training/inference.
 	ModelRunParams map[string]string
 	// Indicates if vllm supports LoRA (Low-Rank Adaptation) for this model.
@@ -196,19 +194,21 @@ func (v *VLLMParam) DeepCopy() VLLMParam {
 		return VLLMParam{}
 	}
 	out := *v
-	out.DistributionParams = maps.Clone(v.DistributionParams)
+	out.RayLeaderParams = maps.Clone(v.RayLeaderParams)
+	out.RayWorkerParams = maps.Clone(v.RayWorkerParams)
 	out.ModelRunParams = maps.Clone(v.ModelRunParams)
 	return out
 }
 
 // RuntimeContext defines the runtime context for a model.
 type RuntimeContext struct {
-	RuntimeName       RuntimeName
-	GPUConfig         *sku.GPUConfig
-	ConfigVolume      *corev1.VolumeMount
-	SKUNumGPUs        int
-	NumNodes          int
-	WorkspaceMetadata metav1.ObjectMeta
+	RuntimeName          RuntimeName
+	GPUConfig            *sku.GPUConfig
+	ConfigVolume         *corev1.VolumeMount
+	SKUNumGPUs           int
+	NumNodes             int
+	WorkspaceMetadata    metav1.ObjectMeta
+	DistributedInference bool
 	RuntimeContextExtraArguments
 }
 
@@ -272,14 +272,14 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(rc.ConfigVolume.MountPath, ConfigfileNameVLLM)
 	}
 
-	// Pipeline Parallelism (PP) is set to the number of nodes for multi-node inference per vLLM guidance:
-	// https://docs.vllm.ai/en/latest/serving/distributed_serving.html.
-	p.VLLM.ModelRunParams["pipeline-parallel-size"] = strconv.Itoa(rc.NumNodes)
-
-	if rc.NumNodes == 1 {
+	if !rc.DistributedInference {
 		modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
 		return utils.ShellCmd(modelCommand)
 	}
+
+	// Pipeline Parallelism (PP) is set to the number of nodes for multi-node inference per vLLM guidance:
+	// https://docs.vllm.ai/en/latest/serving/distributed_serving.html.
+	p.VLLM.ModelRunParams["pipeline-parallel-size"] = strconv.Itoa(rc.NumNodes)
 
 	// If PP > 1, we need to setup multi-node Ray cluster and assume pod index 0 is the leader of the cluster.
 	// - leader: start as ray leader along with the model run command

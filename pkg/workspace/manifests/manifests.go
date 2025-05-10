@@ -71,6 +71,18 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 					Port:       80,
 					TargetPort: intstr.FromInt32(5000),
 				},
+				{
+					Name:       "gcs",
+					Protocol:   corev1.ProtocolTCP,
+					Port:       6379,
+					TargetPort: intstr.FromInt32(6379),
+				},
+				{
+					Name:       "dashboard",
+					Protocol:   corev1.ProtocolTCP,
+					Port:       8265,
+					TargetPort: intstr.FromInt32(8265),
+				},
 			},
 			Selector: selector,
 			// Added this to allow pods to discover each other

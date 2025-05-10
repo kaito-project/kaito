@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -20,7 +21,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
-	"github.com/samber/lo"
 )
 
 const (
@@ -133,8 +133,8 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	}
 	if gpuConfig != nil {
 		skuNumGPUs = gpuConfig.GPUCount
-		// Calculate the minimum number of nodes required based on the GPU count and memory requirements.
-		// The goal is to avoid low GPU utilization in case user sets a high node count.
+		// Calculate the minimum number of nodes required to satisfy the model's total GPU memory requirement.
+		// The goal is to maximize GPU utilization and not spread the model across too many nodes.
 		totalGPUMemoryRequired := resource.MustParse(inferenceParam.TotalGPUMemoryRequirement)
 		totalGPUMemoryPerNode := resource.NewScaledQuantity(int64(gpuConfig.GPUCount*gpuConfig.GPUMemGB), resource.Giga)
 		minimumNodes := 0
@@ -193,25 +193,26 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 
 	// inference command
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(workspaceObj)
-	runtimeContext := pkgmodel.RuntimeContext{
-		RuntimeName:       runtimeName,
-		GPUConfig:         gpuConfig,
-		ConfigVolume:      &cmVolumeMount,
-		SKUNumGPUs:        skuNumGPUs,
-		NumNodes:          numNodes,
-		WorkspaceMetadata: workspaceObj.ObjectMeta,
+	commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
+		RuntimeName:          runtimeName,
+		GPUConfig:            gpuConfig,
+		ConfigVolume:         &cmVolumeMount,
+		SKUNumGPUs:           skuNumGPUs,
+		NumNodes:             numNodes,
+		WorkspaceMetadata:    workspaceObj.ObjectMeta,
+		DistributedInference: model.SupportDistributedInference(),
 		RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
 			AdaptersEnabled: len(workspaceObj.Inference.Adapters) > 0,
 		},
-	}
+	})
 
-	commands := inferenceParam.GetInferenceCommand(runtimeContext)
 	image, imagePullSecrets := GetInferenceImageInfo(ctx, workspaceObj, inferenceParam)
 
 	var depObj client.Object
-	if model.SupportDistributedInference() && numNodes > 1 {
+	if model.SupportDistributedInference() && runtimeName == pkgmodel.RuntimeNameVLLM {
+		// 60 seconds initial delay for liveness probe to allow workers to join the cluster
 		livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, workspaceObj, 60, 10, 5)
-		readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, workspaceObj, 60, 10, 1)
+		readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, workspaceObj, 0, 10, 1)
 		depObj = manifests.GenerateStatefulSetManifest(workspaceObj, image, imagePullSecrets, numNodes, commands,
 			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars)
 	} else {

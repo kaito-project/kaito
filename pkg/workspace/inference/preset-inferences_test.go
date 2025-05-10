@@ -51,7 +51,7 @@ func TestCreatePresetInference(t *testing.T) {
 			expectedImage: "test-registry/kaito-test-model:base-test-model",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --served-model-name=mymodel --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=1",
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --served-model-name=mymodel --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name:  "PYTORCH_CUDA_ALLOC_CONF",
@@ -71,7 +71,7 @@ func TestCreatePresetInference(t *testing.T) {
 			expectedImage: "test-registry/kaito-test-model:test-no-tensor-parallel-model",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml --gpu-memory-utilization=0.90 --pipeline-parallel-size=1",
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml --gpu-memory-utilization=0.90",
 			hasAdapters: false,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name:  "PYTORCH_CUDA_ALLOC_CONF",
@@ -91,7 +91,7 @@ func TestCreatePresetInference(t *testing.T) {
 			expectedImage: "test-registry/kaito-test-model:test-no-lora-support-model",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml --gpu-memory-utilization=0.90 --pipeline-parallel-size=1",
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml --gpu-memory-utilization=0.90",
 			hasAdapters: false,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name:  "PYTORCH_CUDA_ALLOC_CONF",
@@ -109,7 +109,7 @@ func TestCreatePresetInference(t *testing.T) {
 			},
 			workload:       "Deployment",
 			expectedImage:  "test-registry/kaito-test-model:base-test-model",
-			expectedCmd:    "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --tensor-parallel-size=2 --served-model-name=mymodel --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=1",
+			expectedCmd:    "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --tensor-parallel-size=2 --served-model-name=mymodel --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters:    true,
 			expectedVolume: "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{{
@@ -169,14 +169,15 @@ func TestCreatePresetInference(t *testing.T) {
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
 			},
-			workload: "Deployment",
+			workload: "StatefulSet",
 			expectedImage: func() string {
 				baseImage := metadata.MustGet("base")
 				return fmt.Sprintf("test-registry/kaito-base:%s", baseImage.Tag)
 			}(),
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --model=test-repo/test-model --code-revision=test-revision --tensor-parallel-size=2 --pipeline-parallel-size=1",
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=1 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=1 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -190,6 +191,13 @@ func TestCreatePresetInference(t *testing.T) {
 			}, {
 				Name:  "PYTORCH_CUDA_ALLOC_CONF",
 				Value: "expandable_segments:True",
+			}, {
+				Name: "POD_INDEX",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{
+						FieldPath: fmt.Sprintf("metadata.labels['%s']", appsv1.PodIndexLabel),
+					},
+				},
 			}},
 		},
 
@@ -415,7 +423,7 @@ func TestCreatePresetInference(t *testing.T) {
 	}
 }
 
-func TestGetProbe(t *testing.T) {
+func TestGetDistributedInferenceProbe(t *testing.T) {
 	testcases := map[string]struct {
 		probeType           probeType
 		workspace           *v1beta1.Workspace

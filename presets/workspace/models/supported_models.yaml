@@ -3,7 +3,8 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.0.1
+    tag: 0.0.2
+    # 0.0.2 - bump vLLM to 0.8.5. Tool chat template added.
 
   # Llama
   - name: llama-3.1-8b-instruct
@@ -11,9 +12,8 @@ models:
     version: https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/commit/0e9e39f249a16976918f6564b8830bc894c89659
     runtime: tfs
     downloadAtRuntime: true
-    tag: 0.0.2
+    tag: 0.0.1
     # Tag history:
-    # 0.0.2 - bump vLLM to 0.8.5. Tool chat template added.
     # 0.0.1 - Initial Release
 
   # Falcon

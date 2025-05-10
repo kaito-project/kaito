@@ -147,11 +147,10 @@ Standard HTTP probes are insufficient for multi-node vLLM, as only the leader po
 
 To address these issues, the following probing strategy is proposed:
 
-|            | Liveness Probe (Triggers Container Restart on Failure)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Readiness Probe (Does Not Trigger Container Restart on Failure)                         |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| **Leader** | Checks Ray cluster health via `python3 -c 'import ray; ray.init(); from ray._private.state import actors as get_all_actors; get_all_actors()'`, filtering by the correct job id to exclude duplicates. Ensures zero dead actors and alive actors equal StatefulSet replica count. Excludes `/health` endpoint.                                                                                                                                                                                                                                                                                                            | Checks `/health` endpoint at `$VLLM_LEADER_SVC:5000` after some initial delay.          |
-| **Worker** | vLLM does not gracefully handle worker pod restarts (see [vLLM #16259](https://github.com/vllm-project/vllm/issues/16259)), as a restarted worker joins the existing Ray cluster but remains idle, rendering the inference service unusable despite the Ray cluster appearing healthy. That said, implementing a liveness probe for worker pods is unnecessary, as worker health is indirectly validated through the leader’s liveness probe. The leader’s probe, by detecting dead actors, triggers a complete Ray cluster reinitialization, synchronizing both leader and worker pods to restore service functionality. | Checks leader’s `/health` endpoint at `$VLLM_LEADER_SVC:5000` after some initial delay. |
-
+|            | Liveness Probe (Triggers Container Restart on Failure)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Readiness Probe (Does Not Trigger Container Restart on Failure) |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **Leader** | Checks Ray cluster health by listing actors agaionst through the Ray dashboard API. Ensures zero dead actors and excludes vLLM's `/health` endpoint.                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Checks `/health` endpoint at `$VLLM_LEADER_SVC:5000`            |
+| **Worker** | vLLM does not gracefully handle worker pod restarts (see [vLLM #16259](https://github.com/vllm-project/vllm/issues/16259)), as a restarted worker joins the existing Ray cluster but remains idle, rendering the inference service unusable despite the Ray cluster appearing healthy. That said, implementing a liveness probe for worker pods is unnecessary, as worker health is indirectly validated through the leader’s liveness probe. The leader’s probe, by detecting dead actors, triggers a complete Ray cluster reinitialization, synchronizing both leader and worker pods to restore service functionality. | Checks leader’s `/health` endpoint at `$VLLM_LEADER_SVC:5000`.  |
 
 The following sequential diagram summarizes the expected behavior of the liveness and readiness probes during different failure scenarios:
 
@@ -236,17 +235,16 @@ livenessProbe:
     command:
       - /bin/sh
       - -c
-      - /workspace/vllm/multi-node-health-check.sh liveness --host $(VLLM_LEADER_SVC) --ray_port 6379 --vllm_port 5000
+      - python3 /workspace/vllm/multi-node-health-check.py liveness --leader-address $(LEADER_HEADLESS_SVC) --ray-port 6379
   initialDelaySeconds: 60
-  periodSeconds: 15
+  periodSeconds: 10
 readinessProbe:
   exec:
     command:
       - /bin/sh
       - -c
-      - /workspace/vllm/multi-node-health-check.sh readiness --host $(VLLM_LEADER_SVC) --ray_port 6379 --vllm_port 5000
-  initialDelaySeconds: 60
-  periodSeconds: 15
+      - python3 /workspace/vllm/multi-node-health-check.py readiness --leader-address $(LEADER_HEADLESS_SVC) --vllm-port 5000
+  periodSeconds: 10
 ```
 
 The health check script can use the environment variable `POD_INDEX` to determine if the pod is a leader or worker. The probe should also include an initial delay to the liveness probe to allow time for the leader to initialize the Ray cluster and wait for all worker pods to join. This delay is necessary to avoid false positives during the initial startup phase.

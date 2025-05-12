@@ -113,7 +113,7 @@ type DataSource struct {
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +kubebuilder:validation:Schemaless
 	// +optional
-	Volume *v1.VolumeSource `json:"volumeSource,omitempty"`
+	Volume *v1.Volume `json:"volume,omitempty"`
 	// The name of the image that contains the source data. The assumption is that the source data locates in the
 	// `data` directory in the image.
 	// +optional
@@ -128,7 +128,7 @@ type DataDestination struct {
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +kubebuilder:validation:Schemaless
 	// +optional
-	Volume *v1.VolumeSource `json:"volumeSource,omitempty"`
+	Volume *v1.Volume `json:"volume,omitempty"`
 	// Name of the image where the output data is pushed to.
 	// +optional
 	Image string `json:"image,omitempty"`

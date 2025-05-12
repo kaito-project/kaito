@@ -43,7 +43,3 @@ This issue commonly occurs with models supporting large context windows (e.g., 1
 To simplify this process, Kaito implements an external probing test using a binary search algorithm to find a near-optimal `max-model-len` based on available GPU memory. While this test slightly increases service startup time, it eliminates the need for manual tuning. Users can find the calculated `max-model-len` in the inference service pod logs.
 
 > **Note**: The external probing test currently only supports SKUs with a single GPU instance. For SKUs with multiple GPU instances and small per-instance memory (e.g., `Standard_NC12s_v3` with two 16GB v100 instances), users must manually specify the `max-model-len` in the workspace's ConfigMap. The validation webhook enforces this requirement.
-
-## Generic Memory Usage Reduction
-
-Benchmark tests demonstrate that enabling `expandable_segments=true` in PYTORCH_CUDA_ALLOC_CONF helps reduce memory fragmentation and peak memory consumption, particularly for tuning jobs. Kaito enables this flag by default in workspace pods.

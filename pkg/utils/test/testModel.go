@@ -27,10 +27,9 @@ func (*baseTestModel) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams: emptyParams,
 			},
 			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:        "accelerate launch",
-				InferenceMainFile:  "/workspace/tfs/inference_api.py",
-				TorchRunParams:     emptyParams,
-				TorchRunRdzvParams: emptyParams,
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				AccelerateParams:  emptyParams,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

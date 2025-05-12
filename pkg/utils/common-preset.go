@@ -15,18 +15,29 @@ const (
 	DefaultAdapterVolumePath  = "/mnt/adapter"
 )
 
-func ConfigResultsVolume(outputPath string) (corev1.Volume, corev1.VolumeMount) {
-	sharedWorkspaceVolume := corev1.Volume{
-		Name: "results-volume",
-		VolumeSource: corev1.VolumeSource{
-			EmptyDir: &corev1.EmptyDirVolumeSource{},
-		},
+func ConfigResultsVolume(outputPath string, outputVolume *corev1.Volume) (corev1.Volume, corev1.VolumeMount) {
+	var sharedWorkspaceVolume *corev1.Volume
+	var sharedVolumeMount corev1.VolumeMount
+
+	if outputVolume == nil {
+		sharedWorkspaceVolume = &corev1.Volume{
+			Name: "results-volume",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		}
+		sharedVolumeMount = corev1.VolumeMount{
+			Name:      "results-volume",
+			MountPath: outputPath,
+		}
+	} else {
+		sharedWorkspaceVolume = outputVolume
+		sharedVolumeMount = corev1.VolumeMount{
+			Name:      outputVolume.Name,
+			MountPath: outputPath,
+		}
 	}
-	sharedVolumeMount := corev1.VolumeMount{
-		Name:      "results-volume",
-		MountPath: outputPath,
-	}
-	return sharedWorkspaceVolume, sharedVolumeMount
+	return *sharedWorkspaceVolume, sharedVolumeMount
 }
 
 func ConfigImagePullSecretVolume(nameSuffix string, imagePullSecrets []string) (corev1.Volume, corev1.VolumeMount) {

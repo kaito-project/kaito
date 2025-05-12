@@ -210,7 +210,7 @@ func (r *DataSource) validateCreate() (errs *apis.FieldError) {
 		sourcesSpecified++
 	}
 	if r.Volume != nil {
-		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
+		// errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 		sourcesSpecified++
 	}
 	if image := r.Image; image != "" {
@@ -234,7 +234,7 @@ func (r *DataSource) validateUpdate(old *DataSource, isTuning bool) (errs *apis.
 		errs = errs.Also(apis.ErrInvalidValue("During tuning Name field cannot be changed once set", "Name"))
 	}
 	if r.Volume != nil {
-		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
+		// errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 	}
 	if image := r.Image; image != "" {
 		if _, err := reference.ParseDockerRef(image); err != nil {
@@ -249,7 +249,7 @@ func (r *DataDestination) validateCreate() (errs *apis.FieldError) {
 	destinationsSpecified := 0
 	// TODO: Implement Volumes
 	if r.Volume != nil {
-		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
+		// errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 		destinationsSpecified++
 	}
 	if image := r.Image; image != "" {
@@ -275,7 +275,7 @@ func (r *DataDestination) validateCreate() (errs *apis.FieldError) {
 func (r *DataDestination) validateUpdate() (errs *apis.FieldError) {
 	// TODO: Implement Volumes
 	if r.Volume != nil {
-		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
+		// errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
 	}
 	if image := r.Image; image != "" {
 		if _, err := reference.ParseDockerRef(image); err != nil {

@@ -19,12 +19,12 @@ models:
   # Falcon
   - name: falcon-7b
     type: text-generation
-    version: https://huggingface.co/tiiuae/falcon-7b/commit/ec89142b67d748a1865ea4451372db8313ada0d8
+    version: https://huggingface.co/tiiuae/falcon-7b/commit/898df1396f35e447d5fe44e0a3ccaaaa69f30d36
     runtime: tfs
     tag: 0.1.1
   - name: falcon-7b-instruct
     type: text-generation
-    version: https://huggingface.co/tiiuae/falcon-7b-instruct/commit/8782b5c5d8c9290412416618f36a133653e85285
+    version: https://huggingface.co/tiiuae/falcon-7b-instruct/commit/cf4b3c42ce2fdfe24f753f0f0d179202fea59c99
     runtime: tfs
     tag: 0.1.1
     # Tag history:
@@ -40,7 +40,7 @@ models:
     # 0.0.1 - Initial Release
   - name: falcon-40b
     type: text-generation
-    version: https://huggingface.co/tiiuae/falcon-40b/tree/4a70170c215b36a3cce4b4253f6d0612bb7d4146
+    version: https://huggingface.co/tiiuae/falcon-40b/commit/4a70170c215b36a3cce4b4253f6d0612bb7d4146
     runtime: tfs
     tag: 0.1.1
   - name: falcon-40b-instruct

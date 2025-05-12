@@ -40,7 +40,7 @@ models:
     # 0.0.1 - Initial Release
   - name: falcon-40b
     type: text-generation
-    version: https://huggingface.co/tiiuae/falcon-40b/commit/05ab2ee8d6b593bdbab17d728de5c028a7a94d83
+    version: https://huggingface.co/tiiuae/falcon-40b/tree/4a70170c215b36a3cce4b4253f6d0612bb7d4146
     runtime: tfs
     tag: 0.1.1
   - name: falcon-40b-instruct

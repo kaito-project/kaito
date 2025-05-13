@@ -321,7 +321,7 @@ docker-build-llm-reference-preset: docker-buildx
 		--build-arg VERSION=$(VERSION) .
 
 ## --------------------------------------
-## Kaito Installation
+## KAITO Installation
 ## --------------------------------------
 .PHONY: prepare-kaito-addon-identity
 prepare-kaito-addon-identity:

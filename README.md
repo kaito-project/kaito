@@ -1,4 +1,4 @@
-# Kubernetes AI Toolchain Operator (Kaito)
+# Kubernetes AI Toolchain Operator (KAITO)
 
 ![GitHub Release](https://img.shields.io/github/v/release/kaito-project/kaito)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kaito-project/kaito)](https://goreportcard.com/report/github.com/kaito-project/kaito)
@@ -7,13 +7,13 @@
 
 | ![notification](docs/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Coming soon:** Kaito v0.5.0. Retrieval-augmented generation (RAG) - RagEngine support with LlamaIndex orchestration and Faiss as the default vectorDB, learn about recent updates [here](https://github.com/kaito-project/kaito/issues/734)! |
-| Latest Release: Apr 18th, 2025. Kaito v0.4.5.                                                                                                                                                                                                  |
-| First Release: Nov 15th, 2023. Kaito v0.1.0.                                                                                                                                                                                                   |
+| **Coming soon:** KAITO v0.5.0. Retrieval-augmented generation (RAG) - RagEngine support with LlamaIndex orchestration and Faiss as the default vectorDB, learn about recent updates [here](https://github.com/kaito-project/kaito/issues/734)! |
+| Latest Release: Apr 18th, 2025. KAITO v0.4.5.                                                                                                                                                                                                  |
+| First Release: Nov 15th, 2023. KAITO v0.1.0.                                                                                                                                                                                                   |
 
-Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
+KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
 The target models are popular open-sourced large models such as [falcon](https://huggingface.co/tiiuae) and [phi-3](https://huggingface.co/docs/transformers/main/en/model_doc/phi3).
-Kaito has the following key differentiations compared to most of the mainstream model deployment methodologies built on top of virtual machine infrastructures:
+KAITO has the following key differentiations compared to most of the mainstream model deployment methodologies built on top of virtual machine infrastructures:
 
 - Manage large model files using container images. An OpenAI-compatible server is provided to perform inference calls.
 - Provide preset configurations to avoid adjusting workload parameters based on GPU hardware.
@@ -21,16 +21,16 @@ Kaito has the following key differentiations compared to most of the mainstream 
 - Auto-provision GPU nodes based on model requirements.
 - Host large model images in the public Microsoft Container Registry (MCR) if the license allows.
 
-Using Kaito, the workflow of onboarding large AI inference models in Kubernetes is largely simplified.
+Using KAITO, the workflow of onboarding large AI inference models in Kubernetes is largely simplified.
 
 ## Architecture
 
-Kaito follows the classic Kubernetes Custom Resource Definition(CRD)/controller design pattern. User manages a `workspace` custom resource which describes the GPU requirements and the inference or tuning specification. Kaito controllers will automate the deployment by reconciling the `workspace` custom resource.
+KAITO follows the classic Kubernetes Custom Resource Definition(CRD)/controller design pattern. User manages a `workspace` custom resource which describes the GPU requirements and the inference or tuning specification. KAITO controllers will automate the deployment by reconciling the `workspace` custom resource.
 <div align="left">
-  <img src="docs/img/arch.png" width=80% title="Kaito architecture" alt="Kaito architecture">
+  <img src="docs/img/arch.png" width=80% title="KAITO architecture" alt="KAITO architecture">
 </div>
 
-The above figure presents the Kaito architecture overview. Its major components consist of:
+The above figure presents the KAITO architecture overview. Its major components consist of:
 
 - **Workspace controller**: It reconciles the `workspace` custom resource, creates `machine` (explained below) custom resources to trigger node auto provisioning, and creates the inference or tuning workload (`deployment`, `statefulset` or `job`) based on the model preset configurations.
 - **Node provisioner controller**: The controller's name is *gpu-provisioner* in [gpu-provisioner helm chart](https://github.com/Azure/gpu-provisioner/tree/main/charts/gpu-provisioner). It uses the `machine` CRD originated from [Karpenter](https://sigs.k8s.io/karpenter) to interact with the workspace controller. It integrates with Azure Resource Manager REST APIs to add new GPU nodes to the AKS or AKS Arc cluster.
@@ -42,7 +42,7 @@ Please check the installation guidance [here](./docs/installation.md) for deploy
 
 ## Quick start
 
-After installing Kaito, one can try following commands to start a phi-3.5-mini-instruct inference service.
+After installing KAITO, one can try following commands to start a phi-3.5-mini-instruct inference service.
 
 ```sh
 $ cat examples/inference/kaito_workspace_phi_3.5-instruct.yaml
@@ -109,11 +109,11 @@ $ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X P
 
 ## Usage
 
-The detailed usage for Kaito supported models can be found in [**HERE**](presets/README.md). In case users want to deploy their own containerized models, they can provide the pod template in the `inference` field of the workspace custom resource (please see [API definitions](api/v1alpha1/workspace_types.go) for details). The controller will create a deployment workload using all provisioned GPU nodes. Note that currently the controller does **NOT** handle automatic model upgrade. It only creates inference workloads based on the preset configurations if the workloads do not exist.
+The detailed usage for KAITO supported models can be found in [**HERE**](presets/README.md). In case users want to deploy their own containerized models, they can provide the pod template in the `inference` field of the workspace custom resource (please see [API definitions](api/v1alpha1/workspace_types.go) for details). The controller will create a deployment workload using all provisioned GPU nodes. Note that currently the controller does **NOT** handle automatic model upgrade. It only creates inference workloads based on the preset configurations if the workloads do not exist.
 
-The number of the supported models in Kaito is growing! Please check [this](./docs/How-to-add-new-models.md) document to see how to add a new supported model.
+The number of the supported models in KAITO is growing! Please check [this](./docs/How-to-add-new-models.md) document to see how to add a new supported model.
 
-Starting with version v0.3.0, Kaito supports model fine-tuning and using fine-tuned adapters in the inference service. Refer to the [tuning document](./docs/tuning/README.md) and [inference document](./docs/inference/README.md) for more information.
+Starting with version v0.3.0, KAITO supports model fine-tuning and using fine-tuned adapters in the inference service. Refer to the [tuning document](./docs/tuning/README.md) and [inference document](./docs/inference/README.md) for more information.
 
 ## FAQ
 
@@ -132,9 +132,9 @@ Then the node should have the label: `apps=falcon-7b`.
 
 When using hosted public models, a user can delete the existing inference workload (`Deployment` of `StatefulSet`) manually, and the workspace controller will create a new one with the latest preset configuration (e.g., the image version) defined in the current release. For private models, it is recommended to create a new workspace with a new image version in the Spec.
 
-### How to update model/inference parameters to override the Kaito Preset Configuration?
+### How to update model/inference parameters to override the KAITO Preset Configuration?
 
-Kaito provides a limited capability to override preset configurations for models that use `transformer` runtime manually.
+KAITO provides a limited capability to override preset configurations for models that use `transformer` runtime manually.
 To update parameters for a deployed model, perform `kubectl edit` against the workload, which could be either a `StatefulSet` or `Deployment`.
 For example, to enable 4-bit quantization on a `falcon-7b-instruct` deployment, you would execute:
 
@@ -197,6 +197,6 @@ KAITO has adopted the [Cloud Native Compute Foundation Code of Conduct](https://
 <!-- markdown-link-check-enable -->
 ## Contact
 
-"Kaito devs" <kaito-dev@microsoft.com>
+"KAITO devs" <kaito-dev@microsoft.com>
 
-[Kaito Community Slack](https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-2wm17rttz-t4E6_rMIuY03DwBHaJq1sg)
+[KAITO Community Slack](https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-2wm17rttz-t4E6_rMIuY03DwBHaJq1sg)

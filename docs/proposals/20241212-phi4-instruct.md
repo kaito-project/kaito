@@ -11,7 +11,7 @@ status: provisional
 
 # Title
 
-Add official support for Microsoft's Phi-4 models in Kaito.
+Add official support for Microsoft's Phi-4 models in KAITO.
 
 ## Summary
 

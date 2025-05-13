@@ -1,12 +1,12 @@
-# Kaito fine tuning
-This document presents how to use the Kaito `workspace` Custom Resource Definition (CRD) for parameter-efficient fine-tuning (PEFT) of models, how a Kubernetes job is designed to automate the tuning workflow, and several best practices for troubleshooting.
+# KAITO fine tuning
+This document presents how to use the KAITO `workspace` Custom Resource Definition (CRD) for parameter-efficient fine-tuning (PEFT) of models, how a Kubernetes job is designed to automate the tuning workflow, and several best practices for troubleshooting.
 
 ## Usage
-Kaito tuning APIs allow users to specify supported tuning methods like [LoRA or QLoRA](https://huggingface.co/docs/peft/main/en/conceptual_guides/lora), the input dataset and configuration settings, and the output destination for saving the tuning results. Currently, Kaito supports both URL and image as the types of tuning input sources. It only supports image as the type of output destination. In the future, Kaito will additionally support the Kubernetes `v1.Volume` API for both the input source and the output destination.
+KAITO tuning APIs allow users to specify supported tuning methods like [LoRA or QLoRA](https://huggingface.co/docs/peft/main/en/conceptual_guides/lora), the input dataset and configuration settings, and the output destination for saving the tuning results. Currently, KAITO supports both URL and image as the types of tuning input sources. It only supports image as the type of output destination. In the future, KAITO will additionally support the Kubernetes `v1.Volume` API for both the input source and the output destination.
 
 
 ### Tuning workspace
-Here are two examples of using Kaito workspace CRD to define workspaces for tuning different models:
+Here are two examples of using KAITO workspace CRD to define workspaces for tuning different models:
 
 Example 1: Tuning [`phi-3-mini`](../../examples/fine-tuning/kaito_workspace_tuning_phi_3.yaml). This example uses a public dataset specified by a URL in the input.
 
@@ -38,12 +38,12 @@ tuning:
 The detailed `TuningSpec` API definitions can be found [here](https://github.com/kaito-project/kaito/blob/2ccc93daf9d5385649f3f219ff131ee7c9c47f3e/api/v1alpha1/workspace_types.go#L145).
 
 ### Tuning configurations
-Kaito provides default tuning configurations for different tuning methods. They are managed by Kubernetes configmaps.
+KAITO provides default tuning configurations for different tuning methods. They are managed by Kubernetes configmaps.
 - [default LoRA configmap](../../charts/kaito/workspace/templates/lora-params.yaml)
 - [default QLoRA configmap](../../charts/kaito/workspace/templates/qlora-params.yaml)
 
 ## Tuning configmaps
-User can specify a customized configmap via the `Config` field of the `TuningSpec`. The customized configmap should be structured based on the default configmaps provided by Kaito. Please read the following section carefully when attempting to change the default parameters used by Kaito.
+User can specify a customized configmap via the `Config` field of the `TuningSpec`. The customized configmap should be structured based on the default configmaps provided by KAITO. Please read the following section carefully when attempting to change the default parameters used by KAITO.
 
 ### Categorized key parameters
 Note that changing these parameters may largely impact the tuning result. In addition, users can add extra parameters that are not presented in the default configmaps. For a complete list of supported parameters, please refer to the provided huggingface documentation.
@@ -106,11 +106,11 @@ If your dataset is not in one of these formats, it will be passed directly to th
 Note: if you build a container image for the input dataset, please copy the dataset to the **`/data`** directory inside the container.
 
 # Tuning Job
-Kaito uses the Kubernetes **batchv1.job** workload to manage the tuning Pod. When a tuning workspace custom resource is created, the Kaito controller will create a job with the same name as the workspace in the same namespace. To streamline the tuning workflow, Kaito adds two containers in addition to the main container that runs the tuning process. The pod structure is illustrated in Figure 1.
+KAITO uses the Kubernetes **batchv1.job** workload to manage the tuning Pod. When a tuning workspace custom resource is created, the KAITO controller will create a job with the same name as the workspace in the same namespace. To streamline the tuning workflow, KAITO adds two containers in addition to the main container that runs the tuning process. The pod structure is illustrated in Figure 1.
 <div align="left">
-  <img src="../img/kaito-fine-tuning.png" width=40% title="Kaito fine tuning" alt="Kaito fine tuning">
+  <img src="../img/kaito-fine-tuning.png" width=40% title="KAITO fine tuning" alt="KAITO fine tuning">
 </div>
-Figure 1. Kaito tuning pod structure.
+Figure 1. KAITO tuning pod structure.
 
 - Initcontainer `data-downloader`: It downloads the training input dataset from the URLs specified in the tuning spec if needed. If an image is specified in the input, the `data-downloader` container uses the specified image as the container image. This initcontainer ensures the training data is available locally before the training process starts.
 
@@ -125,12 +125,12 @@ All three containers use shared local volumes (by mounting the same `EmptyDir` v
 ### Job pod failures
 When the tuning job reaches the failed state, at least one of the above three containers has encountered errors. Users can check the logs of these containers using the `kubectl logs PODNAME -n NAMESPACE -c CONTAINERNAME` command.
 
-For the initcontainer and sidecar container, possible errors include invalid input/output URLs or invalid image pull secrets. Users can fix these problems by updating the workspace custom resource with corrections. The Kaito controller will create a new job using the updated spec.
+For the initcontainer and sidecar container, possible errors include invalid input/output URLs or invalid image pull secrets. Users can fix these problems by updating the workspace custom resource with corrections. The KAITO controller will create a new job using the updated spec.
 
-For the main container, errors may occur when CUDA reports out of GPU memory. Users should reduce the batch size (the default is 1) if it has been customized to a value larger than 1. If the batch size is already 1, the workspace must be recreated using a different GPU SKU with larger GPU memory. Note that Kaito has optimized the training memory usage by dropping the preallocated memory cache. Our internal tests show that the performance impact due to this change is negligible.
+For the main container, errors may occur when CUDA reports out of GPU memory. Users should reduce the batch size (the default is 1) if it has been customized to a value larger than 1. If the batch size is already 1, the workspace must be recreated using a different GPU SKU with larger GPU memory. Note that KAITO has optimized the training memory usage by dropping the preallocated memory cache. Our internal tests show that the performance impact due to this change is negligible.
 
 ### LoraConfig target modules errors
-If you encounter the error: `ValueError: Target modules {'target_module_here'} not found in the base model. Please check the target modules and try again.`, you need to manually specify the target_modules parameter in your Kaito configmap. This is a huggingface requirement.
+If you encounter the error: `ValueError: Target modules {'target_module_here'} not found in the base model. Please check the target modules and try again.`, you need to manually specify the target_modules parameter in your KAITO configmap. This is a huggingface requirement.
 
 This error occurs because the automatic module detection failed for your model. You must identify the specific target modules for your model and explicitly list them in the LoraConfig section. For example, a valid configuration for phi-4-mini-instruct would look like:
 ```yaml

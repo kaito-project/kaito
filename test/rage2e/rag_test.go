@@ -69,8 +69,8 @@ var _ = Describe("RAGEngine", func() {
 	AfterEach(func() {
 		if CurrentSpecReport().Failed() {
 			utils.PrintPodLogsOnFailure(namespaceName, "")     // The Preset Pod
-			utils.PrintPodLogsOnFailure("kaito-workspace", "") // The Kaito Workspace Pod
-			utils.PrintPodLogsOnFailure("kaito-ragengine", "") // The Kaito ragengine Pod
+			utils.PrintPodLogsOnFailure("kaito-workspace", "") // The KAITO Workspace Pod
+			utils.PrintPodLogsOnFailure("kaito-ragengine", "") // The KAITO ragengine Pod
 			utils.PrintPodLogsOnFailure("gpu-provisioner", "") // The gpu-provisioner Pod
 			Fail("Fail threshold reached")
 		}
@@ -485,7 +485,7 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
     "index_name": "kaito",
     "documents": [
         {
-            "text": "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster",
+            "text": "KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster",
             "metadata": {"author": "kaito", "category": "kaito"}
         }
     ]
@@ -511,7 +511,7 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
 				return false
 			}
 
-			return strings.Contains(logs, "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster")
+			return strings.Contains(logs, "KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster")
 		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for index logs to be ready")
 	})
 

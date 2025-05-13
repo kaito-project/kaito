@@ -7,7 +7,7 @@
 | falcon-40b          |     [tiiuae](https://huggingface.co/tiiuae/falcon-40b)      |     [link](../../../../examples/inference/kaito_workspace_falcon_40b.yaml)      |     Deployment      |         false         |
 
 ## Image Source
-- **Public**: Kaito maintainers manage the lifecycle of the inference service images that contain model weights. The images are available in Microsoft Container Registry (MCR).
+- **Public**: KAITO maintainers manage the lifecycle of the inference service images that contain model weights. The images are available in Microsoft Container Registry (MCR).
 
 ## Usage
 

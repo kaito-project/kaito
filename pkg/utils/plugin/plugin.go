@@ -10,7 +10,7 @@ import (
 
 // Registration is a struct that holds the name and an instance of a struct
 // that implements the model.Model interface. It is used to register and manage
-// different model instances within the Kaito framework.
+// different model instances within the KAITO framework.
 type Registration struct {
 	// Name is the name of the model. It is used as a key to register and
 	// retrieve the model metadata and instance.

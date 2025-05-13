@@ -29,6 +29,7 @@ var (
 		"torch_dtype":   "bfloat16",
 		"pipeline":      "text-generation",
 		"chat_template": "/workspace/chat_templates/llama-3-instruct.jinja",
+		"allow_remote_files": "",
 	}
 	llamaRunParamsVLLM = map[string]string{
 		"dtype":         "float16",

@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   run-e2e:
+    environment: e2e-test
     strategy:
       fail-fast: false
       matrix:
@@ -29,3 +30,4 @@ jobs:
     with:
       git_sha: ${{ github.event.pull_request.head.sha }}
       node_provisioner: ${{ matrix.node-provisioner }}
+      hf_token: ${{ secrets.HF_TOKEN }}

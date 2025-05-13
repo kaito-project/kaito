@@ -26,9 +26,9 @@ var (
 	baseCommandPresetLlamaInference = "accelerate launch"
 	// baseCommandPresetLlamaTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	llamaRunParams = map[string]string{
-		"torch_dtype":   "bfloat16",
-		"pipeline":      "text-generation",
-		"chat_template": "/workspace/chat_templates/llama-3-instruct.jinja",
+		"torch_dtype":        "bfloat16",
+		"pipeline":           "text-generation",
+		"chat_template":      "/workspace/chat_templates/llama-3-instruct.jinja",
 		"allow_remote_files": "",
 	}
 	llamaRunParamsVLLM = map[string]string{

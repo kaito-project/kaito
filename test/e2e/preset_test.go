@@ -157,13 +157,14 @@ func createPhi2WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 }
 
 func createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	modelSecret := createAndValidateModelSecret()
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode", func() {
 		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
 			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b"},
-			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, hfToken) // Llama 3.1-8B Instruct model requires a model access secret
+			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name) // Llama 3.1-8B Instruct model requires a model access secret
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -223,6 +224,25 @@ func createAndValidateConfigMap(configMap *v1.ConfigMap) {
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
+}
+
+func createAndValidateModelSecret() *corev1.Secret {
+	modelSecret := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "hf-token",
+			Namespace: namespaceName,
+		},
+		Data: map[string][]byte{
+			"HF_TOKEN": []byte(hfToken),
+		},
+	}
+	By("Creating model secret", func() {
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Create(ctx, &modelSecret, &client.CreateOptions{})
+			return client.IgnoreAlreadyExists(err)
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to create model secret")
+	})
+	return &modelSecret
 }
 
 func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNode int) (*kaitov1beta1.Workspace, string, string) {
@@ -847,7 +867,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a llama-3.1-8b-instruct workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(numOfNode)
 

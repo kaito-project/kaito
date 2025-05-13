@@ -353,14 +353,14 @@ func createQwen2_5WorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode int)
 }
 
 func createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	modelSecret := createAndValidateModelSecret()
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b-vllm"},
-			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, hfToken) // Llama 3.1-8B Instruct model requires a model access secret
-
+			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name) // Llama 3.1-8B Instruct model requires a model access secret
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj

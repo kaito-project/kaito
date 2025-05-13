@@ -1,3 +1,3 @@
 # Requirement
 
-Pip dependencies for both Kaito inference and tuning.
+Pip dependencies for both KAITO inference and tuning.

@@ -1,5 +1,5 @@
 **Reason for Change**:
-<!-- What does this PR improve or fix in Kaito? Why is it needed? -->
+<!-- What does this PR improve or fix in KAITO? Why is it needed? -->
 
 **Requirements**
 

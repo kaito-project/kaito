@@ -60,7 +60,7 @@ kubectl describe deploy karpenter -n $KARPENTER_NAMESPACE
 ```
 
 ## Create a Workspace and start an inference service
-Once the Kaito and Karpenter controllers are installed, you can follow these commands to start a falcon-7b inference service.
+Once the KAITO and Karpenter controllers are installed, you can follow these commands to start a falcon-7b inference service.
 
 ```bash
 $ export kaito_workspace_aws="../../examples/inference/kaito_workspace_falcon_7b_aws.yaml"

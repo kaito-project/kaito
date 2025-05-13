@@ -1,4 +1,4 @@
-## Kaito Demos Overview
+## KAITO Demos Overview
 
 Welcome to the KAITO demos directory! Here you'll find a collection of demonstration 
 applications designed to showcase various functionalities and 

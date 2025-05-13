@@ -14,20 +14,20 @@ status: provisional
 Distributed Inference
 
 ## Summary
-While Kaito excels with single-GPU models, the increasing size of state-of-the-art models necessitates multi-node distributed inference capabilities. Models with hundreds of billions of parameters often exceed the memory capacity of even the largest single nodes available today.
+While KAITO excels with single-GPU models, the increasing size of state-of-the-art models necessitates multi-node distributed inference capabilities. Models with hundreds of billions of parameters often exceed the memory capacity of even the largest single nodes available today.
 
-Kaito has support for multi-node inference via HuggingFace Transformers and Torch Elastic, previously used for deprecated models like Llama 2 13B/70B. However, no current preset models leverage this and the default vLLM runtime lacks multi-node support within Kaito since its adoption in January 2025 ([#823](https://github.com/kaito-project/kaito/pull/823)).
+KAITO has support for multi-node inference via HuggingFace Transformers and Torch Elastic, previously used for deprecated models like Llama 2 13B/70B. However, no current preset models leverage this and the default vLLM runtime lacks multi-node support within KAITO since its adoption in January 2025 ([#823](https://github.com/kaito-project/kaito/pull/823)).
 
-This proposal aims to bridge this gap by implementing multi-node distributed inference, primarily focusing on the vLLM runtime. The goal is to enable  deployment of very large preset models across multiple nodes, ensuring Kaito remains capable of serving cutting-edge models while maintaining a consistent user experience.
+This proposal aims to bridge this gap by implementing multi-node distributed inference, primarily focusing on the vLLM runtime. The goal is to enable  deployment of very large preset models across multiple nodes, ensuring KAITO remains capable of serving cutting-edge models while maintaining a consistent user experience.
 
 ## What Is Distributed Inference Anyway?
 
-Distributed inference enables models too large for a single GPU to run across multiple GPUs or nodes. Key strategies relevant to Kaito include:
+Distributed inference enables models too large for a single GPU to run across multiple GPUs or nodes. Key strategies relevant to KAITO include:
 
 1.  **Single-Node Multi-GPU (Tensor Parallelism):** Splits a model across multiple GPUs *within* a single node. Used when a model fits on one node but exceeds a single GPU's memory. Both HuggingFace Transformers and vLLM support this.
-2.  **Multi-Node Multi-GPU (Pipeline and Tensor Parallelism):** Splits a model across multiple nodes, typically using pipeline parallelism between nodes and tensor parallelism within each node. Used for models exceeding a single node's capacity. HuggingFace Transformers supports this via Torch Elastic, but vLLM currently does not in Kaito.
+2.  **Multi-Node Multi-GPU (Pipeline and Tensor Parallelism):** Splits a model across multiple nodes, typically using pipeline parallelism between nodes and tensor parallelism within each node. Used for models exceeding a single node's capacity. HuggingFace Transformers supports this via Torch Elastic, but vLLM currently does not in KAITO.
 
-Kaito's current support for these strategies:
+KAITO's current support for these strategies:
 
 | Strategy              | HuggingFace Transformers |        vLLM        |
 | --------------------- | :----------------------: | :----------------: |
@@ -37,7 +37,7 @@ Kaito's current support for these strategies:
 
 ### Goals
 
-- Implement multi-node distributed inference for preset models using the vLLM inference runtime in Kaito.
+- Implement multi-node distributed inference for preset models using the vLLM inference runtime in KAITO.
 
 ### Non-Goals
 
@@ -77,7 +77,7 @@ resource:
 - [x] For models requiring more than one GPU, validate that `# GPUs/instance × workspace.resource.count ≥ Required # GPUs for a preset model`, and `GPU memory * # GPUs ≥ Required model memory`. This validation is performed in the API server when creating or updating a workspace. If the condition is not met, an error message will be returned to the user. This is already implemented in [`api/v1beta1/workspace_validation.go`](https://github.com/kaito-project/kaito/blob/1815428804593eaa94de0d6f78d82b53e85d0137/api/v1beta1/workspace_validation.go#L293-L380) and does not require any changes.
 
 > [!WARNING]
-> Kaito respects the user-defined `workspace.resource.count` and deploys the model across all specified nodes, even if the model could fit on fewer. Users should be aware that requesting more nodes than optimal for a model might introduce unnecessary communication overhead and potentially degrade performance, particularly without high-speed networking.
+> KAITO respects the user-defined `workspace.resource.count` and deploys the model across all specified nodes, even if the model could fit on fewer. Users should be aware that requesting more nodes than optimal for a model might introduce unnecessary communication overhead and potentially degrade performance, particularly without high-speed networking.
 
 ### vLLM Runtime Parameters
 

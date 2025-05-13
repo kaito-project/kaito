@@ -9,7 +9,7 @@ last-updated: 2024-02-02
 status: provisional
 ---
 # Title
-Add Mistral-7B-Instruct-v0.2 to Kaito supported model list.
+Add Mistral-7B-Instruct-v0.2 to KAITO supported model list.
 
 ## Glossary
 N/A

@@ -1,10 +1,10 @@
-# Kaito Inference
+# KAITO Inference
 
-This document presents how to use the Kaito `workspace` Custom Resource Definition (CRD) for model serving and serving with LoRA adapters.
+This document presents how to use the KAITO `workspace` Custom Resource Definition (CRD) for model serving and serving with LoRA adapters.
 
 ## Usage
 
-The basic usage for inference is simple. Users just need to specify the GPU SKU used for inference in the `resource` spec and one of the Kaito supported model name in the `inference` spec in the `workspace` custom resource. For example,
+The basic usage for inference is simple. Users just need to specify the GPU SKU used for inference in the `resource` spec and one of the KAITO supported model name in the `inference` spec in the `workspace` custom resource. For example,
 
 ```yaml
 apiVersion: kaito.sh/v1beta1
@@ -21,7 +21,7 @@ inference:
     name: "falcon-7b"
 ```
 
-If a user runs Kaito in an on-premise Kubernetes cluster where GPU SKUs are unavailable, the GPU nodes can be pre-configured. The user should ensure that the corresponding vendor-specific GPU plugin is installed successfully in every prepared node, i.e. the node status should report a non-zero GPU resource in the allocatable field. For example:
+If a user runs KAITO in an on-premise Kubernetes cluster where GPU SKUs are unavailable, the GPU nodes can be pre-configured. The user should ensure that the corresponding vendor-specific GPU plugin is installed successfully in every prepared node, i.e. the node status should report a non-zero GPU resource in the allocatable field. For example:
 
 ```
 $ kubectl get node $NODE_NAME -o json | jq .status.allocatable
@@ -36,9 +36,9 @@ $ kubectl get node $NODE_NAME -o json | jq .status.allocatable
 }
 ```
 
-Next, the user needs to add the node names in the `preferredNodes` field in the `resource` spec. As a result, the Kaito controller will skip the steps for GPU node provisioning and use the prepared nodes to run the inference workload.
+Next, the user needs to add the node names in the `preferredNodes` field in the `resource` spec. As a result, the KAITO controller will skip the steps for GPU node provisioning and use the prepared nodes to run the inference workload.
 > [!IMPORTANT]
-> The node objects of the preferred nodes need to contain the same matching labels as specified in the `resource` spec. Otherwise, the Kaito controller would not recognize them.
+> The node objects of the preferred nodes need to contain the same matching labels as specified in the `resource` spec. Otherwise, the KAITO controller would not recognize them.
 
 ### Inference runtime selection
 
@@ -108,7 +108,7 @@ For the complete list of vLLM parameters, refer to the [vLLM documentation](http
 
 ### Inference with LoRA adapters 
 
-Kaito also supports running the inference workload with LoRA adapters produced by [model fine-tuning jobs](../tuning/README.md). Users can specify one or more adapters in the `adapters` field of the `inference` spec. For example,
+KAITO also supports running the inference workload with LoRA adapters produced by [model fine-tuning jobs](../tuning/README.md). Users can specify one or more adapters in the `adapters` field of the `inference` spec. For example,
 
 ```yaml
 apiVersion: kaito.sh/v1beta1
@@ -224,12 +224,12 @@ curl -X POST \
 
 # Inference workload
 
-Depending on whether the specified model supports distributed inference or not, the Kaito controller will choose to use either Kubernetes **apps.deployment** workload (by default) or Kubernetes **apps.statefulset** workload (if the model supports distributed inference) to manage the inference service, which is exposed using a Cluster-IP type of Kubernetes `service`.
+Depending on whether the specified model supports distributed inference or not, the KAITO controller will choose to use either Kubernetes **apps.deployment** workload (by default) or Kubernetes **apps.statefulset** workload (if the model supports distributed inference) to manage the inference service, which is exposed using a Cluster-IP type of Kubernetes `service`.
 
-When adapters are specified in the `inference` spec, the Kaito controller adds an initcontainer for each adapter in addition to the main container. The pod structure is shown in Figure 1.
+When adapters are specified in the `inference` spec, the KAITO controller adds an initcontainer for each adapter in addition to the main container. The pod structure is shown in Figure 1.
 
 <div align="left">
-  <img src="../img/kaito-inference-adapter.png" width=40% title="Kaito inference adapter" alt="Kaito inference adapter">
+  <img src="../img/kaito-inference-adapter.png" width=40% title="KAITO inference adapter" alt="KAITO inference adapter">
 </div>
 
 If an image is specified as the adapter source, the corresponding initcontainer uses that image as its container image. These initcontainers ensure all adapter data is available locally before the inference service starts. The main container uses a supported model image, launching the [inference_api.py](../../presets/workspace/inference/text-generation/inference_api.py) script.
@@ -238,7 +238,7 @@ All containers share local volumes by mounting the same `EmptyDir` volumes, avoi
 
 ## Workload update
 
-To update the `adapters` field in the `inference` spec, users can modify the `workspace` custom resource. The Kaito controller will apply the changes, triggering a workload deployment update. This will recreate the inference service pod, resulting in a brief service downtime. Once the new adapters are merged with the raw model weights and loaded into GPU memory, the service will resume.
+To update the `adapters` field in the `inference` spec, users can modify the `workspace` custom resource. The KAITO controller will apply the changes, triggering a workload deployment update. This will recreate the inference service pod, resulting in a brief service downtime. Once the new adapters are merged with the raw model weights and loaded into GPU memory, the service will resume.
 
 
 # Troubleshooting

@@ -1,6 +1,6 @@
-# Kaito RAGEngine
+# KAITO RAGEngine
 
-This document presents how to use the Kaito `ragengine` Custom Resource Definition (CRD) for retrieval-augumented generatoin workflow. By creating a RAGEngine resource, you can quickly stand up a service that indexes documents and queries them in conjunction with an existing LLM inference endpoint—no need to custom-build pipelines. This enables your large language model to answer questions based on your own private content.
+This document presents how to use the KAITO `ragengine` Custom Resource Definition (CRD) for retrieval-augumented generatoin workflow. By creating a RAGEngine resource, you can quickly stand up a service that indexes documents and queries them in conjunction with an existing LLM inference endpoint—no need to custom-build pipelines. This enables your large language model to answer questions based on your own private content.
 
 ## Installation
 
@@ -11,7 +11,7 @@ Please check the installation guidance [here](./RAGEngine-installation.md) for d
 ### Prerequisite
 Before creating a RAGEngine, ensure you have an accessible model inference endpoint. This endpoint can be:
 
-1.	A model deployed through Kaito Workspace CRD (e.g., a local Hugging Face model, a vLLM instance, etc.).
+1.	A model deployed through KAITO Workspace CRD (e.g., a local Hugging Face model, a vLLM instance, etc.).
 2.	An external API (e.g., Huggingface service or other REST-based LLM providers).
 
 ### Define the RAGEngine

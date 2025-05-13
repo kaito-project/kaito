@@ -1,4 +1,4 @@
-# Kaito RAG Engine Installation 
+# KAITO RAG Engine Installation 
 
 > Be sure you've cloned this repo and followed [kaito workspace installation](../installation.md)
 ```bash

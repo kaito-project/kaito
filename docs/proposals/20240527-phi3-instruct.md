@@ -10,7 +10,7 @@ status: provisional
 ---
 
 # Title
-Add Phi-3 Medium Models to Kaito supported model list
+Add Phi-3 Medium Models to KAITO supported model list
 
 ## Glossary
 N/A

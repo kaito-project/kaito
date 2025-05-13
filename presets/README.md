@@ -1,7 +1,7 @@
-# Kaito Preset Configurations
+# KAITO Preset Configurations
 The current supported model families with preset configurations are listed below.
 
-| Model Family                                | Compatible Kaito Versions |
+| Model Family                                | Compatible KAITO Versions |
 |---------------------------------------------|---------------------------|
 | [falcon](./workspace/models/falcon)         | v0.0.1+                   |
 | [mistral](./workspace/models/mistral)       | v0.2.0+                   |
@@ -14,7 +14,7 @@ The current supported model families with preset configurations are listed below
 
 
 ## Validation
-Each preset model has its own hardware requirements in terms of GPU count and GPU memory defined in the respective `model.go` file. Kaito controller performs a validation check of whether the specified SKU and node count are sufficient to run the model or not. In case the provided SKU is not in the known list, the controller bypasses the validation check which means users need to ensure the model can run with the provided SKU. 
+Each preset model has its own hardware requirements in terms of GPU count and GPU memory defined in the respective `model.go` file. KAITO controller performs a validation check of whether the specified SKU and node count are sufficient to run the model or not. In case the provided SKU is not in the known list, the controller bypasses the validation check which means users need to ensure the model can run with the provided SKU. 
 
 ## Distributed inference
 

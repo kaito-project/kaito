@@ -93,6 +93,12 @@ type InferenceSpec struct {
 	Adapters []AdapterSpec `json:"adapters,omitempty"`
 }
 
+// InferenceConfig represents the structure of the inference configuration
+type InferenceConfig struct {
+	VLLM map[string]string `yaml:"vllm"`
+	// Other fields can be added as needed
+}
+
 type AdapterSpec struct {
 	// Source describes where to obtain the adapter data.
 	// +optional

@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"os"
 
+	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -119,6 +121,18 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 		return nil, err
 	}
 
+	// Check if inference_config.yaml exists
+	inferenceConfigYAML, ok := configVolume.Data["inference_config.yaml"]
+	if !ok {
+		return nil, apis.ErrMissingField("inference_config.yaml in ConfigMap")
+	}
+
+	// Parse the inference config
+	var inferenceConfig v1beta1.InferenceConfig
+	if err := yaml.Unmarshal([]byte(inferenceConfigYAML), &inferenceConfig); err != nil {
+		return nil, apis.ErrGeneric(fmt.Sprintf("Failed to parse inference_config.yaml: %v", err), "inference_config.yaml")
+	}
+
 	// resource requirements
 	var skuNumGPUs int
 	gpuConfig, err := utils.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
@@ -130,6 +144,16 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 		}
 	}
 	if gpuConfig != nil {
+		// Check if this is a multi-GPU instance with less than 20GB per GPU
+		gpuMemPerGPU := gpuConfig.GPUMemGB / gpuConfig.GPUCount
+		if gpuConfig.GPUCount > 1 && gpuMemPerGPU < 20 {
+			// For multi-GPU instances with less than 20GB per GPU, max-model-len is required
+			maxModelLen, exists := inferenceConfig.VLLM["max-model-len"]
+			if !exists || maxModelLen == "" {
+				return nil, apis.ErrMissingField("max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU")
+			}
+		}
+
 		skuNumGPUs = gpuConfig.GPUCount
 	}
 	resourceReq := corev1.ResourceRequirements{

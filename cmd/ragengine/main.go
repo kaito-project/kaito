@@ -30,10 +30,13 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
 	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 )
 
 const (
@@ -115,6 +118,18 @@ func main() {
 
 	k8sclient.SetGlobalClient(mgr.GetClient())
 	kClient := k8sclient.GetGlobalClient()
+
+	cloudProvider := os.Getenv("CLOUD_PROVIDER")
+	if !kaitoutils.ValidCloudProvider(cloudProvider) {
+		klog.ErrorS(nil, "invalid cloud provider env", "cloudProvider", cloudProvider)
+		exitWithErrorFunc()
+	}
+	if featuregates.FeatureGates[consts.FeatureFlagEnsureNodeClass] {
+		err := nodeclaim.CheckNodeClass(ctx, kClient)
+		if err != nil {
+			exitWithErrorFunc()
+		}
+	}
 
 	ragengineReconciler := controllers.NewRAGEngineReconciler(
 		kClient,

@@ -12,7 +12,7 @@ variable "kaito_gpu_provisioner_version" {
 
 variable "kaito_workspace_version" {
   type        = string
-  default     = "0.4.5"
+  default     = "0.4.6"
   description = "kaito workspace version"
 }
 

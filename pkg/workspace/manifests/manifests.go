@@ -100,11 +100,6 @@ func GenerateStatefulSetManifest(workspaceObj *kaitov1beta1.Workspace, imageName
 	labelselector := &v1.LabelSelector{
 		MatchLabels: selector,
 	}
-	// Add PYTORCH_CUDA_ALLOC_CONF environment variable
-	envVars = append(envVars, corev1.EnvVar{
-		Name:  "PYTORCH_CUDA_ALLOC_CONF",
-		Value: "expandable_segments:True",
-	})
 
 	ss := &appsv1.StatefulSet{
 		ObjectMeta: v1.ObjectMeta{
@@ -248,11 +243,6 @@ func GenerateDeploymentManifest(workspaceObj *kaitov1beta1.Workspace, revisionNu
 	labelselector := &v1.LabelSelector{
 		MatchLabels: selector,
 	}
-	// Add PYTORCH_CUDA_ALLOC_CONF environment variable
-	envVars = append(envVars, corev1.EnvVar{
-		Name:  "PYTORCH_CUDA_ALLOC_CONF",
-		Value: "expandable_segments:True",
-	})
 
 	pullerContainers, pullerEnvVars, pullerVolumes := GeneratePullerContainers(workspaceObj, volumeMount)
 	envVars = append(envVars, pullerEnvVars...)

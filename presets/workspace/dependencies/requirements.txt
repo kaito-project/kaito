@@ -14,6 +14,10 @@ numpy<3.0,>=1.25.0
 sentencepiece==0.2.0
 jinja2>=3.1.0
 
+# For accessing Ray dashboard. ray[default] version should be consistent with the one in vllm/vllm-openai:<vllm-version>.
+# Check with `docker run --entrypoint "" vllm/vllm-openai:<vllm-version> pip freeze | grep ray`
+ray[default]==2.43.0
+
 # Utility libraries
 datasets==2.19.1
 peft==0.11.1

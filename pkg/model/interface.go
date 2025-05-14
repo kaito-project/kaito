@@ -13,6 +13,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -116,7 +117,6 @@ type PresetParam struct {
 	TotalGPUMemoryRequirement     string         // Total GPU memory required for the Preset. Used for inference.
 	PerGPUMemoryRequirement       string         // GPU memory required per GPU. Used for inference.
 	TuningPerGPUMemoryRequirement map[string]int // Min GPU memory per tuning method (batch size 1). Used for tuning.
-	WorldSize                     int            // Defines the number of processes required for distributed inference.
 
 	RuntimeParam
 
@@ -142,12 +142,15 @@ type HuggingfaceTransformersParam struct {
 }
 
 type VLLMParam struct {
+	RayLeaderBaseCommand string
+	RayLeaderParams      map[string]string
+	RayWorkerBaseCommand string
+	RayWorkerParams      map[string]string
+	// BaseCommand is the command used to start the inference server.
 	BaseCommand string
 	// The model name used in the openai serving API.
 	// see https://platform.openai.com/docs/api-reference/chat/create#chat-create-model.
 	ModelName string
-	// Parameters for distributed inference.
-	DistributionParams map[string]string
 	// Parameters for running the model training/inference.
 	ModelRunParams map[string]string
 	// Indicates if vllm supports LoRA (Low-Rank Adaptation) for this model.
@@ -191,17 +194,21 @@ func (v *VLLMParam) DeepCopy() VLLMParam {
 		return VLLMParam{}
 	}
 	out := *v
-	out.DistributionParams = maps.Clone(v.DistributionParams)
+	out.RayLeaderParams = maps.Clone(v.RayLeaderParams)
+	out.RayWorkerParams = maps.Clone(v.RayWorkerParams)
 	out.ModelRunParams = maps.Clone(v.ModelRunParams)
 	return out
 }
 
 // RuntimeContext defines the runtime context for a model.
 type RuntimeContext struct {
-	RuntimeName  RuntimeName
-	GPUConfig    *sku.GPUConfig
-	ConfigVolume *corev1.VolumeMount
-	SKUNumGPUs   int
+	RuntimeName          RuntimeName
+	GPUConfig            *sku.GPUConfig
+	ConfigVolume         *corev1.VolumeMount
+	SKUNumGPUs           int
+	NumNodes             int
+	WorkspaceMetadata    metav1.ObjectMeta
+	DistributedInference bool
 	RuntimeContextExtraArguments
 }
 
@@ -245,6 +252,8 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}
 	if !p.DisableTensorParallelism {
+		// Tensor Parallelism (TP) is set to the number of GPUs on a given node per vLLM guidance:
+		// https://docs.vllm.ai/en/latest/serving/distributed_serving.html.
 		p.VLLM.ModelRunParams["tensor-parallel-size"] = strconv.Itoa(rc.SKUNumGPUs)
 	}
 	if !p.VLLM.DisallowLoRA && rc.AdaptersEnabled {
@@ -262,8 +271,42 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	if rc.ConfigVolume != nil {
 		p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(rc.ConfigVolume.MountPath, ConfigfileNameVLLM)
 	}
-	modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
-	return utils.ShellCmd(modelCommand)
+
+	if !rc.DistributedInference {
+		modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
+		return utils.ShellCmd(modelCommand)
+	}
+
+	// Pipeline Parallelism (PP) is set to the number of nodes for multi-node inference per vLLM guidance:
+	// https://docs.vllm.ai/en/latest/serving/distributed_serving.html.
+	p.VLLM.ModelRunParams["pipeline-parallel-size"] = strconv.Itoa(rc.NumNodes)
+
+	// If PP > 1, we need to setup multi-node Ray cluster and assume pod index 0 is the leader of the cluster.
+	// - leader: start as ray leader along with the model run command
+	// - worker: start as ray worker - don't need to provide the model run command
+	if p.VLLM.RayLeaderParams == nil {
+		p.VLLM.RayLeaderParams = make(map[string]string)
+	}
+	p.VLLM.RayLeaderParams["ray_cluster_size"] = strconv.Itoa(rc.NumNodes)
+	p.VLLM.RayLeaderParams["ray_port"] = "6379"
+
+	if p.VLLM.RayWorkerParams == nil {
+		p.VLLM.RayWorkerParams = make(map[string]string)
+	}
+	p.VLLM.RayWorkerParams["ray_address"] = utils.GetRayLeaderHost(rc.WorkspaceMetadata)
+	p.VLLM.RayWorkerParams["ray_port"] = "6379"
+
+	rayLeaderCommand := utils.BuildCmdStr(p.VLLM.RayLeaderBaseCommand, p.VLLM.RayLeaderParams)
+	modelRunCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
+	result := utils.BuildIfElseCmdStr(
+		`[ "${POD_INDEX}" = "0" ]`,                                      // initiate as ray leader if the pod index is 0, otherwise initiate as ray worker
+		strings.Join([]string{rayLeaderCommand, modelRunCommand}, "; "), // command if true, concatenate the ray leader command and model run command
+		map[string]string{},                                             // no parameters needed since the command is already built above
+		p.VLLM.RayWorkerBaseCommand,                                     // command if false
+		p.VLLM.RayWorkerParams,                                          // parameters for the false command
+	)
+
+	return utils.ShellCmd(result)
 }
 
 func (p *PresetParam) Validate(rc RuntimeContext) error {

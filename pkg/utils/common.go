@@ -117,6 +117,12 @@ func BuildCmdStr(baseCommand string, runParams ...map[string]string) string {
 	return updatedBaseCommand
 }
 
+func BuildIfElseCmdStr(condition string, trueCmd string, trueCmdParams map[string]string, falseCmd string, falseCmdParams map[string]string) string {
+	trueCmdStr := BuildCmdStr(trueCmd, trueCmdParams)
+	falseCmdStr := BuildCmdStr(falseCmd, falseCmdParams)
+	return fmt.Sprintf("if %s; then %s; else %s; fi", condition, trueCmdStr, falseCmdStr)
+}
+
 func ShellCmd(command string) []string {
 	return []string{
 		"/bin/sh",
@@ -313,4 +319,10 @@ func ParseHuggingFaceModelVersion(version string) (repoId string, revision strin
 	}
 
 	return "", "", fmt.Errorf(errInvalidModelVersionURL, version)
+}
+
+// getRayLeaderHost constructs the leader host for the Ray cluster.
+func GetRayLeaderHost(meta metav1.ObjectMeta) string {
+	return fmt.Sprintf("%s-0.%s-headless.%s.svc.cluster.local",
+		meta.Name, meta.Name, meta.Namespace)
 }

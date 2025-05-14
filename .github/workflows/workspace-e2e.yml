@@ -29,3 +29,5 @@ jobs:
     with:
       git_sha: ${{ github.event.pull_request.head.sha }}
       node_provisioner: ${{ matrix.node-provisioner }}
+    secrets:
+      hf_token: ${{ secrets.HF_TOKEN }}

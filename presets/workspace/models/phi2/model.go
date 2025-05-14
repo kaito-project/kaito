@@ -41,7 +41,7 @@ type phi2 struct{}
 func (*phi2) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi2Model),
-		DiskStorageRequirement:    "50Gi",
+		DiskStorageRequirement:    "80Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "12Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
@@ -64,7 +64,7 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 func (*phi2) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetPhi2Model),
-		DiskStorageRequirement:    "50Gi",
+		DiskStorageRequirement:    "80Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
 		PerGPUMemoryRequirement:   "16Gi",

@@ -24,6 +24,8 @@ on:
       k8s_version:
         type: string
         default: "1.30.0"
+    secrets:
+      hf_token: {}
 
 jobs:
   e2e-tests:
@@ -115,6 +117,7 @@ jobs:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
           E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
+          HF_TOKEN: ${{ secrets.hf_token }}
 
       - name: Run fast e2e test
         if: ${{ !inputs.isRelease }}
@@ -127,6 +130,7 @@ jobs:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
           E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
+          HF_TOKEN: ${{ secrets.hf_token }}
 
 
       - name: Cleanup e2e resources

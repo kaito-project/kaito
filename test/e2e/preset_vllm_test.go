@@ -52,6 +52,28 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
+	It("should create a llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
+	})
+
 	It("should create a deepseek-distilled-qwen-14b workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createDeepSeekQwen14BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
@@ -225,7 +247,7 @@ func createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *k
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-deepseek-llama-vllm"},
-			}, nil, PresetDeepSeekR1DistillLlama8BModel, nil, nil, nil)
+			}, nil, PresetDeepSeekR1DistillLlama8BModel, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -239,7 +261,7 @@ func createDeepSeekQwen14BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *k
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-deepseek-qwen-vllm"},
-			}, nil, PresetDeepSeekR1DistillQwen14BModel, nil, nil, nil)
+			}, nil, PresetDeepSeekR1DistillQwen14BModel, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -253,7 +275,7 @@ func createFalconWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1bet
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-falcon-vllm"},
-			}, nil, PresetFalcon7BModel, nil, nil, nil)
+			}, nil, PresetFalcon7BModel, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -267,7 +289,7 @@ func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi4-adapter-vllm"},
-			}, nil, PresetPhi4MiniModel, nil, nil, validAdapters)
+			}, nil, PresetPhi4MiniModel, nil, nil, validAdapters, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -281,7 +303,7 @@ func createMistralWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1be
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-mistral-vllm"},
-			}, nil, PresetMistral7BInstructModel, nil, nil, nil)
+			}, nil, PresetMistral7BInstructModel, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -295,7 +317,7 @@ func createPhi2WorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-2-vllm"},
-			}, nil, PresetPhi2Model, nil, nil, nil)
+			}, nil, PresetPhi2Model, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -309,7 +331,7 @@ func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-3-mini-128k-instruct-vllm"},
-			}, nil, PresetPhi3Mini128kModel, nil, nil, nil)
+			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -323,8 +345,22 @@ func createQwen2_5WorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode int)
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen-2gpu-vllm"},
-			}, nil, PresetQwen2_5Coder7BModel, nil, nil, nil)
+			}, nil, PresetQwen2_5Coder7BModel, nil, nil, nil, "")
 
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	modelSecret := createAndValidateModelSecret()
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b-vllm"},
+			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name) // Llama 3.1-8B Instruct model requires a model access secret
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj

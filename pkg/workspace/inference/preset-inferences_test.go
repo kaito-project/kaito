@@ -18,6 +18,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 var ValidStrength string = "0.5"
@@ -148,7 +149,7 @@ func TestCreatePresetInference(t *testing.T) {
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload:      "Deployment",
-			expectedImage: "test-registry/kaito-base:0.0.1",
+			expectedImage: "test-registry/kaito-base:" + models.MustGet("base").Tag,
 			expectedCmd:   "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --model=test-repo/test-model --code-revision=test-revision --tensor-parallel-size=2",
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
@@ -172,7 +173,7 @@ func TestCreatePresetInference(t *testing.T) {
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload:      "Deployment",
-			expectedImage: "test-registry/kaito-base:0.0.1",
+			expectedImage: "test-registry/kaito-base:" + models.MustGet("base").Tag,
 			expectedCmd:   "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",

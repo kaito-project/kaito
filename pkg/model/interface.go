@@ -104,9 +104,14 @@ func (m *Metadata) Validate() error {
 type PresetParam struct {
 	Metadata
 
+	DiskStorageRequirement string // Disk storage requirements for the model.
+	// DiskStorageRequirement is calculated as:
+	// (TotalGPUMemoryRequirement × 2.5 + 48) rounded up to the next multiple of 10.
+	// This formula accounts for model weights, optimization files, and runtime overhead.
+	// Example: For a 14Gi model, calculation is: 14 × 2.5 + 48 = 83, rounded up to 90Gi.
+
 	ImageAccessMode string // Defines where the Image is Public or Private.
 
-	DiskStorageRequirement        string         // Disk storage requirements for the model.
 	GPUCountRequirement           string         // Number of GPUs required for the Preset. Used for inference.
 	TotalGPUMemoryRequirement     string         // Total GPU memory required for the Preset. Used for inference.
 	PerGPUMemoryRequirement       string         // GPU memory required per GPU. Used for inference.

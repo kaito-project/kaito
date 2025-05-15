@@ -56,7 +56,7 @@ type llama8b struct{}
 func (*llama8b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillLlama8BModel),
-		DiskStorageRequirement:    "50Gi",
+		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16.5Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
@@ -93,7 +93,7 @@ type qwen14b struct{}
 func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillQwen14BModel),
-		DiskStorageRequirement:    "50Gi",
+		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "25.7Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.

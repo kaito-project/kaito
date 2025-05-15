@@ -119,17 +119,18 @@ runs:
         # Use '|| true' to prevent script from exiting with an error if the repository is not found
         TAGS=$(az acr repository show-tags -n $ACR_NAME --repository $IMAGE_NAME --output tsv || true)
 
-        if [[ -z "$TAGS" ]]; then
-          echo "Image $IMAGE_NAME:$TAG or repository not found in $ACR_NAME."
-          echo "IMAGE_EXISTS=false" >> $GITHUB_OUTPUT
-        else
-          if echo "$TAGS" | grep -q "^$TAG$"; then
-            echo "IMAGE_EXISTS=true" >> $GITHUB_OUTPUT
-          else
-            echo "IMAGE_EXISTS=false" >> $GITHUB_OUTPUT
-            echo "Image $IMAGE_NAME:$TAG not found in $ACR_NAME."
-          fi
-        fi
+        echo "IMAGE_EXISTS=false" >> $GITHUB_OUTPUT
+        # if [[ -z "$TAGS" ]]; then
+        #   echo "Image $IMAGE_NAME:$TAG or repository not found in $ACR_NAME."
+        #   echo "IMAGE_EXISTS=false" >> $GITHUB_OUTPUT
+        # else
+        #   if echo "$TAGS" | grep -q "^$TAG$"; then
+        #     echo "IMAGE_EXISTS=true" >> $GITHUB_OUTPUT
+        #   else
+        #     echo "IMAGE_EXISTS=false" >> $GITHUB_OUTPUT
+        #     echo "Image $IMAGE_NAME:$TAG not found in $ACR_NAME."
+        #   fi
+        # fi
       shell: bash
 
     - name: Launch Python Script to Kickoff Build Jobs

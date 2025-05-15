@@ -43,7 +43,7 @@ az aks install-cli
 Install the Workspace controller.
 
 ```bash
-export KAITO_WORKSPACE_VERSION=0.4.5
+export KAITO_WORKSPACE_VERSION=0.4.6
 
 helm install kaito-workspace  --set clusterName=$MY_CLUSTER --wait \
 https://github.com/kaito-project/kaito/raw/gh-pages/charts/kaito/workspace-$KAITO_WORKSPACE_VERSION.tgz --namespace kaito-workspace --create-namespace
@@ -82,7 +82,7 @@ For kaito 0.4.2 and above, please use gpu-provisioner 0.3.2 or higher. For versi
 Install the Node provisioner controller.
 ```bash
 # get additional values for helm chart install
-export GPU_PROVISIONER_VERSION=0.3.3
+export GPU_PROVISIONER_VERSION=0.3.4
 
 curl -sO https://raw.githubusercontent.com/Azure/gpu-provisioner/main/hack/deploy/configure-helm-values.sh
 chmod +x ./configure-helm-values.sh && ./configure-helm-values.sh $MY_CLUSTER $RESOURCE_GROUP $IDENTITY_NAME

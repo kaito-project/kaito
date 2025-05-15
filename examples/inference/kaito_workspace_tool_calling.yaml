@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tc-inference-params
+data:
+  inference_config.yaml: |
+    # Maximum number of steps to find the max available seq len fitting in the GPU memory.
+    max_probe_steps: 6
+
+    vllm:
+      cpu-offload-gb: 0
+      swap-space: 4
+      max-model-len: 4096
+      # ref: https://docs.vllm.ai/en/latest/features/tool_calling.html#quickstart
+      tool-call-parser: phi4_mini_json
+      chat-template: "/workspace/chat_templates/tool-chat-phi4-mini.jinja"
+---
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-phi-4-mini-tool-call
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: phi-4
+inference:
+  preset:
+    name: phi-4-mini-instruct
+  config: "tc-inference-params"

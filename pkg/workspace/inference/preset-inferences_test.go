@@ -18,6 +18,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 var ValidStrength string = "0.5"
@@ -51,10 +52,6 @@ func TestCreatePresetInference(t *testing.T) {
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --served-model-name=mymodel --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
-			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}},
 		},
 
 		"test-model-no-parallel/vllm": {
@@ -71,10 +68,6 @@ func TestCreatePresetInference(t *testing.T) {
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml --gpu-memory-utilization=0.90",
 			hasAdapters: false,
-			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}},
 		},
 
 		"test-model-no-lora-support/vllm": {
@@ -91,10 +84,6 @@ func TestCreatePresetInference(t *testing.T) {
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml --gpu-memory-utilization=0.90",
 			hasAdapters: false,
-			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}},
 		},
 
 		"test-model-with-adapters/vllm": {
@@ -111,9 +100,6 @@ func TestCreatePresetInference(t *testing.T) {
 			hasAdapters:    true,
 			expectedVolume: "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}, {
 				Name:  "Adapter-1",
 				Value: "0.5",
 			}},
@@ -133,10 +119,6 @@ func TestCreatePresetInference(t *testing.T) {
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py",
 			hasAdapters: false,
-			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}},
 		},
 
 		"test-model-with-adapters": {
@@ -153,9 +135,6 @@ func TestCreatePresetInference(t *testing.T) {
 			hasAdapters:    true,
 			expectedVolume: "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}, {
 				Name:  "Adapter-1",
 				Value: "0.5",
 			}},
@@ -170,7 +149,7 @@ func TestCreatePresetInference(t *testing.T) {
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload:      "Deployment",
-			expectedImage: "test-registry/kaito-base:0.0.1",
+			expectedImage: "test-registry/kaito-base:" + models.MustGet("base").Tag,
 			expectedCmd:   "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --model=test-repo/test-model --code-revision=test-revision --tensor-parallel-size=2",
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
@@ -182,9 +161,6 @@ func TestCreatePresetInference(t *testing.T) {
 						},
 					},
 				},
-			}, {
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
 			}},
 		},
 
@@ -197,7 +173,7 @@ func TestCreatePresetInference(t *testing.T) {
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload:      "Deployment",
-			expectedImage: "test-registry/kaito-base:0.0.1",
+			expectedImage: "test-registry/kaito-base:" + models.MustGet("base").Tag,
 			expectedCmd:   "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
@@ -209,9 +185,6 @@ func TestCreatePresetInference(t *testing.T) {
 						},
 					},
 				},
-			}, {
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
 			}},
 		},
 	}

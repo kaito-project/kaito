@@ -26,13 +26,14 @@ var (
 	baseCommandPresetLlamaInference = "accelerate launch"
 	// baseCommandPresetLlamaTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	llamaRunParams = map[string]string{
-		"torch_dtype":   "bfloat16",
-		"pipeline":      "text-generation",
-		"chat_template": "/workspace/chat_templates/llama-instruct.jinja",
+		"torch_dtype":        "bfloat16",
+		"pipeline":           "text-generation",
+		"chat_template":      "/workspace/chat_templates/llama-3-instruct.jinja",
+		"allow_remote_files": "",
 	}
 	llamaRunParamsVLLM = map[string]string{
 		"dtype":         "float16",
-		"chat-template": "/workspace/chat_templates/llama-instruct.jinja",
+		"chat-template": "/workspace/chat_templates/llama-3-instruct.jinja",
 	}
 )
 
@@ -45,7 +46,7 @@ type llama3_1_8BInstruct struct{}
 func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetLlama3_1_8BInstructModel),
-		DiskStorageRequirement:    "50Gi",
+		DiskStorageRequirement:    "110Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "22Gi",
 		PerGPUMemoryRequirement:   "0Gi", // We run Llama using native vertical model parallel, no per GPU memory requirement.

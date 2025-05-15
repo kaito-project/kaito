@@ -109,6 +109,71 @@ class BaseVectorStoreTest(ABC):
                                                     BaseVectorStore.generate_doc_id("Fourth document"))
 
     @pytest.mark.asyncio
+    @respx.mock
+    @patch("requests.get")
+    async def test_update_document(self, mock_get, vector_store_manager):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "data": [{"id": "mock-model", "max_model_len": 2048}]
+        }
+
+        mock_response = {"result": "This is the completion from the API"}
+        respx.post(LLM_INFERENCE_URL).mock(return_value=httpx.Response(200, json=mock_response))
+
+        documents = [Document(text="Fifth document", metadata={"type": "text"})]
+        ids = await vector_store_manager.index_documents("test_index", documents)
+
+        result = await vector_store_manager.update_documents(
+            "test_index", [Document(doc_id=ids[0], text="Updated Fifth document", metadata={"type": "text"})]
+        )
+        assert result["updated_documents"][0].doc_id == ids[0]
+
+        # Check preexisting unchanged document case
+        result = await vector_store_manager.update_documents(
+            "test_index", [Document(doc_id=ids[0], text="Updated Fifth document", metadata={"type": "text"})]
+        )
+        assert result["unchanged_documents"][0].doc_id == ids[0]
+
+        assert await vector_store_manager.document_exists("test_index", Document(text="Updated Fifth document", metadata={"type": "text"}),
+                                                    ids[0])
+
+        # Check if the document was updated
+        result = await vector_store_manager.query("test_index", "Updated Fifth document", top_k=1,
+                                              llm_params={}, rerank_params={})
+        assert result["source_nodes"][0]["text"] == "Updated Fifth document"
+
+        # Check documents not found case
+        result = await vector_store_manager.update_documents(
+            "test_index", [Document(doc_id="baddocid", text="Updated Fifth document", metadata={"type": "text"})]
+        )
+        assert result["not_found_documents"][0].doc_id == "baddocid"
+    
+    @pytest.mark.asyncio
+    @respx.mock
+    @patch("requests.get")
+    async def test_delete_document(self, mock_get, vector_store_manager):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "data": [{"id": "mock-model", "max_model_len": 2048}]
+        }
+
+        mock_response = {"result": "This is the completion from the API"}
+        respx.post(LLM_INFERENCE_URL).mock(return_value=httpx.Response(200, json=mock_response))
+
+        documents = [
+            Document(text=f"Document {i}", metadata={"type": "text"})
+            for i in range(10)
+        ]
+        ids = await vector_store_manager.index_documents("test_index", documents)
+
+        result = await vector_store_manager.delete_documents("test_index", ids)
+        assert all(doc_id in result["deleted_doc_ids"] for doc_id in ids)
+
+        # Check the not found case
+        result = await vector_store_manager.delete_documents("test_index", ["baddocid"])
+        assert result["not_found_doc_ids"] == ["baddocid"]
+
+    @pytest.mark.asyncio
     async def test_add_document_on_existing_index(self, vector_store_manager):
         # Create index with single doc
         await vector_store_manager.index_documents("test_add_index", [Document(text=f"Initial Doc", metadata={"type": "text"})])

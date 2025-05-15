@@ -123,10 +123,6 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return reconcile.Result{}, updateErr
 		}
-		// If the error is due to machine/nodeClaim instance types unavailability, stop reconcile.
-		if err.Error() == consts.ErrorInstanceTypesUnavailable {
-			return reconcile.Result{Requeue: false}, err
-		}
 		return reconcile.Result{}, err
 	}
 
@@ -446,7 +442,7 @@ func (c *WorkspaceReconciler) createAndValidateNode(ctx context.Context, wObj *k
 			GetInferenceParameters().DiskStorageRequirement
 	}
 	if nodeOSDiskSize == "" {
-		nodeOSDiskSize = "0" // The default OS size is used
+		nodeOSDiskSize = "1024Gi" // The default OS size is used
 	}
 
 	return c.CreateNodeClaim(ctx, wObj, nodeOSDiskSize)

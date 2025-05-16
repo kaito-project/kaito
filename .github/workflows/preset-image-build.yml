@@ -60,7 +60,7 @@ jobs:
         run: |
           PR_BRANCH=${{ env.BRANCH_NAME }} \
           FORCE_RUN_ALL=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL }} \
-          python3 .github/workflows/kind-cluster/determine_models.py
+          python3 .github/determine_models.py
 
       - name: Print Determined Models
         run: |

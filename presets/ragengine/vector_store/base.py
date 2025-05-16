@@ -19,6 +19,7 @@ from llama_index.vector_stores.faiss import FaissVectorStore
 from ragengine.models import Document
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
+from ragengine.vector_store.transformers.custom_transformer import CustomTransformer
 from ragengine.config import (LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N)
 from fastapi import HTTPException
 
@@ -39,6 +40,7 @@ class BaseVectorStore(ABC):
         # Use a reader/writer lock only if needed
         self.use_rwlock = use_rwlock
         self.rwlock = aiorwlock.RWLock() if self.use_rwlock else None
+        self.custom_transformer = CustomTransformer()
 
     @staticmethod
     def generate_doc_id(text: str) -> str:
@@ -103,6 +105,7 @@ class BaseVectorStore(ABC):
                         storage_context=storage_context,
                         embed_model=self.embed_model,
                         use_async=True,
+                        transformations=[self.custom_transformer],
                     )
                     index.set_index_id(index_name)
                     self.index_map[index_name] = index
@@ -113,6 +116,7 @@ class BaseVectorStore(ABC):
                     storage_context=storage_context,
                     embed_model=self.embed_model,
                     use_async=True,
+                    transformations=[self.custom_transformer],
                 )
                 index.set_index_id(index_name)
                 self.index_map[index_name] = index

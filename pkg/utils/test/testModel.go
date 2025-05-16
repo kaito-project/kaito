@@ -19,7 +19,8 @@ func (*baseTestModel) GetInferenceParameters() *model.PresetParam {
 		Metadata: model.Metadata{
 			Tag: "base-test-model",
 		},
-		GPUCountRequirement: "1",
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "8Gi",
 		RuntimeParam: model.RuntimeParam{
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
@@ -69,7 +70,8 @@ func (*testNoTensorParallelModel) GetInferenceParameters() *model.PresetParam {
 		Metadata: model.Metadata{
 			Tag: "test-no-tensor-parallel-model",
 		},
-		GPUCountRequirement: "1",
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "8Gi",
 		RuntimeParam: model.RuntimeParam{
 			DisableTensorParallelism: true,
 			VLLM: model.VLLMParam{
@@ -97,7 +99,7 @@ type testModelDownload struct {
 }
 
 func (*testModelDownload) SupportDistributedInference() bool {
-	return false
+	return true
 }
 
 func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
@@ -106,7 +108,8 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 			Version:           "https://huggingface.co/test-repo/test-model/commit/test-revision",
 			DownloadAtRuntime: true,
 		},
-		GPUCountRequirement: "1",
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "64Gi",
 		RuntimeParam: model.RuntimeParam{
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
@@ -115,6 +118,7 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       "accelerate launch",
 				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				AccelerateParams:  emptyParams,
 				ModelRunParams:    emptyParams,
 			},
 		},
@@ -127,7 +131,8 @@ func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
 		Metadata: model.Metadata{
 			Tag: "test-no-lora-support-model",
 		},
-		GPUCountRequirement: "1",
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "8Gi",
 		RuntimeParam: model.RuntimeParam{
 			DisableTensorParallelism: true,
 			VLLM: model.VLLMParam{

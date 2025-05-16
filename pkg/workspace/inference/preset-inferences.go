@@ -209,7 +209,10 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	image, imagePullSecrets := GetInferenceImageInfo(ctx, workspaceObj, inferenceParam)
 
 	var depObj client.Object
-	if model.SupportDistributedInference() && runtimeName == pkgmodel.RuntimeNameVLLM {
+	// For multi-node distributed inference with vLLM, we need to use a StatefulSet instead of a Deployment
+	// to ensure pods are created with individual identities (their ordinal indexes) -
+	// https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-identity
+	if model.SupportDistributedInference() && runtimeName == pkgmodel.RuntimeNameVLLM && numNodes > 1 {
 		// 60 seconds initial delay for liveness probe to allow workers to join the cluster
 		livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, workspaceObj, 60, 10, 5)
 		readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, workspaceObj, 0, 10, 1)

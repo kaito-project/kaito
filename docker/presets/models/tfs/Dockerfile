@@ -3,6 +3,9 @@ FROM python:3.12-slim AS base
 ARG MODEL_TYPE
 ARG VERSION
 
+# https://docs.ray.io/en/latest/cluster/usage-stats.html
+ENV RAY_USAGE_STATS_ENABLED="1"
+
 # Set the working directory
 WORKDIR /workspace
 

@@ -272,7 +272,9 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(rc.ConfigVolume.MountPath, ConfigfileNameVLLM)
 	}
 
-	if !rc.DistributedInference {
+	// If user wants to deploy a model that supports distributed inference, but
+	// there is only one node, we don't need to setup a multi-node Ray cluster.
+	if !rc.DistributedInference || rc.NumNodes == 1 {
 		modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
 		return utils.ShellCmd(modelCommand)
 	}
@@ -281,7 +283,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// https://docs.vllm.ai/en/latest/serving/distributed_serving.html.
 	p.VLLM.ModelRunParams["pipeline-parallel-size"] = strconv.Itoa(rc.NumNodes)
 
-	// If PP > 1, we need to setup multi-node Ray cluster and assume pod index 0 is the leader of the cluster.
+	// We need to setup multi-node Ray cluster and assume pod index 0 is the leader of the cluster.
 	// - leader: start as ray leader along with the model run command
 	// - worker: start as ray worker - don't need to provide the model run command
 	if p.VLLM.RayLeaderParams == nil {

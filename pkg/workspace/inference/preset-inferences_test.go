@@ -147,15 +147,14 @@ func TestCreatePresetInference(t *testing.T) {
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
-			workload: "StatefulSet",
+			workload: "Deployment",
 			expectedImage: func() string {
 				baseImage := metadata.MustGet("base")
 				return fmt.Sprintf("test-registry/kaito-base:%s", baseImage.Tag)
 			}(),
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=1 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=1 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -164,13 +163,6 @@ func TestCreatePresetInference(t *testing.T) {
 						LocalObjectReference: corev1.LocalObjectReference{
 							Name: "test-secret",
 						},
-					},
-				},
-			}, {
-				Name: "POD_INDEX",
-				ValueFrom: &corev1.EnvVarSource{
-					FieldRef: &corev1.ObjectFieldSelector{
-						FieldPath: fmt.Sprintf("metadata.labels['%s']", appsv1.PodIndexLabel),
 					},
 				},
 			}},
@@ -449,7 +441,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			actualProbe := probeType.getDistributedInferenceProbe(tc.tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds)
+			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds)
 			if actualProbe.Exec != nil && tc.expectedProbe.Exec != nil {
 				expected := toParameterMap(tc.expectedProbe.Exec.Command)
 				actual := toParameterMap(actualProbe.Exec.Command)

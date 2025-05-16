@@ -4,7 +4,10 @@ models:
     type: text-generation
     runtime: tfs
     tag: 0.0.3
+    # Tag history:
+    # 0.0.3 - add depdenencies to support vLLM multi-node distributed inference
     # 0.0.2 - bump vLLM to 0.8.5. Tool chat template added.
+    # 0.0.1 - Initial Release
 
   # Llama
   - name: llama-3.1-8b-instruct

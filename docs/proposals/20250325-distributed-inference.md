@@ -248,7 +248,7 @@ readinessProbe:
   periodSeconds: 10
 ```
 
-The health check script can use the environment variable `POD_INDEX` to determine if the pod is a leader or worker. The probe should also include an initial delay to the liveness probe to allow time for the leader to initialize the Ray cluster and wait for all worker pods to join. This delay is necessary to avoid false positives during the initial startup phase. Failure thresholds should be set to 1 for liveness probes to ensure that any failure in the leader pod triggers an immediate restart instead of waiting for multiple failures.
+[`multi-node-health-check.py`](https://github.com/kaito-project/kaito/blob/main/presets/workspace/inference/vllm/multi-node-health-check.py) uses the environment variable `POD_INDEX` to determine if the pod is a leader or worker. The probe should also include an initial delay to the liveness probe to allow time for the leader to initialize the Ray cluster and wait for all worker pods to join. This delay is necessary to avoid false positives during the initial startup phase. Failure thresholds should be set to 1 for liveness probes to ensure that any failure in the leader pod triggers an immediate restart instead of waiting for multiple failures.
 
 ### Container Image Update
 

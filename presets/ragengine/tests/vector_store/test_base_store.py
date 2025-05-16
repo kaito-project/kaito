@@ -107,6 +107,36 @@ class BaseVectorStoreTest(ABC):
 
         assert await vector_store_manager.document_exists("test_index", new_document[0],
                                                     BaseVectorStore.generate_doc_id("Fourth document"))
+    
+    @pytest.mark.asyncio
+    async def test_add_code_documents_with_code_splitting(self, vector_store_manager):
+        sample_go_code = """package main
+func main() {}"""
+        documents = [Document(text=sample_go_code, metadata={"split_type": "code", "language": "go"})]
+        result = await vector_store_manager.index_documents("test_code_index", documents)
+
+        assert await vector_store_manager.document_exists("test_code_index", documents[0],
+                                                    result[0])
+        
+        all_docs = await vector_store_manager.list_documents_in_index("test_code_index", limit=10, offset=0)
+        assert len(all_docs) == 1
+        assert all_docs[0]['text'] == sample_go_code
+
+        try:
+            # Attempt to index a document with no language
+            unsupported_doc = Document(text="Unsupported language code", metadata={"split_type": "code"})
+            await vector_store_manager.index_documents("test_code_index", [unsupported_doc])
+            assert False, "Expected ValueError for unsupported language"
+        except ValueError as e:
+            assert str(e) == "Language not specified in node metadata."
+
+        try:
+            # Attempt to index a document with an invalid language
+            unsupported_doc = Document(text="Unsupported language code", metadata={"split_type": "code", "language": "invalid"})
+            await vector_store_manager.index_documents("test_code_index", [unsupported_doc])
+            assert False, "Expected ValueError for unsupported language"
+        except LookupError as e:
+            assert True
 
     @pytest.mark.asyncio
     @respx.mock
@@ -242,3 +272,27 @@ class BaseVectorStoreTest(ABC):
         # 8. max_text_length is None (Full text should return)
         full_text_result = await vector_store_manager.list_documents_in_index(index_name, limit=1, offset=0, max_text_length=None)
         assert "Document" in next(iter(full_text_result))['text']  # Ensure no truncation
+
+    @pytest.mark.asyncio
+    async def test_persist_and_load_as_seperate_index(self, vector_store_manager):
+        index_name, second_index_name = "test_index", "second_test_index"
+        # Create multiple documents
+        documents = [
+            Document(text=f"Document {i}", metadata={"type": "text", "filename": f"file_{i}", "branch": "main"})
+            for i in range(10)
+        ]
+        
+        await vector_store_manager.index_documents(index_name, documents)
+        await vector_store_manager.persist(index_name, DEFAULT_VECTOR_DB_PERSIST_DIR)
+        await vector_store_manager.load(second_index_name, DEFAULT_VECTOR_DB_PERSIST_DIR, overwrite=True)
+
+        result = await vector_store_manager.list_documents_in_index(second_index_name, limit=5, offset=0)
+        assert len(result) == 5
+
+        # validate loaded index doesnt change the original index
+        await vector_store_manager.delete_documents(second_index_name, [result[0]['doc_id']])
+
+        first_index_result = await vector_store_manager.list_documents_in_index(index_name, limit=10, offset=0)
+        second_index_result = await vector_store_manager.list_documents_in_index("second_test_index", limit=10, offset=0)
+        assert len(first_index_result) == 10
+        assert len(second_index_result) == 9

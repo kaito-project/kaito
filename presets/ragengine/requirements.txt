@@ -16,3 +16,7 @@ uvicorn
 asyncio
 aiorwlock
 httpx==0.27.0
+
+tree-sitter
+tree_sitter_languages
+tree-sitter-language-pack

@@ -82,7 +82,7 @@ For kaito 0.4.2 and above, please use gpu-provisioner 0.3.2 or higher. For versi
 Install the Node provisioner controller.
 ```bash
 # get additional values for helm chart install
-export GPU_PROVISIONER_VERSION=0.3.4
+export GPU_PROVISIONER_VERSION=0.3.5
 
 curl -sO https://raw.githubusercontent.com/Azure/gpu-provisioner/main/hack/deploy/configure-helm-values.sh
 chmod +x ./configure-helm-values.sh && ./configure-helm-values.sh $MY_CLUSTER $RESOURCE_GROUP $IDENTITY_NAME

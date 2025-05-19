@@ -4,6 +4,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 1
     commit-message:
       prefix: "chore"
     groups:
@@ -20,6 +21,7 @@ updates:
       - "/docker/**"
     schedule:
       interval: daily
+    open-pull-requests-limit: 1
     groups:
       all-docker:
         applies-to: version-updates
@@ -33,6 +35,7 @@ updates:
     directory: /
     schedule:
       interval: daily
+    open-pull-requests-limit: 2
     groups:
       all-gomod:
         applies-to: version-updates
@@ -47,6 +50,7 @@ updates:
       - "/presets/**"
     schedule:
       interval: daily
+    open-pull-requests-limit: 2
     groups:
       all-python:
         applies-to: version-updates

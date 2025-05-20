@@ -39,7 +39,7 @@ spec:
           else
             /workspace/vllm/multi-node-serving.sh worker --ray_address=vllm-distributed-0.vllm-distributed-headless.default.svc.cluster.local --ray_port=6379;
           fi
-        image: aimodelsregistrytest.azurecr.io/base:0.0.3
+        image: REPO/base:TAG
         imagePullPolicy: IfNotPresent
         name: vllm-distributed
         env:

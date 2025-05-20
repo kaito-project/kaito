@@ -86,8 +86,9 @@ jobs:
                 if length > 0 then
                     .[0] as $base | 
                     [
-                        ($base | .name = "vllm-distributed")
-                        # ($base | .name = "test2")
+                        ($base | .name = "vllm-distributed" | . + {"image-name": "base"})
+                        # example to add new case
+                        # ($base | .name = "test2" | . + {"image-name": "base"})
                     ]
                 else
                     []
@@ -153,6 +154,34 @@ jobs:
 
       - name: 'Set ACR Subscription'
         run: az account set --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}}
+
+      - name: Check if Image exists in ACR
+        id: check_image
+        run: |
+            ACR_NAME=${{ secrets.ACR_AMRT_USERNAME }}
+            IMAGE_NAME=${{ matrix.model.image-name || matrix.model.name }}
+            TAG=${{ matrix.model.tag }}
+
+            # Use '|| true' to prevent script from exiting with an error if the repository is not found
+            TAGS=$(az acr repository show-tags -n $ACR_NAME --repository $IMAGE_NAME --output tsv || true)
+
+            if [[ -z "$TAGS" ]]; then
+                echo "Image $IMAGE_NAME:$TAG or repository not found in $ACR_NAME."
+                echo "IMAGE_EXISTS=false" >> $GITHUB_OUTPUT
+            else
+                if echo "$TAGS" | grep -q "^$TAG$"; then
+                    echo "IMAGE_EXISTS=true" >> $GITHUB_OUTPUT
+                else
+                    echo "IMAGE_EXISTS=false" >> $GITHUB_OUTPUT
+                    echo "Image $IMAGE_NAME:$TAG not found in $ACR_NAME."
+                fi
+            fi
+
+      - name: Exit if Image for testing does not exist
+        if: steps.check_image.outputs.IMAGE_EXISTS == 'false'
+        run: |
+            echo "Image doesn't exist in ACR, remember to build image for testing first (preset-image-build)"
+            exit 1
 
       - name: Set up kubectl context
         run: |

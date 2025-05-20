@@ -848,8 +848,8 @@ func createInputDatasetVolume(storageClassName string, datasetImage string) *cor
 	if err != nil {
 		Fail(fmt.Sprintf("Failed to create PVC: %v", err))
 	}
-	volumeName := "input-dataset"
-	mountPath := "/mnt/input-dataset"
+	volumeName := "data"
+	mountPath := "/mnt/data"
 	volumeMount := corev1.VolumeMount{
 		Name:      volumeName,
 		MountPath: mountPath,
@@ -947,8 +947,8 @@ func createOutputVolume(storageClassName string) *corev1.Volume {
 	if err != nil {
 		Fail(fmt.Sprintf("Failed to create PVC: %v", err))
 	}
-	volumeName := "output-results"
-	mountPath := "/mnt/output-results"
+	volumeName := "results"
+	mountPath := "/mnt/results"
 	volumeMount := corev1.VolumeMount{
 		Name:      volumeName,
 		MountPath: mountPath,

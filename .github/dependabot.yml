@@ -7,56 +7,45 @@ updates:
     open-pull-requests-limit: 1
     commit-message:
       prefix: "chore"
-    groups:
-      all-action:
-        applies-to: version-updates
-        patterns:
-        - "*"
-        update-types:
-        - "patch"
-        - "minor"
-        - "major"
+
   - package-ecosystem: docker
-    directories: 
-      - "/docker/**"
+    directory: /docker/kaito
     schedule:
       interval: daily
     open-pull-requests-limit: 1
-    groups:
-      all-docker:
-        applies-to: version-updates
-        patterns:
-        - "*"
-        update-types:
-        - "patch"
-        - "minor"
-        - "major"
+
+  - package-ecosystem: docker
+    directory: /docker/presets/inference/tfs-onnx
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 1
+
+  - package-ecosystem: docker
+    directory: /docker/presets/inference/tfs
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 1
+
+  - package-ecosystem: docker
+    directory: /docker/presets/tuning
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 1
+
   - package-ecosystem: gomod
     directory: /
     schedule:
       interval: daily
     open-pull-requests-limit: 2
-    groups:
-      all-gomod:
-        applies-to: version-updates
-        patterns:
-        - "*"
-        update-types:
-        - "patch"
-        - "minor"
-        - "major"
+
   - package-ecosystem: pip
-    directories: 
-      - "/presets/**"
+    directory: /presets/workspace/inference/text-generation
     schedule:
       interval: daily
     open-pull-requests-limit: 2
-    groups:
-      all-python:
-        applies-to: version-updates
-        patterns:
-        - "*"
-        update-types:
-        - "patch"
-        - "minor"
-        - "major"
+
+  - package-ecosystem: pip
+    directory: /presets/workspace/tuning/tfs
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 0

@@ -217,6 +217,10 @@ func (r *DataSource) validateCreate() (errs *apis.FieldError) {
 		sourcesSpecified++
 	}
 
+	if volume := r.Volume; volume != nil {
+		sourcesSpecified++
+	}
+
 	// Ensure exactly one of URLs, Volume, or Image is specified
 	if sourcesSpecified != 1 {
 		errs = errs.Also(apis.ErrGeneric("Exactly one of URLs, Volume, or Image must be specified", "URLs", "Volume", "Image"))
@@ -250,6 +254,10 @@ func (r *DataDestination) validateCreate() (errs *apis.FieldError) {
 			errs = errs.Also(apis.ErrMissingField("Must specify imagePushSecret with destination image"))
 		}
 
+		destinationsSpecified++
+	}
+
+	if volume := r.Volume; volume != nil {
 		destinationsSpecified++
 	}
 

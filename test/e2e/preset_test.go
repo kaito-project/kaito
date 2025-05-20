@@ -20,7 +20,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -245,7 +247,7 @@ func createAndValidateModelSecret() *corev1.Secret {
 	return &modelSecret
 }
 
-func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNode int) (*kaitov1beta1.Workspace, string, string) {
+func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNode int, intputVolume, outputVolume *corev1.Volume) (*kaitov1beta1.Workspace, string, string) {
 	workspaceObj := &kaitov1beta1.Workspace{}
 	e2eOutputImageName := fmt.Sprintf("adapter-%s-e2e-test", PresetPhi3Mini128kModel)
 	e2eOutputImageTag := utils.GenerateRandomString()
@@ -256,7 +258,7 @@ func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNo
 		workspaceObj = utils.GenerateE2ETuningWorkspaceManifest(uniqueID, namespaceName, "",
 			fullDatasetImageName1, outputRegistryUrl, numOfNode, "Standard_NC6s_v3", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-tuning-falcon"},
-			}, nil, PresetPhi3Mini128kModel, []string{e2eACRSecret}, configMapName)
+			}, nil, PresetPhi3Mini128kModel, []string{e2eACRSecret}, configMapName, intputVolume, outputVolume)
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -315,17 +317,29 @@ vllm:
 	})
 }
 
-func updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj *kaitov1beta1.Workspace, datasetImageName string) (*kaitov1beta1.Workspace, string) {
+func updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj *kaitov1beta1.Workspace, datasetImageName string, inputVolume, outputVolume *corev1.Volume) (*kaitov1beta1.Workspace, string) {
 	e2eOutputImageName := fmt.Sprintf("adapter-%s-e2e-test2", PresetPhi3Mini128kModel)
 	e2eOutputImageTag := utils.GenerateRandomString()
 	outputRegistryUrl := fmt.Sprintf("%s.azurecr.io/%s:%s", azureClusterName, e2eOutputImageName, e2eOutputImageTag)
 	By("Updating a workspace Tuning CR with Phi-3 preset public mode. The update includes the tuning input and output configurations for the workspace.", func() {
-		workspaceObj.Tuning.Input = &kaitov1beta1.DataSource{
-			Image: datasetImageName,
+		if inputVolume != nil {
+			workspaceObj.Tuning.Input = &kaitov1beta1.DataSource{
+				Volume: &inputVolume.VolumeSource,
+			}
+		} else {
+			workspaceObj.Tuning.Input = &kaitov1beta1.DataSource{
+				Image: datasetImageName,
+			}
 		}
-		workspaceObj.Tuning.Output = &kaitov1beta1.DataDestination{
-			Image:           outputRegistryUrl,
-			ImagePushSecret: e2eACRSecret,
+		if outputVolume != nil {
+			workspaceObj.Tuning.Output = &kaitov1beta1.DataDestination{
+				Volume: &outputVolume.VolumeSource,
+			}
+		} else {
+			workspaceObj.Tuning.Output = &kaitov1beta1.DataDestination{
+				Image:           outputRegistryUrl,
+				ImagePushSecret: e2eACRSecret,
+			}
 		}
 		updateAndValidateWorkspace(workspaceObj)
 	})
@@ -562,7 +576,7 @@ func validateTuningResource(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputImage string, outputImage string) {
+func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputImage string, outputImage string, inputVolume *corev1.Volume, outputVolume *corev1.Volume) {
 	By("Checking the tuning input and output", func() {
 		Eventually(func() bool {
 			var job batchv1.Job
@@ -575,32 +589,58 @@ func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputIma
 				Expect(err).NotTo(HaveOccurred())
 			}
 
-			var pullerContainer *v1.Container
-			for _, container := range job.Spec.Template.Spec.InitContainers {
-				if strings.HasPrefix(container.Name, "puller") {
-					pullerContainer = &container
-					break
+			if inputVolume != nil {
+				volumeMounted := false
+				for _, volume := range job.Spec.Template.Spec.Volumes {
+					if volume.Name == inputVolume.Name {
+						volumeMounted = true
+					}
+				}
+				if !volumeMounted {
+					GinkgoWriter.Printf("Volume %s not mounted in job spec\n", inputVolume.Name)
+					return false
+				}
+			} else {
+				var pullerContainer *v1.Container
+				for _, container := range job.Spec.Template.Spec.InitContainers {
+					if strings.HasPrefix(container.Name, "puller") {
+						pullerContainer = &container
+						break
+					}
+				}
+
+				pullerSH := pullerContainer.Args[0]
+				if !strings.Contains(pullerSH, fmt.Sprintf("\n[ ! -z \"${IMG_REF}\" ] || IMG_REF='%s'\n", inputImage)) {
+					GinkgoWriter.Printf("Unexpected pullerSH: %s\n", pullerSH)
+					return false
 				}
 			}
 
-			pullerSH := pullerContainer.Args[0]
-			if !strings.Contains(pullerSH, fmt.Sprintf("\n[ ! -z \"${IMG_REF}\" ] || IMG_REF='%s'\n", inputImage)) {
-				GinkgoWriter.Printf("Unexpected pullerSH: %s\n", pullerSH)
-				return false
-			}
-
-			var pusherContainer *v1.Container
-			for _, container := range job.Spec.Template.Spec.Containers {
-				if strings.HasPrefix(container.Name, "pusher") {
-					pusherContainer = &container
-					break
+			if outputVolume != nil {
+				volumeMounted := false
+				for _, volume := range job.Spec.Template.Spec.Volumes {
+					if volume.Name == outputVolume.Name {
+						volumeMounted = true
+					}
 				}
-			}
+				if !volumeMounted {
+					GinkgoWriter.Printf("Volume %s not mounted in job spec\n", outputVolume.Name)
+					return false
+				}
+			} else {
+				var pusherContainer *v1.Container
+				for _, container := range job.Spec.Template.Spec.Containers {
+					if strings.HasPrefix(container.Name, "pusher") {
+						pusherContainer = &container
+						break
+					}
+				}
 
-			pusherSH := pusherContainer.Args[0]
-			if !strings.Contains(pusherSH, fmt.Sprintf("\n[ ! -z \"${IMG_REF}\" ] || IMG_REF='%s'\n", outputImage)) {
-				GinkgoWriter.Printf("Unexpected pusherSH: %s\n", pullerSH)
-				return false
+				pusherSH := pusherContainer.Args[0]
+				if !strings.Contains(pusherSH, fmt.Sprintf("\n[ ! -z \"${IMG_REF}\" ] || IMG_REF='%s'\n", outputImage)) {
+					GinkgoWriter.Printf("Unexpected pusherSH: %s\n", pusherSH)
+					return false
+				}
 			}
 
 			return true
@@ -784,6 +824,205 @@ func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 	return nil
 }
 
+func createInputDatasetVolume(storageClassName string, datasetImage string) *corev1.Volume {
+	coreClient, err := utils.GetK8sClientset()
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to create core client: %v", err))
+	}
+	pvcName := fmt.Sprintf("input-pvc-%s", string(uuid.NewUUID()))
+	pvc, err := coreClient.CoreV1().PersistentVolumeClaims(namespaceName).Create(ctx, &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pvcName,
+			Namespace: namespaceName,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: resource.MustParse("1000Gi"),
+				},
+			},
+			StorageClassName: &storageClassName,
+		},
+	}, metav1.CreateOptions{})
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to create PVC: %v", err))
+	}
+	volumeName := "data-volume"
+	mountPath := "/mnt/data"
+	volumeMount := corev1.VolumeMount{
+		Name:      volumeName,
+		MountPath: mountPath,
+		ReadOnly:  false,
+	}
+	volume := corev1.Volume{
+		Name: volumeName,
+		VolumeSource: corev1.VolumeSource{
+			PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+				ClaimName: pvc.Name,
+			},
+		},
+	}
+	podName := fmt.Sprintf("input-pod-%s", string(uuid.NewUUID()))
+	pod := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      podName,
+			Namespace: namespaceName,
+		},
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:    "e2e-dataset",
+					Image:   datasetImage,
+					Command: []string{"/bin/sh", "-c", "ls -la /data && cp -r /data/* /mnt/data && ls -la /mnt/data"},
+					VolumeMounts: []corev1.VolumeMount{
+						volumeMount,
+					},
+				},
+			},
+			Volumes: []corev1.Volume{
+				volume,
+			},
+		},
+	}
+	_, err = coreClient.CoreV1().Pods(namespaceName).Create(ctx, pod, metav1.CreateOptions{})
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to create Pod: %v", err))
+	}
+	// Wait for the PVC to be bound
+	Eventually(func() bool {
+		pvc, err := coreClient.CoreV1().PersistentVolumeClaims(namespaceName).Get(ctx, pvcName, metav1.GetOptions{})
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to get PVC: %v", err))
+		}
+		return pvc.Status.Phase == corev1.ClaimBound
+	}, 5*time.Minute, 10*time.Second).Should(BeTrue(), "PVC is not bound")
+	// Wait for the Pod to be running
+	Eventually(func() bool {
+		pod, err := coreClient.CoreV1().Pods(namespaceName).Get(ctx, podName, metav1.GetOptions{})
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to get Pod: %v", err))
+		}
+		return pod.Status.Phase == corev1.PodRunning
+	}, 5*time.Minute, 10*time.Second).Should(BeTrue(), "Pod is not running")
+	// Delete the pod to release the PVC
+	err = coreClient.CoreV1().Pods(namespaceName).Delete(ctx, podName, metav1.DeleteOptions{})
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to delete Pod: %v", err))
+	}
+	// Wait for the Pod to be deleted
+	Eventually(func() bool {
+		_, err := coreClient.CoreV1().Pods(namespaceName).Get(ctx, podName, metav1.GetOptions{})
+		if err != nil {
+			if errors.IsNotFound(err) {
+				return true
+			}
+			Fail(fmt.Sprintf("Failed to get Pod: %v", err))
+		}
+		return false
+	}, 5*time.Minute, 10*time.Second).Should(BeTrue(), "Pod is not deleted")
+	return &volume
+}
+
+func createOutputVolume(storageClassName string) *corev1.Volume {
+	coreClient, err := utils.GetK8sClientset()
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to create core client: %v", err))
+	}
+	pvcName := fmt.Sprintf("output-pvc-%s", string(uuid.NewUUID()))
+	pvc, err := coreClient.CoreV1().PersistentVolumeClaims(namespaceName).Create(ctx, &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pvcName,
+			Namespace: namespaceName,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: resource.MustParse("1000Gi"),
+				},
+			},
+			StorageClassName: &storageClassName,
+		},
+	}, metav1.CreateOptions{})
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to create PVC: %v", err))
+	}
+	volumeName := "results-volume"
+	mountPath := "/mnt/results"
+	volumeMount := corev1.VolumeMount{
+		Name:      volumeName,
+		MountPath: mountPath,
+		ReadOnly:  false,
+	}
+	volume := corev1.Volume{
+		Name: volumeName,
+		VolumeSource: corev1.VolumeSource{
+			PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+				ClaimName: pvc.Name,
+			},
+		},
+	}
+	podName := fmt.Sprintf("output-pod-%s", string(uuid.NewUUID()))
+	pod := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      podName,
+			Namespace: namespaceName,
+		},
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:  "e2e-output",
+					Image: "nginx:latest",
+					VolumeMounts: []corev1.VolumeMount{
+						volumeMount,
+					},
+				},
+			},
+			Volumes: []corev1.Volume{
+				volume,
+			},
+		},
+	}
+	_, err = coreClient.CoreV1().Pods(namespaceName).Create(ctx, pod, metav1.CreateOptions{})
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to create Pod: %v", err))
+	}
+	// Wait for the PVC to be bound
+	Eventually(func() bool {
+		pvc, err := coreClient.CoreV1().PersistentVolumeClaims(namespaceName).Get(ctx, pvcName, metav1.GetOptions{})
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to get PVC: %v", err))
+		}
+		return pvc.Status.Phase == corev1.ClaimBound
+	}, 5*time.Minute, 10*time.Second).Should(BeTrue(), "PVC is not bound")
+	// Wait for the Pod to be running
+	Eventually(func() bool {
+		pod, err := coreClient.CoreV1().Pods(namespaceName).Get(ctx, podName, metav1.GetOptions{})
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to get Pod: %v", err))
+		}
+		return pod.Status.Phase == corev1.PodRunning
+	}, 5*time.Minute, 10*time.Second).Should(BeTrue(), "Pod is not running")
+	// Delete the pod to release the PVC
+	err = coreClient.CoreV1().Pods(namespaceName).Delete(ctx, podName, metav1.DeleteOptions{})
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to delete Pod: %v", err))
+	}
+	// Wait for the Pod to be deleted
+	Eventually(func() bool {
+		_, err := coreClient.CoreV1().Pods(namespaceName).Get(ctx, podName, metav1.GetOptions{})
+		if err != nil {
+			if errors.IsNotFound(err) {
+				return true
+			}
+			Fail(fmt.Sprintf("Failed to get Pod: %v", err))
+		}
+		return false
+	}, 5*time.Minute, 10*time.Second).Should(BeTrue(), "Pod is not deleted")
+	return &volume
+}
+
 var aiModelsRegistry string
 var aiModelsRegistrySecret string
 var e2eACRSecret string
@@ -928,7 +1167,7 @@ var _ = Describe("Workspace Preset", func() {
 	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		configMap := createCustomTuningConfigMapForE2E()
-		workspaceObj, jobName, outputRegistryUrl1 := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode)
+		workspaceObj, jobName, outputRegistryUrl1 := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode, nil, nil)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -943,11 +1182,11 @@ var _ = Describe("Workspace Preset", func() {
 
 		validateWorkspaceReadiness(workspaceObj)
 
-		validateTuningJobInputOutput(workspaceObj, fullDatasetImageName1, outputRegistryUrl1)
+		validateTuningJobInputOutput(workspaceObj, fullDatasetImageName1, outputRegistryUrl1, nil, nil)
 
 		validateRevision(workspaceObj, "1")
 
-		workspaceObj, outputRegistryUrl2 := updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj, fullDatasetImageName2)
+		workspaceObj, outputRegistryUrl2 := updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj, fullDatasetImageName2, nil, nil)
 		validateResourceStatus(workspaceObj)
 
 		time.Sleep(30 * time.Second)
@@ -957,7 +1196,48 @@ var _ = Describe("Workspace Preset", func() {
 
 		validateWorkspaceReadiness(workspaceObj)
 
-		validateTuningJobInputOutput(workspaceObj, fullDatasetImageName2, outputRegistryUrl2)
+		validateTuningJobInputOutput(workspaceObj, fullDatasetImageName2, outputRegistryUrl2, nil, nil)
+
+		validateRevision(workspaceObj, "2")
+	})
+
+	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image using azuredisk-csi pvc volume", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		configMap := createCustomTuningConfigMapForE2E()
+		intputVolume1 := createInputDatasetVolume("managed-csi", fullDatasetImageName1)
+		outputVolume1 := createOutputVolume("managed-csi")
+		workspaceObj, jobName, _ := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode, intputVolume1, outputVolume1)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+		validateTuningResource(workspaceObj)
+
+		validateACRTuningResultsUploaded(workspaceObj, jobName)
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		validateTuningJobInputOutput(workspaceObj, "", "", intputVolume1, outputVolume1)
+
+		validateRevision(workspaceObj, "1")
+
+		intputVolume2 := createInputDatasetVolume("managed-csi", fullDatasetImageName2)
+		outputVolume2 := createOutputVolume("managed-csi")
+		workspaceObj, _ = updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj, fullDatasetImageName2, intputVolume2, outputVolume2)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+		validateTuningResource(workspaceObj)
+
+		validateACRTuningResultsUploaded(workspaceObj, jobName)
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		validateTuningJobInputOutput(workspaceObj, "", "", intputVolume2, outputVolume2)
 
 		validateRevision(workspaceObj, "2")
 	})

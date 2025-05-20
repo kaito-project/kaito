@@ -48,4 +48,4 @@ updates:
     directory: /presets/workspace/tuning/tfs
     schedule:
       interval: daily
-    open-pull-requests-limit: 0
+    open-pull-requests-limit: 2

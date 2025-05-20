@@ -80,7 +80,7 @@ jobs:
             echo $CONFIGS
 
             ORIGINAL_MATRIX='${{ steps.affected_models.outputs.matrix }}'
-            # Check if "base" exists and add test cases for vllm distributions
+            # Check if "base" exists and add test cases for base image
             BASE_IMAGE_TESTS=$(echo "$ORIGINAL_MATRIX" | jq -c '
                 map(select(.name == "base")) | 
                 if length > 0 then
@@ -97,7 +97,7 @@ jobs:
             echo "BASE_IMAGE_TESTS:"
             echo $BASE_IMAGE_TESTS
 
-            # Combine original matrix with new base items
+            # Combine original matrix with test items
             EXTENDED_MATRIX=$(echo "$ORIGINAL_MATRIX" | jq --argjson new "$BASE_IMAGE_TESTS" -c '. + $new')
 
             # Pseudocode for combining matrices
@@ -108,8 +108,6 @@ jobs:
             #             combined = {**model, **config}
             #             COMBINED_MATRIX.append(combined)
             #             break
-
-            # Combine with configs as before
             COMBINED_MATRIX=$(echo "$EXTENDED_MATRIX" | jq --argjson configs "$CONFIGS" -c '
                 map(. as $model | $configs[] | select(.name == $model.name) | $model + .)
             ')

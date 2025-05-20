@@ -872,8 +872,9 @@ func createInputDatasetVolume(storageClassName string, datasetImage string) *cor
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:  "e2e-dataset",
-					Image: datasetImage,
+					Name:    "e2e-dataset",
+					Image:   datasetImage,
+					Command: []string{"/bin/sh", "-c", "ls -la /data && cp -r /data/* /mnt/data && ls -la /mnt/data"},
 					VolumeMounts: []corev1.VolumeMount{
 						volumeMount,
 					},

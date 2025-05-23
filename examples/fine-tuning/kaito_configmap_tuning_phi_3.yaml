@@ -1,0 +1,38 @@
+# This ConfigMap defines an optimized fine-tuning configuration for Microsoft's Phi-3 model using KAITO.
+apiVersion: v1 
+kind: ConfigMap 
+metadata: 
+  name: optimized-phi3-tuning 
+  namespace: kaito 
+data: 
+  training_config.yaml: | 
+    training_config: 
+      ModelConfig: 
+        torch_dtype: "bfloat16" 
+        local_files_only: true 
+        device_map: "auto" 
+     
+      QuantizationConfig: 
+        load_in_4bit: true 
+        bnb_4bit_quant_type: "nf4" 
+        bnb_4bit_compute_dtype: "bfloat16" 
+        bnb_4bit_use_double_quant: true 
+     
+      LoraConfig: 
+        r: 8 
+        lora_alpha: 8 
+        lora_dropout: 0.0 
+        target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"] 
+     
+      TrainingArguments: 
+        output_dir: "/mnt/results" 
+        save_strategy: "epoch" 
+        per_device_train_batch_size: 2 
+        ddp_find_unused_parameters: false 
+     
+      DataCollator: 
+        mlm: true 
+     
+      DatasetConfig: 
+        shuffle_dataset: true 
+        train_test_split: 1 

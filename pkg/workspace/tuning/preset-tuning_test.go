@@ -218,7 +218,7 @@ training_config:
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			_, _, resultOutputDir := SetupTrainingOutputVolume(context.Background(), tc.configMap)
+			_, _, resultOutputDir := SetupTrainingOutputVolume(context.Background(), tc.configMap, nil)
 			assert.Equal(t, tc.expectedOutputDir, resultOutputDir)
 		})
 	}

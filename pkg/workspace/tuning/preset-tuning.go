@@ -134,7 +134,7 @@ func GetTrainingOutputDir(ctx context.Context, configMap *corev1.ConfigMap) (str
 }
 
 // SetupTrainingOutputVolume adds shared volume for results dir
-func SetupTrainingOutputVolume(ctx context.Context, configMap *corev1.ConfigMap, outputVolume *corev1.Volume) (corev1.Volume, corev1.VolumeMount, string) {
+func SetupTrainingOutputVolume(ctx context.Context, configMap *corev1.ConfigMap, outputVolume *corev1.VolumeSource) (corev1.Volume, corev1.VolumeMount, string) {
 	outputDir, _ := GetTrainingOutputDir(ctx, configMap)
 	resultsVolume, resultsVolumeMount := utils.ConfigResultsVolume(outputDir, outputVolume)
 	return resultsVolume, resultsVolumeMount, outputDir
@@ -277,6 +277,9 @@ func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1beta1.Work
 	}
 
 	outputImage := output.Image
+	if outputImage == "" {
+		return nil, nil, nil, nil
+	}
 
 	var annotationsData map[string]map[string]string
 	if preset := tuning.Preset; preset != nil {
@@ -314,10 +317,8 @@ func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace
 		return initContainer, []corev1.Volume{volume}, []corev1.VolumeMount{volumeMount}
 
 	case input.Volume != nil:
-		return nil, []corev1.Volume{*input.Volume}, []corev1.VolumeMount{{
-			Name:      input.Volume.Name,
-			MountPath: utils.DefaultDataVolumePath,
-		}}
+		dataVolume, dataVolumeMount := utils.ConfigDataVolume(input.Volume)
+		return nil, []corev1.Volume{dataVolume}, []corev1.VolumeMount{dataVolumeMount}
 
 	default:
 		return nil, nil, nil

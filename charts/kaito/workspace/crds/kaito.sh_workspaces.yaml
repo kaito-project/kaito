@@ -83,7 +83,7 @@ spec:
                           items:
                             type: string
                           type: array
-                        volume:
+                        volumeSource:
                           description: The mounted volume that contains the data.
                           x-kubernetes-preserve-unknown-fields: true
                       type: object
@@ -337,7 +337,7 @@ spec:
                     items:
                       type: string
                     type: array
-                  volume:
+                  volumeSource:
                     description: The mounted volume that contains the data.
                     x-kubernetes-preserve-unknown-fields: true
                 type: object
@@ -357,7 +357,7 @@ spec:
                       ImagePushSecret is the name of the secret in the same namespace that contains the authentication
                       information that is needed for running `docker push`.
                     type: string
-                  volume:
+                  volumeSource:
                     description: The mounted volume that is used to save the output
                       data.
                     x-kubernetes-preserve-unknown-fields: true
@@ -467,7 +467,7 @@ spec:
                           items:
                             type: string
                           type: array
-                        volume:
+                        volumeSource:
                           description: The mounted volume that contains the data.
                           x-kubernetes-preserve-unknown-fields: true
                       type: object
@@ -728,7 +728,7 @@ spec:
                     items:
                       type: string
                     type: array
-                  volume:
+                  volumeSource:
                     description: The mounted volume that contains the data.
                     x-kubernetes-preserve-unknown-fields: true
                 type: object
@@ -748,7 +748,7 @@ spec:
                       ImagePushSecret is the name of the secret in the same namespace that contains the authentication
                       information that is needed for running `docker push`.
                     type: string
-                  volume:
+                  volumeSource:
                     description: The mounted volume that is used to save the output
                       data.
                     x-kubernetes-preserve-unknown-fields: true

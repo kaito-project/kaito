@@ -15,29 +15,21 @@ const (
 	DefaultAdapterVolumePath  = "/mnt/adapter"
 )
 
-func ConfigResultsVolume(outputPath string, outputVolume *corev1.Volume) (corev1.Volume, corev1.VolumeMount) {
-	var sharedWorkspaceVolume *corev1.Volume
-	var sharedVolumeMount corev1.VolumeMount
-
-	if outputVolume == nil {
-		sharedWorkspaceVolume = &corev1.Volume{
-			Name: "results-volume",
-			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{},
-			},
-		}
-		sharedVolumeMount = corev1.VolumeMount{
-			Name:      "results-volume",
-			MountPath: outputPath,
-		}
-	} else {
-		sharedWorkspaceVolume = outputVolume
-		sharedVolumeMount = corev1.VolumeMount{
-			Name:      outputVolume.Name,
-			MountPath: outputPath,
-		}
+func ConfigResultsVolume(outputPath string, outputVolume *corev1.VolumeSource) (corev1.Volume, corev1.VolumeMount) {
+	sharedWorkspaceVolume := corev1.Volume{
+		Name: "results-volume",
+		VolumeSource: corev1.VolumeSource{
+			EmptyDir: &corev1.EmptyDirVolumeSource{},
+		},
 	}
-	return *sharedWorkspaceVolume, sharedVolumeMount
+	if outputVolume != nil {
+		sharedWorkspaceVolume.VolumeSource = *outputVolume
+	}
+	sharedVolumeMount := corev1.VolumeMount{
+		Name:      "results-volume",
+		MountPath: outputPath,
+	}
+	return sharedWorkspaceVolume, sharedVolumeMount
 }
 
 func ConfigImagePullSecretVolume(nameSuffix string, imagePullSecrets []string) (corev1.Volume, corev1.VolumeMount) {
@@ -148,16 +140,12 @@ func ConfigCMVolume(cmName string) (corev1.Volume, corev1.VolumeMount) {
 	return volume, volumeMount
 }
 
-func ConfigDataVolume(hostPath *string) (corev1.Volume, corev1.VolumeMount) {
+func ConfigDataVolume(inputVolumeSource *corev1.VolumeSource) (corev1.Volume, corev1.VolumeMount) {
 	var volume corev1.Volume
 	var volumeMount corev1.VolumeMount
 	var volumeSource corev1.VolumeSource
-	if hostPath != nil {
-		volumeSource = corev1.VolumeSource{
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: *hostPath,
-			},
-		}
+	if inputVolumeSource != nil {
+		volumeSource = *inputVolumeSource
 	} else {
 		volumeSource = corev1.VolumeSource{
 			EmptyDir: &corev1.EmptyDirVolumeSource{},

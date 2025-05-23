@@ -341,8 +341,8 @@ func TestPrepareDataDestination_ImageDestination(t *testing.T) {
 
 	// Assertions
 	assert.Equal(t, expectedSidecarContainer, sidecarContainer)
-	assert.Equal(t, expectedVolume, volume)
-	assert.Equal(t, expectedVolumeMount, volumeMount)
+	assert.Equal(t, []corev1.Volume{expectedVolume}, volume)
+	assert.Equal(t, []corev1.VolumeMount{expectedVolumeMount}, volumeMount)
 	assert.Equal(t, expectedImagePushSecret, *imagePushSecret)
 }
 

@@ -59,7 +59,7 @@ func (in *DataDestination) DeepCopyInto(out *DataDestination) {
 	*out = *in
 	if in.Volume != nil {
 		in, out := &in.Volume, &out.Volume
-		*out = new(corev1.VolumeSource)
+		*out = new(corev1.Volume)
 		(*in).DeepCopyInto(*out)
 	}
 }
@@ -84,7 +84,7 @@ func (in *DataSource) DeepCopyInto(out *DataSource) {
 	}
 	if in.Volume != nil {
 		in, out := &in.Volume, &out.Volume
-		*out = new(corev1.VolumeSource)
+		*out = new(corev1.Volume)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.ImagePullSecrets != nil {

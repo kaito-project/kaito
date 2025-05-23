@@ -208,6 +208,11 @@ func GenerateTuningJobManifest(wObj *kaitov1beta1.Workspace, revisionNum string,
 		},
 	}, sidecarContainers...)
 
+	shouldShareProcessNamespace := ptr.To(true)
+	if len(sidecarContainers) == 0 {
+		shouldShareProcessNamespace = ptr.To(false)
+	}
+
 	return &batchv1.Job{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "batch/v1",
@@ -233,7 +238,7 @@ func GenerateTuningJobManifest(wObj *kaitov1beta1.Workspace, revisionNum string,
 					InitContainers:        initContainers,
 					Containers:            containers,
 					RestartPolicy:         corev1.RestartPolicyNever,
-					ShareProcessNamespace: ptr.To(true),
+					ShareProcessNamespace: shouldShareProcessNamespace,
 					Volumes:               volumes,
 					Tolerations:           tolerations,
 					ImagePullSecrets:      imagePullSecretRefs,

@@ -15,7 +15,7 @@ data:
       # ── QLoRA: 4-bit quantization ───────────────────────────────────────
       QuantizationConfig:
         load_in_4bit: true                 # Core QLoRA switch
-        bnb_4bit_quant_type: "nf4"         # Normal-Float-4 (better accuracy)
+        bnb_4bit_quant_type: "nf4"         # Normal-Float-4
         bnb_4bit_compute_dtype: "bfloat16" # Compute in BF16 for speed/precision
         bnb_4bit_use_double_quant: true    # Extra compression
 
@@ -39,7 +39,7 @@ data:
 
       # ── Data handling helpers ───────────────────────────────────────────
       DataCollator:
-        mlm: true                         # Works for generic text-gen datasets
+        mlm: true
 
       DatasetConfig:
         shuffle_dataset: true             # Shuffle once before split

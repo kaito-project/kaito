@@ -20,18 +20,7 @@ spec:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              {{- if eq .Values.cloudProviderName "azure" }}
-              - key: kubernetes.azure.com/cluster
-                operator: Exists
-              - key: type
-                operator: NotIn
-                values:
-                - virtual-kubelet
-              {{- else if eq .Values.cloudProviderName "aws" }}
-              - key: "k8s.io/cloud-provider-aws"
-                operator: Exists
-              {{- end }}
+{{ toYaml .Values.nvDevicePluginNodeSelectorTerm | indent 12 }}
       tolerations:
         # Allow this pod to be rescheduled while the node is in "critical add-ons only" mode.
         # This, along with the annotation above marks this pod as a critical add-on.

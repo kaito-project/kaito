@@ -36,9 +36,5 @@ clusterName: "kaito"
 nvDevicePluginNodeSelectorTerm:
 # gpu node selection term works for azure gpu node
   - matchExpressions:
-    - key: kubernetes.azure.com/cluster
+    - key: "k8s.io/cloud-provider-aws"
       operator: Exists
-    - key: type
-      operator: NotIn
-      values:
-      - virtual-kubelet

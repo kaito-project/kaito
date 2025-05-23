@@ -27,7 +27,7 @@ data:
         output_dir: "/mnt/results"
         # num_train_epochs: <Defaults to 3, adjustable>
         ddp_find_unused_parameters: false # Default to false to prevent errors during distributed training
-        save_strategy: "epoch" # Default to save at end of each epoch
+        save_strategy: "no" # Default to save at end of each epoch
         per_device_train_batch_size: 1
     
       DataCollator: # Configurable Parameters: https://huggingface.co/docs/transformers/v4.40.2/en/main_classes/data_collator#transformers.DataCollatorForLanguageModeling

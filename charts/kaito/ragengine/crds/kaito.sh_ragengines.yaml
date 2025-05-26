@@ -180,6 +180,10 @@ spec:
                     description: URL points to a running inference service endpoint
                       which accepts http(s) payload.
                     type: string
+                  prefixCaching:
+                    description: PrefixCaching specifies whether to enable prefix caching
+                      flag for the inference service if it is vLLM.
+                    type: boolean
                 required:
                 - url
                 type: object

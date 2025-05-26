@@ -12,7 +12,7 @@ from llama_index.core.llms.callbacks import llm_completion_callback
 import requests
 from requests.exceptions import HTTPError
 from urllib.parse import urlparse, urljoin
-from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET #, LLM_RESPONSE_FIELD
+from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET, LLM_ENABLE_PREFIX_CACHING #, LLM_RESPONSE_FIELD
 from fastapi import HTTPException
 import concurrent.futures
 
@@ -97,12 +97,16 @@ class Inference(CustomLLM):
 
     async def _async_huggingface_remote_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         data = {"prompt": prompt, **kwargs}
+        if LLM_ENABLE_PREFIX_CACHING.lower() == "true":
+            data["enable_prefix_caching"] = True
         return await self._async_post_request(data, headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}", "Content-Type": "application/json"})
     async def _async_custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         model_name, model_max_len = self._get_default_model_info()
         if kwargs.get("model"):
             model_name = kwargs.pop("model")
         data = {"prompt": prompt, **kwargs}
+        if LLM_ENABLE_PREFIX_CACHING.lower() == "true":
+            data["enable_prefix_caching"] = True
         if model_name:
             data["model"] = model_name # Include the model only if it is not None
         if model_max_len and data.get("max_tokens"):

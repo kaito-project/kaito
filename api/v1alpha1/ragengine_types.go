@@ -52,6 +52,9 @@ type InferenceServiceSpec struct {
 	// AccessSecret is the name of the secret that contains the service access token.
 	// +optional
 	AccessSecret string `json:"accessSecret,omitempty"`
+	// PrefixCaching specifies whether to enable prefix caching flag for the inference service if it is vLLM.
+	// +optional
+	PrefixCaching bool `json:"prefixCaching,omitempty"`
 }
 
 type RAGEngineSpec struct {

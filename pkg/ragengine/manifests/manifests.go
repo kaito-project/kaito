@@ -160,6 +160,21 @@ func RAGSetEnv(ragEngineObj *kaitov1alpha1.RAGEngine) []corev1.EnvVar {
 		}
 		envs = append(envs, accessSecretEnv)
 	}
+
+	enablePrefixCaching := ragEngineObj.Spec.InferenceService.PrefixCaching
+	if enablePrefixCaching {
+		prefixCachingEnv := corev1.EnvVar{
+			Name:  "LLM_ENABLE_PREFIX_CACHING",
+			Value: "true",
+		}
+		envs = append(envs, prefixCachingEnv)
+	} else {
+		prefixCachingEnv := corev1.EnvVar{
+			Name:  "LLM_ENABLE_PREFIX_CACHING",
+			Value: "false",
+		}
+		envs = append(envs, prefixCachingEnv)
+	}
 	return envs
 }
 

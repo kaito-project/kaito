@@ -209,10 +209,6 @@ func (r *DataSource) validateCreate() (errs *apis.FieldError) {
 	if len(r.URLs) > 0 {
 		sourcesSpecified++
 	}
-	if r.Volume != nil {
-		// errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
-		sourcesSpecified++
-	}
 	if image := r.Image; image != "" {
 		if _, err := reference.ParseDockerRef(image); err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse input image reference: %s", err), "Image"))
@@ -233,9 +229,6 @@ func (r *DataSource) validateUpdate(old *DataSource, isTuning bool) (errs *apis.
 	if isTuning && !reflect.DeepEqual(old.Name, r.Name) {
 		errs = errs.Also(apis.ErrInvalidValue("During tuning Name field cannot be changed once set", "Name"))
 	}
-	if r.Volume != nil {
-		// errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
-	}
 	if image := r.Image; image != "" {
 		if _, err := reference.ParseDockerRef(image); err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse input image reference: %s", err), "Image"))
@@ -247,11 +240,6 @@ func (r *DataSource) validateUpdate(old *DataSource, isTuning bool) (errs *apis.
 
 func (r *DataDestination) validateCreate() (errs *apis.FieldError) {
 	destinationsSpecified := 0
-	// TODO: Implement Volumes
-	if r.Volume != nil {
-		// errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
-		destinationsSpecified++
-	}
 	if image := r.Image; image != "" {
 		if _, err := reference.ParseDockerRef(image); err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse output image reference: %s", err), "Image"))
@@ -273,10 +261,6 @@ func (r *DataDestination) validateCreate() (errs *apis.FieldError) {
 }
 
 func (r *DataDestination) validateUpdate() (errs *apis.FieldError) {
-	// TODO: Implement Volumes
-	if r.Volume != nil {
-		// errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
-	}
 	if image := r.Image; image != "" {
 		if _, err := reference.ParseDockerRef(image); err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse output image reference: %s", err), "Image"))

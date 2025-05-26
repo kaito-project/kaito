@@ -2,7 +2,8 @@
 This document presents how to use the Kaito `workspace` Custom Resource Definition (CRD) for parameter-efficient fine-tuning (PEFT) of models, how a Kubernetes job is designed to automate the tuning workflow, and several best practices for troubleshooting.
 
 ## Usage
-Kaito tuning APIs allow users to specify supported tuning methods like [LoRA or QLoRA](https://huggingface.co/docs/peft/main/en/conceptual_guides/lora), the input dataset and configuration settings, and the output destination for saving the tuning results. Currently, Kaito supports both URL and image as the types of tuning input sources. It only supports image as the type of output destination. In the future, Kaito will additionally support the Kubernetes `v1.Volume` API for both the input source and the output destination.
+Kaito tuning APIs allow users to specify supported tuning methods like [LoRA or QLoRA](https://huggingface.co/docs/peft/main/en/conceptual_guides/lora), the input dataset and configuration settings, and the output destination for saving the tuning results. Currently, Kaito supports URL, image 
+and Kubernetes volume as the types of tuning input sources, and image, Kubernetes volume as the types of tuning output destination. 
 
 
 ### Tuning workspace
@@ -34,6 +35,8 @@ tuning:
     imagePushSecret: IMAGE_PUSH_SECRET_HERE
 
 ```
+
+Example 3: Tuning [`phi-3-mini`](../../examples/fine-tuning/kaito_workspace_tuning_phi_3_with_pvc_volume.yaml). This example shows how to use a Kubernetes volume as the source of input dataset and output destination. We use AzureFile as an example, but any other supported volume type can be used. You should save your input dataset in the volume before creating the workspace, and the output adapter will be saved in the output volume after the tuning job is completed.
 
 The detailed `TuningSpec` API definitions can be found [here](https://github.com/kaito-project/kaito/blob/2ccc93daf9d5385649f3f219ff131ee7c9c47f3e/api/v1alpha1/workspace_types.go#L145).
 
@@ -106,7 +109,10 @@ If your dataset is not in one of these formats, it will be passed directly to th
 Note: if you build a container image for the input dataset, please copy the dataset to the **`/data`** directory inside the container.
 
 # Tuning Job
-Kaito uses the Kubernetes **batchv1.job** workload to manage the tuning Pod. When a tuning workspace custom resource is created, the Kaito controller will create a job with the same name as the workspace in the same namespace. To streamline the tuning workflow, Kaito adds two containers in addition to the main container that runs the tuning process. The pod structure is illustrated in Figure 1.
+Kaito uses the Kubernetes **batchv1.job** workload to manage the tuning Pod. When a tuning workspace custom resource is created, the Kaito controller will create a job with the same name as the workspace in the same namespace. The pod structure will be different depending on whether the input and output are specified as URLs, images, or Kubernetes volumes.
+
+## Pod structure when input and output are specified as URLs or images
+To streamline the tuning workflow, Kaito adds two containers in addition to the main container that runs the tuning process. The pod structure is illustrated in Figure 1.
 <div align="left">
   <img src="../img/kaito-fine-tuning.png" width=40% title="Kaito fine tuning" alt="Kaito fine tuning">
 </div>
@@ -119,6 +125,11 @@ Figure 1. Kaito tuning pod structure.
 - Main container: It uses one of the supported model images. The image entry launches the [fine\_tuning.py](https://github.com/kaito-project/kaito/blob/main/presets/workspace/tuning/text-generation/fine_tuning.py) script.
 
 All three containers use shared local volumes (by mounting the same `EmptyDir` volumes), hence file copies between containers are avoided.
+
+## Pod structure when input and output are specified as Kubernetes volumes
+When the input and output are specified as Kubernetes volumes, the initcontainer and sidecar container are removed and only the main container is used. Since the input dataset and ouput destination are already available in the specified volumes, the main container can directly access them. 
+
+Other than the absence of the init and sidecar containers, the main container is the same as described in the previous section. 
 
 # Troubleshooting
 

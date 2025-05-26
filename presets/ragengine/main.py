@@ -2,12 +2,14 @@
 # Licensed under the MIT license.
 
 from typing import List, Optional
+import json
 from vector_store_manager.manager import VectorStoreManager
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
 from fastapi import FastAPI, HTTPException, Query
-from models import (IndexRequest, ListDocumentsResponse,
-                    QueryRequest, QueryResponse, DocumentResponse, HealthStatus)
+from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
+                    QueryRequest, QueryResponse, Document, HealthStatus, DeleteDocumentRequest,
+                    DeleteDocumentResponse, UpdateDocumentResponse)
 from vector_store.faiss_store import FaissVectorStoreHandler
 
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
@@ -63,7 +65,7 @@ def health_check():
 
 @app.post(
     "/index",
-    response_model=List[DocumentResponse],
+    response_model=List[Document],
     summary="Index Documents",
     description="""
     Add documents to an index or create a new index.
@@ -96,7 +98,7 @@ async def index_documents(request: IndexRequest):
     try:
         doc_ids = await rag_ops.index(request.index_name, request.documents)
         documents = [
-            DocumentResponse(doc_id=doc_id, text=doc.text, metadata=doc.metadata)
+            Document(doc_id=doc_id, text=doc.text, metadata=doc.metadata)
             for doc_id, doc in zip(doc_ids, request.documents)
         ]
         return documents
@@ -225,6 +227,10 @@ async def list_documents_in_index(
         ge=1, 
         description="Maximum text length to return **per document**. This does not impose a limit on the total length of all documents returned."
     ),
+    metadata_filter: Optional[str | None] = Query(
+        None,
+        description="Optional metadata filter to apply when listing documents. This should be a dictionary with key-value pairs to match against document metadata."
+    )
 ):
     """
     Handles URL-encoded index names sent by the client.
@@ -237,18 +243,97 @@ async def list_documents_in_index(
     index/name        | index%2Fname      | index/name
     """
     try:
+        if metadata_filter:
+            # Attempt to parse the metadata filter as a JSON string
+            try:
+                metadata_filter = json.loads(metadata_filter)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid metadata filter format. Must be a valid JSON string.")
+
         # Decode the index_name in case it was URL-encoded by the client
         decoded_index_name = unquote(index_name)
         documents = await rag_ops.list_documents_in_index(
             index_name=decoded_index_name,
             limit=limit,
             offset=offset,
-            max_text_length=max_text_length
+            max_text_length=max_text_length,
+            metadata_filter=metadata_filter
         )
 
         return ListDocumentsResponse(
             documents=documents,
             count=len(documents)
+        )
+    except HTTPException as http_exc:
+        raise http_exc
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/indexes/{index_name}/documents",
+    response_model=UpdateDocumentResponse,
+    summary="Update documents in an Index",
+    description="""
+    Update document in an Index.
+
+    ## Request Example:
+    ```json
+    POST /indexes/test_index/documents
+    {"documents": [{"doc_id": "sampleid", "text": "Sample document text.", "metadata": {"author": "John Doe", "category": "example"}}]}
+    ```
+
+    ## Response Example:
+    ```json
+    {
+        "updated_documents": [{"doc_id": "sampleid", "text": "Sample document text.", "metadata": {"author": "John Doe", "category": "example"}}],
+        "unchanged_documents": [],
+        "not_found_documents": []
+    },
+    ```
+    """,
+)
+async def update_documents_in_index(
+    index_name: str,
+    request: UpdateDocumentRequest,
+):
+    try:
+        return await rag_ops.update_documents(
+            index_name=index_name,
+            documents=request.documents
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/indexes/{index_name}/documents/delete",
+    response_model=DeleteDocumentResponse,
+    summary="Delete documents in an Index",
+    description="""
+    Delete document in an Index by their ids.
+
+    ## Request Example:
+    ```json
+    POST /indexes/test_index/documents/delete
+    {"doc_ids": ["doc_id_1", "doc_id_2", "doc_id_3"]}
+    ```
+
+    ## Response Example:
+    ```json
+    {
+        "deleted_doc_ids": ["doc_id_1", "doc_id_2"],
+        "not_found_doc_ids": ["doc_id_3"]
+    },
+    ```
+    """,
+)
+async def delete_documents_in_index(
+    index_name: str,
+    request: DeleteDocumentRequest,
+):
+    try:
+        return await rag_ops.delete_documents(
+            index_name=index_name,
+            doc_ids=request.doc_ids
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -78,7 +78,29 @@ jobs:
 
             echo "CONFIGS:"
             echo $CONFIGS
-            
+
+            ORIGINAL_MATRIX='${{ steps.affected_models.outputs.matrix }}'
+            # Check if "base" exists and add test cases for base image
+            BASE_IMAGE_TESTS=$(echo "$ORIGINAL_MATRIX" | jq -c '
+                map(select(.name == "base")) | 
+                if length > 0 then
+                    .[0] as $base | 
+                    [
+                        ($base | .name = "vllm-distributed" | . + {"image-name": "base"})
+                        # example to add new case
+                        # ($base | .name = "test2" | . + {"image-name": "base"})
+                    ]
+                else
+                    []
+                end
+            ')
+
+            echo "BASE_IMAGE_TESTS:"
+            echo $BASE_IMAGE_TESTS
+
+            # Combine original matrix with test items
+            EXTENDED_MATRIX=$(echo "$ORIGINAL_MATRIX" | jq --argjson new "$BASE_IMAGE_TESTS" -c '. + $new')
+
             # Pseudocode for combining matrices
             # COMBINED_MATRIX = []
             # for model in MATRIX:
@@ -87,8 +109,7 @@ jobs:
             #             combined = {**model, **config}
             #             COMBINED_MATRIX.append(combined)
             #             break
-
-            COMBINED_MATRIX=$(echo '${{ steps.affected_models.outputs.matrix }}' | jq --argjson configs "$CONFIGS" -c '
+            COMBINED_MATRIX=$(echo "$EXTENDED_MATRIX" | jq --argjson configs "$CONFIGS" -c '
                 map(. as $model | $configs[] | select(.name == $model.name) | $model + .)
             ')
 
@@ -138,9 +159,9 @@ jobs:
         id: check_image
         run: |
             ACR_NAME=${{ secrets.ACR_AMRT_USERNAME }}
-            IMAGE_NAME=${{ matrix.model.name }}
+            IMAGE_NAME=${{ matrix.model.image-name || matrix.model.name }}
             TAG=${{ matrix.model.tag }}
-        
+
             # Use '|| true' to prevent script from exiting with an error if the repository is not found
             TAGS=$(az acr repository show-tags -n $ACR_NAME --repository $IMAGE_NAME --output tsv || true)
 
@@ -155,13 +176,13 @@ jobs:
                     echo "Image $IMAGE_NAME:$TAG not found in $ACR_NAME."
                 fi
             fi
-    
+
       - name: Exit if Image for testing does not exist
         if: steps.check_image.outputs.IMAGE_EXISTS == 'false'
         run: |
             echo "Image doesn't exist in ACR, remember to build image for testing first (preset-image-build)"
             exit 1
-    
+
       - name: Set up kubectl context
         run: |
           az aks get-credentials --resource-group llm-test --name GitRunner
@@ -176,7 +197,7 @@ jobs:
             echo "WORKLOAD_NAME=$WORKLOAD_NAME" >> $GITHUB_OUTPUT
             WORKLOAD_FILE=$WORKLOAD_NAME.yaml
             echo "WORKLOAD_FILE=$WORKLOAD_FILE" >> $GITHUB_OUTPUT
-            RESOURCE_TYPE=$(echo "${{ matrix.model.name }}" | grep -q "llama-2" && echo "statefulset" || echo "deployment")
+            RESOURCE_TYPE=${{ matrix.model.resource-type || 'deployment' }}
             echo "RESOURCE_TYPE=$RESOURCE_TYPE" >> $GITHUB_OUTPUT
 
             pip install pyyaml
@@ -246,44 +267,7 @@ jobs:
       - name: Test inference endpoint
         run: |
             echo "Testing inference for ${{ matrix.model.name }}"
-            if [[ "${{ matrix.model.name }}" == *"llama-2"* && "${{ matrix.model.name }}" == *"-chat"* ]]; then
-                kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
-                curl -s -X POST \
-                -H "Content-Type: application/json" \
-                -d '{
-                    "input_data": {
-                        "input_string": [
-                            [
-                                {
-                                    "role": "system",
-                                    "content": "You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe."
-                                },
-                                {
-                                    "role": "user",
-                                    "content": "Write a brief birthday message to John"
-                                }
-                            ]
-                        ]
-                    }
-                }' \
-                http://localhost:5000/chat
-            elif [[ "${{ matrix.model.name }}" == *"llama-2"* ]]; then
-                kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
-                curl -s -X POST \
-                -H "Content-Type: application/json" \
-                -d '{
-                    "prompts": [
-                        "I believe the meaning of life is",
-                        "Simply put, the theory of relativity states that ",
-                        "A brief message congratulating the team on the launch: Hi everyone, I just ",
-                        "Translate English to French: sea otter => loutre de mer, peppermint => menthe poivrée, plush girafe => girafe peluche, cheese =>"
-                    ],
-                    "parameters": {
-                        "max_gen_len": 128
-                    }
-                }' \
-                http://localhost:5000/generate
-            elif [[ "${{ env.RUNTIME }}" == *"vllm"* ]]; then
+            if [[ "${{ env.RUNTIME }}" == *"vllm"* ]]; then
                 kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
                 curl -s -X POST \
                 -H "accept: application/json" \

@@ -1,0 +1,47 @@
+# Optimized fine-tuning setup for Microsoft’s Phi-3-mini-128k model using KAITO
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: optimized-phi3-tuning
+data:
+  training_config.yaml: |
+    training_config:
+      # ── Model loading / device mapping ──────────────────────────────────
+      ModelConfig:
+        torch_dtype: "bfloat16"    # Loads weights as BF16 → lower mem vs FP32
+        local_files_only: true     # Avoids re-download - weights are already pre-pulled
+        device_map: "auto"         # HF auto-shards to available GPUs
+
+      # ── QLoRA: 4-bit quantization ───────────────────────────────────────
+      QuantizationConfig:
+        load_in_4bit: true                 # Core QLoRA switch
+        bnb_4bit_quant_type: "nf4"         # Normal-Float-4
+        bnb_4bit_compute_dtype: "bfloat16" # Compute in BF16 for speed/precision
+        bnb_4bit_use_double_quant: true    # Extra compression
+
+      # ── LoRA adapters: what *is* trainable ──────────────────────────────
+      LoraConfig:
+        r: 8                              # Low-rank size (8 is a solid default)
+        lora_alpha: 8                     # Scales the update
+        lora_dropout: 0.0                 
+        target_modules:                   # Which sub-layers get adapters
+          - "q_proj"                      #   • Query/key/value/output proj
+          - "k_proj"
+          - "v_proj"
+          - "o_proj"
+
+      # ── Trainer hyper-parameters ────────────────────────────────────────
+      TrainingArguments:
+        output_dir: "/mnt/results"        # Persist checkpoints / logs
+        save_strategy: "epoch"            # Save each epoch
+        per_device_train_batch_size: 2    # Tune ↑/↓ based on seq-length & GPU
+        ddp_find_unused_parameters: false # Avoid stray grads in DDP setups
+
+      # ── Data handling helpers ───────────────────────────────────────────
+      DataCollator:
+        mlm: true
+
+      DatasetConfig:
+        shuffle_dataset: true             # Shuffle once before split
+        train_test_split: 1               # 1 = all data;
+                                          #   lower if you need held-out eval

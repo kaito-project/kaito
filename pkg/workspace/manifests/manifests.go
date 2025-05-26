@@ -71,6 +71,18 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 					Port:       80,
 					TargetPort: intstr.FromInt32(5000),
 				},
+				{
+					Name:       "ray",
+					Protocol:   corev1.ProtocolTCP,
+					Port:       6379,
+					TargetPort: intstr.FromInt32(6379),
+				},
+				{
+					Name:       "dashboard",
+					Protocol:   corev1.ProtocolTCP,
+					Port:       8265,
+					TargetPort: intstr.FromInt32(8265),
+				},
 			},
 			Selector: selector,
 			// Added this to allow pods to discover each other
@@ -100,10 +112,13 @@ func GenerateStatefulSetManifest(workspaceObj *kaitov1beta1.Workspace, imageName
 	labelselector := &v1.LabelSelector{
 		MatchLabels: selector,
 	}
-	// Add PYTORCH_CUDA_ALLOC_CONF environment variable
 	envVars = append(envVars, corev1.EnvVar{
-		Name:  "PYTORCH_CUDA_ALLOC_CONF",
-		Value: "expandable_segments:True",
+		Name: "POD_INDEX",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: fmt.Sprintf("metadata.labels['%s']", appsv1.PodIndexLabel),
+			},
+		},
 	})
 
 	ss := &appsv1.StatefulSet{
@@ -253,11 +268,6 @@ func GenerateDeploymentManifest(workspaceObj *kaitov1beta1.Workspace, revisionNu
 	labelselector := &v1.LabelSelector{
 		MatchLabels: selector,
 	}
-	// Add PYTORCH_CUDA_ALLOC_CONF environment variable
-	envVars = append(envVars, corev1.EnvVar{
-		Name:  "PYTORCH_CUDA_ALLOC_CONF",
-		Value: "expandable_segments:True",
-	})
 
 	pullerContainers, pullerEnvVars, pullerVolumes := GeneratePullerContainers(workspaceObj, volumeMount)
 	envVars = append(envVars, pullerEnvVars...)

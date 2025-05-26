@@ -32,15 +32,28 @@ class VectorStoreManager:
             index_name: str,
             limit: int,
             offset: int,
-            max_text_length: int
+            max_text_length: int,
+            metadata_filter: dict,
     ) -> List[Dict[str, Any]]:
         """List all documents in index."""
         return await self.vector_store.list_documents_in_index(
             index_name,
             limit,
             offset,
-            max_text_length
+            max_text_length,
+            metadata_filter
         )
+
+    async def update_documents(self,
+            index_name: str,
+            documents: List[Document]
+    ):
+        """Update documents in the index."""
+        return await self.vector_store.update_documents(index_name, documents)
+
+    async def delete_documents(self, index_name: str, doc_ids: List[str]) -> List[str]:
+        """Delete documents from the index."""
+        return await self.vector_store.delete_documents(index_name, doc_ids)
 
     async def persist(self, index_name: str, path: str) -> None:
         """Persist existing index."""

@@ -54,11 +54,12 @@ var _ = BeforeSuite(func() {
 	}
 
 	if nodeProvisionerName == "gpuprovisioner" {
+		gpuName := os.Getenv("GPU_PROVISIONER_NAME")
 		gpuNamespace := os.Getenv("GPU_PROVISIONER_NAMESPACE")
 		//check gpu-provisioner deployment is up and running
 		gpuProvisionerDeployment := &v1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "gpu-provisioner",
+				Name:      gpuName,
 				Namespace: gpuNamespace,
 			},
 		}
@@ -69,7 +70,7 @@ var _ = BeforeSuite(func() {
 				Name:      gpuProvisionerDeployment.Name,
 			}, gpuProvisionerDeployment, &client.GetOptions{})
 		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to wait for	gpu-provisioner deployment")
+			Should(Succeed(), fmt.Sprintf("Failed to wait for %s deployment", gpuName))
 	}
 
 	//check kaito-workspace deployment is up and running

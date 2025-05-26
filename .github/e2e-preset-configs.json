@@ -327,6 +327,16 @@
         }
       },
       {
+        "name": "vllm-distributed",
+        "node-count": 2,
+        "node-vm-size": "Standard_NC6s_v3",
+        "resource-type": "statefulset",
+        "node-osdisk-size": 100,
+        "OSS": false,
+        "loads_adapter": false,
+        "node_pool": "vllmdist"
+      },
+      {
         "name": "tuning",
         "node-count": 1,
         "node-vm-size": "Standard_NC6s_v3",

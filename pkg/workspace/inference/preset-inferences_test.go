@@ -5,10 +5,12 @@ package inference
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -18,6 +20,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 var ValidStrength string = "0.5"
@@ -36,7 +39,6 @@ func TestCreatePresetInference(t *testing.T) {
 		expectedVolume  string
 		expectedEnvVars []corev1.EnvVar
 	}{
-
 		"test-model/vllm": {
 			workspace: test.MockWorkspaceWithPresetVLLM,
 			nodeCount: 1,
@@ -51,10 +53,6 @@ func TestCreatePresetInference(t *testing.T) {
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --served-model-name=mymodel --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
-			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}},
 		},
 
 		"test-model-no-parallel/vllm": {
@@ -71,10 +69,6 @@ func TestCreatePresetInference(t *testing.T) {
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml --gpu-memory-utilization=0.90",
 			hasAdapters: false,
-			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}},
 		},
 
 		"test-model-no-lora-support/vllm": {
@@ -91,10 +85,6 @@ func TestCreatePresetInference(t *testing.T) {
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml --gpu-memory-utilization=0.90",
 			hasAdapters: false,
-			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}},
 		},
 
 		"test-model-with-adapters/vllm": {
@@ -111,9 +101,6 @@ func TestCreatePresetInference(t *testing.T) {
 			hasAdapters:    true,
 			expectedVolume: "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}, {
 				Name:  "Adapter-1",
 				Value: "0.5",
 			}},
@@ -133,10 +120,6 @@ func TestCreatePresetInference(t *testing.T) {
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py",
 			hasAdapters: false,
-			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}},
 		},
 
 		"test-model-with-adapters": {
@@ -153,9 +136,6 @@ func TestCreatePresetInference(t *testing.T) {
 			hasAdapters:    true,
 			expectedVolume: "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{{
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
-			}, {
 				Name:  "Adapter-1",
 				Value: "0.5",
 			}},
@@ -169,9 +149,40 @@ func TestCreatePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
-			workload:      "Deployment",
-			expectedImage: "test-registry/kaito-base:0.0.1",
-			expectedCmd:   "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --model=test-repo/test-model --code-revision=test-revision --tensor-parallel-size=2",
+			workload: "Deployment",
+			expectedImage: func() string {
+				baseImage := metadata.MustGet("base")
+				return fmt.Sprintf("test-registry/kaito-base:%s", baseImage.Tag)
+			}(),
+			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml`,
+			expectedEnvVars: []corev1.EnvVar{{
+				Name: "HF_TOKEN",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						Key: "HF_TOKEN",
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: "test-secret",
+						},
+					},
+				},
+			}},
+		},
+
+		"test-model-download-distributed/vllm": {
+			workspace: test.MockWorkspaceWithPresetDownloadVLLM,
+			nodeCount: 2,
+			modelName: "test-model-download",
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+			},
+			workload: "StatefulSet",
+			expectedImage: func() string {
+				baseImage := metadata.MustGet("base")
+				return fmt.Sprintf("test-registry/kaito-base:%s", baseImage.Tag)
+			}(),
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -183,8 +194,49 @@ func TestCreatePresetInference(t *testing.T) {
 					},
 				},
 			}, {
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
+				Name: "POD_INDEX",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{
+						FieldPath: fmt.Sprintf("metadata.labels['%s']", appsv1.PodIndexLabel),
+					},
+				},
+			}},
+		},
+
+		"test-model-download-distributed/vllm (more nodes than required)": {
+			// Using Standard_NC12s_v3, which has 32GB GPU memory per node.
+			// The preset requires 64GB GPU memory for the model, so only 2 nodes are needed.
+			workspace: test.MockWorkspaceWithPresetDownloadVLLM,
+			nodeCount: 4, // 4 nodes but only 2 are needed
+			modelName: "test-model-download",
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+			},
+			workload: "StatefulSet",
+			expectedImage: func() string {
+				baseImage := metadata.MustGet("base")
+				return fmt.Sprintf("test-registry/kaito-base:%s", baseImage.Tag)
+			}(),
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedEnvVars: []corev1.EnvVar{{
+				Name: "HF_TOKEN",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						Key: "HF_TOKEN",
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: "test-secret",
+						},
+					},
+				},
+			}, {
+				Name: "POD_INDEX",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{
+						FieldPath: fmt.Sprintf("metadata.labels['%s']", appsv1.PodIndexLabel),
+					},
+				},
 			}},
 		},
 
@@ -196,9 +248,11 @@ func TestCreatePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
-			workload:      "Deployment",
-			expectedImage: "test-registry/kaito-base:0.0.1",
-			expectedCmd:   "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
+			workload: "Deployment",
+			expectedImage: func() string {
+				return fmt.Sprintf("test-registry/kaito-base:%s", metadata.MustGet("base").Tag)
+			}(),
+			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -209,9 +263,6 @@ func TestCreatePresetInference(t *testing.T) {
 						},
 					},
 				},
-			}, {
-				Name:  "PYTORCH_CUDA_ALLOC_CONF",
-				Value: "expandable_segments:True",
 			}},
 		},
 	}
@@ -330,11 +381,92 @@ func TestCreatePresetInference(t *testing.T) {
 	}
 }
 
+func TestGetDistributedInferenceProbe(t *testing.T) {
+	testcases := map[string]struct {
+		probeType           probeType
+		workspace           *v1beta1.Workspace
+		initialDelaySeconds int32
+		periodSeconds       int32
+		timeoutSeconds      int32
+		expectedProbe       *corev1.Probe
+	}{
+		"Liveness": {
+			probeType: probeTypeLiveness,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "test-ns",
+				},
+			},
+			initialDelaySeconds: 30,
+			periodSeconds:       5,
+			timeoutSeconds:      5,
+			expectedProbe: &corev1.Probe{
+				ProbeHandler: corev1.ProbeHandler{
+					Exec: &corev1.ExecAction{
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/multi-node-health-check.py liveness --leader-address=test-workspace-0.test-workspace-headless.test-ns.svc.cluster.local --ray-port=6379"},
+					},
+				},
+				InitialDelaySeconds:           30,
+				PeriodSeconds:                 5,
+				TimeoutSeconds:                5,
+				TerminationGracePeriodSeconds: lo.ToPtr(int64(1)),
+				FailureThreshold:              1,
+			},
+		},
+		"Readiness": {
+			probeType: probeTypeReadiness,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "test-ns",
+				},
+			},
+			initialDelaySeconds: 30,
+			periodSeconds:       5,
+			timeoutSeconds:      5,
+			expectedProbe: &corev1.Probe{
+				ProbeHandler: corev1.ProbeHandler{
+					Exec: &corev1.ExecAction{
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/multi-node-health-check.py readiness --leader-address=test-workspace-0.test-workspace-headless.test-ns.svc.cluster.local --vllm-port=5000"},
+					},
+				},
+				InitialDelaySeconds: 30,
+				PeriodSeconds:       5,
+				TimeoutSeconds:      5,
+				FailureThreshold:    1,
+			},
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds)
+			if actualProbe.Exec != nil && tc.expectedProbe.Exec != nil {
+				expected := toParameterMap(tc.expectedProbe.Exec.Command)
+				actual := toParameterMap(actualProbe.Exec.Command)
+				if !reflect.DeepEqual(expected, actual) {
+					t.Errorf("Exec command mismatch: expected %+v, got %+v", expected, actual)
+				}
+			}
+			if actualProbe.HTTPGet != nil && tc.expectedProbe.HTTPGet != nil {
+				if !reflect.DeepEqual(actualProbe.HTTPGet, tc.expectedProbe.HTTPGet) {
+					t.Errorf("HTTPGet mismatch: expected %+v, got %+v", tc.expectedProbe.HTTPGet, actualProbe.HTTPGet)
+				}
+			}
+		})
+	}
+}
+
 func toParameterMap(in []string) map[string]string {
 	ret := make(map[string]string)
 	for _, eachToken := range in {
 		for _, each := range strings.Split(eachToken, " ") {
 			each = strings.TrimSpace(each)
+			each = strings.Trim(each, ";")
+			if len(each) == 0 {
+				continue
+			}
 			r := strings.Split(each, "=")
 			k := r[0]
 			var v string

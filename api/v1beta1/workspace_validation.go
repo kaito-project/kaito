@@ -62,7 +62,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 
 			runtime := GetWorkspaceRuntimeName(w)
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
-			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference, bypassResourceChecks).ViaField("resource"),
+			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference, bypassResourceChecks, runtime).ViaField("resource"),
 				w.Inference.validateCreate(ctx, w.Namespace, w.Resource.InstanceType, runtime).ViaField("inference"))
 		}
 		if w.Tuning != nil {
@@ -277,7 +277,7 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	return errs
 }
 
-func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool) (errs *apis.FieldError) {
+func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName) (errs *apis.FieldError) {
 	var presetName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
@@ -298,8 +298,8 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	// Check if instancetype exists in our SKUs map for the particular cloud provider
 	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig != nil {
 		if presetName != "" {
-			model := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
-			params := model.GetInferenceParameters()
+			modelPreset := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
+			params := modelPreset.GetInferenceParameters()
 
 			machineCount := *r.Count
 			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
@@ -363,6 +363,15 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 						"instanceType",
 					))
 				}
+			}
+
+			// If the model preset supports distributed inference, and a single machine has insufficient GPU memory to run the model,
+			// then we need to make sure the Workspace is not using the Huggingface Transformers runtime since it no longer supports
+			// multi-node distributed inference.
+			totalGPUMemoryPerMachine := resource.NewScaledQuantity(int64(skuConfig.GPUMemGB), resource.Giga)
+			distributedInferenceRequired := modelTotalGPUMemory.Cmp(*totalGPUMemoryPerMachine) > 0
+			if modelPreset.SupportDistributedInference() && distributedInferenceRequired && runtime == model.RuntimeNameHuggingfaceTransformers {
+				errs = errs.Also(apis.ErrGeneric("Multi-node distributed inference is not supported with Huggingface Transformers runtime"))
 			}
 		}
 	} else {

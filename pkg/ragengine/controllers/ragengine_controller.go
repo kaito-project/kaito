@@ -118,10 +118,6 @@ func (c *RAGEngineReconciler) addRAGEngine(ctx context.Context, ragEngineObj *ka
 			klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
 			return reconcile.Result{}, updateErr
 		}
-		// if error is	due to machine/nodeClaim instance types unavailability, stop reconcile.
-		if err.Error() == consts.ErrorInstanceTypesUnavailable {
-			return reconcile.Result{Requeue: false}, err
-		}
 		return reconcile.Result{}, err
 	}
 	if err := c.ensureService(ctx, ragEngineObj); err != nil {

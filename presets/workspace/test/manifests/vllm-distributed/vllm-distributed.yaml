@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vllm-distributed
+  namespace: default
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: Parallel
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      kaito.sh/workspace: vllm-distributed
+  serviceName: vllm-distributed-headless
+  template:
+    metadata:
+      labels:
+        kaito.sh/workspace: vllm-distributed
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - vllm-distributed
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - if [ "${POD_INDEX}" = "0" ]; then
+            /workspace/vllm/multi-node-serving.sh leader --ray_cluster_size=2 --ray_port=6379;
+            python3 /workspace/vllm/inference_api.py --pipeline-parallel-size=2 --max-model-len 4096 --enforce-eager --model microsoft/Phi-4-mini-instruct --kaito-config-file=/mnt/config/inference_config.yaml;
+          else
+            /workspace/vllm/multi-node-serving.sh worker --ray_address=vllm-distributed-0.vllm-distributed-headless.default.svc.cluster.local --ray_port=6379;
+          fi
+        image: REPO/base:TAG
+        imagePullPolicy: IfNotPresent
+        name: vllm-distributed
+        env:
+        - name: POD_INDEX
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels['apps.kubernetes.io/pod-index']
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - python3 /workspace/vllm/multi-node-health-check.py liveness --leader-address=vllm-distributed-0.vllm-distributed-headless.default.svc.cluster.local --ray-port=6379
+          failureThreshold: 1
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          successThreshold: 1
+          terminationGracePeriodSeconds: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - python3 /workspace/vllm/multi-node-health-check.py readiness --leader-address=vllm-distributed-0.vllm-distributed-headless.default.svc.cluster.local --vllm-port=5000
+          failureThreshold: 1
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            nvidia.com/gpu: "1"
+          requests:
+            nvidia.com/gpu: "1"
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /mnt/config
+          name: config-volume
+        - mountPath: /dev/shm
+          name: dshm
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: nvidia.com/gpu
+        operator: Exists
+      - effect: NoSchedule
+        key: sku
+        operator: Equal
+        value: gpu
+      volumes:
+      - emptyDir:
+          medium: Memory
+        name: dshm
+      - configMap:
+          defaultMode: 420
+          name: testing-inference-params
+        name: config-volume
+      nodeSelector:
+        pool: vllmdist
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-distributed-headless
+spec:
+  selector:
+    kaito.sh/workspace: vllm-distributed
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 5000
+    - name: ray
+      protocol: TCP
+      port: 6379
+      targetPort: 6379
+  type: ClusterIP
+  publishNotReadyAddresses: true

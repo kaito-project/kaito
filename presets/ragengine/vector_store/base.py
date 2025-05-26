@@ -16,9 +16,10 @@ from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 
 from llama_index.vector_stores.faiss import FaissVectorStore
 
-from ragengine.models import Document, DocumentResponse
+from ragengine.models import Document
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
+from ragengine.vector_store.transformers.custom_transformer import CustomTransformer
 from ragengine.config import (LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N)
 from fastapi import HTTPException
 
@@ -39,6 +40,7 @@ class BaseVectorStore(ABC):
         # Use a reader/writer lock only if needed
         self.use_rwlock = use_rwlock
         self.rwlock = aiorwlock.RWLock() if self.use_rwlock else None
+        self.custom_transformer = CustomTransformer()
 
     @staticmethod
     def generate_doc_id(text: str) -> str:
@@ -103,10 +105,10 @@ class BaseVectorStore(ABC):
                         storage_context=storage_context,
                         embed_model=self.embed_model,
                         use_async=True,
+                        transformations=[self.custom_transformer],
                     )
                     index.set_index_id(index_name)
                     self.index_map[index_name] = index
-                    self.index_store.add_index_struct(index.index_struct)
             else:
                 index = await asyncio.to_thread(
                     VectorStoreIndex.from_documents,
@@ -114,10 +116,10 @@ class BaseVectorStore(ABC):
                     storage_context=storage_context,
                     embed_model=self.embed_model,
                     use_async=True,
+                    transformations=[self.custom_transformer],
                 )
                 index.set_index_id(index_name)
                 self.index_map[index_name] = index
-                self.index_store.add_index_struct(index.index_struct)
         return indexed_doc_ids
 
     async def query(self,
@@ -208,6 +210,75 @@ class BaseVectorStore(ABC):
     def list_indexes(self) -> List[str]:
         return list(self.index_map.keys())
 
+    async def delete_documents(self, index_name: str, doc_ids: List[str]):
+        """Common logic for deleting a document."""
+        if index_name not in self.index_map:
+            raise HTTPException(status_code=404, detail=f"index does not exist: {index_name}")
+        
+        not_found_docs = []
+        found_docs = []
+        for doc_id in doc_ids:
+            if doc_id in self.index_map[index_name].ref_doc_info:
+                found_docs.append(doc_id)
+            else:
+                not_found_docs.append(doc_id)
+
+        try:
+            if self.use_rwlock:
+                async with self.rwlock.writer_lock:
+                    await asyncio.gather(*(self.index_map[index_name].adelete_ref_doc(doc_id, delete_from_docstore=True) for doc_id in doc_ids),
+                                        return_exceptions=True)
+            else:
+                await asyncio.gather(*(self.index_map[index_name].adelete_ref_doc(doc_id, delete_from_docstore=True) for doc_id in doc_ids),
+                                        return_exceptions=True)
+
+            return {"deleted_doc_ids": found_docs, "not_found_doc_ids": not_found_docs}
+        except NotImplementedError as e:
+            logger.error(f"Delete operation is not implemented for index {index_name}.")
+            raise HTTPException(status_code=501, detail=f"Loading failed: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error deleting documents from index {index_name}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
+    
+    async def update_documents(self, index_name: str, documents: List[Document]):
+        """Common logic for updating a document."""
+        if index_name not in self.index_map:
+            raise HTTPException(status_code=404, detail=f"index does not exist: {index_name}")
+        
+        not_found_docs = []
+        found_docs = []
+        llama_docs = []
+        for document in documents:
+            if document.doc_id in self.index_map[index_name].ref_doc_info:
+                found_docs.append(document)
+                llama_docs.append(
+                    LlamaDocument(id_=document.doc_id, text=document.text, metadata=document.metadata, excluded_llm_metadata_keys=[key for key in document.metadata.keys()])
+                )
+            else:
+                not_found_docs.append(document)
+
+        try:
+            if self.use_rwlock:
+                async with self.rwlock.writer_lock:
+                    refreshed_docs = self.index_map[index_name].refresh_ref_docs(llama_docs)
+            else:
+                refreshed_docs = self.index_map[index_name].refresh_ref_docs(llama_docs)
+            
+            updated_docs = []
+            unchanged_docs = []
+            for doc, was_updated in zip(found_docs, refreshed_docs):
+                if was_updated:
+                    updated_docs.append(doc)
+                else:
+                    unchanged_docs.append(doc)
+            return {"updated_documents": updated_docs, "unchanged_documents": unchanged_docs, "not_found_documents": not_found_docs}
+        except NotImplementedError as e:
+            logger.error(f"Update operation is not implemented for index {index_name}.")
+            raise HTTPException(status_code=501, detail=f"Loading failed: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error updating documents in index {index_name}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
+
     async def _process_document(self, doc_id: str, doc_stub, doc_store, max_text_length: Optional[int]):
         """
         Helper to process and format a single document.
@@ -238,7 +309,8 @@ class BaseVectorStore(ABC):
             index_name: str, 
             limit: int, 
             offset: int, 
-            max_text_length: Optional[int] = None
+            max_text_length: Optional[int] = None,
+            metadata_filter: Optional[Dict[str, Any]] = None
         ) -> List[Dict[str, Any]]:
         """
         Return a dictionary of document metadata for the given index.
@@ -248,7 +320,11 @@ class BaseVectorStore(ABC):
             raise ValueError(f"Index '{index_name}' not found.")
         
         doc_store = vector_store_index.docstore
-        docs_items = islice(doc_store.docs.items(), offset, offset + limit)
+        doc_store_items = doc_store.docs.items()
+        if metadata_filter is not None:
+            docs_items = await self._filter_documents(doc_store_items, metadata_filter, offset, limit)
+        else:
+            docs_items = islice(doc_store_items, offset, offset + limit)
 
         # Process documents concurrently, handling exceptions
         docs = await asyncio.gather(
@@ -258,6 +334,17 @@ class BaseVectorStore(ABC):
 
         # Return list of valid documents
         return [doc for doc in docs if isinstance(doc, dict)]
+
+    async def _filter_documents(self, doc_items, metadata_filter, offset, limit):
+        """
+        Filter documents based on metadata.
+        """
+        filtered_docs = []
+        for doc_id, doc_stub in doc_items:
+            doc_metadata = getattr(doc_stub, "metadata", {})
+            if all(doc_metadata.get(k) == v for k, v in metadata_filter.items()):
+                filtered_docs.append((doc_id, doc_stub))
+        return islice(filtered_docs, offset, offset + limit)
 
     async def document_exists(self, index_name: str, doc: Document, doc_id: str) -> bool:
         """Common logic for checking document existence."""

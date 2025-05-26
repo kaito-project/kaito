@@ -93,20 +93,16 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 			Version:           "https://huggingface.co/test-repo/test-model/commit/test-revision",
 			DownloadAtRuntime: true,
 		},
-		GPUCountRequirement:       gpuCountRequirement,
-		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
+		GPUCountRequirement:       "2",
+		TotalGPUMemoryRequirement: "32Gi",
+		PerGPUMemoryRequirement:   "16Gi",
 	}
 }
 func (*testModelDownload) GetTuningParameters() *model.PresetParam {
-	return &model.PresetParam{
-		GPUCountRequirement:       gpuCountRequirement,
-		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
-	}
+	return nil
 }
 func (*testModelDownload) SupportDistributedInference() bool {
-	return false
+	return true
 }
 func (*testModelDownload) SupportTuning() bool {
 	return false
@@ -251,6 +247,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		modelTotalGPUMemory string
 		preset              bool
 		presetNameOverride  string
+		runtime             model.RuntimeName
 		errContent          string // Content expect error to include, if any
 		expectErrs          bool
 		validateTuning      bool // To indicate if we are testing tuning validation
@@ -265,6 +262,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			modelPerGPUMemory:   "19Gi",
 			modelTotalGPUMemory: "152Gi",
 			preset:              true,
+			runtime:             model.RuntimeNameVLLM,
 			errContent:          "",
 			expectErrs:          false,
 			validateTuning:      false,
@@ -279,6 +277,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			modelPerGPUMemory:   "16Gi",
 			modelTotalGPUMemory: "16Gi",
 			preset:              true,
+			runtime:             model.RuntimeNameVLLM,
 			errContent:          "",
 			expectErrs:          false,
 			validateTuning:      false,
@@ -293,6 +292,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			modelPerGPUMemory:   "0",
 			modelTotalGPUMemory: "14Gi",
 			preset:              true,
+			runtime:             model.RuntimeNameVLLM,
 			errContent:          "Insufficient total GPU memory",
 			expectErrs:          true,
 			validateTuning:      false,
@@ -308,6 +308,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			modelPerGPUMemory:   "15Gi",
 			modelTotalGPUMemory: "30Gi",
 			preset:              true,
+			runtime:             model.RuntimeNameVLLM,
 			errContent:          "Insufficient number of GPUs",
 			expectErrs:          true,
 			validateTuning:      false,
@@ -322,6 +323,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			modelPerGPUMemory:   "15Gi",
 			modelTotalGPUMemory: "15Gi",
 			preset:              true,
+			runtime:             model.RuntimeNameVLLM,
 			errContent:          "Insufficient per GPU memory",
 			expectErrs:          true,
 			validateTuning:      false,
@@ -333,6 +335,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_invalid_sku",
 				Count:        pointerToInt(1),
 			},
+			runtime:        model.RuntimeNameVLLM,
 			errContent:     "Unsupported instance",
 			expectErrs:     true,
 			validateTuning: false,
@@ -344,6 +347,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				Count:        pointerToInt(1),
 			},
 			preset:         false,
+			runtime:        model.RuntimeNameVLLM,
 			errContent:     "",
 			expectErrs:     false,
 			validateTuning: false,
@@ -354,6 +358,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_Nsku",
 				Count:        pointerToInt(1),
 			},
+			runtime:        model.RuntimeNameVLLM,
 			errContent:     "",
 			expectErrs:     false,
 			validateTuning: false,
@@ -365,6 +370,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_Dsku",
 				Count:        pointerToInt(1),
 			},
+			runtime:        model.RuntimeNameVLLM,
 			errContent:     "",
 			expectErrs:     false,
 			validateTuning: false,
@@ -375,6 +381,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NC6s_v3",
 				Count:        pointerToInt(1),
 			},
+			runtime:        model.RuntimeNameVLLM,
 			errContent:     "",
 			expectErrs:     false,
 			validateTuning: true,
@@ -385,6 +392,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NC6s_v3",
 				Count:        pointerToInt(2),
 			},
+			runtime:        model.RuntimeNameVLLM,
 			errContent:     "Tuning does not currently support multinode configurations",
 			expectErrs:     true,
 			validateTuning: true,
@@ -398,7 +406,31 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			errContent:         "",
 			preset:             true,
 			presetNameOverride: "Invalid-Preset-Name",
+			runtime:            model.RuntimeNameVLLM,
 			expectErrs:         false,
+		},
+		{
+			name: "vLLM + Distributed Inference",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC6s_v3",
+				Count:        pointerToInt(4),
+			},
+			preset:             true,
+			presetNameOverride: "test-validation-download",
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         false,
+		},
+		{
+			name: "HuggingFace Transformers + Distributed Inference",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC6s_v3",
+				Count:        pointerToInt(4),
+			},
+			preset:             true,
+			presetNameOverride: "test-validation-download",
+			runtime:            model.RuntimeNameHuggingfaceTransformers,
+			expectErrs:         true,
+			errContent:         "Multi-node distributed inference is not supported with Huggingface Transformers runtime",
 		},
 	}
 
@@ -446,7 +478,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				totalGPUMemoryRequirement = tc.modelTotalGPUMemory
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
-				errs := tc.resourceSpec.validateCreateWithInference(&spec, false)
+				errs := tc.resourceSpec.validateCreateWithInference(&spec, false, tc.runtime)
 				hasErrs := errs != nil
 				if hasErrs != tc.expectErrs {
 					t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)

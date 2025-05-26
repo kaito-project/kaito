@@ -107,6 +107,101 @@ class BaseVectorStoreTest(ABC):
 
         assert await vector_store_manager.document_exists("test_index", new_document[0],
                                                     BaseVectorStore.generate_doc_id("Fourth document"))
+    
+    @pytest.mark.asyncio
+    async def test_add_code_documents_with_code_splitting(self, vector_store_manager):
+        sample_go_code = """package main
+func main() {}"""
+        documents = [Document(text=sample_go_code, metadata={"split_type": "code", "language": "go"})]
+        result = await vector_store_manager.index_documents("test_code_index", documents)
+
+        assert await vector_store_manager.document_exists("test_code_index", documents[0],
+                                                    result[0])
+        
+        all_docs = await vector_store_manager.list_documents_in_index("test_code_index", limit=10, offset=0)
+        assert len(all_docs) == 1
+        assert all_docs[0]['text'] == sample_go_code
+
+        try:
+            # Attempt to index a document with no language
+            unsupported_doc = Document(text="Unsupported language code", metadata={"split_type": "code"})
+            await vector_store_manager.index_documents("test_code_index", [unsupported_doc])
+            assert False, "Expected ValueError for unsupported language"
+        except ValueError as e:
+            assert str(e) == "Language not specified in node metadata."
+
+        try:
+            # Attempt to index a document with an invalid language
+            unsupported_doc = Document(text="Unsupported language code", metadata={"split_type": "code", "language": "invalid"})
+            await vector_store_manager.index_documents("test_code_index", [unsupported_doc])
+            assert False, "Expected ValueError for unsupported language"
+        except LookupError as e:
+            assert True
+
+    @pytest.mark.asyncio
+    @respx.mock
+    @patch("requests.get")
+    async def test_update_document(self, mock_get, vector_store_manager):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "data": [{"id": "mock-model", "max_model_len": 2048}]
+        }
+
+        mock_response = {"result": "This is the completion from the API"}
+        respx.post(LLM_INFERENCE_URL).mock(return_value=httpx.Response(200, json=mock_response))
+
+        documents = [Document(text="Fifth document", metadata={"type": "text"})]
+        ids = await vector_store_manager.index_documents("test_index", documents)
+
+        result = await vector_store_manager.update_documents(
+            "test_index", [Document(doc_id=ids[0], text="Updated Fifth document", metadata={"type": "text"})]
+        )
+        assert result["updated_documents"][0].doc_id == ids[0]
+
+        # Check preexisting unchanged document case
+        result = await vector_store_manager.update_documents(
+            "test_index", [Document(doc_id=ids[0], text="Updated Fifth document", metadata={"type": "text"})]
+        )
+        assert result["unchanged_documents"][0].doc_id == ids[0]
+
+        assert await vector_store_manager.document_exists("test_index", Document(text="Updated Fifth document", metadata={"type": "text"}),
+                                                    ids[0])
+
+        # Check if the document was updated
+        result = await vector_store_manager.query("test_index", "Updated Fifth document", top_k=1,
+                                              llm_params={}, rerank_params={})
+        assert result["source_nodes"][0]["text"] == "Updated Fifth document"
+
+        # Check documents not found case
+        result = await vector_store_manager.update_documents(
+            "test_index", [Document(doc_id="baddocid", text="Updated Fifth document", metadata={"type": "text"})]
+        )
+        assert result["not_found_documents"][0].doc_id == "baddocid"
+    
+    @pytest.mark.asyncio
+    @respx.mock
+    @patch("requests.get")
+    async def test_delete_document(self, mock_get, vector_store_manager):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "data": [{"id": "mock-model", "max_model_len": 2048}]
+        }
+
+        mock_response = {"result": "This is the completion from the API"}
+        respx.post(LLM_INFERENCE_URL).mock(return_value=httpx.Response(200, json=mock_response))
+
+        documents = [
+            Document(text=f"Document {i}", metadata={"type": "text"})
+            for i in range(10)
+        ]
+        ids = await vector_store_manager.index_documents("test_index", documents)
+
+        result = await vector_store_manager.delete_documents("test_index", ids)
+        assert all(doc_id in result["deleted_doc_ids"] for doc_id in ids)
+
+        # Check the not found case
+        result = await vector_store_manager.delete_documents("test_index", ["baddocid"])
+        assert result["not_found_doc_ids"] == ["baddocid"]
 
     @pytest.mark.asyncio
     async def test_add_document_on_existing_index(self, vector_store_manager):
@@ -177,3 +272,65 @@ class BaseVectorStoreTest(ABC):
         # 8. max_text_length is None (Full text should return)
         full_text_result = await vector_store_manager.list_documents_in_index(index_name, limit=1, offset=0, max_text_length=None)
         assert "Document" in next(iter(full_text_result))['text']  # Ensure no truncation
+    
+    @pytest.mark.asyncio
+    async def test_list_documents_with_filter_index(self, vector_store_manager):
+        """Test various list document scenarios with different limit and offset values."""
+        index_name = "test_index"
+        # Create multiple documents
+        documents = [
+            Document(text=f"Document {i}", metadata={"type": "text", "filename": f"file_{i}", "branch": "main"})
+            for i in range(10)
+        ]
+        
+        await vector_store_manager.index_documents(index_name, documents)
+        
+        # single filter
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=0, metadata_filter={"filename": "file_1"})
+        assert len(result) == 1
+        assert result[0]['metadata']['filename'] == "file_1"
+
+        
+        first_five_results = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=0, metadata_filter={"branch": "main"})
+        assert len(first_five_results) == 5
+        assert all(doc['metadata']['branch'] == "main" for doc in first_five_results)
+
+        second_five_results = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=5, metadata_filter={"branch": "main"})
+        assert len(second_five_results) == 5
+        assert all(doc['metadata']['branch'] == "main" for doc in second_five_results)
+        assert first_five_results != second_five_results
+
+        # multiple filters
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=0, metadata_filter={"filename": "file_5", "branch": "main"})
+        assert len(result) == 1
+        assert result[0]['metadata']['filename'] == "file_5"
+        assert result[0]['metadata']['branch'] == "main"
+
+        # no results
+        result = await vector_store_manager.list_documents_in_index(index_name, limit=5, offset=0, metadata_filter={"filename": "file_15", "branch": "main"})
+        assert len(result) == 0
+
+    @pytest.mark.asyncio
+    async def test_persist_and_load_as_seperate_index(self, vector_store_manager):
+        index_name, second_index_name = "test_index", "second_test_index"
+        # Create multiple documents
+        documents = [
+            Document(text=f"Document {i}", metadata={"type": "text", "filename": f"file_{i}", "branch": "main"})
+            for i in range(10)
+        ]
+        
+        await vector_store_manager.index_documents(index_name, documents)
+
+        await vector_store_manager.persist(index_name, DEFAULT_VECTOR_DB_PERSIST_DIR)
+        await vector_store_manager.load(second_index_name, DEFAULT_VECTOR_DB_PERSIST_DIR, overwrite=True)
+
+        result = await vector_store_manager.list_documents_in_index(second_index_name, limit=5, offset=0)
+        assert len(result) == 5
+
+        # validate loaded index doesnt change the original index
+        await vector_store_manager.delete_documents(second_index_name, [result[0]['doc_id']])
+
+        first_index_result = await vector_store_manager.list_documents_in_index(index_name, limit=10, offset=0)
+        second_index_result = await vector_store_manager.list_documents_in_index("second_test_index", limit=10, offset=0)
+        assert len(first_index_result) == 10
+        assert len(second_index_result) == 9

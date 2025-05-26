@@ -123,10 +123,6 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return reconcile.Result{}, updateErr
 		}
-		// If the error is due to machine/nodeClaim instance types unavailability, stop reconcile.
-		if err.Error() == consts.ErrorInstanceTypesUnavailable {
-			return reconcile.Result{Requeue: false}, err
-		}
 		return reconcile.Result{}, err
 	}
 

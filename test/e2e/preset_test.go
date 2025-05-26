@@ -60,6 +60,7 @@ func loadTestEnvVars() {
 	e2eACRSecret = utils.GetEnv("E2E_ACR_REGISTRY_SECRET")
 	supportedModelsYamlPath = utils.GetEnv("SUPPORTED_MODELS_YAML_PATH")
 	azureClusterName = utils.GetEnv("AZURE_CLUSTER_NAME")
+	hfToken = utils.GetEnv("HF_TOKEN")
 }
 
 func loadModelVersions() {
@@ -84,7 +85,7 @@ func createCustomWorkspaceWithAdapter(numOfNode int, validAdapters []kaitov1beta
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "custom-preset-e2e-test-falcon"},
-			}, nil, PresetFalcon7BModel, nil, nil, validAdapters)
+			}, nil, PresetFalcon7BModel, nil, nil, validAdapters, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -120,7 +121,7 @@ func createFalconWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Work
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-falcon"},
-			}, nil, PresetFalcon7BModel, nil, nil, nil)
+			}, nil, PresetFalcon7BModel, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -134,7 +135,7 @@ func createMistralWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Wor
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-mistral"},
-			}, nil, PresetMistral7BInstructModel, nil, nil, nil)
+			}, nil, PresetMistral7BInstructModel, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -148,27 +149,27 @@ func createPhi2WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-2"},
-			}, nil, PresetPhi2Model, nil, nil, nil)
+			}, nil, PresetPhi2Model, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-// TODO: Uncomment once Llama 3.1-8B Instruct are pushed up to the registry
-// func createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(registry, registrySecret, imageVersion string, numOfNode int) *kaitov1beta1.Workspace {
-// 	workspaceObj := &kaitov1beta1.Workspace{}
-// 	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode", func() {
-// 		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
-// 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, fmt.Sprintf("%s/%s:%s", registry, PresetLlama3_1_8BInstruct, imageVersion),
-// 			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
-// 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b"},
-// 			}, nil, PresetLlama3_1_8BInstruct, []string{registrySecret}, nil, nil)
+func createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	modelSecret := createAndValidateModelSecret()
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode", func() {
+		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
+			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b"},
+			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name) // Llama 3.1-8B Instruct model requires a model access secret
 
-// 		createAndValidateWorkspace(workspaceObj)
-// 	})
-// 	return workspaceObj
-// }
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
 
 func createCustomWorkspaceWithPresetCustomMode(imageName string, numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
@@ -177,7 +178,7 @@ func createCustomWorkspaceWithPresetCustomMode(imageName string, numOfNode int) 
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
 			numOfNode, "Standard_D4s_v3", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "private-preset-e2e-test-custom"},
-			}, nil, "", nil, utils.GeneratePodTemplate(uniqueID, namespaceName, imageName, nil), nil)
+			}, nil, "", nil, utils.GeneratePodTemplate(uniqueID, namespaceName, imageName, nil), nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -191,7 +192,7 @@ func createPhi3WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
 			numOfNode, "Standard_NC6s_v3", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-3-mini-128k-instruct"},
-			}, nil, PresetPhi3Mini128kModel, nil, nil, nil)
+			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -223,6 +224,25 @@ func createAndValidateConfigMap(configMap *v1.ConfigMap) {
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
+}
+
+func createAndValidateModelSecret() *corev1.Secret {
+	modelSecret := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "hf-token",
+			Namespace: namespaceName,
+		},
+		Data: map[string][]byte{
+			"HF_TOKEN": []byte(hfToken),
+		},
+	}
+	By("Creating model secret", func() {
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Create(ctx, &modelSecret, &client.CreateOptions{})
+			return client.IgnoreAlreadyExists(err)
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to create model secret")
+	})
+	return &modelSecret
 }
 
 func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNode int) (*kaitov1beta1.Workspace, string, string) {
@@ -770,6 +790,7 @@ var e2eACRSecret string
 var supportedModelsYamlPath string
 var modelInfo map[string]string
 var azureClusterName string
+var hfToken string
 
 var _ = Describe("Workspace Preset", func() {
 	BeforeEach(func() {
@@ -829,6 +850,26 @@ var _ = Describe("Workspace Preset", func() {
 	It("should create a falcon workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createFalconWorkspaceWithPresetPublicMode(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+
+		validateWorkspaceReadiness(workspaceObj)
+	})
+
+	It("should create a llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)

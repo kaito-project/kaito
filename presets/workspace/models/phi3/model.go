@@ -75,7 +75,7 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetPhi3Mini4kModel,
+				ModelName:      "microsoft/Phi-3-mini-4k-instruct",
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
@@ -124,7 +124,7 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetPhi3Mini128kModel,
+				ModelName:      "microsoft/Phi-3-mini-128k-instruct",
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
@@ -171,7 +171,7 @@ func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetPhi3_5MiniInstruct,
+				ModelName:      "microsoft/Phi-3.5-mini-instruct",
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
@@ -220,7 +220,7 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetPhi3Medium4kModel,
+				ModelName:      "microsoft/Phi-3-medium-4k-instruct",
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
@@ -269,7 +269,7 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetPhi3Medium128kModel,
+				ModelName:      "microsoft/Phi-3-medium-128k-instruct",
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},

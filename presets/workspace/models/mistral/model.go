@@ -61,7 +61,7 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetMistral7BModel,
+				ModelName:      "mistralai/Mistral-7B-v0.3",
 				ModelRunParams: mistralRunParamsVLLM,
 			},
 		},
@@ -114,7 +114,7 @@ func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetMistral7BInstructModel,
+				ModelName:      "mistralai/Mistral-7B-Instruct-v0.3",
 				ModelRunParams: mistralRunParamsVLLM,
 			},
 		},

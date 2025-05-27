@@ -72,7 +72,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      "falcon-7b",
+				ModelName:      "tiiuae/falcon-7b",
 				ModelRunParams: falconRunParamsVLLM,
 				DisallowLoRA:   true,
 			},
@@ -131,7 +131,7 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetFalcon7BInstructModel,
+				ModelName:      "tiiuae/falcon-7b-instruct",
 				ModelRunParams: falconRunParamsVLLM,
 				DisallowLoRA:   true,
 			},
@@ -175,7 +175,7 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetFalcon40BModel,
+				ModelName:      "tiiuae/falcon-40b",
 				ModelRunParams: falconRunParamsVLLM,
 			},
 		},
@@ -226,7 +226,7 @@ func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetFalcon40BInstructModel,
+				ModelName:      "tiiuae/falcon-40b-instruct",
 				ModelRunParams: falconRunParamsVLLM,
 			},
 		},

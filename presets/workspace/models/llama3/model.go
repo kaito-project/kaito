@@ -59,7 +59,7 @@ func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetLlama3_1_8BInstructModel,
+				ModelName:      "meta-llama/Llama-3.1-8B-Instruct",
 				ModelRunParams: llamaRunParamsVLLM,
 			},
 		},

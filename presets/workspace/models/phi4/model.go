@@ -60,7 +60,7 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetPhi4Model,
+				ModelName:      "microsoft/phi-4",
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},
@@ -109,7 +109,7 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetPhi4MiniInstructModel,
+				ModelName:      "microsoft/Phi-4-mini-instruct",
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},

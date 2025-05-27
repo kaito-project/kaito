@@ -54,7 +54,7 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetPhi2Model,
+				ModelName:      "microsoft/phi-2",
 				ModelRunParams: phiRunParamsVLLM,
 			},
 		},

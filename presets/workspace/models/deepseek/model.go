@@ -69,7 +69,7 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetDeepSeekR1DistillLlama8BModel,
+				ModelName:      "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
 				ModelRunParams: deepseekLlama8bRunParamsVLLM,
 			},
 		},
@@ -106,7 +106,7 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
-				ModelName:      PresetDeepSeekR1DistillQwen14BModel,
+				ModelName:      "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
 				ModelRunParams: deepseekQwen14bRunParamsVLLM,
 			},
 		},

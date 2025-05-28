@@ -59,7 +59,7 @@ func loadTestEnvVars() {
 	// Currently required for uploading fine-tuning results
 	e2eACRSecret = utils.GetEnv("E2E_ACR_REGISTRY_SECRET")
 	supportedModelsYamlPath = utils.GetEnv("SUPPORTED_MODELS_YAML_PATH")
-	azureClusterName = utils.GetEnv("AZURE_CLUSTER_NAME")
+	azureClusterName = strings.ToLower(utils.GetEnv("AZURE_CLUSTER_NAME"))
 	hfToken = utils.GetEnv("HF_TOKEN")
 }
 
@@ -802,7 +802,9 @@ var _ = Describe("Workspace Preset", func() {
 		if CurrentSpecReport().Failed() {
 			utils.PrintPodLogsOnFailure(namespaceName, "")     // The Preset Pod
 			utils.PrintPodLogsOnFailure("kaito-workspace", "") // The Kaito Workspace Pod
-			utils.PrintPodLogsOnFailure("gpu-provisioner", "") // The gpu-provisioner Pod
+			if deploymentMode != "managed" {
+				utils.PrintPodLogsOnFailure("gpu-provisioner", "") // The gpu-provisioner Pod
+			}
 			Fail("Fail threshold reached")
 		}
 	})

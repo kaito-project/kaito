@@ -3,7 +3,6 @@
 from typing import Any, List, Union
 import time
 from io import BytesIO
-from sentence_transformers import SentenceTransformer
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from .base import BaseEmbeddingModel
 from ragengine.metrics.helpers import record_embedding_metrics
@@ -23,17 +22,17 @@ class LocalHuggingFaceEmbedding(HuggingFaceEmbedding, BaseEmbeddingModel):
         inputs: List[Union[str, BytesIO]],
         prompt_name: Any = None,
     ) -> List[List[float]]:
-        start_time = time.time()
-        status = STATUS_SUCCESS
+        start_time = time.perf_counter() 
+        status = STATUS_FAILURE  # Default to failure
         
         try:
             result = super()._embed_with_retry(inputs, prompt_name)
+            status = STATUS_SUCCESS  
             return result
-        except Exception as e:
-            status = STATUS_FAILURE
-            raise e
+        except Exception:
+            raise 
         finally:
-            latency = time.time() - start_time
+            latency = time.perf_counter() - start_time
             rag_embedding_requests_total.labels(status=status, mode=MODE_LOCAL).inc()
             rag_embedding_latency.labels(status=status, mode=MODE_LOCAL).observe(latency)
 

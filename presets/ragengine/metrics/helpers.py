@@ -3,7 +3,6 @@
 
 import time
 from functools import wraps
-import inspect
 from .prometheus_metrics import (
     rag_embedding_requests_total,
     rag_embedding_latency,
@@ -19,25 +18,25 @@ def record_embedding_metrics(func):
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        start_time = time.time()
+        start_time = time.perf_counter()  
+        status = STATUS_FAILURE  # Default to failure
+        
         try:
             result = func(*args, **kwargs)
             if result is None:
-                # Record failed embedding
-                rag_embedding_requests_total.labels(status=STATUS_FAILURE, mode=MODE_REMOTE).inc()
-                # Record latency even for failures
-                rag_embedding_latency.labels(status=STATUS_FAILURE, mode=MODE_REMOTE).observe(time.time() - start_time)
+                # None result is considered a failure
+                status = STATUS_FAILURE
             else:
-                # Record successful embedding
-                rag_embedding_requests_total.labels(status=STATUS_SUCCESS, mode=MODE_REMOTE).inc()
-                # Record latency
-                rag_embedding_latency.labels(status=STATUS_SUCCESS, mode=MODE_REMOTE).observe(time.time() - start_time)
+                # Successful embedding
+                status = STATUS_SUCCESS
             return result
-        except Exception as e:
-            # Record failed embedding
-            rag_embedding_requests_total.labels(status=STATUS_SUCCESS, mode=MODE_REMOTE).inc()
-            # Record latency even for failures
-            rag_embedding_latency.labels(status=STATUS_SUCCESS, mode=MODE_REMOTE).observe(time.time() - start_time)
-            raise e
+        except Exception:
+            # Status remains STATUS_FAILURE
+            raise
+        finally:
+            # Record metrics once in finally block
+            latency = time.perf_counter() - start_time
+            rag_embedding_requests_total.labels(status=status, mode=MODE_REMOTE).inc()
+            rag_embedding_latency.labels(status=status, mode=MODE_REMOTE).observe(latency)
 
     return wrapper

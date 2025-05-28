@@ -23,4 +23,3 @@ tree-sitter-language-pack
 # Metrics collection
 prometheus-client>=0.17.0
 
-sentence-transformers

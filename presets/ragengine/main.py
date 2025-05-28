@@ -38,7 +38,6 @@ from ragengine.metrics.prometheus_metrics import (
     MODE_LOCAL,
     MODE_REMOTE
 )
-from functools import wraps
 
 app = FastAPI()
 
@@ -130,26 +129,25 @@ def health_check():
     ```
     """,
 )
+    
 async def index_documents(request: IndexRequest):
-    # Use a context manager for measuring the time
-    start_time = time.time()
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    
     try:
         doc_ids = await rag_ops.index(request.index_name, request.documents)
         documents = [
-            Document(doc_id=doc_id, text=doc.text, metadata=doc.metadata)
+            Document(doc_id=doc_id, text=doc.text, metadata=doc.metadata) 
             for doc_id, doc in zip(doc_ids, request.documents)
         ]
-        # Record successful request
-        rag_index_requests_total.labels(status=STATUS_SUCCESS).inc()
-        # Record latency
-        rag_index_latency.labels(status=STATUS_SUCCESS).observe(time.time() - start_time)
+        status = STATUS_SUCCESS
         return documents
     except Exception as e:
-        # Record failed request
-        rag_index_requests_total.labels(status=STATUS_FAILURE).inc()
-        # Record latency even for failures
-        rag_index_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        # Record metrics once in finally block
+        rag_index_requests_total.labels(status=status).inc()
+        rag_index_latency.labels(status=status).observe(time.perf_counter() - start_time)
 
 @app.post(
     "/query",
@@ -192,43 +190,31 @@ async def index_documents(request: IndexRequest):
     """,
 )
 async def query_index(request: QueryRequest):
-    start_time = time.time()
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    
     try:
         llm_params = request.llm_params or {}  # Default to empty dict if no params provided
         rerank_params = request.rerank_params or {}  # Default to empty dict if no params provided
         
-        # Measure the search time
-        search_start_time = time.time()
         result = await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params
         )
-        search_time = time.time() - search_start_time
-        
-        
-        # Record API metrics
-        rag_query_requests_total.labels(status=STATUS_SUCCESS).inc()
-        rag_query_latency.labels(status=STATUS_SUCCESS).observe(search_time)
-        
+        status = STATUS_SUCCESS
         return result
     except HTTPException as http_exc:
-        # Record API failure
-        rag_query_requests_total.labels(status=STATUS_FAILURE).inc()
-        rag_query_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         # Preserve HTTP exceptions like 422 from reranker
         raise http_exc
     except ValueError as ve:
-        # Record API failure
-        rag_query_requests_total.labels(status=STATUS_FAILURE).inc()
-        rag_query_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:
-
-        # Record API failure
-        rag_query_requests_total.labels(status=STATUS_FAILURE).inc()
-        rag_query_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )
+    finally:
+        # Record metrics once in finally block
+        rag_query_requests_total.labels(status=status).inc()
+        rag_query_latency.labels(status=status).observe(time.perf_counter() - start_time)
 
 @app.get(
     "/indexes",
@@ -247,20 +233,20 @@ async def query_index(request: QueryRequest):
     """,
 )
 def list_indexes():
-    start_time = time.time()
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    
     try:
-        result = rag_ops.list_indexes()
-        # Record successful request
-        rag_indexes_requests_total.labels(status=STATUS_SUCCESS).inc()
-        # Record latency
-        rag_indexes_latency.labels(status=STATUS_SUCCESS).observe(time.time() - start_time)
+        result = rag_ops.list_indexes() 
+        status = STATUS_SUCCESS
         return result
     except Exception as e:
-        # Record failed request
-        rag_indexes_requests_total.labels(status=STATUS_FAILURE).inc()
-        # Record latency even for failures
-        rag_indexes_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        # Record metrics once in finally block
+        rag_indexes_requests_total.labels(status=status).inc()
+        rag_indexes_latency.labels(status=status).observe(time.perf_counter()- start_time)
+
 
 @app.get(
     "/indexes/{index_name}/documents",
@@ -320,7 +306,9 @@ async def list_documents_in_index(
     my index          | my%20index        | my index
     index/name        | index%2Fname      | index/name
     """
-    start_time = time.time()
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    
     try:
         if metadata_filter:
             # Attempt to parse the metadata filter as a JSON string
@@ -343,10 +331,16 @@ async def list_documents_in_index(
             documents=documents,
             count=len(documents)
         )
+        status = STATUS_SUCCESS
+        return result
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        # Record metrics once in finally block
+        rag_indexes_document_requests_total.labels(status=status).inc()
+        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter()- start_time)
 
 @app.post(
     "/indexes/{index_name}/documents",
@@ -375,13 +369,22 @@ async def update_documents_in_index(
     index_name: str,
     request: UpdateDocumentRequest,
 ):
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    
     try:
-        return await rag_ops.update_documents(
+        result = await rag_ops.update_documents(
             index_name=index_name,
             documents=request.documents
         )
+        status = STATUS_SUCCESS
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        # Record metrics once in finally block
+        rag_indexes_document_requests_total.labels(status=status).inc()
+        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter()- start_time)
 
 @app.post(
     "/indexes/{index_name}/documents/delete",
@@ -409,17 +412,22 @@ async def delete_documents_in_index(
     index_name: str,
     request: DeleteDocumentRequest,
 ):
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    
     try:
-        return await rag_ops.delete_documents(
+        result = await rag_ops.delete_documents(
             index_name=index_name,
             doc_ids=request.doc_ids
         )
+        status = STATUS_SUCCESS
+        return result
     except Exception as e:
-        # Record failed request
-        rag_indexes_document_requests_total.labels(status=STATUS_FAILURE).inc()
-        # Record latency even for failures
-        rag_indexes_document_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        # Record metrics once in finally block
+        rag_indexes_document_requests_total.labels(status=status).inc()
+        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter()- start_time)
 
 @app.post(
     "/persist/{index_name}",
@@ -445,27 +453,23 @@ async def delete_documents_in_index(
 async def persist_index(
         index_name: str,
         path: str = Query(DEFAULT_VECTOR_DB_PERSIST_DIR, description="Path where the index will be persisted")
-):  # TODO: Provide endpoint for loading existing index(es)
-    # TODO: Extend support for other vector databases/integrations besides FAISS
-    start_time = time.time()
+):
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    
     try:
         # Append index to save path to prevent saving conflicts/overwriting
         path = os.path.join(path, index_name) if path == DEFAULT_VECTOR_DB_PERSIST_DIR else path
         await rag_ops.persist(index_name, path)
-        
-        # Record successful request
-        rag_persist_requests_total.labels(status=STATUS_SUCCESS).inc()
-        # Record latency
-        rag_persist_latency.labels(status=STATUS_SUCCESS).observe(time.time() - start_time)
-        
+        status = STATUS_SUCCESS
         return {"message": f"Successfully persisted index {index_name} to {path}."}
     except Exception as e:
-        # Record failed request
-        rag_persist_requests_total.labels(status=STATUS_FAILURE).inc()
-        # Record latency even for failures
-        rag_persist_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
-        
         raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")
+    finally:
+        # Record metrics once in finally block
+        rag_persist_requests_total.labels(status=status).inc()
+        rag_persist_latency.labels(status=status).observe(time.perf_counter()- start_time)
+
 
 @app.post(
     "/load/{index_name}",
@@ -497,23 +501,19 @@ async def load_index(
     if path is None:
         path = os.path.join(DEFAULT_VECTOR_DB_PERSIST_DIR, index_name)
     
-    start_time = time.time()
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    
     try:
         await rag_ops.load(index_name, path, overwrite)
-        
-        # Record successful request
-        rag_load_requests_total.labels(status=STATUS_SUCCESS).inc()
-        # Record latency
-        rag_load_latency.labels(status=STATUS_SUCCESS).observe(time.time() - start_time)
-        
+        status = STATUS_SUCCESS
         return {"message": f"Successfully loaded index {index_name} from {path}."}
     except Exception as e:
-        # Record failed request
-        rag_load_requests_total.labels(status=STATUS_FAILURE).inc()
-        # Record latency even for failures
-        rag_load_latency.labels(status=STATUS_FAILURE).observe(time.time() - start_time)
-        
         raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
+    finally:
+        # Record metrics once in finally block
+        rag_load_requests_total.labels(status=status).inc()
+        rag_load_latency.labels(status=status).observe(time.perf_counter()- start_time)
 
 @app.on_event("shutdown")
 async def shutdown_event():

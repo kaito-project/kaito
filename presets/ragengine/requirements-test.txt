@@ -3,5 +3,5 @@
 
 # Test dependencies
 pytest
-pytest-asyncio
+pytest-asyncio==0.26.0
 respx

@@ -24,6 +24,7 @@ var (
 	ctx                 = context.Background()
 	namespaceName       = fmt.Sprint(utils.E2eNamespace, rand.Intn(100))
 	nodeProvisionerName = os.Getenv("TEST_SUITE")
+	deploymentMode      = os.Getenv("DEPLOYMENT_MODE")
 )
 
 var _ = BeforeSuite(func() {
@@ -53,7 +54,8 @@ var _ = BeforeSuite(func() {
 			Should(Succeed(), "Failed to wait for	karpenter deployment")
 	}
 
-	if nodeProvisionerName == "gpuprovisioner" {
+	if deploymentMode != "managed" &&
+		nodeProvisionerName == "gpuprovisioner" {
 		gpuName := os.Getenv("GPU_PROVISIONER_NAME")
 		gpuNamespace := os.Getenv("GPU_PROVISIONER_NAMESPACE")
 		//check gpu-provisioner deployment is up and running

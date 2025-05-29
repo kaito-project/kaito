@@ -5,6 +5,7 @@ package utils
 
 import (
 	"context"
+	"sort"
 	"strings"
 	"testing"
 
@@ -400,4 +401,217 @@ func TestGetRayLeaderHost(t *testing.T) {
 			assert.Equal(t, tt.expectedHost, actualHost)
 		})
 	}
+}
+func TestUpsert(t *testing.T) {
+	// Test with EnvVar
+	t.Run("EnvVar", func(t *testing.T) {
+		tests := []struct {
+			name     string
+			existing []corev1.EnvVar
+			new      []corev1.EnvVar
+			expected []corev1.EnvVar
+		}{
+			{
+				name:     "Empty existing and new",
+				existing: []corev1.EnvVar{},
+				new:      []corev1.EnvVar{},
+				expected: []corev1.EnvVar{},
+			},
+			{
+				name:     "Empty existing with new items",
+				existing: []corev1.EnvVar{},
+				new: []corev1.EnvVar{
+					{Name: "VAR1", Value: "value1"},
+					{Name: "VAR2", Value: "value2"},
+				},
+				expected: []corev1.EnvVar{
+					{Name: "VAR1", Value: "value1"},
+					{Name: "VAR2", Value: "value2"},
+				},
+			},
+			{
+				name: "Existing items with empty new",
+				existing: []corev1.EnvVar{
+					{Name: "VAR1", Value: "value1"},
+					{Name: "VAR2", Value: "value2"},
+				},
+				new: []corev1.EnvVar{},
+				expected: []corev1.EnvVar{
+					{Name: "VAR1", Value: "value1"},
+					{Name: "VAR2", Value: "value2"},
+				},
+			},
+			{
+				name: "Overwrite existing with new values",
+				existing: []corev1.EnvVar{
+					{Name: "VAR1", Value: "old1"},
+					{Name: "VAR2", Value: "old2"},
+				},
+				new: []corev1.EnvVar{
+					{Name: "VAR1", Value: "new1"},
+					{Name: "VAR3", Value: "new3"},
+				},
+				expected: []corev1.EnvVar{
+					{Name: "VAR1", Value: "new1"},
+					{Name: "VAR2", Value: "old2"},
+					{Name: "VAR3", Value: "new3"},
+				},
+			},
+			{
+				name: "Duplicate keys in new slice",
+				existing: []corev1.EnvVar{
+					{Name: "VAR1", Value: "existing"},
+				},
+				new: []corev1.EnvVar{
+					{Name: "VAR2", Value: "first"},
+					{Name: "VAR2", Value: "second"},
+				},
+				expected: []corev1.EnvVar{
+					{Name: "VAR1", Value: "existing"},
+					{Name: "VAR2", Value: "second"},
+				},
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				result := Upsert(tt.existing, tt.new, func(e corev1.EnvVar) string {
+					return e.Name
+				})
+
+				// Sort results for consistent comparison
+				sort.Slice(result, func(i, j int) bool {
+					return result[i].Name < result[j].Name
+				})
+				sort.Slice(tt.expected, func(i, j int) bool {
+					return tt.expected[i].Name < tt.expected[j].Name
+				})
+
+				assert.Equal(t, tt.expected, result)
+			})
+		}
+	})
+
+	// Test with VolumeMount
+	t.Run("VolumeMount", func(t *testing.T) {
+		tests := []struct {
+			name     string
+			existing []corev1.VolumeMount
+			new      []corev1.VolumeMount
+			expected []corev1.VolumeMount
+		}{
+			{
+				name: "Merge volume mounts",
+				existing: []corev1.VolumeMount{
+					{Name: "vol1", MountPath: "/path1"},
+					{Name: "vol2", MountPath: "/path2"},
+				},
+				new: []corev1.VolumeMount{
+					{Name: "vol2", MountPath: "/newpath2", ReadOnly: true},
+					{Name: "vol3", MountPath: "/path3"},
+				},
+				expected: []corev1.VolumeMount{
+					{Name: "vol1", MountPath: "/path1"},
+					{Name: "vol2", MountPath: "/newpath2", ReadOnly: true},
+					{Name: "vol3", MountPath: "/path3"},
+				},
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				result := Upsert(tt.existing, tt.new, func(v corev1.VolumeMount) string {
+					return v.Name
+				})
+
+				// Sort results for consistent comparison
+				sort.Slice(result, func(i, j int) bool {
+					return result[i].Name < result[j].Name
+				})
+				sort.Slice(tt.expected, func(i, j int) bool {
+					return tt.expected[i].Name < tt.expected[j].Name
+				})
+
+				assert.Equal(t, tt.expected, result)
+			})
+		}
+	})
+
+	// Test with Volume
+	t.Run("Volume", func(t *testing.T) {
+		tests := []struct {
+			name     string
+			existing []corev1.Volume
+			new      []corev1.Volume
+			expected []corev1.Volume
+		}{
+			{
+				name: "Merge volumes with different types",
+				existing: []corev1.Volume{
+					{
+						Name: "config",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "old-config"},
+							},
+						},
+					},
+				},
+				new: []corev1.Volume{
+					{
+						Name: "config",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "new-config"},
+							},
+						},
+					},
+					{
+						Name: "secret",
+						VolumeSource: corev1.VolumeSource{
+							Secret: &corev1.SecretVolumeSource{
+								SecretName: "my-secret",
+							},
+						},
+					},
+				},
+				expected: []corev1.Volume{
+					{
+						Name: "config",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "new-config"},
+							},
+						},
+					},
+					{
+						Name: "secret",
+						VolumeSource: corev1.VolumeSource{
+							Secret: &corev1.SecretVolumeSource{
+								SecretName: "my-secret",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				result := Upsert(tt.existing, tt.new, func(v corev1.Volume) string {
+					return v.Name
+				})
+
+				// Sort results for consistent comparison
+				sort.Slice(result, func(i, j int) bool {
+					return result[i].Name < result[j].Name
+				})
+				sort.Slice(tt.expected, func(i, j int) bool {
+					return tt.expected[i].Name < tt.expected[j].Name
+				})
+
+				assert.Equal(t, tt.expected, result)
+			})
+		}
+	})
 }

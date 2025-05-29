@@ -666,45 +666,73 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 				existingObj = &appsv1.StatefulSet{}
 			} else {
 				existingObj = &appsv1.Deployment{}
-
 			}
+
 			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
 				klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
-				if !model.SupportDistributedInference() {
-					deployment := existingObj.(*appsv1.Deployment)
-					if deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] != revisionStr {
-						// TODO: respect updates to other fields
-						var volumes []corev1.Volume
-						var volumeMounts []corev1.VolumeMount
-						shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
-						if shmVolume.Name != "" {
-							volumes = append(volumes, shmVolume)
-						}
-						if shmVolumeMount.Name != "" {
-							volumeMounts = append(volumeMounts, shmVolumeMount)
-						}
+				annotations := existingObj.GetAnnotations()
+				if annotations == nil {
+					annotations = make(map[string]string)
+				}
 
-						if len(wObj.Inference.Adapters) > 0 {
-							adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
-							volumes = append(volumes, adapterVolume)
-							volumeMounts = append(volumeMounts, adapterVolumeMount)
-						}
+				currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
+				if !ok || currentRevisionStr != revisionStr {
+					// TODO: respect updates to other fields
+					var volumes []corev1.Volume
+					var volumeMounts []corev1.VolumeMount
+					shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
+					if shmVolume.Name != "" {
+						volumes = append(volumes, shmVolume)
+					}
+					if shmVolumeMount.Name != "" {
+						volumeMounts = append(volumeMounts, shmVolumeMount)
+					}
 
-						pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(wObj, volumeMounts)
-						volumes = append(volumes, pullerVolumes...)
+					if len(wObj.Inference.Adapters) > 0 {
+						adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
+						volumes = append(volumes, adapterVolume)
+						volumeMounts = append(volumeMounts, adapterVolumeMount)
+					}
 
-						spec := &deployment.Spec.Template.Spec
-						spec.Containers[0].Env = pullerEnvVars
-						spec.Containers[0].VolumeMounts = volumeMounts
-						spec.InitContainers = pullerContainers
-						spec.Volumes = volumes
+					pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(wObj, volumeMounts)
+					volumes = append(volumes, pullerVolumes...)
 
-						deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
+					var spec *corev1.PodSpec
+					switch existingObj := existingObj.(type) {
+					case *appsv1.StatefulSet:
+						spec = &existingObj.Spec.Template.Spec
+					case *appsv1.Deployment:
+						spec = &existingObj.Spec.Template.Spec
+					}
 
-						if err := c.Update(ctx, deployment); err != nil {
-							return
-						}
+					// Perform upsert instead of replacing to avoid losing existing
+					// env vars, volume mounts, and volumes that are not related to the puller.
+					spec.Containers[0].Env = utils.Upsert(
+						spec.Containers[0].Env,
+						pullerEnvVars,
+						func(env corev1.EnvVar) string { return env.Name },
+					)
+					spec.Containers[0].VolumeMounts = utils.Upsert(
+						spec.Containers[0].VolumeMounts,
+						volumeMounts,
+						func(vm corev1.VolumeMount) string { return vm.Name },
+					)
+					spec.Volumes = utils.Upsert(
+						spec.Volumes,
+						volumes,
+						func(v corev1.Volume) string { return v.Name },
+					)
+
+					// We can replace init containers instead of upsert as they
+					// are not expected to have any other containers.
+					spec.InitContainers = pullerContainers
+
+					annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
+					existingObj.SetAnnotations(annotations)
+
+					if err := c.Update(ctx, existingObj); err != nil {
+						return
 					}
 				}
 				if err = resources.CheckResourceStatus(existingObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {

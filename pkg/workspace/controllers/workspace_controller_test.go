@@ -513,16 +513,31 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 		},
 		"Apply inference from existing workload": {
 			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-					depObj := &appsv1.StatefulSet{}
-					key := client.ObjectKey{Namespace: "kaito", Name: "testWorkspace"}
-					c.GetObjectFromMap(depObj, key)
-					numRep := int32(1)
-					depObj.Status.ReadyReplicas = numRep
-					depObj.Spec.Replicas = &numRep
-					c.CreateOrUpdateObjectInMap(depObj)
-				})
+				numRep := int32(1)
+				relevantMap := c.CreateMapWithType(&appsv1.StatefulSet{})
+				relevantMap[client.ObjectKey{Namespace: "kaito", Name: "testWorkspace"}] = &appsv1.StatefulSet{
+					ObjectMeta: v1.ObjectMeta{
+						Name:      "testWorkspace",
+						Namespace: "kaito",
+					},
+					Spec: appsv1.StatefulSetSpec{
+						Replicas: &numRep,
+						Template: corev1.PodTemplateSpec{
+							Spec: corev1.PodSpec{
+								Containers: []corev1.Container{{
+									Name:  "inference-container",
+									Image: "inference-image:latest",
+								}},
+							},
+						},
+					},
+					Status: appsv1.StatefulSetStatus{
+						ReadyReplicas: 1,
+					},
+				}
 
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Update", mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},

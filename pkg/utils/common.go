@@ -326,3 +326,27 @@ func GetRayLeaderHost(meta metav1.ObjectMeta) string {
 	return fmt.Sprintf("%s-0.%s-headless.%s.svc.cluster.local",
 		meta.Name, meta.Name, meta.Namespace)
 }
+
+// Upsert performs an update or insert operation on a slice of items with getKey function to extract a unique key.
+// If an item with the same key already exists, it will be replaced with the new item.
+func Upsert[T any, K comparable](existing []T, new []T, getKey func(T) K) []T {
+	itemMap := make(map[K]T)
+
+	// Add existing items
+	for _, item := range existing {
+		itemMap[getKey(item)] = item
+	}
+
+	// Upsert new items (overwrites existing if key matches)
+	for _, item := range new {
+		itemMap[getKey(item)] = item
+	}
+
+	// Convert back to slice
+	result := make([]T, 0, len(itemMap))
+	for _, item := range itemMap {
+		result = append(result, item)
+	}
+
+	return result
+}

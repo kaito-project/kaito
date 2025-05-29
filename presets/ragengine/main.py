@@ -7,6 +7,8 @@ from vector_store_manager.manager import VectorStoreManager
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.requests import Request
+from fastapi.exception_handlers import http_exception_handler
 from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
                     QueryRequest, QueryResponse, Document, HealthStatus, DeleteDocumentRequest,
                     DeleteDocumentResponse, UpdateDocumentResponse)
@@ -16,6 +18,11 @@ from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECR
                               EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID, DEFAULT_VECTOR_DB_PERSIST_DIR)
 from urllib.parse import unquote
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -33,6 +40,12 @@ vector_store_handler = FaissVectorStoreHandler(embedding_manager)
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
+
+@app.exception_handler(HTTPException)
+async def global_exception_log_handler(request: Request, exc: HTTPException):
+    if exc.status_code >= 500:
+        logger.error(f"Unexpected error for {request.method} {request.url}: {exc}", exc_info=True)
+    return await http_exception_handler(request, exc)
 
 @app.get(
     "/health",

@@ -19,10 +19,15 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
+	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
@@ -276,6 +281,7 @@ func TestCreateAndValidateMachineNodeforRAGEngine(t *testing.T) {
 			mockClient.UpdateCb = func(key types.NamespacedName) {
 				mockClient.GetObjectFromMap(mockNodeClaim, key)
 				mockNodeClaim.Status.Conditions = tc.objectConditions
+				mockNodeClaim.Status.NodeName = "test-node"
 				mockClient.CreateOrUpdateObjectInMap(mockNodeClaim)
 			}
 
@@ -652,4 +658,529 @@ func TestEnsureService(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReconcile(t *testing.T) {
+	test.RegisterTestModel()
+	mockRAGEngineDistributedModel0Node := test.MockRAGEngine
+	mockRAGEngineDistributedModel0Node.Spec.InferenceService = &v1alpha1.InferenceServiceSpec{
+		URL: "http://example.com/inference",
+	}
+	testcases := map[string]struct {
+		callMocks     func(c *test.MockClient)
+		ragengine     *v1alpha1.RAGEngine
+		expectedError error
+		expectRequeue bool
+	}{
+		"RAGEngine not found - should return without error": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).
+					Return(apierrors.NewNotFound(schema.GroupResource{Group: "", Resource: "RAGEngine"}, "test-ragengine"))
+			},
+			ragengine:     nil,
+			expectedError: nil,
+			expectRequeue: false,
+		},
+		"Successfully reconcile RAGEngine without deletion timestamp": {
+			callMocks: func(c *test.MockClient) {
+				ragengine := mockRAGEngineDistributedModel0Node.DeepCopy()
+				ragengine.Finalizers = []string{} // No finalizer initially
+
+				deployment := test.MockDeploymentUpdated.DeepCopy()
+				deployment.Finalizers = []string{} // No finalizer initially
+
+				nodeClaim := test.MockNodeClaim.DeepCopy()
+				nodeClaim.Status.Conditions = []status.Condition{
+					{
+						Type:   string(apis.ConditionReady),
+						Status: v1.ConditionTrue,
+					},
+				}
+				nodeClaim.Finalizers = []string{} // No finalizer initially
+
+				nodes := test.MockNodes[0].DeepCopy()
+				nodes.Finalizers = []string{} // No finalizer initially
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*v1alpha1.RAGEngine)
+						*dep = *ragengine
+					}).Return(nil)
+
+				// ensureFinalizer calls
+				c.On("Patch", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything, mock.Anything).Return(nil)
+
+				// syncControllerRevision calls
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), "test-revision"))
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+
+				// addRAGEngine calls
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*karpenterv1.NodeClaim)
+						*dep = *nodeClaim
+					}).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*corev1.Node)
+						*dep = *nodes
+					}).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*appsv1.Deployment)
+						*dep = *deployment
+					}).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*appsv1.Deployment)
+						*dep = *deployment
+					}).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*appsv1.Deployment)
+						*dep = *deployment
+					}).Return(nil)
+			},
+			ragengine:     mockRAGEngineDistributedModel0Node,
+			expectedError: nil,
+			expectRequeue: false,
+		},
+		"RAGEngine with deletion timestamp - should call deleteRAGEngine": {
+			callMocks: func(c *test.MockClient) {
+				ragengine := test.MockRAGEngineDistributedModel.DeepCopy()
+				ragengine.DeletionTimestamp = &v1.Time{Time: time.Now()}
+				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*v1alpha1.RAGEngine)
+						*dep = *ragengine
+					}).Return(nil)
+
+				// deleteRAGEngine calls
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+			},
+			ragengine:     test.MockRAGEngine,
+			expectedError: nil,
+			expectRequeue: false,
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			mockClient := test.NewClient()
+			tc.callMocks(mockClient)
+
+			reconciler := &RAGEngineReconciler{
+				Client: mockClient,
+				Scheme: test.NewTestScheme(),
+			}
+			ctx := context.Background()
+			req := ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      "test-ragengine",
+					Namespace: "test-namespace",
+				},
+			}
+
+			result, err := reconciler.Reconcile(ctx, req)
+
+			if tc.expectedError == nil {
+				assert.Check(t, err == nil, "Not expected to return error")
+			} else {
+				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			}
+
+			if tc.expectRequeue {
+				assert.Check(t, result.Requeue || result.RequeueAfter > 0, "Expected requeue")
+			} else {
+				assert.Check(t, !result.Requeue && result.RequeueAfter == 0, "Not expected to requeue")
+			}
+		})
+	}
+}
+
+func TestEnsureFinalizer(t *testing.T) {
+	testcases := map[string]struct {
+		callMocks          func(c *test.MockClient)
+		ragengine          *v1alpha1.RAGEngine
+		expectedError      error
+		shouldAddFinalizer bool
+	}{
+		"Finalizer already exists - no patch needed": {
+			callMocks: func(c *test.MockClient) {
+				// No patch call expected
+			},
+			ragengine: &v1alpha1.RAGEngine{
+				ObjectMeta: v1.ObjectMeta{
+					Finalizers: []string{consts.RAGEngineFinalizer},
+				},
+			},
+			expectedError:      nil,
+			shouldAddFinalizer: false,
+		},
+		"Finalizer does not exist - should add it": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Patch", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything, mock.Anything).Return(nil)
+			},
+			ragengine: &v1alpha1.RAGEngine{
+				ObjectMeta: v1.ObjectMeta{
+					Finalizers: []string{},
+				},
+			},
+			expectedError:      nil,
+			shouldAddFinalizer: true,
+		},
+		"Patch fails when adding finalizer": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Patch", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything, mock.Anything).
+					Return(errors.New("patch failed"))
+			},
+			ragengine: &v1alpha1.RAGEngine{
+				ObjectMeta: v1.ObjectMeta{
+					Finalizers: []string{},
+				},
+			},
+			expectedError:      errors.New("patch failed"),
+			shouldAddFinalizer: true,
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			mockClient := test.NewClient()
+			tc.callMocks(mockClient)
+
+			reconciler := &RAGEngineReconciler{
+				Client: mockClient,
+				Scheme: test.NewTestScheme(),
+			}
+			ctx := context.Background()
+
+			err := reconciler.ensureFinalizer(ctx, tc.ragengine)
+
+			if tc.expectedError == nil {
+				assert.Check(t, err == nil, "Not expected to return error")
+			} else {
+				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			}
+
+			if tc.shouldAddFinalizer {
+				mockClient.AssertCalled(t, "Patch", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+			}
+		})
+	}
+}
+
+func TestDeleteRAGEngine(t *testing.T) {
+	testcases := map[string]struct {
+		callMocks     func(c *test.MockClient)
+		expectedError error
+	}{
+		"Successfully delete RAGEngine": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+			},
+			expectedError: nil,
+		},
+		"Status update fails": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).
+					Return(errors.New("status update failed"))
+			},
+			expectedError: errors.New("status update failed"),
+		},
+		"Garbage collection fails": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).
+					Return(errors.New("failed to list nodeclaims"))
+			},
+			expectedError: errors.New("failed to list nodeclaims"),
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			mockClient := test.NewClient()
+			tc.callMocks(mockClient)
+
+			reconciler := &RAGEngineReconciler{
+				Client: mockClient,
+				Scheme: test.NewTestScheme(),
+			}
+			ctx := context.Background()
+			ragengine := test.MockRAGEngine.DeepCopy()
+			ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+
+			result, err := reconciler.deleteRAGEngine(ctx, ragengine)
+
+			if tc.expectedError == nil {
+				assert.Check(t, err == nil, "Not expected to return error")
+				assert.Check(t, !result.Requeue, "Not expected to requeue")
+			} else {
+				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			}
+		})
+	}
+}
+
+func TestComputeHash(t *testing.T) {
+	testcases := map[string]struct {
+		ragengine1    *v1alpha1.RAGEngine
+		ragengine2    *v1alpha1.RAGEngine
+		shouldBeEqual bool
+	}{
+		"Same spec should produce same hash": {
+			ragengine1: &v1alpha1.RAGEngine{
+				Spec: &v1alpha1.RAGEngineSpec{
+					Compute: &v1alpha1.ResourceSpec{
+						InstanceType: "Standard_NC12s_v3",
+						Count:        &[]int{1}[0],
+					},
+				},
+			},
+			ragengine2: &v1alpha1.RAGEngine{
+				Spec: &v1alpha1.RAGEngineSpec{
+					Compute: &v1alpha1.ResourceSpec{
+						InstanceType: "Standard_NC12s_v3",
+						Count:        &[]int{1}[0],
+					},
+				},
+			},
+			shouldBeEqual: true,
+		},
+		"Different spec should produce different hash": {
+			ragengine1: &v1alpha1.RAGEngine{
+				Spec: &v1alpha1.RAGEngineSpec{
+					Compute: &v1alpha1.ResourceSpec{
+						InstanceType: "Standard_NC12s_v3",
+						Count:        &[]int{1}[0],
+					},
+				},
+			},
+			ragengine2: &v1alpha1.RAGEngine{
+				Spec: &v1alpha1.RAGEngineSpec{
+					Compute: &v1alpha1.ResourceSpec{
+						InstanceType: "Standard_NC24s_v3",
+						Count:        &[]int{1}[0],
+					},
+				},
+			},
+			shouldBeEqual: false,
+		},
+		"Different count should produce different hash": {
+			ragengine1: &v1alpha1.RAGEngine{
+				Spec: &v1alpha1.RAGEngineSpec{
+					Compute: &v1alpha1.ResourceSpec{
+						InstanceType: "Standard_NC12s_v3",
+						Count:        &[]int{1}[0],
+					},
+				},
+			},
+			ragengine2: &v1alpha1.RAGEngine{
+				Spec: &v1alpha1.RAGEngineSpec{
+					Compute: &v1alpha1.ResourceSpec{
+						InstanceType: "Standard_NC12s_v3",
+						Count:        &[]int{2}[0],
+					},
+				},
+			},
+			shouldBeEqual: false,
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			hash1 := computeHash(tc.ragengine1)
+			hash2 := computeHash(tc.ragengine2)
+
+			assert.Check(t, hash1 != "", "Hash should not be empty")
+			assert.Check(t, hash2 != "", "Hash should not be empty")
+			assert.Check(t, len(hash1) == 64, "Hash should be 64 characters (SHA256)")
+			assert.Check(t, len(hash2) == 64, "Hash should be 64 characters (SHA256)")
+
+			if tc.shouldBeEqual {
+				assert.Equal(t, hash1, hash2, "Hashes should be equal")
+			} else {
+				assert.Check(t, hash1 != hash2, "Hashes should be different")
+			}
+		})
+	}
+}
+
+func TestEnsureNodePlugins(t *testing.T) {
+	testcases := map[string]struct {
+		callMocks     func(c *test.MockClient)
+		expectedError error
+		node          *corev1.Node
+		setupMocks    func(c *test.MockClient, node *corev1.Node)
+	}{
+		"Node plugin already installed": {
+			callMocks: func(c *test.MockClient) {
+				// Node already has the nvidia plugin
+			},
+			expectedError: nil,
+			node: &corev1.Node{
+				ObjectMeta: v1.ObjectMeta{
+					Name: "test-node",
+					Labels: map[string]string{
+						test.LabelKeyNvidia: test.LabelValueNvidia,
+					},
+				},
+				Status: corev1.NodeStatus{
+					Capacity: corev1.ResourceList{
+						test.CapacityNvidiaGPU: resource.MustParse("1"),
+					},
+				},
+			},
+			setupMocks: func(c *test.MockClient, node *corev1.Node) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						n := args.Get(2).(*corev1.Node)
+						*n = *node
+					}).Return(nil)
+			},
+		},
+		"Node plugin needs to be installed": {
+			callMocks: func(c *test.MockClient) {
+				// First call - node without plugin
+				// Second call - node with plugin installed
+				nodeWithoutPlugin := &corev1.Node{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "test-node",
+					},
+				}
+				nodeWithPlugin := &corev1.Node{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "test-node",
+						Labels: map[string]string{
+							test.LabelKeyNvidia: test.LabelValueNvidia,
+						},
+					},
+					Status: corev1.NodeStatus{
+						Capacity: corev1.ResourceList{
+							test.CapacityNvidiaGPU: resource.MustParse("1"),
+						},
+					},
+				}
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						n := args.Get(2).(*corev1.Node)
+						*n = *nodeWithoutPlugin
+					}).Return(nil).Once()
+
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						n := args.Get(2).(*corev1.Node)
+						*n = *nodeWithPlugin
+					}).Return(nil)
+			},
+			expectedError: nil,
+			node: &corev1.Node{
+				ObjectMeta: v1.ObjectMeta{
+					Name: "test-node",
+				},
+			},
+		},
+		"Node get fails": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).
+					Return(errors.New("failed to get node"))
+			},
+			expectedError: errors.New("failed to get node"),
+			node: &corev1.Node{
+				ObjectMeta: v1.ObjectMeta{
+					Name: "test-node",
+				},
+			},
+		},
+		"Node update fails with NotFound error": {
+			callMocks: func(c *test.MockClient) {
+				nodeWithoutPlugin := &corev1.Node{
+					ObjectMeta: v1.ObjectMeta{
+						Name: "test-node",
+					},
+				}
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						n := args.Get(2).(*corev1.Node)
+						*n = *nodeWithoutPlugin
+					}).Return(nil)
+
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&corev1.Node{}), mock.Anything).
+					Return(apierrors.NewNotFound(corev1.Resource("Node"), "test-node"))
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+			},
+			expectedError: apierrors.NewNotFound(corev1.Resource("Node"), "test-node"),
+			node: &corev1.Node{
+				ObjectMeta: v1.ObjectMeta{
+					Name: "test-node",
+				},
+			},
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			mockClient := test.NewClient()
+			if tc.setupMocks != nil {
+				tc.setupMocks(mockClient, tc.node)
+			}
+			tc.callMocks(mockClient)
+
+			reconciler := &RAGEngineReconciler{
+				Client: mockClient,
+				Scheme: test.NewTestScheme(),
+			}
+			ctx := context.Background()
+
+			ragengine := test.MockRAGEngine.DeepCopy()
+
+			err := reconciler.ensureNodePlugins(ctx, ragengine, tc.node)
+
+			if tc.expectedError == nil {
+				assert.Check(t, err == nil, "Not expected to return error %v", err)
+			} else {
+				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			}
+		})
+	}
+}
+
+func TestNewRAGEngineReconciler(t *testing.T) {
+	mockClient := test.NewClient()
+	scheme := test.NewTestScheme()
+	log := klog.NewKlogr()
+	recorder := &record.FakeRecorder{}
+
+	reconciler := NewRAGEngineReconciler(mockClient, scheme, log, recorder)
+
+	assert.Check(t, reconciler != nil, "Reconciler should not be nil")
+	assert.Check(t, reconciler.Client == mockClient, "Client should be set correctly")
+	assert.Check(t, reconciler.Scheme == scheme, "Scheme should be set correctly")
+	assert.Check(t, reconciler.Log == log, "Log should be set correctly")
+	assert.Check(t, reconciler.Recorder == recorder, "Recorder should be set correctly")
 }

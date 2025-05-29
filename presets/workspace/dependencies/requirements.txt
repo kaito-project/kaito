@@ -22,7 +22,6 @@ ray[default]==2.43.0
 datasets==2.19.1
 peft==0.11.1
 bitsandbytes==0.45.3
-sentencepiece==0.2.0
 
 # Less critical, can be latest
 gputil

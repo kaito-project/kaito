@@ -25,7 +25,12 @@ import (
 
 const (
 	ProbePath = "/health"
-	Port5000  = 5000
+
+	// Port5000 is the default port for vLLM inference server.
+	Port5000 = 5000
+
+	// Port6379 is the default port for communication between the head and worker nodes in a Ray cluster.
+	Port6379 = 6379
 )
 
 var (
@@ -136,7 +141,8 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 		// Calculate the minimum number of nodes required to satisfy the model's total GPU memory requirement.
 		// The goal is to maximize GPU utilization and not spread the model across too many nodes.
 		totalGPUMemoryRequired := resource.MustParse(inferenceParam.TotalGPUMemoryRequirement)
-		totalGPUMemoryPerNode := resource.NewScaledQuantity(int64(gpuConfig.GPUCount*gpuConfig.GPUMemGB), resource.Giga)
+		totalGPUMemoryPerNode := resource.NewQuantity(int64(gpuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI)
+
 		minimumNodes := 0
 		for ; totalGPUMemoryRequired.Sign() > 0; totalGPUMemoryRequired.Sub(*totalGPUMemoryPerNode) {
 			minimumNodes++
@@ -216,7 +222,7 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 		// 60 seconds initial delay for liveness probe to allow workers to join the cluster
 		livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, workspaceObj, 60, 10, 5)
 		readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, workspaceObj, 0, 10, 1)
-		depObj = manifests.GenerateStatefulSetManifest(workspaceObj, image, imagePullSecrets, numNodes, commands,
+		depObj = manifests.GenerateStatefulSetManifest(workspaceObj, revisionNum, image, imagePullSecrets, numNodes, commands,
 			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars)
 	} else {
 		depObj = manifests.GenerateDeploymentManifest(workspaceObj, revisionNum, image, imagePullSecrets, numNodes, commands,
@@ -243,7 +249,7 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	}
 	switch probeType {
 	case probeTypeLiveness:
-		args["ray-port"] = "6379"
+		args["ray-port"] = strconv.Itoa(Port6379)
 	case probeTypeReadiness:
 		args["vllm-port"] = strconv.Itoa(Port5000)
 	}

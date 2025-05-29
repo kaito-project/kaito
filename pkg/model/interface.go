@@ -19,6 +19,11 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 )
 
+const (
+	// Port6379 is the default port for communication between the head and worker nodes in a Ray cluster.
+	Port6379 = 6379
+)
+
 type Model interface {
 	// GetInferenceParameters returns the preset inference parameters for the model.
 	GetInferenceParameters() *PresetParam
@@ -290,13 +295,13 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.RayLeaderParams = make(map[string]string)
 	}
 	p.VLLM.RayLeaderParams["ray_cluster_size"] = strconv.Itoa(rc.NumNodes)
-	p.VLLM.RayLeaderParams["ray_port"] = "6379"
+	p.VLLM.RayLeaderParams["ray_port"] = strconv.Itoa(Port6379)
 
 	if p.VLLM.RayWorkerParams == nil {
 		p.VLLM.RayWorkerParams = make(map[string]string)
 	}
 	p.VLLM.RayWorkerParams["ray_address"] = utils.GetRayLeaderHost(rc.WorkspaceMetadata)
-	p.VLLM.RayWorkerParams["ray_port"] = "6379"
+	p.VLLM.RayWorkerParams["ray_port"] = strconv.Itoa(Port6379)
 
 	rayLeaderCommand := utils.BuildCmdStr(p.VLLM.RayLeaderBaseCommand, p.VLLM.RayLeaderParams)
 	modelRunCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)

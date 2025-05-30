@@ -20,6 +20,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -90,6 +91,27 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 		return c.deleteWorkspace(ctx, workspaceObj)
 	}
 
+	// Delete tuning workspace if it successfully completed and passed ttlSecondsAfterFinished.
+	if workspaceObj.Tuning != nil && workspaceObj.Tuning.TtlSecondsAfterFinished != nil {
+		if condition := meta.FindStatusCondition(workspaceObj.Status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeSucceeded)); condition != nil && condition.Status == metav1.ConditionTrue {
+			lastTransitionTime := condition.LastTransitionTime.Time
+			ttlSecondsAfterFinished := time.Duration(*workspaceObj.Tuning.TtlSecondsAfterFinished) * time.Second
+			if time.Since(lastTransitionTime) > ttlSecondsAfterFinished {
+				klog.InfoS("Workspace has finished and exceeded the TTL, deleting workspace", "workspace", klog.KObj(workspaceObj))
+				if err := c.Client.Delete(ctx, workspaceObj); err != nil {
+					klog.ErrorS(err, "failed to delete workspace after TTL exceeded", "workspace", klog.KObj(workspaceObj))
+					return reconcile.Result{}, err
+				}
+				return reconcile.Result{}, nil
+			} else {
+				// Requeue after the remaining TTL time.
+				requeueAfter := ttlSecondsAfterFinished - time.Since(lastTransitionTime)
+				klog.InfoS("Workspace is still within the TTL, requeuing", "workspace", klog.KObj(workspaceObj), "requeueAfter", requeueAfter)
+				return reconcile.Result{RequeueAfter: requeueAfter}, nil
+			}
+		}
+	}
+
 	if err := c.syncControllerRevision(ctx, workspaceObj); err != nil {
 		return reconcile.Result{}, err
 	}
@@ -143,6 +165,9 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 					"workspaceSucceeded", "workspace succeeds"); updateErr != nil {
 					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 					return reconcile.Result{}, updateErr
+				}
+				if wObj.Tuning.TtlSecondsAfterFinished != nil {
+					return reconcile.Result{RequeueAfter: time.Duration(*wObj.Tuning.TtlSecondsAfterFinished) * time.Second}, nil
 				}
 			} else { // The job is still running
 				var readyPod int32

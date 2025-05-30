@@ -156,6 +156,9 @@ type VLLMParam struct {
 	// Indicates if vllm supports LoRA (Low-Rank Adaptation) for this model.
 	// doc: https://docs.vllm.ai/en/latest/models/supported_models.html#text-generation-task-generate
 	DisallowLoRA bool
+	// Indicates if vllm supports automatic prefix caching for this model.
+	// doc: https://docs.vllm.ai/en/latest/features/automatic_prefix_caching.html
+	EnablePrefxCaching bool
 }
 
 func (p *PresetParam) DeepCopy() *PresetParam {
@@ -258,6 +261,9 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	}
 	if !p.VLLM.DisallowLoRA && rc.AdaptersEnabled {
 		p.VLLM.ModelRunParams["enable-lora"] = ""
+	}
+	if p.VLLM.EnablePrefxCaching {
+		p.VLLM.ModelRunParams["enable-prefix-caching"] = ""
 	}
 	if p.DownloadAtRuntime {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)

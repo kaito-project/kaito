@@ -658,68 +658,43 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		} else if wObj.Inference != nil && wObj.Inference.Preset != nil {
 			presetName := string(wObj.Inference.Preset.Name)
 			model := plugin.KaitoModelRegister.MustGet(presetName)
-
 			inferenceParam := model.GetInferenceParameters()
+			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
+
+			var workloadObj client.Object
+			workloadObj, err = inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client)
+			if err != nil {
+				return
+			}
 
 			var existingObj client.Object
-			if model.SupportDistributedInference() {
+			switch workloadObj.(type) {
+			case *appsv1.StatefulSet:
 				existingObj = &appsv1.StatefulSet{}
-			} else {
+			case *appsv1.Deployment:
 				existingObj = &appsv1.Deployment{}
-
 			}
-			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
+
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
 				klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
-				if !model.SupportDistributedInference() {
-					deployment := existingObj.(*appsv1.Deployment)
-					if deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] != revisionStr {
-						// TODO: respect updates to other fields
-						var volumes []corev1.Volume
-						var volumeMounts []corev1.VolumeMount
-						shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
-						if shmVolume.Name != "" {
-							volumes = append(volumes, shmVolume)
-						}
-						if shmVolumeMount.Name != "" {
-							volumeMounts = append(volumeMounts, shmVolumeMount)
-						}
-
-						if len(wObj.Inference.Adapters) > 0 {
-							adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
-							volumes = append(volumes, adapterVolume)
-							volumeMounts = append(volumeMounts, adapterVolumeMount)
-						}
-
-						pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(wObj, volumeMounts)
-						volumes = append(volumes, pullerVolumes...)
-
-						spec := &deployment.Spec.Template.Spec
-						spec.Containers[0].Env = pullerEnvVars
-						spec.Containers[0].VolumeMounts = volumeMounts
-						spec.InitContainers = pullerContainers
-						spec.Volumes = volumes
-
-						deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
-
-						if err := c.Update(ctx, deployment); err != nil {
-							return
-						}
-					}
-				}
-				if err = resources.CheckResourceStatus(existingObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
+				currentRevisionStr, ok := existingObj.GetAnnotations()[kaitov1beta1.WorkspaceRevisionAnnotation]
+				// If the current workload revision matches the one in Workspace, we do not need to update it.
+				if ok && currentRevisionStr == revisionStr {
 					return
 				}
-			} else if apierrors.IsNotFound(err) {
-				var workloadObj client.Object
-				// Need to create a new workload
-				workloadObj, err = inference.CreatePresetInference(ctx, wObj, revisionStr, model, c.Client)
-				if err != nil {
-					return
-				}
-				if err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
-					return
-				}
+				// Update it with the latest one generated above.
+				err = c.Update(ctx, workloadObj)
+				return
+			} else if !apierrors.IsNotFound(err) {
+				return
+			}
+
+			err = resources.CreateResource(ctx, workloadObj, c.Client)
+			if client.IgnoreAlreadyExists(err) != nil {
+				return
+			}
+			if err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
+				return
 			}
 		}
 	}()

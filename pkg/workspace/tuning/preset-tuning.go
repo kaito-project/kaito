@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	Port5000                = int32(5000)
+	PortInferenceServer     = int32(5000)
 	TuningFile              = "/workspace/tfs/fine_tuning.py"
 	DefaultBaseDir          = "/mnt"
 	DefaultOutputVolumePath = "/mnt/output"
@@ -35,7 +35,7 @@ const (
 
 var (
 	containerPorts = []corev1.ContainerPort{{
-		ContainerPort: Port5000,
+		ContainerPort: PortInferenceServer,
 	}}
 
 	// Come up with valid liveness and readiness probes for fine-tuning

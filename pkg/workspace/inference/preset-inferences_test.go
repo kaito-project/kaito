@@ -25,7 +25,7 @@ import (
 
 var ValidStrength string = "0.5"
 
-func TestCreatePresetInference(t *testing.T) {
+func TestGeneratePresetInference(t *testing.T) {
 	test.RegisterTestModel()
 	testcases := map[string]struct {
 		workspace       *v1beta1.Workspace
@@ -45,7 +45,6 @@ func TestCreatePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload:      "Deployment",
 			expectedImage: "test-registry/kaito-test-model:base-test-model",
@@ -61,7 +60,6 @@ func TestCreatePresetInference(t *testing.T) {
 			modelName: "test-no-tensor-parallel-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload:      "Deployment",
 			expectedImage: "test-registry/kaito-test-model:test-no-tensor-parallel-model",
@@ -77,7 +75,6 @@ func TestCreatePresetInference(t *testing.T) {
 			modelName: "test-no-lora-support-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload:      "Deployment",
 			expectedImage: "test-registry/kaito-test-model:test-no-lora-support-model",
@@ -93,7 +90,6 @@ func TestCreatePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload:       "Deployment",
 			expectedImage:  "test-registry/kaito-test-model:base-test-model",
@@ -112,7 +108,6 @@ func TestCreatePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload:      "Deployment",
 			expectedImage: "test-registry/kaito-test-model:base-test-model",
@@ -128,7 +123,6 @@ func TestCreatePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload:       "Deployment",
 			expectedImage:  "test-registry/kaito-test-model:base-test-model",
@@ -147,7 +141,6 @@ func TestCreatePresetInference(t *testing.T) {
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload: "Deployment",
 			expectedImage: func() string {
@@ -175,7 +168,6 @@ func TestCreatePresetInference(t *testing.T) {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
 			},
 			workload: "StatefulSet",
 			expectedImage: func() string {
@@ -212,7 +204,6 @@ func TestCreatePresetInference(t *testing.T) {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
 			},
 			workload: "StatefulSet",
 			expectedImage: func() string {
@@ -246,7 +237,6 @@ func TestCreatePresetInference(t *testing.T) {
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			workload: "Deployment",
 			expectedImage: func() string {
@@ -306,7 +296,7 @@ func TestCreatePresetInference(t *testing.T) {
 			}
 			mockClient.CreateOrUpdateObjectInMap(svc)
 
-			createdObject, _ := CreatePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient)
+			createdObject, _ := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient)
 			createdWorkload := ""
 			image := ""
 			envVars := []corev1.EnvVar{}

@@ -349,6 +349,7 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 	// Ensure all gpu plugins are running successfully.
 	if strings.Contains(wObj.Resource.InstanceType, consts.GpuSkuPrefix) { // GPU skus
 		for i := range selectedNodes {
+			fmt.Println("Ensuring node plugins are installed for GPU nodes", "node", selectedNodes[i].Name)
 			err = c.ensureNodePlugins(ctx, wObj, selectedNodes[i])
 			if err != nil {
 				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
@@ -658,96 +659,43 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		} else if wObj.Inference != nil && wObj.Inference.Preset != nil {
 			presetName := string(wObj.Inference.Preset.Name)
 			model := plugin.KaitoModelRegister.MustGet(presetName)
-
 			inferenceParam := model.GetInferenceParameters()
+			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
+
+			var workloadObj client.Object
+			workloadObj, err = inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client)
+			if err != nil {
+				return
+			}
 
 			var existingObj client.Object
-			if model.SupportDistributedInference() {
+			switch workloadObj.(type) {
+			case *appsv1.StatefulSet:
 				existingObj = &appsv1.StatefulSet{}
-			} else {
+			case *appsv1.Deployment:
 				existingObj = &appsv1.Deployment{}
 			}
 
-			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
 				klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
-				annotations := existingObj.GetAnnotations()
-				if annotations == nil {
-					annotations = make(map[string]string)
-				}
-
-				currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-				if !ok || currentRevisionStr != revisionStr {
-					// TODO: respect updates to other fields
-					var volumes []corev1.Volume
-					var volumeMounts []corev1.VolumeMount
-					shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
-					if shmVolume.Name != "" {
-						volumes = append(volumes, shmVolume)
-					}
-					if shmVolumeMount.Name != "" {
-						volumeMounts = append(volumeMounts, shmVolumeMount)
-					}
-
-					if len(wObj.Inference.Adapters) > 0 {
-						adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
-						volumes = append(volumes, adapterVolume)
-						volumeMounts = append(volumeMounts, adapterVolumeMount)
-					}
-
-					pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(wObj, volumeMounts)
-					volumes = append(volumes, pullerVolumes...)
-
-					var spec *corev1.PodSpec
-					switch existingObj := existingObj.(type) {
-					case *appsv1.StatefulSet:
-						spec = &existingObj.Spec.Template.Spec
-					case *appsv1.Deployment:
-						spec = &existingObj.Spec.Template.Spec
-					}
-
-					// Perform upsert instead of replacing to avoid losing existing
-					// env vars, volume mounts, and volumes that are not related to the puller.
-					spec.Containers[0].Env = utils.Upsert(
-						spec.Containers[0].Env,
-						pullerEnvVars,
-						func(env corev1.EnvVar) string { return env.Name },
-					)
-					spec.Containers[0].VolumeMounts = utils.Upsert(
-						spec.Containers[0].VolumeMounts,
-						volumeMounts,
-						func(vm corev1.VolumeMount) string { return vm.Name },
-					)
-					spec.Volumes = utils.Upsert(
-						spec.Volumes,
-						volumes,
-						func(v corev1.Volume) string { return v.Name },
-					)
-
-					// We can replace init containers instead of upsert as they
-					// are not expected to have any other containers.
-					spec.InitContainers = pullerContainers
-
-					annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
-					existingObj.SetAnnotations(annotations)
-
-					if err := c.Update(ctx, existingObj); err != nil {
-						return
-					}
-				}
-				if err = resources.CheckResourceStatus(existingObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
+				currentRevisionStr, ok := existingObj.GetAnnotations()[kaitov1beta1.WorkspaceRevisionAnnotation]
+				// If the current workload revision matches the one in Workspace, we do not need to update it.
+				if ok && currentRevisionStr == revisionStr {
 					return
 				}
-			} else if apierrors.IsNotFound(err) {
-				var workloadObj client.Object
-				// Need to create a new workload
-				workloadObj, err = inference.CreatePresetInference(ctx, wObj, revisionStr, model, c.Client)
-				if err != nil {
-					return
-				}
-				if err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
-					return
-				}
+				// Update it with the latest one generated above.
+				err = c.Update(ctx, workloadObj)
+				return
+			} else if !apierrors.IsNotFound(err) {
+				return
+			}
+
+			err = resources.CreateResource(ctx, workloadObj, c.Client)
+			if client.IgnoreAlreadyExists(err) != nil {
+				return
+			}
+			if err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
+				return
 			}
 		}
 	}()

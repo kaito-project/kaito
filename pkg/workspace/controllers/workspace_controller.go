@@ -349,7 +349,6 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 	// Ensure all gpu plugins are running successfully.
 	if strings.Contains(wObj.Resource.InstanceType, consts.GpuSkuPrefix) { // GPU skus
 		for i := range selectedNodes {
-			fmt.Println("Ensuring node plugins are installed for GPU nodes", "node", selectedNodes[i].Name)
 			err = c.ensureNodePlugins(ctx, wObj, selectedNodes[i])
 			if err != nil {
 				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,

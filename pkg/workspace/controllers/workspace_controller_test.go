@@ -482,8 +482,8 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 	}{
 		"Fail to get inference because associated workload with workspace cannot be retrieved": {
 			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(errors.New("Failed to get resource"))
-
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},
@@ -535,7 +535,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 						ReadyReplicas: 1,
 					},
 				}
-
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
 				c.On("Update", mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
@@ -547,6 +547,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 
 		"Update deployment with new configuration": {
 			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				// Mocking existing Deployment object
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).
 					Run(func(args mock.Arguments) {
@@ -556,7 +557,6 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 					Return(nil)
 
 				c.On("Update", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
-
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},
@@ -596,6 +596,7 @@ func TestApplyInferenceWithTemplate(t *testing.T) {
 	}{
 		"Fail to apply inference from workspace template": {
 			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(errors.New("Failed to create deployment"))
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
@@ -803,7 +804,7 @@ func TestApplyWorkspaceResource(t *testing.T) {
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(errors.New("failed to retrieve nodeClaims"))
 
 			},
-			workspace:     *test.MockWorkspaceDistributedModel,
+			workspace:     *test.MockWorkspaceBaseModel,
 			expectedError: errors.New("failed to retrieve nodeClaims"),
 		},
 		"Fail to apply workspace with nodeClaims because can't get qualified nodes": {
@@ -824,7 +825,7 @@ func TestApplyWorkspaceResource(t *testing.T) {
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(errors.New("failed to list nodes"))
 			},
-			workspace:     *test.MockWorkspaceDistributedModel,
+			workspace:     *test.MockWorkspaceBaseModel,
 			expectedError: errors.New("failed to list nodes"),
 		},
 		"Successfully apply workspace resource with nodeClaim": {
@@ -851,9 +852,8 @@ func TestApplyWorkspaceResource(t *testing.T) {
 
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-
 			},
-			workspace:     *test.MockWorkspaceDistributedModel,
+			workspace:     *test.MockWorkspaceBaseModel,
 			expectedError: nil,
 		},
 		"Failed with NotFound error": {
@@ -879,7 +879,7 @@ func TestApplyWorkspaceResource(t *testing.T) {
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 
 			},
-			workspace:     *test.MockWorkspaceDistributedModel,
+			workspace:     *test.MockWorkspaceBaseModel,
 			expectedError: apierrors.NewNotFound(corev1.Resource("Node"), "node1"),
 		},
 	}

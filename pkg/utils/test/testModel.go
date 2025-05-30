@@ -61,6 +61,32 @@ type testDistributedModel struct {
 	baseTestModel
 }
 
+func (*testDistributedModel) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Tag: "test-distributed-model",
+		},
+		GPUCountRequirement:       "2",
+		TotalGPUMemoryRequirement: "64Gi",
+		RuntimeParam: model.RuntimeParam{
+			DisableTensorParallelism: true,
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+
+func (*testDistributedModel) SupportDistributedInference() bool {
+	return true
+}
+
 type testNoTensorParallelModel struct {
 	baseTestModel
 }

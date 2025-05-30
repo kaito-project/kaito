@@ -26,22 +26,19 @@ import (
 const (
 	ProbePath = "/health"
 
-	// Port5000 is the default port for vLLM inference server.
-	Port5000 = 5000
-
-	// Port6379 is the default port for communication between the head and worker nodes in a Ray cluster.
-	Port6379 = 6379
+	// PortInferenceServer is the default port for the inference server.
+	PortInferenceServer = 5000
 )
 
 var (
 	containerPorts = []corev1.ContainerPort{{
-		ContainerPort: int32(Port5000),
+		ContainerPort: int32(PortInferenceServer),
 	}}
 
 	defaultLivenessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt(Port5000),
+				Port: intstr.FromInt(PortInferenceServer),
 				Path: ProbePath,
 			},
 		},
@@ -52,7 +49,7 @@ var (
 	defaultReadinessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt(Port5000),
+				Port: intstr.FromInt(PortInferenceServer),
 				Path: ProbePath,
 			},
 		},
@@ -107,7 +104,7 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	return imageName, imagePullSecretRefs
 }
 
-func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
+func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
 	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
 	inferenceParam := model.GetInferenceParameters().DeepCopy()
 
@@ -228,10 +225,6 @@ func CreatePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace,
 		depObj = manifests.GenerateDeploymentManifest(workspaceObj, revisionNum, image, imagePullSecrets, numNodes, commands,
 			containerPorts, defaultLivenessProbe, defaultReadinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars)
 	}
-	err = resources.CreateResource(ctx, depObj, kubeClient)
-	if client.IgnoreAlreadyExists(err) != nil {
-		return nil, err
-	}
 	return depObj, nil
 }
 
@@ -249,9 +242,9 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	}
 	switch probeType {
 	case probeTypeLiveness:
-		args["ray-port"] = strconv.Itoa(Port6379)
+		args["ray-port"] = strconv.Itoa(pkgmodel.PortRayCluster)
 	case probeTypeReadiness:
-		args["vllm-port"] = strconv.Itoa(Port5000)
+		args["vllm-port"] = strconv.Itoa(PortInferenceServer)
 	}
 
 	// for distributed inference, we cannot use the default http probe since only the leader pod

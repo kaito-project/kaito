@@ -807,12 +807,12 @@ var (
 
 var (
 	MockNodeList = &corev1.NodeList{
-		Items: nodes,
+		Items: MockNodes,
 	}
 )
 
 var (
-	nodes = []corev1.Node{
+	MockNodes = []corev1.Node{
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "node1",

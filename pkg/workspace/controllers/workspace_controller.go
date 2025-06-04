@@ -661,29 +661,61 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 			inferenceParam := model.GetInferenceParameters()
 			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 
+			// Generate the inference workload (including adapters and their associated
+			// volumes) ahead of time. This is important to ensure we are modifying the
+			// correct type of workload (Deployment or StatefulSet) based on the model's
+			// inference parameters.
 			var workloadObj client.Object
 			workloadObj, err = inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client)
 			if err != nil {
 				return
 			}
 
+			// Assign the correct type to existingObj based on the type of workloadObj.
 			var existingObj client.Object
-			switch workloadObj.(type) {
+			var desiredPodSpec *corev1.PodSpec
+			switch workloadObj := workloadObj.(type) {
 			case *appsv1.StatefulSet:
 				existingObj = &appsv1.StatefulSet{}
+				desiredPodSpec = &workloadObj.Spec.Template.Spec
 			case *appsv1.Deployment:
 				existingObj = &appsv1.Deployment{}
+				desiredPodSpec = &workloadObj.Spec.Template.Spec
 			}
 
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
 				klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
-				currentRevisionStr, ok := existingObj.GetAnnotations()[kaitov1beta1.WorkspaceRevisionAnnotation]
+				annotations := existingObj.GetAnnotations()
+				if annotations == nil {
+					annotations = make(map[string]string)
+				}
+
+				currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 				// If the current workload revision matches the one in Workspace, we do not need to update it.
 				if ok && currentRevisionStr == revisionStr {
 					return
 				}
+
+				var spec *corev1.PodSpec
+				switch existingObj := existingObj.(type) {
+				case *appsv1.StatefulSet:
+					spec = &existingObj.Spec.Template.Spec
+				case *appsv1.Deployment:
+					spec = &existingObj.Spec.Template.Spec
+				}
+
+				// Selectively update the pod spec fields that are relevant to inference,
+				// and leave the rest unchanged in case user has customized them.
+				spec.Containers[0].Env = desiredPodSpec.Containers[0].Env
+				spec.Containers[0].VolumeMounts = desiredPodSpec.Containers[0].VolumeMounts
+				spec.InitContainers = desiredPodSpec.InitContainers
+				spec.Volumes = desiredPodSpec.Volumes
+
+				annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
+				existingObj.SetAnnotations(annotations)
+
 				// Update it with the latest one generated above.
-				err = c.Update(ctx, workloadObj)
+				err = c.Update(ctx, existingObj)
 				return
 			} else if !apierrors.IsNotFound(err) {
 				return

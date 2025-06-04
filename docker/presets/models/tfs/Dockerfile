@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS base
+FROM python:3.12-slim AS dependencies
 
 ARG MODEL_TYPE
 ARG VERSION
@@ -16,6 +16,8 @@ RUN pip install --no-cache-dir -q -r /workspace/requirements.txt
 # Required for torch.compile
 RUN apt-get update -y && apt-get install --no-install-recommends curl gcc libc-dev perl -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+FROM dependencies AS base
 
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \

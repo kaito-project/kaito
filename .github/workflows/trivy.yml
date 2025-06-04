@@ -2,39 +2,39 @@ name: Trivy vulnerability scanner
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
 jobs:
-  build:
-    name: Build
+  build-and-scan:
+    name: Scan ${{ matrix.image }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: docker-build-workspace
+            image: test/workspace:latest
+            registry: test
+
     steps:
-      - name: Set up Go 1.x
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.24.2
-        id: go
 
       - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Build workspace image from Dockerfile
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Build image from Dockerfile
         run: |
-          export REGISTRY=test
+          export REGISTRY=${{ matrix.registry }}
           export VERSION=latest
-          export DOCKER_CLI_EXPERIMENTAL=enabled
           export OUTPUT_TYPE="type=docker"
           export ARCH="amd64"
-          make docker-build-workspace
-      
+          make ${{ matrix.target }}
+
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        env:
-          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db:2"
+        uses: aquasecurity/trivy-action@76071ef0d7ec797419534a183b498b4d6366cf37 # v0.31.0
         with:
-          image-ref: 'test/workspace:latest'
-          format: 'table'
-          exit-code: '1'
+          image-ref: "test/workspace:latest"
+          format: "table"
+          exit-code: "1"
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN"

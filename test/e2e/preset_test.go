@@ -211,24 +211,11 @@ func createCustomTuningConfigMapForE2E() *v1.ConfigMap {
 	return configMap
 }
 
-func getCustomTuningConfigMapForE2E() *v1.ConfigMap {
-	configMap := utils.GenerateE2ETuningConfigMapManifest(namespaceName)
-
-	By("Get the custom workspace tuning configmap for E2E", func() {
-		err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-			Namespace: configMap.Namespace,
-			Name:      configMap.Name,
-		}, configMap, &client.GetOptions{})
-		Expect(err).NotTo(HaveOccurred())
-	})
-
-	return configMap
-}
-
 func createAndValidateConfigMap(configMap *v1.ConfigMap) {
 	By("Creating ConfigMap", func() {
 		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Create(ctx, configMap, &client.CreateOptions{})
+			err := utils.TestingCluster.KubeClient.Create(ctx, configMap, &client.CreateOptions{})
+			return client.IgnoreAlreadyExists(err)
 		}, utils.PollTimeout, utils.PollInterval).
 			Should(Succeed(), "Failed to create ConfigMap %s", configMap.Name)
 
@@ -1217,7 +1204,7 @@ var _ = Describe("Workspace Preset", func() {
 
 	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image using azuredisk-csi pvc volume", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		configMap := getCustomTuningConfigMapForE2E()
+		configMap := createCustomTuningConfigMapForE2E()
 		intputVolume1 := createInputDatasetVolume("managed-csi", fullDatasetImageName1)
 		outputVolume1 := createOutputVolume("managed-csi")
 		workspaceObj, jobName, _ := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode, intputVolume1, outputVolume1)

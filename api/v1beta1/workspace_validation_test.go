@@ -1696,7 +1696,7 @@ func TestDataDestinationValidateCreate(t *testing.T) {
 			name:            "No fields specified",
 			dataDestination: &DataDestination{},
 			wantErr:         true,
-			errField:        "At least one of Volume or Image must be specified",
+			errField:        "Exactly one of Volume or Image must be specified",
 		},
 		{
 			name: "Volume specified only",
@@ -1745,7 +1745,8 @@ func TestDataDestinationValidateCreate(t *testing.T) {
 				Image:           "aimodels.azurecr.io/data-image:latest",
 				ImagePushSecret: "imagePushSecret",
 			},
-			wantErr: false,
+			wantErr:  true,
+			errField: "Exactly one of Volume or Image must be specified",
 		},
 	}
 

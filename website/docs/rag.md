@@ -76,7 +76,59 @@ spec:
     url: "<inference-url>/v1/completions"
 ```
 
-### Splitting Documents with CodeSplitter
+### Apply the Manifest
+After you create your YAML configuration, run:
+```sh
+kubectl apply -f examples/RAG/kaito_ragengine_phi_3.yaml
+```
+
+## Usage
+### Creating an Index With Documents
+
+To add documents to an index or create a new index, use the `/index` API route. This endpoint accepts a POST request with the index name and a list of documents to be indexed.
+
+**Request Example:**
+
+```json
+POST /index
+{
+  "index_name": "example_index",
+  "documents": [
+    {
+      "text": "Sample document text.",
+      "metadata": {
+        "author": "John Doe",
+        "category": "example"
+      }
+    }
+  ]
+}
+```
+
+- `index_name`: The name of the index to create or update.
+- `documents`: A list of documents, each with a `text` field and optional `metadata`.
+
+**Response Example:**
+
+```json
+[
+  {
+    "doc_id": "123456",
+    "text": "Sample document text.",
+    "hash_value": null,
+    "metadata": {
+      "author": "John Doe",
+      "category": "example"
+    },
+    "is_truncated": false
+  }
+]
+```
+
+Each returned document includes its unique `doc_id`, the original text, metadata, and a flag indicating if the text was truncated. The `doc_id` will be important for document update/delete calls. 
+
+
+#### Splitting Documents with CodeSplitter
 
 By default, RAGEngine splits documents into sentences. However, you can instruct the engine to split documents using the `CodeSplitter` (for code-aware chunking) by providing metadata in your API request.
 
@@ -98,8 +150,179 @@ To use the `CodeSplitter`, set the `split_type` to `"code"` and specify the prog
 
 This instructs the RAGEngine to use code-aware splitting for the provided document. If `split_type` is not set or set to any other value, sentence splitting will be used by default.
 
-### Apply the Manifest
-After you create your YAML configuration, run:
-```sh
-kubectl apply -f examples/RAG/kaito_ragengine_phi_3.yaml
+### List Documents
+
+To retrieve a paginated list of documents from a specific index, use the `/indexes/{index_name}/documents` API route. This endpoint accepts a GET request with optional query parameters for pagination, text truncation, and metadata filtering.
+
+**Request Example:**
+
 ```
+GET /indexes/test_index/documents?limit=5&offset=0&max_text_length=500
+```
+
+- `limit`: (optional) Maximum number of documents to return (default: 10, max: 100).
+- `offset`: (optional) Starting point for the document list (default: 0).
+- `max_text_length`: (optional) Maximum text length to return per document (default: 1000).
+- `metadata_filter`: (optional) A JSON string representing key-value pairs to filter documents by their metadata.
+
+**Response Example:**
+
+```json
+{
+  "documents": [
+    {
+      "doc_id": "123456",
+      "text": "Sample document text.",
+      "metadata": {"author": "John Doe"},
+      "is_truncated": true
+    },
+    {
+      "doc_id": "123457",
+      "text": "Another document text.",
+      "metadata": {"author": "Jane Doe"},
+      "is_truncated": false
+    }
+  ],
+  "count": 2
+}
+```
+
+Each document in the response includes its unique `doc_id`, the (possibly truncated) text, metadata, and a flag indicating if the text was truncated.
+
+**Note:**  
+If you want to filter documents by metadata, provide the `metadata_filter` parameter as a JSON string. For example:
+
+```
+GET /indexes/test_index/documents?metadata_filter={"author":"John Doe"}
+```
+
+
+### Updating Documents
+
+To update existing documents in a specific index, use the `/indexes/{index_name}/documents` API route. This endpoint accepts a POST request with the index name in the URL and a list of documents to update in the request body. The documents provided
+
+**Request Example:**
+
+```json
+POST /indexes/test_index/documents
+{
+  "documents": [
+    {
+      "doc_id": "sampleid",
+      "text": "Updated document text.",
+      "metadata": {
+        "author": "John Doe",
+        "category": "example"
+      }
+    }
+  ]
+}
+```
+
+- `doc_id`: The unique identifier of the document to update.
+- `text`: The new or updated text for the document.
+- `metadata`: (Optional) Updated metadata for the document.
+
+**Response Example:**
+
+```json
+{
+  "updated_documents": [
+    {
+      "doc_id": "sampleid",
+      "text": "Updated document text.",
+      "metadata": {
+        "author": "John Doe",
+        "category": "example"
+      }
+    }
+  ],
+  "unchanged_documents": [],
+  "not_found_documents": []
+}
+```
+
+- `updated_documents`: Documents that were successfully updated.
+- `unchanged_documents`: Documents that were provided but did not require changes.
+- `not_found_documents`: Documents with IDs that were not found in the index.
+
+Use this endpoint to keep your indexed documents up to date with the latest content or metadata.
+
+### Delete Documents
+
+
+To delete one or more documents from a specific index, use the `/indexes/{index_name}/documents/delete` API route. This endpoint accepts a POST request with the index name in the URL and a list of document IDs to delete in the request body.
+
+**Request Example:**
+
+```json
+POST /indexes/test_index/documents/delete
+{
+  "doc_ids": ["doc_id_1", "doc_id_2", "doc_id_3"]
+}
+```
+
+- `doc_ids`: A list of document IDs to delete from the specified index.
+
+**Response Example:**
+
+```json
+{
+  "deleted_doc_ids": ["doc_id_1", "doc_id_2"],
+  "not_found_doc_ids": ["doc_id_3"]
+}
+```
+
+- `deleted_doc_ids`: Document IDs that were successfully deleted.
+- `not_found_doc_ids`: Document IDs that were not found in the index.
+
+Use this endpoint to remove documents that are no longer needed from your index.
+
+### Persist Index
+
+To save (persist) the data of an index to disk, use the `/persist/{index_name}` API route. This endpoint accepts a POST request with the index name in the URL and an optional `path` query parameter specifying where to save the index data.
+
+**Request Example:**
+
+```
+POST /persist/example_index?path=./custom_path
+```
+
+- `index_name`: The name of the index to persist.
+- `path`: (optional) The directory path where the index will be saved. If not provided, the default directory is used.
+
+**Response Example:**
+
+```json
+{
+  "message": "Successfully persisted index example_index to ./custom_path/example_index."
+}
+```
+
+Use this endpoint to ensure your indexed data is safely stored on disk.
+
+---
+
+### Load Index
+
+To load an existing index from disk, use the `/load/{index_name}` API route. This endpoint accepts a POST request with the index name in the URL, an optional `path` query parameter specifying where to load the index from, and an optional `overwrite` flag.
+
+**Request Example:**
+
+```
+POST /load/example_index?path=./custom_path/example_index
+```
+
+- `index_name`: The name of the index to load.
+- `path`: (optional) The path to load the index from. If not provided, the default directory is used.
+- `overwrite`: (optional, default: false) If true, will overwrite the existing index if it already exists in memory.
+
+**Response Example:**
+
+```json
+{
+  "message": "Successfully loaded index example_index from ./custom_path/example_index."
+}
+```
+
+Use this endpoint to restore previously persisted indexes into memory for querying and updates.

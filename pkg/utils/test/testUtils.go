@@ -27,16 +27,35 @@ const (
 var ValidStrength string = "0.5"
 
 var (
+	MockWorkspaceBaseModel = &v1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testWorkspace",
+			Namespace: "kaito",
+		},
+		Resource: v1beta1.ResourceSpec{
+			Count:        &gpuNodeCount,
+			InstanceType: "Standard_NC12s_v3",
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"apps": "test",
+				},
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
+					Name: "base-test-model",
+				},
+			},
+		},
+	}
 	MockWorkspaceDistributedModel = &v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
 			Namespace: "kaito",
-			Annotations: map[string]string{
-				v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
-			},
 		},
 		Resource: v1beta1.ResourceSpec{
-			Count:        &gpuNodeCount,
+			Count:        lo.ToPtr(2), // 2 nodes = distributed model
 			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
@@ -807,12 +826,12 @@ var (
 
 var (
 	MockNodeList = &corev1.NodeList{
-		Items: nodes,
+		Items: MockNodes,
 	}
 )
 
 var (
-	nodes = []corev1.Node{
+	MockNodes = []corev1.Node{
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "node1",

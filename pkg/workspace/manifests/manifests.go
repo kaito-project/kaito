@@ -92,10 +92,14 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 	}
 }
 
-func GenerateStatefulSetManifest(workspaceObj *kaitov1beta1.Workspace, imageName string,
+func GenerateStatefulSetManifest(workspaceObj *kaitov1beta1.Workspace, revisionNum string, imageName string,
 	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
 	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount, envVars []corev1.EnvVar) *appsv1.StatefulSet {
+
+	pullerContainers, pullerEnvVars, pullerVolumes := GeneratePullerContainers(workspaceObj, volumeMount)
+	envVars = append(envVars, pullerEnvVars...)
+	volumes = append(volumes, pullerVolumes...)
 
 	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(workspaceObj.Resource.LabelSelector.MatchLabels))
 	for key, value := range workspaceObj.Resource.LabelSelector.MatchLabels {
@@ -125,6 +129,9 @@ func GenerateStatefulSetManifest(workspaceObj *kaitov1beta1.Workspace, imageName
 		ObjectMeta: v1.ObjectMeta{
 			Name:      workspaceObj.Name,
 			Namespace: workspaceObj.Namespace,
+			Annotations: map[string]string{
+				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
+			},
 			OwnerReferences: []v1.OwnerReference{
 				*v1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
@@ -150,7 +157,7 @@ func GenerateStatefulSetManifest(workspaceObj *kaitov1beta1.Workspace, imageName
 							},
 						},
 					},
-
+					InitContainers: pullerContainers,
 					Containers: []corev1.Container{
 						{
 							Name:           workspaceObj.Name,
@@ -208,6 +215,11 @@ func GenerateTuningJobManifest(wObj *kaitov1beta1.Workspace, revisionNum string,
 		},
 	}, sidecarContainers...)
 
+	shouldShareProcessNamespace := ptr.To(true)
+	if len(sidecarContainers) == 0 {
+		shouldShareProcessNamespace = ptr.To(false)
+	}
+
 	return &batchv1.Job{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "batch/v1",
@@ -233,7 +245,7 @@ func GenerateTuningJobManifest(wObj *kaitov1beta1.Workspace, revisionNum string,
 					InitContainers:        initContainers,
 					Containers:            containers,
 					RestartPolicy:         corev1.RestartPolicyNever,
-					ShareProcessNamespace: ptr.To(true),
+					ShareProcessNamespace: shouldShareProcessNamespace,
 					Volumes:               volumes,
 					Tolerations:           tolerations,
 					ImagePullSecrets:      imagePullSecretRefs,

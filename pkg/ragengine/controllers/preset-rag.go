@@ -18,20 +18,20 @@ import (
 )
 
 const (
-	ProbePath = "/health"
-	Port5000  = 5000
+	ProbePath           = "/health"
+	PortInferenceServer = 5000
 )
 
 var (
 	containerPorts = []corev1.ContainerPort{{
-		ContainerPort: int32(Port5000),
+		ContainerPort: int32(PortInferenceServer),
 	},
 	}
 
 	livenessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt(Port5000),
+				Port: intstr.FromInt(PortInferenceServer),
 				Path: ProbePath,
 			},
 		},
@@ -42,7 +42,7 @@ var (
 	readinessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt(Port5000),
+				Port: intstr.FromInt(PortInferenceServer),
 				Path: ProbePath,
 			},
 		},

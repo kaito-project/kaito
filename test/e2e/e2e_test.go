@@ -5,6 +5,7 @@ package e2e
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"math/rand"
 	"os"
@@ -19,6 +20,8 @@ import (
 
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
+
+var skipGPUProvisionerCheck = flag.Bool("skip-gpu-provisioner-check", false, "Skip checking for GPU provisioner pod in e2e tests")
 
 var (
 	ctx                 = context.Background()
@@ -53,7 +56,9 @@ var _ = BeforeSuite(func() {
 			Should(Succeed(), "Failed to wait for	karpenter deployment")
 	}
 
-	if nodeProvisionerName == "gpuprovisioner" {
+	// Only check GPU provisioner if the flag is not set
+	if !*skipGPUProvisionerCheck &&
+		nodeProvisionerName == "gpuprovisioner" {
 		gpuName := os.Getenv("GPU_PROVISIONER_NAME")
 		gpuNamespace := os.Getenv("GPU_PROVISIONER_NAMESPACE")
 		//check gpu-provisioner deployment is up and running

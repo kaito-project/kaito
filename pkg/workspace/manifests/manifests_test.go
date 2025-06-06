@@ -21,7 +21,7 @@ func TestGenerateStatefulSetManifest(t *testing.T) {
 
 		workspace := test.MockWorkspaceWithPreset
 
-		obj := GenerateStatefulSetManifest(workspace,
+		obj := GenerateStatefulSetManifest(workspace, test.MockWorkspaceWithPresetHash,
 			"",  //imageName
 			nil, //imagePullSecretRefs
 			*workspace.Resource.Count,
@@ -36,6 +36,8 @@ func TestGenerateStatefulSetManifest(t *testing.T) {
 			nil, //envVars
 		)
 
+		assert.Contains(t, obj.GetAnnotations(), v1beta1.WorkspaceRevisionAnnotation)
+		assert.Equal(t, test.MockWorkspaceWithPresetHash, obj.GetAnnotations()[v1beta1.WorkspaceRevisionAnnotation])
 		assert.Len(t, obj.OwnerReferences, 1, "Expected 1 OwnerReference")
 		ownerRef := obj.OwnerReferences[0]
 		assert.Equal(t, v1beta1.GroupVersion.String(), ownerRef.APIVersion)
@@ -89,6 +91,8 @@ func TestGenerateDeploymentManifest(t *testing.T) {
 			nil, //envVars
 		)
 
+		assert.Contains(t, obj.GetAnnotations(), v1beta1.WorkspaceRevisionAnnotation)
+		assert.Equal(t, test.MockWorkspaceWithPresetHash, obj.GetAnnotations()[v1beta1.WorkspaceRevisionAnnotation])
 		assert.Len(t, obj.OwnerReferences, 1, "Expected 1 OwnerReference")
 		ownerRef := obj.OwnerReferences[0]
 		assert.Equal(t, v1beta1.GroupVersion.String(), ownerRef.APIVersion)

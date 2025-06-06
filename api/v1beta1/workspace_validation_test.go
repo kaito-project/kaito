@@ -1540,7 +1540,7 @@ func TestDataSourceValidateCreate(t *testing.T) {
 		{
 			name: "Volume specified only",
 			dataSource: &DataSource{
-				Image: "kaito.azurecr.io/test:0.0.0",
+				Volume: &v1.VolumeSource{},
 			},
 			wantErr: false,
 		},
@@ -1582,15 +1582,15 @@ func TestDataSourceValidateCreate(t *testing.T) {
 			wantErr:    true,
 			errField:   "Exactly one of URLs, Volume, or Image must be specified",
 		},
-		// {
-		// 	name: "URLs and Volume specified",
-		// 	dataSource: &DataSource{
-		// 		URLs:   []string{"http://example.com/data"},
-		// 		Volume: &v1.VolumeSource{},
-		// 	},
-		// 	wantErr:  true,
-		// 	errField: "Exactly one of URLs, Volume, or Image must be specified",
-		// },
+		{
+			name: "URLs and Volume specified",
+			dataSource: &DataSource{
+				URLs:   []string{"http://example.com/data"},
+				Volume: &v1.VolumeSource{},
+			},
+			wantErr:  true,
+			errField: "Exactly one of URLs, Volume, or Image must be specified",
+		},
 		{
 			name: "All fields specified",
 			dataSource: &DataSource{
@@ -1696,15 +1696,15 @@ func TestDataDestinationValidateCreate(t *testing.T) {
 			name:            "No fields specified",
 			dataDestination: &DataDestination{},
 			wantErr:         true,
-			errField:        "At least one of Volume or Image must be specified",
+			errField:        "Exactly one of Volume or Image must be specified",
 		},
-		// {
-		// 	name: "Volume specified only",
-		// 	dataDestination: &DataDestination{
-		// 		Volume: &v1.VolumeSource{},
-		// 	},
-		// 	wantErr: false,
-		// },
+		{
+			name: "Volume specified only",
+			dataDestination: &DataDestination{
+				Volume: &v1.VolumeSource{},
+			},
+			wantErr: false,
+		},
 		{
 			name: "Image specified only",
 			dataDestination: &DataDestination{
@@ -1738,15 +1738,16 @@ func TestDataDestinationValidateCreate(t *testing.T) {
 			wantErr:  true,
 			errField: "invalid reference format",
 		},
-		// {
-		// 	name: "Both fields specified",
-		// 	dataDestination: &DataDestination{
-		// 		Volume:          &v1.VolumeSource{},
-		// 		Image:           "aimodels.azurecr.io/data-image:latest",
-		// 		ImagePushSecret: "imagePushSecret",
-		// 	},
-		// 	wantErr: false,
-		// },
+		{
+			name: "Both fields specified",
+			dataDestination: &DataDestination{
+				Volume:          &v1.VolumeSource{},
+				Image:           "aimodels.azurecr.io/data-image:latest",
+				ImagePushSecret: "imagePushSecret",
+			},
+			wantErr:  true,
+			errField: "Exactly one of Volume or Image must be specified",
+		},
 	}
 
 	for _, tt := range tests {

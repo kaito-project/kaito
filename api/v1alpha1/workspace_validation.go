@@ -209,15 +209,15 @@ func (r *DataSource) validateCreate() (errs *apis.FieldError) {
 	if len(r.URLs) > 0 {
 		sourcesSpecified++
 	}
-	if r.Volume != nil {
-		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
-		sourcesSpecified++
-	}
 	if image := r.Image; image != "" {
 		if _, err := reference.ParseDockerRef(image); err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse input image reference: %s", err), "Image"))
 		}
 
+		sourcesSpecified++
+	}
+
+	if volume := r.Volume; volume != nil {
 		sourcesSpecified++
 	}
 
@@ -233,9 +233,6 @@ func (r *DataSource) validateUpdate(old *DataSource, isTuning bool) (errs *apis.
 	if isTuning && !reflect.DeepEqual(old.Name, r.Name) {
 		errs = errs.Also(apis.ErrInvalidValue("During tuning Name field cannot be changed once set", "Name"))
 	}
-	if r.Volume != nil {
-		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
-	}
 	if image := r.Image; image != "" {
 		if _, err := reference.ParseDockerRef(image); err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse input image reference: %s", err), "Image"))
@@ -247,11 +244,6 @@ func (r *DataSource) validateUpdate(old *DataSource, isTuning bool) (errs *apis.
 
 func (r *DataDestination) validateCreate() (errs *apis.FieldError) {
 	destinationsSpecified := 0
-	// TODO: Implement Volumes
-	if r.Volume != nil {
-		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
-		destinationsSpecified++
-	}
 	if image := r.Image; image != "" {
 		if _, err := reference.ParseDockerRef(image); err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse output image reference: %s", err), "Image"))
@@ -265,18 +257,18 @@ func (r *DataDestination) validateCreate() (errs *apis.FieldError) {
 		destinationsSpecified++
 	}
 
-	// If no destination is specified, return an error
-	if destinationsSpecified == 0 {
-		errs = errs.Also(apis.ErrMissingField("At least one of Volume or Image must be specified"))
+	if volume := r.Volume; volume != nil {
+		destinationsSpecified++
+	}
+
+	// Ensure exactly one of Volume or Image is specified
+	if destinationsSpecified != 1 {
+		errs = errs.Also(apis.ErrMissingField("Exactly one of Volume or Image must be specified")) // TODO: Consider allowing both Volume and Image to be specified
 	}
 	return errs
 }
 
 func (r *DataDestination) validateUpdate() (errs *apis.FieldError) {
-	// TODO: Implement Volumes
-	if r.Volume != nil {
-		errs = errs.Also(apis.ErrInvalidValue("Volume support is not implemented yet", "Volume"))
-	}
 	if image := r.Image; image != "" {
 		if _, err := reference.ParseDockerRef(image); err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unable to parse output image reference: %s", err), "Image"))

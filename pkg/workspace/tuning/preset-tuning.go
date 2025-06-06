@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	Port5000                = int32(5000)
+	PortInferenceServer     = int32(5000)
 	TuningFile              = "/workspace/tfs/fine_tuning.py"
 	DefaultBaseDir          = "/mnt"
 	DefaultOutputVolumePath = "/mnt/output"
@@ -35,7 +35,7 @@ const (
 
 var (
 	containerPorts = []corev1.ContainerPort{{
-		ContainerPort: Port5000,
+		ContainerPort: PortInferenceServer,
 	}}
 
 	// Come up with valid liveness and readiness probes for fine-tuning
@@ -134,9 +134,9 @@ func GetTrainingOutputDir(ctx context.Context, configMap *corev1.ConfigMap) (str
 }
 
 // SetupTrainingOutputVolume adds shared volume for results dir
-func SetupTrainingOutputVolume(ctx context.Context, configMap *corev1.ConfigMap) (corev1.Volume, corev1.VolumeMount, string) {
+func SetupTrainingOutputVolume(ctx context.Context, configMap *corev1.ConfigMap, outputVolume *corev1.VolumeSource) (corev1.Volume, corev1.VolumeMount, string) {
 	outputDir, _ := GetTrainingOutputDir(ctx, configMap)
-	resultsVolume, resultsVolumeMount := utils.ConfigResultsVolume(outputDir)
+	resultsVolume, resultsVolumeMount := utils.ConfigResultsVolume(outputDir, outputVolume)
 	return resultsVolume, resultsVolumeMount, outputDir
 }
 
@@ -182,34 +182,33 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 
 	// TODO: make containers only mount the volumes they need
 
-	// Add shared volume for training output
-	trainingOutputVolume, trainingOutputVolumeMount, outputDir := SetupTrainingOutputVolume(ctx, configVolume)
+	// Add volume for training output
+	outputVolume := workspaceObj.Tuning.Output.Volume
+	trainingOutputVolume, trainingOutputVolumeMount, outputDir := SetupTrainingOutputVolume(ctx, configVolume, outputVolume)
 	volumes = append(volumes, trainingOutputVolume)
 	volumeMounts = append(volumeMounts, trainingOutputVolumeMount)
 
 	initContainer, dataSourceVolumes, dataSourceVolumeMounts := prepareDataSource(ctx, workspaceObj)
 	volumes = append(volumes, dataSourceVolumes...)
 	volumeMounts = append(volumeMounts, dataSourceVolumeMounts...)
-	if initContainer.Name != "" {
+	if initContainer != nil && initContainer.Name != "" {
 		initContainers = append(initContainers, *initContainer)
 	}
 
-	sidecarContainer, imagePushSecret, dataDestVolume, dataDestVolumeMount := prepareDataDestination(ctx, workspaceObj, outputDir)
-	volumes = append(volumes, dataDestVolume)
-	volumeMounts = append(volumeMounts, dataDestVolumeMount)
+	sidecarContainer, imagePushSecret, imagePushSecretVolume, imagePushSecretVolumeMount := prepareDataDestination(ctx, workspaceObj, outputDir)
+	volumes = append(volumes, imagePushSecretVolume...)
+	volumeMounts = append(volumeMounts, imagePushSecretVolumeMount...)
 	if sidecarContainer != nil {
-		sidecarContainers = append(sidecarContainers, *sidecarContainer)
+		pauseContainer := corev1.Container{
+			Name:            "pause",
+			Image:           "registry.k8s.io/pause:latest",
+			ImagePullPolicy: corev1.PullAlways,
+		}
+		sidecarContainers = append(sidecarContainers, pauseContainer, *sidecarContainer)
 	}
 	if imagePushSecret != nil {
 		imagePullSecrets = append(imagePullSecrets, *imagePushSecret)
 	}
-
-	pauseContainer := corev1.Container{
-		Name:            "pause",
-		Image:           "registry.k8s.io/pause:latest",
-		ImagePullPolicy: corev1.PullAlways,
-	}
-	sidecarContainers = append(sidecarContainers, pauseContainer)
 
 	modelCommand, err := prepareModelRunParameters(ctx, tuningObj)
 	if err != nil {
@@ -246,6 +245,18 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 		Name:  "PYTORCH_CUDA_ALLOC_CONF",
 		Value: "expandable_segments:True",
 	})
+
+	// remove duplicate volumes
+	seen := make(map[string]bool)
+	var deduplicatedVolumes []corev1.Volume
+	for _, vol := range volumes {
+		if !seen[vol.Name] {
+			deduplicatedVolumes = append(deduplicatedVolumes, vol)
+			seen[vol.Name] = true
+		}
+	}
+	volumes = deduplicatedVolumes
+
 	jobObj := manifests.GenerateTuningJobManifest(workspaceObj, revisionNum, tuningImage, imagePullSecrets, *workspaceObj.Resource.Count, commands,
 		containerPorts, nil, nil, resourceReq, tolerations, initContainers, sidecarContainers, volumes, volumeMounts, envVars)
 
@@ -256,14 +267,18 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	return jobObj, nil
 }
 
-// Now there are two options for data destination 1. HostPath - 2. Image
-func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, inputDirectory string) (*corev1.Container, *corev1.LocalObjectReference, corev1.Volume, corev1.VolumeMount) {
+// Now there are two options for data destination 1. Volume - 2. Image
+func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, inputDirectory string) (*corev1.Container, *corev1.LocalObjectReference, []corev1.Volume, []corev1.VolumeMount) {
 	tuning := workspaceObj.Tuning
 	output := tuning.Output
 
+	if output.Volume != nil {
+		return nil, nil, nil, nil
+	}
+
 	outputImage := output.Image
 	if outputImage == "" {
-		return nil, nil, corev1.Volume{}, corev1.VolumeMount{}
+		return nil, nil, nil, nil
 	}
 
 	var annotationsData map[string]map[string]string
@@ -283,10 +298,10 @@ func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1beta1.Work
 
 	volume, volumeMount := utils.ConfigImagePushSecretVolume(imagePushSecretRef.Name)
 
-	return pusherContainer, &imagePushSecretRef, volume, volumeMount
+	return pusherContainer, &imagePushSecretRef, []corev1.Volume{volume}, []corev1.VolumeMount{volumeMount}
 }
 
-// Now there are three options for DataSource: 1. URL - 2. HostPath - 3. Image
+// Now there are three options for DataSource: 1. URL - 2. Volume - 3. Image
 func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) (*corev1.Container, []corev1.Volume, []corev1.VolumeMount) {
 	input := workspaceObj.Tuning.Input
 
@@ -300,6 +315,10 @@ func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace
 	case len(input.URLs) > 0:
 		initContainer, volume, volumeMount := handleURLDataSource(ctx, workspaceObj)
 		return initContainer, []corev1.Volume{volume}, []corev1.VolumeMount{volumeMount}
+
+	case input.Volume != nil:
+		dataVolume, dataVolumeMount := utils.ConfigDataVolume(input.Volume)
+		return nil, []corev1.Volume{dataVolume}, []corev1.VolumeMount{dataVolumeMount}
 
 	default:
 		return nil, nil, nil

@@ -658,68 +658,75 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		} else if wObj.Inference != nil && wObj.Inference.Preset != nil {
 			presetName := string(wObj.Inference.Preset.Name)
 			model := plugin.KaitoModelRegister.MustGet(presetName)
-
 			inferenceParam := model.GetInferenceParameters()
-
-			var existingObj client.Object
-			if model.SupportDistributedInference() {
-				existingObj = &appsv1.StatefulSet{}
-			} else {
-				existingObj = &appsv1.Deployment{}
-
-			}
 			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
+
+			// Generate the inference workload (including adapters and their associated
+			// volumes) ahead of time. This is important to ensure we are modifying the
+			// correct type of workload (Deployment or StatefulSet) based on the model's
+			// inference parameters.
+			var workloadObj client.Object
+			workloadObj, err = inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client)
+			if err != nil {
+				return
+			}
+
+			// Assign the correct type to existingObj based on the type of workloadObj.
+			var existingObj client.Object
+			var desiredPodSpec *corev1.PodSpec
+			switch workloadObj := workloadObj.(type) {
+			case *appsv1.StatefulSet:
+				existingObj = &appsv1.StatefulSet{}
+				desiredPodSpec = &workloadObj.Spec.Template.Spec
+			case *appsv1.Deployment:
+				existingObj = &appsv1.Deployment{}
+				desiredPodSpec = &workloadObj.Spec.Template.Spec
+			}
+
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
 				klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
-				if !model.SupportDistributedInference() {
-					deployment := existingObj.(*appsv1.Deployment)
-					if deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] != revisionStr {
-						// TODO: respect updates to other fields
-						var volumes []corev1.Volume
-						var volumeMounts []corev1.VolumeMount
-						shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
-						if shmVolume.Name != "" {
-							volumes = append(volumes, shmVolume)
-						}
-						if shmVolumeMount.Name != "" {
-							volumeMounts = append(volumeMounts, shmVolumeMount)
-						}
-
-						if len(wObj.Inference.Adapters) > 0 {
-							adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
-							volumes = append(volumes, adapterVolume)
-							volumeMounts = append(volumeMounts, adapterVolumeMount)
-						}
-
-						pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(wObj, volumeMounts)
-						volumes = append(volumes, pullerVolumes...)
-
-						spec := &deployment.Spec.Template.Spec
-						spec.Containers[0].Env = pullerEnvVars
-						spec.Containers[0].VolumeMounts = volumeMounts
-						spec.InitContainers = pullerContainers
-						spec.Volumes = volumes
-
-						deployment.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
-
-						if err := c.Update(ctx, deployment); err != nil {
-							return
-						}
-					}
+				annotations := existingObj.GetAnnotations()
+				if annotations == nil {
+					annotations = make(map[string]string)
 				}
-				if err = resources.CheckResourceStatus(existingObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
+
+				currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
+				// If the current workload revision matches the one in Workspace, we do not need to update it.
+				if ok && currentRevisionStr == revisionStr {
 					return
 				}
-			} else if apierrors.IsNotFound(err) {
-				var workloadObj client.Object
-				// Need to create a new workload
-				workloadObj, err = inference.CreatePresetInference(ctx, wObj, revisionStr, model, c.Client)
-				if err != nil {
-					return
+
+				var spec *corev1.PodSpec
+				switch existingObj := existingObj.(type) {
+				case *appsv1.StatefulSet:
+					spec = &existingObj.Spec.Template.Spec
+				case *appsv1.Deployment:
+					spec = &existingObj.Spec.Template.Spec
 				}
-				if err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
-					return
-				}
+
+				// Selectively update the pod spec fields that are relevant to inference,
+				// and leave the rest unchanged in case user has customized them.
+				spec.Containers[0].Env = desiredPodSpec.Containers[0].Env
+				spec.Containers[0].VolumeMounts = desiredPodSpec.Containers[0].VolumeMounts
+				spec.InitContainers = desiredPodSpec.InitContainers
+				spec.Volumes = desiredPodSpec.Volumes
+
+				annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
+				existingObj.SetAnnotations(annotations)
+
+				// Update it with the latest one generated above.
+				err = c.Update(ctx, existingObj)
+				return
+			} else if !apierrors.IsNotFound(err) {
+				return
+			}
+
+			err = resources.CreateResource(ctx, workloadObj, c.Client)
+			if client.IgnoreAlreadyExists(err) != nil {
+				return
+			}
+			if err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
+				return
 			}
 		}
 	}()

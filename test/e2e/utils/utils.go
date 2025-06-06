@@ -343,7 +343,7 @@ func GenerateTuningWorkspaceManifest(name, namespace, imageName string, resource
 func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImageName, outputRegistry string,
 	resourceCount int, instanceType string, labelSelector *metav1.LabelSelector,
 	preferredNodes []string, presetName kaitov1beta1.ModelName, imagePullSecret []string,
-	customConfigMapName string) *kaitov1beta1.Workspace {
+	customConfigMapName string, datasetVolume *corev1.Volume, outputVolume *corev1.Volume) *kaitov1beta1.Workspace {
 	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -374,13 +374,25 @@ func GenerateE2ETuningWorkspaceManifest(name, namespace, imageName, datasetImage
 
 	workspace.Tuning = &workspaceTuning
 	workspace.Tuning.Method = kaitov1beta1.TuningMethodQLora
-	workspace.Tuning.Input = &kaitov1beta1.DataSource{
-		Image:            datasetImageName,
-		ImagePullSecrets: imagePullSecret,
+	if datasetVolume != nil {
+		workspace.Tuning.Input = &kaitov1beta1.DataSource{
+			Volume: &datasetVolume.VolumeSource,
+		}
+	} else {
+		workspace.Tuning.Input = &kaitov1beta1.DataSource{
+			Image:            datasetImageName,
+			ImagePullSecrets: imagePullSecret,
+		}
 	}
-	workspace.Tuning.Output = &kaitov1beta1.DataDestination{
-		Image:           outputRegistry,
-		ImagePushSecret: imagePullSecret[0],
+	if outputVolume != nil {
+		workspace.Tuning.Output = &kaitov1beta1.DataDestination{
+			Volume: &outputVolume.VolumeSource,
+		}
+	} else {
+		workspace.Tuning.Output = &kaitov1beta1.DataDestination{
+			Image:           outputRegistry,
+			ImagePushSecret: imagePullSecret[0],
+		}
 	}
 
 	if customConfigMapName != "" {

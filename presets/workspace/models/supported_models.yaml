@@ -18,6 +18,14 @@ models:
     tag: 0.0.1
     # Tag history:
     # 0.0.1 - Initial Release
+  - name: llama-3.3-70b-instruct
+    type: text-generation
+    version: https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct/commit/6f6073b423013f6a7d4d9f39144961bfbfbc386b
+    runtime: tfs
+    downloadAtRuntime: true
+    tag: 0.0.1
+    # Tag history:
+    # 0.0.1 - Initial Release
 
   # Falcon
   - name: falcon-7b

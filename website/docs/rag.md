@@ -200,7 +200,7 @@ GET /indexes/test_index/documents?metadata_filter={"author":"John Doe"}
 
 ### Updating Documents
 
-To update existing documents in a specific index, use the `/indexes/{index_name}/documents` API route. This endpoint accepts a POST request with the index name in the URL and a list of documents to update in the request body. The documents provided
+To update existing documents in a specific index, use the `/indexes/{index_name}/documents` API route. This endpoint accepts a POST request with the index name in the URL and a list of documents to update in the request body.
 
 **Request Example:**
 
@@ -330,7 +330,7 @@ Use this endpoint to restore previously persisted indexes into memory for queryi
 
 ### Delete Index
 
-To delete an entire index and all of its documents, use the `/indexes/{index_name}` API route. This endpoint accepts a DELETE request with the index name in the URL. Deleting an index is irreversible and will remove all associated documents from both memory and disk (if persisted).
+To delete an entire index and all of its documents, use the `/indexes/{index_name}` API route. This endpoint accepts a DELETE request with the index name in the URL. Deleting an index is irreversible and will remove all associated documents from memory.
 
 **Request Example:**
 

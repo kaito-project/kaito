@@ -39,6 +39,7 @@ from ragengine.metrics.prometheus_metrics import (
     e2e_request_latency_seconds,
     num_requests_running,
     rag_lowest_source_score,
+    rag_avg_source_score,
     STATUS_SUCCESS,
     STATUS_FAILURE,
     MODE_LOCAL,
@@ -236,11 +237,15 @@ async def query_index(request: QueryRequest):
             metadata=result_dict.get("metadata", {})
         )
         
-        # Get lowest score source
+        # Record source retrieval quality metrics
         if result.source_nodes and result.response:
             lowest_score_node = min(result.source_nodes, key=lambda x: x.score)
             rag_lowest_source_score.observe(lowest_score_node.score)
-        
+            
+            scores = [node.score for node in result.source_nodes]
+            avg_score = sum(scores) / len(scores)
+            rag_avg_source_score.observe(avg_score)
+   
         status = STATUS_SUCCESS
         return result
     except HTTPException as http_exc:

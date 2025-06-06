@@ -70,8 +70,15 @@ num_requests_running = Gauge(
     'Number of requests currently being processed'
 )
 
+# RAG source score metrics
 rag_lowest_source_score = Histogram(
     'rag_lowest_source_score',
     'Score of the lowest scoring source node (typically the most relevant)',
+    buckets=(0.1, 0.2, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
+)
+
+rag_avg_source_score = Histogram(
+    'rag_avg_source_score',
+    'Average score of all retrieved source documents in RAG queries',
     buckets=(0.1, 0.2, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
 )

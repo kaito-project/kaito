@@ -114,9 +114,9 @@ class KAITORagClient:
         resp.raise_for_status()
         return resp.json()
 
-    def list_indexes(self, index_name):
+    def delete_indexes(self, index_name):
         """
-        List all indexes in the RAGEngine.
+        Delete an indexes from the RAGEngine.
         """
         url = f"{self.base_url}/indexes/{index_name}"
         resp = requests.delete(url, headers=self.headers)

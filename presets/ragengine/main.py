@@ -33,6 +33,8 @@ from ragengine.metrics.prometheus_metrics import (
     rag_persist_requests_total,
     rag_load_latency,
     rag_load_requests_total,
+    rag_delete_latency,
+    rag_delete_requests_total,
     STATUS_SUCCESS,
     STATUS_FAILURE,
     MODE_LOCAL,
@@ -514,6 +516,45 @@ async def load_index(
         # Record metrics once in finally block
         rag_load_requests_total.labels(status=status).inc()
         rag_load_latency.labels(status=status).observe(time.perf_counter()- start_time)
+
+@app.delete(
+    "/indexes/{index_name}",
+    summary="Delete the Index",
+    description="""
+    Delete an existing index
+
+    ## Request Example:
+    ```
+    DELETE /indexes/test_index
+    ```
+
+    ## Response Example:
+    ```json
+    {
+      "message": "Successfully deleted index example_index."
+    }
+    ```
+    """
+)
+async def delete_index(index_name: str):
+    """
+    Deletes an index by its name.
+    
+    This function is not exposed via an API endpoint but can be used internally.
+    """
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    
+    try:
+        await rag_ops.delete_index(index_name)
+        status = STATUS_SUCCESS
+        return {"message": f"Successfully deleted index {index_name}."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Deletion failed: {str(e)}")
+    finally:
+        # Record metrics once in finally block
+        rag_delete_requests_total.labels(status=status).inc()
+        rag_delete_latency.labels(status=status).observe(time.perf_counter()- start_time)
 
 @app.on_event("shutdown")
 async def shutdown_event():

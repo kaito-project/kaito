@@ -47,3 +47,7 @@ rag_persist_requests_total = Counter('rag_persist_requests_total', 'Count of suc
 # Load API metrics
 rag_load_latency = Histogram('rag_load_latency_seconds', 'Time to call \'/load/{index_name}\' API in seconds', labelnames=[STATUS_LABEL])
 rag_load_requests_total = Counter('rag_load_requests_total', 'Count of successful/failed calling \'/load/{index_name}\' requests', labelnames=[STATUS_LABEL])
+
+# Delete API metrics
+rag_delete_latency = Histogram('rag_delete_latency_seconds', 'Time to call \'/delete/{index_name}\' API in seconds', labelnames=[STATUS_LABEL])
+rag_delete_requests_total = Counter('rag_delete_requests_total', 'Count of successful/failed calling \'/delete/{index_name}\' requests', labelnames=[STATUS_LABEL])

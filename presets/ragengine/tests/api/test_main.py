@@ -520,6 +520,38 @@ async def test_load_documents(async_client):
     assert response_data["documents"][0]["text"] == "This is a test document"
     assert response_data["documents"][1]["text"] == "Another test document"
 
+@pytest.mark.asyncio
+async def test_delete_index(async_client):
+    index_name = "test_index"
+
+    # Ensure no documents are present initially
+    response = await async_client.get(f"/indexes/{index_name}/documents")
+
+    assert response.status_code == 500
+    assert response.json() == {'detail': "Index 'test_index' not found."}
+
+    request_data = {
+        "index_name": index_name,
+        "documents": [
+            {"text": "This is a test document"},
+            {"text": "Another test document"}
+        ]
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+
+    # Persist documents for the specific index
+    response = await async_client.delete(f"/indexes/{index_name}")
+    assert response.status_code == 200
+    response_json = response.json()
+    assert response_json == {"message": f"Successfully deleted index {index_name}."}
+
+    # Ensure index deleted
+    response = await async_client.get(f"/indexes/{index_name}/documents")
+
+    assert response.status_code == 500
+    assert response.json() == {'detail': "Index 'test_index' not found."}
 
 """
 Example of a live query test. This test is currently commented out as it requires a valid 

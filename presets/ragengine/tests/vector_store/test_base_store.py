@@ -228,6 +228,22 @@ func main() {}"""
         await vector_store_manager.index_documents("test_index", documents)
         await vector_store_manager.persist("test_index", DEFAULT_VECTOR_DB_PERSIST_DIR)
         assert os.path.exists(DEFAULT_VECTOR_DB_PERSIST_DIR)
+    
+    @pytest.mark.asyncio
+    async def test_delete_index(self, vector_store_manager):
+        one_mb = b'\x00' * 1024
+        documents = [Document(text=one_mb.decode(), metadata={"type": "text"}) for _ in range(10)]
+        await vector_store_manager.index_documents("test_index", documents)
+        
+        # Ensure index exists before deletion
+        indexes = vector_store_manager.list_indexes()
+        assert "test_index" in indexes
+
+        await vector_store_manager.delete_index("test_index")
+        
+        # Ensure index is deleted
+        indexes = vector_store_manager.list_indexes()
+        assert "test_index" not in indexes
 
     @pytest.mark.asyncio
     async def test_list_documents_in_index(self, vector_store_manager):

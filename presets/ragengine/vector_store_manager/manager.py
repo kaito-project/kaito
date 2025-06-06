@@ -63,6 +63,10 @@ class VectorStoreManager:
         """Load existing index."""
         return await self.vector_store.load(index_name, path, overwrite)
 
+    async def delete_index(self, index_name: str) -> None:
+        """Delete an index."""
+        return await self.vector_store.delete_index(index_name)
+
     async def shutdown(self):
         """Shutdown the manager."""
         await self.vector_store.shutdown()

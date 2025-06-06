@@ -83,6 +83,7 @@ kubectl apply -f examples/RAG/kaito_ragengine_phi_3.yaml
 ```
 
 ## Usage
+
 ### Creating an Index With Documents
 
 To add documents to an index or create a new index, use the `/index` API route. This endpoint accepts a POST request with the index name and a list of documents to be indexed.
@@ -326,3 +327,79 @@ POST /load/example_index?path=./custom_path/example_index
 ```
 
 Use this endpoint to restore previously persisted indexes into memory for querying and updates.
+
+### Delete Index
+
+To delete an entire index and all of its documents, use the `/indexes/{index_name}` API route. This endpoint accepts a DELETE request with the index name in the URL. Deleting an index is irreversible and will remove all associated documents from both memory and disk (if persisted).
+
+**Request Example:**
+
+```
+DELETE /indexes/example_index
+```
+
+- `index_name`: The name of the index to delete.
+
+**Response Example:**
+
+```json
+{
+  "message": "Successfully deleted index example_index."
+}
+```
+
+Use this endpoint to permanently remove an index and all its data when it is no longer needed.
+
+### Query Index
+
+To query a specific index for relevant documents and optionally rerank results with an LLM, use the `/query` API route. This endpoint accepts a POST request with the index name, query string, and optional parameters for result count, LLM generation, and reranking.
+
+**Request Example:**
+
+```json
+POST /query
+{
+  "index_name": "example_index",
+  "query": "What is RAG?",
+  "top_k": 5,
+  "llm_params": {
+    "temperature": 0.7,
+    "max_tokens": 2048
+  },
+  "rerank_params": {
+    "top_n": 3
+  }
+}
+```
+
+- `index_name`: The name of the index to query.
+- `query`: The query string.
+- `top_k`: (optional) Number of top documents to retrieve (default: 5).
+- `llm_params`: (optional) Parameters for LLM-based generation (e.g., temperature, max_tokens).
+- `rerank_params`: (optional, experimental) Parameters for reranking results with an LLM.
+
+**Response Example:**
+
+```json
+{
+  "response": "RAG stands for Retrieval-Augmented Generation...",
+  "source_nodes": [
+    {
+      "node_id": "node1",
+      "text": "RAG explanation...",
+      "score": 0.95,
+      "metadata": {}
+    }
+  ],
+  "metadata": {}
+}
+```
+
+- `response`: The generated answer or summary from the LLM (if enabled).
+- `source_nodes`: List of source documents/nodes with their text, score, and metadata.
+- `metadata`: Additional metadata about the query or response.
+
+**Experimental Warning:**  
+The `rerank_params` option is experimental and may cause the query to fail if the LLM reranker produces an invalid response. If reranking fails, the request will return an error.
+
+Use this endpoint to retrieve relevant information from your indexed documents and optionally generate answers using an LLM.

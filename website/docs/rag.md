@@ -385,6 +385,7 @@ POST /query
   "response": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model...",
   "source_nodes": [
     {
+      "doc_id": "123456",
       "node_id": "2853a565-8c1f-4982-acaa-a0ab52691435",
       "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model...",
       "score": 0.95,

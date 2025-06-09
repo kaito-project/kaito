@@ -84,6 +84,26 @@ kubectl apply -f examples/RAG/kaito_ragengine_phi_3.yaml
 
 ## Usage
 
+### Relationship Between Index, Documents, and Document Nodes
+
+A **RAGEngine index** is a logical collection that organizes and stores your documents for retrieval-augmented generation workflows. The relationship between indexes, documents, and document nodes is as follows:
+
+- **Index**: An index is a named container that holds a set of documents. Each index is independent and can be created, updated, queried, persisted, loaded, or deleted via the API.
+
+- **Documents**: Documents are the primary units of content that you add to an index. Each document contains a `text` field (the content to be indexed) and optional `metadata` (such as author, source, or custom tags). When you add documents to an index, each is assigned a unique `doc_id`.
+
+- **Document Nodes**: When a document is ingested, it is automatically split into smaller chunks called *nodes*. The splitting strategy depends on the document type and metadata:
+  - By default, documents are split into sentences.
+  - If you specify code-aware splitting (using the `split_type` and `language` metadata), the document is split into code blocks or logical code units.
+  - Each node represents a chunk of text that is indexed and can be retrieved as part of a query.
+
+**How it works in practice:**
+- When you index a document, it is divided into nodes for efficient retrieval and semantic search.
+- When you query an index, the engine retrieves the most relevant nodes (not necessarily whole documents) and can use them to generate answers or summaries.
+- The `source_nodes` field in query responses contains the actual nodes that matched your query, along with their scores and metadata.
+
+This design enables fine-grained retrieval and more accurate, context-aware responses from your LLM-powered applications.
+
 ### Creating an Index With Documents
 
 To add documents to an index or create a new index, use the `/index` API route. This endpoint accepts a POST request with the index name and a list of documents to be indexed.

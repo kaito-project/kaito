@@ -3,7 +3,7 @@
 import requests
 import json
 
-class KAITORagClient:
+class KAITORAGClient:
     """
     A bare bones client for interacting with the RAGEngine API.
     This client provides methods to index documents, query the engine,

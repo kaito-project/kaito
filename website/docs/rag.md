@@ -385,7 +385,7 @@ POST /query
   "response": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model...",
   "source_nodes": [
     {
-      "node_id": "123456",
+      "node_id": "2853a565-8c1f-4982-acaa-a0ab52691435",
       "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model...",
       "score": 0.95,
       "metadata": {
@@ -394,12 +394,17 @@ POST /query
       },
     }
   ],
-  "metadata": {}
+  "metadata": {
+    "2853a565-8c1f-4982-acaa-a0ab52691435": {
+      "author": "Microsoft",
+      "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
+    }
+  }
 }
 ```
 
 - `response`: The generated answer or summary from the LLM (if enabled).
-- `source_nodes`: List of source documents/nodes with their text, score, and metadata.
+- `source_nodes`: List of source nodes with their text, score, and metadata.
 - `metadata`: Additional metadata about the query or response.
 
 **Experimental Warning:**  

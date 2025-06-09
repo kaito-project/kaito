@@ -213,7 +213,7 @@ async def index_documents(request: IndexRequest):
     ```json
     {
       "response": "...",
-      "source_nodes": [{"node_id": "node1", "text": "RAG explanation...", "score": 0.95, "metadata": {}}],
+      "source_nodes": [{"doc_id": "doc1", "node_id": "node1", "text": "RAG explanation...", "score": 0.95, "metadata": {}}],
       "metadata": {}
     }
     ```

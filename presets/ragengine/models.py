@@ -69,6 +69,7 @@ class QueryRequest(BaseModel):
 
 # Define models for NodeWithScore, and QueryResponse
 class NodeWithScore(BaseModel):
+    doc_id: str
     node_id: str
     text: str
     score: float

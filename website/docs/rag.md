@@ -93,13 +93,13 @@ To add documents to an index or create a new index, use the `/index` API route. 
 ```json
 POST /index
 {
-  "index_name": "example_index",
+  "index_name": "rag_index",
   "documents": [
     {
-      "text": "Sample document text.",
+      "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model (LLM) like ChatGPT by adding an information retrieval system that provides grounding data.",
       "metadata": {
-        "author": "John Doe",
-        "category": "example"
+        "author": "Microsoft",
+        "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
       }
     }
   ]
@@ -115,11 +115,11 @@ POST /index
 [
   {
     "doc_id": "123456",
-    "text": "Sample document text.",
-    "hash_value": null,
+    "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model (LLM) like ChatGPT by adding an information retrieval system that provides grounding data.",
+    "hash_value": "text_hash_value",
     "metadata": {
-      "author": "John Doe",
-      "category": "example"
+      "author": "Microsoft",
+      "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
     },
     "is_truncated": false
   }
@@ -158,7 +158,7 @@ To retrieve a paginated list of documents from a specific index, use the `/index
 **Request Example:**
 
 ```
-GET /indexes/test_index/documents?limit=5&offset=0&max_text_length=500
+GET /indexes/rag_index/documents?limit=5&offset=0&max_text_length=500
 ```
 
 - `limit`: (optional) Maximum number of documents to return (default: 10, max: 100).
@@ -173,18 +173,16 @@ GET /indexes/test_index/documents?limit=5&offset=0&max_text_length=500
   "documents": [
     {
       "doc_id": "123456",
-      "text": "Sample document text.",
-      "metadata": {"author": "John Doe"},
-      "is_truncated": true
-    },
-    {
-      "doc_id": "123457",
-      "text": "Another document text.",
-      "metadata": {"author": "Jane Doe"},
+      "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model (LLM) like ChatGPT by adding an information retrieval system that provides grounding data.",
+      "hash_value": "text_hash_value",
+      "metadata": {
+        "author": "Microsoft",
+        "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
+      },
       "is_truncated": false
     }
   ],
-  "count": 2
+  "count": 1
 }
 ```
 
@@ -194,7 +192,7 @@ Each document in the response includes its unique `doc_id`, the (possibly trunca
 If you want to filter documents by metadata, provide the `metadata_filter` parameter as a JSON string. For example:
 
 ```
-GET /indexes/test_index/documents?metadata_filter={"author":"John Doe"}
+GET /indexes/rag_index/documents?metadata_filter={"author":"Microsoft"}
 ```
 
 
@@ -205,16 +203,17 @@ To update existing documents in a specific index, use the `/indexes/{index_name}
 **Request Example:**
 
 ```json
-POST /indexes/test_index/documents
+POST /indexes/rag_index/documents
 {
   "documents": [
     {
-      "doc_id": "sampleid",
-      "text": "Updated document text.",
+      "doc_id": "123456",
+      "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model (LLM) like ChatGPT by adding an information retrieval system that provides grounding data. Adding an information retrieval system gives you control over grounding data used by an LLM when it formulates a response.",
+      "hash_value": "text_hash_value",
       "metadata": {
-        "author": "John Doe",
-        "category": "example"
-      }
+        "author": "Microsoft",
+        "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
+      },
     }
   ]
 }
@@ -230,12 +229,13 @@ POST /indexes/test_index/documents
 {
   "updated_documents": [
     {
-      "doc_id": "sampleid",
-      "text": "Updated document text.",
+      "doc_id": "123456",
+      "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model (LLM) like ChatGPT by adding an information retrieval system that provides grounding data. Adding an information retrieval system gives you control over grounding data used by an LLM when it formulates a response.",
+      "hash_value": "text_hash_value",
       "metadata": {
-        "author": "John Doe",
-        "category": "example"
-      }
+        "author": "Microsoft",
+        "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
+      },
     }
   ],
   "unchanged_documents": [],
@@ -257,9 +257,9 @@ To delete one or more documents from a specific index, use the `/indexes/{index_
 **Request Example:**
 
 ```json
-POST /indexes/test_index/documents/delete
+POST /indexes/rag_index/documents/delete
 {
-  "doc_ids": ["doc_id_1", "doc_id_2", "doc_id_3"]
+  "doc_ids": ["123456"]
 }
 ```
 
@@ -269,8 +269,8 @@ POST /indexes/test_index/documents/delete
 
 ```json
 {
-  "deleted_doc_ids": ["doc_id_1", "doc_id_2"],
-  "not_found_doc_ids": ["doc_id_3"]
+  "deleted_doc_ids": ["123456"],
+  "not_found_doc_ids": []
 }
 ```
 
@@ -286,7 +286,7 @@ To save (persist) the data of an index to disk, use the `/persist/{index_name}` 
 **Request Example:**
 
 ```
-POST /persist/example_index?path=./custom_path
+POST /persist/rag_index?path=./custom_path
 ```
 
 - `index_name`: The name of the index to persist.
@@ -296,7 +296,7 @@ POST /persist/example_index?path=./custom_path
 
 ```json
 {
-  "message": "Successfully persisted index example_index to ./custom_path/example_index."
+  "message": "Successfully persisted index rag_index to ./custom_path/rag_index."
 }
 ```
 
@@ -311,7 +311,7 @@ To load an existing index from disk, use the `/load/{index_name}` API route. Thi
 **Request Example:**
 
 ```
-POST /load/example_index?path=./custom_path/example_index
+POST /load/rag_index?path=./custom_path/rag_index
 ```
 
 - `index_name`: The name of the index to load.
@@ -322,7 +322,7 @@ POST /load/example_index?path=./custom_path/example_index
 
 ```json
 {
-  "message": "Successfully loaded index example_index from ./custom_path/example_index."
+  "message": "Successfully loaded index rag_index from ./custom_path/rag_index."
 }
 ```
 
@@ -335,7 +335,7 @@ To delete an entire index and all of its documents, use the `/indexes/{index_nam
 **Request Example:**
 
 ```
-DELETE /indexes/example_index
+DELETE /indexes/rag_index
 ```
 
 - `index_name`: The name of the index to delete.
@@ -344,7 +344,7 @@ DELETE /indexes/example_index
 
 ```json
 {
-  "message": "Successfully deleted index example_index."
+  "message": "Successfully deleted index rag_index."
 }
 ```
 
@@ -359,7 +359,7 @@ To query a specific index for relevant documents and optionally rerank results w
 ```json
 POST /query
 {
-  "index_name": "example_index",
+  "index_name": "rag_index",
   "query": "What is RAG?",
   "top_k": 5,
   "llm_params": {
@@ -382,13 +382,16 @@ POST /query
 
 ```json
 {
-  "response": "RAG stands for Retrieval-Augmented Generation...",
+  "response": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model...",
   "source_nodes": [
     {
-      "node_id": "node1",
-      "text": "RAG explanation...",
+      "node_id": "123456",
+      "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model...",
       "score": 0.95,
-      "metadata": {}
+      "metadata": {
+        "author": "Microsoft",
+        "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
+      },
     }
   ],
   "metadata": {}

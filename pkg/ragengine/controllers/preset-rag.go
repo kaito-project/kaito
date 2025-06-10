@@ -4,6 +4,8 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -100,7 +102,22 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 	}
 	commands := utils.ShellCmd("python3 main.py")
 
-	image := "aimodelsregistrytest.azurecr.io/kaito-rag-service:0.3.2" //TODO: Change to the mcr image when release
+	registryName := os.Getenv("PRESET_RAG_REGISTRY_NAME")
+	if registryName == "" {
+		registryName = "aimodelsregistrytest.azurecr.io"
+	}
+
+	imageName := os.Getenv("PRESET_RAG_IMAGE_NAME")
+	if imageName == "" {
+		imageName = "kaito-rag-service"
+	}
+
+	imageVersion := os.Getenv("PRESET_RAG_IMAGE_TAG")
+	if imageVersion == "" {
+		imageVersion = "0.3.2"
+	}
+
+	image := fmt.Sprintf("%s/%s:%s", registryName, imageName, imageVersion)
 
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 

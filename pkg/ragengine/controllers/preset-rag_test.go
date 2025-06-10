@@ -18,12 +18,15 @@ func TestCreatePresetRAG(t *testing.T) {
 	test.RegisterTestModel()
 
 	testcases := map[string]struct {
-		nodeCount      int
-		callMocks      func(c *test.MockClient)
-		expectedCmd    string
-		expectedGPUReq string
-		expectedImage  string
-		expectedVolume string
+		nodeCount            int
+		registryNameOverride string
+		imageNameOverride    string
+		imageTagOverride     string
+		callMocks            func(c *test.MockClient)
+		expectedCmd          string
+		expectedGPUReq       string
+		expectedImage        string
+		expectedVolume       string
 	}{
 		"test-rag-model": {
 			nodeCount: 1,
@@ -33,11 +36,31 @@ func TestCreatePresetRAG(t *testing.T) {
 			expectedCmd:   "/bin/sh -c python3 main.py",
 			expectedImage: "aimodelsregistrytest.azurecr.io/kaito-rag-service:0.3.2", //TODO: Change to the mcr image when release
 		},
+		"test-rag-model-with-image-from-env": {
+			nodeCount:            1,
+			registryNameOverride: "mcr.microsoft.com/aks/kaito",
+			imageNameOverride:    "kaito-rag-engine",
+			imageTagOverride:     "0.4.6",
+			callMocks: func(c *test.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			expectedCmd:   "/bin/sh -c python3 main.py",
+			expectedImage: "mcr.microsoft.com/aks/kaito/kaito-rag-engine:0.4.6",
+		},
 	}
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+			if tc.registryNameOverride != "" {
+				t.Setenv("PRESET_RAG_REGISTRY_NAME", tc.registryNameOverride)
+			}
+			if tc.imageNameOverride != "" {
+				t.Setenv("PRESET_RAG_IMAGE_NAME", tc.imageNameOverride)
+			}
+			if tc.imageTagOverride != "" {
+				t.Setenv("PRESET_RAG_IMAGE_TAG", tc.imageTagOverride)
+			}
 
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)

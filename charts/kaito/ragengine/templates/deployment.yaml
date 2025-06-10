@@ -43,6 +43,12 @@ spec:
                   fieldPath: metadata.namespace
             - name: CLOUD_PROVIDER
               value: {{ .Values.cloudProviderName }}
+            - name: PRESET_RAG_REGISTRY_NAME
+              value: {{ .Values.presetRagRegistryName }}
+            - name: PRESET_RAG_IMAGE_NAME
+              value: {{ .Values.presetRagImageName }}
+            - name: PRESET_RAG_IMAGE_TAG
+              value: {{ .Values.presetRagImageTag }}
           ports:
             - name: http-metrics
               containerPort: 8080

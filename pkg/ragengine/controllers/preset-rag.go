@@ -78,26 +78,19 @@ func (ic ImageConfig) GetImage() string {
 }
 
 func getImageConfig() ImageConfig {
-	registryName := os.Getenv("PRESET_RAG_REGISTRY_NAME")
-	if registryName == "" {
-		registryName = "aimodelsregistrytest.azurecr.io"
-	}
-
-	imageName := os.Getenv("PRESET_RAG_IMAGE_NAME")
-	if imageName == "" {
-		imageName = "kaito-rag-service"
-	}
-
-	imageTag := os.Getenv("PRESET_RAG_IMAGE_TAG")
-	if imageTag == "" {
-		imageTag = "0.3.2"
-	}
-
 	return ImageConfig{
-		RegistryName: registryName,
-		ImageName:    imageName,
-		ImageTag:     imageTag,
+		RegistryName: getEnv("PRESET_RAG_REGISTRY_NAME", "aimodelsregistrytest.azurecr.io"),
+		ImageName:    getEnv("PRESET_RAG_IMAGE_NAME", "kaito-rag-service"),
+		ImageTag:     getEnv("PRESET_RAG_IMAGE_TAG", "0.3.2"),
 	}
+}
+
+func getEnv(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }
 
 func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {

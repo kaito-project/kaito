@@ -67,6 +67,39 @@ var (
 	}
 )
 
+type ImageConfig struct {
+	RegistryName string
+	ImageName    string
+	ImageTag     string
+}
+
+func (ic ImageConfig) GetImage() string {
+	return fmt.Sprintf("%s/%s:%s", ic.RegistryName, ic.ImageName, ic.ImageTag)
+}
+
+func getImageConfig() ImageConfig {
+	registryName := os.Getenv("PRESET_RAG_REGISTRY_NAME")
+	if registryName == "" {
+		registryName = "aimodelsregistrytest.azurecr.io"
+	}
+
+	imageName := os.Getenv("PRESET_RAG_IMAGE_NAME")
+	if imageName == "" {
+		imageName = "kaito-rag-service"
+	}
+
+	imageTag := os.Getenv("PRESET_RAG_IMAGE_TAG")
+	if imageTag == "" {
+		imageTag = "0.3.2"
+	}
+
+	return ImageConfig{
+		RegistryName: registryName,
+		ImageName:    imageName,
+		ImageTag:     imageTag,
+	}
+}
+
 func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
@@ -102,22 +135,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 	}
 	commands := utils.ShellCmd("python3 main.py")
 
-	registryName := os.Getenv("PRESET_RAG_REGISTRY_NAME")
-	if registryName == "" {
-		registryName = "aimodelsregistrytest.azurecr.io"
-	}
-
-	imageName := os.Getenv("PRESET_RAG_IMAGE_NAME")
-	if imageName == "" {
-		imageName = "kaito-rag-service"
-	}
-
-	imageVersion := os.Getenv("PRESET_RAG_IMAGE_TAG")
-	if imageVersion == "" {
-		imageVersion = "0.3.2"
-	}
-
-	image := fmt.Sprintf("%s/%s:%s", registryName, imageName, imageVersion)
+	image := getImageConfig().GetImage()
 
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 

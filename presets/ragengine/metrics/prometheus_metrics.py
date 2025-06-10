@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Histogram, Gauge
 
 STATUS_LABEL = "status"
 MODE_LABEL = "mode"
@@ -47,3 +47,38 @@ rag_persist_requests_total = Counter('rag_persist_requests_total', 'Count of suc
 # Load API metrics
 rag_load_latency = Histogram('rag_load_latency_seconds', 'Time to call \'/load/{index_name}\' API in seconds', labelnames=[STATUS_LABEL])
 rag_load_requests_total = Counter('rag_load_requests_total', 'Count of successful/failed calling \'/load/{index_name}\' requests', labelnames=[STATUS_LABEL])
+
+# Delete API metrics
+rag_delete_latency = Histogram('rag_delete_latency_seconds', 'Time to call \'/delete/{index_name}\' API in seconds', labelnames=[STATUS_LABEL])
+rag_delete_requests_total = Counter('rag_delete_requests_total', 'Count of successful/failed calling \'/delete/{index_name}\' requests', labelnames=[STATUS_LABEL])
+
+# End-to-end request metrics
+e2e_request_total = Counter(
+    'e2e_request_total', 
+    'Total number of all processed requests', 
+    labelnames=[STATUS_LABEL]
+)
+e2e_request_latency_seconds = Histogram(
+    'e2e_request_latency_seconds',
+    'End to end request latency in seconds',
+    labelnames=[STATUS_LABEL]
+)
+
+# Active requests gauge
+num_requests_running = Gauge(
+    'num_requests_running',
+    'Number of requests currently being processed'
+)
+
+# RAG source score metrics
+rag_lowest_source_score = Histogram(
+    'rag_lowest_source_score',
+    'Score of the lowest scoring source node (typically the most relevant)',
+    buckets=(0.1, 0.2, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
+)
+
+rag_avg_source_score = Histogram(
+    'rag_avg_source_score',
+    'Average score of all retrieved source documents in RAG queries',
+    buckets=(0.1, 0.2, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
+)

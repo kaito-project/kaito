@@ -261,6 +261,7 @@ async def test_reranker_and_query_with_index(mock_get, async_client):
     # Perform indexing
     response = await async_client.post("/index", json=index_request_payload)
     assert response.status_code == 200
+    index_response = response.json()
 
     # Query request payload with reranking
     top_n = 2  # The number of relevant docs returned in reranker response
@@ -283,16 +284,17 @@ async def test_reranker_and_query_with_index(mock_get, async_client):
     # Validate each source node in the query response
     expected_source_nodes = [
         {"text": "Have you ever visited Paris? It is a beautiful city where you can eat delicious food and see the Eiffel Tower. I really enjoyed all the cities in France, but its capital with the Eiffel Tower is my favorite city.",
-         "score": 10.0, "metadata": {}},
+         "score": 10.0, "metadata": {}, "doc_id": index_response[3]["doc_id"]},
         {"text": "I really enjoyed my trip to Paris, France. The city is beautiful and the "
                  "food is delicious. I would love to visit again. Such a great capital city.",
-         "score": 10.0, "metadata": {}},
+         "score": 10.0, "metadata": {}, "doc_id": index_response[4]["doc_id"]},
     ]
     for i, expected_node in enumerate(expected_source_nodes):
         actual_node = query_response["source_nodes"][i]
         assert actual_node["text"] == expected_node["text"]
         assert actual_node["score"] == expected_node["score"]
         assert actual_node["metadata"] == expected_node["metadata"]
+        assert actual_node["doc_id"] == expected_node["doc_id"]
 
     # Ensure HTTPX requests were made
     assert respx.calls.call_count == 2  # One for rerank, one for query completion
@@ -520,6 +522,38 @@ async def test_load_documents(async_client):
     assert response_data["documents"][0]["text"] == "This is a test document"
     assert response_data["documents"][1]["text"] == "Another test document"
 
+@pytest.mark.asyncio
+async def test_delete_index(async_client):
+    index_name = "test_index"
+
+    # Ensure no documents are present initially
+    response = await async_client.get(f"/indexes/{index_name}/documents")
+
+    assert response.status_code == 500
+    assert response.json() == {'detail': "Index 'test_index' not found."}
+
+    request_data = {
+        "index_name": index_name,
+        "documents": [
+            {"text": "This is a test document"},
+            {"text": "Another test document"}
+        ]
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+
+    # Persist documents for the specific index
+    response = await async_client.delete(f"/indexes/{index_name}")
+    assert response.status_code == 200
+    response_json = response.json()
+    assert response_json == {"message": f"Successfully deleted index {index_name}."}
+
+    # Ensure index deleted
+    response = await async_client.get(f"/indexes/{index_name}/documents")
+
+    assert response.status_code == 500
+    assert response.json() == {'detail': "Index 'test_index' not found."}
 
 """
 Example of a live query test. This test is currently commented out as it requires a valid 

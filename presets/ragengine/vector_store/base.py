@@ -10,7 +10,6 @@ import asyncio
 from itertools import islice
 
 from llama_index.core import Document as LlamaDocument
-from llama_index.core.storage.index_store import SimpleIndexStore
 from llama_index.core import (StorageContext, VectorStoreIndex, load_index_from_storage)
 from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 
@@ -36,7 +35,6 @@ class BaseVectorStore(ABC):
         self.llm = Inference()
         self.embed_model = embed_model
         self.index_map = {}
-        self.index_store = SimpleIndexStore()
         # Use a reader/writer lock only if needed
         self.use_rwlock = use_rwlock
         self.rwlock = aiorwlock.RWLock() if self.use_rwlock else None
@@ -180,12 +178,13 @@ class BaseVectorStore(ABC):
             "response": query_result.response,
             "source_nodes": [
                 {
-                    "node_id": node.node_id,
-                    "text": node.text,
-                    "score": node.score,
-                    "metadata": node.metadata
+                    "doc_id": source_node.node.ref_doc_id,
+                    "node_id": source_node.node_id,
+                    "text": source_node.text,
+                    "score": source_node.score,
+                    "metadata": source_node.metadata
                 }
-                for node in query_result.source_nodes
+                for source_node in query_result.source_nodes
             ],
             "metadata": query_result.metadata,
         }
@@ -334,6 +333,19 @@ class BaseVectorStore(ABC):
 
         # Return list of valid documents
         return [doc for doc in docs if isinstance(doc, dict)]
+
+    async def delete_index(self, index_name: str):
+        """Common logic for deleting an index."""
+        if index_name not in self.index_map:
+            raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
+        
+        if self.use_rwlock:
+            async with self.rwlock.writer_lock:
+                del self.index_map[index_name]
+        else:
+            del self.index_map[index_name]
+        
+        logger.info(f"Index {index_name} deleted successfully.")
 
     async def _filter_documents(self, doc_items, metadata_filter, offset, limit):
         """

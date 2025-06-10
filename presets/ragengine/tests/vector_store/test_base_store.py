@@ -85,7 +85,7 @@ class BaseVectorStoreTest(ABC):
             Document(text="First document", metadata={"type": "text"}),
             Document(text="Second document", metadata={"type": "text"})
         ]
-        await vector_store_manager.index_documents("test_index", documents)
+        index_doc_resp = await vector_store_manager.index_documents("test_index", documents)
 
         params = {"temperature": 0.7}
         query_result = await vector_store_manager.query("test_index", "First", top_k=1,
@@ -95,6 +95,7 @@ class BaseVectorStoreTest(ABC):
         assert query_result["response"] == "{'result': 'This is the completion from the API'}"
         assert query_result["source_nodes"][0]["text"] == "First document"
         assert query_result["source_nodes"][0]["score"] == pytest.approx(self.expected_query_score, rel=1e-6)
+        assert query_result["source_nodes"][0]["doc_id"] == index_doc_resp[0]
         assert respx.calls.call_count == 1  # Ensure only one LLM inference request was made
 
     @pytest.mark.asyncio
@@ -228,6 +229,22 @@ func main() {}"""
         await vector_store_manager.index_documents("test_index", documents)
         await vector_store_manager.persist("test_index", DEFAULT_VECTOR_DB_PERSIST_DIR)
         assert os.path.exists(DEFAULT_VECTOR_DB_PERSIST_DIR)
+    
+    @pytest.mark.asyncio
+    async def test_delete_index(self, vector_store_manager):
+        one_mb = b'\x00' * 1024
+        documents = [Document(text=one_mb.decode(), metadata={"type": "text"}) for _ in range(10)]
+        await vector_store_manager.index_documents("test_index", documents)
+        
+        # Ensure index exists before deletion
+        indexes = vector_store_manager.list_indexes()
+        assert "test_index" in indexes
+
+        await vector_store_manager.delete_index("test_index")
+        
+        # Ensure index is deleted
+        indexes = vector_store_manager.list_indexes()
+        assert "test_index" not in indexes
 
     @pytest.mark.asyncio
     async def test_list_documents_in_index(self, vector_store_manager):

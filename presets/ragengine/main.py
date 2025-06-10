@@ -6,7 +6,7 @@ import json
 from vector_store_manager.manager import VectorStoreManager
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
                     QueryRequest, QueryResponse, Document, HealthStatus, DeleteDocumentRequest,
                     DeleteDocumentResponse, UpdateDocumentResponse)
@@ -33,6 +33,13 @@ from ragengine.metrics.prometheus_metrics import (
     rag_persist_requests_total,
     rag_load_latency,
     rag_load_requests_total,
+    rag_delete_latency,
+    rag_delete_requests_total,
+    e2e_request_total,
+    e2e_request_latency_seconds,
+    num_requests_running,
+    rag_lowest_source_score,
+    rag_avg_source_score,
     STATUS_SUCCESS,
     STATUS_FAILURE,
     MODE_LOCAL,
@@ -40,6 +47,29 @@ from ragengine.metrics.prometheus_metrics import (
 )
 
 app = FastAPI()
+@app.middleware("http")
+async def track_requests(request: Request, call_next):
+    tracked_paths = ["/query", "/index", "/indexes", "/persist", "/load"]
+    
+    should_track = any(request.url.path.startswith(path) for path in tracked_paths)
+    
+    if not should_track:
+        return await call_next(request)
+
+    num_requests_running.inc() 
+    start_time = time.perf_counter() 
+    status = STATUS_FAILURE # Default status
+    
+    try:
+        response = await call_next(request)
+        status = STATUS_SUCCESS
+        return response
+    except Exception as e:
+        raise
+    finally:
+        num_requests_running.dec()
+        e2e_request_latency_seconds.labels(status=status).observe(time.perf_counter() - start_time)
+        e2e_request_total.labels(status=status).inc()
 
 # Initialize embedding model
 if EMBEDDING_SOURCE_TYPE.lower() == MODE_LOCAL:
@@ -183,7 +213,7 @@ async def index_documents(request: IndexRequest):
     ```json
     {
       "response": "...",
-      "source_nodes": [{"node_id": "node1", "text": "RAG explanation...", "score": 0.95, "metadata": {}}],
+      "source_nodes": [{"doc_id": "doc1", "node_id": "node1", "text": "RAG explanation...", "score": 0.95, "metadata": {}}],
       "metadata": {}
     }
     ```
@@ -197,9 +227,25 @@ async def query_index(request: QueryRequest):
         llm_params = request.llm_params or {}  # Default to empty dict if no params provided
         rerank_params = request.rerank_params or {}  # Default to empty dict if no params provided
         
-        result = await rag_ops.query(
+        result_dict = await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params
         )
+        
+        result = QueryResponse(
+            response=result_dict["response"],
+            source_nodes=result_dict["source_nodes"], 
+            metadata=result_dict.get("metadata", {})
+        )
+        
+        # Record source retrieval quality metrics
+        if result.source_nodes and result.response:
+            lowest_score_node = min(result.source_nodes, key=lambda x: x.score)
+            rag_lowest_source_score.observe(lowest_score_node.score)
+            
+            scores = [node.score for node in result.source_nodes]
+            avg_score = sum(scores) / len(scores)
+            rag_avg_source_score.observe(avg_score)
+   
         status = STATUS_SUCCESS
         return result
     except HTTPException as http_exc:
@@ -245,7 +291,7 @@ def list_indexes():
     finally:
         # Record metrics once in finally block
         rag_indexes_requests_total.labels(status=status).inc()
-        rag_indexes_latency.labels(status=status).observe(time.perf_counter()- start_time)
+        rag_indexes_latency.labels(status=status).observe(time.perf_counter() - start_time)
 
 
 @app.get(
@@ -340,7 +386,7 @@ async def list_documents_in_index(
     finally:
         # Record metrics once in finally block
         rag_indexes_document_requests_total.labels(status=status).inc()
-        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter()- start_time)
+        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter() - start_time)
 
 @app.post(
     "/indexes/{index_name}/documents",
@@ -384,7 +430,7 @@ async def update_documents_in_index(
     finally:
         # Record metrics once in finally block
         rag_indexes_document_requests_total.labels(status=status).inc()
-        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter()- start_time)
+        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter() - start_time)
 
 @app.post(
     "/indexes/{index_name}/documents/delete",
@@ -427,7 +473,7 @@ async def delete_documents_in_index(
     finally:
         # Record metrics once in finally block
         rag_indexes_document_requests_total.labels(status=status).inc()
-        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter()- start_time)
+        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter() - start_time)
 
 @app.post(
     "/persist/{index_name}",
@@ -468,7 +514,7 @@ async def persist_index(
     finally:
         # Record metrics once in finally block
         rag_persist_requests_total.labels(status=status).inc()
-        rag_persist_latency.labels(status=status).observe(time.perf_counter()- start_time)
+        rag_persist_latency.labels(status=status).observe(time.perf_counter() - start_time)
 
 
 @app.post(
@@ -513,7 +559,46 @@ async def load_index(
     finally:
         # Record metrics once in finally block
         rag_load_requests_total.labels(status=status).inc()
-        rag_load_latency.labels(status=status).observe(time.perf_counter()- start_time)
+        rag_load_latency.labels(status=status).observe(time.perf_counter() - start_time)
+
+@app.delete(
+    "/indexes/{index_name}",
+    summary="Delete the Index",
+    description="""
+    Delete an existing index
+
+    ## Request Example:
+    ```
+    DELETE /indexes/test_index
+    ```
+
+    ## Response Example:
+    ```json
+    {
+      "message": "Successfully deleted index example_index."
+    }
+    ```
+    """
+)
+async def delete_index(index_name: str):
+    """
+    Deletes an index by its name.
+    
+    This function is not exposed via an API endpoint but can be used internally.
+    """
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    
+    try:
+        await rag_ops.delete_index(index_name)
+        status = STATUS_SUCCESS
+        return {"message": f"Successfully deleted index {index_name}."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Deletion failed: {str(e)}")
+    finally:
+        # Record metrics once in finally block
+        rag_delete_requests_total.labels(status=status).inc()
+        rag_delete_latency.labels(status=status).observe(time.perf_counter()- start_time)
 
 @app.on_event("shutdown")
 async def shutdown_event():

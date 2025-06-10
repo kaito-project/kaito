@@ -85,7 +85,7 @@ class BaseVectorStoreTest(ABC):
             Document(text="First document", metadata={"type": "text"}),
             Document(text="Second document", metadata={"type": "text"})
         ]
-        await vector_store_manager.index_documents("test_index", documents)
+        index_doc_resp = await vector_store_manager.index_documents("test_index", documents)
 
         params = {"temperature": 0.7}
         query_result = await vector_store_manager.query("test_index", "First", top_k=1,
@@ -95,6 +95,7 @@ class BaseVectorStoreTest(ABC):
         assert query_result["response"] == "{'result': 'This is the completion from the API'}"
         assert query_result["source_nodes"][0]["text"] == "First document"
         assert query_result["source_nodes"][0]["score"] == pytest.approx(self.expected_query_score, rel=1e-6)
+        assert query_result["source_nodes"][0]["doc_id"] == index_doc_resp[0]
         assert respx.calls.call_count == 1  # Ensure only one LLM inference request was made
 
     @pytest.mark.asyncio

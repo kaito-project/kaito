@@ -178,12 +178,13 @@ class BaseVectorStore(ABC):
             "response": query_result.response,
             "source_nodes": [
                 {
-                    "node_id": node.node_id,
-                    "text": node.text,
-                    "score": node.score,
-                    "metadata": node.metadata
+                    "doc_id": source_node.node.ref_doc_id,
+                    "node_id": source_node.node_id,
+                    "text": source_node.text,
+                    "score": source_node.score,
+                    "metadata": source_node.metadata
                 }
-                for node in query_result.source_nodes
+                for source_node in query_result.source_nodes
             ],
             "metadata": query_result.metadata,
         }

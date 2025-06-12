@@ -49,9 +49,7 @@ func (t BaseTest) CanRunConcurrently() bool {
 }
 
 // Run executes the test by running all actions in sequence.
-// It first runs setup actions, then the main test actions, and finally cleanup actions.
-// If a setup action fails, the test will not proceed to the main actions.
-// If a main action fails, it will stop executing further test actions and run cleanup actions.
+// If a run action fails, it will stop executing further run actions and run cleanup actions.
 func (t BaseTest) Run(ctx context.Context, logger *slog.Logger, testContext *RAGEngineTestContext) error {
 	logger = logger.With("test", t.Name)
 

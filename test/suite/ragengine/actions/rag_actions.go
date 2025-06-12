@@ -9,6 +9,8 @@ import (
 	"github.com/kaito-project/kaito/test/suite/types"
 )
 
+// CreateIndex creates an index in the RAG engine and indexes the provided documents.
+// It also saves the indexed documents to the provided slice for later verification.
 func CreateIndex(indexName string, documents []*ragengine.RAGDocument, savedDocuments []*ragengine.RAGDocument) types.Action {
 	return types.Action{
 		Name: "Create Index",
@@ -65,6 +67,8 @@ func CreateIndex(indexName string, documents []*ragengine.RAGDocument, savedDocu
 	}
 }
 
+// QueryIndex queries the specified index with the given query string.
+// It checks if the response contains any source nodes and returns an error if not.
 func QueryIndex(indexName, query string, topK, maxTokens int, temperature float64) types.Action {
 	return types.Action{
 		Name: "Query Index",
@@ -93,6 +97,7 @@ func QueryIndex(indexName, query string, topK, maxTokens int, temperature float6
 	}
 }
 
+// ListIndexes lists all indexes in the RAG engine and checks if the expected indexes are present.
 func ListIndexes(expectedIndexes []string) types.Action {
 	return types.Action{
 		Name: "List Indexes",
@@ -120,45 +125,7 @@ func ListIndexes(expectedIndexes []string) types.Action {
 	}
 }
 
-func ListDocumentsInIndex(indexName string, limit, offset, maxTextLength int, metadataFilter map[string]interface{}, expectedDocuments []*ragengine.RAGDocument) types.Action {
-	return types.Action{
-		Name: "List Documents in Index",
-		RunFunc: func(ctx context.Context, logger *slog.Logger, testContext *types.RAGEngineTestContext) error {
-			resp, err := testContext.RAGClient.ListDocumentsInIndex(indexName, limit, offset, maxTextLength, metadataFilter)
-			if err != nil {
-				return fmt.Errorf("failed to list documents in index %s: %v", indexName, err)
-			}
-
-			if resp.Count == 0 && len(expectedDocuments) > 0 {
-				return fmt.Errorf("no documents found in index %s", indexName)
-			}
-
-			logger.Info(fmt.Sprintf("Found %d documents in index %s:\n", resp.Count, indexName))
-			for _, doc := range expectedDocuments {
-				found := false
-				for _, listedDoc := range resp.Documents {
-					if listedDoc.DocID == doc.DocID {
-						found = true
-						if listedDoc.Text != doc.Text {
-							return fmt.Errorf("document text mismatch for DocID %s: expected %s, got %s", doc.DocID, doc.Text, listedDoc.Text)
-						}
-						for k, v := range doc.Metadata {
-							if listedDoc.Metadata[k] != v {
-								return fmt.Errorf("document metadata mismatch for DocID %s, key %s: expected %v, got %v", doc.DocID, k, v, listedDoc.Metadata[k])
-							}
-						}
-						break
-					}
-				}
-				if !found {
-					return fmt.Errorf("expected document with DocID %s not found in the listed documents", doc.DocID)
-				}
-			}
-			return nil
-		},
-	}
-}
-
+// GetAllIndexDocuments retrieves all documents in the specified index and checks if the expected documents are present.
 func GetAllIndexDocuments(indexName string, expectedDocuments []*ragengine.RAGDocument) types.Action {
 	return types.Action{
 		Name: "Get All Documents in Index",
@@ -205,6 +172,7 @@ func GetAllIndexDocuments(indexName string, expectedDocuments []*ragengine.RAGDo
 	}
 }
 
+// DeleteIndex deletes the specified index from the RAG engine.
 func DeleteIndex(indexName string) types.Action {
 	return types.Action{
 		Name: "Delete Index",

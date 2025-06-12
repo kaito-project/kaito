@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,6 +34,7 @@ func loadTestEnvVars() {
 	aiModelsRegistry = utils.GetEnv("AI_MODELS_REGISTRY")
 	aiModelsRegistrySecret = utils.GetEnv("AI_MODELS_REGISTRY_SECRET")
 	// Currently required for uploading fine-tuning results
+	e2eACR = utils.GetEnv("E2E_ACR_REGISTRY")
 	e2eACRSecret = utils.GetEnv("E2E_ACR_REGISTRY_SECRET")
 	supportedModelsYamlPath = utils.GetEnv("SUPPORTED_MODELS_YAML_PATH")
 	azureClusterName = utils.GetEnv("AZURE_CLUSTER_NAME")
@@ -55,6 +57,7 @@ func loadModelVersions() {
 
 var aiModelsRegistry string
 var aiModelsRegistrySecret string
+var e2eACR string
 var e2eACRSecret string
 var supportedModelsYamlPath string
 var modelInfo map[string]string
@@ -70,7 +73,7 @@ var _ = Describe("RAGEngine", func() {
 		if CurrentSpecReport().Failed() {
 			utils.PrintPodLogsOnFailure(namespaceName, "")     // The Preset Pod
 			utils.PrintPodLogsOnFailure("kaito-workspace", "") // The Kaito Workspace Pod
-			utils.PrintPodLogsOnFailure("kaito-ragengine", "") // The Kaito ragengine Pod
+			utils.PrintPodLogsOnFailure("kaito-ragengine", "") // The Kaito ragengine Pod and E2E Job Pods
 			if !*skipGPUProvisionerCheck {
 				utils.PrintPodLogsOnFailure("gpu-provisioner", "") // The gpu-provisioner Pod
 			}
@@ -91,20 +94,8 @@ var _ = Describe("RAGEngine", func() {
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
-		err := createAndValidateIndexPod(ragengineObj)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
-
-		searchQuerySuccess := "\\n\\nKaito is an operator that is designed to automate the AI/ML model inference or tuning workload in a Kubernetes cluster."
-		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, true)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
-
-		persistLogSuccess := "Successfully persisted index kaito"
-		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
-
-		loadLogSuccess := "Successfully loaded index kaito"
-		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
+		err := createAndValidateE2EJob(fmt.Sprintf("%s-e2e", ragengineObj.Name), "kaito-workspace", ragengineObj.Name, ragengineObj.Namespace)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate E2E Job")
 	})
 
 	It("should create RAG with localembedding and kaito VLLM workspace successfully", func() {
@@ -141,19 +132,8 @@ var _ = Describe("RAGEngine", func() {
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
-		err := createAndValidateIndexPod(ragengineObj)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
-		searchQuerySuccess := "\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\n\\n\\n"
-		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
-
-		persistLogSuccess := "Successfully persisted index kaito"
-		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
-
-		loadLogSuccess := "Successfully loaded index kaito"
-		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
+		err := createAndValidateE2EJob(fmt.Sprintf("%s-e2e", ragengineObj.Name), "kaito-workspace", ragengineObj.Name, ragengineObj.Namespace)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate E2E Job")
 	})
 
 })
@@ -675,6 +655,48 @@ func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoa
 	return nil
 }
 
+func createAndValidateE2EJob(jobName, jobNamespace, ragEngineName, ragEngineNamespace string) error {
+	job := GenerateE2EJobManifest(jobName, jobNamespace, ragEngineName, ragEngineNamespace)
+	By("Creating E2E job", func() {
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, job, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create E2E job %s", job.Name)
+	})
+	By("Validating E2E job creation", func() {
+		err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: job.Namespace,
+			Name:      job.Name,
+		}, job, &client.GetOptions{})
+		Expect(err).NotTo(HaveOccurred())
+	})
+	By("Waiting for E2E job to complete", func() {
+		Eventually(func() bool {
+			jobStatus := &batchv1.Job{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: job.Namespace,
+				Name:      job.Name,
+			}, jobStatus)
+			if err != nil {
+				GinkgoWriter.Printf("Error fetching E2E job %s: %v\n", job.Name, err)
+				return false
+			}
+			return jobStatus.Status.Succeeded > 0 || jobStatus.Status.Failed > 0
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for E2E job to complete")
+	})
+	By("Checking E2E job logs", func() {
+
+		jobStatus := &batchv1.Job{}
+		err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: job.Namespace,
+			Name:      job.Name,
+		}, jobStatus)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(jobStatus.Status.Succeeded).To(BeNumerically(">", 0), "E2E job %s did not succeed", job.Name)
+	})
+	return nil
+}
+
 func GenerateCURLPodManifest(podName, curlCommand, namespace string) *v1.Pod {
 	return &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -689,6 +711,33 @@ func GenerateCURLPodManifest(podName, curlCommand, namespace string) *v1.Pod {
 					Image:   "curlimages/curl:latest",
 					Command: []string{"/bin/sh", "-c"},
 					Args:    []string{curlCommand},
+				},
+			},
+		},
+	}
+}
+
+func GenerateE2EJobManifest(jobName, jobNamespace, ragEngineName, ragEngineNamespace string) *batchv1.Job {
+	return &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      jobName,
+			Namespace: jobNamespace,
+		},
+		Spec: batchv1.JobSpec{
+			Template: v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					ServiceAccountName: "kaito-ragengine-sa",
+					RestartPolicy:      v1.RestartPolicyNever,
+					Containers: []v1.Container{
+						{
+							Name:  jobName,
+							Image: fmt.Sprintf("%s/kaito-e2e:v0.0.1", e2eACR),
+							Args: []string{
+								"--rag-engine-name=" + ragEngineName,
+								"--rag-engine-namespace=" + ragEngineNamespace,
+							},
+						},
+					},
 				},
 			},
 		},

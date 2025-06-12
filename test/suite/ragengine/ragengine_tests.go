@@ -1,18 +1,19 @@
-package tests
+package ragengine
 
 import (
 	"github.com/kaito-project/kaito/test/suite/clients/ragengine"
-	"github.com/kaito-project/kaito/test/suite/tests/actions"
+	"github.com/kaito-project/kaito/test/suite/ragengine/actions"
 	"github.com/kaito-project/kaito/test/suite/types"
 )
 
 type RAGEngineTest struct {
 	types.BaseTest
-	IndexName string
-	Documents []*ragengine.RAGDocument
+	IndexName          string
+	Documents          []*ragengine.RAGDocument
+	RetrievedDocuments []*ragengine.RAGDocument
 }
 
-func NewRAGEngineTest() types.Test {
+func NewBasicRAGEngineTest(ragEngineName, ragEngineNamespace string) types.Test {
 	test := RAGEngineTest{
 		IndexName: "e2e_test_index",
 		Documents: []*ragengine.RAGDocument{
@@ -28,10 +29,9 @@ func NewRAGEngineTest() types.Test {
 		Description:     "End-to-end test for RAGEngine functionality",
 		RunConcurrently: true,
 		Actions: []types.Action{
-			actions.GetRagClient("kaito-ragengine", ""),
-			actions.CreateIndex(test.IndexName, test.Documents),
+			actions.CreateIndex(test.IndexName, test.Documents, test.RetrievedDocuments),
 			actions.ListIndexes([]string{test.IndexName}),
-			actions.ListDocumentsInIndex(test.IndexName, 10, 0, 0, nil, test.Documents),
+			actions.GetAllIndexDocuments(test.IndexName, test.RetrievedDocuments),
 			actions.QueryIndex(test.IndexName, "what is kaito?", 1, 50, 0),
 			actions.DeleteIndex(test.IndexName),
 		},

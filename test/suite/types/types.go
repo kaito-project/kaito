@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -72,19 +73,22 @@ func (t BaseTest) Run(ctx context.Context, logger *slog.Logger, testContext *RAG
 	}
 
 	// Cleanup actions should always run and not fail if the test failed or was not run.
+	var cleanupErrs error
 	for _, action := range t.Actions {
 		if action.CleanupFunc == nil {
 			continue
 		}
 
 		if err := action.CleanupFunc(ctx, logger.With("action", action.Name, "stage", "cleanup"), testContext); err != nil {
+			cleanupErrs = errors.Join(cleanupErrs, fmt.Errorf("test %s cleanup failed at action %s: %w", t.Name, action.Name, err))
 			logger.Error("failed to run cleanup action", "action", action.Name, "error", err)
-			return fmt.Errorf("failed to cleanup test %s action %s: %w", t.Name, action.Name, err)
 		}
 	}
 
-	if err != nil {
-		return err
+	allErrs := errors.Join(err, cleanupErrs)
+
+	if allErrs != nil {
+		return allErrs
 	}
 
 	return nil

@@ -57,7 +57,6 @@ func (t BaseTest) Run(ctx context.Context, logger *slog.Logger, testContext *RAG
 		return fmt.Errorf("test context cannot be nil for test %s", t.Name)
 	}
 
-	var failedTest, failedAction string
 	var err error
 	for _, action := range t.Actions {
 		if action.RunFunc == nil {
@@ -66,9 +65,8 @@ func (t BaseTest) Run(ctx context.Context, logger *slog.Logger, testContext *RAG
 		}
 
 		if err = action.RunFunc(ctx, logger.With("action", action.Name, "stage", "run"), testContext); err != nil {
-			failedTest = t.Name
-			failedAction = action.Name
 			logger.Error("failed to run test action", "action", action.Name, "error", err)
+			err = fmt.Errorf("test %s failed at action %s: %w", t.Name, action.Name, err)
 			break
 		}
 	}
@@ -86,7 +84,7 @@ func (t BaseTest) Run(ctx context.Context, logger *slog.Logger, testContext *RAG
 	}
 
 	if err != nil {
-		return fmt.Errorf("test %s failed at action %s: %w", failedTest, failedAction, err)
+		return err
 	}
 
 	return nil

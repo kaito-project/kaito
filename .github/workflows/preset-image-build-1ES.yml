@@ -68,7 +68,7 @@ jobs:
           PR_BRANCH=${{ env.BRANCH_NAME }} \
           FORCE_RUN_ALL=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL }} \
           FORCE_RUN_ALL_PHI=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL_PHI }} \
-          python3 .github/workflows/kind-cluster/determine_models.py
+          python3 .github/determine_models.py
 
       - name: Print Determined Models
         run: |
@@ -162,26 +162,6 @@ jobs:
             curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
             sudo apt-get install -y git-lfs
             git lfs install
-          fi
-
-      - name: Ensure kubectl is Installed
-        run: |
-          if ! command -v kubectl &> /dev/null; then
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-            kubectl version --client --output=yaml
-          fi
-
-      - name: Ensure Kind is Installed
-        run: |
-          if ! command -v kind &> /dev/null; then
-            if [ $(uname -m) = x86_64 ]; then
-              curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
-            elif [ $(uname -m) = aarch64 ]; then
-              curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-arm64
-            fi
-            chmod +x ./kind
-            sudo mv ./kind /usr/local/bin/kind
           fi
 
       - name: Configure Docker to Use /mnt/storage/docker

@@ -784,19 +784,6 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			expectErrs: false,
 		},
 		{
-			name: "Config specified but ConfigMap not found",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					PresetMeta: PresetMeta{
-						Name: ModelName("test-validation"),
-					},
-				},
-				Config: "nonexistent-config",
-			},
-			errContent: "ConfigMap 'nonexistent-config' specified in 'config' not found in namespace",
-			expectErrs: true,
-		},
-		{
 			name: "Config specified with valid ConfigMap",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
@@ -808,31 +795,6 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			},
 			errContent: "",
 			expectErrs: false,
-		},
-		{
-			name: "ConfigMap missing required inference_config.yaml",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					PresetMeta: PresetMeta{
-						Name: ModelName("test-validation"),
-					},
-				},
-				Config: "missing-key-config",
-			},
-			errContent: "missing field(s): inference_config.yaml in ConfigMap",
-			expectErrs: true,
-		},
-		{
-			name: "ConfigMap missing required inference_config.yaml/transformers",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					PresetMeta: PresetMeta{
-						Name: ModelName("test-validation"),
-					},
-				},
-				Config: "missing-key-config",
-			},
-			runtimeName: model.RuntimeNameHuggingfaceTransformers,
 		},
 		{
 			name: "download model at runtime with access secret",
@@ -896,7 +858,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			if tc.runtimeName != "" {
 				runtime = tc.runtimeName
 			}
-			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, "Standard_NC24ads_A100_v4", runtime)
+			errs := tc.inferenceSpec.validateCreate(ctx, runtime)
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -1824,6 +1786,10 @@ func TestInferenceConfigMapValidation(t *testing.T) {
 	RegisterValidationTestModels()
 	ctx := context.Background()
 
+	// Set environment variables
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+
 	// Create fake client with test ConfigMaps
 	scheme := runtime.NewScheme()
 	_ = v1.AddToScheme(scheme)
@@ -1883,137 +1849,202 @@ other_field: value
 	k8sclient.SetGlobalClient(client)
 
 	tests := []struct {
-		name          string
-		inferenceSpec *InferenceSpec
-		resourceSpec  *ResourceSpec
-		runtimeName   model.RuntimeName
-		errContent    string // Content expected error to include, if any
-		expectErrs    bool
+		name       string
+		workspace  *Workspace
+		errContent string // Content expected error to include, if any
+		expectErrs bool
 	}{
 		{
-			name: "Multi-GPU with <20GB per GPU and max-model-len set",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					PresetMeta: PresetMeta{
-						Name: ModelName("test-validation"),
-					},
+			name: "Single Instance, Multi-GPU with <20GB per GPU and max-model-len set",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: DefaultReleaseNamespace,
 				},
-				Config: "valid-config-with-max-model-len",
-			},
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
-				Count:        pointerToInt(1),
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
+					},
+					Config: "valid-config-with-max-model-len",
+				},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+					Count:        pointerToInt(1),
+				},
 			},
 			errContent: "",
 			expectErrs: false,
 		},
 		{
-			name: "Multi-GPU with <20GB per GPU and max-model-len missing",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					PresetMeta: PresetMeta{
-						Name: ModelName("test-validation"),
-					},
+			name: "Single Instance, Multi-GPU with <20GB per GPU and max-model-len missing",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: DefaultReleaseNamespace,
 				},
-				Config: "invalid-config-without-max-model-len",
-			},
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
-				Count:        pointerToInt(1),
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
+					},
+					Config: "invalid-config-without-max-model-len",
+				},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+					Count:        pointerToInt(1),
+				},
 			},
 			errContent: "max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU",
 			expectErrs: true,
 		},
 		{
-			name: "Multi-GPU with <20GB per GPU and empty vllm section",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					PresetMeta: PresetMeta{
-						Name: ModelName("test-validation"),
-					},
+			name: "Single Instance, Multi-GPU with <20GB per GPU and empty vllm section",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: DefaultReleaseNamespace,
 				},
-				Config: "invalid-config-empty-vllm",
-			},
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
-				Count:        pointerToInt(1),
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
+					},
+					Config: "invalid-config-empty-vllm",
+				},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+					Count:        pointerToInt(1),
+				},
 			},
 			errContent: "max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU",
 			expectErrs: true,
 		},
 		{
-			name: "Multi-GPU with <20GB per GPU and vllm section missing",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					PresetMeta: PresetMeta{
-						Name: ModelName("test-validation"),
-					},
+			name: "Single Instance, Multi-GPU with <20GB per GPU and vllm section missing",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: DefaultReleaseNamespace,
 				},
-				Config: "invalid-config-no-vllm",
-			},
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
-				Count:        pointerToInt(1),
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
+					},
+					Config: "invalid-config-no-vllm",
+				},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+					Count:        pointerToInt(1),
+				},
 			},
 			errContent: "max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU",
 			expectErrs: true,
 		},
 		{
-			name: "Single-GPU instance (no max-model-len required)",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					PresetMeta: PresetMeta{
-						Name: ModelName("test-validation"),
-					},
+			name: "Single Instance, Single-GPU (no max-model-len required)",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: DefaultReleaseNamespace,
 				},
-				Config: "invalid-config-without-max-model-len",
-			},
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV6", // 1 GPU with 8GB
-				Count:        pointerToInt(1),
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
+					},
+					Config: "invalid-config-without-max-model-len",
+				},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NV6", // 1 GPU with 8GB
+					Count:        pointerToInt(1),
+				},
 			},
 			errContent: "",
 			expectErrs: false,
 		},
 		{
-			name: "Multi-GPU with >=20GB per GPU (no max-model-len required)",
-			inferenceSpec: &InferenceSpec{
-				Preset: &PresetSpec{
-					PresetMeta: PresetMeta{
-						Name: ModelName("test-validation"),
-					},
+			name: "Single Instance, Multi-GPU with >=20GB per GPU (no max-model-len required)",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: DefaultReleaseNamespace,
 				},
-				Config: "invalid-config-without-max-model-len",
-			},
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC48ads_A100_v4", // 2 GPUs with 80GB each (160GB total)
-				Count:        pointerToInt(1),
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
+					},
+					Config: "invalid-config-without-max-model-len",
+				},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NC48ads_A100_v4", // 2 GPUs with 80GB each (160GB total)
+					Count:        pointerToInt(1),
+				},
 			},
 			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "Multi Instances, GPU with <20GB per instance and max-model-len missing",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: DefaultReleaseNamespace,
+				},
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
+					},
+					Config: "invalid-config-without-max-model-len",
+				},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NC6s_v3", // 1 GPUs with 16GB
+					Count:        pointerToInt(2),
+				},
+			},
+			errContent: "max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU",
+			expectErrs: true,
+		},
+		{
+			name: "Multi Instances, GPU with <20GB per instance and max-model-len set",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: DefaultReleaseNamespace,
+				},
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
+					},
+					Config: "valid-config-with-max-model-len",
+				},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NC6s_v3", // 1 GPUs with 16GB
+					Count:        pointerToInt(2),
+				},
+			},
 			expectErrs: false,
 		},
 	}
 
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Validate the inference spec
-			runtimeName := model.RuntimeNameVLLM
-			if tc.runtimeName != "" {
-				runtimeName = tc.runtimeName
-			}
-			errs := tc.inferenceSpec.validateCreate(ctx, DefaultReleaseNamespace, tc.resourceSpec.InstanceType, runtimeName)
+			// Call validateInferenceConfig directly
+			errs := tc.workspace.validateInferenceConfig(ctx)
 			hasErrs := errs != nil
 
 			if hasErrs != tc.expectErrs {
-				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
+				t.Errorf("validateInferenceConfig() errors = %v, expectErrs %v", errs, tc.expectErrs)
 			}
 
 			if hasErrs && tc.errContent != "" {
 				errMsg := errs.Error()
 				if !strings.Contains(errMsg, tc.errContent) {
-					t.Errorf("validateCreate() error message = %v, expected to contain = %v", errMsg, tc.errContent)
+					t.Errorf("validateInferenceConfig() error message = %v, expected to contain = %v", errMsg, tc.errContent)
 				}
 			}
 		})

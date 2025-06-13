@@ -13,7 +13,7 @@ from llama_index.core import Document as LlamaDocument
 from llama_index.core import (StorageContext, VectorStoreIndex, load_index_from_storage)
 from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 
-from llama_index.vector_stores.faiss import FaissVectorStore
+from llama_index.vector_stores.faiss import FaissMapVectorStore
 
 from ragengine.models import Document
 from ragengine.embedding.base import BaseEmbeddingModel
@@ -415,7 +415,7 @@ class BaseVectorStore(ABC):
                 storage_context = StorageContext.from_defaults(persist_dir=path)
             except UnicodeDecodeError as ude:
                 # Failed to load the index in the default json format, trying faissdb
-                faiss_vs = FaissVectorStore.from_persist_dir(persist_dir=path)
+                faiss_vs = FaissMapVectorStore.from_persist_dir(persist_dir=path)
                 storage_context = StorageContext.from_defaults(persist_dir=path, vector_store=faiss_vs)
             except Exception as e:
                 logger.error(f"Failed to load index '{index_name}'. Error: {str(e)}")

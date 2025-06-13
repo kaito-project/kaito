@@ -149,7 +149,7 @@ models:
     type: text-generation
     version: https://huggingface.co/microsoft/Phi-4-mini-instruct/commit/c0fb9e74abda11b496b7907a9c6c9009a7a0488f
     runtime: tfs
-    tag: 0.1.1
+    tag: 0.2.0
   - name: phi-4
     type: text-generation
     version: https://huggingface.co/microsoft/phi-4/commit/187ef0342fff0eb3333be9f00389385e95ef0b61

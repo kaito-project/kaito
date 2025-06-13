@@ -9,26 +9,26 @@ ENV RAY_USAGE_STATS_ENABLED="1"
 # Set the working directory
 WORKDIR /workspace
 
-COPY kaito/presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
+COPY presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
 
-RUN pip install --no-cache-dir -r /workspace/requirements.txt
+RUN pip install --no-cache-dir -q -r /workspace/requirements.txt
 
 # Required for torch.compile
 RUN apt-get update -y && apt-get install --no-install-recommends curl gcc libc-dev perl -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 1. Huggingface transformers
-COPY kaito/presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
-    kaito/presets/workspace/tuning/${MODEL_TYPE}/cli.py \
-    kaito/presets/workspace/tuning/${MODEL_TYPE}/fine_tuning.py \
-    kaito/presets/workspace/tuning/${MODEL_TYPE}/parser.py \
-    kaito/presets/workspace/tuning/${MODEL_TYPE}/dataset.py \
-    kaito/presets/workspace/tuning/${MODEL_TYPE}/metrics/metrics_server.py \
+COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
+    presets/workspace/tuning/${MODEL_TYPE}/cli.py \
+    presets/workspace/tuning/${MODEL_TYPE}/fine_tuning.py \
+    presets/workspace/tuning/${MODEL_TYPE}/parser.py \
+    presets/workspace/tuning/${MODEL_TYPE}/dataset.py \
+    presets/workspace/tuning/${MODEL_TYPE}/metrics/metrics_server.py \
     /workspace/tfs/
 
 # 2. vLLM
-COPY kaito/presets/workspace/inference/vllm/inference_api.py \
-    kaito/presets/workspace/inference/vllm/multi-node-health-check.py \
+COPY presets/workspace/inference/vllm/inference_api.py \
+    presets/workspace/inference/vllm/multi-node-health-check.py \
     /workspace/vllm/
 
 RUN VLLM_VERSION=$(grep 'vllm==' /workspace/requirements.txt | cut -d'=' -f3) && \
@@ -37,16 +37,6 @@ RUN VLLM_VERSION=$(grep 'vllm==' /workspace/requirements.txt | cut -d'=' -f3) &&
     chmod +x /workspace/vllm/multi-node-serving.sh
 
 # Chat template
-ADD kaito/presets/workspace/inference/chat_templates /workspace/chat_templates
+ADD presets/workspace/inference/chat_templates /workspace/chat_templates
 
 RUN echo $VERSION > /workspace/version.txt
-
-FROM base AS model
-
-ARG WEIGHTS_PATH
-
-# Model weights
-COPY ${WEIGHTS_PATH} /workspace/weights
-
-RUN ln -s /workspace/weights /workspace/tfs/weights && \
-    ln -s /workspace/weights /workspace/vllm/weights

@@ -4,6 +4,8 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -65,6 +67,32 @@ var (
 	}
 )
 
+type ImageConfig struct {
+	RegistryName string
+	ImageName    string
+	ImageTag     string
+}
+
+func (ic ImageConfig) GetImage() string {
+	return fmt.Sprintf("%s/%s:%s", ic.RegistryName, ic.ImageName, ic.ImageTag)
+}
+
+func getImageConfig() ImageConfig {
+	return ImageConfig{
+		RegistryName: getEnv("PRESET_RAG_REGISTRY_NAME", "aimodelsregistrytest.azurecr.io"),
+		ImageName:    getEnv("PRESET_RAG_IMAGE_NAME", "kaito-rag-service"),
+		ImageTag:     getEnv("PRESET_RAG_IMAGE_TAG", "0.3.2"),
+	}
+}
+
+func getEnv(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
+}
+
 func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
@@ -100,7 +128,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 	}
 	commands := utils.ShellCmd("python3 main.py")
 
-	image := "aimodelsregistrytest.azurecr.io/kaito-rag-service:0.3.2" //TODO: Change to the mcr image when release
+	image := getImageConfig().GetImage()
 
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 

@@ -62,8 +62,11 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 
 			runtime := GetWorkspaceRuntimeName(w)
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
-			errs = errs.Also(w.Resource.validateCreateWithInference(w.Inference, bypassResourceChecks).ViaField("resource"),
-				w.Inference.validateCreate(ctx, w.Namespace, w.Resource.InstanceType, runtime).ViaField("inference"))
+			errs = errs.Also(w.Resource.validateCreateWithInference(
+				w.Inference, bypassResourceChecks).ViaField("resource"),
+				w.Inference.validateCreate(ctx, runtime).ViaField("inference"),
+				w.validateInferenceConfig(ctx),
+			)
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
@@ -409,7 +412,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
-func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, instanceType string, runtime model.RuntimeName) (errs *apis.FieldError) {
+func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.RuntimeName) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -466,30 +469,6 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, namespace string, in
 	if len(i.Adapters) > 0 {
 		nameMap := make(map[string]bool)
 		errs = errs.Also(validateDuplicateName(i.Adapters, nameMap))
-	}
-
-	// check if required fields are set
-	// this check only applies to vllm runtime
-	if runtime == model.RuntimeNameVLLM {
-		func() {
-			var (
-				cmName = i.Config
-				cmNS   = namespace
-				err    error
-			)
-			if cmName == "" {
-				klog.Infof("Inference config not specified. Using default: %q", DefaultInferenceConfigTemplate)
-				cmName = DefaultInferenceConfigTemplate
-				cmNS, err = utils.GetReleaseNamespace()
-				if err != nil {
-					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
-					return
-				}
-			}
-			if err := i.validateConfigMap(ctx, cmNS, cmName, instanceType); err != nil {
-				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to evaluate validateConfigMap: %v", err), "Config"))
-			}
-		}()
 	}
 
 	return errs

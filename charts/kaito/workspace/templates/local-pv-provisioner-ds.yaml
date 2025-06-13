@@ -1,0 +1,130 @@
+# Ref: https://github.com/Azure/kubernetes-volume-drivers/tree/master/local
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-disk
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer  # Immediate is not supported
+reclaimPolicy: Delete  # available values: Delete, Retain
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-provisioner-config
+  namespace: {{ .Release.Namespace }}
+data:
+  storageClassMap: |
+    local-disk:
+       hostDir: /dev
+       mountDir:  /dev
+       blockCleanerCommand:
+         - "/scripts/quick_reset.sh"
+       volumeMode: Filesystem
+       fsType: ext4
+       namePattern: nvme*
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: local-volume-provisioner-ds
+  namespace: {{ .Release.Namespace }}
+  labels:
+    name: local-volume-provisioner-ds
+spec:
+  selector:
+    matchLabels:
+      name: local-volume-provisioner-ds
+  template:
+    metadata:
+      labels:
+        name: local-volume-provisioner-ds
+    spec:
+      serviceAccountName: local-storage-admin
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+        # Allow this pod to be rescheduled while the node is in "critical add-ons only" mode.
+        # This, along with the annotation above marks this pod as a critical add-on.
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+        - key: "sku"
+          operator: "Equal"
+          value: "gpu"
+          effect: "NoSchedule"
+      priorityClassName: "system-node-critical"
+      containers:
+        - image: "mcr.microsoft.com/k8s/local-volume-provisioner:v2.8.0"
+          name: provisioner
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--v=2"
+          securityContext:
+            privileged: true
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - mountPath: /etc/provisioner/config
+              name: provisioner-config
+              readOnly: true
+            - mountPath: /dev/
+              name: local-disk
+              mountPropagation: "HostToContainer"
+      volumes:
+        - name: provisioner-config
+          configMap:
+            name: local-provisioner-config
+        - name: local-disk
+          hostPath:
+            path: /dev/
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: local-storage-admin
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: local-storage-provisioner-pv-binding
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: local-storage-admin
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: system:persistent-volume-provisioner
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: local-storage-provisioner-node-clusterrole
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: local-storage-provisioner-node-binding
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: local-storage-admin
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: local-storage-provisioner-node-clusterrole
+  apiGroup: rbac.authorization.k8s.io

@@ -448,6 +448,87 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 	}
 }
 
+func TestGenerateModelFileCacheVolume(t *testing.T) {
+	test.RegisterTestModel()
+	testcases := map[string]struct {
+		workspace              *v1beta1.Workspace
+		modelName              string
+		expectPVC              bool
+		expectedPVCName        string
+		expectedStorageClass   string
+		expectedStorageRequest string
+		expectedMountPath      string
+	}{
+		"test-model (not distributed)": {
+			workspace:         test.MockWorkspaceWithPreset,
+			modelName:         "test-model",
+			expectPVC:         false,
+			expectedPVCName:   "", // No PVC expected
+			expectedMountPath: "",
+		},
+		"test-model-download (distributed)": {
+			workspace:              test.MockWorkspaceWithPresetDownloadVLLM,
+			modelName:              "test-model-download",
+			expectPVC:              true,
+			expectedPVCName:        "model-file-cache",
+			expectedStorageClass:   "local-disk",
+			expectedStorageRequest: "64Gi", // From test-model-download requirements
+			expectedMountPath:      "/workspace/weights",
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			mockClient := test.NewClient()
+			model := plugin.KaitoModelRegister.MustGet(tc.modelName)
+
+			pvcs, volumeMounts := GenerateModelFileCacheVolume(context.TODO(), tc.workspace, model, mockClient)
+			if tc.expectPVC {
+				if len(pvcs) == 0 {
+					t.Errorf("Expected a PVC to be generated but got none")
+					return
+				}
+
+				pvc := pvcs[0]
+				if pvc.Name != tc.expectedPVCName {
+					t.Errorf("Expected PVC name %s, got %s", tc.expectedPVCName, pvc.Name)
+				}
+
+				if *pvc.Spec.StorageClassName != tc.expectedStorageClass {
+					t.Errorf("Expected storage class %s, got %s", tc.expectedStorageClass, *pvc.Spec.StorageClassName)
+				}
+
+				storageRequest := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
+				if storageRequest.String() != tc.expectedStorageRequest {
+					t.Errorf("Expected storage request %s, got %s", tc.expectedStorageRequest, storageRequest.String())
+				}
+
+				if len(volumeMounts) == 0 {
+					t.Errorf("Expected a VolumeMount to be generated but got none")
+					return
+				}
+
+				volumeMount := volumeMounts[0]
+				if volumeMount.MountPath != tc.expectedMountPath {
+					t.Errorf("Expected mount path %s, got %s", tc.expectedMountPath, volumeMount.MountPath)
+				}
+
+				if volumeMount.Name != tc.expectedPVCName {
+					t.Errorf("Expected volume mount name %s, got %s", tc.expectedPVCName, volumeMount.Name)
+				}
+			} else {
+				if len(pvcs) != 0 {
+					t.Errorf("Expected no PVC to be generated but got %d", len(pvcs))
+				}
+
+				if len(volumeMounts) != 0 {
+					t.Errorf("Expected no VolumeMount to be generated but got %d", len(volumeMounts))
+				}
+			}
+		})
+	}
+}
+
 func toParameterMap(in []string) map[string]string {
 	ret := make(map[string]string)
 	for _, eachToken := range in {

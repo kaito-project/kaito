@@ -11,6 +11,7 @@ import (
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -70,6 +71,8 @@ var (
 			Operator: corev1.TolerationOpEqual,
 		},
 	}
+
+	defaultModelFileCacheStorageClass = "local-disk"
 )
 
 func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace, presetObj *pkgmodel.PresetParam) (string, []corev1.LocalObjectReference) {
@@ -104,6 +107,40 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	return imageName, imagePullSecretRefs
 }
 
+// GenerateModelFileCacheVolume creates a PVC for model file caching if needed and returns volume and volume mount.
+func GenerateModelFileCacheVolume(ctx context.Context, workspaceObj *v1beta1.Workspace, model pkgmodel.Model, kubeClient client.Client) ([]corev1.PersistentVolumeClaim, []corev1.VolumeMount) {
+	// Return empty results if the model doesn't need to be downloaded at runtime
+	if !model.SupportDistributedInference() {
+		return []corev1.PersistentVolumeClaim{}, []corev1.VolumeMount{}
+	}
+
+	// Define PVC name that will be used
+	pvcName := "model-file-cache"
+	pvc := corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: pvcName,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+			StorageClassName: &defaultModelFileCacheStorageClass,
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					// place model files in this volume
+					corev1.ResourceStorage: resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement),
+				},
+			},
+		},
+	}
+
+	volumeMount := corev1.VolumeMount{
+		Name:      pvcName,
+		MountPath: "/workspace/weights",
+	}
+
+	return []corev1.PersistentVolumeClaim{pvc}, []corev1.VolumeMount{volumeMount}
+}
+
+// TODO: refactor this function
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
 	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
 	inferenceParam := model.GetInferenceParameters().DeepCopy()
@@ -161,11 +198,17 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 	var envVars []corev1.EnvVar
+	var pvcs []corev1.PersistentVolumeClaim
 
 	// Add config volume mount
 	cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
 	volumes = append(volumes, cmVolume)
 	volumeMounts = append(volumeMounts, cmVolumeMount)
+
+	// Add model file caching volumes if required
+	modelFileCacheVolumeClaims, modelFileCacheVolumeMounts := GenerateModelFileCacheVolume(ctx, workspaceObj, model, kubeClient)
+	pvcs = append(pvcs, modelFileCacheVolumeClaims...)
+	volumeMounts = append(volumeMounts, modelFileCacheVolumeMounts...)
 
 	// add share memory for cross process communication
 	shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
@@ -220,7 +263,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, workspaceObj, 60, 10, 5)
 		readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, workspaceObj, 0, 10, 1)
 		depObj = manifests.GenerateStatefulSetManifest(workspaceObj, revisionNum, image, imagePullSecrets, numNodes, commands,
-			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars)
+			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars, pvcs)
 	} else {
 		depObj = manifests.GenerateDeploymentManifest(workspaceObj, revisionNum, image, imagePullSecrets, numNodes, commands,
 			containerPorts, defaultLivenessProbe, defaultReadinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars)

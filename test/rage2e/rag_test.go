@@ -544,7 +544,17 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) (map[strin
 
 			GinkgoWriter.Printf("Index pod logs: %s\n", logs)
 
-			err = json.Unmarshal([]byte(logs), &indexResp)
+			startIndex := strings.Index(logs, "[")
+			endIndex := strings.LastIndex(logs, "]")
+			if startIndex == -1 || endIndex == -1 || startIndex >= endIndex {
+				GinkgoWriter.Printf("Invalid index logs format in pod %s: %s\n", podName, logs)
+				return false
+			}
+
+			apiResp := logs[startIndex : endIndex+1]
+			GinkgoWriter.Printf("Parsed API response: %s\n", apiResp)
+
+			err = json.Unmarshal([]byte(apiResp), &indexResp)
 			if err != nil {
 				GinkgoWriter.Printf("Failed to unmarshal pod logs to index response %s: %v\n", podName, err)
 				return false

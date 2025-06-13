@@ -77,6 +77,22 @@ jobs:
         env:
           REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
       
+      - name: build kaito RAG Engine service image
+        if: ${{ !inputs.isRelease }}
+        shell: bash
+        run: |
+          make docker-build-ragservice
+        env:
+          REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
+      
+      - name: build kaito RAG Engine E2E image
+        if: ${{ !inputs.isRelease }}
+        shell: bash
+        run: |
+          make docker-build-e2e
+        env:
+          REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
+      
       - name: Remove existing Go modules directory
         run: sudo rm -rf ~/go/pkg/mod
       
@@ -91,7 +107,7 @@ jobs:
       - name: Install KAITO RAG Engine helm chart
         shell: bash
         run: |
-          make az-patch-install-ragengine-helm
+          make az-patch-install-ragengine-helm-e2e
           kubectl wait --for=condition=available deploy "kaito-ragengine" -n kaito-ragengine --timeout=300s
         env:
           REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io

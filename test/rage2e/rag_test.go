@@ -610,15 +610,15 @@ func createAndValidateUpdateDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, d
 			GinkgoWriter.Printf("Index pod logs: %s\n", logs)
 
 			return strings.Contains(logs, `"updated_documents":[{"doc_id":"`+docID+`"`)
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for index logs to be ready")
+		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for update document logs to be ready")
 	})
 
 	return nil
 }
 
 func createAndValidateDeleteDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, docID string) error {
-	podName := "update-document-pod"
-	By("Creating update document pod", func() {
+	podName := "delete-document-pod"
+	By("Creating delete document pod", func() {
 		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/indexes/kaito/documents/delete \
 -H "Content-Type: application/json" \
 -d '{"doc_ids": ["` + docID + `"]}'`
@@ -646,25 +646,25 @@ func createAndValidateDeleteDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, d
 			GinkgoWriter.Printf("Index pod logs: %s\n", logs)
 
 			return strings.Contains(logs, `"deleted_doc_ids":["`+docID+`"]`)
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for index logs to be ready")
+		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for delete document logs to be ready")
 	})
 
 	return nil
 }
 
 func createAndValidateDeleteIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
-	podName := "index-pod"
-	By("Creating index pod", func() {
+	podName := "delete-index-pod"
+	By("Creating delete index pod", func() {
 		curlCommand := `curl -X DELETE ` + ragengineObj.Name + `:80/indexes/kaito \
 -H "Content-Type: application/json"`
 		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
 		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create index pod")
+			Should(Succeed(), "Failed to create delete index pod")
 	})
 
-	By("Checking the index logs", func() {
+	By("Checking the delete index logs", func() {
 		Eventually(func() bool {
 			coreClient, err := utils.GetK8sClientset()
 			if err != nil {

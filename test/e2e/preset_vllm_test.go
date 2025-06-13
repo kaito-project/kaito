@@ -54,9 +54,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a single-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode, "Standard_NC12s_v3")
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -70,6 +70,30 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceConfig(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
+	})
+
+	It("should create a multi-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		// Need 2 Standard_NC6s_v3 nodes to run Llama 3.1-8B Instruct model.
+		// Each node has 1 V100 GPU, so total 2 GPUs are used
+		numOfNode := 2
+		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode, "Standard_NC6s_v3")
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -240,6 +264,30 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateAdapterLoadedInVLLM(workspaceObj, phi4AdapterName)
 	})
+
+	It("should create a llama-3.3-70b-instruct workspace with preset public mode successfully", func() {
+		// Need 2 Standard_NC48ads_A100_v4 nodes to run Llama 3.3-70B Instruct model.
+		// Each node has 2 A100 GPUs, so total 4 GPUs are used
+		numOfNode := 2
+		workspaceObj := createLlama3_3_70BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode), true)
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
+	})
 })
 
 func createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
@@ -354,15 +402,29 @@ func createQwen2_5WorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode int)
 	return workspaceObj
 }
 
-func createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int, instanceType string) *kaitov1beta1.Workspace {
 	modelSecret := createAndValidateModelSecret()
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, instanceType,
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b-vllm"},
+				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
 			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name) // Llama 3.1-8B Instruct model requires a model access secret
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createLlama3_3_70BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	modelSecret := createAndValidateModelSecret()
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Llama 3.3-70B Instruct preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-llama3-3-70b-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC48ads_A100_v4",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-3-70b-vllm"},
+			}, nil, PresetLlama3_3_70BInstruct, nil, nil, nil, modelSecret.Name) // Llama 3.3-70B Instruct model requires a model access secret
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj

@@ -78,7 +78,7 @@ runs:
         echo "Final disk usage:"
         df -h
 
-        du -sh /usr/local/vss-agent/_diag/*
+        du -sh /usr/local/vss-agent/2.325.0/_diag
       shell: bash
 
     - name: Install Hugging Face CLI

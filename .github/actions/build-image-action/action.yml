@@ -93,7 +93,7 @@ runs:
         echo "Installing Hugging Face CLI..."
         pip install huggingface-hub
 
-        huggingface-cli scan-cache 
+        /home/cloudtest/.local/bin/huggingface-cli scan-cache 
       shell: bash
 
     - name: Install ORAS CLI
@@ -215,11 +215,11 @@ runs:
       shell: bash
     - name: Cleanup
       if: always()
-      shell: base
+      shell: bash
       run: |
         df -h
         du -sh /home/cloudtest/
         df -h /home/cloudtest/
         du -sh /usr/local/vss-agent
 
-        
+

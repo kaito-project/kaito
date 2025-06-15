@@ -458,7 +458,7 @@ func validateAssociatedService(objectMeta metav1.ObjectMeta) {
 	})
 }
 
-// validateRAGEngineReadiness validates ragengine conditions
+// validateRAGEngineCondition validates ragengine conditions
 func validateRAGEngineCondition(ragengineObj *kaitov1alpha1.RAGEngine, conditionType string, description string) {
 	By(fmt.Sprintf("Checking %s", description), func() {
 		Eventually(func() bool {

@@ -74,7 +74,7 @@ def push_to_oras(source_dir, image_name):
     try:
         # Initialize command with oras push and image name
         # ORAS cli is much more stable than python sdk.
-        command = ["oras", "push", image_name]
+        command = ["oras", "push", "--concurrency", "2", image_name]
 
         # Gather all files with their relative paths, excluding hidden files
         files_to_push = []
@@ -159,6 +159,7 @@ def main():
             repo_id=repo_name,
             revision=revision,
             local_dir=weights_dir,
+            cache_dir=os.path.join(os.path.dirname(weights_dir), "hfcache"),
             token=hf_token if hf_token else None,
         )
 

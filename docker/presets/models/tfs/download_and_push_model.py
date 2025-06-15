@@ -159,6 +159,7 @@ def main():
             repo_id=repo_name,
             revision=revision,
             local_dir=weights_dir,
+            cache_dir=os.path.join(os.path.dirname(weights_dir), "hfcache"),
             token=hf_token if hf_token else None,
         )
 

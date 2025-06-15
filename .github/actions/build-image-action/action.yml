@@ -80,7 +80,7 @@ runs:
 
         du -sh /home/cloudtest/
         df -h /home/cloudtest/
-        huggingface-cli scan-cache 
+        ls -l /home/cloudtest/
         rm -rf /home/cloudtest/.cache/huggingface/transformers
         rm -rf /home/cloudtest/.cache/huggingface/datasets
         rm -rf /home/cloudtest/.cache/huggingface/hub
@@ -92,6 +92,8 @@ runs:
       run: |
         echo "Installing Hugging Face CLI..."
         pip install huggingface-hub
+
+        huggingface-cli scan-cache 
       shell: bash
 
     - name: Install ORAS CLI
@@ -211,3 +213,13 @@ runs:
           --output type=image,name=$ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG,push=true,compression=zstd \
           -f ./docker/presets/models/tfs/Dockerfile .
       shell: bash
+    - name: Cleanup
+      if: always()
+      shell: base
+      run: |
+        df -h
+        du -sh /home/cloudtest/
+        df -h /home/cloudtest/
+        du -sh /usr/local/vss-agent
+
+        

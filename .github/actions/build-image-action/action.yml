@@ -78,7 +78,14 @@ runs:
         echo "Final disk usage:"
         df -h
 
-        du -sh /usr/local/vss-agent/2.325.0/_diag
+        du -sh /home/cloudtest/
+        df -h /home/cloudtest/
+        huggingface-cli scan-cache 
+        rm -rf /home/cloudtest/.cache/huggingface/transformers
+        rm -rf /home/cloudtest/.cache/huggingface/datasets
+        rm -rf /home/cloudtest/.cache/huggingface/hub
+        rm -rf /home/cloudtest/.cache/huggingface/xet
+
       shell: bash
 
     - name: Install Hugging Face CLI

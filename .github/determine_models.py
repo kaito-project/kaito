@@ -143,7 +143,8 @@ def main():
         affected_models = check_modified_models()
 
     download_at_runtime = {model['name'] for model in YAML_PR['models'] if model.get('downloadAtRuntime')}
-    affected_models = [model for model in affected_models if model not in download_at_runtime]
+    # Filter models: exclude download-at-runtime models and include only those with 'qwen' prefix
+    affected_models = [model for model in affected_models if model not in download_at_runtime and model and 'qwen' in model]
 
     # Convert the list of models into JSON matrix format
     matrix = create_matrix(affected_models)

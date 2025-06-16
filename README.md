@@ -23,5 +23,35 @@ Kaito has the following key differentiations compared to most of the mainstream 
 
 Using Kaito, the workflow of onboarding large AI inference models in Kubernetes is largely simplified.
 
-For more details and how to get started, please refer to [the documentation](https://kaito-project.github.io/kaito/docs/).
+👉 For more details and how to get started, please refer to [the documentation](https://kaito-project.github.io/kaito/docs/).
 
+## Contributing
+
+[Read more](docs/contributing/readme.md)
+<!-- markdown-link-check-disable -->
+This project welcomes contributions and suggestions. The contributions require you to agree to a
+Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
+the rights to use your contribution. For details, visit [CLAs for CNCF](https://github.com/cncf/cla?tab=readme-ov-file).
+
+When you submit a pull request, a CLA bot will automatically determine whether you need to provide
+a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
+provided by the bot. You will only need to do this once across all repos using our CLA.
+
+This project has adopted the CLAs for CNCF, please electronically sign the CLA via
+https://easycla.lfx.linuxfoundation.org. If you encounter issues, you can submit a ticket with the
+Linux Foundation ID group through the [Linux Foundation Support website](https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4/create/143).
+
+## License
+
+See [MIT License](LICENSE).
+
+## Code of Conduct
+
+KAITO has adopted the [Cloud Native Compute Foundation Code of Conduct](https://github.com/cncf/foundation/blob/main/code-of-conduct.md). For more information see the [KAITO Code of Conduct](CODE_OF_CONDUCT.md).
+
+<!-- markdown-link-check-enable -->
+## Contact
+
+"Kaito devs" <kaito-dev@microsoft.com>
+
+[Kaito Community Slack](https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-2wm17rttz-t4E6_rMIuY03DwBHaJq1sg)

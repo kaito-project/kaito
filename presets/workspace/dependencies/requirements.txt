@@ -5,7 +5,7 @@ vllm==0.9.0
 transformers == 4.51.3
 torch==2.7.0
 accelerate==1.0.0
-fastapi==0.115.0
+fastapi==0.115.12
 pydantic>=2.9
 uvicorn[standard]>=0.29.0,<0.30.0  # Allow patch updates
 uvloop
@@ -13,6 +13,7 @@ peft==0.11.1
 numpy<3.0,>=1.25.0
 sentencepiece==0.2.0
 jinja2>=3.1.0
+starlette==0.40.0
 
 # For accessing Ray dashboard. ray[default] version should be consistent with the one in vllm/vllm-openai:<vllm-version>.
 # Check with `docker run --entrypoint "" vllm/vllm-openai:<vllm-version> pip freeze | grep ray`

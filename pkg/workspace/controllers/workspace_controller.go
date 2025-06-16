@@ -556,18 +556,20 @@ func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1be
 		return nil
 	}
 
-	supportsDistributedInference := false
+	isStatefulSet := false
 	if presetName := getPresetName(wObj); presetName != "" {
 		model := plugin.KaitoModelRegister.MustGet(presetName)
-		supportsDistributedInference = model.SupportDistributedInference()
+		// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
+		workloadObj, _ := inference.GeneratePresetInference(ctx, wObj, "", model, c.Client)
+		_, isStatefulSet = workloadObj.(*appsv1.StatefulSet)
 	}
 
-	serviceObj := manifests.GenerateServiceManifest(wObj, serviceType, supportsDistributedInference)
+	serviceObj := manifests.GenerateServiceManifest(wObj, serviceType, isStatefulSet)
 	if err := resources.CreateResource(ctx, serviceObj, c.Client); err != nil {
 		return err
 	}
 
-	if supportsDistributedInference {
+	if isStatefulSet {
 		headlessService := manifests.GenerateHeadlessServiceManifest(wObj)
 		if err := resources.CreateResource(ctx, headlessService, c.Client); err != nil {
 			return err
@@ -755,6 +757,7 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1beta1.Workspace{}).
+		Owns(&corev1.Service{}).
 		Owns(&appsv1.ControllerRevision{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&appsv1.StatefulSet{}).

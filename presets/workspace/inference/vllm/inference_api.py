@@ -6,6 +6,7 @@ import os
 import argparse
 from typing import Callable, Optional, List, Any
 import yaml
+import copy
 from dataclasses import dataclass
 
 import uvloop
@@ -187,14 +188,14 @@ def is_context_length_safe(executor: ExecutorBase, context_length: int) -> bool:
     num_gpu_blocks = context_length // executor.cache_config.block_size
     return available_gpu_blocks >= num_gpu_blocks
 
-def try_set_max_available_seq_len(args: argparse.Namespace):
+def try_get_max_available_seq_len(args: argparse.Namespace) -> Optional[int]:
     if args.max_model_len is not None:
         logger.info(f"max_model_len is set to {args.max_model_len}, skip probing.")
-        return
+        return None
 
     if args.tensor_parallel_size > 1 or args.pipeline_parallel_size > 1:
         logger.info("Multi-GPU serving is enabled, skip probing.")
-        return
+        return None
 
     max_probe_steps = 0
     if args.kaito_max_probe_steps is not None:
@@ -204,7 +205,7 @@ def try_set_max_available_seq_len(args: argparse.Namespace):
             raise ValueError("kaito_max_probe_steps must be an integer.")
 
     if max_probe_steps <= 0:
-        return
+        return None
 
     engine_args = EngineArgs.from_cli_args(args)
     # read the model config from hf weights path.
@@ -224,9 +225,10 @@ def try_set_max_available_seq_len(args: argparse.Namespace):
 
     if available_seq_len != max_model_len:
         logger.info(f"Set max_model_len from {max_model_len} to {available_seq_len}")
-        args.max_model_len = available_seq_len
+        return available_seq_len
     else:
         logger.info(f"Using model default max_model_len {max_model_len}")
+        return None
 
 if __name__ == "__main__":
     parser = KAITOArgumentParser(description='KAITO wrapper of vLLM serving server')
@@ -236,7 +238,10 @@ if __name__ == "__main__":
     if args.lora_modules is None:
         args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
 
-    try_set_max_available_seq_len(args)
+    # notes: avoid dirty args that breaks vllm runtime check. deepcopy here.
+    max_available_seq_len = try_get_max_available_seq_len(copy.deepcopy(args))
+    if max_available_seq_len is not None:
+        args.max_model_len = max_available_seq_len
 
     # Run the serving server
     logger.info(f"Starting server on port {args.port}")

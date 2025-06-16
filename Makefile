@@ -235,6 +235,12 @@ BUILDKIT_VERSION ?= v0.18.1
 RAGENGINE_IMAGE_NAME ?= ragengine
 RAGENGINE_IMAGE_TAG ?= v0.0.1
 
+RAGENGINE_SERVICE_IMG_NAME ?= kaito-rag-service
+RAGENGINE_SERVICE_IMG_TAG ?= v0.0.1
+
+E2E_IMAGE_NAME ?= kaito-e2e
+E2E_IMAGE_TAG ?= v0.0.1
+
 
 .PHONY: docker-buildx
 docker-buildx: ## Build and push docker image for the manager for cross-platform support
@@ -269,7 +275,7 @@ docker-build-ragservice: docker-buildx
         --output=$(OUTPUT_TYPE) \
         --file ./docker/ragengine/service/Dockerfile \
         --pull \
-        -tag $(REGISTRY)/$(RAGENGINE_SERVICE_IMG_NAME):$(RAGENGINE_SERVICE_IMG_TAG) .
+        --tag $(REGISTRY)/$(RAGENGINE_SERVICE_IMG_NAME):$(RAGENGINE_SERVICE_IMG_TAG) .
 
 .PHONY: docker-build-adapter
 docker-build-adapter: docker-buildx
@@ -351,6 +357,19 @@ az-patch-install-ragengine-helm:
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/ragengine/values.yaml
 	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/ragengine/values.yaml
+
+	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace
+
+.PHONY: az-patch-install-ragengine-helm-e2e
+az-patch-install-ragengine-helm-e2e:
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+
+	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
+	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/ragengine/values.yaml
+	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/ragengine/values.yaml
+	yq -i '(.presetRagRegistryName)                                         = "$(REGISTRY)"'                              ./charts/kaito/ragengine/values.yaml
+	yq -i '(.presetRagImageName)                                         	= "$(RAGENGINE_SERVICE_IMG_NAME)"'            ./charts/kaito/ragengine/values.yaml
+	yq -i '(.presetRagImageTag)                                         	= "$(RAGENGINE_SERVICE_IMG_TAG)"'             ./charts/kaito/ragengine/values.yaml
 
 	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace
 

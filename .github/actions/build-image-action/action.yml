@@ -171,6 +171,7 @@ runs:
         MODEL_VERSION=${{ inputs.model_version }} \
         WEIGHTS_DIR=$MODEL_DIR \
         HF_TOKEN=${{ inputs.hf_token }} \
+        HF_HOME=$MODEL_DIR \
         python3 docker/presets/models/tfs/download_and_push_model.py $ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG
 
       shell: bash

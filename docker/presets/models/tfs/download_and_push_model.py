@@ -74,7 +74,7 @@ def push_to_oras(source_dir, image_name):
     try:
         # Initialize command with oras push and image name
         # ORAS cli is much more stable than python sdk.
-        command = ["oras", "push", image_name]
+        command = ["oras", "push", "--concurrency", "2", image_name]
 
         # Gather all files with their relative paths, excluding hidden files
         files_to_push = []

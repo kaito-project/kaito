@@ -348,6 +348,15 @@ func main() {}"""
         await vector_store_manager.delete_documents(second_index_name, [result[0]['doc_id']])
 
         first_index_result = await vector_store_manager.list_documents_in_index(index_name, limit=10, offset=0)
-        second_index_result = await vector_store_manager.list_documents_in_index("second_test_index", limit=10, offset=0)
+        second_index_result = await vector_store_manager.list_documents_in_index(second_index_name, limit=10, offset=0)
         assert len(first_index_result) == 10
         assert len(second_index_result) == 9
+
+        second_index_result[0]['text'] = "Modified text"
+        second_update_result = await vector_store_manager.update_documents(second_index_name, [Document(doc_id=second_index_result[0]['doc_id'], text="Modified text", metadata=second_index_result[0]['metadata'])])
+        assert len(second_update_result["updated_documents"]) == 1
+        assert second_update_result["updated_documents"][0].text == "Modified text"
+
+        second_delete_result = await vector_store_manager.delete_documents(second_index_name, [second_index_result[0]['doc_id']])
+        assert len(second_delete_result["deleted_doc_ids"]) == 1
+        assert second_delete_result["deleted_doc_ids"][0] == second_index_result[0]['doc_id']

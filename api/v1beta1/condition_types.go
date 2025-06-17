@@ -26,4 +26,16 @@ const (
 	//For inference, the "True" condition means the inference service is ready to serve requests.
 	//For fine tuning, the "True" condition means the tuning job completes successfully.
 	WorkspaceConditionTypeSucceeded ConditionType = ConditionType("WorkspaceSucceeded")
+
+	// RAGEngineConditionTypeServiceStatus is the state when service has been ready.
+	RAGEngineConditionTypeServiceStatus = ConditionType("ServiceReady")
+
+	// RAGConditionTypeServiceStatus is the state when RAG Engine service has been ready.
+	RAGConditionTypeServiceStatus = ConditionType("RAGEngineServiceReady")
+
+	//RAGEngineConditionTypeDeleting is the RAGEngine state when starts to get deleted.
+	RAGEngineConditionTypeDeleting = ConditionType("RAGEngineDeleting")
+
+	// RAGEngineConditionTypeSucceeded is the RAGEngine state that summarizes all operations' states.
+	RAGEngineConditionTypeSucceeded ConditionType = ConditionType("RAGEngineSucceeded")
 )

@@ -32,7 +32,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -323,10 +322,10 @@ func ListNodeClaim(ctx context.Context, obj client.Object, kubeClient client.Cli
 			kaitov1beta1.LabelWorkspaceName:      o.Name,
 			kaitov1beta1.LabelWorkspaceNamespace: o.Namespace,
 		}
-	case *kaitov1alpha1.RAGEngine:
+	case *kaitov1beta1.RAGEngine:
 		ls = labels.Set{
-			kaitov1alpha1.LabelRAGEngineName:      o.Name,
-			kaitov1alpha1.LabelRAGEngineNamespace: o.Namespace,
+			kaitov1beta1.LabelRAGEngineName:      o.Name,
+			kaitov1beta1.LabelRAGEngineNamespace: o.Namespace,
 		}
 	default:
 		return nil, fmt.Errorf("unsupported object type: %T", obj)

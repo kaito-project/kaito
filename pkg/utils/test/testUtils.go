@@ -13,7 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 )
@@ -124,13 +123,13 @@ var (
 )
 
 var (
-	MockRAGEngine = &v1alpha1.RAGEngine{
+	MockRAGEngine = &v1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
 		},
-		Spec: &v1alpha1.RAGEngineSpec{
-			Compute: &v1alpha1.ResourceSpec{
+		Spec: &v1beta1.RAGEngineSpec{
+			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
 				InstanceType: "Standard_NC12s_v3",
 				LabelSelector: &metav1.LabelSelector{
@@ -139,8 +138,8 @@ var (
 					},
 				},
 			},
-			Embedding: &v1alpha1.EmbeddingSpec{
-				Local: &v1alpha1.LocalEmbeddingSpec{
+			Embedding: &v1beta1.EmbeddingSpec{
+				Local: &v1beta1.LocalEmbeddingSpec{
 					ModelID: "BAAI/bge-small-en-v1.5",
 				},
 			},
@@ -148,13 +147,13 @@ var (
 	}
 )
 var (
-	MockRAGEngineDistributedModel = &v1alpha1.RAGEngine{
+	MockRAGEngineDistributedModel = &v1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
 		},
-		Spec: &v1alpha1.RAGEngineSpec{
-			Compute: &v1alpha1.ResourceSpec{
+		Spec: &v1beta1.RAGEngineSpec{
+			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
 				InstanceType: "Standard_NC12s_v3",
 				LabelSelector: &metav1.LabelSelector{
@@ -274,14 +273,14 @@ var (
 var MockWorkspaceWithPresetHash = "89ae127050ec264a5ce84db48ef7226574cdf1299e6bd27fe90b927e34cc8adb"
 
 var (
-	MockRAGEngineWithPreset = &v1alpha1.RAGEngine{
+	MockRAGEngineWithPreset = &v1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
 			UID:       "test-uid",
 		},
-		Spec: &v1alpha1.RAGEngineSpec{
-			Compute: &v1alpha1.ResourceSpec{
+		Spec: &v1beta1.RAGEngineSpec{
+			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
 				InstanceType: "Standard_NC12s_v3",
 				LabelSelector: &metav1.LabelSelector{
@@ -290,24 +289,24 @@ var (
 					},
 				},
 			},
-			Embedding: &v1alpha1.EmbeddingSpec{
-				Local: &v1alpha1.LocalEmbeddingSpec{
+			Embedding: &v1beta1.EmbeddingSpec{
+				Local: &v1beta1.LocalEmbeddingSpec{
 					ModelID: "BAAI/bge-small-en-v1.5",
 				},
 			},
-			InferenceService: &v1alpha1.InferenceServiceSpec{
+			InferenceService: &v1beta1.InferenceServiceSpec{
 				URL: "http://localhost:5000/chat",
 			},
 		},
 	}
-	MockRAGEngineWithRevision1 = &v1alpha1.RAGEngine{
+	MockRAGEngineWithRevision1 = &v1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "testRAGEngine",
 			Namespace:   "kaito",
-			Annotations: map[string]string{v1alpha1.RAGEngineRevisionAnnotation: "1"},
+			Annotations: map[string]string{v1beta1.RAGEngineRevisionAnnotation: "1"},
 		},
-		Spec: &v1alpha1.RAGEngineSpec{
-			Compute: &v1alpha1.ResourceSpec{
+		Spec: &v1beta1.RAGEngineSpec{
+			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
 				InstanceType: "Standard_NC12s_v3",
 				LabelSelector: &metav1.LabelSelector{
@@ -316,24 +315,24 @@ var (
 					},
 				},
 			},
-			Embedding: &v1alpha1.EmbeddingSpec{
-				Local: &v1alpha1.LocalEmbeddingSpec{
+			Embedding: &v1beta1.EmbeddingSpec{
+				Local: &v1beta1.LocalEmbeddingSpec{
 					ModelID: "BAAI/bge-small-en-v1.5",
 				},
 			},
-			InferenceService: &v1alpha1.InferenceServiceSpec{
+			InferenceService: &v1beta1.InferenceServiceSpec{
 				URL: "http://localhost:5000/chat",
 			},
 		},
 	}
-	MockRAGEngineWithRevision2 = &v1alpha1.RAGEngine{
+	MockRAGEngineWithRevision2 = &v1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "testRAGEngine",
 			Namespace:   "kaito",
-			Annotations: map[string]string{v1alpha1.RAGEngineRevisionAnnotation: "2"},
+			Annotations: map[string]string{v1beta1.RAGEngineRevisionAnnotation: "2"},
 		},
-		Spec: &v1alpha1.RAGEngineSpec{
-			Compute: &v1alpha1.ResourceSpec{
+		Spec: &v1beta1.RAGEngineSpec{
+			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
 				InstanceType: "Standard_NC12s_v3",
 				LabelSelector: &metav1.LabelSelector{
@@ -342,12 +341,12 @@ var (
 					},
 				},
 			},
-			Embedding: &v1alpha1.EmbeddingSpec{
-				Local: &v1alpha1.LocalEmbeddingSpec{
+			Embedding: &v1beta1.EmbeddingSpec{
+				Local: &v1beta1.LocalEmbeddingSpec{
 					ModelID: "BAAI/bge-small-en-v1.5",
 				},
 			},
-			InferenceService: &v1alpha1.InferenceServiceSpec{
+			InferenceService: &v1beta1.InferenceServiceSpec{
 				URL: "http://localhost:5000/chat",
 			},
 		},
@@ -386,7 +385,7 @@ var (
 )
 
 var (
-	MockRAGEngineWithDeleteOldCR = v1alpha1.RAGEngine{
+	MockRAGEngineWithDeleteOldCR = v1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
@@ -395,8 +394,8 @@ var (
 				"workspace.kaito.io/revision": "1",
 			},
 		},
-		Spec: &v1alpha1.RAGEngineSpec{
-			Compute: &v1alpha1.ResourceSpec{
+		Spec: &v1beta1.RAGEngineSpec{
+			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
 				InstanceType: "Standard_NC12s_v3",
 				LabelSelector: &metav1.LabelSelector{
@@ -405,8 +404,8 @@ var (
 					},
 				},
 			},
-			Embedding: &v1alpha1.EmbeddingSpec{
-				Local: &v1alpha1.LocalEmbeddingSpec{
+			Embedding: &v1beta1.EmbeddingSpec{
+				Local: &v1beta1.LocalEmbeddingSpec{
 					ModelID: "BAAI/bge-small-en-v1.5",
 				},
 			},
@@ -443,7 +442,7 @@ var (
 )
 
 var (
-	MockRAGEngineFailToCreateCR = v1alpha1.RAGEngine{
+	MockRAGEngineFailToCreateCR = v1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testRAGEngine-failedtocreateCR",
 			Namespace: "kaito",
@@ -451,8 +450,8 @@ var (
 				"ragengine.kaito.io/revision": "1",
 			},
 		},
-		Spec: &v1alpha1.RAGEngineSpec{
-			Compute: &v1alpha1.ResourceSpec{
+		Spec: &v1beta1.RAGEngineSpec{
+			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
 				InstanceType: "Standard_NC12s_v3",
 				LabelSelector: &metav1.LabelSelector{
@@ -493,7 +492,7 @@ var (
 )
 
 var (
-	MockRAGEngineSuccessful = v1alpha1.RAGEngine{
+	MockRAGEngineSuccessful = v1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testRAGEngine-successful",
 			Namespace: "kaito",
@@ -501,8 +500,8 @@ var (
 				"ragengine.kaito.io/revision": "0",
 			},
 		},
-		Spec: &v1alpha1.RAGEngineSpec{
-			Compute: &v1alpha1.ResourceSpec{
+		Spec: &v1beta1.RAGEngineSpec{
+			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
 				InstanceType: "Standard_NC12s_v3",
 				LabelSelector: &metav1.LabelSelector{
@@ -544,7 +543,7 @@ var (
 )
 
 var (
-	MockRAGEngineWithComputeHash = v1alpha1.RAGEngine{
+	MockRAGEngineWithComputeHash = v1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
@@ -553,8 +552,8 @@ var (
 				"ragengine.kaito.io/revision": "1",
 			},
 		},
-		Spec: &v1alpha1.RAGEngineSpec{
-			Compute: &v1alpha1.ResourceSpec{
+		Spec: &v1beta1.RAGEngineSpec{
+			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
 				InstanceType: "Standard_NC12s_v3",
 				LabelSelector: &metav1.LabelSelector{
@@ -634,7 +633,7 @@ var (
 )
 
 var (
-	MockRAGEngineWithUpdatedDeployment = v1alpha1.RAGEngine{
+	MockRAGEngineWithUpdatedDeployment = v1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
@@ -643,8 +642,8 @@ var (
 				"ragengine.kaito.io/revision": "1",
 			},
 		},
-		Spec: &v1alpha1.RAGEngineSpec{
-			Compute: &v1alpha1.ResourceSpec{
+		Spec: &v1beta1.RAGEngineSpec{
+			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
 				InstanceType: "Standard_NC12s_v3",
 				LabelSelector: &metav1.LabelSelector{
@@ -751,7 +750,7 @@ var MockRAGDeploymentUpdated = appsv1.Deployment{
 	ObjectMeta: metav1.ObjectMeta{
 		Name:        "testRAGEngine",
 		Namespace:   "kaito",
-		Annotations: map[string]string{v1alpha1.RAGEngineRevisionAnnotation: "1"},
+		Annotations: map[string]string{v1beta1.RAGEngineRevisionAnnotation: "1"},
 	},
 	Spec: appsv1.DeploymentSpec{
 		Replicas: &numRep,

@@ -22,11 +22,20 @@ const (
 	// LabelWorkspaceName is the label for workspace name.
 	LabelWorkspaceName = KAITOPrefix + "workspace"
 
+	// LabelRAGEngineName is the label for ragengine name.
+	LabelRAGEngineName = KAITOPrefix + "ragengine"
+
 	// LabelWorkspaceName is the label for workspace namespace.
 	LabelWorkspaceNamespace = KAITOPrefix + "workspacenamespace"
 
+	// LabelRAGEngineNamespace is the label for ragengine namespace.
+	LabelRAGEngineNamespace = KAITOPrefix + "ragenginenamespace"
+
 	// WorkspaceRevisionAnnotation is the Annotations for revision number
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"
+
+	// RAGEngineRevisionAnnotation is the Annotations for revision number
+	RAGEngineRevisionAnnotation = "ragengine.kaito.io/revision"
 
 	// AnnotationWorkspaceRuntime is the annotation for runtime selection.
 	AnnotationWorkspaceRuntime = KAITOPrefix + "runtime"

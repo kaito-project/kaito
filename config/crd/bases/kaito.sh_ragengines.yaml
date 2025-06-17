@@ -282,3 +282,269 @@ spec:
     storage: true
     subresources:
       status: {}
+  - additionalPrinterColumns:
+    - jsonPath: .spec.compute.instanceType
+      name: Instance
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="ResourceReady")].status
+      name: ResourceReady
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: RAGEngine is the Schema for the ragengine API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              compute:
+                description: Compute specifies the dedicated GPU resource used by
+                  an embedding model running locally if required.
+                properties:
+                  count:
+                    default: 1
+                    description: Count is the required number of GPU nodes.
+                    type: integer
+                  instanceType:
+                    default: Standard_NC24ads_A100_v4
+                    description: |-
+                      InstanceType specifies the GPU node SKU.
+                      This field defaults to "Standard_NC24ads_A100_v4" if not specified.
+                    type: string
+                  labelSelector:
+                    description: LabelSelector specifies the required labels for the
+                      GPU nodes.
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: |-
+                            A label selector requirement is a selector that contains values, a key, and an operator that
+                            relates the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: |-
+                                operator represents a key's relationship to a set of values.
+                                Valid operators are In, NotIn, Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: |-
+                                values is an array of string values. If the operator is In or NotIn,
+                                the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced during a strategic
+                                merge patch.
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                        x-kubernetes-list-type: atomic
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: |-
+                          matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                          map is equivalent to an element of matchExpressions, whose key field is "key", the
+                          operator is "In", and the values array contains only "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                    x-kubernetes-map-type: atomic
+                  preferredNodes:
+                    description: |-
+                      PreferredNodes is an optional node list specified by the user.
+                      If a node in the list does not have the required labels, it will be ignored.
+                    items:
+                      type: string
+                    type: array
+                required:
+                - labelSelector
+                type: object
+              embedding:
+                description: |-
+                  Embedding specifies whether the RAG engine generates embedding vectors using a remote service
+                  or using a embedding model running locally.
+                properties:
+                  local:
+                    description: Local specifies how to generate embeddings for index
+                      data using a model run locally.
+                    properties:
+                      image:
+                        description: Image is the name of the containerized embedding
+                          model image.
+                        type: string
+                      imagePullSecret:
+                        type: string
+                      modelAccessSecret:
+                        description: ModelAccessSecret is the name of the secret that
+                          contains the huggingface access token.
+                        type: string
+                      modelID:
+                        description: |-
+                          ModelID is the ID of the embedding model hosted by huggingface, e.g., BAAI/bge-small-en-v1.5.
+                          When this field is specified, the RAG engine will download the embedding model
+                          from huggingface repository during startup. The embedding model will not persist in local storage.
+                          Note that if Image is specified, ModelID should not be specified and vice versa.
+                        type: string
+                    type: object
+                  remote:
+                    description: |-
+                      Remote specifies how to generate embeddings for index data using a remote service.
+                      Note that either Remote or Local needs to be specified, not both.
+                    properties:
+                      accessSecret:
+                        description: AccessSecret is the name of the secret that contains
+                          the service access token.
+                        type: string
+                      url:
+                        description: URL points to a publicly available embedding
+                          service, such as OpenAI.
+                        type: string
+                    required:
+                    - url
+                    type: object
+                type: object
+              indexServiceName:
+                description: |-
+                  IndexServiceName is the name of the service which exposes the endpoint for user to input the index data
+                  to generate embeddings. If not specified, a default service name will be created by the RAG engine.
+                type: string
+              inferenceService:
+                properties:
+                  accessSecret:
+                    description: AccessSecret is the name of the secret that contains
+                      the service access token.
+                    type: string
+                  url:
+                    description: URL points to a running inference service endpoint
+                      which accepts http(s) payload.
+                    type: string
+                required:
+                - url
+                type: object
+              queryServiceName:
+                description: |-
+                  QueryServiceName is the name of the service which exposes the endpoint for accepting user queries to the
+                  inference service. If not specified, a default service name will be created by the RAG engine.
+                type: string
+              storage:
+                description: |-
+                  Storage specifies how to access the vector database used to save the embedding vectors.
+                  If this field is not specified, by default, an in-memory vector DB will be used.
+                  The data will not be persisted.
+                type: object
+            required:
+            - embedding
+            - inferenceService
+            type: object
+          status:
+            description: RAGEngineStatus defines the observed state of RAGEngine
+            properties:
+              conditions:
+                items:
+                  description: "Condition contains details for one aspect of the current
+                    state of this API Resource.\n---\nThis struct is intended for
+                    direct use as an array at the field path .status.conditions.  For
+                    example,\n\n\n\ttype FooStatus struct{\n\t    // Represents the
+                    observations of a foo's current state.\n\t    // Known .status.conditions.type
+                    are: \"Available\", \"Progressing\", and \"Degraded\"\n\t    //
+                    +patchMergeKey=type\n\t    // +patchStrategy=merge\n\t    // +listType=map\n\t
+                    \   // +listMapKey=type\n\t    Conditions []metav1.Condition `json:\"conditions,omitempty\"
+                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`\n\n\n\t
+                    \   // other fields\n\t}"
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: |-
+                        type of condition in CamelCase or in foo.example.com/CamelCase.
+                        ---
+                        Many .condition.type values are consistent across resources like Available, but because arbitrary conditions can be
+                        useful (see .node.status.conditions), the ability to deconflict is important.
+                        The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              workerNodes:
+                description: WorkerNodes is the list of nodes chosen to run the workload
+                  based on the RAGEngine resource requirement.
+                items:
+                  type: string
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

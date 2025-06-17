@@ -17,7 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
@@ -25,7 +25,7 @@ import (
 func TestGarbageCollectRAGEngine(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks      func(c *test.MockClient)
-		ragengine      *kaitov1alpha1.RAGEngine
+		ragengine      *kaitov1beta1.RAGEngine
 		expectedResult ctrl.Result
 		expectedError  error
 		verifyCalls    func(c *test.MockClient)
@@ -35,9 +35,9 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 				// Mock empty nodeClaim list
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 				// Mock successful finalizer removal
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
 			},
-			ragengine: func() *kaitov1alpha1.RAGEngine {
+			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := test.MockRAGEngineDistributedModel.DeepCopy()
 				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
 				return ragengine
@@ -79,9 +79,9 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil).Times(2)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
 			},
-			ragengine: func() *kaitov1alpha1.RAGEngine {
+			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := test.MockRAGEngineDistributedModel.DeepCopy()
 				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
 				return ragengine
@@ -126,9 +126,9 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 				// No Delete calls should be made since nodeClaims are already being deleted
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
 			},
-			ragengine: func() *kaitov1alpha1.RAGEngine {
+			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := test.MockRAGEngineDistributedModel.DeepCopy()
 				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
 				return ragengine
@@ -145,7 +145,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			callMocks: func(c *test.MockClient) {
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(errors.New("failed to list nodeClaims"))
 			},
-			ragengine: func() *kaitov1alpha1.RAGEngine {
+			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := test.MockRAGEngineDistributedModel.DeepCopy()
 				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
 				return ragengine
@@ -182,7 +182,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(errors.New("failed to delete nodeClaim"))
 			},
-			ragengine: func() *kaitov1alpha1.RAGEngine {
+			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := test.MockRAGEngineDistributedModel.DeepCopy()
 				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
 				return ragengine
@@ -200,9 +200,9 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 				// Mock empty nodeClaim list
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 				// Mock failed finalizer removal
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(errors.New("failed to update RAGEngine"))
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(errors.New("failed to update RAGEngine"))
 			},
-			ragengine: func() *kaitov1alpha1.RAGEngine {
+			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := test.MockRAGEngineDistributedModel.DeepCopy()
 				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
 				return ragengine
@@ -221,7 +221,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 				// No Update call should be made since there's no finalizer to remove
 			},
-			ragengine: func() *kaitov1alpha1.RAGEngine {
+			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := test.MockRAGEngineDistributedModel.DeepCopy()
 				ragengine.Finalizers = []string{} // No finalizers
 				return ragengine
@@ -240,7 +240,7 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 				// No Update call should be made since RAGEngine finalizer is not present
 			},
-			ragengine: func() *kaitov1alpha1.RAGEngine {
+			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := test.MockRAGEngineDistributedModel.DeepCopy()
 				ragengine.Finalizers = []string{"some.other/finalizer"}
 				return ragengine
@@ -292,9 +292,9 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 				// Only 2 Delete calls should be made (for nodeclaim-1 and nodeclaim-3)
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil).Times(2)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
 			},
-			ragengine: func() *kaitov1alpha1.RAGEngine {
+			ragengine: func() *kaitov1beta1.RAGEngine {
 				ragengine := test.MockRAGEngineDistributedModel.DeepCopy()
 				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
 				return ragengine

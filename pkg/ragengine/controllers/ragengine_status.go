@@ -17,7 +17,7 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 func (c *RAGEngineReconciler) updateRAGEngineStatus(ctx context.Context, name *client.ObjectKey, condition *metav1.Condition, workerNodes []string) error {
@@ -27,7 +27,7 @@ func (c *RAGEngineReconciler) updateRAGEngineStatus(ctx context.Context, name *c
 		},
 		func() error {
 			// Read the latest version to avoid update conflict.
-			ragObj := &kaitov1alpha1.RAGEngine{}
+			ragObj := &kaitov1beta1.RAGEngine{}
 			if err := c.Client.Get(ctx, *name, ragObj); err != nil {
 				if !apierrors.IsNotFound(err) {
 					return err
@@ -44,7 +44,7 @@ func (c *RAGEngineReconciler) updateRAGEngineStatus(ctx context.Context, name *c
 		})
 }
 
-func (c *RAGEngineReconciler) updateStatusConditionIfNotMatch(ctx context.Context, ragObj *kaitov1alpha1.RAGEngine, cType kaitov1alpha1.ConditionType,
+func (c *RAGEngineReconciler) updateStatusConditionIfNotMatch(ctx context.Context, ragObj *kaitov1beta1.RAGEngine, cType kaitov1beta1.ConditionType,
 	cStatus metav1.ConditionStatus, cReason, cMessage string) error {
 	if curCondition := meta.FindStatusCondition(ragObj.Status.Conditions, string(cType)); curCondition != nil {
 		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage {
@@ -63,7 +63,7 @@ func (c *RAGEngineReconciler) updateStatusConditionIfNotMatch(ctx context.Contex
 	return c.updateRAGEngineStatus(ctx, &client.ObjectKey{Name: ragObj.Name, Namespace: ragObj.Namespace}, &cObj, nil)
 }
 
-func (c *RAGEngineReconciler) updateStatusNodeListIfNotMatch(ctx context.Context, ragObj *kaitov1alpha1.RAGEngine, validNodeList []*corev1.Node) error {
+func (c *RAGEngineReconciler) updateStatusNodeListIfNotMatch(ctx context.Context, ragObj *kaitov1beta1.RAGEngine, validNodeList []*corev1.Node) error {
 	nodeNameList := lo.Map(validNodeList, func(v *corev1.Node, _ int) string {
 		return v.Name
 	})

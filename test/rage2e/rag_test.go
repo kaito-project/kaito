@@ -20,7 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
@@ -87,10 +86,10 @@ var _ = Describe("RAGEngine", func() {
 
 		defer cleanupResources(nil, ragengineObj)
 
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
 		validateAssociatedService(ragengineObj.ObjectMeta)
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
 		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
@@ -150,10 +149,10 @@ var _ = Describe("RAGEngine", func() {
 
 		defer cleanupResources(workspaceObj, ragengineObj)
 
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
 		validateAssociatedService(ragengineObj.ObjectMeta)
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
 		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
@@ -209,7 +208,7 @@ func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func createAndValidateRAGEngine(ragEngineObj *kaitov1alpha1.RAGEngine) {
+func createAndValidateRAGEngine(ragEngineObj *kaitov1beta1.RAGEngine) {
 	By("Creating ragEngine", func() {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, ragEngineObj, &client.CreateOptions{})
@@ -226,19 +225,19 @@ func createAndValidateRAGEngine(ragEngineObj *kaitov1alpha1.RAGEngine) {
 	})
 }
 
-func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1alpha1.InferenceServiceSpec) *kaitov1alpha1.RAGEngine {
-	return &kaitov1alpha1.RAGEngine{
+func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1beta1.InferenceServiceSpec) *kaitov1beta1.RAGEngine {
+	return &kaitov1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: &kaitov1alpha1.RAGEngineSpec{
-			Compute: &kaitov1alpha1.ResourceSpec{
+		Spec: &kaitov1beta1.RAGEngineSpec{
+			Compute: &kaitov1beta1.ResourceSpec{
 				InstanceType:  instanceType,
 				LabelSelector: labelSelector,
 			},
-			Embedding: &kaitov1alpha1.EmbeddingSpec{
-				Local: &kaitov1alpha1.LocalEmbeddingSpec{
+			Embedding: &kaitov1beta1.EmbeddingSpec{
+				Local: &kaitov1beta1.LocalEmbeddingSpec{
 					ModelID: embeddingModelID,
 				},
 			},
@@ -269,8 +268,8 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL string) *kaitov1alpha1.RAGEngine {
-	ragEngineObj := &kaitov1alpha1.RAGEngine{}
+func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL string) *kaitov1beta1.RAGEngine {
+	ragEngineObj := &kaitov1beta1.RAGEngine{}
 	serviceURL := fmt.Sprintf("http://%s/v1/completions", baseURL)
 	By("Creating RAG with localembedding and kaito vllm inference", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
@@ -278,7 +277,7 @@ func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL string) *kaitov1alpha1.RAGEn
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
-			&kaitov1alpha1.InferenceServiceSpec{
+			&kaitov1beta1.InferenceServiceSpec{
 				URL: serviceURL,
 			},
 		)
@@ -288,8 +287,8 @@ func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL string) *kaitov1alpha1.RAGEn
 	return ragEngineObj
 }
 
-func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
-	ragEngineObj := &kaitov1alpha1.RAGEngine{}
+func createLocalEmbeddingHFURLRAGEngine() *kaitov1beta1.RAGEngine {
+	ragEngineObj := &kaitov1beta1.RAGEngine{}
 	hfURL := "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta/v1/completions"
 	By("Creating RAG with localembedding and huggingface API", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
@@ -297,7 +296,7 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
-			&kaitov1alpha1.InferenceServiceSpec{
+			&kaitov1beta1.InferenceServiceSpec{
 				URL:          hfURL,
 				AccessSecret: "huggingface-token",
 			},
@@ -310,7 +309,7 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 
 func cleanupResources(
 	workspaceObj *kaitov1beta1.Workspace,
-	ragengineObj *kaitov1alpha1.RAGEngine,
+	ragengineObj *kaitov1beta1.RAGEngine,
 ) {
 	By("Cleaning up resources", func() {
 		if !CurrentSpecReport().Failed() {
@@ -346,7 +345,7 @@ func validateWorkspaceResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 			}
 
 			_, conditionFound := lo.Find(workspaceObj.Status.Conditions, func(condition metav1.Condition) bool {
-				return condition.Type == string(kaitov1alpha1.ConditionTypeResourceStatus) &&
+				return condition.Type == string(kaitov1beta1.ConditionTypeResourceStatus) &&
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
@@ -354,7 +353,7 @@ func validateWorkspaceResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func deleteRAGEngine(ragengineObj *kaitov1alpha1.RAGEngine) error {
+func deleteRAGEngine(ragengineObj *kaitov1beta1.RAGEngine) error {
 	By("Deleting ragengineObj", func() {
 		Eventually(func() error {
 			// Check if the workspace exists
@@ -459,7 +458,7 @@ func validateAssociatedService(objectMeta metav1.ObjectMeta) {
 }
 
 // validateRAGEngineReadiness validates ragengine conditions
-func validateRAGEngineCondition(ragengineObj *kaitov1alpha1.RAGEngine, conditionType string, description string) {
+func validateRAGEngineCondition(ragengineObj *kaitov1beta1.RAGEngine, conditionType string, description string) {
 	By(fmt.Sprintf("Checking %s", description), func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -506,7 +505,7 @@ func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 	return nil
 }
 
-func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) (map[string]any, error) {
+func createAndValidateIndexPod(ragengineObj *kaitov1beta1.RAGEngine) (map[string]any, error) {
 	indexResp := []map[string]any{}
 	podName := "index-pod"
 	By("Creating index pod", func() {
@@ -572,7 +571,7 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) (map[strin
 	return indexResp[0], nil
 }
 
-func createAndValidateUpdateDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, docID string) error {
+func createAndValidateUpdateDocumentPod(ragengineObj *kaitov1beta1.RAGEngine, docID string) error {
 	podName := "update-document-pod"
 	By("Creating update document pod", func() {
 		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/indexes/kaito/documents \
@@ -616,7 +615,7 @@ func createAndValidateUpdateDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, d
 	return nil
 }
 
-func createAndValidateDeleteDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, docID string) error {
+func createAndValidateDeleteDocumentPod(ragengineObj *kaitov1beta1.RAGEngine, docID string) error {
 	podName := "delete-document-pod"
 	By("Creating delete document pod", func() {
 		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/indexes/kaito/documents/delete \
@@ -652,7 +651,7 @@ func createAndValidateDeleteDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, d
 	return nil
 }
 
-func createAndValidateDeleteIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
+func createAndValidateDeleteIndexPod(ragengineObj *kaitov1beta1.RAGEngine) error {
 	podName := "delete-index-pod"
 	By("Creating delete index pod", func() {
 		curlCommand := `curl -X DELETE ` + ragengineObj.Name + `:80/indexes/kaito \
@@ -687,7 +686,7 @@ func createAndValidateDeleteIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) erro
 	return nil
 }
 
-func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSearchQueries string, remote bool) error {
+func createAndValidateQueryPod(ragengineObj *kaitov1beta1.RAGEngine, expectedSearchQueries string, remote bool) error {
 	podName := "query-pod"
 	By("Creating query pod", func() {
 		var curlCommand string
@@ -756,7 +755,7 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSe
 	return nil
 }
 
-func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedPersistResult string) error {
+func createAndValidatePersistPod(ragengineObj *kaitov1beta1.RAGEngine, expectedPersistResult string) error {
 	podName := "persist-pod"
 	By("Creating Persist pod", func() {
 		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/persist/kaito`
@@ -800,7 +799,7 @@ func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expected
 	return nil
 }
 
-func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoadResult string) error {
+func createAndValidateLoadPod(ragengineObj *kaitov1beta1.RAGEngine, expectedLoadResult string) error {
 	podName := "load-pod"
 	By("Creating Load Pod", func() {
 		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/load/kaito?overwrite=True`

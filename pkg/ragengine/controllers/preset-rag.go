@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -93,7 +93,7 @@ func getEnv(key, defaultValue string) string {
 	return value
 }
 
-func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
+func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 

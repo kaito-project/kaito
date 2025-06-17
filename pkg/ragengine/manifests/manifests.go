@@ -10,10 +10,10 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
-func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1alpha1.RAGEngine, revisionNum string, imageName string,
+func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisionNum string, imageName string,
 	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
 	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount) *appsv1.Deployment {
@@ -28,7 +28,7 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1alpha1.RAGEngine, revisi
 	}
 
 	selector := map[string]string{
-		kaitov1alpha1.LabelRAGEngineName: ragEngineObj.Name,
+		kaitov1beta1.LabelRAGEngineName: ragEngineObj.Name,
 	}
 	labelselector := &v1.LabelSelector{
 		MatchLabels: selector,
@@ -42,10 +42,10 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1alpha1.RAGEngine, revisi
 			Name:      ragEngineObj.Name,
 			Namespace: ragEngineObj.Namespace,
 			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(ragEngineObj, kaitov1alpha1.GroupVersion.WithKind("RAGEngine")),
+				*v1.NewControllerRef(ragEngineObj, kaitov1beta1.GroupVersion.WithKind("RAGEngine")),
 			},
 			Annotations: map[string]string{
-				kaitov1alpha1.RAGEngineRevisionAnnotation: revisionNum,
+				kaitov1beta1.RAGEngineRevisionAnnotation: revisionNum,
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -103,7 +103,7 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1alpha1.RAGEngine, revisi
 	}
 }
 
-func RAGSetEnv(ragEngineObj *kaitov1alpha1.RAGEngine) []corev1.EnvVar {
+func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 	var envs []corev1.EnvVar
 	var embeddingType string
 	if ragEngineObj.Spec.Embedding.Local != nil {
@@ -163,9 +163,9 @@ func RAGSetEnv(ragEngineObj *kaitov1alpha1.RAGEngine) []corev1.EnvVar {
 	return envs
 }
 
-func GenerateRAGServiceManifest(ragObj *kaitov1alpha1.RAGEngine, serviceName string, serviceType corev1.ServiceType) *corev1.Service {
+func GenerateRAGServiceManifest(ragObj *kaitov1beta1.RAGEngine, serviceName string, serviceType corev1.ServiceType) *corev1.Service {
 	selector := map[string]string{
-		kaitov1alpha1.LabelRAGEngineName: ragObj.Name,
+		kaitov1beta1.LabelRAGEngineName: ragObj.Name,
 	}
 
 	servicePorts := []corev1.ServicePort{
@@ -182,7 +182,7 @@ func GenerateRAGServiceManifest(ragObj *kaitov1alpha1.RAGEngine, serviceName str
 			Name:      serviceName,
 			Namespace: ragObj.Namespace,
 			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(ragObj, kaitov1alpha1.GroupVersion.WithKind("RAGEngine")),
+				*v1.NewControllerRef(ragObj, kaitov1beta1.GroupVersion.WithKind("RAGEngine")),
 			},
 		},
 		Spec: corev1.ServiceSpec{

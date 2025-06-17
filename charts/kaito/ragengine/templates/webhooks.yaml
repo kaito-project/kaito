@@ -19,6 +19,7 @@ webhooks:
           - kaito.sh
         apiVersions:
           - v1alpha1
+          - v1beta1
         resources:
           - ragengines
         operations:

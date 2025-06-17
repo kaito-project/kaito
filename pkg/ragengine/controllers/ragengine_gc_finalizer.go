@@ -11,13 +11,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 )
 
 // garbageCollectRAGEngine remove finalizer associated with ragengine object.
-func (c *RAGEngineReconciler) garbageCollectRAGEngine(ctx context.Context, ragEngineObj *kaitov1alpha1.RAGEngine) (ctrl.Result, error) {
+func (c *RAGEngineReconciler) garbageCollectRAGEngine(ctx context.Context, ragEngineObj *kaitov1beta1.RAGEngine) (ctrl.Result, error) {
 	klog.InfoS("garbageCollectRAGEngine", "ragengine", klog.KObj(ragEngineObj))
 
 	// Check if there are any nodeClaims associated with this ragengine.

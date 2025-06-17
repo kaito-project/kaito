@@ -13,7 +13,7 @@ import (
 	"knative.dev/pkg/webhook/resourcesemantics"
 	"knative.dev/pkg/webhook/resourcesemantics/validation"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 func NewRAGEngineWebhooks() []knativeinjection.ControllerConstructor {
@@ -34,5 +34,5 @@ func NewRAGEngineCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) 
 }
 
 var RAGEngineResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
-	kaitov1alpha1.GroupVersion.WithKind("RAGEngine"): &kaitov1alpha1.RAGEngine{},
+	kaitov1beta1.GroupVersion.WithKind("RAGEngine"): &kaitov1beta1.RAGEngine{},
 }

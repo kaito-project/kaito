@@ -317,7 +317,7 @@
         "node_pool": "dsqwen8b",
         "runtimes": {
           "hf": {
-            "command": "accelerate launch --num_processes 1 --num_machines 2 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
             "gpu_count": 2
           },
           "vllm": {

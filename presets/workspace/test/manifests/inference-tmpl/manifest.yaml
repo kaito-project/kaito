@@ -14,9 +14,21 @@ deployment:
         labels:
           app: WORKLOAD_NAME
       spec:
+        initContainers:
+        - name: oras-pull
+          image: ghcr.io/oras-project/oras:v1.2.2
+          command:
+          - oras
+          - pull
+          - REPO/MODEL_NAME:TAG
+          - -o
+          - /workspace/weights
+          volumeMounts:
+          - name: weights-volume
+            mountPath: /workspace/weights
         containers:
         - name: WORKLOAD_NAME-container
-          image: REPO/MODEL_NAME:TAG
+          image: REPO/base:0.0.4
           command:
             - /bin/sh
             - -c
@@ -43,7 +55,11 @@ deployment:
             mountPath: /dev/shm
           - name: config-volume
             mountPath: /mnt/config
+          - name: weights-volume
+            mountPath: /workspace/weights
         volumes:
+        - name: weights-volume
+          emptyDir: {}
         - name: dshm
           emptyDir:
             medium: Memory

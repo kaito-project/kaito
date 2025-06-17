@@ -39,4 +39,7 @@ RUN VLLM_VERSION=$(grep 'vllm==' /workspace/requirements.txt | cut -d'=' -f3) &&
 # Chat template
 ADD presets/workspace/inference/chat_templates /workspace/chat_templates
 
+RUN ln -s /workspace/weights /workspace/tfs/weights && \
+    ln -s /workspace/weights /workspace/vllm/weights
+
 RUN echo $VERSION > /workspace/version.txt

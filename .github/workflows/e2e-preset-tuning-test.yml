@@ -45,7 +45,7 @@ jobs:
         run: |
             CONFIG=$(jq -c '.matrix.image[] | select(.name == "tuning")' .github/e2e-preset-configs.json)
 
-            echo "TAG=0.1.1" >> $GITHUB_OUTPUT
+            echo "TAG=0.2.0" >> $GITHUB_OUTPUT
             for row in $(echo "${CONFIG}" | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]'); do
                 echo "${row}" >> $GITHUB_OUTPUT
             done
@@ -85,9 +85,9 @@ jobs:
 
       - name: Replace repo and Deploy Resource to K8s
         run: |
-            sed -i "s/REPO_HERE/${{ secrets.ACR_AMRT_USERNAME }}/g" presets/workspace/test/tuning/tuning-job.yaml
-            sed -i "s/TAG_HERE/${{ steps.get_test_meta.outputs.TAG }}/g" presets/workspace/test/tuning/tuning-job.yaml
-            kubectl apply -f presets/workspace/test/tuning/tuning-job.yaml
+            sed -i "s/REPO_HERE/${{ secrets.ACR_AMRT_USERNAME }}/g" presets/workspace/test/manifests/tuning/tuning.yaml
+            sed -i "s/TAG_HERE/${{ steps.get_test_meta.outputs.TAG }}/g" presets/workspace/test/manifests/tuning/tuning.yaml
+            kubectl apply -f presets/workspace/test/manifests/tuning/tuning.yaml
 
       - name: Wait for tuning job to be ready
         shell: bash {0}
@@ -117,7 +117,7 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-            kubectl delete --wait=true -f presets/workspace/test/tuning/tuning-job.yaml
+            kubectl delete --wait=true -f presets/workspace/test/manifests/tuning/tuning.yaml
 
             # Check and Delete AKS Nodepool if it exists
             NODEPOOL_EXIST=$(az aks nodepool show \

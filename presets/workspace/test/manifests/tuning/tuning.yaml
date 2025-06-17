@@ -22,7 +22,7 @@ spec:
           value: query_key_value
         - name: PYTORCH_CUDA_ALLOC_CONF
           value: expandable_segments:True
-        image: REPO_HERE.azurecr.io/falcon-7b:TAG_HERE
+        image: REPO_HERE.azurecr.io/base:0.0.4
         imagePullPolicy: Always
         name: tuning
         ports:
@@ -40,8 +40,21 @@ spec:
           name: results-volume
         - mountPath: /mnt/data
           name: data-volume
+        - name: weights-volume
+          mountPath: /workspace/weights
       dnsPolicy: ClusterFirst
       initContainers:
+      - name: oras-pull
+        image: ghcr.io/oras-project/oras:v1.2.2
+        command:
+        - oras
+        - pull
+        - REPO_HERE.azurecr.io/falcon-7b:TAG_HERE
+        - -o
+        - /workspace/weights
+        volumeMounts:
+        - name: weights-volume
+          mountPath: /workspace/weights
       - command:
         - sh
         - -c
@@ -70,6 +83,8 @@ spec:
         name: results-volume
       - emptyDir: {}
         name: data-volume
+      - name: weights-volume
+        emptyDir: {}
       nodeSelector:
         pool: tuning
 ---

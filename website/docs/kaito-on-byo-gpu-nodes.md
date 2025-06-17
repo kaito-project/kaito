@@ -2,7 +2,7 @@
 title: Bring Your Own GPU Nodes
 ---
 
-This guide walks you through deploying Kaito on a Kubernetes cluster with self-provisioned GPU nodes.
+This guide walks you through deploying KAITO on a Kubernetes cluster with self-provisioned GPU nodes.
 
 ## Prerequisites
 
@@ -157,7 +157,7 @@ nvidia   nvidia    16m
 
 ### Label the GPU nodes
 
-We need to label the GPU nodes `apps=gpu`, so that the Kaito workspace controller can schedule the inference workloads on these nodes. If you are following along the guide, you can run the following command to label the GPU nodes:
+We need to label the GPU nodes `apps=gpu`, so that the KAITO workspace controller can schedule the inference workloads on these nodes. If you are following along the guide, you can run the following command to label the GPU nodes:
 
 ```bash
 kubectl get nodes \
@@ -171,9 +171,9 @@ kubectl get nodes \
 If you have used a different set up to create the GPU nodes, you can label the nodes manually by running the following command: `kubectl label node <node-name> apps=gpu`.
 :::
 
-## Install Kaito on the Kubernetes cluster
+## Install KAITO on the Kubernetes cluster
 
-Run the following command to install Kaito:
+Run the following command to install KAITO:
 
 ```bash
 helm install workspace \

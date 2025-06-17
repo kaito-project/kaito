@@ -72,7 +72,7 @@ export WEIGHTS_PATH="kaito/phi-3-mini-4k-instruct/weights"
 
 2. Build and Push the Docker Image
 
-Navigate to the Kaito base directory and build the Docker image, ensuring the weights directory is included in the build context:
+Navigate to the KAITO base directory and build the Docker image, ensuring the weights directory is included in the build context:
 ```sh
 docker build -t <IMAGE_NAME> --file docker/presets/workspace/models/tfs/Dockerfile --build-arg WEIGHTS_PATH=<WEIGHTS_PATH> --build-arg MODEL_TYPE=text-generation --build-arg VERSION=<VERSION> .
 

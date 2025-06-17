@@ -3,14 +3,14 @@ title: Proposal for new model support
 authors:
   - "Justin Joy"
 reviewers:
-  - "Kaito contributor"
+  - "KAITO contributor"
 creation-date: 2024-05-27
 last-updated: 2024-05-27
 status: provisional
 ---
 
 # Title
-Add Phi-3 Medium Models to Kaito supported model list
+Add Phi-3 Medium Models to KAITO supported model list
 
 ## Glossary
 N/A

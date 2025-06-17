@@ -2,7 +2,7 @@
 title: Proposals
 ---
 
-This section contains proposals for adding new models to Kaito. Each proposal describes the process of evaluating and integrating new OSS models into the Kaito ecosystem.
+This section contains proposals for adding new models to KAITO. Each proposal describes the process of evaluating and integrating new OSS models into the KAITO ecosystem.
 
 ## Proposal Template
 
@@ -33,7 +33,7 @@ For detailed information about the model onboarding process, see the [Model Onbo
 Use the model proposal template to describe the target OSS model, including licensing, usage statistics, and technical requirements.
 
 ### Step 2: Model Validation
-Kaito maintainers validate and test the proposed model using the specified runtime.
+KAITO maintainers validate and test the proposed model using the specified runtime.
 
 ### Step 3: Image Publishing
 If licensing allows, model images are published to Microsoft Container Registry (MCR).
@@ -42,13 +42,13 @@ If licensing allows, model images are published to Microsoft Container Registry 
 Implement preset configurations and inference interfaces for the model.
 
 ### Step 5: Testing
-Add comprehensive E2E tests to ensure the model works correctly with Kaito.
+Add comprehensive E2E tests to ensure the model works correctly with KAITO.
 
 ## Contributing a Proposal
 
 To contribute a new model proposal:
 
-1. Fork the Kaito repository
+1. Fork the KAITO repository
 2. Copy the [model template](./proposals/YYYYMMDD-model-template) to `website/docs/proposals/YYYYMMDD-<model-name>.md`
 3. Fill out all required sections
 4. Submit a pull request for review

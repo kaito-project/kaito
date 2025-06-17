@@ -3,7 +3,7 @@ title: Proposal for support of Microsoft's Phi-4
 authors:
   - "Suraj Deshmukh"
 reviewers:
-  - "Kaito contributor"
+  - "KAITO contributor"
 creation-date: 2024-12-12
 last-updated: 2024-12-12
 status: provisional
@@ -11,7 +11,7 @@ status: provisional
 
 # Title
 
-Add official support for Microsoft's Phi-4 models in Kaito.
+Add official support for Microsoft's Phi-4 models in KAITO.
 
 ## Summary
 

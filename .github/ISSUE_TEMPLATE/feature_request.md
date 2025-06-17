@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest a new feature for Kaito
+about: Suggest a new feature for KAITO
 title: ''
 labels: 'enhancement'
 assignees: ''

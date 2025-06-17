@@ -2,11 +2,11 @@
 title: Quick Start
 ---
 
-After installing Kaito, you can quickly deploy a phi-3.5-mini-instruct inference service to get started.
+After installing KAITO, you can quickly deploy a phi-3.5-mini-instruct inference service to get started.
 
 ## Prerequisites
 
-- A Kubernetes cluster with Kaito installed (see [Installation](installation))
+- A Kubernetes cluster with KAITO installed (see [Installation](installation))
 - `kubectl` configured to access your cluster
 
 ## Deploy Your First Model
@@ -98,7 +98,7 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
 
 ## Next Steps
 
-🎉 Congratulations! You've successfully deployed and tested your first model with Kaito.
+🎉 Congratulations! You've successfully deployed and tested your first model with KAITO.
 
 - **Learn More**: Explore the full range of supported models in the [presets documentation](https://github.com/kaito-project/kaito/tree/main/presets)
 - **Advanced Usage**: Learn about [workspace configurations](https://github.com/kaito-project/kaito/blob/main/api/v1alpha1/workspace_types.go)

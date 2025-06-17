@@ -3,7 +3,7 @@ title: Distributing LLM Model Files as OCI Artifacts
 authors:
   - zhuangqh
 reviewers:
-  - Kaito contributor
+  - KAITO contributor
 creation-date: 2025-06-09
 last-updated: 2025-06-09
 status: provisional

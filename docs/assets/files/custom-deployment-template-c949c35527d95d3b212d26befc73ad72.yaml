@@ -1,0 +1,56 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-custom-llm
+resource:
+  instanceType: "Standard_NC24ads_A100_v4" # Replace with the required VM SKU based on model requirements
+  labelSelector:
+    matchLabels:
+      apps: custom-llm
+inference:
+  template: 
+    spec:
+      containers:
+      - name: custom-llm-container
+        image: modelsregistry.azurecr.io/custom-llm:0.0.1 # Replace with the actual image name
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 600
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        command: ["accelerate"]
+        args:
+          - "launch"
+          - "--num_processes"
+          - "1"
+          - "--num_machines"
+          - "1"
+          - "--gpu_ids"
+          - "all"
+          - "tfs/inference_api.py"
+          - "--pipeline"
+          - "text-generation"
+          - "--torch_dtype"
+          - "float16"  # Set to "float16" for compatibility with V100 GPUs; use "bfloat16" for A100, H100 or newer GPUs
+        volumeMounts:
+        - name: dshm
+          mountPath: /dev/shm
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory

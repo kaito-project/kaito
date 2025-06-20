@@ -1,9 +1,8 @@
-name: Publish helm chart
+name: Publish ragengine helm chart
 
 on:
   repository_dispatch:
-    types: [ publish-helm-chart ]
-  workflow_dispatch:
+    types: [ publish-ragengine-helm-chart ]
 
 permissions:
   id-token: write # This is required for requesting the JWT
@@ -14,7 +13,7 @@ permissions:
   pull-requests: read
 
 jobs:
-  publish-helm:
+  publish-ragengine-helm:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
@@ -31,22 +30,12 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.client_payload.tag }}
 
-      - name: Publish Workspace Helm chart
+      - name: Publish ragengine helm chart
         uses: stefanprodan/helm-gh-pages@0ad2bb377311d61ac04ad9eb6f252fb68e207260 # v1.7.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          charts_dir: charts/kaito
+          charts_dir: charts/kaito/ragengine
           target_dir: charts/kaito
           linting: off
 
-  create-release:
-    runs-on: ubuntu-latest
-    needs: [ publish-helm ]
-    steps:
-      - name: 'Dispatch release tag to create a release'
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: create-release
-          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}'
-
+ 

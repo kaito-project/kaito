@@ -67,25 +67,6 @@ spec:
 | tolerations                  | list   | `[]`                                         | Pod tolerations                                               |
 | webhook.port                 | int    | `9443`                                       | Webhook server port                                           |
 
-## Configuration
-
-### Cloud Provider Support
-The RAGEngine supports both Azure and AWS cloud providers. Set `cloudProviderName` to either `"azure"` or `"aws"` based on your environment.
-
-### Preset RAG Service Images
-Configure the preset RAG service images using:
-- `presetRagRegistryName`: The container registry hosting RAG service images
-- `presetRagImageName`: The RAG service image name
-- `presetRagImageTag`: The RAG service image tag
-
-## Uninstalling the Chart
-
-To uninstall/delete the `ragengine` deployment:
-
-```bash
-helm delete ragengine --namespace kaito-ragengine
-```
-
 ## Contributing
 
 Please refer to the [KAITO project contribution guidelines](https://github.com/kaito-project/kaito/blob/main/CONTRIBUTING.md) for information on how to contribute to this project.

@@ -5,7 +5,6 @@ package inference
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/samber/lo"
@@ -83,25 +82,7 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace,
 		}
 	}
 
-	// Three possible cases for inference workload image selection:
-	// 1. If the preset is set to download at runtime, use the 'kaito-base' image.
-	// 2. Otherwise, use the preset image, which has the model weights packaged in.
-	var imageName, imageTag string
-	if presetObj.DownloadAtRuntime {
-		// Force the use of kaito-base image if the preset is set to download at runtime.
-		// The kaito-base image is the same as other preset images but without the model
-		// files packaged in.
-		imageName = "base"
-		imageTag = metadata.MustGet(imageName).Tag
-	} else {
-		imageName = string(workspaceObj.Inference.Preset.Name)
-		imageTag = presetObj.Tag
-	}
-
-	registryName := os.Getenv("PRESET_REGISTRY_NAME")
-	imageName = fmt.Sprintf("%s/kaito-%s:%s", registryName, imageName, imageTag)
-
-	return imageName, imagePullSecretRefs
+	return GetBaseImageName(), imagePullSecretRefs
 }
 
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
@@ -175,11 +156,22 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	if shmVolumeMount.Name != "" {
 		volumeMounts = append(volumeMounts, shmVolumeMount)
 	}
+
+	// add adapter volume mount if adapters are enabled
 	if len(workspaceObj.Inference.Adapters) > 0 {
 		adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
 		volumes = append(volumes, adapterVolume)
 		volumeMounts = append(volumeMounts, adapterVolumeMount)
 	}
+
+	// add model weights volume mount if the model is not downloaded at runtime
+	if !inferenceParam.DownloadAtRuntime {
+		modelWeightsVolume, modelWeightsVolumeMount := utils.ConfigModelWeightsVolume()
+		volumes = append(volumes, modelWeightsVolume)
+		volumeMounts = append(volumeMounts, modelWeightsVolumeMount)
+	}
+
+	// additional environment variables
 	if inferenceParam.DownloadAtRuntime {
 		envVars = append(envVars, corev1.EnvVar{
 			Name: "HF_TOKEN",
@@ -193,6 +185,9 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 			},
 		})
 	}
+
+	// additional initContainers
+	initContainers := manifests.GenerateModelPullerContainer(ctx, workspaceObj, inferenceParam)
 
 	// inference command
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(workspaceObj)
@@ -220,10 +215,10 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, workspaceObj, 60, 10, 5)
 		readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, workspaceObj, 0, 10, 1)
 		depObj = manifests.GenerateStatefulSetManifest(workspaceObj, revisionNum, image, imagePullSecrets, numNodes, commands,
-			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars)
+			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars, initContainers)
 	} else {
 		depObj = manifests.GenerateDeploymentManifest(workspaceObj, revisionNum, image, imagePullSecrets, numNodes, commands,
-			containerPorts, defaultLivenessProbe, defaultReadinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars)
+			containerPorts, defaultLivenessProbe, defaultReadinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars, initContainers)
 	}
 	return depObj, nil
 }
@@ -274,4 +269,9 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	}
 
 	return probe
+}
+
+func GetBaseImageName() string {
+	presetObj := metadata.MustGet("base")
+	return utils.GetPresetImageName(presetObj.Name, presetObj.Tag)
 }

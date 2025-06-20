@@ -4,6 +4,7 @@ package utils
 
 import (
 	"fmt"
+	"os"
 
 	corev1 "k8s.io/api/core/v1"
 )
@@ -13,6 +14,7 @@ const (
 	DefaultConfigMapMountPath = "/mnt/config"
 	DefaultDataVolumePath     = "/mnt/data"
 	DefaultAdapterVolumePath  = "/mnt/adapter"
+	DefaultWeightsVolumePath  = "/workspace/weights"
 )
 
 func ConfigResultsVolume(outputPath string, outputVolume *corev1.VolumeSource) (corev1.Volume, corev1.VolumeMount) {
@@ -181,4 +183,30 @@ func ConfigAdapterVolume() (corev1.Volume, corev1.VolumeMount) {
 		MountPath: DefaultAdapterVolumePath,
 	}
 	return volume, volumeMount
+}
+
+func ConfigModelWeightsVolume() (corev1.Volume, corev1.VolumeMount) {
+	var volume corev1.Volume
+	var volumeMount corev1.VolumeMount
+
+	volumeSource := corev1.VolumeSource{
+		EmptyDir: &corev1.EmptyDirVolumeSource{},
+	}
+
+	volume = corev1.Volume{
+		Name:         "model-weights-volume",
+		VolumeSource: volumeSource,
+	}
+
+	volumeMount = corev1.VolumeMount{
+		Name:      "model-weights-volume",
+		MountPath: DefaultWeightsVolumePath,
+	}
+	return volume, volumeMount
+}
+
+func GetPresetImageName(name, tag string) string {
+	return fmt.Sprintf("%s/kaito-%s:%s",
+		os.Getenv("PRESET_REGISTRY_NAME"),
+		name, tag)
 }

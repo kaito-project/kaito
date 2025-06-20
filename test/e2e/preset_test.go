@@ -256,10 +256,10 @@ func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNo
 	outputRegistryUrl := fmt.Sprintf("%s.azurecr.io/%s:%s", azureClusterName, e2eOutputImageName, e2eOutputImageTag)
 	var uniqueID string
 	By("Creating a workspace Tuning CR with Phi-3 preset public mode", func() {
-		uniqueID = fmt.Sprint("preset-", rand.Intn(1000))
+		uniqueID = fmt.Sprint("preset-tuning-falcon-", rand.Intn(1000))
 		workspaceObj = utils.GenerateE2ETuningWorkspaceManifest(uniqueID, namespaceName, "",
 			fullDatasetImageName1, outputRegistryUrl, numOfNode, "Standard_NC6s_v3", &metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-tuning-falcon"},
+				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
 			}, nil, PresetPhi3Mini128kModel, []string{e2eACRSecret}, configMapName, intputVolume, outputVolume)
 
 		createAndValidateWorkspace(workspaceObj)

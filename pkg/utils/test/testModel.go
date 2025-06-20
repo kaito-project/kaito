@@ -17,7 +17,8 @@ var emptyParams = map[string]string{}
 func (*baseTestModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata: model.Metadata{
-			Tag: "base-test-model",
+			Name: "test-model",
+			Tag:  "1.0.0",
 		},
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "8Gi",
@@ -64,7 +65,8 @@ type testDistributedModel struct {
 func (*testDistributedModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata: model.Metadata{
-			Tag: "test-distributed-model",
+			Name: "test-distributed-model",
+			Tag:  "1.0.0",
 		},
 		GPUCountRequirement:       "2",
 		TotalGPUMemoryRequirement: "64Gi",
@@ -94,7 +96,8 @@ type testNoTensorParallelModel struct {
 func (*testNoTensorParallelModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata: model.Metadata{
-			Tag: "test-no-tensor-parallel-model",
+			Name: "test-no-tensor-parallel-model",
+			Tag:  "1.0.0",
 		},
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "8Gi",
@@ -131,6 +134,8 @@ func (*testModelDownload) SupportDistributedInference() bool {
 func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata: model.Metadata{
+			Name:              "test-model-download",
+			Tag:               "1.0.0",
 			Version:           "https://huggingface.co/test-repo/test-model/commit/test-revision",
 			DownloadAtRuntime: true,
 		},
@@ -155,7 +160,8 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata: model.Metadata{
-			Tag: "test-no-lora-support-model",
+			Name: "test-no-lora-support-model",
+			Tag:  "1.0.0",
 		},
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "8Gi",

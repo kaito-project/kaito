@@ -101,6 +101,8 @@ jobs:
         env:
           VERSION: ${{ needs.check-tag.outputs.tag }}
           REGISTRY: ${{ steps.get-registry.outputs.registry_repository }}
+          IMG_NAME: workspace
+          IMG_TAG: ${{ env.IMG_TAG }}
 
       - name: Scan ${{ steps.get-registry.outputs.registry_repository }}/${{ env.IMAGE_NAME }}:${{ env.IMG_TAG }}
         uses: aquasecurity/trivy-action@master

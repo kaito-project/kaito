@@ -13,7 +13,7 @@ permissions:
 
 env:
   GO_VERSION: '1.24'
-  IMAGE_NAME: 'kaito-rag-engine'
+  IMAGE_NAME: 'ragengine'
   REGISTRY: ghcr.io
 
 jobs:
@@ -97,11 +97,12 @@ jobs:
 
       - name: Build image
         run: |
-          make docker-build-ragengine
+          OUTPUT_TYPE=type=registry make docker-build-ragengine
         env:
-          REGISTRY: ${{ env.REGISTRY }}
-          RAGENGINE_IMG_NAME: ${{ env.IMAGE_NAME }}
-          RAGENGINE_IMG_TAG: ${{ needs.check-tag.outputs.tag }}
+          VERSION: ${{ needs.check-tag.outputs.tag }}
+          REGISTRY: ${{ steps.get-registry.outputs.registry_repository }}
+          RAGENGINE_IMAGE_NAME: ragengine
+          IMG_TAG: ${{ env.IMG_TAG }}
 
       - name: Scan ${{ steps.get-registry.outputs.registry_repository }}/${{ env.IMAGE_NAME }}:${{ env.IMG_TAG }}
         uses: aquasecurity/trivy-action@master
@@ -126,3 +127,14 @@ jobs:
       registry: ${{ needs.build-scan-publish-gh-images.outputs.registry_repository }}
       k8s_version: ${{ vars.AKS_K8S_VERSION }}
       tag: ${{ needs.check-tag.outputs.tag }}
+
+  publish-mcr-image:
+    runs-on: ubuntu-latest
+    needs: [ check-tag, run-e2e-gh-image ]
+    steps:
+      - name: 'Dispatch ragengine MCR publishing'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: publish-rag-controller-mcr-image
+          client-payload: '{"tag": "${{ needs.check-tag.outputs.tag }}"}'

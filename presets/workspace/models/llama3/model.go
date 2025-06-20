@@ -93,7 +93,7 @@ type llama3_3_70Binstruct struct{}
 func (*llama3_3_70Binstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetLlama3_3_70BInstructModel),
-		DiskStorageRequirement:    "140Gi",
+		DiskStorageRequirement:    "220Gi",
 		GPUCountRequirement:       "4",
 		TotalGPUMemoryRequirement: "320Gi",
 		PerGPUMemoryRequirement:   "80Gi",

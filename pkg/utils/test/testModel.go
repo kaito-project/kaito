@@ -22,6 +22,7 @@ func (*baseTestModel) GetInferenceParameters() *model.PresetParam {
 		},
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "8Gi",
+		DiskStorageRequirement:    "100Gi",
 		RuntimeParam: model.RuntimeParam{
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
@@ -69,6 +70,7 @@ func (*testDistributedModel) GetInferenceParameters() *model.PresetParam {
 			Tag:  "1.0.0",
 		},
 		GPUCountRequirement:       "2",
+		DiskStorageRequirement:    "100Gi",
 		TotalGPUMemoryRequirement: "64Gi",
 		RuntimeParam: model.RuntimeParam{
 			DisableTensorParallelism: true,
@@ -100,6 +102,7 @@ func (*testNoTensorParallelModel) GetInferenceParameters() *model.PresetParam {
 			Tag:  "1.0.0",
 		},
 		GPUCountRequirement:       "1",
+		DiskStorageRequirement:    "100Gi",
 		TotalGPUMemoryRequirement: "8Gi",
 		RuntimeParam: model.RuntimeParam{
 			DisableTensorParallelism: true,
@@ -140,6 +143,7 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 			DownloadAtRuntime: true,
 		},
 		GPUCountRequirement:       "1",
+		DiskStorageRequirement:    "100Gi",
 		TotalGPUMemoryRequirement: "64Gi",
 		RuntimeParam: model.RuntimeParam{
 			VLLM: model.VLLMParam{

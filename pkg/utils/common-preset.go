@@ -17,6 +17,17 @@ const (
 	DefaultWeightsVolumePath  = "/workspace/weights"
 )
 
+var DefaultModelWeightsVolume = corev1.Volume{
+	Name: "model-weights-volume",
+	VolumeSource: corev1.VolumeSource{
+		EmptyDir: &corev1.EmptyDirVolumeSource{},
+	},
+}
+var DefaultModelWeightsVolumeMount = corev1.VolumeMount{
+	Name:      "model-weights-volume",
+	MountPath: DefaultWeightsVolumePath,
+}
+
 func ConfigResultsVolume(outputPath string, outputVolume *corev1.VolumeSource) (corev1.Volume, corev1.VolumeMount) {
 	sharedWorkspaceVolume := corev1.Volume{
 		Name: "results-volume",
@@ -181,26 +192,6 @@ func ConfigAdapterVolume() (corev1.Volume, corev1.VolumeMount) {
 	volumeMount = corev1.VolumeMount{
 		Name:      "adapter-volume",
 		MountPath: DefaultAdapterVolumePath,
-	}
-	return volume, volumeMount
-}
-
-func ConfigModelWeightsVolume() (corev1.Volume, corev1.VolumeMount) {
-	var volume corev1.Volume
-	var volumeMount corev1.VolumeMount
-
-	volumeSource := corev1.VolumeSource{
-		EmptyDir: &corev1.EmptyDirVolumeSource{},
-	}
-
-	volume = corev1.Volume{
-		Name:         "model-weights-volume",
-		VolumeSource: volumeSource,
-	}
-
-	volumeMount = corev1.VolumeMount{
-		Name:      "model-weights-volume",
-		MountPath: DefaultWeightsVolumePath,
 	}
 	return volume, volumeMount
 }

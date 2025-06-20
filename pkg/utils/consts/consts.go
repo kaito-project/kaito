@@ -40,3 +40,7 @@ const (
 
 	NodePluginInstallTimeout = 60 * time.Second
 )
+
+var (
+	LocalNVMeStorageClass = "local-nvme-disk"
+)

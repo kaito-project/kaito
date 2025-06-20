@@ -35,6 +35,7 @@ func TestGenerateStatefulSetManifest(t *testing.T) {
 			nil, //volumeMount
 			nil, //envVars
 			nil, //initContainers
+			nil, //pvc
 		)
 
 		assert.Contains(t, obj.GetAnnotations(), v1beta1.WorkspaceRevisionAnnotation)

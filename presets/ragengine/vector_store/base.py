@@ -143,7 +143,8 @@ class BaseVectorStore(ABC):
             dict: A dictionary containing the response and source nodes.
         """
         if index_name not in self.index_map:
-            raise ValueError(f"No such index: '{index_name}' exists.")
+            raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
+
         self.llm.set_params(llm_params)
 
         node_postprocessors = []
@@ -192,7 +193,8 @@ class BaseVectorStore(ABC):
     async def add_document_to_index(self, index_name: str, document: Document, doc_id: str):
         """Common logic for adding a single document."""
         if index_name not in self.index_map:
-            raise ValueError(f"No such index: '{index_name}' exists.")
+            raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
+
         llama_doc = LlamaDocument(id_=doc_id, text=document.text, metadata=document.metadata, excluded_llm_metadata_keys=[key for key in document.metadata.keys()])
 
         if self.use_rwlock:
@@ -212,7 +214,7 @@ class BaseVectorStore(ABC):
     async def delete_documents(self, index_name: str, doc_ids: List[str]):
         """Common logic for deleting a document."""
         if index_name not in self.index_map:
-            raise HTTPException(status_code=404, detail=f"index does not exist: {index_name}")
+            raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
         
         not_found_docs = []
         found_docs = []
@@ -242,7 +244,7 @@ class BaseVectorStore(ABC):
     async def update_documents(self, index_name: str, documents: List[Document]):
         """Common logic for updating a document."""
         if index_name not in self.index_map:
-            raise HTTPException(status_code=404, detail=f"index does not exist: {index_name}")
+            raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
         
         not_found_docs = []
         found_docs = []
@@ -316,7 +318,7 @@ class BaseVectorStore(ABC):
         """
         vector_store_index = self.index_map.get(index_name)
         if not vector_store_index:
-            raise ValueError(f"Index '{index_name}' not found.")
+            raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
         
         doc_store = vector_store_index.docstore
         doc_store_items = doc_store.docs.items()
@@ -367,6 +369,10 @@ class BaseVectorStore(ABC):
 
     async def persist(self, index_name: str, path: str):
         """Common persistence logic for individual index."""
+
+        if index_name not in self.index_map:
+            raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
+
         if self.use_rwlock:
             async with self.rwlock.writer_lock:
                 await self._persist_internal(index_name, path)

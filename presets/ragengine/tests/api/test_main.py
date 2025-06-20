@@ -16,6 +16,7 @@ import asyncio
 import httpx
 import respx
 import json
+import re
 
 AUTO_GEN_DOC_ID_LEN = 64
 
@@ -55,6 +56,10 @@ async def test_index_documents_success(async_client):
     assert (doc2["text"] == "Another test document")
     assert len(doc2["doc_id"]) == AUTO_GEN_DOC_ID_LEN
     assert not doc2["metadata"]
+
+    response = await async_client.get(f"/metrics")
+    assert response.status_code == 200
+    assert len(re.findall(r'rag_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
 
 @pytest.mark.asyncio
 @respx.mock
@@ -103,6 +108,11 @@ async def test_query_index_success(mock_get, async_client):
 
     # Ensure the model fetch was called once
     mock_get.assert_called_once_with("http://localhost:5000/v1/models", headers=ANY)
+
+    response = await async_client.get(f"/metrics")
+    assert response.status_code == 200
+    assert len(re.findall(r'rag_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_query_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
 
 @pytest.mark.asyncio
 @respx.mock
@@ -165,6 +175,12 @@ async def test_document_update_success(mock_get, async_client):
 
     assert respx.calls.call_count == 1
 
+    response = await async_client.get(f"/metrics")
+    assert response.status_code == 200
+    assert len(re.findall(r'rag_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_query_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_indexes_update_document_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+
 @pytest.mark.asyncio
 async def test_document_delete_success(async_client):
     # Index Request
@@ -195,6 +211,12 @@ async def test_document_delete_success(async_client):
     assert response.json()["count"] == 1
     assert len(response.json()["documents"]) == 1
     assert response.json()["documents"][0]["text"] == "This is a test document"
+
+    response = await async_client.get(f"/metrics")
+    assert response.status_code == 200
+    assert len(re.findall(r'rag_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_indexes_delete_document_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_indexes_document_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
 
 @pytest.mark.asyncio
 @respx.mock
@@ -299,6 +321,11 @@ async def test_reranker_and_query_with_index(mock_get, async_client):
     # Ensure HTTPX requests were made
     assert respx.calls.call_count == 2  # One for rerank, one for query completion
 
+    response = await async_client.get(f"/metrics")
+    assert response.status_code == 200
+    assert len(re.findall(r'rag_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_query_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+
 @pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")  # Mock the requests.get call for fetching model metadata
@@ -357,6 +384,11 @@ async def test_reranker_failed_and_query_with_index(mock_get, async_client):
     # Ensure HTTPX requests were made
     assert respx.calls.call_count == 1  # One for rerank
 
+    response = await async_client.get(f"/metrics")
+    assert response.status_code == 200
+    assert len(re.findall(r'rag_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_query_requests_total{status="failure"} ([1-9]\d*).0', response.text)) == 1
+
 @pytest.mark.asyncio
 async def test_query_index_failure(async_client):
     # Prepare request data for querying.
@@ -368,8 +400,12 @@ async def test_query_index_failure(async_client):
     }
 
     response = await async_client.post("/query", json=request_data)
-    assert response.status_code == 400
+    assert response.status_code == 404
     assert response.json()["detail"] == "No such index: 'non_existent_index' exists."
+
+    response = await async_client.get(f"/metrics")
+    assert response.status_code == 200
+    assert len(re.findall(r'rag_query_requests_total{status="failure"} ([1-9]\d*).0', response.text)) == 1
 
 @pytest.mark.asyncio
 async def test_list_documents_in_index_success(async_client):
@@ -378,8 +414,8 @@ async def test_list_documents_in_index_success(async_client):
     # Ensure no documents are present initially
     response = await async_client.get(f"/indexes/{index_name}/documents")
 
-    assert response.status_code == 500
-    assert response.json() == {'detail': "Index 'test_index' not found."}
+    assert response.status_code == 404
+    assert response.json() == {'detail': "No such index: 'test_index' exists."}
 
     request_data = {
         "index_name": index_name,
@@ -414,8 +450,8 @@ async def test_list_documents_with_metadata_filter_success(async_client):
     # Ensure no documents are present initially
     response = await async_client.get(f"/indexes/{index_name}/documents")
 
-    assert response.status_code == 500
-    assert response.json() == {'detail': "Index 'test_index' not found."}
+    assert response.status_code == 404
+    assert response.json() == {'detail': "No such index: 'test_index' exists."}
 
     request_data = {
         "index_name": index_name,
@@ -448,8 +484,8 @@ async def test_list_documents_with_metadata_filter_failure(async_client):
     # Ensure no documents are present initially
     response = await async_client.get(f"/indexes/{index_name}/documents")
 
-    assert response.status_code == 500
-    assert response.json() == {'detail': "Index 'test_index' not found."}
+    assert response.status_code == 404
+    assert response.json() == {'detail': "No such index: 'test_index' exists."}
 
     request_data = {
         "index_name": index_name,
@@ -472,8 +508,8 @@ async def test_persist_documents(async_client):
     # Ensure no documents are present initially
     response = await async_client.get(f"/indexes/{index_name}/documents")
 
-    assert response.status_code == 500
-    assert response.json() == {'detail': "Index 'test_index' not found."}
+    assert response.status_code == 404
+    assert response.json() == {'detail': "No such index: 'test_index' exists."}
 
     request_data = {
         "index_name": index_name,
@@ -501,6 +537,12 @@ async def test_persist_documents(async_client):
     assert response_json == {"message": f"Successfully persisted index {index_name} to {custom_path}."}
     assert os.path.exists(custom_path)
 
+    response = await async_client.get(f"/metrics")
+    assert response.status_code == 200
+    assert len(re.findall(r'rag_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_indexes_document_requests_total{status="failure"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_persist_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+
 @pytest.mark.asyncio
 async def test_load_documents(async_client):
     index_name = "test_index"
@@ -522,6 +564,12 @@ async def test_load_documents(async_client):
     assert response_data["documents"][0]["text"] == "This is a test document"
     assert response_data["documents"][1]["text"] == "Another test document"
 
+    response = await async_client.get(f"/metrics")
+    assert response.status_code == 200
+    assert len(re.findall(r'rag_load_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_indexes_document_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_indexes_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+
 @pytest.mark.asyncio
 async def test_delete_index(async_client):
     index_name = "test_index"
@@ -529,8 +577,8 @@ async def test_delete_index(async_client):
     # Ensure no documents are present initially
     response = await async_client.get(f"/indexes/{index_name}/documents")
 
-    assert response.status_code == 500
-    assert response.json() == {'detail': "Index 'test_index' not found."}
+    assert response.status_code == 404
+    assert response.json() == {'detail': "No such index: 'test_index' exists."}
 
     request_data = {
         "index_name": index_name,
@@ -543,7 +591,7 @@ async def test_delete_index(async_client):
     response = await async_client.post("/index", json=request_data)
     assert response.status_code == 200
 
-    # Persist documents for the specific index
+    # Delete the index
     response = await async_client.delete(f"/indexes/{index_name}")
     assert response.status_code == 200
     response_json = response.json()
@@ -552,8 +600,14 @@ async def test_delete_index(async_client):
     # Ensure index deleted
     response = await async_client.get(f"/indexes/{index_name}/documents")
 
-    assert response.status_code == 500
-    assert response.json() == {'detail': "Index 'test_index' not found."}
+    assert response.status_code == 404
+    assert response.json() == {'detail': "No such index: 'test_index' exists."}
+
+    response = await async_client.get(f"/metrics")
+    assert response.status_code == 200
+    assert len(re.findall(r'rag_indexes_document_requests_total{status="failure"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_delete_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
 
 """
 Example of a live query test. This test is currently commented out as it requires a valid 

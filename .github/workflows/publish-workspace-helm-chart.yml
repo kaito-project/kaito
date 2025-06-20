@@ -38,13 +38,4 @@ jobs:
           target_dir: charts/kaito
           linting: off
 
-  create-workspace-release:
-    runs-on: ubuntu-latest
-    needs: [ publish-workspace-helm ]
-    steps:
-      - name: 'Dispatch release tag to create a workspace release'
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: create-release
-          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}' 
+ 

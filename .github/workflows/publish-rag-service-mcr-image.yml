@@ -57,4 +57,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           event-type: publish-ragengine-helm-chart
-          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}' 
+          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}'

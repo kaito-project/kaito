@@ -38,13 +38,4 @@ jobs:
           target_dir: charts/kaito
           linting: off
 
-  create-ragengine-release:
-    runs-on: ubuntu-latest
-    needs: [ publish-ragengine-helm ]
-    steps:
-      - name: 'Dispatch release tag to create a ragengine release'
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: create-release
-          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}' 
+ 

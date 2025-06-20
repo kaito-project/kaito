@@ -8,6 +8,7 @@ permissions:
   packages: write
 
 env:
+  GO_VERSION: '1.24'
   IMAGE_NAME: 'kaito-rag-service'
 
 jobs:
@@ -16,6 +17,11 @@ jobs:
       labels: [ "self-hosted", "1ES.Pool=1es-aks-kaito-agent-pool-ubuntu" ]
     environment: publish-mcr
     steps:
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5.4.0
+        with:
+          go-version: ${{ env.GO_VERSION  }}
+
       - name: Set Image tag
         run: |
           ver=${{ github.event.client_payload.tag }}
@@ -40,7 +46,7 @@ jobs:
           VERSION: ${{ github.event.client_payload.tag }}
           REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito
           RAGENGINE_SERVICE_IMG_NAME: kaito-rag-service
-          RAGENGINE_SERVICE_IMG_TAG: ${{ github.event.client_payload.tag }}
+          RAGENGINE_SERVICE_IMG_TAG: ${{ env.IMG_TAG }}
 
   publish-helm-chart:
     runs-on: ubuntu-latest

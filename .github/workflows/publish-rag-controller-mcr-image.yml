@@ -48,13 +48,13 @@ jobs:
           RAGENGINE_IMAGE_NAME: ragengine
           IMG_TAG: ${{ env.IMG_TAG }}
 
-  dispatch-rag-service-mcr:
+  publish-helm-chart:
     runs-on: ubuntu-latest
     needs: [ build-publish-mcr-image ]
     steps:
-      - name: 'Dispatch RAG service MCR publishing'
+      - name: 'Dispatch release tag for ragengine helm chart'
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: publish-rag-service-mcr-image
-          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}' 
+          event-type: publish-ragengine-helm-chart
+          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}'

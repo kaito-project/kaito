@@ -30,15 +30,15 @@ metadata:
   name: ragengine-example
 spec:
   compute:
-    instanceType: "Standard_NC6s_v3"  
+    instanceType: "Standard_NC6s_v3"
     labelSelector:
       matchLabels:
         apps: ragengine-example
-  embedding:  
+  embedding:
     local:
-      modelID: "BAAI/bge-small-en-v1.5"       
-  inferenceService:  
-    url: "<inference-url>/v1/completions" 
+      modelID: "BAAI/bge-small-en-v1.5"
+  inferenceService:
+    url: "<inference-url>/v1/completions"
 ```
 
 ## Values

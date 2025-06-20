@@ -70,16 +70,11 @@ az aks create \
 
 ### Add GPU nodes
 
-Run the following commands to add or update the `aks-preview` extension:
+Your GPU nodes should be prepared for workload deployment by installing the GPU driver and k8s device plugin, specific to your NVIDIA or AMD GPU. The [NVIDIA GPU Operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/overview.html) and [AMD GPU Operator](https://instinct.docs.amd.com/projects/gpu-operator/en/latest/overview.html) are useful to automate the management and installation of both GPU software components. In the below example, the `gpu-driver` API field is set to `none` at create time of the GPU node pool on Azure Kubernetes Service (AKS) to allow for installation of the NVIDIA GPU Operator:
 
 :::warning
-This is needed to enable the `--skip-gpu-driver-install` flag, you can read more about it [here](https://learn.microsoft.com/en-us/azure/aks/gpu-cluster?tabs=add-ubuntu-gpu-node-pool#skip-gpu-driver-installation-preview).
+On AKS GPU-enabled node pools, the `gpu-driver` API field should be set to `none`, to avoid duplicate installation of the GPU driver and/or unexpected conflicts on your GPU nodes. You can learn more [here](https://learn.microsoft.com/azure/aks/gpu-cluster?tabs=add-ubuntu-gpu-node-pool#skip-gpu-driver-installation).
 :::
-
-```bash
-az extension add --name aks-preview
-az extension update --name aks-preview
-```
 
 Run the following command to add GPU node to the AKS cluster:
 
@@ -90,7 +85,7 @@ az aks nodepool add \
     --cluster-name "${CLUSTER_NAME}" \
     --node-count "${GPU_NODE_COUNT}" \
     --node-vm-size "${GPU_NODE_SIZE}" \
-    --skip-gpu-driver-install
+    --gpu-driver none
 ```
 
 ### Download kubeconfig
@@ -108,7 +103,7 @@ az aks get-credentials \
 ### Install the NVIDIA GPU operator
 
 :::note
-If you have already set up your Kubernetes cluster with Nvidia's GPU operator, you can skip the GPU operator installation.
+If you have already set up your Kubernetes cluster with the NVIDIA GPU operator, you can skip the following steps for installation.
 :::
 
 Run the following commands to create a namespace for the GPU operator:

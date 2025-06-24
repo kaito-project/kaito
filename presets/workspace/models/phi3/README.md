@@ -8,7 +8,7 @@
 | phi-3.5-mini-instruct      | [microsoft](https://huggingface.co/microsoft/Phi-3.5-mini-instruct)      | [link](../../../../examples/inference/kaito_workspace_phi_3.5-instruct.yaml)  |     Deployment      |         false         |
 
 ## Image Source
-- **Public**: Kaito maintainers manage the lifecycle of the inference service images that contain model weights. The images are available in Microsoft Container Registry (MCR).
+- **Public**: KAITO maintainers manage the lifecycle of the inference service images that contain model weights. The images are available in Microsoft Container Registry (MCR).
 
 ## Usage
 

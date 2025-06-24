@@ -4,6 +4,7 @@
 package manifests
 
 import (
+	"context"
 	"fmt"
 	"path"
 
@@ -15,7 +16,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 
+	"github.com/kaito-project/kaito/api/v1beta1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
@@ -95,11 +98,12 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 func GenerateStatefulSetManifest(workspaceObj *kaitov1beta1.Workspace, revisionNum string, imageName string,
 	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
-	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount, envVars []corev1.EnvVar) *appsv1.StatefulSet {
+	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount, envVars []corev1.EnvVar, initContainers []corev1.Container) *appsv1.StatefulSet {
 
 	pullerContainers, pullerEnvVars, pullerVolumes := GeneratePullerContainers(workspaceObj, volumeMount)
 	envVars = append(envVars, pullerEnvVars...)
 	volumes = append(volumes, pullerVolumes...)
+	initContainers = append(initContainers, pullerContainers...)
 
 	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(workspaceObj.Resource.LabelSelector.MatchLabels))
 	for key, value := range workspaceObj.Resource.LabelSelector.MatchLabels {
@@ -157,7 +161,7 @@ func GenerateStatefulSetManifest(workspaceObj *kaitov1beta1.Workspace, revisionN
 							},
 						},
 					},
-					InitContainers: pullerContainers,
+					InitContainers: initContainers,
 					Containers: []corev1.Container{
 						{
 							Name:           workspaceObj.Name,
@@ -193,11 +197,11 @@ func GenerateTuningJobManifest(wObj *kaitov1beta1.Workspace, revisionNum string,
 	// TODO: make containers only mount the volumes they need
 
 	for i := range initContainers {
-		initContainers[i].VolumeMounts = append(initContainers[i].VolumeMounts, volumeMounts...)
+		initContainers[i].VolumeMounts = utils.DedupVolumeMounts(append(initContainers[i].VolumeMounts, volumeMounts...))
 	}
 
 	for i := range sidecarContainers {
-		sidecarContainers[i].VolumeMounts = append(sidecarContainers[i].VolumeMounts, volumeMounts...)
+		sidecarContainers[i].VolumeMounts = utils.DedupVolumeMounts(append(sidecarContainers[i].VolumeMounts, volumeMounts...))
 	}
 
 	// Construct the complete list of containers (main and sidecars)
@@ -258,7 +262,7 @@ func GenerateTuningJobManifest(wObj *kaitov1beta1.Workspace, revisionNum string,
 func GenerateDeploymentManifest(workspaceObj *kaitov1beta1.Workspace, revisionNum string, imageName string,
 	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
-	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount, envVars []corev1.EnvVar) *appsv1.Deployment {
+	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount, envVars []corev1.EnvVar, initContainers []corev1.Container) *appsv1.Deployment {
 
 	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(workspaceObj.Resource.LabelSelector.MatchLabels))
 	for key, value := range workspaceObj.Resource.LabelSelector.MatchLabels {
@@ -279,6 +283,7 @@ func GenerateDeploymentManifest(workspaceObj *kaitov1beta1.Workspace, revisionNu
 	pullerContainers, pullerEnvVars, pullerVolumes := GeneratePullerContainers(workspaceObj, volumeMount)
 	envVars = append(envVars, pullerEnvVars...)
 	volumes = append(volumes, pullerVolumes...)
+	initContainers = append(initContainers, pullerContainers...)
 
 	return &appsv1.Deployment{
 		ObjectMeta: v1.ObjectMeta{
@@ -324,7 +329,7 @@ func GenerateDeploymentManifest(workspaceObj *kaitov1beta1.Workspace, revisionNu
 							},
 						},
 					},
-					InitContainers: pullerContainers,
+					InitContainers: initContainers,
 					Containers: []corev1.Container{
 						{
 							Name:           workspaceObj.Name,
@@ -433,4 +438,36 @@ func GenerateDeploymentManifestWithPodTemplate(workspaceObj *kaitov1beta1.Worksp
 			Template: *templateCopy,
 		},
 	}
+}
+
+func GetModelImageName(presetObj *pkgmodel.PresetParam) string {
+	return utils.GetPresetImageName(presetObj.Name, presetObj.Tag)
+}
+
+// GenerateModelPullerContainer creates an init container that pulls model images using ORAS
+func GenerateModelPullerContainer(ctx context.Context, workspaceObj *v1beta1.Workspace, presetObj *pkgmodel.PresetParam) []corev1.Container {
+	if presetObj.DownloadAtRuntime {
+		// If the preset is set to download at runtime, we don't need to pull the model weights.
+		return nil
+	}
+
+	puller := corev1.Container{
+		Name:  "model-weights-downloader",
+		Image: utils.DefaultORASToolImage,
+		Command: []string{
+			"oras",
+			"pull",
+			GetModelImageName(presetObj),
+			"-o",
+			utils.DefaultWeightsVolumePath,
+		},
+		VolumeMounts: []corev1.VolumeMount{
+			{
+				Name:      "model-weights-volume",
+				MountPath: utils.DefaultWeightsVolumePath,
+			},
+		},
+	}
+
+	return []corev1.Container{puller}
 }

@@ -16,7 +16,7 @@ deployment:
       spec:
         initContainers:
         - name: oras-pull
-          image: ghcr.io/oras-project/oras:v1.2.2
+          image: mcr.microsoft.com/oss/v2/oras-project/oras:v1.2.3
           command:
           - oras
           - pull

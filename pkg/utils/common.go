@@ -326,3 +326,18 @@ func GetRayLeaderHost(meta metav1.ObjectMeta) string {
 	return fmt.Sprintf("%s-0.%s-headless.%s.svc.cluster.local",
 		meta.Name, meta.Name, meta.Namespace)
 }
+
+// DedupVolumeMounts removes duplicate volume mounts by only keeping the first occurrence of each name
+func DedupVolumeMounts(mounts []v1.VolumeMount) []v1.VolumeMount {
+	seen := make(map[string]bool)
+	var result []v1.VolumeMount
+
+	for _, mount := range mounts {
+		if !seen[mount.Name] {
+			seen[mount.Name] = true
+			result = append(result, mount)
+		}
+	}
+
+	return result
+}

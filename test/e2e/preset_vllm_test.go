@@ -336,7 +336,7 @@ func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with phi4 mini preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-phi4-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi4-adapter-vllm"},
 			}, nil, PresetPhi4MiniModel, nil, nil, validAdapters, "")

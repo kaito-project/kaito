@@ -46,7 +46,7 @@ A chat template is defined in a `.jinja` file. Below is an example template:
 
 ## Using Chat Templates with Inference API
 
-Kaito has already provided chat template options in the inference_api code. Simply use the --chat-template flag to pass the path to your .jinja template file.
+KAITO has already provided chat template options in the inference_api code. Simply use the --chat-template flag to pass the path to your .jinja template file.
 
 Find the existing jinja template in the [`chat_templates`](https://github.com/kaito-project/kaito/tree/main/presets/workspace/inference/chat_templates) directory.
 

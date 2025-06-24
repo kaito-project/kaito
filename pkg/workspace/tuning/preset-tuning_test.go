@@ -52,61 +52,6 @@ func TestGetInstanceGPUCount(t *testing.T) {
 	}
 }
 
-func TestGetTuningImageInfo(t *testing.T) {
-	testcases := map[string]struct {
-		registryName string
-		wObj         *kaitov1beta1.Workspace
-		presetObj    *model.PresetParam
-		expected     string
-	}{
-		"Valid Registry and Parameters": {
-			registryName: "testregistry",
-			wObj: &kaitov1beta1.Workspace{
-				Tuning: &kaitov1beta1.TuningSpec{
-					Preset: &kaitov1beta1.PresetSpec{
-						PresetMeta: kaitov1beta1.PresetMeta{
-							Name: "testpreset",
-						},
-					},
-				},
-			},
-			presetObj: &model.PresetParam{
-				Metadata: model.Metadata{
-					Tag: "latest",
-				},
-			},
-			expected: "testregistry/kaito-testpreset:latest",
-		},
-		"Empty Registry Name": {
-			registryName: "",
-			wObj: &kaitov1beta1.Workspace{
-				Tuning: &kaitov1beta1.TuningSpec{
-					Preset: &kaitov1beta1.PresetSpec{
-						PresetMeta: kaitov1beta1.PresetMeta{
-							Name: "testpreset",
-						},
-					},
-				},
-			},
-			presetObj: &model.PresetParam{
-				Metadata: model.Metadata{
-					Tag: "latest",
-				},
-			},
-			expected: "/kaito-testpreset:latest",
-		},
-	}
-
-	for name, tc := range testcases {
-		t.Run(name, func(t *testing.T) {
-			t.Setenv("PRESET_REGISTRY_NAME", tc.registryName)
-
-			result := GetTuningImageInfo(context.Background(), tc.wObj, tc.presetObj)
-			assert.Equal(t, tc.expected, result)
-		})
-	}
-}
-
 func TestGetDataSrcImageInfo(t *testing.T) {
 	testcases := map[string]struct {
 		wObj            *kaitov1beta1.Workspace

@@ -34,6 +34,7 @@ func TestGenerateStatefulSetManifest(t *testing.T) {
 			nil, //volumes
 			nil, //volumeMount
 			nil, //envVars
+			nil, //initContainers
 		)
 
 		assert.Contains(t, obj.GetAnnotations(), v1beta1.WorkspaceRevisionAnnotation)
@@ -89,6 +90,7 @@ func TestGenerateDeploymentManifest(t *testing.T) {
 			nil, //volumes
 			nil, //volumeMount
 			nil, //envVars
+			nil, //initContainers
 		)
 
 		assert.Contains(t, obj.GetAnnotations(), v1beta1.WorkspaceRevisionAnnotation)

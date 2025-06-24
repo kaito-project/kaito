@@ -6,7 +6,6 @@ package tuning
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -24,6 +23,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -64,12 +64,9 @@ func getInstanceGPUCount(sku string) int {
 	return 1
 }
 
-func GetTuningImageInfo(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, presetObj *model.PresetParam) string {
-	imageName := string(workspaceObj.Tuning.Preset.Name)
-	imageTag := presetObj.Tag
-	registryName := os.Getenv("PRESET_REGISTRY_NAME")
-	imageName = fmt.Sprintf("%s/kaito-%s:%s", registryName, imageName, imageTag)
-	return imageName
+func GetTuningImageInfo() string {
+	presetObj := metadata.MustGet("base")
+	return utils.GetPresetImageName(presetObj.Name, presetObj.Tag)
 }
 
 func GetDataSrcImageInfo(ctx context.Context, wObj *kaitov1beta1.Workspace) (string, []corev1.LocalObjectReference) {
@@ -188,12 +185,19 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	volumes = append(volumes, trainingOutputVolume)
 	volumeMounts = append(volumeMounts, trainingOutputVolumeMount)
 
+	// Add volume for training input
 	initContainer, dataSourceVolumes, dataSourceVolumeMounts := prepareDataSource(ctx, workspaceObj)
 	volumes = append(volumes, dataSourceVolumes...)
 	volumeMounts = append(volumeMounts, dataSourceVolumeMounts...)
 	if initContainer != nil && initContainer.Name != "" {
 		initContainers = append(initContainers, *initContainer)
 	}
+
+	// Add volume for model weights access
+	modelWeightsVolume, modelWeightsVolumeMount := utils.ConfigModelWeightsVolume()
+	volumes = append(volumes, modelWeightsVolume)
+	volumeMounts = append(volumeMounts, modelWeightsVolumeMount)
+	initContainers = append(initContainers, manifests.GenerateModelPullerContainer(ctx, workspaceObj, tuningObj)...)
 
 	sidecarContainer, imagePushSecret, imagePushSecretVolume, imagePushSecretVolumeMount := prepareDataDestination(ctx, workspaceObj, outputDir)
 	volumes = append(volumes, imagePushSecretVolume...)
@@ -229,7 +233,7 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	}
 
 	commands, resourceReq := prepareTuningParameters(ctx, workspaceObj, modelCommand, tuningObj, skuNumGPUs)
-	tuningImage := GetTuningImageInfo(ctx, workspaceObj, tuningObj)
+	tuningImage := GetTuningImageInfo()
 
 	var envVars []corev1.EnvVar
 	presetName := strings.ToLower(string(workspaceObj.Tuning.Preset.Name))

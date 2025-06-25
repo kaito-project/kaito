@@ -1,6 +1,4 @@
----
-title: Retrieval-Augmented Generation (RAG)
----
+# Retrieval-Augmented Generation (RAG)
 
 This document presents how to use the KAITO `ragengine` Custom Resource Definition (CRD) for retrieval-augumented generatoin workflow. By creating a RAGEngine resource, you can quickly stand up a service that indexes documents and queries them in conjunction with an existing LLM inference endpoint—no need to custom-build pipelines. This enables your large language model to answer questions based on your own private content.
 
@@ -81,8 +79,6 @@ After you create your YAML configuration, run:
 ```sh
 kubectl apply -f examples/RAG/kaito_ragengine_phi_3.yaml
 ```
-
-## Usage
 
 ### Relationship Between Index, Documents, and Document Nodes
 
@@ -432,3 +428,8 @@ POST /query
 The `rerank_params` option is experimental and may cause the query to fail if the LLM reranker produces an invalid response. If reranking fails, the request will return an error.
 
 Use this endpoint to retrieve relevant information from your indexed documents and optionally generate answers using an LLM.
+
+
+## Example Client
+
+You can leverage the [example_rag_client.py](./example_rag_client.py) as a starting point for a rag client with inputs that match the route documentation above.

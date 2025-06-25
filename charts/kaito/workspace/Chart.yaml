@@ -23,3 +23,12 @@ maintainers:
     email: hebaelayoty@gmail.com
   - name: ishaansehgal99
     email: ishaanforthewin@gmail.com
+category: ai-machine-learning
+license: MIT License
+links: |
+  - name: GitHub
+      url: https://github.com/kaito-project/kaito
+  - name: Examples
+    url: https://github.com/kaito-project/kaito/tree/main/examples
+prerelease: "false"
+  

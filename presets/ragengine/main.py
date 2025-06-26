@@ -29,6 +29,10 @@ from ragengine.metrics.prometheus_metrics import (
     rag_indexes_requests_total,
     rag_indexes_document_latency,
     rag_indexes_document_requests_total,
+    rag_indexes_delete_document_latency,
+    rag_indexes_delete_document_requests_total,
+    rag_indexes_update_document_latency,
+    rag_indexes_update_document_requests_total,
     rag_persist_latency,
     rag_persist_requests_total,
     rag_load_latency,
@@ -159,7 +163,6 @@ def health_check():
     ```
     """,
 )
-    
 async def index_documents(request: IndexRequest):
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
@@ -172,6 +175,8 @@ async def index_documents(request: IndexRequest):
         ]
         status = STATUS_SUCCESS
         return documents
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
@@ -425,12 +430,14 @@ async def update_documents_in_index(
         )
         status = STATUS_SUCCESS
         return result
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block
-        rag_indexes_document_requests_total.labels(status=status).inc()
-        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter() - start_time)
+        rag_indexes_update_document_requests_total.labels(status=status).inc()
+        rag_indexes_update_document_latency.labels(status=status).observe(time.perf_counter() - start_time)
 
 @app.post(
     "/indexes/{index_name}/documents/delete",
@@ -468,12 +475,14 @@ async def delete_documents_in_index(
         )
         status = STATUS_SUCCESS
         return result
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block
-        rag_indexes_document_requests_total.labels(status=status).inc()
-        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter() - start_time)
+        rag_indexes_delete_document_requests_total.labels(status=status).inc()
+        rag_indexes_delete_document_latency.labels(status=status).observe(time.perf_counter() - start_time)
 
 @app.post(
     "/persist/{index_name}",
@@ -509,6 +518,8 @@ async def persist_index(
         await rag_ops.persist(index_name, path)
         status = STATUS_SUCCESS
         return {"message": f"Successfully persisted index {index_name} to {path}."}
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")
     finally:
@@ -554,6 +565,8 @@ async def load_index(
         await rag_ops.load(index_name, path, overwrite)
         status = STATUS_SUCCESS
         return {"message": f"Successfully loaded index {index_name} from {path}."}
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
     finally:
@@ -593,6 +606,8 @@ async def delete_index(index_name: str):
         await rag_ops.delete_index(index_name)
         status = STATUS_SUCCESS
         return {"message": f"Successfully deleted index {index_name}."}
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Deletion failed: {str(e)}")
     finally:

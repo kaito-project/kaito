@@ -136,5 +136,5 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: publish-mcr-image
+          event-type: publish-workspace-mcr-image
           client-payload: '{"tag": "${{ needs.check-tag.outputs.tag }}"}'

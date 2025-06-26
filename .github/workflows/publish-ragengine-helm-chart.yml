@@ -29,6 +29,17 @@ jobs:
           submodules: true
           fetch-depth: 0
           ref: ${{ github.event.client_payload.tag }}
+      
+      - name: Set Image tag
+        run: |
+          ver=${{ github.event.client_payload.tag }}
+          echo "IMG_TAG=${ver#"v"}" >> $GITHUB_ENV
+      
+      - name: Write rag service registry info
+        run: |
+          yq -i '(.presetRagRegistryName) = "${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito"' ./charts/kaito/ragengine/values.yaml
+          yq -i '(.presetRagImageName) = "kaito-rag-service"' ./charts/kaito/ragengine/values.yaml
+          yq -i '(.presetRagImageTag) = "${{ env.IMG_TAG }}"' ./charts/kaito/ragengine/values.yaml
 
       - name: Publish ragengine helm chart
         uses: stefanprodan/helm-gh-pages@0ad2bb377311d61ac04ad9eb6f252fb68e207260 # v1.7.0

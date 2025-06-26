@@ -1,7 +1,7 @@
 name: Publish KAITO MCR image
 on:
   repository_dispatch:
-    types: [ publish-mcr-image ]
+    types: [ publish-workspace-mcr-image ]
 
 permissions:
   contents: write

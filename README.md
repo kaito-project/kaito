@@ -38,7 +38,7 @@ The above figure presents the KAITO architecture overview. Its major components 
 
 
 <div align="left">
-  <img src="website/static/img/ragarch.svg" width=45% title="KAITO architecture" alt="KAITO architecture">
+  <img src="website/static/img/ragarch.svg" width=55% title="KAITO architecture" alt="KAITO architecture">
 </div>
 
 The above figure presents the RAGEngine architecture overview consisting of:

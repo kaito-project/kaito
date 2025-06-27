@@ -16,7 +16,7 @@ entries:
     - https://github.com/Azure/gpu-provisioner
     type: application
     urls:
-    - https://Azure.github.io/kaito/charts/kaito/gpu-provisioner-0.2.0.tgz
+    - https://kaito-project.github.io/kaito/charts/kaito/gpu-provisioner-0.2.0.tgz
     version: 0.2.0
   - apiVersion: v2
     appVersion: 0.1.0
@@ -33,7 +33,7 @@ entries:
     - https://github.com/Azure/gpu-provisioner
     type: application
     urls:
-    - https://Azure.github.io/kaito/charts/kaito/gpu-provisioner-0.1.0.tgz
+    - https://kaito-project.github.io/kaito/charts/kaito/gpu-provisioner-0.1.0.tgz
     version: 0.1.0
   ragengine:
   - apiVersion: v2
@@ -235,7 +235,7 @@ entries:
     - https://github.com/Azure/kaito
     type: application
     urls:
-    - https://Azure.github.io/kaito/charts/kaito/workspace-0.3.1.tgz
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.3.1.tgz
     version: 0.3.1
   - apiVersion: v2
     appVersion: 0.3.0
@@ -255,7 +255,7 @@ entries:
     - https://github.com/Azure/kaito
     type: application
     urls:
-    - https://Azure.github.io/kaito/charts/kaito/workspace-0.3.0.tgz
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.3.0.tgz
     version: 0.3.0
   - apiVersion: v2
     appVersion: 0.2.2
@@ -275,7 +275,7 @@ entries:
     - https://github.com/Azure/kaito
     type: application
     urls:
-    - https://Azure.github.io/kaito/charts/kaito/workspace-0.2.2.tgz
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.2.2.tgz
     version: 0.2.2
   - apiVersion: v2
     appVersion: 0.2.1
@@ -295,7 +295,7 @@ entries:
     - https://github.com/Azure/kaito
     type: application
     urls:
-    - https://Azure.github.io/kaito/charts/kaito/workspace-0.2.1.tgz
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.2.1.tgz
     version: 0.2.1
   - apiVersion: v2
     appVersion: 0.2.0
@@ -315,6 +315,6 @@ entries:
     - https://github.com/Azure/kaito
     type: application
     urls:
-    - https://Azure.github.io/kaito/charts/kaito/workspace-0.1.0.tgz
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.1.0.tgz
     version: 0.1.0
 generated: "2025-05-14T23:11:53.439864978Z"

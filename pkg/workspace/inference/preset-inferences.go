@@ -9,12 +9,16 @@ import (
 
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
@@ -85,6 +89,34 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace,
 	return GetBaseImageName(), imagePullSecretRefs
 }
 
+// GenerateModelFileCacheVolume generates a volume for caching model files.
+// These files would be stored in the local pv and its lifetime is tied to the pod.
+// Use NVMe for storage acceleration if it's available.
+//
+// notes: no capacity check here because NVMe is typically a TiB level storage,
+// which is sufficient for almost all models. check it if this assumption is not true.
+func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.Workspace, model pkgmodel.Model) corev1.PersistentVolumeClaim {
+	return corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "model-weights-volume",
+			Labels: map[string]string{
+				v1beta1.LabelWorkspaceName: workspaceObj.Name,
+			},
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+			StorageClassName: &consts.LocalNVMeStorageClass,
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					// place model files in this volume
+					corev1.ResourceStorage: resource.MustParse(model.GetInferenceParameters().DiskStorageRequirement),
+				},
+			},
+		},
+	}
+}
+
+// TODO: refactor this function
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
 	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
 	inferenceParam := model.GetInferenceParameters().DeepCopy()
@@ -142,11 +174,15 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 	var envVars []corev1.EnvVar
+	var pvcs []corev1.PersistentVolumeClaim
 
 	// Add config volume mount
 	cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
 	volumes = append(volumes, cmVolume)
 	volumeMounts = append(volumeMounts, cmVolumeMount)
+
+	// add model weights volume mount
+	volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
 
 	// add share memory for cross process communication
 	shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
@@ -162,13 +198,6 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
 		volumes = append(volumes, adapterVolume)
 		volumeMounts = append(volumeMounts, adapterVolumeMount)
-	}
-
-	// add model weights volume mount if the model is not downloaded at runtime
-	if !inferenceParam.DownloadAtRuntime {
-		modelWeightsVolume, modelWeightsVolumeMount := utils.ConfigModelWeightsVolume()
-		volumes = append(volumes, modelWeightsVolume)
-		volumeMounts = append(volumeMounts, modelWeightsVolumeMount)
 	}
 
 	// additional environment variables
@@ -211,12 +240,20 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// to ensure pods are created with individual identities (their ordinal indexes) -
 	// https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-identity
 	if model.SupportDistributedInference() && runtimeName == pkgmodel.RuntimeNameVLLM && numNodes > 1 {
+		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
+			pvcs = append(pvcs, GenerateModelWeightsCacheVolume(ctx, workspaceObj, model))
+		} else {
+			volumes = append(volumes, utils.DefaultModelWeightsVolume)
+		}
+
 		// 60 seconds initial delay for liveness probe to allow workers to join the cluster
 		livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, workspaceObj, 60, 10, 5)
 		readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, workspaceObj, 0, 10, 1)
 		depObj = manifests.GenerateStatefulSetManifest(workspaceObj, revisionNum, image, imagePullSecrets, numNodes, commands,
-			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars, initContainers)
+			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars, initContainers, pvcs)
 	} else {
+		volumes = append(volumes, utils.DefaultModelWeightsVolume)
+
 		depObj = manifests.GenerateDeploymentManifest(workspaceObj, revisionNum, image, imagePullSecrets, numNodes, commands,
 			containerPorts, defaultLivenessProbe, defaultReadinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars, initContainers)
 	}
@@ -229,6 +266,23 @@ const (
 	probeTypeLiveness  probeType = "liveness"
 	probeTypeReadiness probeType = "readiness"
 )
+
+func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeClient client.Client) bool {
+	if gpuConfig == nil || !gpuConfig.NVMeDiskEnabled {
+		return false
+	}
+
+	// Check if the required NVMe storage class exists
+	storageClass := &storagev1.StorageClass{}
+	err := kubeClient.Get(ctx, client.ObjectKey{Name: consts.LocalNVMeStorageClass}, storageClass)
+	if err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			return false
+		}
+		klog.ErrorS(err, "Failed to check for NVMe storage class. Assuming it's available.")
+	}
+	return true
+}
 
 // getDistributedInferenceProbe returns a container probe configuration for the distributed inference workload.
 func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds int32) *corev1.Probe {

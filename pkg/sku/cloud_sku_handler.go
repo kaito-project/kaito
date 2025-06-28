@@ -13,10 +13,11 @@ type CloudSKUHandler interface {
 }
 
 type GPUConfig struct {
-	SKU      string
-	GPUCount int
-	GPUMemGB int
-	GPUModel string
+	SKU             string
+	GPUCount        int
+	GPUMemGB        int
+	GPUModel        string
+	NVMeDiskEnabled bool
 }
 
 func GetCloudSKUHandler(cloud string) CloudSKUHandler {

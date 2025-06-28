@@ -98,7 +98,7 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 func GenerateStatefulSetManifest(workspaceObj *kaitov1beta1.Workspace, revisionNum string, imageName string,
 	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
-	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount, envVars []corev1.EnvVar, initContainers []corev1.Container) *appsv1.StatefulSet {
+	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount, envVars []corev1.EnvVar, initContainers []corev1.Container, pvcs []corev1.PersistentVolumeClaim) *appsv1.StatefulSet {
 
 	pullerContainers, pullerEnvVars, pullerVolumes := GeneratePullerContainers(workspaceObj, volumeMount)
 	envVars = append(envVars, pullerEnvVars...)
@@ -143,7 +143,12 @@ func GenerateStatefulSetManifest(workspaceObj *kaitov1beta1.Workspace, revisionN
 		Spec: appsv1.StatefulSetSpec{
 			Replicas:            lo.ToPtr(int32(replicas)),
 			PodManagementPolicy: appsv1.ParallelPodManagement,
-			Selector:            labelselector,
+			PersistentVolumeClaimRetentionPolicy: &appsv1.StatefulSetPersistentVolumeClaimRetentionPolicy{
+				WhenScaled:  appsv1.RetainPersistentVolumeClaimRetentionPolicyType,
+				WhenDeleted: appsv1.DeletePersistentVolumeClaimRetentionPolicyType,
+			},
+			Selector:             labelselector,
+			VolumeClaimTemplates: pvcs,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: v1.ObjectMeta{
 					Labels: selector,

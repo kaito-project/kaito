@@ -13,20 +13,20 @@ func NewAzureSKUHandler() CloudSKUHandler {
 		{SKU: "Standard_NC8as_T4_v3", GPUCount: 1, GPUMemGB: 16, GPUModel: "NVIDIA T4"},
 		{SKU: "Standard_NC16as_T4_v3", GPUCount: 1, GPUMemGB: 16, GPUModel: "NVIDIA T4"},
 		{SKU: "Standard_NC64as_T4_v3", GPUCount: 4, GPUMemGB: 64, GPUModel: "NVIDIA T4"},
-		{SKU: "Standard_NC24ads_A100_v4", GPUCount: 1, GPUMemGB: 80, GPUModel: "NVIDIA A100"},
-		{SKU: "Standard_NC48ads_A100_v4", GPUCount: 2, GPUMemGB: 160, GPUModel: "NVIDIA A100"},
-		{SKU: "Standard_NC96ads_A100_v4", GPUCount: 4, GPUMemGB: 320, GPUModel: "NVIDIA A100"},
+		{SKU: "Standard_NC24ads_A100_v4", GPUCount: 1, GPUMemGB: 80, GPUModel: "NVIDIA A100", NVMeDiskEnabled: true},
+		{SKU: "Standard_NC48ads_A100_v4", GPUCount: 2, GPUMemGB: 160, GPUModel: "NVIDIA A100", NVMeDiskEnabled: true},
+		{SKU: "Standard_NC96ads_A100_v4", GPUCount: 4, GPUMemGB: 320, GPUModel: "NVIDIA A100", NVMeDiskEnabled: true},
 		{SKU: "Standard_ND96asr_A100_v4", GPUCount: 8, GPUMemGB: 320, GPUModel: "NVIDIA A100"},
-		{SKU: "Standard_ND96amsr_A100_v4", GPUCount: 8, GPUMemGB: 640, GPUModel: "NVIDIA A100"},
+		{SKU: "Standard_ND96amsr_A100_v4", GPUCount: 8, GPUMemGB: 640, GPUModel: "NVIDIA A100", NVMeDiskEnabled: true},
 		// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/ncadsh100v5-series
-		{SKU: "Standard_NC40ads_H100_v5", GPUCount: 1, GPUMemGB: 94, GPUModel: "NVIDIA H100"},
-		{SKU: "Standard_NC80adis_H100_v5", GPUCount: 2, GPUMemGB: 188, GPUModel: "NVIDIA H100"},
+		{SKU: "Standard_NC40ads_H100_v5", GPUCount: 1, GPUMemGB: 94, GPUModel: "NVIDIA H100", NVMeDiskEnabled: true},
+		{SKU: "Standard_NC80adis_H100_v5", GPUCount: 2, GPUMemGB: 188, GPUModel: "NVIDIA H100", NVMeDiskEnabled: true},
 		// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/ndh100v5-series
-		{SKU: "Standard_ND96isr_H100_v5", GPUCount: 8, GPUMemGB: 640, GPUModel: "NVIDIA H100"},
+		{SKU: "Standard_ND96isr_H100_v5", GPUCount: 8, GPUMemGB: 640, GPUModel: "NVIDIA H100", NVMeDiskEnabled: true},
 		// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nccadsh100v5-series
 		{SKU: "Standard_NCC40ads_H100_v5", GPUCount: 1, GPUMemGB: 94, GPUModel: "NVIDIA H100"},
 		// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nd-h200-v5-series
-		{SKU: "Standard_ND96isr_H200_v5", GPUCount: 8, GPUMemGB: 1128, GPUModel: "NVIDIA H200"},
+		{SKU: "Standard_ND96isr_H200_v5", GPUCount: 8, GPUMemGB: 1128, GPUModel: "NVIDIA H200", NVMeDiskEnabled: true},
 		{SKU: "Standard_NG32ads_V620_v1", GPUCount: 1, GPUMemGB: 32, GPUModel: "AMD Radeon PRO V620"},
 		{SKU: "Standard_NG32adms_V620_v1", GPUCount: 1, GPUMemGB: 32, GPUModel: "AMD Radeon PRO V620"},
 		{SKU: "Standard_NV6", GPUCount: 1, GPUMemGB: 8, GPUModel: "NVIDIA M60"},

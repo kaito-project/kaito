@@ -1,7 +1,7 @@
-name: Publish KAITO MCR image
+name: Publish RAG Service MCR image
 on:
   repository_dispatch:
-    types: [ publish-workspace-mcr-image ]
+    types: [ publish-rag-service-mcr-image ]
 
 permissions:
   contents: write
@@ -9,7 +9,7 @@ permissions:
 
 env:
   GO_VERSION: '1.24'
-  IMAGE_NAME: 'workspace'
+  IMAGE_NAME: 'kaito-rag-service'
 
 jobs:
   build-publish-mcr-image:
@@ -38,23 +38,23 @@ jobs:
           az login --identity
           az acr login -n ${{ secrets.KAITO_MCR_REGISTRY }}
 
-      - name: 'Build and Publish to MCR'
+      - name: 'Build and Publish RAG Service to MCR'
         id: Publish
         run: |
-          OUTPUT_TYPE=type=registry make docker-build-workspace
+          OUTPUT_TYPE=type=registry make docker-build-ragservice
         env:
           VERSION: ${{ github.event.client_payload.tag }}
           REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito
-          IMG_NAME: workspace
-          IMG_TAG: ${{ env.IMG_TAG }}
+          RAGENGINE_SERVICE_IMG_NAME: kaito-rag-service
+          RAGENGINE_SERVICE_IMG_TAG: ${{ env.IMG_TAG }}
 
   publish-helm-chart:
     runs-on: ubuntu-latest
     needs: [ build-publish-mcr-image ]
     steps:
-      - name: 'Dispatch release tag for workspace helm chart'
+      - name: 'Dispatch release tag for ragengine helm chart'
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: publish-workspace-helm-chart
+          event-type: publish-ragengine-helm-chart
           client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}'

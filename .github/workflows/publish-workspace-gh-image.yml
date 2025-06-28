@@ -101,6 +101,8 @@ jobs:
         env:
           VERSION: ${{ needs.check-tag.outputs.tag }}
           REGISTRY: ${{ steps.get-registry.outputs.registry_repository }}
+          IMG_NAME: workspace
+          IMG_TAG: ${{ env.IMG_TAG }}
 
       - name: Scan ${{ steps.get-registry.outputs.registry_repository }}/${{ env.IMAGE_NAME }}:${{ env.IMG_TAG }}
         uses: aquasecurity/trivy-action@master
@@ -134,5 +136,5 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: publish-mcr-image
+          event-type: publish-workspace-mcr-image
           client-payload: '{"tag": "${{ needs.check-tag.outputs.tag }}"}'

@@ -1,0 +1,52 @@
+name: Publish ragengine helm chart
+
+on:
+  repository_dispatch:
+    types: [ publish-ragengine-helm-chart ]
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  packages: write
+  contents: write
+  actions: read
+  deployments: read
+  pull-requests: read
+
+jobs:
+  publish-ragengine-helm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+          disable-sudo: true
+          disable-telemetry: true
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: true
+          fetch-depth: 0
+          ref: ${{ github.event.client_payload.tag }}
+      
+      - name: Set Image tag
+        run: |
+          ver=${{ github.event.client_payload.tag }}
+          echo "IMG_TAG=${ver#"v"}" >> $GITHUB_ENV
+      
+      - name: Write rag service registry info
+        run: |
+          yq -i '(.presetRagRegistryName) = "${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito"' ./charts/kaito/ragengine/values.yaml
+          yq -i '(.presetRagImageName) = "kaito-rag-service"' ./charts/kaito/ragengine/values.yaml
+          yq -i '(.presetRagImageTag) = "${{ env.IMG_TAG }}"' ./charts/kaito/ragengine/values.yaml
+
+      - name: Publish ragengine helm chart
+        uses: stefanprodan/helm-gh-pages@0ad2bb377311d61ac04ad9eb6f252fb68e207260 # v1.7.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          charts_dir: charts/kaito/ragengine
+          target_dir: charts/kaito
+          linting: off
+
+ 

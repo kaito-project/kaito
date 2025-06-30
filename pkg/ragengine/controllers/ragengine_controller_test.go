@@ -803,9 +803,9 @@ func TestReconcile(t *testing.T) {
 			}
 
 			if tc.expectRequeue {
-				assert.Check(t, result.Requeue || result.RequeueAfter > 0, "Expected requeue")
+				assert.Check(t, result.RequeueAfter > 0, "Expected requeue")
 			} else {
-				assert.Check(t, !result.Requeue && result.RequeueAfter == 0, "Not expected to requeue")
+				assert.Check(t, result.RequeueAfter == 0, "Not expected to requeue")
 			}
 		})
 	}
@@ -933,7 +933,7 @@ func TestDeleteRAGEngine(t *testing.T) {
 
 			if tc.expectedError == nil {
 				assert.Check(t, err == nil, "Not expected to return error")
-				assert.Check(t, !result.Requeue, "Not expected to requeue")
+				assert.Check(t, result.RequeueAfter == 0, "Not expected to requeue")
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}

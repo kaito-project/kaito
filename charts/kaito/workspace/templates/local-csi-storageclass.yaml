@@ -1,0 +1,14 @@
+# notes: This CSI driver is compatible with various environments, including Azure and AWS,
+# ensuring broad interoperability without vendor lock-in.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: kaito-local-nvme-disk
+  labels:
+    {{- include "kaito.labels" . | nindent 4 }}
+parameters:
+  local.csi.azure.com/vg: containerstorage
+provisioner: local.csi.azure.com
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true

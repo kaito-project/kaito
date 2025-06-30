@@ -5,7 +5,7 @@
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/kaito-project/kaito)
 [![codecov](https://codecov.io/gh/kaito-project/kaito/graph/badge.svg?token=XAQLLPB2AR)](https://codecov.io/gh/kaito-project/kaito)
 
-| ![notification](docs/img/bell.svg) What is NEW!                                                                                                                                                                                                |
+| ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Coming soon:** KAITO v0.5.0. Retrieval-augmented generation (RAG) - RagEngine support with LlamaIndex orchestration and Faiss as the default vectorDB, learn about recent updates [here](https://github.com/kaito-project/kaito/issues/734)! |
 | Latest Release: May 14th, 2025. KAITO v0.4.6.                                                                                                                                                                                                  |
@@ -27,7 +27,7 @@ Using KAITO, the workflow of onboarding large AI inference models in Kubernetes 
 
 KAITO follows the classic Kubernetes Custom Resource Definition(CRD)/controller design pattern. User manages a `workspace` custom resource which describes the GPU requirements and the inference or tuning specification. KAITO controllers will automate the deployment by reconciling the `workspace` custom resource.
 <div align="left">
-  <img src="docs/img/arch.png" width=80% title="KAITO architecture" alt="KAITO architecture">
+  <img src="website/static/img/arch.png" width=80% title="KAITO architecture" alt="KAITO architecture">
 </div>
 
 The above figure presents the KAITO architecture overview. Its major components consist of:

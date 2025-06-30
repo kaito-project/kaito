@@ -40,3 +40,7 @@ const (
 
 	NodePluginInstallTimeout = 60 * time.Second
 )
+
+var (
+	LocalNVMeStorageClass = "kaito-local-nvme-disk"
+)

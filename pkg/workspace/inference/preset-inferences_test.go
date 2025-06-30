@@ -146,7 +146,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 			},
 			workload:    "Deployment",
-			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml`,
+			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -169,7 +169,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 			},
 			workload:    "StatefulSet",
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -201,7 +201,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 			},
 			workload:    "StatefulSet",
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml --download-dir=/workspace/weights --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{

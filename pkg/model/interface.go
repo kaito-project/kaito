@@ -268,6 +268,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		if revision != "" {
 			p.VLLM.ModelRunParams["code-revision"] = revision
 		}
+		p.VLLM.ModelRunParams["download-dir"] = utils.DefaultWeightsVolumePath
 	}
 	gpuMemUtil := getGPUMemoryUtilForVLLM(rc.GPUConfig)
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = strconv.FormatFloat(gpuMemUtil, 'f', 2, 64)

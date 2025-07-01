@@ -29,6 +29,6 @@ tolerations: []
 affinity: {}
 # Values can be "azure" or "aws"
 cloudProviderName: "azure"
-presetRagRegistryName: "aimodelsregistrytest.azurecr.io"
+presetRagRegistryName: "mcr.microsoft.com/aks/kaito"
 presetRagImageName: "kaito-rag-service"
-presetRagImageTag: "0.3.2"
+presetRagImageTag: "0.5.0"

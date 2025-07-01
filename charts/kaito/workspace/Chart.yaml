@@ -25,11 +25,11 @@ maintainers:
     email: ishaanforthewin@gmail.com
 annotations:
   artifacthub.io/category: ai-machine-learning
-  license: MIT License
-  links: |
+  artifacthub.io/license: MIT License
+  artifacthub.io/links: |
     - name: GitHub
         url: https://github.com/kaito-project/kaito
     - name: Examples
       url: https://github.com/kaito-project/kaito/tree/main/examples
-  prerelease: "false"
+  artifacthub.io/prerelease: "false"
   

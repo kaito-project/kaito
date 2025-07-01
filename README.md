@@ -36,6 +36,20 @@ The above figure presents the KAITO architecture overview. Its major components 
 - **Node provisioner controller**: The controller's name is *gpu-provisioner* in [gpu-provisioner helm chart](https://github.com/Azure/gpu-provisioner/tree/main/charts/gpu-provisioner). It uses the `NodeClaim` CRD originated from [Karpenter](https://sigs.k8s.io/karpenter) to interact with the workspace controller. It integrates with Azure Resource Manager REST APIs to add new GPU nodes to the AKS or AKS Arc cluster.
 > Note: The [*gpu-provisioner*](https://github.com/Azure/gpu-provisioner) is an open sourced component. It can be replaced by other controllers if they support [Karpenter-core](https://sigs.k8s.io/karpenter) APIs.
 
+<div align="left">
+  <img src="website/static/img/ragarch.svg" width=55% title="KAITO architecture" alt="KAITO architecture">
+</div>
+
+The above figure presents the RAGEngine architecture overview consisting of:
+
+- **RAGEngine controller**: It reconciles the `ragengine` custom resource, creating the `RAG Service`.
+- **RAG Service**: This is the service that offer Retrieval Augmented Generation support with LlamaIndex orchestration and leveraging FAISS as the vector DB. 
+  - **Local Embedding**: An embedding model running locally to embed queries and documents within the vector db.
+  - **Remote Embedding**: An optional embedding model running remotely used to embed queries and documents within the vector db.
+  - **FAISS**: [Facebook AI Similarity Search](https://github.com/facebookresearch/faiss)
+
+For more information on RAGEngine installation and usage, check the docs [here](./website/docs/rag.md).
+
 ## Installation
 
 Please check the installation guidance [here](https://kaito-project.github.io/kaito/docs/installation) for deployment using Azure CLI and [here](./terraform/README.md) for deployment using Terraform.

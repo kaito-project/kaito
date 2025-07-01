@@ -1,0 +1,61 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: phi-2-azure-linux-workspace
+spec:
+  resource:
+    instanceType: "Standard_NC12s_v3"
+    count: 1
+    labelSelector:
+      matchLabels:
+        # This label tells GPU provisioner to use Azure Linux
+        kaito.sh/node-image-family: "AzureLinux"
+        workload: "phi-2-inference"
+        environment: "production"
+  inference:
+    preset:
+      name: "phi-2"
+      # Optional: specify image pull secrets if using private registry
+      # imagePullSecrets:
+      #   - name: "my-registry-secret"
+
+---
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: falcon-7b-azure-linux-workspace
+  annotations:
+    # Alternative: using annotation for Azure Linux
+    kaito.sh/node-image-family: "AzureLinux"
+    description: "Falcon 7B model on Azure Linux nodes"
+spec:
+  resource:
+    instanceType: "Standard_NC24s_v3"
+    count: 1
+    labelSelector:
+      matchLabels:
+        workload: "falcon-7b-inference"
+        team: "ml-engineering"
+  inference:
+    preset:
+      name: "falcon-7b"
+
+---
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: llama-3-1-8b-azure-linux-workspace
+spec:
+  resource:
+    instanceType: "Standard_NC24ads_A100_v4"
+    count: 2  # Multi-node deployment
+    labelSelector:
+      matchLabels:
+        kaito.sh/node-image-family: "AzureLinux"  # Case-insensitive
+        workload: "llama-inference"
+        scale: "multi-node"
+  inference:
+    preset:
+      name: "llama-3.1-8b-instruct"
+      # Model access secret for gated models
+      modelAccessSecret: "hf-token-secret"

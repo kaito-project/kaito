@@ -24,7 +24,7 @@ maintainers:
   - name: ishaansehgal99
     email: ishaanforthewin@gmail.com
 annotations:
-  category: ai-machine-learning
+  artifacthub.io/category: ai-machine-learning
   license: MIT License
   links: |
     - name: GitHub

@@ -2,7 +2,7 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.4.6
+VERSION ?= v0.5.0
 GPU_PROVISIONER_VERSION ?= 0.3.5
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
@@ -524,7 +524,7 @@ release-manifest:
 	@sed -i -e 's/export KAITO_WORKSPACE_VERSION=.*/export KAITO_WORKSPACE_VERSION=${IMG_TAG}/' ./website/docs/installation.md
 
 	git checkout -b release-${VERSION}
-	git add ./Makefile ./charts/kaito/workspace/Chart.yaml ./charts/kaito/workspace/values.yaml ./charts/kaito/workspace/README.md ./charts/kaito/ragengine/Chart.yaml ./charts/kaito/ragengine/values.yaml ./charts/kaito/ragengine/README.md ./docs/installation.md
+	git add ./Makefile ./charts/kaito/workspace/Chart.yaml ./charts/kaito/workspace/values.yaml ./charts/kaito/workspace/README.md ./charts/kaito/ragengine/Chart.yaml ./charts/kaito/ragengine/values.yaml ./charts/kaito/ragengine/README.md ./website/docs/installation.md
 	git commit -s -m "release: update manifest and helm charts for ${VERSION}"
 
 ## --------------------------------------

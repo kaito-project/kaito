@@ -7,8 +7,8 @@
 
 | ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Coming soon:** KAITO v0.5.0. Retrieval-augmented generation (RAG) - RagEngine support with LlamaIndex orchestration and Faiss as the default vectorDB, learn about recent updates [here](https://github.com/kaito-project/kaito/issues/734)! |
-| Latest Release: May 14th, 2025. KAITO v0.4.6.                                                                                                                                                                                                  |
+| Retrieval-augmented generation (RAG) is live! - RagEngine support with LlamaIndex orchestration and Faiss as the default vectorDB, learn about recent updates [here](https://github.com/kaito-project/kaito/issues/734)! |
+| Latest Release: July 2nd, 2025. KAITO v0.5.0.                                                                                                                                                                                                  |
 | First Release: Nov 15th, 2023. KAITO v0.1.0.                                                                                                                                                                                                   |
 
 KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.

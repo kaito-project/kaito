@@ -100,7 +100,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a deepseek-distilled-qwen-14b workspace with preset public mode successfully", func() {
+	It("should create a deepseek-distilled-qwen-14b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
 		numOfNode := 1
 		workspaceObj := createDeepSeekQwen14BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -233,7 +233,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelA100Required, func() {
 		numOfNode := 1
 		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, phi4Adapter)
 
@@ -265,7 +265,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAdapterLoadedInVLLM(workspaceObj, phi4AdapterName)
 	})
 
-	It("should create a llama-3.3-70b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a llama-3.3-70b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
 		// Need 2 Standard_NC48ads_A100_v4 nodes to run Llama 3.3-70B Instruct model.
 		// Each node has 2 A100 GPUs, so total 4 GPUs are used
 		numOfNode := 2

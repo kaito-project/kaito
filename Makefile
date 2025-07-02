@@ -132,7 +132,7 @@ inference-api-e2e:
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
-GINKGO_LABEL ?=
+GINKGO_LABEL ?= !A100Required
 GINKGO_NODES ?= 2
 GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 120m

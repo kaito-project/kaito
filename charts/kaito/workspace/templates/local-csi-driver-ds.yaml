@@ -182,6 +182,7 @@ spec:
         - --pod-name=$(POD_NAME)
         - --namespace=$(POD_NAMESPACE)
         - --csi-bind-address=unix:///csi/csi.sock
+        - --webhook-port=9443
         - --worker-threads=100
         - --kube-api-qps=100
         - --kube-api-burst=200
@@ -207,7 +208,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.1.0"
+        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.0"
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -341,7 +342,7 @@ spec:
       - name: csi-registrar
         args:
         - --csi-address=/csi/csi.sock
-        - --kubelet-registration-path=/var/lib/kubelet/plugins/local.csi.azure.com/csi.sock
+        - --kubelet-registration-path=/var/lib/kubelet/plugins/localdisk.csi.acstor.io/csi.sock
         - --http-endpoint=:8092
         - --v=2
         env:
@@ -395,7 +396,7 @@ spec:
           type: DirectoryOrCreate
         name: k8s-cfg
       - hostPath:
-          path: /var/lib/kubelet/plugins/local.csi.azure.com/
+          path: /var/lib/kubelet/plugins/localdisk.csi.acstor.io/
           type: DirectoryOrCreate
         name: csi-socket-dir
       - hostPath:

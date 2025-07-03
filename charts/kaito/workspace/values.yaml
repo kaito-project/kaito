@@ -5,7 +5,7 @@ replicaCount: 1
 image:
   repository: mcr.microsoft.com/aks/kaito/workspace
   pullPolicy: IfNotPresent
-  tag: 0.4.6
+  tag: 0.5.0
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:

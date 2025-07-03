@@ -45,7 +45,7 @@ az aks install-cli
 Install the Workspace controller.
 
 ```bash
-export KAITO_WORKSPACE_VERSION=0.4.6
+export KAITO_WORKSPACE_VERSION=0.5.0
 
 helm install kaito-workspace  --set clusterName=$MY_CLUSTER --wait \
 https://github.com/kaito-project/kaito/raw/gh-pages/charts/kaito/workspace-$KAITO_WORKSPACE_VERSION.tgz --namespace kaito-workspace --create-namespace

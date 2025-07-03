@@ -12,7 +12,7 @@
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 
 REPO=https://github.com/Azure/local-csi-driver.git
-REVISION="cfc991b1602d57281fafceeefd2a91755dbac2d9"
+REVISION="cf32dac2eb8006f25438127d446bc48797de9204"
 
 TEMP_DIR=$(mktemp -d)
 REPO_DIR="$TEMP_DIR/local-csi-driver"
@@ -32,11 +32,12 @@ echo "Created temporary directory: $TEMP_DIR"
 echo "Cloning $REPO repository..."
 git clone "$REPO" "$REPO_DIR"
 echo "Checking out revision: $REVISION"
-(cd "$REPO_DIR" && git checkout "$REVISION") || { echo "Failed to checkout revision $REVISION"; exit 1; }
+(cd "$REPO_DIR" && git switch -c "$REVISION") || { echo "Failed to checkout revision $REVISION"; exit 1; }
 
 helm template --release-name local-csi-driver \
   --set webhook.ephemeral.enabled=false \
   --set webhook.hyperconverged.enabled=false \
+  --set observability.metrics.enabled=false \
   "$REPO_DIR/charts/latest/" > "$REPO_DIR/local-csi-driver-charts.yaml"
 
 TARGET_FILE="$SCRIPT_DIR/../../charts/kaito/workspace/templates/local-csi-driver-ds.yaml"

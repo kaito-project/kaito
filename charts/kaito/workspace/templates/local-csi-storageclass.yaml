@@ -7,8 +7,8 @@ metadata:
   labels:
     {{- include "kaito.labels" . | nindent 4 }}
 parameters:
-  local.csi.azure.com/vg: containerstorage
-provisioner: local.csi.azure.com
+  {}
+provisioner: localdisk.csi.acstor.io
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true

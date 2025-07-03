@@ -1,8 +1,8 @@
-diff --git a/local-csi-driver/local-csi-driver-charts.yaml b/./charts/kaito/workspace/templates/local-csi-driver-ds.yaml
-index bf26c6b..00ebf33 100644
---- a/local-csi-driver/local-csi-driver-charts.yaml
+diff --git a/./local-csi-driver-charts.yaml b/./charts/kaito/workspace/templates/local-csi-driver-ds.yaml
+index ede249f..60cde8b 100644
+--- a/./local-csi-driver-charts.yaml
 +++ b/./charts/kaito/workspace/templates/local-csi-driver-ds.yaml
-@@ -4,53 +4,9 @@ apiVersion: v1
+@@ -4,13 +4,9 @@ apiVersion: v1
  kind: ServiceAccount
  metadata:
    name: csi-local-node
@@ -14,51 +14,11 @@ index bf26c6b..00ebf33 100644
 -    app.kubernetes.io/managed-by: Helm
 -  annotations:
 -    {}
-----
--# Source: local-csi-driver/templates/metrics-auth-rbac.yaml
--apiVersion: rbac.authorization.k8s.io/v1
--kind: ClusterRole
--metadata:
--  name: csi-local-metrics-auth-role
--  labels:
--    helm.sh/chart: local-csi-driver-0.0.1-latest
--    app.kubernetes.io/name: local-csi-driver
--    app.kubernetes.io/instance: local-csi-driver
--    app.kubernetes.io/managed-by: Helm
--rules:
--- apiGroups:
--  - authentication.k8s.io
--  resources:
--  - tokenreviews
--  verbs:
--  - create
--- apiGroups:
--  - authorization.k8s.io
--  resources:
--  - subjectaccessreviews
--  verbs:
--  - create
-----
--# Source: local-csi-driver/templates/metrics-reader-rbac.yaml
--apiVersion: rbac.authorization.k8s.io/v1
--kind: ClusterRole
--metadata:
--  name: csi-local-metrics-reader
--  labels:
--    helm.sh/chart: local-csi-driver-0.0.1-latest
--    app.kubernetes.io/name: local-csi-driver
--    app.kubernetes.io/instance: local-csi-driver
--    app.kubernetes.io/managed-by: Helm
--rules:
--- nonResourceURLs:
--  - /metrics
--  verbs:
--  - get
 +    {{- include "kaito.labels" . | nindent 4 }}
  ---
  # Source: local-csi-driver/templates/node-rbac.yaml
  apiVersion: rbac.authorization.k8s.io/v1
-@@ -58,10 +14,7 @@ kind: ClusterRole
+@@ -18,10 +14,7 @@ kind: ClusterRole
  metadata:
    name: csi-local-node-role
    labels:
@@ -70,50 +30,7 @@ index bf26c6b..00ebf33 100644
  rules:
  - apiGroups:
    - ""
-@@ -152,17 +105,6 @@ rules:
-   - patch
-   - update
-   - watch
--- apiGroups:
--  - "admissionregistration.k8s.io"
--  resources:
--  - "validatingwebhookconfigurations"
--  - "mutatingwebhookconfigurations"
--  verbs:
--  - "get"
--  - "list"
--  - "watch"
--  - "update"
--  - "patch"
- - apiGroups:
-   - coordination.k8s.io
-   resources:
-@@ -175,35 +117,13 @@ rules:
-   - update
-   - patch
- ---
--# Source: local-csi-driver/templates/metrics-auth-rbac.yaml
--apiVersion: rbac.authorization.k8s.io/v1
--kind: ClusterRoleBinding
--metadata:
--  name: csi-local-metrics-auth-binding
--  labels:
--    helm.sh/chart: local-csi-driver-0.0.1-latest
--    app.kubernetes.io/name: local-csi-driver
--    app.kubernetes.io/instance: local-csi-driver
--    app.kubernetes.io/managed-by: Helm
--roleRef:
--  apiGroup: rbac.authorization.k8s.io
--  kind: ClusterRole
--  name: csi-local-metrics-auth-role
--subjects:
--- kind: ServiceAccount
--  name: cluster-manager
--  namespace: 'default'
-----
- # Source: local-csi-driver/templates/node-rbac.yaml
- apiVersion: rbac.authorization.k8s.io/v1
- kind: ClusterRoleBinding
+@@ -130,10 +123,7 @@ kind: ClusterRoleBinding
  metadata:
    name: csi-local-node-binding
    labels:
@@ -125,7 +42,7 @@ index bf26c6b..00ebf33 100644
  roleRef:
    apiGroup: rbac.authorization.k8s.io
    kind: ClusterRole
-@@ -211,31 +131,24 @@ roleRef:
+@@ -141,31 +131,24 @@ roleRef:
  subjects:
  - kind: ServiceAccount
    name: csi-local-node
@@ -160,12 +77,12 @@ index bf26c6b..00ebf33 100644
        annotations:
          kubectl.kubernetes.io/default-container: driver
      spec:
-@@ -287,7 +200,7 @@ spec:
+@@ -218,7 +201,7 @@ spec:
            valueFrom:
              fieldRef:
                fieldPath: spec.nodeName
 -        image: "localcsidriver.azurecr.io/acstor/local-csi-driver:0.0.1-latest"
-+        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.1.0"
++        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.0"
          imagePullPolicy: IfNotPresent
          livenessProbe:
            httpGet:

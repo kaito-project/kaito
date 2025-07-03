@@ -121,7 +121,7 @@ var _ = Describe("RAGEngine", func() {
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
-	It("should create RAG with localembedding and kaito VLLM workspace successfully", func() {
+	It("should create RAG with localembedding and kaito VLLM workspace successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplica := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
 

@@ -124,6 +124,7 @@ jobs:
         run: |
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
+          GINKGO_LABEL=FastCheck \
           make kaito-ragengine-e2e-test
         env:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}

@@ -701,7 +701,7 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSe
     "llm_params": {
       "max_tokens": 50,
       "temperature": 0,
-	  "model": "HuggingFaceH4/zephyr-7b-beta"
+      "model": "HuggingFaceH4/zephyr-7b-beta"
     }
 }'`
 		} else {

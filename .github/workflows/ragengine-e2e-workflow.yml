@@ -62,6 +62,7 @@ jobs:
           isRelease: ${{ inputs.isRelease }}
           region: ${{ inputs.region }}
           k8s_version: ${{ inputs.k8s_version }}
+          registry: ${{ inputs.registry }}
 
       - name: Set Registry
         if: ${{ inputs.isRelease }}
@@ -97,6 +98,7 @@ jobs:
         uses: azure/setup-helm@v4
       
       - name: Install KAITO RAG Engine helm chart
+        if: ${{ !inputs.isRelease }}
         shell: bash
         run: |
           make az-patch-install-ragengine-helm-e2e
@@ -105,7 +107,19 @@ jobs:
           REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
           AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-      
+
+      - name: Install KAITO RAG Engine helm chart from release
+        if: ${{ inputs.isRelease }}
+        shell: bash
+        run: |
+          make az-patch-install-ragengine-helm-e2e
+          kubectl wait --for=condition=available deploy "kaito-ragengine" -n kaito-ragengine --timeout=300s
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          RAGENGINE_SERVICE_IMG_TAG: ${{ env.VERSION }}
+
       - name: Run e2e test
         run: |
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \

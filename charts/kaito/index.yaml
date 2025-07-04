@@ -78,6 +78,26 @@ entries:
     version: 0.0.1
   workspace:
   - apiVersion: v2
+    appVersion: 0.5.0
+    created: "2025-07-04T00:26:27.858962541Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: f51f76099a73e5c55deff790a9d254e2ab92c45a865f5db4b2c0f29e52b8869e
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.5.0.tgz
+    version: 0.5.0
+  - apiVersion: v2
     appVersion: 0.4.6
     created: "2025-05-14T23:11:53.441568981Z"
     description: A Helm chart to install AI Toolchain Operator Workspace
@@ -337,4 +357,4 @@ entries:
     urls:
     - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.1.0.tgz
     version: 0.1.0
-generated: "2025-07-04T00:25:25.684024448Z"
+generated: "2025-07-04T00:26:27.856474208Z"

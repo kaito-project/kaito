@@ -371,25 +371,29 @@ triggers:
     # threshold for scaling up/down
     # When average waiting requests per pod exceeds this value * (1 + scaleUp.tolerance), scale up
     # When average waiting requests per pod drops below this value * (1 - scaleDown.tolerance), scale down
-	threshold: "10"
+    threshold: "10"
 
-	# Optional fields:
+    # Optional fields:
 
-	# The name of the workspace resource
-	# Default: name of the ScaledObject.Spec.scaleTargetRef
+    # The name of the workspace resource
+    # Default: name of the ScaledObject.Spec.scaleTargetRef
     workspaceName: my-vllm-workspace
 
-	# The namespace of the workspace resource
-	# Default: namespace of the ScaledObject object.
-    workspaceName: kaito-workloads
+    # The namespace of the workspace resource
+    # Default: namespace of the ScaledObject object.
+    workspaceNamespace: kaito-workloads
 
-	# The address of the external scaler
+    # The address of the external scaler
     scalerAddress: kaito-scaler.keda.svc.cluster.local:9090
     
     # Metric name to scrape from pods
     # Default: "vllm:num_requests_waiting"
     metricName: "vllm:num_requests_waiting"
-    
+
+    # Protocol for scraping metrics from pods
+    # Default: "https"
+    metricPorotocol: "https"
+
     # Port name for scraping metrics from pods
     # Default: "5000"
     metricPort: "5000"
@@ -428,8 +432,8 @@ spec:
   triggers:
   - type: external
     metadata:
-	  scalerName: keda-kaito-scaler
-	  metricName: "vllm:num_requests_waiting"
+      scalerName: keda-kaito-scaler
+      metricName: "vllm:num_requests_waiting"
       threshold: "10"
       # All other settings use sensible defaults
 
@@ -439,14 +443,14 @@ spec:
       behavior:
         scaleUp:
           stabilizationWindowSeconds: 30
-		  tolerance: 0.1
+          tolerance: 0.1
           policies:
           - type: Pods
             value: 1
             periodSeconds: 300 # 5 minutes
         scaleDown:
           stabilizationWindowSeconds: 300
-		  tolerance: 0.5
+          tolerance: 0.5
           policies:
           - type: Pods
             value: 1

@@ -541,20 +541,40 @@ func (k *KaitoScaler) GetMetrics(ctx context.Context, req *pb.GetMetricsRequest)
         return nil, fmt.Errorf("failed to get inference pods: %w", err)
     }
 
-    // Collect metrics from all pods
-	var totalValue int32
+    // Collect metrics from all pods with intelligent fallback for missing metrics
+    var totalValue float64
+    var podCount int
+    var readyPodCount int
+    var missingMetricCount int
+
     for _, pod := range pods {
+        podCount++
         if k.isPodReady(pod) {
+            readyPodCount++
             value, err := k.getMetricFromPod(ctx, pod, scalerConfig)
             if err != nil {
+                // Pod is ready but metric is unavailable (e.g., endpoint not responding)
+                missingMetricCount++
                 continue
             }
-            totalValue += value
+            totalValue += float64(value)
+        } else {
+            // Pod is not ready (pending, starting, etc.)
+            missingMetricCount++
         }
     }
 
-    // Calculate average metric value per pod
-	avgValue := float64(totalValue / len(pods))
+    // Apply fallback for missing metrics to prevent flapping
+    if missingMetricCount > 0 {
+        fallbackValue := k.calculateFallbackValue(scalerConfig, totalValue, readyPodCount-missingMetricCount)
+        totalValue += fallbackValue * float64(missingMetricCount)
+    }
+
+    // Calculate average metric value per pod (including fallback values)
+    var avgValue float64
+    if podCount > 0 {
+        avgValue = totalValue / float64(podCount)
+    }
 
     return &pb.GetMetricsResponse{
         MetricValues: []*pb.MetricValue{
@@ -564,6 +584,30 @@ func (k *KaitoScaler) GetMetrics(ctx context.Context, req *pb.GetMetricsRequest)
             },
         },
     }, nil
+}
+
+// calculateFallbackValue determines the fallback metric value for missing pods
+// to prevent scaling flapping based on the current scaling direction
+func (k *KaitoScaler) calculateFallbackValue(config *ScalerConfig, currentTotal float64, validPodCount int) float64 {
+    // Calculate current average from valid pods
+    var currentAvg float64
+    if validPodCount > 0 {
+        currentAvg = currentTotal / float64(validPodCount)
+    }
+
+    // Determine scaling direction based on current average vs threshold
+    threshold := config.Threshold
+    if currentAvg > threshold {
+        // Scale-up scenario: current load is high
+        // Use 0 for missing pods to avoid overestimating load
+        // This prevents unnecessary aggressive scale-up due to missing metrics
+        return 0
+    } else {
+        // Scale-down scenario or steady state: current load is low/normal
+        // Use high threshold value for missing pods to be conservative
+        // This prevents premature scale-down when some pods are not reporting metrics
+        return threshold * 1.5 // Use 1.5x threshold as "high" value to ensure conservative scaling
+    }
 }
 
 type ScalerConfig struct {
@@ -576,17 +620,21 @@ type ScalerConfig struct {
 
 func (k *KaitoScaler) parseScalerMetadata(ref *pb.ScaledObjectRef, metricName string) (*ScalerConfig, error) {
     // Parse metadata from ScaledObject (passed via KEDA)
-    // This would extract values like metricsPort, metricsPath, etc.
+    // This would extract values like metricsPort, metricsPath, threshold, etc.
     config := &ScalerConfig{
         MetricName:    "vllm:num_requests_waiting", // default
         MetricsPort:   "5000",                      // default vLLM port
         MetricsPath:   "/metrics",                  // default
         ScrapeTimeout: 5 * time.Second,             // default
-        Threshold:     10,                          // default
+        Threshold:     10,                          // default threshold for scaling decisions
     }
     
     // Override with values from ScaledObject metadata if provided
-    // Implementation would parse ref.ScalerMetadata map
+    // Implementation would parse ref.ScalerMetadata map to extract:
+    // - threshold: scaling threshold value
+    // - metricPort: port for metrics scraping
+    // - metricPath: path for metrics endpoint
+    // - scrapeTimeout: timeout for metric collection
     
     return config, nil
 }

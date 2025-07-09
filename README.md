@@ -37,7 +37,7 @@ The above figure presents the KAITO architecture overview. Its major components 
 > Note: The [*gpu-provisioner*](https://github.com/Azure/gpu-provisioner) is an open sourced component. It can be replaced by other controllers if they support [Karpenter-core](https://sigs.k8s.io/karpenter) APIs.
 
 <div align="left">
-  <img src="website/static/img/ragarch.svg" width=55% title="KAITO architecture" alt="KAITO architecture">
+  <img src="website/static/img/ragarch.svg" width=55% title="KAITO RAG architecture" alt="KAITO RAG architecture">
 </div>
 
 The above figure presents the RAGEngine architecture overview consisting of:

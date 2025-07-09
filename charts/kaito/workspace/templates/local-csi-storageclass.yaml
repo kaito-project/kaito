@@ -1,5 +1,6 @@
 # notes: This CSI driver is compatible with various environments, including Azure and AWS,
 # ensuring broad interoperability without vendor lock-in.
+{{- if not (lookup "storage.k8s.io/v1" "StorageClass" "" "kaito-local-nvme-disk") }}
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -12,3 +13,4 @@ provisioner: localdisk.csi.acstor.io
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
+{{- end }}

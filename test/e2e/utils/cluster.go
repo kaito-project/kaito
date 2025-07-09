@@ -10,7 +10,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/dynamic"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/kubernetes/test/e2e/framework"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -53,7 +52,6 @@ func GetClusterClient(cluster *Cluster) {
 	restConfig := config.GetConfigOrDie()
 
 	k8sClient, err := client.New(restConfig, client.Options{Scheme: cluster.Scheme})
-	framework.ExpectNoError(err, "failed to create k8s client for e2e")
 
 	gomega.Expect(err).Should(gomega.Succeed(), "Failed to set up Kube Client")
 	TestingCluster.KubeClient = k8sClient

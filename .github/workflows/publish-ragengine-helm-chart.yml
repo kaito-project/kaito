@@ -30,11 +30,16 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.client_payload.tag }}
 
+      - name: Package ragengine helm chart
+        run: |
+          mkdir -p packaged-rag
+          mv charts/kaito/ragengine packaged-rag
+
       - name: Publish ragengine helm chart
         uses: stefanprodan/helm-gh-pages@0ad2bb377311d61ac04ad9eb6f252fb68e207260 # v1.7.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          charts_dir: charts/kaito/ragengine
+          charts_dir: packaged-rag
           target_dir: charts/kaito
           linting: off
 

@@ -13,3 +13,24 @@ inference:
     name: llama-3.3-70b-instruct
     presetOptions:
       modelAccessSecret: hf-token
+  config: "llama-inference-params"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hf-token
+type: Opaque
+data:
+  HF_TOKEN: <base64-encoded-huggingface-token>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "llama-inference-params"
+data:
+  inference_config.yaml: |
+    vllm:
+      cpu-offload-gb: 0
+      gpu-memory-utilization: 0.95
+      swap-space: 4
+      max-model-len: 16384

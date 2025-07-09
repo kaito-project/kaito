@@ -30,12 +30,15 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.client_payload.tag }}
 
+      - name: Package workspace helm chart
+        run: |
+          mkdir -p packaged-ws
+          mv charts/kaito/workspace packaged-ws
+
       - name: Publish workspace helm chart
         uses: stefanprodan/helm-gh-pages@0ad2bb377311d61ac04ad9eb6f252fb68e207260 # v1.7.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          charts_dir: charts/kaito/workspace
+          charts_dir: packaged-ws
           target_dir: charts/kaito
           linting: off
-
- 

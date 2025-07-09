@@ -44,7 +44,7 @@ jobs:
           OUTPUT_TYPE=type=registry make docker-build-ragservice
         env:
           VERSION: ${{ github.event.client_payload.tag }}
-          REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito
+          REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/unlisted/aks/kaito
           RAGENGINE_SERVICE_IMG_NAME: kaito-rag-service
           RAGENGINE_SERVICE_IMG_TAG: ${{ env.IMG_TAG }}
 

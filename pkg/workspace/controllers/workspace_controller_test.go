@@ -360,6 +360,7 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},
@@ -379,7 +380,19 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
 			mockClient := test.NewClient()
-			mockNodeClaim := &karpenterv1.NodeClaim{}
+			mockNodeClaim := &karpenterv1.NodeClaim{
+				Spec: karpenterv1.NodeClaimSpec{
+					Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
+						{
+							NodeSelectorRequirement: corev1.NodeSelectorRequirement{
+								Key:      corev1.LabelInstanceTypeStable,
+								Operator: corev1.NodeSelectorOpIn,
+								Values:   []string{tc.workspace.Resource.InstanceType},
+							},
+						},
+					},
+				},
+			}
 
 			mockClient.UpdateCb = func(key types.NamespacedName) {
 				mockClient.GetObjectFromMap(mockNodeClaim, key)
@@ -392,6 +405,16 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 
 			}
 
+			mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything, mock.Anything).
+				Run(func(args mock.Arguments) {
+					out := args.Get(1).(*karpenterv1.NodeClaimList)
+					mockList := &karpenterv1.NodeClaimList{
+						Items: []karpenterv1.NodeClaim{
+							*mockNodeClaim,
+						},
+					}
+					*out = *mockList
+				}).Return(nil)
 			tc.callMocks(mockClient)
 
 			reconciler := &WorkspaceReconciler{
@@ -400,12 +423,12 @@ func TestCreateAndValidateNodeClaimNode(t *testing.T) {
 			}
 			ctx := context.Background()
 
-			node, err := reconciler.createAndValidateNode(ctx, &tc.workspace)
+			node, err := reconciler.createNewNodes(ctx, &tc.workspace, 1)
 			if tc.expectedError == nil {
 				assert.Check(t, err == nil, "Not expected to return error")
 				assert.Check(t, node != nil, "Response node should not be nil")
 			} else {
-				assert.Equal(t, tc.expectedError.Error(), err.Error())
+				assert.ErrorContains(t, err, tc.expectedError.Error())
 			}
 		})
 	}

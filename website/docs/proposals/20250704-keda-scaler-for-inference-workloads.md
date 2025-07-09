@@ -747,7 +747,7 @@ func setupTLSServer(certManager *CertificateManager) (*grpc.Server, error) {
 
 The Scaler Manager includes a **Scaler Webhook** that provides defaults for ScaledObject configurations targeting Kaito Workspaces. and a **Scaler Controller** for ensuring certificates for tls connection between keda-core and kaito scaler.
 
-**Scaler Webhook **
+**Scaler Webhook**
 
 The webhook serves as a mutating admission controller that automatically applies GPU-optimized defaults to ScaledObjects.
 
@@ -765,7 +765,7 @@ The webhook serves as a mutating admission controller that automatically applies
 | `authenticationRef.name: "keda-kaito-creds"` | keda-kaito-creds | ClusterTriggerAuthentication used for TLS authentication between keda-core and keda-kaito-scaler across namespaces |
 | `authenticationRef.kind: "ClusterTriggerAuthentication"` | ClusterTriggerAuthentication | all scaledObjects use the same credentials |
 
-**Scaler Controller **
+**Scaler Controller**
 
 The Scaler Controller is responsible for managing TLS certificates and authentication resources required for secure GRPC communication between KEDA core and the external Kaito scaler. This controller ensures that certificates, secrets, and authentication resources are automatically generated, distributed, and renewed without manual intervention.
 

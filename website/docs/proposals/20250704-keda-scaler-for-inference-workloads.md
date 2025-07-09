@@ -592,6 +592,109 @@ func (k *KaitoScaler) parseScalerMetadata(ref *pb.ScaledObjectRef, metricName st
 }
 ```
 
+##### Server TLS Configuration For Kaito Scaler
+
+The Kaito external scaler implements a secure gRPC server that uses TLS certificates from the `keda-kaito-scaler-certs` secret for encrypted communication with KEDA core.
+
+The external scaler gRPC server must be configured to use the server certificates from the `keda-kaito-scaler-certs` secret. Since the secret is created by the same pod, we can't mount it as a volume. Instead, we use a Kubernetes client with a secret lister in the `GetCertificate` callback to dynamically retrieve certificates:
+
+```go
+// CertificateManager manages TLS certificates using Kubernetes informers for efficient caching
+type CertificateManager struct {
+    secretLister    corelisters.SecretLister
+    secretNamespace string
+}
+
+// getSecret retrieves the certificate secret using the informer lister (cached)
+func (cm *CertificateManager) getSecret() (*corev1.Secret, error) {
+    secret, err := cm.secretLister.Secrets(cm.secretNamespace).Get(cm."keda-kaito-scaler-certs")
+    if err != nil {
+        return nil, fmt.Errorf("failed to get certificate secret from cache: %w", err)
+    }
+    return secret, nil
+}
+
+// GetServerCertificate retrieves server certificate using cached informer data
+func (cm *CertificateManager) GetServerCertificate() (*tls.Certificate, error) {
+    secret, err := cm.getSecret()
+    if err != nil {
+        return nil, err
+    }
+
+    // Extract server certificate and key
+    serverCertPEM, exists := secret.Data["server.crt"]
+    if !exists {
+        return nil, fmt.Errorf("server.crt not found in secret")
+    }
+
+    serverKeyPEM, exists := secret.Data["server.key"]
+    if !exists {
+        return nil, fmt.Errorf("server.key not found in secret")
+    }
+
+    // Parse the certificate and key
+    cert, err := tls.X509KeyPair(serverCertPEM, serverKeyPEM)
+    if err != nil {
+        return nil, fmt.Errorf("failed to parse server certificate: %w", err)
+    }
+
+    return &cert, nil
+}
+
+// GetCAPool retrieves CA certificate pool using cached informer data
+func (cm *CertificateManager) GetCAPool() (*x509.CertPool, error) {
+    secret, err := cm.getSecret()
+    if err != nil {
+        return nil, err
+    }
+
+    // Extract CA certificate
+    caCertPEM, exists := secret.Data["ca.crt"]
+    if !exists {
+        return nil, fmt.Errorf("ca.crt not found in secret")
+    }
+
+    // Create certificate pool and add CA
+    caCertPool := x509.NewCertPool()
+    if !caCertPool.AppendCertsFromPEM(caCertPEM) {
+        return nil, fmt.Errorf("failed to parse CA certificate")
+    }
+
+    return caCertPool, nil
+}
+
+// TLS Configuration for gRPC Server with informer-based certificate retrieval
+func setupTLSServer(certManager *CertificateManager) (*grpc.Server, error) {
+    // Configure TLS with dynamic certificate loading using informer cache
+    tlsConfig := &tls.Config{
+        // GetCertificate dynamically loads server certificate from informer cache
+        // This allows automatic pickup of renewed certificates without restart
+        GetCertificate: func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
+            return certManager.GetServerCertificate()
+        },
+        GetConfigForClient: func(*tls.ClientHelloInfo) (*tls.Config, error) {
+            // Dynamically load CA certificate for client verification
+            caCertPool, err := certManager.GetCAPool()
+            if err != nil {
+                return nil, fmt.Errorf("failed to load CA certificate: %w", err)
+            }
+
+            return &tls.Config{
+                ClientAuth: tls.RequireAndVerifyClientCert,
+                ClientCAs:  caCertPool,
+                MinVersion: tls.VersionTLS12,
+            }, nil
+        },
+        MinVersion: tls.VersionTLS12,
+    }
+
+    // Create gRPC server with TLS credentials
+    creds := credentials.NewTLS(tlsConfig)
+    server := grpc.NewServer(grpc.Creds(creds))
+    return server, nil
+}
+```
+
 ##### Scaler Manager
 
 The Scaler Manager includes a **Scaler Webhook** that provides defaults for ScaledObject configurations targeting Kaito Workspaces. and a **Scaler Controller** for ensuring certificates for tls connection between keda-core and kaito scaler.

@@ -405,6 +405,11 @@ triggers:
     # Optional: Timeout for metric scraping in seconds  
     # Default: 5
     scrapeTimeout: "5"
+  # Optional: TLS Authentication used by keda-core to acess keda-kaito-scaler
+  # Default: "keda-kaito-creds"
+  authenticationRef:
+    name: keda-kaito-creds
+    kind: ClusterTriggerAuthentication
 ```
 
 **Example ScaledObject with Kaito External Scaler**
@@ -602,20 +607,67 @@ The webhook serves as a mutating admission controller that automatically applies
 | `scaleDown.periodSeconds: 600` | 10 minutes | Very conservative to prevent aggressive downscaling of expensive resources |
 | `scaleUp.stabilizationWindowSeconds: 30` | 30 seconds | Quick response to load increases for better user experience |
 | `scaleDown.stabilizationWindowSeconds: 300` | 5 minutes | Ensures load is consistently low before scaling down |
+| `metricProtocol: "https"` | https | Standard vLLM metrics protocol |
 | `metricPort: "5000"` | Port 5000 | Standard vLLM metrics port |
 | `metricPath: "/metrics"` | /metrics | Standard vLLM metrics path |
 | `scrapeTimeout: "5"` | 5 seconds | Reasonable timeout for metrics collection |
-
+| `authenticationRef.name: "keda-kaito-creds"` | keda-kaito-creds | ClusterTriggerAuthentication used for TLS authentication between keda-core and keda-kaito-scaler across namespaces |
+| `authenticationRef.kind: "ClusterTriggerAuthentication"` | ClusterTriggerAuthentication | all scaledObjects use the same credentials |
 
 **Scaler Controller **
 
-The Scaler Controller is responsible for managing TLS certificates required for secure GRPC communication between KEDA core and the external Kaito scaler. This controller ensures that certificates are automatically generated, distributed, and renewed without manual intervention.
+The Scaler Controller is responsible for managing TLS certificates and authentication resources required for secure GRPC communication between KEDA core and the external Kaito scaler. This controller ensures that certificates, secrets, and authentication resources are automatically generated, distributed, and renewed without manual intervention.
 
 **Certificate Structure:**
 - **CA Certificate**: Root certificate authority for the scaler communication
 - **Server Certificate**: Used by the external Kaito scaler GRPC server
 - **Client Certificate**: Used by KEDA core to authenticate with the external scaler
 - **DNS SANs**: Includes all necessary service names and IPs for flexible deployment(like: scaler service FQDN: kaito-scaler.keda.svc.cluster.local)
+
+**Managed Resources:**
+
+1. **Secret Resource (`keda-kaito-scaler-certs`)**:
+   ```yaml
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: keda-kaito-scaler-certs
+     namespace: keda
+   type: kubernetes.io/tls
+   data:
+     ca.crt: <base64-encoded-ca-certificate>
+     tls.crt: <base64-encoded-client-certificate>
+     tls.key: <base64-encoded-client-private-key>
+     server.crt: <base64-encoded-server-certificate>
+     server.key: <base64-encoded-server-private-key>
+   ```
+
+2. **ClusterTriggerAuthentication Resource (`keda-kaito-creds`)**:
+   ```yaml
+   apiVersion: keda.sh/v1alpha1
+   kind: ClusterTriggerAuthentication
+   metadata:
+     name: keda-kaito-creds
+   spec:
+     secretTargetRef:
+       - parameter: caCert
+         name: keda-kaito-scaler-certs
+         key: ca.crt
+       - parameter: tlsClientCert
+         name: keda-kaito-scaler-certs
+         key: tls.crt
+       - parameter: tlsClientKey
+         name: keda-kaito-scaler-certs
+         key: tls.key
+   ```
+
+**Controller Responsibilities:**
+
+- **Certificate Generation**: Automatically generates CA, server, and client certificates with appropriate DNS SANs
+- **Secret Management**: Creates and maintains the `keda-kaito-scaler-certs` secret in the same namespace as KEDA core (typically `keda` namespace) with all necessary certificate data
+- **ClusterTriggerAuthentication Management**: Ensures the `keda-kaito-creds` ClusterTriggerAuthentication resource exists and references the `keda-kaito-scaler-certs` secret
+- **Certificate Renewal**: Monitors certificate expiration and automatically renews certificates before they expire
+- **Cross-Namespace Coordination**: Manages resources in the KEDA namespace while providing cluster-wide authentication for all scaledObjects that are targeting Kaito workloads.
 
 ## Alternatives
 

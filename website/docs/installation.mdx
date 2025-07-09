@@ -32,7 +32,7 @@ import TabItem from '@theme/TabItem';
 
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) to provision AWS resources
 - [Eksctl](https://eksctl.io/installation/) (>= v0.191.0) to create and manage clusters on EKS
-- 
+
 </TabItem>
 </Tabs>
 
@@ -150,6 +150,19 @@ make aws-patch-install-helm
 ```
 
 </TabItem>
+<TabItem value="other" label="Other" default>
+
+If you brought your own Kubernetes cluster, you can install the workspace controller using the following command instead of the `make` command.
+
+```bash
+export CLUSTER_NAME=<your-cluster-name>
+export KAITO_WORKSPACE_VERSION=0.5.0
+
+helm install kaito-workspace  --set clusterName=$CLUSTER_NAME --wait \
+https://github.com/kaito-project/kaito/raw/gh-pages/charts/kaito/workspace-$KAITO_WORKSPACE_VERSION.tgz --namespace kaito-workspace --create-namespace
+```
+
+</TabItem>
 </Tabs>
 
 ## Verify installation
@@ -200,13 +213,15 @@ kubectl describe deploy karpenter -n $KARPENTER_NAMESPACE
 
 ## Clean up
 
+```bash
+helm uninstall kaito-workspace -n kaito-workspace
+```
 
 <Tabs groupId="provider">
 <TabItem value="azure" label="Azure" default>
 
 ```bash
 helm uninstall gpu-provisioner -n gpu-provisioner
-helm uninstall kaito-workspace -n kaito-workspace
 ```
 
 </TabItem>
@@ -214,7 +229,6 @@ helm uninstall kaito-workspace -n kaito-workspace
 
 ```bash
 helm uninstall karpenter -n karpenter
-helm uninstall kaito-workspace -n kaito-workspace
 ```
 
 </TabItem>

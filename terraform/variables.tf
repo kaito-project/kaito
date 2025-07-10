@@ -25,11 +25,11 @@ variable "registry_repository_name" {
 variable "deploy_kaito_ragengine" {
   type        = bool
   default     = true
-  description = "whether to deploy the KAITO RAG engine"
+  description = "whether to deploy the KAITO RAGEngine"
 }
 
 variable "kaito_ragengine_version" {
   type        = string
   default     = "0.5.0"
-  description = "kaito rag engine version"
+  description = "KAITO RAGEngine version"
 }

@@ -26,6 +26,7 @@ require (
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
 	knative.dev/pkg v0.0.0-20240910170930-fdbc0b5adde7
 	sigs.k8s.io/controller-runtime v0.21.0
+	sigs.k8s.io/gateway-api-inference-extension v0.4.0
 	sigs.k8s.io/karpenter v1.0.4
 )
 

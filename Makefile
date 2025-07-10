@@ -58,6 +58,9 @@ AWS_KARPENTER_VERSION ?=1.0.8
 # Scripts
 GO_INSTALL := ./hack/go-install.sh
 
+# Extra arguments for commands
+HELM_INSTALL_EXTRA_ARGS ?=
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -348,7 +351,7 @@ az-patch-install-helm: ## Update Azure client env vars and settings in helm valu
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/workspace/values.yaml
 	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/workspace/values.yaml
 
-	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace
+	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
 .PHONY: az-patch-install-ragengine-helm
 az-patch-install-ragengine-helm:
@@ -358,7 +361,7 @@ az-patch-install-ragengine-helm:
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/ragengine/values.yaml
 	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/ragengine/values.yaml
 
-	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace
+	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
 .PHONY: az-patch-install-ragengine-helm-e2e
 az-patch-install-ragengine-helm-e2e:
@@ -371,7 +374,7 @@ az-patch-install-ragengine-helm-e2e:
 	yq -i '(.presetRagImageName)                                         	= "$(RAGENGINE_SERVICE_IMG_NAME)"'            ./charts/kaito/ragengine/values.yaml
 	yq -i '(.presetRagImageTag)                                         	= "$(RAGENGINE_SERVICE_IMG_TAG)"'             ./charts/kaito/ragengine/values.yaml
 
-	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace
+	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
 .PHONY: aws-patch-install-helm ##install kaito on AWS cluster
 aws-patch-install-helm:
@@ -381,7 +384,7 @@ aws-patch-install-helm:
 	yq -i '(.clusterName)                                                   = "$(AWS_CLUSTER_NAME)"'                    		./charts/kaito/workspace/values.yaml
 	yq -i '(.cloudProviderName)                                             = "aws"'                                        ./charts/kaito/workspace/values.yaml
 
-	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace
+	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
 generate-identities: ## Create identities for the provisioner component.
 	./hack/deploy/generate-identities.sh \
@@ -400,7 +403,7 @@ gpu-provisioner-helm:  ## Update Azure client env vars and settings in helm valu
 	--values gpu-provisioner-values.yaml \
 	--set settings.azure.clusterName=$(AZURE_CLUSTER_NAME) \
 	--namespace $(GPU_PROVISIONER_NAMESPACE) --create-namespace \
-	https://github.com/Azure/gpu-provisioner/raw/gh-pages/charts/gpu-provisioner-$(GPU_PROVISIONER_VERSION).tgz
+	https://github.com/Azure/gpu-provisioner/raw/gh-pages/charts/gpu-provisioner-$(GPU_PROVISIONER_VERSION).tgz $(HELM_INSTALL_EXTRA_ARGS)
 
 	kubectl wait --for=condition=available deploy "gpu-provisioner" -n gpu-provisioner --timeout=300s
 ## --------------------------------------

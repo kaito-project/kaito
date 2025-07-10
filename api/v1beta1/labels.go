@@ -22,6 +22,9 @@ const (
 	// LabelWorkspaceName is the label for workspace name.
 	LabelWorkspaceName = KAITOPrefix + "workspace"
 
+	// LabelEndpointPicker is the label for endpoint picker.
+	LabelEndpointPicker = KAITOPrefix + "endpointpicker"
+
 	// LabelWorkspaceName is the label for workspace namespace.
 	LabelWorkspaceNamespace = KAITOPrefix + "workspacenamespace"
 

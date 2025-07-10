@@ -73,3 +73,12 @@ resource "kubernetes_secret" "example" {
     })
   }
 }
+
+# Install the kaito-ragengine chart
+resource "helm_release" "kaito_ragengine" {
+  count            = var.deploy_kaito_ragengine ? 1 : 0
+  name             = "kaito-ragengine"
+  chart            = "https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/gh-pages/charts/kaito/ragengine-${var.kaito_ragengine_version}.tgz"
+  namespace        = "kaito-ragengine"
+  create_namespace = true
+}

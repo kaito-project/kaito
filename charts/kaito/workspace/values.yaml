@@ -16,7 +16,7 @@ securityContext:
     drop:
       - "ALL"
 featureGates:
-  vLLM: "true"
+  vLLM: true
 webhook:
   port: 9443
 # Knative logging configuration

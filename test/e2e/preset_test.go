@@ -797,6 +797,10 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
+// func validateGatewayAPIInferenceExtensionResources(workspaceObj *kaitov1beta1.Workspace) {
+
+// }
+
 func cleanupResources(workspaceObj *kaitov1beta1.Workspace) {
 	By("Cleaning up resources", func() {
 		if !CurrentSpecReport().Failed() {

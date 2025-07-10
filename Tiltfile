@@ -11,7 +11,15 @@ if 'allowed_contexts' in settings:
     allow_k8s_contexts(settings['allowed_contexts'])
 if 'default_registry' in settings:
     # Set the default registry for tilt to use
-    default_registry(settings['default_registry'].removesuffix('/') + '/kaito/workspace')
+    default_registry(settings['default_registry'].removesuffix('/'))
+if 'feature_gates' in settings:
+    # Set the feature gates for the controller
+    feature_gates = settings['feature_gates']
+else:
+    feature_gates = {
+        'vLLM': True,
+        'GatewayAPIInferenceExtension': True,
+    }
 
 def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
 
@@ -106,7 +114,9 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
     # Tilt will replace the old one in the running container with the new one.
     docker_build_with_restart(IMG, '.',
      dockerfile_contents=DOCKERFILE,
-     entrypoint='/manager',
+     entrypoint='/manager --feature-gates={}'.format(
+        ','.join(['{}={}'.format(k, str(v).lower()) for k, v in feature_gates.items()])
+     ),
      only=['./tilt_bin/manager', './presets/workspace/models/supported_models.yaml'],
      live_update=[
            sync('./tilt_bin/manager', '/manager'),

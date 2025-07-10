@@ -877,6 +877,8 @@ sigs.k8s.io/cloud-provider-azure/pkg/azclient/configloader v0.0.1 h1:Lp0nALZmvMJ
 sigs.k8s.io/cloud-provider-azure/pkg/azclient/configloader v0.0.1/go.mod h1:pPkJPx/eMVWP3R+LhPoOYGoY7lywcMJev5L2uSfH+Jo=
 sigs.k8s.io/controller-runtime v0.21.0 h1:CYfjpEuicjUecRk+KAeyYh+ouUBn4llGyDYytIGcJS8=
 sigs.k8s.io/controller-runtime v0.21.0/go.mod h1:OSg14+F65eWqIu4DceX7k/+QRAbTTvxeQSNSOQpukWM=
+sigs.k8s.io/gateway-api-inference-extension v0.4.0 h1:JoTYxBCkQStJGpV1rwdAR6oDrxquyLsNMECY1My7Ggk=
+sigs.k8s.io/gateway-api-inference-extension v0.4.0/go.mod h1:44aUo5kUCGHJ1No/MwLofF2sTarkQ4wQYXr9gz92fhw=
 sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 h1:/Rv+M11QRah1itp8VhT6HoVx1Ray9eB4DBr+K+/sCJ8=
 sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3/go.mod h1:18nIHnGi6636UCz6m8i4DhaJ65T6EruyzmoQqI2BVDo=
 sigs.k8s.io/karpenter v1.0.4 h1:tE4gbYjXZ2uny35QmrKFSuMhxkIfGCqCulXhwyN2D3c=

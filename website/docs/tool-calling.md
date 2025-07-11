@@ -19,7 +19,8 @@ Proper chat templates are required for tool calling. The following models and th
 | Phi 4        | [tool-chat-phi4-mini.jinja](https://github.com/kaito-project/kaito/blob/main/presets/workspace/inference/chat_templates/tool-chat-phi4-mini.jinja)         | `phi4_mini_json`    |
 | Llama 3      | [tool-chat-llama3.1-json.jinja](https://github.com/kaito-project/kaito/blob/main/presets/workspace/inference/chat_templates/tool-chat-llama3.1-json.jinja) | `llama3_json`       |
 | Mistral      | [tool-chat-mistral.jinja](https://github.com/kaito-project/kaito/blob/main/presets/workspace/inference/chat_templates/tool-chat-mistral.jinja)             | `mistral`           |
-
+| Deepseek R1 | [tool-chat-deepseekr1.jinja](https://github.com/kaito-project/kaito/blob/main/presets/workspace/inference/chat_templates/tool-chat-deepseekr1.jinja) | `deepseek_v3` |
+| Deepseek V3 | [tool-chat-deepseekv3.jinja](https://github.com/kaito-project/kaito/blob/main/presets/workspace/inference/chat_templates/tool-chat-deepseekv3.jinja) | `deepseek_v3` |
 
 ### Inference Configurations
 

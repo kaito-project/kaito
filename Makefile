@@ -379,7 +379,6 @@ az-patch-install-ragengine-helm-e2e:
 aws-patch-install-helm:
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    	./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               	./charts/kaito/workspace/values.yaml
-	yq -i '(.featureGates.Karpenter)                                    	= "true"'                                       ./charts/kaito/workspace/values.yaml
 	yq -i '(.clusterName)                                                   = "$(AWS_CLUSTER_NAME)"'                    		./charts/kaito/workspace/values.yaml
 	yq -i '(.cloudProviderName)                                             = "aws"'                                        ./charts/kaito/workspace/values.yaml
 
@@ -438,7 +437,7 @@ aws-karpenter-helm:
 	--set controller.resources.requests.cpu=1 \
 	--set controller.resources.requests.memory=1Gi \
 	--set controller.resources.limits.cpu=1 \
-	--set controller.resources.limits.memory=1Gi \
+	--set controller.resources.limits.memory=1Gi
 
 	kubectl wait --for=condition=available deploy "karpenter" -n ${KARPENTER_NAMESPACE} --timeout=300s
 

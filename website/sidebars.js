@@ -46,6 +46,7 @@ const sidebars = {
             collapsed: false,
             items: [
                 'aws',
+                'azure',
             ],
         },
         {

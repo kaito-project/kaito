@@ -218,4 +218,4 @@ KAITO has adopted the [Cloud Native Compute Foundation Code of Conduct](https://
 
 - Please send emails to "KAITO devs" <kaito-dev@microsoft.com> for any issues.
 - We also discuss development in [KAITO Community Slack](https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-37gh89vw7-odHfqmPRc5oRnDG99SBJNA).
-- We host a weekly community meeting for contributors on Tuesday at 4:00pm PST. Please join: [meeting link](ttps://zoom-lfx.platform.linuxfoundation.org/meeting/99948431028?password=05912bb9-53fb-4b22-a634-ab5f8261e94c).
+- We host a weekly community meeting for contributors on Tuesday at 4:00pm PST. Please join: [meeting link](https://zoom-lfx.platform.linuxfoundation.org/meeting/99948431028?password=05912bb9-53fb-4b22-a634-ab5f8261e94c).

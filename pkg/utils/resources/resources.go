@@ -10,10 +10,12 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	gaiev1alpha2 "sigs.k8s.io/gateway-api-inference-extension/api/v1alpha2"
 
 	"github.com/kaito-project/kaito/pkg/utils"
 )
@@ -28,6 +30,16 @@ func CreateResource(ctx context.Context, resource client.Object, kubeClient clie
 		klog.InfoS("CreateService", "service", klog.KObj(r))
 	case *corev1.ConfigMap:
 		klog.InfoS("CreateConfigMap", "configmap", klog.KObj(r))
+	case *rbacv1.Role:
+		klog.InfoS("CreateRole", "role", klog.KObj(r))
+	case *rbacv1.RoleBinding:
+		klog.InfoS("CreateRoleBinding", "rolebinding", klog.KObj(r))
+	case *gaiev1alpha2.InferencePool:
+		klog.InfoS("CreateInferencePool", "inferencepool", klog.KObj(r))
+	case *gaiev1alpha2.InferenceModel:
+		klog.InfoS("CreateInferenceModel", "inferencemodel", klog.KObj(r))
+	case *corev1.ServiceAccount:
+		klog.InfoS("CreateServiceAccount", "serviceaccount", klog.KObj(r))
 	}
 
 	// Create the resource.

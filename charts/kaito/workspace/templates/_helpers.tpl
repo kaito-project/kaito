@@ -57,7 +57,7 @@ Utils function
 {{- define "utils.joinKeyValuePairs" -}}
 {{- $pairs := list -}}
 {{- range $key, $value := . -}}
-{{- $pairs = append $pairs (printf "%s=%s" $key $value) -}}
+{{- $pairs = append $pairs (printf "%s=%t" $key $value) -}}
 {{- end -}}
 {{- join "," $pairs -}}
 {{- end -}}

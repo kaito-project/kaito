@@ -36,6 +36,7 @@ const sidebars = {
                 'tuning',
                 'rag',
                 'custom-model',
+                'tool-calling',
             ],
         },
         {

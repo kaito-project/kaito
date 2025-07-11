@@ -2,17 +2,18 @@ name: deploy-docs
 on:
   push:
     branches:
-      - main
+    - main
     paths:
-      - '.github/workflows/deploy-docs.yaml'
-      - 'website/**'
+    - '.github/workflows/deploy-docs.yaml'
+    - 'website/**'
   pull_request:
     branches:
-      - main
+    - main
     paths:
-      - '.github/workflows/deploy-docs.yaml'
-      - 'website/**'
+    - '.github/workflows/deploy-docs.yaml'
+    - 'website/**'
   workflow_dispatch:
+
 
 permissions:
   contents: read
@@ -27,42 +28,40 @@ jobs:
       run:
         working-directory: website
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Harden Runner
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481
-        with:
-          disable-sudo: true
-          egress-policy: block
-          allowed-endpoints: >
-            github.com:443
-            registry.yarnpkg.com:443
-            *.githubusercontent.com:443
-            *.blob.core.windows.net:443
+    - name: Harden Runner
+      uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481
+      with:
+        disable-sudo: true
+        egress-policy: block
+        allowed-endpoints: >
+          github.com:443 registry.yarnpkg.com:443 *.githubusercontent.com:443 *.blob.core.windows.net:443
 
-      - name: Setup Node
-        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
-        with:
-          node-version: 20.x
+    - name: Setup Node
+      uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+      with:
+        node-version: 20.x
 
-      - name: Get yarn cache
-        id: yarn-cache
-        run: echo "dir=$(yarn cache dir)" > $GITHUB_OUTPUT
+    - name: Get yarn cache
+      id: yarn-cache
+      run: echo "dir=$(yarn cache dir)" > $GITHUB_OUTPUT
 
-      - name: Cache dependencies
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
-        with:
-          path: ${{ steps.yarn-cache.outputs.dir }}
-          key: ${{ runner.os }}-website-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-website-
+    - name: Cache dependencies
+      uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+      with:
+        path: ${{ steps.yarn-cache.outputs.dir }}
+        key: ${{ runner.os }}-website-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-website-
 
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
+    - run: yarn install --frozen-lockfile
+    - run: yarn build
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./website/build
-          destination_dir: ./docs
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
+      if: github.event_name != 'pull_request'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./website/build
+        destination_dir: ./docs

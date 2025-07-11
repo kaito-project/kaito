@@ -332,18 +332,11 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 			return err
 		}
 
-		for i := 0; i < newNodesCount; i++ {
-			newNode, err := c.createAndValidateNode(ctx, wObj)
-			if err != nil {
-				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
-					"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
-					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-					return updateErr
-				}
-				return err
-			}
-			selectedNodes = append(selectedNodes, newNode)
+		newNodes, err := c.createNewNodes(ctx, wObj, newNodesCount)
+		if err != nil {
+			return fmt.Errorf("failed to create new nodes: %w", err)
 		}
+		selectedNodes = append(selectedNodes, newNodes...)
 	}
 
 	// Ensure all gpu plugins are running successfully.
@@ -433,8 +426,8 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 	return qualifiedNodes, nil
 }
 
-// createAndValidateNode creates a new node and validates status.
-func (c *WorkspaceReconciler) createAndValidateNode(ctx context.Context, wObj *kaitov1beta1.Workspace) (*corev1.Node, error) {
+// determineNodeOSDiskSize returns the appropriate OS disk size for the workspace
+func (c *WorkspaceReconciler) determineNodeOSDiskSize(wObj *kaitov1beta1.Workspace) string {
 	var nodeOSDiskSize string
 	if wObj.Inference != nil && wObj.Inference.Preset != nil && wObj.Inference.Preset.Name != "" {
 		presetName := string(wObj.Inference.Preset.Name)
@@ -444,43 +437,85 @@ func (c *WorkspaceReconciler) createAndValidateNode(ctx context.Context, wObj *k
 	if nodeOSDiskSize == "" {
 		nodeOSDiskSize = "1024Gi" // The default OS size is used
 	}
-
-	return c.CreateNodeClaim(ctx, wObj, nodeOSDiskSize)
+	return nodeOSDiskSize
 }
 
-func (c *WorkspaceReconciler) CreateNodeClaim(ctx context.Context, wObj *kaitov1beta1.Workspace, nodeOSDiskSize string) (*corev1.Node, error) {
-	var newNodeClaim *karpenterv1.NodeClaim
+// createAllNodeClaims creates multiple NodeClaims in parallel and returns the created NodeClaim objects
+func (c *WorkspaceReconciler) createAllNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, count int, nodeOSDiskSize string) ([]*karpenterv1.NodeClaim, error) {
+	klog.InfoS("Creating multiple NodeClaims", "count", count, "workspace", klog.KObj(wObj))
 
-	err := retry.OnError(retry.DefaultRetry, func(err error) bool {
-		return apierrors.IsAlreadyExists(err)
-	}, func() error {
-		newNodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, wObj)
-		return nodeclaim.CreateNodeClaim(ctx, newNodeClaim, c.Client)
-	})
+	nodeClaims := make([]*karpenterv1.NodeClaim, 0, count)
 
+	for i := 0; i < count; i++ {
+		var newNodeClaim *karpenterv1.NodeClaim
+
+		err := retry.OnError(retry.DefaultRetry, func(err error) bool {
+			return apierrors.IsAlreadyExists(err)
+		}, func() error {
+			newNodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, wObj)
+			return nodeclaim.CreateNodeClaim(ctx, newNodeClaim, c.Client)
+		})
+
+		if err != nil {
+			klog.ErrorS(err, "failed to create nodeClaim", "nodeClaim", newNodeClaim.Name)
+			return nil, fmt.Errorf("failed to create nodeClaim %s: %w", newNodeClaim.Name, err)
+		}
+
+		nodeClaims = append(nodeClaims, newNodeClaim)
+	}
+
+	return nodeClaims, nil
+}
+
+func (c *WorkspaceReconciler) createNewNodes(ctx context.Context, wObj *kaitov1beta1.Workspace, newNodesCount int) ([]*corev1.Node, error) {
+	// Create all node claims at once
+	nodeOSDiskSize := c.determineNodeOSDiskSize(wObj)
+	newNodeClaims, err := c.createAllNodeClaims(ctx, wObj, newNodesCount, nodeOSDiskSize)
 	if err != nil {
-		klog.ErrorS(err, "failed to create nodeClaim", "nodeClaim", newNodeClaim.Name)
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-			"nodeClaimFailedCreation", err.Error()); updateErr != nil {
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+			"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return nil, updateErr
 		}
 		return nil, err
 	}
 
-	// check nodeClaim status until it is ready
-	err = nodeclaim.CheckNodeClaimStatus(ctx, newNodeClaim, c.Client)
+	// Wait for all node claims to be ready
+	if err := nodeclaim.WaitForPendingNodeClaims(ctx, wObj, c.Client); err != nil {
+		return nil, err
+	}
+
+	// Get node object details
+	newNodes, err := c.getNewNodes(ctx, newNodeClaims)
 	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-			"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {
+		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+			"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return nil, updateErr
 		}
 		return nil, err
 	}
 
-	// get the node object from the nodeClaim status nodeName.
-	return resources.GetNode(ctx, newNodeClaim.Status.NodeName, c.Client)
+	return newNodes, nil
+}
+
+// getNewNodes returns the new nodes created from the given node claims.
+func (c *WorkspaceReconciler) getNewNodes(ctx context.Context, nodeClaims []*karpenterv1.NodeClaim) ([]*corev1.Node, error) {
+	nodes := make([]*corev1.Node, 0, len(nodeClaims))
+
+	for i, nodeClaim := range nodeClaims {
+		klog.InfoS("Checking NodeClaim status", "nodeClaim", nodeClaim.Name, "index", i+1, "total", len(nodeClaims))
+
+		// Get the node object from the nodeClaim status nodeName
+		node, err := resources.GetNode(ctx, nodeClaim.Status.NodeName, c.Client)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get node for nodeClaim %s: %w", nodeClaim.Name, err)
+		}
+
+		nodes = append(nodes, node)
+	}
+
+	return nodes, nil
 }
 
 // ensureNodePlugins ensures node plugins are installed.

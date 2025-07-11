@@ -249,6 +249,62 @@ func createAndValidateModelSecret() *corev1.Secret {
 	return &modelSecret
 }
 
+func createPhi2WorkspaceWithAzureLinux(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Phi 2 preset and Azure Linux nodes", func() {
+		uniqueID := fmt.Sprint("preset-phi2-azurelinux-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"kaito-workspace":            "azure-linux-e2e-test-phi-2",
+					"kaito.sh/node-image-family": "AzureLinux",
+				},
+			}, nil, PresetPhi2Model, nil, nil, nil, "")
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createPhi2WorkspaceWithAzureLinuxAnnotation(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Phi 2 preset and Azure Linux nodes via annotation", func() {
+		uniqueID := fmt.Sprint("preset-phi2-azurelinux-annotation-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"kaito-workspace": "azure-linux-annotation-e2e-test-phi-2",
+				},
+			}, nil, PresetPhi2Model, nil, nil, nil, "")
+
+		// Add the Azure Linux image family annotation
+		if workspaceObj.Annotations == nil {
+			workspaceObj.Annotations = make(map[string]string)
+		}
+		workspaceObj.Annotations["kaito.sh/node-image-family"] = "AzureLinux"
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createPhi2WorkspaceWithInvalidImageFamily(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Phi 2 preset and invalid image family", func() {
+		uniqueID := fmt.Sprint("preset-phi2-invalid-image-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"kaito-workspace":            "invalid-image-family-e2e-test-phi-2",
+					"kaito.sh/node-image-family": "InvalidImageFamily",
+				},
+			}, nil, PresetPhi2Model, nil, nil, nil, "")
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
 func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNode int, intputVolume, outputVolume *corev1.Volume) (*kaitov1beta1.Workspace, string, string) {
 	workspaceObj := &kaitov1beta1.Workspace{}
 	e2eOutputImageName := fmt.Sprintf("adapter-%s-e2e-test", PresetPhi3Mini128kModel)
@@ -1273,5 +1329,136 @@ func validateInferenceConfig(workspaceObj *kaitov1beta1.Workspace) {
 
 			return len(configMap.Data) > 0
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for inference config to be ready")
+	})
+
+	It("should create a workspace with Azure Linux nodes successfully", func() {
+		numOfNode := 1
+		workspaceObj := createPhi2WorkspaceWithAzureLinux(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		// Validate that Azure Linux nodes are provisioned
+		validateAzureLinuxNodes(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateWorkspaceReadiness(workspaceObj)
+	})
+
+	It("should support Azure Linux via annotation instead of label", func() {
+		numOfNode := 1
+		workspaceObj := createPhi2WorkspaceWithAzureLinuxAnnotation(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		// Validate that Azure Linux nodes are provisioned
+		validateAzureLinuxNodes(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateWorkspaceReadiness(workspaceObj)
+	})
+
+	It("should fallback to Ubuntu when invalid image family is specified", func() {
+		numOfNode := 1
+		workspaceObj := createPhi2WorkspaceWithInvalidImageFamily(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		// Validate that Ubuntu nodes are provisioned (fallback behavior)
+		validateUbuntuFallbackNodes(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateWorkspaceReadiness(workspaceObj)
+	})
+}
+
+func validateAzureLinuxNodes(workspaceObj *kaitov1beta1.Workspace) {
+	By("Validating that Azure Linux nodes are provisioned", func() {
+		if workspaceObj.Resource.LabelSelector == nil {
+			Fail("workspace has no label selector")
+		}
+
+		// Get nodes with the workspace labels
+		nodeList := &corev1.NodeList{}
+		err := utils.TestingCluster.KubeClient.List(ctx, nodeList, &client.ListOptions{
+			LabelSelector: client.MatchingLabels(workspaceObj.Resource.LabelSelector.MatchLabels),
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(len(nodeList.Items)).To(BeNumerically(">=", 1), "At least one node should be provisioned")
+
+		// Check if this workspace requested Azure Linux
+		requestedAzureLinux := false
+		for labelKey, labelValue := range workspaceObj.Resource.LabelSelector.MatchLabels {
+			if labelKey == "kaito.sh/node-image-family" && strings.ToLower(labelValue) == "azurelinux" {
+				requestedAzureLinux = true
+				break
+			}
+		}
+
+		// Also check annotations
+		if !requestedAzureLinux && workspaceObj.Annotations != nil {
+			if imageFamily, exists := workspaceObj.Annotations["kaito.sh/node-image-family"]; exists {
+				if strings.ToLower(imageFamily) == "azurelinux" {
+					requestedAzureLinux = true
+				}
+			}
+		}
+
+		if requestedAzureLinux {
+			// Verify that nodes are running Azure Linux
+			for _, node := range nodeList.Items {
+				osImage := node.Status.NodeInfo.OSImage
+				Expect(strings.Contains(strings.ToLower(osImage), "azure")).To(BeTrue(),
+					fmt.Sprintf("Node %s should be running Azure Linux, got OS image: %s", node.Name, osImage))
+				GinkgoWriter.Printf("Verified Azure Linux node: %s with OS image: %s\n", node.Name, osImage)
+			}
+		}
+	})
+}
+
+func validateUbuntuFallbackNodes(workspaceObj *kaitov1beta1.Workspace) {
+	By("Validating that Ubuntu nodes are provisioned as fallback", func() {
+		if workspaceObj.Resource.LabelSelector == nil {
+			Fail("workspace has no label selector")
+		}
+
+		// Get nodes with the workspace labels
+		nodeList := &corev1.NodeList{}
+		err := utils.TestingCluster.KubeClient.List(ctx, nodeList, &client.ListOptions{
+			LabelSelector: client.MatchingLabels(workspaceObj.Resource.LabelSelector.MatchLabels),
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(len(nodeList.Items)).To(BeNumerically(">=", 1), "At least one node should be provisioned")
+
+		// Verify that nodes are running Ubuntu (fallback)
+		for _, node := range nodeList.Items {
+			osImage := node.Status.NodeInfo.OSImage
+			Expect(strings.Contains(strings.ToLower(osImage), "ubuntu")).To(BeTrue(),
+				fmt.Sprintf("Node %s should be running Ubuntu as fallback, got OS image: %s", node.Name, osImage))
+			GinkgoWriter.Printf("Verified Ubuntu fallback node: %s with OS image: %s\n", node.Name, osImage)
+		}
 	})
 }

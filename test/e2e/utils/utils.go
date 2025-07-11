@@ -26,6 +26,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/remotecommand"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -467,6 +468,58 @@ func GeneratePodTemplate(name, namespace, image string, labels map[string]string
 			},
 		},
 	}
+}
+
+// ValidateAzureLinuxNode validates that a node is running Azure Linux
+func ValidateAzureLinuxNode(node *corev1.Node) bool {
+	osImage := node.Status.NodeInfo.OSImage
+	return strings.Contains(strings.ToLower(osImage), "azure")
+}
+
+// GetNodesWithLabel retrieves nodes matching specific labels
+func GetNodesWithLabel(ctx context.Context, kubeClient client.Client, labels map[string]string) (*corev1.NodeList, error) {
+	nodeList := &corev1.NodeList{}
+	err := kubeClient.List(ctx, nodeList, &client.ListOptions{
+		LabelSelector: client.MatchingLabels(labels),
+	})
+	return nodeList, err
+}
+
+// ValidateWorkspaceAzureLinuxIntegration validates that a workspace successfully provisions Azure Linux nodes
+func ValidateWorkspaceAzureLinuxIntegration(ctx context.Context, kubeClient client.Client, workspace *kaitov1beta1.Workspace) error {
+	// Get nodes that should be provisioned for this workspace
+	if workspace.Resource.LabelSelector == nil {
+		return fmt.Errorf("workspace %s has no label selector", workspace.Name)
+	}
+
+	nodeList, err := GetNodesWithLabel(ctx, kubeClient, workspace.Resource.LabelSelector.MatchLabels)
+	if err != nil {
+		return fmt.Errorf("failed to get nodes for workspace %s: %w", workspace.Name, err)
+	}
+
+	if len(nodeList.Items) == 0 {
+		return fmt.Errorf("no nodes found for workspace %s", workspace.Name)
+	}
+
+	// Check if any node has the Azure Linux image family label
+	hasAzureLinuxLabel := false
+	for labelKey, labelValue := range workspace.Resource.LabelSelector.MatchLabels {
+		if labelKey == "kaito.sh/node-image-family" && strings.ToLower(labelValue) == "azurelinux" {
+			hasAzureLinuxLabel = true
+			break
+		}
+	}
+
+	// If Azure Linux was requested, validate that nodes are running Azure Linux
+	if hasAzureLinuxLabel {
+		for _, node := range nodeList.Items {
+			if !ValidateAzureLinuxNode(&node) {
+				return fmt.Errorf("node %s is not running Azure Linux: %s", node.Name, node.Status.NodeInfo.OSImage)
+			}
+		}
+	}
+
+	return nil
 }
 
 func CompareSecrets(refs []corev1.LocalObjectReference, secrets []string) bool {

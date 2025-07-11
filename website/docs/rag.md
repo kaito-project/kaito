@@ -63,7 +63,7 @@ metadata:
   name: ragengine-start
 spec:
   compute:
-    instanceType: "Standard_NV6"
+    instanceType: "Standard_NC4as_T4_v3"
     labelSelector:
       matchLabels:
         apps: ragengine-example

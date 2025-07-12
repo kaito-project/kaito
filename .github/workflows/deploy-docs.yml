@@ -4,13 +4,13 @@ on:
     branches:
     - main
     paths:
-    - '.github/workflows/deploy-docs.yaml'
+    - '.github/workflows/deploy-docs.yml'
     - 'website/**'
   pull_request:
     branches:
     - main
     paths:
-    - '.github/workflows/deploy-docs.yaml'
+    - '.github/workflows/deploy-docs.yml'
     - 'website/**'
   workflow_dispatch:
 
@@ -63,5 +63,5 @@ jobs:
       if: github.event_name != 'pull_request'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./website/build
-        destination_dir: ./docs
+        publish_dir: ./build
+        destination_dir: docs

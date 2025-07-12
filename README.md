@@ -8,12 +8,12 @@
 
 | ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Retrieval-augmented generation (RAG) is live! - RagEngine support with LlamaIndex orchestration and Faiss as the default vectorDB, learn about recent updates [here](https://github.com/kaito-project/kaito/issues/734)! |
+| Retrieval Augmented Generation (RAG) support is live! - Kaito RagEngine uses LlamaIndex and FAISS, learn about from [here](https://kaito-project.github.io/kaito/docs/rag)! |
 | Latest Release: July 2nd, 2025. KAITO v0.5.0.                                                                                                                                                                                                  |
 | First Release: Nov 15th, 2023. KAITO v0.1.0.                                                                                                                                                                                                   |
 
 KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
-The target models are popular open-sourced large models such as [falcon](https://huggingface.co/tiiuae) and [phi-3](https://huggingface.co/docs/transformers/main/en/model_doc/phi3).
+The target models are popular open-sourced large models such as [phi-4](https://huggingface.co/microsoft/phi-4) and [llama](https://huggingface.co/meta-llama).
 KAITO has the following key differentiations compared to most of the mainstream model deployment methodologies built on top of virtual machine infrastructures:
 
 - Manage large model files using container images. An OpenAI-compatible server is provided to perform inference calls.
@@ -37,25 +37,26 @@ The above figure presents the KAITO architecture overview. Its major components 
 - **Node provisioner controller**: The controller's name is *gpu-provisioner* in [gpu-provisioner helm chart](https://github.com/Azure/gpu-provisioner/tree/main/charts/gpu-provisioner). It uses the `NodeClaim` CRD originated from [Karpenter](https://sigs.k8s.io/karpenter) to interact with the workspace controller. It integrates with Azure Resource Manager REST APIs to add new GPU nodes to the AKS or AKS Arc cluster.
 > Note: The [*gpu-provisioner*](https://github.com/Azure/gpu-provisioner) is an open sourced component. It can be replaced by other controllers if they support [Karpenter-core](https://sigs.k8s.io/karpenter) APIs.
 
+**NEW!** Starting with version v0.5.0, Kaito releases a new operator, **RAGEngine**, which is used to streamline the process of managing a Retrieval Augmented Generation(RAG) service.
 <div align="left">
-  <img src="website/static/img/ragarch.svg" width=55% title="KAITO RAG architecture" alt="KAITO RAG architecture">
+  <img src="website/static/img/ragarch.png" width=80% title="KAITO RAGEngine architecture" alt="KAITO RAGEngine architecture">
 </div>
 
-The above figure presents the RAGEngine architecture overview consisting of:
+As illustrated in the above figure, the **RAGEngine controller** reconciles the `ragengine` custom resource and creates a `RAGService` deployment. The `RAGService` provides the following capabilities:
+  - **Orchstration**: use [LlamaIndex](https://github.com/run-llama/llama_index) orchestrator.
+  - **Embedding**: support both local and remote embedding services, to embed queries and documents in the vector database.
+  - **Vector database**: support a built-in [faiss](https://github.com/facebookresearch/faiss) in-memory vector database. Remote vector database support will be added soon.
+  - **Backend inference**: support any OAI compatible inference service.
 
-- **RAGEngine controller**: It reconciles the `ragengine` custom resource, creating the `RAG Service`.
-- **RAG Service**: This is the service that offer Retrieval Augmented Generation support with LlamaIndex orchestration and leveraging FAISS as the vector DB. 
-  - **Local Embedding**: An embedding model running locally to embed queries and documents within the vector db.
-  - **Remote Embedding**: An optional embedding model running remotely used to embed queries and documents within the vector db.
-  - **FAISS**: [Facebook AI Similarity Search](https://github.com/facebookresearch/faiss)
+The details of the service APIs can be found in this [document](https://kaito-project.github.io/kaito/docs/rag).
 
-For more information on RAGEngine installation and usage, check the docs [here](./website/docs/rag.md).
 
 ## Installation
 
-Please check the installation guidance [here](https://kaito-project.github.io/kaito/docs/installation) for deployment using Azure CLI and [here](./terraform/README.md) for deployment using Terraform.
+- **Workspace**: Please check the installation guidance [here](https://kaito-project.github.io/kaito/docs/installation) for deployment using helm and [here](./terraform/README.md) for deployment using Terraform.
+- **RAGEngine**: Please check the installation guidance [here](https://kaito-project.github.io/kaito/docs/rag).
 
-## Quick start
+## Workspace quick start
 
 After installing KAITO, one can try following commands to start a phi-3.5-mini-instruct inference service.
 
@@ -124,67 +125,11 @@ $ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X P
 
 ## Usage
 
-The detailed usage for Kaito supported models can be found in [**HERE**](https://kaito-project.github.io/kaito/docs/usage). In case users want to deploy their own containerized models, they can provide the pod template in the `inference` field of the workspace custom resource (please see [API definitions](../../api/v1alpha1/workspace_types.go) for details). The controller will create a deployment workload using all provisioned GPU nodes. Note that currently the controller does **NOT** handle automatic model upgrade. It only creates inference workloads based on the preset configurations if the workloads do not exist.
+The detailed usage for Kaito supported models can be found in [**HERE**](https://kaito-project.github.io/kaito/docs/presets). In case users want to deploy their own containerized models, they can provide the pod template in the `inference` field of the workspace custom resource (please see [API definitions](./api/v1alpha1/workspace_types.go) for details). 
 
-The number of the supported models in Kaito is growing! Please check [this](https://kaito-project.github.io/kaito/docs/preset-onboarding) document to see how to add a new supported model.
+> Note: Currently the controller does **NOT** handle automatic model upgrade. It only creates inference workloads based on the preset configurations if the workloads do not exist.
 
-Starting with version v0.3.0, Kaito supports model fine-tuning and using fine-tuned adapters in the inference service. Refer to the [tuning document](https://kaito-project.github.io/kaito/docs/tuning) and [inference document](https://kaito-project.github.io/kaito/docs/inference) for more information.
-
-
-## FAQ
-
-### How do I ensure preferred nodes are correctly labeled for use in my workspace?
-
-For using preferred nodes, make sure the node has the label specified in the labelSelector
-under matchLabels. For example, if your labelSelector is:
-```
-  labelSelector:
-    matchLabels:
-      apps: falcon-7b
-```
-Then the node should have the label: `apps=falcon-7b`.
-
-### How to upgrade the existing deployment to use the latest model configuration?
-
-When using hosted public models, a user can delete the existing inference workload (`Deployment` of `StatefulSet`) manually, and the workspace controller will create a new one with the latest preset configuration (e.g., the image version) defined in the current release. For private models, it is recommended to create a new workspace with a new image version in the Spec.
-
-### How to update model/inference parameters to override the KAITO Preset Configuration?
-
-KAITO provides a limited capability to override preset configurations for models that use `transformer` runtime manually.
-To update parameters for a deployed model, perform `kubectl edit` against the workload, which could be either a `StatefulSet` or `Deployment`.
-For example, to enable 4-bit quantization on a `falcon-7b-instruct` deployment, you would execute:
-
-```sh
-kubectl edit deployment workspace-falcon-7b-instruct
-```
-
-Within the deployment specification, locate and modify the command field.
-
-#### Original
-
-```sh
-accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all inference_api.py --pipeline text-generation --torch_dtype bfloat16
-```
-
-#### Modify to enable 4-bit Quantization
-
-```sh
-accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all inference_api.py --pipeline text-generation --torch_dtype bfloat16 --load_in_4bit
-```
-
-Currently, we allow users to change the following paramenters manually:
-
-- `pipeline`: For text-generation models this can be either `text-generation` or `conversational`.
-- `load_in_4bit` or `load_in_8bit`: Model quantization resolution.
-
-Should you need to customize other parameters, kindly file an issue for potential future inclusion.
-
-### What is the difference between instruct and non-instruct models?
-
-The main distinction lies in their intended use cases. Instruct models are fine-tuned versions optimized
-for interactive chat applications. They are typically the preferred choice for most implementations due to their enhanced performance in
-conversational contexts.
-On the other hand, non-instruct, or raw models, are designed for further fine-tuning.
+The number of the supported models in Kaito is growing! Please check [this](https://kaito-project.github.io/kaito/docs/preset-onboarding) document to see how to add a new supported model. Refer to [tuning document](https://kaito-project.github.io/kaito/docs/tuning), [inference document](https://kaito-project.github.io/kaito/docs/inference) , [RAGEngine document](https://kaito-project.github.io/kaito/docs/rag) and [FAQ](https://kaito-project.github.io/kaito/docs/faq) for more information.
 
 ## Contributing
 

@@ -4,8 +4,8 @@ slug: /
 ---
 
 :::info What's NEW!
-Retrieval-augmented generation (RAG) is live! - RagEngine support with LlamaIndex orchestration and Faiss as the default vectorDB, learn about recent updates [here](https://github.com/kaito-project/kaito/issues/734)!
 
+Retrieval Augmented Generation (RAG) support is live! - Kaito RagEngine uses LlamaIndex and FAISS, learn about from [here](https://kaito-project.github.io/kaito/docs/rag)!
 **Latest Release:** July 2nd, 2025. KAITO v0.5.0.
 
 **First Release:** Nov 15th, 2023. KAITO v0.1.0.
@@ -41,21 +41,22 @@ The above figure presents the KAITO architecture overview. Its major components 
 The [*gpu-provisioner*](https://github.com/Azure/gpu-provisioner) is an open sourced component. It can be replaced by other controllers if they support [Karpenter-core](https://sigs.k8s.io/karpenter) APIs.
 :::
 
-![KAITO RAG architecture](../static/img/ragarch.svg)
+**NEW!** Starting with version v0.5.0, Kaito releases a new operator, **RAGEngine**, which is used to streamline the process of managing a Retrieval Augmented Generation(RAG) service.
+![KAITO RAGEngine architecture](../static/img/ragarch.png)
 
-The above figure presents the RAGEngine architecture overview consisting of:
 
-- **RAGEngine controller**: It reconciles the `ragengine` custom resource, creating the `RAG Service`.
-- **RAG Service**: This is the service that offer Retrieval Augmented Generation support with LlamaIndex orchestration and leveraging FAISS as the vector DB. 
-  - **Local Embedding**: An embedding model running locally to embed queries and documents within the vector db.
-  - **Remote Embedding**: An optional embedding model running remotely used to embed queries and documents within the vector db.
-  - **FAISS**: [Facebook AI Similarity Search](https://github.com/facebookresearch/faiss)
+As illustrated in the above figure, the **RAGEngine controller** reconciles the `ragengine` custom resource and creates a `RAGService` deployment. The `RAGService` provides the following capabilities:
+  - **Orchstration**: use [LlamaIndex](https://github.com/run-llama/llama_index) orchestrator.
+  - **Embedding**: support both local and remote embedding services, to embed queries and documents in the vector database.
+  - **Vector database**: support a built-in [faiss](https://github.com/facebookresearch/faiss) in-memory vector database. Remote vector database support will be added soon.
+  - **Backend inference**: support any OAI compatible inference service.
 
-For more information on RAGEngine installation and usage, check the docs [here](./rag.md).
+The details of the service APIs can be found in this [document](./rag.md).
+
 
 ## Getting Started
 
-👉 To get started, please see the [Installation Guide](installation)!
+👉 To get started, please see the [Workspace Installation Guide](installation) and the [RAGEngine Installation Guide](./rag.md)!
 
 👉 For a quick start tutorial, check out [Quick Start](quick-start)!
 

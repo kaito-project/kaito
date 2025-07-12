@@ -4,7 +4,7 @@ This document presents how to use the KAITO `ragengine` Custom Resource Definiti
 
 ## Installation
 
-> Be sure you've cloned this repo and followed [kaito workspace installation](./installation.md)
+> Be sure you've cloned this repo and followed [kaito workspace installation](./installation.md) if you plan to use local embedding model. RAGEngine needs the gpu-provisioner component to provision GPU nodes.
 
 ```bash
 helm install ragengine ./charts/kaito/ragengine --namespace kaito-ragengine --create-namespace
@@ -74,13 +74,13 @@ spec:
     url: "<inference-url>/v1/completions"
 ```
 
-### Apply the Manifest
+### Apply the manifest
 After you create your YAML configuration, run:
 ```sh
 kubectl apply -f examples/RAG/kaito_ragengine_phi_3.yaml
 ```
 
-### Relationship Between Index, Documents, and Document Nodes
+## API definitions and examples
 
 A **RAGEngine index** is a logical collection that organizes and stores your documents for retrieval-augmented generation workflows. The relationship between indexes, documents, and document nodes is as follows:
 

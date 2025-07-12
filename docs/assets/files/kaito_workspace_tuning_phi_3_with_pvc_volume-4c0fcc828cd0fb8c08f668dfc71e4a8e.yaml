@@ -1,0 +1,45 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-azurefile-input
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: azurefile-csi
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-azurefile-output
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: azurefile-csi
+---
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-tuning-phi-3
+resource:
+  instanceType: "Standard_NC6s_v3"
+  labelSelector:
+    matchLabels:
+      app: tuning-phi-3
+tuning:
+  preset:
+    name: phi-3-mini-128k-instruct
+  method: qlora
+  input:
+    volumeSource:
+      persistentVolumeClaim:
+        claimName: pvc-azurefile-input
+  output:
+    volumeSource:
+      persistentVolumeClaim:
+        claimName: pvc-azurefile-output

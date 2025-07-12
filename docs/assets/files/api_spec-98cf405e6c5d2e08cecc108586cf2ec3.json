@@ -1,0 +1,2130 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "FastAPI",
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health",
+                "description": "Health check.",
+                "operationId": "health_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tokenize": {
+            "post": {
+                "summary": "Tokenize",
+                "operationId": "tokenize_tokenize_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/TokenizeCompletionRequest"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/TokenizeChatRequest"
+                                    }
+                                ],
+                                "title": "Request"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/detokenize": {
+            "post": {
+                "summary": "Detokenize",
+                "operationId": "detokenize_detokenize_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DetokenizeRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/models": {
+            "get": {
+                "summary": "Show Available Models",
+                "operationId": "show_available_models_v1_models_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/version": {
+            "get": {
+                "summary": "Show Version",
+                "operationId": "show_version_version_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/chat/completions": {
+            "post": {
+                "summary": "Create Chat Completion",
+                "operationId": "create_chat_completion_v1_chat_completions_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChatCompletionRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/completions": {
+            "post": {
+                "summary": "Create Completion",
+                "operationId": "create_completion_v1_completions_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CompletionRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/embeddings": {
+            "post": {
+                "summary": "Create Embedding",
+                "operationId": "create_embedding_v1_embeddings_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmbeddingRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "AudioURL": {
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "title": "Url"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "url"
+                ],
+                "title": "AudioURL"
+            },
+            "BaseModel": {
+                "properties": {},
+                "type": "object",
+                "title": "BaseModel"
+            },
+            "ChatCompletionAssistantMessageParam": {
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "assistant"
+                        ],
+                        "const": "assistant",
+                        "title": "Role"
+                    },
+                    "content": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ChatCompletionContentPartTextParam"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/ChatCompletionContentPartRefusalParam"
+                                        }
+                                    ]
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Content"
+                    },
+                    "function_call": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/FunctionCall"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "refusal": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Refusal"
+                    },
+                    "tool_calls": {
+                        "items": {
+                            "$ref": "#/components/schemas/ChatCompletionMessageToolCallParam"
+                        },
+                        "type": "array",
+                        "title": "Tool Calls"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "role"
+                ],
+                "title": "ChatCompletionAssistantMessageParam"
+            },
+            "ChatCompletionContentPartAudioParam": {
+                "properties": {
+                    "audio_url": {
+                        "$ref": "#/components/schemas/AudioURL"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "audio_url"
+                        ],
+                        "const": "audio_url",
+                        "title": "Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "audio_url",
+                    "type"
+                ],
+                "title": "ChatCompletionContentPartAudioParam"
+            },
+            "ChatCompletionContentPartImageParam": {
+                "properties": {
+                    "image_url": {
+                        "$ref": "#/components/schemas/ImageURL"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "image_url"
+                        ],
+                        "const": "image_url",
+                        "title": "Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "image_url",
+                    "type"
+                ],
+                "title": "ChatCompletionContentPartImageParam"
+            },
+            "ChatCompletionContentPartRefusalParam": {
+                "properties": {
+                    "refusal": {
+                        "type": "string",
+                        "title": "Refusal"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "refusal"
+                        ],
+                        "const": "refusal",
+                        "title": "Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "refusal",
+                    "type"
+                ],
+                "title": "ChatCompletionContentPartRefusalParam"
+            },
+            "ChatCompletionContentPartTextParam": {
+                "properties": {
+                    "text": {
+                        "type": "string",
+                        "title": "Text"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "text"
+                        ],
+                        "const": "text",
+                        "title": "Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "text",
+                    "type"
+                ],
+                "title": "ChatCompletionContentPartTextParam"
+            },
+            "ChatCompletionFunctionMessageParam": {
+                "properties": {
+                    "content": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Content"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "function"
+                        ],
+                        "const": "function",
+                        "title": "Role"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "content",
+                    "name",
+                    "role"
+                ],
+                "title": "ChatCompletionFunctionMessageParam"
+            },
+            "ChatCompletionMessageToolCallParam": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "function": {
+                        "$ref": "#/components/schemas/Function"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "function"
+                        ],
+                        "const": "function",
+                        "title": "Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "function",
+                    "type"
+                ],
+                "title": "ChatCompletionMessageToolCallParam"
+            },
+            "ChatCompletionNamedFunction": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "title": "ChatCompletionNamedFunction"
+            },
+            "ChatCompletionNamedToolChoiceParam": {
+                "properties": {
+                    "function": {
+                        "$ref": "#/components/schemas/ChatCompletionNamedFunction"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "function"
+                        ],
+                        "const": "function",
+                        "title": "Type",
+                        "default": "function"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "function"
+                ],
+                "title": "ChatCompletionNamedToolChoiceParam"
+            },
+            "ChatCompletionRequest": {
+                "properties": {
+                    "messages": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/ChatCompletionSystemMessageParam"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/ChatCompletionUserMessageParam"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/ChatCompletionAssistantMessageParam"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/ChatCompletionToolMessageParam"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/ChatCompletionFunctionMessageParam"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/CustomChatCompletionMessageParam"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Messages"
+                    },
+                    "model": {
+                        "type": "string",
+                        "title": "Model"
+                    },
+                    "frequency_penalty": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Frequency Penalty",
+                        "default": 0.0
+                    },
+                    "logit_bias": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": {
+                                    "type": "number"
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Logit Bias"
+                    },
+                    "logprobs": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Logprobs",
+                        "default": false
+                    },
+                    "top_logprobs": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Top Logprobs",
+                        "default": 0
+                    },
+                    "max_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Tokens"
+                    },
+                    "n": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "N",
+                        "default": 1
+                    },
+                    "presence_penalty": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Presence Penalty",
+                        "default": 0.0
+                    },
+                    "response_format": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ResponseFormat"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "seed": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 9.223372036854776e+18,
+                                "minimum": -9.223372036854776e+18
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Seed"
+                    },
+                    "stop": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stop"
+                    },
+                    "stream": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stream",
+                        "default": false
+                    },
+                    "stream_options": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/StreamOptions"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "temperature": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Temperature",
+                        "default": 0.7
+                    },
+                    "top_p": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Top P",
+                        "default": 1.0
+                    },
+                    "tools": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/ChatCompletionToolsParam"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tools"
+                    },
+                    "tool_choice": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "none"
+                                ],
+                                "const": "none"
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "auto"
+                                ],
+                                "const": "auto"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ChatCompletionNamedToolChoiceParam"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tool Choice",
+                        "default": "none"
+                    },
+                    "parallel_tool_calls": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Parallel Tool Calls",
+                        "default": false
+                    },
+                    "user": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "User"
+                    },
+                    "best_of": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Best Of"
+                    },
+                    "use_beam_search": {
+                        "type": "boolean",
+                        "title": "Use Beam Search",
+                        "default": false
+                    },
+                    "top_k": {
+                        "type": "integer",
+                        "title": "Top K",
+                        "default": -1
+                    },
+                    "min_p": {
+                        "type": "number",
+                        "title": "Min P",
+                        "default": 0.0
+                    },
+                    "repetition_penalty": {
+                        "type": "number",
+                        "title": "Repetition Penalty",
+                        "default": 1.0
+                    },
+                    "length_penalty": {
+                        "type": "number",
+                        "title": "Length Penalty",
+                        "default": 1.0
+                    },
+                    "early_stopping": {
+                        "type": "boolean",
+                        "title": "Early Stopping",
+                        "default": false
+                    },
+                    "stop_token_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stop Token Ids"
+                    },
+                    "include_stop_str_in_output": {
+                        "type": "boolean",
+                        "title": "Include Stop Str In Output",
+                        "default": false
+                    },
+                    "ignore_eos": {
+                        "type": "boolean",
+                        "title": "Ignore Eos",
+                        "default": false
+                    },
+                    "min_tokens": {
+                        "type": "integer",
+                        "title": "Min Tokens",
+                        "default": 0
+                    },
+                    "skip_special_tokens": {
+                        "type": "boolean",
+                        "title": "Skip Special Tokens",
+                        "default": true
+                    },
+                    "spaces_between_special_tokens": {
+                        "type": "boolean",
+                        "title": "Spaces Between Special Tokens",
+                        "default": true
+                    },
+                    "truncate_prompt_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Truncate Prompt Tokens"
+                    },
+                    "prompt_logprobs": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Prompt Logprobs"
+                    },
+                    "echo": {
+                        "type": "boolean",
+                        "title": "Echo",
+                        "description": "If true, the new message will be prepended with the last message if they belong to the same role.",
+                        "default": false
+                    },
+                    "add_generation_prompt": {
+                        "type": "boolean",
+                        "title": "Add Generation Prompt",
+                        "description": "If true, the generation prompt will be added to the chat template. This is a parameter used by chat template in tokenizer config of the model.",
+                        "default": true
+                    },
+                    "add_special_tokens": {
+                        "type": "boolean",
+                        "title": "Add Special Tokens",
+                        "description": "If true, special tokens (e.g. BOS) will be added to the prompt on top of what is added by the chat template. For most models, the chat template takes care of adding the special tokens so this should be set to false (as is the default).",
+                        "default": false
+                    },
+                    "documents": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Documents",
+                        "description": "A list of dicts representing documents that will be accessible to the model if it is performing RAG (retrieval-augmented generation). If the template does not support RAG, this argument will have no effect. We recommend that each document should be a dict containing \"title\" and \"text\" keys."
+                    },
+                    "chat_template": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Chat Template",
+                        "description": "A Jinja template to use for this conversion. As of transformers v4.44, default chat template is no longer allowed, so you must provide a chat template if the tokenizer does not define one."
+                    },
+                    "chat_template_kwargs": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Chat Template Kwargs",
+                        "description": "Additional kwargs to pass to the template renderer. Will be accessible by the chat template."
+                    },
+                    "guided_json": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BaseModel"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Json",
+                        "description": "If specified, the output will follow the JSON schema."
+                    },
+                    "guided_regex": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Regex",
+                        "description": "If specified, the output will follow the regex pattern."
+                    },
+                    "guided_choice": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Choice",
+                        "description": "If specified, the output will be exactly one of the choices."
+                    },
+                    "guided_grammar": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Grammar",
+                        "description": "If specified, the output will follow the context free grammar."
+                    },
+                    "guided_decoding_backend": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Decoding Backend",
+                        "description": "If specified, will override the default guided decoding backend of the server for this specific request. If set, must be either 'outlines' / 'lm-format-enforcer'"
+                    },
+                    "guided_whitespace_pattern": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Whitespace Pattern",
+                        "description": "If specified, will override the default whitespace pattern for guided json decoding."
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "messages",
+                    "model"
+                ],
+                "title": "ChatCompletionRequest"
+            },
+            "ChatCompletionSystemMessageParam": {
+                "properties": {
+                    "content": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/ChatCompletionContentPartTextParam"
+                                },
+                                "type": "array"
+                            }
+                        ],
+                        "title": "Content"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "system"
+                        ],
+                        "const": "system",
+                        "title": "Role"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "content",
+                    "role"
+                ],
+                "title": "ChatCompletionSystemMessageParam"
+            },
+            "ChatCompletionToolMessageParam": {
+                "properties": {
+                    "content": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/ChatCompletionContentPartTextParam"
+                                },
+                                "type": "array"
+                            }
+                        ],
+                        "title": "Content"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "tool"
+                        ],
+                        "const": "tool",
+                        "title": "Role"
+                    },
+                    "tool_call_id": {
+                        "type": "string",
+                        "title": "Tool Call Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "content",
+                    "role",
+                    "tool_call_id"
+                ],
+                "title": "ChatCompletionToolMessageParam"
+            },
+            "ChatCompletionToolsParam": {
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "function"
+                        ],
+                        "const": "function",
+                        "title": "Type",
+                        "default": "function"
+                    },
+                    "function": {
+                        "$ref": "#/components/schemas/FunctionDefinition"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "function"
+                ],
+                "title": "ChatCompletionToolsParam"
+            },
+            "ChatCompletionUserMessageParam": {
+                "properties": {
+                    "content": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ChatCompletionContentPartTextParam"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/ChatCompletionContentPartImageParam"
+                                        }
+                                    ]
+                                },
+                                "type": "array"
+                            }
+                        ],
+                        "title": "Content"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "user"
+                        ],
+                        "const": "user",
+                        "title": "Role"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "content",
+                    "role"
+                ],
+                "title": "ChatCompletionUserMessageParam"
+            },
+            "CompletionRequest": {
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "title": "Model"
+                    },
+                    "prompt": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "items": {
+                                    "items": {
+                                        "type": "integer"
+                                    },
+                                    "type": "array"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            }
+                        ],
+                        "title": "Prompt"
+                    },
+                    "best_of": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Best Of"
+                    },
+                    "echo": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Echo",
+                        "default": false
+                    },
+                    "frequency_penalty": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Frequency Penalty",
+                        "default": 0.0
+                    },
+                    "logit_bias": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": {
+                                    "type": "number"
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Logit Bias"
+                    },
+                    "logprobs": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Logprobs"
+                    },
+                    "max_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Tokens",
+                        "default": 16
+                    },
+                    "n": {
+                        "type": "integer",
+                        "title": "N",
+                        "default": 1
+                    },
+                    "presence_penalty": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Presence Penalty",
+                        "default": 0.0
+                    },
+                    "seed": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 9.223372036854776e+18,
+                                "minimum": -9.223372036854776e+18
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Seed"
+                    },
+                    "stop": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stop"
+                    },
+                    "stream": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stream",
+                        "default": false
+                    },
+                    "stream_options": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/StreamOptions"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "suffix": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Suffix"
+                    },
+                    "temperature": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Temperature",
+                        "default": 1.0
+                    },
+                    "top_p": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Top P",
+                        "default": 1.0
+                    },
+                    "user": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "User"
+                    },
+                    "use_beam_search": {
+                        "type": "boolean",
+                        "title": "Use Beam Search",
+                        "default": false
+                    },
+                    "top_k": {
+                        "type": "integer",
+                        "title": "Top K",
+                        "default": -1
+                    },
+                    "min_p": {
+                        "type": "number",
+                        "title": "Min P",
+                        "default": 0.0
+                    },
+                    "repetition_penalty": {
+                        "type": "number",
+                        "title": "Repetition Penalty",
+                        "default": 1.0
+                    },
+                    "length_penalty": {
+                        "type": "number",
+                        "title": "Length Penalty",
+                        "default": 1.0
+                    },
+                    "early_stopping": {
+                        "type": "boolean",
+                        "title": "Early Stopping",
+                        "default": false
+                    },
+                    "stop_token_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stop Token Ids"
+                    },
+                    "include_stop_str_in_output": {
+                        "type": "boolean",
+                        "title": "Include Stop Str In Output",
+                        "default": false
+                    },
+                    "ignore_eos": {
+                        "type": "boolean",
+                        "title": "Ignore Eos",
+                        "default": false
+                    },
+                    "min_tokens": {
+                        "type": "integer",
+                        "title": "Min Tokens",
+                        "default": 0
+                    },
+                    "skip_special_tokens": {
+                        "type": "boolean",
+                        "title": "Skip Special Tokens",
+                        "default": true
+                    },
+                    "spaces_between_special_tokens": {
+                        "type": "boolean",
+                        "title": "Spaces Between Special Tokens",
+                        "default": true
+                    },
+                    "truncate_prompt_tokens": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Truncate Prompt Tokens"
+                    },
+                    "allowed_token_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Allowed Token Ids"
+                    },
+                    "prompt_logprobs": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Prompt Logprobs"
+                    },
+                    "add_special_tokens": {
+                        "type": "boolean",
+                        "title": "Add Special Tokens",
+                        "description": "If true (the default), special tokens (e.g. BOS) will be added to the prompt.",
+                        "default": true
+                    },
+                    "response_format": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ResponseFormat"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Similar to chat completion, this parameter specifies the format of output. Only {'type': 'json_object'} or {'type': 'text' } is supported."
+                    },
+                    "guided_json": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BaseModel"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Json",
+                        "description": "If specified, the output will follow the JSON schema."
+                    },
+                    "guided_regex": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Regex",
+                        "description": "If specified, the output will follow the regex pattern."
+                    },
+                    "guided_choice": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Choice",
+                        "description": "If specified, the output will be exactly one of the choices."
+                    },
+                    "guided_grammar": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Grammar",
+                        "description": "If specified, the output will follow the context free grammar."
+                    },
+                    "guided_decoding_backend": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Decoding Backend",
+                        "description": "If specified, will override the default guided decoding backend of the server for this specific request. If set, must be one of 'outlines' / 'lm-format-enforcer'"
+                    },
+                    "guided_whitespace_pattern": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Guided Whitespace Pattern",
+                        "description": "If specified, will override the default whitespace pattern for guided json decoding."
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "model",
+                    "prompt"
+                ],
+                "title": "CompletionRequest"
+            },
+            "CustomChatCompletionContentPartParam": {
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "title": "Type"
+                    }
+                },
+                "additionalProperties": true,
+                "type": "object",
+                "required": [
+                    "type"
+                ],
+                "title": "CustomChatCompletionContentPartParam"
+            },
+            "CustomChatCompletionMessageParam": {
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "title": "Role"
+                    },
+                    "content": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ChatCompletionContentPartTextParam"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/ChatCompletionContentPartImageParam"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/ChatCompletionContentPartAudioParam"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/ChatCompletionContentPartRefusalParam"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/CustomChatCompletionContentPartParam"
+                                        }
+                                    ]
+                                },
+                                "type": "array"
+                            }
+                        ],
+                        "title": "Content"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "tool_call_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tool Call Id"
+                    },
+                    "tool_calls": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/ChatCompletionMessageToolCallParam"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tool Calls"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "role"
+                ],
+                "title": "CustomChatCompletionMessageParam",
+                "description": "Enables custom roles in the Chat Completion API."
+            },
+            "DetokenizeRequest": {
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "title": "Model"
+                    },
+                    "tokens": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "title": "Tokens"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "model",
+                    "tokens"
+                ],
+                "title": "DetokenizeRequest"
+            },
+            "EmbeddingRequest": {
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "title": "Model"
+                    },
+                    "input": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "items": {
+                                    "items": {
+                                        "type": "integer"
+                                    },
+                                    "type": "array"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            }
+                        ],
+                        "title": "Input"
+                    },
+                    "encoding_format": {
+                        "type": "string",
+                        "enum": [
+                            "float",
+                            "base64"
+                        ],
+                        "title": "Encoding Format",
+                        "default": "float"
+                    },
+                    "dimensions": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Dimensions"
+                    },
+                    "user": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "User"
+                    },
+                    "additional_data": {
+                        "anyOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Additional Data"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "model",
+                    "input"
+                ],
+                "title": "EmbeddingRequest"
+            },
+            "Function": {
+                "properties": {
+                    "arguments": {
+                        "type": "string",
+                        "title": "Arguments"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "arguments",
+                    "name"
+                ],
+                "title": "Function"
+            },
+            "FunctionCall": {
+                "properties": {
+                    "arguments": {
+                        "type": "string",
+                        "title": "Arguments"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "arguments",
+                    "name"
+                ],
+                "title": "FunctionCall"
+            },
+            "FunctionDefinition": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "parameters": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "title": "FunctionDefinition"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "ImageURL": {
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "title": "Url"
+                    },
+                    "detail": {
+                        "type": "string",
+                        "enum": [
+                            "auto",
+                            "low",
+                            "high"
+                        ],
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "url"
+                ],
+                "title": "ImageURL"
+            },
+            "JsonSchemaResponseFormat": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Schema"
+                    },
+                    "strict": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Strict"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "title": "JsonSchemaResponseFormat"
+            },
+            "ResponseFormat": {
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "text",
+                            "json_object",
+                            "json_schema"
+                        ],
+                        "title": "Type"
+                    },
+                    "json_schema": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/JsonSchemaResponseFormat"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "type"
+                ],
+                "title": "ResponseFormat"
+            },
+            "StreamOptions": {
+                "properties": {
+                    "include_usage": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Include Usage",
+                        "default": true
+                    },
+                    "continuous_usage_stats": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Continuous Usage Stats",
+                        "default": true
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "title": "StreamOptions"
+            },
+            "TokenizeChatRequest": {
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "title": "Model"
+                    },
+                    "messages": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/ChatCompletionSystemMessageParam"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/ChatCompletionUserMessageParam"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/ChatCompletionAssistantMessageParam"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/ChatCompletionToolMessageParam"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/ChatCompletionFunctionMessageParam"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/CustomChatCompletionMessageParam"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Messages"
+                    },
+                    "add_generation_prompt": {
+                        "type": "boolean",
+                        "title": "Add Generation Prompt",
+                        "default": true
+                    },
+                    "add_special_tokens": {
+                        "type": "boolean",
+                        "title": "Add Special Tokens",
+                        "default": false
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "model",
+                    "messages"
+                ],
+                "title": "TokenizeChatRequest"
+            },
+            "TokenizeCompletionRequest": {
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "title": "Model"
+                    },
+                    "prompt": {
+                        "type": "string",
+                        "title": "Prompt"
+                    },
+                    "add_special_tokens": {
+                        "type": "boolean",
+                        "title": "Add Special Tokens",
+                        "default": true
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "model",
+                    "prompt"
+                ],
+                "title": "TokenizeCompletionRequest"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        }
+    }
+}

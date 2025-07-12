@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qlora-params-template
+  namespace: {{ .Release.Namespace }}
+data:
+  training_config.yaml: |
+    training_config:
+      ModelConfig: # Configurable Parameters: https://huggingface.co/docs/transformers/v4.40.2/en/model_doc/auto#transformers.AutoModelForCausalLM.from_pretrained
+        torch_dtype: "bfloat16"
+        local_files_only: true
+        device_map: "auto"
+        # chat_template: "/workspace/chat_templates/phi-3.jinja" # Commented out to use default template
+    
+      QuantizationConfig: # Configurable Parameters: https://huggingface.co/docs/transformers/v4.40.2/en/main_classes/quantization#transformers.BitsAndBytesConfig
+        load_in_4bit: true
+        bnb_4bit_quant_type: "nf4"
+        bnb_4bit_compute_dtype: "bfloat16"
+        bnb_4bit_use_double_quant: true
+    
+      LoraConfig: # Configurable Parameters: https://huggingface.co/docs/peft/v0.8.2/en/package_reference/lora#peft.LoraConfig
+        r: 8
+        lora_alpha: 8
+        lora_dropout: 0.0
+    
+      TrainingArguments: # Configurable Parameters: https://huggingface.co/docs/transformers/v4.40.2/en/main_classes/trainer#transformers.TrainingArguments
+        output_dir: "/mnt/results"
+        # num_train_epochs: <Defaults to 3, adjustable>
+        ddp_find_unused_parameters: false # Default to false to prevent errors during distributed training
+        save_strategy: "no" # Default to save at end of each epoch
+        per_device_train_batch_size: 1
+    
+      DataCollator: # Configurable Parameters: https://huggingface.co/docs/transformers/v4.40.2/en/main_classes/data_collator#transformers.DataCollatorForLanguageModeling
+        mlm: true # Default setting; included to show DataCollator can be updated.
+    
+      DatasetConfig: # Configurable Parameters: https://github.com/kaito-project/kaito/blob/main/presets/workspace/tuning/text-generation/cli.py#L44
+        shuffle_dataset: true
+        train_test_split: 1 # Default to using all data for fine-tuning due to strong pre-trained baseline and typically limited fine-tuning data
+        # Expected Dataset format:
+        # {"messages": [{"role": "system", "content": "Marv is a factual chatbot that is also sarcastic."}, {"role": "user", "content": "What's the capital of France?"}, {"role": "assistant", "content": "Paris, as if everyone doesn't know that already."}]}
+        # e.g. https://huggingface.co/datasets/philschmid/dolly-15k-oai-style

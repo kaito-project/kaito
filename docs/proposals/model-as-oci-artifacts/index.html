@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-proposals/model-as-oci-artifacts" data-has-hydrated="false">
+<head>
+<meta charset="UTF-8">
+<meta name="generator" content="Docusaurus v3.1.0">
+<title data-rh="true">Distributing LLM Model Files as OCI Artifacts | Kaito</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://kaito-project.github.io/kaito/docs/img/kaito-logo.png"><meta data-rh="true" name="twitter:image" content="https://kaito-project.github.io/kaito/docs/img/kaito-logo.png"><meta data-rh="true" property="og:url" content="https://kaito-project.github.io/kaito/docs/proposals/model-as-oci-artifacts"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Distributing LLM Model Files as OCI Artifacts | Kaito"><meta data-rh="true" name="description" content="Summary"><meta data-rh="true" property="og:description" content="Summary"><link data-rh="true" rel="icon" href="/kaito/docs/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://kaito-project.github.io/kaito/docs/proposals/model-as-oci-artifacts"><link data-rh="true" rel="alternate" href="https://kaito-project.github.io/kaito/docs/proposals/model-as-oci-artifacts" hreflang="en"><link data-rh="true" rel="alternate" href="https://kaito-project.github.io/kaito/docs/proposals/model-as-oci-artifacts" hreflang="x-default"><link rel="stylesheet" href="/kaito/docs/assets/css/styles.e95ed9fd.css">
+<script src="/kaito/docs/assets/js/runtime~main.b0f3f0a2.js" defer="defer"></script>
+<script src="/kaito/docs/assets/js/main.98220731.js" defer="defer"></script>
+</head>
+<body class="navigation-with-keyboard">
+<script>!function(){function t(t){document.documentElement.setAttribute("data-theme",t)}var e=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return localStorage.getItem("theme")}catch(t){}}();null!==e?t(e):window.matchMedia("(prefers-color-scheme: dark)").matches?t("dark"):(window.matchMedia("(prefers-color-scheme: light)").matches,t("light"))}(),function(){try{const n=new URLSearchParams(window.location.search).entries();for(var[t,e]of n)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}(),document.documentElement.setAttribute("data-announcement-bar-initially-dismissed",function(){try{return"true"===localStorage.getItem("docusaurus.announcement.dismiss")}catch(t){}return!1}())</script><div id="__docusaurus"><div role="region" aria-label="Skip to main content"><a class="skipToContent_fXgn" href="#__docusaurus_skipToContent_fallback">Skip to main content</a></div><div class="announcementBar_mb4j" role="banner"><div class="announcementBarPlaceholder_vyr4"></div><div class="content_knG7 announcementBarContent_xLdY">⭐️ If you like Kaito, please give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/kaito-project/kaito">GitHub</a>!</div><button type="button" aria-label="Close" class="clean-btn close closeButton_CVFx announcementBarClose_gvF7"><svg viewBox="0 0 15 15" width="14" height="14"><g stroke="currentColor" stroke-width="3.1"><path d="M.75.75l13.5 13.5M14.25.75L.75 14.25"></path></g></svg></button></div><nav aria-label="Main" class="navbar navbar--fixed-top"><div class="navbar__inner"><div class="navbar__items"><button aria-label="Toggle navigation bar" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/kaito/docs/"><div class="navbar__logo"><img src="/kaito/docs/img/kaito-logo.png" alt="Kaito Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"><img src="/kaito/docs/img/kaito-logo.png" alt="Kaito Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"></div><b class="navbar__title text--truncate">Kaito</b></a></div><div class="navbar__items navbar__items--right"><a href="https://github.com/kaito-project/kaito" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link header-github-link" aria-label="GitHub repository"></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type="button" disabled="" title="Switch between dark and light mode (currently light mode)" aria-label="Switch between dark and light mode (currently light mode)" aria-live="polite"><svg viewBox="0 0 24 24" width="24" height="24" class="lightToggleIcon_pyhR"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" class="darkToggleIcon_wfgR"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg></button></div><div class="navbarSearchContainer_Bca1"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="main-wrapper mainWrapper_z2l0"><div class="docsWrapper_hBAB"><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type="button"></button><div class="docRoot_UBD9"><main class="docMainContainer_TBSr docMainContainerEnhanced_lQrH"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_VOVn"><div class="docItemContainer_Djhp"><article><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type="button" class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>Distributing LLM Model Files as OCI Artifacts</h1></header><h2 class="anchor anchorWithStickyNavbar_LWe7" id="summary">Summary<a href="#summary" class="hash-link" aria-label="Direct link to Summary" title="Direct link to Summary">​</a></h2>
+<p>The exponential growth and adoption of Large Language Models (LLMs) have revolutionized AI-driven applications across industries. However, distributing these models effectively remains a significant challenge.</p>
+<p>Currently, KAITO employs a solution where the runtime library and model files are packaged within a single image. This method ensures a reliable and self-contained environment, particularly effective for distributing small models.</p>
+<p>As large language models grow, bundling them within containerized images becomes impractical. Using Open Container Initiative (OCI) Artifacts offers a scalable and efficient alternative for packaging and deployment.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="motivation">Motivation<a href="#motivation" class="hash-link" aria-label="Direct link to Motivation" title="Direct link to Motivation">​</a></h2>
+<p>While containerized environments are easy to use, they face challenges in maintaining images and hosting larger models.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="image-building-challenges">Image Building Challenges<a href="#image-building-challenges" class="hash-link" aria-label="Direct link to Image Building Challenges" title="Direct link to Image Building Challenges">​</a></h3>
+<p>With the ongoing development of KAITO, we now host 19 models. The base images are frequently updated due to vulnerability fixes and feature requests. Each time the base image is updated, we need to rebuild the image for every model.</p>
+<p>Although the model files remain unchanged, Docker image builds are still time-consuming because these large files are included in the build context unnecessarily. For instance, building the Falcon-40B image takes nearly 2 hours to complete.</p>
+<p>In total, it typically takes around 15 hours to build all of these images.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="image-pulling-inefficiency">Image Pulling Inefficiency<a href="#image-pulling-inefficiency" class="hash-link" aria-label="Direct link to Image Pulling Inefficiency" title="Direct link to Image Pulling Inefficiency">​</a></h3>
+<p>Image pulling is also time-consuming, even for smaller models. For example, it takes around 6 minutes (110s for downloading) to pull the image for Phi-4. Currently, all model files are packed into a single image layer, which limits download concurrency. Splitting the model files into multiple layers could improve bandwidth usage. However, container layer unpacking remains a serial process, which still introduces performance bottlenecks.</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="containerd-image-pull-process">Containerd Image Pull Process<a href="#containerd-image-pull-process" class="hash-link" aria-label="Direct link to Containerd Image Pull Process" title="Direct link to Containerd Image Pull Process">​</a></h4>
+<p>When containerd pulls an image, the operation is divided into four distinct parts:</p>
+<ol>
+<li>Downloading layer data from the registry</li>
+<li>Decompressing the layer if necessary</li>
+<li>Checking sha256 digest</li>
+<li>Unpacking the layer, applying changes to the snapshot</li>
+</ol>
+<p>Interestingly, testing reveals that the download phase accounts for only 30% of the total time spent during the process. This highlights the significance of optimizing subsequent phases to improve overall efficiency in handling large, containerized artifacts.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="goals">Goals<a href="#goals" class="hash-link" aria-label="Direct link to Goals" title="Direct link to Goals">​</a></h3>
+<ul>
+<li>Reduce model image build time</li>
+<li>Improve image pull efficiency for larger models</li>
+<li>Create a more maintainable approach to model distribution</li>
+<li>Optimize bandwidth usage through concurrency</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="non-goals">Non-Goals<a href="#non-goals" class="hash-link" aria-label="Direct link to Non-Goals" title="Direct link to Non-Goals">​</a></h3>
+<ul>
+<li>Changing the model runtime or inference architecture</li>
+<li>Modifying model weights or structure</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="proposal">Proposal<a href="#proposal" class="hash-link" aria-label="Direct link to Proposal" title="Direct link to Proposal">​</a></h2>
+<p>To address these challenges, we propose several optimizations for distributing containerized LLM model files:</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="build-image-using-oras-push">Build Image Using ORAS Push<a href="#build-image-using-oras-push" class="hash-link" aria-label="Direct link to Build Image Using ORAS Push" title="Direct link to Build Image Using ORAS Push">​</a></h3>
+<p>It&#x27;s quite time-consuming when sending large model files to docker builder context. We propose using ORAS push to add model files to OCI layout assembly. This achieves the same result as Docker build but is much more efficient.</p>
+<p>Reference: <a href="https://oras.land/docs/commands/oras_push" target="_blank" rel="noopener noreferrer">https://oras.land/docs/commands/oras_push</a></p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="use-zstd-instead-of-gzip-for-compression">Use Zstd Instead of Gzip for Compression<a href="#use-zstd-instead-of-gzip-for-compression" class="hash-link" aria-label="Direct link to Use Zstd Instead of Gzip for Compression" title="Direct link to Use Zstd Instead of Gzip for Compression">​</a></h3>
+<p>Zstd provides better decompression performance than gzip, which is particularly important for large files like model weights.</p>
+<p>Reference: <a href="https://depot.dev/blog/building-images-gzip-vs-zstd" target="_blank" rel="noopener noreferrer">https://depot.dev/blog/building-images-gzip-vs-zstd</a></p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="shipping-model-files-as-oci-artifacts">Shipping Model Files as OCI Artifacts<a href="#shipping-model-files-as-oci-artifacts" class="hash-link" aria-label="Direct link to Shipping Model Files as OCI Artifacts" title="Direct link to Shipping Model Files as OCI Artifacts">​</a></h3>
+<p>Split the containerized image into two parts:</p>
+<ol>
+<li>A base image containing the runtime and dependencies</li>
+<li>OCI artifacts containing the model files</li>
+</ol>
+<p>These OCI artifacts can be mounted as an OCI volume in Kubernetes. For older versions of Kubernetes that do not support this feature, an initContainer can be used to fetch the artifacts using ORAS.</p>
+<p>Key benefit: You only need to build model images once, then they can be reused across base image updates.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="design-details">Design Details<a href="#design-details" class="hash-link" aria-label="Direct link to Design Details" title="Direct link to Design Details">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="oci-artifacts-vs-oci-image">OCI Artifacts vs OCI Image<a href="#oci-artifacts-vs-oci-image" class="hash-link" aria-label="Direct link to OCI Artifacts vs OCI Image" title="Direct link to OCI Artifacts vs OCI Image">​</a></h3>
+<p>The Open Container Initiative (OCI) defines the specifications and standards for container technologies. This includes the API for working with container registries, known formally as the OCI Distribution Specification. (a.k.a. the &quot;distribution-spec&quot;).</p>
+<p>Specifically, OCI Image Manifests have a required field known as config.mediaType. According to the guidelines provided by OCI Artifacts, this field provides the ability to differentiate between various types of artifacts.</p>
+<p>An OCI image is a subset of OCI artifacts, accepting only specific mediatypes.</p>
+<p>ORAS is a tool for managing OCI artifacts, including pushing, pulling, and handling metadata in OCI registries. Note that OCI artifacts might not be fully compatible with container engines.
+Currently, cri-o supports general OCI artifacts, while <a href="https://github.com/containerd/containerd/issues/11381#issuecomment-2917050414" target="_blank" rel="noopener noreferrer">containerd does not</a>.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="oci-registries-compatibility">OCI Registries Compatibility<a href="#oci-registries-compatibility" class="hash-link" aria-label="Direct link to OCI Registries Compatibility" title="Direct link to OCI Registries Compatibility">​</a></h3>
+<p>Most OCI registries support OCI artifacts. Check <a href="https://oras.land/docs/compatible_oci_registries#registries-supporting-oci-artifacts" target="_blank" rel="noopener noreferrer">here</a> for a list of compatible registries.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="model-files-downloading-process">Model Files downloading process<a href="#model-files-downloading-process" class="hash-link" aria-label="Direct link to Model Files downloading process" title="Direct link to Model Files downloading process">​</a></h3>
+<p>Use a initContainer to download model files as OCI artifacts using ORAS. The initContainer will pull the model files from the registry and store them in a persistent volume (PV). The main inference container will then load these model files from the PV.</p>
+<div class="language-mermaid codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-mermaid codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">sequenceDiagram</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    participant CR as Container Runtime</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    participant IC as InitContainer</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    participant PV as Persistent Volume</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    participant IS as Inference Server</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    CR-&gt;&gt;CR: Pull Base Image</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    CR-&gt;&gt;IC: Start InitContainer</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    IC-&gt;&gt;IC: Pull Model Files as OCI Artifacts using ORAS</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    IC-&gt;&gt;PV: Store Model Files</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    IC-&gt;&gt;CR: Complete</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    CR-&gt;&gt;IS: Start Main Inference Container</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    IS-&gt;&gt;PV: Load Model Files</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    IS-&gt;&gt;IS: Inference Server Ready</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="Copy code to clipboard" title="Copy" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg viewBox="0 0 24 24" class="copyButtonIcon_y97N"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg viewBox="0 0 24 24" class="copyButtonSuccessIcon_LjdS"><path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="production-readiness-review-questionnaire">Production Readiness Review Questionnaire<a href="#production-readiness-review-questionnaire" class="hash-link" aria-label="Direct link to Production Readiness Review Questionnaire" title="Direct link to Production Readiness Review Questionnaire">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="feature-enablement-and-rollback">Feature Enablement and Rollback<a href="#feature-enablement-and-rollback" class="hash-link" aria-label="Direct link to Feature Enablement and Rollback" title="Direct link to Feature Enablement and Rollback">​</a></h3>
+<ol>
+<li>
+<p><strong>How can this feature be enabled / disabled in a live cluster?</strong></p>
+<ul>
+<li>Feature Gate: Not applicable</li>
+</ul>
+</li>
+<li>
+<p><strong>Does enabling the feature change any default behavior?</strong></p>
+<ul>
+<li>Yes, using the OCI artifacts approach changes how model files are obtained and loaded</li>
+</ul>
+</li>
+<li>
+<p><strong>Can the feature be disabled once it has been enabled?</strong></p>
+<ul>
+<li>No, once OCI artifacts are used, the system will rely on them for model distribution</li>
+</ul>
+</li>
+<li>
+<p><strong>What happens if we reenable the feature if it was previously rolled back?</strong></p>
+<ul>
+<li>No special considerations, the system will start using OCI artifacts for model distribution</li>
+</ul>
+</li>
+<li>
+<p><strong>Are there any tests for feature enablement/disablement?</strong></p>
+<ul>
+<li>We plan to implement integration tests that verify both approaches</li>
+</ul>
+</li>
+</ol>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="rollout-upgrade-and-rollback-planning">Rollout, Upgrade and Rollback Planning<a href="#rollout-upgrade-and-rollback-planning" class="hash-link" aria-label="Direct link to Rollout, Upgrade and Rollback Planning" title="Direct link to Rollout, Upgrade and Rollback Planning">​</a></h3>
+<ol>
+<li>
+<p><strong>How can a rollout or rollback fail?</strong></p>
+<ul>
+<li>Rollout could fail if OCI registry permissions are incorrect</li>
+<li>Registry availability issues could cause initContainer failures</li>
+<li>Rollback could fail if original container images are no longer available</li>
+</ul>
+</li>
+<li>
+<p><strong>What specific metrics should inform a rollback?</strong></p>
+<ul>
+<li>Model download success rate below 99.5%</li>
+<li>Pod startup time increasing beyond acceptable thresholds</li>
+</ul>
+</li>
+<li>
+<p><strong>Were upgrade and rollback tested?</strong></p>
+<ul>
+<li>Not yet, will be tested in staging environment before production</li>
+</ul>
+</li>
+<li>
+<p><strong>Is the rollout accompanied by any deprecations and/or removals of features, APIs, fields of API types, flags, etc.?</strong></p>
+<ul>
+<li>No deprecations or removals are associated with this feature</li>
+</ul>
+</li>
+</ol>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="monitoring-requirements">Monitoring Requirements<a href="#monitoring-requirements" class="hash-link" aria-label="Direct link to Monitoring Requirements" title="Direct link to Monitoring Requirements">​</a></h3>
+<ol>
+<li>
+<p><strong>How can someone determine if the feature is in use by workloads?</strong></p>
+<ul>
+<li>Presence of initContainers with ORAS configuration</li>
+<li>Usage of OCI artifacts in image references</li>
+</ul>
+</li>
+<li>
+<p><strong>What are the SLIs (Service Level Indicators) an operator can use to determine the health of the service?</strong></p>
+<ul>
+<li><strong>Metrics:</strong>
+<ul>
+<li><code>kaito_model_download_duration_seconds</code>: Time taken to download model files (histogram)</li>
+<li><code>kaito_model_download_failures_total</code>: Count of failed model downloads (counter)</li>
+<li><code>kaito_pod_ready_duration_seconds</code>: Time from pod creation to ready state (histogram)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>What are the reasonable SLOs (Service Level Objectives) for the above SLIs?</strong></p>
+<ul>
+<li>99.5% of model downloads complete successfully</li>
+</ul>
+</li>
+<li>
+<p><strong>Are there any missing metrics that would be useful to have to improve observability?</strong></p>
+<ul>
+<li>Network bandwidth utilization during downloads</li>
+</ul>
+</li>
+</ol>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="dependencies">Dependencies<a href="#dependencies" class="hash-link" aria-label="Direct link to Dependencies" title="Direct link to Dependencies">​</a></h3>
+<ol>
+<li><strong>Does this feature depend on any specific services running in the cluster?</strong>
+<ul>
+<li>Requires access to an OCI registry</li>
+</ul>
+</li>
+</ol>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="scalability">Scalability<a href="#scalability" class="hash-link" aria-label="Direct link to Scalability" title="Direct link to Scalability">​</a></h3>
+<ol>
+<li>
+<p><strong>Will enabling / using this feature result in any new API calls?</strong></p>
+<ul>
+<li>Additional API calls to OCI registry during pod initialization</li>
+</ul>
+</li>
+<li>
+<p><strong>Will enabling / using this feature result in introducing new API types?</strong></p>
+<ul>
+<li>No new API types</li>
+</ul>
+</li>
+<li>
+<p><strong>Will enabling / using this feature result in any new calls to the cloud provider?</strong></p>
+<ul>
+<li>Increased storage volume creation requests</li>
+<li>Increased registry API calls</li>
+</ul>
+</li>
+<li>
+<p><strong>Will enabling / using this feature result in increasing size or count of the existing API objects?</strong></p>
+<ul>
+<li>Slight increase in pod specification size due to initContainer configuration</li>
+</ul>
+</li>
+<li>
+<p><strong>Will enabling / using this feature result in increasing time taken by any operations?</strong></p>
+<ul>
+<li>Pod startup time will increase due to model download step. This is expected and acceptable given the benefits.</li>
+</ul>
+</li>
+<li>
+<p><strong>Will enabling / using this feature result in non-negligible increase of resource usage?</strong></p>
+<ul>
+<li>Temporary increase in network bandwidth during model downloads</li>
+<li>No significant increase in CPU or memory usage long-term</li>
+</ul>
+</li>
+</ol>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="troubleshooting">Troubleshooting<a href="#troubleshooting" class="hash-link" aria-label="Direct link to Troubleshooting" title="Direct link to Troubleshooting">​</a></h3>
+<ol>
+<li>
+<p><strong>How does this feature react if the API server and/or etcd is unavailable?</strong></p>
+<ul>
+<li>Model downloads depend on OCI registry, not API server</li>
+<li>Existing pods will continue to function normally</li>
+</ul>
+</li>
+<li>
+<p><strong>What are other known failure modes?</strong></p>
+<ul>
+<li>Registry authentication failures</li>
+<li>Storage volume provisioning failures</li>
+<li>Network connectivity issues to registry</li>
+</ul>
+</li>
+<li>
+<p><strong>What steps should be taken if SLOs are not being met to determine the problem?</strong></p>
+<ul>
+<li>Check pod events and logs for initContainer failures</li>
+<li>Verify registry availability and permissions</li>
+<li>Check network connectivity between pods and registry</li>
+<li>Validate storage class configuration and available capacity</li>
+</ul>
+</li>
+</ol>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="implementation-history">Implementation History<a href="#implementation-history" class="hash-link" aria-label="Direct link to Implementation History" title="Direct link to Implementation History">​</a></h2>
+<ul>
+<li>2025-06-09: Initial proposal</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="alternatives">Alternatives<a href="#alternatives" class="hash-link" aria-label="Direct link to Alternatives" title="Direct link to Alternatives">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="split-files-into-multiple-layers">Split Files into Multiple Layers<a href="#split-files-into-multiple-layers" class="hash-link" aria-label="Direct link to Split Files into Multiple Layers" title="Direct link to Split Files into Multiple Layers">​</a></h3>
+<p>Add model files to base image using ORAS, keeping each safetensor file as an individual layer to improve download concurrency.</p>
+<p>This approach maintains compatibility with standard container runtimes but still has the disadvantage of requiring full image rebuilds when the base image changes. Additionally, our testing shows that the overall image pulling latency is still not good enough for very large models. This is primarily because container layer unpacking remains a <a href="https://github.com/containerd/containerd/issues/8881" target="_blank" rel="noopener noreferrer">serial process</a>, creating a bottleneck regardless of download parallelism.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="live-download-from-hugging-face">Live Download from Hugging Face<a href="#live-download-from-hugging-face" class="hash-link" aria-label="Direct link to Live Download from Hugging Face" title="Direct link to Live Download from Hugging Face">​</a></h3>
+<p>Based on our testing, the download bandwidth from ACR is comparable to that of the Hugging Face repository.</p>
+<p>While Hugging Face provides comparable bandwidth, ACR is more reliable and better suited for production deployments due to its integration, access control, and enterprise-grade support.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="test-plan">Test Plan<a href="#test-plan" class="hash-link" aria-label="Direct link to Test Plan" title="Direct link to Test Plan">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="experimental-setup-and-results">Experimental Setup and Results<a href="#experimental-setup-and-results" class="hash-link" aria-label="Direct link to Experimental Setup and Results" title="Direct link to Experimental Setup and Results">​</a></h3>
+<p><strong>Test Environment</strong>: Standard_NC24s_v3 with phi4 model</p>
+<p><strong>Configurations Tested</strong>:</p>
+<table><thead><tr><th>Configuration</th><th>Image</th><th>Description</th></tr></thead><tbody><tr><td>Baseline: single-layer-tar-gz</td><td>aimodelsregistrytest.azurecr.io/phi-4:0.1.1</td><td>Current phi4 image. Size 25GB. Pack all model files into one image layer. Compressed using gzip.</td></tr><tr><td>multilayer-tar-gz</td><td>aimodelsregistrytest.azurecr.io/phi-4-mini-instruct<!-- -->:phi4gz</td><td>Split model files into individual layers. Each layer compressed using gzip.</td></tr><tr><td>multilayer-tar</td><td>aimodelsregistrytest.azurecr.io/phi-4-mini-instruct<!-- -->:phi4</td><td>Split model files into individual layers. Each layer keeps uncompressed, only packed to a tar pkg. Size 33GB.</td></tr><tr><td>multilayer-tar-zstd</td><td>aimodelsregistrytest.azurecr.io/phi-4-mini-instruct<!-- -->:phi4zstd</td><td>Split model files into individual layers. Each layer compressed using zstd.</td></tr><tr><td>baseImage+OCI-artifacts</td><td>aimodelsregistrytest.azurecr.io/base:0.0.3 and aimodelsregistrytest.azurecr.io/phi-4-mini-instruct<!-- -->:model</td><td>Pull base image first. Then download model files using oras pull.</td></tr></tbody></table>
+<p><img loading="lazy" alt="Model as OCI Artifacts Evaluation" src="/kaito/docs/assets/images/model-as-oci-artifacts-evaluation-0e455974e0dee66f3659aefe5c50cded.png" width="819" height="489" class="img_ev3q"></p></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="theme-doc-footer-edit-meta-row row"><div class="col"><a href="https://github.com/kaito-project/kaito/tree/main/website/docs/proposals/20250609-model-as-oci-artifacts.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div><div class="col lastUpdated_vwxv"></div></div></footer></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages"></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#summary" class="table-of-contents__link toc-highlight">Summary</a></li><li><a href="#motivation" class="table-of-contents__link toc-highlight">Motivation</a><ul><li><a href="#image-building-challenges" class="table-of-contents__link toc-highlight">Image Building Challenges</a></li><li><a href="#image-pulling-inefficiency" class="table-of-contents__link toc-highlight">Image Pulling Inefficiency</a></li><li><a href="#goals" class="table-of-contents__link toc-highlight">Goals</a></li><li><a href="#non-goals" class="table-of-contents__link toc-highlight">Non-Goals</a></li></ul></li><li><a href="#proposal" class="table-of-contents__link toc-highlight">Proposal</a><ul><li><a href="#build-image-using-oras-push" class="table-of-contents__link toc-highlight">Build Image Using ORAS Push</a></li><li><a href="#use-zstd-instead-of-gzip-for-compression" class="table-of-contents__link toc-highlight">Use Zstd Instead of Gzip for Compression</a></li><li><a href="#shipping-model-files-as-oci-artifacts" class="table-of-contents__link toc-highlight">Shipping Model Files as OCI Artifacts</a></li></ul></li><li><a href="#design-details" class="table-of-contents__link toc-highlight">Design Details</a><ul><li><a href="#oci-artifacts-vs-oci-image" class="table-of-contents__link toc-highlight">OCI Artifacts vs OCI Image</a></li><li><a href="#oci-registries-compatibility" class="table-of-contents__link toc-highlight">OCI Registries Compatibility</a></li><li><a href="#model-files-downloading-process" class="table-of-contents__link toc-highlight">Model Files downloading process</a></li></ul></li><li><a href="#production-readiness-review-questionnaire" class="table-of-contents__link toc-highlight">Production Readiness Review Questionnaire</a><ul><li><a href="#feature-enablement-and-rollback" class="table-of-contents__link toc-highlight">Feature Enablement and Rollback</a></li><li><a href="#rollout-upgrade-and-rollback-planning" class="table-of-contents__link toc-highlight">Rollout, Upgrade and Rollback Planning</a></li><li><a href="#monitoring-requirements" class="table-of-contents__link toc-highlight">Monitoring Requirements</a></li><li><a href="#dependencies" class="table-of-contents__link toc-highlight">Dependencies</a></li><li><a href="#scalability" class="table-of-contents__link toc-highlight">Scalability</a></li><li><a href="#troubleshooting" class="table-of-contents__link toc-highlight">Troubleshooting</a></li></ul></li><li><a href="#implementation-history" class="table-of-contents__link toc-highlight">Implementation History</a></li><li><a href="#alternatives" class="table-of-contents__link toc-highlight">Alternatives</a><ul><li><a href="#split-files-into-multiple-layers" class="table-of-contents__link toc-highlight">Split Files into Multiple Layers</a></li><li><a href="#live-download-from-hugging-face" class="table-of-contents__link toc-highlight">Live Download from Hugging Face</a></li></ul></li><li><a href="#test-plan" class="table-of-contents__link toc-highlight">Test Plan</a><ul><li><a href="#experimental-setup-and-results" class="table-of-contents__link toc-highlight">Experimental Setup and Results</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="col footer__col"><div class="footer__title">Documentation</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/kaito/docs/">Getting Started</a></li><li class="footer__item"><a class="footer__link-item" href="/kaito/docs/installation">Installation</a></li></ul></div><div class="col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/kaito-project/kaito" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item"><a href="https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-37gh89vw7-odHfqmPRc5oRnDG99SBJNA" target="_blank" rel="noopener noreferrer" class="footer__link-item">Slack<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2025 Kaito Project, Built with Docusaurus.</div></div></div></footer></div>
+</body>
+</html>

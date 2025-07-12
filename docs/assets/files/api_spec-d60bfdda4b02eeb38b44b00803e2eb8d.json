@@ -1,0 +1,599 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "FastAPI",
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/": {
+            "get": {
+                "summary": "Home Endpoint",
+                "description": "A simple endpoint that indicates the server is running.\nNo parameters are required. Returns a message indicating the server status.",
+                "operationId": "home__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HomeResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "summary": "Health Check Endpoint",
+                "operationId": "health_check_healthz_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthStatus"
+                                },
+                                "example": {
+                                    "status": "Healthy"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error Response",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "model_uninitialized": {
+                                        "summary": "Model not initialized",
+                                        "value": {
+                                            "detail": "Model not initialized"
+                                        }
+                                    },
+                                    "pipeline_uninitialized": {
+                                        "summary": "Pipeline not initialized",
+                                        "value": {
+                                            "detail": "Pipeline not initialized"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/chat": {
+            "post": {
+                "summary": "Chat Endpoint",
+                "description": "Processes chat requests, generating text based on the specified pipeline (text generation or conversational).\nValidates required parameters based on the pipeline and returns the generated text.",
+                "operationId": "generate_text_chat_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UnifiedRequestModel"
+                            },
+                            "examples": {
+                                "text_generation_example": {
+                                    "summary": "Text Generation Example",
+                                    "description": "An example of a text generation request.",
+                                    "value": {
+                                        "prompt": "Tell me a joke",
+                                        "return_full_text": true,
+                                        "clean_up_tokenization_spaces": false,
+                                        "generate_kwargs": {
+                                            "max_length": 200,
+                                            "min_length": 0,
+                                            "do_sample": true,
+                                            "early_stopping": false,
+                                            "num_beams": 1,
+                                            "temperature": 1,
+                                            "top_k": 10,
+                                            "top_p": 1,
+                                            "typical_p": 1,
+                                            "repetition_penalty": 1,
+                                            "eos_token_id": 11
+                                        }
+                                    }
+                                },
+                                "conversation_example": {
+                                    "summary": "Conversation Example",
+                                    "description": "An example of a conversational request.",
+                                    "value": {
+                                        "messages": [
+                                            {
+                                                "role": "user",
+                                                "content": "What is your favourite condiment?"
+                                            },
+                                            {
+                                                "role": "assistant",
+                                                "content": "Well, im quite partial to a good squeeze of fresh lemon juice. It adds just the right amount of zesty flavour to whatever im cooking up in the kitchen!"
+                                            },
+                                            {
+                                                "role": "user",
+                                                "content": "Do you have mayonnaise recipes?"
+                                            }
+                                        ],
+                                        "return_full_text": true,
+                                        "clean_up_tokenization_spaces": false,
+                                        "generate_kwargs": {
+                                            "max_length": 200,
+                                            "min_length": 0,
+                                            "do_sample": true,
+                                            "early_stopping": false,
+                                            "num_beams": 1,
+                                            "temperature": 1,
+                                            "top_k": 10,
+                                            "top_p": 1,
+                                            "typical_p": 1,
+                                            "repetition_penalty": 1,
+                                            "eos_token_id": 11
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {},
+                                "examples": {
+                                    "text_generation": {
+                                        "summary": "Text Generation Response",
+                                        "value": {
+                                            "Result": "Generated text based on the prompt."
+                                        }
+                                    },
+                                    "conversation": {
+                                        "summary": "Conversation Response",
+                                        "value": {
+                                            "Result": "Response to the last message in the conversation."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "missing_prompt": {
+                                        "summary": "Missing Prompt",
+                                        "value": {
+                                            "detail": "Text generation parameter prompt required"
+                                        }
+                                    },
+                                    "missing_messages": {
+                                        "summary": "Missing Messages",
+                                        "value": {
+                                            "detail": "Conversational parameter messages required"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/metrics": {
+            "get": {
+                "summary": "Metrics Endpoint",
+                "description": "Provides system metrics, including GPU details if available, or CPU and memory usage otherwise.\nUseful for monitoring the resource utilization of the server running the ML models.",
+                "operationId": "get_metrics_metrics_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MetricsResponse"
+                                },
+                                "examples": {
+                                    "gpu_metrics": {
+                                        "summary": "Example when GPUs are available",
+                                        "value": {
+                                            "gpu_info": [
+                                                {
+                                                    "id": "GPU-1234",
+                                                    "name": "GeForce GTX 950",
+                                                    "load": "25.00%",
+                                                    "temperature": "55 C",
+                                                    "memory": {
+                                                        "used": "1.00 GB",
+                                                        "total": "2.00 GB"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "cpu_metrics": {
+                                        "summary": "Example when only CPU is available",
+                                        "value": {
+                                            "cpu_info": {
+                                                "load_percentage": 20,
+                                                "physical_cores": 4,
+                                                "total_cores": 8,
+                                                "memory": {
+                                                    "used": "4.00 GB",
+                                                    "total": "16.00 GB"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "CPUInfo": {
+                "properties": {
+                    "load_percentage": {
+                        "type": "number",
+                        "title": "Load Percentage"
+                    },
+                    "physical_cores": {
+                        "type": "integer",
+                        "title": "Physical Cores"
+                    },
+                    "total_cores": {
+                        "type": "integer",
+                        "title": "Total Cores"
+                    },
+                    "memory": {
+                        "$ref": "#/components/schemas/MemoryInfo"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "load_percentage",
+                    "physical_cores",
+                    "total_cores",
+                    "memory"
+                ],
+                "title": "CPUInfo"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "detail": {
+                        "type": "string",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "detail"
+                ],
+                "title": "ErrorResponse"
+            },
+            "GPUInfo": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "load": {
+                        "type": "string",
+                        "title": "Load"
+                    },
+                    "temperature": {
+                        "type": "string",
+                        "title": "Temperature"
+                    },
+                    "memory": {
+                        "$ref": "#/components/schemas/MemoryInfo"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "load",
+                    "temperature",
+                    "memory"
+                ],
+                "title": "GPUInfo"
+            },
+            "GenerateKwargs": {
+                "properties": {
+                    "max_length": {
+                        "type": "integer",
+                        "title": "Max Length",
+                        "default": 200
+                    },
+                    "min_length": {
+                        "type": "integer",
+                        "title": "Min Length",
+                        "default": 0
+                    },
+                    "do_sample": {
+                        "type": "boolean",
+                        "title": "Do Sample",
+                        "default": true
+                    },
+                    "early_stopping": {
+                        "type": "boolean",
+                        "title": "Early Stopping",
+                        "default": false
+                    },
+                    "num_beams": {
+                        "type": "integer",
+                        "title": "Num Beams",
+                        "default": 1
+                    },
+                    "temperature": {
+                        "type": "number",
+                        "title": "Temperature",
+                        "default": 1
+                    },
+                    "top_k": {
+                        "type": "integer",
+                        "title": "Top K",
+                        "default": 10
+                    },
+                    "top_p": {
+                        "type": "number",
+                        "title": "Top P",
+                        "default": 1
+                    },
+                    "typical_p": {
+                        "type": "number",
+                        "title": "Typical P",
+                        "default": 1
+                    },
+                    "repetition_penalty": {
+                        "type": "number",
+                        "title": "Repetition Penalty",
+                        "default": 1
+                    },
+                    "pad_token_id": {
+                        "type": "integer",
+                        "title": "Pad Token Id"
+                    },
+                    "eos_token_id": {
+                        "type": "integer",
+                        "title": "Eos Token Id",
+                        "default": 11
+                    }
+                },
+                "type": "object",
+                "title": "GenerateKwargs",
+                "example": {
+                    "max_length": 200,
+                    "temperature": 0.7,
+                    "top_p": 0.9,
+                    "additional_param": "Example value"
+                }
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "HealthStatus": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "example": "Healthy"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "status"
+                ],
+                "title": "HealthStatus"
+            },
+            "HomeResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "example": "Server is running"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "title": "HomeResponse"
+            },
+            "MemoryInfo": {
+                "properties": {
+                    "used": {
+                        "type": "string",
+                        "title": "Used"
+                    },
+                    "total": {
+                        "type": "string",
+                        "title": "Total"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "used",
+                    "total"
+                ],
+                "title": "MemoryInfo"
+            },
+            "Message": {
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "title": "Role"
+                    },
+                    "content": {
+                        "type": "string",
+                        "title": "Content"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "role",
+                    "content"
+                ],
+                "title": "Message"
+            },
+            "MetricsResponse": {
+                "properties": {
+                    "gpu_info": {
+                        "items": {
+                            "$ref": "#/components/schemas/GPUInfo"
+                        },
+                        "type": "array",
+                        "title": "Gpu Info"
+                    },
+                    "cpu_info": {
+                        "$ref": "#/components/schemas/CPUInfo"
+                    }
+                },
+                "type": "object",
+                "title": "MetricsResponse"
+            },
+            "UnifiedRequestModel": {
+                "properties": {
+                    "prompt": {
+                        "type": "string",
+                        "title": "Prompt",
+                        "description": "Prompt for text generation. Required for text-generation pipeline. Do not use with 'messages'."
+                    },
+                    "return_full_text": {
+                        "type": "boolean",
+                        "title": "Return Full Text",
+                        "description": "Return full text if True, else only added text",
+                        "default": true
+                    },
+                    "clean_up_tokenization_spaces": {
+                        "type": "boolean",
+                        "title": "Clean Up Tokenization Spaces",
+                        "description": "Clean up extra spaces in text output",
+                        "default": false
+                    },
+                    "prefix": {
+                        "type": "string",
+                        "title": "Prefix",
+                        "description": "Prefix added to prompt"
+                    },
+                    "handle_long_generation": {
+                        "type": "string",
+                        "title": "Handle Long Generation",
+                        "description": "Strategy to handle long generation"
+                    },
+                    "generate_kwargs": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/GenerateKwargs"
+                            }
+                        ],
+                        "title": "Generate Kwargs",
+                        "description": "Additional kwargs for generate method"
+                    },
+                    "messages": {
+                        "items": {
+                            "$ref": "#/components/schemas/Message"
+                        },
+                        "type": "array",
+                        "title": "Messages",
+                        "description": "Messages for conversational model. Required for conversational pipeline. Do not use with 'prompt'."
+                    }
+                },
+                "type": "object",
+                "title": "UnifiedRequestModel"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        }
+    }
+}

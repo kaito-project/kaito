@@ -8,7 +8,7 @@
 
 | ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Retrieval Augmented Generation (RAG) support is live! - Kaito RagEngine uses LlamaIndex and FAISS, learn about from [here](https://kaito-project.github.io/kaito/docs/rag)! |
+| Retrieval Augmented Generation (RAG) support is live! - KAITO RagEngine uses LlamaIndex and FAISS, learn about from [here](https://kaito-project.github.io/kaito/docs/rag)! |
 | Latest Release: July 2nd, 2025. KAITO v0.5.0.                                                                                                                                                                                                  |
 | First Release: Nov 15th, 2023. KAITO v0.1.0.                                                                                                                                                                                                   |
 
@@ -37,7 +37,7 @@ The above figure presents the KAITO architecture overview. Its major components 
 - **Node provisioner controller**: The controller's name is *gpu-provisioner* in [gpu-provisioner helm chart](https://github.com/Azure/gpu-provisioner/tree/main/charts/gpu-provisioner). It uses the `NodeClaim` CRD originated from [Karpenter](https://sigs.k8s.io/karpenter) to interact with the workspace controller. It integrates with Azure Resource Manager REST APIs to add new GPU nodes to the AKS or AKS Arc cluster.
 > Note: The [*gpu-provisioner*](https://github.com/Azure/gpu-provisioner) is an open sourced component. It can be replaced by other controllers if they support [Karpenter-core](https://sigs.k8s.io/karpenter) APIs.
 
-**NEW!** Starting with version v0.5.0, Kaito releases a new operator, **RAGEngine**, which is used to streamline the process of managing a Retrieval Augmented Generation(RAG) service.
+**NEW!** Starting with version v0.5.0, KAITO releases a new operator, **RAGEngine**, which is used to streamline the process of managing a Retrieval Augmented Generation(RAG) service.
 <div align="left">
   <img src="website/static/img/ragarch.png" width=80% title="KAITO RAGEngine architecture" alt="KAITO RAGEngine architecture">
 </div>
@@ -125,11 +125,11 @@ $ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X P
 
 ## Usage
 
-The detailed usage for Kaito supported models can be found in [**HERE**](https://kaito-project.github.io/kaito/docs/presets). In case users want to deploy their own containerized models, they can provide the pod template in the `inference` field of the workspace custom resource (please see [API definitions](./api/v1alpha1/workspace_types.go) for details). 
+The detailed usage for KAITO supported models can be found in [**HERE**](https://kaito-project.github.io/kaito/docs/presets). In case users want to deploy their own containerized models, they can provide the pod template in the `inference` field of the workspace custom resource (please see [API definitions](./api/v1alpha1/workspace_types.go) for details).
 
 > Note: Currently the controller does **NOT** handle automatic model upgrade. It only creates inference workloads based on the preset configurations if the workloads do not exist.
 
-The number of the supported models in Kaito is growing! Please check [this](https://kaito-project.github.io/kaito/docs/preset-onboarding) document to see how to add a new supported model. Refer to [tuning document](https://kaito-project.github.io/kaito/docs/tuning), [inference document](https://kaito-project.github.io/kaito/docs/inference) , [RAGEngine document](https://kaito-project.github.io/kaito/docs/rag) and [FAQ](https://kaito-project.github.io/kaito/docs/faq) for more information.
+The number of the supported models in KAITO is growing! Please check [this](https://kaito-project.github.io/kaito/docs/preset-onboarding) document to see how to add a new supported model. Refer to [tuning document](https://kaito-project.github.io/kaito/docs/tuning), [inference document](https://kaito-project.github.io/kaito/docs/inference) , [RAGEngine document](https://kaito-project.github.io/kaito/docs/rag) and [FAQ](https://kaito-project.github.io/kaito/docs/faq) for more information.
 
 ## Contributing
 

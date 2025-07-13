@@ -149,7 +149,7 @@ Linux Foundation ID group through the [Linux Foundation Support website](https:/
 
 ## License
 
-See [MIT License](LICENSE).
+See [Apache License 2.0](LICENSE).
 
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fkaito-project%2Fkaito.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fkaito-project%2Fkaito?ref=badge_large)

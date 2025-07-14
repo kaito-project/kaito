@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 // Package v1alpha1 contains API Schema definitions for the kaito v1alpha1 API group
 // +kubebuilder:object:generate=true
 // +k8s:defaulter-gen=TypeMeta

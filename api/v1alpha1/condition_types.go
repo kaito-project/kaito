@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package v1alpha1
 
 // ConditionType is a valid value for Condition.Type.

@@ -493,8 +493,8 @@ func GenerateModelPullerContainer(ctx context.Context, workspaceObj *v1beta1.Wor
 
 // GenerateInferencePool generates an InferencePool manifest for the given workspace object.
 // See https://gateway-api-inference-extension.sigs.k8s.io/reference/spec/ for more details.
-func GenerateInferencePool(workspaceObj *v1beta1.Workspace) *gaiev1alpha2.InferencePool {
-	return &gaiev1alpha2.InferencePool{
+func GenerateInferencePool(workspaceObj *v1beta1.Workspace, isStatefulSet bool) *gaiev1alpha2.InferencePool {
+	inferencePool := &gaiev1alpha2.InferencePool{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      workspaceObj.Name,
 			Namespace: workspaceObj.Namespace,
@@ -509,7 +509,6 @@ func GenerateInferencePool(workspaceObj *v1beta1.Workspace) *gaiev1alpha2.Infere
 			TargetPortNumber: 5000,
 			Selector: map[gaiev1alpha2.LabelKey]gaiev1alpha2.LabelValue{
 				kaitov1beta1.LabelWorkspaceName: gaiev1alpha2.LabelValue(workspaceObj.Name),
-				// TODO(chewong): account for leader/worker pods in multi-node deployments
 			},
 			EndpointPickerConfig: gaiev1alpha2.EndpointPickerConfig{
 				ExtensionRef: &gaiev1alpha2.Extension{
@@ -520,6 +519,14 @@ func GenerateInferencePool(workspaceObj *v1beta1.Workspace) *gaiev1alpha2.Infere
 			},
 		},
 	}
+
+	if isStatefulSet {
+		// The leader pod from the statefulset will be the one that serves inference requests
+		// so we set the pod index label to "0" to select the first pod in the statefulset.
+		inferencePool.Spec.Selector[appsv1.PodIndexLabel] = gaiev1alpha2.LabelValue("0")
+	}
+
+	return inferencePool
 }
 
 // GenerateInferenceModels generates one InferenceModel for the base model and one InferenceModel

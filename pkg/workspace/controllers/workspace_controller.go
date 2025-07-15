@@ -825,9 +825,14 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 		return nil
 	}
 
+	model := plugin.KaitoModelRegister.MustGet(string(wObj.Inference.Preset.Name))
+	// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
+	workloadObj, _ := inference.GeneratePresetInference(ctx, wObj, "", model, c.Client)
+	_, isStatefulSet := workloadObj.(*appsv1.StatefulSet)
+
 	errs := []error{}
 
-	inferencePool := manifests.GenerateInferencePool(wObj)
+	inferencePool := manifests.GenerateInferencePool(wObj, isStatefulSet)
 	err := resources.CreateResource(ctx, inferencePool, c.Client)
 	errs = append(errs, client.IgnoreAlreadyExists(err))
 

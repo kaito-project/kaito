@@ -147,7 +147,7 @@ This project has adopted the CLAs for CNCF, please electronically sign the CLA v
 https://easycla.lfx.linuxfoundation.org. If you encounter issues, you can submit a ticket with the
 Linux Foundation ID group through the [Linux Foundation Support website](https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4/create/143).
 
-## Get involved!
+## Get Involved!
 
 - Join our [KAITO Community Slack](https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-37gh89vw7-odHfqmPRc5oRnDG99SBJNA) to discuss features in development and proposals.
 - We host a weekly community meeting for contributors on Tuesdays at 4:00pm PST. Please join here: [meeting link](https://zoom-lfx.platform.linuxfoundation.org/meeting/99948431028?password=05912bb9-53fb-4b22-a634-ab5f8261e94c).

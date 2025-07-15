@@ -531,6 +531,10 @@ release-manifest:
 ## Cleanup
 ## --------------------------------------
 
+.PHONY: compare-model-configs
+compare-model-configs: ## Compare supported_models.yaml with ConfigMap template (ignoring comments)
+	@./hack/compare_model_configs.sh
+
 .PHONY: clean
 clean:
 	@rm -rf $(BIN_DIR)

@@ -55,6 +55,10 @@ jobs:
         run: |
           DEVICE=cpu make inference-api-e2e
 
+      - name: Run compare model configs
+        run: |
+          make compare-model-configs    
+
       - name: Upload Codecov report
         uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
         with:

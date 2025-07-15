@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kaito-supported-models
-  namespace: kube-system
+  namespace: {{ .Release.Namespace }}
 data:
   SupportedModels: |
     models:

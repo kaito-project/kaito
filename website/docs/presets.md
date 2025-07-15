@@ -22,3 +22,12 @@ Each preset model has its own hardware requirements in terms of GPU count and GP
 ## Distributed inference
 
 For models that support distributed inference, when the node count is larger than one, [torch distributed elastic](https://pytorch.org/docs/stable/distributed.elastic.html) is configured with master/worker pods running in multiple nodes and the service endpoint is the master pod.
+
+The following preset models support multi-node distributed inference:
+
+| Model Family | Models | Multi-Node Support |
+|--------------|--------|-------------------|
+| [llama3](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/llama3) | `llama-3.3-70b-instruct` | ✅ |
+| [qwen](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/qwen) | `qwen2.5-coder-32b-instruct` | ✅ |
+
+For detailed information on configuring and using multi-node inference, see the [Multi-Node Inference](./multi-node-inference.md) documentation.

@@ -237,28 +237,63 @@ func TestGenerateHeadlessServiceManifest(t *testing.T) {
 }
 
 func TestGenerateInferencePool(t *testing.T) {
-	workspace := test.MockWorkspaceWithPreset
-	inferencePool := GenerateInferencePool(workspace)
-
-	assert.Len(t, inferencePool.OwnerReferences, 1, "Expected 1 OwnerReference")
-	ownerRef := inferencePool.OwnerReferences[0]
-	assert.Equal(t, v1beta1.GroupVersion.String(), ownerRef.APIVersion)
-	assert.Equal(t, "Workspace", ownerRef.Kind)
-	assert.Equal(t, workspace.Name, ownerRef.Name)
-	assert.Equal(t, workspace.UID, ownerRef.UID)
-	assert.True(t, *ownerRef.Controller)
-
-	assert.Equal(t, inferencePool.Spec.TargetPortNumber, int32(5000))
-	assert.Equal(t, inferencePool.Spec.Selector, map[gaiev1alpha2.LabelKey]gaiev1alpha2.LabelValue{
-		kaitov1beta1.LabelWorkspaceName: gaiev1alpha2.LabelValue(workspace.Name),
-	})
-	assert.Equal(t, inferencePool.Spec.EndpointPickerConfig, gaiev1alpha2.EndpointPickerConfig{
-		ExtensionRef: &gaiev1alpha2.Extension{
-			ExtensionReference: gaiev1alpha2.ExtensionReference{
-				Name: gaiev1alpha2.ObjectName(fmt.Sprintf("%s-epp", workspace.Name)),
+	tests := []struct {
+		name                      string
+		isStatefulSet             bool
+		expectedInferencePoolSpec gaiev1alpha2.InferencePoolSpec
+	}{
+		{
+			name:          "statefulset inference pool",
+			isStatefulSet: true,
+			expectedInferencePoolSpec: gaiev1alpha2.InferencePoolSpec{
+				TargetPortNumber: 5000,
+				Selector: map[gaiev1alpha2.LabelKey]gaiev1alpha2.LabelValue{
+					kaitov1beta1.LabelWorkspaceName: gaiev1alpha2.LabelValue(test.MockWorkspaceWithPreset.Name),
+					appsv1.PodIndexLabel:            gaiev1alpha2.LabelValue("0"), // Pod index label for statefulset
+				},
+				EndpointPickerConfig: gaiev1alpha2.EndpointPickerConfig{
+					ExtensionRef: &gaiev1alpha2.Extension{
+						ExtensionReference: gaiev1alpha2.ExtensionReference{
+							Name: gaiev1alpha2.ObjectName(fmt.Sprintf("%s-epp", test.MockWorkspaceWithPreset.Name)),
+						},
+					},
+				},
 			},
 		},
-	})
+		{
+			name:          "deployment inference pool",
+			isStatefulSet: false,
+			expectedInferencePoolSpec: gaiev1alpha2.InferencePoolSpec{
+				TargetPortNumber: 5000,
+				Selector: map[gaiev1alpha2.LabelKey]gaiev1alpha2.LabelValue{
+					kaitov1beta1.LabelWorkspaceName: gaiev1alpha2.LabelValue(test.MockWorkspaceWithPreset.Name),
+				},
+				EndpointPickerConfig: gaiev1alpha2.EndpointPickerConfig{
+					ExtensionRef: &gaiev1alpha2.Extension{
+						ExtensionReference: gaiev1alpha2.ExtensionReference{
+							Name: gaiev1alpha2.ObjectName(fmt.Sprintf("%s-epp", test.MockWorkspaceWithPreset.Name)),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			inferencePool := GenerateInferencePool(test.MockWorkspaceWithPreset, tt.isStatefulSet)
+
+			assert.Len(t, inferencePool.OwnerReferences, 1, "Expected 1 OwnerReference")
+			ownerRef := inferencePool.OwnerReferences[0]
+			assert.Equal(t, v1beta1.GroupVersion.String(), ownerRef.APIVersion)
+			assert.Equal(t, "Workspace", ownerRef.Kind)
+			assert.Equal(t, test.MockWorkspaceWithPreset.Name, ownerRef.Name)
+			assert.Equal(t, test.MockWorkspaceWithPreset.UID, ownerRef.UID)
+			assert.True(t, *ownerRef.Controller)
+
+			assert.Equal(t, tt.expectedInferencePoolSpec, inferencePool.Spec)
+		})
+	}
 }
 
 func TestGenerateInferenceModels(t *testing.T) {

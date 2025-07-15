@@ -24,7 +24,9 @@
 #   -d, --debug       Keep temporary files for debugging
 #   -h, --help        Show this help message
 
-set -e
+set -o errexit
+set -o nounset
+set -o pipefail
 
 # Parse command line arguments
 VERBOSE=false

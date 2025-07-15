@@ -47,7 +47,7 @@ metadata:
   name: workspace-large-model
 resource:
   count: 2                    # Number of nodes to use
-  instanceType: "Standard_ND96asr_v4"
+  instanceType: "Standard_NC80adis_H100_v5"
   labelSelector:
     matchLabels:
       apps: large-model
@@ -93,7 +93,7 @@ metadata:
   name: workspace-large-model
 resource:
   count: 2
-  instanceType: "Standard_ND96asr_v4"
+  instanceType: "Standard_NC80adis_H100_v5"
   labelSelector:
     matchLabels:
       apps: large-model
@@ -143,10 +143,10 @@ For multi-node deployments, KAITO combines **pipeline parallelism** between node
 ```
 ┌─────────────────────┐    ┌─────────────────────┐
 │       Node 1        │    │       Node 2        │
-│  ┌─────┐ ┌─────┐     │    │  ┌─────┐ ┌─────┐     │
-│  │GPU 1│ │GPU 2│     │◄──►│  │GPU 3│ │GPU 4│     │
-│  └─────┘ └─────┘     │    │  └─────┘ └─────┘     │
-│   Layers 1-N/2       │    │   Layers N/2+1-N    │
+│  ┌─────┐┌─────┐     │    │  ┌─────┐ ┌─────┐    │
+│  │GPU 1││GPU 2│     │◄──►│  │GPU 3│ │GPU 4│    │
+│  └─────┘└─────┘     │    │  └─────┘ └─────┘    │
+│   Layers 1-N/2      │    │   Layers N/2+1-N    │
 └─────────────────────┘    └─────────────────────┘
 ```
 
@@ -171,6 +171,10 @@ Multi-node inference uses Kubernetes StatefulSets to ensure stable pod identity 
 - **Worker Pods** (index 1+): Join the Ray cluster and participate in model serving
 
 The service endpoint points to the leader pod, which handles all incoming requests and coordinates with worker pods.
+
+:::note Future Enhancement
+KAITO will support [LeaderWorkerSet](https://lws.sigs.k8s.io/docs/overview/) in the future to provide better management of leader-worker topologies and improved fault tolerance for multi-node deployments.
+:::
 
 ## Health Monitoring
 

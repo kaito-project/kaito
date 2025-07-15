@@ -147,6 +147,12 @@ This project has adopted the CLAs for CNCF, please electronically sign the CLA v
 https://easycla.lfx.linuxfoundation.org. If you encounter issues, you can submit a ticket with the
 Linux Foundation ID group through the [Linux Foundation Support website](https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4/create/143).
 
+## Get involved!
+
+- Join our [KAITO Community Slack](https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-37gh89vw7-odHfqmPRc5oRnDG99SBJNA) to discuss features in development and proposals.
+- We host a weekly community meeting for contributors on Tuesdays at 4:00pm PST. Please join here: [meeting link](https://zoom-lfx.platform.linuxfoundation.org/meeting/99948431028?password=05912bb9-53fb-4b22-a634-ab5f8261e94c).
+- Reference the weekly meeting notes in our [KAITO community calls doc](https://docs.google.com/document/d/1OEC-WUQ2wn0TDQPsU09shMoXn5cW3dSrdu-M43Q79dA/edit?usp=sharing)!
+
 ## License
 
 See [Apache License 2.0](LICENSE).
@@ -162,5 +168,3 @@ KAITO has adopted the [Cloud Native Compute Foundation Code of Conduct](https://
 ## Contact
 
 - Please send emails to "KAITO devs" <kaito-dev@microsoft.com> for any issues.
-- We also discuss development in [KAITO Community Slack](https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-37gh89vw7-odHfqmPRc5oRnDG99SBJNA).
-- We host a weekly community meeting for contributors on Tuesday at 4:00pm PST. Please join: [meeting link](https://zoom-lfx.platform.linuxfoundation.org/meeting/99948431028?password=05912bb9-53fb-4b22-a634-ab5f8261e94c).

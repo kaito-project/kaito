@@ -29,6 +29,15 @@ const sidebars = {
         },
         {
             type: 'category',
+            label: 'Cloud Providers',
+            collapsed: false,
+            items: [
+                'aws',
+                'azure',
+            ],
+        },
+        {
+            type: 'category',
             label: 'Features',
             collapsed: false,
             items: [
@@ -36,15 +45,6 @@ const sidebars = {
                 'tuning',
                 'rag',
                 'custom-model',
-            ],
-        },
-        {
-            type: 'category',
-            label: 'Cloud Providers',
-            collapsed: false,
-            items: [
-                'aws',
-                'azure',
             ],
         },
         {

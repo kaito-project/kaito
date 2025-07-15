@@ -28,7 +28,9 @@ Choose auto-provisioning when:
 - Your workloads have varying GPU requirements
 - You prefer to specify exact Azure instance types in your workspaces
 
+:::note
 Alternative: If you already have GPU nodes or manage them separately, use the [preferred nodes approach](quick-start#option-1-using-preferred-nodes-existing-gpu-nodes) instead.
+:::
 
 ## Setup Auto-Provisioning
 
@@ -75,7 +77,7 @@ az role assignment create \
 Install the Azure GPU Provisioner using Helm:
 
 ```bash
-export GPU_PROVISIONER_VERSION=0.3.5
+export GPU_PROVISIONER_VERSION=0.4
 
 # Download and configure Helm values
 curl -sO https://raw.githubusercontent.com/Azure/gpu-provisioner/main/hack/deploy/configure-helm-values.sh
@@ -132,7 +134,7 @@ kubectl logs --selector=app.kubernetes.io/name=gpu-provisioner -n gpu-provisione
 
 Once set up, you can create workspaces that automatically provision GPU nodes:
 
-```yaml title="phi-3.5-workspace.yaml"
+```yaml title="phi-4-workspace.yaml"
 apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
@@ -141,16 +143,16 @@ resource:
   instanceType: "Standard_NC6s_v3"  # Will trigger node creation
   labelSelector:
     matchLabels:
-      apps: phi-3.5-mini
+      apps: phi-4-mini
 inference:
   preset:
-    name: phi-3.5-mini-instruct
+    name: phi-4-mini-instruct
 ```
 
 Then apply the workspace:
 
 ```bash
-kubectl apply -f phi-3.5-workspace.yaml
+kubectl apply -f phi-4-workspace.yaml
 ```
 
 ## Supported Azure GPU Instance Types

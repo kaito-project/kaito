@@ -32,8 +32,8 @@ const sidebars = {
             label: 'Cloud Providers',
             collapsed: false,
             items: [
-                'aws',
                 'azure',
+                'aws',
             ],
         },
         {

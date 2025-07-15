@@ -30,7 +30,7 @@ Alternative: If you already have GPU nodes or manage them separately, use the pr
 
 Follow the instructions [here](https://karpenter.sh/docs/getting-started/getting-started-with-karpenter/) to create an EKS cluster and install Karpenter.
 
-Then update the Kaito workspace controller to the latest version that supports Karpenter integration:
+Then update the KAITO workspace controller to the latest version that supports Karpenter integration:
 
 ```bash
 helm update kaito-workspace --namespace kaito-workspace --set cloudProviderName=aws
@@ -40,7 +40,7 @@ helm update kaito-workspace --namespace kaito-workspace --set cloudProviderName=
 
 Once Karpenter is set up, you can create workspaces that automatically provision GPU nodes:
 
-```yaml title="phi-3.5-workspace.yaml"
+```yaml title="phi-4-workspace.yaml"
 apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
@@ -49,16 +49,16 @@ resource:
   instanceType: "g5.4xlarge"  # Will trigger node creation
   labelSelector:
     matchLabels:
-      apps: phi-3.5-mini
+      apps: phi-4-mini
 inference:
   preset:
-    name: phi-3.5-mini-instruct
+    name: phi-4-mini-instruct
 ```
 
 Apply the workspace:
 
 ```bash
-kubectl apply -f phi-3.5-workspace.yaml
+kubectl apply -f phi-4-workspace.yaml
 ```
 
 ## Supported AWS GPU Instance Types

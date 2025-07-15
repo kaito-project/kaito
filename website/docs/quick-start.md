@@ -10,21 +10,7 @@ After installing KAITO, you can quickly deploy a phi-3.5-mini-instruct inference
 - `kubectl` configured to access your cluster
 - **GPU nodes available in your cluster** - You have two options:
   - **Existing GPU nodes**: If you already have GPU nodes in your cluster, you can use the preferred nodes approach (shown below)
-  - **Auto-provisioning**: Set up automatic GPU node provisioning for your cloud provider ([Azure](azure-setup) | [AWS](aws))
-
-<!-- ## Understanding Auto-Provisioning vs Instance Types
-
-KAITO supports two approaches for GPU resource management:
-
-### Preferred Nodes Approach (Recommended for existing GPU nodes)
-This approach uses node selectors and tolerations to schedule workloads on existing GPU nodes in your cluster. It's ideal when you already have GPU nodes or want to manage node provisioning separately.
-
-### Instance Types Approach (Auto-provisioning)
-This approach specifies specific cloud provider instance types (like `Standard_NC24ads_A100_v4` for Azure or `g5.4xlarge` for AWS) and relies on auto-provisioning controllers to create new nodes as needed.
-
-For more details on auto-provisioning setup, see:
-- [Azure GPU Provisioner documentation](https://learn.microsoft.com/en-us/azure/aks/gpu-cluster)
-- [AWS Karpenter documentation](https://karpenter.sh/docs/) -->
+  - **Auto-provisioning**: Set up automatic GPU node provisioning for your cloud provider ([Azure](azure) | [AWS](aws))
 
 ## Deploy Your First Model
 
@@ -148,7 +134,7 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
 
 - **Explore More Models**: Check out the full range of supported models in the [presets documentation](https://github.com/kaito-project/kaito/tree/main/presets)
 - **Set Up Auto-Provisioning**: Configure automatic GPU node provisioning for your cloud provider:
-  - [Azure Setup](azure-setup) - Azure GPU Provisioner
+  - [Azure Setup](azure) - Azure GPU Provisioner
   - [AWS Setup](aws) - Karpenter
 - **Advanced Configurations**: Learn about [workspace configurations](https://github.com/kaito-project/kaito/blob/main/api/v1alpha1/workspace_types.go)
 - **Custom Models**: See how to [contribute new models](https://github.com/kaito-project/kaito/blob/main/docs/How-to-add-new-models.md)

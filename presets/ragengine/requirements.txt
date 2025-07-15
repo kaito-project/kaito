@@ -1,5 +1,5 @@
 # RAG Library Requirements
-llama-index==0.12.38
+llama-index==0.12.41
 # HF Embeddings
 llama-index-embeddings-huggingface==0.5.4
 llama-index-embeddings-huggingface-api==0.3.1

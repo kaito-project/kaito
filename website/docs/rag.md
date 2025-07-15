@@ -4,7 +4,7 @@ This document presents how to use the KAITO `ragengine` Custom Resource Definiti
 
 ## Installation
 
-> Be sure you've cloned this repo and followed [kaito workspace installation](./installation.md)
+> Be sure you've cloned this repo and followed [kaito workspace installation](./installation.md) if you plan to use local embedding model. RAGEngine needs the gpu-provisioner component to provision GPU nodes.
 
 ```bash
 helm install ragengine ./charts/kaito/ragengine --namespace kaito-ragengine --create-namespace
@@ -63,7 +63,7 @@ metadata:
   name: ragengine-start
 spec:
   compute:
-    instanceType: "Standard_NC6s_v3"
+    instanceType: "Standard_NC4as_T4_v3"
     labelSelector:
       matchLabels:
         apps: ragengine-example
@@ -74,13 +74,13 @@ spec:
     url: "<inference-url>/v1/completions"
 ```
 
-### Apply the Manifest
+### Apply the manifest
 After you create your YAML configuration, run:
 ```sh
 kubectl apply -f examples/RAG/kaito_ragengine_phi_3.yaml
 ```
 
-### Relationship Between Index, Documents, and Document Nodes
+## API definitions and examples
 
 A **RAGEngine index** is a logical collection that organizes and stores your documents for retrieval-augmented generation workflows. The relationship between indexes, documents, and document nodes is as follows:
 
@@ -368,7 +368,7 @@ Use this endpoint to permanently remove an index and all its data when it is no 
 
 ### Query Index
 
-To query a specific index for relevant documents and optionally rerank results with an LLM, use the `/query` API route. This endpoint accepts a POST request with the index name, query string, and optional parameters for result count, LLM generation, and reranking.
+To query a specific index for relevant documents, use the `/query` API route. This endpoint accepts a POST request with the index name, query string, and optional parameters for result count, and LLM generation.
 
 **Request Example:**
 
@@ -381,9 +381,6 @@ POST /query
   "llm_params": {
     "temperature": 0.7,
     "max_tokens": 2048
-  },
-  "rerank_params": {
-    "top_n": 3
   }
 }
 ```
@@ -392,7 +389,6 @@ POST /query
 - `query`: The query string.
 - `top_k`: (optional) Number of top documents to retrieve (default: 5).
 - `llm_params`: (optional) Parameters for LLM-based generation (e.g., temperature, max_tokens).
-- `rerank_params`: (optional, experimental) Parameters for reranking results with an LLM.
 
 **Response Example:**
 
@@ -423,9 +419,6 @@ POST /query
 - `response`: The generated answer or summary from the LLM (if enabled).
 - `source_nodes`: List of source nodes with their text, score, and metadata.
 - `metadata`: Additional metadata about the query or response.
-
-**Experimental Warning:**  
-The `rerank_params` option is experimental and may cause the query to fail if the LLM reranker produces an invalid response. If reranking fails, the request will return an error.
 
 Use this endpoint to retrieve relevant information from your indexed documents and optionally generate answers using an LLM.
 

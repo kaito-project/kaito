@@ -50,6 +50,9 @@ const (
 	GpuSkuPrefix = "Standard_N"
 
 	NodePluginInstallTimeout = 60 * time.Second
+
+	// PortInferenceServer is the default port for the inference server.
+	PortInferenceServer = int32(5000)
 )
 
 var (

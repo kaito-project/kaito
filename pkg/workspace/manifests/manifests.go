@@ -34,6 +34,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
@@ -87,7 +88,7 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 					Name:       "http",
 					Protocol:   corev1.ProtocolTCP,
 					Port:       80,
-					TargetPort: intstr.FromInt32(5000),
+					TargetPort: intstr.FromInt32(consts.PortInferenceServer),
 				},
 				{
 					Name:       "ray",
@@ -394,7 +395,7 @@ func GenerateInferencePool(workspaceObj *v1beta1.Workspace, isStatefulSet bool) 
 			},
 		},
 		Spec: gaiev1alpha2.InferencePoolSpec{
-			TargetPortNumber: 5000,
+			TargetPortNumber: consts.PortInferenceServer,
 			Selector: map[gaiev1alpha2.LabelKey]gaiev1alpha2.LabelValue{
 				kaitov1beta1.LabelWorkspaceName: gaiev1alpha2.LabelValue(workspaceObj.Name),
 			},

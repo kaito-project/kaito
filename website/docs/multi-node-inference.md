@@ -229,15 +229,20 @@ If you experience poor performance:
 Multi-node inference services expose the same API as single-node deployments. The vLLM runtime provides OpenAI-compatible endpoints:
 
 ```bash
-# Check service health
-curl http://<service-endpoint>:80/health
+# Get the cluster IP of your service
+kubectl get services
 
-# Generate text
-curl -X POST http://<service-endpoint>:80/v1/completions \
+# Check service health
+kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- \
+  curl http://<CLUSTER-IP>:80/health
+
+# Generate text using chat completions API
+kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- \
+  curl -X POST http://<CLUSTER-IP>:80/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "llama-3.3-70b-instruct",
-    "prompt": "Your prompt here",
+    "messages": [{"role": "user", "content": "Your prompt here"}],
     "max_tokens": 100
   }'
 ```

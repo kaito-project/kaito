@@ -54,8 +54,8 @@ class ChatMessage(BaseModel):
 
 class QueryRequest(BaseModel):
     index_name: str
-    query: str
-    messages: List[ChatMessage]
+    query: Optional[str] = None
+    messages: Optional[List[ChatMessage]] = None
     top_k: int = 5
     # Accept a dictionary for our LLM parameters
     llm_params: Optional[Dict[str, Any]] = Field(
@@ -106,8 +106,5 @@ def messages_to_prompt(messages: List[ChatMessage]) -> str:
     """Convert messages to a prompt string."""
     string_messages = []
     for message in messages:
-        role = message.role
-        content = message.content
-        string_message = f"{role.value}: {content}"
-        string_messages.append(string_message)
+        string_messages.append(f"{message.role}: {message.content}")
     return "\n".join(string_messages)

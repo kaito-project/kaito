@@ -114,8 +114,25 @@ async def test_query_index_success(mock_get, async_client):
     assert response.json()["source_nodes"][0]["score"] == pytest.approx(0.5354418754577637, rel=1e-6)
     assert response.json()["source_nodes"][0]["metadata"] == {}
 
+    # Query Request
+    request_data = {
+        "index_name": "test_index",
+        "messages": [
+            {"role": "user", "content": "What is RAG?"}
+        ],
+        "top_k": 1,
+        "llm_params": {"temperature": 0.7}
+    }
+    response = await async_client.post("/query", json=request_data)
+    assert response.status_code == 200
+    assert response.json()["response"] == "{'result': 'This is the completion from the API'}"
+    assert len(response.json()["source_nodes"]) == 1
+    assert response.json()["source_nodes"][0]["text"] == "This is a test document"
+    assert response.json()["source_nodes"][0]["score"] == pytest.approx(0.9756928086280823, rel=1e-6)
+    assert response.json()["source_nodes"][0]["metadata"] == {}
+
     # Ensure HTTPX was called once
-    assert respx.calls.call_count == 1
+    assert respx.calls.call_count == 2
 
     # Ensure the model fetch was called once
     mock_get.assert_called_once_with("http://localhost:5000/v1/models", headers=ANY)

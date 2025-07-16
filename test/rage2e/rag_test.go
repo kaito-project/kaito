@@ -113,6 +113,9 @@ var _ = Describe("RAGEngine", func() {
 		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, true)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
+		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, true)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
+
 		persistLogSuccess := "Successfully persisted index kaito"
 		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
@@ -175,6 +178,9 @@ var _ = Describe("RAGEngine", func() {
 		searchQuerySuccess := "\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\n\\n\\n"
 		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
+
+		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, true)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
 
 		persistLogSuccess := "Successfully persisted index kaito"
 		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
@@ -720,6 +726,85 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSe
 	"index_name": "kaito",
     "model": "phi-3-mini-128k-instruct",
     "query": "what is kaito?",
+    "llm_params": {
+      "max_tokens": 50,
+      "temperature": 0
+    }
+}'`
+		}
+		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create query pod")
+	})
+
+	By("Waiting for query pod to be running", func() {
+		Eventually(func() bool {
+			pod := &v1.Pod{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: ragengineObj.Namespace,
+				Name:      podName,
+			}, pod)
+			if err != nil {
+				return false
+			}
+			return pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Query pod did not reach Running or Succeeded state")
+	})
+
+	By("Checking the query logs", func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
+				return false
+			}
+			return strings.Contains(logs, expectedSearchQueries)
+		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for query logs to be ready")
+	})
+
+	return nil
+}
+
+func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSearchQueries string, remote bool) error {
+	podName := "query-pod"
+	By("Creating query pod", func() {
+		var curlCommand string
+		// Note: Request without model specified should still succeed with vLLM. As model name is dynamically fetched.
+		if remote {
+			curlCommand = `curl -X POST ` + ragengineObj.Name + `:80/query \
+-H "Content-Type: application/json" \
+-d '{
+	"index_name": "kaito",
+    "messages": [
+		{
+			"role": "user",
+			"content": "what is kaito?"
+		}
+	],
+    "llm_params": {
+      "max_tokens": 50,
+      "temperature": 0
+    }
+}'`
+		} else {
+			curlCommand = `curl -X POST ` + ragengineObj.Name + `:80/query \
+-H "Content-Type: application/json" \
+-d '{
+	"index_name": "kaito",
+    "model": "phi-3-mini-128k-instruct",
+    "messages": [
+		{
+			"role": "user",
+			"content": "what is kaito?"
+		}
+	],
     "llm_params": {
       "max_tokens": 50,
       "temperature": 0

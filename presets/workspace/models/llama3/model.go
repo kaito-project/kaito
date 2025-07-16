@@ -48,8 +48,10 @@ var (
 		"allow_remote_files": "",
 	}
 	llamaRunParamsVLLM = map[string]string{
-		"dtype":         "float16",
-		"chat-template": "/workspace/chat_templates/llama-3-instruct.jinja",
+		"dtype":                   "float16",
+		"chat-template":           "/workspace/chat_templates/tool-chat-llama3.1-json.jinja",
+		"tool-call-parser":        "llama3_json",
+		"enable-auto-tool-choice": "",
 	}
 )
 

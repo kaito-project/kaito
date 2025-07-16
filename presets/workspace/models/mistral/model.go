@@ -47,8 +47,10 @@ var (
 		"chat_template": "/workspace/chat_templates/mistral-instruct.jinja",
 	}
 	mistralRunParamsVLLM = map[string]string{
-		"dtype":         "float16",
-		"chat-template": "/workspace/chat_templates/mistral-instruct.jinja",
+		"dtype":                   "float16",
+		"chat-template":           "/workspace/chat_templates/tool-chat-mistral.jinja",
+		"tool-call-parser":        "mistral",
+		"enable-auto-tool-choice": "",
 	}
 )
 

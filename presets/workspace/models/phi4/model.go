@@ -47,7 +47,10 @@ var (
 		"trust_remote_code": "",
 	}
 	phiRunParamsVLLM = map[string]string{
-		"dtype": "float16",
+		"dtype":                   "float16",
+		"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
+		"tool-call-parser":        "phi4_mini_json",
+		"enable-auto-tool-choice": "",
 	}
 )
 

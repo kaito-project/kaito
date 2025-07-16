@@ -8,7 +8,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-    title: 'Kaito',
+    title: 'KAITO',
     tagline: 'Kubernetes AI Toolchain Operator',
     favicon: 'img/favicon.ico',
 
@@ -61,12 +61,16 @@ const config = {
             // Replace with your project's social card
             image: 'img/kaito-logo.png',
             navbar: {
-                title: 'Kaito',
+                title: 'KAITO',
                 logo: {
-                    alt: 'Kaito Logo',
+                    alt: 'KAITO Logo',
                     src: 'img/kaito-logo.png',
                 },
                 items: [
+                    {
+                        type: 'docsVersionDropdown',
+                        position: 'right',
+                    },
                     {
                         href: 'https://github.com/kaito-project/kaito',
                         position: 'right',
@@ -105,7 +109,7 @@ const config = {
                         ],
                     },
                 ],
-                copyright: `Copyright © ${new Date().getFullYear()} Kaito Project, Built with Docusaurus.`,
+                copyright: `Copyright © ${new Date().getFullYear()} KAITO Project, Built with Docusaurus.`,
             },
             prism: {
                 theme: prismThemes.github,
@@ -119,7 +123,7 @@ const config = {
             },
             announcementBar: {
                 id: 'announcementBar-1', // Increment on change
-                content: `⭐️ If you like Kaito, please give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/kaito-project/kaito">GitHub</a>!</a>`,
+                content: `⭐️ If you like KAITO, please give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/kaito-project/kaito">GitHub</a>!</a>`,
             },
         }),
 };

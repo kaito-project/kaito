@@ -207,17 +207,13 @@ async def index_documents(request: IndexRequest):
     {
       "index_name": "example_index",
       "query": "What is RAG?",
-      "messages": [
-        {"role": "system", "content": "You are a knowledgeable assistant."},
-        {"role": "user", "content": "What is RAG?"}
-      ],
       "top_k": 5,
       "llm_params": {"temperature": 0.7, "max_tokens": 2048},
       "rerank_params": {"top_n": 3}  # ⚠️ Experimental Feature
     }
     ```
 
-    ## chat/completions messges example:
+    ## chat/completions messages example:
     {
       "index_name": "example_index",
       "messages": [

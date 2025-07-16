@@ -3,10 +3,10 @@ title: Custom Model Integration
 ---
 
 ## Option 1: Use Pre-Built Docker Image Without Model Weights
-If you want to avoid building a Docker image with model weights, use our pre-built reference image (`ghcr.io/kaito-project/kaito/llm-reference-preset:latest`). This image, built with [Dockerfile.reference](../../examples/custom-model-integration/Dockerfile.reference), dynamically downloads model weights from HuggingFace at runtime, reducing the need to create and maintain custom images.
+If you want to avoid building a Docker image with model weights, use our pre-built reference image (`ghcr.io/kaito-project/kaito/llm-reference-preset:latest`). This image, built with [Dockerfile.reference](../../../examples/custom-model-integration/Dockerfile.reference), dynamically downloads model weights from HuggingFace at runtime, reducing the need to create and maintain custom images.
 
 
-- **[Sample Deployment YAML](../../examples/custom-model-integration/reference-image-deployment.yaml)**
+- **[Sample Deployment YAML](../../../examples/custom-model-integration/reference-image-deployment.yaml)**
 
 
 ## Option 2: Build a Custom Docker Image with Model Weights
@@ -80,4 +80,4 @@ docker push <IMAGE_NAME>
 ```
 
 ### Step 5: Deploy
-Follow the [Custom Template](../../examples/custom-model-integration/custom-deployment-template.yaml)
+Follow the [Custom Template](../../../examples/custom-model-integration/custom-deployment-template.yaml)

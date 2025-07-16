@@ -149,7 +149,7 @@ For detailed `InferenceSpec` API definitions, refer to the [documentation](https
 
 ### Inference API
 
-The OpenAPI specification for the inference API is available at [vLLM API](../../presets/workspace/inference/vllm/api_spec.json), [transformers API](../../presets/workspace/inference/text-generation/api_spec.json).
+The OpenAPI specification for the inference API is available at [vLLM API](../../../presets/workspace/inference/vllm/api_spec.json), [transformers API](../../../presets/workspace/inference/text-generation/api_spec.json).
 
 #### vLLM inference API
 
@@ -244,7 +244,7 @@ When adapters are specified in the `inference` spec, the KAITO controller adds a
 
 ![KAITO inference service pod structure](/img/kaito-inference-adapter.png)
 
-If an image is specified as the adapter source, the corresponding initcontainer uses that image as its container image. These initcontainers ensure all adapter data is available locally before the inference service starts. The main container uses a supported model image, launching the [inference_api.py](../../presets/workspace/inference/text-generation/inference_api.py) script.
+If an image is specified as the adapter source, the corresponding initcontainer uses that image as its container image. These initcontainers ensure all adapter data is available locally before the inference service starts. The main container uses a supported model image, launching the [inference_api.py](../../../presets/workspace/inference/text-generation/inference_api.py) script.
 
 All containers share local volumes by mounting the same `EmptyDir` volumes, avoiding file copies between containers.
 

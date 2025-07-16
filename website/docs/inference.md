@@ -4,6 +4,10 @@ title: Inference
 
 This document presents how to use the KAITO `workspace` Custom Resource Definition (CRD) for model serving and serving with LoRA adapters.
 
+:::tip Multi-Node Inference
+For large models requiring multiple nodes, see the [Multi-Node Inference](./multi-node-inference.md) documentation.
+:::
+
 ## Usage
 
 The basic usage for inference is simple. Users just need to specify the GPU SKU used for inference in the `resource` spec and one of the KAITO supported model name in the `inference` spec in the `workspace` custom resource. For example,
@@ -66,6 +70,10 @@ inference:
   preset:
     name: "falcon-7b"
 ```
+
+:::note Multi-Node Support
+Multi-node distributed inference is currently supported only with the vLLM runtime. For details on configuring multi-node deployments, see [Multi-Node Inference](./multi-node-inference.md).
+:::
 
 ### Inference with custom parameters
 
@@ -229,6 +237,8 @@ curl -X POST \
 # Inference workload
 
 Depending on whether the specified model supports distributed inference or not, the KAITO controller will choose to use either Kubernetes **apps.deployment** workload (by default) or Kubernetes **apps.statefulset** workload (if the model supports distributed inference) to manage the inference service, which is exposed using a Cluster-IP type of Kubernetes `service`.
+
+For multi-node distributed inference, KAITO uses StatefulSets to ensure stable pod identity and coordination between leader and worker pods. See [Multi-Node Inference](./multi-node-inference.md) for detailed architecture information.
 
 When adapters are specified in the `inference` spec, the KAITO controller adds an initcontainer for each adapter in addition to the main container. The pod structure is shown in Figure 1.
 

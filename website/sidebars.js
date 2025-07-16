@@ -33,6 +33,7 @@ const sidebars = {
             collapsed: false,
             items: [
                 'inference',
+                'multi-node-inference',
                 'tuning',
                 'rag',
                 'custom-model',

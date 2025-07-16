@@ -109,16 +109,19 @@ metadata:
 data:
   inference_config.yaml: |
     vllm:
-      tensor-parallel-size: 8       # Number of GPUs per node
-      pipeline-parallel-size: 2     # Number of nodes
       gpu-memory-utilization: 0.95
       max-model-len: 131072
 ```
 
 Key parameters for multi-node inference:
-- `tensor-parallel-size`: Number of GPUs per node for tensor parallelism
-- `pipeline-parallel-size`: Number of nodes for pipeline parallelism
-- `gpu-memory-utilization`: Fraction of GPU memory to use (0.0-1.0)
+- `tensor-parallel-size`: Automatically set by KAITO based on the number of GPUs per node
+- `pipeline-parallel-size`: Automatically set by KAITO based on the number of nodes
+- `gpu-memory-utilization`: Fraction of GPU memory to use (0.0-1.0) - user configurable
+- `max-model-len`: Maximum sequence length - user configurable
+
+:::note
+The `tensor-parallel-size` and `pipeline-parallel-size` parameters are automatically managed by KAITO based on your cluster configuration and do not need to be specified in the ConfigMap.
+:::
 
 ## Architecture
 

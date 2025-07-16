@@ -20,7 +20,7 @@ from embedding.remote_embedding import RemoteEmbeddingModel
 from fastapi import FastAPI, HTTPException, Query, Request
 from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
                     QueryRequest, QueryResponse, Document, HealthStatus, DeleteDocumentRequest,
-                    DeleteDocumentResponse, UpdateDocumentResponse)
+                    DeleteDocumentResponse, UpdateDocumentResponse, ChatMessage, messages_to_prompt)
 from vector_store.faiss_store import FaissVectorStoreHandler
 
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
@@ -202,16 +202,32 @@ async def index_documents(request: IndexRequest):
     description="""
     Query a specific index for documents and optionally rerank with an LLM.
 
-    ## Request Example:
+    ## Prompt Query Request Example:
     ```json
     {
       "index_name": "example_index",
       "query": "What is RAG?",
+      "messages": [
+        {"role": "system", "content": "You are a knowledgeable assistant."},
+        {"role": "user", "content": "What is RAG?"}
+      ],
       "top_k": 5,
       "llm_params": {"temperature": 0.7, "max_tokens": 2048},
       "rerank_params": {"top_n": 3}  # ⚠️ Experimental Feature
     }
     ```
+
+    ## chat/completions messges example:
+    {
+      "index_name": "example_index",
+      "messages": [
+        {"role": "system", "content": "You are a knowledgeable assistant."},
+        {"role": "user", "content": "What is RAG?"}
+      ],
+      "top_k": 5,
+      "llm_params": {"temperature": 0.7, "max_tokens": 2048},
+      "rerank_params": {"top_n": 3}  # ⚠️ Experimental Feature
+    }
 
     ## Experimental Warning:
     - The `rerank_params` option is **experimental** and may cause the query to fail.
@@ -243,10 +259,19 @@ async def query_index(request: QueryRequest):
         llm_params = request.llm_params or {}  # Default to empty dict if no params provided
         rerank_params = request.rerank_params or {}  # Default to empty dict if no params provided
         
+        if not request.query and not request.messages:
+            raise HTTPException(status_code=400, detail="Either 'query' or 'messages' must be provided in the request.")
+        
+        if request.query and request.messages:
+            raise HTTPException(status_code=400, detail="Only one of 'query' or 'messages' should be provided in the request.")
+
+        if request.messages:
+            # Convert messages to prompt format if provided
+            request.query = messages_to_prompt(request.messages)
+
         result_dict = await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params
         )
-        
         result = QueryResponse(
             response=result_dict["response"],
             source_nodes=result_dict["source_nodes"], 

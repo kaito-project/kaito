@@ -242,7 +242,7 @@ For multi-node distributed inference, KAITO uses StatefulSets to ensure stable p
 
 When adapters are specified in the `inference` spec, the KAITO controller adds an initcontainer for each adapter in addition to the main container. The pod structure is shown in Figure 1.
 
-![KAITO inference service pod structure](../static/img/kaito-inference-adapter.png)
+![KAITO inference service pod structure](/img/kaito-inference-adapter.png)
 
 If an image is specified as the adapter source, the corresponding initcontainer uses that image as its container image. These initcontainers ensure all adapter data is available locally before the inference service starts. The main container uses a supported model image, launching the [inference_api.py](../../presets/workspace/inference/text-generation/inference_api.py) script.
 

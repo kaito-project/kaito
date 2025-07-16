@@ -30,7 +30,7 @@ From the technical perspective, we don't want to make a new wheel for auto-scale
 
 The auto-scaler solution for Kaito should be shown as follows:
 
-![keda-kaito-scaler](../../static/img/keda-kaito-scaler.png)
+![keda-kaito-scaler](/img/keda-kaito-scaler.png)
 
 We will divide this auto-scaler feature into two parts as follows:
 
@@ -53,7 +53,7 @@ To ensure ease of use, the specialized kaito scaler is hosted in an independent 
 
 Keda can provides both metric-based and time-based scaler capability, but for metric-based scaler it should work together with prometheus. The detailed auto-scaler architecture is shown in the following figure:
 
-![keda-prometheus-cron-auto-scaler](../../static/img/keda-prometheus-cron-auto-scaler.png)
+![keda-prometheus-cron-auto-scaler](/img/keda-prometheus-cron-auto-scaler.png)
 
 - **Keda**: includes two components: metrics-adapter and keda-core. metrics-adpter is used for exposing external metrics on kube-apiserver wihch will be used by native HPA. keda-core includes the core logic of keda system, like the generation of HPA resource according to ScaledObject, and supporting different scalers(like prometheus, cron scalers).
 - **Scalers**: Keda providers more than 100+ scalers, but these scalers are only used for providing metrics for native HPA, and the scaling logic and actions are taken by native HPA.
@@ -98,7 +98,7 @@ spec:
       start: "0 6 * * 1-5"         # 6AM Monday to Friday
       end: "0 20 * * 1-5"          # 8PM Monday to Friday
       desiredReplicas: "10"        # Scale to 10 replicas during business hours
-  
+
   # Scale down to 1 replica at 8PM (end of business hours)
   - type: cron
     metadata:
@@ -353,7 +353,7 @@ In order to address the above challenges, we consider to create a new component 
 - kaito scaler: works as an external scaler of keda, and collects metrics from inference pods according to ScaledObject configurations. This means that `PodMonitor`, `TriggerAuthentication`, `Secret` configurations aren't needed, and users only need to configure `ScaledObject`. at the same time, users don't need to maintain the Prometheus stack.
 - kaito scaler manager: works as a deployment, includes webhooks for configuring default values for `ScaledObject`, so users don't need to dive into the details of HPA behavior or vllm metrics. and controllers for ensuring secret which used by grpc connection between keda core and kaito scaler(external scaler).
 
-![keda-kaito-scaler-arch](../../static/img/keda-kaito-scaler-arch.png)
+![keda-kaito-scaler-arch](/img/keda-kaito-scaler-arch.png)
 
 #### Trigger Specification of Kaito Scaler
 
@@ -367,7 +367,7 @@ triggers:
 
     # Unique identifier for this scaler instance
     scalerName: keda-kaito-scaler
-    
+
     # threshold for scaling up/down
     # When average waiting requests per pod exceeds this value * (1 + scaleUp.tolerance), scale up
     # When average waiting requests per pod drops below this value * (1 - scaleDown.tolerance), scale down
@@ -385,7 +385,7 @@ triggers:
 
     # The address of the external scaler
     scalerAddress: kaito-scaler.keda.svc.cluster.local:9090
-    
+
     # Metric name to scrape from pods
     # Default: "vllm:num_requests_waiting"
     metricName: "vllm:num_requests_waiting"
@@ -397,12 +397,12 @@ triggers:
     # Port name for scraping metrics from pods
     # Default: "5000"
     metricPort: "5000"
-    
+
     # Path for metrics endpoint on pods
     # Default: "/metrics"
     metricPath: "/metrics"
-    
-    # Optional: Timeout for metric scraping in seconds  
+
+    # Optional: Timeout for metric scraping in seconds
     # Default: 5
     scrapeTimeout: "5"
   # Optional: TLS Authentication used by keda-core to acess keda-kaito-scaler
@@ -476,10 +476,10 @@ The detailed interface for external scaler of keda: https://keda.sh/docs/2.17/co
 type ExternalScaler interface {
     // IsActive determines if the scaler should be active for a given ScaledObject
     IsActive(ctx context.Context, req *pb.ScaledObjectRef) (*pb.IsActiveResponse, error)
-    
+
     // GetMetricSpec returns the metric specification for HPA
     GetMetricSpec(ctx context.Context, req *pb.ScaledObjectRef) (*pb.GetMetricSpecResponse, error)
-    
+
     // GetMetrics returns the current metric values
     GetMetrics(ctx context.Context, req *pb.GetMetricsRequest) (*pb.GetMetricsResponse, error)
 }
@@ -628,14 +628,14 @@ func (k *KaitoScaler) parseScalerMetadata(ref *pb.ScaledObjectRef, metricName st
         ScrapeTimeout: 5 * time.Second,             // default
         Threshold:     10,                          // default threshold for scaling decisions
     }
-    
+
     // Override with values from ScaledObject metadata if provided
     // Implementation would parse ref.ScalerMetadata map to extract:
     // - threshold: scaling threshold value
     // - metricPort: port for metrics scraping
     // - metricPath: path for metrics endpoint
     // - scrapeTimeout: timeout for metric collection
-    
+
     return config, nil
 }
 ```

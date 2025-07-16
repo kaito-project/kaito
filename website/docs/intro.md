@@ -30,7 +30,7 @@ Using KAITO, the workflow of onboarding large AI inference models in Kubernetes 
 
 KAITO follows the classic Kubernetes Custom Resource Definition(CRD)/controller design pattern. Users manage a `workspace` custom resource which describes the GPU requirements and the inference or tuning specification. KAITO controllers automate the deployment by reconciling the `workspace` custom resource.
 
-![KAITO architecture](../static/img/arch.png)
+![KAITO architecture](/img/arch.png)
 
 The above figure presents the KAITO architecture overview. Its major components consist of:
 
@@ -42,7 +42,7 @@ The [*gpu-provisioner*](https://github.com/Azure/gpu-provisioner) is an open sou
 :::
 
 **NEW!** Starting with version v0.5.0, KAITO releases a new operator, **RAGEngine**, which is used to streamline the process of managing a Retrieval Augmented Generation(RAG) service.
-![KAITO RAGEngine architecture](../static/img/ragarch.png)
+![KAITO RAGEngine architecture](/img/ragarch.png)
 
 
 As illustrated in the above figure, the **RAGEngine controller** reconciles the `ragengine` custom resource and creates a `RAGService` deployment. The `RAGService` provides the following capabilities:

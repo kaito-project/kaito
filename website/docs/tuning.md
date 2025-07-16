@@ -117,7 +117,7 @@ KAITO uses the Kubernetes **batchv1.job** workload to manage the tuning Pod. Whe
 ## Pod structure when input and output are specified as URLs or images
 To streamline the tuning workflow, KAITO adds two containers in addition to the main container that runs the tuning process. The pod structure is illustrated in Figure 1.
 
-![KAITO fine tuning](../static/img/kaito-fine-tuning.png)
+![KAITO fine tuning](/img/kaito-fine-tuning.png)
 
 Figure 1. KAITO tuning pod structure.
 

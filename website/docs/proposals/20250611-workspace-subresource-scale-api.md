@@ -23,7 +23,7 @@ As the number of waiting inference requests increase, It is necessary to scale m
 We hope to provide an auto-scaler feature for scaling inference workloads automatically in terms of changes of custom metrics from inference pods, and this auto scaler doesn't depend on other components(this means Kaito is a self-contained component without dependencies). and we will divide this auto-scaler feature into two parts as following:
 
 - Part one: support scale subresource api for workspace, so different auto-scaler solutions such as KEDA, HPA, etc. can be integrated with Kaito to mamage inference workloads dynamically. This part is addressed in this proposal.
-- Part two: support a customized auto-sacler for kaito. The auto-scaler is designed for a minimalistic configuration experience, with most parameters pre-tuned for optimal performance. This allows users to easily get started without requiring specialized knowledge of LLM. This part will be addressed in another proposal. 
+- Part two: support a customized auto-sacler for kaito. The auto-scaler is designed for a minimalistic configuration experience, with most parameters pre-tuned for optimal performance. This allows users to easily get started without requiring specialized knowledge of LLM. This part will be addressed in another proposal.
 
 ## Motivation
 
@@ -49,7 +49,7 @@ To ensure different auto-scaler solutions can integrate with Kaito to manage inf
 
 Workspace CRD will support scale subresource API, so different auto-scaler solutions can adjust Workspace replicas dynamically. and Workspace controller/webhook will update the underlay workloads(like Deployment, LWS, etc.) which are used for managing inference workloads. The detailed workflow is shown in the following figure:
 
-![auto-scaler](../../static/img/workspace-scale-api.png)
+![auto-scaler](/img/workspace-scale-api.png)
 
 - Workspace CRD: upgrade workspace CRD for supporting scale subresource api.
 
@@ -108,7 +108,7 @@ type InferenceStatus struct {
     // Total number of running inference workloads of this workspace.
     Replicas int32
 
-    // PerReplicaNodeCount is used for recording the number of gpu nodes for one replica of workspace workload. 
+    // PerReplicaNodeCount is used for recording the number of gpu nodes for one replica of workspace workload.
     PerReplicaNodeCount int32
 
     // TargetNodeCount is used for recording the total number of gpu nodes for the workspace.
@@ -120,11 +120,11 @@ type InferenceStatus struct {
 
 Workspace webhook should be improved for initializing workspace status and validate scale request is allowed or not.
 
-![webhook-for-ws-create-req](../../static/img/workspace-webhook-for-create-req.png)
+![webhook-for-ws-create-req](/img/workspace-webhook-for-create-req.png)
 
 - gpu nodes estimator will be used to calculate the `PerReplicaNodeCount` for workspace.
 
-![webhook-for-scale-req](../../static/img/workspace-webhook-for-scale-req.png)
+![webhook-for-scale-req](/img/workspace-webhook-for-scale-req.png)
 
 - For workspace without inference settings or workspace with prefered nodes, the scale request will be rejected.
 
@@ -132,7 +132,7 @@ Workspace webhook should be improved for initializing workspace status and valid
 
 The workspace controller should reconcile TargetNodeCount in order to keep consistent with scaling action. then scale underlay workloads(Deployment) and update workspace status. The workflow should be improved as following:
 
-![workspace-controller-workflow](../../static/img/workspace-controller-workflow.png)
+![workspace-controller-workflow](/img/workspace-controller-workflow.png)
 
 ### Workspace CRD Subresource Change
 

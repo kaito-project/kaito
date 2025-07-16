@@ -86,7 +86,7 @@ Opening browser: http://localhost:10350/
 
 <br/>
 
-![Tilt UI](../static/img/tilt.png)
+![Tilt UI](/img/tilt.png)
 
 Tilt automates the following steps during `tilt up`:
 

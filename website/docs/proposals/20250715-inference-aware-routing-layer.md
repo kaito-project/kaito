@@ -265,4 +265,4 @@ spec:
 
 The following diagram represents a successful integration:
 
-![Inference-Aware Routing Layer Integration](../../static/img/gateway-api-inference-extension.png)
+![Inference-Aware Routing Layer Integration](/img/gateway-api-inference-extension.png)

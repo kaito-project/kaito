@@ -253,4 +253,4 @@ While Hugging Face provides comparable bandwidth, ACR is more reliable and bette
 | baseImage+OCI-artifacts | aimodelsregistrytest.azurecr.io/base:0.0.3 and aimodelsregistrytest.azurecr.io/phi-4-mini-instruct:model | Pull base image first. Then download model files using oras pull. |
 
 
-![Model as OCI Artifacts Evaluation](../../static/img/model-as-oci-artifacts-evaluation.png)
+![Model as OCI Artifacts Evaluation](/img/model-as-oci-artifacts-evaluation.png)

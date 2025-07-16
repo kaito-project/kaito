@@ -10,7 +10,7 @@ This document explains the mechanisms KAITO implements to prevent CUDA OOM error
 
 The following diagram illustrates the GPU memory layout when serving inference requests using the vLLM engine:
 
-![GPU memory layout](../static/img/gpumemlayout.png)
+![GPU memory layout](/img/gpumemlayout.png)
 
 The GPU memory is divided into three main components:
 

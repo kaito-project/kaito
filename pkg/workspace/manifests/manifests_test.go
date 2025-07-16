@@ -29,6 +29,7 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
@@ -246,7 +247,7 @@ func TestGenerateInferencePool(t *testing.T) {
 			name:          "statefulset inference pool",
 			isStatefulSet: true,
 			expectedInferencePoolSpec: gaiev1alpha2.InferencePoolSpec{
-				TargetPortNumber: 5000,
+				TargetPortNumber: consts.PortInferenceServer,
 				Selector: map[gaiev1alpha2.LabelKey]gaiev1alpha2.LabelValue{
 					kaitov1beta1.LabelWorkspaceName: gaiev1alpha2.LabelValue(test.MockWorkspaceWithPreset.Name),
 					appsv1.PodIndexLabel:            gaiev1alpha2.LabelValue("0"), // Pod index label for statefulset
@@ -264,7 +265,7 @@ func TestGenerateInferencePool(t *testing.T) {
 			name:          "deployment inference pool",
 			isStatefulSet: false,
 			expectedInferencePoolSpec: gaiev1alpha2.InferencePoolSpec{
-				TargetPortNumber: 5000,
+				TargetPortNumber: consts.PortInferenceServer,
 				Selector: map[gaiev1alpha2.LabelKey]gaiev1alpha2.LabelValue{
 					kaitov1beta1.LabelWorkspaceName: gaiev1alpha2.LabelValue(test.MockWorkspaceWithPreset.Name),
 				},

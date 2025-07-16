@@ -431,6 +431,26 @@ async def test_query_index_failure(async_client):
     assert response.status_code == 404
     assert response.json()["detail"] == "No such index: 'non_existent_index' exists."
 
+    request_data = {
+        "index_name": "test_index",
+        "top_k": 1,
+        "llm_params": {"temperature": 0.7}
+    }
+    response = await async_client.post("/query", json=request_data)
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Either 'query' or 'messages' must be provided in the request."
+
+    request_data = {
+        "index_name": "test_index",
+        "query": "test query",
+        "messages": [{"role": "user", "content": "What is RAG?"}],
+        "top_k": 1,
+        "llm_params": {"temperature": 0.7}
+    }
+    response = await async_client.post("/query", json=request_data)
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Only one of 'query' or 'messages' should be provided in the request."
+
     response = await async_client.get(f"/metrics")
     assert response.status_code == 200
     assert len(re.findall(r'rag_query_requests_total{status="failure"} ([1-9]\d*).0', response.text)) == 1

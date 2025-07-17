@@ -216,4 +216,4 @@ In the GitHub repository 'kaito-project/kaito', how many preset models are there
 [{"type": "text", "text": "There are 16 preset models in the Kaito project.  These models are defined in the `supported_models.yaml` file  and registered programmatically within the codebase. ...", "annotations": null, "meta": null}]
 ```
 
-[^1]: https://www.dailydoseofds.com/p/function-calling-in-llms/
+[^1]: https://www.dailydoseofds.com/p/function-calling-mcp-for-llms/

@@ -47,9 +47,15 @@ class DeleteDocumentResponse(BaseModel):
     deleted_doc_ids: List[str]
     not_found_doc_ids: List[str]
 
+# Chat Completions API models
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
 class QueryRequest(BaseModel):
     index_name: str
-    query: str
+    query: Optional[str] = None
+    messages: Optional[List[ChatMessage]] = None
     top_k: int = 5
     # Accept a dictionary for our LLM parameters
     llm_params: Optional[Dict[str, Any]] = Field(
@@ -93,4 +99,12 @@ class QueryResponse(BaseModel):
 
 class HealthStatus(BaseModel):
     status: str
-    detail: Optional[str] = None 
+    detail: Optional[str] = None
+
+
+def messages_to_prompt(messages: List[ChatMessage]) -> str:
+    """Convert messages to a prompt string."""
+    string_messages = []
+    for message in messages:
+        string_messages.append(f"{message.role}: {message.content}")
+    return "\n".join(string_messages)

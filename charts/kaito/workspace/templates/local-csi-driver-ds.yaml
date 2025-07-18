@@ -208,7 +208,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.0"
+        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.3"
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -272,7 +272,7 @@ spec:
         - --feature-gates=Topology=true
         - --strict-topology=true
         - --enable-capacity
-        - --capacity-ownerref-level=1
+        - --capacity-ownerref-level=0
         - --capacity-poll-interval=15s
         - --v=2
         env:
@@ -344,7 +344,7 @@ spec:
         - --csi-address=/csi/csi.sock
         - --kubelet-registration-path=/var/lib/kubelet/plugins/localdisk.csi.acstor.io/csi.sock
         - --http-endpoint=:8092
-        - --v=2
+        - --v=1
         env:
         image: "mcr.microsoft.com/oss/v2/kubernetes-csi/csi-node-driver-registrar:v2.13.0"
         imagePullPolicy: IfNotPresent

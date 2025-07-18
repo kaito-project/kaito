@@ -12,7 +12,7 @@
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 
 REPO=https://github.com/Azure/local-csi-driver.git
-REVISION="cf32dac2eb8006f25438127d446bc48797de9204"
+REVISION="a9a2fd1af2d0fbfe4262f66105dc2569b6394a9c"
 
 TEMP_DIR=$(mktemp -d)
 REPO_DIR="$TEMP_DIR/local-csi-driver"
@@ -35,6 +35,7 @@ echo "Checking out revision: $REVISION"
 (cd "$REPO_DIR" && git switch -c "$REVISION") || { echo "Failed to checkout revision $REVISION"; exit 1; }
 
 helm template --release-name local-csi-driver \
+  --set image.driver.tag="0.0.1-latest" \
   --set webhook.ephemeral.enabled=false \
   --set webhook.hyperconverged.enabled=false \
   --set observability.metrics.enabled=false \

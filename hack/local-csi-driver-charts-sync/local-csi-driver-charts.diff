@@ -1,5 +1,5 @@
 diff --git a/./local-csi-driver-charts.yaml b/./charts/kaito/workspace/templates/local-csi-driver-ds.yaml
-index ede249f..60cde8b 100644
+index 93d0b57..54cb7e4 100644
 --- a/./local-csi-driver-charts.yaml
 +++ b/./charts/kaito/workspace/templates/local-csi-driver-ds.yaml
 @@ -4,13 +4,9 @@ apiVersion: v1
@@ -42,7 +42,7 @@ index ede249f..60cde8b 100644
  roleRef:
    apiGroup: rbac.authorization.k8s.io
    kind: ClusterRole
-@@ -141,31 +131,24 @@ roleRef:
+@@ -141,34 +131,24 @@ roleRef:
  subjects:
  - kind: ServiceAccount
    name: csi-local-node
@@ -57,6 +57,7 @@ index ede249f..60cde8b 100644
 +  namespace: {{ .Release.Namespace }}
    labels:
 -    app: csi-local
+-    app.kubernetes.io/component: csi-local-node
 -    helm.sh/chart: local-csi-driver-0.0.1-latest
 -    app.kubernetes.io/name: local-csi-driver
 -    app.kubernetes.io/instance: local-csi-driver
@@ -66,23 +67,25 @@ index ede249f..60cde8b 100644
    selector:
      matchLabels:
        app: csi-local-node
+-      app.kubernetes.io/component: csi-local-node
 -      app.kubernetes.io/name: local-csi-driver
 -      app.kubernetes.io/instance: local-csi-driver
    template:
      metadata:
        labels:
          app: csi-local-node
+-        app.kubernetes.io/component: csi-local-node
 -        app.kubernetes.io/name: local-csi-driver
 -        app.kubernetes.io/instance: local-csi-driver
        annotations:
          kubectl.kubernetes.io/default-container: driver
      spec:
-@@ -218,7 +201,7 @@ spec:
+@@ -221,7 +201,7 @@ spec:
            valueFrom:
              fieldRef:
                fieldPath: spec.nodeName
 -        image: "localcsidriver.azurecr.io/acstor/local-csi-driver:0.0.1-latest"
-+        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.0"
++        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.3"
          imagePullPolicy: IfNotPresent
          livenessProbe:
            httpGet:

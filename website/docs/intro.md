@@ -6,7 +6,7 @@ slug: /
 :::info What's NEW!
 
 Retrieval Augmented Generation (RAG) support is live! - KAITO RagEngine uses LlamaIndex and FAISS, learn about from [here](https://kaito-project.github.io/kaito/docs/rag)!
-**Latest Release:** July 2nd, 2025. KAITO v0.5.0.
+**Latest Release:** July 18th, 2025. KAITO v0.5.1.
 
 **First Release:** Nov 15th, 2023. KAITO v0.1.0.
 :::

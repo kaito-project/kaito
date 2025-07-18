@@ -30,6 +30,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
 
@@ -105,99 +106,57 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 	}
 }
 
-func GenerateStatefulSetManifest(workspaceObj *kaitov1beta1.Workspace, revisionNum string, imageName string,
-	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
-	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
-	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount, envVars []corev1.EnvVar, initContainers []corev1.Container, pvcs []corev1.PersistentVolumeClaim) *appsv1.StatefulSet {
+func GenerateStatefulSetManifest(revisionNum string, replicas int) func(*generator.WorkspaceGeneratorContext, *appsv1.StatefulSet) error {
+	return func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
+		selector := map[string]string{
+			kaitov1beta1.LabelWorkspaceName: ctx.Workspace.Name,
+		}
+		labelselector := &v1.LabelSelector{
+			MatchLabels: selector,
+		}
 
-	pullerContainers, pullerEnvVars, pullerVolumes := GeneratePullerContainers(workspaceObj, volumeMount)
-	envVars = append(envVars, pullerEnvVars...)
-	volumes = append(volumes, pullerVolumes...)
-	initContainers = append(initContainers, pullerContainers...)
-
-	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(workspaceObj.Resource.LabelSelector.MatchLabels))
-	for key, value := range workspaceObj.Resource.LabelSelector.MatchLabels {
-		nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
-			Key:      key,
-			Operator: corev1.NodeSelectorOpIn,
-			Values:   []string{value},
-		})
-	}
-
-	selector := map[string]string{
-		kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
-	}
-	labelselector := &v1.LabelSelector{
-		MatchLabels: selector,
-	}
-	envVars = append(envVars, corev1.EnvVar{
-		Name: "POD_INDEX",
-		ValueFrom: &corev1.EnvVarSource{
-			FieldRef: &corev1.ObjectFieldSelector{
-				FieldPath: fmt.Sprintf("metadata.labels['%s']", appsv1.PodIndexLabel),
-			},
-		},
-	})
-
-	ss := &appsv1.StatefulSet{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      workspaceObj.Name,
-			Namespace: workspaceObj.Namespace,
+		ss.ObjectMeta = v1.ObjectMeta{
+			Name:      ctx.Workspace.Name,
+			Namespace: ctx.Workspace.Namespace,
 			Annotations: map[string]string{
 				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
 			},
 			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+				*v1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
-		},
-		Spec: appsv1.StatefulSetSpec{
+		}
+		ss.Spec = appsv1.StatefulSetSpec{
 			Replicas:            lo.ToPtr(int32(replicas)),
 			PodManagementPolicy: appsv1.ParallelPodManagement,
 			PersistentVolumeClaimRetentionPolicy: &appsv1.StatefulSetPersistentVolumeClaimRetentionPolicy{
 				WhenScaled:  appsv1.RetainPersistentVolumeClaimRetentionPolicyType,
 				WhenDeleted: appsv1.DeletePersistentVolumeClaimRetentionPolicyType,
 			},
-			Selector:             labelselector,
-			VolumeClaimTemplates: pvcs,
+			Selector: labelselector,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: v1.ObjectMeta{
 					Labels: selector,
 				},
-				Spec: corev1.PodSpec{
-					ImagePullSecrets: imagePullSecretRefs,
-					Affinity: &corev1.Affinity{
-						NodeAffinity: &corev1.NodeAffinity{
-							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-								NodeSelectorTerms: []corev1.NodeSelectorTerm{
-									{
-										MatchExpressions: nodeRequirements,
-									},
-								},
-							},
-						},
-					},
-					InitContainers: initContainers,
-					Containers: []corev1.Container{
-						{
-							Name:           workspaceObj.Name,
-							Image:          imageName,
-							Command:        commands,
-							Resources:      resourceRequirements,
-							LivenessProbe:  livenessProbe,
-							ReadinessProbe: readinessProbe,
-							Ports:          containerPorts,
-							VolumeMounts:   volumeMount,
-							Env:            envVars,
-						},
-					},
-					Tolerations: tolerations,
-					Volumes:     volumes,
-				},
 			},
-		},
+		}
+
+		ss.Spec.ServiceName = fmt.Sprintf("%s-headless", ctx.Workspace.Name)
+		return nil
 	}
-	ss.Spec.ServiceName = fmt.Sprintf("%s-headless", workspaceObj.Name)
-	return ss
+}
+
+func AddStatefulSetVolumeClaimTemplates(volumeClaimTemplates corev1.PersistentVolumeClaim) func(*generator.WorkspaceGeneratorContext, *appsv1.StatefulSet) error {
+	return func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
+		ss.Spec.VolumeClaimTemplates = append(ss.Spec.VolumeClaimTemplates, volumeClaimTemplates)
+		return nil
+	}
+}
+
+func SetStatefulSetPodSpec(podSpec *corev1.PodSpec) func(*generator.WorkspaceGeneratorContext, *appsv1.StatefulSet) error {
+	return func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
+		ss.Spec.Template.Spec = *podSpec
+		return nil
+	}
 }
 
 func GenerateTuningJobManifest(wObj *kaitov1beta1.Workspace, revisionNum string, imageName string,
@@ -274,44 +233,26 @@ func GenerateTuningJobManifest(wObj *kaitov1beta1.Workspace, revisionNum string,
 	}
 }
 
-func GenerateDeploymentManifest(workspaceObj *kaitov1beta1.Workspace, revisionNum string, imageName string,
-	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
-	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
-	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount, envVars []corev1.EnvVar, initContainers []corev1.Container) *appsv1.Deployment {
+func GenerateDeploymentManifest(revisionNum string, replicas int) func(*generator.WorkspaceGeneratorContext, *appsv1.Deployment) error {
+	return func(ctx *generator.WorkspaceGeneratorContext, d *appsv1.Deployment) error {
+		selector := map[string]string{
+			kaitov1beta1.LabelWorkspaceName: ctx.Workspace.Name,
+		}
+		labelselector := &v1.LabelSelector{
+			MatchLabels: selector,
+		}
 
-	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(workspaceObj.Resource.LabelSelector.MatchLabels))
-	for key, value := range workspaceObj.Resource.LabelSelector.MatchLabels {
-		nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
-			Key:      key,
-			Operator: corev1.NodeSelectorOpIn,
-			Values:   []string{value},
-		})
-	}
-
-	selector := map[string]string{
-		kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
-	}
-	labelselector := &v1.LabelSelector{
-		MatchLabels: selector,
-	}
-
-	pullerContainers, pullerEnvVars, pullerVolumes := GeneratePullerContainers(workspaceObj, volumeMount)
-	envVars = append(envVars, pullerEnvVars...)
-	volumes = append(volumes, pullerVolumes...)
-	initContainers = append(initContainers, pullerContainers...)
-
-	return &appsv1.Deployment{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      workspaceObj.Name,
-			Namespace: workspaceObj.Namespace,
+		d.ObjectMeta = v1.ObjectMeta{
+			Name:      ctx.Workspace.Name,
+			Namespace: ctx.Workspace.Namespace,
 			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+				*v1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
 			Annotations: map[string]string{
 				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
 			},
-		},
-		Spec: appsv1.DeploymentSpec{
+		}
+		d.Spec = appsv1.DeploymentSpec{
 			Replicas: lo.ToPtr(int32(replicas)),
 			Strategy: appsv1.DeploymentStrategy{
 				Type: appsv1.RollingUpdateDeploymentStrategyType,
@@ -331,38 +272,16 @@ func GenerateDeploymentManifest(workspaceObj *kaitov1beta1.Workspace, revisionNu
 				ObjectMeta: v1.ObjectMeta{
 					Labels: selector,
 				},
-				Spec: corev1.PodSpec{
-					ImagePullSecrets: imagePullSecretRefs,
-					Affinity: &corev1.Affinity{
-						NodeAffinity: &corev1.NodeAffinity{
-							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-								NodeSelectorTerms: []corev1.NodeSelectorTerm{
-									{
-										MatchExpressions: nodeRequirements,
-									},
-								},
-							},
-						},
-					},
-					InitContainers: initContainers,
-					Containers: []corev1.Container{
-						{
-							Name:           workspaceObj.Name,
-							Image:          imageName,
-							Command:        commands,
-							Resources:      resourceRequirements,
-							LivenessProbe:  livenessProbe,
-							ReadinessProbe: readinessProbe,
-							Ports:          containerPorts,
-							VolumeMounts:   volumeMount,
-							Env:            envVars,
-						},
-					},
-					Tolerations: tolerations,
-					Volumes:     volumes,
-				},
 			},
-		},
+		}
+		return nil
+	}
+}
+
+func SetDeploymentPodSpec(podSpec *corev1.PodSpec) func(*generator.WorkspaceGeneratorContext, *appsv1.Deployment) error {
+	return func(ctx *generator.WorkspaceGeneratorContext, d *appsv1.Deployment) error {
+		d.Spec.Template.Spec = *podSpec
+		return nil
 	}
 }
 

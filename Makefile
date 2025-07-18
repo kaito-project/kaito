@@ -31,8 +31,8 @@ TEST_SUITE ?= gpuprovisioner
 AZURE_SUBSCRIPTION_ID ?= $(AZURE_SUBSCRIPTION_ID)
 AZURE_LOCATION ?= eastus
 AKS_K8S_VERSION ?= 1.30.0
-AZURE_RESOURCE_GROUP ?= demo
 AZURE_CLUSTER_NAME ?= kaito-demo
+AZURE_RESOURCE_GROUP ?= demo
 AZURE_RESOURCE_GROUP_MC=MC_$(AZURE_RESOURCE_GROUP)_$(AZURE_CLUSTER_NAME)_$(AZURE_LOCATION)
 GPU_PROVISIONER_NAMESPACE ?= gpu-provisioner
 GPU_PROVISIONER_NAME ?= gpu-provisioner
@@ -377,7 +377,6 @@ az-patch-install-ragengine-helm-e2e:
 aws-patch-install-helm:
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    	./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               	./charts/kaito/workspace/values.yaml
-	yq -i '(.featureGates.Karpenter)                                    	= "true"'                                       ./charts/kaito/workspace/values.yaml
 	yq -i '(.clusterName)                                                   = "$(AWS_CLUSTER_NAME)"'                    		./charts/kaito/workspace/values.yaml
 	yq -i '(.cloudProviderName)                                             = "aws"'                                        ./charts/kaito/workspace/values.yaml
 
@@ -436,7 +435,7 @@ aws-karpenter-helm:
 	--set controller.resources.requests.cpu=1 \
 	--set controller.resources.requests.memory=1Gi \
 	--set controller.resources.limits.cpu=1 \
-	--set controller.resources.limits.memory=1Gi \
+	--set controller.resources.limits.memory=1Gi
 
 	kubectl wait --for=condition=available deploy "karpenter" -n ${KARPENTER_NAMESPACE} --timeout=300s
 

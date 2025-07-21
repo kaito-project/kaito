@@ -77,6 +77,35 @@ entries:
     - https://kaito-project.github.io/kaito/charts/kaito/ragengine-0.0.1.tgz
     version: 0.0.1
   workspace:
+  - annotations:
+      artifacthub.io/category: ai-machine-learning
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: GitHub
+            url: https://github.com/kaito-project/kaito
+        - name: Examples
+          url: https://github.com/kaito-project/kaito/tree/main/examples
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 0.5.1
+    created: "2025-07-21T18:24:36.332656743Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: fd8e8c95d96595e0dfb058901eb417ccb268f6ac231fbab49bcc2bf60ced5cfc
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: zhuangqhc@gmail.com
+      name: zhuangqh
+    - email: chwong719@gmail.com
+      name: chewong
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.5.1.tgz
+    version: 0.5.1
   - apiVersion: v2
     appVersion: 0.5.0
     created: "2025-07-08T09:53:45.218473465Z"
@@ -357,4 +386,4 @@ entries:
     urls:
     - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.1.0.tgz
     version: 0.1.0
-generated: "2025-07-08T09:53:45.217289169Z"
+generated: "2025-07-21T18:24:36.330410247Z"

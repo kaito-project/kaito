@@ -358,7 +358,7 @@ async def chat_completions(request: ChatCompletionRequest):
         # Create the assistant message
         assistant_message = ChatCompletionMessage(
             role="assistant",
-            content=result_dict["response"]["result"]
+            content=result_dict["response"]
         )
         
         # Create choice

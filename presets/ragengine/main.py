@@ -208,7 +208,7 @@ async def index_documents(request: IndexRequest):
     description="""
     Query a specific index for documents and optionally rerank with an LLM.
 
-    ## Query Request Example:
+    ## Request Example:
     ```json
     {
       "index_name": "example_index",
@@ -248,10 +248,11 @@ async def query_index(request: QueryRequest):
     try:
         llm_params = request.llm_params or {}  # Default to empty dict if no params provided
         rerank_params = request.rerank_params or {}  # Default to empty dict if no params provided
-
+        
         result_dict = await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params
         )
+        
         result = QueryResponse(
             response=result_dict["response"],
             source_nodes=result_dict["source_nodes"], 

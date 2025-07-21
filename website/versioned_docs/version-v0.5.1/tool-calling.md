@@ -72,7 +72,7 @@ kubectl port-forward svc/workspace-phi-4-mini-tool-call 8000
 
 ### Named Function Calling
 
-![Named Function Calling](../static/img/function-calling.gif)
+![Named Function Calling](/img/function-calling.gif)
 *Source: Daily Dose of Data Science [^1]*
 
 ```python
@@ -126,7 +126,7 @@ Result: Getting the weather for San Francisco, CA in fahrenheit...
 
 With the right client framework, inference workload provisioned by KAITO can also call external tools using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). This allows the model to integrate and share data with external tools, systems, and data sources.
 
-![MCP Overview](../static/img/mcp.gif)
+![MCP Overview](/img/mcp.gif)
 *Source: Daily Dose of Data Science [^1]*
 
 In the following example, we will use [uv](https://docs.astral.sh/uv/) to create a Python virtual environment and install the necessary dependencies for [AutoGen](https://microsoft.github.io/autogen/stable//index.html) to call the [DeepWiki](https://deepwiki.com/) MCP service and ask questions about the KAITO project.

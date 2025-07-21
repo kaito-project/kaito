@@ -72,7 +72,7 @@ kubectl port-forward svc/workspace-phi-4-mini-tool-call 8000
 
 ### Named Function Calling
 
-![Named Function Calling](../static/img/function-calling.gif)
+![Named Function Calling](/img/function-calling.gif)
 *Source: Daily Dose of Data Science [^1]*
 
 ```python

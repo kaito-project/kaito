@@ -47,15 +47,9 @@ class DeleteDocumentResponse(BaseModel):
     deleted_doc_ids: List[str]
     not_found_doc_ids: List[str]
 
-# Chat Completions API models
-class ChatMessage(BaseModel):
-    role: str
-    content: str
-
 class QueryRequest(BaseModel):
     index_name: str
-    query: Optional[str] = None
-    messages: Optional[List[ChatMessage]] = None
+    query: str
     top_k: int = 5
     # Accept a dictionary for our LLM parameters
     llm_params: Optional[Dict[str, Any]] = Field(
@@ -97,14 +91,61 @@ class QueryResponse(BaseModel):
     source_nodes: List[NodeWithScore]
     metadata: Optional[dict] = None
 
+class TextContent(BaseModel):
+    type: str = "text"
+    text: str
+
+class ChatCompletionMessage(BaseModel):
+    role: str
+    content: str | TextContent
+
+class ChatCompletionRequest(BaseModel):
+    index_name: str
+    model: str
+    messages: List[ChatCompletionMessage]
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
+    top_p: Optional[float] = None
+    stream: Optional[bool] = None
+    # RAG-specific parameters
+    top_k: Optional[int] = None
+    rerank_params: Optional[Dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Experimental: Optional parameters for reranking. Only 'top_n' and 'choice_batch_size' are supported.",
+    )
+
+class ChatCompletionChoice(BaseModel):
+    index: int
+    message: ChatCompletionMessage
+    finish_reason: str
+
+class ChatCompletionUsage(BaseModel):
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+
+class ChatCompletionResponse(BaseModel):
+    id: str
+    object: str = "chat.completion"
+    created: int
+    model: str
+    choices: List[ChatCompletionChoice]
+    usage: Optional[ChatCompletionUsage] = None
+    # RAG-specific metadata
+    source_nodes: List[NodeWithScore]
+
 class HealthStatus(BaseModel):
     status: str
     detail: Optional[str] = None
 
 
-def messages_to_prompt(messages: List[ChatMessage]) -> str:
+def messages_to_prompt(messages: List[ChatCompletionMessage]) -> str:
     """Convert messages to a prompt string."""
     string_messages = []
     for message in messages:
-        string_messages.append(f"{message.role}: {message.content}")
+        if isinstance(message.content, TextContent):
+            content = message.content.text
+        elif isinstance(message.content, str):
+            content = message.content
+        string_messages.append(f"{message.role}: {content}")
     return "\n".join(string_messages)

@@ -114,25 +114,8 @@ async def test_query_index_success(mock_get, async_client):
     assert response.json()["source_nodes"][0]["score"] == pytest.approx(0.5354418754577637, rel=1e-6)
     assert response.json()["source_nodes"][0]["metadata"] == {}
 
-    # Query Request
-    request_data = {
-        "index_name": "test_index",
-        "messages": [
-            {"role": "user", "content": "What is RAG?"}
-        ],
-        "top_k": 1,
-        "llm_params": {"temperature": 0.7}
-    }
-    response = await async_client.post("/query", json=request_data)
-    assert response.status_code == 200
-    assert response.json()["response"] == "{'result': 'This is the completion from the API'}"
-    assert len(response.json()["source_nodes"]) == 1
-    assert response.json()["source_nodes"][0]["text"] == "This is a test document"
-    assert response.json()["source_nodes"][0]["score"] == pytest.approx(0.9756928086280823, rel=1e-6)
-    assert response.json()["source_nodes"][0]["metadata"] == {}
-
     # Ensure HTTPX was called once
-    assert respx.calls.call_count == 2
+    assert respx.calls.call_count == 1
 
     # Ensure the model fetch was called once
     mock_get.assert_called_once_with("http://localhost:5000/v1/models", headers=ANY)
@@ -141,6 +124,60 @@ async def test_query_index_success(mock_get, async_client):
     assert response.status_code == 200
     assert len(re.findall(r'rag_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
     assert len(re.findall(r'rag_query_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")  # Mock the requests.get call for fetching model metadata
+async def test_chat_completions_success(mock_get, async_client):
+    # Mock the response for the default model fetch
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    # Mock HTTPX response for Custom Inference API
+    mock_response = {"result": "This is the completion from the API"}
+    respx.post("http://localhost:5000/v1/completions").mock(return_value=httpx.Response(200, json=mock_response))
+
+    # Index Request
+    request_data = {
+        "index_name": "test_index",
+        "documents": [
+            {"text": "This is a test document"},
+            {"text": "Another test document"}
+        ]
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+
+    # Query Request
+    request_data = {
+        "index_name": "test_index",
+        "model": "mock-model",
+        "messages": [
+            {"role": "user", "content": "What is RAG?"}
+        ],
+        "temperature": 0.7,
+        "max_tokens": 2048,
+        "top_k": 1,
+    }
+
+    response = await async_client.post("/v1/chat/completions", json=request_data)
+    assert response.status_code == 200
+    assert response.json()["choices"][0]["message"]["content"] == "{'result': 'This is the completion from the API'}"
+    assert len(response.json()["source_nodes"]) == 1
+    assert response.json()["source_nodes"][0]["text"] == "This is a test document"
+    assert response.json()["source_nodes"][0]["score"] == pytest.approx(0.9756928086280823, rel=1e-6)
+    assert response.json()["source_nodes"][0]["metadata"] == {}
+
+    # Ensure the model fetch was called once
+    mock_get.assert_called_once_with("http://localhost:5000/v1/models", headers=ANY)
+
+    response = await async_client.get(f"/metrics")
+    assert response.status_code == 200
+    assert len(re.findall(r'rag_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert len(re.findall(r'rag_chat_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
 
 @pytest.mark.asyncio
 @respx.mock
@@ -430,26 +467,6 @@ async def test_query_index_failure(async_client):
     response = await async_client.post("/query", json=request_data)
     assert response.status_code == 404
     assert response.json()["detail"] == "No such index: 'non_existent_index' exists."
-
-    request_data = {
-        "index_name": "test_index",
-        "top_k": 1,
-        "llm_params": {"temperature": 0.7}
-    }
-    response = await async_client.post("/query", json=request_data)
-    assert response.status_code == 400
-    assert response.json()["detail"] == "Either 'query' or 'messages' must be provided in the request."
-
-    request_data = {
-        "index_name": "test_index",
-        "query": "test query",
-        "messages": [{"role": "user", "content": "What is RAG?"}],
-        "top_k": 1,
-        "llm_params": {"temperature": 0.7}
-    }
-    response = await async_client.post("/query", json=request_data)
-    assert response.status_code == 400
-    assert response.json()["detail"] == "Only one of 'query' or 'messages' should be provided in the request."
 
     response = await async_client.get(f"/metrics")
     assert response.status_code == 200

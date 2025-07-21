@@ -39,6 +39,10 @@ rag_embedding_requests_total = Counter(
 rag_query_latency = Histogram('rag_query_latency_seconds', 'Time to call \'/query\' API in seconds', labelnames=[STATUS_LABEL])
 rag_query_requests_total = Counter('rag_query_requests_total', 'Count of successful/failed calling \'/query\' requests', labelnames=[STATUS_LABEL])
 
+# Chat API metrics
+rag_chat_latency = Histogram('rag_chat_latency_seconds', 'Time to call \'/v1/chat/completions\' API in seconds', labelnames=[STATUS_LABEL])
+rag_chat_requests_total = Counter('rag_chat_requests_total', 'Count of successful/failed calling \'/v1/chat/completions\' requests', labelnames=[STATUS_LABEL])
+
 # Index API metrics
 rag_index_latency = Histogram('rag_index_latency_seconds', 'Time to call \'/index\' API in seconds', labelnames=[STATUS_LABEL])
 rag_index_requests_total = Counter('rag_index_requests_total', 'Count of successful/failed calling \'/index\' requests', labelnames=[STATUS_LABEL])

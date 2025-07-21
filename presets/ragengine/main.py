@@ -14,13 +14,17 @@
 
 from typing import List, Optional
 import json
+import time
+import uuid
 from vector_store_manager.manager import VectorStoreManager
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
 from fastapi import FastAPI, HTTPException, Query, Request
 from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
                     QueryRequest, QueryResponse, Document, HealthStatus, DeleteDocumentRequest,
-                    DeleteDocumentResponse, UpdateDocumentResponse, ChatMessage, messages_to_prompt)
+                    DeleteDocumentResponse, UpdateDocumentResponse, messages_to_prompt,
+                    ChatCompletionRequest, ChatCompletionResponse, ChatCompletionMessage, 
+                    ChatCompletionChoice)
 from vector_store.faiss_store import FaissVectorStoreHandler
 
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
@@ -34,6 +38,8 @@ from starlette.responses import Response
 from ragengine.metrics.prometheus_metrics import (
     rag_query_latency,
     rag_query_requests_total,
+    rag_chat_latency,
+    rag_chat_requests_total,
     rag_index_latency,
     rag_index_requests_total,
     rag_indexes_latency,
@@ -202,7 +208,7 @@ async def index_documents(request: IndexRequest):
     description="""
     Query a specific index for documents and optionally rerank with an LLM.
 
-    ## Prompt Query Request Example:
+    ## Query Request Example:
     ```json
     {
       "index_name": "example_index",
@@ -212,18 +218,6 @@ async def index_documents(request: IndexRequest):
       "rerank_params": {"top_n": 3}  # ⚠️ Experimental Feature
     }
     ```
-
-    ## chat/completions messages example:
-    {
-      "index_name": "example_index",
-      "messages": [
-        {"role": "system", "content": "You are a knowledgeable assistant."},
-        {"role": "user", "content": "What is RAG?"}
-      ],
-      "top_k": 5,
-      "llm_params": {"temperature": 0.7, "max_tokens": 2048},
-      "rerank_params": {"top_n": 3}  # ⚠️ Experimental Feature
-    }
 
     ## Experimental Warning:
     - The `rerank_params` option is **experimental** and may cause the query to fail.
@@ -254,16 +248,6 @@ async def query_index(request: QueryRequest):
     try:
         llm_params = request.llm_params or {}  # Default to empty dict if no params provided
         rerank_params = request.rerank_params or {}  # Default to empty dict if no params provided
-        
-        if not request.query and not request.messages:
-            raise HTTPException(status_code=400, detail="Either 'query' or 'messages' must be provided in the request.")
-        
-        if request.query and request.messages:
-            raise HTTPException(status_code=400, detail="Only one of 'query' or 'messages' should be provided in the request.")
-
-        if request.messages:
-            # Convert messages to prompt format if provided
-            request.query = messages_to_prompt(request.messages)
 
         result_dict = await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params
@@ -298,6 +282,127 @@ async def query_index(request: QueryRequest):
         # Record metrics once in finally block
         rag_query_requests_total.labels(status=status).inc()
         rag_query_latency.labels(status=status).observe(time.perf_counter() - start_time)
+
+@app.post(
+    "/v1/chat/completions",
+    response_model=ChatCompletionResponse,
+    summary="OpenAI-Compatible Chat Completions API",
+    description="""
+    OpenAI-compatible chat completions endpoint with RAG capabilities.
+
+    ## Request Example:
+    ```json
+    {
+      "model": "example_index",
+      "messages": [
+        {"role": "system", "content": "You are a knowledgeable assistant."},
+        {"role": "user", "content": "What is RAG?"}
+      ],
+      "temperature": 0.7,
+      "max_tokens": 2048,
+      "top_k": 5,
+      "rerank_params": {"top_n": 3}
+    }
+    ```
+
+    ## Response Example:
+    ```json
+    {
+      "id": "chatcmpl-123",
+      "object": "chat.completion",
+      "created": 1677652288,
+      "model": "example_index",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "RAG stands for Retrieval-Augmented Generation..."
+          },
+          "finish_reason": "stop"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 56,
+        "completion_tokens": 31,
+        "total_tokens": 87
+      },
+      "source_documents": [...]
+    }
+    ```
+    """,
+)
+async def chat_completions(request: ChatCompletionRequest):
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    
+    try:
+        # Build LLM parameters from request
+        llm_params = {}
+        if request.temperature is not None:
+            llm_params["temperature"] = request.temperature
+        if request.max_tokens is not None:
+            llm_params["max_tokens"] = request.max_tokens
+        if request.top_p is not None:
+            llm_params["top_p"] = request.top_p
+        if request.model is not None:
+            llm_params["model"] = request.model
+            
+        rerank_params = request.rerank_params or {}
+        query_text = messages_to_prompt(request.messages)
+        
+        result_dict = await rag_ops.query(
+            request.index_name, query_text, request.top_k, llm_params, rerank_params
+        )
+        
+        # Create the assistant message
+        assistant_message = ChatCompletionMessage(
+            role="assistant",
+            content=result_dict["response"]["result"]
+        )
+        
+        # Create choice
+        choice = ChatCompletionChoice(
+            index=0,
+            message=assistant_message,
+            finish_reason="stop"
+        )
+        
+        # Create the final response
+        response = ChatCompletionResponse(
+            id=f"{uuid.uuid4().hex}",
+            object="chat.completion",
+            created=int(time.time()),
+            model=request.model,
+            choices=[choice],
+            source_nodes=result_dict.get("source_nodes", [])
+        )
+        
+        # Record source retrieval quality metrics
+        if response.source_nodes and response.choices:
+            lowest_score_node = min(response.source_nodes, key=lambda x: x.score)
+            rag_lowest_source_score.observe(lowest_score_node.score)
+
+            scores = [node.score for node in response.source_nodes]
+            avg_score = sum(scores) / len(scores)
+            rag_avg_source_score.observe(avg_score)
+   
+        status = STATUS_SUCCESS
+        return response
+        
+    except HTTPException as http_exc:
+        # Preserve HTTP exceptions like 422 from reranker
+        raise http_exc
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"An unexpected error occurred: {str(e)}"
+        )
+    finally:
+        # Record metrics once in finally block
+        rag_chat_requests_total.labels(status=status).inc()
+        rag_chat_latency.labels(status=status).observe(time.perf_counter() - start_time)
 
 @app.get(
     "/indexes",

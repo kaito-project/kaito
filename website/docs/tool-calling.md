@@ -10,61 +10,24 @@ KAITO supports tool calling, allowing you to integrate external tools into your 
 
 Currently, tool calling is only supported with the vLLM inference runtime.
 
-### Supported Models & Chat Templates
+### Supported Models
 
-Proper chat templates are required for tool calling. The following models and their corresponding chat templates are supported:
+The following preset models are configured to support tool calling:
+- `phi-4-mini-instruct`
+- `phi-4`
+- `llama-3.1-8b-instruct`
+- `llama-3.3-70b-instruct`
+- `mistral-7b`
+- `mistral-7b-instruct`
+- `qwen2.5-coder-7b-instruct`
+- `qwen2.5-coder-32b-instruct`
 
-| Model Family | Chat Templates                                                                                                                                             | Tool Parser in vLLM |
-|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|
-| Phi 4        | [tool-chat-phi4-mini.jinja](https://github.com/kaito-project/kaito/blob/main/presets/workspace/inference/chat_templates/tool-chat-phi4-mini.jinja)         | `phi4_mini_json`    |
-| Llama 3      | [tool-chat-llama3.1-json.jinja](https://github.com/kaito-project/kaito/blob/main/presets/workspace/inference/chat_templates/tool-chat-llama3.1-json.jinja) | `llama3_json`       |
-| Mistral      | [tool-chat-mistral.jinja](https://github.com/kaito-project/kaito/blob/main/presets/workspace/inference/chat_templates/tool-chat-mistral.jinja)             | `mistral`           |
-
-
-### Inference Configurations
-
-Create the following ConfigMap before deploying KAITO workspace, with `tool-call-parser` and `chat-template` set to the appropriate values for your model:
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: tool-calling-inference-config
-data:
-  inference_config.yaml: |
-    # Maximum number of steps to find the max available seq len fitting in the GPU memory.
-    max_probe_steps: 6
-
-    vllm:
-      cpu-offload-gb: 0
-      swap-space: 4
-      tool-call-parser: "phi4_mini_json" | "llama3_json" | "mistral"
-      chat-template: "/workspace/chat_templates/<chat_template_name>.jinja"
-```
-
-In the Workspace configuration, set `.inference.config` to the name of the ConfigMap you created. For example:
-
-```yaml
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  name: workspace-phi-4-mini-tool-call
-resource:
-  instanceType: "Standard_NC24ads_A100_v4"
-  labelSelector:
-    matchLabels:
-      apps: phi-4
-inference:
-  preset:
-    name: phi-4-mini-instruct
-  config: tool-calling-inference-config
-```
 
 For more details on the inference configuration, refer to [vLLM tool calling documentation](https://docs.vllm.ai/en/latest/features/tool_calling.html).
 
 ## Examples
 
-Port-forward the inference service to your local machine:
+Assuming you have a running Workspace instance with the `phi-4-mini-tool-call` preset model, you can use the following examples to test tool calling. First, ensure that the inference service is running and accessible:
 
 ```bash
 kubectl port-forward svc/workspace-phi-4-mini-tool-call 8000
@@ -126,7 +89,7 @@ Result: Getting the weather for San Francisco, CA in fahrenheit...
 
 With the right client framework, inference workload provisioned by KAITO can also call external tools using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). This allows the model to integrate and share data with external tools, systems, and data sources.
 
-![MCP Overview](../static/img/mcp.gif)
+![MCP Overview](/img/mcp.gif)
 *Source: Daily Dose of Data Science [^1]*
 
 In the following example, we will use [uv](https://docs.astral.sh/uv/) to create a Python virtual environment and install the necessary dependencies for [AutoGen](https://microsoft.github.io/autogen/stable//index.html) to call the [DeepWiki](https://deepwiki.com/) MCP service and ask questions about the KAITO project.

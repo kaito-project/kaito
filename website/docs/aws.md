@@ -30,7 +30,7 @@ Alternative: If you already have GPU nodes or manage them separately, use the pr
 
 Follow the instructions [here](https://karpenter.sh/docs/getting-started/getting-started-with-karpenter/) to create an EKS cluster and install Karpenter.
 
-Then update the KAITO workspace controller to the latest version that supports Karpenter integration:
+Then update the KAITO workspace controller Helm chart values for AWS:
 
 ```bash
 helm update kaito-workspace --namespace kaito-workspace --set cloudProviderName=aws

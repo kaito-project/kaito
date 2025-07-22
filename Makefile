@@ -594,7 +594,10 @@ release-manifest: ## Update manifest and Helm charts for release.
 ##@ Cleanup
 
 .PHONY: clean
-clean: ## Remove all generated files.
+clean: clean-bin ## Remove all generated and temporary files.
+
+.PHONY: clean-bin
+clean-bin: ## Remove all generated binaries.
 	@rm -rf $(BIN_DIR)
 
 ## --------------------------------------

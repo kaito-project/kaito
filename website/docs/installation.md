@@ -2,144 +2,90 @@
 title: Installation
 ---
 
-The following guidance assumes **Azure Kubernetes Service(AKS)** is used to host the Kubernetes cluster. If you want to use Elastic Kubernetes Service (EKS) instead, please follow the installation guide [here](https://github.com/kaito-project/kaito/blob/main/docs/aws/aws_installation.md).
+KAITO (Kubernetes AI Toolchain Operator) can be installed on any Kubernetes cluster using Helm. This guide covers the basic installation of the KAITO workspace controller.
+
+## Prerequisites
 
 Before you begin, ensure you have the following tools installed:
 
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) to provision Azure resources
-- [Helm](https://helm.sh) to install this operator
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) to view Kubernetes resources
-- [git](https://git-scm.com/downloads) to clone this repo locally
-- [yq](https://github.com/mikefarah/yq) to process yaml files
-- [jq](https://jqlang.github.io/jq/download) to process JSON files
+- An existing Kubernetes cluster (can be hosted on any cloud provider) with NVIDIA GPU nodes
+  - For cloud provider-specific guides, see:
+    - [Azure Setup using AKS](azure)
+    - [AWS Setup using EKS](aws)
+- [Helm](https://helm.sh) to install the operator
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) to interact with your Kubernetes cluster
 
-**Important Note**:
-Ensure you use a release branch of the repository for a stable version of the installation.
+## Install KAITO Workspace Controller
 
-If you do not already have an AKS cluster, run the following Azure CLI commands to create one:
-
-```bash
-export RESOURCE_GROUP="myResourceGroup"
-export MY_CLUSTER="myCluster"
-export LOCATION="eastus"
-az group create --name $RESOURCE_GROUP --location $LOCATION
-az aks create --resource-group $RESOURCE_GROUP --name $MY_CLUSTER --enable-oidc-issuer --enable-workload-identity --enable-managed-identity --generate-ssh-keys
-```
-
-Connect to the AKS cluster.
-
-```bash
-az aks get-credentials --resource-group $RESOURCE_GROUP --name $MY_CLUSTER
-```
-
-If you do not have `kubectl` installed locally, you can install using the following Azure CLI command.
-
-```bash
-az aks install-cli
-```
-
-## Install workspace controller
-
-> Be sure you've cloned this repo and connected to your AKS cluster before attempting to install the Helm charts.
-
-Install the Workspace controller.
+Install the KAITO workspace controller using Helm:
 
 ```bash
 export KAITO_WORKSPACE_VERSION=0.5.1
+export CLUSTER_NAME=kaito
 
-helm install kaito-workspace  --set clusterName=$MY_CLUSTER --wait \
-https://github.com/kaito-project/kaito/raw/gh-pages/charts/kaito/workspace-$KAITO_WORKSPACE_VERSION.tgz --namespace kaito-workspace --create-namespace
+helm install kaito-workspace \
+  https://github.com/kaito-project/kaito/raw/gh-pages/charts/kaito/workspace-$KAITO_WORKSPACE_VERSION.tgz \
+  --namespace kaito-workspace \
+  --create-namespace \
+  --set clusterName="$CLUSTER_NAME" \
+  --wait
 ```
 
-Note that if you have installed another node provisioning controller that supports Karpenter-core APIs, the following steps for installing `gpu-provisioner` can be skipped.
+### Verify KAITO Installation
 
-## Install gpu-provisioner controller
-
-#### Enable Workload Identity and OIDC Issuer features
-The *gpu-provisioner* controller requires the [workload identity](https://learn.microsoft.com/azure/aks/workload-identity-overview?tabs=dotnet) feature to acquire the access token to the AKS cluster.
-
-> Run the following commands only if your AKS cluster does not already have the Workload Identity and OIDC issuer features enabled.
+Check that the KAITO workspace controller is running:
 
 ```bash
-export RESOURCE_GROUP="myResourceGroup"
-export MY_CLUSTER="myCluster"
-az aks update -g $RESOURCE_GROUP -n $MY_CLUSTER --enable-oidc-issuer --enable-workload-identity --enable-managed-identity
-```
-
-#### Create an identity and assign permissions
-The identity `kaitoprovisioner` is created for the *gpu-provisioner* controller. It is assigned Contributor role for the managed cluster resource to allow changing `$MY_CLUSTER` (e.g., provisioning new nodes in it).
-```bash
-export SUBSCRIPTION=$(az account show --query id -o tsv)
-export IDENTITY_NAME="kaitoprovisioner"
-az identity create --name $IDENTITY_NAME -g $RESOURCE_GROUP
-export IDENTITY_PRINCIPAL_ID=$(az identity show --name $IDENTITY_NAME -g $RESOURCE_GROUP --subscription $SUBSCRIPTION --query 'principalId' -o tsv)
-az role assignment create --assignee $IDENTITY_PRINCIPAL_ID --scope /subscriptions/$SUBSCRIPTION/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ContainerService/managedClusters/$MY_CLUSTER  --role "Contributor"
-```
-
-#### Install helm charts
-
-**Important Note**:
-For kaito 0.4.2 and above, please use gpu-provisioner 0.3.2 or higher. For versions below kaito 0.4.2, please use gpu-provisioner 0.2.1.
-
-Install the Node provisioner controller.
-```bash
-# get additional values for helm chart install
-export GPU_PROVISIONER_VERSION=0.3.5
-
-curl -sO https://raw.githubusercontent.com/Azure/gpu-provisioner/main/hack/deploy/configure-helm-values.sh
-chmod +x ./configure-helm-values.sh && ./configure-helm-values.sh $MY_CLUSTER $RESOURCE_GROUP $IDENTITY_NAME
-
-helm install gpu-provisioner --values gpu-provisioner-values.yaml --set settings.azure.clusterName=$MY_CLUSTER --wait \
-https://github.com/Azure/gpu-provisioner/raw/gh-pages/charts/gpu-provisioner-$GPU_PROVISIONER_VERSION.tgz --namespace gpu-provisioner --create-namespace
-```
-
-#### Create the federated credential
-The federated identity credential between the managed identity `kaitoprovisioner` and the service account used by the *gpu-provisioner* controller is created.
-```bash
-export AKS_OIDC_ISSUER=$(az aks show -n $MY_CLUSTER -g $RESOURCE_GROUP --subscription $SUBSCRIPTION --query "oidcIssuerProfile.issuerUrl" -o tsv)
-az identity federated-credential create --name kaito-federatedcredential --identity-name $IDENTITY_NAME -g $RESOURCE_GROUP --issuer $AKS_OIDC_ISSUER --subject system:serviceaccount:"gpu-provisioner:gpu-provisioner" --audience api://AzureADTokenExchange --subscription $SUBSCRIPTION
-```
-Then the *gpu-provisioner* can access the managed cluster using a trust token with the same permissions of the `kaitoprovisioner` identity.
-Note that before finishing this step, the *gpu-provisioner* controller pod will constantly fail with the following message in the log:
-```
-panic: Configure azure client fails. Please ensure federatedcredential has been created for identity XXXX.
-```
-The pod will reach running state once the federated credential is created.
-
-## Verify installation
-You can run the following commands to verify the installation of the controllers were successful.
-
-Check status of the Helm chart installations.
-
-```bash
-helm list -n kaito-workspace
-helm list -n gpu-provisioner
-```
-
-Check status of the `workspace`.
-
-```bash
+kubectl get pods -n kaito-workspace
 kubectl describe deploy kaito-workspace -n kaito-workspace
 ```
 
-Check status of the `gpu-provisioner`.
+You should see the workspace controller pod in a `Running` state.
+
+## Setup GPU Nodes
+
+You need to create GPU nodes in order to run a Workspace with KAITO. There are two options:
+
+- **Bring your own GPU (BYO) nodes**: Create your own GPU nodes to run KAITO deployments on. 
+- **Auto-provisioning**: Set up automatic GPU node provisioning for your cloud provider. 
+
+### Option 1: Bring your own GPU nodes
+
+:::tip
+This is recommended if you just want to try KAITO with the least amount of setup required or if you only plan to use 1-2 GPU nodes. If your cloud provider is not listed in the [Auto-provisioning section](#option-2-auto-provision-gpu-nodes), you must create your own GPU nodes. If it is, you can still manually create the nodes if you don't want to setup auto-provisioning.
+:::
+
+Create your GPU nodes and label them for quick access. In these docs, we will use the label `accelerator=nvidia` but any label can work.
+
+List your your GPU nodes and verify that they are all present and ready.
 
 ```bash
-kubectl describe deploy gpu-provisioner -n gpu-provisioner
+kubectl get nodes -l accelerator=nvidia
 ```
 
-## Troubleshooting
-If you see that the `gpu-provisioner` deployment is not running after some time, it's possible that some values incorrect in your `values.ovveride.yaml`.
+The output should look similar to this. Note the names of the nodes as they will be specified when deploying a Workspace.
 
-Run the following command to check `gpu-provisioner` pod logs for additional details.
-
-```bash
-kubectl logs --selector=app.kubernetes.io\/name=gpu-provisioner -n gpu-provisioner
+```
+NAME                                  STATUS   ROLES    AGE     VERSION
+gpunp-26695285-vmss000000             Ready    <none>   2d21h   v1.31.9
+gpunp-26695285-vmss000001             Ready    <none>   2d21h   v1.31.9
 ```
 
-## Clean up
+### Option 2: Auto-provision GPU nodes
 
-```bash
-helm uninstall gpu-provisioner -n gpu-provisioner
-helm uninstall kaito-workspace -n kaito-workspace
-```
+:::tip
+This is recommended for production environments and any non-trivial use cases, or if you plan to use a number of nodes.
+:::
+
+The following cloud providers support auto-provisioning GPU nodes in addition to BYO nodes.
+
+- [Azure (AKS)](azure#setup-auto-provisioning) - Set up GPU auto-provisioning with Azure GPU Provisioner
+- [AWS (EKS)](aws#setup-auto-provisioning) - Set up GPU auto-provisioning with Karpenter
+
+## Next Steps
+
+Once KAITO is installed, you can:
+
+- Follow the [Quick Start](quick-start) guide to deploy your first model
+- Try auto-provisioning with cloud provider if you have not done so
+- Explore the available [model presets](presets)

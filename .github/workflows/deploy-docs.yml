@@ -31,12 +31,12 @@ jobs:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
     - name: Harden Runner
-      uses: step-security/harden-runner@6c439dc8bdf85cadbbce9ed30d1c7b959517bc49
+      uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911
       with:
         disable-sudo: true
         egress-policy: block
         allowed-endpoints: >
-          github.com:443 registry.yarnpkg.com:443 *.githubusercontent.com:443 *.blob.core.windows.net:443
+          github.com:443 registry.yarnpkg.com:443 registry.npmjs.org:443 *.githubusercontent.com:443 *.blob.core.windows.net:443
 
     - name: Setup Node
       uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0

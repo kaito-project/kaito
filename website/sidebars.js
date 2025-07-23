@@ -29,6 +29,15 @@ const sidebars = {
         },
         {
             type: 'category',
+            label: 'Cloud Providers',
+            collapsed: false,
+            items: [
+                'azure',
+                'aws',
+            ],
+        },
+        {
+            type: 'category',
             label: 'Features',
             collapsed: false,
             items: [
@@ -46,14 +55,6 @@ const sidebars = {
             collapsed: false,
             items: [
                 'aikit',
-            ],
-        },
-        {
-            type: 'category',
-            label: 'Cloud Providers',
-            collapsed: false,
-            items: [
-                'aws',
             ],
         },
         {

@@ -19,6 +19,7 @@ import (
 	"strconv"
 
 	"github.com/samber/lo"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -32,6 +33,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
@@ -86,7 +88,7 @@ var (
 	}
 )
 
-func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace, presetObj *pkgmodel.PresetParam) (string, []corev1.LocalObjectReference) {
+func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace) []corev1.LocalObjectReference {
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 	// Check if the workspace preset's access mode is private
 	if len(workspaceObj.Inference.Adapters) > 0 {
@@ -97,7 +99,7 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace,
 		}
 	}
 
-	return GetBaseImageName(), imagePullSecretRefs
+	return imagePullSecretRefs
 }
 
 // GenerateModelFileCacheVolume generates a volume for caching model files.
@@ -130,20 +132,6 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 // TODO: refactor this function
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
 	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
-	inferenceParam := model.GetInferenceParameters().DeepCopy()
-
-	configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx, kubeClient,
-		client.ObjectKey{
-			Name:      workspaceObj.Inference.Config,
-			Namespace: workspaceObj.Namespace,
-		},
-		client.ObjectKey{
-			Name: v1beta1.DefaultInferenceConfigTemplate,
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
 
 	// resource requirements
 	var skuNumGPUs int
@@ -153,7 +141,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	if err != nil {
 		gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, kubeClient, workspaceObj.Status.WorkerNodes)
 		if err != nil {
-			defaultNumGPU := resource.MustParse(inferenceParam.GPUCountRequirement)
+			defaultNumGPU := resource.MustParse(model.GetInferenceParameters().GPUCountRequirement)
 			skuNumGPUs = int(defaultNumGPU.Value())
 		}
 	}
@@ -161,7 +149,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		skuNumGPUs = gpuConfig.GPUCount
 		// Calculate the minimum number of nodes required to satisfy the model's total GPU memory requirement.
 		// The goal is to maximize GPU utilization and not spread the model across too many nodes.
-		totalGPUMemoryRequired := resource.MustParse(inferenceParam.TotalGPUMemoryRequirement)
+		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement)
 		totalGPUMemoryPerNode := resource.NewQuantity(int64(gpuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI)
 
 		minimumNodes := 0
@@ -172,103 +160,61 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 			numNodes = minimumNodes
 		}
 	}
-	resourceReq := corev1.ResourceRequirements{
-		Requests: corev1.ResourceList{
-			corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
-		},
-		Limits: corev1.ResourceList{
-			corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
-		},
+
+	gctx := &generator.WorkspaceGeneratorContext{
+		Ctx:        ctx,
+		KubeClient: kubeClient,
+		Workspace:  workspaceObj,
+		Model:      model,
+	}
+	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
+		GenerateInferencePodSpec(gpuConfig, skuNumGPUs, numNodes),
+		SetModelDownloadInfo,
+		SetAdapterPuller,
 	}
 
-	// additional volume
-	var volumes []corev1.Volume
-	var volumeMounts []corev1.VolumeMount
-	var envVars []corev1.EnvVar
-	var pvcs []corev1.PersistentVolumeClaim
-
-	// Add config volume mount
-	cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
-	volumes = append(volumes, cmVolume)
-	volumeMounts = append(volumeMounts, cmVolumeMount)
-
-	// add model weights volume mount
-	volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
-
-	// add share memory for cross process communication
-	shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
-	if shmVolume.Name != "" {
-		volumes = append(volumes, shmVolume)
-	}
-	if shmVolumeMount.Name != "" {
-		volumeMounts = append(volumeMounts, shmVolumeMount)
-	}
-
-	// add adapter volume mount if adapters are enabled
-	if len(workspaceObj.Inference.Adapters) > 0 {
-		adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
-		volumes = append(volumes, adapterVolume)
-		volumeMounts = append(volumeMounts, adapterVolumeMount)
-	}
-
-	// additional environment variables
-	if inferenceParam.DownloadAtRuntime {
-		envVars = append(envVars, corev1.EnvVar{
-			Name: "HF_TOKEN",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: workspaceObj.Inference.Preset.PresetOptions.ModelAccessSecret,
-					},
-					Key: "HF_TOKEN",
-				},
-			},
-		})
-	}
-
-	// additional initContainers
-	initContainers := manifests.GenerateModelPullerContainer(ctx, workspaceObj, inferenceParam)
-
-	// inference command
-	runtimeName := v1beta1.GetWorkspaceRuntimeName(workspaceObj)
-	commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
-		RuntimeName:          runtimeName,
-		GPUConfig:            gpuConfig,
-		ConfigVolume:         &cmVolumeMount,
-		SKUNumGPUs:           skuNumGPUs,
-		NumNodes:             numNodes,
-		WorkspaceMetadata:    workspaceObj.ObjectMeta,
-		DistributedInference: model.SupportDistributedInference(),
-		RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
-			AdaptersEnabled: len(workspaceObj.Inference.Adapters) > 0,
-		},
-	})
-
-	image, imagePullSecrets := GetInferenceImageInfo(ctx, workspaceObj, inferenceParam)
-
-	var depObj client.Object
 	// For multi-node distributed inference with vLLM, we need to use a StatefulSet instead of a Deployment
 	// to ensure pods are created with individual identities (their ordinal indexes) -
 	// https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-identity
-	if model.SupportDistributedInference() && runtimeName == pkgmodel.RuntimeNameVLLM && numNodes > 1 {
+	if shouldUseDistributedInference(gctx, numNodes) {
+		podOpts = append(podOpts, SetDistributedInferenceProbe)
+
+		var ssOpts []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]
 		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
-			pvcs = append(pvcs, GenerateModelWeightsCacheVolume(ctx, workspaceObj, model))
+			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
 		} else {
-			volumes = append(volumes, utils.DefaultModelWeightsVolume)
+			podOpts = append(podOpts, SetDefaultModelWeightsVolume)
 		}
 
-		// 60 seconds initial delay for liveness probe to allow workers to join the cluster
-		livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, workspaceObj, 60, 10, 5)
-		readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, workspaceObj, 0, 10, 1)
-		depObj = manifests.GenerateStatefulSetManifest(workspaceObj, revisionNum, image, imagePullSecrets, numNodes, commands,
-			containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars, initContainers, pvcs)
-	} else {
-		volumes = append(volumes, utils.DefaultModelWeightsVolume)
+		podSpec, err := generator.GenerateManifest(gctx, podOpts...)
+		if err != nil {
+			return nil, err
+		}
 
-		depObj = manifests.GenerateDeploymentManifest(workspaceObj, revisionNum, image, imagePullSecrets, numNodes, commands,
-			containerPorts, defaultLivenessProbe, defaultReadinessProbe, resourceReq, tolerations, volumes, volumeMounts, envVars, initContainers)
+		ssOpts = append(ssOpts,
+			manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
+			manifests.SetStatefulSetPodSpec(podSpec),
+		)
+
+		return generator.GenerateManifest(gctx, ssOpts...)
+	} else {
+		podOpts = append(podOpts, SetDefaultModelWeightsVolume)
+
+		podSpec, err := generator.GenerateManifest(gctx, podOpts...)
+		if err != nil {
+			return nil, err
+		}
+
+		return generator.GenerateManifest(gctx,
+			manifests.GenerateDeploymentManifest(revisionNum, numNodes),
+			manifests.SetDeploymentPodSpec(podSpec),
+		)
 	}
-	return depObj, nil
+}
+
+func shouldUseDistributedInference(ctx *generator.WorkspaceGeneratorContext, numNodes int) bool {
+	runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
+	return ctx.Model.SupportDistributedInference() && runtimeName == pkgmodel.RuntimeNameVLLM && numNodes > 1
 }
 
 type probeType string
@@ -339,4 +285,181 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 func GetBaseImageName() string {
 	presetObj := metadata.MustGet("base")
 	return utils.GetPresetImageName(presetObj.Name, presetObj.Tag)
+}
+
+func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs, numNodes int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+		configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx.Ctx, ctx.KubeClient,
+			client.ObjectKey{
+				Name:      ctx.Workspace.Inference.Config,
+				Namespace: ctx.Workspace.Namespace,
+			},
+			client.ObjectKey{
+				Name: v1beta1.DefaultInferenceConfigTemplate,
+			},
+		)
+		if err != nil {
+			return err
+		}
+
+		// additional volume
+		var volumes []corev1.Volume
+		var volumeMounts []corev1.VolumeMount
+
+		// Add config volume mount
+		cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
+		volumes = append(volumes, cmVolume)
+		volumeMounts = append(volumeMounts, cmVolumeMount)
+
+		// add model weights volume mount
+		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+
+		// add share memory for cross process communication
+		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
+		volumes = append(volumes, shmVolume)
+		volumeMounts = append(volumeMounts, shmVolumeMount)
+
+		// node selector
+		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ctx.Workspace.Resource.LabelSelector.MatchLabels))
+		for key, value := range ctx.Workspace.Resource.LabelSelector.MatchLabels {
+			nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
+				Key:      key,
+				Operator: corev1.NodeSelectorOpIn,
+				Values:   []string{value},
+			})
+		}
+
+		// resource requirements
+		resourceReq := corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+			},
+			Limits: corev1.ResourceList{
+				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+			},
+		}
+
+		// inference command
+		inferenceParam := ctx.Model.GetInferenceParameters().DeepCopy()
+		runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
+		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
+			RuntimeName:          runtimeName,
+			GPUConfig:            gpuConfig,
+			ConfigVolume:         &cmVolumeMount,
+			SKUNumGPUs:           skuNumGPUs,
+			NumNodes:             numNodes,
+			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
+			DistributedInference: ctx.Model.SupportDistributedInference(),
+			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
+				AdaptersEnabled: len(ctx.Workspace.Inference.Adapters) > 0,
+			},
+		})
+
+		spec.Affinity = &corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{
+						{
+							MatchExpressions: nodeRequirements,
+						},
+					},
+				},
+			},
+		}
+		spec.ImagePullSecrets = GetInferenceImageInfo(ctx.Ctx, ctx.Workspace)
+		spec.Containers = []corev1.Container{
+			{
+				Name:           ctx.Workspace.Name,
+				Image:          GetBaseImageName(),
+				Command:        commands,
+				Resources:      resourceReq,
+				Ports:          containerPorts,
+				LivenessProbe:  defaultLivenessProbe,
+				ReadinessProbe: defaultReadinessProbe,
+				VolumeMounts:   volumeMounts,
+			},
+		}
+		spec.Tolerations = tolerations
+		spec.Volumes = volumes
+
+		return nil
+	}
+}
+
+func SetModelDownloadInfo(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	if ctx.Model.GetInferenceParameters().DownloadAtRuntime {
+		envvar := corev1.EnvVar{
+			Name: "HF_TOKEN",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret,
+					},
+					Key: "HF_TOKEN",
+				},
+			},
+		}
+
+		for i := range spec.Containers {
+			// add HF_TOKEN env var to all containers
+			spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
+		}
+		return nil
+	}
+
+	// additional initContainers
+	initContainers := manifests.GenerateModelPullerContainer(ctx.Ctx, ctx.Workspace, ctx.Model.GetInferenceParameters())
+	spec.InitContainers = append(spec.InitContainers, initContainers...)
+	return nil
+}
+
+func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	if len(ctx.Workspace.Inference.Adapters) == 0 {
+		return nil
+	}
+
+	// add adapter volume mount if adapters are enabled
+	adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
+	spec.Volumes = append(spec.Volumes, adapterVolume)
+	for i := range spec.Containers { // FIXME: assume only one container in the pod
+		spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, adapterVolumeMount)
+	}
+
+	// add container to pull adapters
+	volumeMounts := []corev1.VolumeMount{adapterVolumeMount}
+	pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(ctx.Workspace, volumeMounts)
+	spec.InitContainers = append(spec.InitContainers, pullerContainers...)
+	spec.Volumes = append(spec.Volumes, pullerVolumes...)
+	for i := range spec.Containers { // FIXME: assume only one container in the pod
+		spec.Containers[i].Env = append(spec.Containers[i].Env, pullerEnvVars...)
+	}
+	return nil
+}
+
+func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	// 60 seconds initial delay for liveness probe to allow workers to join the cluster
+	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5)
+	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1)
+	envVar := corev1.EnvVar{
+		Name: "POD_INDEX",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: fmt.Sprintf("metadata.labels['%s']", appsv1.PodIndexLabel),
+			},
+		},
+	}
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == ctx.Workspace.Name {
+			spec.Containers[i].LivenessProbe = livenessProbe
+			spec.Containers[i].ReadinessProbe = readinessProbe
+			spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)
+			break
+		}
+	}
+	return nil
+}
+
+func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	spec.Volumes = append(spec.Volumes, utils.DefaultModelWeightsVolume)
+	return nil
 }

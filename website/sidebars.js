@@ -42,6 +42,14 @@ const sidebars = {
         },
         {
             type: 'category',
+            label: 'Integrations',
+            collapsed: false,
+            items: [
+                'aikit',
+            ],
+        },
+        {
+            type: 'category',
             label: 'Cloud Providers',
             collapsed: false,
             items: [

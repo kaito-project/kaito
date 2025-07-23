@@ -36,6 +36,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
 
@@ -469,7 +470,7 @@ func GenerateInferenceModels(workspaceObj *v1beta1.Workspace) []*gaiev1alpha2.In
 // GenerateEndpointPickerComponents generates the necessary components for the Endpoint Picker
 // of a given Workspace object. See https://gateway-api-inference-extension.sigs.k8s.io/guides/implementers/#callout-extension
 // for more details.
-func GenerateEndpointPickerComponents(workspaceObj *v1beta1.Workspace) []client.Object {
+func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Client, workspaceObj *v1beta1.Workspace) ([]client.Object, error) {
 	eppName := fmt.Sprintf("%s-epp", workspaceObj.Name)
 	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: v1.ObjectMeta{
@@ -537,6 +538,24 @@ func GenerateEndpointPickerComponents(workspaceObj *v1beta1.Workspace) []client.
 		},
 	}
 
+	// Mount
+	configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx, kubeClient,
+		client.ObjectKey{
+			Name:      workspaceObj.Inference.Config,
+			Namespace: workspaceObj.Namespace,
+		},
+		client.ObjectKey{
+			Name: v1beta1.DefaultInferenceConfigTemplate,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure config volume: %w", err)
+	}
+
+	cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name, corev1.KeyToPath{
+		Key:  consts.EndpointPickerConfigKey,
+		Path: consts.EndpointPickerConfigKey,
+	})
 	deployment := &appsv1.Deployment{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      eppName,
@@ -577,18 +596,6 @@ func GenerateEndpointPickerComponents(workspaceObj *v1beta1.Workspace) []client.
 								"-grpcHealthPort", "9003",
 								"-metricsPort", "9090",
 							},
-							Env: []corev1.EnvVar{
-								{
-									// prefix caching requires scheduler v2
-									Name:  "EXPERIMENTAL_USE_SCHEDULER_V2",
-									Value: "true",
-								},
-								{
-									// enables prefix cache scheduling
-									Name:  "ENABLE_PREFIX_CACHE_SCHEDULING",
-									Value: "true",
-								},
-							},
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "grpc",
@@ -603,6 +610,7 @@ func GenerateEndpointPickerComponents(workspaceObj *v1beta1.Workspace) []client.
 									ContainerPort: 9090,
 								},
 							},
+							VolumeMounts: []corev1.VolumeMount{cmVolumeMount},
 							LivenessProbe: &corev1.Probe{
 								ProbeHandler: corev1.ProbeHandler{
 									GRPC: &corev1.GRPCAction{
@@ -621,6 +629,7 @@ func GenerateEndpointPickerComponents(workspaceObj *v1beta1.Workspace) []client.
 							},
 						},
 					},
+					Volumes: []corev1.Volume{cmVolume},
 				},
 			},
 		},
@@ -664,5 +673,5 @@ func GenerateEndpointPickerComponents(workspaceObj *v1beta1.Workspace) []client.
 		roleBinding,
 		deployment,
 		service,
-	}
+	}, nil
 }

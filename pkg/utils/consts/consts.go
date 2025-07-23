@@ -53,6 +53,12 @@ const (
 
 	// PortInferenceServer is the default port for the inference server.
 	PortInferenceServer = int32(5000)
+
+	// InferenceConfigKey is the key for accessing the Inference configuration from the inference configmap.
+	InferenceConfigKey = "inference_config.yaml"
+
+	// EndpointPickerConfigKey is the key for accessing the Endpoint Picker configuration from the inference configmap.
+	EndpointPickerConfigKey = "epp-config.yaml"
 )
 
 var (

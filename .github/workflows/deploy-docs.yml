@@ -36,7 +36,7 @@ jobs:
         disable-sudo: true
         egress-policy: block
         allowed-endpoints: >
-          github.com:443 registry.yarnpkg.com:443 *.githubusercontent.com:443 *.blob.core.windows.net:443
+          github.com:443 registry.yarnpkg.com:443 registry.npmjs.org:443 *.githubusercontent.com:443 *.blob.core.windows.net:443
 
     - name: Setup Node
       uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0

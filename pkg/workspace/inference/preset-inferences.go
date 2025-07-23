@@ -322,7 +322,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		var volumeMounts []corev1.VolumeMount
 
 		// Add config volume mount
-		cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
+		cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name, corev1.KeyToPath{
+			Key:  consts.InferenceConfigKey,
+			Path: consts.InferenceConfigKey,
+		})
 		volumes = append(volumes, cmVolume)
 		volumeMounts = append(volumeMounts, cmVolumeMount)
 

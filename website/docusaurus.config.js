@@ -125,6 +125,12 @@ const config = {
                 id: 'announcementBar-1', // Increment on change
                 content: `⭐️ If you like KAITO, please give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/kaito-project/kaito">GitHub</a>!</a>`,
             },
+            algolia: {
+                appId: process.env.ALGOLIA_APP_ID || "DUMMY_APP_ID",
+                apiKey: process.env.ALGOLIA_API_KEY || "DUMMY_API_KEY",
+                indexName: 'KAITO',
+                contextualSearch: true,
+            }
         }),
 };
 

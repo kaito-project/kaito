@@ -138,7 +138,7 @@ Once set up, you can create workspaces that automatically provision GPU nodes:
 apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
-  name: auto-provisioned-workspace
+  name: workspace-phi-4-mini
 resource:
   instanceType: "Standard_NC6s_v3"  # Will trigger node creation
   labelSelector:

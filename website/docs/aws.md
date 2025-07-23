@@ -26,7 +26,7 @@ Alternative: If you already have GPU nodes or manage them separately, use the pr
 
 ## Setup Auto-Provisioning
 
-## Create EKS Cluster and install Karpenter
+### Create EKS Cluster and install Karpenter
 
 Follow the instructions [here](https://karpenter.sh/docs/getting-started/getting-started-with-karpenter/) to create an EKS cluster and install Karpenter.
 
@@ -36,7 +36,7 @@ Then update the KAITO workspace controller Helm chart values for AWS:
 helm update kaito-workspace --namespace kaito-workspace --set cloudProviderName=aws
 ```
 
-## Using Auto-Provisioning
+### Using Auto-Provisioning
 
 Once Karpenter is set up, you can create workspaces that automatically provision GPU nodes:
 
@@ -44,9 +44,9 @@ Once Karpenter is set up, you can create workspaces that automatically provision
 apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
-  name: auto-provisioned-workspace
+  name: workspace-phi-4-mini
 resource:
-  instanceType: "g5.4xlarge"  # Will trigger node creation
+  instanceType: "g5.4xlarge" # Will trigger node creation
   labelSelector:
     matchLabels:
       apps: phi-4-mini

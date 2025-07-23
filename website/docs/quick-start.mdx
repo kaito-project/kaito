@@ -60,26 +60,6 @@ inference:
     name: phi-4-mini-instruct
 ```
 
-:::tip
-If you know the instance type of the nodes, you can specify that instead of listing them in the `preferredNodes` field.
-
-```yaml title="phi-4-workspace.yaml"
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  name: workspace-phi-4-mini
-resource:
-  instanceType: "Standard_NC6s_v3" # Substitute with your instance type
-  labelSelector:
-    matchLabels:
-      apps: llm-inference
-inference:
-  preset:
-    name: phi-4-mini-instruct
-```
-
-:::
-
 Apply your configuration to your cluster:
 
 ```bash

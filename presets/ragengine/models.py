@@ -106,7 +106,7 @@ class HealthStatus(BaseModel):
     detail: Optional[str] = None
 
 class ChatCompletionResponse(ChatCompletion):
-    source_nodes: List[NodeWithScore]
+    source_nodes: Optional[List[NodeWithScore]] = None
 
 def messages_to_prompt(messages: List[Dict]) -> str:
     """Convert messages to a prompt string."""

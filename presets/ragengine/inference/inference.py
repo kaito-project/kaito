@@ -24,8 +24,14 @@ import requests
 from requests.exceptions import HTTPError
 from urllib.parse import urlparse, urljoin
 from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET #, LLM_RESPONSE_FIELD
+from ragengine.models import ChatCompletionResponse
 from fastapi import HTTPException
 import concurrent.futures
+import json
+
+from openai.types.chat import (
+    CompletionCreateParams,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -102,6 +108,28 @@ class Inference(CustomLLM):
         finally:
             # Clear params after the completion is done
             self.params = {}
+    
+    async def chat_completions_passthrough(self, chatCompletionsRequest: CompletionCreateParams, **kwargs: Any) -> ChatCompletionResponse:
+        try:
+            client = await self._get_httpx_client()
+            # Use v1/chat/completions endpoint for chat completions passthrough
+            chat_completions_url = LLM_INFERENCE_URL.replace("/v1/completions", "/v1/chat/completions")
+            response = await client.post(chat_completions_url, json=chatCompletionsRequest, headers=DEFAULT_HEADERS)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            response_data = response.json()
+            # Convert to ChatCompletionResponse with source_nodes=None for passthrough
+            return ChatCompletionResponse(**response_data, source_nodes=None)
+        except HTTPException as http_exc:
+            raise http_exc
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error {e.response.status_code} during POST request to {chat_completions_url}: {e.response.text}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"{str(e.response.content)}")
+        except httpx.RequestError as e:
+            logger.error(f"Error during POST request to {chat_completions_url}: {e}")
+            raise HTTPException(status_code=500, detail=f"Error during POST request: {str(e)}")
+        except Exception as e:
+            logger.error(f"Unexpected error during POST request: {e}")
+            raise HTTPException(status_code=500, detail=f"Error during POST request: {str(e)}")
 
     async def _async_openai_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         return await OpenAI(api_key=LLM_ACCESS_SECRET, **kwargs).acomplete(prompt)

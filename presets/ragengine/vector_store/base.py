@@ -228,18 +228,18 @@ class BaseVectorStore(ABC):
 
         if openai_request is None:
             logger.error(f"Invalid request format: {str(last_error)}")
-            raise HTTPException(status_code=422, detail=f"Invalid request format: {str(last_error)}")
+            raise HTTPException(status_code=400, detail=f"Invalid request format: {str(last_error)}")
 
         should_passthrough_request = False
         # Only support RAG usage on user/system/developer roles in messages and only text content
         for message in request.get("messages", []):
             # Every message must have a role
             if not message.get("role"):
-                raise HTTPException(status_code=422, detail=f"Invalid request format: messages must contain 'role'.")
+                raise HTTPException(status_code=400, detail=f"Invalid request format: messages must contain 'role'.")
             
             # Every message must have content aside from assistant role messages
-            if message.get("role") is not "assistant" and message.get("content") is None:
-                raise HTTPException(status_code=422, detail=f"Invalid request format: messages must contain 'content' for role '{message.get('role')}'.")
+            if message.get("role") != "assistant" and message.get("content") is None:
+                raise HTTPException(status_code=400, detail=f"Invalid request format: messages must contain 'content' for role '{message.get('role')}'.")
 
             # Only user, system, and developer roles are supported for RAG
             if message.get("role") not in ["user", "system", "assistant", "developer"]:
@@ -248,8 +248,18 @@ class BaseVectorStore(ABC):
 
             # User message content can be a range of options, but we only support text content for RAG
             if message.get("role") == "user":
-                if message.get("content") and not (isinstance(message.get("content"), str) or isinstance(message.get("content"), ChatCompletionContentPartTextParam)):
-                    should_passthrough_request = True
+                if message.get("content"):
+                    content = message.get("content")
+                    if isinstance(content, list):
+                        for part in content:
+                            if not isinstance(part, str) and part.get("type") != "text":
+                                should_passthrough_request = True
+                                break
+                    elif isinstance(content, str):
+                        pass
+                    elif isinstance(content, ChatCompletionContentPartTextParam):
+                        pass
+                    
 
         if request.get("tools") or request.get("functions"):
             should_passthrough_request = True
@@ -265,7 +275,7 @@ class BaseVectorStore(ABC):
             # If the request contains tools, functions, or unsupported message content, we cannot use the chat engine
             # and should pass it through to the LLM directly.
             logger.info("Request contains tools, functions, or unsupported message content, passing through to LLM directly.")
-            return await self.llm.achat_completion(openai_request)
+            return await self.llm.chat_completions_passthrough(openai_request)
 
         prompt = messages_to_prompt(request.get("messages", []))
 

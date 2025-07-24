@@ -197,8 +197,10 @@ async def index_documents(request: IndexRequest):
         status = STATUS_SUCCESS
         return documents
     except HTTPException as http_exc:
+        print(f"HTTP Exception during indexing: {http_exc.detail}")
         raise http_exc
     except Exception as e:
+        print(f"Unexpected error during indexing: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block
@@ -276,10 +278,13 @@ async def query_index(request: QueryRequest):
         return result
     except HTTPException as http_exc:
         # Preserve HTTP exceptions like 422 from reranker
+        print(f"HTTP Exception during query: {http_exc.detail}")
         raise http_exc
     except ValueError as ve:
+        print(f"ValueError during query: {str(ve)}")
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:
+        print(f"Unexpected error during query: {str(e)}")
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )

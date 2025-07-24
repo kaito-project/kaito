@@ -851,7 +851,11 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 		errs = append(errs, client.IgnoreAlreadyExists(err))
 	}
 
-	for _, component := range manifests.GenerateEndpointPickerComponents(wObj) {
+	components, err := manifests.GenerateEndpointPickerComponents(ctx, c.Client, wObj)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("failed to generate endpoint picker components: %w", err))
+	}
+	for _, component := range components {
 		err := resources.CreateResource(ctx, component, c.Client)
 		errs = append(errs, client.IgnoreAlreadyExists(err))
 	}

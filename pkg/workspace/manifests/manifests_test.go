@@ -14,10 +14,12 @@
 package manifests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -126,7 +128,13 @@ func TestGenerateInferenceModels(t *testing.T) {
 func TestGenerateEndpointPickerComponents(t *testing.T) {
 	workspace := test.MockWorkspaceWithPreset
 	eppName := fmt.Sprintf("%s-epp", workspace.Name)
-	components := GenerateEndpointPickerComponents(workspace)
+
+	// Setup the mock kubernetes client
+	mockClient := test.NewClient()
+	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+
+	components, err := GenerateEndpointPickerComponents(context.Background(), mockClient, workspace)
+	assert.NoError(t, err, "Expected no error generating Endpoint Picker components")
 	assert.Len(t, components, 5, "Expected 5 components for Endpoint Picker - 1 Deployment, 1 Service, 1 ServiceAccount, 1 Role, 1 RoleBinding")
 	for _, component := range components {
 		assert.Equal(t, component.GetName(), eppName)
@@ -156,10 +164,11 @@ func TestGenerateEndpointPickerComponents(t *testing.T) {
 			assert.Equal(t, obj.Spec.Template.Spec.Containers[0].Args, []string{
 				"-poolName", workspace.Name,
 				"-poolNamespace", workspace.Namespace,
-				"-v", "3",
+				"--v", "3",
 				"-grpcPort", "9002",
 				"-grpcHealthPort", "9003",
 				"-metricsPort", "9090",
+				"-configFile", "/mnt/config/epp-config.yaml",
 			})
 		case *rbacv1.Role:
 			assert.Equal(t, obj.Rules, []rbacv1.PolicyRule{

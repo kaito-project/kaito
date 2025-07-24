@@ -798,10 +798,13 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 				}
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
+				// Add Get calls for preferred nodes
+				c.On("Get", mock.IsType(context.Background()), client.ObjectKey{Name: "node-p1"}, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), client.ObjectKey{Name: "node-p2"}, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
 			},
 			workspace:     mockWorkspaceWithPreferredNodes,
 			expectedError: nil,
-			expectedNodes: []string{"node-p1"},
+			expectedNodes: []string{"node-p1", "node-p2"},
 		},
 	}
 

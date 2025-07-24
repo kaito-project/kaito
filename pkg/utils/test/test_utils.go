@@ -247,6 +247,29 @@ var (
 			},
 		},
 	}
+	MockWorkspaceWithPresetVLLMPreferredNodes = &v1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testWorkspace",
+			Namespace: "kaito",
+		},
+		Resource: v1beta1.ResourceSpec{
+			Count:        &gpuNodeCount,
+			InstanceType: "Standard_NC12s_v3",
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"apps": "test",
+				},
+			},
+			PreferredNodes: []string{"node1", "node2"},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
+					Name: "test-model",
+				},
+			},
+		},
+	}
 	MockWorkspaceWithPresetDownloadVLLM = &v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",

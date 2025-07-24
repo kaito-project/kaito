@@ -32,7 +32,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
@@ -394,20 +393,18 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, error) {
 	var qualifiedNodes []*corev1.Node
 
-	nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
+	labeledNodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(nodeList.Items) == 0 {
+	if len(labeledNodeList.Items) == 0 {
 		klog.InfoS("no current nodes match the workspace resource spec", "workspace", klog.KObj(wObj))
 		return nil, nil
 	}
 
-	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
-
-	for index := range nodeList.Items {
-		nodeObj := nodeList.Items[index]
+	for index := range labeledNodeList.Items {
+		nodeObj := labeledNodeList.Items[index]
 		// skip nodes that are being deleted
 		if nodeObj.DeletionTimestamp != nil {
 			continue
@@ -421,17 +418,19 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 			continue
 		}
 
-		// match the preferred node
-		if preferredNodeSet.Has(nodeObj.Name) {
-			qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
-			continue
-		}
-
 		// match the instanceType
 		if len(wObj.Resource.PreferredNodes) == 0 { // don't match in perferred nodes mode
 			if nodeObj.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
 				qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
 			}
+		}
+	}
+
+	for _, nodeName := range wObj.Resource.PreferredNodes {
+		if node, err := resources.GetNode(ctx, nodeName, c.Client); err != nil {
+			return nil, fmt.Errorf("failed to get preferred node %s: %w", nodeName, err)
+		} else {
+			qualifiedNodes = append(qualifiedNodes, node)
 		}
 	}
 

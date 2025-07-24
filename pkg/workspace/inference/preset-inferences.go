@@ -302,7 +302,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs, numNodes int
 			return err
 		}
 
-		// additional volume
+		// Additional volume
 		var volumes []corev1.Volume
 		var volumeMounts []corev1.VolumeMount
 
@@ -311,24 +311,33 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs, numNodes int
 		volumes = append(volumes, cmVolume)
 		volumeMounts = append(volumeMounts, cmVolumeMount)
 
-		// add model weights volume mount
+		// Add model weights volume mount
 		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
 
-		// add share memory for cross process communication
+		// Add share memory for cross process communication
 		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
 		volumes = append(volumes, shmVolume)
 		volumeMounts = append(volumeMounts, shmVolumeMount)
 
-		// node selector
-		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ctx.Workspace.Resource.LabelSelector.MatchLabels))
+		// Node selector based on LabelSelector
+		nodeLabelRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ctx.Workspace.Resource.LabelSelector.MatchLabels))
 		for key, value := range ctx.Workspace.Resource.LabelSelector.MatchLabels {
-			nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
+			nodeLabelRequirements = append(nodeLabelRequirements, corev1.NodeSelectorRequirement{
 				Key:      key,
 				Operator: corev1.NodeSelectorOpIn,
 				Values:   []string{value},
 			})
 		}
 
+		// Node selector based on matching the value of the Hostname label with the names of the preferred nodes.
+		// Note: only one requirement is needed here with a list of values isntead of multiple requirements like above.
+		nodeHostnameRequirements := []corev1.NodeSelectorRequirement{
+			{
+				Key:      corev1.LabelHostname,
+				Operator: corev1.NodeSelectorOpIn,
+				Values:   ctx.Workspace.Resource.PreferredNodes,
+			},
+		}
 		// resource requirements
 		resourceReq := corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
@@ -360,7 +369,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs, numNodes int
 				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
 					NodeSelectorTerms: []corev1.NodeSelectorTerm{
 						{
-							MatchExpressions: nodeRequirements,
+							MatchExpressions: nodeLabelRequirements,
+						},
+						{
+							MatchExpressions: nodeHostnameRequirements,
 						},
 					},
 				},

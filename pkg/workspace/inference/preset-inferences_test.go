@@ -148,6 +148,19 @@ func TestGeneratePresetInference(t *testing.T) {
 			}},
 		},
 
+		"test-model-with-preferred-nodes/vllm": {
+			workspace: test.MockWorkspaceWithPresetVLLMPreferredNodes,
+			nodeCount: 1,
+			modelName: "test-model",
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+			},
+			workload:           "Deployment",
+			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
+			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --served-model-name=mymodel --gpu-memory-utilization=0.90 --kaito-config-file=/mnt/config/inference_config.yaml",
+			hasAdapters:        false,
+		},
+
 		"test-model-download/vllm": {
 			workspace: test.MockWorkspaceWithPresetDownloadVLLM,
 			nodeCount: 1,
@@ -265,6 +278,7 @@ func TestGeneratePresetInference(t *testing.T) {
 
 			workspace := tc.workspace
 			workspace.Resource.Count = &tc.nodeCount
+
 			expectedSecrets := []string{"fake-secret"}
 			if tc.hasAdapters {
 				workspace.Inference.Adapters = []v1beta1.AdapterSpec{
@@ -361,6 +375,44 @@ func TestGeneratePresetInference(t *testing.T) {
 
 			if !reflect.DeepEqual(params, expectedParams) {
 				t.Errorf("%s parameters are not expected, got %s, expect %s ", k, params, expectedParams)
+			}
+
+			// Check node affinity for workspaces with preferred nodes
+			if len(workspace.Resource.PreferredNodes) > 0 {
+				var affinity *corev1.Affinity
+				if tc.workload == "Deployment" {
+					affinity = createdObject.(*appsv1.Deployment).Spec.Template.Spec.Affinity
+				} else {
+					affinity = createdObject.(*appsv1.StatefulSet).Spec.Template.Spec.Affinity
+				}
+
+				if affinity == nil || affinity.NodeAffinity == nil || affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution == nil {
+					t.Errorf("%s: expected node affinity to be set for workspace with preferred nodes", k)
+				} else {
+					nodeSelector := affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+					if len(nodeSelector.NodeSelectorTerms) != 2 {
+						t.Errorf("%s: expected 2 node selector terms (label selector + hostname selector), got %d", k, len(nodeSelector.NodeSelectorTerms))
+					} else {
+						// Check that one term has the hostname selector for preferred nodes
+						found := false
+						for _, term := range nodeSelector.NodeSelectorTerms {
+							for _, expr := range term.MatchExpressions {
+								if expr.Key == corev1.LabelHostname && expr.Operator == corev1.NodeSelectorOpIn {
+									if reflect.DeepEqual(expr.Values, workspace.Resource.PreferredNodes) {
+										found = true
+										break
+									}
+								}
+							}
+							if found {
+								break
+							}
+						}
+						if !found {
+							t.Errorf("%s: expected hostname selector with preferred nodes %v in node affinity", k, workspace.Resource.PreferredNodes)
+						}
+					}
+				}
 			}
 
 			// Check for adapter volume

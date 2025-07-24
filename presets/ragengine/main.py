@@ -23,8 +23,12 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
                     QueryRequest, QueryResponse, Document, HealthStatus, DeleteDocumentRequest,
                     DeleteDocumentResponse, UpdateDocumentResponse, messages_to_prompt,
-                    ChatCompletionRequest, ChatCompletionResponse, ChatCompletionMessage, 
-                    ChatCompletionChoice)
+                    ChatCompletionResponse, )
+
+from openai.types.chat import (
+    CompletionCreateParams,
+)
+
 from vector_store.faiss_store import FaissVectorStoreHandler
 
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
@@ -70,8 +74,8 @@ from ragengine.metrics.prometheus_metrics import (
 app = FastAPI()
 @app.middleware("http")
 async def track_requests(request: Request, call_next):
-    tracked_paths = ["/query", "/index", "/indexes", "/persist", "/load"]
-    
+    tracked_paths = ["/query", "/index", "/indexes", "/persist", "/load", "/v1/chat/completions"]
+
     should_track = any(request.url.path.startswith(path) for path in tracked_paths)
     
     if not should_track:
@@ -333,64 +337,14 @@ async def query_index(request: QueryRequest):
     ```
     """,
 )
-async def chat_completions(request: ChatCompletionRequest):
+async def chat_completions(request: dict):
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
     
     try:
-        # Build LLM parameters from request
-        llm_params = {}
-        if request.temperature is not None:
-            llm_params["temperature"] = request.temperature
-        if request.max_tokens is not None:
-            llm_params["max_tokens"] = request.max_tokens
-        if request.top_p is not None:
-            llm_params["top_p"] = request.top_p
-        if request.model is not None:
-            llm_params["model"] = request.model
-            
-        rerank_params = request.rerank_params or {}
-        query_text = messages_to_prompt(request.messages)
-        
-        result_dict = await rag_ops.query(
-            request.index_name, query_text, request.top_k, llm_params, rerank_params
-        )
-        
-        # Create the assistant message
-        assistant_message = ChatCompletionMessage(
-            role="assistant",
-            content=result_dict["response"]
-        )
-        
-        # Create choice
-        choice = ChatCompletionChoice(
-            index=0,
-            message=assistant_message,
-            finish_reason="stop"
-        )
-        
-        # Create the final response
-        response = ChatCompletionResponse(
-            id=f"{uuid.uuid4().hex}",
-            object="chat.completion",
-            created=int(time.time()),
-            model=request.model,
-            choices=[choice],
-            source_nodes=result_dict.get("source_nodes", [])
-        )
-        
-        # Record source retrieval quality metrics
-        if response.source_nodes and response.choices:
-            lowest_score_node = min(response.source_nodes, key=lambda x: x.score)
-            rag_lowest_source_score.observe(lowest_score_node.score)
-
-            scores = [node.score for node in response.source_nodes]
-            avg_score = sum(scores) / len(scores)
-            rag_avg_source_score.observe(avg_score)
-   
+        response = await rag_ops.chat_completion(request)
         status = STATUS_SUCCESS
         return response
-        
     except HTTPException as http_exc:
         # Preserve HTTP exceptions like 422 from reranker
         raise http_exc

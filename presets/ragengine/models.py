@@ -12,9 +12,19 @@
 # limitations under the License.
 
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Concatenate, Dict, List, Optional, Union, Type, TypedDict, Iterable, get_type_hints, get_args
+from typing_extensions import Literal, Required, Optional
+from openai.types.chat import (
+    ChatCompletion,
+    CompletionCreateParams,
+    ChatCompletionMessageParam,
+    ChatCompletionUserMessageParam,
+    ChatCompletionSystemMessageParam,
+    ChatCompletionDeveloperMessageParam,
+    ChatCompletionContentPartTextParam,
+)
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, ValidationError, create_model
 
 
 class Document(BaseModel):
@@ -91,61 +101,28 @@ class QueryResponse(BaseModel):
     source_nodes: List[NodeWithScore]
     metadata: Optional[dict] = None
 
-class TextContent(BaseModel):
-    type: str = "text"
-    text: str
-
-class ChatCompletionMessage(BaseModel):
-    role: str
-    content: str | TextContent
-
-class ChatCompletionRequest(BaseModel):
-    index_name: str
-    model: str
-    messages: List[ChatCompletionMessage]
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
-    top_p: Optional[float] = None
-    stream: Optional[bool] = None
-    # RAG-specific parameters
-    top_k: Optional[int] = None
-    rerank_params: Optional[Dict[str, Any]] = Field(
-        default_factory=dict,
-        description="Experimental: Optional parameters for reranking. Only 'top_n' and 'choice_batch_size' are supported.",
-    )
-
-class ChatCompletionChoice(BaseModel):
-    index: int
-    message: ChatCompletionMessage
-    finish_reason: str
-
-class ChatCompletionUsage(BaseModel):
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
-
-class ChatCompletionResponse(BaseModel):
-    id: str
-    object: str = "chat.completion"
-    created: int
-    model: str
-    choices: List[ChatCompletionChoice]
-    usage: Optional[ChatCompletionUsage] = None
-    # RAG-specific metadata
-    source_nodes: List[NodeWithScore]
-
 class HealthStatus(BaseModel):
     status: str
     detail: Optional[str] = None
 
+class ChatCompletionResponse(ChatCompletion):
+    source_nodes: List[NodeWithScore]
 
-def messages_to_prompt(messages: List[ChatCompletionMessage]) -> str:
+def messages_to_prompt(messages: List[Dict]) -> str:
     """Convert messages to a prompt string."""
     string_messages = []
     for message in messages:
-        if isinstance(message.content, TextContent):
-            content = message.content.text
-        elif isinstance(message.content, str):
-            content = message.content
-        string_messages.append(f"{message.role}: {content}")
+        content = get_message_content(message)
+        string_messages.append(f"{message.get('role')}: {content}")
     return "\n".join(string_messages)
+
+def get_message_content(message: Dict) -> str:
+    """Extract content from a ChatCompletionMessageParam."""
+    if message.get("role") == "user":
+        return message.get("content", {}).get("text", "") if isinstance(message.get("content"), dict) else message.get("content", "")
+    elif message.get("role") == "system":
+        return message.get("content", {}).get("text", "") if isinstance(message.get("content"), dict) else message.get("content", "")
+    elif message.get("role") == "developer":
+        return message.get("content", {}).get("text", "") if isinstance(message.get("content"), dict) else message.get("content", "")
+    else:
+        return message.get("content", "") if isinstance(message.get("content"), str) else ""

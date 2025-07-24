@@ -368,7 +368,7 @@ Use this endpoint to permanently remove an index and all its data when it is no 
 
 ### Query Index
 
-To query a specific index for relevant documents, use the `/query` API route. This endpoint accepts a POST request with the index name, query string or chat messages, and optional parameters for result count, and LLM generation.
+To query a specific index for relevant documents, use the `/query` API route. This endpoint accepts a POST request with the index name, query string, and optional parameters for result count, and LLM generation.
 
 **Request Example:**
 
@@ -383,24 +383,10 @@ POST /query
     "max_tokens": 2048
   }
 }
-
-POST /query
-{
-  "index_name": "rag_index",
-  "messages": [
-    {"role": "user", "content": "What is RAG?"}
-  ],
-  "top_k": 5,
-  "llm_params": {
-    "temperature": 0.7,
-    "max_tokens": 2048
-  }
-}
 ```
 
 - `index_name`: The name of the index to query.
 - `query`: The query string.
-- `messages`: Chat messages in line with the chat/completions api. At this time only text is supported.
 - `top_k`: (optional) Number of top documents to retrieve (default: 5).
 - `llm_params`: (optional) Parameters for LLM-based generation (e.g., temperature, max_tokens).
 

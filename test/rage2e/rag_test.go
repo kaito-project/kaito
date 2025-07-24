@@ -655,10 +655,8 @@ func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1alpha1.RAGEngine
 			"content": "what is kaito?"
 		}
 	],
-    "llm_params": {
-      "max_tokens": 50,
-      "temperature": 0
-    }
+    "max_tokens": 50,
+    "temperature": 0
 }'`
 	} else {
 		curlCommand = `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/v1/chat/completions \
@@ -672,10 +670,8 @@ func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1alpha1.RAGEngine
 			"content": "what is kaito?"
 		}
 	],
-    "llm_params": {
-      "max_tokens": 50,
-      "temperature": 0
-    }
+    "max_tokens": 50,
+    "temperature": 0
 }'`
 	}
 	opts := PodValidationOptions{

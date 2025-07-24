@@ -27,8 +27,10 @@ const (
 	DefaultAdapterVolumePath  = "/mnt/adapter"
 	DefaultWeightsVolumePath  = "/workspace/weights"
 
-	DefaultORASToolImage                        = "mcr.microsoft.com/oss/v2/oras-project/oras:v1.2.3"
-	DefaultGatewayAPIInferenceExtensionEPPImage = "mcr.microsoft.com/oss/v2/gateway-api-inference-extension/epp:v0.4.0"
+	DefaultORASToolImage = "mcr.microsoft.com/oss/v2/oras-project/oras:v1.2.3"
+
+	// should be in sync with go.mod
+	DefaultGatewayAPIInferenceExtensionEPPImage = "mcr.microsoft.com/oss/v2/gateway-api-inference-extension/epp:v0.5.1"
 )
 
 var DefaultModelWeightsVolume = corev1.Volume{

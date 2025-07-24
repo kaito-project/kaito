@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/samber/lo"
@@ -538,7 +539,7 @@ func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Cli
 		},
 	}
 
-	// Mount
+	// Mount epp-config.yaml from inference configmap to the EPP container's /mnt/config/epp-config.yaml
 	configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx, kubeClient,
 		client.ObjectKey{
 			Name:      workspaceObj.Inference.Config,
@@ -591,10 +592,11 @@ func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Cli
 							Args: []string{
 								"-poolName", workspaceObj.Name,
 								"-poolNamespace", workspaceObj.Namespace,
-								"-v", "3",
+								"--v", "3",
 								"-grpcPort", "9002",
 								"-grpcHealthPort", "9003",
 								"-metricsPort", "9090",
+								"-configFile", filepath.Join(utils.DefaultConfigMapMountPath, consts.EndpointPickerConfigKey),
 							},
 							Ports: []corev1.ContainerPort{
 								{

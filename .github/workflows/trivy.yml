@@ -15,6 +15,12 @@ jobs:
           - target: docker-build-workspace
             image: test/workspace:latest
             registry: test
+          - target: docker-build-ragengine
+            image: test/ragengine:latest
+            registry: test
+          - target: docker-build-ragservice
+            image: test/kaito-rag-service:v0.0.1
+            registry: test
 
     steps:
 
@@ -24,15 +30,15 @@ jobs:
       - name: Build image from Dockerfile
         run: |
           export REGISTRY=${{ matrix.registry }}
-          export VERSION=latest
+          export IMG_TAG=latest
           export OUTPUT_TYPE="type=docker"
           export ARCH="amd64"
-          make ${{ matrix.target }}
+          make ${{ matrix.target }} BUILD_FLAGS="--target dependencies"
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@76071ef0d7ec797419534a183b498b4d6366cf37 # v0.31.0
         with:
-          image-ref: "test/workspace:latest"
+          image-ref: ${{ matrix.image }}
           format: "table"
           exit-code: "1"
           ignore-unfixed: true

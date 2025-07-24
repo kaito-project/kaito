@@ -704,9 +704,6 @@ def test_live_query_test():
     assert response.status_code == 200
 """
 
-
-# ==========================
-
 @pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")

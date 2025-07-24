@@ -58,6 +58,8 @@ AWS_KARPENTER_VERSION ?=1.0.8
 # Scripts
 GO_INSTALL := ./hack/go-install.sh
 
+BUILD_FLAGS ?=
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -257,6 +259,7 @@ docker-build-workspace: docker-buildx
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/$(IMG_NAME):$(IMG_TAG) .
 
 .PHONY: docker-build-ragengine
@@ -266,6 +269,7 @@ docker-build-ragengine: docker-buildx
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/$(RAGENGINE_IMAGE_NAME):$(IMG_TAG) .
 
 .PHONY: docker-build-rag-service
@@ -275,6 +279,7 @@ docker-build-ragservice: docker-buildx
         --output=$(OUTPUT_TYPE) \
         --file ./docker/ragengine/service/Dockerfile \
         --pull \
+		$(BUILD_FLAGS) \
         --tag $(REGISTRY)/$(RAGENGINE_SERVICE_IMG_NAME):$(RAGENGINE_SERVICE_IMG_TAG) .
 
 .PHONY: docker-build-adapter
@@ -285,6 +290,7 @@ docker-build-adapter: docker-buildx
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-adapter:0.0.1 .
 	docker buildx build \
 		--build-arg ADAPTER_PATH=docker/adapters/adapter2 \
@@ -292,6 +298,7 @@ docker-build-adapter: docker-buildx
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-adapter2:0.0.1 .
 	docker buildx build \
 		--build-arg ADAPTER_PATH=docker/adapters/adapter-phi-3-mini-pycoder \
@@ -299,6 +306,7 @@ docker-build-adapter: docker-buildx
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/adapter-phi-3-mini-pycoder:0.0.1 .
 
 .PHONY: docker-build-dataset
@@ -309,6 +317,7 @@ docker-build-dataset: docker-buildx
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-dataset:0.0.1 .
 	docker buildx build \
 		--build-arg ADAPTER_PATH=docker/datasets/dataset2 \
@@ -324,6 +333,7 @@ docker-build-llm-reference-preset: docker-buildx
 		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:$(VERSION) \
 		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:latest \
 		-f docs/custom-model-integration/Dockerfile.reference \
+		$(BUILD_FLAGS) \
 		--build-arg MODEL_TYPE=text-generation \
 		--build-arg VERSION=$(VERSION) .
 

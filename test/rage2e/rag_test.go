@@ -675,7 +675,7 @@ func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1alpha1.RAGEngine
 }'`
 	}
 	opts := PodValidationOptions{
-		PodName:            "query-pod",
+		PodName:            "chat-completions-pod",
 		CurlCommand:        curlCommand,
 		Namespace:          ragengineObj.ObjectMeta.Namespace,
 		ExpectedLogContent: expectedSearchQueries,

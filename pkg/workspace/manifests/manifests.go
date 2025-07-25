@@ -17,20 +17,27 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	gaiev1alpha2 "sigs.k8s.io/gateway-api-inference-extension/api/v1alpha2"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
 
@@ -83,7 +90,7 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 					Name:       "http",
 					Protocol:   corev1.ProtocolTCP,
 					Port:       80,
-					TargetPort: intstr.FromInt32(5000),
+					TargetPort: intstr.FromInt32(consts.PortInferenceServer),
 				},
 				{
 					Name:       "ray",
@@ -404,4 +411,300 @@ func GenerateModelPullerContainer(ctx context.Context, workspaceObj *v1beta1.Wor
 	}
 
 	return []corev1.Container{puller}
+}
+
+// GenerateInferencePool generates an InferencePool manifest for the given workspace object.
+// See https://gateway-api-inference-extension.sigs.k8s.io/reference/spec/ for more details.
+func GenerateInferencePool(workspaceObj *v1beta1.Workspace, isStatefulSet bool) *gaiev1alpha2.InferencePool {
+	inferencePool := &gaiev1alpha2.InferencePool{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      workspaceObj.Name,
+			Namespace: workspaceObj.Namespace,
+			Labels: map[string]string{
+				kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
+			},
+			OwnerReferences: []v1.OwnerReference{
+				*v1.NewControllerRef(workspaceObj, v1beta1.GroupVersion.WithKind("Workspace")),
+			},
+		},
+		Spec: gaiev1alpha2.InferencePoolSpec{
+			TargetPortNumber: consts.PortInferenceServer,
+			Selector: map[gaiev1alpha2.LabelKey]gaiev1alpha2.LabelValue{
+				kaitov1beta1.LabelWorkspaceName: gaiev1alpha2.LabelValue(workspaceObj.Name),
+			},
+			EndpointPickerConfig: gaiev1alpha2.EndpointPickerConfig{
+				ExtensionRef: &gaiev1alpha2.Extension{
+					ExtensionReference: gaiev1alpha2.ExtensionReference{
+						Name: gaiev1alpha2.ObjectName(fmt.Sprintf("%s-epp", workspaceObj.Name)),
+					},
+				},
+			},
+		},
+	}
+
+	if isStatefulSet {
+		// The leader pod from the statefulset will be the one that serves inference requests
+		// so we set the pod index label to "0" to select the first pod in the statefulset.
+		inferencePool.Spec.Selector[appsv1.PodIndexLabel] = gaiev1alpha2.LabelValue("0")
+	}
+
+	return inferencePool
+}
+
+// GenerateInferenceModels generates one InferenceModel for the base model and one InferenceModel
+// for each adapter in the workspace object. See https://gateway-api-inference-extension.sigs.k8s.io/reference/spec/
+// for more details.
+func GenerateInferenceModels(workspaceObj *v1beta1.Workspace) []*gaiev1alpha2.InferenceModel {
+	presetName := string(workspaceObj.Inference.Preset.Name)
+	models := []*gaiev1alpha2.InferenceModel{}
+	models = append(models, &gaiev1alpha2.InferenceModel{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-%s", workspaceObj.Name, presetName),
+			Namespace: workspaceObj.Namespace,
+			Labels: map[string]string{
+				kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
+			},
+			OwnerReferences: []v1.OwnerReference{
+				*v1.NewControllerRef(workspaceObj, v1beta1.GroupVersion.WithKind("Workspace")),
+			},
+		},
+		Spec: gaiev1alpha2.InferenceModelSpec{
+			ModelName: presetName,
+			PoolRef: gaiev1alpha2.PoolObjectReference{
+				Name: gaiev1alpha2.ObjectName(workspaceObj.Name),
+			},
+		},
+	})
+	for _, adapter := range workspaceObj.Inference.Adapters {
+		models = append(models, &gaiev1alpha2.InferenceModel{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      fmt.Sprintf("%s-%s", workspaceObj.Name, strings.ToLower(adapter.Source.Name)),
+				Namespace: workspaceObj.Namespace,
+				Labels: map[string]string{
+					kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
+				},
+				OwnerReferences: []v1.OwnerReference{
+					*v1.NewControllerRef(workspaceObj, v1beta1.GroupVersion.WithKind("Workspace")),
+				},
+			},
+			Spec: gaiev1alpha2.InferenceModelSpec{
+				ModelName: adapter.Source.Name,
+				PoolRef: gaiev1alpha2.PoolObjectReference{
+					Name: gaiev1alpha2.ObjectName(workspaceObj.Name),
+				},
+			},
+		})
+	}
+
+	return models
+}
+
+// GenerateEndpointPickerComponents generates the necessary components for the Endpoint Picker
+// of a given Workspace object. See https://gateway-api-inference-extension.sigs.k8s.io/guides/implementers/#callout-extension
+// for more details.
+func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Client, workspaceObj *v1beta1.Workspace) ([]client.Object, error) {
+	eppName := fmt.Sprintf("%s-epp", workspaceObj.Name)
+	serviceAccount := &corev1.ServiceAccount{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      eppName,
+			Namespace: workspaceObj.Namespace,
+			Labels: map[string]string{
+				kaitov1beta1.LabelWorkspaceName:  workspaceObj.Name,
+				kaitov1beta1.LabelEndpointPicker: eppName,
+			},
+			OwnerReferences: []v1.OwnerReference{
+				*v1.NewControllerRef(workspaceObj, v1beta1.GroupVersion.WithKind("Workspace")),
+			},
+		},
+	}
+
+	role := &rbacv1.Role{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      eppName,
+			Namespace: workspaceObj.Namespace,
+			Labels: map[string]string{
+				kaitov1beta1.LabelWorkspaceName:  workspaceObj.Name,
+				kaitov1beta1.LabelEndpointPicker: eppName,
+			},
+			OwnerReferences: []v1.OwnerReference{
+				*v1.NewControllerRef(workspaceObj, v1beta1.GroupVersion.WithKind("Workspace")),
+			},
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{"inference.networking.x-k8s.io"},
+				Resources: []string{"inferencemodels", "inferencepools"},
+				Verbs:     []string{"get", "watch", "list"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"pods"},
+				Verbs:     []string{"get", "watch", "list"},
+			},
+		},
+	}
+
+	roleBinding := &rbacv1.RoleBinding{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      eppName,
+			Namespace: workspaceObj.Namespace,
+			Labels: map[string]string{
+				kaitov1beta1.LabelWorkspaceName:  workspaceObj.Name,
+				kaitov1beta1.LabelEndpointPicker: eppName,
+			},
+			OwnerReferences: []v1.OwnerReference{
+				*v1.NewControllerRef(workspaceObj, v1beta1.GroupVersion.WithKind("Workspace")),
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: rbacv1.GroupName,
+			Kind:     "Role",
+			Name:     eppName,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      rbacv1.ServiceAccountKind,
+				Name:      fmt.Sprintf("%s-epp", workspaceObj.Name),
+				Namespace: workspaceObj.Namespace,
+			},
+		},
+	}
+
+	// Mount epp-config.yaml from inference configmap to the EPP container's /mnt/config/epp-config.yaml
+	configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx, kubeClient,
+		client.ObjectKey{
+			Name:      workspaceObj.Inference.Config,
+			Namespace: workspaceObj.Namespace,
+		},
+		client.ObjectKey{
+			Name: v1beta1.DefaultInferenceConfigTemplate,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure config volume: %w", err)
+	}
+
+	cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name, corev1.KeyToPath{
+		Key:  consts.EndpointPickerConfigKey,
+		Path: consts.EndpointPickerConfigKey,
+	})
+	deployment := &appsv1.Deployment{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      eppName,
+			Namespace: workspaceObj.Namespace,
+			Labels: map[string]string{
+				kaitov1beta1.LabelWorkspaceName:  workspaceObj.Name,
+				kaitov1beta1.LabelEndpointPicker: eppName,
+			},
+			OwnerReferences: []v1.OwnerReference{
+				*v1.NewControllerRef(workspaceObj, v1beta1.GroupVersion.WithKind("Workspace")),
+			},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: lo.ToPtr(int32(1)),
+			Selector: &v1.LabelSelector{
+				MatchLabels: map[string]string{
+					kaitov1beta1.LabelEndpointPicker: eppName,
+				},
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: v1.ObjectMeta{
+					Labels: map[string]string{
+						kaitov1beta1.LabelEndpointPicker: eppName,
+					},
+				},
+				Spec: corev1.PodSpec{
+					ServiceAccountName: fmt.Sprintf("%s-epp", workspaceObj.Name),
+					Containers: []corev1.Container{
+						{
+							Name:            "epp",
+							Image:           utils.DefaultGatewayAPIInferenceExtensionEPPImage,
+							ImagePullPolicy: corev1.PullIfNotPresent,
+							Args: []string{
+								"-poolName", workspaceObj.Name,
+								"-poolNamespace", workspaceObj.Namespace,
+								"--v", "3",
+								"-grpcPort", "9002",
+								"-grpcHealthPort", "9003",
+								"-metricsPort", "9090",
+								"-configFile", filepath.Join(utils.DefaultConfigMapMountPath, consts.EndpointPickerConfigKey),
+							},
+							Ports: []corev1.ContainerPort{
+								{
+									Name:          "grpc",
+									ContainerPort: 9002,
+								},
+								{
+									Name:          "grpc-health",
+									ContainerPort: 9003,
+								},
+								{
+									Name:          "metrics",
+									ContainerPort: 9090,
+								},
+							},
+							VolumeMounts: []corev1.VolumeMount{cmVolumeMount},
+							LivenessProbe: &corev1.Probe{
+								ProbeHandler: corev1.ProbeHandler{
+									GRPC: &corev1.GRPCAction{
+										Port:    9003,
+										Service: lo.ToPtr("inference-extension"),
+									},
+								},
+							},
+							ReadinessProbe: &corev1.Probe{
+								ProbeHandler: corev1.ProbeHandler{
+									GRPC: &corev1.GRPCAction{
+										Port:    9003,
+										Service: lo.ToPtr("inference-extension"),
+									},
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{cmVolume},
+				},
+			},
+		},
+	}
+
+	service := &corev1.Service{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      eppName,
+			Namespace: workspaceObj.Namespace,
+			Labels: map[string]string{
+				kaitov1beta1.LabelWorkspaceName:  workspaceObj.Name,
+				kaitov1beta1.LabelEndpointPicker: eppName,
+			},
+			OwnerReferences: []v1.OwnerReference{
+				*v1.NewControllerRef(workspaceObj, v1beta1.GroupVersion.WithKind("Workspace")),
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Type: corev1.ServiceTypeClusterIP,
+			Selector: map[string]string{
+				kaitov1beta1.LabelEndpointPicker: eppName,
+			},
+			Ports: []corev1.ServicePort{
+				{
+					Name:       "grpc",
+					Port:       9002,
+					TargetPort: intstr.FromInt(9002),
+				},
+				{
+					Name:       "metrics",
+					Port:       9090,
+					TargetPort: intstr.FromInt(9090),
+				},
+			},
+		},
+	}
+
+	return []client.Object{
+		serviceAccount,
+		role,
+		roleBinding,
+		deployment,
+		service,
+	}, nil
 }

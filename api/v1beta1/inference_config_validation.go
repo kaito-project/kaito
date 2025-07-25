@@ -20,14 +20,27 @@ import (
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	configv1alpha1 "sigs.k8s.io/gateway-api-inference-extension/api/config/v1alpha1"
 
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
+
+var eppConfigScheme = runtime.NewScheme()
+
+func init() {
+	configv1alpha1.SchemeBuilder.Register(configv1alpha1.RegisterDefaults)
+	utilruntime.Must(configv1alpha1.Install(eppConfigScheme))
+}
 
 // InferenceConfig represents the structure of the inference configuration
 type InferenceConfig struct {
@@ -37,8 +50,8 @@ type InferenceConfig struct {
 
 func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.FieldError) {
 	// currently, this check only applies to vllm runtime
-	runtime := GetWorkspaceRuntimeName(w)
-	if runtime != model.RuntimeNameVLLM {
+	workspaceRuntime := GetWorkspaceRuntimeName(w)
+	if workspaceRuntime != model.RuntimeNameVLLM {
 		return nil
 	}
 
@@ -110,6 +123,24 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 		if !exists || maxModelLen == "" {
 			return apis.ErrMissingField("max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU or distributed inference")
 		}
+	}
+
+	if !featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
+		return errs
+	}
+
+	// Parse and validate epp-config.yaml if the Gateway API Inference
+	// Extension feature gate is enabled
+	eppConfigYAML, ok := cm.Data[consts.EndpointPickerConfigKey]
+	if !ok {
+		return apis.ErrMissingField(fmt.Sprintf("%s in ConfigMap", consts.EndpointPickerConfigKey))
+	}
+
+	eppConfig := &configv1alpha1.EndpointPickerConfig{}
+	codecs := serializer.NewCodecFactory(eppConfigScheme, serializer.EnableStrict)
+	err = runtime.DecodeInto(codecs.UniversalDecoder(), []byte(eppConfigYAML), eppConfig)
+	if err != nil {
+		return apis.ErrGeneric(fmt.Sprintf("Failed to parse %s: %v", consts.EndpointPickerConfigKey, err), consts.EndpointPickerConfigKey)
 	}
 
 	return errs

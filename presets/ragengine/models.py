@@ -12,7 +12,7 @@
 # limitations under the License.
 
 
-from typing import Any, Concatenate, Dict, List, Optional, Union, Type, TypedDict, Iterable, get_type_hints, get_args
+from typing import Any, Dict, List, Optional
 from typing_extensions import Literal, Required, Optional
 from openai.types.chat import (
     ChatCompletion,

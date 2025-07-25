@@ -29,7 +29,6 @@ from llama_index.core.chat_engine.types import ChatMode
 from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 
 from llama_index.vector_stores.faiss import FaissMapVectorStore
-from respx import request
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
 
 from ragengine.models import Document, ChatCompletionResponse, messages_to_prompt

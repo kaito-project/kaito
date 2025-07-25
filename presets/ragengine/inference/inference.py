@@ -111,21 +111,24 @@ class Inference(CustomLLM):
     
     async def chat_completions_passthrough(self, chatCompletionsRequest: CompletionCreateParams, **kwargs: Any) -> ChatCompletionResponse:
         try:
+            if "/chat/completions" not in LLM_INFERENCE_URL:
+                # If the URL does not support chat completions, raise an error
+                raise HTTPException(status_code=400, detail=f"Chat completions not supported through endpoint {LLM_INFERENCE_URL}.")
+
             client = await self._get_httpx_client()
-            # Use v1/chat/completions endpoint for chat completions passthrough
-            chat_completions_url = LLM_INFERENCE_URL.replace("/v1/completions", "/v1/chat/completions")
-            response = await client.post(chat_completions_url, json=chatCompletionsRequest, headers=DEFAULT_HEADERS)
+            response = await client.post(LLM_INFERENCE_URL, json=chatCompletionsRequest, headers=DEFAULT_HEADERS)
             response.raise_for_status()  # Raise an exception for HTTP errors
             response_data = response.json()
             # Convert to ChatCompletionResponse with source_nodes=None for passthrough
             return ChatCompletionResponse(**response_data, source_nodes=None)
         except HTTPException as http_exc:
+            logger.error(f"HTTP exception during chat completions passthrough: {http_exc.detail}")
             raise http_exc
         except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error {e.response.status_code} during POST request to {chat_completions_url}: {e.response.text}")
+            logger.error(f"HTTP error {e.response.status_code} during POST request to {LLM_INFERENCE_URL}: {e.response.text}")
             raise HTTPException(status_code=e.response.status_code, detail=f"{str(e.response.content)}")
         except httpx.RequestError as e:
-            logger.error(f"Error during POST request to {chat_completions_url}: {e}")
+            logger.error(f"Error during POST request to {LLM_INFERENCE_URL}: {e}")
             raise HTTPException(status_code=500, detail=f"Error during POST request: {str(e)}")
         except Exception as e:
             logger.error(f"Unexpected error during POST request: {e}")

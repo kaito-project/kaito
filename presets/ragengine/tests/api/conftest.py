@@ -20,4 +20,24 @@ os.environ["OMP_NUM_THREADS"] = "1" # Force single-threaded for testing to preve
 os.environ["MKL_NUM_THREADS"] = "1"  # Force MKL to use a single thread
 
 import nest_asyncio
+import asyncio
+import pytest_asyncio
+import httpx
+from ragengine.main import app, vector_store_handler
 nest_asyncio.apply()
+
+@pytest_asyncio.fixture
+async def async_client():
+    """Use an async HTTP client to interact with FastAPI app."""
+    async with httpx.AsyncClient(app=app, base_url="http://localhost") as client:
+        yield client
+
+@pytest_asyncio.fixture(scope="session")
+def event_loop():
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
+
+@pytest_asyncio.fixture(autouse=True)
+def clear_index():
+    vector_store_handler.index_map.clear()

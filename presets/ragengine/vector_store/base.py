@@ -269,6 +269,12 @@ class BaseVectorStore(ABC):
                         pass
                     elif isinstance(content, ChatCompletionContentPartTextParam):
                         pass
+                    else:
+                        logger.info(f"Request contains unsupported content type '{type(content)}' in messages, passing through to LLM directly.")
+                        return await self.llm.chat_completions_passthrough(openai_request)
+                else:
+                    logger.error(f"Invalid request format: user messages must contain 'content'.")
+                    raise HTTPException(status_code=400, detail=f"Invalid request format: user messages must contain 'content'.")
 
         prompt = messages_to_prompt(request.get("messages", []))
 

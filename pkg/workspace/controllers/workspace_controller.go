@@ -307,9 +307,12 @@ func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *
 		annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = strconv.FormatInt(controllerRevision.Revision, 10)
 	}
 	annotations[WorkspaceHashAnnotation] = currentHash
-	wObj.SetAnnotations(annotations)
 
-	if err := c.Update(ctx, wObj); err != nil {
+	err = updateWorkspaceWithRetry(ctx, c.Client, wObj, func(ws *kaitov1beta1.Workspace) error {
+		ws.SetAnnotations(annotations)
+		return nil
+	})
+	if err != nil {
 		return fmt.Errorf("failed to update Workspace annotations: %w", err)
 	}
 	return nil
@@ -543,6 +546,7 @@ func (c *WorkspaceReconciler) ensureNodePlugins(ctx context.Context, wObj *kaito
 	tick := timeClock.NewTicker(consts.NodePluginInstallTimeout)
 	defer tick.Stop()
 
+	hasUpdatedLabel := false
 	for {
 		select {
 		case <-ctx.Done():
@@ -562,15 +566,18 @@ func (c *WorkspaceReconciler) ensureNodePlugins(ctx context.Context, wObj *kaito
 				return nil
 			}
 
-			err = resources.UpdateNodeWithLabel(ctx, freshNode, resources.LabelKeyNvidia, resources.LabelValueNvidia, c.Client)
-			if apierrors.IsNotFound(err) {
-				klog.ErrorS(err, "nvidia plugin cannot be installed, node not found", "node", freshNode.Name)
-				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-					"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {
-					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-					return updateErr
+			if !hasUpdatedLabel {
+				err = resources.UpdateNodeWithLabel(ctx, freshNode, resources.LabelKeyNvidia, resources.LabelValueNvidia, c.Client)
+				if apierrors.IsNotFound(err) {
+					klog.ErrorS(err, "nvidia plugin cannot be installed, node not found", "node", freshNode.Name)
+					if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
+						"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {
+						klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
+						return updateErr
+					}
+					return err
 				}
-				return err
+				hasUpdatedLabel = true
 			}
 
 			time.Sleep(1 * time.Second)
@@ -803,6 +810,20 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		return err
 	}
 	return nil
+}
+
+// updateWorkspaceWithRetry gets the latest workspace object, applies the modify function, and retries on conflict
+func updateWorkspaceWithRetry(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace, modifyFn func(*kaitov1beta1.Workspace) error) error {
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		latestWorkspace := &kaitov1beta1.Workspace{}
+		if err := c.Get(ctx, client.ObjectKeyFromObject(wObj), latestWorkspace); err != nil {
+			return err
+		}
+		if err := modifyFn(latestWorkspace); err != nil {
+			return err
+		}
+		return c.Update(ctx, latestWorkspace)
+	})
 }
 
 // SetupWithManager sets up the controller with the Manager.

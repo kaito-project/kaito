@@ -19,6 +19,9 @@ featureGates:
   vLLM: "true"
 webhook:
   port: 9443
+# Knative logging configuration
+logging:
+  level: "error"
 presetRegistryName: mcr.microsoft.com/aks/kaito
 resources:
   limits:

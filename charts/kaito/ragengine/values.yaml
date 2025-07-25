@@ -17,6 +17,9 @@ securityContext:
       - "ALL"
 webhook:
   port: 9443
+# Knative logging configuration
+logging:
+  level: "error"
 resources:
   limits:
     cpu: 500m

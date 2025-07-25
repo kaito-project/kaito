@@ -217,6 +217,9 @@ class BaseVectorStore(ABC):
         Returns:
             ChatCompletionResponse: The response containing the generated chat completion.
         """
+        if request.get("index_name") and request.get("index_name") not in self.index_map:
+            raise HTTPException(status_code=404, detail=f"No such index: '{request.get('index_name')}' exists.")
+
         openai_request = None
         last_error = None
         for model_cls in CompletionCreateParams.__args__:
@@ -229,8 +232,15 @@ class BaseVectorStore(ABC):
         if openai_request is None:
             logger.error(f"Invalid request format: {str(last_error)}")
             raise HTTPException(status_code=400, detail=f"Invalid request format: {str(last_error)}")
+        
+        if not request.get("index_name"):
+            logger.info(f"Request does not specify an index, passing through to LLM directly.")
+            return await self.llm.chat_completions_passthrough(openai_request)
 
-        should_passthrough_request = False
+        if request.get("tools") or request.get("functions"):
+            logger.info(f"Request contains tools or functions, passing through to LLM directly.")
+            return await self.llm.chat_completions_passthrough(openai_request)
+
         # Only support RAG usage on user/system/developer roles in messages and only text content
         for message in request.get("messages", []):
             # Every message must have a role
@@ -243,8 +253,8 @@ class BaseVectorStore(ABC):
 
             # Only user, system, and developer roles are supported for RAG
             if message.get("role") not in ["user", "system", "assistant", "developer"]:
-                should_passthrough_request = True
-                break
+                logger.info(f"Request contains unsupported role '{message.get('role')}' in messages, passing through to LLM directly.")
+                return await self.llm.chat_completions_passthrough(openai_request)
 
             # User message content can be a range of options, but we only support text content for RAG
             if message.get("role") == "user":
@@ -253,29 +263,12 @@ class BaseVectorStore(ABC):
                     if isinstance(content, list):
                         for part in content:
                             if not isinstance(part, str) and part.get("type") != "text":
-                                should_passthrough_request = True
-                                break
+                                logger.info(f"Request contains unsupported role '{message.get('role')}' in messages, passing through to LLM directly.")
+                                return await self.llm.chat_completions_passthrough(openai_request)
                     elif isinstance(content, str):
                         pass
                     elif isinstance(content, ChatCompletionContentPartTextParam):
                         pass
-                    
-
-        if request.get("tools") or request.get("functions"):
-            should_passthrough_request = True
-        
-        if request.get("index_name") and request.get("index_name") not in self.index_map:
-            raise HTTPException(status_code=404, detail=f"No such index: '{request.get('index_name')}' exists.")
-        
-        if not request.get("index_name"):
-            # If no index is specified, we cannot use the chat engine and should pass through to the LLM directly.
-            should_passthrough_request = True
-        
-        if should_passthrough_request:
-            # If the request contains tools, functions, or unsupported message content, we cannot use the chat engine
-            # and should pass it through to the LLM directly.
-            logger.info("Request contains tools, functions, or unsupported message content, passing through to LLM directly.")
-            return await self.llm.chat_completions_passthrough(openai_request)
 
         prompt = messages_to_prompt(request.get("messages", []))
 

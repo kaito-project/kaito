@@ -903,11 +903,27 @@ async def test_chat_completions_invalid_request_format(mock_get, async_client):
 @pytest.mark.asyncio
 async def test_chat_completions_missing_role_in_message(async_client):
     """Test chat completion with message missing role."""
+    # Index some test documents
+    index_request = {
+        "index_name": "test_index",
+        "documents": [
+            {"text": "This is a test document about AI and machine learning."},
+            {"text": "Another document discussing natural language processing."}
+        ]
+    }
+
+    response = await async_client.post("/index", json=index_request)
+    assert response.status_code == 200
+
     chat_request = {
+        "index_name": "test_index",
         "model": "mock-model",
         "messages": [
-            {"content": "Hello without role"}
-        ]
+            {"content": "What can you tell me about AI?"}
+        ],
+        "temperature": 0.7,
+        "max_tokens": 100,
+        "top_k": 2
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
@@ -917,11 +933,27 @@ async def test_chat_completions_missing_role_in_message(async_client):
 @pytest.mark.asyncio
 async def test_chat_completions_missing_content_for_user_role(async_client):
     """Test chat completion with user message missing content."""
+    # Index some test documents
+    index_request = {
+        "index_name": "test_index",
+        "documents": [
+            {"text": "This is a test document about AI and machine learning."},
+            {"text": "Another document discussing natural language processing."}
+        ]
+    }
+
+    response = await async_client.post("/index", json=index_request)
+    assert response.status_code == 200
+
     chat_request = {
+        "index_name": "test_index",
         "model": "mock-model",
         "messages": [
             {"role": "user"}
-        ]
+        ],
+        "temperature": 0.7,
+        "max_tokens": 100,
+        "top_k": 2
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)

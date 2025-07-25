@@ -119,10 +119,20 @@ def messages_to_prompt(messages: List[Dict]) -> str:
 def get_message_content(message: Dict) -> str:
     """Extract content from a ChatCompletionMessageParam."""
     if message.get("role") == "user":
-        return message.get("content", {}).get("text", "") if isinstance(message.get("content"), dict) else message.get("content", "")
-    elif message.get("role") == "system":
-        return message.get("content", {}).get("text", "") if isinstance(message.get("content"), dict) else message.get("content", "")
-    elif message.get("role") == "developer":
-        return message.get("content", {}).get("text", "") if isinstance(message.get("content"), dict) else message.get("content", "")
+        if message.get("content"):
+            content = message.get("content")
+            if isinstance(content, str):
+                return content
+            elif isinstance(content, dict) and content.get("type") == "text":
+                return content.get("text", "")
+            elif isinstance(content, list):
+                user_text_content = []
+                for part in content:
+                    if isinstance(part, str):
+                        user_text_content.append(part)
+                    elif part.get("type") == "text":
+                        user_text_content.append(part.get("text", ""))
+                return "\n".join(user_text_content)
+        return ""
     else:
-        return message.get("content", "") if isinstance(message.get("content"), str) else ""
+        return message.get("content", {}).get("text", "") if isinstance(message.get("content"), dict) else message.get("content", "")

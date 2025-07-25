@@ -159,77 +159,42 @@ func SetStatefulSetPodSpec(podSpec *corev1.PodSpec) func(*generator.WorkspaceGen
 	}
 }
 
-func GenerateTuningJobManifest(wObj *kaitov1beta1.Workspace, revisionNum string, imageName string,
-	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
-	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements, tolerations []corev1.Toleration,
-	initContainers []corev1.Container, sidecarContainers []corev1.Container, volumes []corev1.Volume, volumeMounts []corev1.VolumeMount,
-	envVars []corev1.EnvVar) *batchv1.Job {
-	labels := map[string]string{
-		kaitov1beta1.LabelWorkspaceName: wObj.Name,
-	}
+func GenerateTuningJobManifest(revisionNum string) func(*generator.WorkspaceGeneratorContext, *batchv1.Job) error {
+	return func(ctx *generator.WorkspaceGeneratorContext, j *batchv1.Job) error {
+		labels := map[string]string{
+			kaitov1beta1.LabelWorkspaceName: ctx.Workspace.Name,
+		}
 
-	// TODO: make containers only mount the volumes they need
-
-	for i := range initContainers {
-		initContainers[i].VolumeMounts = utils.DedupVolumeMounts(append(initContainers[i].VolumeMounts, volumeMounts...))
-	}
-
-	for i := range sidecarContainers {
-		sidecarContainers[i].VolumeMounts = utils.DedupVolumeMounts(append(sidecarContainers[i].VolumeMounts, volumeMounts...))
-	}
-
-	// Construct the complete list of containers (main and sidecars)
-	containers := append([]corev1.Container{
-		{
-			Name:           wObj.Name,
-			Image:          imageName,
-			Command:        commands,
-			Resources:      resourceRequirements,
-			LivenessProbe:  livenessProbe,
-			ReadinessProbe: readinessProbe,
-			Ports:          containerPorts,
-			VolumeMounts:   volumeMounts,
-			Env:            envVars,
-		},
-	}, sidecarContainers...)
-
-	shouldShareProcessNamespace := ptr.To(true)
-	if len(sidecarContainers) == 0 {
-		shouldShareProcessNamespace = ptr.To(false)
-	}
-
-	return &batchv1.Job{
-		TypeMeta: v1.TypeMeta{
-			APIVersion: "batch/v1",
-			Kind:       "Job",
-		},
-		ObjectMeta: v1.ObjectMeta{
-			Name:      wObj.Name,
-			Namespace: wObj.Namespace,
+		j.ObjectMeta = v1.ObjectMeta{
+			Name:      ctx.Workspace.Name,
+			Namespace: ctx.Workspace.Namespace,
 			Labels:    labels,
 			Annotations: map[string]string{
 				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
 			},
 			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(wObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+				*v1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
-		},
-		Spec: batchv1.JobSpec{
+		}
+
+		j.Spec = batchv1.JobSpec{
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: v1.ObjectMeta{
 					Labels: labels,
 				},
-				Spec: corev1.PodSpec{
-					InitContainers:        initContainers,
-					Containers:            containers,
-					RestartPolicy:         corev1.RestartPolicyNever,
-					ShareProcessNamespace: shouldShareProcessNamespace,
-					Volumes:               volumes,
-					Tolerations:           tolerations,
-					ImagePullSecrets:      imagePullSecretRefs,
-				},
 			},
-		},
+		}
+		return nil
+	}
+}
+
+func SetJobPodSpec(podSpec *corev1.PodSpec) func(*generator.WorkspaceGeneratorContext, *batchv1.Job) error {
+	return func(ctx *generator.WorkspaceGeneratorContext, j *batchv1.Job) error {
+		if len(podSpec.Containers) > 1 {
+			podSpec.ShareProcessNamespace = ptr.To(true)
+		}
+		j.Spec.Template.Spec = *podSpec
+		return nil
 	}
 }
 
@@ -296,8 +261,12 @@ func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, volumeMounts []corev
 		source := adapter.Source
 		sourceName := source.Name
 
-		volume, volumeMount := utils.ConfigImagePullSecretVolume(sourceName+"-inference-adapter", source.ImagePullSecrets)
-		volumes = append(volumes, volume)
+		var volumeMount corev1.VolumeMount
+		var volume corev1.Volume
+		if len(source.ImagePullSecrets) > 0 {
+			volume, volumeMount = utils.ConfigImagePullSecretVolume(sourceName+"-inference-adapter", source.ImagePullSecrets)
+			volumes = append(volumes, volume)
+		}
 
 		if adapter.Strength != nil {
 			envVar := corev1.EnvVar{

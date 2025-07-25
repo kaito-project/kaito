@@ -20,46 +20,19 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
 
 func normalize(s string) string {
 	return strings.Join(strings.Fields(s), " ")
-}
-
-func TestGetInstanceGPUCount(t *testing.T) {
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
-	testcases := map[string]struct {
-		sku              string
-		expectedGPUCount int
-	}{
-		"SKU Exists With Multiple GPUs": {
-			sku:              "Standard_NC24s_v3",
-			expectedGPUCount: 4,
-		},
-		"SKU Exists With One GPU": {
-			sku:              "Standard_NC6s_v3",
-			expectedGPUCount: 1,
-		},
-		"SKU Does Not Exist": {
-			sku:              "sku_unknown",
-			expectedGPUCount: 1,
-		},
-	}
-
-	for name, tc := range testcases {
-		t.Run(name, func(t *testing.T) {
-			result := getInstanceGPUCount(tc.sku)
-			assert.Equal(t, tc.expectedGPUCount, result)
-		})
-	}
 }
 
 func TestGetDataSrcImageInfo(t *testing.T) {
@@ -219,88 +192,6 @@ func TestHandleURLDataSource(t *testing.T) {
 	}
 }
 
-func TestPrepareTuningParameters(t *testing.T) {
-	ctx := context.TODO()
-
-	testcases := map[string]struct {
-		name                 string
-		workspaceObj         *kaitov1beta1.Workspace
-		modelCommand         string
-		tuningObj            *model.PresetParam
-		expectedCommands     []string
-		expectedRequirements corev1.ResourceRequirements
-	}{
-		"Basic Tuning Parameters Setup": {
-			workspaceObj: &kaitov1beta1.Workspace{
-				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "gpu-instance-type",
-				},
-			},
-			modelCommand: "model-command",
-			tuningObj: &model.PresetParam{
-				RuntimeParam: model.RuntimeParam{
-					Transformers: model.HuggingfaceTransformersParam{
-						BaseCommand:      "python train.py",
-						AccelerateParams: map[string]string{},
-					},
-				},
-				GPUCountRequirement: "2",
-			},
-			expectedCommands: []string{"/bin/sh", "-c", "python train.py --num_processes=1 model-command"},
-			expectedRequirements: corev1.ResourceRequirements{
-				Requests: corev1.ResourceList{
-					corev1.ResourceName("nvidia.com/gpu"): resource.MustParse("2"),
-				},
-				Limits: corev1.ResourceList{
-					corev1.ResourceName("nvidia.com/gpu"): resource.MustParse("2"),
-				},
-			},
-		},
-	}
-
-	for name, tc := range testcases {
-		t.Run(name, func(t *testing.T) {
-			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
-			commands, resources := prepareTuningParameters(ctx, tc.workspaceObj, tc.modelCommand, tc.tuningObj, 2)
-			assert.Equal(t, tc.expectedCommands, commands)
-			assert.True(t, tc.expectedRequirements.Requests.Name("nvidia.com/gpu", resource.DecimalSI).Equal(*resources.Requests.Name("nvidia.com/gpu", resource.DecimalSI)))
-			assert.True(t, tc.expectedRequirements.Limits.Name("nvidia.com/gpu", resource.DecimalSI).Equal(*resources.Limits.Name("nvidia.com/gpu", resource.DecimalSI)))
-		})
-	}
-}
-
-func TestPrepareDataDestination_ImageDestination(t *testing.T) {
-	ctx := context.TODO()
-
-	workspaceObj := &kaitov1beta1.Workspace{
-		Tuning: &kaitov1beta1.TuningSpec{
-			Output: &kaitov1beta1.DataDestination{
-				Image:           "custom/data-loader-image",
-				ImagePushSecret: "image-push-secret",
-			},
-		},
-	}
-
-	expectedImagePushSecret := corev1.LocalObjectReference{
-		Name: workspaceObj.Tuning.Output.ImagePushSecret,
-	}
-
-	expectedVolume, expectedVolumeMount := utils.ConfigImagePushSecretVolume(expectedImagePushSecret.Name)
-
-	outDir := "/mnt/results"
-
-	expectedSidecarContainer := image.NewPusherContainer(outDir, workspaceObj.Tuning.Output.Image, nil, nil)
-
-	sidecarContainer, imagePushSecret, volume, volumeMount := prepareDataDestination(ctx, workspaceObj, outDir)
-
-	// Assertions
-	assert.Equal(t, expectedSidecarContainer, sidecarContainer)
-	assert.Equal(t, []corev1.Volume{expectedVolume}, volume)
-	assert.Equal(t, []corev1.VolumeMount{expectedVolumeMount}, volumeMount)
-	assert.Equal(t, expectedImagePushSecret, *imagePushSecret)
-}
-
 func TestPrepareDataSource_ImageSource(t *testing.T) {
 	ctx := context.TODO()
 
@@ -360,6 +251,7 @@ func TestPrepareDataSource_ImageSource(t *testing.T) {
 			MountPath: "/mnt/data",
 		},
 	}
+	expectedInitContainer.VolumeMounts = expectedVolumeMounts
 
 	initContainer, volumes, volumeMounts := prepareDataSource(ctx, workspaceObj)
 
@@ -367,4 +259,431 @@ func TestPrepareDataSource_ImageSource(t *testing.T) {
 	assert.Equal(t, expectedInitContainer, initContainer)
 	assert.Equal(t, expectedVolumes, volumes)
 	assert.Equal(t, expectedVolumeMounts, volumeMounts)
+}
+
+func TestSetTrainingResultVolume(t *testing.T) {
+	ctx := context.Background()
+
+	testcases := map[string]struct {
+		workspace      *kaitov1beta1.Workspace
+		existingConfig *corev1.ConfigMap
+		expectedError  bool
+		expectedVolume string
+		expectedMount  string
+	}{
+		"LoRA config success": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Tuning: &kaitov1beta1.TuningSpec{
+					Method: kaitov1beta1.TuningMethodLora,
+					Config: "lora-config",
+					Output: &kaitov1beta1.DataDestination{
+						Volume: &corev1.VolumeSource{
+							PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+								ClaimName: "output-pvc",
+							},
+						},
+					},
+				},
+			},
+			existingConfig: &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "lora-config",
+					Namespace: "default",
+				},
+				Data: map[string]string{
+					"training_config.yaml": `
+training_config:
+  TrainingArguments:
+    output_dir: "lora-output"
+`,
+				},
+			},
+			expectedError:  false,
+			expectedVolume: "results-volume",
+			expectedMount:  "/mnt/lora-output",
+		},
+		"QLoRA config success": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Tuning: &kaitov1beta1.TuningSpec{
+					Method: kaitov1beta1.TuningMethodQLora,
+					Config: "qlora-config",
+					Output: &kaitov1beta1.DataDestination{
+						Volume: &corev1.VolumeSource{
+							EmptyDir: &corev1.EmptyDirVolumeSource{},
+						},
+					},
+				},
+			},
+			existingConfig: &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "qlora-config",
+					Namespace: "default",
+				},
+				Data: map[string]string{
+					"training_config.yaml": `
+training_config:
+  TrainingArguments:
+    output_dir: "qlora-output"
+`,
+				},
+			},
+			expectedError:  false,
+			expectedVolume: "results-volume",
+			expectedMount:  "/mnt/qlora-output",
+		},
+		"Config not found": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Tuning: &kaitov1beta1.TuningSpec{
+					Method: kaitov1beta1.TuningMethodLora,
+					Config: "missing-config",
+					Output: &kaitov1beta1.DataDestination{
+						Volume: &corev1.VolumeSource{
+							EmptyDir: &corev1.EmptyDirVolumeSource{},
+						},
+					},
+				},
+			},
+			existingConfig: nil,
+			expectedError:  true,
+		},
+		"Invalid config data": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Tuning: &kaitov1beta1.TuningSpec{
+					Method: kaitov1beta1.TuningMethodLora,
+					Config: "invalid-config",
+					Output: &kaitov1beta1.DataDestination{
+						Volume: &corev1.VolumeSource{
+							EmptyDir: &corev1.EmptyDirVolumeSource{},
+						},
+					},
+				},
+			},
+			existingConfig: &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "invalid-config",
+					Namespace: "default",
+				},
+				Data: map[string]string{
+					"training_config.yaml": "invalid yaml data",
+				},
+			},
+			expectedError: true,
+		},
+		"Default output directory": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Tuning: &kaitov1beta1.TuningSpec{
+					Method: kaitov1beta1.TuningMethodLora,
+					Config: "default-output-config",
+					Output: &kaitov1beta1.DataDestination{
+						Volume: &corev1.VolumeSource{
+							EmptyDir: &corev1.EmptyDirVolumeSource{},
+						},
+					},
+				},
+			},
+			existingConfig: &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "default-output-config",
+					Namespace: "default",
+				},
+				Data: map[string]string{
+					"training_config.yaml": `
+training_config:
+  TrainingArguments: {}
+`,
+				},
+			},
+			expectedError:  false,
+			expectedVolume: "results-volume",
+			expectedMount:  DefaultOutputVolumePath,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			// Create a fake client
+			scheme := runtime.NewScheme()
+			_ = corev1.AddToScheme(scheme)
+			_ = kaitov1beta1.AddToScheme(scheme)
+
+			var kubeClient client.Client
+			if tc.existingConfig != nil {
+				kubeClient = fake.NewClientBuilder().
+					WithScheme(scheme).
+					WithObjects(tc.existingConfig).
+					Build()
+			} else {
+				kubeClient = fake.NewClientBuilder().
+					WithScheme(scheme).
+					Build()
+			}
+
+			// Create generator context
+			gctx := &generator.WorkspaceGeneratorContext{
+				Ctx:        ctx,
+				Workspace:  tc.workspace,
+				KubeClient: kubeClient,
+			}
+
+			// Create a pod spec with a container
+			podSpec := &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: tc.workspace.Name,
+					},
+				},
+			}
+
+			// Call the function
+			err := SetTrainingResultVolume(gctx, podSpec)
+
+			// Check error
+			if tc.expectedError {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+
+			// Check volume was added
+			volumeFound := false
+			for _, v := range podSpec.Volumes {
+				if v.Name == tc.expectedVolume {
+					volumeFound = true
+					break
+				}
+			}
+			assert.True(t, volumeFound, "Expected volume %s not found", tc.expectedVolume)
+
+			// Check volume mount was added to the correct container
+			mountFound := false
+			for _, c := range podSpec.Containers {
+				if c.Name == tc.workspace.Name {
+					for _, vm := range c.VolumeMounts {
+						if vm.Name == tc.expectedVolume && vm.MountPath == tc.expectedMount {
+							mountFound = true
+							break
+						}
+					}
+				}
+			}
+			assert.True(t, mountFound, "Expected volume mount not found on container")
+		})
+	}
+}
+
+func TestPrepareTrainingOutput(t *testing.T) {
+	ctx := context.Background()
+
+	testcases := map[string]struct {
+		workspace          *kaitov1beta1.Workspace
+		initialPodSpec     *corev1.PodSpec
+		expectedError      bool
+		expectedContainers int
+		validateFunc       func(*testing.T, *corev1.PodSpec)
+	}{
+		"Output volume specified - early return": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Tuning: &kaitov1beta1.TuningSpec{
+					Output: &kaitov1beta1.DataDestination{
+						Volume: &corev1.VolumeSource{
+							EmptyDir: &corev1.EmptyDirVolumeSource{},
+						},
+					},
+				},
+			},
+			initialPodSpec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-workspace",
+					},
+				},
+			},
+			expectedError:      false,
+			expectedContainers: 1, // No additional containers added
+		},
+		"No output image - early return": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Tuning: &kaitov1beta1.TuningSpec{
+					Output: &kaitov1beta1.DataDestination{
+						Image: "",
+					},
+				},
+			},
+			initialPodSpec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-workspace",
+					},
+				},
+			},
+			expectedError:      false,
+			expectedContainers: 1, // No additional containers added
+		},
+		"Image output with preset": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Tuning: &kaitov1beta1.TuningSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "phi-3-mini-128k-instruct",
+						},
+					},
+					Output: &kaitov1beta1.DataDestination{
+						Image:           "registry.example.com/output:latest",
+						ImagePushSecret: "push-secret",
+					},
+				},
+			},
+			initialPodSpec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-workspace",
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name:      "results-volume",
+								MountPath: "/mnt/output",
+							},
+						},
+					},
+				},
+				Volumes: []corev1.Volume{
+					{
+						Name: "results-volume",
+						VolumeSource: corev1.VolumeSource{
+							EmptyDir: &corev1.EmptyDirVolumeSource{},
+						},
+					},
+				},
+			},
+			expectedError:      false,
+			expectedContainers: 3, // Original + pusher + pause
+			validateFunc: func(t *testing.T, spec *corev1.PodSpec) {
+				// Check image pull secrets
+				assert.Equal(t, 1, len(spec.ImagePullSecrets))
+				assert.Equal(t, "push-secret", spec.ImagePullSecrets[0].Name)
+
+				// Check docker config volume
+				volumeFound := false
+				for _, v := range spec.Volumes {
+					if v.Name == "docker-config" {
+						volumeFound = true
+						break
+					}
+				}
+				assert.True(t, volumeFound, "docker-config volume not found")
+
+				// Check pusher container
+				pusherFound := false
+				for _, c := range spec.Containers {
+					if c.Name == "pusher" {
+						pusherFound = true
+						// Verify pusher has the docker config volume mount
+						mountFound := false
+						for _, vm := range c.VolumeMounts {
+							if vm.Name == "docker-config" {
+								mountFound = true
+								break
+							}
+						}
+						assert.True(t, mountFound, "docker-config volume mount not found in pusher container")
+					}
+				}
+				assert.True(t, pusherFound, "pusher container not found")
+
+				// Check pause container
+				pauseFound := false
+				for _, c := range spec.Containers {
+					if c.Name == "pause" {
+						pauseFound = true
+					}
+				}
+				assert.True(t, pauseFound, "pause container not found")
+			},
+		},
+		"Missing results volume mount": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Tuning: &kaitov1beta1.TuningSpec{
+					Output: &kaitov1beta1.DataDestination{
+						Image:           "registry.example.com/output:latest",
+						ImagePushSecret: "push-secret",
+					},
+				},
+			},
+			initialPodSpec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-workspace",
+						// No volume mounts
+					},
+				},
+			},
+			expectedError: true,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			// Create generator context
+			gctx := &generator.WorkspaceGeneratorContext{
+				Ctx:       ctx,
+				Workspace: tc.workspace,
+			}
+
+			// Deep copy the initial pod spec to avoid mutations
+			podSpec := tc.initialPodSpec.DeepCopy()
+
+			// Call the function
+			err := SetTrainingOutputImagePush(gctx, podSpec)
+
+			// Check error
+			if tc.expectedError {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+
+			// Check number of containers
+			assert.Equal(t, tc.expectedContainers, len(podSpec.Containers))
+
+			// Run additional validation if provided
+			if tc.validateFunc != nil {
+				tc.validateFunc(t, podSpec)
+			}
+		})
+	}
 }

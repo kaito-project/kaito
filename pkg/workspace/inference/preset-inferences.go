@@ -129,7 +129,6 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 	}
 }
 
-// TODO: refactor this function
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
 	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
 
@@ -406,6 +405,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 
 func SetModelDownloadInfo(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	if ctx.Model.GetInferenceParameters().DownloadAtRuntime {
+		if ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret == "" {
+			return fmt.Errorf("ModelAccessSecret is not set for model download")
+		}
 		envvar := corev1.EnvVar{
 			Name: "HF_TOKEN",
 			ValueFrom: &corev1.EnvVarSource{

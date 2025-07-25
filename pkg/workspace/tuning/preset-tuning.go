@@ -27,9 +27,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/model"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
@@ -37,8 +39,8 @@ import (
 )
 
 const (
-	PortInferenceServer     = int32(5000)
-	TuningFile              = "/workspace/tfs/fine_tuning.py"
+	PortInferenceServer = int32(5000)
+
 	DefaultBaseDir          = "/mnt"
 	DefaultOutputVolumePath = "/mnt/output"
 )
@@ -65,14 +67,6 @@ var (
 		},
 	}
 )
-
-func getInstanceGPUCount(sku string) int {
-	skuHandler, _ := utils.GetSKUHandler()
-	if gpuConfig := skuHandler.GetGPUConfigBySKU(sku); gpuConfig != nil {
-		return gpuConfig.GPUCount
-	}
-	return 1
-}
 
 func GetTuningImageInfo() string {
 	presetObj := metadata.MustGet("base")
@@ -147,93 +141,15 @@ func SetupTrainingOutputVolume(ctx context.Context, configMap *corev1.ConfigMap,
 	return resultsVolume, resultsVolumeMount, outputDir
 }
 
-func setupDefaultSharedVolumes(workspaceObj *kaitov1beta1.Workspace, cmName string) ([]corev1.Volume, []corev1.VolumeMount) {
-	var volumes []corev1.Volume
-	var volumeMounts []corev1.VolumeMount
-
-	shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
-	volumes = append(volumes, shmVolume)
-	volumeMounts = append(volumeMounts, shmVolumeMount)
-
-	// Add shared volume for tuning parameters
-	cmVolume, cmVolumeMount := utils.ConfigCMVolume(cmName)
-	volumes = append(volumes, cmVolume)
-	volumeMounts = append(volumeMounts, cmVolumeMount)
-
-	return volumes, volumeMounts
-}
-
 func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, revisionNum string,
-	tuningObj *model.PresetParam, kubeClient client.Client) (client.Object, error) {
-
-	var defaultConfigName string
-	if workspaceObj.Tuning.Method == kaitov1beta1.TuningMethodLora {
-		defaultConfigName = kaitov1beta1.DefaultLoraConfigMapTemplate
-	} else if workspaceObj.Tuning.Method == kaitov1beta1.TuningMethodQLora {
-		defaultConfigName = kaitov1beta1.DefaultQloraConfigMapTemplate
-	}
-	configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx, kubeClient,
-		client.ObjectKey{
-			Namespace: workspaceObj.Namespace,
-			Name:      workspaceObj.Tuning.Config,
-		},
-		client.ObjectKey{Name: defaultConfigName},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	var imagePullSecrets []corev1.LocalObjectReference
-	var initContainers, sidecarContainers []corev1.Container
-	volumes, volumeMounts := setupDefaultSharedVolumes(workspaceObj, configVolume.Name)
-
-	// TODO: make containers only mount the volumes they need
-
-	// Add volume for training output
-	outputVolume := workspaceObj.Tuning.Output.Volume
-	trainingOutputVolume, trainingOutputVolumeMount, outputDir := SetupTrainingOutputVolume(ctx, configVolume, outputVolume)
-	volumes = append(volumes, trainingOutputVolume)
-	volumeMounts = append(volumeMounts, trainingOutputVolumeMount)
-
-	// Add volume for training input
-	initContainer, dataSourceVolumes, dataSourceVolumeMounts := prepareDataSource(ctx, workspaceObj)
-	volumes = append(volumes, dataSourceVolumes...)
-	volumeMounts = append(volumeMounts, dataSourceVolumeMounts...)
-	if initContainer != nil && initContainer.Name != "" {
-		initContainers = append(initContainers, *initContainer)
-	}
-
-	// Add volume for model weights access
-	volumes = append(volumes, utils.DefaultModelWeightsVolume)
-	volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
-	initContainers = append(initContainers, manifests.GenerateModelPullerContainer(ctx, workspaceObj, tuningObj)...)
-
-	sidecarContainer, imagePushSecret, imagePushSecretVolume, imagePushSecretVolumeMount := prepareDataDestination(ctx, workspaceObj, outputDir)
-	volumes = append(volumes, imagePushSecretVolume...)
-	volumeMounts = append(volumeMounts, imagePushSecretVolumeMount...)
-	if sidecarContainer != nil {
-		pauseContainer := corev1.Container{
-			Name:            "pause",
-			Image:           "registry.k8s.io/pause:latest",
-			ImagePullPolicy: corev1.PullAlways,
-		}
-		sidecarContainers = append(sidecarContainers, pauseContainer, *sidecarContainer)
-	}
-	if imagePushSecret != nil {
-		imagePullSecrets = append(imagePullSecrets, *imagePushSecret)
-	}
-
-	modelCommand, err := prepareModelRunParameters(ctx, tuningObj)
-	if err != nil {
-		return nil, err
-	}
+	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
 
 	var skuNumGPUs int
 	gpuConfig, err := utils.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
 	if err != nil {
 		gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, kubeClient, workspaceObj.Status.WorkerNodes)
 		if err != nil {
-			defaultNumGPU := resource.MustParse(tuningObj.GPUCountRequirement)
+			defaultNumGPU := resource.MustParse(model.GetTuningParameters().GPUCountRequirement)
 			skuNumGPUs = int(defaultNumGPU.Value())
 		}
 	}
@@ -241,37 +157,30 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 		skuNumGPUs = gpuConfig.GPUCount
 	}
 
-	commands, resourceReq := prepareTuningParameters(ctx, workspaceObj, modelCommand, tuningObj, skuNumGPUs)
-	tuningImage := GetTuningImageInfo()
-
-	var envVars []corev1.EnvVar
-	presetName := strings.ToLower(string(workspaceObj.Tuning.Preset.Name))
-	// Append environment variable for default target modules if using Phi3 model
-	if strings.HasPrefix(presetName, "phi-3") {
-		envVars = append(envVars, corev1.EnvVar{
-			Name:  "DEFAULT_TARGET_MODULES",
-			Value: "k_proj,q_proj,v_proj,o_proj,gate_proj,down_proj,up_proj",
-		})
+	gctx := &generator.WorkspaceGeneratorContext{
+		Ctx:        ctx,
+		Workspace:  workspaceObj,
+		Model:      model,
+		KubeClient: kubeClient,
 	}
-	// Add Expandable Memory Feature to reduce Peak GPU Mem Usage
-	envVars = append(envVars, corev1.EnvVar{
-		Name:  "PYTORCH_CUDA_ALLOC_CONF",
-		Value: "expandable_segments:True",
-	})
 
-	// remove duplicate volumes
-	seen := make(map[string]bool)
-	var deduplicatedVolumes []corev1.Volume
-	for _, vol := range volumes {
-		if !seen[vol.Name] {
-			deduplicatedVolumes = append(deduplicatedVolumes, vol)
-			seen[vol.Name] = true
-		}
+	podSpec, err := generator.GenerateManifest(gctx,
+		GenerateBasicTuningPodSpec(gpuConfig, skuNumGPUs),
+		SetTrainingResultVolume,
+		SetTrainingInput,
+		SetTrainingOutputImagePush,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate pod spec: %w", err)
 	}
-	volumes = deduplicatedVolumes
 
-	jobObj := manifests.GenerateTuningJobManifest(workspaceObj, revisionNum, tuningImage, imagePullSecrets, *workspaceObj.Resource.Count, commands,
-		containerPorts, nil, nil, resourceReq, tolerations, initContainers, sidecarContainers, volumes, volumeMounts, envVars)
+	jobObj, err := generator.GenerateManifest(gctx,
+		manifests.GenerateTuningJobManifest(revisionNum),
+		manifests.SetJobPodSpec(podSpec),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate job manifest: %w", err)
+	}
 
 	err = resources.CreateResource(ctx, jobObj, kubeClient)
 	if client.IgnoreAlreadyExists(err) != nil {
@@ -280,18 +189,124 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	return jobObj, nil
 }
 
-// Now there are two options for data destination 1. Volume - 2. Image
-func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, inputDirectory string) (*corev1.Container, *corev1.LocalObjectReference, []corev1.Volume, []corev1.VolumeMount) {
-	tuning := workspaceObj.Tuning
-	output := tuning.Output
+func GenerateBasicTuningPodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+		// additional volume
+		var volumes []corev1.Volume
+		var volumeMounts []corev1.VolumeMount
+		var initContainers []corev1.Container
 
-	if output.Volume != nil {
-		return nil, nil, nil, nil
+		// add share memory for cross process communication
+		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
+		volumes = append(volumes, shmVolume)
+		volumeMounts = append(volumeMounts, shmVolumeMount)
+
+		// Add volume for model weights access
+		volumes = append(volumes, utils.DefaultModelWeightsVolume)
+		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		initContainers = append(initContainers, manifests.GenerateModelPullerContainer(ctx.Ctx, ctx.Workspace, ctx.Model.GetTuningParameters())...)
+
+		// resource requirements
+		resourceRequirements := corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+			},
+			Limits: corev1.ResourceList{
+				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+			},
+		}
+
+		// default env
+		var envVars []corev1.EnvVar
+
+		// Append environment variable for default target modules if using Phi3 model
+		presetName := strings.ToLower(string(ctx.Workspace.Tuning.Preset.Name))
+		if strings.HasPrefix(presetName, "phi-3") {
+			envVars = append(envVars, corev1.EnvVar{
+				Name:  "DEFAULT_TARGET_MODULES",
+				Value: "k_proj,q_proj,v_proj,o_proj,gate_proj,down_proj,up_proj",
+			})
+		}
+		// Add Expandable Memory Feature to reduce Peak GPU Mem Usage
+		envVars = append(envVars, corev1.EnvVar{
+			Name:  "PYTORCH_CUDA_ALLOC_CONF",
+			Value: "expandable_segments:True",
+		})
+
+		// tuning commands
+		tuningParam := ctx.Model.GetInferenceParameters().DeepCopy()
+		commands := tuningParam.GetTuningCommand(pkgmodel.RuntimeContext{
+			SKUNumGPUs: skuNumGPUs,
+		})
+
+		spec.Tolerations = tolerations
+		spec.InitContainers = append(spec.InitContainers, initContainers...)
+		spec.Containers = []corev1.Container{
+			{
+				Name:         ctx.Workspace.Name,
+				Image:        GetTuningImageInfo(),
+				Command:      commands,
+				Resources:    resourceRequirements,
+				Ports:        containerPorts,
+				Env:          envVars,
+				VolumeMounts: volumeMounts,
+			},
+		}
+		spec.Volumes = volumes
+		spec.RestartPolicy = corev1.RestartPolicyNever
+		return nil
+	}
+}
+
+func SetTrainingResultVolume(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	var defaultConfigName string
+	if ctx.Workspace.Tuning.Method == kaitov1beta1.TuningMethodLora {
+		defaultConfigName = kaitov1beta1.DefaultLoraConfigMapTemplate
+	} else if ctx.Workspace.Tuning.Method == kaitov1beta1.TuningMethodQLora {
+		defaultConfigName = kaitov1beta1.DefaultQloraConfigMapTemplate
+	}
+	configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx.Ctx, ctx.KubeClient,
+		client.ObjectKey{
+			Namespace: ctx.Workspace.Namespace,
+			Name:      ctx.Workspace.Tuning.Config,
+		},
+		client.ObjectKey{Name: defaultConfigName},
+	)
+	if err != nil {
+		return err
 	}
 
-	outputImage := output.Image
-	if outputImage == "" {
-		return nil, nil, nil, nil
+	// Add shared volume for tuning parameters
+	cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
+
+	// Add results volume for training output
+	outputDir, err := GetTrainingOutputDir(ctx.Ctx, configVolume)
+	if err != nil {
+		return fmt.Errorf("failed to get training output directory from config: %w", err)
+	}
+	resultsVolume, resultsVolumeMount := utils.ConfigResultsVolume(outputDir, ctx.Workspace.Tuning.Output.Volume)
+
+	volumes := []corev1.Volume{cmVolume, resultsVolume}
+	volumeMounts := []corev1.VolumeMount{cmVolumeMount, resultsVolumeMount}
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == ctx.Workspace.Name {
+			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, volumeMounts...)
+			spec.Volumes = append(spec.Volumes, volumes...)
+			break
+		}
+	}
+
+	return nil
+}
+
+// Now there are two options for data destination 1. Volume - 2. Image
+// notes: this modifier requires the results volume to be set in the pod spec
+func SetTrainingOutputImagePush(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	tuning := ctx.Workspace.Tuning
+	output := tuning.Output
+
+	if output.Volume != nil || output.Image == "" {
+		return nil
 	}
 
 	var annotationsData map[string]map[string]string
@@ -303,15 +318,46 @@ func prepareDataDestination(ctx context.Context, workspaceObj *kaitov1beta1.Work
 		}
 	}
 
-	pusherContainer := image.NewPusherContainer(inputDirectory, outputImage, annotationsData, nil)
-
+	// additional secret volume for image push
 	imagePushSecretRef := corev1.LocalObjectReference{
 		Name: output.ImagePushSecret,
 	}
+	spec.ImagePullSecrets = append(spec.ImagePullSecrets, imagePushSecretRef)
+	secretVolume, secretVolumeMount := utils.ConfigImagePushSecretVolume(imagePushSecretRef.Name)
+	spec.Volumes = append(spec.Volumes, secretVolume)
 
-	volume, volumeMount := utils.ConfigImagePushSecretVolume(imagePushSecretRef.Name)
+	// additional sidecar container for uploading image
+	resultVolumeMount := utils.FindResultsVolumeMount(spec)
+	if resultVolumeMount == nil {
+		return fmt.Errorf("results volume mount not found in pod spec")
+	}
+	inputDirectory := resultVolumeMount.MountPath
+	pusherContainer := image.NewPusherContainer(inputDirectory, output.Image, annotationsData, nil)
+	pusherContainer.VolumeMounts = append(pusherContainer.VolumeMounts, secretVolumeMount, *resultVolumeMount)
+	pauseContainer := corev1.Container{
+		Name:            "pause",
+		Image:           "registry.k8s.io/pause:latest",
+		ImagePullPolicy: corev1.PullAlways,
+	}
+	spec.Containers = append(spec.Containers, *pusherContainer, pauseContainer)
+	return nil
+}
 
-	return pusherContainer, &imagePushSecretRef, []corev1.Volume{volume}, []corev1.VolumeMount{volumeMount}
+func SetTrainingInput(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	initContainer, dataSourceVolumes, dataSourceVolumeMounts := prepareDataSource(ctx.Ctx, ctx.Workspace)
+	if initContainer != nil && initContainer.Name != "" {
+		spec.InitContainers = append(spec.InitContainers, *initContainer)
+	}
+
+	spec.Volumes = append(spec.Volumes, dataSourceVolumes...)
+
+	for _, volumeMount := range dataSourceVolumeMounts {
+		for i := range spec.Containers {
+			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, volumeMount)
+		}
+	}
+
+	return nil
 }
 
 // Now there are three options for DataSource: 1. URL - 2. Volume - 3. Image
@@ -323,6 +369,7 @@ func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace
 		dataVolume, dataVolumeMount := utils.ConfigDataVolume(nil)
 		imagePullSecretVolume, imagePullSecretVolumeMount := utils.ConfigImagePullSecretVolume(input.Name+"-tuning-input", input.ImagePullSecrets)
 		pullerContainer := image.NewPullerContainer(input.Image, utils.DefaultDataVolumePath)
+		pullerContainer.VolumeMounts = append(pullerContainer.VolumeMounts, imagePullSecretVolumeMount, dataVolumeMount)
 		return pullerContainer, []corev1.Volume{imagePullSecretVolume, dataVolume}, []corev1.VolumeMount{imagePullSecretVolumeMount, dataVolumeMount}
 
 	case len(input.URLs) > 0:
@@ -384,37 +431,4 @@ func handleURLDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspa
 	}
 	volume, volumeMount := utils.ConfigDataVolume(nil)
 	return initContainer, volume, volumeMount
-}
-
-func prepareModelRunParameters(ctx context.Context, tuningObj *model.PresetParam) (string, error) {
-	modelCommand := utils.BuildCmdStr(TuningFile, tuningObj.Transformers.ModelRunParams)
-	return modelCommand, nil
-}
-
-// prepareTuningParameters builds a PyTorch command:
-// accelerate launch <TORCH_PARAMS> baseCommand <MODEL_PARAMS>
-// and sets the GPU resources required for tuning.
-// Returns the command and resource configuration.
-func prepareTuningParameters(ctx context.Context, wObj *kaitov1beta1.Workspace, modelCommand string,
-	tuningObj *model.PresetParam, skuNumGPUs int) ([]string, corev1.ResourceRequirements) {
-	hfParam := tuningObj.Transformers // Only support Huggingface for now
-	if hfParam.AccelerateParams == nil {
-		hfParam.AccelerateParams = make(map[string]string)
-	}
-	// Set # of processes to GPU Count
-	numProcesses := getInstanceGPUCount(wObj.Resource.InstanceType)
-	hfParam.AccelerateParams["num_processes"] = fmt.Sprintf("%d", numProcesses)
-	torchCommand := utils.BuildCmdStr(hfParam.BaseCommand, hfParam.AccelerateParams)
-	commands := utils.ShellCmd(torchCommand + " " + modelCommand)
-
-	resourceRequirements := corev1.ResourceRequirements{
-		Requests: corev1.ResourceList{
-			corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
-		},
-		Limits: corev1.ResourceList{
-			corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
-		},
-	}
-
-	return commands, resourceRequirements
 }

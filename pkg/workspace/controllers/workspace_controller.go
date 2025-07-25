@@ -132,7 +132,7 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 
 func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
 	reqKey := client.ObjectKeyFromObject(wObj).String()
-	// nodeclaim don't meet expectation if no enough node events are observed within the timeout period.
+	// nodeclaim don't meet expectation if no enough nodeclaim events are observed within the timeout period.
 	if !c.expectations.SatisfiedExpectations(c.klogger, reqKey) {
 		startTime := c.expectations.GetExpectationStartTime(reqKey)
 		requeueTime := time.Second * 5
@@ -530,7 +530,7 @@ func (c *WorkspaceReconciler) createNewNodes(ctx context.Context, wObj *kaitov1b
 		return err
 	}
 	if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
-		"workspaceResourceCreated", "nodeclaims created"); updateErr != nil {
+		"workspaceResourceCreated", "nodeclaims created successfully"); updateErr != nil {
 		klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return updateErr
 	}

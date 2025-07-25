@@ -51,6 +51,14 @@ const sidebars = {
         },
         {
             type: 'category',
+            label: 'Integrations',
+            collapsed: false,
+            items: [
+                'aikit',
+            ],
+        },
+        {
+            type: 'category',
             label: 'Operations',
             collapsed: false,
             items: [

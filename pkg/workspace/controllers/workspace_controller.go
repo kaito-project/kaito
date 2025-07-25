@@ -369,7 +369,7 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 		if err != nil {
 			return fmt.Errorf("failed to create new nodes: %w", err)
 		}
-		// will be triggered again by the NodeClaim event
+		// terminate the current reconciliation and rely on NodeClaim creation event to trigger a new reconciliation
 		return reconcile.TerminalError(errors.New("waiting for new nodes to be created"))
 	}
 
@@ -486,7 +486,7 @@ func (c *WorkspaceReconciler) createAllNodeClaims(ctx context.Context, wObj *kai
 	for range count {
 		var newNodeClaim *karpenterv1.NodeClaim
 
-		// Set expectations before creating the NodeClaim incase event handler
+		// Set expectations before creating the NodeClaim in case event handler
 		// observes the NodeClaim creation event before the controller does.
 		c.expectations.ExpectCreations(c.klogger, client.ObjectKeyFromObject(wObj).String(), 1)
 		newNodeCreated := false

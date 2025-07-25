@@ -24,8 +24,14 @@ import requests
 from requests.exceptions import HTTPError
 from urllib.parse import urlparse, urljoin
 from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET #, LLM_RESPONSE_FIELD
+from ragengine.models import ChatCompletionResponse
 from fastapi import HTTPException
 import concurrent.futures
+import json
+
+from openai.types.chat import (
+    CompletionCreateParams,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -102,6 +108,31 @@ class Inference(CustomLLM):
         finally:
             # Clear params after the completion is done
             self.params = {}
+    
+    async def chat_completions_passthrough(self, chatCompletionsRequest: CompletionCreateParams, **kwargs: Any) -> ChatCompletionResponse:
+        try:
+            if "/chat/completions" not in LLM_INFERENCE_URL:
+                # If the URL does not support chat completions, raise an error
+                raise HTTPException(status_code=400, detail=f"Chat completions not supported through endpoint {LLM_INFERENCE_URL}.")
+
+            client = await self._get_httpx_client()
+            response = await client.post(LLM_INFERENCE_URL, json=chatCompletionsRequest, headers=DEFAULT_HEADERS)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            response_data = response.json()
+            # Convert to ChatCompletionResponse with source_nodes=None for passthrough
+            return ChatCompletionResponse(**response_data, source_nodes=None)
+        except HTTPException as http_exc:
+            logger.error(f"HTTP exception during chat completions passthrough: {http_exc.detail}")
+            raise http_exc
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error {e.response.status_code} during POST request to {LLM_INFERENCE_URL}: {e.response.text}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"{str(e.response.content)}")
+        except httpx.RequestError as e:
+            logger.error(f"Error during POST request to {LLM_INFERENCE_URL}: {e}")
+            raise HTTPException(status_code=500, detail=f"Error during POST request: {str(e)}")
+        except Exception as e:
+            logger.error(f"Unexpected error during POST request: {e}")
+            raise HTTPException(status_code=500, detail=f"Error during POST request: {str(e)}")
 
     async def _async_openai_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         return await OpenAI(api_key=LLM_ACCESS_SECRET, **kwargs).acomplete(prompt)
@@ -131,7 +162,7 @@ class Inference(CustomLLM):
                     f"Potential issue with 'model' parameter in API response. "
                     f"Response: {str(e)}. Attempting to update the model name as a mitigation..."
                 )
-                self._default_model = self._fetch_default_model()  # Fetch default model dynamically
+                self._default_model, self._default_max_model_len = self._fetch_default_model_info()  # Fetch default model dynamically
                 if self._default_model:
                     logger.info(f"Default model '{self._default_model}' fetched successfully. Retrying request...")
                     data["model"] = self._default_model

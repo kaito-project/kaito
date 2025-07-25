@@ -15,18 +15,23 @@
 import logging
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Any
+from pydantic import ValidationError
 import hashlib
 import os
 import asyncio
 from itertools import islice
+import uuid
+import time
 
 from llama_index.core import Document as LlamaDocument
 from llama_index.core import (StorageContext, VectorStoreIndex, load_index_from_storage)
+from llama_index.core.chat_engine.types import ChatMode
 from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 
 from llama_index.vector_stores.faiss import FaissMapVectorStore
+from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
 
-from ragengine.models import Document
+from ragengine.models import Document, ChatCompletionResponse, messages_to_prompt
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
 from ragengine.vector_store.transformers.custom_transformer import CustomTransformer
@@ -200,6 +205,116 @@ class BaseVectorStore(ABC):
             ],
             "metadata": query_result.metadata,
         }
+
+    async def chat_completion(self, request: dict) -> ChatCompletionResponse:
+        """
+        Create a chat completion based on the provided request.
+
+        Args:
+            request (ChatCompletionRequest): The request containing the chat messages and parameters.
+
+        Returns:
+            ChatCompletionResponse: The response containing the generated chat completion.
+        """
+        if request.get("index_name") and request.get("index_name") not in self.index_map:
+            raise HTTPException(status_code=404, detail=f"No such index: '{request.get('index_name')}' exists.")
+
+        openai_request = None
+        last_error = None
+        for model_cls in CompletionCreateParams.__args__:
+            try:
+                openai_request = model_cls(**request)
+                break
+            except ValidationError as e:
+                last_error = e
+
+        if openai_request is None:
+            logger.error(f"Invalid request format: {str(last_error)}")
+            raise HTTPException(status_code=400, detail=f"Invalid request format: {str(last_error)}")
+        
+        if not request.get("index_name"):
+            logger.info(f"Request does not specify an index, passing through to LLM directly.")
+            return await self.llm.chat_completions_passthrough(openai_request)
+
+        if request.get("tools") or request.get("functions"):
+            logger.info(f"Request contains tools or functions, passing through to LLM directly.")
+            return await self.llm.chat_completions_passthrough(openai_request)
+
+        # Only support RAG usage on user/system/developer roles in messages and only text content
+        for message in request.get("messages", []):
+            # Every message must have a role
+            if not message.get("role"):
+                raise HTTPException(status_code=400, detail=f"Invalid request format: messages must contain 'role'.")
+            
+            # Every message must have content aside from assistant role messages
+            if message.get("role") != "assistant" and message.get("content") is None:
+                raise HTTPException(status_code=400, detail=f"Invalid request format: messages must contain 'content' for role '{message.get('role')}'.")
+
+            # Only user, system, and developer roles are supported for RAG
+            if message.get("role") not in ["user", "system", "assistant", "developer"]:
+                logger.info(f"Request contains unsupported role '{message.get('role')}' in messages, passing through to LLM directly.")
+                return await self.llm.chat_completions_passthrough(openai_request)
+
+            # User message content can be a range of options, but we only support text content for RAG
+            if message.get("role") == "user":
+                if message.get("content"):
+                    content = message.get("content")
+                    if isinstance(content, list):
+                        for part in content:
+                            if not isinstance(part, str) and part.get("type") != "text":
+                                logger.info(f"Request contains unsupported content type in user message, passing through to LLM directly.")
+                                return await self.llm.chat_completions_passthrough(openai_request)
+                    elif isinstance(content, str):
+                        pass
+                    elif isinstance(content, ChatCompletionContentPartTextParam):
+                        pass
+                    else:
+                        logger.info(f"Request contains unsupported content type '{type(content)}' in messages, passing through to LLM directly.")
+                        return await self.llm.chat_completions_passthrough(openai_request)
+                else:
+                    logger.error(f"Invalid request format: user messages must contain 'content'.")
+                    raise HTTPException(status_code=400, detail=f"Invalid request format: user messages must contain 'content'.")
+
+        prompt = messages_to_prompt(request.get("messages", []))
+
+        node_postprocessors = []
+        chat_engine = self.index_map[request.get("index_name")].as_chat_engine(
+            llm=self.llm,
+            chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
+            similarity_top_k=request.get("top_k", 5),
+            node_postprocessors=node_postprocessors,
+        )
+
+        if self.use_rwlock:
+            async with self.rwlock.reader_lock:
+                chat_result = await chat_engine.achat(prompt)
+        else:
+            chat_result = await chat_engine.achat(prompt)
+
+        return ChatCompletionResponse(
+            id=uuid.uuid4().hex,
+            object="chat.completion",
+            created=int(time.time()),
+            model=request.get("model"),
+            choices=[{
+                "message": {
+                    "role": "assistant",
+                    "content": chat_result.response,
+                },
+                "finish_reason": "stop",
+                "index": 0
+            }],
+            source_nodes=[
+                {
+                    "doc_id": source_node.node.ref_doc_id,
+                    "node_id": source_node.node_id,
+                    "text": source_node.text,
+                    "score": source_node.score,
+                    "metadata": source_node.metadata
+                }
+                for source_node in chat_result.source_nodes
+            ],
+        )
 
     async def add_document_to_index(self, index_name: str, document: Document, doc_id: str):
         """Common logic for adding a single document."""

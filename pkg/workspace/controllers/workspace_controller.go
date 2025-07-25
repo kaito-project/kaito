@@ -138,6 +138,9 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		requeueTime := time.Second * 5
 		if startTime != nil {
 			requeueTime = startTime.Add(utils.ExpectationsTimeout).Sub(clock.RealClock{}.Now())
+			if requeueTime < 0 {
+				requeueTime = 100 * time.Millisecond
+			}
 		}
 		return reconcile.Result{RequeueAfter: requeueTime}, nil
 	}

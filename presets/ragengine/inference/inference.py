@@ -162,7 +162,7 @@ class Inference(CustomLLM):
                     f"Potential issue with 'model' parameter in API response. "
                     f"Response: {str(e)}. Attempting to update the model name as a mitigation..."
                 )
-                self._default_model = self._fetch_default_model()  # Fetch default model dynamically
+                self._default_model, self._default_max_model_len = self._fetch_default_model_info()  # Fetch default model dynamically
                 if self._default_model:
                     logger.info(f"Default model '{self._default_model}' fetched successfully. Retrying request...")
                     data["model"] = self._default_model

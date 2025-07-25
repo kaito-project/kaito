@@ -133,20 +133,18 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
 	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
 
-	// resource requirements
-	var skuNumGPUs int
+	gctx := &generator.WorkspaceGeneratorContext{
+		Ctx:        ctx,
+		KubeClient: kubeClient,
+		Workspace:  workspaceObj,
+		Model:      model,
+	}
+
+	gpuConfig := getGPUConfig(gctx)
 	// initially respect the user setting by deploying the model on the same number of nodes as the user requested
 	numNodes := *workspaceObj.Resource.Count
-	gpuConfig, err := utils.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
-	if err != nil {
-		gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, kubeClient, workspaceObj.Status.WorkerNodes)
-		if err != nil {
-			defaultNumGPU := resource.MustParse(model.GetInferenceParameters().GPUCountRequirement)
-			skuNumGPUs = int(defaultNumGPU.Value())
-		}
-	}
-	if gpuConfig != nil {
-		skuNumGPUs = gpuConfig.GPUCount
+	// if gpu mem is known, we can setup the distributed correctly
+	if gpuConfig.GPUMemGB > 0 && gpuConfig.GPUCount > 0 {
 		// Calculate the minimum number of nodes required to satisfy the model's total GPU memory requirement.
 		// The goal is to maximize GPU utilization and not spread the model across too many nodes.
 		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement)
@@ -161,14 +159,8 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		}
 	}
 
-	gctx := &generator.WorkspaceGeneratorContext{
-		Ctx:        ctx,
-		KubeClient: kubeClient,
-		Workspace:  workspaceObj,
-		Model:      model,
-	}
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(gpuConfig, skuNumGPUs, numNodes),
+		GenerateInferencePodSpec(&gpuConfig, numNodes),
 		SetModelDownloadInfo,
 		SetAdapterPuller,
 	}
@@ -180,7 +172,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
 
 		var ssOpts []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]
-		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
+		if checkIfNVMeAvailable(ctx, &gpuConfig, kubeClient) {
 			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
 		} else {
 			podOpts = append(podOpts, SetDefaultModelWeightsVolume)
@@ -209,6 +201,32 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 			manifests.GenerateDeploymentManifest(revisionNum, numNodes),
 			manifests.SetDeploymentPodSpec(podSpec),
 		)
+	}
+}
+
+func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) sku.GPUConfig {
+	var gpuConfig *sku.GPUConfig
+	var err error
+	// 1. try to get GPU config from known sku if instanceType is set
+	if len(ctx.Workspace.Resource.PreferredNodes) == 0 {
+		gpuConfig, _ = utils.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
+		if gpuConfig != nil {
+			return *gpuConfig
+		}
+	}
+
+	// 2. try to get GPU config from the node status
+	gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx.Ctx, ctx.KubeClient, ctx.Workspace.Status.WorkerNodes)
+	if err == nil {
+		return *gpuConfig
+	}
+
+	// 3. if both above methods fail, use the default GPU count requirement from the model
+	//    FIXME: assume gpu nodes are provided here. cpu inference should not go through this path.
+	defaultNumGPU := resource.MustParse(ctx.Model.GetInferenceParameters().GPUCountRequirement)
+	skuNumGPUs := int(defaultNumGPU.Value())
+	return sku.GPUConfig{
+		GPUCount: skuNumGPUs,
 	}
 }
 
@@ -287,7 +305,7 @@ func GetBaseImageName() string {
 	return utils.GetPresetImageName(presetObj.Name, presetObj.Tag)
 }
 
-func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs, numNodes int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx.Ctx, ctx.KubeClient,
 			client.ObjectKey{
@@ -332,10 +350,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs, numNodes int
 		// resource requirements
 		resourceReq := corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
 			},
 		}
 
@@ -346,7 +364,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs, numNodes int
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
 			ConfigVolume:         &cmVolumeMount,
-			SKUNumGPUs:           skuNumGPUs,
+			SKUNumGPUs:           gpuConfig.GPUCount,
 			NumNodes:             numNodes,
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
 			DistributedInference: ctx.Model.SupportDistributedInference(),

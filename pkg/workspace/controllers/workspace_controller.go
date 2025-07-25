@@ -18,6 +18,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -42,7 +43,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
@@ -68,24 +68,31 @@ type WorkspaceReconciler struct {
 	Log      logr.Logger
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
+
+	klogger      klog.Logger
+	expectations *utils.ControllerExpectations
 }
 
 func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder) *WorkspaceReconciler {
 	return &WorkspaceReconciler{
-		Client:   client,
-		Scheme:   scheme,
-		Log:      log,
-		Recorder: Recorder,
+		Client:       client,
+		Scheme:       scheme,
+		Log:          log,
+		klogger:      klog.NewKlogr().WithName("WorkspaceController"),
+		Recorder:     Recorder,
+		expectations: utils.NewControllerExpectations(),
 	}
 }
 
 func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 	workspaceObj := &kaitov1beta1.Workspace{}
 	if err := c.Client.Get(ctx, req.NamespacedName, workspaceObj); err != nil {
-		if !apierrors.IsNotFound(err) {
-			klog.ErrorS(err, "failed to get workspace", "workspace", req.Name)
+		if apierrors.IsNotFound(err) {
+			c.expectations.DeleteExpectations(c.klogger, req.String())
+			return reconcile.Result{}, nil
 		}
-		return reconcile.Result{}, client.IgnoreNotFound(err)
+		klog.ErrorS(err, "failed to get workspace", "workspace", req.Name)
+		return reconcile.Result{}, err
 	}
 
 	klog.InfoS("Reconciling", "workspace", req.NamespacedName)
@@ -124,9 +131,26 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 }
 
 func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
+	reqKey := client.ObjectKeyFromObject(wObj).String()
+	// nodeclaim don't meet expectation if no enough nodeclaim events are observed within the timeout period.
+	if !c.expectations.SatisfiedExpectations(c.klogger, reqKey) {
+		startTime := c.expectations.GetExpectationStartTime(reqKey)
+		requeueTime := time.Second * 5
+		if startTime != nil {
+			requeueTime = startTime.Add(utils.ExpectationsTimeout).Sub(clock.RealClock{}.Now())
+			if requeueTime < 0 {
+				requeueTime = 100 * time.Millisecond
+			}
+		}
+		return reconcile.Result{RequeueAfter: requeueTime}, nil
+	}
+
 	// Read ResourceSpec
 	err := c.applyWorkspaceResource(ctx, wObj)
 	if err != nil {
+		if errors.Is(err, reconcile.TerminalError(nil)) {
+			return reconcile.Result{}, nil
+		}
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 			"workspaceFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
@@ -341,11 +365,12 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 			return err
 		}
 
-		newNodes, err := c.createNewNodes(ctx, wObj, newNodesCount)
+		err := c.createNewNodes(ctx, wObj, newNodesCount)
 		if err != nil {
 			return fmt.Errorf("failed to create new nodes: %w", err)
 		}
-		selectedNodes = append(selectedNodes, newNodes...)
+		// terminate the current reconciliation and rely on NodeClaim creation event to trigger a new reconciliation
+		return reconcile.TerminalError(errors.New("waiting for new nodes to be created"))
 	}
 
 	// Ensure all gpu plugins are running successfully.
@@ -458,20 +483,33 @@ func (c *WorkspaceReconciler) createAllNodeClaims(ctx context.Context, wObj *kai
 
 	nodeClaims := make([]*karpenterv1.NodeClaim, 0, count)
 
-	for i := 0; i < count; i++ {
+	for range count {
 		var newNodeClaim *karpenterv1.NodeClaim
 
+		// Set expectations before creating the NodeClaim in case event handler
+		// observes the NodeClaim creation event before the controller does.
+		c.expectations.ExpectCreations(c.klogger, client.ObjectKeyFromObject(wObj).String(), 1)
+		newNodeCreated := false
 		err := retry.OnError(retry.DefaultRetry, func(err error) bool {
 			return apierrors.IsAlreadyExists(err)
 		}, func() error {
 			newNodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, wObj)
-			return nodeclaim.CreateNodeClaim(ctx, newNodeClaim, c.Client)
+			err0 := nodeclaim.CreateNodeClaim(ctx, newNodeClaim, c.Client)
+			if err0 == nil {
+				newNodeCreated = true
+			}
+			return err0
 		})
+		if !newNodeCreated {
+			// Decrement the expected number of creates because the informer won't observe this nodeclaim
+			c.expectations.CreationObserved(c.klogger, client.ObjectKeyFromObject(wObj).String())
+		}
 
 		if err != nil {
 			klog.ErrorS(err, "failed to create nodeClaim", "nodeClaim", newNodeClaim.Name)
 			return nil, fmt.Errorf("failed to create nodeClaim %s: %w", newNodeClaim.Name, err)
 		}
+		klog.InfoS("NodeClaim created successfully", "nodeClaim", newNodeClaim.Name, "workspace", klog.KObj(wObj))
 
 		nodeClaims = append(nodeClaims, newNodeClaim)
 	}
@@ -479,55 +517,24 @@ func (c *WorkspaceReconciler) createAllNodeClaims(ctx context.Context, wObj *kai
 	return nodeClaims, nil
 }
 
-func (c *WorkspaceReconciler) createNewNodes(ctx context.Context, wObj *kaitov1beta1.Workspace, newNodesCount int) ([]*corev1.Node, error) {
+func (c *WorkspaceReconciler) createNewNodes(ctx context.Context, wObj *kaitov1beta1.Workspace, newNodesCount int) error {
 	// Create all node claims at once
 	nodeOSDiskSize := c.determineNodeOSDiskSize(wObj)
-	newNodeClaims, err := c.createAllNodeClaims(ctx, wObj, newNodesCount, nodeOSDiskSize)
+	_, err := c.createAllNodeClaims(ctx, wObj, newNodesCount, nodeOSDiskSize)
 	if err != nil {
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
 			"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return nil, updateErr
+			return updateErr
 		}
-		return nil, err
+		return err
 	}
-
-	// Wait for all node claims to be ready
-	if err := nodeclaim.WaitForPendingNodeClaims(ctx, wObj, c.Client); err != nil {
-		return nil, err
+	if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+		"workspaceResourceCreated", "nodeclaims created successfully"); updateErr != nil {
+		klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
+		return updateErr
 	}
-
-	// Get node object details
-	newNodes, err := c.getNewNodes(ctx, newNodeClaims)
-	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
-			"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return nil, updateErr
-		}
-		return nil, err
-	}
-
-	return newNodes, nil
-}
-
-// getNewNodes returns the new nodes created from the given node claims.
-func (c *WorkspaceReconciler) getNewNodes(ctx context.Context, nodeClaims []*karpenterv1.NodeClaim) ([]*corev1.Node, error) {
-	nodes := make([]*corev1.Node, 0, len(nodeClaims))
-
-	for i, nodeClaim := range nodeClaims {
-		klog.InfoS("Checking NodeClaim status", "nodeClaim", nodeClaim.Name, "index", i+1, "total", len(nodeClaims))
-
-		// Get the node object from the nodeClaim status nodeName
-		node, err := resources.GetNode(ctx, nodeClaim.Status.NodeName, c.Client)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get node for nodeClaim %s: %w", nodeClaim.Name, err)
-		}
-
-		nodes = append(nodes, node)
-	}
-
-	return nodes, nil
+	return nil
 }
 
 // ensureNodePlugins ensures node plugins are installed.
@@ -809,34 +816,17 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.Deployment{}).
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&batchv1.Job{}).
-		Watches(&karpenterv1.NodeClaim{}, c.watchNodeClaims(), builder.WithPredicates(nodeclaim.NodeClaimPredicate)).
+		Watches(&karpenterv1.NodeClaim{},
+			&nodeClaimEventHandler{
+				logger:         c.klogger,
+				expectations:   c.expectations,
+				enqueueHandler: enqueueWorkspaceForNodeClaim,
+			},
+			builder.WithPredicates(nodeclaim.NodeClaimPredicate),
+		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
 	go monitorWorkspaces(context.Background(), c.Client)
 
 	return builder.Complete(c)
-}
-
-// watches for nodeClaim with labels indicating workspace name.
-func (c *WorkspaceReconciler) watchNodeClaims() handler.EventHandler {
-	return handler.EnqueueRequestsFromMapFunc(
-		func(ctx context.Context, o client.Object) []reconcile.Request {
-			nodeClaimObj := o.(*karpenterv1.NodeClaim)
-			name, ok := nodeClaimObj.Labels[kaitov1beta1.LabelWorkspaceName]
-			if !ok {
-				return nil
-			}
-			namespace, ok := nodeClaimObj.Labels[kaitov1beta1.LabelWorkspaceNamespace]
-			if !ok {
-				return nil
-			}
-			return []reconcile.Request{
-				{
-					NamespacedName: client.ObjectKey{
-						Name:      name,
-						Namespace: namespace,
-					},
-				},
-			}
-		})
 }

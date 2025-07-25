@@ -1,105 +1,72 @@
 ---
-title: AWS Deployment
+title: AWS Setup
 ---
 
-# Installation using AWS EKS cluster
+This guide covers setting up auto-provisioning capabilities for KAITO on Amazon Elastic Kubernetes Service (EKS). Auto-provisioning allows KAITO to automatically create GPU nodes when needed for your AI workloads.
 
-Before you begin, ensure you have the following tools installed:
-- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) to provision AWS resources
-- [Eksctl](https://eksctl.io/installation/) (>= v0.191.0) to create and manage clusters on EKS
-- [Helm](https://helm.sh) to install this operator
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) to view Kubernetes resources
+## Prerequisites
 
-## Create EKS Cluster
-If you do not already have an EKS cluster, run the following to create one:
+- An EKS cluster with KAITO workspace controller installed (see [Installation](installation))
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) for managing AWS resources
+- [eksctl](https://eksctl.io/installation/) for EKS cluster management
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) configured to access your EKS cluster
+
+## Understanding Auto-Provisioning on AWS
+
+KAITO can use [Karpenter](https://karpenter.sh/) to automatically provision GPU nodes. This controller:
+
+- Creates new GPU nodes when workspaces require specific instance types
+- Supports various AWS GPU instances (g4, g5, p3, p4 series, etc.)
+- Manages node lifecycle based on workload demands
+- Integrates with AWS IAM for secure access
+
+:::note
+Alternative: If you already have GPU nodes or manage them separately, use the preferred nodes approach in the [Quick Start](quick-start) instead.
+:::
+
+## Setup Auto-Provisioning
+
+### Create EKS Cluster and install Karpenter
+
+Follow the instructions [here](https://karpenter.sh/docs/getting-started/getting-started-with-karpenter/) to create an EKS cluster and install Karpenter.
+
+Then update the KAITO workspace controller Helm chart values for AWS:
 
 ```bash
-cd ../.. #go back to main directory to use MAKE commands
-
-export AWS_CLUSTER_NAME=kaito-aws
-export AWS_REGION=us-west-2
-export AWS_PARTITION=aws
-export AWS_K8S_VERSION=1.30
-export KARPENTER_NAMESPACE=kube-system
-export AWS_ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
-
-make deploy-aws-cloudformation
-make create-eks-cluster
+helm update kaito-workspace --namespace kaito-workspace --set cloudProviderName=aws
 ```
 
-If you already have an EKS cluster, connect to it using
-```bash
-aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION
-```
+### Using Auto-Provisioning
 
-## Install Karpenter Controller
-```bash
-make aws-karpenter-helm
-```
+Once Karpenter is set up, you can create workspaces that automatically provision GPU nodes:
 
-## Install Workspace Controller
-```bash
-make aws-patch-install-helm
-```
-
-## Verify installation
-You can run the following commands to verify the installation of the controllers were successful.
-
-Check status of the Helm chart installations.
-
-```bash
-helm list -n default
-```
-
-Check status of `workspace`.
-
-```bash
-kubectl describe deploy kaito-workspace -n kaito-workspace
-```
-
-Check status of `karpenter`.
-
-```bash
-kubectl describe deploy karpenter -n $KARPENTER_NAMESPACE
-```
-
-## Create a Workspace and start an inference service
-Once the KAITO and Karpenter controllers are installed, you can follow these commands to start a falcon-7b inference service.
-
-```bash
-$ export kaito_workspace_aws="../../examples/inference/kaito_workspace_falcon_7b_aws.yaml"
-$ cat $kaito_workspace_aws
+```yaml title="phi-4-workspace.yaml"
 apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
-  name: aws-workspace
+  name: workspace-phi-4-mini
 resource:
-  instanceType: "g5.4xlarge"
+  instanceType: "g5.4xlarge" # Will trigger node creation
   labelSelector:
     matchLabels:
-      apps: falcon-7b
+      apps: phi-4-mini
 inference:
   preset:
-    name: "falcon-7b"
-
-$ kubectl apply -f $kaito_workspace_aws
+    name: phi-4-mini-instruct
 ```
 
-The workspace status can be tracked by running the following command. When the WORKSPACEREADY column becomes `True`, the model has been deployed successfully.
+Apply the workspace:
 
-```sh
-$ kubectl get workspace workspace-falcon-7b
-NAME                  INSTANCE            RESOURCEREADY   INFERENCEREADY    JOBSTARTED  WORKSPACESUCCEEDED  AGE
-aws-workspace         g5.4xlarge          True            True              True        True                10m
+```bash
+kubectl apply -f phi-4-workspace.yaml
 ```
 
-Next, one can find the inference service's cluster ip and use a temporal `curl` pod to test the service endpoint in the cluster.
+## Supported AWS GPU Instance Types
 
-```sh
-$ kubectl get svc aws-workspace
-NAME                  TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)            AGE
-aws-workspace         ClusterIP   <CLUSTERIP>  <none>        80/TCP,29500/TCP   10m
+The GPU provisioner supports various AWS GPU SKUs, see [supported options here](https://github.com/kaito-project/kaito/blob/main/pkg/sku/aws_sku_handler.go).
 
-export CLUSTERIP=$(kubectl get svc aws-workspace -o jsonpath="{.spec.clusterIPs[0]}")
-$ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POST http://$CLUSTERIP/chat -H "accept: application/json" -H "Content-Type: application/json" -d "{\"prompt\":\"YOUR QUESTION HERE\"}"
-```
+For the complete list and specifications, see the [AWS GPU instance documentation](https://docs.aws.amazon.com/dlami/latest/devguide/gpu.html).
+
+## Clean Up
+
+See the Karpenter documentation for instructions on how to clean up your EKS cluster and remove Karpenter [here](https://karpenter.sh/docs/getting-started/getting-started-with-karpenter/#9-delete-the-cluster).

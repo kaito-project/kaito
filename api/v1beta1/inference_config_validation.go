@@ -131,16 +131,16 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 
 	// Parse and validate epp-config.yaml if the Gateway API Inference
 	// Extension feature gate is enabled
-	eppConfigYAML, ok := cm.Data["epp-config.yaml"]
+	eppConfigYAML, ok := cm.Data[consts.EndpointPickerConfigKey]
 	if !ok {
-		return apis.ErrMissingField("epp-config.yaml in ConfigMap")
+		return apis.ErrMissingField(fmt.Sprintf("%s in ConfigMap", consts.EndpointPickerConfigKey))
 	}
 
 	eppConfig := &configv1alpha1.EndpointPickerConfig{}
 	codecs := serializer.NewCodecFactory(eppConfigScheme, serializer.EnableStrict)
 	err = runtime.DecodeInto(codecs.UniversalDecoder(), []byte(eppConfigYAML), eppConfig)
 	if err != nil {
-		return apis.ErrGeneric(fmt.Sprintf("Failed to parse epp-config.yaml: %v", err), "epp-config.yaml")
+		return apis.ErrGeneric(fmt.Sprintf("Failed to parse %s: %v", consts.EndpointPickerConfigKey, err), consts.EndpointPickerConfigKey)
 	}
 
 	return errs

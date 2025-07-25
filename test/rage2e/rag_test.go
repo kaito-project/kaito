@@ -159,7 +159,7 @@ var _ = Describe("RAGEngine", func() {
 
 		clusterIP := service.Spec.ClusterIP
 
-		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngine(clusterIP)
+		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngine(clusterIP, "v1/completions")
 
 		defer cleanupResources(workspaceObj, ragengineObj)
 
@@ -179,6 +179,66 @@ var _ = Describe("RAGEngine", func() {
 		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
+		persistLogSuccess := "Successfully persisted index kaito"
+		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
+
+		loadLogSuccess := "Successfully loaded index kaito"
+		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
+
+		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
+
+		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
+
+		err = createAndValidateDeleteIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
+	})
+
+	It("should create RAG with localembedding and kaito VLLM workspace successfully for chat completions", utils.GinkgoLabelFastCheck, func() {
+		numOfReplica := 1
+		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
+
+		time.Sleep(30 * time.Second)
+
+		validateWorkspaceResourceStatus(workspaceObj)
+
+		validateAssociatedService(workspaceObj.ObjectMeta)
+
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		serviceName := workspaceObj.ObjectMeta.Name
+		serviceNamespace := workspaceObj.ObjectMeta.Namespace
+		service := &v1.Service{}
+
+		_ = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: serviceNamespace,
+			Name:      serviceName,
+		}, service)
+
+		clusterIP := service.Spec.ClusterIP
+
+		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngine(clusterIP, "v1/chat/completions")
+
+		defer cleanupResources(workspaceObj, ragengineObj)
+
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateAssociatedService(ragengineObj.ObjectMeta)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
+		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
+		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
+		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
+		docID := indexDoc["doc_id"].(string)
+
+		searchQuerySuccess := "\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\n\\n\\n"
 		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, true)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
 
@@ -285,9 +345,9 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL string) *kaitov1alpha1.RAGEngine {
+func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL, llmPath string) *kaitov1alpha1.RAGEngine {
 	ragEngineObj := &kaitov1alpha1.RAGEngine{}
-	serviceURL := fmt.Sprintf("http://%s/v1/completions", baseURL)
+	serviceURL := fmt.Sprintf("http://%s/%s", baseURL, llmPath)
 	By("Creating RAG with localembedding and kaito vllm inference", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
 		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC24s_v3", "BAAI/bge-small-en-v1.5",

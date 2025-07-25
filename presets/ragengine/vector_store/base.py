@@ -263,7 +263,7 @@ class BaseVectorStore(ABC):
                     if isinstance(content, list):
                         for part in content:
                             if not isinstance(part, str) and part.get("type") != "text":
-                                logger.info(f"Request contains unsupported role '{message.get('role')}' in messages, passing through to LLM directly.")
+                                logger.info(f"Request contains unsupported content type in user message, passing through to LLM directly.")
                                 return await self.llm.chat_completions_passthrough(openai_request)
                     elif isinstance(content, str):
                         pass

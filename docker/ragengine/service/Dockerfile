@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim AS dependencies
 
 # Install system dependencies for building Python packages
 RUN apt-get update && apt-get upgrade -y \
@@ -10,6 +10,8 @@ RUN apt-get update && apt-get upgrade -y \
     perl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+FROM dependencies AS base
 
 WORKDIR /app
 

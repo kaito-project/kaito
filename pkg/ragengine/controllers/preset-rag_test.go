@@ -20,8 +20,11 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 
+	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
@@ -89,6 +92,70 @@ func TestCreatePresetRAG(t *testing.T) {
 
 			if image != tc.expectedImage {
 				t.Errorf("%s: image is not expected, got %s, expected %s", k, image, tc.expectedImage)
+			}
+		})
+	}
+}
+
+func TestGPUConfigLogic(t *testing.T) {
+	test.RegisterTestModel()
+
+	testcases := map[string]struct {
+		nodeCount        int
+		callMocks        func(c *test.MockClient)
+		ragEngine        *v1alpha1.RAGEngine
+		expectedGPUReq   int64
+		expectedLimitReq int64
+	}{
+		"test-rag-model": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			ragEngine:        test.MockRAGEngineWithPreset,
+			expectedGPUReq:   int64(2),
+			expectedLimitReq: int64(2),
+		},
+		"test-rag-preferred-nodes": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			ragEngine:        test.MockRAGEngineWithPresetPreferredCPUNodes,
+			expectedGPUReq:   int64(0),
+			expectedLimitReq: int64(0),
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+			mockClient := test.NewClient()
+			tc.callMocks(mockClient)
+
+			ragEngineObj := tc.ragEngine
+			createdObject, _ := CreatePresetRAG(context.TODO(), ragEngineObj, "1", mockClient)
+
+			resourceReq := createdObject.(*appsv1.Deployment).Spec.Template.Spec.Containers[0].Resources
+
+			gpuRequests, exists := resourceReq.Requests[corev1.ResourceName(resources.CapacityNvidiaGPU)]
+			if !exists {
+				t.Errorf("GPU requests not found in resource requirements")
+				return
+			}
+
+			gpuLimits, exists := resourceReq.Limits[corev1.ResourceName(resources.CapacityNvidiaGPU)]
+			if !exists {
+				t.Errorf("GPU limits not found in resource requirements")
+				return
+			}
+
+			gpuRequestCount := gpuRequests.Value()
+			gpuLimitCount := gpuLimits.Value()
+			if gpuRequestCount != tc.expectedGPUReq {
+				t.Errorf("%s: GPU request count is not expected, got %d, expected %d", k, gpuRequestCount, tc.expectedGPUReq)
+			}
+			if gpuLimitCount != tc.expectedLimitReq {
+				t.Errorf("%s: GPU limit count is not expected, got %d, expected %d", k, gpuLimitCount, tc.expectedLimitReq)
 			}
 		})
 	}

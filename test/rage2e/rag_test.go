@@ -192,6 +192,44 @@ var _ = Describe("RAGEngine", func() {
 
 		err = createAndValidateDeleteIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
+
+		// Get the preferred node from ragpool
+		preferredNode, err := getRagPoolNode()
+		Expect(err).NotTo(HaveOccurred(), "Failed to get ragpool node")
+
+		ragenginePreferredNodesObj := createLocalPreferredNodesRAGEngine(clusterIP, preferredNode)
+
+		defer cleanupResources(nil, ragenginePreferredNodesObj)
+
+		validateRAGEngineCondition(ragenginePreferredNodesObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateAssociatedService(ragenginePreferredNodesObj.ObjectMeta)
+		validateInferenceandRAGResource(ragenginePreferredNodesObj.ObjectMeta, int32(numOfReplica), false)
+		validateRAGEngineCondition(ragenginePreferredNodesObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+		indexPreferredNodesDoc, err := createAndValidateIndexPod(ragenginePreferredNodesObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
+		Expect(indexPreferredNodesDoc).NotTo(BeNil(), "Index document should not be nil")
+		Expect(indexPreferredNodesDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
+		Expect(indexPreferredNodesDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
+		docPreferredNodesID := indexPreferredNodesDoc["doc_id"].(string)
+
+		err = createAndValidateQueryPod(ragenginePreferredNodesObj, searchQuerySuccess, false)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
+
+		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
+
+		err = createAndValidateLoadPod(ragenginePreferredNodesObj, loadLogSuccess)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
+
+		err = createAndValidateUpdateDocumentPod(ragenginePreferredNodesObj, docPreferredNodesID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
+
+		err = createAndValidateDeleteDocumentPod(ragenginePreferredNodesObj, docPreferredNodesID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
+
+		err = createAndValidateDeleteIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
 })
@@ -257,6 +295,27 @@ func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embe
 	}
 }
 
+func GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(name, namespace, preferredNodes, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1alpha1.InferenceServiceSpec) *kaitov1alpha1.RAGEngine {
+	return &kaitov1alpha1.RAGEngine{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: &kaitov1alpha1.RAGEngineSpec{
+			Compute: &kaitov1alpha1.ResourceSpec{
+				PreferredNodes: []string{preferredNodes},
+				LabelSelector:  labelSelector,
+			},
+			Embedding: &kaitov1alpha1.EmbeddingSpec{
+				Local: &kaitov1alpha1.LocalEmbeddingSpec{
+					ModelID: embeddingModelID,
+				},
+			},
+			InferenceService: inferenceSpec,
+		},
+	}
+}
+
 // validateWorkspaceReadiness validates workspace readiness
 func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the workspace status is ready", func() {
@@ -285,6 +344,25 @@ func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL string) *kaitov1alpha1.RAGEn
 	By("Creating RAG with localembedding and kaito vllm inference", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
 		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC24s_v3", "BAAI/bge-small-en-v1.5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"apps": "phi-3"},
+			},
+			&kaitov1alpha1.InferenceServiceSpec{
+				URL: serviceURL,
+			},
+		)
+
+		createAndValidateRAGEngine(ragEngineObj)
+	})
+	return ragEngineObj
+}
+
+func createLocalPreferredNodesRAGEngine(baseURL, preferredNode string) *kaitov1alpha1.RAGEngine {
+	ragEngineObj := &kaitov1alpha1.RAGEngine{}
+	serviceURL := fmt.Sprintf("http://%s/v1/completions", baseURL)
+	By("Creating RAG with localembedding and kaito vllm inference", func() {
+		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(uniqueID, namespaceName, preferredNode, "BAAI/bge-small-en-v1.5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
@@ -898,4 +976,20 @@ func createAndValidateSecret() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
+}
+
+func getRagPoolNode() (string, error) {
+	nodeList := &v1.NodeList{}
+	err := utils.TestingCluster.KubeClient.List(ctx, nodeList)
+	if err != nil {
+		return "", fmt.Errorf("failed to list nodes: %v", err)
+	}
+
+	for _, node := range nodeList.Items {
+		if strings.Contains(node.Name, "ragpool") {
+			return node.Name, nil
+		}
+	}
+
+	return "", fmt.Errorf("no node containing 'ragpool' found")
 }

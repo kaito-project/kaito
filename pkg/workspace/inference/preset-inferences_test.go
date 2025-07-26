@@ -24,11 +24,14 @@ import (
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
@@ -284,7 +287,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			model := plugin.KaitoModelRegister.MustGet(tc.modelName)
 
 			svc := &corev1.Service{
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Name:      workspace.Name,
 					Namespace: workspace.Namespace,
 				},
@@ -405,7 +408,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 		"Liveness": {
 			probeType: probeTypeLiveness,
 			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
 					Namespace: "test-ns",
 				},
@@ -429,7 +432,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 		"Readiness": {
 			probeType: probeTypeReadiness,
 			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
 					Namespace: "test-ns",
 				},
@@ -465,6 +468,172 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 				if !reflect.DeepEqual(actualProbe.HTTPGet, tc.expectedProbe.HTTPGet) {
 					t.Errorf("HTTPGet mismatch: expected %+v, got %+v", tc.expectedProbe.HTTPGet, actualProbe.HTTPGet)
 				}
+			}
+		})
+	}
+}
+
+func TestGetGPUConfig(t *testing.T) {
+	test.RegisterTestModel()
+
+	testcases := map[string]struct {
+		workspace      *v1beta1.Workspace
+		model          string
+		callMocks      func(c *test.MockClient)
+		expectedConfig sku.GPUConfig
+	}{
+		"SKU path - get config from instanceType": {
+			workspace: &v1beta1.Workspace{
+				Resource: v1beta1.ResourceSpec{
+					InstanceType:   "Standard_NC24ads_A100_v4",
+					PreferredNodes: []string{},
+					LabelSelector:  &metav1.LabelSelector{},
+				},
+			},
+			model: "test-model",
+			callMocks: func(c *test.MockClient) {
+				// No need for mock expectations here
+			},
+			expectedConfig: sku.GPUConfig{
+				SKU:             "Standard_NC24ads_A100_v4",
+				GPUCount:        1,
+				GPUMemGB:        80,
+				GPUModel:        "NVIDIA A100",
+				NVMeDiskEnabled: true,
+			},
+		},
+		"Node status path - get config from node": {
+			workspace: &v1beta1.Workspace{
+				Resource: v1beta1.ResourceSpec{
+					InstanceType:   "unknown-instance-type",
+					PreferredNodes: []string{},
+					LabelSelector:  &metav1.LabelSelector{},
+				},
+				Status: v1beta1.WorkspaceStatus{
+					WorkerNodes: []string{"gpu-node-1"},
+				},
+			},
+			model: "test-model",
+			callMocks: func(c *test.MockClient) {
+				node := &corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "gpu-node-1",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: corev1.ResourceList{
+							consts.NvidiaGPU: *resource.NewQuantity(2, resource.DecimalSI),
+						},
+					},
+				}
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						nodeList := args.Get(1).(*corev1.NodeList)
+						nodeList.Items = []corev1.Node{*node}
+					}).Return(nil)
+			},
+			expectedConfig: sku.GPUConfig{
+				SKU:      "unknown",
+				GPUCount: 2,
+				GPUModel: "unknown",
+			},
+		},
+		"Fallback path - get config from model requirements": {
+			workspace: &v1beta1.Workspace{
+				Resource: v1beta1.ResourceSpec{
+					InstanceType:   "unknown-instance-type",
+					PreferredNodes: []string{},
+					LabelSelector:  &metav1.LabelSelector{},
+				},
+				Status: v1beta1.WorkspaceStatus{
+					WorkerNodes: []string{},
+				},
+			},
+			model: "test-model",
+			callMocks: func(c *test.MockClient) {
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(fmt.Errorf("no nodes found"))
+			},
+			expectedConfig: sku.GPUConfig{
+				GPUCount: 1, // From test-model's GPUCountRequirement
+			},
+		},
+		"PreferredNodes path - bypass SKU path": {
+			workspace: &v1beta1.Workspace{
+				Resource: v1beta1.ResourceSpec{
+					InstanceType:   "Standard_NC24ads_A100_v4",
+					PreferredNodes: []string{"preferred-node"},
+					LabelSelector:  &metav1.LabelSelector{},
+				},
+				Status: v1beta1.WorkspaceStatus{
+					WorkerNodes: []string{"gpu-node-1"},
+				},
+			},
+			model: "test-model",
+			callMocks: func(c *test.MockClient) {
+				node := &corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "gpu-node-1",
+					},
+					Status: corev1.NodeStatus{
+						Capacity: corev1.ResourceList{
+							consts.NvidiaGPU: *resource.NewQuantity(2, resource.DecimalSI),
+						},
+					},
+				}
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						nodeList := args.Get(1).(*corev1.NodeList)
+						nodeList.Items = []corev1.Node{*node}
+					}).Return(nil)
+			},
+			expectedConfig: sku.GPUConfig{
+				SKU:      "unknown",
+				GPUCount: 2,
+				GPUModel: "unknown",
+			},
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+			mockClient := test.NewClient()
+			tc.callMocks(mockClient)
+
+			model := plugin.KaitoModelRegister.MustGet(tc.model)
+
+			gctx := &generator.WorkspaceGeneratorContext{
+				Ctx:        context.TODO(),
+				Workspace:  tc.workspace,
+				Model:      model,
+				KubeClient: mockClient,
+			}
+
+			config := getGPUConfig(gctx)
+
+			// Check each field against expected values
+			if tc.expectedConfig.SKU != "" && config.SKU != tc.expectedConfig.SKU {
+				t.Errorf("Expected SKU %s, got %s", tc.expectedConfig.SKU, config.SKU)
+			}
+
+			// GPUCount should always be verified
+			if config.GPUCount != tc.expectedConfig.GPUCount {
+				t.Errorf("Expected GPUCount %d, got %d", tc.expectedConfig.GPUCount, config.GPUCount)
+			}
+
+			// Check GPUModel if expected
+			if tc.expectedConfig.GPUModel != "" && config.GPUModel != tc.expectedConfig.GPUModel {
+				t.Errorf("Expected GPUModel %s, got %s", tc.expectedConfig.GPUModel, config.GPUModel)
+			}
+
+			// Check GPUMemGB if expected
+			if tc.expectedConfig.GPUMemGB > 0 && config.GPUMemGB != tc.expectedConfig.GPUMemGB {
+				t.Errorf("Expected GPUMemGB %d, got %d", tc.expectedConfig.GPUMemGB, config.GPUMemGB)
+			}
+
+			// Check NVMeDiskEnabled if expected
+			if tc.expectedConfig.NVMeDiskEnabled && !config.NVMeDiskEnabled {
+				t.Errorf("Expected NVMeDiskEnabled to be true, got false")
 			}
 		})
 	}

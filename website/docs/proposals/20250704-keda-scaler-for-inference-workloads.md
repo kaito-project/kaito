@@ -30,7 +30,7 @@ From the technical perspective, we don't want to make a new wheel for auto-scale
 
 The auto-scaler solution for Kaito should be shown as follows:
 
-![keda-kaito-scaler](/img/keda-kaito-scaler.png)
+![keda-kaito-scaler](../../static/img/keda-kaito-scaler.png)
 
 We will divide this auto-scaler feature into two parts as follows:
 
@@ -53,7 +53,7 @@ To ensure ease of use, the specialized kaito scaler is hosted in an independent 
 
 Keda can provides both metric-based and time-based scaler capability, but for metric-based scaler it should work together with prometheus. The detailed auto-scaler architecture is shown in the following figure:
 
-![keda-prometheus-cron-auto-scaler](/img/keda-prometheus-cron-auto-scaler.png)
+![keda-prometheus-cron-auto-scaler](../../static/img/keda-prometheus-cron-auto-scaler.png)
 
 - **Keda**: includes two components: metrics-adapter and keda-core. metrics-adpter is used for exposing external metrics on kube-apiserver wihch will be used by native HPA. keda-core includes the core logic of keda system, like the generation of HPA resource according to ScaledObject, and supporting different scalers(like prometheus, cron scalers).
 - **Scalers**: Keda providers more than 100+ scalers, but these scalers are only used for providing metrics for native HPA, and the scaling logic and actions are taken by native HPA.
@@ -353,7 +353,7 @@ In order to address the above challenges, we consider to create a new component 
 - kaito scaler: works as an external scaler of keda, and collects metrics from inference pods according to ScaledObject configurations. This means that `PodMonitor`, `TriggerAuthentication`, `Secret` configurations aren't needed, and users only need to configure `ScaledObject`. at the same time, users don't need to maintain the Prometheus stack.
 - kaito scaler manager: works as a deployment, includes webhooks for configuring default values for `ScaledObject`, so users don't need to dive into the details of HPA behavior or vllm metrics. and controllers for ensuring secret which used by grpc connection between keda core and kaito scaler(external scaler).
 
-![keda-kaito-scaler-arch](/img/keda-kaito-scaler-arch.png)
+![keda-kaito-scaler-arch](../../static/img/keda-kaito-scaler-arch.png)
 
 #### Trigger Specification of Kaito Scaler
 

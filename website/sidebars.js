@@ -47,6 +47,7 @@ const sidebars = {
                 'rag',
                 'custom-model',
                 'tool-calling',
+                'headlamp-kaito',
             ],
         },
         {
@@ -57,7 +58,6 @@ const sidebars = {
                 'monitoring',
                 'kaito-oom-prevention',
                 'kaito-on-byo-gpu-nodes',
-                'headlamp-kaito',
             ],
         },
         {

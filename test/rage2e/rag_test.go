@@ -175,7 +175,7 @@ var _ = Describe("RAGEngine", func() {
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
 
-		searchQuerySuccess := "\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\n\\n\\n"
+		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
 		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
@@ -238,7 +238,7 @@ var _ = Describe("RAGEngine", func() {
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
 
-		searchQuerySuccess := "\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\n\\n\\n"
+		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
 		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, true)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
 

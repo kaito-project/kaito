@@ -71,6 +71,7 @@ def setup_server(request, tmp_path_factory, autouse=True):
     kaito_config = KaitoConfig(
         vllm={"max-model-len": TEST_MODEL_LEN, "served-model-name": TEST_MODEL_NAME},
         max_probe_steps=0,
+        kv_cache_cpu_memory_utilization=0.6,
     )
     with open(config_file, "w") as f:
         f.write(kaito_config.to_yaml())

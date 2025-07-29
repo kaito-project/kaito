@@ -12,6 +12,18 @@ const config = {
     tagline: 'Kubernetes AI Toolchain Operator',
     favicon: 'img/favicon.ico',
 
+    headTags: [
+        {
+            tagName: "meta",
+            attributes: {
+                // Allow Algolia crawler to index the site
+                // See https://www.algolia.com/doc/tools/crawler/getting-started/create-crawler/#verify-your-domain.
+                name: "algolia-site-verification",
+                content: process.env.ALGOLIA_SITE_VERIFICATION || "DUMMY_SITE_VERIFICATION",
+            }
+        },
+    ],
+
     // Set the production url of your site here
     url: 'https://kaito-project.github.io',
     // Set the /<baseUrl>/ pathname under which your site is served

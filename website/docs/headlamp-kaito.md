@@ -15,7 +15,6 @@ Headlamp plugin for KAITO is a plugin for [Headlamp](https://headlamp.dev/), the
 - **Model Deployment**: Simplified deployment of pre-configured AI models from KAITO's preset library
 
 ![Headlamp-KAITO plugin installation](/img/headlamp-kaito-plugin-installation.png)
-C:\Users\t-chloelim\kaito\website\static\img\headlamp-kaito-plugin-installation.png
 
 ## Getting Started
 

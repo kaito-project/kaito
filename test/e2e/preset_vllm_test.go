@@ -20,12 +20,14 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gaiev1alpha2 "sigs.k8s.io/gateway-api-inference-extension/api/v1alpha2"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -470,4 +472,34 @@ func validateGatewayAPIInferenceExtensionResources(workspaceObj *kaitov1beta1.Wo
 			return err == nil
 		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(), "Failed to validate Gateway API Inference Extension InferencePool resources")
 	})
+
+	By("Checking the Endpoint Picker Deployment is running and available", func() {
+		eppName := kaitoutils.EndpointPickerName(workspaceObj.Name)
+		deployment := &appsv1.Deployment{}
+
+		Eventually(func() bool {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      eppName,
+			}, deployment, &client.GetOptions{})
+			if err != nil {
+				return false
+			}
+
+			// Check if deployment is available and ready
+			return deployment.Status.ReadyReplicas > 0 &&
+				deployment.Status.ReadyReplicas == deployment.Status.Replicas &&
+				isDeploymentAvailable(deployment)
+		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(), "Failed to validate Endpoint Picker Deployment is running and available")
+	})
+}
+
+// isDeploymentAvailable checks if the deployment has the Available condition set to True
+func isDeploymentAvailable(deployment *appsv1.Deployment) bool {
+	for _, condition := range deployment.Status.Conditions {
+		if condition.Type == appsv1.DeploymentAvailable && condition.Status == corev1.ConditionTrue {
+			return true
+		}
+	}
+	return false
 }

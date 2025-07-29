@@ -29,7 +29,8 @@ const (
 
 	DefaultORASToolImage = "mcr.microsoft.com/oss/v2/oras-project/oras:v1.2.3"
 
-	// should be in sync with go.mod
+	// Upstream reference implementation of Endpoint Picker
+	// https://github.com/kubernetes-sigs/gateway-api-inference-extension/tree/v0.5.1/cmd/epp
 	DefaultGatewayAPIInferenceExtensionEPPImage = "mcr.microsoft.com/oss/v2/gateway-api-inference-extension/epp:v0.5.1"
 )
 

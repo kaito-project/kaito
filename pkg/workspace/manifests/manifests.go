@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"strconv"
 
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -354,7 +355,7 @@ func GetModelImageName(presetObj *pkgmodel.PresetParam) string {
 }
 
 // GenerateModelPullerContainer creates an init container that pulls model images using ORAS
-func GenerateModelPullerContainer(ctx context.Context, workspaceObj *v1beta1.Workspace, presetObj *pkgmodel.PresetParam) []corev1.Container {
+func GenerateModelPullerContainer(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, presetObj *pkgmodel.PresetParam) []corev1.Container {
 	if presetObj.DownloadAtRuntime {
 		// If the preset is set to download at runtime, we don't need to pull the model weights.
 		return nil
@@ -383,7 +384,7 @@ func GenerateModelPullerContainer(ctx context.Context, workspaceObj *v1beta1.Wor
 
 // GenerateInferencePool generates an InferencePool manifest for the given workspace object.
 // See https://gateway-api-inference-extension.sigs.k8s.io/reference/spec/ for more details.
-func GenerateInferencePool(workspaceObj *v1beta1.Workspace, isStatefulSet bool) *gaiev1alpha2.InferencePool {
+func GenerateInferencePool(workspaceObj *kaitov1beta1.Workspace, isStatefulSet bool) *gaiev1alpha2.InferencePool {
 	inferencePool := &gaiev1alpha2.InferencePool{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      workspaceObj.Name,
@@ -403,7 +404,7 @@ func GenerateInferencePool(workspaceObj *v1beta1.Workspace, isStatefulSet bool) 
 			EndpointPickerConfig: gaiev1alpha2.EndpointPickerConfig{
 				ExtensionRef: &gaiev1alpha2.Extension{
 					ExtensionReference: gaiev1alpha2.ExtensionReference{
-						Name: gaiev1alpha2.ObjectName(fmt.Sprintf("%s-epp", workspaceObj.Name)),
+						Name: gaiev1alpha2.ObjectName(utils.EndpointPickerName(workspaceObj.Name)),
 					},
 				},
 			},
@@ -422,8 +423,8 @@ func GenerateInferencePool(workspaceObj *v1beta1.Workspace, isStatefulSet bool) 
 // GenerateEndpointPickerComponents generates the necessary components for the Endpoint Picker
 // of a given Workspace object. See https://gateway-api-inference-extension.sigs.k8s.io/guides/implementers/#callout-extension
 // for more details.
-func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Client, workspaceObj *v1beta1.Workspace) ([]client.Object, error) {
-	eppName := fmt.Sprintf("%s-epp", workspaceObj.Name)
+func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Client, workspaceObj *kaitov1beta1.Workspace) ([]client.Object, error) {
+	eppName := utils.EndpointPickerName(workspaceObj.Name)
 	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      eppName,
@@ -452,6 +453,8 @@ func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Cli
 		},
 		Rules: []rbacv1.PolicyRule{
 			{
+				// TODO(chewong): switch to inference.networking.k8s.io API Group once GAIE is GA.
+				// See https://github.com/kubernetes-sigs/gateway-api-inference-extension/pull/1116.
 				APIGroups: []string{"inference.networking.x-k8s.io"},
 				Resources: []string{"inferencemodels", "inferencepools"},
 				Verbs:     []string{"get", "watch", "list"},
@@ -484,7 +487,7 @@ func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Cli
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      rbacv1.ServiceAccountKind,
-				Name:      fmt.Sprintf("%s-epp", workspaceObj.Name),
+				Name:      utils.EndpointPickerName(workspaceObj.Name),
 				Namespace: workspaceObj.Namespace,
 			},
 		},
@@ -534,7 +537,7 @@ func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Cli
 					},
 				},
 				Spec: corev1.PodSpec{
-					ServiceAccountName: fmt.Sprintf("%s-epp", workspaceObj.Name),
+					ServiceAccountName: utils.EndpointPickerName(workspaceObj.Name),
 					Containers: []corev1.Container{
 						{
 							Name:            "epp",
@@ -544,30 +547,30 @@ func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Cli
 								"-poolName", workspaceObj.Name,
 								"-poolNamespace", workspaceObj.Namespace,
 								"--v", "3",
-								"-grpcPort", "9002",
-								"-grpcHealthPort", "9003",
-								"-metricsPort", "9090",
+								"-grpcPort", strconv.Itoa(consts.PortEndpointPickerGRPCPort),
+								"-grpcHealthPort", strconv.Itoa(consts.PortEndpointPickerGRPCHealthPort),
+								"-metricsPort", strconv.Itoa(consts.PortEndpointPickerMetricsPort),
 								"-configFile", filepath.Join(utils.DefaultConfigMapMountPath, consts.EndpointPickerConfigKey),
 							},
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "grpc",
-									ContainerPort: 9002,
+									ContainerPort: consts.PortEndpointPickerGRPCPort,
 								},
 								{
 									Name:          "grpc-health",
-									ContainerPort: 9003,
+									ContainerPort: consts.PortEndpointPickerGRPCHealthPort,
 								},
 								{
 									Name:          "metrics",
-									ContainerPort: 9090,
+									ContainerPort: consts.PortEndpointPickerMetricsPort,
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{cmVolumeMount},
 							LivenessProbe: &corev1.Probe{
 								ProbeHandler: corev1.ProbeHandler{
 									GRPC: &corev1.GRPCAction{
-										Port:    9003,
+										Port:    consts.PortEndpointPickerGRPCHealthPort,
 										Service: lo.ToPtr("inference-extension"),
 									},
 								},
@@ -575,7 +578,7 @@ func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Cli
 							ReadinessProbe: &corev1.Probe{
 								ProbeHandler: corev1.ProbeHandler{
 									GRPC: &corev1.GRPCAction{
-										Port:    9003,
+										Port:    consts.PortEndpointPickerGRPCHealthPort,
 										Service: lo.ToPtr("inference-extension"),
 									},
 								},
@@ -608,13 +611,13 @@ func GenerateEndpointPickerComponents(ctx context.Context, kubeClient client.Cli
 			Ports: []corev1.ServicePort{
 				{
 					Name:       "grpc",
-					Port:       9002,
-					TargetPort: intstr.FromInt(9002),
+					Port:       consts.PortEndpointPickerGRPCPort,
+					TargetPort: intstr.FromInt(consts.PortEndpointPickerGRPCPort),
 				},
 				{
 					Name:       "metrics",
-					Port:       9090,
-					TargetPort: intstr.FromInt(9090),
+					Port:       consts.PortEndpointPickerMetricsPort,
+					TargetPort: intstr.FromInt(consts.PortEndpointPickerMetricsPort),
 				},
 			},
 		},

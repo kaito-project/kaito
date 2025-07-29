@@ -15,7 +15,7 @@ package manifests
 
 import (
 	"context"
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -52,7 +52,7 @@ func TestGenerateInferencePool(t *testing.T) {
 				EndpointPickerConfig: gaiev1alpha2.EndpointPickerConfig{
 					ExtensionRef: &gaiev1alpha2.Extension{
 						ExtensionReference: gaiev1alpha2.ExtensionReference{
-							Name: gaiev1alpha2.ObjectName(fmt.Sprintf("%s-epp", test.MockWorkspaceWithPreset.Name)),
+							Name: gaiev1alpha2.ObjectName(utils.EndpointPickerName(test.MockWorkspaceWithPreset.Name)),
 						},
 					},
 				},
@@ -69,7 +69,7 @@ func TestGenerateInferencePool(t *testing.T) {
 				EndpointPickerConfig: gaiev1alpha2.EndpointPickerConfig{
 					ExtensionRef: &gaiev1alpha2.Extension{
 						ExtensionReference: gaiev1alpha2.ExtensionReference{
-							Name: gaiev1alpha2.ObjectName(fmt.Sprintf("%s-epp", test.MockWorkspaceWithPreset.Name)),
+							Name: gaiev1alpha2.ObjectName(utils.EndpointPickerName(test.MockWorkspaceWithPreset.Name)),
 						},
 					},
 				},
@@ -96,7 +96,7 @@ func TestGenerateInferencePool(t *testing.T) {
 
 func TestGenerateEndpointPickerComponents(t *testing.T) {
 	workspace := test.MockWorkspaceWithPreset
-	eppName := fmt.Sprintf("%s-epp", workspace.Name)
+	eppName := utils.EndpointPickerName(workspace.Name)
 
 	// Setup the mock kubernetes client
 	mockClient := test.NewClient()
@@ -134,9 +134,9 @@ func TestGenerateEndpointPickerComponents(t *testing.T) {
 				"-poolName", workspace.Name,
 				"-poolNamespace", workspace.Namespace,
 				"--v", "3",
-				"-grpcPort", "9002",
-				"-grpcHealthPort", "9003",
-				"-metricsPort", "9090",
+				"-grpcPort", strconv.Itoa(consts.PortEndpointPickerGRPCPort),
+				"-grpcHealthPort", strconv.Itoa(consts.PortEndpointPickerGRPCHealthPort),
+				"-metricsPort", strconv.Itoa(consts.PortEndpointPickerMetricsPort),
 				"-configFile", "/mnt/config/epp-config.yaml",
 			})
 		case *rbacv1.Role:
@@ -164,13 +164,13 @@ func TestGenerateEndpointPickerComponents(t *testing.T) {
 			assert.Equal(t, obj.Spec.Ports, []corev1.ServicePort{
 				{
 					Name:       "grpc",
-					Port:       9002,
-					TargetPort: intstr.FromInt(9002),
+					Port:       consts.PortEndpointPickerGRPCPort,
+					TargetPort: intstr.FromInt(consts.PortEndpointPickerGRPCPort),
 				},
 				{
 					Name:       "metrics",
-					Port:       9090,
-					TargetPort: intstr.FromInt(9090),
+					Port:       consts.PortEndpointPickerMetricsPort,
+					TargetPort: intstr.FromInt(consts.PortEndpointPickerMetricsPort),
 				},
 			})
 		case *v1.ServiceAccount: // no specific assertions needed

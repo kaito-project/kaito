@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -418,54 +417,6 @@ func GenerateInferencePool(workspaceObj *v1beta1.Workspace, isStatefulSet bool) 
 	}
 
 	return inferencePool
-}
-
-// GenerateInferenceModels generates one InferenceModel for the base model and one InferenceModel
-// for each adapter in the workspace object. See https://gateway-api-inference-extension.sigs.k8s.io/reference/spec/
-// for more details.
-func GenerateInferenceModels(workspaceObj *v1beta1.Workspace) []*gaiev1alpha2.InferenceModel {
-	presetName := string(workspaceObj.Inference.Preset.Name)
-	models := []*gaiev1alpha2.InferenceModel{}
-	models = append(models, &gaiev1alpha2.InferenceModel{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", workspaceObj.Name, presetName),
-			Namespace: workspaceObj.Namespace,
-			Labels: map[string]string{
-				kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
-			},
-			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(workspaceObj, v1beta1.GroupVersion.WithKind("Workspace")),
-			},
-		},
-		Spec: gaiev1alpha2.InferenceModelSpec{
-			ModelName: presetName,
-			PoolRef: gaiev1alpha2.PoolObjectReference{
-				Name: gaiev1alpha2.ObjectName(workspaceObj.Name),
-			},
-		},
-	})
-	for _, adapter := range workspaceObj.Inference.Adapters {
-		models = append(models, &gaiev1alpha2.InferenceModel{
-			ObjectMeta: v1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-%s", workspaceObj.Name, strings.ToLower(adapter.Source.Name)),
-				Namespace: workspaceObj.Namespace,
-				Labels: map[string]string{
-					kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
-				},
-				OwnerReferences: []v1.OwnerReference{
-					*v1.NewControllerRef(workspaceObj, v1beta1.GroupVersion.WithKind("Workspace")),
-				},
-			},
-			Spec: gaiev1alpha2.InferenceModelSpec{
-				ModelName: adapter.Source.Name,
-				PoolRef: gaiev1alpha2.PoolObjectReference{
-					Name: gaiev1alpha2.ObjectName(workspaceObj.Name),
-				},
-			},
-		})
-	}
-
-	return models
 }
 
 // GenerateEndpointPickerComponents generates the necessary components for the Endpoint Picker

@@ -866,12 +866,6 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 	err := resources.CreateResource(ctx, inferencePool, c.Client)
 	errs = append(errs, client.IgnoreAlreadyExists(err))
 
-	inferenceModels := manifests.GenerateInferenceModels(wObj)
-	for _, inferenceModel := range inferenceModels {
-		err = resources.CreateResource(ctx, inferenceModel, c.Client)
-		errs = append(errs, client.IgnoreAlreadyExists(err))
-	}
-
 	components, err := manifests.GenerateEndpointPickerComponents(ctx, c.Client, wObj)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("failed to generate endpoint picker components: %w", err))
@@ -906,11 +900,10 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
 	// If the Gateway API Inference Extension feature gate is enabled,
-	// we will ensure the InferencePool and InferenceModel kinds exist in the cluster.
+	// we will ensure the InferencePool kind exist in the cluster.
 	if featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
 		for _, gvk := range []schema.GroupVersionKind{
 			gaiev1alpha2.SchemeGroupVersion.WithKind("InferencePool"),
-			gaiev1alpha2.SchemeGroupVersion.WithKind("InferenceModel"),
 		} {
 			found, err := utils.EnsureKindExists(mgr.GetConfig(), gvk)
 			if err != nil {
@@ -920,8 +913,8 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				return fmt.Errorf("%s not found in the cluster, please ensure the Gateway API Inference Extension is installed", gvk.String())
 			}
 		}
-		builder = builder.Owns(&gaiev1alpha2.InferencePool{}).
-			Owns(&gaiev1alpha2.InferenceModel{}).
+		builder = builder.
+			Owns(&gaiev1alpha2.InferencePool{}).
 			Owns(&rbacv1.Role{}).
 			Owns(&rbacv1.RoleBinding{}).
 			Owns(&corev1.ServiceAccount{})

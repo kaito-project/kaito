@@ -47,8 +47,6 @@ func CreateResource(ctx context.Context, resource client.Object, kubeClient clie
 		klog.InfoS("CreateRoleBinding", "rolebinding", klog.KObj(r))
 	case *gaiev1alpha2.InferencePool:
 		klog.InfoS("CreateInferencePool", "inferencepool", klog.KObj(r))
-	case *gaiev1alpha2.InferenceModel:
-		klog.InfoS("CreateInferenceModel", "inferencemodel", klog.KObj(r))
 	case *corev1.ServiceAccount:
 		klog.InfoS("CreateServiceAccount", "serviceaccount", klog.KObj(r))
 	}

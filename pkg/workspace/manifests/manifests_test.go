@@ -94,37 +94,6 @@ func TestGenerateInferencePool(t *testing.T) {
 	}
 }
 
-func TestGenerateInferenceModels(t *testing.T) {
-	workspace := &test.MockWorkspaceWithUpdatedDeployment
-	inferenceModels := GenerateInferenceModels(workspace)
-	expectedSpec := map[string]gaiev1alpha2.InferenceModelSpec{
-		"testWorkspace-test-model": {
-			ModelName: "test-model",
-			PoolRef: gaiev1alpha2.PoolObjectReference{
-				Name: gaiev1alpha2.ObjectName(workspace.Name),
-			},
-		},
-		"testWorkspace-adapter-1": {
-			ModelName: "Adapter-1",
-			PoolRef: gaiev1alpha2.PoolObjectReference{
-				Name: gaiev1alpha2.ObjectName(workspace.Name),
-			},
-		},
-	}
-
-	assert.Len(t, inferenceModels, 2)
-	for _, model := range inferenceModels {
-		assert.Len(t, model.OwnerReferences, 1, "Expected 1 OwnerReference")
-		ownerRef := model.OwnerReferences[0]
-		assert.Equal(t, v1beta1.GroupVersion.String(), ownerRef.APIVersion)
-		assert.Equal(t, "Workspace", ownerRef.Kind)
-		assert.Equal(t, workspace.Name, ownerRef.Name)
-		assert.Equal(t, workspace.UID, ownerRef.UID)
-		assert.True(t, *ownerRef.Controller)
-		assert.Equal(t, model.Spec, expectedSpec[model.Name])
-	}
-}
-
 func TestGenerateEndpointPickerComponents(t *testing.T) {
 	workspace := test.MockWorkspaceWithPreset
 	eppName := fmt.Sprintf("%s-epp", workspace.Name)

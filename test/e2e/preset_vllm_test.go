@@ -16,7 +16,6 @@ package e2e
 import (
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -462,35 +461,13 @@ func validateGatewayAPIInferenceExtensionResources(workspaceObj *kaitov1beta1.Wo
 		return
 	}
 
-	By("Checking the Gateway API Inference Extension InferencePool and InferenceModel(s)", func() {
+	By("Checking the Gateway API Inference Extension InferencePool", func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: workspaceObj.Namespace,
 				Name:      workspaceObj.Name,
 			}, &gaiev1alpha2.InferencePool{}, &client.GetOptions{})
-			if err != nil {
-				return false
-			}
-
-			err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: workspaceObj.Namespace,
-				Name:      fmt.Sprintf("%s-%s", workspaceObj.Name, workspaceObj.Inference.Preset.Name),
-			}, &gaiev1alpha2.InferenceModel{}, &client.GetOptions{})
-			if err != nil {
-				return false
-			}
-
-			for _, adapter := range workspaceObj.Inference.Adapters {
-				err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-					Namespace: workspaceObj.Namespace,
-					Name:      fmt.Sprintf("%s-%s", workspaceObj.Name, strings.ToLower(adapter.Source.Name)),
-				}, &gaiev1alpha2.InferenceModel{}, &client.GetOptions{})
-				if err != nil {
-					return false
-				}
-			}
-
-			return true
-		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(), "Failed to validate Gateway API Inference Extension InferencePool and InferenceModel(s) resources")
+			return err == nil
+		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(), "Failed to validate Gateway API Inference Extension InferencePool resources")
 	})
 }

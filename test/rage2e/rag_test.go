@@ -239,7 +239,7 @@ var _ = Describe("RAGEngine", func() {
 		docID := indexDoc["doc_id"].(string)
 
 		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
-		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, true)
+		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
 
 		persistLogSuccess := "Successfully persisted index kaito"
@@ -670,7 +670,7 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSe
 -H "Content-Type: application/json" \
 -d '{
 	"index_name": "kaito",
-	"model": "phi-3-mini-128k-instruct",
+	"model": "HuggingFaceH4/zephyr-7b-beta",
     "query": "what is kaito?",
     "llm_params": {
       "max_tokens": 50,
@@ -710,7 +710,7 @@ func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1alpha1.RAGEngine
 -H "Content-Type: application/json" \
 -d '{
 	"index_name": "kaito",
-	"model": "phi-3-mini-128k-instruct",
+	"model": "HuggingFaceH4/zephyr-7b-beta",
     "messages": [
 		{
 			"role": "user",

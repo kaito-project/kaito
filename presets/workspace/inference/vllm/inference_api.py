@@ -20,8 +20,10 @@ import yaml
 import copy
 from dataclasses import dataclass
 
+import psutil
 import uvloop
 import torch
+import vllm.envs as envs
 from vllm.utils import FlexibleArgumentParser
 import vllm.entrypoints.openai.api_server as api_server
 from vllm.entrypoints.openai.serving_models import LoRAModulePath
@@ -78,6 +80,16 @@ class KAITOArgumentParser(argparse.ArgumentParser):
         args = super().parse_known_args(*args, **kwargs)
         kaito_args = args[0]
         runtime_args = args[1] # Remaining args
+        if envs.VLLM_USE_V1:
+            os.environ["LMCACHE_CHUNK_SIZE"] = "256"
+            os.environ["LMCACHE_LOCAL_CPU"] = "True"
+            total_ram_gb = psutil.virtual_memory().total / (1024 ** 3)
+            logger.info(f"VLLM_USE_V1 is set, Offload KV cache to CPU RAM, size limit: {total_ram_gb * 0.8} GB")
+            os.environ["LMCACHE_MAX_LOCAL_CPU_SIZE"] = f"{total_ram_gb * 0.8}"
+
+            runtime_args.append("--kv-transfer-config={\"kv_connector\":\"LMCacheConnectorV1\",\"kv_role\":\"kv_both\"}")
+        else:
+            logger.info("VLLM_USE_V1 is not set, using default KV cache config")
 
         # Load KAITO config
         if kaito_args.kaito_config_file:

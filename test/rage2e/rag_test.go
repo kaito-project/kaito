@@ -366,7 +366,7 @@ func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL, llmPath string) *kaitov1alp
 
 func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 	ragEngineObj := &kaitov1alpha1.RAGEngine{}
-	hfURL := "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta/v1/completions"
+	hfURL := "https://router.huggingface.co/featherless-ai/v1/chat/completions"
 	By("Creating RAG with localembedding and huggingface API", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
 		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC12s_v3", "BAAI/bge-small-en-v1.5",
@@ -670,6 +670,7 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSe
 -H "Content-Type: application/json" \
 -d '{
 	"index_name": "kaito",
+	"model": "phi-3-mini-128k-instruct",
     "query": "what is kaito?",
     "llm_params": {
       "max_tokens": 50,
@@ -709,6 +710,7 @@ func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1alpha1.RAGEngine
 -H "Content-Type: application/json" \
 -d '{
 	"index_name": "kaito",
+	"model": "phi-3-mini-128k-instruct",
     "messages": [
 		{
 			"role": "user",

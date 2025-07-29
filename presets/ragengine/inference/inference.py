@@ -16,10 +16,10 @@ from pydantic import PrivateAttr
 import logging
 import asyncio
 import httpx
-from typing import Any
-from llama_index.core.llms import CustomLLM, CompletionResponse, LLMMetadata, CompletionResponseGen
+from typing import Any, Sequence
+from llama_index.core.llms import CustomLLM, CompletionResponse, LLMMetadata, CompletionResponseGen, ChatMessage, ChatResponse
 from llama_index.llms.openai import OpenAI
-from llama_index.core.llms.callbacks import llm_completion_callback
+from llama_index.core.llms.callbacks import llm_completion_callback, llm_chat_callback
 import requests
 from requests.exceptions import HTTPError
 from urllib.parse import urlparse, urljoin
@@ -94,16 +94,69 @@ class Inference(CustomLLM):
     @llm_completion_callback()
     async def acomplete(self, prompt: str, formatted: bool = False, **kwargs: Any) -> CompletionResponse:
         try:
-            if LLM_INFERENCE_URL.startswith(OPENAI_URL_PREFIX):
-                return await self._async_openai_complete(prompt, **kwargs, **self.params)
-            elif LLM_INFERENCE_URL.startswith(HUGGINGFACE_URL_PREFIX):
-                return await self._async_huggingface_remote_complete(prompt, **kwargs, **self.params)
-            else:
-                return await self._async_custom_api_complete(prompt, **kwargs, **self.params)
+            return await self._async_completions(prompt, **kwargs, **self.params)
         except HTTPException as http_exc:
             raise http_exc
         except Exception as e:
             logger.error(f"Unexpected exception in acomplete(): {e}")
+            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+        finally:
+            # Clear params after the completion is done
+            self.params = {}
+    
+    @llm_chat_callback()
+    def chat(
+        self,
+        messages: Sequence[ChatMessage],
+        **kwargs: Any,
+    ) -> ChatResponse:
+        """ Perform a chat completion request. """
+        try:
+            logger.info(f"Sending chat request to {LLM_INFERENCE_URL} with messages: {messages}, and args: {kwargs}")
+            return self.run_async_coroutine(self.achat(messages, **kwargs))
+        except HTTPException as http_exc:
+            logger.error(f"HTTP exception during chat(): {http_exc.detail}")
+            raise http_exc
+        except Exception as e:
+            logger.error(f"Unexpected exception in chat(): {e}")
+            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+
+    @llm_chat_callback()
+    async def achat(
+        self,
+        messages: Sequence[ChatMessage],
+        **kwargs: Any,
+    ) -> ChatResponse:
+        """ Perform an asynchronous chat completion request. """
+        try:
+            base_model, base_max_len = self._get_default_model_info()
+            req = {
+                "model": self.get_param("model", base_model),
+                "max_tokens": self.get_param("max_tokens", base_max_len),
+                "messages": [{
+                    "role": message.role,
+                    "content": message.content if isinstance(message.content, str) else json.dumps(message.content)
+                } for message in messages if message.content is not None and message.content != ""
+                ],
+            }
+
+            # Add any additional parameters from self.params onto request
+            for key, value in self.params.items():
+                if key not in req:
+                    req[key] = value
+            
+            resp =  await self._async_post_request_raw(data=req, headers=DEFAULT_HEADERS)
+            return ChatResponse(
+                logprobs=resp.get("logprobs", None),
+                delta=resp.get("delta", None),
+                raw=resp,
+                message=ChatMessage(content=resp.get("choices", [{}])[0].get("message", {}).get("content", ""))
+            )
+        except HTTPException as http_exc:
+            logger.error(f"HTTP exception during achat(): {http_exc.detail}")
+            raise http_exc
+        except Exception as e:
+            logger.error(f"Unexpected exception in achat(): {e}")
             raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
         finally:
             # Clear params after the completion is done
@@ -134,13 +187,7 @@ class Inference(CustomLLM):
             logger.error(f"Unexpected error during POST request: {e}")
             raise HTTPException(status_code=500, detail=f"Error during POST request: {str(e)}")
 
-    async def _async_openai_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        return await OpenAI(api_key=LLM_ACCESS_SECRET, **kwargs).acomplete(prompt)
-
-    async def _async_huggingface_remote_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        data = {"prompt": prompt, **kwargs}
-        return await self._async_post_request(data, headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}", "Content-Type": "application/json"})
-    async def _async_custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
+    async def _async_completions(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         model_name, model_max_len = self._get_default_model_info()
         if kwargs.get("model"):
             model_name = kwargs.pop("model")
@@ -155,7 +202,12 @@ class Inference(CustomLLM):
         # DEBUG: Call the debugging function
         # self._debug_curl_command(data)
         try:
-            return await self._async_post_request(data, headers=DEFAULT_HEADERS)
+            # add extended params
+            for key, value in self.params.items():
+                if key not in data:
+                    data[key] = value
+            resp = await self._async_post_request_raw(data, headers=DEFAULT_HEADERS)
+            return self._completions_json_to_response(resp)
         except HTTPError as e:
             if not model_name and e.response.status_code == 400:
                 logger.warning(
@@ -166,13 +218,23 @@ class Inference(CustomLLM):
                 if self._default_model:
                     logger.info(f"Default model '{self._default_model}' fetched successfully. Retrying request...")
                     data["model"] = self._default_model
-                    return await self._async_post_request(data, headers=DEFAULT_HEADERS)
+                    resp = await self._async_post_request_raw(data, headers=DEFAULT_HEADERS)
+                    return self._completions_json_to_response(resp)
                 else:
                     logger.error("Failed to fetch a default model. Aborting retry.")
             raise  # Re-raise the exception if not recoverable
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
             raise
+    
+    def _completions_json_to_response(self, response_json: dict) -> CompletionResponse:
+        """
+        Converts the JSON response from the completions API to a CompletionResponse object.
+        """
+        # Check if the response contains OAI format
+        if "choices" in response_json and response_json["choices"]:
+            return CompletionResponse(text=response_json["choices"][0].get("text", ""))
+        return CompletionResponse(text=str(response_json))
 
     def _get_models_endpoint(self) -> str:
         """
@@ -208,19 +270,12 @@ class Inference(CustomLLM):
             self._default_model, self._default_max_model_len = self._fetch_default_model_info()
         return self._default_model, self._default_max_model_len
 
-    async def _async_post_request(self, data: dict, headers: dict) -> CompletionResponse:
+    async def _async_post_request_raw(self, data: dict, headers: dict):
         try:
             client = await self._get_httpx_client()
             response = await client.post(LLM_INFERENCE_URL, json=data, headers=headers)
             response.raise_for_status()  # Raise an exception for HTTP errors
-            response_data = response.json()
-            # Check if the request was successful
-            if response.status_code == DEFAULT_HTTP_SUCCESS_CODE:
-                # OAI Spec returns array of choices, we choose the first one
-                if "choices" in response_data and response_data["choices"]:
-                    return CompletionResponse(text=response_data["choices"][0].get("text", ""))
-            # Return full response as text if no specific parsing is possible
-            return CompletionResponse(text=str(response_data))
+            return response.json()
         except httpx.HTTPStatusError as e:
             logger.error(f"HTTP error {e.response.status_code} during POST request to {LLM_INFERENCE_URL}: {e.response.text}")
             raise
@@ -251,7 +306,7 @@ class Inference(CustomLLM):
     @property
     def metadata(self) -> LLMMetadata:
         """Get LLM metadata."""
-        return LLMMetadata()
+        return LLMMetadata(is_chat_model=LLM_INFERENCE_URL.endswith("/chat/completions"))
 
     async def aclose(self):
         """ Closes the HTTP client when shutting down. """

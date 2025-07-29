@@ -27,6 +27,7 @@ from llama_index.core import Document as LlamaDocument
 from llama_index.core import (StorageContext, VectorStoreIndex, load_index_from_storage)
 from llama_index.core.chat_engine.types import ChatMode
 from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
+from llama_index.core.memory import ChatMemoryBuffer
 
 from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
@@ -161,8 +162,6 @@ class BaseVectorStore(ABC):
         if index_name not in self.index_map:
             raise HTTPException(status_code=404, detail=f"No such index: '{index_name}' exists.")
 
-        self.llm.set_params(llm_params)
-
         node_postprocessors = []
         if rerank_params:
             # Set default reranking parameters and merge with provided params
@@ -181,16 +180,21 @@ class BaseVectorStore(ABC):
                 )
             )
 
-        query_engine = self.index_map[index_name].as_query_engine(
+        query_engine = self.index_map[index_name].as_chat_engine(
             llm=self.llm,
             similarity_top_k=top_k,
-            node_postprocessors=node_postprocessors
+            node_postprocessors=node_postprocessors,
+            chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
+            verbose=True
         )
+
         if self.use_rwlock:
             async with self.rwlock.reader_lock:
-                query_result = await query_engine.aquery(query)
+                self.llm.set_params(llm_params)
+                query_result = await query_engine.achat(query)
         else:
-            query_result = await query_engine.aquery(query)
+            self.llm.set_params(llm_params)
+            query_result = await query_engine.achat(query)
         return {
             "response": query_result.response,
             "source_nodes": [
@@ -219,6 +223,17 @@ class BaseVectorStore(ABC):
         if request.get("index_name") and request.get("index_name") not in self.index_map:
             raise HTTPException(status_code=404, detail=f"No such index: '{request.get('index_name')}' exists.")
 
+        llm_params = {}
+        if request.get("model") is not None:
+            llm_params["model"] = request.get("model")
+        if request.get("temperature") is not None:
+            llm_params["temperature"] = request.get("temperature")
+        if request.get("top_p") is not None:
+            llm_params["top_p"] = request.get("top_p")
+        if request.get("max_tokens") is not None:
+            llm_params["max_tokens"] = request.get("max_tokens")
+
+        logger.info("converting request to OpenAI format")
         openai_request = None
         last_error = None
         for model_cls in CompletionCreateParams.__args__:
@@ -277,44 +292,51 @@ class BaseVectorStore(ABC):
 
         prompt = messages_to_prompt(request.get("messages", []))
 
-        node_postprocessors = []
+        logger.info(f"Creating chat engine for index '{request.get('index_name')}' with prompt: {prompt}")
         chat_engine = self.index_map[request.get("index_name")].as_chat_engine(
             llm=self.llm,
-            chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
             similarity_top_k=request.get("top_k", 5),
-            node_postprocessors=node_postprocessors,
+            chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
+            verbose=True
         )
 
-        if self.use_rwlock:
-            async with self.rwlock.reader_lock:
+        logger.info("Processing chat completion request with prompt.")
+        try:
+            if self.use_rwlock:
+                async with self.rwlock.reader_lock:
+                    self.llm.set_params(llm_params)
+                    chat_result = await chat_engine.achat(prompt)
+            else:
+                self.llm.set_params(llm_params)
                 chat_result = await chat_engine.achat(prompt)
-        else:
-            chat_result = await chat_engine.achat(prompt)
 
-        return ChatCompletionResponse(
-            id=uuid.uuid4().hex,
-            object="chat.completion",
-            created=int(time.time()),
-            model=request.get("model"),
-            choices=[{
-                "message": {
-                    "role": "assistant",
-                    "content": chat_result.response,
-                },
-                "finish_reason": "stop",
-                "index": 0
-            }],
-            source_nodes=[
-                {
-                    "doc_id": source_node.node.ref_doc_id,
-                    "node_id": source_node.node_id,
-                    "text": source_node.text,
-                    "score": source_node.score,
-                    "metadata": source_node.metadata
-                }
-                for source_node in chat_result.source_nodes
-            ],
-        )
+            return ChatCompletionResponse(
+                id=uuid.uuid4().hex,
+                object="chat.completion",
+                created=int(time.time()),
+                model=request.get("model"),
+                choices=[{
+                    "message": {
+                        "role": "assistant",
+                        "content": chat_result.response,
+                    },
+                    "finish_reason": "stop",
+                    "index": 0
+                }],
+                source_nodes=[
+                    {
+                        "doc_id": source_node.node.ref_doc_id,
+                        "node_id": source_node.node_id,
+                        "text": source_node.text,
+                        "score": source_node.score,
+                        "metadata": source_node.metadata
+                    }
+                    for source_node in chat_result.source_nodes
+                ],
+            )
+        except Exception as e:
+            logger.error(f"Error during chat completion: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Chat completion failed: {str(e)}")
 
     async def add_document_to_index(self, index_name: str, document: Document, doc_id: str):
         """Common logic for adding a single document."""

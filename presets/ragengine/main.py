@@ -25,6 +25,8 @@ from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
                     DeleteDocumentResponse, UpdateDocumentResponse, messages_to_prompt,
                     ChatCompletionResponse, )
 
+import faulthandler
+
 from openai.types.chat import (
     CompletionCreateParams,
 )
@@ -70,6 +72,8 @@ from ragengine.metrics.prometheus_metrics import (
     MODE_LOCAL,
     MODE_REMOTE
 )
+
+faulthandler.enable()  # Enable fault handler for better debugging
 
 app = FastAPI()
 @app.middleware("http")
@@ -340,17 +344,21 @@ async def query_index(request: QueryRequest):
 async def chat_completions(request: dict):
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
+    print("trying to handle chat completion request")
     
     try:
         response = await rag_ops.chat_completion(request)
         status = STATUS_SUCCESS
         return response
     except HTTPException as http_exc:
+        print(f"HTTP Exception: {http_exc}")
         # Preserve HTTP exceptions like 422 from reranker
         raise http_exc
     except ValueError as ve:
+        print(f"ValueError: {ve}")
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:
+        print(f"Unexpected error: {e}")
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )

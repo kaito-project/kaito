@@ -22,6 +22,7 @@ from dataclasses import dataclass
 
 import uvloop
 import torch
+from vllm.config import KVTransferConfig
 from vllm.utils import FlexibleArgumentParser
 import vllm.entrypoints.openai.api_server as api_server
 from vllm.entrypoints.openai.serving_models import LoRAModulePath
@@ -224,6 +225,13 @@ def try_get_max_available_seq_len(args: argparse.Namespace) -> Optional[int]:
     # and read it into a unified EngineConfig.
     vllm_config = engine_args.create_engine_config()
 
+    # Configure KV cache transfer to use LMCache
+    ktc = KVTransferConfig(
+        kv_connector="LMCacheConnectorV1",
+        kv_role="kv_both",
+    )
+    vllm_config.kv_transfer_config = ktc
+
     max_model_len = vllm_config.model_config.max_model_len
     available_seq_len = max_model_len
     logger.info("Try run profiler to find max available seq len")
@@ -242,6 +250,13 @@ def try_get_max_available_seq_len(args: argparse.Namespace) -> Optional[int]:
         return None
 
 if __name__ == "__main__":
+    # Set token chunk size to 256
+    os.environ["LMCACHE_CHUNK_SIZE"] = "256"
+    # Enable CPU memory backend
+    os.environ["LMCACHE_LOCAL_CPU"] = "True"
+    # Set CPU memory limit to 5GB
+    os.environ["LMCACHE_MAX_LOCAL_CPU_SIZE"] = "5.0"
+
     parser = KAITOArgumentParser(description='KAITO wrapper of vLLM serving server')
     args = parser.parse_args()
 

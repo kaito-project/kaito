@@ -18,7 +18,6 @@ import asyncio
 import httpx
 from typing import Any, Sequence
 from llama_index.core.llms import CustomLLM, CompletionResponse, LLMMetadata, CompletionResponseGen, ChatMessage, ChatResponse
-from llama_index.llms.openai import OpenAI
 from llama_index.core.llms.callbacks import llm_completion_callback, llm_chat_callback
 import requests
 from requests.exceptions import HTTPError

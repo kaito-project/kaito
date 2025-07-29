@@ -15,21 +15,13 @@
 from typing import List, Optional
 import json
 import time
-import uuid
 from vector_store_manager.manager import VectorStoreManager
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
 from fastapi import FastAPI, HTTPException, Query, Request
 from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
                     QueryRequest, QueryResponse, Document, HealthStatus, DeleteDocumentRequest,
-                    DeleteDocumentResponse, UpdateDocumentResponse, messages_to_prompt,
-                    ChatCompletionResponse, )
-
-import faulthandler
-
-from openai.types.chat import (
-    CompletionCreateParams,
-)
+                    DeleteDocumentResponse, UpdateDocumentResponse, ChatCompletionResponse)
 
 from vector_store.faiss_store import FaissVectorStoreHandler
 

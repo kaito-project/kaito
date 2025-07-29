@@ -22,13 +22,10 @@ from ragengine.config import DEFAULT_VECTOR_DB_PERSIST_DIR
 import os
 
 import pytest
-import pytest_asyncio
-import asyncio
 import httpx
 import respx
 import json
 import re
-import time
 
 AUTO_GEN_DOC_ID_LEN = 64
 

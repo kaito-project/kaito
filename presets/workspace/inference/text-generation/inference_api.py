@@ -297,7 +297,7 @@ class UnifiedRequestModel(BaseModel):
     # Field for conversational model
     messages: Optional[List[Message]] = Field(None, description="Messages for conversational model. Required for conversational pipeline. Do not use with 'prompt'.")
     def messages_to_dict_list(self):
-        return [message.dict() for message in self.messages] if self.messages else []
+        return [message.model_dump() for message in self.messages] if self.messages else []
 
 class ErrorResponse(BaseModel):
     detail: str
@@ -365,7 +365,7 @@ def generate_text(
                             "clean_up_tokenization_spaces": False,
                             "prefix": None,
                             "handle_long_generation": None,
-                            "generate_kwargs": GenerateKwargs().dict(),
+                            "generate_kwargs": GenerateKwargs().model_dump(),
                         },
                     },
                     "conversation_example": {
@@ -381,7 +381,7 @@ def generate_text(
                             "clean_up_tokenization_spaces": False,
                             "prefix": None,
                             "handle_long_generation": None,
-                            "generate_kwargs": GenerateKwargs().dict(),
+                            "generate_kwargs": GenerateKwargs().model_dump(),
                         },
                     },
                 },
@@ -392,7 +392,7 @@ def generate_text(
     Processes chat requests, generating text based on the specified pipeline (text generation or conversational).
     Validates required parameters based on the pipeline and returns the generated text.
     """
-    user_generate_kwargs = request_model.generate_kwargs.dict() if request_model.generate_kwargs else {}
+    user_generate_kwargs = request_model.generate_kwargs.model_dump() if request_model.generate_kwargs else {}
     generate_kwargs = {**default_generate_config, **user_generate_kwargs}
 
     if args.pipeline == "text-generation":

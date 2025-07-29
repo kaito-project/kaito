@@ -49,7 +49,7 @@ To ensure different auto-scaler solutions can integrate with Kaito to manage inf
 
 Workspace CRD will support scale subresource API, so different auto-scaler solutions can adjust Workspace replicas dynamically. and Workspace controller/webhook will update the underlay workloads(like Deployment, LWS, etc.) which are used for managing inference workloads. The detailed workflow is shown in the following figure:
 
-![auto-scaler](/img/workspace-scale-api.png)
+![auto-scaler](../../static/img/workspace-scale-api.png)
 
 - Workspace CRD: upgrade workspace CRD for supporting scale subresource api.
 
@@ -120,11 +120,11 @@ type InferenceStatus struct {
 
 Workspace webhook should be improved for initializing workspace status and validate scale request is allowed or not.
 
-![webhook-for-ws-create-req](/img/workspace-webhook-for-create-req.png)
+![webhook-for-ws-create-req](../../static/img/workspace-webhook-for-create-req.png)
 
 - gpu nodes estimator will be used to calculate the `PerReplicaNodeCount` for workspace.
 
-![webhook-for-scale-req](/img/workspace-webhook-for-scale-req.png)
+![webhook-for-scale-req](../../static/img/workspace-webhook-for-scale-req.png)
 
 - For workspace without inference settings or workspace with prefered nodes, the scale request will be rejected.
 
@@ -132,7 +132,7 @@ Workspace webhook should be improved for initializing workspace status and valid
 
 The workspace controller should reconcile TargetNodeCount in order to keep consistent with scaling action. then scale underlay workloads(Deployment) and update workspace status. The workflow should be improved as following:
 
-![workspace-controller-workflow](/img/workspace-controller-workflow.png)
+![workspace-controller-workflow](../../static/img/workspace-controller-workflow.png)
 
 ### Workspace CRD Subresource Change
 

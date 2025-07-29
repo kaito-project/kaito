@@ -638,6 +638,405 @@ func TestGetGPUConfig(t *testing.T) {
 		})
 	}
 }
+func TestSetAdapterPuller(t *testing.T) {
+	testcases := map[string]struct {
+		workspace       *v1beta1.Workspace
+		spec            *corev1.PodSpec
+		expectedVolumes []string
+		expectedEnvVars []string
+		expectError     bool
+	}{
+		"no adapters": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Adapters: []v1beta1.AdapterSpec{}, // empty adapters
+				},
+			},
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-container",
+					},
+				},
+			},
+			expectedVolumes: []string{},
+			expectedEnvVars: []string{},
+			expectError:     false,
+		},
+		"single adapter": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Adapters: []v1beta1.AdapterSpec{
+						{
+							Source: &v1beta1.DataSource{
+								Name:  "adapter-1",
+								Image: "test-registry/adapter:v1",
+							},
+							Strength: &ValidStrength,
+						},
+					},
+				},
+			},
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-container",
+					},
+				},
+			},
+			expectedVolumes: []string{"adapter-volume"},
+			expectedEnvVars: []string{"adapter-1"},
+			expectError:     false,
+		},
+		"multiple adapters": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Adapters: []v1beta1.AdapterSpec{
+						{
+							Source: &v1beta1.DataSource{
+								Name:  "adapter-1",
+								Image: "test-registry/adapter1:v1",
+							},
+							Strength: &ValidStrength,
+						},
+						{
+							Source: &v1beta1.DataSource{
+								Name:  "adapter-2",
+								Image: "test-registry/adapter2:v1",
+							},
+							Strength: &ValidStrength,
+						},
+					},
+				},
+			},
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-container",
+					},
+				},
+			},
+			expectedVolumes: []string{"adapter-volume"},
+			expectedEnvVars: []string{"adapter-1", "adapter-2"},
+			expectError:     false,
+		},
+		"adapters with image pull secrets": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Adapters: []v1beta1.AdapterSpec{
+						{
+							Source: &v1beta1.DataSource{
+								Name:             "adapter-1",
+								Image:            "private-registry/adapter:v1",
+								ImagePullSecrets: []string{"my-secret"},
+							},
+							Strength: &ValidStrength,
+						},
+					},
+				},
+			},
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-container",
+					},
+				},
+			},
+			expectedVolumes: []string{"adapter-volume", "docker-config-adapter-1-inference-adapter"},
+			expectedEnvVars: []string{"adapter-1"},
+			expectError:     false,
+		},
+		"multiple containers": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Adapters: []v1beta1.AdapterSpec{
+						{
+							Source: &v1beta1.DataSource{
+								Name:  "adapter-1",
+								Image: "test-registry/adapter:v1",
+							},
+							Strength: &ValidStrength,
+						},
+					},
+				},
+			},
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "container-1",
+					},
+					{
+						Name: "container-2",
+					},
+				},
+			},
+			expectedVolumes: []string{"adapter-volume"},
+			expectedEnvVars: []string{"adapter-1"},
+			expectError:     false,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			ctx := &generator.WorkspaceGeneratorContext{
+				Ctx:       context.TODO(),
+				Workspace: tc.workspace,
+			}
+
+			err := SetAdapterPuller(ctx, tc.spec)
+
+			if tc.expectError && err == nil {
+				t.Errorf("expected error but got nil")
+			}
+			if !tc.expectError && err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+
+			// Check volumes
+			actualVolumes := make([]string, 0)
+			for _, volume := range tc.spec.Volumes {
+				actualVolumes = append(actualVolumes, volume.Name)
+			}
+			if !reflect.DeepEqual(actualVolumes, tc.expectedVolumes) {
+				t.Errorf("volumes mismatch: expected %v, got %v", tc.expectedVolumes, actualVolumes)
+			}
+
+			// Check volume mounts on containers
+			if len(tc.expectedVolumes) > 0 {
+				for _, container := range tc.spec.Containers {
+					foundAdapterMount := false
+					for _, mount := range container.VolumeMounts {
+						if mount.Name == "adapter-volume" {
+							foundAdapterMount = true
+							if mount.MountPath != "/mnt/adapter" {
+								t.Errorf("unexpected mount path for adapter volume: %s", mount.MountPath)
+							}
+							break
+						}
+					}
+					if !foundAdapterMount {
+						t.Errorf("adapter volume mount not found in container %s", container.Name)
+					}
+				}
+			}
+
+			// Check environment variables
+			if len(tc.expectedEnvVars) > 0 {
+				for _, container := range tc.spec.Containers {
+					actualEnvVarNames := make([]string, 0)
+					for _, env := range container.Env {
+						actualEnvVarNames = append(actualEnvVarNames, env.Name)
+					}
+
+					// Check if all expected env vars are present
+					for _, expectedVar := range tc.expectedEnvVars {
+						found := false
+						for _, actualVar := range actualEnvVarNames {
+							if actualVar == expectedVar {
+								found = true
+								break
+							}
+						}
+						if !found {
+							t.Errorf("expected env var %s not found in container %s", expectedVar, container.Name)
+						}
+					}
+				}
+			}
+
+			// Check init containers
+			if len(tc.workspace.Inference.Adapters) > 0 {
+				if len(tc.spec.InitContainers) == 0 {
+					t.Errorf("expected init containers for adapter pulling but found none")
+				}
+			}
+		})
+	}
+}
+
+func TestSetModelDownloadInfo(t *testing.T) {
+	test.RegisterTestModel()
+
+	testcases := map[string]struct {
+		workspace             *v1beta1.Workspace
+		modelName             string
+		spec                  *corev1.PodSpec
+		expectedEnvVars       []corev1.EnvVar
+		expectedInitContainer int
+		expectError           bool
+		expectedErrorMsg      string
+	}{
+		"download at runtime - add HF_TOKEN": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model-download",
+						},
+						PresetOptions: v1beta1.PresetOptions{
+							ModelAccessSecret: "hf-secret",
+						},
+					},
+				},
+			},
+			modelName: "test-model-download",
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "container-1",
+					},
+				},
+			},
+			expectedEnvVars: []corev1.EnvVar{
+				{
+					Name: "HF_TOKEN",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: "hf-secret",
+							},
+							Key: "HF_TOKEN",
+						},
+					},
+				},
+			},
+			expectedInitContainer: 0,
+			expectError:           false,
+		},
+		"model puller - add init containers": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+			modelName: "test-model",
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-container",
+					},
+				},
+			},
+			expectedEnvVars:       []corev1.EnvVar{},
+			expectedInitContainer: 1, // Expecting model-weights-downloader
+			expectError:           false,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			model := plugin.KaitoModelRegister.MustGet(tc.modelName)
+
+			ctx := &generator.WorkspaceGeneratorContext{
+				Ctx:       context.TODO(),
+				Workspace: tc.workspace,
+				Model:     model,
+			}
+
+			// Store original state
+			originalInitContainerCount := len(tc.spec.InitContainers)
+
+			err := SetModelDownloadInfo(ctx, tc.spec)
+
+			// Check error
+			if tc.expectError {
+				if err == nil {
+					t.Errorf("expected error but got nil")
+				} else if tc.expectedErrorMsg != "" && err.Error() != tc.expectedErrorMsg {
+					t.Errorf("expected error message %q, got %q", tc.expectedErrorMsg, err.Error())
+				}
+			} else if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+
+			// Skip further checks if error is expected
+			if tc.expectError {
+				return
+			}
+
+			// Check environment variables if expected
+			if len(tc.expectedEnvVars) > 0 {
+				for i, container := range tc.spec.Containers {
+					found := false
+					for _, env := range container.Env {
+						if env.Name == "HF_TOKEN" {
+							found = true
+							if !reflect.DeepEqual(env, tc.expectedEnvVars[0]) {
+								t.Errorf("container %d: HF_TOKEN env var mismatch: expected %+v, got %+v",
+									i, tc.expectedEnvVars[0], env)
+							}
+						}
+					}
+					if !found {
+						t.Errorf("container %d: HF_TOKEN env var not found", i)
+					}
+				}
+			} else {
+				// Verify no HF_TOKEN env vars were added
+				for i, container := range tc.spec.Containers {
+					for _, env := range container.Env {
+						if env.Name == "HF_TOKEN" {
+							t.Errorf("container %d: unexpected HF_TOKEN env var found", i)
+						}
+					}
+				}
+			}
+
+			// Check init containers
+			actualInitContainerCount := len(tc.spec.InitContainers) - originalInitContainerCount
+			if actualInitContainerCount != tc.expectedInitContainer {
+				t.Errorf("init container count mismatch: expected %d new containers, got %d",
+					tc.expectedInitContainer, actualInitContainerCount)
+			}
+
+			if tc.expectedInitContainer > 0 {
+				// Look for model-weights-downloader container
+				found := false
+				for _, initContainer := range tc.spec.InitContainers {
+					if initContainer.Name == "model-weights-downloader" {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Errorf("expected model-weights-downloader init container not found")
+				}
+			}
+		})
+	}
+}
 
 func toParameterMap(in []string) map[string]string {
 	ret := make(map[string]string)

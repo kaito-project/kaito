@@ -340,7 +340,8 @@ func updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj *kaitov1beta1.Wo
 			}
 		} else {
 			workspaceObj.Tuning.Input = &kaitov1beta1.DataSource{
-				Image: datasetImageName,
+				Image:            datasetImageName,
+				ImagePullSecrets: []string{e2eACRSecret},
 			}
 		}
 		if outputVolume != nil {

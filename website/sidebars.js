@@ -47,6 +47,7 @@ const sidebars = {
                 'rag',
                 'custom-model',
                 'tool-calling',
+                'headlamp-kaito',
             ],
         },
         {

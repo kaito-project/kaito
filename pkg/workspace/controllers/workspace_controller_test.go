@@ -863,7 +863,7 @@ func TestApplyWorkspaceResource(t *testing.T) {
 	}
 }
 
-func TestUpdateControllerRevision1(t *testing.T) {
+func TestSyncControllerRevision(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
 		workspace     v1beta1.Workspace
@@ -883,7 +883,15 @@ func TestUpdateControllerRevision1(t *testing.T) {
 									WorkspaceHashAnnotation: "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
 								},
 							},
+							Revision: 1,
 						}
+					}).
+					Return(nil)
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = test.MockWorkspaceWithComputeHash
 					}).
 					Return(nil)
 				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
@@ -894,7 +902,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 			verifyCalls: func(c *test.MockClient) {
 				c.AssertNumberOfCalls(t, "List", 1)
 				c.AssertNumberOfCalls(t, "Create", 0)
-				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
 				c.AssertNumberOfCalls(t, "Delete", 0)
 				c.AssertNumberOfCalls(t, "Update", 1)
 			},
@@ -906,8 +914,6 @@ func TestUpdateControllerRevision1(t *testing.T) {
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(errors.New("failed to create ControllerRevision"))
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockWorkspaceFailToCreateCR.Name))
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
-					Return(nil)
 			},
 			workspace:     test.MockWorkspaceFailToCreateCR,
 			expectedError: errors.New("failed to create new ControllerRevision: failed to create ControllerRevision"),
@@ -926,6 +932,13 @@ func TestUpdateControllerRevision1(t *testing.T) {
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockWorkspaceFailToCreateCR.Name))
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = test.MockWorkspaceSuccessful
+					}).
+					Return(nil)
 				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Return(nil)
 			},
@@ -934,7 +947,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 			verifyCalls: func(c *test.MockClient) {
 				c.AssertNumberOfCalls(t, "List", 1)
 				c.AssertNumberOfCalls(t, "Create", 1)
-				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
 				c.AssertNumberOfCalls(t, "Delete", 0)
 				c.AssertNumberOfCalls(t, "Update", 1)
 			},
@@ -967,6 +980,13 @@ func TestUpdateControllerRevision1(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockWorkspaceFailToCreateCR.Name))
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = test.MockWorkspaceWithDeleteOldCR
+					}).
+					Return(nil)
 				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Return(nil)
 			},
@@ -975,7 +995,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 			verifyCalls: func(c *test.MockClient) {
 				c.AssertNumberOfCalls(t, "List", 1)
 				c.AssertNumberOfCalls(t, "Create", 1)
-				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
 				c.AssertNumberOfCalls(t, "Delete", 1)
 				c.AssertNumberOfCalls(t, "Update", 1)
 			},
@@ -1008,6 +1028,13 @@ func TestUpdateControllerRevision1(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockWorkspaceFailToCreateCR.Name))
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = test.MockWorkspaceUpdateCR
+					}).
+					Return(nil)
 				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Return(fmt.Errorf("failed to update Workspace annotations"))
 			},
@@ -1016,7 +1043,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 			verifyCalls: func(c *test.MockClient) {
 				c.AssertNumberOfCalls(t, "List", 1)
 				c.AssertNumberOfCalls(t, "Create", 1)
-				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
 				c.AssertNumberOfCalls(t, "Delete", 1)
 				c.AssertNumberOfCalls(t, "Update", 1)
 			},

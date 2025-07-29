@@ -54,6 +54,7 @@ const (
 	RuntimeNameHuggingfaceTransformers RuntimeName = "transformers"
 	RuntimeNameVLLM                    RuntimeName = "vllm"
 
+	DefaultTuningMainFile = "/workspace/tfs/fine_tuning.py"
 	ConfigfileNameVLLM    = "inference_config.yaml"
 	DefaultMemoryUtilVLLM = 0.9 // Default gpu memory utilization for VLLM runtime
 	UpperMemoryUtilVLLM   = 0.95
@@ -358,4 +359,16 @@ func getGPUMemoryUtilForVLLM(gpuConfig *sku.GPUConfig) float64 {
 
 	util := math.Floor((1.0-float64(ReservedNonKVCacheMemory.Value())/gpuMemPerGPU)*100) / 100
 	return math.Min(util, UpperMemoryUtilVLLM)
+}
+
+// Only support Huggingface for now
+func (p *PresetParam) GetTuningCommand(rc RuntimeContext) []string {
+	if p.Transformers.AccelerateParams == nil {
+		p.Transformers.AccelerateParams = make(map[string]string)
+	}
+
+	p.Transformers.AccelerateParams["num_processes"] = strconv.Itoa(rc.SKUNumGPUs)
+	torchCommand := utils.BuildCmdStr(p.Transformers.BaseCommand, p.Transformers.AccelerateParams)
+	modelCommand := utils.BuildCmdStr(DefaultTuningMainFile, p.Transformers.ModelRunParams)
+	return utils.ShellCmd(torchCommand + " " + modelCommand)
 }

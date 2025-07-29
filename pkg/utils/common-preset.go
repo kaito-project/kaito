@@ -58,6 +58,17 @@ func ConfigResultsVolume(outputPath string, outputVolume *corev1.VolumeSource) (
 	return sharedWorkspaceVolume, sharedVolumeMount
 }
 
+func FindResultsVolumeMount(spec *corev1.PodSpec) *corev1.VolumeMount {
+	for _, container := range spec.Containers {
+		for _, volumeMount := range container.VolumeMounts {
+			if volumeMount.Name == "results-volume" {
+				return &volumeMount
+			}
+		}
+	}
+	return nil
+}
+
 func ConfigImagePullSecretVolume(nameSuffix string, imagePullSecrets []string) (corev1.Volume, corev1.VolumeMount) {
 	name := fmt.Sprintf("docker-config-%s", nameSuffix)
 

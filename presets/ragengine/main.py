@@ -65,8 +65,6 @@ from ragengine.metrics.prometheus_metrics import (
     MODE_REMOTE
 )
 
-faulthandler.enable()  # Enable fault handler for better debugging
-
 app = FastAPI()
 @app.middleware("http")
 async def track_requests(request: Request, call_next):

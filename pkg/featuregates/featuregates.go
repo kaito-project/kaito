@@ -25,8 +25,9 @@ import (
 var (
 	// FeatureGates is a map that holds the feature gate names and their default values for Kaito.
 	FeatureGates = map[string]bool{
-		consts.FeatureFlagVLLM:            true,
-		consts.FeatureFlagEnsureNodeClass: false,
+		consts.FeatureFlagVLLM:                        true,
+		consts.FeatureFlagEnsureNodeClass:             false,
+		consts.FeatureFlagDisableNodeAutoProvisioning: false,
 		//	Add more feature gates here
 	}
 )

@@ -17,6 +17,7 @@ securityContext:
       - "ALL"
 featureGates:
   vLLM: "true"
+  disableNodeAutoProvisioning: "false"
 webhook:
   port: 9443
 # Knative logging configuration

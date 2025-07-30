@@ -47,6 +47,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
@@ -360,6 +361,11 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 	newNodesCount := lo.FromPtr(wObj.Resource.Count) - len(selectedNodes)
 
 	if newNodesCount > 0 {
+		// Check if node auto-provisioning is disabled
+		if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+			return fmt.Errorf("node auto-provisioning is disabled but insufficient nodes available: need %d nodes, have %d selected nodes", lo.FromPtr(wObj.Resource.Count), len(selectedNodes))
+		}
+
 		klog.InfoS("need to create more nodes", "NodeCount", newNodesCount)
 		if err := c.updateStatusConditionIfNotMatch(ctx, wObj,
 			kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionUnknown,
@@ -433,6 +439,42 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 	}
 
 	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
+
+	// When node auto-provisioning is disabled, we need to validate that all preferred nodes have the right labels
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] && len(wObj.Resource.PreferredNodes) > 0 {
+		labeledNodeNames := sets.New[string]()
+
+		// First, collect all nodes that match the label selector and are ready
+		for index := range nodeList.Items {
+			nodeObj := nodeList.Items[index]
+			// skip nodes that are being deleted
+			if nodeObj.DeletionTimestamp != nil {
+				continue
+			}
+
+			// skip nodes that are not ready
+			_, statusRunning := lo.Find(nodeObj.Status.Conditions, func(condition corev1.NodeCondition) bool {
+				return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
+			})
+			if !statusRunning {
+				continue
+			}
+
+			labeledNodeNames.Insert(nodeObj.Name)
+		}
+
+		// Check which preferred nodes don't have the right labels
+		missingLabelNodes := []string{}
+		for _, preferredNode := range wObj.Resource.PreferredNodes {
+			if !labeledNodeNames.Has(preferredNode) {
+				missingLabelNodes = append(missingLabelNodes, preferredNode)
+			}
+		}
+
+		if len(missingLabelNodes) > 0 {
+			return nil, fmt.Errorf("when node auto-provisioning is disabled, all preferred nodes must have the required labels. The following nodes do not have the required labels: %v", missingLabelNodes)
+		}
+	}
 
 	for index := range nodeList.Items {
 		nodeObj := nodeList.Items[index]

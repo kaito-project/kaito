@@ -305,7 +305,9 @@ class Inference(CustomLLM):
     @property
     def metadata(self) -> LLMMetadata:
         """Get LLM metadata."""
-        return LLMMetadata(is_chat_model=LLM_INFERENCE_URL.endswith("/chat/completions"))
+        parsed_url = urlparse(LLM_INFERENCE_URL)
+        path = parsed_url.path.lower()
+        return LLMMetadata(is_chat_model="/chat/completions" in path)
 
     async def aclose(self):
         """ Closes the HTTP client when shutting down. """

@@ -158,8 +158,6 @@ class BaseVectorStoreTest(ABC):
             }
         )
 
-        print(chat_results)
-
         assert chat_results is not None
         assert chat_results.source_nodes is not None
         assert len(chat_results.source_nodes) == 1

@@ -292,7 +292,8 @@ async def query_index(request: QueryRequest):
     ## Request Example:
     ```json
     {
-      "model": "example_index",
+      "index_name": "example_index",
+      "model": "example_model",
       "messages": [
         {"role": "system", "content": "You are a knowledgeable assistant."},
         {"role": "user", "content": "What is RAG?"}
@@ -310,7 +311,7 @@ async def query_index(request: QueryRequest):
       "id": "chatcmpl-123",
       "object": "chat.completion",
       "created": 1677652288,
-      "model": "example_index",
+      "model": "example_model",
       "choices": [
         {
           "index": 0,
@@ -326,7 +327,7 @@ async def query_index(request: QueryRequest):
         "completion_tokens": 31,
         "total_tokens": 87
       },
-      "source_documents": [...]
+      "source_nodes": [...]
     }
     ```
     """,
@@ -334,21 +335,16 @@ async def query_index(request: QueryRequest):
 async def chat_completions(request: dict):
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
-    print("trying to handle chat completion request")
-    
     try:
         response = await rag_ops.chat_completion(request)
         status = STATUS_SUCCESS
         return response
     except HTTPException as http_exc:
-        print(f"HTTP Exception: {http_exc}")
         # Preserve HTTP exceptions like 422 from reranker
         raise http_exc
     except ValueError as ve:
-        print(f"ValueError: {ve}")
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:
-        print(f"Unexpected error: {e}")
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )

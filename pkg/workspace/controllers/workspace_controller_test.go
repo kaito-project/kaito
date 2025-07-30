@@ -577,14 +577,6 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 	mockWorkspaceWithPreferredNodes := test.MockWorkspaceWithPreferredNodes.DeepCopy()
 	mockWorkspaceWithPreferredNodes.Resource.PreferredNodes = []string{"node-p1", "node-p2"}
 
-	// Workspace with preferred nodes, all nodes ready, feature gate enabled (should error if not all preferred nodes are ready)
-	mockWorkspaceWithPreferredNodesAllReady := test.MockWorkspaceWithPreferredNodes.DeepCopy()
-	mockWorkspaceWithPreferredNodesAllReady.Resource.PreferredNodes = []string{"node-p1", "node-p2"}
-
-	// Workspace with preferred nodes, but one node not ready, feature gate enabled (should error)
-	mockWorkspaceWithPreferredNodesOneNotReady := test.MockWorkspaceWithPreferredNodes.DeepCopy()
-	mockWorkspaceWithPreferredNodesOneNotReady.Resource.PreferredNodes = []string{"node-p1", "node-p2"}
-
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
 		workspace     *v1beta1.Workspace
@@ -692,7 +684,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
-			workspace:     mockWorkspaceWithPreferredNodes,
+			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
 			expectedError: nil,
 			expectedNodes: []string{"node-p1"},
 			disableNAP:    false,
@@ -738,7 +730,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 				}
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
-			workspace:     mockWorkspaceWithPreferredNodesAllReady,
+			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
 			expectedError: nil,
 			expectedNodes: []string{"node-p1", "node-p2"},
 			disableNAP:    true,
@@ -783,7 +775,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 				}
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
-			workspace:     mockWorkspaceWithPreferredNodesOneNotReady,
+			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
 			expectedError: errors.New("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: [], not ready nodes: [node-p2], nodes missing label: []"),
 			expectedNodes: nil,
 			disableNAP:    true,
@@ -865,7 +857,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 				}
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
-			workspace:     mockWorkspaceWithPreferredNodesAllReady,
+			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
 			expectedError: errors.New("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: [], not ready nodes: [], nodes missing label: [node-p2]"),
 			expectedNodes: nil,
 			disableNAP:    true,

@@ -475,7 +475,7 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 	// After looping, check for missing preferred nodes if feature gate is enabled
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		if preferredNodeSet.Len() > 0 {
-			return nil, fmt.Errorf("when node auto-provisioning is disabled, all preferred nodes must have the required labels. The following nodes do not have the required labels: %v", preferredNodeSet.UnsortedList())
+			return nil, fmt.Errorf("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: %v", preferredNodeSet.UnsortedList())
 		}
 	}
 

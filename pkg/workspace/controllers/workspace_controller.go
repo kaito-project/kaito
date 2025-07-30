@@ -440,42 +440,6 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 
 	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
 
-	// When node auto-provisioning is disabled, we need to validate that all preferred nodes have the right labels
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] && len(wObj.Resource.PreferredNodes) > 0 {
-		labeledNodeNames := sets.New[string]()
-
-		// First, collect all nodes that match the label selector and are ready
-		for index := range nodeList.Items {
-			nodeObj := nodeList.Items[index]
-			// skip nodes that are being deleted
-			if nodeObj.DeletionTimestamp != nil {
-				continue
-			}
-
-			// skip nodes that are not ready
-			_, statusRunning := lo.Find(nodeObj.Status.Conditions, func(condition corev1.NodeCondition) bool {
-				return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
-			})
-			if !statusRunning {
-				continue
-			}
-
-			labeledNodeNames.Insert(nodeObj.Name)
-		}
-
-		// Check which preferred nodes don't have the right labels
-		missingLabelNodes := []string{}
-		for _, preferredNode := range wObj.Resource.PreferredNodes {
-			if !labeledNodeNames.Has(preferredNode) {
-				missingLabelNodes = append(missingLabelNodes, preferredNode)
-			}
-		}
-
-		if len(missingLabelNodes) > 0 {
-			return nil, fmt.Errorf("when node auto-provisioning is disabled, all preferred nodes must have the required labels. The following nodes do not have the required labels: %v", missingLabelNodes)
-		}
-	}
-
 	for index := range nodeList.Items {
 		nodeObj := nodeList.Items[index]
 		// skip nodes that are being deleted
@@ -494,6 +458,9 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 		// match the preferred node
 		if preferredNodeSet.Has(nodeObj.Name) {
 			qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
+			// Remove a preferredNode from the set if we've seen it in the list of nodes matching the label.
+			// Anything node left in the set means it does not match the label selector and we can surface an error.
+			preferredNodeSet.Delete(nodeObj.Name)
 			continue
 		}
 
@@ -502,6 +469,13 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 			if nodeObj.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
 				qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
 			}
+		}
+	}
+
+	// After looping, check for missing preferred nodes if feature gate is enabled
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		if preferredNodeSet.Len() > 0 {
+			return nil, fmt.Errorf("when node auto-provisioning is disabled, all preferred nodes must have the required labels. The following nodes do not have the required labels: %v", preferredNodeSet.UnsortedList())
 		}
 	}
 

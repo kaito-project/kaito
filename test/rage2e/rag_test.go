@@ -259,7 +259,6 @@ var _ = Describe("RAGEngine", func() {
 
 		err = createAndValidateDeleteIndexPod(ragengineObj, "delete-index-pod")
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
-		time.Sleep(30 * time.Minute) // will delete
 	})
 
 })

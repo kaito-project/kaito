@@ -20,6 +20,8 @@ starlette==0.47.2
 ray[default]==2.43.0
 
 # Utility libraries
+setuptools>=77.0.3,<80.9.0
+wheel==0.45.1
 datasets==2.19.1
 peft==0.11.1
 bitsandbytes==0.45.3

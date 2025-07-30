@@ -120,6 +120,21 @@ jobs:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           RAGENGINE_SERVICE_IMG_TAG: ${{ env.VERSION }}
 
+      - name: Create node pool for RAG workloads
+        uses: azure/CLI@v2.1.0
+        with:
+          inlineScript: |
+            az aks nodepool add \
+              --resource-group "${{ env.CLUSTER_NAME }}" \
+              --cluster-name "${{ env.CLUSTER_NAME }}" \
+              --name ragpool \
+              -s Standard_D8_v3 \
+              -c 1 \
+              --labels apps=phi-3
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+
       - name: Run e2e test
         run: |
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \

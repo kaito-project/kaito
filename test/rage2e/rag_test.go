@@ -102,35 +102,35 @@ var _ = Describe("RAGEngine", func() {
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
-		indexDoc, err := createAndValidateIndexPod(ragengineObj, "index-pod")
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
 		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
 		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
 
-		searchQuerySuccess := "\\n\\nKaito is an operator that is designed to automate the AI/ML model inference or tuning workload in a Kubernetes cluster."
-		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, true, "query-pod")
+		searchQuerySuccess := "Kaito is an operator that is designed to automate the AI/ML model inference or tuning workload in a Kubernetes cluster."
+		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, true)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
 		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, true)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
 
 		persistLogSuccess := "Successfully persisted index kaito"
-		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess, "persist-pod")
+		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
 
 		loadLogSuccess := "Successfully loaded index kaito"
-		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess, "load-pod")
+		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
 
-		err = createAndValidateUpdateDocumentPod(ragengineObj, docID, "update-document-pod")
+		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
 
-		err = createAndValidateDeleteDocumentPod(ragengineObj, docID, "delete-document-pod")
+		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
 
-		err = createAndValidateDeleteIndexPod(ragengineObj, "delete-index-pod")
+		err = createAndValidateDeleteIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
@@ -168,7 +168,7 @@ var _ = Describe("RAGEngine", func() {
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
-		indexDoc, err := createAndValidateIndexPod(ragengineObj, "index-pod")
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
 		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
 		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
@@ -180,20 +180,20 @@ var _ = Describe("RAGEngine", func() {
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
 		persistLogSuccess := "Successfully persisted index kaito"
-		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess, "persist-pod")
+		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
 
 		loadLogSuccess := "Successfully loaded index kaito"
-		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess, "load-pod")
+		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
 
-		err = createAndValidateUpdateDocumentPod(ragengineObj, docID, "update-document-pod")
+		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
 
-		err = createAndValidateDeleteDocumentPod(ragengineObj, docID, "delete-document-pod")
+		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
 
-		err = createAndValidateDeleteIndexPod(ragengineObj, "delete-index-pod")
+		err = createAndValidateDeleteIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
@@ -235,7 +235,7 @@ var _ = Describe("RAGEngine", func() {
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
-		indexDoc, err := createAndValidateIndexPod(ragengineObj, "index-pod")
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
 		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
 		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
@@ -243,24 +243,24 @@ var _ = Describe("RAGEngine", func() {
 		docID := indexDoc["doc_id"].(string)
 
 		searchQuerySuccess := "\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\n\\n\\n"
-		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false, "query-pod")
+		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
 		persistLogSuccess := "Successfully persisted index kaito"
-		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess, "persist-pod")
+		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
 
 		loadLogSuccess := "Successfully loaded index kaito"
-		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess, "load-pod")
+		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
 
-		err = createAndValidateUpdateDocumentPod(ragengineObj, docID, "update-document-pod")
+		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
 
-		err = createAndValidateDeleteDocumentPod(ragengineObj, docID, "delete-document-pod")
+		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
 
-		err = createAndValidateDeleteIndexPod(ragengineObj, "delete-index-pod")
+		err = createAndValidateDeleteIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 

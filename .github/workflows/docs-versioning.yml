@@ -60,7 +60,7 @@ jobs:
           echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_OUTPUT
           
           # Convert v0.6.0 to 0.6.x format for documentation versioning
-          DOC_VERSION=$(echo $VERSION_TAG | sed -E 's/^v([0-9]+)\.([0-9]+)\.0$/\1.\2.x/')
+          DOC_VERSION=$(echo $VERSION_TAG | sed -E 's/^v([0-9]+)\.([0-9]+)\.0$/v\1.\2.x/')
           echo "DOC_VERSION=$DOC_VERSION" >> $GITHUB_OUTPUT
           
           echo "Creating documentation version: $DOC_VERSION from tag: $VERSION_TAG"
@@ -116,55 +116,39 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Create release pull request
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        with:
+          commit-message: |
+            docs: add versioned documentation for ${{ steps.get-version.outputs.DOC_VERSION }}
+            
+            - Created versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}/
+            - Created versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json  
+            - Updated versions.json
+            
+            Triggered by release tag: ${{ steps.get-version.outputs.VERSION_TAG }}
+          title: "docs: add versioned documentation for ${{ steps.get-version.outputs.DOC_VERSION }}"
+          branch: "docs/version-${{ steps.get-version.outputs.DOC_VERSION }}"
+          signoff: true
+          body: |
+            This PR adds versioned documentation for release ${{ steps.get-version.outputs.DOC_VERSION }}.
 
-      - name: Create Pull Request
-        if: steps.check-version.outputs.VERSION_EXISTS == 'false'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Create a new branch for the versioned docs
-          BRANCH_NAME="docs/version-${{ steps.get-version.outputs.DOC_VERSION }}"
-          git checkout -b "$BRANCH_NAME"
-          
-          # Add all versioned documentation files
-          git add versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}/
-          git add versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json
-          git add versions.json
-          
-          # Commit the changes
-          git commit -m "docs: add versioned documentation for ${{ steps.get-version.outputs.DOC_VERSION }}
-          
-          - Created versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}/
-          - Created versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json  
-          - Updated versions.json
-          
-          Triggered by release tag: ${{ steps.get-version.outputs.VERSION_TAG }}"
-          
-          # Push the branch
-          git push origin "$BRANCH_NAME"
-          
-          # Create pull request using GitHub CLI
-          gh pr create \
-            --title "docs: add versioned documentation for ${{ steps.get-version.outputs.DOC_VERSION }}" \
-            --body "This PR adds versioned documentation for release ${{ steps.get-version.outputs.DOC_VERSION }}.
+            ## Changes
+            - ✅ Created \`versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}/\` directory with current docs content
+            - ✅ Created \`versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json\` with current sidebar configuration  
+            - ✅ Updated \`versions.json\` to include the new version
 
-          ## Changes
-          - ✅ Created \`versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}/\` directory with current docs content
-          - ✅ Created \`versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json\` with current sidebar configuration  
-          - ✅ Updated \`versions.json\` to include the new version
-
-          ## Triggered by
-          Release tag: \`${{ steps.get-version.outputs.VERSION_TAG }}\`
-          
-          ## What's next?
-          After merging this PR, the documentation for version ${{ steps.get-version.outputs.DOC_VERSION }} will be available at:
-          - Latest: \`/docs/\` (if this is the latest version)
-          - Versioned: \`/docs/${{ steps.get-version.outputs.DOC_VERSION }}/\`
-          
-          The version will also appear in the documentation version dropdown." \
-            --head "$BRANCH_NAME" \
-            --base main
-
+            ## Triggered by
+            Release tag: \`${{ steps.get-version.outputs.VERSION_TAG }}\`
+            
+            ## What's next?
+            After merging this PR, the documentation for version ${{ steps.get-version.outputs.DOC_VERSION }} will be available at:
+            - Latest: \`/docs/\` (if this is the latest version)
+            - Versioned: \`/docs/${{ steps.get-version.outputs.DOC_VERSION }}/\`
+            
+            The version will also appear in the documentation version dropdown." \
+              --head "$BRANCH_NAME" \
+              --base main
       - name: Skip - Version already exists
         if: steps.check-version.outputs.VERSION_EXISTS == 'true'
         run: |

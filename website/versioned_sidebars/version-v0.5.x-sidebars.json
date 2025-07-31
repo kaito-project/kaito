@@ -31,6 +31,7 @@
       "label": "Cloud Providers",
       "collapsed": false,
       "items": [
+        "azure",
         "aws"
       ]
     },

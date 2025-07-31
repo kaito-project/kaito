@@ -13,6 +13,8 @@ spec:
     kind: RAGEngine
     listKind: RAGEngineList
     plural: ragengines
+    shortNames:
+    - rag
     singular: ragengine
   scope: Namespaced
   versions:
@@ -22,6 +24,9 @@ spec:
       type: string
     - jsonPath: .status.conditions[?(@.type=="ResourceReady")].status
       name: ResourceReady
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="ServiceReady")].status
+      name: ServiceReady
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age

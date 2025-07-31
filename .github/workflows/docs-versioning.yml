@@ -1,0 +1,155 @@
+name: Create Versioned Documentation
+
+on:
+  push:
+    tags:
+      # Trigger on new minor version tags (e.g., v0.6.0, v0.7.0, v1.0.0)
+      # This regex matches tags like v0.6.0, v1.0.0 but not v0.5.1, v0.5.2
+      - 'v[0-9]+.[0-9]+.0'
+
+permissions:
+  contents: read
+
+jobs:
+  create-versioned-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag=v4.2.2
+        with:
+          fetch-depth: 0
+          # Check out the main branch to create versioned docs from the latest content
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          node-version: 20.x
+
+      - name: Get yarn cache
+        id: yarn-cache
+        run: echo "dir=$(yarn cache dir)" > $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-website-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-website-
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Extract version from tag
+        id: get-version
+        run: |
+          # Extract version from tag (e.g., v0.6.0 -> 0.6.x)
+          VERSION_TAG=${GITHUB_REF#refs/tags/}
+          echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_OUTPUT
+          
+          # Convert v0.6.0 to 0.6.x format for documentation versioning
+          DOC_VERSION=$(echo $VERSION_TAG | sed -E 's/^v([0-9]+)\.([0-9]+)\.0$/v\1.\2.x/')
+          echo "DOC_VERSION=$DOC_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "Creating documentation version: $DOC_VERSION from tag: $VERSION_TAG"
+
+      - name: Check if version already exists
+        id: check-version
+        run: |
+          if grep -q '"${{ steps.get-version.outputs.DOC_VERSION }}"' versions.json; then
+            echo "VERSION_EXISTS=true" >> $GITHUB_OUTPUT
+            echo "Documentation version ${{ steps.get-version.outputs.DOC_VERSION }} already exists"
+          else
+            echo "VERSION_EXISTS=false" >> $GITHUB_OUTPUT
+            echo "Documentation version ${{ steps.get-version.outputs.DOC_VERSION }} does not exist, will create"
+          fi
+
+      - name: Create versioned documentation
+        if: steps.check-version.outputs.VERSION_EXISTS == 'false'
+        run: |
+          echo "Creating documentation version: ${{ steps.get-version.outputs.DOC_VERSION }}"
+          npm run docusaurus docs:version ${{ steps.get-version.outputs.DOC_VERSION }}
+
+      - name: Verify versioned files were created
+        if: steps.check-version.outputs.VERSION_EXISTS == 'false'
+        run: |
+          echo "Checking if versioned files were created..."
+          
+          # Check if versioned_docs directory was created
+          if [ -d "versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}" ]; then
+            echo "✓ versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }} directory created"
+          else
+            echo "✗ versioned_docs directory not found"
+            exit 1
+          fi
+          
+          # Check if versioned sidebar was created
+          if [ -f "versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json" ]; then
+            echo "✓ versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json file created"
+          else
+            echo "✗ versioned sidebar file not found"
+            exit 1
+          fi
+          
+          # Check if versions.json was updated
+          if grep -q '"${{ steps.get-version.outputs.DOC_VERSION }}"' versions.json; then
+            echo "✓ versions.json updated with new version"
+          else
+            echo "✗ versions.json not updated"
+            exit 1
+          fi
+
+      - name: Configure Git
+        if: steps.check-version.outputs.VERSION_EXISTS == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Create release pull request
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        with:
+          commit-message: |
+            docs: add versioned documentation for ${{ steps.get-version.outputs.DOC_VERSION }}
+            
+            - Created versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}/
+            - Created versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json  
+            - Updated versions.json
+            
+            Triggered by release tag: ${{ steps.get-version.outputs.VERSION_TAG }}
+          title: "docs: add versioned documentation for ${{ steps.get-version.outputs.DOC_VERSION }}"
+          branch: "docs/version-${{ steps.get-version.outputs.DOC_VERSION }}"
+          signoff: true
+          body: |
+            This PR adds versioned documentation for release ${{ steps.get-version.outputs.DOC_VERSION }}.
+
+            ## Changes
+            - ✅ Created \`versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}/\` directory with current docs content
+            - ✅ Created \`versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json\` with current sidebar configuration  
+            - ✅ Updated \`versions.json\` to include the new version
+
+            ## Triggered by
+            Release tag: \`${{ steps.get-version.outputs.VERSION_TAG }}\`
+            
+            ## What's next?
+            After merging this PR, the documentation for version ${{ steps.get-version.outputs.DOC_VERSION }} will be available at:
+            - Latest: \`/docs/\` (if this is the latest version)
+            - Versioned: \`/docs/${{ steps.get-version.outputs.DOC_VERSION }}/\`
+            
+            The version will also appear in the documentation version dropdown." \
+              --head "$BRANCH_NAME" \
+              --base main
+      - name: Skip - Version already exists
+        if: steps.check-version.outputs.VERSION_EXISTS == 'true'
+        run: |
+          echo "Skipping documentation versioning - version ${{ steps.get-version.outputs.DOC_VERSION }} already exists in versions.json"

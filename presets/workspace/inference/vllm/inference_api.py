@@ -23,6 +23,7 @@ from dataclasses import dataclass
 import uvloop
 import torch
 from vllm.config import KVTransferConfig
+import vllm.envs as envs
 from vllm.utils import FlexibleArgumentParser
 import vllm.entrypoints.openai.api_server as api_server
 from vllm.entrypoints.openai.serving_models import LoRAModulePath
@@ -225,12 +226,15 @@ def try_get_max_available_seq_len(args: argparse.Namespace) -> Optional[int]:
     # and read it into a unified EngineConfig.
     vllm_config = engine_args.create_engine_config()
 
-    # Configure KV cache transfer to use LMCache
-    ktc = KVTransferConfig(
-        kv_connector="LMCacheConnectorV1",
-        kv_role="kv_both",
-    )
-    vllm_config.kv_transfer_config = ktc
+    if envs.VLLM_USE_V1:
+        logger.info("VLLM_USE_V1 is set, Offload KV cache to CPU")
+        ktc = KVTransferConfig(
+            kv_connector="LMCacheConnectorV1",
+            kv_role="kv_both",
+        )
+        vllm_config.kv_transfer_config = ktc
+    else:
+        logger.info("VLLM_USE_V1 is not set, using default KV cache config")
 
     max_model_len = vllm_config.model_config.max_model_len
     available_seq_len = max_model_len

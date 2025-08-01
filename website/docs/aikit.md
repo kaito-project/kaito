@@ -38,11 +38,11 @@ Please note that if you already have a Kubernetes cluster set up, you can skip t
 kind create cluster --name kaito
 ```
 
-- Install [KAITO workspace controller](installation.md#install-workspace-controller) on your cluster
+- Install [KAITO workspace controller](installation.md#install-kaito-workspace-controller) on your cluster
 
 ### KAITO Workspace Configuration
 
-Create a KAITO workspacec configuration file to deploy your model. Here's a complete example:
+Create a KAITO workspace configuration file to deploy your model. Here's a complete example:
 
 ```yaml title="aikit-workspace.yaml"
 apiVersion: kaito.sh/v1beta1
@@ -65,6 +65,18 @@ inference:
             - "run"
             - "--address=:5000"
 ```
+
+:::info Memory Requirements
+Before deploying models, check the model's memory requirements to avoid Out of Memory (OOM) errors. Add appropriate `resources.requests.memory` and `resources.limits.memory` to your container spec based on the model requirements.
+
+For GGUF models:
+
+- 7B models generally require at least 8GB of RAM
+- 13B models generally require at least 16GB of RAM
+- 70B models generally require at least 64GB of RAM
+
+You can use [gguf-parser-go](https://github.com/gpustack/gguf-parser-go) to get a better estimate for the memory requirements for a given GGUF model, and quantization.
+:::
 
 Label the nodes with the applicable label to ensure the workspace can schedule pods on them.
 
@@ -115,3 +127,7 @@ docker buildx build -t $IMAGE_NAME --push \
 After building the image, you can use it in your KAITO workspace configuration by updating the `image` field.
 
 For more information on creating custom models, refer to the [AIKit documentation](https://sozercan.github.io/aikit/docs/create-images).
+
+:::info
+AIKit supports a subset of backends, (such as [`llama.cpp`](https://sozercan.github.io/aikit/docs/llama-cpp), [`diffusers`](https://sozercan.github.io/aikit/docs/diffusion), [`exllamav2`](https://sozercan.github.io/aikit/docs/exllama2), and others) from [LocalAI](https://localai.io/) at this time. Please see [Inference Supported Backends](https://sozercan.github.io/aikit/docs/) section for more details, and updates.
+:::

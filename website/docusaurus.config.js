@@ -12,6 +12,18 @@ const config = {
     tagline: 'Kubernetes AI Toolchain Operator',
     favicon: 'img/favicon.ico',
 
+    headTags: [
+        {
+            tagName: "meta",
+            attributes: {
+                // Allow Algolia crawler to index the site
+                // See https://www.algolia.com/doc/tools/crawler/getting-started/create-crawler/#verify-your-domain.
+                name: "algolia-site-verification",
+                content: process.env.ALGOLIA_SITE_VERIFICATION || "DUMMY_SITE_VERIFICATION",
+            }
+        },
+    ],
+
     // Set the production url of your site here
     url: 'https://kaito-project.github.io',
     // Set the /<baseUrl>/ pathname under which your site is served
@@ -125,6 +137,12 @@ const config = {
                 id: 'announcementBar-1', // Increment on change
                 content: `⭐️ If you like KAITO, please give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/kaito-project/kaito">GitHub</a>!</a>`,
             },
+            algolia: {
+                appId: process.env.ALGOLIA_APP_ID || "DUMMY_APP_ID",
+                apiKey: process.env.ALGOLIA_API_KEY || "DUMMY_API_KEY",
+                indexName: 'KAITO',
+                contextualSearch: true,
+            }
         }),
 };
 

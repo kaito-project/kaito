@@ -39,7 +39,7 @@ jobs:
           github.com:443 registry.yarnpkg.com:443 registry.npmjs.org:443 *.githubusercontent.com:443 *.blob.core.windows.net:443
 
     - name: Setup Node
-      uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
       with:
         node-version: 20.x
 
@@ -57,6 +57,10 @@ jobs:
 
     - run: yarn install --frozen-lockfile
     - run: yarn build
+      env:
+        ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
+        ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+        ALGOLIA_SITE_VERIFICATION: ${{ secrets.ALGOLIA_SITE_VERIFICATION }}
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0

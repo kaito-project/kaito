@@ -25,6 +25,7 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
@@ -116,15 +117,20 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 
 	if ragEngineObj.Spec.Embedding.Local != nil {
 		var skuNumGPUs int
-		gpuConfig, err := utils.GetGPUConfigBySKU(ragEngineObj.Spec.Compute.InstanceType)
-		if err != nil {
-			gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, kubeClient, ragEngineObj.Status.WorkerNodes)
-			if err != nil {
-				skuNumGPUs = 1
-			}
+		var gpuConfig *sku.GPUConfig = nil
+		var err error
+		if len(ragEngineObj.Spec.Compute.PreferredNodes) == 0 {
+			gpuConfig, _ = utils.GetGPUConfigBySKU(ragEngineObj.Spec.Compute.InstanceType)
 		}
 		if gpuConfig != nil {
 			skuNumGPUs = gpuConfig.GPUCount
+		} else {
+			gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, kubeClient, ragEngineObj.Status.WorkerNodes)
+			if err != nil {
+				skuNumGPUs = 0
+			} else if gpuConfig != nil {
+				skuNumGPUs = gpuConfig.GPUCount
+			}
 		}
 
 		resourceReq = corev1.ResourceRequirements{

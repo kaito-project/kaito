@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -37,7 +38,7 @@ type GeneratorContext interface {
 }
 
 type ManifestType interface {
-	appsv1.StatefulSet | corev1.PodSpec | appsv1.Deployment
+	appsv1.StatefulSet | appsv1.Deployment | batchv1.Job | corev1.PodSpec
 }
 
 type TypedManifestModifier[C GeneratorContext, T ManifestType] func(ctx *C, obj *T) error

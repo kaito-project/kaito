@@ -331,6 +331,33 @@ var (
 			},
 		},
 	}
+	MockRAGEngineWithPresetPreferredCPUNodes = &v1alpha1.RAGEngine{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testRAGEngine",
+			Namespace: "kaito",
+			UID:       "test-uid",
+		},
+		Spec: &v1alpha1.RAGEngineSpec{
+			Compute: &v1alpha1.ResourceSpec{
+				Count:          &gpuNodeCount,
+				PreferredNodes: []string{"aks-ragpool-00000000-vmss000000"},
+				InstanceType:   "Standard_NC24ads_A100_v4",
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"ragengine.kaito.io/name": "testRAGEngine",
+					},
+				},
+			},
+			Embedding: &v1alpha1.EmbeddingSpec{
+				Local: &v1alpha1.LocalEmbeddingSpec{
+					ModelID: "BAAI/bge-small-en-v1.5",
+				},
+			},
+			InferenceService: &v1alpha1.InferenceServiceSpec{
+				URL: "http://localhost:5000/chat",
+			},
+		},
+	}
 	MockRAGEngineWithRevision1 = &v1alpha1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        "testRAGEngine",

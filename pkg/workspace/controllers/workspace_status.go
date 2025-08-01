@@ -33,7 +33,7 @@ import (
 func (c *WorkspaceReconciler) updateWorkspaceStatus(ctx context.Context, name *client.ObjectKey, condition *metav1.Condition, workerNodes []string) error {
 	return retry.OnError(retry.DefaultRetry,
 		func(err error) bool {
-			return apierrors.IsServiceUnavailable(err) || apierrors.IsServerTimeout(err) || apierrors.IsTooManyRequests(err)
+			return apierrors.IsServiceUnavailable(err) || apierrors.IsServerTimeout(err) || apierrors.IsTooManyRequests(err) || apierrors.IsConflict(err)
 		},
 		func() error {
 			// Read the latest version to avoid update conflict.

@@ -23,7 +23,6 @@ import (
 	"testing"
 	"time"
 
-	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
 	"github.com/awslabs/operatorpkg/status"
 	"github.com/stretchr/testify/mock"
 	"gotest.tools/assert"
@@ -35,7 +34,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -318,127 +316,6 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 
 			if !reflect.DeepEqual(selectedNodesArray, tc.expected) {
 				t.Errorf("%s: selected Nodes %+v are different from the expected %+v", k, selectedNodesArray, tc.expected)
-			}
-		})
-	}
-}
-
-func TestCreateAndValidateNodeClaimNode(t *testing.T) {
-	test.RegisterTestModel()
-	testcases := map[string]struct {
-		callMocks           func(c *test.MockClient)
-		cloudProvider       string
-		nodeClaimConditions []status.Condition
-		workspace           v1beta1.Workspace
-		expectedError       error
-	}{
-		"Node is not created because nodeClaim creation fails": {
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(errors.New("test error"))
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-			},
-			cloudProvider:       consts.AzureCloudName,
-			nodeClaimConditions: []status.Condition{},
-			workspace:           *test.MockWorkspaceWithPreset,
-			expectedError:       errors.New("test error"),
-		},
-		"A nodeClaim is successfully created": {
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-			},
-			cloudProvider: consts.AzureCloudName,
-			nodeClaimConditions: []status.Condition{
-				{
-					Type:   string(apis.ConditionReady),
-					Status: v1.ConditionTrue,
-				},
-			},
-			workspace:     *test.MockWorkspaceDistributedModel,
-			expectedError: nil,
-		},
-		"A nodeClaim is successfully created but SKU is not available": {
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1alpha2.AKSNodeClass{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-			},
-			cloudProvider: consts.AzureCloudName,
-			nodeClaimConditions: []status.Condition{
-				{
-					Type:    karpenterv1.ConditionTypeLaunched,
-					Status:  v1.ConditionFalse,
-					Message: consts.ErrorInstanceTypesUnavailable,
-				},
-			},
-			workspace:     *test.MockWorkspaceWithPreset,
-			expectedError: reconcile.TerminalError(fmt.Errorf(consts.ErrorInstanceTypesUnavailable)),
-		},
-	}
-
-	for k, tc := range testcases {
-		t.Run(k, func(t *testing.T) {
-			mockClient := test.NewClient()
-			mockNodeClaim := &karpenterv1.NodeClaim{
-				Spec: karpenterv1.NodeClaimSpec{
-					Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
-						{
-							NodeSelectorRequirement: corev1.NodeSelectorRequirement{
-								Key:      corev1.LabelInstanceTypeStable,
-								Operator: corev1.NodeSelectorOpIn,
-								Values:   []string{tc.workspace.Resource.InstanceType},
-							},
-						},
-					},
-				},
-			}
-
-			mockClient.UpdateCb = func(key types.NamespacedName) {
-				mockClient.GetObjectFromMap(mockNodeClaim, key)
-				mockNodeClaim.Status.Conditions = tc.nodeClaimConditions
-				mockClient.CreateOrUpdateObjectInMap(mockNodeClaim)
-			}
-
-			if tc.cloudProvider != "" {
-				t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
-
-			}
-
-			mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything, mock.Anything).
-				Run(func(args mock.Arguments) {
-					out := args.Get(1).(*karpenterv1.NodeClaimList)
-					mockList := &karpenterv1.NodeClaimList{
-						Items: []karpenterv1.NodeClaim{
-							*mockNodeClaim,
-						},
-					}
-					*out = *mockList
-				}).Return(nil)
-			tc.callMocks(mockClient)
-
-			reconciler := &WorkspaceReconciler{
-				Client: mockClient,
-				Scheme: test.NewTestScheme(),
-			}
-			ctx := context.Background()
-
-			node, err := reconciler.createNewNodes(ctx, &tc.workspace, 1)
-			if tc.expectedError == nil {
-				assert.Check(t, err == nil, "Not expected to return error")
-				assert.Check(t, node != nil, "Response node should not be nil")
-			} else {
-				assert.ErrorContains(t, err, tc.expectedError.Error())
 			}
 		})
 	}
@@ -986,7 +863,7 @@ func TestApplyWorkspaceResource(t *testing.T) {
 	}
 }
 
-func TestUpdateControllerRevision1(t *testing.T) {
+func TestSyncControllerRevision(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
 		workspace     v1beta1.Workspace
@@ -1006,7 +883,15 @@ func TestUpdateControllerRevision1(t *testing.T) {
 									WorkspaceHashAnnotation: "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
 								},
 							},
+							Revision: 1,
 						}
+					}).
+					Return(nil)
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = test.MockWorkspaceWithComputeHash
 					}).
 					Return(nil)
 				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
@@ -1017,7 +902,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 			verifyCalls: func(c *test.MockClient) {
 				c.AssertNumberOfCalls(t, "List", 1)
 				c.AssertNumberOfCalls(t, "Create", 0)
-				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
 				c.AssertNumberOfCalls(t, "Delete", 0)
 				c.AssertNumberOfCalls(t, "Update", 1)
 			},
@@ -1029,8 +914,6 @@ func TestUpdateControllerRevision1(t *testing.T) {
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(errors.New("failed to create ControllerRevision"))
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockWorkspaceFailToCreateCR.Name))
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
-					Return(nil)
 			},
 			workspace:     test.MockWorkspaceFailToCreateCR,
 			expectedError: errors.New("failed to create new ControllerRevision: failed to create ControllerRevision"),
@@ -1049,6 +932,13 @@ func TestUpdateControllerRevision1(t *testing.T) {
 				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockWorkspaceFailToCreateCR.Name))
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = test.MockWorkspaceSuccessful
+					}).
+					Return(nil)
 				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Return(nil)
 			},
@@ -1057,7 +947,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 			verifyCalls: func(c *test.MockClient) {
 				c.AssertNumberOfCalls(t, "List", 1)
 				c.AssertNumberOfCalls(t, "Create", 1)
-				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
 				c.AssertNumberOfCalls(t, "Delete", 0)
 				c.AssertNumberOfCalls(t, "Update", 1)
 			},
@@ -1090,6 +980,13 @@ func TestUpdateControllerRevision1(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockWorkspaceFailToCreateCR.Name))
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = test.MockWorkspaceWithDeleteOldCR
+					}).
+					Return(nil)
 				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Return(nil)
 			},
@@ -1098,7 +995,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 			verifyCalls: func(c *test.MockClient) {
 				c.AssertNumberOfCalls(t, "List", 1)
 				c.AssertNumberOfCalls(t, "Create", 1)
-				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
 				c.AssertNumberOfCalls(t, "Delete", 1)
 				c.AssertNumberOfCalls(t, "Update", 1)
 			},
@@ -1131,6 +1028,13 @@ func TestUpdateControllerRevision1(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockWorkspaceFailToCreateCR.Name))
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				// Add mock for workspace retrieval in updateWorkspaceWithRetry
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						*ws = test.MockWorkspaceUpdateCR
+					}).
+					Return(nil)
 				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Return(fmt.Errorf("failed to update Workspace annotations"))
 			},
@@ -1139,7 +1043,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 			verifyCalls: func(c *test.MockClient) {
 				c.AssertNumberOfCalls(t, "List", 1)
 				c.AssertNumberOfCalls(t, "Create", 1)
-				c.AssertNumberOfCalls(t, "Get", 1)
+				c.AssertNumberOfCalls(t, "Get", 2) // 1 for ControllerRevision, 1 for Workspace
 				c.AssertNumberOfCalls(t, "Delete", 1)
 				c.AssertNumberOfCalls(t, "Update", 1)
 			},

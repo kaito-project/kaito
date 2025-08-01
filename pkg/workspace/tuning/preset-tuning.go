@@ -39,8 +39,7 @@ import (
 )
 
 const (
-	PortInferenceServer = int32(5000)
-
+	PortInferenceServer     = int32(5000)
 	DefaultBaseDir          = "/mnt"
 	DefaultOutputVolumePath = "/mnt/output"
 )

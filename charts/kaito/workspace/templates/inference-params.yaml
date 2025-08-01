@@ -18,3 +18,30 @@ data:
       # enable-chunked-prefill: false
       # max-model-len: 2048
       # see https://docs.vllm.ai/en/stable/serving/engine_args.html for more options.
+  epp-config.yaml: |
+    # see https://gateway-api-inference-extension.sigs.k8s.io/guides/epp-configuration/config-text/ for more options.
+    # This is one of the recommended configurations from https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v0.5.1/config/charts/inferencepool/templates/epp-config.yaml.
+    apiVersion: inference.networking.x-k8s.io/v1alpha1
+    kind: EndpointPickerConfig
+    plugins:
+      - type: queue-scorer
+      - type: kv-cache-scorer
+      - type: prefix-cache-scorer
+        parameters:
+          hashBlockSize: 64
+          maxPrefixBlocksToMatch: 256
+          lruCapacityPerServer: 31250
+      - type: max-score-picker
+        parameters:
+          maxNumOfEndpoints: 1
+      - type: single-profile-handler
+    schedulingProfiles:
+      - name: default
+        plugins:
+          - pluginRef: queue-scorer
+            weight: 1
+          - pluginRef: kv-cache-scorer
+            weight: 1
+          - pluginRef: prefix-cache-scorer
+            weight: 1
+          - pluginRef: max-score-picker

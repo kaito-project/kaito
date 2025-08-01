@@ -351,3 +351,8 @@ func DedupVolumeMounts(mounts []v1.VolumeMount) []v1.VolumeMount {
 
 	return result
 }
+
+// EndpointPickerName returns the name of the endpoint picker service for the given workspace.
+func EndpointPickerName(workspaceName string) string {
+	return fmt.Sprintf("%s-epp", workspaceName)
+}

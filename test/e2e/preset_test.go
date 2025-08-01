@@ -316,6 +316,32 @@ func createConfigForWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 vllm:
   max-model-len: 1024
 `,
+				"epp-config.yaml": `
+apiVersion: inference.networking.x-k8s.io/v1alpha1
+kind: EndpointPickerConfig
+plugins:
+  - type: queue-scorer
+  - type: kv-cache-scorer
+  - type: prefix-cache-scorer
+    parameters:
+      hashBlockSize: 64
+      maxPrefixBlocksToMatch: 256
+      lruCapacityPerServer: 31250
+  - type: max-score-picker
+    parameters:
+      maxNumOfEndpoints: 1
+  - type: single-profile-handler
+schedulingProfiles:
+  - name: default
+    plugins:
+      - pluginRef: queue-scorer
+        weight: 1
+      - pluginRef: kv-cache-scorer
+        weight: 1
+      - pluginRef: prefix-cache-scorer
+        weight: 1
+      - pluginRef: max-score-picker
+`,
 			},
 		}
 		workspaceObj.Inference.Config = cm.Name

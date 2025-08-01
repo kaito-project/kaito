@@ -31,8 +31,9 @@ const (
 	NvidiaGPU                     = "nvidia.com/gpu"
 
 	// Feature flags
-	FeatureFlagVLLM            = "vLLM"
-	FeatureFlagEnsureNodeClass = "ensureNodeClass"
+	FeatureFlagVLLM                         = "vLLM"
+	FeatureFlagEnsureNodeClass              = "ensureNodeClass"
+	FeatureFlagGatewayAPIInferenceExtension = "GatewayAPIInferenceExtension"
 
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"
@@ -49,6 +50,24 @@ const (
 	GpuSkuPrefix = "Standard_N"
 
 	NodePluginInstallTimeout = 60 * time.Second
+
+	// PortInferenceServer is the default port for the inference server.
+	PortInferenceServer = int32(5000)
+
+	// PortEndpointPickerGRPCPort is the gRPC port for the Endpoint Picker service.
+	PortEndpointPickerGRPCPort = 9002
+
+	// PortEndpointPickerGRPCHealthPort is the health port for the Endpoint Picker service.
+	PortEndpointPickerGRPCHealthPort = 9003
+
+	// PortEndpointPickerMetricsPort is the metrics port for the Endpoint Picker service.
+	PortEndpointPickerMetricsPort = 9090
+
+	// InferenceConfigKey is the key for accessing the Inference configuration from the inference configmap.
+	InferenceConfigKey = "inference_config.yaml"
+
+	// EndpointPickerConfigKey is the key for accessing the Endpoint Picker configuration from the inference configmap.
+	EndpointPickerConfigKey = "epp-config.yaml"
 )
 
 var (

@@ -28,6 +28,10 @@ const (
 	DefaultWeightsVolumePath  = "/workspace/weights"
 
 	DefaultORASToolImage = "mcr.microsoft.com/oss/v2/oras-project/oras:v1.2.3"
+
+	// Upstream reference implementation of Endpoint Picker
+	// https://github.com/kubernetes-sigs/gateway-api-inference-extension/tree/v0.5.1/cmd/epp
+	DefaultGatewayAPIInferenceExtensionEPPImage = "mcr.microsoft.com/oss/v2/gateway-api-inference-extension/epp:v0.5.1"
 )
 
 var DefaultModelWeightsVolume = corev1.Volume{
@@ -158,7 +162,7 @@ func ConfigSHMVolume() (corev1.Volume, corev1.VolumeMount) {
 	return volume, volumeMount
 }
 
-func ConfigCMVolume(cmName string) (corev1.Volume, corev1.VolumeMount) {
+func ConfigCMVolume(cmName string, keyToPaths ...corev1.KeyToPath) (corev1.Volume, corev1.VolumeMount) {
 	volume := corev1.Volume{
 		Name: "config-volume",
 		VolumeSource: corev1.VolumeSource{
@@ -168,6 +172,9 @@ func ConfigCMVolume(cmName string) (corev1.Volume, corev1.VolumeMount) {
 				},
 			},
 		},
+	}
+	if len(keyToPaths) > 0 {
+		volume.VolumeSource.ConfigMap.Items = keyToPaths
 	}
 
 	volumeMount := corev1.VolumeMount{

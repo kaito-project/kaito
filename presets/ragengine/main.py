@@ -14,13 +14,15 @@
 
 from typing import List, Optional
 import json
+import time
 from vector_store_manager.manager import VectorStoreManager
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
 from fastapi import FastAPI, HTTPException, Query, Request
 from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
                     QueryRequest, QueryResponse, Document, HealthStatus, DeleteDocumentRequest,
-                    DeleteDocumentResponse, UpdateDocumentResponse)
+                    DeleteDocumentResponse, UpdateDocumentResponse, ChatCompletionResponse)
+
 from vector_store.faiss_store import FaissVectorStoreHandler
 
 from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
@@ -34,6 +36,8 @@ from starlette.responses import Response
 from ragengine.metrics.prometheus_metrics import (
     rag_query_latency,
     rag_query_requests_total,
+    rag_chat_latency,
+    rag_chat_requests_total,
     rag_index_latency,
     rag_index_requests_total,
     rag_indexes_latency,
@@ -64,8 +68,8 @@ from ragengine.metrics.prometheus_metrics import (
 app = FastAPI()
 @app.middleware("http")
 async def track_requests(request: Request, call_next):
-    tracked_paths = ["/query", "/index", "/indexes", "/persist", "/load"]
-    
+    tracked_paths = ["/query", "/index", "/indexes", "/persist", "/load", "/v1/chat/completions"]
+
     should_track = any(request.url.path.startswith(path) for path in tracked_paths)
     
     if not should_track:
@@ -277,6 +281,77 @@ async def query_index(request: QueryRequest):
         # Record metrics once in finally block
         rag_query_requests_total.labels(status=status).inc()
         rag_query_latency.labels(status=status).observe(time.perf_counter() - start_time)
+
+@app.post(
+    "/v1/chat/completions",
+    response_model=ChatCompletionResponse,
+    summary="OpenAI-Compatible Chat Completions API",
+    description="""
+    OpenAI-compatible chat completions endpoint with RAG capabilities.
+
+    ## Request Example:
+    ```json
+    {
+      "index_name": "example_index",
+      "model": "example_model",
+      "messages": [
+        {"role": "system", "content": "You are a knowledgeable assistant."},
+        {"role": "user", "content": "What is RAG?"}
+      ],
+      "temperature": 0.7,
+      "max_tokens": 2048,
+      "top_k": 5,
+      "rerank_params": {"top_n": 3}
+    }
+    ```
+
+    ## Response Example:
+    ```json
+    {
+      "id": "chatcmpl-123",
+      "object": "chat.completion",
+      "created": 1677652288,
+      "model": "example_model",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "RAG stands for Retrieval-Augmented Generation..."
+          },
+          "finish_reason": "stop"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 56,
+        "completion_tokens": 31,
+        "total_tokens": 87
+      },
+      "source_nodes": [...]
+    }
+    ```
+    """,
+)
+async def chat_completions(request: dict):
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+    try:
+        response = await rag_ops.chat_completion(request)
+        status = STATUS_SUCCESS
+        return response
+    except HTTPException as http_exc:
+        # Preserve HTTP exceptions like 422 from reranker
+        raise http_exc
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"An unexpected error occurred: {str(e)}"
+        )
+    finally:
+        # Record metrics once in finally block
+        rag_chat_requests_total.labels(status=status).inc()
+        rag_chat_latency.labels(status=status).observe(time.perf_counter() - start_time)
 
 @app.get(
     "/indexes",

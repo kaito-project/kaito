@@ -47,6 +47,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
@@ -360,6 +361,11 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 	newNodesCount := lo.FromPtr(wObj.Resource.Count) - len(selectedNodes)
 
 	if newNodesCount > 0 {
+		// Check if node auto-provisioning is disabled
+		if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+			return fmt.Errorf("node auto-provisioning is disabled but insufficient nodes available: need %d nodes, have %d selected nodes", lo.FromPtr(wObj.Resource.Count), len(selectedNodes))
+		}
+
 		klog.InfoS("need to create more nodes", "NodeCount", newNodesCount)
 		if err := c.updateStatusConditionIfNotMatch(ctx, wObj,
 			kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionUnknown,
@@ -433,11 +439,21 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 	}
 
 	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
+	deletingPreferredNodes := []string{}
+	notReadyNodes := []string{}
 
 	for index := range nodeList.Items {
 		nodeObj := nodeList.Items[index]
+		isPreferred := preferredNodeSet.Has(nodeObj.Name)
+		if isPreferred {
+			preferredNodeSet.Delete(nodeObj.Name)
+		}
+
 		// skip nodes that are being deleted
 		if nodeObj.DeletionTimestamp != nil {
+			if isPreferred {
+				deletingPreferredNodes = append(deletingPreferredNodes, nodeObj.Name)
+			}
 			continue
 		}
 
@@ -446,11 +462,14 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 			return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
 		})
 		if !statusRunning {
+			if isPreferred {
+				notReadyNodes = append(notReadyNodes, nodeObj.Name)
+			}
 			continue
 		}
 
 		// match the preferred node
-		if preferredNodeSet.Has(nodeObj.Name) {
+		if isPreferred {
 			qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
 			continue
 		}
@@ -460,6 +479,15 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 			if nodeObj.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
 				qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
 			}
+		}
+	}
+
+	// After looping, check for missing preferred nodes if feature gate is enabled
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		// Since we remove a preferredNode from the preferredNodeSet if we've seen it in the list of nodes matching the label,
+		// anything node left in the set means it does not match the label selector and we can surface an error.
+		if len(deletingPreferredNodes)+len(notReadyNodes)+preferredNodeSet.Len() > 0 {
+			return nil, fmt.Errorf("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: %+v, not ready nodes: %+v, nodes missing label: %+v", deletingPreferredNodes, notReadyNodes, preferredNodeSet.UnsortedList())
 		}
 	}
 

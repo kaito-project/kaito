@@ -29,6 +29,7 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -292,6 +293,15 @@ func (r *DataDestination) validateUpdate() (errs *apis.FieldError) {
 }
 
 func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.FieldError) {
+	// Check if node auto-provisioning is disabled and validate preferred nodes
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		if len(r.PreferredNodes) != *r.Count {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("When node auto-provisioning is disabled, the number of preferred nodes (%d) must match the count (%d)",
+					len(r.PreferredNodes), *r.Count), "preferredNodes"))
+		}
+	}
+
 	if *r.Count > 1 {
 		errs = errs.Also(apis.ErrInvalidValue("Tuning does not currently support multinode configurations. Please set the node count to 1. Future support with DeepSpeed will allow this.", "count"))
 	}
@@ -299,6 +309,15 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 }
 
 func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName) (errs *apis.FieldError) {
+	// Check if node auto-provisioning is disabled and validate preferred nodes
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		if len(r.PreferredNodes) != *r.Count {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("When node auto-provisioning is disabled, the number of preferred nodes (%d) must match the count (%d)",
+					len(r.PreferredNodes), *r.Count), "preferredNodes"))
+		}
+	}
+
 	var presetName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))

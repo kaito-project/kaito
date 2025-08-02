@@ -37,7 +37,7 @@ import (
 )
 
 const (
-	PresetPhi4MiniInstructModel = "phi-4-mini-instruct"
+	PresetPhi3Mini128kModel = "phi-3-mini-128k-instruct"
 )
 
 func loadTestEnvVars() {
@@ -271,7 +271,7 @@ func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1be
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfReplica, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "rag-e2e-test-phi-4-mini-instruct-vllm"},
-			}, nil, PresetPhi4MiniInstructModel, nil, nil, nil, "")
+			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})

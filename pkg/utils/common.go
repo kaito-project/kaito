@@ -24,11 +24,11 @@ import (
 	awsapis "github.com/aws/karpenter-provider-aws/pkg/apis"
 	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterapis "sigs.k8s.io/karpenter/pkg/apis"
@@ -201,24 +201,19 @@ func FetchGPUCountFromNodes(ctx context.Context, kubeClient client.Client, nodeN
 		return 0, fmt.Errorf("no worker nodes found in the workspace")
 	}
 
-	var allNodes v1.NodeList
+	var allNodes corev1.NodeList
 	for _, nodeName := range nodeNames {
-		nodeList := &v1.NodeList{}
-		fieldSelector := fields.OneTermEqualSelector("metadata.name", nodeName)
-		err := kubeClient.List(ctx, nodeList, &client.ListOptions{
-			FieldSelector: fieldSelector,
-		})
-		if err != nil {
-			fmt.Printf("Failed to list Node object %s: %v\n", nodeName, err)
-			continue
+		node := &corev1.Node{}
+		if err := kubeClient.Get(ctx, types.NamespacedName{Name: nodeName}, node); err != nil { // Note: nodes don't have a namespace here.
+			return 0, fmt.Errorf("failed to get node %s: %w", nodeName, err)
 		}
-		allNodes.Items = append(allNodes.Items, nodeList.Items...)
+		allNodes.Items = append(allNodes.Items, *node)
 	}
 
 	return GetPerNodeGPUCountFromNodes(&allNodes), nil
 }
 
-func GetPerNodeGPUCountFromNodes(nodeList *v1.NodeList) int {
+func GetPerNodeGPUCountFromNodes(nodeList *corev1.NodeList) int {
 	for _, node := range nodeList.Items {
 		gpuCount, exists := node.Status.Capacity[consts.NvidiaGPU]
 		if exists && gpuCount.String() != "" {
@@ -237,13 +232,13 @@ func ExtractAndValidateRepoName(image string) error {
 
 	// Check if repository name is lowercase
 	if repoName != strings.ToLower(repoName) {
-		return fmt.Errorf("Repository name must be lowercase")
+		return fmt.Errorf("repository name must be lowercase")
 	}
 
 	return nil
 }
 
-func SelectNodes(qualified []*v1.Node, preferred []string, previous []string, count int) []*v1.Node {
+func SelectNodes(qualified []*corev1.Node, preferred []string, previous []string, count int) []*corev1.Node {
 
 	sort.Slice(qualified, func(i, j int) bool {
 		iPreferred := Contains(preferred, qualified[i].Name)
@@ -338,9 +333,9 @@ func GetRayLeaderHost(meta metav1.ObjectMeta) string {
 }
 
 // DedupVolumeMounts removes duplicate volume mounts by only keeping the first occurrence of each name
-func DedupVolumeMounts(mounts []v1.VolumeMount) []v1.VolumeMount {
+func DedupVolumeMounts(mounts []corev1.VolumeMount) []corev1.VolumeMount {
 	seen := make(map[string]bool)
-	var result []v1.VolumeMount
+	var result []corev1.VolumeMount
 
 	for _, mount := range mounts {
 		if !seen[mount.Name] {

@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/oss/go/microsoft/golang:1.24 as builder
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/oss/go/microsoft/golang:1.24 AS dependencies
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -14,6 +14,8 @@ RUN \
     --mount=type=cache,target=${GOCACHE} \
     --mount=type=cache,target=/go/pkg/mod \
     go mod download
+
+FROM dependencies AS builder
 
 # Copy the go source
 COPY cmd/ cmd/

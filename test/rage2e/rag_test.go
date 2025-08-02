@@ -25,6 +25,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -333,9 +334,9 @@ func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1be
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Phi-3-mini-128k-instruct preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-phi3-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfReplica, "Standard_NC6s_v3",
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfReplica, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "rag-e2e-test-phi-3-mini-128k-instruct-vllm"},
+				MatchLabels: map[string]string{"kaito-workspace": "rag-e2e-test-phi-4-mini-instruct-vllm"},
 			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
@@ -343,7 +344,43 @@ func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1be
 	return workspaceObj
 }
 
+func createConfigForWorkspace(workspaceObj *kaitov1beta1.Workspace) {
+	if workspaceObj.Inference == nil || workspaceObj.Resource.InstanceType == "" {
+		return
+	}
+
+	// TODO: uncomment the following lines when A10 GPU support is added
+	// handler := sku.GetCloudSKUHandler(consts.AzureCloudName)
+	// gpuConfig := handler.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
+	// if gpuConfig == nil || (gpuConfig.GPUCount <= 1 && lo.FromPtr(workspaceObj.Resource.Count) <= 1) {
+	// 	return
+	// }
+
+	By("Creating config file", func() {
+		cm := corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "inference-config",
+				Namespace: workspaceObj.Namespace,
+			},
+			Data: map[string]string{
+				"inference_config.yaml": `
+vllm:
+  max-model-len: 4096
+`,
+			},
+		}
+		workspaceObj.Inference.Config = cm.Name
+
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Create(ctx, &cm, &client.CreateOptions{})
+			return client.IgnoreAlreadyExists(err)
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create configmap %s", cm.Name)
+	})
+}
+
 func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
+	createConfigForWorkspace(workspaceObj)
 	By("Creating workspace", func() {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
@@ -438,9 +475,9 @@ func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL, llmPath string) *kaitov1alp
 	serviceURL := fmt.Sprintf("http://%s/%s", baseURL, llmPath)
 	By("Creating RAG with localembedding and kaito vllm inference", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
-		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC24s_v3", "BAAI/bge-small-en-v1.5",
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NV36ads_A10_v5", "BAAI/bge-small-en-v1.5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"apps": "phi-3"},
+				MatchLabels: map[string]string{"apps": "phi-4"},
 			},
 			&kaitov1alpha1.InferenceServiceSpec{
 				URL: serviceURL,
@@ -476,7 +513,7 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 	hfURL := "https://router.huggingface.co/featherless-ai/v1/chat/completions"
 	By("Creating RAG with localembedding and huggingface API", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
-		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NC12s_v3", "BAAI/bge-small-en-v1.5",
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NV36ads_A10_v5", "BAAI/bge-small-en-v1.5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},

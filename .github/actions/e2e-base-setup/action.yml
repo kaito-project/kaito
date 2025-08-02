@@ -149,7 +149,6 @@ runs:
       if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
       shell: bash
       run: |
-        AZURE_TENANT_ID=$E2E_TENANT_ID \
         AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
         make gpu-provisioner-helm
       env:

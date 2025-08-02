@@ -20,7 +20,7 @@ on:
       region:
         type: string
         description: "the azure location to run the e2e test in"
-        default: "eastus"
+        default: "swedencentral"
       k8s_version:
         type: string
         default: "1.30.0"

@@ -86,11 +86,11 @@ You should see output similar to:
 Now make an inference call using the model:
 
 ```bash
-kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POST http://$CLUSTERIP/v1/completions \
+kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POST http://$CLUSTERIP/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "phi-3.5-mini-instruct",
-    "prompt": "What is kubernetes?",
+    "messages": [{"role": "user", "content": "What is kubernetes?"}],
     "max_tokens": 50,
     "temperature": 0
   }'

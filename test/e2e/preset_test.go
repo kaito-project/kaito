@@ -36,8 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -95,7 +93,7 @@ func createCustomWorkspaceWithAdapter(numOfNode int, validAdapters []kaitov1beta
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace with adapter", func() {
 		uniqueID := fmt.Sprint("preset-falcon-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "custom-preset-e2e-test-falcon"},
 			}, nil, PresetFalcon7BModel, nil, nil, validAdapters, "")
@@ -131,7 +129,7 @@ func createFalconWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Work
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Falcon 7B preset public mode", func() {
 		uniqueID := fmt.Sprint("preset-falcon-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-falcon"},
 			}, nil, PresetFalcon7BModel, nil, nil, nil, "")
@@ -145,7 +143,7 @@ func createMistralWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Wor
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Mistral 7B preset public mode", func() {
 		uniqueID := fmt.Sprint("preset-mistral-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC12s_v3",
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-mistral"},
 			}, nil, PresetMistral7BInstructModel, nil, nil, nil, "")
@@ -159,7 +157,7 @@ func createPhi2WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Phi 2 preset public mode", func() {
 		uniqueID := fmt.Sprint("preset-phi2-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NC6s_v3",
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-2"},
 			}, nil, PresetPhi2Model, nil, nil, nil, "")
@@ -175,7 +173,7 @@ func createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(numOfNode int) *kait
 	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode", func() {
 		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
-			numOfNode, "Standard_NC12s_v3", &metav1.LabelSelector{
+			numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b"},
 			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name) // Llama 3.1-8B Instruct model requires a model access secret
 
@@ -203,7 +201,7 @@ func createPhi3WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 	By("Creating a workspace CR with Phi-3-mini-128k-instruct preset public mode", func() {
 		uniqueID := fmt.Sprint("preset-phi3-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
-			numOfNode, "Standard_NC6s_v3", &metav1.LabelSelector{
+			numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-3-mini-128k-instruct"},
 			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "")
 
@@ -268,7 +266,7 @@ func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNo
 	By("Creating a workspace Tuning CR with Phi-3 preset public mode", func() {
 		uniqueID = fmt.Sprint("preset-tuning-falcon-", rand.Intn(1000))
 		workspaceObj = utils.GenerateE2ETuningWorkspaceManifest(uniqueID, namespaceName, "",
-			fullDatasetImageName1, outputRegistryUrl, numOfNode, "Standard_NC6s_v3", &metav1.LabelSelector{
+			fullDatasetImageName1, outputRegistryUrl, numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
 			}, nil, PresetPhi3Mini128kModel, []string{e2eACRSecret}, configMapName, intputVolume, outputVolume)
 
@@ -300,11 +298,12 @@ func createConfigForWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 		return
 	}
 
-	handler := sku.GetCloudSKUHandler(consts.AzureCloudName)
-	gpuConfig := handler.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
-	if gpuConfig == nil || (gpuConfig.GPUCount <= 1 && lo.FromPtr(workspaceObj.Resource.Count) <= 1) {
-		return
-	}
+	// TODO: uncomment the following lines when A10 GPU support is added
+	// handler := sku.GetCloudSKUHandler(consts.AzureCloudName)
+	// gpuConfig := handler.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
+	// if gpuConfig == nil || (gpuConfig.GPUCount <= 1 && lo.FromPtr(workspaceObj.Resource.Count) <= 1) {
+	// 	return
+	// }
 
 	By("Creating config file", func() {
 		cm := corev1.ConfigMap{

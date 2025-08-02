@@ -58,6 +58,8 @@ AWS_KARPENTER_VERSION ?=1.0.8
 # Scripts
 GO_INSTALL := ./hack/go-install.sh
 
+BUILD_FLAGS ?=
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -205,7 +207,7 @@ create-aks-cluster: ## Create an AKS cluster with MSI, OIDC, and workload identi
 	az aks create  --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
 	--location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) \
 	--kubernetes-version $(AKS_K8S_VERSION) --node-count 1 --generate-ssh-keys  \
-	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer --node-vm-size Standard_D2s_v3 -o none
+	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer --node-vm-size Standard_D2d_v4 -o none
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
 
 .PHONY: create-aks-cluster-with-kaito
@@ -219,7 +221,7 @@ create-aks-cluster-with-kaito: ## Create an AKS cluster with MSI, OIDC, and Kait
 .PHONY: create-aks-cluster-for-karpenter
 create-aks-cluster-for-karpenter: ## Create an AKS cluster with MSI, Cillium, OIDC, and workload identity enabled.
 	az aks create --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
-    --location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) --node-vm-size "Standard_D2s_v3" \
+    --location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) --node-vm-size "Standard_D2d_v4" \
     --kubernetes-version $(AKS_K8S_VERSION) --node-count 3 --generate-ssh-keys \
     --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
     --enable-managed-identity --enable-oidc-issuer --enable-workload-identity -o none
@@ -288,6 +290,7 @@ docker-build-workspace: docker-buildx ## Build Docker image for workspace.
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/$(IMG_NAME):$(IMG_TAG) .
 
 .PHONY: docker-build-ragengine
@@ -297,6 +300,7 @@ docker-build-ragengine: docker-buildx ## Build Docker image for RAG Engine.
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/$(RAGENGINE_IMAGE_NAME):$(IMG_TAG) .
 
 .PHONY: docker-build-rag-service
@@ -306,6 +310,7 @@ docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine serv
         --output=$(OUTPUT_TYPE) \
         --file ./docker/ragengine/service/Dockerfile \
         --pull \
+		$(BUILD_FLAGS) \
         --tag $(REGISTRY)/$(RAGENGINE_SERVICE_IMG_NAME):$(RAGENGINE_SERVICE_IMG_TAG) .
 
 .PHONY: docker-build-adapter
@@ -316,6 +321,7 @@ docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-adapter:0.0.1 .
 	docker buildx build \
 		--build-arg ADAPTER_PATH=docker/adapters/adapter2 \
@@ -323,6 +329,7 @@ docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-adapter2:0.0.1 .
 	docker buildx build \
 		--build-arg ADAPTER_PATH=docker/adapters/adapter-phi-3-mini-pycoder \
@@ -330,6 +337,7 @@ docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/adapter-phi-3-mini-pycoder:0.0.1 .
 
 .PHONY: docker-build-dataset
@@ -340,6 +348,7 @@ docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
 		--pull \
+		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-dataset:0.0.1 .
 	docker buildx build \
 		--build-arg ADAPTER_PATH=docker/datasets/dataset2 \
@@ -355,6 +364,7 @@ docker-build-llm-reference-preset: docker-buildx ## Build Docker image for LLM r
 		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:$(VERSION) \
 		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:latest \
 		-f docs/custom-model-integration/Dockerfile.reference \
+		$(BUILD_FLAGS) \
 		--build-arg MODEL_TYPE=text-generation \
 		--build-arg VERSION=$(VERSION) .
 

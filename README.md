@@ -113,12 +113,12 @@ $ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -s  
 }
 
 # make an inference call using the model id (phi-3.5-mini-instruct) from previous step
-$ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POST http://$CLUSTERIP/v1/completions \
+$ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POST http://$CLUSTERIP/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "phi-3.5-mini-instruct",
-    "prompt": "What is kubernetes?",
-    "max_tokens": 7,
+    "messages": [{"role": "user", "content": "What is kubernetes?"}],
+    "max_tokens": 50,
     "temperature": 0
   }'
 ```

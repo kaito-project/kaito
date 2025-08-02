@@ -31,8 +31,6 @@ import concurrent.futures
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-OPENAI_URL_PREFIX = "https://api.openai.com"
-HUGGINGFACE_URL_PREFIX = "https://api-inference.huggingface.co"
 DEFAULT_HEADERS = {
     "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
     "Content-Type": "application/json"
@@ -58,6 +56,80 @@ class Inference(CustomLLM):
 
     def get_param(self, key, default=None):
         return self.params.get(key, default)
+    
+    def _detect_endpoint_type(self) -> str:
+        """
+        Detect the type of endpoint based on URL pattern.
+        Returns: 'azure_openai', 'openai_chat', 'openai_completions', 'custom_chat', or 'custom_completions'
+        """
+        parsed_url = urlparse(LLM_INFERENCE_URL)
+        host = parsed_url.netloc.lower()
+        path = parsed_url.path.lower()
+        
+        # Azure OpenAI pattern (check by host)
+        if "openai.azure.com" in host:
+            return "azure_openai"
+        # OpenAI official API
+        elif host == "api.openai.com":
+            if "/v1/chat/completions" in path:
+                return "openai_chat"
+            else:
+                return "openai_completions"
+        # HuggingFace API  
+        elif "huggingface.co" in host:
+            return "huggingface"
+        # Custom APIs (vLLM, etc.)
+        else:
+            if "/v1/chat/completions" in path or "/chat/completions" in path:
+                return "custom_chat"
+            else:
+                return "custom_completions"
+        
+    def _build_request_data(self, prompt: str, **kwargs: Any) -> dict:
+        """Build request data based on endpoint type."""
+        endpoint_type = self._detect_endpoint_type()
+        
+        if endpoint_type in ["azure_openai", "openai_chat", "custom_chat", "huggingface"]:
+            # Chat completions format (including HuggingFace)
+            data = {
+                "messages": [{"role": "user", "content": prompt}],
+                **kwargs
+            }
+        else:
+            # Completions format (openai_completions, custom_completions)
+            data = {
+                "prompt": prompt,
+                **kwargs
+            }
+        
+        return data
+    
+    def _parse_response(self, response_data: dict) -> str:
+        """Parse response based on endpoint type."""
+        endpoint_type = self._detect_endpoint_type()
+        
+        if "choices" in response_data and response_data["choices"]:
+            choice = response_data["choices"][0]
+            
+            if endpoint_type in ["azure_openai", "openai_chat", "custom_chat", "huggingface"]:
+                # Chat format: choices[0].message.content (including HuggingFace)
+                message = choice.get("message", {})
+                return message.get("content", "")
+            else:
+                # Completions format: choices[0].text
+                return choice.get("text", "")
+        
+        return ""
+    
+    def _get_headers_for_custom_api(self) -> dict:
+        """Get appropriate headers for custom API calls."""
+        
+        headers = {"Content-Type": "application/json"}
+        
+        if LLM_ACCESS_SECRET:
+            headers["Authorization"] = f"Bearer {LLM_ACCESS_SECRET}"
+        
+        return headers
 
     @llm_completion_callback()
     def stream_complete(self, prompt: str, **kwargs: Any) -> CompletionResponseGen:
@@ -88,11 +160,16 @@ class Inference(CustomLLM):
     @llm_completion_callback()
     async def acomplete(self, prompt: str, formatted: bool = False, **kwargs: Any) -> CompletionResponse:
         try:
-            if LLM_INFERENCE_URL.startswith(OPENAI_URL_PREFIX):
+            # Route based on host (provider)
+            parsed_url = urlparse(LLM_INFERENCE_URL)
+            host = parsed_url.netloc.lower()
+            
+            if host == "api.openai.com":
                 return await self._async_openai_complete(prompt, **kwargs, **self.params)
-            elif LLM_INFERENCE_URL.startswith(HUGGINGFACE_URL_PREFIX):
+            elif "huggingface.co" in host:
                 return await self._async_huggingface_remote_complete(prompt, **kwargs, **self.params)
             else:
+                # All other custom APIs (including Azure OpenAI, vLLM, etc.)
                 return await self._async_custom_api_complete(prompt, **kwargs, **self.params)
         except HTTPException as http_exc:
             raise http_exc
@@ -104,41 +181,43 @@ class Inference(CustomLLM):
             self.params = {}
 
     async def _async_openai_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
+        """Handle official OpenAI API calls using LlamaIndex's OpenAI client."""
+
         return await OpenAI(api_key=LLM_ACCESS_SECRET, **kwargs).acomplete(prompt)
 
     async def _async_huggingface_remote_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        data = {"prompt": prompt, **kwargs}
-        return await self._async_post_request(data, headers={"Authorization": f"Bearer {LLM_ACCESS_SECRET}", "Content-Type": "application/json"})
+        # Use the same smart data building and response parsing as custom APIs
+        data = self._build_request_data(prompt, **kwargs)
+        headers = {"Authorization": f"Bearer {LLM_ACCESS_SECRET}", "Content-Type": "application/json"}
+        return await self._async_post_request(data, headers=headers)
     async def _async_custom_api_complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
+        """Handle custom API calls including vLLM, Azure OpenAI, and other custom endpoints."""
         model_name, model_max_len = self._get_default_model_info()
         if kwargs.get("model"):
             model_name = kwargs.pop("model")
-        data = {"prompt": prompt, **kwargs}
-        if model_name:
-            data["model"] = model_name # Include the model only if it is not None
+        data = self._build_request_data(prompt, **kwargs)
+        endpoint_type = self._detect_endpoint_type()
+        if model_name and endpoint_type != "azure_openai":
+            data["model"] = model_name
+        
         if model_max_len and data.get("max_tokens"):
             if data["max_tokens"] > model_max_len:
                 logger.error(f"Requested max_tokens ({data['max_tokens']}) exceeds model's max length ({model_max_len}).")
-                # vLLM will raise error ({"object":"error","message":"This model's maximum context length is 131072 tokens. However, you requested 500500500500505361 tokens (361 in the messages, 500500500500505000 in the completion). Please reduce the length of the messages or completion.","type":"BadRequestError","param":null,"code":400})
-
-        # DEBUG: Call the debugging function
-        # self._debug_curl_command(data)
+        headers = self._get_headers_for_custom_api()
+        
         try:
-            return await self._async_post_request(data, headers=DEFAULT_HEADERS)
+            return await self._async_post_request(data, headers=headers)
         except HTTPError as e:
-            if not model_name and e.response.status_code == 400:
-                logger.warning(
-                    f"Potential issue with 'model' parameter in API response. "
-                    f"Response: {str(e)}. Attempting to update the model name as a mitigation..."
-                )
-                self._default_model = self._fetch_default_model()  # Fetch default model dynamically
+            if not model_name and e.response.status_code == 400 and endpoint_type != "azure_openai":
+                logger.warning(f"Potential issue with 'model' parameter. Retrying with default model...")
+                self._default_model = self._fetch_default_model()
                 if self._default_model:
-                    logger.info(f"Default model '{self._default_model}' fetched successfully. Retrying request...")
-                    data["model"] = self._default_model
-                    return await self._async_post_request(data, headers=DEFAULT_HEADERS)
+                    logger.info(f"Retrying with default model '{self._default_model}'...")
+                    data = self._build_request_data(prompt, model=self._default_model, **kwargs)
+                    return await self._async_post_request(data, headers=headers)
                 else:
                     logger.error("Failed to fetch a default model. Aborting retry.")
-            raise  # Re-raise the exception if not recoverable
+            raise
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
             raise
@@ -150,7 +229,7 @@ class Inference(CustomLLM):
         parsed = urlparse(LLM_INFERENCE_URL)
         return urljoin(f"{parsed.scheme}://{parsed.netloc}", "/v1/models")
 
-    def _fetch_default_model_info(self) -> (str, int):
+    def _fetch_default_model_info(self) -> tuple[str, int]:
         """
         Fetch the default model name and max_length from the /v1/models endpoint.
         """
@@ -168,7 +247,7 @@ class Inference(CustomLLM):
             logger.error(f"Error fetching models from {models_url}: {e}. \"model\" parameter will not be included with inference call.")
             return None
 
-    def _get_default_model_info(self) -> (str, int):
+    def _get_default_model_info(self) -> tuple[str, int]:
         """
         Returns the cached default model if available, otherwise fetches and caches it.
         """
@@ -181,15 +260,15 @@ class Inference(CustomLLM):
         try:
             client = await self._get_httpx_client()
             response = await client.post(LLM_INFERENCE_URL, json=data, headers=headers)
-            response.raise_for_status()  # Raise an exception for HTTP errors
+            response.raise_for_status()
             response_data = response.json()
-            # Check if the request was successful
+            
             if response.status_code == DEFAULT_HTTP_SUCCESS_CODE:
-                # OAI Spec returns array of choices, we choose the first one
-                if "choices" in response_data and response_data["choices"]:
-                    return CompletionResponse(text=response_data["choices"][0].get("text", ""))
-            # Return full response as text if no specific parsing is possible
-            return CompletionResponse(text=str(response_data))
+                text = self._parse_response(response_data)
+                if text:
+                    return CompletionResponse(text=text)
+            
+            return CompletionResponse(text=str(response_data)) 
         except httpx.HTTPStatusError as e:
             logger.error(f"HTTP error {e.response.status_code} during POST request to {LLM_INFERENCE_URL}: {e.response.text}")
             raise

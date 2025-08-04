@@ -4,13 +4,13 @@ on:
     branches:
     - main
     paths:
-    - '.github/workflows/deploy-docs.yml'
+    - '.github/workflows/deploy-docs.yaml'
     - 'website/**'
   pull_request:
     branches:
     - main
     paths:
-    - '.github/workflows/deploy-docs.yml'
+    - '.github/workflows/deploy-docs.yaml'
     - 'website/**'
   workflow_dispatch:
 

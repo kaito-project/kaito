@@ -31,6 +31,7 @@ Multi-node inference introduces additional complexity and network overhead. Only
 The following preset models support multi-node distributed inference:
 
 - **Llama3**: `llama-3.3-70b-instruct`
+- **DeepSeek**: `deepseek-r1-0528`, `deepseek-v3-0324` 
 
 Check the [presets documentation](./presets.md) for the complete list and their specific requirements.
 

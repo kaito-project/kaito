@@ -94,6 +94,14 @@ func TestFetchGPUCountFromNodes(t *testing.T) {
 			expectErr:   true,
 			expectedErr: "no worker nodes found in the workspace",
 		},
+		{
+			name:        "Node not found",
+			nodeNames:   []string{"non-existent-node"},
+			nodes:       []runtime.Object{node1, node2},
+			expectedGPU: 0,
+			expectErr:   true,
+			expectedErr: "failed to get node non-existent-node: nodes \"non-existent-node\" not found",
+		},
 	}
 
 	for _, tt := range tests {

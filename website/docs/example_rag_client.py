@@ -14,6 +14,7 @@
 import requests
 import json
 
+
 class KAITORAGClient:
     """
     A bare bones client for interacting with the RAGEngine API.
@@ -25,7 +26,7 @@ class KAITORAGClient:
         self.base_url = base_url
         self.headers = {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Accept": "application/json",
         }
 
     def index_documents(self, index_name, documents):
@@ -34,10 +35,7 @@ class KAITORAGClient:
         documents: list of dicts, each with 'text' and optional 'metadata'
         """
         url = f"{self.base_url}/index"
-        payload = {
-            "index_name": index_name,
-            "documents": documents
-        }
+        payload = {"index_name": index_name, "documents": documents}
         resp = requests.post(url, json=payload, headers=self.headers)
         resp.raise_for_status()
         return resp.json()
@@ -56,8 +54,8 @@ class KAITORAGClient:
             "top_k": top_k,
             "llm_params": {
                 "temperature": llm_temperature,
-                "max_tokens": llm_max_tokens
-            }
+                "max_tokens": llm_max_tokens,
+            },
         }
         resp = requests.post(url, json=payload, headers=self.headers)
         resp.raise_for_status()
@@ -89,7 +87,7 @@ class KAITORAGClient:
         List documents in the RAGEngine.
         """
         url = f"{self.base_url}/indexes/{index_name}/documents"
-        params = {"limit": limit, "offset": offset }
+        params = {"limit": limit, "offset": offset}
         if metadata_filter:
             params["metadata_filter"] = json.dumps(metadata_filter)
         resp = requests.get(url, headers=self.headers, params=params)

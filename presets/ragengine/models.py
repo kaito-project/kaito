@@ -34,28 +34,35 @@ class Document(BaseModel):
     hash_value: Optional[str] = None
     is_truncated: bool = False
 
+
 class ListDocumentsResponse(BaseModel):
-    documents: List[Document] # List of DocumentResponses
+    documents: List[Document]  # List of DocumentResponses
     count: int  # Number of documents in the current response
+
 
 class IndexRequest(BaseModel):
     index_name: str
     documents: List[Document]
 
+
 class UpdateDocumentRequest(BaseModel):
     documents: List[Document]
+
 
 class UpdateDocumentResponse(BaseModel):
     updated_documents: List[Document]
     unchanged_documents: List[Document]
     not_found_documents: List[Document]
 
+
 class DeleteDocumentRequest(BaseModel):
     doc_ids: List[str]
+
 
 class DeleteDocumentResponse(BaseModel):
     deleted_doc_ids: List[str]
     not_found_doc_ids: List[str]
+
 
 class QueryRequest(BaseModel):
     index_name: str
@@ -75,7 +82,7 @@ class QueryRequest(BaseModel):
     @model_validator(mode="after")
     def validate_params(cls, values: "QueryRequest") -> "QueryRequest":
         # Access fields as attributes instead of treating as a dictionary
-        llm_params = values.llm_params # Validate LLM parameters on vLLM side
+        llm_params = values.llm_params  # Validate LLM parameters on vLLM side
         rerank_params = values.rerank_params
         top_k = values.top_k
 
@@ -84,9 +91,12 @@ class QueryRequest(BaseModel):
             if not isinstance(rerank_params["top_n"], int):
                 raise ValueError("Invalid type: 'top_n' must be an integer.")
             if rerank_params["top_n"] > top_k:
-                raise ValueError("Invalid configuration: 'top_n' for reranking cannot exceed 'top_k' from the RAG query.")
+                raise ValueError(
+                    "Invalid configuration: 'top_n' for reranking cannot exceed 'top_k' from the RAG query."
+                )
 
         return values
+
 
 # Define models for NodeWithScore, and QueryResponse
 class NodeWithScore(BaseModel):
@@ -96,10 +106,12 @@ class NodeWithScore(BaseModel):
     score: float
     metadata: Optional[dict] = None
 
+
 class QueryResponse(BaseModel):
     response: str
     source_nodes: List[NodeWithScore]
     metadata: Optional[dict] = None
+
 
 class HealthStatus(BaseModel):
     status: str

@@ -25,14 +25,22 @@ import os
 """
 
 # Embedding configuration
-EMBEDDING_SOURCE_TYPE = os.getenv("EMBEDDING_SOURCE_TYPE", "local")  # Determines local or remote embedding source
+EMBEDDING_SOURCE_TYPE = os.getenv(
+    "EMBEDDING_SOURCE_TYPE", "local"
+)  # Determines local or remote embedding source
 
 # Local embedding model
-LOCAL_EMBEDDING_MODEL_ID = os.getenv("LOCAL_EMBEDDING_MODEL_ID", "BAAI/bge-small-en-v1.5")
+LOCAL_EMBEDDING_MODEL_ID = os.getenv(
+    "LOCAL_EMBEDDING_MODEL_ID", "BAAI/bge-small-en-v1.5"
+)
 
 # Remote embedding model (if not local)
-REMOTE_EMBEDDING_URL = os.getenv("REMOTE_EMBEDDING_URL", "http://localhost:5000/embedding")
-REMOTE_EMBEDDING_ACCESS_SECRET = os.getenv("REMOTE_EMBEDDING_ACCESS_SECRET", "default-access-secret")
+REMOTE_EMBEDDING_URL = os.getenv(
+    "REMOTE_EMBEDDING_URL", "http://localhost:5000/embedding"
+)
+REMOTE_EMBEDDING_ACCESS_SECRET = os.getenv(
+    "REMOTE_EMBEDDING_ACCESS_SECRET", "default-access-secret"
+)
 
 """
 =========================================================================
@@ -41,15 +49,21 @@ REMOTE_EMBEDDING_ACCESS_SECRET = os.getenv("REMOTE_EMBEDDING_ACCESS_SECRET", "de
 # Reranking Configuration
 # For now we support simple LLMReranker, future additions would include
 # FlagEmbeddingReranker, SentenceTransformerReranker, CohereReranker
-LLM_RERANKER_BATCH_SIZE = int(os.getenv("LLM_RERANKER_BATCH_SIZE", 5))  # Default LLM batch size
-LLM_RERANKER_TOP_N = int(os.getenv("LLM_RERANKER_TOP_N", 3))  # Default top 3 reranked nodes
+LLM_RERANKER_BATCH_SIZE = int(
+    os.getenv("LLM_RERANKER_BATCH_SIZE", 5)
+)  # Default LLM batch size
+LLM_RERANKER_TOP_N = int(
+    os.getenv("LLM_RERANKER_TOP_N", 3)
+)  # Default top 3 reranked nodes
 
 """
 =========================================================================
 """
 
 # LLM (Large Language Model) configuration
-LLM_INFERENCE_URL = os.getenv("LLM_INFERENCE_URL", "http://localhost:5000/v1/completions")
+LLM_INFERENCE_URL = os.getenv(
+    "LLM_INFERENCE_URL", "http://localhost:5000/v1/completions"
+)
 LLM_ACCESS_SECRET = os.getenv("LLM_ACCESS_SECRET", "default-access-secret")
 LLM_CONTEXT_WINDOW = int(os.getenv("LLM_CONTEXT_WINDOW", 64000))  # Default context window size
 # LLM_RESPONSE_FIELD = os.getenv("LLM_RESPONSE_FIELD", "result")  # Uncomment if needed in the future

@@ -19,7 +19,7 @@ from llama_index.core.schema import (
     TransformComponent,
     BaseNode,
 )
-from llama_index.core.utils import get_tqdm_iterable
+
 
 class CustomTransformer(TransformComponent):
     """Custom transformer for splitting documents based on metadata input."""
@@ -39,7 +39,7 @@ class CustomTransformer(TransformComponent):
             langauge = node_metadata.get("language", "")
             if not langauge:
                 raise ValueError("Language not specified in node metadata.")
-            
+
             if langauge not in self._code_splitters:
                 self._code_splitters[langauge] = CodeSplitter(
                     language=langauge,
@@ -48,12 +48,10 @@ class CustomTransformer(TransformComponent):
         else:
             # Default to sentence splitting
             return self._sentence_splitter([node])
-    
+
     def __call__(self, nodes, **kwargs):
         all_nodes: List[BaseNode] = []
         for node in nodes:
             nodes = self.split_node(node)
-            all_nodes.extend(
-                self.split_node(node)
-            )
+            all_nodes.extend(self.split_node(node))
         return all_nodes

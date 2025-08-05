@@ -17,7 +17,9 @@ from urllib.parse import urljoin
 import chainlit as cl
 import requests
 
-URL = os.environ.get('WORKSPACE_SERVICE_URL')
+URL = os.environ.get("WORKSPACE_SERVICE_URL")
+
+
 @cl.step
 def inference(prompt):
     # Endpoint URL
@@ -35,8 +37,8 @@ def inference(prompt):
             "temperature": 1.0,
             "top_p": 1,
             "typical_p": 1,
-            "repetition_penalty": 1
-        }
+            "repetition_penalty": 1,
+        },
     }
 
     response = requests.post(urljoin(URL, "chat"), json=data)
@@ -46,6 +48,7 @@ def inference(prompt):
         return response_data.get("Result", "No result found")
     else:
         return f"Error: Received response code {response.status_code}"
+
 
 @cl.on_message
 async def main(message: cl.Message):

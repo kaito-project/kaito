@@ -17,7 +17,7 @@ from urllib.parse import urljoin
 from openai import AsyncOpenAI
 import chainlit as cl
 
-URL = os.environ.get('WORKSPACE_SERVICE_URL')
+URL = os.environ.get("WORKSPACE_SERVICE_URL")
 
 client = AsyncOpenAI(base_url=urljoin(URL, "v1"), api_key="YOUR_OPENAI_API_KEY")
 cl.instrument_openai()
@@ -30,6 +30,7 @@ settings = {
     "presence_penalty": 0,
 }
 
+
 @cl.on_chat_start
 async def start_chat():
     models = await client.models.list()
@@ -41,24 +42,17 @@ async def start_chat():
     model = models.data[0].id
     print(f"Using model: {model}")
 
+
 @cl.on_message
 async def main(message: cl.Message):
-    messages=[
-        {
-            "content": "You are a helpful assistant.",
-            "role": "system"
-        },
-        {
-            "content": message.content,
-            "role": "user"
-        }
+    messages = [
+        {"content": "You are a helpful assistant.", "role": "system"},
+        {"content": message.content, "role": "user"},
     ]
     msg = cl.Message(content="")
 
     stream = await client.chat.completions.create(
-        messages=messages, model=model,
-        stream=True,
-        **settings
+        messages=messages, model=model, stream=True, **settings
     )
 
     async for part in stream:

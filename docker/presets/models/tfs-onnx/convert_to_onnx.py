@@ -12,9 +12,12 @@
 # limitations under the License.
 
 import sys
-import subprocess
-from optimum.onnxruntime import AutoOptimizationConfig, ORTModelForCausalLM, ORTOptimizer
-import glob
+from optimum.onnxruntime import (
+    AutoOptimizationConfig,
+    ORTModelForCausalLM,
+    ORTOptimizer,
+)
+
 
 def download_and_convert(repo_name):
     """
@@ -46,7 +49,9 @@ def download_and_convert(repo_name):
 
     # Try converting to ONNX with caching, then without if fails
     try:
-        model = ORTModelForCausalLM.from_pretrained(repo_name, export=True, provider="CUDAExecutionProvider")
+        model = ORTModelForCausalLM.from_pretrained(
+            repo_name, export=True, provider="CUDAExecutionProvider"
+        )
         model.save_pretrained(f"{repo_name}")
         print(f"Model converted and saved under {repo_name}")
         return model
@@ -54,13 +59,16 @@ def download_and_convert(repo_name):
         print(f"Failed to convert model to ONNX with caching: {e}")
 
     try:
-        model = ORTModelForCausalLM.from_pretrained(repo_name, use_cache=False, export=True, provider="CUDAExecutionProvider")
+        model = ORTModelForCausalLM.from_pretrained(
+            repo_name, use_cache=False, export=True, provider="CUDAExecutionProvider"
+        )
         model.save_pretrained(f"{repo_name}")
         print(f"Model converted without cache and saved under {repo_name}")
         return model
     except Exception as e:
         print(f"Failed to convert model from {repo_name} without caching: {e}")
     return None
+
 
 def onnx_optimize_model(model, repo_name):
     try:
@@ -72,9 +80,9 @@ def onnx_optimize_model(model, repo_name):
     except Exception as e:
         print("Optimizing model failed", e)
 
+
 if __name__ == "__main__":
     repo_name = sys.argv[1]
     model = download_and_convert(repo_name)
     if model:
         onnx_optimize_model(model, repo_name)
-

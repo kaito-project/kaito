@@ -26,7 +26,9 @@ class FaissVectorStoreHandler(BaseVectorStore):
         super().__init__(embed_model, use_rwlock=True)
         self.dimension = self.embed_model.get_embedding_dimension()
 
-    async def _create_new_index(self, index_name: str, documents: List[Document]) -> List[str]:
+    async def _create_new_index(
+        self, index_name: str, documents: List[Document]
+    ) -> List[str]:
         faiss_index = faiss.IndexFlatL2(self.dimension)
         # we cant use the IndexFlatL2 directly as its delete functionality changes document ids.
         # we can wrap it in the IDMap to keep the same functionality but also be able to index by ids and support delete with llama_index

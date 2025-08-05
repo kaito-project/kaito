@@ -40,20 +40,21 @@ OPENAI_URL_PREFIX = "https://api.openai.com"
 HUGGINGFACE_URL_PREFIX = "https://api-inference.huggingface.co"
 DEFAULT_HEADERS = {
     "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
 }
-DEFAULT_HTTP_TIMEOUT = 300.0 # Seconds
+DEFAULT_HTTP_TIMEOUT = 300.0  # Seconds
 DEFAULT_HTTP_SUCCESS_CODE = 200
+
 
 class Inference(CustomLLM):
     params: dict = {}
     _default_model: str = None
     _default_max_model_len: int = None
     _model_retrieval_attempted: bool = False
-    _async_http_client : httpx.AsyncClient = PrivateAttr(default=None)
+    _async_http_client: httpx.AsyncClient = PrivateAttr(default=None)
 
     async def _get_httpx_client(self):
-        """ Lazily initializes the HTTP client on first request. """
+        """Lazily initializes the HTTP client on first request."""
         if self._async_http_client is None:
             self._async_http_client = httpx.AsyncClient(timeout=DEFAULT_HTTP_TIMEOUT)
         return self._async_http_client
@@ -75,30 +76,45 @@ class Inference(CustomLLM):
             return future.result()
 
     @llm_completion_callback()
-    def complete(self, prompt: str, formatted: bool = False, **kwargs: Any) -> CompletionResponse:
+    def complete(
+        self, prompt: str, formatted: bool = False, **kwargs: Any
+    ) -> CompletionResponse:
         # Required implementation - Only called by LlamaIndex reranker because LLMRerank library doesn't use async call
         try:
-            result = self.run_async_coroutine(self.acomplete(prompt, formatted=formatted, **kwargs))
+            result = self.run_async_coroutine(
+                self.acomplete(prompt, formatted=formatted, **kwargs)
+            )
             if result.text == "Empty Response":
-                logger.error("LLMRerank Request returned an unparsable or invalid response")
-                raise HTTPException(status_code=422, detail="Rerank operation failed: Invalid response from LLM. This feature is experimental.")
+                logger.error(
+                    "LLMRerank Request returned an unparsable or invalid response"
+                )
+                raise HTTPException(
+                    status_code=422,
+                    detail="Rerank operation failed: Invalid response from LLM. This feature is experimental.",
+                )
             return result
         except HTTPException as http_exc:
             # If it's already an HTTPException (e.g., 422), re-raise it as is
             raise http_exc
         except Exception as e:
             logger.error(f"Unexpected exception in complete(): {e}")
-            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"An unexpected error occurred: {str(e)}"
+            )
 
     @llm_completion_callback()
-    async def acomplete(self, prompt: str, formatted: bool = False, **kwargs: Any) -> CompletionResponse:
+    async def acomplete(
+        self, prompt: str, formatted: bool = False, **kwargs: Any
+    ) -> CompletionResponse:
         try:
             return await self._async_completions(prompt, **kwargs, **self.params)
         except HTTPException as http_exc:
             raise http_exc
         except Exception as e:
             logger.error(f"Unexpected exception in acomplete(): {e}")
-            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"An unexpected error occurred: {str(e)}"
+            )
         finally:
             # Clear params after the completion is done
             self.params = {}
@@ -192,10 +208,12 @@ class Inference(CustomLLM):
             model_name = kwargs.pop("model")
         data = {"prompt": prompt, **kwargs}
         if model_name:
-            data["model"] = model_name # Include the model only if it is not None
+            data["model"] = model_name  # Include the model only if it is not None
         if model_max_len and data.get("max_tokens"):
             if data["max_tokens"] > model_max_len:
-                logger.error(f"Requested max_tokens ({data['max_tokens']}) exceeds model's max length ({model_max_len}).")
+                logger.error(
+                    f"Requested max_tokens ({data['max_tokens']}) exceeds model's max length ({model_max_len})."
+                )
                 # vLLM will raise error ({"object":"error","message":"This model's maximum context length is 131072 tokens. However, you requested 500500500500505361 tokens (361 in the messages, 500500500500505000 in the completion). Please reduce the length of the messages or completion.","type":"BadRequestError","param":null,"code":400})
 
         # DEBUG: Call the debugging function
@@ -215,7 +233,9 @@ class Inference(CustomLLM):
                 )
                 self._default_model, self._default_max_model_len = self._fetch_default_model_info()  # Fetch default model dynamically
                 if self._default_model:
-                    logger.info(f"Default model '{self._default_model}' fetched successfully. Retrying request...")
+                    logger.info(
+                        f"Default model '{self._default_model}' fetched successfully. Retrying request..."
+                    )
                     data["model"] = self._default_model
                     resp = await self._async_post_request_raw(data, headers=DEFAULT_HEADERS)
                     return self._completions_json_to_response(resp)
@@ -257,7 +277,9 @@ class Inference(CustomLLM):
             return None, None
 
         except Exception as e:
-            logger.error(f"Error fetching models from {models_url}: {e}. \"model\" parameter will not be included with inference call.")
+            logger.error(
+                f'Error fetching models from {models_url}: {e}. "model" parameter will not be included with inference call.'
+            )
             return None
 
     def _get_default_model_info(self) -> (str, int):
@@ -266,7 +288,9 @@ class Inference(CustomLLM):
         """
         if not self._default_model and not self._model_retrieval_attempted:
             self._model_retrieval_attempted = True
-            self._default_model, self._default_max_model_len = self._fetch_default_model_info()
+            self._default_model, self._default_max_model_len = (
+                self._fetch_default_model_info()
+            )
         return self._default_model, self._default_max_model_len
 
     async def _async_post_request_raw(self, data: dict, headers: dict):
@@ -276,7 +300,9 @@ class Inference(CustomLLM):
             response.raise_for_status()  # Raise an exception for HTTP errors
             return response.json()
         except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error {e.response.status_code} during POST request to {LLM_INFERENCE_URL}: {e.response.text}")
+            logger.error(
+                f"HTTP error {e.response.status_code} during POST request to {LLM_INFERENCE_URL}: {e.response.text}"
+            )
             raise
         except httpx.RequestError as e:
             logger.error(f"Error during POST request to {LLM_INFERENCE_URL}: {e}")
@@ -290,14 +316,20 @@ class Inference(CustomLLM):
         Constructs and prints the equivalent curl command for debugging purposes.
         """
         import json
+
         # Construct curl command
         curl_command = (
-                f"curl -X POST {LLM_INFERENCE_URL} "
-                + " ".join([f'-H "{key}: {value}"' for key, value in {
-            "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
-            "Content-Type": "application/json"
-        }.items()])
-                + f" -d '{json.dumps(data)}'"
+            f"curl -X POST {LLM_INFERENCE_URL} "
+            + " ".join(
+                [
+                    f'-H "{key}: {value}"'
+                    for key, value in {
+                        "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
+                        "Content-Type": "application/json",
+                    }.items()
+                ]
+            )
+            + f" -d '{json.dumps(data)}'"
         )
         logger.info("Equivalent curl command:")
         logger.info(curl_command)
@@ -313,6 +345,6 @@ class Inference(CustomLLM):
         )
 
     async def aclose(self):
-        """ Closes the HTTP client when shutting down. """
+        """Closes the HTTP client when shutting down."""
         if self._async_http_client:
             await self._async_http_client.aclose()

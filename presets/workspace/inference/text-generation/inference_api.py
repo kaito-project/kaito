@@ -18,7 +18,7 @@ import signal
 import codecs
 from pathlib import Path
 from dataclasses import asdict, dataclass, field
-from typing import Annotated, Any, Dict, List, Optional, Union
+from typing import Annotated, Any, Dict, List, Optional
 
 import GPUtil
 import psutil
@@ -26,45 +26,96 @@ import torch
 import transformers
 import uvicorn
 from fastapi import Body, FastAPI, HTTPException
-from fastapi.responses import Response
 from peft import PeftModel
-from pydantic import BaseModel, Extra, Field, validator
-from transformers import (AutoModelForCausalLM, AutoTokenizer,
-                          GenerationConfig, HfArgumentParser)
+from pydantic import BaseModel, Field
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    GenerationConfig,
+    HfArgumentParser,
+)
 
 # Initialize logger
 logger = logging.getLogger(__name__)
-debug_mode = os.environ.get('DEBUG_MODE', 'false').lower() == 'true'
+debug_mode = os.environ.get("DEBUG_MODE", "false").lower() == "true"
 logging.basicConfig(
     level=logging.DEBUG if debug_mode else logging.INFO,
-    format='%(levelname)s %(asctime)s %(filename)s:%(lineno)d] %(message)s',
-    datefmt='%m-%d %H:%M:%S')
+    format="%(levelname)s %(asctime)s %(filename)s:%(lineno)d] %(message)s",
+    datefmt="%m-%d %H:%M:%S",
+)
 
-ADAPTERS_DIR = '/mnt/adapter'
+ADAPTERS_DIR = "/mnt/adapter"
+
 
 @dataclass
 class ModelConfig:
     """
     Transformers Model Configuration Parameters
     """
-    pipeline: Optional[str] = field(default="text-generation", metadata={"help": "The model pipeline for the pre-trained model"})
-    pretrained_model_name_or_path: Optional[str] = field(default="/workspace/tfs/weights", metadata={"help": "Path to the pretrained model or model identifier from huggingface.co/models"})
-    combination_type: Optional[str]=field(default="svd", metadata={"help": "The combination type of multi adapters"})
-    state_dict: Optional[Dict[str, Any]] = field(default=None, metadata={"help": "State dictionary for the model"})
-    cache_dir: Optional[str] = field(default=None, metadata={"help": "Cache directory for the model"})
-    from_tf: bool = field(default=False, metadata={"help": "Load model from a TensorFlow checkpoint"})
-    force_download: bool = field(default=False, metadata={"help": "Force the download of the model"})
-    resume_download: bool = field(default=False, metadata={"help": "Resume an interrupted download"})
-    proxies: Optional[str] = field(default=None, metadata={"help": "Proxy configuration for downloading the model"})
-    output_loading_info: bool = field(default=False, metadata={"help": "Output additional loading information"})
-    allow_remote_files: bool = field(default=False, metadata={"help": "Allow using remote files, default is local only"})
-    revision: str = field(default="main", metadata={"help": "Specific model version to use"})
-    trust_remote_code: bool = field(default=False, metadata={"help": "Enable trusting remote code when loading the model"})
-    load_in_4bit: bool = field(default=False, metadata={"help": "Load model in 4-bit mode"})
-    load_in_8bit: bool = field(default=False, metadata={"help": "Load model in 8-bit mode"})
-    torch_dtype: Optional[str] = field(default=None, metadata={"help": "The torch dtype for the pre-trained model"})
-    device_map: str = field(default="auto", metadata={"help": "The device map for the pre-trained model"})
-    chat_template: Optional[str] = field(default=None, metadata={"help": "The file path to the chat template, or the template in single-line form for the specified model"})
+
+    pipeline: Optional[str] = field(
+        default="text-generation",
+        metadata={"help": "The model pipeline for the pre-trained model"},
+    )
+    pretrained_model_name_or_path: Optional[str] = field(
+        default="/workspace/tfs/weights",
+        metadata={
+            "help": "Path to the pretrained model or model identifier from huggingface.co/models"
+        },
+    )
+    combination_type: Optional[str] = field(
+        default="svd", metadata={"help": "The combination type of multi adapters"}
+    )
+    state_dict: Optional[Dict[str, Any]] = field(
+        default=None, metadata={"help": "State dictionary for the model"}
+    )
+    cache_dir: Optional[str] = field(
+        default=None, metadata={"help": "Cache directory for the model"}
+    )
+    from_tf: bool = field(
+        default=False, metadata={"help": "Load model from a TensorFlow checkpoint"}
+    )
+    force_download: bool = field(
+        default=False, metadata={"help": "Force the download of the model"}
+    )
+    resume_download: bool = field(
+        default=False, metadata={"help": "Resume an interrupted download"}
+    )
+    proxies: Optional[str] = field(
+        default=None, metadata={"help": "Proxy configuration for downloading the model"}
+    )
+    output_loading_info: bool = field(
+        default=False, metadata={"help": "Output additional loading information"}
+    )
+    allow_remote_files: bool = field(
+        default=False,
+        metadata={"help": "Allow using remote files, default is local only"},
+    )
+    revision: str = field(
+        default="main", metadata={"help": "Specific model version to use"}
+    )
+    trust_remote_code: bool = field(
+        default=False,
+        metadata={"help": "Enable trusting remote code when loading the model"},
+    )
+    load_in_4bit: bool = field(
+        default=False, metadata={"help": "Load model in 4-bit mode"}
+    )
+    load_in_8bit: bool = field(
+        default=False, metadata={"help": "Load model in 8-bit mode"}
+    )
+    torch_dtype: Optional[str] = field(
+        default=None, metadata={"help": "The torch dtype for the pre-trained model"}
+    )
+    device_map: str = field(
+        default="auto", metadata={"help": "The device map for the pre-trained model"}
+    )
+    chat_template: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "The file path to the chat template, or the template in single-line form for the specified model"
+        },
+    )
 
     # Method to process additional arguments
     def process_additional_args(self, addt_args: List[str]):
@@ -74,8 +125,8 @@ class ModelConfig:
         addt_args_dict = {}
         i = 0
         while i < len(addt_args):
-            key = addt_args[i].lstrip('-')  # Remove leading dashes
-            if i + 1 < len(addt_args) and not addt_args[i + 1].startswith('--'):
+            key = addt_args[i].lstrip("-")  # Remove leading dashes
+            if i + 1 < len(addt_args) and not addt_args[i + 1].startswith("--"):
                 value = addt_args[i + 1]
                 i += 2  # Move past the current key-value pair
             else:
@@ -87,20 +138,27 @@ class ModelConfig:
         # Update the ModelConfig instance with the additional args
         self.__dict__.update(addt_args_dict)
 
-    def __post_init__(self): # validate parameters 
+    def __post_init__(self):  # validate parameters
         """
         Post-initialization to validate some ModelConfig values
         """
         if self.torch_dtype == "auto":
             pass
-        elif self.torch_dtype and self.torch_dtype != "auto" and not hasattr(torch, self.torch_dtype):
+        elif (
+            self.torch_dtype
+            and self.torch_dtype != "auto"
+            and not hasattr(torch, self.torch_dtype)
+        ):
             raise ValueError(f"Invalid torch dtype: {self.torch_dtype}")
         else:
-            self.torch_dtype = getattr(torch, self.torch_dtype) if self.torch_dtype else None
+            self.torch_dtype = (
+                getattr(torch, self.torch_dtype) if self.torch_dtype else None
+            )
 
         supported_pipelines = {"conversational", "text-generation"}
         if self.pipeline not in supported_pipelines:
             raise ValueError(f"Unsupported pipeline: {self.pipeline}")
+
 
 def load_chat_template(chat_template: Optional[str]) -> Optional[str]:
     logger.info(chat_template)
@@ -126,12 +184,12 @@ args, additional_args = parser.parse_args_into_dataclasses(
 args.process_additional_args(additional_args)
 
 model_args = asdict(args)
-model_args["local_files_only"] = not model_args.pop('allow_remote_files')
-model_pipeline = model_args.pop('pipeline')
-combination_type = model_args.pop('combination_type')
+model_args["local_files_only"] = not model_args.pop("allow_remote_files")
+model_pipeline = model_args.pop("pipeline")
+combination_type = model_args.pop("combination_type")
 
 app = FastAPI()
-resovled_chat_template = load_chat_template(model_args.pop('chat_template'))
+resovled_chat_template = load_chat_template(model_args.pop("chat_template"))
 tokenizer = AutoTokenizer.from_pretrained(**model_args)
 if resovled_chat_template is not None:
     tokenizer.chat_template = resovled_chat_template
@@ -141,7 +199,8 @@ if not os.path.exists(ADAPTERS_DIR):
     model = base_model
 else:
     valid_adapters_list = [
-        os.path.join(ADAPTERS_DIR, adapter) for adapter in os.listdir(ADAPTERS_DIR)
+        os.path.join(ADAPTERS_DIR, adapter)
+        for adapter in os.listdir(ADAPTERS_DIR)
         if os.path.isfile(os.path.join(ADAPTERS_DIR, adapter, "adapter_config.json"))
     ]
 
@@ -150,9 +209,11 @@ else:
         for adapter_path in valid_adapters_list:
             adapter_name = os.path.basename(adapter_path)
             adapter_names.append(adapter_name)
-            weights.append(float(os.getenv(adapter_name, '1.0')))
+            weights.append(float(os.getenv(adapter_name, "1.0")))
 
-        model = PeftModel.from_pretrained(base_model, valid_adapters_list[0], adapter_name=adapter_names[0])
+        model = PeftModel.from_pretrained(
+            base_model, valid_adapters_list[0], adapter_name=adapter_names[0]
+        )
         for i in range(1, len(valid_adapters_list)):
             model.load_adapter(valid_adapters_list[i], adapter_name=adapter_names[i])
 
@@ -168,11 +229,11 @@ else:
         # To avoid any potential future operations that use non-combined adapters
         for adapter in adapter_names:
             model.delete_adapter(adapter)
-        
+
         active_adapters = model.active_adapters
         if len(active_adapters) != 1 or active_adapters[0] != "combined_adapter":
-            raise ValueError(f"Adapters not merged correctly")
-        logger.info("Adapter added: %s", ', '.join(sorted(adapter_names)))
+            raise ValueError("Adapters not merged correctly")
+        logger.info("Adapter added: %s", ", ".join(sorted(adapter_names)))
     else:
         logger.warning("Did not find any valid adapters mounted, using base model")
         model = base_model
@@ -189,24 +250,23 @@ if args.torch_dtype:
     pipeline_kwargs["torch_dtype"] = args.torch_dtype
 
 pipeline = transformers.pipeline(
-    task="text-generation",
-    model=model,
-    tokenizer=tokenizer,
-    **pipeline_kwargs
+    task="text-generation", model=model, tokenizer=tokenizer, **pipeline_kwargs
 )
 
 try:
     # Attempt to load the generation configuration
     default_generate_config = GenerationConfig.from_pretrained(
-        args.pretrained_model_name_or_path,
-        local_files_only=args.local_files_only
+        args.pretrained_model_name_or_path, local_files_only=args.local_files_only
     ).to_dict()
-except Exception as e:
+except Exception:
     default_generate_config = {}
+
 
 class HomeResponse(BaseModel):
     message: str = Field(..., example="Server is running")
-@app.get('/', response_model=HomeResponse, summary="Home Endpoint")
+
+
+@app.get("/", response_model=HomeResponse, summary="Home Endpoint")
 def home():
     """
     A simple endpoint that indicates the server is running.
@@ -214,8 +274,11 @@ def home():
     """
     return {"message": "Server is running"}
 
+
 class HealthStatus(BaseModel):
     status: str = Field(..., example="Healthy")
+
+
 @app.get(
     "/health",
     response_model=HealthStatus,
@@ -223,11 +286,7 @@ class HealthStatus(BaseModel):
     responses={
         200: {
             "description": "Successful Response",
-            "content": {
-                "application/json": {
-                    "example": {"status": "Healthy"}
-                }
-            }
+            "content": {"application/json": {"example": {"status": "Healthy"}}},
         },
         500: {
             "description": "Error Response",
@@ -236,17 +295,17 @@ class HealthStatus(BaseModel):
                     "examples": {
                         "model_uninitialized": {
                             "summary": "Model not initialized",
-                            "value": {"detail": "Model not initialized"}
+                            "value": {"detail": "Model not initialized"},
                         },
                         "pipeline_uninitialized": {
                             "summary": "Pipeline not initialized",
-                            "value": {"detail": "Pipeline not initialized"}
-                        }
+                            "value": {"detail": "Pipeline not initialized"},
+                        },
                     }
                 }
-            }
-        }
-    }
+            },
+        },
+    },
 )
 def health_check():
     if not model:
@@ -257,8 +316,9 @@ def health_check():
         raise HTTPException(status_code=500, detail="Pipeline not initialized")
     return {"status": "Healthy"}
 
+
 class GenerateKwargs(BaseModel):
-    max_length: int = 200 # Length of input prompt+max_new_tokens
+    max_length: int = 200  # Length of input prompt+max_new_tokens
     min_length: int = 0
     do_sample: bool = True
     early_stopping: bool = False
@@ -270,37 +330,60 @@ class GenerateKwargs(BaseModel):
     repetition_penalty: float = 1
     pad_token_id: Optional[int] = tokenizer.pad_token_id
     eos_token_id: Optional[int] = tokenizer.eos_token_id
+
     class Config:
-        extra = 'allow' # Allows for additional fields not explicitly defined
+        extra = "allow"  # Allows for additional fields not explicitly defined
         json_schema_extra = {
             "example": {
                 "max_length": 200,
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "additional_param": "Example value"
+                "additional_param": "Example value",
             }
         }
+
 
 class Message(BaseModel):
     role: str
     content: str
 
+
 class UnifiedRequestModel(BaseModel):
     # Fields for text generation
-    prompt: Optional[str] = Field(None, description="Prompt for text generation. Required for text-generation pipeline. Do not use with 'messages'.")
-    return_full_text: Optional[bool] = Field(True, description="Return full text if True, else only added text")
-    clean_up_tokenization_spaces: Optional[bool] = Field(False, description="Clean up extra spaces in text output")
+    prompt: Optional[str] = Field(
+        None,
+        description="Prompt for text generation. Required for text-generation pipeline. Do not use with 'messages'.",
+    )
+    return_full_text: Optional[bool] = Field(
+        True, description="Return full text if True, else only added text"
+    )
+    clean_up_tokenization_spaces: Optional[bool] = Field(
+        False, description="Clean up extra spaces in text output"
+    )
     prefix: Optional[str] = Field(None, description="Prefix added to prompt")
-    handle_long_generation: Optional[str] = Field(None, description="Strategy to handle long generation")
-    generate_kwargs: Optional[GenerateKwargs] = Field(default_factory=GenerateKwargs, description="Additional kwargs for generate method")
+    handle_long_generation: Optional[str] = Field(
+        None, description="Strategy to handle long generation"
+    )
+    generate_kwargs: Optional[GenerateKwargs] = Field(
+        default_factory=GenerateKwargs,
+        description="Additional kwargs for generate method",
+    )
 
     # Field for conversational model
-    messages: Optional[List[Message]] = Field(None, description="Messages for conversational model. Required for conversational pipeline. Do not use with 'prompt'.")
+    messages: Optional[List[Message]] = Field(
+        None,
+        description="Messages for conversational model. Required for conversational pipeline. Do not use with 'prompt'.",
+    )
+
     def messages_to_dict_list(self):
-        return [message.model_dump() for message in self.messages] if self.messages else []
+        return (
+            [message.model_dump() for message in self.messages] if self.messages else []
+        )
+
 
 class ErrorResponse(BaseModel):
     detail: str
+
 
 @app.post(
     "/chat",
@@ -313,19 +396,17 @@ class ErrorResponse(BaseModel):
                     "examples": {
                         "text_generation": {
                             "summary": "Text Generation Response",
-                            "value": {
-                                "Result": "Generated text based on the prompt."
-                            }
+                            "value": {"Result": "Generated text based on the prompt."},
                         },
                         "conversation": {
                             "summary": "Conversation Response",
                             "value": {
                                 "Result": "Response to the last message in the conversation."
-                            }
-                        }
+                            },
+                        },
                     }
                 }
-            }
+            },
         },
         400: {
             "model": ErrorResponse,
@@ -335,70 +416,86 @@ class ErrorResponse(BaseModel):
                     "examples": {
                         "missing_prompt": {
                             "summary": "Missing Prompt",
-                            "value": {"detail": "Text generation parameter prompt required"}
+                            "value": {
+                                "detail": "Text generation parameter prompt required"
+                            },
                         },
                         "missing_messages": {
                             "summary": "Missing Messages",
-                            "value": {"detail": "Conversational parameter messages required"}
-                        }
+                            "value": {
+                                "detail": "Conversational parameter messages required"
+                            },
+                        },
                     }
                 }
-            }
+            },
         },
-        500: {
-            "model": ErrorResponse,
-            "description": "Internal Server Error"
-        }
-    }
+        500: {"model": ErrorResponse, "description": "Internal Server Error"},
+    },
 )
 def generate_text(
-        request_model: Annotated[
-            UnifiedRequestModel,
-            Body(
-                openapi_examples={
-                    "text_generation_example": {
-                        "summary": "Text Generation Example",
-                        "description": "An example of a text generation request.",
-                        "value": {
-                            "prompt": "Tell me a joke",
-                            "return_full_text": True,
-                            "clean_up_tokenization_spaces": False,
-                            "prefix": None,
-                            "handle_long_generation": None,
-                            "generate_kwargs": GenerateKwargs().model_dump(),
-                        },
-                    },
-                    "conversation_example": {
-                        "summary": "Conversation Example",
-                        "description": "An example of a conversational request.",
-                        "value": {
-                            "messages": [
-                                {"role": "user", "content": "What is your favourite condiment?"},
-                                {"role": "assistant", "content": "Well, im quite partial to a good squeeze of fresh lemon juice. It adds just the right amount of zesty flavour to whatever im cooking up in the kitchen!"},
-                                {"role": "user", "content": "Do you have mayonnaise recipes?"}
-                            ],
-                            "return_full_text": True,
-                            "clean_up_tokenization_spaces": False,
-                            "prefix": None,
-                            "handle_long_generation": None,
-                            "generate_kwargs": GenerateKwargs().model_dump(),
-                        },
+    request_model: Annotated[
+        UnifiedRequestModel,
+        Body(
+            openapi_examples={
+                "text_generation_example": {
+                    "summary": "Text Generation Example",
+                    "description": "An example of a text generation request.",
+                    "value": {
+                        "prompt": "Tell me a joke",
+                        "return_full_text": True,
+                        "clean_up_tokenization_spaces": False,
+                        "prefix": None,
+                        "handle_long_generation": None,
+                        "generate_kwargs": GenerateKwargs().model_dump(),
                     },
                 },
-            ),
-        ],
+                "conversation_example": {
+                    "summary": "Conversation Example",
+                    "description": "An example of a conversational request.",
+                    "value": {
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": "What is your favourite condiment?",
+                            },
+                            {
+                                "role": "assistant",
+                                "content": "Well, im quite partial to a good squeeze of fresh lemon juice. It adds just the right amount of zesty flavour to whatever im cooking up in the kitchen!",
+                            },
+                            {
+                                "role": "user",
+                                "content": "Do you have mayonnaise recipes?",
+                            },
+                        ],
+                        "return_full_text": True,
+                        "clean_up_tokenization_spaces": False,
+                        "prefix": None,
+                        "handle_long_generation": None,
+                        "generate_kwargs": GenerateKwargs().model_dump(),
+                    },
+                },
+            },
+        ),
+    ],
 ):
     """
     Processes chat requests, generating text based on the specified pipeline (text generation or conversational).
     Validates required parameters based on the pipeline and returns the generated text.
     """
-    user_generate_kwargs = request_model.generate_kwargs.model_dump() if request_model.generate_kwargs else {}
+    user_generate_kwargs = (
+        request_model.generate_kwargs.model_dump()
+        if request_model.generate_kwargs
+        else {}
+    )
     generate_kwargs = {**default_generate_config, **user_generate_kwargs}
 
     if args.pipeline == "text-generation":
         if not request_model.prompt:
             logger.error("Text generation parameter prompt required")
-            raise HTTPException(status_code=400, detail="Text generation parameter prompt required")
+            raise HTTPException(
+                status_code=400, detail="Text generation parameter prompt required"
+            )
         sequences = pipeline(
             request_model.prompt,
             # return_tensors=request_model.return_tensors,
@@ -407,25 +504,27 @@ def generate_text(
             clean_up_tokenization_spaces=request_model.clean_up_tokenization_spaces,
             prefix=request_model.prefix,
             handle_long_generation=request_model.handle_long_generation,
-            **generate_kwargs
+            **generate_kwargs,
         )
 
         result = ""
         for seq in sequences:
             logger.debug(f"Result: {seq['generated_text']}")
-            result += seq['generated_text']
+            result += seq["generated_text"]
 
         return {"Result": result}
 
     elif args.pipeline == "conversational":
         if not request_model.messages:
             logger.error("Conversational parameter messages required")
-            raise HTTPException(status_code=400, detail="Conversational parameter messages required")
+            raise HTTPException(
+                status_code=400, detail="Conversational parameter messages required"
+            )
 
         response = pipeline(
             request_model.messages_to_dict_list(),
             clean_up_tokenization_spaces=request_model.clean_up_tokenization_spaces,
-            **generate_kwargs
+            **generate_kwargs,
         )
         return {"Result": str(response[-1])}
 
@@ -433,15 +532,18 @@ def generate_text(
         logger.error("Invalid pipeline type")
         raise HTTPException(status_code=400, detail="Invalid pipeline type")
 
+
 class MemoryInfo(BaseModel):
     used: str
     total: str
+
 
 class CPUInfo(BaseModel):
     load_percentage: float
     physical_cores: int
     total_cores: int
     memory: MemoryInfo
+
 
 class GPUInfo(BaseModel):
     id: str
@@ -450,9 +552,11 @@ class GPUInfo(BaseModel):
     temperature: str
     memory: MemoryInfo
 
+
 class MetricsResponse(BaseModel):
     gpu_info: Optional[List[GPUInfo]] = None
     cpu_info: Optional[CPUInfo] = None
+
 
 @app.get(
     "/metrics",
@@ -467,26 +571,42 @@ class MetricsResponse(BaseModel):
                         "gpu_metrics": {
                             "summary": "Example when GPUs are available",
                             "value": {
-                                "gpu_info": [{"id": "GPU-1234", "name": "GeForce GTX 950", "load": "25.00%", "temperature": "55 C", "memory": {"used": "1.00 GB", "total": "2.00 GB"}}],
-                                "cpu_info": None  # Indicates CPUs info might not be present when GPUs are available
-                            }
+                                "gpu_info": [
+                                    {
+                                        "id": "GPU-1234",
+                                        "name": "GeForce GTX 950",
+                                        "load": "25.00%",
+                                        "temperature": "55 C",
+                                        "memory": {
+                                            "used": "1.00 GB",
+                                            "total": "2.00 GB",
+                                        },
+                                    }
+                                ],
+                                "cpu_info": None,  # Indicates CPUs info might not be present when GPUs are available
+                            },
                         },
                         "cpu_metrics": {
                             "summary": "Example when only CPU is available",
                             "value": {
                                 "gpu_info": None,  # Indicates GPU info might not be present when only CPU is available
-                                "cpu_info": {"load_percentage": 20.0, "physical_cores": 4, "total_cores": 8, "memory": {"used": "4.00 GB", "total": "16.00 GB"}}
-                            }
-                        }
+                                "cpu_info": {
+                                    "load_percentage": 20.0,
+                                    "physical_cores": 4,
+                                    "total_cores": 8,
+                                    "memory": {"used": "4.00 GB", "total": "16.00 GB"},
+                                },
+                            },
+                        },
                     }
                 }
-            }
+            },
         },
         500: {
             "description": "Internal Server Error",
             "model": ErrorResponse,
-        }
-    }
+        },
+    },
 )
 def get_metrics():
     """
@@ -496,16 +616,19 @@ def get_metrics():
     try:
         if torch.cuda.is_available():
             gpus = GPUtil.getGPUs()
-            gpu_info = [GPUInfo(
-                id=str(gpu.id),
-                name=gpu.name,
-                load=f"{gpu.load * 100:.2f}%",
-                temperature=f"{gpu.temperature} C",
-                memory=MemoryInfo(
-                    used=f"{gpu.memoryUsed / (1024 ** 3):.2f} GB",
-                    total=f"{gpu.memoryTotal / (1024 ** 3):.2f} GB"
+            gpu_info = [
+                GPUInfo(
+                    id=str(gpu.id),
+                    name=gpu.name,
+                    load=f"{gpu.load * 100:.2f}%",
+                    temperature=f"{gpu.temperature} C",
+                    memory=MemoryInfo(
+                        used=f"{gpu.memoryUsed / (1024**3):.2f} GB",
+                        total=f"{gpu.memoryTotal / (1024**3):.2f} GB",
+                    ),
                 )
-            ) for gpu in gpus]
+                for gpu in gpus
+            ]
             return MetricsResponse(gpu_info=gpu_info)
         else:
             # Gather CPU metrics
@@ -514,26 +637,28 @@ def get_metrics():
             total_cores = psutil.cpu_count(logical=True)
             virtual_memory = psutil.virtual_memory()
             memory = MemoryInfo(
-                used=f"{virtual_memory.used / (1024 ** 3):.2f} GB",
-                total=f"{virtual_memory.total / (1024 ** 3):.2f} GB"
+                used=f"{virtual_memory.used / (1024**3):.2f} GB",
+                total=f"{virtual_memory.total / (1024**3):.2f} GB",
             )
             cpu_info = CPUInfo(
                 load_percentage=cpu_usage,
                 physical_cores=physical_cores,
                 total_cores=total_cores,
-                memory=memory
+                memory=memory,
             )
             return MetricsResponse(cpu_info=cpu_info)
     except Exception as e:
         logger.error(f"Error fetching metrics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 def shutdown_handler(sig, frame):
     sys.exit(0)
 
+
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, shutdown_handler)
-    local_rank = int(os.environ.get("LOCAL_RANK", 0)) # Default to 0 if not set
-    port = 5000 + local_rank # Adjust port based on local rank
+    local_rank = int(os.environ.get("LOCAL_RANK", 0))  # Default to 0 if not set
+    port = 5000 + local_rank  # Adjust port based on local rank
     logger.info(f"Starting server on port {port}")
-    uvicorn.run(app=app, host='0.0.0.0', port=port)
+    uvicorn.run(app=app, host="0.0.0.0", port=port)

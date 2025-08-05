@@ -25,10 +25,16 @@ from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
 
 from vector_store.faiss_store import FaissVectorStoreHandler
 
-from ragengine.config import (REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET,
-                              EMBEDDING_SOURCE_TYPE, LOCAL_EMBEDDING_MODEL_ID, DEFAULT_VECTOR_DB_PERSIST_DIR)
+from ragengine.config import (
+    REMOTE_EMBEDDING_URL,
+    REMOTE_EMBEDDING_ACCESS_SECRET,
+    EMBEDDING_SOURCE_TYPE,
+    LOCAL_EMBEDDING_MODEL_ID,
+    DEFAULT_VECTOR_DB_PERSIST_DIR,
+)
 from urllib.parse import unquote
 import os
+
 # Import Prometheus client for metrics collection
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 import time
@@ -62,39 +68,46 @@ from ragengine.metrics.prometheus_metrics import (
     STATUS_SUCCESS,
     STATUS_FAILURE,
     MODE_LOCAL,
-    MODE_REMOTE
+    MODE_REMOTE,
 )
 
 app = FastAPI()
+
+
 @app.middleware("http")
 async def track_requests(request: Request, call_next):
     tracked_paths = ["/query", "/index", "/indexes", "/persist", "/load", "/v1/chat/completions"]
 
     should_track = any(request.url.path.startswith(path) for path in tracked_paths)
-    
+
     if not should_track:
         return await call_next(request)
 
-    num_requests_running.inc() 
-    start_time = time.perf_counter() 
-    status = STATUS_FAILURE # Default status
-    
+    num_requests_running.inc()
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+
     try:
         response = await call_next(request)
         status = STATUS_SUCCESS
         return response
-    except Exception as e:
+    except Exception:
         raise
     finally:
         num_requests_running.dec()
-        e2e_request_latency_seconds.labels(status=status).observe(time.perf_counter() - start_time)
+        e2e_request_latency_seconds.labels(status=status).observe(
+            time.perf_counter() - start_time
+        )
         e2e_request_total.labels(status=status).inc()
+
 
 # Initialize embedding model
 if EMBEDDING_SOURCE_TYPE.lower() == MODE_LOCAL:
     embedding_manager = LocalHuggingFaceEmbedding(LOCAL_EMBEDDING_MODEL_ID)
 elif EMBEDDING_SOURCE_TYPE.lower() == MODE_REMOTE:
-    embedding_manager = RemoteEmbeddingModel(REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET)
+    embedding_manager = RemoteEmbeddingModel(
+        REMOTE_EMBEDDING_URL, REMOTE_EMBEDDING_ACCESS_SECRET
+    )
 else:
     raise ValueError("Invalid Embedding Type Specified (Must be Local or Remote)")
 
@@ -105,6 +118,7 @@ vector_store_handler = FaissVectorStoreHandler(embedding_manager)
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
 
+
 @app.get("/metrics", tags=["Monitoring"])
 async def metrics():
     """
@@ -114,9 +128,10 @@ async def metrics():
     try:
         # Serialize and return all Prometheus metrics collected in this process
         return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get(
     "/health",
@@ -137,15 +152,20 @@ async def metrics():
 def health_check():
     try:
         if embedding_manager is None:
-            raise HTTPException(status_code=500, detail="Embedding manager not initialized")
-        
+            raise HTTPException(
+                status_code=500, detail="Embedding manager not initialized"
+            )
+
         if rag_ops is None:
-            raise HTTPException(status_code=500, detail="RAG operations not initialized")
+            raise HTTPException(
+                status_code=500, detail="RAG operations not initialized"
+            )
 
         return HealthStatus(status="Healthy")
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post(
     "/index",
@@ -181,11 +201,11 @@ def health_check():
 async def index_documents(request: IndexRequest):
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
-    
+
     try:
         doc_ids = await rag_ops.index(request.index_name, request.documents)
         documents = [
-            Document(doc_id=doc_id, text=doc.text, metadata=doc.metadata) 
+            Document(doc_id=doc_id, text=doc.text, metadata=doc.metadata)
             for doc_id, doc in zip(doc_ids, request.documents)
         ]
         status = STATUS_SUCCESS
@@ -197,7 +217,10 @@ async def index_documents(request: IndexRequest):
     finally:
         # Record metrics once in finally block
         rag_index_requests_total.labels(status=status).inc()
-        rag_index_latency.labels(status=status).observe(time.perf_counter() - start_time)
+        rag_index_latency.labels(status=status).observe(
+            time.perf_counter() - start_time
+        )
+
 
 @app.post(
     "/query",
@@ -242,30 +265,34 @@ async def index_documents(request: IndexRequest):
 async def query_index(request: QueryRequest):
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
-    
+
     try:
-        llm_params = request.llm_params or {}  # Default to empty dict if no params provided
-        rerank_params = request.rerank_params or {}  # Default to empty dict if no params provided
-        
+        llm_params = (
+            request.llm_params or {}
+        )  # Default to empty dict if no params provided
+        rerank_params = (
+            request.rerank_params or {}
+        )  # Default to empty dict if no params provided
+
         result_dict = await rag_ops.query(
             request.index_name, request.query, request.top_k, llm_params, rerank_params
         )
-        
+
         result = QueryResponse(
             response=result_dict["response"],
-            source_nodes=result_dict["source_nodes"], 
-            metadata=result_dict.get("metadata", {})
+            source_nodes=result_dict["source_nodes"],
+            metadata=result_dict.get("metadata", {}),
         )
-        
+
         # Record source retrieval quality metrics
         if result.source_nodes and result.response:
             lowest_score_node = min(result.source_nodes, key=lambda x: x.score)
             rag_lowest_source_score.observe(lowest_score_node.score)
-            
+
             scores = [node.score for node in result.source_nodes]
             avg_score = sum(scores) / len(scores)
             rag_avg_source_score.observe(avg_score)
-   
+
         status = STATUS_SUCCESS
         return result
     except HTTPException as http_exc:
@@ -280,7 +307,10 @@ async def query_index(request: QueryRequest):
     finally:
         # Record metrics once in finally block
         rag_query_requests_total.labels(status=status).inc()
-        rag_query_latency.labels(status=status).observe(time.perf_counter() - start_time)
+        rag_query_latency.labels(status=status).observe(
+            time.perf_counter() - start_time
+        )
+
 
 @app.post(
     "/v1/chat/completions",
@@ -372,9 +402,9 @@ async def chat_completions(request: dict):
 def list_indexes():
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
-    
+
     try:
-        result = rag_ops.list_indexes() 
+        result = rag_ops.list_indexes()
         status = STATUS_SUCCESS
         return result
     except Exception as e:
@@ -382,7 +412,9 @@ def list_indexes():
     finally:
         # Record metrics once in finally block
         rag_indexes_requests_total.labels(status=status).inc()
-        rag_indexes_latency.labels(status=status).observe(time.perf_counter() - start_time)
+        rag_indexes_latency.labels(status=status).observe(
+            time.perf_counter() - start_time
+        )
 
 
 @app.get(
@@ -421,17 +453,19 @@ def list_indexes():
 )
 async def list_documents_in_index(
     index_name: str,
-    limit: int = Query(10, ge=1, le=100, description="Maximum number of documents to return"),
+    limit: int = Query(
+        10, ge=1, le=100, description="Maximum number of documents to return"
+    ),
     offset: int = Query(0, ge=0, description="Starting point for the document list"),
     max_text_length: Optional[int] = Query(
-        1000, 
-        ge=1, 
-        description="Maximum text length to return **per document**. This does not impose a limit on the total length of all documents returned."
+        1000,
+        ge=1,
+        description="Maximum text length to return **per document**. This does not impose a limit on the total length of all documents returned.",
     ),
     metadata_filter: Optional[str | None] = Query(
         None,
-        description="Optional metadata filter to apply when listing documents. This should be a dictionary with key-value pairs to match against document metadata."
-    )
+        description="Optional metadata filter to apply when listing documents. This should be a dictionary with key-value pairs to match against document metadata.",
+    ),
 ):
     """
     Handles URL-encoded index names sent by the client.
@@ -445,14 +479,17 @@ async def list_documents_in_index(
     """
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
-    
+
     try:
         if metadata_filter:
             # Attempt to parse the metadata filter as a JSON string
             try:
                 metadata_filter = json.loads(metadata_filter)
             except json.JSONDecodeError:
-                raise HTTPException(status_code=400, detail="Invalid metadata filter format. Must be a valid JSON string.")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid metadata filter format. Must be a valid JSON string.",
+                )
 
         # Decode the index_name in case it was URL-encoded by the client
         decoded_index_name = unquote(index_name)
@@ -461,13 +498,10 @@ async def list_documents_in_index(
             limit=limit,
             offset=offset,
             max_text_length=max_text_length,
-            metadata_filter=metadata_filter
+            metadata_filter=metadata_filter,
         )
 
-        result = ListDocumentsResponse(
-            documents=documents,
-            count=len(documents)
-        )
+        result = ListDocumentsResponse(documents=documents, count=len(documents))
         status = STATUS_SUCCESS
         return result
     except HTTPException as http_exc:
@@ -477,7 +511,10 @@ async def list_documents_in_index(
     finally:
         # Record metrics once in finally block
         rag_indexes_document_requests_total.labels(status=status).inc()
-        rag_indexes_document_latency.labels(status=status).observe(time.perf_counter() - start_time)
+        rag_indexes_document_latency.labels(status=status).observe(
+            time.perf_counter() - start_time
+        )
+
 
 @app.post(
     "/indexes/{index_name}/documents",
@@ -508,11 +545,10 @@ async def update_documents_in_index(
 ):
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
-    
+
     try:
         result = await rag_ops.update_documents(
-            index_name=index_name,
-            documents=request.documents
+            index_name=index_name, documents=request.documents
         )
         status = STATUS_SUCCESS
         return result
@@ -523,7 +559,10 @@ async def update_documents_in_index(
     finally:
         # Record metrics once in finally block
         rag_indexes_update_document_requests_total.labels(status=status).inc()
-        rag_indexes_update_document_latency.labels(status=status).observe(time.perf_counter() - start_time)
+        rag_indexes_update_document_latency.labels(status=status).observe(
+            time.perf_counter() - start_time
+        )
+
 
 @app.post(
     "/indexes/{index_name}/documents/delete",
@@ -553,11 +592,10 @@ async def delete_documents_in_index(
 ):
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
-    
+
     try:
         result = await rag_ops.delete_documents(
-            index_name=index_name,
-            doc_ids=request.doc_ids
+            index_name=index_name, doc_ids=request.doc_ids
         )
         status = STATUS_SUCCESS
         return result
@@ -568,7 +606,10 @@ async def delete_documents_in_index(
     finally:
         # Record metrics once in finally block
         rag_indexes_delete_document_requests_total.labels(status=status).inc()
-        rag_indexes_delete_document_latency.labels(status=status).observe(time.perf_counter() - start_time)
+        rag_indexes_delete_document_latency.labels(status=status).observe(
+            time.perf_counter() - start_time
+        )
+
 
 @app.post(
     "/persist/{index_name}",
@@ -589,18 +630,25 @@ async def delete_documents_in_index(
       "message": "Successfully persisted index example_index to ./custom_path/example_index."
     }
     ```
-    """
+    """,
 )
 async def persist_index(
-        index_name: str,
-        path: str = Query(DEFAULT_VECTOR_DB_PERSIST_DIR, description="Path where the index will be persisted")
+    index_name: str,
+    path: str = Query(
+        DEFAULT_VECTOR_DB_PERSIST_DIR,
+        description="Path where the index will be persisted",
+    ),
 ):
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
-    
+
     try:
         # Append index to save path to prevent saving conflicts/overwriting
-        path = os.path.join(path, index_name) if path == DEFAULT_VECTOR_DB_PERSIST_DIR else path
+        path = (
+            os.path.join(path, index_name)
+            if path == DEFAULT_VECTOR_DB_PERSIST_DIR
+            else path
+        )
         await rag_ops.persist(index_name, path)
         status = STATUS_SUCCESS
         return {"message": f"Successfully persisted index {index_name} to {path}."}
@@ -611,7 +659,9 @@ async def persist_index(
     finally:
         # Record metrics once in finally block
         rag_persist_requests_total.labels(status=status).inc()
-        rag_persist_latency.labels(status=status).observe(time.perf_counter() - start_time)
+        rag_persist_latency.labels(status=status).observe(
+            time.perf_counter() - start_time
+        )
 
 
 @app.post(
@@ -633,20 +683,22 @@ async def persist_index(
       "message": "Successfully loaded index example_index from ./custom_path/example_index."
     }
     ```
-    """
+    """,
 )
 async def load_index(
-        index_name: str,
-        path: Optional[str] = Query(None, description="Path to load the index from"),
-        overwrite: bool = Query(False, description="Overwrite the existing index if it already exists")
+    index_name: str,
+    path: Optional[str] = Query(None, description="Path to load the index from"),
+    overwrite: bool = Query(
+        False, description="Overwrite the existing index if it already exists"
+    ),
 ):
     # If no path is provided, use the default directory joined with index_name.
     if path is None:
         path = os.path.join(DEFAULT_VECTOR_DB_PERSIST_DIR, index_name)
-    
+
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
-    
+
     try:
         await rag_ops.load(index_name, path, overwrite)
         status = STATUS_SUCCESS
@@ -659,6 +711,7 @@ async def load_index(
         # Record metrics once in finally block
         rag_load_requests_total.labels(status=status).inc()
         rag_load_latency.labels(status=status).observe(time.perf_counter() - start_time)
+
 
 @app.delete(
     "/indexes/{index_name}",
@@ -677,17 +730,17 @@ async def load_index(
       "message": "Successfully deleted index example_index."
     }
     ```
-    """
+    """,
 )
 async def delete_index(index_name: str):
     """
     Deletes an index by its name.
-    
+
     This function is not exposed via an API endpoint but can be used internally.
     """
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
-    
+
     try:
         await rag_ops.delete_index(index_name)
         status = STATUS_SUCCESS
@@ -699,16 +752,21 @@ async def delete_index(index_name: str):
     finally:
         # Record metrics once in finally block
         rag_delete_requests_total.labels(status=status).inc()
-        rag_delete_latency.labels(status=status).observe(time.perf_counter()- start_time)
+        rag_delete_latency.labels(status=status).observe(
+            time.perf_counter() - start_time
+        )
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """ Ensure the client is properly closed when the server shuts down. """
+    """Ensure the client is properly closed when the server shuts down."""
     await rag_ops.shutdown()
+
 
 if __name__ == "__main__":
     # DEBUG: Arize Phoenix
     # import llama_index.core
     # llama_index.core.set_global_handler("arize_phoenix")
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=5000, loop="asyncio")

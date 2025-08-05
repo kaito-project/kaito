@@ -23,13 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+
       - name: Ruff linter
-      - uses: astral-sh/ruff-action@v3
+        uses: astral-sh/ruff-action@v3
         with:
           # Update output format to enable automatic inline annotations.
           args: check --output-format=github .
 
       # Check formatting without making changes.
       - name: Ruff format check
-      - run: ruff format --check .
+        run: ruff format --check .
 

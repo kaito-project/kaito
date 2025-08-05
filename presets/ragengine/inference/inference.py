@@ -22,7 +22,7 @@ from llama_index.core.llms.callbacks import llm_completion_callback, llm_chat_ca
 import requests
 from requests.exceptions import HTTPError
 from urllib.parse import urlparse, urljoin
-from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET #, LLM_RESPONSE_FIELD
+from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET, LLM_CONTEXT_WINDOW #, LLM_RESPONSE_FIELD
 from ragengine.models import ChatCompletionResponse
 from fastapi import HTTPException
 import concurrent.futures
@@ -307,7 +307,10 @@ class Inference(CustomLLM):
         """Get LLM metadata."""
         parsed_url = urlparse(LLM_INFERENCE_URL)
         path = parsed_url.path.lower()
-        return LLMMetadata(is_chat_model="/chat/completions" in path)
+        return LLMMetadata(
+            is_chat_model="/chat/completions" in path,
+            context_window=self.get_param("max_tokens", LLM_CONTEXT_WINDOW),
+        )
 
     async def aclose(self):
         """ Closes the HTTP client when shutting down. """

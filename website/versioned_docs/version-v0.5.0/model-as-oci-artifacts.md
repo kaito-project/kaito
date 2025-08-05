@@ -1,41 +1,73 @@
 ---
 title: Model As OCI Artifacts
-description: Distribute LLM model files as OCI artifacts for efficient packaging and deployment
+description: Efficiently distribute Large Language Models using Open Container Initiative (OCI) Artifacts
 ---
 
 # Model As OCI Artifacts
 
-KAITO supports distributing Large Language Model (LLM) files as Open Container Initiative (OCI) artifacts, providing a scalable and efficient alternative for model packaging and deployment.
+The exponential growth and adoption of Large Language Models (LLMs) have revolutionized AI-driven applications across industries. However, distributing these models effectively remains a significant challenge. KAITO addresses this challenge by supporting the distribution of model weights as OCI Artifacts, offering a scalable and efficient alternative to traditional containerized model distribution.
 
 ## Overview
 
-As Large Language Models continue to grow in size and complexity, traditional containerized distribution approaches face significant challenges. The Model As OCI Artifacts feature addresses these challenges by separating model files from runtime containers, enabling more efficient builds, faster deployments, and better maintainability.
+Currently, KAITO employs a solution where the runtime library and model weights are packaged within a single container image. This method ensures a reliable and self-contained environment, particularly effective for distributing small models. However, as large language models grow, bundling them within containerized images becomes impractical.
 
-## Benefits
+Using Open Container Initiative (OCI) Artifacts offers a scalable and efficient alternative for packaging and deployment of large model weights.
 
-### Reduced Build Times
-- **Faster Image Builds**: Eliminate the need to rebuild entire images when only runtime components change
-- **Parallel Development**: Model files and runtime components can be updated independently
-- **Efficient CI/CD**: Reduce overall build pipeline duration from hours to minutes
+## Why OCI Artifacts?
 
-### Improved Performance
-- **Faster Downloads**: Leverage OCI registry optimizations for concurrent downloads
-- **Better Compression**: Use advanced compression algorithms like Zstd for superior performance
-- **Optimized Storage**: Reduce registry storage requirements through deduplication
+### Image Building Challenges
 
-### Enhanced Maintainability
-- **Simplified Updates**: Update runtime libraries without touching model files
-- **Version Management**: Independently version model files and runtime components
-- **Registry Efficiency**: Better utilize OCI registry features and optimizations
+Traditional containerized model distribution faces several challenges:
 
-## How It Works
+- **Build Time**: With KAITO hosting multiple preset models, base images are frequently updated due to vulnerability fixes and feature requests. Each time the base image is updated, every model image needs to be rebuilt.
+- **Build Context Size**: Although model weights remain unchanged, Docker image builds are time-consuming because large files are included in the build context unnecessarily.
+- **Resource Intensive**: Building larger models like Falcon-40B can take nearly 2 hours to complete.
 
-The Model As OCI Artifacts feature splits the traditional monolithic approach into two components:
+### Image Pulling Inefficiency
 
-1. **Base Runtime Image**: Contains the inference server and dependencies
-2. **Model OCI Artifacts**: Contains the model files packaged as OCI artifacts
+Image pulling is also time-consuming, even for smaller models:
 
-### Architecture
+- **Serial Processing**: All model weights are packed into a single image layer, which limits download concurrency
+- **Unpacking Bottleneck**: Container layer unpacking remains a serial process, creating performance bottlenecks
+- **Limited Bandwidth Usage**: Current approach doesn't optimize bandwidth usage through concurrency
+
+#### Container Pull Process Analysis
+
+When containerd pulls an image, the operation consists of four phases:
+
+1. **Downloading** layer data from the registry
+2. **Decompressing** the layer if necessary  
+3. **Checking** sha256 digest
+4. **Unpacking** the layer, applying changes to the snapshot
+
+Testing reveals that the download phase accounts for only 30% of the total time, highlighting the importance of optimizing the subsequent phases.
+
+## Solution: OCI Artifacts
+
+The Model As OCI Artifacts feature addresses these challenges through several optimizations:
+
+### 1. Build Image Using ORAS Push
+
+Instead of sending large model weights to docker builder context, KAITO uses [ORAS](https://github.com/oras-project/oras) to add model weights and configuration files to OCI layout assembly. This achieves the same result as `docker build` but is much more efficient.
+
+### 2. Improved Compression
+
+Zstd compression is used instead of gzip, providing better decompression performance for large files like model weights.
+
+### 3. Split Architecture
+
+The containerized solution is split into two parts:
+
+- **Base Image**: Contains the inference runtime and dependencies
+- **OCI Artifacts**: Contains the model weights and configuration files
+
+This allows model images to be built once and reused across base image updates.
+
+## Architecture
+
+### Model Weights Download Process
+
+The system uses an [initContainer](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) to download model weights as OCI artifacts using ORAS:
 
 ```mermaid
 sequenceDiagram
@@ -46,157 +78,73 @@ sequenceDiagram
 
     CR->>CR: Pull Base Image
     CR->>IC: Start InitContainer
-    IC->>IC: Pull Model Files as OCI Artifacts using ORAS
-    IC->>PV: Store Model Files
+    IC->>IC: Pull Model Weights as OCI Artifacts using ORAS
+    IC->>PV: Store Model Weights
     IC->>CR: Complete
     CR->>IS: Start Main Inference Container
-    IS->>PV: Load Model Files
+    IS->>PV: Load Model Weights
     IS->>IS: Inference Server Ready
 ```
 
-### Process Flow
 
-1. **Container Startup**: The container runtime pulls the lightweight base image
-2. **Model Download**: An initContainer uses ORAS to download model files as OCI artifacts
-3. **Storage**: Model files are stored in a persistent volume
-4. **Inference**: The main container loads models from the persistent volume
 
-## Performance Comparison
+### OCI Artifacts vs OCI Images
 
-Our testing shows significant improvements across different configurations:
+The Open Container Initiative (OCI) defines specifications and standards for container technologies, including the OCI Distribution Specification. OCI Image Manifests have a required field `config.mediaType` that differentiates between various types of artifacts.
+
+- **OCI Image**: A subset of OCI artifacts, accepting only specific mediatypes
+- **OCI Artifacts**: More general format that can contain various types of content including model weights
+
+ORAS (OCI Registry As Storage) is the tool used for managing OCI artifacts, including pushing, pulling, and handling metadata in OCI registries.
+
+### Alternative Approaches for Large Models
+
+For extremely large models that may not be practical to package as OCI artifacts due to size constraints, KAITO also supports:
+
+- **Direct Download from Hugging Face**: Models can be downloaded directly from Hugging Face Hub during pod initialization for models that exceed registry limitations
+- **External Model Caching**: Integration with external model caching solutions for improved performance with very large models
+
+## Compatibility
+
+### Container Runtimes
+
+- **CRI-O**: Supports general OCI artifacts
+- **Containerd**: Limited support for OCI artifacts (see [containerd issue](https://github.com/containerd/containerd/issues/11381#issuecomment-2917050414))
+
+### OCI Registries
+
+Most OCI registries support OCI artifacts. For a complete list of compatible registries, see the [ORAS compatibility documentation](https://oras.land/docs/compatible_oci_registries#registries-supporting-oci-artifacts).
+
+## Benefits
+
+### Performance Improvements
+
+- **Reduced Build Time**: Model images only need to be built once
+- **Faster Pulls**: Improved download concurrency and compression
+- **Better Resource Usage**: Optimized bandwidth utilization
+
+### Operational Benefits
+
+- **Simplified Maintenance**: Base image updates don't require rebuilding all model images
+- **Storage Efficiency**: Better compression ratios with zstd
+- **Scalability**: More efficient handling of large model files
+
+## Performance Results
+
+Testing on Standard_NC24s_v3 with phi4 model shows significant improvements:
 
 ![Model as OCI Artifacts Evaluation](/img/model-as-oci-artifacts-evaluation.png)
 
-### Test Results
+The evaluation compared different configurations:
 
-| Configuration | Description | Performance Impact |
-|---------------|-------------|-------------------|
-| **Baseline** | Single-layer image with gzip compression | Current approach |
-| **Multi-layer** | Split model files into individual layers | Improved download concurrency |
-| **OCI Artifacts** | Base image + separate OCI artifacts | Best overall performance |
+| Configuration | Description | Benefits |
+|---------------|-------------|----------|
+| Baseline (single-layer-tar-gz) | Current approach with all files in one layer | Simple, self-contained |
+| OCI Artifacts | Base image + separate model artifacts | Reduced build time, better performance |
 
-The OCI artifacts approach provides the optimal balance of build efficiency, download performance, and maintenance simplicity.
+## Getting Started
 
-## Registry Compatibility
+The Model As OCI Artifacts feature is automatically used for supported models when available. No additional configuration is required for basic usage.
 
-Model As OCI Artifacts is compatible with most OCI-compliant registries, including:
+For advanced configurations or troubleshooting, refer to the KAITO documentation and the [original proposal](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250609-model-as-oci-artifacts.md) for detailed technical specifications.
 
-- Azure Container Registry (ACR)
-- Amazon Elastic Container Registry (ECR)
-- Google Container Registry (GCR)
-- Docker Hub
-- Harbor
-- Other OCI-compliant registries
-
-For the most up-to-date compatibility information, see the [ORAS registry compatibility list](https://oras.land/docs/compatible_oci_registries#registries-supporting-oci-artifacts).
-
-## Implementation Details
-
-### Technical Requirements
-
-- **Container Runtime**: cri-o (full OCI artifacts support) or containerd (with ORAS for artifact handling)
-- **Registry**: OCI artifacts-compatible registry
-- **Storage**: Persistent volumes for model file storage
-- **Network**: Reliable connectivity to OCI registry
-
-### Configuration
-
-The feature uses initContainers with ORAS to download model artifacts:
-
-```yaml
-initContainers:
-- name: model-downloader
-  image: ghcr.io/oras-project/oras:latest
-  command: ["oras", "pull", "registry.example.com/models/phi-4:latest"]
-  volumeMounts:
-  - name: model-storage
-    mountPath: /models
-```
-
-### Monitoring
-
-Key metrics to monitor when using OCI artifacts:
-
-- `kaito_model_download_duration_seconds`: Time taken to download model files
-- `kaito_model_download_failures_total`: Count of failed model downloads
-- `kaito_pod_ready_duration_seconds`: Time from pod creation to ready state
-
-## Best Practices
-
-### Registry Configuration
-- Use registries close to your compute resources for optimal performance
-- Configure appropriate retention policies for model artifacts
-- Implement proper access controls and authentication
-
-### Storage Management
-- Allocate sufficient persistent volume space for model files
-- Consider using high-performance storage classes for faster model loading
-- Implement cleanup policies for unused model files
-
-### Security Considerations
-- Use private registries for proprietary models
-- Implement proper RBAC for model artifact access
-- Regularly update base images for security patches
-
-## Troubleshooting
-
-### Common Issues
-
-**Model Download Failures**
-- Verify registry connectivity and authentication
-- Check persistent volume availability and permissions
-- Review initContainer logs for detailed error information
-
-**Slow Model Loading**
-- Ensure adequate storage I/O performance
-- Verify network bandwidth to registry
-- Consider using faster compression algorithms
-
-**Storage Issues**
-- Monitor persistent volume capacity
-- Implement cleanup for old model versions
-- Check storage class performance characteristics
-
-### Monitoring and Diagnostics
-
-Use the following commands to diagnose issues:
-
-```bash
-# Check initContainer logs
-kubectl logs <pod-name> -c model-downloader
-
-# Verify persistent volume status
-kubectl get pv,pvc
-
-# Check model artifact status
-oras discover <registry>/<model>:<tag>
-```
-
-## Migration Guide
-
-### From Traditional Images
-
-1. **Prepare Registry**: Ensure your OCI registry supports artifacts
-2. **Update Configurations**: Modify pod specifications to include model download initContainers
-3. **Test Deployment**: Validate the new approach in staging environments
-4. **Monitor Performance**: Track download times and overall pod startup duration
-
-### Rollback Considerations
-
-- Keep traditional images available during transition period
-- Monitor key performance metrics during rollout
-- Have rollback procedures documented and tested
-
-## Future Enhancements
-
-The Model As OCI Artifacts feature is continuously evolving. Future improvements may include:
-
-- **Native Kubernetes Support**: Integration with emerging Kubernetes OCI artifact features
-- **Advanced Caching**: Intelligent model caching across nodes
-- **Streaming Downloads**: Progressive model loading for faster startup times
-- **Multi-Registry Support**: Automatic failover between multiple registries
-
-## Related Documentation
-
-- [OCI Artifacts Proposal](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250609-model-as-oci-artifacts.md) - Technical details and implementation rationale
-- [ORAS Documentation](https://oras.land/docs/) - OCI artifacts tooling

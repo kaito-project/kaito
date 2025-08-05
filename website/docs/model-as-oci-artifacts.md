@@ -5,13 +5,13 @@ description: Efficiently distribute Large Language Models using Open Container I
 
 # Model As OCI Artifacts
 
-The exponential growth and adoption of Large Language Models (LLMs) have revolutionized AI-driven applications across industries. However, distributing these models effectively remains a significant challenge. KAITO addresses this challenge by supporting the distribution of model files as OCI Artifacts, offering a scalable and efficient alternative to traditional containerized model distribution.
+The exponential growth and adoption of Large Language Models (LLMs) have revolutionized AI-driven applications across industries. However, distributing these models effectively remains a significant challenge. KAITO addresses this challenge by supporting the distribution of model weights as OCI Artifacts, offering a scalable and efficient alternative to traditional containerized model distribution.
 
 ## Overview
 
-Currently, KAITO employs a solution where the runtime library and model files are packaged within a single container image. This method ensures a reliable and self-contained environment, particularly effective for distributing small models. However, as large language models grow, bundling them within containerized images becomes impractical.
+Currently, KAITO employs a solution where the runtime library and model weights are packaged within a single container image. This method ensures a reliable and self-contained environment, particularly effective for distributing small models. However, as large language models grow, bundling them within containerized images becomes impractical.
 
-Using Open Container Initiative (OCI) Artifacts offers a scalable and efficient alternative for packaging and deployment of large model files.
+Using Open Container Initiative (OCI) Artifacts offers a scalable and efficient alternative for packaging and deployment of large model weights.
 
 ## Why OCI Artifacts?
 
@@ -20,14 +20,14 @@ Using Open Container Initiative (OCI) Artifacts offers a scalable and efficient 
 Traditional containerized model distribution faces several challenges:
 
 - **Build Time**: With KAITO hosting multiple preset models, base images are frequently updated due to vulnerability fixes and feature requests. Each time the base image is updated, every model image needs to be rebuilt.
-- **Build Context Size**: Although model files remain unchanged, Docker image builds are time-consuming because large files are included in the build context unnecessarily.
+- **Build Context Size**: Although model weights remain unchanged, Docker image builds are time-consuming because large files are included in the build context unnecessarily.
 - **Resource Intensive**: Building larger models like Falcon-40B can take nearly 2 hours to complete.
 
 ### Image Pulling Inefficiency
 
 Image pulling is also time-consuming, even for smaller models:
 
-- **Serial Processing**: All model files are packed into a single image layer, which limits download concurrency
+- **Serial Processing**: All model weights are packed into a single image layer, which limits download concurrency
 - **Unpacking Bottleneck**: Container layer unpacking remains a serial process, creating performance bottlenecks
 - **Limited Bandwidth Usage**: Current approach doesn't optimize bandwidth usage through concurrency
 
@@ -48,7 +48,7 @@ The Model As OCI Artifacts feature addresses these challenges through several op
 
 ### 1. Build Image Using ORAS Push
 
-Instead of sending large model files to docker builder context, KAITO uses [ORAS](https://github.com/oras-project/oras) to add model weights and configuration files to OCI layout assembly. This achieves the same result as `docker build` but is much more efficient.
+Instead of sending large model weights to docker builder context, KAITO uses [ORAS](https://github.com/oras-project/oras) to add model weights and configuration files to OCI layout assembly. This achieves the same result as `docker build` but is much more efficient.
 
 ### 2. Improved Compression
 
@@ -65,32 +65,9 @@ This allows model images to be built once and reused across base image updates.
 
 ## Architecture
 
-### Model Files Download Process
+### Model Weights Download Process
 
-The system uses an [initContainer](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) to download model files as OCI artifacts using ORAS:
-
-```mermaid
-sequenceDiagram
-    participant CR as Container Runtime
-    participant IC as InitContainer
-    participant PV as Persistent Volume
-    participant IS as Inference Server
-
-    CR->>CR: Pull Base Image
-    CR->>IC: Start InitContainer
-    IC->>IC: Pull Model Files as OCI Artifacts using ORAS
-    IC->>PV: Store Model Files
-    IC->>CR: Complete
-    CR->>IS: Start Main Inference Container
-    IS->>PV: Load Model Files
-    IS->>IS: Inference Server Ready
-```
-
-## Architecture
-
-### Model Files Download Process
-
-The system uses an [initContainer](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) to download model files as OCI artifacts using ORAS:
+The system uses an [initContainer](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) to download model weights as OCI artifacts using ORAS:
 
 ```mermaid
 sequenceDiagram
@@ -101,20 +78,22 @@ sequenceDiagram
 
     CR->>CR: Pull Base Image
     CR->>IC: Start InitContainer
-    IC->>IC: Pull Model Files as OCI Artifacts using ORAS
-    IC->>PV: Store Model Files
+    IC->>IC: Pull Model Weights as OCI Artifacts using ORAS
+    IC->>PV: Store Model Weights
     IC->>CR: Complete
     CR->>IS: Start Main Inference Container
-    IS->>PV: Load Model Files
+    IS->>PV: Load Model Weights
     IS->>IS: Inference Server Ready
 ```
+
+
 
 ### OCI Artifacts vs OCI Images
 
 The Open Container Initiative (OCI) defines specifications and standards for container technologies, including the OCI Distribution Specification. OCI Image Manifests have a required field `config.mediaType` that differentiates between various types of artifacts.
 
 - **OCI Image**: A subset of OCI artifacts, accepting only specific mediatypes
-- **OCI Artifacts**: More general format that can contain various types of content including model files
+- **OCI Artifacts**: More general format that can contain various types of content including model weights
 
 ORAS (OCI Registry As Storage) is the tool used for managing OCI artifacts, including pushing, pulling, and handling metadata in OCI registries.
 
@@ -169,8 +148,3 @@ The Model As OCI Artifacts feature is automatically used for supported models wh
 
 For advanced configurations or troubleshooting, refer to the KAITO documentation and the [original proposal](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250609-model-as-oci-artifacts.md) for detailed technical specifications.
 
-## Next Steps
-
-- Monitor model download success rates and pod startup times
-- Implement metrics for observability (`kaito_model_download_duration_seconds`, `kaito_model_download_failures_total`)
-- Continue optimizing the download and unpacking process based on real-world usage patterns

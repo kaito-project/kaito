@@ -627,6 +627,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p1",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -643,6 +644,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p2",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor2",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -659,6 +661,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p3",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -698,6 +701,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p1",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -712,6 +716,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p2",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor2",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -743,6 +748,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p1",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -757,6 +763,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p2",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor2",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -776,7 +783,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
-			expectedError: errors.New("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: [], not ready nodes: [node-p2], nodes missing label: []"),
+			expectedError: errors.New("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: [], not ready nodes: [node-p2], nodes missing label or do not exist: []"),
 			expectedNodes: nil,
 			disableNAP:    true,
 		},
@@ -789,6 +796,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p1",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -803,6 +811,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p2",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor2",
+								"apps":                         "test",
 							},
 							DeletionTimestamp: &deletingTime,
 						},
@@ -827,7 +836,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 				ws.Resource.PreferredNodes = []string{"node-p1", "node-p2"}
 				return ws
 			}(),
-			expectedError: errors.New("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: [node-p2], not ready nodes: [], nodes missing label: []"),
+			expectedError: errors.New("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: [node-p2], not ready nodes: [], nodes missing label or do not exist: []"),
 			expectedNodes: nil,
 			disableNAP:    true,
 		},
@@ -839,6 +848,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p1",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -858,7 +868,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
-			expectedError: errors.New("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: [], not ready nodes: [], nodes missing label: [node-p2]"),
+			expectedError: errors.New("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: [], not ready nodes: [], nodes missing label or do not exist: [node-p2]"),
 			expectedNodes: nil,
 			disableNAP:    true,
 		},

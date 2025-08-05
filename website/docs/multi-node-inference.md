@@ -88,6 +88,16 @@ Pre-provisioned nodes must have the same matching labels as specified in the `re
 You can customize vLLM runtime parameters for distributed inference using a ConfigMap:
 
 ```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: distributed-inference-config
+data:
+  inference_config.yaml: |
+    vllm:
+      gpu-memory-utilization: 0.95
+      max-model-len: 131072
+---
 apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
@@ -102,16 +112,6 @@ inference:
   preset:
     name: "llama-3.3-70b-instruct"
   config: "distributed-inference-config"
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: distributed-inference-config
-data:
-  inference_config.yaml: |
-    vllm:
-      gpu-memory-utilization: 0.95
-      max-model-len: 131072
 ```
 
 Key parameters for multi-node inference:

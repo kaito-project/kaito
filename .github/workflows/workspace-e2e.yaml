@@ -25,7 +25,7 @@ jobs:
       contents: read
       id-token: write
       statuses: write
-    uses: ./.github/workflows/e2e-workflow.yml
+    uses: ./.github/workflows/e2e-workflow.yaml
     with:
       git_sha: ${{ github.event.pull_request.head.sha }}
       node_provisioner: ${{ matrix.node-provisioner }}

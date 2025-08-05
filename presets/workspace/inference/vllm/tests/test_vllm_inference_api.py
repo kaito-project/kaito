@@ -21,14 +21,14 @@ from pathlib import Path
 import pytest
 import requests
 
+from inference_api import binary_search_with_limited_steps, KaitoConfig
+from huggingface_hub import snapshot_download
+import shutil
+
 # Get the parent directory of the current file
 parent_dir = str(Path(__file__).resolve().parent.parent)
 # Add the parent directory to sys.path
 sys.path.append(parent_dir)
-
-from inference_api import binary_search_with_limited_steps, KaitoConfig
-from huggingface_hub import snapshot_download
-import shutil
 
 TEST_MODEL = "facebook/opt-125m"
 TEST_ADAPTER_NAME1 = "mylora1"

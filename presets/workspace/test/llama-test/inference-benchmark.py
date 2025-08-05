@@ -21,7 +21,7 @@ from datetime import datetime
 def is_file_empty(filename):
     try:
         return not bool(len(open(filename).readline()))
-    except:
+    except FileNotFoundError:
         return True
 
 

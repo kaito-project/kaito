@@ -17,9 +17,6 @@ from typing import Dict, List, Any
 from ragengine.models import Document
 from ragengine.vector_store.base import BaseVectorStore
 
-from openai.types.chat import (
-    CompletionCreateParams,
-)
 
 class VectorStoreManager:
     def __init__(self, vector_store: BaseVectorStore):

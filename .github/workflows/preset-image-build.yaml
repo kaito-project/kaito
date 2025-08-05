@@ -75,6 +75,40 @@ jobs:
             echo "is_empty=false" >> $GITHUB_OUTPUT
           fi
 
+  scan-baseos-image:
+    name: Scan preset base os image
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_REF: "test/preset-tfs:latest"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Build image from Dockerfile
+        env:
+          OUTPUT_TYPE: type=docker
+          IMAGE_REF: ${{ env.IMAGE_REF }}
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --output="${OUTPUT_TYPE}" \
+            -t "${IMAGE_REF}" \
+            --build-arg VERSION="v0.0.1" \
+            --build-arg MODEL_TYPE="text-generation" \
+            --target dependencies \
+            -f docker/presets/models/tfs/Dockerfile ../
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@76071ef0d7ec797419534a183b498b4d6366cf37 # v0.31.0
+        with:
+          image-ref: "${{ env.IMAGE_REF }}"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN"
+          scanners: "vuln"
+
   build-models:
     needs: determine-models
     if: needs.determine-models.outputs.is_matrix_empty == 'false'

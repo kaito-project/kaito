@@ -25,7 +25,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -95,6 +94,14 @@ func TestFetchGPUCountFromNodes(t *testing.T) {
 			expectErr:   true,
 			expectedErr: "no worker nodes found in the workspace",
 		},
+		{
+			name:        "Node not found",
+			nodeNames:   []string{"non-existent-node"},
+			nodes:       []runtime.Object{node1, node2},
+			expectedGPU: 0,
+			expectErr:   true,
+			expectedErr: "failed to get node non-existent-node: nodes \"non-existent-node\" not found",
+		},
 	}
 
 	for _, tt := range tests {
@@ -103,16 +110,10 @@ func TestFetchGPUCountFromNodes(t *testing.T) {
 			s := scheme.Scheme
 			s.AddKnownTypes(corev1.SchemeGroupVersion, &corev1.Node{}, &corev1.NodeList{})
 
-			// Create an indexer function for the "metadata.name" field
-			indexFunc := func(obj client.Object) []string {
-				return []string{obj.(*corev1.Node).Name}
-			}
-
 			// Build the fake client with the indexer
 			kubeClient := fake.NewClientBuilder().
 				WithScheme(s).
 				WithRuntimeObjects(tt.nodes...).
-				WithIndex(&corev1.Node{}, "metadata.name", indexFunc).
 				Build()
 
 			// Call the function

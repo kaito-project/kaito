@@ -23,6 +23,8 @@ func NewAzureSKUHandler() CloudSKUHandler {
 		{SKU: "Standard_NC8as_T4_v3", GPUCount: 1, GPUMemGB: 16, GPUModel: "NVIDIA T4"},
 		{SKU: "Standard_NC16as_T4_v3", GPUCount: 1, GPUMemGB: 16, GPUModel: "NVIDIA T4"},
 		{SKU: "Standard_NC64as_T4_v3", GPUCount: 4, GPUMemGB: 64, GPUModel: "NVIDIA T4"},
+		{SKU: "Standard_NV36ads_A10_v5", GPUCount: 1, GPUMemGB: 24, GPUModel: "NVIDIA A10"},
+		{SKU: "Standard_NV72ads_A10_v5", GPUCount: 2, GPUMemGB: 48, GPUModel: "NVIDIA A10"},
 		{SKU: "Standard_NC24ads_A100_v4", GPUCount: 1, GPUMemGB: 80, GPUModel: "NVIDIA A100", NVMeDiskEnabled: true},
 		{SKU: "Standard_NC48ads_A100_v4", GPUCount: 2, GPUMemGB: 160, GPUModel: "NVIDIA A100", NVMeDiskEnabled: true},
 		{SKU: "Standard_NC96ads_A100_v4", GPUCount: 4, GPUMemGB: 320, GPUModel: "NVIDIA A100", NVMeDiskEnabled: true},

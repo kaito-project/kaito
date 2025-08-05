@@ -29,6 +29,21 @@ models:
     # Tag history:
     # 0.0.1 - Initial Release
 
+  - name: deepseek-r1-0528
+    type: text-generation
+    version: https://huggingface.co/deepseek-ai/DeepSeek-R1-0528/commit/4236a6af538feda4548eca9ab308586007567f52
+    runtime: tfs
+    downloadAtRuntime: true
+    tag: 0.0.1
+  - name: deepseek-v3-0324
+    type: text-generation
+    version: https://huggingface.co/deepseek-ai/DeepSeek-V3-0324/commit/e9b33add76883f293d6bf61f6bd89b497e80e335
+    runtime: tfs
+    downloadAtRuntime: true
+    tag: 0.0.1
+    # Tag history:
+    # 0.0.1 - Initial Release
+
   # Falcon
   - name: falcon-7b
     type: text-generation

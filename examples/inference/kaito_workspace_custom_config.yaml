@@ -1,17 +1,3 @@
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  name: workspace-deepseek-r1-distill-qwen-14b
-resource:
-  instanceType: "Standard_NC24ads_A100_v4"
-  labelSelector:
-    matchLabels:
-      apps: deepseek-r1-distill-qwen-14b
-inference:
-  preset:
-    name: "deepseek-r1-distill-qwen-14b"
-  config: "ds-inference-params"
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -32,3 +18,17 @@ data:
       num-scheduler-steps: 1
       enable-chunked-prefill: true
       # see https://docs.vllm.ai/en/latest/serving/engine_args.html for more options.
+---
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-deepseek-r1-distill-qwen-14b
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: deepseek-r1-distill-qwen-14b
+inference:
+  preset:
+    name: "deepseek-r1-distill-qwen-14b"
+  config: "ds-inference-params"

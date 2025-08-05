@@ -21,6 +21,8 @@ The following preset models are configured to support tool calling:
 - `mistral-7b-instruct`
 - `qwen2.5-coder-7b-instruct`
 - `qwen2.5-coder-32b-instruct`
+- `deepseek-r1-0528`
+- `deepseek-v3-0324`
 
 
 For more details on the inference configuration, refer to [vLLM tool calling documentation](https://docs.vllm.ai/en/latest/features/tool_calling.html).

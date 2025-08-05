@@ -80,21 +80,6 @@ Multi-node distributed inference is currently supported only with the vLLM runti
 Users can customize vLLM runtime parameters by creating a ConfigMap containing an `inference_config.yaml` file and referencing it in the workspace spec. For example:
 
 ```yaml
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  namespace: myns
-  name: workspace-example
-resource:
-  instanceType: "Standard_NC24ads_A100_v4"
-  labelSelector:
-    matchLabels:
-      apps: example
-inference:
-  preset:
-    name: "example-model"
-  config: "my-inference-params"  # Reference to ConfigMap name
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -109,6 +94,21 @@ data:
       max-model-len: 131072         # Maximum sequence length
       swap-space: 4                 # CPU swap space in GB
       cpu-offload-gb: 0             # Amount of GPU memory to offload to CPU
+---
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  namespace: myns
+  name: workspace-example
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: example
+inference:
+  preset:
+    name: "example-model"
+  config: "my-inference-params"  # Reference to ConfigMap name
 ```
 
 Key vLLM parameters include:

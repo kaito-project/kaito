@@ -58,6 +58,16 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if len(errmsgs) > 0 {
 		errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "name"))
 	}
+
+	// Check if node auto-provisioning is disabled and validate preferred nodes
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		if len(w.Resource.PreferredNodes) != *w.Resource.Count {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("When node auto-provisioning is disabled, the number of preferred nodes (%d) must match the count (%d)",
+					len(w.Resource.PreferredNodes), *w.Resource.Count), "preferredNodes"))
+		}
+	}
+
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
@@ -293,15 +303,6 @@ func (r *DataDestination) validateUpdate() (errs *apis.FieldError) {
 }
 
 func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.FieldError) {
-	// Check if node auto-provisioning is disabled and validate preferred nodes
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		if len(r.PreferredNodes) != *r.Count {
-			errs = errs.Also(apis.ErrInvalidValue(
-				fmt.Sprintf("When node auto-provisioning is disabled, the number of preferred nodes (%d) must match the count (%d)",
-					len(r.PreferredNodes), *r.Count), "preferredNodes"))
-		}
-	}
-
 	if *r.Count > 1 {
 		errs = errs.Also(apis.ErrInvalidValue("Tuning does not currently support multinode configurations. Please set the node count to 1. Future support with DeepSpeed will allow this.", "count"))
 	}
@@ -309,15 +310,6 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 }
 
 func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName) (errs *apis.FieldError) {
-	// Check if node auto-provisioning is disabled and validate preferred nodes
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		if len(r.PreferredNodes) != *r.Count {
-			errs = errs.Also(apis.ErrInvalidValue(
-				fmt.Sprintf("When node auto-provisioning is disabled, the number of preferred nodes (%d) must match the count (%d)",
-					len(r.PreferredNodes), *r.Count), "preferredNodes"))
-		}
-	}
-
 	var presetName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))

@@ -487,7 +487,7 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 		// Since we remove a preferredNode from the preferredNodeSet if we've seen it in the list of nodes matching the label,
 		// anything node left in the set means it does not match the label selector and we can surface an error.
 		if len(deletingPreferredNodes)+len(notReadyNodes)+preferredNodeSet.Len() > 0 {
-			return nil, fmt.Errorf("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: %+v, not ready nodes: %+v, nodes missing label: %+v", deletingPreferredNodes, notReadyNodes, preferredNodeSet.UnsortedList())
+			return nil, fmt.Errorf("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: %+v, not ready nodes: %+v, nodes missing label or do not exist: %+v", deletingPreferredNodes, notReadyNodes, preferredNodeSet.UnsortedList())
 		}
 	}
 

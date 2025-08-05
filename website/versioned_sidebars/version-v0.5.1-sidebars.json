@@ -23,7 +23,8 @@
         "tuning",
         "rag",
         "custom-model",
-        "tool-calling"
+        "tool-calling",
+        "model-as-oci-artifacts"
       ]
     },
     {

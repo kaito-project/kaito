@@ -47,6 +47,7 @@ const sidebars = {
                 'rag',
                 'custom-model',
                 'tool-calling',
+                'model-as-oci-artifacts',
                 'headlamp-kaito',
             ],
         },

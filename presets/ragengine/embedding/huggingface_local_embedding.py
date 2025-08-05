@@ -11,18 +11,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, List, Union
 import time
 from io import BytesIO
+from typing import Any
+
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-from .base import BaseEmbeddingModel
+
 from ragengine.metrics.prometheus_metrics import (
-    rag_embedding_requests_total,
-    rag_embedding_latency,
-    STATUS_SUCCESS,
-    STATUS_FAILURE,
     MODE_LOCAL,
+    STATUS_FAILURE,
+    STATUS_SUCCESS,
+    rag_embedding_latency,
+    rag_embedding_requests_total,
 )
+
+from .base import BaseEmbeddingModel
 
 
 class LocalHuggingFaceEmbedding(HuggingFaceEmbedding, BaseEmbeddingModel):
@@ -30,9 +33,9 @@ class LocalHuggingFaceEmbedding(HuggingFaceEmbedding, BaseEmbeddingModel):
 
     def _embed_with_retry(
         self,
-        inputs: List[Union[str, BytesIO]],
+        inputs: list[str | BytesIO],
         prompt_name: Any = None,
-    ) -> List[List[float]]:
+    ) -> list[list[float]]:
         start_time = time.perf_counter()
         status = STATUS_FAILURE  # Default to failure
 

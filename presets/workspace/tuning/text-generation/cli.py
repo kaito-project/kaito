@@ -13,7 +13,7 @@
 
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import torch
 from peft import LoraConfig
@@ -47,7 +47,7 @@ DEFAULT_TARGET_MODULES = (
 
 @dataclass
 class ExtDataCollator(DataCollatorForLanguageModeling):
-    tokenizer: Optional[PreTrainedTokenizer] = field(
+    tokenizer: PreTrainedTokenizer | None = field(
         default=PreTrainedTokenizer,
         metadata={"help": "Tokenizer for DataCollatorForLanguageModeling"},
     )
@@ -62,19 +62,19 @@ class ExtLoraConfig(LoraConfig):
     init_lora_weights: bool = field(
         default=True, metadata={"help": "Enable initialization of LoRA weights"}
     )
-    target_modules: Optional[List[str]] = field(
+    target_modules: list[str] | None = field(
         default_factory=lambda: DEFAULT_TARGET_MODULES
         if DEFAULT_TARGET_MODULES
         else None,
         metadata={"help": "List of module names to replace with LoRA."},
     )
-    layers_to_transform: Optional[List[int]] = field(
+    layers_to_transform: list[int] | None = field(
         default=None, metadata={"help": "Layer indices to apply LoRA"}
     )
-    layers_pattern: Optional[List[str]] = field(
+    layers_pattern: list[str] | None = field(
         default=None, metadata={"help": "Pattern to match layers for LoRA"}
     )
-    loftq_config: Dict[str, any] = field(
+    loftq_config: dict[str, any] = field(
         default_factory=dict, metadata={"help": "LoftQ configuration for quantization"}
     )
 
@@ -85,13 +85,13 @@ class DatasetConfig:
     Config for Dataset
     """
 
-    dataset_path: Optional[str] = field(
+    dataset_path: str | None = field(
         default=None,
         metadata={
             "help": "Where dataset file is located in the /data folder. This path will be appended to /data. This path should be the absolute path in the image or host."
         },
     )
-    dataset_extension: Optional[str] = field(
+    dataset_extension: str | None = field(
         default=None,
         metadata={
             "help": "Optional explicit file extension of the dataset. If not provided, the extension will be derived from the dataset_path."
@@ -102,7 +102,7 @@ class DatasetConfig:
     )
     shuffle_seed: int = field(default=42, metadata={"help": "Seed for shuffling data"})
     # instruction_column: Optional[str] = field(default=None, metadata={"help": "Optional column for detailed instructions, used in more structured tasks like Alpaca-style setups."}) # Consider including in V2
-    context_column: Optional[str] = field(
+    context_column: str | None = field(
         default=None,
         metadata={
             "help": "Column for additional context or prompts, used for generating responses based on scenarios."
@@ -114,7 +114,7 @@ class DatasetConfig:
             "help": "Main text column for standalone entries or the response part in prompt-response setups."
         },
     )
-    messages_column: Optional[str] = field(
+    messages_column: str | None = field(
         default=None,
         metadata={
             "help": "Column containing structured conversational data in JSON format with roles and content, used for chatbot training."
@@ -134,16 +134,16 @@ class ModelConfig:
     Transformers Model Configuration Parameters
     """
 
-    pretrained_model_name_or_path: Optional[str] = field(
+    pretrained_model_name_or_path: str | None = field(
         default="/workspace/tfs/weights",
         metadata={
             "help": "Path to the pretrained model or model identifier from huggingface.co/models"
         },
     )
-    state_dict: Optional[Dict[str, Any]] = field(
+    state_dict: dict[str, Any] | None = field(
         default=None, metadata={"help": "State dictionary for the model"}
     )
-    cache_dir: Optional[str] = field(
+    cache_dir: str | None = field(
         default=None, metadata={"help": "Cache directory for the model"}
     )
     from_tf: bool = field(
@@ -155,7 +155,7 @@ class ModelConfig:
     resume_download: bool = field(
         default=False, metadata={"help": "Resume an interrupted download"}
     )
-    proxies: Optional[str] = field(
+    proxies: str | None = field(
         default=None, metadata={"help": "Proxy configuration for downloading the model"}
     )
     output_loading_info: bool = field(
@@ -178,13 +178,13 @@ class ModelConfig:
     load_in_8bit: bool = field(
         default=False, metadata={"help": "Load model in 8-bit mode"}
     )
-    torch_dtype: Optional[str] = field(
+    torch_dtype: str | None = field(
         default=None, metadata={"help": "The torch dtype for the pre-trained model"}
     )
     device_map: str = field(
         default="auto", metadata={"help": "The device map for the pre-trained model"}
     )
-    chat_template: Optional[str] = field(
+    chat_template: str | None = field(
         default=None,
         metadata={
             "help": "The file path to the chat template, or the template in single-line form for the specified model"
@@ -231,7 +231,7 @@ class QuantizationConfig(BitsAndBytesConfig):
     llm_int8_threshold: float = field(
         default=6.0, metadata={"help": "LLM.int8 threshold"}
     )
-    llm_int8_skip_modules: List[str] = field(
+    llm_int8_skip_modules: list[str] = field(
         default=None, metadata={"help": "Modules to skip for 8-bit conversion"}
     )
     llm_int8_enable_fp32_cpu_offload: bool = field(

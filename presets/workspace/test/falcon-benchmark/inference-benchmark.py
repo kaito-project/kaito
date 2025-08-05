@@ -11,15 +11,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import csv
 import argparse
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import transformers
-import torch
-from datetime import datetime
+import csv
 import time
 import uuid
+from datetime import datetime
+
+import torch
+import transformers
 from accelerate import Accelerator
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 def get_args():
@@ -100,7 +101,7 @@ pipeline = transformers.pipeline(
 )
 
 
-with open("../common-gpt-questions.csv", "r") as f:
+with open("../common-gpt-questions.csv") as f:
     requests = [line.strip() for line in f.readlines()]
 
 fieldnames = [

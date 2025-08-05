@@ -19,27 +19,29 @@ from pydantic import ValidationError
 import hashlib
 import os
 import asyncio
+import hashlib
+import logging
+import os
+from abc import ABC, abstractmethod
 from itertools import islice
 import uuid
 import time
 
+import aiorwlock
+from fastapi import HTTPException
 from llama_index.core import Document as LlamaDocument
 from llama_index.core import (StorageContext, VectorStoreIndex, load_index_from_storage)
 from llama_index.core.chat_engine.types import ChatMode
 from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
-
+from llama_index.core.storage.docstore import SimpleDocumentStore
 from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
 
 from ragengine.models import Document, ChatCompletionResponse, messages_to_prompt
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
+from ragengine.models import Document
 from ragengine.vector_store.transformers.custom_transformer import CustomTransformer
-from ragengine.config import LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N
-from fastapi import HTTPException
-
-from llama_index.core.storage.docstore import SimpleDocumentStore
-import aiorwlock
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -66,8 +68,8 @@ class BaseVectorStore(ABC):
         await self.llm.aclose()
 
     async def index_documents(
-        self, index_name: str, documents: List[Document]
-    ) -> List[str]:
+        self, index_name: str, documents: list[Document]
+    ) -> list[str]:
         """Common indexing logic for all vector stores."""
         if index_name in self.index_map:
             return await self._append_documents_to_index(index_name, documents)
@@ -75,8 +77,8 @@ class BaseVectorStore(ABC):
             return await self._create_new_index(index_name, documents)
 
     async def _append_documents_to_index(
-        self, index_name: str, documents: List[Document]
-    ) -> List[str]:
+        self, index_name: str, documents: list[Document]
+    ) -> list[str]:
         """Common logic for appending documents to existing index."""
         logger.info(
             f"Index {index_name} already exists. Appending documents to existing index."
@@ -110,14 +112,14 @@ class BaseVectorStore(ABC):
 
     @abstractmethod
     async def _create_new_index(
-        self, index_name: str, documents: List[Document]
-    ) -> List[str]:
+        self, index_name: str, documents: list[Document]
+    ) -> list[str]:
         """Create a new index - implementation specific to each vector store."""
         pass
 
     async def _create_index_common(
-        self, index_name: str, documents: List[Document], vector_store
-    ) -> List[str]:
+        self, index_name: str, documents: list[Document], vector_store
+    ) -> list[str]:
         """Common logic for creating a new index with documents."""
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         llama_docs = []
@@ -390,10 +392,10 @@ class BaseVectorStore(ABC):
         else:
             await asyncio.to_thread(self.index_map[index_name].insert, llama_doc)
 
-    def list_indexes(self) -> List[str]:
+    def list_indexes(self) -> list[str]:
         return list(self.index_map.keys())
 
-    async def delete_documents(self, index_name: str, doc_ids: List[str]):
+    async def delete_documents(self, index_name: str, doc_ids: list[str]):
         """Common logic for deleting a document."""
         if index_name not in self.index_map:
             raise HTTPException(
@@ -439,7 +441,7 @@ class BaseVectorStore(ABC):
             logger.error(f"Error deleting documents from index {index_name}: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
-    async def update_documents(self, index_name: str, documents: List[Document]):
+    async def update_documents(self, index_name: str, documents: list[Document]):
         """Common logic for updating a document."""
         if index_name not in self.index_map:
             raise HTTPException(
@@ -476,7 +478,7 @@ class BaseVectorStore(ABC):
 
             updated_docs = []
             unchanged_docs = []
-            for doc, was_updated in zip(found_docs, refreshed_docs):
+            for doc, was_updated in zip(found_docs, refreshed_docs, strict=False):
                 if was_updated:
                     updated_docs.append(doc)
                 else:
@@ -494,7 +496,7 @@ class BaseVectorStore(ABC):
             raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
     async def _process_document(
-        self, doc_id: str, doc_stub, doc_store, max_text_length: Optional[int]
+        self, doc_id: str, doc_stub, doc_store, max_text_length: int | None
     ):
         """
         Helper to process and format a single document.
@@ -534,9 +536,9 @@ class BaseVectorStore(ABC):
         index_name: str,
         limit: int,
         offset: int,
-        max_text_length: Optional[int] = None,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        max_text_length: int | None = None,
+        metadata_filter: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Return a dictionary of document metadata for the given index.
         """

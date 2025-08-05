@@ -11,11 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import requests
-import time
 import csv
 import random
+import time
 from datetime import datetime
+
+import requests
 
 
 def is_file_empty(filename):
@@ -26,7 +27,7 @@ def is_file_empty(filename):
 
 
 def load_search_terms_from_csv(filename):
-    with open(filename, "r", newline="") as file:
+    with open(filename, newline="") as file:
         reader = csv.DictReader(file)
         return [row["search_terms"] for row in reader]
 

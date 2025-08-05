@@ -12,7 +12,7 @@
 # limitations under the License.
 
 
-from prometheus_client import Counter, Histogram, Gauge
+from prometheus_client import Counter, Gauge, Histogram
 
 STATUS_LABEL = "status"
 MODE_LABEL = "mode"

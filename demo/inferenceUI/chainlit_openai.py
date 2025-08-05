@@ -14,8 +14,8 @@
 import os
 from urllib.parse import urljoin
 
-from openai import AsyncOpenAI
 import chainlit as cl
+from openai import AsyncOpenAI
 
 URL = os.environ.get("WORKSPACE_SERVICE_URL")
 

@@ -11,14 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import codecs
 import logging
 import os
-import sys
 import signal
-import codecs
-from pathlib import Path
+import sys
 from dataclasses import asdict, dataclass, field
-from typing import Annotated, Any, Dict, List, Optional
+from pathlib import Path
+from typing import Annotated, Any
 
 import GPUtil
 import psutil
@@ -53,23 +53,23 @@ class ModelConfig:
     Transformers Model Configuration Parameters
     """
 
-    pipeline: Optional[str] = field(
+    pipeline: str | None = field(
         default="text-generation",
         metadata={"help": "The model pipeline for the pre-trained model"},
     )
-    pretrained_model_name_or_path: Optional[str] = field(
+    pretrained_model_name_or_path: str | None = field(
         default="/workspace/tfs/weights",
         metadata={
             "help": "Path to the pretrained model or model identifier from huggingface.co/models"
         },
     )
-    combination_type: Optional[str] = field(
+    combination_type: str | None = field(
         default="svd", metadata={"help": "The combination type of multi adapters"}
     )
-    state_dict: Optional[Dict[str, Any]] = field(
+    state_dict: dict[str, Any] | None = field(
         default=None, metadata={"help": "State dictionary for the model"}
     )
-    cache_dir: Optional[str] = field(
+    cache_dir: str | None = field(
         default=None, metadata={"help": "Cache directory for the model"}
     )
     from_tf: bool = field(
@@ -81,7 +81,7 @@ class ModelConfig:
     resume_download: bool = field(
         default=False, metadata={"help": "Resume an interrupted download"}
     )
-    proxies: Optional[str] = field(
+    proxies: str | None = field(
         default=None, metadata={"help": "Proxy configuration for downloading the model"}
     )
     output_loading_info: bool = field(
@@ -104,13 +104,13 @@ class ModelConfig:
     load_in_8bit: bool = field(
         default=False, metadata={"help": "Load model in 8-bit mode"}
     )
-    torch_dtype: Optional[str] = field(
+    torch_dtype: str | None = field(
         default=None, metadata={"help": "The torch dtype for the pre-trained model"}
     )
     device_map: str = field(
         default="auto", metadata={"help": "The device map for the pre-trained model"}
     )
-    chat_template: Optional[str] = field(
+    chat_template: str | None = field(
         default=None,
         metadata={
             "help": "The file path to the chat template, or the template in single-line form for the specified model"
@@ -118,7 +118,7 @@ class ModelConfig:
     )
 
     # Method to process additional arguments
-    def process_additional_args(self, addt_args: List[str]):
+    def process_additional_args(self, addt_args: list[str]):
         """
         Process additional cmd line args and update the model configuration accordingly.
         """
@@ -160,7 +160,7 @@ class ModelConfig:
             raise ValueError(f"Unsupported pipeline: {self.pipeline}")
 
 
-def load_chat_template(chat_template: Optional[str]) -> Optional[str]:
+def load_chat_template(chat_template: str | None) -> str | None:
     logger.info(chat_template)
     if chat_template is None:
         return None
@@ -328,8 +328,8 @@ class GenerateKwargs(BaseModel):
     top_p: float = 1
     typical_p: float = 1
     repetition_penalty: float = 1
-    pad_token_id: Optional[int] = tokenizer.pad_token_id
-    eos_token_id: Optional[int] = tokenizer.eos_token_id
+    pad_token_id: int | None = tokenizer.pad_token_id
+    eos_token_id: int | None = tokenizer.eos_token_id
 
     class Config:
         extra = "allow"  # Allows for additional fields not explicitly defined
@@ -350,27 +350,27 @@ class Message(BaseModel):
 
 class UnifiedRequestModel(BaseModel):
     # Fields for text generation
-    prompt: Optional[str] = Field(
+    prompt: str | None = Field(
         None,
         description="Prompt for text generation. Required for text-generation pipeline. Do not use with 'messages'.",
     )
-    return_full_text: Optional[bool] = Field(
+    return_full_text: bool | None = Field(
         True, description="Return full text if True, else only added text"
     )
-    clean_up_tokenization_spaces: Optional[bool] = Field(
+    clean_up_tokenization_spaces: bool | None = Field(
         False, description="Clean up extra spaces in text output"
     )
-    prefix: Optional[str] = Field(None, description="Prefix added to prompt")
-    handle_long_generation: Optional[str] = Field(
+    prefix: str | None = Field(None, description="Prefix added to prompt")
+    handle_long_generation: str | None = Field(
         None, description="Strategy to handle long generation"
     )
-    generate_kwargs: Optional[GenerateKwargs] = Field(
+    generate_kwargs: GenerateKwargs | None = Field(
         default_factory=GenerateKwargs,
         description="Additional kwargs for generate method",
     )
 
     # Field for conversational model
-    messages: Optional[List[Message]] = Field(
+    messages: list[Message] | None = Field(
         None,
         description="Messages for conversational model. Required for conversational pipeline. Do not use with 'prompt'.",
     )
@@ -554,8 +554,8 @@ class GPUInfo(BaseModel):
 
 
 class MetricsResponse(BaseModel):
-    gpu_info: Optional[List[GPUInfo]] = None
-    cpu_info: Optional[CPUInfo] = None
+    gpu_info: list[GPUInfo] | None = None
+    cpu_info: CPUInfo | None = None
 
 
 @app.get(

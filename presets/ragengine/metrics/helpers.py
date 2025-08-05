@@ -14,12 +14,13 @@
 
 import time
 from functools import wraps
+
 from .prometheus_metrics import (
-    rag_embedding_requests_total,
-    rag_embedding_latency,
-    STATUS_SUCCESS,
-    STATUS_FAILURE,
     MODE_REMOTE,
+    STATUS_FAILURE,
+    STATUS_SUCCESS,
+    rag_embedding_latency,
+    rag_embedding_requests_total,
 )
 
 

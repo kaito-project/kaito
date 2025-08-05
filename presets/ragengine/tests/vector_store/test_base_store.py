@@ -13,20 +13,21 @@
 
 
 import os
-from unittest.mock import patch
-import pytest
 from abc import ABC, abstractmethod
+from unittest.mock import patch
 
-from ragengine.vector_store.base import BaseVectorStore
-from ragengine.models import Document
-from ragengine.embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
-from ragengine.config import (
-    LOCAL_EMBEDDING_MODEL_ID,
-    LLM_INFERENCE_URL,
-    DEFAULT_VECTOR_DB_PERSIST_DIR,
-)
 import httpx
+import pytest
 import respx
+
+from ragengine.config import (
+    DEFAULT_VECTOR_DB_PERSIST_DIR,
+    LLM_INFERENCE_URL,
+    LOCAL_EMBEDDING_MODEL_ID,
+)
+from ragengine.embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
+from ragengine.models import Document
+from ragengine.vector_store.base import BaseVectorStore
 
 
 class BaseVectorStoreTest(ABC):

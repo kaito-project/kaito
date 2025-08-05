@@ -11,19 +11,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import os
-import subprocess
-import time
+import shutil
 import socket
+import subprocess
+import sys
+import time
 from pathlib import Path
 
 import pytest
 import requests
-
-from inference_api import binary_search_with_limited_steps, KaitoConfig
 from huggingface_hub import snapshot_download
-import shutil
+from inference_api import KaitoConfig, binary_search_with_limited_steps
 
 # Get the parent directory of the current file
 parent_dir = str(Path(__file__).resolve().parent.parent)

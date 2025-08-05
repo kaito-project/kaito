@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import sys
+
 from optimum.onnxruntime import (
     AutoOptimizationConfig,
     ORTModelForCausalLM,

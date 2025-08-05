@@ -12,8 +12,6 @@
 # limitations under the License.
 
 
-from pydantic import PrivateAttr
-import logging
 import asyncio
 import httpx
 from typing import Any, Sequence

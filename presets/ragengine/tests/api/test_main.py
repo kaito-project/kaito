@@ -12,19 +12,19 @@
 # limitations under the License.
 
 
-from unittest.mock import patch, ANY
-
-
-from ragengine.main import app, vector_store_handler
-from ragengine.config import DEFAULT_VECTOR_DB_PERSIST_DIR
-
+import asyncio
+import json
 import os
+import re
+from unittest.mock import ANY, patch
 
+import httpx
 import pytest
 import httpx
 import respx
-import json
-import re
+
+from ragengine.config import DEFAULT_VECTOR_DB_PERSIST_DIR
+from ragengine.main import app, vector_store_handler
 
 AUTO_GEN_DOC_ID_LEN = 64
 

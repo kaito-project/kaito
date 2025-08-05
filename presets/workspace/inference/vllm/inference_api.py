@@ -11,22 +11,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-import gc
-import os
 import argparse
-from typing import Callable, Optional, List, Any
-import yaml
 import copy
+import gc
+import logging
+import os
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
-import uvloop
 import torch
-from vllm.utils import FlexibleArgumentParser
+import uvloop
 import vllm.entrypoints.openai.api_server as api_server
+import yaml
+from vllm.engine.llm_engine import EngineArgs, LLMEngine, VllmConfig
 from vllm.entrypoints.openai.serving_models import LoRAModulePath
-from vllm.engine.llm_engine import LLMEngine, EngineArgs, VllmConfig
 from vllm.executor.executor_base import ExecutorBase
+from vllm.utils import FlexibleArgumentParser
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -125,7 +126,7 @@ class KaitoConfig:
 
     @staticmethod
     def from_yaml(yaml_file: str) -> "KaitoConfig":
-        with open(yaml_file, "r") as file:
+        with open(yaml_file) as file:
             config_data = yaml.safe_load(file)
         return KaitoConfig(
             vllm=config_data.get("vllm", {}),
@@ -136,8 +137,8 @@ class KaitoConfig:
         return yaml.dump(self.__dict__)
 
 
-def load_lora_adapters(adapters_dir: str) -> Optional[LoRAModulePath]:
-    lora_list: List[LoRAModulePath] = []
+def load_lora_adapters(adapters_dir: str) -> LoRAModulePath | None:
+    lora_list: list[LoRAModulePath] = []
 
     if not os.path.exists(adapters_dir):
         return lora_list
@@ -228,7 +229,7 @@ def is_context_length_safe(executor: ExecutorBase, context_length: int) -> bool:
     return available_gpu_blocks >= num_gpu_blocks
 
 
-def try_get_max_available_seq_len(args: argparse.Namespace) -> Optional[int]:
+def try_get_max_available_seq_len(args: argparse.Namespace) -> int | None:
     if args.max_model_len is not None:
         logger.info(f"max_model_len is set to {args.max_model_len}, skip probing.")
         return None

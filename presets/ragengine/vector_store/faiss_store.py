@@ -12,12 +12,12 @@
 # limitations under the License.
 
 
-from typing import List
-
 import faiss
 from llama_index.vector_stores.faiss import FaissMapVectorStore
-from ragengine.models import Document
+
 from ragengine.embedding.base import BaseEmbeddingModel
+from ragengine.models import Document
+
 from .base import BaseVectorStore
 
 
@@ -27,8 +27,8 @@ class FaissVectorStoreHandler(BaseVectorStore):
         self.dimension = self.embed_model.get_embedding_dimension()
 
     async def _create_new_index(
-        self, index_name: str, documents: List[Document]
-    ) -> List[str]:
+        self, index_name: str, documents: list[Document]
+    ) -> list[str]:
         faiss_index = faiss.IndexFlatL2(self.dimension)
         # we cant use the IndexFlatL2 directly as its delete functionality changes document ids.
         # we can wrap it in the IDMap to keep the same functionality but also be able to index by ids and support delete with llama_index

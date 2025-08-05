@@ -12,10 +12,11 @@
 # limitations under the License.
 
 
-import pytest
 import os
-
 from tempfile import TemporaryDirectory
+
+import pytest
+
 from ragengine.tests.vector_store.test_base_store import BaseVectorStoreTest
 from ragengine.vector_store.faiss_store import FaissVectorStoreHandler
 
@@ -55,7 +56,7 @@ class TestFaissVectorStore(BaseVectorStoreTest):
         ]
 
         for index, expected_output in zip(
-            ["index1", "index2"], [expected_output_1, expected_output_2]
+            ["index1", "index2"], [expected_output_1, expected_output_2], strict=False
         ):
             response = await vector_store_manager.list_documents_in_index(
                 index, limit=10, offset=0, max_text_length=1000

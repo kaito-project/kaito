@@ -1,33 +1,4 @@
 [tool.ruff]
-# Exclude a variety of commonly ignored directories.
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".ipynb_checkpoints",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pyenv",
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "site-packages",
-    "venv",
-]
 
 # Same as Black.
 line-length = 88
@@ -38,12 +9,13 @@ target-version = "py312"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.
-select = ["E", "F", "UP", "B", "SIM", "I"]
-ignore = []
+select = ["E", "F", "UP", "SIM", "I"]
+ignore = ["E501"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
-unfixable = []
+# Avoid trying to fix flake8-bugbear (`B`) violations.
+unfixable = ["B"]
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
@@ -57,3 +29,7 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
+
+# Exclude Jupyter notebooks
+exclude = ["*.ipynb"]
+

@@ -13,18 +13,17 @@
 
 
 from llama_index.core.bridge.pydantic import PrivateAttr
-from llama_index.core.node_parser import SentenceSplitter, CodeSplitter
-from typing import Dict, List
+from llama_index.core.node_parser import CodeSplitter, SentenceSplitter
 from llama_index.core.schema import (
-    TransformComponent,
     BaseNode,
+    TransformComponent,
 )
 
 
 class CustomTransformer(TransformComponent):
     """Custom transformer for splitting documents based on metadata input."""
 
-    _code_splitters: Dict[str, CodeSplitter] = PrivateAttr()
+    _code_splitters: dict[str, CodeSplitter] = PrivateAttr()
     _sentence_splitter: SentenceSplitter = PrivateAttr()
 
     def __init__(self):
@@ -32,7 +31,7 @@ class CustomTransformer(TransformComponent):
         self._code_splitters = {}
         self._sentence_splitter = SentenceSplitter()
 
-    def split_node(self, node: BaseNode) -> List[BaseNode]:
+    def split_node(self, node: BaseNode) -> list[BaseNode]:
         node_metadata = node.metadata
         split_type = node_metadata.get("split_type", "default")
         if split_type == "code":
@@ -50,7 +49,7 @@ class CustomTransformer(TransformComponent):
             return self._sentence_splitter([node])
 
     def __call__(self, nodes, **kwargs):
-        all_nodes: List[BaseNode] = []
+        all_nodes: list[BaseNode] = []
         for node in nodes:
             nodes = self.split_node(node)
             all_nodes.extend(self.split_node(node))

@@ -12,7 +12,7 @@
 # limitations under the License.
 
 
-from typing import Dict, List, Any
+from typing import Any
 
 from ragengine.models import Document
 from ragengine.vector_store.base import BaseVectorStore
@@ -22,7 +22,7 @@ class VectorStoreManager:
     def __init__(self, vector_store: BaseVectorStore):
         self.vector_store = vector_store
 
-    async def index(self, index_name: str, documents: List[Document]) -> List[str]:
+    async def index(self, index_name: str, documents: list[Document]) -> list[str]:
         """Index new documents."""
         return await self.vector_store.index_documents(index_name, documents)
 
@@ -54,17 +54,17 @@ class VectorStoreManager:
         offset: int,
         max_text_length: int,
         metadata_filter: dict,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """List all documents in index."""
         return await self.vector_store.list_documents_in_index(
             index_name, limit, offset, max_text_length, metadata_filter
         )
 
-    async def update_documents(self, index_name: str, documents: List[Document]):
+    async def update_documents(self, index_name: str, documents: list[Document]):
         """Update documents in the index."""
         return await self.vector_store.update_documents(index_name, documents)
 
-    async def delete_documents(self, index_name: str, doc_ids: List[str]) -> List[str]:
+    async def delete_documents(self, index_name: str, doc_ids: list[str]) -> list[str]:
         """Delete documents from the index."""
         return await self.vector_store.delete_documents(index_name, doc_ids)
 

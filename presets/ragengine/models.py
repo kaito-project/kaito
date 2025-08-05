@@ -30,38 +30,38 @@ from pydantic import BaseModel, Field, model_validator, ValidationError, create_
 class Document(BaseModel):
     doc_id: str = Field(default="")
     text: str
-    metadata: Optional[dict] = Field(default_factory=dict)
-    hash_value: Optional[str] = None
+    metadata: dict | None = Field(default_factory=dict)
+    hash_value: str | None = None
     is_truncated: bool = False
 
 
 class ListDocumentsResponse(BaseModel):
-    documents: List[Document]  # List of DocumentResponses
+    documents: list[Document]  # List of DocumentResponses
     count: int  # Number of documents in the current response
 
 
 class IndexRequest(BaseModel):
     index_name: str
-    documents: List[Document]
+    documents: list[Document]
 
 
 class UpdateDocumentRequest(BaseModel):
-    documents: List[Document]
+    documents: list[Document]
 
 
 class UpdateDocumentResponse(BaseModel):
-    updated_documents: List[Document]
-    unchanged_documents: List[Document]
-    not_found_documents: List[Document]
+    updated_documents: list[Document]
+    unchanged_documents: list[Document]
+    not_found_documents: list[Document]
 
 
 class DeleteDocumentRequest(BaseModel):
-    doc_ids: List[str]
+    doc_ids: list[str]
 
 
 class DeleteDocumentResponse(BaseModel):
-    deleted_doc_ids: List[str]
-    not_found_doc_ids: List[str]
+    deleted_doc_ids: list[str]
+    not_found_doc_ids: list[str]
 
 
 class QueryRequest(BaseModel):
@@ -69,12 +69,12 @@ class QueryRequest(BaseModel):
     query: str
     top_k: int = 5
     # Accept a dictionary for our LLM parameters
-    llm_params: Optional[Dict[str, Any]] = Field(
+    llm_params: dict[str, Any] | None = Field(
         default_factory=dict,
         description="Optional parameters for the language model, e.g., temperature, top_p",
     )
     # Accept a dictionary for rerank parameters
-    rerank_params: Optional[Dict[str, Any]] = Field(
+    rerank_params: dict[str, Any] | None = Field(
         default_factory=dict,
         description="Experimental: Optional parameters for reranking. Only 'top_n' and 'choice_batch_size' are supported.",
     )
@@ -103,13 +103,13 @@ class NodeWithScore(BaseModel):
     node_id: str
     text: str
     score: float
-    metadata: Optional[dict] = None
+    metadata: dict | None = None
 
 
 class QueryResponse(BaseModel):
     response: str
-    source_nodes: List[NodeWithScore]
-    metadata: Optional[dict] = None
+    source_nodes: list[NodeWithScore]
+    metadata: dict | None = None
 
 
 class HealthStatus(BaseModel):

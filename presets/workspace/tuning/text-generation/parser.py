@@ -11,11 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import codecs
 import logging
 from dataclasses import asdict, fields
-import codecs
 from pathlib import Path
-from typing import Optional
 
 import yaml
 from cli import (
@@ -90,7 +89,7 @@ def parse_section(section_name, section_config):
 
 def parse_configs(config_yaml):
     # Load the YAML configuration
-    with open(config_yaml, "r") as file:
+    with open(config_yaml) as file:
         full_config = yaml.safe_load(file)
     training_config = full_config.get("training_config", {})
     print("training_config:", training_config)
@@ -113,7 +112,7 @@ def parse_configs(config_yaml):
     return parsed_configs
 
 
-def load_chat_template(chat_template: Optional[str]) -> Optional[str]:
+def load_chat_template(chat_template: str | None) -> str | None:
     logger.info(chat_template)
     if chat_template is None:
         return None

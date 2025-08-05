@@ -14,7 +14,6 @@
 
 import logging
 import os
-from typing import List, Optional
 
 import GPUtil
 import psutil
@@ -56,8 +55,8 @@ class GPUInfo(BaseModel):
 
 
 class MetricsResponse(BaseModel):
-    gpu_info: Optional[List[GPUInfo]] = None
-    cpu_info: Optional[CPUInfo] = None
+    gpu_info: list[GPUInfo] | None = None
+    cpu_info: CPUInfo | None = None
 
 
 @app.get(

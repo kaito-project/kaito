@@ -12,17 +12,17 @@
 # limitations under the License.
 
 
-from typing import List
-from abc import ABC, abstractmethod
-from llama_index.core.embeddings import BaseEmbedding
 import asyncio
+from abc import ABC, abstractmethod
+
+from llama_index.core.embeddings import BaseEmbedding
 
 
 class BaseEmbeddingModel(BaseEmbedding, ABC):
-    async def _aget_text_embedding(self, text: str) -> List[float]:
+    async def _aget_text_embedding(self, text: str) -> list[float]:
         return await asyncio.to_thread(self._get_text_embedding, text)
 
-    async def _aget_query_embedding(self, query: str) -> List[float]:
+    async def _aget_query_embedding(self, query: str) -> list[float]:
         return await asyncio.to_thread(self._get_query_embedding, query)
 
     @abstractmethod

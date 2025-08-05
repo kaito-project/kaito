@@ -11,11 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
-import requests
 import json
-from .base import BaseEmbeddingModel
+from typing import Any
+
+import requests
+
 from ragengine.metrics.helpers import record_embedding_metrics
+
+from .base import BaseEmbeddingModel
 
 
 class RemoteEmbeddingModel(BaseEmbeddingModel):

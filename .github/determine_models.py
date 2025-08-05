@@ -23,10 +23,10 @@ import yaml
 
 def read_yaml(file_path):
     try:
-        with open(file_path, "r") as file:
+        with open(file_path) as file:
             data = yaml.safe_load(file)
             return data
-    except (IOError, yaml.YAMLError) as e:
+    except (OSError, yaml.YAMLError) as e:
         print(f"Error reading {file_path}: {e}")
         return None
 

@@ -12,12 +12,13 @@
 # limitations under the License.
 
 #!/usr/bin/env python3
-import json
-import yaml
-import sys
-import os
 import argparse
+import json
+import os
+import sys
 from pathlib import Path
+
+import yaml
 
 
 def get_project_root():
@@ -30,7 +31,7 @@ def get_project_root():
 def load_json_config():
     project_root = get_project_root()
     config_path = project_root / ".github" / "e2e-preset-configs.json"
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         data = json.load(f)
         return data["matrix"]["image"]  # Return the array of model configs
 
@@ -46,7 +47,7 @@ def load_template():
         / "inference-tmpl"
         / "manifest.yaml"
     )
-    with open(template_path, "r") as f:
+    with open(template_path) as f:
         return yaml.safe_load(f)
 
 
@@ -63,7 +64,7 @@ def check_predefined_manifest(model_name):
     )
     if not os.path.exists(manifest_path):
         return (None, False)
-    with open(manifest_path, "r") as f:
+    with open(manifest_path) as f:
         return (f.read(), True)
 
 

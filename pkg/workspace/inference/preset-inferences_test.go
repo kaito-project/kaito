@@ -26,6 +26,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -525,10 +526,12 @@ func TestGetGPUConfig(t *testing.T) {
 						},
 					},
 				}
-				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).
+				c.On("Get", mock.Anything, mock.MatchedBy(func(key client.ObjectKey) bool {
+					return key.Name == "gpu-node-1"
+				}), mock.IsType(&corev1.Node{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						nodeList := args.Get(1).(*corev1.NodeList)
-						nodeList.Items = []corev1.Node{*node}
+						nodeArg := args.Get(2).(*corev1.Node)
+						*nodeArg = *node
 					}).Return(nil)
 			},
 			expectedConfig: sku.GPUConfig{
@@ -537,7 +540,7 @@ func TestGetGPUConfig(t *testing.T) {
 				GPUModel: "unknown",
 			},
 		},
-		"Fallback path - get config from model requirements": {
+		"Fallback path when node fetch fails": {
 			workspace: &v1beta1.Workspace{
 				Resource: v1beta1.ResourceSpec{
 					InstanceType:   "unknown-instance-type",
@@ -545,12 +548,14 @@ func TestGetGPUConfig(t *testing.T) {
 					LabelSelector:  &metav1.LabelSelector{},
 				},
 				Status: v1beta1.WorkspaceStatus{
-					WorkerNodes: []string{},
+					WorkerNodes: []string{"gpu-node-1"},
 				},
 			},
 			model: "test-model",
 			callMocks: func(c *test.MockClient) {
-				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(fmt.Errorf("no nodes found"))
+				c.On("Get", mock.Anything, mock.MatchedBy(func(key client.ObjectKey) bool {
+					return key.Name == "gpu-node-1"
+				}), mock.IsType(&corev1.Node{}), mock.Anything).Return(fmt.Errorf("no nodes found"))
 			},
 			expectedConfig: sku.GPUConfig{
 				GPUCount: 1, // From test-model's GPUCountRequirement
@@ -579,10 +584,12 @@ func TestGetGPUConfig(t *testing.T) {
 						},
 					},
 				}
-				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).
+				c.On("Get", mock.Anything, mock.MatchedBy(func(key client.ObjectKey) bool {
+					return key.Name == "gpu-node-1"
+				}), mock.IsType(&corev1.Node{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						nodeList := args.Get(1).(*corev1.NodeList)
-						nodeList.Items = []corev1.Node{*node}
+						nodeArg := args.Get(2).(*corev1.Node)
+						*nodeArg = *node
 					}).Return(nil)
 			},
 			expectedConfig: sku.GPUConfig{

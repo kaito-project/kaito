@@ -7,8 +7,8 @@ set -euo pipefail
 # and the name of the component for which the identities and role assignments are being created.
 # # Path: hack/deploy/deploy.sh
 
-if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 <cluster-name> <resource-group> <component-name>"
+if [ "$#" -ne 4 ]; then
+    echo "Usage: $0 <cluster-name> <resource-group> <component-name> <subscription-id>"
     exit 1
 fi
 

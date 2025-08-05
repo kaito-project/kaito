@@ -138,6 +138,7 @@ runs:
     - name: Create Identities and Permissions for ${{ inputs.node_provisioner }}
       shell: bash
       run: |
+        AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
         make generate-identities
       env:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
@@ -148,6 +149,7 @@ runs:
       if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
       shell: bash
       run: |
+        AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
         make gpu-provisioner-helm
       env:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}

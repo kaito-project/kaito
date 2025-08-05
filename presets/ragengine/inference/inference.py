@@ -309,7 +309,7 @@ class Inference(CustomLLM):
         path = parsed_url.path.lower()
         return LLMMetadata(
             is_chat_model="/chat/completions" in path,
-            context_window=self.get_param("max_tokens", LLM_CONTEXT_WINDOW),
+            context_window=LLM_CONTEXT_WINDOW,
         )
 
     async def aclose(self):

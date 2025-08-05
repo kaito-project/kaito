@@ -8,7 +8,7 @@ set -euo pipefail
 # # Path: hack/deploy/deploy.sh
 
 if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 <cluster-name> <resource-group> <component-name> <subscription-id>"
+    echo "Usage: $0 <cluster-name> <resource-group> <component-name>"
     exit 1
 fi
 

@@ -54,13 +54,13 @@ def load_template():
 def check_predefined_manifest(model_name):
     project_root = get_project_root()
     manifest_path = os.path.join(
-        project_root
-        / "presets"
-        / "workspace"
-        / "test"
-        / "manifests"
-        / f"{model_name}"
-        / f"{model_name}.yaml"
+        str(project_root),
+        "presets",
+        "workspace",
+        "test",
+        "manifests",
+        f"{model_name}",
+        f"{model_name}.yaml",
     )
     if not os.path.exists(manifest_path):
         return (None, False)

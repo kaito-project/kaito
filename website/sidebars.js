@@ -57,6 +57,7 @@ const sidebars = {
                 },
                 'custom-model',
                 'tool-calling',
+                'model-as-oci-artifacts',
                 'headlamp-kaito',
             ],
         },

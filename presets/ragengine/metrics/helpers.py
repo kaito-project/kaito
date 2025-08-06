@@ -37,12 +37,7 @@ def record_embedding_metrics(func):
 
         try:
             result = func(*args, **kwargs)
-            if result is None:
-                # None result is considered a failure
-                status = STATUS_FAILURE
-            else:
-                # Successful embedding
-                status = STATUS_SUCCESS
+            status = STATUS_FAILURE if result is None else STATUS_SUCCESS
             return result
         except Exception:
             # Status remains STATUS_FAILURE

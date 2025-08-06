@@ -10,12 +10,10 @@ target-version = "py312"
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.
 select = ["E", "F", "UP", "SIM", "I"]
-ignore = ["E501"]
+ignore = ["E501", "F821"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
-# Avoid trying to fix flake8-bugbear (`B`) violations.
-unfixable = ["B"]
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.

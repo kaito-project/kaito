@@ -22,12 +22,16 @@ from pathlib import Path
 import pytest
 import requests
 from huggingface_hub import snapshot_download
-from inference_api import KaitoConfig, binary_search_with_limited_steps
 
 # Get the parent directory of the current file
 parent_dir = str(Path(__file__).resolve().parent.parent)
 # Add the parent directory to sys.path
 sys.path.append(parent_dir)
+
+try:
+    from inference_api import KaitoConfig, binary_search_with_limited_steps
+except ImportError as e:
+    raise ImportError(f"Error importing required module(s): {e}") from e
 
 TEST_MODEL = "facebook/opt-125m"
 TEST_ADAPTER_NAME1 = "mylora1"

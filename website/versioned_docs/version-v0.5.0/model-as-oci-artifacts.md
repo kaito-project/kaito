@@ -5,63 +5,85 @@ description: Efficiently distribute Large Language Models using Open Container I
 
 # Model As OCI Artifacts
 
-The exponential growth and adoption of Large Language Models (LLMs) have revolutionized AI-driven applications across industries. However, distributing these models effectively remains a significant challenge. KAITO addresses this challenge by supporting the distribution of model weights as OCI Artifacts, offering a scalable and efficient alternative to traditional containerized model distribution.
+KAITO efficiently distributes Large Language Models (LLMs) by leveraging Open Container Initiative (OCI) Artifacts to package and deploy model weights separately from the inference runtime. This architecture provides superior performance, scalability, and maintainability for large language model deployments.
 
 ## Overview
 
-Currently, KAITO employs a solution where the runtime library and model weights are packaged within a single container image. This method ensures a reliable and self-contained environment, particularly effective for distributing small models. However, as large language models grow, bundling them within containerized images becomes impractical.
+KAITO uses a split architecture approach for model distribution:
 
-Using Open Container Initiative (OCI) Artifacts offers a scalable and efficient alternative for packaging and deployment of large model weights.
+- **Base Images**: Contain the inference runtime and dependencies
+- **OCI Artifacts**: Contain the model weights and configuration files stored separately in OCI registries
 
-## Why OCI Artifacts?
+This design choice enables KAITO to optimize both build and deployment performance while maintaining compatibility with standard container infrastructure. The model weights are downloaded as OCI artifacts during pod initialization, providing faster deployment times and more efficient resource utilization compared to traditional monolithic container images.
 
-### Image Building Challenges
+## Design Rationale
 
-Traditional containerized model distribution faces several challenges:
+KAITO chose the OCI Artifacts approach to address fundamental challenges in large language model distribution and deployment:
 
-- **Build Time**: With KAITO hosting multiple preset models, base images are frequently updated due to vulnerability fixes and feature requests. Each time the base image is updated, every model image needs to be rebuilt.
-- **Build Context Size**: Although model weights remain unchanged, Docker image builds are time-consuming because large files are included in the build context unnecessarily.
-- **Resource Intensive**: Building larger models like Falcon-40B can take nearly 2 hours to complete.
+### Build Efficiency
 
-### Image Pulling Inefficiency
+By separating model weights from base images, KAITO eliminates redundant rebuilds:
 
-Image pulling is also time-consuming, even for smaller models:
+- **Reduced Build Time**: Model images only need to be built once and can be reused across base image updates
+- **Efficient Build Context**: Large model files are not included in Docker build context, avoiding unnecessary transfers
+- **Resource Optimization**: Build processes for large models like Falcon-40B are reduced from nearly 2 hours to minutes
 
-- **Serial Processing**: All model weights are packed into a single image layer, which limits download concurrency
-- **Unpacking Bottleneck**: Container layer unpacking remains a serial process, creating performance bottlenecks
-- **Limited Bandwidth Usage**: Current approach doesn't optimize bandwidth usage through concurrency
+### Deployment Performance
 
-#### Container Pull Process Analysis
+KAITO's OCI Artifacts approach optimizes the deployment pipeline:
 
-When containerd pulls an image, the operation consists of four phases:
+- **Concurrent Downloads**: Model weights can be downloaded in parallel, improving bandwidth utilization
+- **Advanced Compression**: Zstd compression provides better decompression performance than traditional gzip
+- **Optimized Unpacking**: Separate artifact handling reduces serialization bottlenecks during pod startup
+
+#### Understanding Container Performance
+
+KAITO's design optimizes all phases of the container pull process:
 
 1. **Downloading** layer data from the registry
 2. **Decompressing** the layer if necessary  
 3. **Checking** sha256 digest
 4. **Unpacking** the layer, applying changes to the snapshot
 
-Testing reveals that the download phase accounts for only 30% of the total time, highlighting the importance of optimizing the subsequent phases.
+KAITO addresses these performance characteristics by optimizing not just the download phase (30% of total time) but also the decompression, validation, and unpacking phases through its OCI Artifacts approach.
 
-## Solution: OCI Artifacts
+## How KAITO Uses OCI Artifacts
 
-The Model As OCI Artifacts feature addresses these challenges through several optimizations:
+### 1. Efficient Build Process
 
-### 1. Build Image Using ORAS Push
+KAITO uses [ORAS](https://github.com/oras-project/oras) to package model weights and configuration files directly into OCI artifacts without requiring large build contexts. This approach achieves the same distribution goals as traditional Docker builds but with significantly improved efficiency.
 
-Instead of sending large model weights to docker builder context, KAITO uses [ORAS](https://github.com/oras-project/oras) to add model weights and configuration files to OCI layout assembly. This achieves the same result as `docker build` but is much more efficient.
+### 2. Optimized Compression
 
-### 2. Improved Compression
+KAITO employs zstd compression instead of gzip, providing superior decompression performance specifically optimized for large model weight files.
 
-Zstd compression is used instead of gzip, providing better decompression performance for large files like model weights.
+### 3. Split Architecture Design
 
-### 3. Split Architecture
-
-The containerized solution is split into two parts:
+KAITO implements a two-component architecture:
 
 - **Base Image**: Contains the inference runtime and dependencies
 - **OCI Artifacts**: Contains the model weights and configuration files
 
-This allows model images to be built once and reused across base image updates.
+This architectural separation enables model images to be built once and reused across multiple base image updates, significantly reducing maintenance overhead.
+
+## When to Use OCI Artifacts
+
+KAITO automatically uses OCI Artifacts for supported models, providing benefits in several scenarios:
+
+### Recommended Use Cases
+
+- **Large Language Models**: Models with weights exceeding 1GB benefit significantly from the optimized distribution
+- **Frequent Updates**: Environments with regular base image updates for security patches or feature additions
+- **Multi-Model Deployments**: When deploying multiple model variants that share similar runtime requirements
+- **Resource-Constrained Environments**: Clusters where build time and bandwidth optimization are critical
+
+### Performance Considerations
+
+The OCI Artifacts approach provides the most benefit when:
+- Model weights are large relative to the runtime container
+- Network bandwidth is limited or expensive
+- Build infrastructure resources are constrained
+- Deployment frequency is high
 
 ## Architecture
 
@@ -144,7 +166,24 @@ The evaluation compared different configurations:
 
 ## Getting Started
 
-The Model As OCI Artifacts feature is automatically used for supported models when available. No additional configuration is required for basic usage.
+### Automatic Usage
 
-For advanced configurations or troubleshooting, refer to the KAITO documentation and the [original proposal](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250609-model-as-oci-artifacts.md) for detailed technical specifications.
+KAITO automatically uses OCI Artifacts for supported models when the feature is available. No additional configuration is required - simply deploy your model using standard KAITO workflows and the system will optimize the distribution automatically.
+
+### Verifying OCI Artifacts Usage
+
+To confirm that your model is using OCI Artifacts:
+
+1. Check the pod specification for initContainers that download model artifacts
+2. Monitor pod startup times for improved performance compared to traditional container pulls
+3. Review registry storage to see separate base images and model artifact entries
+
+### Troubleshooting
+
+If you encounter issues with OCI Artifacts:
+
+- Ensure your container runtime supports OCI Artifacts (see Compatibility section)
+- Verify registry compatibility with OCI Artifacts specification
+- Check initContainer logs for artifact download status
+- Refer to the [technical specification](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250609-model-as-oci-artifacts.md) for advanced configuration options
 

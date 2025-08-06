@@ -1,14 +1,14 @@
 name: Python Lint
 
-concurrency:
-  group:  ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 on:
   push:
+    paths:
+      - '**.py'
     branches:
       - main
   pull_request:
+    paths:
+      - '**.py'
     branches:
       - main
 
@@ -23,7 +23,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-
       - name: Ruff linter
         uses: astral-sh/ruff-action@v3
         with:
@@ -33,4 +32,3 @@ jobs:
       # Check formatting without making changes.
       - name: Ruff format check
         run: ruff format --check .
-

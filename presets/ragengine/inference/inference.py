@@ -35,9 +35,10 @@ from llama_index.core.llms.callbacks import llm_chat_callback, llm_completion_ca
 from openai.types.chat import (
     CompletionCreateParams,
 )
+from pydantic import PrivateAttr
 from requests.exceptions import HTTPError
 
-from ragengine.config import (  # , LLM_RESPONSE_FIELD
+from ragengine.config import (
     LLM_ACCESS_SECRET,
     LLM_CONTEXT_WINDOW,
     LLM_INFERENCE_URL,

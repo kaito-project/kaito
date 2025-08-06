@@ -38,14 +38,14 @@ def load_json_config():
 
 def load_template():
     project_root = get_project_root()
-    template_path = (
-        project_root
-        / "presets"
-        / "workspace"
-        / "test"
-        / "manifests"
-        / "inference-tmpl"
-        / "manifest.yaml"
+    template_path = os.path.join(
+        project_root,
+        "presets",
+        "workspace",
+        "test",
+        "manifests",
+        "inference-tmpl",
+        "manifest.yaml",
     )
     with open(template_path) as f:
         return yaml.safe_load(f)
@@ -53,7 +53,7 @@ def load_template():
 
 def check_predefined_manifest(model_name):
     project_root = get_project_root()
-    manifest_path = (
+    manifest_path = os.path.join(
         project_root
         / "presets"
         / "workspace"

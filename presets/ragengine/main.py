@@ -58,8 +58,18 @@ from ragengine.config import (
     REMOTE_EMBEDDING_URL,
 )
 from ragengine.metrics.prometheus_metrics import (
+    MODE_LOCAL,
+    MODE_REMOTE,
+    STATUS_FAILURE,
+    STATUS_SUCCESS,
+    e2e_request_latency_seconds,
+    e2e_request_total,
+    num_requests_running,
+    rag_avg_source_score,
     rag_chat_latency,
     rag_chat_requests_total,
+    rag_delete_latency,
+    rag_delete_requests_total,
     rag_index_latency,
     rag_index_requests_total,
     rag_indexes_latency,
@@ -111,6 +121,9 @@ from ragengine.metrics.prometheus_metrics import (
     rag_query_latency,
     rag_query_requests_total,
 )
+
+# Import Prometheus client for metrics collection
+
 
 app = FastAPI()
 

@@ -31,6 +31,7 @@ from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
 from pydantic import ValidationError
 
+from ragengine.config import LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
 from ragengine.models import ChatCompletionResponse, Document, messages_to_prompt

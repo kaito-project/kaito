@@ -103,32 +103,35 @@ var _ = Describe("RAGEngine", func() {
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
-		indexDoc, err := createAndValidateIndexPod(ragengineObj, "index-pod")
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
 		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
 		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
 
-		searchQuerySuccess := "\\n\\nKaito is an operator that is designed to automate the AI/ML model inference or tuning workload in a Kubernetes cluster."
-		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, true, "query-pod")
+		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
+		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, true)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
+		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, true)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
+
 		persistLogSuccess := "Successfully persisted index kaito"
-		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess, "persist-pod")
+		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
 
 		loadLogSuccess := "Successfully loaded index kaito"
-		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess, "load-pod")
+		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
 
-		err = createAndValidateUpdateDocumentPod(ragengineObj, docID, "update-document-pod")
+		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
 
-		err = createAndValidateDeleteDocumentPod(ragengineObj, docID, "delete-document-pod")
+		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
 
-		err = createAndValidateDeleteIndexPod(ragengineObj, "delete-index-pod")
+		err = createAndValidateDeleteIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
@@ -146,8 +149,8 @@ var _ = Describe("RAGEngine", func() {
 
 		validateWorkspaceReadiness(workspaceObj)
 
-		serviceName := workspaceObj.Name
-		serviceNamespace := workspaceObj.Namespace
+		serviceName := workspaceObj.ObjectMeta.Name
+		serviceNamespace := workspaceObj.ObjectMeta.Namespace
 		service := &v1.Service{}
 
 		_ = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -157,7 +160,7 @@ var _ = Describe("RAGEngine", func() {
 
 		clusterIP := service.Spec.ClusterIP
 
-		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngine(clusterIP)
+		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngine(clusterIP, "v1/completions")
 
 		defer cleanupResources(workspaceObj, ragengineObj)
 
@@ -166,32 +169,32 @@ var _ = Describe("RAGEngine", func() {
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
-		indexDoc, err := createAndValidateIndexPod(ragengineObj, "index-pod")
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
 		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
 		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
 
-		searchQuerySuccess := "\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\n\\n\\n"
-		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false, "query-pod")
+		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
+		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
 		persistLogSuccess := "Successfully persisted index kaito"
-		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess, "persist-pod")
+		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
 
 		loadLogSuccess := "Successfully loaded index kaito"
-		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess, "load-pod")
+		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
 
-		err = createAndValidateUpdateDocumentPod(ragengineObj, docID, "update-document-pod")
+		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
 
-		err = createAndValidateDeleteDocumentPod(ragengineObj, docID, "delete-document-pod")
+		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
 
-		err = createAndValidateDeleteIndexPod(ragengineObj, "delete-index-pod")
+		err = createAndValidateDeleteIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
@@ -233,32 +236,95 @@ var _ = Describe("RAGEngine", func() {
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
 		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
-		indexDoc, err := createAndValidateIndexPod(ragengineObj, "index-pod")
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
 		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
 		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
 
-		searchQuerySuccess := "\\nKaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.\\n\\n\\n"
-		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false, "query-pod")
+		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
+		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
 		persistLogSuccess := "Successfully persisted index kaito"
-		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess, "persist-pod")
+		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
 
 		loadLogSuccess := "Successfully loaded index kaito"
-		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess, "load-pod")
+		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
 
-		err = createAndValidateUpdateDocumentPod(ragengineObj, docID, "update-document-pod")
+		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
 
-		err = createAndValidateDeleteDocumentPod(ragengineObj, docID, "delete-document-pod")
+		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
 
-		err = createAndValidateDeleteIndexPod(ragengineObj, "delete-index-pod")
+		err = createAndValidateDeleteIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
+	})
+
+	It("should create RAG with localembedding and kaito VLLM workspace successfully for chat completions", utils.GinkgoLabelFastCheck, func() {
+		numOfReplica := 1
+		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
+
+		time.Sleep(30 * time.Second)
+
+		validateWorkspaceResourceStatus(workspaceObj)
+
+		validateAssociatedService(workspaceObj.ObjectMeta)
+
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		serviceName := workspaceObj.ObjectMeta.Name
+		serviceNamespace := workspaceObj.ObjectMeta.Namespace
+		service := &v1.Service{}
+
+		_ = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: serviceNamespace,
+			Name:      serviceName,
+		}, service)
+
+		clusterIP := service.Spec.ClusterIP
+
+		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngine(clusterIP, "v1/chat/completions")
+
+		defer cleanupResources(workspaceObj, ragengineObj)
+
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateAssociatedService(ragengineObj.ObjectMeta)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
+		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
+		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
+		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
+		docID := indexDoc["doc_id"].(string)
+
+		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
+		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, false)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
+
+		persistLogSuccess := "Successfully persisted index kaito"
+		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
+
+		loadLogSuccess := "Successfully loaded index kaito"
+		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
+
+		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
+
+		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
+
+		err = createAndValidateDeleteIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
@@ -319,7 +385,7 @@ func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
 		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+			Should(Succeed(), "Failed to create workspace %s", workspaceObj.ObjectMeta.Name)
 	})
 }
 
@@ -328,12 +394,12 @@ func createAndValidateRAGEngine(ragEngineObj *kaitov1alpha1.RAGEngine) {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, ragEngineObj, &client.CreateOptions{})
 		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create ragEngine   %s", ragEngineObj.Name)
+			Should(Succeed(), "Failed to create ragEngine   %s", ragEngineObj.ObjectMeta.Name)
 
 		By("Validating ragEngine creation", func() {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: ragEngineObj.Namespace,
-				Name:      ragEngineObj.Name,
+				Namespace: ragEngineObj.ObjectMeta.Namespace,
+				Name:      ragEngineObj.ObjectMeta.Name,
 			}, ragEngineObj, &client.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -387,8 +453,8 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the workspace status is ready", func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: workspaceObj.Namespace,
-				Name:      workspaceObj.Name,
+				Namespace: workspaceObj.ObjectMeta.Namespace,
+				Name:      workspaceObj.ObjectMeta.Name,
 			}, workspaceObj, &client.GetOptions{})
 
 			if err != nil {
@@ -404,9 +470,9 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL string) *kaitov1alpha1.RAGEngine {
+func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL, llmPath string) *kaitov1alpha1.RAGEngine {
 	ragEngineObj := &kaitov1alpha1.RAGEngine{}
-	serviceURL := fmt.Sprintf("http://%s/v1/completions", baseURL)
+	serviceURL := fmt.Sprintf("http://%s/%s", baseURL, llmPath)
 	By("Creating RAG with localembedding and kaito vllm inference", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
 		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NV36ads_A10_v5", "BAAI/bge-small-en-v1.5",
@@ -444,7 +510,7 @@ func createLocalPreferredNodesRAGEngine(baseURL, preferredNode string) *kaitov1a
 
 func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 	ragEngineObj := &kaitov1alpha1.RAGEngine{}
-	hfURL := "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta/v1/completions"
+	hfURL := "https://router.huggingface.co/featherless-ai/v1/chat/completions"
 	By("Creating RAG with localembedding and huggingface API", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
 		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NV36ads_A10_v5", "BAAI/bge-small-en-v1.5",
@@ -478,9 +544,9 @@ func cleanupResources(
 		} else {
 			if ragengineObj != nil {
 				GinkgoWriter.Printf("Test failed, keep Workspace %s and RAGEngine %s\n",
-					workspaceObj.Name, ragengineObj.Name)
+					workspaceObj.ObjectMeta.Name, ragengineObj.ObjectMeta.Name)
 			} else {
-				GinkgoWriter.Printf("Test failed, keep Workspace %s\n", workspaceObj.Name)
+				GinkgoWriter.Printf("Test failed, keep Workspace %s\n", workspaceObj.ObjectMeta.Name)
 			}
 		}
 	})
@@ -491,8 +557,8 @@ func validateWorkspaceResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the resource status", func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: workspaceObj.Namespace,
-				Name:      workspaceObj.Name,
+				Namespace: workspaceObj.ObjectMeta.Namespace,
+				Name:      workspaceObj.ObjectMeta.Name,
 			}, workspaceObj, &client.GetOptions{})
 
 			if err != nil {
@@ -513,21 +579,21 @@ func deleteRAGEngine(ragengineObj *kaitov1alpha1.RAGEngine) error {
 		Eventually(func() error {
 			// Check if the workspace exists
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: ragengineObj.Namespace,
-				Name:      ragengineObj.Name,
+				Namespace: ragengineObj.ObjectMeta.Namespace,
+				Name:      ragengineObj.ObjectMeta.Name,
 			}, ragengineObj)
 
 			if errors.IsNotFound(err) {
-				GinkgoWriter.Printf("RAGEngine %s does not exist, no need to delete\n", ragengineObj.Name)
+				GinkgoWriter.Printf("RAGEngine %s does not exist, no need to delete\n", ragengineObj.ObjectMeta.Name)
 				return nil
 			}
 			if err != nil {
-				return fmt.Errorf("error checking if ragengine %s exists: %v", ragengineObj.Name, err)
+				return fmt.Errorf("error checking if ragengine %s exists: %v", ragengineObj.ObjectMeta.Name, err)
 			}
 
 			err = utils.TestingCluster.KubeClient.Delete(ctx, ragengineObj, &client.DeleteOptions{})
 			if err != nil {
-				return fmt.Errorf("failed to delete ragengine %s: %v", ragengineObj.Name, err)
+				return fmt.Errorf("failed to delete ragengine %s: %v", ragengineObj.ObjectMeta.Name, err)
 			}
 			return nil
 		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete ragengine")
@@ -617,8 +683,8 @@ func validateRAGEngineCondition(ragengineObj *kaitov1alpha1.RAGEngine, condition
 	By(fmt.Sprintf("Checking %s", description), func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: ragengineObj.Namespace,
-				Name:      ragengineObj.Name,
+				Namespace: ragengineObj.ObjectMeta.Namespace,
+				Name:      ragengineObj.ObjectMeta.Name,
 			}, ragengineObj, &client.GetOptions{})
 			if err != nil {
 				return false
@@ -637,21 +703,21 @@ func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 		Eventually(func() error {
 			// Check if the workspace exists
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: workspaceObj.Namespace,
-				Name:      workspaceObj.Name,
+				Namespace: workspaceObj.ObjectMeta.Namespace,
+				Name:      workspaceObj.ObjectMeta.Name,
 			}, workspaceObj)
 
 			if errors.IsNotFound(err) {
-				GinkgoWriter.Printf("Workspace %s does not exist, no need to delete\n", workspaceObj.Name)
+				GinkgoWriter.Printf("Workspace %s does not exist, no need to delete\n", workspaceObj.ObjectMeta.Name)
 				return nil
 			}
 			if err != nil {
-				return fmt.Errorf("error checking if workspace %s exists: %v", workspaceObj.Name, err)
+				return fmt.Errorf("error checking if workspace %s exists: %v", workspaceObj.ObjectMeta.Name, err)
 			}
 
 			err = utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
 			if err != nil {
-				return fmt.Errorf("failed to delete workspace %s: %v", workspaceObj.Name, err)
+				return fmt.Errorf("failed to delete workspace %s: %v", workspaceObj.ObjectMeta.Name, err)
 			}
 			return nil
 		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
@@ -660,10 +726,8 @@ func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 	return nil
 }
 
-func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine, podName string) (map[string]any, error) {
-	indexResp := []map[string]any{}
-	By("Creating index pod", func() {
-		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/index \
+func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) (map[string]any, error) {
+	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/index \
 -H "Content-Type: application/json" \
 -d '{
     "index_name": "kaito",
@@ -674,60 +738,21 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine, podName st
         }
     ]
 }'`
-		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
-		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
-		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create index pod")
-	})
-
-	By("Checking the index logs", func() {
-		Eventually(func() bool {
-			coreClient, err := utils.GetK8sClientset()
-			if err != nil {
-				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
-				return false
-			}
-
-			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
-			if err != nil {
-				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
-				return false
-			}
-
-			GinkgoWriter.Printf("Index pod logs: %s\n", logs)
-
-			startIndex := strings.Index(logs, "[")
-			endIndex := strings.LastIndex(logs, "]")
-			if startIndex == -1 || endIndex == -1 || startIndex >= endIndex {
-				GinkgoWriter.Printf("Invalid index logs format in pod %s: %s\n", podName, logs)
-				return false
-			}
-
-			apiResp := logs[startIndex : endIndex+1]
-			GinkgoWriter.Printf("Parsed API response: %s\n", apiResp)
-
-			err = json.Unmarshal([]byte(apiResp), &indexResp)
-			if err != nil {
-				GinkgoWriter.Printf("Failed to unmarshal pod logs to index response %s: %v\n", podName, err)
-				return false
-			}
-
-			if len(indexResp) == 0 {
-				GinkgoWriter.Printf("No index logs found in pod %s\n", podName)
-				return false
-			}
-
-			return strings.Contains(logs, "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster")
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for index logs to be ready")
-	})
-
-	return indexResp[0], nil
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("index-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster",
+		WaitForRunning:     false,
+		ParseJSONResponse:  true,
+		JSONStartMarker:    "[",
+		JSONEndMarker:      "]",
+	}
+	return createAndValidateAPIPod(ragengineObj, opts)
 }
 
-func createAndValidateUpdateDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, docID string, podName string) error {
-	By("Creating update document pod", func() {
-		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/indexes/kaito/documents \
+func createAndValidateUpdateDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, docID string) error {
+	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/indexes/kaito/documents \
 -H "Content-Type: application/json" \
 -d '{
     "documents": [
@@ -738,122 +763,66 @@ func createAndValidateUpdateDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, d
         }
     ]
 }'`
-		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
-		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
-		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create index pod")
-	})
-
-	By("Checking the index logs", func() {
-		Eventually(func() bool {
-			coreClient, err := utils.GetK8sClientset()
-			if err != nil {
-				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
-				return false
-			}
-
-			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
-			if err != nil {
-				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
-				return false
-			}
-
-			GinkgoWriter.Printf("Index pod logs: %s\n", logs)
-
-			return strings.Contains(logs, `"updated_documents":[{"doc_id":"`+docID+`"`)
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for update document logs to be ready")
-	})
-
-	return nil
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("update-document-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: `"updated_documents":[{"doc_id":"` + docID + `"`,
+		WaitForRunning:     false,
+		ParseJSONResponse:  false,
+	}
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
+	return err
 }
 
-func createAndValidateDeleteDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, docID string, podName string) error {
-	By("Creating delete document pod", func() {
-		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/indexes/kaito/documents/delete \
+func createAndValidateDeleteDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, docID string) error {
+	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/indexes/kaito/documents/delete \
 -H "Content-Type: application/json" \
 -d '{"doc_ids": ["` + docID + `"]}'`
-		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
-		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
-		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create index pod")
-	})
-
-	By("Checking the index logs", func() {
-		Eventually(func() bool {
-			coreClient, err := utils.GetK8sClientset()
-			if err != nil {
-				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
-				return false
-			}
-
-			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
-			if err != nil {
-				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
-				return false
-			}
-
-			GinkgoWriter.Printf("Index pod logs: %s\n", logs)
-
-			return strings.Contains(logs, `"deleted_doc_ids":["`+docID+`"]`)
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for delete document logs to be ready")
-	})
-
-	return nil
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("delete-document-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: `"deleted_doc_ids":["` + docID + `"]`,
+		WaitForRunning:     false,
+		ParseJSONResponse:  false,
+	}
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
+	return err
 }
 
-func createAndValidateDeleteIndexPod(ragengineObj *kaitov1alpha1.RAGEngine, podName string) error {
-	By("Creating delete index pod", func() {
-		curlCommand := `curl -X DELETE ` + ragengineObj.Name + `:80/indexes/kaito \
+func createAndValidateDeleteIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
+	curlCommand := `curl -X DELETE ` + ragengineObj.ObjectMeta.Name + `:80/indexes/kaito \
 -H "Content-Type: application/json"`
-		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
-		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
-		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create delete index pod")
-	})
-
-	By("Checking the delete index logs", func() {
-		Eventually(func() bool {
-			coreClient, err := utils.GetK8sClientset()
-			if err != nil {
-				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
-				return false
-			}
-
-			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
-			if err != nil {
-				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
-				return false
-			}
-
-			GinkgoWriter.Printf("Index pod logs: %s\n", logs)
-
-			return strings.Contains(logs, "Successfully deleted index kaito")
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for index logs to be ready")
-	})
-
-	return nil
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("delete-index-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: "Successfully deleted index kaito",
+		WaitForRunning:     false,
+		ParseJSONResponse:  false,
+	}
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
+	return err
 }
 
-func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSearchQueries string, remote bool, podName string) error {
-	By("Creating query pod", func() {
-		var curlCommand string
-		// Note: Request without model specified should still succeed with vLLM. As model name is dynamically fetched.
-		if remote {
-			curlCommand = `curl -X POST ` + ragengineObj.Name + `:80/query \
+func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSearchQueries string, remote bool) error {
+	var curlCommand string
+	// Note: Request without model specified should still succeed with vLLM. As model name is dynamically fetched.
+	if remote {
+		curlCommand = `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/query \
 -H "Content-Type: application/json" \
 -d '{
 	"index_name": "kaito",
+	"model": "HuggingFaceH4/zephyr-7b-beta",
     "query": "what is kaito?",
     "llm_params": {
       "max_tokens": 50,
       "temperature": 0
     }
 }'`
-		} else {
-			curlCommand = `curl -X POST ` + ragengineObj.Name + `:80/query \
+	} else {
+		curlCommand = `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/query \
 -H "Content-Type: application/json" \
 -d '{
 	"index_name": "kaito",
@@ -864,129 +833,195 @@ func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSe
       "temperature": 0
     }
 }'`
+	}
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("query-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: expectedSearchQueries,
+		WaitForRunning:     true,
+		ParseJSONResponse:  false,
+	}
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
+	return err
+}
+
+func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSearchQueries string, remote bool) error {
+	var curlCommand string
+	// Note: Request without model specified should still succeed with vLLM. As model name is dynamically fetched.
+	if remote {
+		curlCommand = `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/v1/chat/completions \
+-H "Content-Type: application/json" \
+-d '{
+	"index_name": "kaito",
+	"model": "HuggingFaceH4/zephyr-7b-beta",
+    "messages": [
+		{
+			"role": "user",
+			"content": "what is kaito?"
 		}
-		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
-		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
-		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create query pod")
-	})
-
-	By("Waiting for query pod to be running", func() {
-		Eventually(func() bool {
-			pod := &v1.Pod{}
-			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: ragengineObj.Namespace,
-				Name:      podName,
-			}, pod)
-			if err != nil {
-				return false
-			}
-			return pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded
-		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Query pod did not reach Running or Succeeded state")
-	})
-
-	By("Checking the query logs", func() {
-		Eventually(func() bool {
-			coreClient, err := utils.GetK8sClientset()
-			if err != nil {
-				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
-				return false
-			}
-			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
-			if err != nil {
-				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
-				return false
-			}
-			return strings.Contains(logs, expectedSearchQueries)
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for query logs to be ready")
-	})
-
-	return nil
+	],
+    "max_tokens": 50,
+    "temperature": 0
+}'`
+	} else {
+		curlCommand = `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/v1/chat/completions \
+-H "Content-Type: application/json" \
+-d '{
+	"index_name": "kaito",
+    "model": "phi-3-mini-128k-instruct",
+    "messages": [
+		{
+			"role": "user",
+			"content": "what is kaito?"
+		}
+	],
+    "max_tokens": 50,
+    "temperature": 0
+}'`
+	}
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("chat-completions-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: expectedSearchQueries,
+		WaitForRunning:     true,
+		ParseJSONResponse:  false,
+	}
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
+	return err
 }
 
-func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedPersistResult string, podName string) error {
-	By("Creating Persist pod", func() {
-		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/persist/kaito`
-		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
-		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
-		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create persist pod")
-	})
-
-	By("Waiting for persist pod to be running", func() {
-		Eventually(func() bool {
-			pod := &v1.Pod{}
-			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: ragengineObj.Namespace,
-				Name:      podName,
-			}, pod)
-			if err != nil {
-				return false
-			}
-			return pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded
-		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Persist pod did not reach Running or Succeeded state")
-	})
-
-	By("Checking the persist logs", func() {
-		Eventually(func() bool {
-			coreClient, err := utils.GetK8sClientset()
-			if err != nil {
-				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
-				return false
-			}
-			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
-			if err != nil {
-				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
-				return false
-			}
-			return strings.Contains(logs, expectedPersistResult)
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for persist logs to be ready")
-	})
-
-	return nil
+func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedPersistResult string) error {
+	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/persist/kaito`
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("persist-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: expectedPersistResult,
+		WaitForRunning:     true,
+		ParseJSONResponse:  false,
+	}
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
+	return err
 }
 
-func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoadResult string, podName string) error {
-	By("Creating Load Pod", func() {
-		curlCommand := `curl -X POST ` + ragengineObj.Name + `:80/load/kaito?overwrite=True`
-		pod := GenerateCURLPodManifest(podName, curlCommand, ragengineObj.Namespace)
+func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoadResult string) error {
+	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/load/kaito?overwrite=True`
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("load-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: expectedLoadResult,
+		WaitForRunning:     true,
+		ParseJSONResponse:  false,
+	}
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
+	return err
+}
+
+// PodValidationOptions holds configuration for pod validation
+type PodValidationOptions struct {
+	PodName            string
+	CurlCommand        string
+	Namespace          string
+	ExpectedLogContent string
+	WaitForRunning     bool
+	ParseJSONResponse  bool
+	JSONStartMarker    string
+	JSONEndMarker      string
+}
+
+// createAndValidateAPIPod is a generic function to create and validate API test pods
+func createAndValidateAPIPod(ragengineObj *kaitov1alpha1.RAGEngine, opts PodValidationOptions) (map[string]any, error) {
+	var jsonResp []map[string]any
+
+	By(fmt.Sprintf("Creating %s", opts.PodName), func() {
+		pod := GenerateCURLPodManifest(opts.PodName, opts.CurlCommand, opts.Namespace)
 		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
-		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create load pod")
-	})
-	// Wait for the pod to be running before attempting to fetch logs.
-	By("Waiting for load pod to be running", func() {
-		Eventually(func() bool {
-			pod := &v1.Pod{}
-			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: ragengineObj.Namespace,
-				Name:      podName,
-			}, pod)
+			err := utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
 			if err != nil {
-				return false
+				GinkgoWriter.Printf("Failed to create pod %s: %v\n", opts.PodName, err)
+				return err
 			}
-			return pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded
-		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Load pod did not reach Running or Succeeded state")
+			return nil
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), fmt.Sprintf("Failed to create %s", opts.PodName))
 	})
-	By("Checking the load logs", func() {
+
+	if opts.WaitForRunning {
+		By(fmt.Sprintf("Waiting for %s to be running", opts.PodName), func() {
+			Eventually(func() bool {
+				pod := &v1.Pod{}
+				err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+					Namespace: opts.Namespace,
+					Name:      opts.PodName,
+				}, pod)
+				if err != nil {
+					GinkgoWriter.Printf("Failed to get pod %s: %v\n", opts.PodName, err)
+					return false
+				}
+				return pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded
+			}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), fmt.Sprintf("%s did not reach Running or Succeeded state", opts.PodName))
+		})
+	}
+
+	By(fmt.Sprintf("Checking the %s logs", opts.PodName), func() {
 		Eventually(func() bool {
 			coreClient, err := utils.GetK8sClientset()
 			if err != nil {
 				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
 				return false
 			}
-			logs, err := utils.GetPodLogs(coreClient, ragengineObj.Namespace, podName, "")
+
+			logs, err := utils.GetPodLogs(coreClient, opts.Namespace, opts.PodName, "")
 			if err != nil {
-				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", podName, err)
+				GinkgoWriter.Printf("Failed to get logs from pod %s: %v\n", opts.PodName, err)
 				return false
 			}
-			return strings.Contains(logs, expectedLoadResult)
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for load logs to be ready")
+
+			GinkgoWriter.Printf("%s logs: %s\n", opts.PodName, logs)
+
+			if opts.ParseJSONResponse {
+				startMarker := opts.JSONStartMarker
+				endMarker := opts.JSONEndMarker
+				if startMarker == "" {
+					startMarker = "["
+				}
+				if endMarker == "" {
+					endMarker = "]"
+				}
+
+				startIndex := strings.Index(logs, startMarker)
+				endIndex := strings.LastIndex(logs, endMarker)
+				if startIndex == -1 || endIndex == -1 || startIndex >= endIndex {
+					GinkgoWriter.Printf("Invalid JSON format in pod %s: %s\n", opts.PodName, logs)
+					return false
+				}
+
+				apiResp := logs[startIndex : endIndex+1]
+				GinkgoWriter.Printf("Parsed API response: %s\n", apiResp)
+
+				err = json.Unmarshal([]byte(apiResp), &jsonResp)
+				if err != nil {
+					GinkgoWriter.Printf("Failed to unmarshal pod logs to JSON response %s: %v\n", opts.PodName, err)
+					return false
+				}
+
+				if len(jsonResp) == 0 {
+					GinkgoWriter.Printf("No JSON response found in pod %s\n", opts.PodName)
+					return false
+				}
+			}
+
+			return strings.Contains(logs, opts.ExpectedLogContent)
+		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), fmt.Sprintf("Failed to wait for %s logs to be ready", opts.PodName))
 	})
-	return nil
+
+	if opts.ParseJSONResponse && len(jsonResp) > 0 {
+		return jsonResp[0], nil
+	}
+	return nil, nil
 }
 
 func GenerateCURLPodManifest(podName, curlCommand, namespace string) *v1.Pod {

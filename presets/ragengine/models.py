@@ -13,8 +13,18 @@
 
 
 from typing import Any, Dict, List, Optional
+from typing_extensions import Literal, Required, Optional
+from openai.types.chat import (
+    ChatCompletion,
+    CompletionCreateParams,
+    ChatCompletionMessageParam,
+    ChatCompletionUserMessageParam,
+    ChatCompletionSystemMessageParam,
+    ChatCompletionDeveloperMessageParam,
+    ChatCompletionContentPartTextParam,
+)
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, ValidationError, create_model
 
 
 class Document(BaseModel):
@@ -93,4 +103,36 @@ class QueryResponse(BaseModel):
 
 class HealthStatus(BaseModel):
     status: str
-    detail: Optional[str] = None 
+    detail: Optional[str] = None
+
+class ChatCompletionResponse(ChatCompletion):
+    source_nodes: Optional[List[NodeWithScore]] = None
+
+def messages_to_prompt(messages: List[Dict]) -> str:
+    """Convert messages to a prompt string."""
+    string_messages = []
+    for message in messages:
+        content = get_message_content(message)
+        string_messages.append(f"{message.get('role')}: {content}")
+    return "\n".join(string_messages)
+
+def get_message_content(message: Dict) -> str:
+    """Extract content from a ChatCompletionMessageParam."""
+    if message.get("role") == "user":
+        if message.get("content"):
+            content = message.get("content")
+            if isinstance(content, str):
+                return content
+            elif isinstance(content, dict) and content.get("type") == "text":
+                return content.get("text", "")
+            elif isinstance(content, list):
+                user_text_content = []
+                for part in content:
+                    if isinstance(part, str):
+                        user_text_content.append(part)
+                    elif part.get("type") == "text":
+                        user_text_content.append(part.get("text", ""))
+                return "\n".join(user_text_content)
+        return ""
+    else:
+        return message.get("content", {}).get("text", "") if isinstance(message.get("content"), dict) else message.get("content", "")

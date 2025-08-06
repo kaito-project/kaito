@@ -17,6 +17,7 @@ from typing import Dict, List, Any
 from ragengine.models import Document
 from ragengine.vector_store.base import BaseVectorStore
 
+
 class VectorStoreManager:
     def __init__(self, vector_store: BaseVectorStore):
         self.vector_store = vector_store
@@ -34,6 +35,10 @@ class VectorStoreManager:
     ):
         """Query the indexed documents."""
         return await self.vector_store.query(index_name, query, top_k, llm_params, rerank_params)
+
+    async def chat_completion(self, request: dict):
+        """Chat completion using the vector store."""
+        return await self.vector_store.chat_completion(request)
 
     def list_indexes(self):
         """List all indexes."""

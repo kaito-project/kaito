@@ -73,10 +73,10 @@ class QueryRequest(BaseModel):
     )
 
     @model_validator(mode="after")
-    def validate_params(cls, values: "QueryRequest") -> "QueryRequest":
-        # Access fields as attributes instead of treating as a dictionary
-        rerank_params = values.rerank_params
-        top_k = values.top_k
+    def validate_params(self) -> "QueryRequest":
+        # Access fields as attributes
+        rerank_params = self.rerank_params
+        top_k = self.top_k
 
         # Validate rerank parameters
         if "top_n" in rerank_params:
@@ -86,8 +86,7 @@ class QueryRequest(BaseModel):
                 raise ValueError(
                     "Invalid configuration: 'top_n' for reranking cannot exceed 'top_k' from the RAG query."
                 )
-
-        return values
+        return self
 
 
 # Define models for NodeWithScore, and QueryResponse

@@ -24,16 +24,12 @@ No plan to move to 1.0.0 unless there is a major design change like an incompati
 
 **Minor Releases**
 
-- X.Y.0-beta.W, W >= 0 (Branch: main)
-    - Released as needed before we cut a stable X.Y release
-    - More stable than the alpha release to signal users to test things out
-    - Beta release, cut from main branch
 - X.Y.0-rc.W, W >= 0 (Branch: release-X.Y)
     - Released as needed before we cut a stable X.Y release
-    - Soak for a total of ~2 weeks before cutting a stable release
+    - Soak for a total of ~1 week before cutting a stable release
     - Release candidate release, cut from release-X.Y branch
 - X.Y.0 (Branch: release-X.Y)
-    - Released every ~2 months
+    - Released every ~2 months (with the exception of emergency minor releases to support new models)
     - Stable release, cut from release-X.Y branch when X.Y milestone is complete
 
 **Patch Releases**

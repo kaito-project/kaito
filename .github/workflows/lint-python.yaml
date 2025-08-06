@@ -6,6 +6,7 @@ on:
       - '**.py'
     branches:
       - main
+      - e2e-fix
   pull_request:
     paths:
       - '**.py'

@@ -34,8 +34,7 @@ POST /index
     {
       "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model (LLM) like ChatGPT by adding an information retrieval system that provides grounding data.",
       "metadata": {
-        "author": "Microsoft",
-        "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
+        "author": "kaito",
       }
     }
   ]
@@ -54,8 +53,7 @@ POST /index
     "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model (LLM) like ChatGPT by adding an information retrieval system that provides grounding data.",
     "hash_value": "text_hash_value",
     "metadata": {
-      "author": "Microsoft",
-      "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
+      "author": "kaito",
     },
     "is_truncated": false
   }
@@ -112,8 +110,7 @@ GET /indexes/rag_index/documents?limit=5&offset=0&max_text_length=500
       "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model (LLM) like ChatGPT by adding an information retrieval system that provides grounding data.",
       "hash_value": "text_hash_value",
       "metadata": {
-        "author": "Microsoft",
-        "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
+        "author": "kaito",
       },
       "is_truncated": false
     }
@@ -128,7 +125,7 @@ Each document in the response includes its unique `doc_id`, the (possibly trunca
 If you want to filter documents by metadata, provide the `metadata_filter` parameter as a JSON string. For example:
 
 ```
-GET /indexes/rag_index/documents?metadata_filter={"author":"Microsoft"}
+GET /indexes/rag_index/documents?metadata_filter={"author":"kaito"}
 ```
 
 
@@ -147,9 +144,8 @@ POST /indexes/rag_index/documents
       "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model (LLM) like ChatGPT by adding an information retrieval system that provides grounding data. Adding an information retrieval system gives you control over grounding data used by an LLM when it formulates a response.",
       "hash_value": "text_hash_value",
       "metadata": {
-        "author": "Microsoft",
-        "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
-      },
+        "author": "kaito",
+      }
     }
   ]
 }
@@ -169,9 +165,8 @@ POST /indexes/rag_index/documents
       "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model (LLM) like ChatGPT by adding an information retrieval system that provides grounding data. Adding an information retrieval system gives you control over grounding data used by an LLM when it formulates a response.",
       "hash_value": "text_hash_value",
       "metadata": {
-        "author": "Microsoft",
-        "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
-      },
+        "author": "kaito",
+      }
     }
   ],
   "unchanged_documents": [],
@@ -322,15 +317,13 @@ POST /query
       "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model...",
       "score": 0.95,
       "metadata": {
-        "author": "Microsoft",
-        "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
-      },
+        "author": "kaito",
+      }
     }
   ],
   "metadata": {
     "2853a565-8c1f-4982-acaa-a0ab52691435": {
-      "author": "Microsoft",
-      "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
+      "author": "kaito",
     }
   }
 }
@@ -409,8 +402,7 @@ POST /v1/chat/completions
       "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model...",
       "score": 0.95,
       "metadata": {
-        "author": "Microsoft",
-        "source": "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=docs"
+        "author": "kaito",
       }
     }
   ]

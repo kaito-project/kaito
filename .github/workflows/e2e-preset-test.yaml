@@ -128,7 +128,7 @@ jobs:
     environment: preset-env
     strategy:
       fail-fast: false
-      max-parallel: 10
+      max-parallel: 5
       matrix:
         # Ex matrix element:
         # {"name":"falcon-40b","type":"text-generation","version":"#",

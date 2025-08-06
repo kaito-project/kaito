@@ -12,19 +12,16 @@
 # limitations under the License.
 
 
-import asyncio
 import json
 import os
 import re
-from unittest.mock import ANY, patch
+from unittest.mock import patch
 
 import httpx
 import pytest
-import httpx
 import respx
 
 from ragengine.config import DEFAULT_VECTOR_DB_PERSIST_DIR
-from ragengine.main import app, vector_store_handler
 
 AUTO_GEN_DOC_ID_LEN = 64
 
@@ -111,7 +108,7 @@ async def test_query_index_success(mock_get, async_client):
     )
     assert response.json()["source_nodes"][0]["metadata"] == {}
 
-    response = await async_client.get(f"/metrics")
+    response = await async_client.get("/metrics")
     assert response.status_code == 200
     assert (
         len(

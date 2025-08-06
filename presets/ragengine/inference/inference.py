@@ -13,22 +13,36 @@
 
 
 import asyncio
-import httpx
-from typing import Any, Sequence
-from llama_index.core.llms import CustomLLM, CompletionResponse, LLMMetadata, CompletionResponseGen, ChatMessage, ChatResponse
-from llama_index.core.llms.callbacks import llm_completion_callback, llm_chat_callback
-import requests
-from requests.exceptions import HTTPError
-from urllib.parse import urlparse, urljoin
-from ragengine.config import LLM_INFERENCE_URL, LLM_ACCESS_SECRET, LLM_CONTEXT_WINDOW #, LLM_RESPONSE_FIELD
-from ragengine.models import ChatCompletionResponse
-from fastapi import HTTPException
 import concurrent.futures
 import json
+import logging
+from collections.abc import Sequence
+from typing import Any
+from urllib.parse import urljoin, urlparse
 
+import httpx
+import requests
+from fastapi import HTTPException
+from llama_index.core.llms import (
+    ChatMessage,
+    ChatResponse,
+    CompletionResponse,
+    CompletionResponseGen,
+    CustomLLM,
+    LLMMetadata,
+)
+from llama_index.core.llms.callbacks import llm_chat_callback, llm_completion_callback
 from openai.types.chat import (
     CompletionCreateParams,
 )
+from requests.exceptions import HTTPError
+
+from ragengine.config import (  # , LLM_RESPONSE_FIELD
+    LLM_ACCESS_SECRET,
+    LLM_CONTEXT_WINDOW,
+    LLM_INFERENCE_URL,
+)
+from ragengine.models import ChatCompletionResponse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -116,23 +130,27 @@ class Inference(CustomLLM):
         finally:
             # Clear params after the completion is done
             self.params = {}
-    
+
     @llm_chat_callback()
     def chat(
         self,
         messages: Sequence[ChatMessage],
         **kwargs: Any,
     ) -> ChatResponse:
-        """ Perform a chat completion request. """
+        """Perform a chat completion request."""
         try:
-            logger.info(f"Sending chat request to {LLM_INFERENCE_URL} with messages: {messages}, and args: {kwargs}")
+            logger.info(
+                f"Sending chat request to {LLM_INFERENCE_URL} with messages: {messages}, and args: {kwargs}"
+            )
             return self.run_async_coroutine(self.achat(messages, **kwargs))
         except HTTPException as http_exc:
             logger.error(f"HTTP exception during chat(): {http_exc.detail}")
             raise http_exc
         except Exception as e:
             logger.error(f"Unexpected exception in chat(): {e}")
-            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"An unexpected error occurred: {str(e)}"
+            )
 
     @llm_chat_callback()
     async def achat(
@@ -140,16 +158,21 @@ class Inference(CustomLLM):
         messages: Sequence[ChatMessage],
         **kwargs: Any,
     ) -> ChatResponse:
-        """ Perform an asynchronous chat completion request. """
+        """Perform an asynchronous chat completion request."""
         try:
             base_model, base_max_len = self._get_default_model_info()
             req = {
                 "model": self.get_param("model", base_model),
                 "max_tokens": self.get_param("max_tokens", base_max_len),
-                "messages": [{
-                    "role": message.role,
-                    "content": message.content if isinstance(message.content, str) else json.dumps(message.content)
-                } for message in messages if message.content is not None and message.content != ""
+                "messages": [
+                    {
+                        "role": message.role,
+                        "content": message.content
+                        if isinstance(message.content, str)
+                        else json.dumps(message.content),
+                    }
+                    for message in messages
+                    if message.content is not None and message.content != ""
                 ],
             }
 
@@ -157,50 +180,75 @@ class Inference(CustomLLM):
             for key, value in self.params.items():
                 if key not in req:
                     req[key] = value
-            
-            resp =  await self._async_post_request_raw(data=req, headers=DEFAULT_HEADERS)
+
+            resp = await self._async_post_request_raw(data=req, headers=DEFAULT_HEADERS)
             return ChatResponse(
                 logprobs=resp.get("logprobs", None),
                 delta=resp.get("delta", None),
                 raw=resp,
-                message=ChatMessage(content=resp.get("choices", [{}])[0].get("message", {}).get("content", ""))
+                message=ChatMessage(
+                    content=resp.get("choices", [{}])[0]
+                    .get("message", {})
+                    .get("content", "")
+                ),
             )
         except HTTPException as http_exc:
             logger.error(f"HTTP exception during achat(): {http_exc.detail}")
             raise http_exc
         except Exception as e:
             logger.error(f"Unexpected exception in achat(): {e}")
-            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"An unexpected error occurred: {str(e)}"
+            )
         finally:
             # Clear params after the completion is done
             self.params = {}
-    
-    async def chat_completions_passthrough(self, chatCompletionsRequest: CompletionCreateParams, **kwargs: Any) -> ChatCompletionResponse:
+
+    async def chat_completions_passthrough(
+        self, chatCompletionsRequest: CompletionCreateParams, **kwargs: Any
+    ) -> ChatCompletionResponse:
         try:
             if "/chat/completions" not in LLM_INFERENCE_URL:
                 # If the URL does not support chat completions, raise an error
-                raise HTTPException(status_code=400, detail=f"Chat completions not supported through endpoint {LLM_INFERENCE_URL}.")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Chat completions not supported through endpoint {LLM_INFERENCE_URL}.",
+                )
 
             client = await self._get_httpx_client()
-            response = await client.post(LLM_INFERENCE_URL, json=chatCompletionsRequest, headers=DEFAULT_HEADERS)
+            response = await client.post(
+                LLM_INFERENCE_URL, json=chatCompletionsRequest, headers=DEFAULT_HEADERS
+            )
             response.raise_for_status()  # Raise an exception for HTTP errors
             response_data = response.json()
             # Convert to ChatCompletionResponse with source_nodes=None for passthrough
             return ChatCompletionResponse(**response_data, source_nodes=None)
         except HTTPException as http_exc:
-            logger.error(f"HTTP exception during chat completions passthrough: {http_exc.detail}")
+            logger.error(
+                f"HTTP exception during chat completions passthrough: {http_exc.detail}"
+            )
             raise http_exc
         except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error {e.response.status_code} during POST request to {LLM_INFERENCE_URL}: {e.response.text}")
-            raise HTTPException(status_code=e.response.status_code, detail=f"{str(e.response.content)}")
+            logger.error(
+                f"HTTP error {e.response.status_code} during POST request to {LLM_INFERENCE_URL}: {e.response.text}"
+            )
+            raise HTTPException(
+                status_code=e.response.status_code, detail=f"{str(e.response.content)}"
+            )
         except httpx.RequestError as e:
             logger.error(f"Error during POST request to {LLM_INFERENCE_URL}: {e}")
-            raise HTTPException(status_code=500, detail=f"Error during POST request: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Error during POST request: {str(e)}"
+            )
         except Exception as e:
             logger.error(f"Unexpected error during POST request: {e}")
-            raise HTTPException(status_code=500, detail=f"Error during POST request: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Error during POST request: {str(e)}"
+            )
 
-    async def _async_completions(self, prompt: str, **kwargs: Any) -> CompletionResponse:
+    async def _async_completions(
+        self, prompt: str, **kwargs: Any
+    ) -> CompletionResponse:
         model_name, model_max_len = self._get_default_model_info()
         if kwargs.get("model"):
             model_name = kwargs.pop("model")
@@ -232,13 +280,17 @@ class Inference(CustomLLM):
                     f"Potential issue with 'model' parameter in API response. "
                     f"Response: {str(e)}. Attempting to update the model name as a mitigation..."
                 )
-                self._default_model, self._default_max_model_len = self._fetch_default_model_info()  # Fetch default model dynamically
+                self._default_model, self._default_max_model_len = (
+                    self._fetch_default_model_info()
+                )  # Fetch default model dynamically
                 if self._default_model:
                     logger.info(
                         f"Default model '{self._default_model}' fetched successfully. Retrying request..."
                     )
                     data["model"] = self._default_model
-                    resp = await self._async_post_request_raw(data, headers=DEFAULT_HEADERS)
+                    resp = await self._async_post_request_raw(
+                        data, headers=DEFAULT_HEADERS
+                    )
                     return self._completions_json_to_response(resp)
                 else:
                     logger.error("Failed to fetch a default model. Aborting retry.")
@@ -246,7 +298,7 @@ class Inference(CustomLLM):
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
             raise
-    
+
     def _completions_json_to_response(self, response_json: dict) -> CompletionResponse:
         """
         Converts the JSON response from the completions API to a CompletionResponse object.

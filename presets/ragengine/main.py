@@ -13,16 +13,26 @@
 
 
 import json
+import os
 import time
-from vector_store_manager.manager import VectorStoreManager
+from urllib.parse import unquote
+
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
 from fastapi import FastAPI, HTTPException, Query, Request
-from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
-                    QueryRequest, QueryResponse, Document, HealthStatus, DeleteDocumentRequest,
-                    DeleteDocumentResponse, UpdateDocumentResponse, ChatCompletionResponse)
-
-from vector_store.faiss_store import FaissVectorStoreHandler
+from models import (
+    ChatCompletionResponse,
+    DeleteDocumentRequest,
+    DeleteDocumentResponse,
+    Document,
+    HealthStatus,
+    IndexRequest,
+    ListDocumentsResponse,
+    QueryRequest,
+    QueryResponse,
+    UpdateDocumentRequest,
+    UpdateDocumentResponse,
+)
 
 from ragengine.config import (
     REMOTE_EMBEDDING_URL,
@@ -48,8 +58,6 @@ from ragengine.config import (
     REMOTE_EMBEDDING_URL,
 )
 from ragengine.metrics.prometheus_metrics import (
-    rag_query_latency,
-    rag_query_requests_total,
     rag_chat_latency,
     rag_chat_requests_total,
     rag_index_latency,
@@ -109,7 +117,14 @@ app = FastAPI()
 
 @app.middleware("http")
 async def track_requests(request: Request, call_next):
-    tracked_paths = ["/query", "/index", "/indexes", "/persist", "/load", "/v1/chat/completions"]
+    tracked_paths = [
+        "/query",
+        "/index",
+        "/indexes",
+        "/persist",
+        "/load",
+        "/v1/chat/completions",
+    ]
 
     should_track = any(request.url.path.startswith(path) for path in tracked_paths)
 
@@ -415,6 +430,7 @@ async def chat_completions(request: dict):
         # Record metrics once in finally block
         rag_chat_requests_total.labels(status=status).inc()
         rag_chat_latency.labels(status=status).observe(time.perf_counter() - start_time)
+
 
 @app.get(
     "/indexes",

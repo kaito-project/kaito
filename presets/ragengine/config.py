@@ -65,7 +65,9 @@ LLM_INFERENCE_URL = os.getenv(
     "LLM_INFERENCE_URL", "http://localhost:5000/v1/completions"
 )
 LLM_ACCESS_SECRET = os.getenv("LLM_ACCESS_SECRET", "default-access-secret")
-LLM_CONTEXT_WINDOW = int(os.getenv("LLM_CONTEXT_WINDOW", 64000))  # Default context window size
+LLM_CONTEXT_WINDOW = int(
+    os.getenv("LLM_CONTEXT_WINDOW", 64000)
+)  # Default context window size
 # LLM_RESPONSE_FIELD = os.getenv("LLM_RESPONSE_FIELD", "result")  # Uncomment if needed in the future
 
 """

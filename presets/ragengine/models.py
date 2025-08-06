@@ -12,19 +12,12 @@
 # limitations under the License.
 
 
-from typing import Any, Dict, List, Optional
-from typing_extensions import Literal, Required, Optional
+from typing import Any
+
 from openai.types.chat import (
     ChatCompletion,
-    CompletionCreateParams,
-    ChatCompletionMessageParam,
-    ChatCompletionUserMessageParam,
-    ChatCompletionSystemMessageParam,
-    ChatCompletionDeveloperMessageParam,
-    ChatCompletionContentPartTextParam,
 )
-
-from pydantic import BaseModel, Field, model_validator, ValidationError, create_model
+from pydantic import BaseModel, Field, model_validator
 
 
 class Document(BaseModel):
@@ -114,12 +107,14 @@ class QueryResponse(BaseModel):
 
 class HealthStatus(BaseModel):
     status: str
-    detail: Optional[str] = None
+    detail: str | None = None
+
 
 class ChatCompletionResponse(ChatCompletion):
-    source_nodes: Optional[List[NodeWithScore]] = None
+    source_nodes: list[NodeWithScore] | None = None
 
-def messages_to_prompt(messages: List[Dict]) -> str:
+
+def messages_to_prompt(messages: list[dict]) -> str:
     """Convert messages to a prompt string."""
     string_messages = []
     for message in messages:
@@ -127,7 +122,8 @@ def messages_to_prompt(messages: List[Dict]) -> str:
         string_messages.append(f"{message.get('role')}: {content}")
     return "\n".join(string_messages)
 
-def get_message_content(message: Dict) -> str:
+
+def get_message_content(message: dict) -> str:
     """Extract content from a ChatCompletionMessageParam."""
     if message.get("role") == "user":
         if message.get("content"):
@@ -146,4 +142,8 @@ def get_message_content(message: Dict) -> str:
                 return "\n".join(user_text_content)
         return ""
     else:
-        return message.get("content", {}).get("text", "") if isinstance(message.get("content"), dict) else message.get("content", "")
+        return (
+            message.get("content", {}).get("text", "")
+            if isinstance(message.get("content"), dict)
+            else message.get("content", "")
+        )

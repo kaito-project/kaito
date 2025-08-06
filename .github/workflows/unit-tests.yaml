@@ -2,7 +2,7 @@ name: Unit Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, e2e-fix]
     paths-ignore: ["docs/**", "**.md", "**.mdx", "**.png", "**.jpg"]
   pull_request:
     branches: [main, release-**]

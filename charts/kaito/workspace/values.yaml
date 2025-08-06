@@ -17,6 +17,7 @@ securityContext:
       - "ALL"
 featureGates:
   vLLM: true
+  gatewayAPIInferenceExtension: false
 webhook:
   port: 9443
 # Knative logging configuration
@@ -36,3 +37,17 @@ affinity: {}
 # Values can be "azure" or "aws" or "arc"
 cloudProviderName: "azure"
 clusterName: "kaito"
+# Set values for the Flux controller to only install the Helm controller
+flux2:
+  helmController:
+    create: true
+  sourceController:
+    create: true
+  imageAutomationController:
+    create: false
+  imageReflectionController:
+    create: false
+  kustomizeController:
+    create: false
+  notificationController:
+    create: false

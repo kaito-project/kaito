@@ -44,7 +44,17 @@ const sidebars = {
                 'inference',
                 'multi-node-inference',
                 'tuning',
-                'rag',
+                {
+                    type: 'category',
+                    label: 'Retrieval-Augmented Generation (RAG)',
+                    link: {
+                        type: 'doc',
+                        id: 'rag',
+                    },
+                    items: [
+                        'rag-api',
+                    ],
+                },
                 'custom-model',
                 'tool-calling',
                 'model-as-oci-artifacts',

@@ -38,6 +38,7 @@ cloudProviderName: "azure"
 clusterName: "kaito"
 # Set values for the Flux controller to only install the Helm controller
 flux2:
+  enabled: false
   helmController:
     create: false
   sourceController:

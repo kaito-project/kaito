@@ -29,4 +29,3 @@ gputil
 setuptools
 psutil
 trl
-ruff

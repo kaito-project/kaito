@@ -101,7 +101,9 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             logger.info(f"VLLM_USE_V1 is set, Offload KV cache to CPU RAM, size limit: {available_memory_gb} * {kv_cache_cpu_memory_utilization} GB")
             os.environ["LMCACHE_MAX_LOCAL_CPU_SIZE"] = f"{available_memory_gb * kv_cache_cpu_memory_utilization}"
 
-            runtime_args.append("--kv-transfer-config={\"kv_connector\":\"LMCacheConnectorV1\",\"kv_role\":\"kv_both\"}")
+            # check whether runtime_args already has kv_transfer_config
+            if not any(arg.startswith("--kv-transfer-config") for arg in runtime_args):
+                runtime_args.append("--kv-transfer-config={\"kv_connector\":\"LMCacheConnectorV1\",\"kv_role\":\"kv_both\"}")
         else:
             logger.info("VLLM_USE_V1 or kv_cache_cpu_memory_utilization is not set, do not use KV cache offload to CPU RAM.")
 

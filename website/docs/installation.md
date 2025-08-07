@@ -20,7 +20,7 @@ Before you begin, ensure you have the following tools installed:
 Install the KAITO workspace controller using Helm:
 
 ```bash
-export KAITO_WORKSPACE_VERSION=0.5.1
+export KAITO_WORKSPACE_VERSION=0.6.0
 export CLUSTER_NAME=kaito
 
 helm install kaito-workspace \

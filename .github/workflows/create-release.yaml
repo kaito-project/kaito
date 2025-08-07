@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       release_branch:
-        description: 'Release branch (e.g., official/v0.2.2)'
+        description: 'Release branch (e.g., release-0.6)'
         required: true
         type: string
 
@@ -40,7 +40,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-          ref: ${{ github.event.inputs.release_branch }}
+          ref: ${{ github.event.inputs.release_version }}
 
       - name: Validate inputs
         run: |
@@ -49,8 +49,8 @@ jobs:
             echo "Error: Release version must follow format vX.Y.Z"
             exit 1
           fi
-          if [[ ! "${{ github.event.inputs.release_branch }}" =~ ^official/ ]]; then
-            echo "Error: Release branch must start with 'official/'"
+          if [[ ! "${{ github.event.inputs.release_branch }}" =~ ^release- ]]; then
+            echo "Error: Release branch must start with 'release-'"
             exit 1
           fi
 

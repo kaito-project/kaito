@@ -2,7 +2,7 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.5.1
+VERSION ?= v0.6.0
 GPU_PROVISIONER_VERSION ?= 0.3.5
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
@@ -593,7 +593,7 @@ release-manifest: ## Update manifest and Helm charts for release.
 	@sed -i -e 's/$(shell grep 'default' ./terraform/variables.tf | sort | uniq -c | sort -nr | head -n1 | sed -E 's/^[ ]*[0-9]+[ ]+//')/default     = "${IMG_TAG}"/' ./terraform/variables.tf
 
 	git checkout -b release-${VERSION}
-	git add ./Makefile ./charts/kaito/workspace/Chart.yaml ./charts/kaito/workspace/values.yaml ./charts/kaito/workspace/README.md ./charts/kaito/ragengine/Chart.yaml ./charts/kaito/ragengine/values.yaml ./charts/kaito/ragengine/README.md ./website/docs/installation.md /terraform/variables.tf
+	git add ./Makefile ./charts/kaito/workspace/Chart.yaml ./charts/kaito/workspace/values.yaml ./charts/kaito/workspace/README.md ./charts/kaito/ragengine/Chart.yaml ./charts/kaito/ragengine/values.yaml ./charts/kaito/ragengine/README.md ./website/docs/installation.md ./terraform/variables.tf
 	git commit -s -m "release: update manifest and helm charts for ${VERSION}"
 
 ## --------------------------------------

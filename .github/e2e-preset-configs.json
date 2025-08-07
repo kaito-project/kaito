@@ -4,7 +4,7 @@
       {
         "name": "falcon-7b",
         "node-count": 1,
-        "node-vm-size": "Standard_NC6s_v3",
+        "node-vm-size": "Standard_NV36ads_A10_v5",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false,
@@ -23,7 +23,7 @@
       {
         "name": "falcon-7b-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC6s_v3",
+        "node-vm-size": "Standard_NV36ads_A10_v5",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false,
@@ -80,7 +80,7 @@
       {
         "name": "mistral-7b",
         "node-count": 1,
-        "node-vm-size": "Standard_NC6s_v3",
+        "node-vm-size": "Standard_NV36ads_A10_v5",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false,
@@ -99,7 +99,7 @@
       {
         "name": "mistral-7b-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC6s_v3",
+        "node-vm-size": "Standard_NV36ads_A10_v5",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false,
@@ -118,7 +118,7 @@
       {
         "name": "phi-2",
         "node-count": 1,
-        "node-vm-size": "Standard_NC6s_v3",
+        "node-vm-size": "Standard_NV36ads_A10_v5",
         "node-osdisk-size": 50,
         "OSS": true,
         "loads_adapter": false,
@@ -129,7 +129,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16",
+            "command": "VLLM_USE_V1=0 python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16 --kaito-config-file /mnt/config/inference_config.yaml",
             "gpu_count": 1
           }
         }
@@ -137,7 +137,7 @@
       {
         "name": "phi-3-mini-4k-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC6s_v3",
+        "node-vm-size": "Standard_NV36ads_A10_v5",
         "node-osdisk-size": 50,
         "OSS": true,
         "loads_adapter": false,
@@ -156,7 +156,7 @@
       {
         "name": "phi-3-mini-128k-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC6s_v3",
+        "node-vm-size": "Standard_NV36ads_A10_v5",
         "node-osdisk-size": 50,
         "OSS": true,
         "loads_adapter": false,
@@ -175,7 +175,7 @@
       {
         "name": "phi-3-medium-4k-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NV72ads_A10_v5",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false,
@@ -194,7 +194,7 @@
       {
         "name": "phi-3-medium-128k-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NV72ads_A10_v5",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false,
@@ -232,7 +232,7 @@
       {
         "name": "phi-4-mini-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC6s_v3",
+        "node-vm-size": "Standard_NV36ads_A10_v5",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false,
@@ -252,7 +252,7 @@
         "name": "qwen2.5-coder-7b-instruct",
         "workload": "qwen2-5-coder-7b-instruct",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NV72ads_A10_v5",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false,
@@ -310,7 +310,7 @@
       {
         "name": "deepseek-r1-distill-llama-8b",
         "node-count": 1,
-        "node-vm-size": "Standard_NC12s_v3",
+        "node-vm-size": "Standard_NV36ads_A10_v5",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false,
@@ -318,18 +318,18 @@
         "runtimes": {
           "hf": {
             "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --trust_remote_code",
-            "gpu_count": 2
+            "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --tensor-parallel-size 2 --max-model-len 32768",
-            "gpu_count": 2
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml",
+            "gpu_count": 1
           }
         }
       },
       {
         "name": "vllm-distributed",
         "node-count": 2,
-        "node-vm-size": "Standard_NC6s_v3",
+        "node-vm-size": "Standard_NV36ads_A10_v5",
         "resource-type": "statefulset",
         "node-osdisk-size": 100,
         "OSS": false,
@@ -339,7 +339,7 @@
       {
         "name": "tuning",
         "node-count": 1,
-        "node-vm-size": "Standard_NC6s_v3",
+        "node-vm-size": "Standard_NV36ads_A10_v5",
         "node-osdisk-size": 100,
         "OSS": true,
         "loads_adapter": false,

@@ -113,6 +113,12 @@ jobs:
                 map(. as $model | $configs[] | select(.name == $model.name) | $model + .)
             ')
 
+            # Filter out items with A100 VMs
+            # FIXME: add it back when A100 is available
+            COMBINED_MATRIX=$(echo "$COMBINED_MATRIX" | jq -c '
+                map(select(."node-vm-size" | contains("A100") | not))
+            ')
+
             echo "full_matrix=$COMBINED_MATRIX" >> $GITHUB_OUTPUT
       
       - name: Print Combined Matrix
@@ -128,7 +134,7 @@ jobs:
     environment: preset-env
     strategy:
       fail-fast: false
-      max-parallel: 10
+      max-parallel: 5
       matrix:
         # Ex matrix element:
         # {"name":"falcon-40b","type":"text-generation","version":"#",
@@ -267,63 +273,88 @@ jobs:
       - name: Test inference endpoint
         run: |
             echo "Testing inference for ${{ matrix.model.name }}"
-            if [[ "${{ env.RUNTIME }}" == *"vllm"* ]]; then
-                kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
-                curl -s -X POST \
-                -H "accept: application/json" \
-                -H "Content-Type: application/json" \
-                -d '{
-                    "model": "test",
-                    "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are a helpful assistant."
-                    },
-                    {
-                        "role": "user",
-                        "content": "Hello!"
-                    }
-                    ]
-                    }' \
-                http://localhost:5000/v1/chat/completions
-            else
-                kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
-                curl -s -X POST \
-                -H "accept: application/json" \
-                -H "Content-Type: application/json" \
-                -d '{
-                    "prompt":"Girafatron is obsessed with giraffes, the most glorious animal on the face of this Earth. Giraftron believes all other animals are irrelevant when compared to the glorious majesty of the giraffe.\nDaniel: Hello, Girafatron!\nGirafatron:",
-                    "return_full_text": false,
-                    "clean_up_tokenization_spaces": false, 
-                    "prefix": null,
-                    "handle_long_generation": null,
-                    "generate_kwargs": {
-                            "max_length":200,
-                            "min_length":0,
-                            "do_sample":true,
-                            "early_stopping":false,
-                            "num_beams":1,
-                            "num_beam_groups":1,
-                            "diversity_penalty":0.0,
-                            "temperature":1.0,
-                            "top_k":10,
-                            "top_p":1,
-                            "typical_p":1,
-                            "repetition_penalty":1,
-                            "length_penalty":1,
-                            "no_repeat_ngram_size":0,
-                            "encoder_no_repeat_ngram_size":0,
-                            "bad_words_ids":null,
-                            "num_return_sequences":1,
-                            "output_scores":false,
-                            "return_dict_in_generate":false,
-                            "forced_bos_token_id":null,
-                            "forced_eos_token_id":null,
-                            "remove_invalid_values":null
+            
+            # Retry logic - attempt up to 3 times
+            MAX_ATTEMPTS=3
+            ATTEMPT=1
+            
+            while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+                echo "Attempt $ATTEMPT of $MAX_ATTEMPTS"
+                
+                if [[ "${{ env.RUNTIME }}" == *"vllm"* ]]; then
+                    if kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
+                    curl -s -X POST \
+                    -H "accept: application/json" \
+                    -H "Content-Type: application/json" \
+                    -d '{
+                        "model": "test",
+                        "messages": [
+                        {
+                            "role": "system",
+                            "content": "You are a helpful assistant."
+                        },
+                        {
+                            "role": "user",
+                            "content": "Hello!"
                         }
-                    }' \
-                http://localhost:5000/chat
-            fi
+                        ]
+                        }' \
+                    http://localhost:5000/v1/chat/completions; then
+                        echo "Inference test succeeded"
+                        break
+                    fi
+                else
+                    if kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
+                    curl -s -X POST \
+                    -H "accept: application/json" \
+                    -H "Content-Type: application/json" \
+                    -d '{
+                        "prompt":"Girafatron is obsessed with giraffes, the most glorious animal on the face of this Earth. Giraftron believes all other animals are irrelevant when compared to the glorious majesty of the giraffe.\nDaniel: Hello, Girafatron!\nGirafatron:",
+                        "return_full_text": false,
+                        "clean_up_tokenization_spaces": false, 
+                        "prefix": null,
+                        "handle_long_generation": null,
+                        "generate_kwargs": {
+                                "max_length":200,
+                                "min_length":0,
+                                "do_sample":true,
+                                "early_stopping":false,
+                                "num_beams":1,
+                                "num_beam_groups":1,
+                                "diversity_penalty":0.0,
+                                "temperature":1.0,
+                                "top_k":10,
+                                "top_p":1,
+                                "typical_p":1,
+                                "repetition_penalty":1,
+                                "length_penalty":1,
+                                "no_repeat_ngram_size":0,
+                                "encoder_no_repeat_ngram_size":0,
+                                "bad_words_ids":null,
+                                "num_return_sequences":1,
+                                "output_scores":false,
+                                "return_dict_in_generate":false,
+                                "forced_bos_token_id":null,
+                                "forced_eos_token_id":null,
+                                "remove_invalid_values":null
+                            }
+                        }' \
+                    http://localhost:5000/chat; then
+                        echo "Inference test succeeded"
+                        break
+                    fi
+                fi
+                
+                if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+                    echo "Test failed, retrying in 5 seconds..."
+                    sleep 5
+                else
+                    echo "Test failed after $MAX_ATTEMPTS attempts"
+                    exit 1
+                fi
+                
+                ATTEMPT=$((ATTEMPT + 1))
+            done
       
       - name: Cleanup
         if: always()

@@ -82,7 +82,9 @@ runs:
     - name: Install Hugging Face CLI
       run: |
         echo "Installing Hugging Face CLI..."
-        pip install huggingface-hub
+        if ! pip install huggingface-hub; then
+          pip install huggingface-hub --break-system-packages
+        fi
       shell: bash
 
     - name: Install ORAS CLI

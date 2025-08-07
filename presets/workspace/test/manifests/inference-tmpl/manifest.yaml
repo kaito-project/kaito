@@ -28,7 +28,7 @@ deployment:
             mountPath: /workspace/weights
         containers:
         - name: WORKLOAD_NAME-container
-          image: REPO/base:0.0.4
+          image: REPO/base:0.0.5
           command:
             - /bin/sh
             - -c
@@ -94,6 +94,7 @@ config:
         swap-space: 4
         served-model-name: test
         dtype: float16
+        max-model-len: 2048
 
         # max-seq-len-to-capture: 8192
         # num-scheduler-steps: 1

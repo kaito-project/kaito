@@ -113,6 +113,12 @@ jobs:
                 map(. as $model | $configs[] | select(.name == $model.name) | $model + .)
             ')
 
+            # Filter out items with A100 VMs
+            # FIXME: add it back when A100 is available
+            COMBINED_MATRIX=$(echo "$COMBINED_MATRIX" | jq -c '
+                map(select(."node-vm-size" | contains("A100") | not))
+            ')
+
             echo "full_matrix=$COMBINED_MATRIX" >> $GITHUB_OUTPUT
       
       - name: Print Combined Matrix

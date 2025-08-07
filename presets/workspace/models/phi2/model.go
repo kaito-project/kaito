@@ -64,7 +64,7 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    "VLLM_USE_V1=0 python3 /workspace/vllm/inference_api.py",
 				ModelName:      PresetPhi2Model,
 				ModelRunParams: phiRunParamsVLLM,
 			},

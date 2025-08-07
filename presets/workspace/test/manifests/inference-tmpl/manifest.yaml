@@ -28,7 +28,7 @@ deployment:
             mountPath: /workspace/weights
         containers:
         - name: WORKLOAD_NAME-container
-          image: REPO/base:0.0.4
+          image: REPO/base:0.0.5
           command:
             - /bin/sh
             - -c

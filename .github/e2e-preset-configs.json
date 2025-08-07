@@ -129,7 +129,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16",
+            "command": "VLLM_USE_V1=0 python3 /workspace/vllm/inference_api.py --kaito-max-probe-steps 6 --dtype float16 --kaito-config-file /mnt/config/inference_config.yaml",
             "gpu_count": 1
           }
         }
@@ -321,7 +321,7 @@
             "gpu_count": 1
           },
           "vllm": {
-            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml --tensor-parallel-size 2 --max-model-len 32768",
+            "command": "python3 /workspace/vllm/inference_api.py --kaito-config-file /mnt/config/inference_config.yaml",
             "gpu_count": 1
           }
         }

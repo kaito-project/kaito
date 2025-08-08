@@ -34,16 +34,6 @@ from models import (
     UpdateDocumentResponse,
 )
 
-from ragengine.config import (
-    REMOTE_EMBEDDING_URL,
-    REMOTE_EMBEDDING_ACCESS_SECRET,
-    EMBEDDING_SOURCE_TYPE,
-    LOCAL_EMBEDDING_MODEL_ID,
-    DEFAULT_VECTOR_DB_PERSIST_DIR,
-)
-from urllib.parse import unquote
-import os
-
 # Import Prometheus client for metrics collection
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.responses import Response
@@ -68,39 +58,6 @@ from ragengine.metrics.prometheus_metrics import (
     rag_avg_source_score,
     rag_chat_latency,
     rag_chat_requests_total,
-    rag_delete_latency,
-    rag_delete_requests_total,
-    rag_index_latency,
-    rag_index_requests_total,
-    rag_indexes_latency,
-    rag_indexes_requests_total,
-    rag_indexes_document_latency,
-    rag_indexes_document_requests_total,
-    rag_indexes_delete_document_latency,
-    rag_indexes_delete_document_requests_total,
-    rag_indexes_update_document_latency,
-    rag_indexes_update_document_requests_total,
-    rag_persist_latency,
-    rag_persist_requests_total,
-    rag_load_latency,
-    rag_load_requests_total,
-    rag_delete_latency,
-    rag_delete_requests_total,
-    e2e_request_total,
-    e2e_request_latency_seconds,
-    num_requests_running,
-    rag_lowest_source_score,
-    rag_avg_source_score,
-    STATUS_SUCCESS,
-    STATUS_FAILURE,
-    MODE_LOCAL,
-    MODE_REMOTE,
-    STATUS_FAILURE,
-    STATUS_SUCCESS,
-    e2e_request_latency_seconds,
-    e2e_request_total,
-    num_requests_running,
-    rag_avg_source_score,
     rag_delete_latency,
     rag_delete_requests_total,
     rag_index_latency,

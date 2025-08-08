@@ -12,6 +12,8 @@
 # limitations under the License.
 
 
+import asyncio
+import hashlib
 import logging
 import os
 import time
@@ -426,7 +428,7 @@ class BaseVectorStore(ABC):
             await asyncio.to_thread(self.index_map[index_name].insert, llama_doc)
 
     def list_indexes(self) -> list[str]:
-        return list(self.index_map.keys())
+        return list(self.index_map)
 
     async def delete_documents(self, index_name: str, doc_ids: list[str]):
         """Common logic for deleting a document."""
@@ -509,7 +511,7 @@ class BaseVectorStore(ABC):
 
             updated_docs = []
             unchanged_docs = []
-            for doc, was_updated in zip(found_docs, refreshed_docs, strict=False):
+            for doc, was_updated in zip(found_docs, refreshed_docs):
                 if was_updated:
                     updated_docs.append(doc)
                 else:

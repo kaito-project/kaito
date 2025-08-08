@@ -591,7 +591,7 @@ release-manifest: ## Update manifest and Helm charts for release.
 	@sed -i -e 's/IMG_TAG=.*/IMG_TAG=${IMG_TAG}/' ./charts/kaito/ragengine/README.md
 
 	git checkout -b release-${VERSION}
-	git add ./Makefile ./charts/kaito/workspace/Chart.yaml ./charts/kaito/workspace/values.yaml ./charts/kaito/workspace/README.md ./charts/kaito/ragengine/Chart.yaml ./charts/kaito/ragengine/values.yaml ./charts/kaito/ragengine/README.md ./website/docs/installation.md ./terraform/variables.tf
+	git add ./Makefile ./charts/kaito/workspace/Chart.yaml ./charts/kaito/workspace/values.yaml ./charts/kaito/workspace/README.md ./charts/kaito/ragengine/Chart.yaml ./charts/kaito/ragengine/values.yaml ./charts/kaito/ragengine/README.md
 	git commit -s -m "release: update manifest and helm charts for ${VERSION}"
 
 ## --------------------------------------

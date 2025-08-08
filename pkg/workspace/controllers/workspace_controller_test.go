@@ -37,6 +37,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -560,6 +561,10 @@ func TestApplyInferenceWithTemplate(t *testing.T) {
 }
 
 func TestGetAllQualifiedNodes(t *testing.T) {
+	// Save and restore feature gate state
+	originalNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalNAP }()
+
 	deletedNode := corev1.Node{
 		ObjectMeta: v1.ObjectMeta{
 			Name: "node4",
@@ -577,6 +582,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 		workspace     *v1beta1.Workspace
 		expectedError error
 		expectedNodes []string
+		disableNAP    bool
 	}{
 		"Fails to get qualified nodes because can't list nodes": {
 			callMocks: func(c *test.MockClient) {
@@ -585,6 +591,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 			workspace:     test.MockWorkspaceDistributedModel,
 			expectedError: errors.New("Failed to list nodes"),
 			expectedNodes: nil,
+			disableNAP:    false,
 		},
 		"Gets all qualified nodes": {
 			callMocks: func(c *test.MockClient) {
@@ -606,6 +613,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 			workspace:     test.MockWorkspaceDistributedModel,
 			expectedError: nil,
 			expectedNodes: []string{"node1"},
+			disableNAP:    false,
 		},
 		"Gets all qualified nodes with preferred": {
 			callMocks: func(c *test.MockClient) {
@@ -619,6 +627,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p1",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -635,6 +644,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p2",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor2",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -651,6 +661,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 							Name: "node-p3",
 							Labels: map[string]string{
 								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
 							},
 						},
 						Status: corev1.NodeStatus{
@@ -676,14 +687,197 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
-			workspace:     mockWorkspaceWithPreferredNodes,
+			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
 			expectedError: nil,
 			expectedNodes: []string{"node-p1"},
+			disableNAP:    false,
+		},
+
+		"NAP disabled: all preferred nodes present and ready, returns all": {
+			callMocks: func(c *test.MockClient) {
+				nodeList := &corev1.NodeList{Items: []corev1.Node{
+					{
+						ObjectMeta: v1.ObjectMeta{
+							Name: "node-p1",
+							Labels: map[string]string{
+								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
+							},
+						},
+						Status: corev1.NodeStatus{
+							Conditions: []corev1.NodeCondition{{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionTrue,
+							}},
+						},
+					},
+					{
+						ObjectMeta: v1.ObjectMeta{
+							Name: "node-p2",
+							Labels: map[string]string{
+								corev1.LabelInstanceTypeStable: "vendor2",
+								"apps":                         "test",
+							},
+						},
+						Status: corev1.NodeStatus{
+							Conditions: []corev1.NodeCondition{{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionTrue,
+							}},
+						},
+					},
+				}}
+				relevantMap := c.CreateMapWithType(nodeList)
+				for _, obj := range nodeList.Items {
+					n := obj
+					objKey := client.ObjectKeyFromObject(&n)
+					relevantMap[objKey] = &n
+				}
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
+			},
+			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
+			expectedError: nil,
+			expectedNodes: []string{"node-p1", "node-p2"},
+			disableNAP:    true,
+		},
+		"NAP disabled: one preferred node not ready, returns error": {
+			callMocks: func(c *test.MockClient) {
+				nodeList := &corev1.NodeList{Items: []corev1.Node{
+					{
+						ObjectMeta: v1.ObjectMeta{
+							Name: "node-p1",
+							Labels: map[string]string{
+								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
+							},
+						},
+						Status: corev1.NodeStatus{
+							Conditions: []corev1.NodeCondition{{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionTrue,
+							}},
+						},
+					},
+					{
+						ObjectMeta: v1.ObjectMeta{
+							Name: "node-p2",
+							Labels: map[string]string{
+								corev1.LabelInstanceTypeStable: "vendor2",
+								"apps":                         "test",
+							},
+						},
+						Status: corev1.NodeStatus{
+							Conditions: []corev1.NodeCondition{{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionFalse,
+							}},
+						},
+					},
+				}}
+				relevantMap := c.CreateMapWithType(nodeList)
+				for _, obj := range nodeList.Items {
+					n := obj
+					objKey := client.ObjectKeyFromObject(&n)
+					relevantMap[objKey] = &n
+				}
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
+			},
+			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
+			expectedError: errors.New("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: [], not ready nodes: [node-p2], nodes missing label or do not exist: []"),
+			expectedNodes: nil,
+			disableNAP:    true,
+		},
+		"NAP disabled: one preferred node deleting, returns error": {
+			callMocks: func(c *test.MockClient) {
+				deletingTime := v1.Time{Time: time.Now()}
+				nodeList := &corev1.NodeList{Items: []corev1.Node{
+					{
+						ObjectMeta: v1.ObjectMeta{
+							Name: "node-p1",
+							Labels: map[string]string{
+								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
+							},
+						},
+						Status: corev1.NodeStatus{
+							Conditions: []corev1.NodeCondition{{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionTrue,
+							}},
+						},
+					},
+					{
+						ObjectMeta: v1.ObjectMeta{
+							Name: "node-p2",
+							Labels: map[string]string{
+								corev1.LabelInstanceTypeStable: "vendor2",
+								"apps":                         "test",
+							},
+							DeletionTimestamp: &deletingTime,
+						},
+						Status: corev1.NodeStatus{
+							Conditions: []corev1.NodeCondition{{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionTrue,
+							}},
+						},
+					},
+				}}
+				relevantMap := c.CreateMapWithType(nodeList)
+				for _, obj := range nodeList.Items {
+					n := obj
+					objKey := client.ObjectKeyFromObject(&n)
+					relevantMap[objKey] = &n
+				}
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
+			},
+			workspace: func() *v1beta1.Workspace {
+				ws := test.MockWorkspaceWithPreferredNodes.DeepCopy()
+				ws.Resource.PreferredNodes = []string{"node-p1", "node-p2"}
+				return ws
+			}(),
+			expectedError: errors.New("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: [node-p2], not ready nodes: [], nodes missing label or do not exist: []"),
+			expectedNodes: nil,
+			disableNAP:    true,
+		},
+		"NAP disabled: missing preferred node, returns error": {
+			callMocks: func(c *test.MockClient) {
+				nodeList := &corev1.NodeList{Items: []corev1.Node{
+					{
+						ObjectMeta: v1.ObjectMeta{
+							Name: "node-p1",
+							Labels: map[string]string{
+								corev1.LabelInstanceTypeStable: "vendor1",
+								"apps":                         "test",
+							},
+						},
+						Status: corev1.NodeStatus{
+							Conditions: []corev1.NodeCondition{{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionTrue,
+							}},
+						},
+					},
+				}}
+				relevantMap := c.CreateMapWithType(nodeList)
+				for _, obj := range nodeList.Items {
+					n := obj
+					objKey := client.ObjectKeyFromObject(&n)
+					relevantMap[objKey] = &n
+				}
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
+			},
+			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
+			expectedError: errors.New("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: [], not ready nodes: [], nodes missing label or do not exist: [node-p2]"),
+			expectedNodes: nil,
+			disableNAP:    true,
 		},
 	}
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNAP
+
 			mockClient := test.NewClient()
 			reconciler := &WorkspaceReconciler{
 				Client: mockClient,

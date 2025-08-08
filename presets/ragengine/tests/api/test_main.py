@@ -25,6 +25,7 @@ from ragengine.config import DEFAULT_VECTOR_DB_PERSIST_DIR
 
 AUTO_GEN_DOC_ID_LEN = 64
 
+
 @pytest.mark.asyncio
 async def test_index_documents_success(async_client):
     request_data = {

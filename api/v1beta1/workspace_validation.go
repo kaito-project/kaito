@@ -52,11 +52,28 @@ func (w *Workspace) SupportedVerbs() []admissionregistrationv1.OperationType {
 	}
 }
 
+func (w *Workspace) SupportedSubResources() []string {
+	return []string{"", "/status", "/scale"}
+}
+
 func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	errmsgs := validation.IsDNS1123Label(w.Name)
 	if len(errmsgs) > 0 {
 		errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "name"))
 	}
+
+	// Reject scale subresource requests if PreferredNodes is not empty or Inference is nil
+	if apis.GetUpdatedSubresource(ctx) == "scale" {
+		if len(w.Resource.PreferredNodes) > 0 {
+			errs = errs.Also(apis.ErrGeneric("Scale subresource is not supported for workspaces with preferred nodes", "resource.preferredNodes"))
+		}
+		if w.Inference == nil {
+			errs = errs.Also(apis.ErrGeneric("Scale subresource is not supported for workspaces without inference", "inference"))
+		}
+		// Return early for scale subresource requests - no further validation needed
+		return errs
+	}
+
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))

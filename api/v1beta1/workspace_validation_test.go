@@ -22,6 +22,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/pkg/k8sclient"
@@ -1283,6 +1284,109 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 					if !strings.Contains(errs.Error(), field) {
 						t.Errorf("validateUpdate() expected errors to contain field %s, but got %s", field, errs.Error())
 					}
+				}
+			}
+		})
+	}
+}
+
+func TestWorkspaceValidateScaleSubresource(t *testing.T) {
+	tests := []struct {
+		name        string
+		workspace   *Workspace
+		subresource string
+		expectErrs  bool
+		errContent  string
+	}{
+		{
+			name: "Scale subresource with preferred nodes",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: ResourceSpec{
+					PreferredNodes: []string{"node1", "node2"},
+				},
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}},
+				},
+			},
+			subresource: "scale",
+			expectErrs:  true,
+			errContent:  "Scale subresource is not supported for workspaces with preferred nodes",
+		},
+		{
+			name: "Scale subresource without inference",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: ResourceSpec{
+					PreferredNodes: []string{},
+				},
+				Inference: nil,
+			},
+			subresource: "scale",
+			expectErrs:  true,
+			errContent:  "Scale subresource is not supported for workspaces without inference",
+		},
+		{
+			name: "Scale subresource with both preferred nodes and no inference",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: ResourceSpec{
+					PreferredNodes: []string{"node1"},
+				},
+				Inference: nil,
+			},
+			subresource: "scale",
+			expectErrs:  true,
+			errContent:  "Scale subresource is not supported for workspaces with preferred nodes",
+		},
+		{
+			name: "Scale subresource valid case",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: ResourceSpec{
+					PreferredNodes: []string{},
+				},
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}},
+				},
+			},
+			subresource: "scale",
+			expectErrs:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create context to simulate subresource update
+			ctx := context.Background()
+			if tt.subresource != "" {
+				// Import knative.dev/pkg/apis to use WithinSubResourceUpdate
+				ctx = apis.WithinSubResourceUpdate(ctx, &Workspace{}, tt.subresource)
+			}
+
+			errs := tt.workspace.Validate(ctx)
+			hasErrs := errs != nil
+
+			if hasErrs != tt.expectErrs {
+				t.Errorf("Validate() errors = %v, expectErrs %v", errs, tt.expectErrs)
+			}
+
+			if hasErrs && tt.errContent != "" {
+				errMsg := errs.Error()
+				if !strings.Contains(errMsg, tt.errContent) {
+					t.Errorf("Validate() error message = %v, expected to contain = %v", errMsg, tt.errContent)
 				}
 			}
 		})

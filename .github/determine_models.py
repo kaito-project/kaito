@@ -113,6 +113,7 @@ def models_to_build(files_changed):
     for model, model_info in MODELS.items():
         if model_info["type"] not in seen_model_types:
             if any(file.startswith(f'presets/workspace/inference/{model_info["type"]}') for file in files_changed):
+                print(model)
                 models.add(model)
                 seen_model_types.add(model_info["type"])
     return list(models)

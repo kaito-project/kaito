@@ -11,7 +11,7 @@ if 'allowed_contexts' in settings:
     allow_k8s_contexts(settings['allowed_contexts'])
 if 'default_registry' in settings:
     # Set the default registry for tilt to use
-    default_registry(settings['default_registry'].removesuffix('/') + '/kaito/workspace')
+    default_registry(settings['default_registry'].removesuffix('/'))
 
 def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
 

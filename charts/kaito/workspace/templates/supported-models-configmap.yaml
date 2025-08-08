@@ -124,3 +124,8 @@ data:
         version: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Llama-8B/commit/6a6f4aa4197940add57724a7707d069478df56b1
         runtime: tfs
         tag: 0.2.0
+      - name: gpt-oss-20b
+        type: text-generation
+        version: https://huggingface.co/openai/gpt-oss-20b/commit/db6852caddef0cf0c1f729034ed700c84eab376e
+        runtime: tfs
+        tag: 0.0.1

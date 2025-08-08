@@ -3,7 +3,7 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.0.6
+    tag: 0.0.5
     # Tag history:
     # 0.0.6 - bump vLLM to 0.10.0 and transformer to 4.55.0 to support GPT-OSS
     # 0.0.5 - update chat-template for new models

@@ -3,8 +3,9 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.0.5
+    tag: 0.0.6
     # Tag history:
+    # 0.0.6 - bump vLLM to 0.10.0 and transformer to 4.55.0 to support GPT-OSS
     # 0.0.5 - update chat-template for new models
     # 0.0.4 - bump vLLM to 0.9.0.
     # 0.0.3 - add depdenencies to support vLLM multi-node distributed inference
@@ -225,3 +226,12 @@ models:
     # 0.1.1 - bump vLLM to 0.8.5
     # 0.1.0 - vLLM, Transformers, and several other library updates and fixes
     # 0.0.1 - New Model!
+
+  # GPT-OSS
+  - name: gpt-oss-20b
+    type: text-generation
+    version: https://huggingface.co/openai/gpt-oss-20b/commit/db6852caddef0cf0c1f729034ed700c84eab376e
+    runtime: tfs
+    tag: 0.0.1
+    # Tag history:
+    # 0.0.1 - Initial Release

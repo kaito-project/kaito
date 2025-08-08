@@ -7,8 +7,8 @@ set -euo pipefail
 # and the name of the component for which the identities and role assignments are being created.
 # # Path: hack/deploy/deploy.sh
 
-if [ "$#" -ne 4 ]; then
-    echo "Usage: $0 <cluster-name> <resource-group> <component-name> <subscription-id>"
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <cluster-name> <resource-group> <component-name>"
     exit 1
 fi
 
@@ -18,7 +18,6 @@ AZURE_CLUSTER_NAME=$1
 AZURE_RESOURCE_GROUP=$2
 COMPONENT_NAME=$3
 
-AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 AKS_JSON=$(az aks show --name "${AZURE_CLUSTER_NAME}" --resource-group "${AZURE_RESOURCE_GROUP}")
 IDENTITY_NAME=${COMPONENT_NAME}Identity
 FED_NAME=${COMPONENT_NAME}-fed

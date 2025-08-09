@@ -11,11 +11,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
-import requests
 import json
-from .base import BaseEmbeddingModel
+from typing import Any
+
+import requests
+
 from ragengine.metrics.helpers import record_embedding_metrics
+
+from .base import BaseEmbeddingModel
+
 
 class RemoteEmbeddingModel(BaseEmbeddingModel):
     def __init__(self, model_url: str, api_key: str, /, **data: Any):
@@ -35,14 +39,14 @@ class RemoteEmbeddingModel(BaseEmbeddingModel):
         """Returns the text embedding for a given input string."""
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
-        payload = {
-            "inputs": text
-        }
+        payload = {"inputs": text}
 
         try:
-            response = requests.post(self.model_url, headers=headers, data=json.dumps(payload))
+            response = requests.post(
+                self.model_url, headers=headers, data=json.dumps(payload)
+            )
             response.raise_for_status()  # Raise an HTTPError for bad responses
             embedding = response.json()  # Assumes the API returns JSON
             if isinstance(embedding, list):
@@ -59,5 +63,5 @@ class RemoteEmbeddingModel(BaseEmbeddingModel):
         """Infers the embedding dimension by making a remote call to get the embedding of a dummy text."""
         dummy_input = "This is a dummy sentence."
         embedding = self._get_text_embedding(dummy_input)
-        
+
         return len(embedding)

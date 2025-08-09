@@ -7,6 +7,8 @@
 bin/*
 Dockerfile.cross
 __pycache__/
+.ruff_cache/
+.venv/
 
 # Test binary, build with `go test -c`
 *.test

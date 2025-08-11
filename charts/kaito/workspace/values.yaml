@@ -36,3 +36,18 @@ affinity: {}
 # Values can be "azure" or "aws" or "arc"
 cloudProviderName: "azure"
 clusterName: "kaito"
+# Set values for the Flux controller to only install the Helm controller
+flux2:
+  enabled: false
+  helmController:
+    create: false
+  sourceController:
+    create: false
+  imageAutomationController:
+    create: false
+  imageReflectionController:
+    create: false
+  kustomizeController:
+    create: false
+  notificationController:
+    create: false

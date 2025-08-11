@@ -32,3 +32,8 @@ annotations:
     - name: Examples
       url: https://github.com/kaito-project/kaito/tree/main/examples
   artifacthub.io/prerelease: "false"
+dependencies:
+- name: flux2
+  version: "2.16.3"
+  repository: https://fluxcd-community.github.io/helm-charts
+  condition: flux2.enabled

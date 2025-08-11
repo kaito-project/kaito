@@ -465,15 +465,15 @@ func validateGatewayAPIInferenceExtensionResources(workspaceObj *kaitov1beta1.Wo
 
 	By("Checking Flux OCIRepository is Ready", func() {
 		Eventually(func() bool {
-			ociRepositoryu := &sourcev1.OCIRepository{}
+			ociRepository := &sourcev1.OCIRepository{}
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: workspaceObj.Namespace,
 				Name:      kaitoutils.InferencePoolName(workspaceObj.Name),
-			}, ociRepositoryu, &client.GetOptions{})
+			}, ociRepository, &client.GetOptions{})
 			if err != nil {
 				return false
 			}
-			for _, cond := range ociRepositoryu.Status.Conditions {
+			for _, cond := range ociRepository.Status.Conditions {
 				if cond.Type == "Ready" && cond.Status == metav1.ConditionTrue {
 					return true
 				}

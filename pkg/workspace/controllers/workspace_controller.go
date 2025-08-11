@@ -877,17 +877,21 @@ func updateWorkspaceWithRetry(ctx context.Context, c client.Client, wObj *kaitov
 	})
 }
 
-// ensureGatewayAPIInferenceExtension ensures the Gateway API Inference
-// Extension components are applied and configured correctly.
+// ensureGatewayAPIInferenceExtension reconciles Gateway API Inference Extension components for a Workspace.
+//
+// How it works:
+// 1) Dry-runs preset inference generation to determine if the target workload is a StatefulSet.
+// 2) Renders a Flux OCIRepository and a HelmRelease for the InferencePool chart.
+// 3) Creates the resources if absent; updates them if the desired spec differs.
+// 4) Waits for resources to become ready using the model's inference readiness timeout.
+// 5) Aggregates and returns any errors.
+//
+// Idempotent and safe to call on every reconcile; no-op if preconditions are not met.
 func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	runtimeName := kaitov1beta1.GetWorkspaceRuntimeName(wObj)
 	isPresetInference := wObj.Inference != nil && wObj.Inference.Preset != nil
 
-	// If the Gateway API Inference Extension feature gate is not enabled,
-	// or the runtime is not VLLM, or the inference is not preset-based,
-	// we do not need to apply the Gateway API Inference Extension components.
-	// This is because the Gateway API Inference Extension is specifically designed
-	// to work with VLLM and preset-based inference workloads.
+	// Gateway API Inference Extension is specifically designed to work with vLLM and preset-based inference workloads.
 	if !featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] ||
 		runtimeName != pkgmodel.RuntimeNameVLLM || !isPresetInference {
 		return nil
@@ -917,7 +921,9 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 			}
 			continue
 		}
-
+		if !apierrors.IsNotFound(err) {
+			errs = append(errs, err)
+		}
 		if err := resources.CreateResource(ctx, obj, c.Client); client.IgnoreAlreadyExists(err) != nil {
 			errs = append(errs, err)
 		}

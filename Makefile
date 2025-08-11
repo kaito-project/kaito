@@ -428,7 +428,7 @@ aws-patch-install-helm: ## Install Kaito workspace Helm chart and set AWS env va
 
 generate-identities: ## Create identities for the provisioner component.
 	./hack/deploy/generate-identities.sh \
-	$(AZURE_CLUSTER_NAME) $(AZURE_RESOURCE_GROUP) $(TEST_SUITE) $(AZURE_SUBSCRIPTION_ID)
+	$(AZURE_CLUSTER_NAME) $(AZURE_RESOURCE_GROUP) $(TEST_SUITE)
 
 ## --------------------------------------
 ## GPU Provisioner Installation

@@ -61,9 +61,9 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 
 	// Check if node auto-provisioning is disabled and validate preferred nodes
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		if len(w.Resource.PreferredNodes) != *w.Resource.Count {
+		if len(w.Resource.PreferredNodes) < *w.Resource.Count {
 			errs = errs.Also(apis.ErrInvalidValue(
-				fmt.Sprintf("When node auto-provisioning is disabled, the number of preferred nodes (%d) must match the count (%d)",
+				fmt.Sprintf("When node auto-provisioning is disabled, the number of preferred nodes (%d) must be at least the required amount (%d) set in count",
 					len(w.Resource.PreferredNodes), *w.Resource.Count), "preferredNodes"))
 		}
 	}

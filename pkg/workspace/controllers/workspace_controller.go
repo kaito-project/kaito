@@ -33,7 +33,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
@@ -425,69 +424,71 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 	return nil
 }
 
+func nodeIsReadyAndNotDeleting(node corev1.Node) bool {
+
+	// skip nodes that are being deleted
+	if node.DeletionTimestamp != nil {
+		return false
+	}
+
+	// skip nodes that are not ready
+	_, statusRunning := lo.Find(node.Status.Conditions, func(condition corev1.NodeCondition) bool {
+		return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
+	})
+
+	return statusRunning
+}
+
 func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, error) {
 	var qualifiedNodes []*corev1.Node
 
-	nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(nodeList.Items) == 0 {
-		klog.InfoS("no current nodes match the workspace resource spec", "workspace", klog.KObj(wObj))
-		return nil, nil
-	}
-
-	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
-	deletingPreferredNodes := []string{}
-	notReadyNodes := []string{}
-
-	for index := range nodeList.Items {
-		nodeObj := nodeList.Items[index]
-		isPreferred := preferredNodeSet.Has(nodeObj.Name)
-		if isPreferred {
-			preferredNodeSet.Delete(nodeObj.Name)
-		}
-
-		// skip nodes that are being deleted
-		if nodeObj.DeletionTimestamp != nil {
-			if isPreferred {
-				deletingPreferredNodes = append(deletingPreferredNodes, nodeObj.Name)
-			}
-			continue
-		}
-
-		// skip nodes that are not ready
-		_, statusRunning := lo.Find(nodeObj.Status.Conditions, func(condition corev1.NodeCondition) bool {
-			return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
-		})
-		if !statusRunning {
-			if isPreferred {
-				notReadyNodes = append(notReadyNodes, nodeObj.Name)
-			}
-			continue
-		}
-
-		// match the preferred node
-		if isPreferred {
-			qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
-			continue
-		}
-
-		// match the instanceType
-		if len(wObj.Resource.PreferredNodes) == 0 { // don't match in perferred nodes mode
-			if nodeObj.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
-				qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
-			}
-		}
-	}
-
-	// After looping, check for missing preferred nodes if feature gate is enabled
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// Since we remove a preferredNode from the preferredNodeSet if we've seen it in the list of nodes matching the label,
-		// anything node left in the set means it does not match the label selector and we can surface an error.
-		if len(deletingPreferredNodes)+len(notReadyNodes)+preferredNodeSet.Len() > 0 {
-			return nil, fmt.Errorf("when node auto-provisioning is disabled, all preferred nodes must be ready, running, and match the label selector. The following nodes do not meet the required conditions: deleting nodes: %+v, not ready nodes: %+v, nodes missing label or do not exist: %+v", deletingPreferredNodes, notReadyNodes, preferredNodeSet.UnsortedList())
+		for _, name := range wObj.Resource.PreferredNodes {
+			// Get the node with a client call
+			node, err := resources.GetNode(ctx, name, c.Client)
+			if err != nil {
+				klog.ErrorS(err, "failed to get preferred node", "node", name)
+				continue
+			}
+
+			if nodeIsReadyAndNotDeleting(*node) {
+				// Check that all labels in wObj.Resource.LabelSelector.MatchLabels are present in the node's labels.
+				allLabelsMatch := true
+				for k, v := range wObj.Resource.LabelSelector.MatchLabels {
+					val, ok := node.Labels[k]
+					if !ok || v != val {
+						allLabelsMatch = false
+						break
+					}
+				}
+				if allLabelsMatch {
+					qualifiedNodes = append(qualifiedNodes, node)
+				}
+			}
+		}
+
+		if len(qualifiedNodes) < *wObj.Resource.Count {
+			return nil, fmt.Errorf("when node auto-provisioning is disabled, at least %d preferred nodes must match the label selector and be ready and not deleting, only have %d", *wObj.Resource.Count, len(qualifiedNodes))
+		}
+	} else {
+		nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(nodeList.Items) == 0 {
+			klog.InfoS("no current nodes match the workspace resource spec", "workspace", klog.KObj(wObj))
+			return nil, nil
+		}
+
+		for index := range nodeList.Items {
+			node := nodeList.Items[index]
+			if nodeIsReadyAndNotDeleting(node) {
+				// match the instanceType
+				if node.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
+					qualifiedNodes = append(qualifiedNodes, lo.ToPtr(node))
+				}
+			}
 		}
 	}
 

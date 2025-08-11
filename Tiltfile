@@ -11,7 +11,15 @@ if 'allowed_contexts' in settings:
     allow_k8s_contexts(settings['allowed_contexts'])
 if 'default_registry' in settings:
     # Set the default registry for tilt to use
-    default_registry(settings['default_registry'].removesuffix('/') + '/kaito/workspace')
+    default_registry(settings['default_registry'].removesuffix('/'))
+if 'feature_gates' in settings:
+    # Set the feature gates for the controller
+    feature_gates = settings['feature_gates']
+else:
+    feature_gates = {
+        'vLLM': True,
+        'gatewayAPIInferenceExtension': True,
+    }
 
 def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
 
@@ -25,7 +33,7 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
 
     def yaml():
         cluster_name = k8s_context() if not settings.get('cluster_name') else settings['cluster_name']
-        helm_template = 'helm template kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set clusterName={} --set image.repository=controller --set image.tag=latest'.format(k8s_context())
+        helm_template = 'helm template kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set clusterName={} --set image.repository=controller --set image.tag=latest --set featureGates.gatewayAPIInferenceExtension={}'.format(cluster_name, feature_gates['gatewayAPIInferenceExtension'])
         # Set the image name and tag to controller:latest for Tilt to
         # substitute later during docker_build_with_restart
         data = local(helm_template, quiet=True)
@@ -34,6 +42,10 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
             decoded = decode_yaml_stream(data)
             if decoded:
                 for d in decoded:
+                    # Workaround: Force the namespace to "kaito-workspace" because `helm template` does not correctly render
+                    # the subchart namespace. See: https://github.com/fluxcd-community/helm-charts/issues/239.
+                    if "namespace" not in d["metadata"]:
+                        d["metadata"]["namespace"] = "kaito-workspace"
                     if d["kind"] == "Deployment":
                         if "securityContext" in d['spec']['template']['spec']:
                             d['spec']['template']['spec'].pop('securityContext')
@@ -106,7 +118,9 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
     # Tilt will replace the old one in the running container with the new one.
     docker_build_with_restart(IMG, '.',
      dockerfile_contents=DOCKERFILE,
-     entrypoint='/manager',
+     entrypoint='/manager --feature-gates={}'.format(
+        ','.join(['{}={}'.format(k, str(v).lower()) for k, v in feature_gates.items()])
+     ),
      only=['./tilt_bin/manager', './presets/workspace/models/supported_models.yaml'],
      live_update=[
            sync('./tilt_bin/manager', '/manager'),

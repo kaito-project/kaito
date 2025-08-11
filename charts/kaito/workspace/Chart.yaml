@@ -36,4 +36,4 @@ dependencies:
 - name: flux2
   version: "2.16.3"
   repository: https://fluxcd-community.github.io/helm-charts
-  condition: flux2.enabled
+  condition: featureGates.gatewayAPIInferenceExtension

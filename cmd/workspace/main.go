@@ -24,6 +24,8 @@ import (
 
 	//+kubebuilder:scaffold:imports
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -69,6 +71,8 @@ func init() {
 	utilruntime.Must(kaitoutils.KarpenterSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(azurev1alpha2.SchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(helmv2.AddToScheme(scheme))
+	utilruntime.Must(sourcev1.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
 	klog.InitFlags(nil)
@@ -93,6 +97,11 @@ func main() {
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+
+	if err := featuregates.ParseAndValidateFeatureGates(featureGates); err != nil {
+		klog.ErrorS(err, "unable to set `feature-gates` flag")
+		exitWithErrorFunc()
+	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
@@ -179,11 +188,6 @@ func main() {
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
 		time.Sleep(2 * time.Second)
-	}
-
-	if err := featuregates.ParseAndValidateFeatureGates(featureGates); err != nil {
-		klog.ErrorS(err, "unable to set `feature-gates` flag")
-		exitWithErrorFunc()
 	}
 
 	klog.InfoS("starting manager")

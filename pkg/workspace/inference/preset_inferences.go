@@ -41,20 +41,17 @@ import (
 
 const (
 	ProbePath = "/health"
-
-	// PortInferenceServer is the default port for the inference server.
-	PortInferenceServer = 5000
 )
 
 var (
 	containerPorts = []corev1.ContainerPort{{
-		ContainerPort: int32(PortInferenceServer),
+		ContainerPort: int32(consts.PortInferenceServer),
 	}}
 
 	defaultLivenessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt(PortInferenceServer),
+				Port: intstr.FromInt32(consts.PortInferenceServer),
 				Path: ProbePath,
 			},
 		},
@@ -65,7 +62,7 @@ var (
 	defaultReadinessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt(PortInferenceServer),
+				Port: intstr.FromInt32(consts.PortInferenceServer),
 				Path: ProbePath,
 			},
 		},
@@ -265,7 +262,7 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	case probeTypeLiveness:
 		args["ray-port"] = strconv.Itoa(pkgmodel.PortRayCluster)
 	case probeTypeReadiness:
-		args["vllm-port"] = strconv.Itoa(PortInferenceServer)
+		args["vllm-port"] = strconv.FormatInt(int64(consts.PortInferenceServer), 10)
 	}
 
 	// for distributed inference, we cannot use the default http probe since only the leader pod

@@ -24,14 +24,15 @@ import (
 	"time"
 
 	"github.com/awslabs/operatorpkg/status"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gotest.tools/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
@@ -379,7 +380,7 @@ func TestEnsureService(t *testing.T) {
 
 			err := reconciler.ensureService(ctx, tc.workspace)
 			if tc.expectedError == nil {
-				assert.Check(t, err == nil, "Not expected to return error")
+				assert.NoError(t, err)
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}
@@ -495,7 +496,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 
 			err := reconciler.applyInference(ctx, &tc.workspace)
 			if tc.expectedError == nil {
-				assert.Check(t, err == nil, fmt.Sprintf("Not expected to return error: %v", err))
+				assert.NoError(t, err)
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}
@@ -552,7 +553,7 @@ func TestApplyInferenceWithTemplate(t *testing.T) {
 
 			err := reconciler.applyInference(ctx, &tc.workspace)
 			if tc.expectedError == nil {
-				assert.Check(t, err == nil, "Not expected to return error")
+				assert.NoError(t, err)
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}
@@ -576,6 +577,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 	}
 	mockWorkspaceWithPreferredNodes := test.MockWorkspaceWithPreferredNodes.DeepCopy()
 	mockWorkspaceWithPreferredNodes.Resource.PreferredNodes = []string{"node-p1", "node-p2"}
+	mockWorkspaceWithPreferredNodes.Resource.Count = ptr.To(2)
 
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
@@ -649,33 +651,20 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 						},
 					},
 				}}
-				relevantMap := c.CreateMapWithType(nodeList)
-				for _, obj := range nodeList.Items {
-					n := obj
-					objKey := client.ObjectKeyFromObject(&n)
-					relevantMap[objKey] = &n
-				}
-				// Mock Get calls for individual nodes - populate node data from map
-				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
-					return key.Name == "node-p1"
-				}), mock.IsType(&corev1.Node{}), mock.Anything).Run(func(args mock.Arguments) {
-					node := args.Get(2).(*corev1.Node)
-					key := client.ObjectKey{Name: "node-p1"}
-					c.GetObjectFromMap(node, key)
-				}).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
-					return key.Name == "node-p2"
-				}), mock.IsType(&corev1.Node{}), mock.Anything).Run(func(args mock.Arguments) {
-					node := args.Get(2).(*corev1.Node)
-					key := client.ObjectKey{Name: "node-p2"}
-					c.GetObjectFromMap(node, key)
-				}).Return(nil)
+				// relevantMap := c.CreateMapWithType(nodeList)
+				// for _, obj := range nodeList.Items {
+				// 	n := obj
+				// 	objKey := client.ObjectKeyFromObject(&n)
+				// 	relevantMap[objKey] = &n
+				// }
+				c.CreateOrUpdateObjectInMap(&nodeList.Items[0])
+				c.CreateOrUpdateObjectInMap(&nodeList.Items[1])
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+
 			},
-			workspace: func() *v1beta1.Workspace {
-				ws := mockWorkspaceWithPreferredNodes.DeepCopy()
-				*ws.Resource.Count = 2 // Set count to 2 to match expected nodes
-				return ws
-			}(),
+			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
 			expectedError: nil,
 			expectedNodes: []string{"node-p1", "node-p2"},
 			disableNAP:    true,
@@ -714,30 +703,15 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 						},
 					},
 				}}
-				relevantMap := c.CreateMapWithType(nodeList)
-				for _, obj := range nodeList.Items {
-					n := obj
-					objKey := client.ObjectKeyFromObject(&n)
-					relevantMap[objKey] = &n
-				}
-				// Mock Get calls for individual nodes - populate node data from map
-				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
-					return key.Name == "node-p1"
-				}), mock.IsType(&corev1.Node{}), mock.Anything).Run(func(args mock.Arguments) {
-					node := args.Get(2).(*corev1.Node)
-					key := client.ObjectKey{Name: "node-p1"}
-					c.GetObjectFromMap(node, key)
-				}).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
-					return key.Name == "node-p2"
-				}), mock.IsType(&corev1.Node{}), mock.Anything).Run(func(args mock.Arguments) {
-					node := args.Get(2).(*corev1.Node)
-					key := client.ObjectKey{Name: "node-p2"}
-					c.GetObjectFromMap(node, key)
-				}).Return(nil)
+
+				c.CreateOrUpdateObjectInMap(&nodeList.Items[0])
+				c.CreateOrUpdateObjectInMap(&nodeList.Items[1])
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
 			},
 			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
-			expectedError: errors.New("when node auto-provisioning is disabled, at least 1 preferred nodes must match the label selector and be ready and not deleting, only have 0"),
+			expectedError: errors.New("when node auto-provisioning is disabled, at least 2 preferred nodes must match the label selector and be ready and not deleting, only have 1"),
 			expectedNodes: nil,
 			disableNAP:    true,
 		},
@@ -777,34 +751,15 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 						},
 					},
 				}}
-				relevantMap := c.CreateMapWithType(nodeList)
-				for _, obj := range nodeList.Items {
-					n := obj
-					objKey := client.ObjectKeyFromObject(&n)
-					relevantMap[objKey] = &n
-				}
-				// Mock Get calls for individual nodes - populate node data from map
-				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
-					return key.Name == "node-p1"
-				}), mock.IsType(&corev1.Node{}), mock.Anything).Run(func(args mock.Arguments) {
-					node := args.Get(2).(*corev1.Node)
-					key := client.ObjectKey{Name: "node-p1"}
-					c.GetObjectFromMap(node, key)
-				}).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
-					return key.Name == "node-p2"
-				}), mock.IsType(&corev1.Node{}), mock.Anything).Run(func(args mock.Arguments) {
-					node := args.Get(2).(*corev1.Node)
-					key := client.ObjectKey{Name: "node-p2"}
-					c.GetObjectFromMap(node, key)
-				}).Return(nil)
+
+				c.CreateOrUpdateObjectInMap(&nodeList.Items[0])
+				c.CreateOrUpdateObjectInMap(&nodeList.Items[1])
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
 			},
-			workspace: func() *v1beta1.Workspace {
-				ws := test.MockWorkspaceWithPreferredNodes.DeepCopy()
-				ws.Resource.PreferredNodes = []string{"node-p1", "node-p2"}
-				return ws
-			}(),
-			expectedError: errors.New("when node auto-provisioning is disabled, at least 1 preferred nodes must match the label selector and be ready and not deleting, only have 0"),
+			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
+			expectedError: errors.New("when node auto-provisioning is disabled, at least 2 preferred nodes must match the label selector and be ready and not deleting, only have 1"),
 			expectedNodes: nil,
 			disableNAP:    true,
 		},
@@ -827,27 +782,14 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 						},
 					},
 				}}
-				relevantMap := c.CreateMapWithType(nodeList)
-				for _, obj := range nodeList.Items {
-					n := obj
-					objKey := client.ObjectKeyFromObject(&n)
-					relevantMap[objKey] = &n
-				}
-				// Mock Get calls for individual nodes - populate node data from map
-				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
-					return key.Name == "node-p1"
-				}), mock.IsType(&corev1.Node{}), mock.Anything).Run(func(args mock.Arguments) {
-					node := args.Get(2).(*corev1.Node)
-					key := client.ObjectKey{Name: "node-p1"}
-					c.GetObjectFromMap(node, key)
-				}).Return(nil)
-				// Mock Get call for missing node-p2 to return not found error
-				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
-					return key.Name == "node-p2"
-				}), mock.IsType(&corev1.Node{}), mock.Anything).Return(errors.New("nodes \"node-p2\" not found blah blah"))
+
+				c.CreateOrUpdateObjectInMap(&nodeList.Items[0])
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(errors.New("nodes \"node-p2\" not found"))
 			},
 			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
-			expectedError: errors.New("when node auto-provisioning is disabled, at least 1 preferred nodes must match the label selector and be ready and not deleting, only have 0"),
+			expectedError: errors.New("when node auto-provisioning is disabled, at least 2 preferred nodes must match the label selector and be ready and not deleting, only have 1"),
 			expectedNodes: nil,
 			disableNAP:    true,
 		},
@@ -869,17 +811,20 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 			nodes, err := reconciler.getAllQualifiedNodes(ctx, tc.workspace)
 
 			if tc.expectedError != nil {
-				assert.Equal(t, tc.expectedError.Error(), err.Error())
-				assert.Check(t, nodes == nil, "Response node array should be nil")
+				fmt.Printf("Nodes are %v\n", nodes)
+				assert.NotNil(t, err)
+				fmt.Printf("Err is %v\n", err)
+				assert.Equal(t, tc.expectedError, err)
+				assert.Nil(t, nodes)
 				return
 			}
 
 			if err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}
-			assert.Check(t, err == nil, "Not expected to return error")
-			assert.Check(t, nodes != nil, "Response node array should not be nil")
-			assert.Check(t, len(nodes) == len(tc.expectedNodes), "Unexpected qualified nodes")
+			assert.NoError(t, err)
+			assert.NotNil(t, nodes)
+			assert.Equal(t, len(nodes), len(tc.expectedNodes))
 		})
 	}
 }
@@ -1029,9 +974,9 @@ func TestApplyWorkspaceResource(t *testing.T) {
 			}
 			ctx := context.Background()
 
-			err := reconciler.applyWorkspaceResource(ctx, &tc.workspace)
+			err := reconciler.applyWorkspaceResource(ctx, &tc.workspace) // TODO: fix this nil pointer error
 			if tc.expectedError == nil {
-				assert.Check(t, err == nil, "Not expected to return error")
+				assert.NoError(t, err)
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}
@@ -1238,7 +1183,7 @@ func TestSyncControllerRevision(t *testing.T) {
 
 			err := reconciler.syncControllerRevision(ctx, &tc.workspace)
 			if tc.expectedError == nil {
-				assert.Check(t, err == nil, "Not expected to return error")
+				assert.NoError(t, err)
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}

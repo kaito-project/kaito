@@ -390,10 +390,11 @@ func GenerateInferencePoolOCIRepository(workspaceObj *kaitov1beta1.Workspace) *s
 			},
 		},
 		Spec: sourcev1.OCIRepositorySpec{
-			// TODO(chewong): make it a constant
-			URL: "oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool",
+			// Chart source for Gateway API Inference Extension inference pool;
+			// keep in sync with consts.InferencePoolChartVersion when upgrading.
+			URL: consts.InferencePoolChartURL,
 			Reference: &sourcev1.OCIRepositoryRef{
-				Tag: "v0.5.1", // TODO(chewong): make it a constant
+				Tag: consts.InferencePoolChartVersion,
 			},
 		},
 	}
@@ -401,16 +402,24 @@ func GenerateInferencePoolOCIRepository(workspaceObj *kaitov1beta1.Workspace) *s
 
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
 func GenerateInferencePoolHelmRelease(workspaceObj *kaitov1beta1.Workspace, isStatefulSet bool) (*helmv2.HelmRelease, error) {
-	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v0.5.1/config/charts/inferencepool/values.yaml
 	matchLabels := map[string]string{
 		kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
 	}
 	if isStatefulSet {
-		// Leader pod in StatefulSet has an pod index of 0
+		// When using StatefulSet, only the leader pod (with pod index 0) is serving traffic.
+		// Set an additional label to select the leader pod ONLY.
 		matchLabels[appsv1.PodIndexLabel] = "0"
 	}
 
-	values := map[string]any{
+	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v0.5.1/config/charts/inferencepool/values.yaml
+	helmValues := map[string]any{
+		"inferenceExtension": map[string]any{
+			"image": map[string]string{
+				"hub":        consts.GatewayAPIInferenceExtensionImageRepository,
+				"tag":        consts.InferencePoolChartVersion,
+				"pullPolicy": string(corev1.PullIfNotPresent),
+			},
+		},
 		"pluginsConfigFile": "plugins-v2.yaml",
 		"inferencePool": map[string]any{
 			"targetPortNumber": consts.PortInferenceServer,
@@ -419,7 +428,7 @@ func GenerateInferencePoolHelmRelease(workspaceObj *kaitov1beta1.Workspace, isSt
 			},
 		},
 	}
-	rawValues, err := json.Marshal(values)
+	rawHelmValues, err := json.Marshal(helmValues)
 	if err != nil {
 		return nil, err
 	}
@@ -440,7 +449,7 @@ func GenerateInferencePoolHelmRelease(workspaceObj *kaitov1beta1.Workspace, isSt
 				Name:      utils.InferencePoolName(workspaceObj.Name),
 			},
 			Values: &apiextensionsv1.JSON{
-				Raw: rawValues,
+				Raw: rawHelmValues,
 			},
 		},
 	}, nil

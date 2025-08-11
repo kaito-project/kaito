@@ -16,8 +16,9 @@ securityContext:
     drop:
       - "ALL"
 featureGates:
-  vLLM: "true"
-  disableNodeAutoProvisioning: "false"
+  vLLM: true
+  disableNodeAutoProvisioning: false
+  gatewayAPIInferenceExtension: false
 webhook:
   port: 9443
 # Knative logging configuration
@@ -39,11 +40,10 @@ cloudProviderName: "azure"
 clusterName: "kaito"
 # Set values for the Flux controller to only install the Helm controller
 flux2:
-  enabled: false
   helmController:
-    create: false
+    create: true
   sourceController:
-    create: false
+    create: true
   imageAutomationController:
     create: false
   imageReflectionController:

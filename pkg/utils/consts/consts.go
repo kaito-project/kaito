@@ -31,9 +31,10 @@ const (
 	NvidiaGPU                     = "nvidia.com/gpu"
 
 	// Feature flags
-	FeatureFlagVLLM                        = "vLLM"
-	FeatureFlagEnsureNodeClass             = "ensureNodeClass"
-	FeatureFlagDisableNodeAutoProvisioning = "disableNodeAutoProvisioning"
+	FeatureFlagVLLM                         = "vLLM"
+	FeatureFlagEnsureNodeClass              = "ensureNodeClass"
+	FeatureFlagDisableNodeAutoProvisioning  = "disableNodeAutoProvisioning"
+	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
 
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"
@@ -50,6 +51,9 @@ const (
 	GpuSkuPrefix = "Standard_N"
 
 	NodePluginInstallTimeout = 60 * time.Second
+
+	// PortInferenceServer is the default port for the inference server.
+	PortInferenceServer = int32(5000)
 )
 
 var (

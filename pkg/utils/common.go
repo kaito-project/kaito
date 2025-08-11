@@ -347,7 +347,7 @@ func DedupVolumeMounts(mounts []corev1.VolumeMount) []corev1.VolumeMount {
 	return result
 }
 
-// EndpointPickerName returns the name of the endpoint picker service for the given workspace.
+// InferencePoolName returns the name of the inference pool for the given workspace.
 func InferencePoolName(workspaceName string) string {
 	return fmt.Sprintf("%s-inferencepool", workspaceName)
 }

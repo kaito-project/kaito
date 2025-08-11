@@ -379,6 +379,7 @@ func GenerateModelPullerContainer(ctx context.Context, workspaceObj *kaitov1beta
 	return []corev1.Container{puller}
 }
 
+// GenerateInferencePoolOCIRepository generates a Flux OCIRepository for the inference pool.
 func GenerateInferencePoolOCIRepository(workspaceObj *kaitov1beta1.Workspace) *sourcev1.OCIRepository {
 	return &sourcev1.OCIRepository{
 		ObjectMeta: metav1.ObjectMeta{
@@ -398,6 +399,7 @@ func GenerateInferencePoolOCIRepository(workspaceObj *kaitov1beta1.Workspace) *s
 	}
 }
 
+// GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
 func GenerateInferencePoolHelmRelease(workspaceObj *kaitov1beta1.Workspace, isStatefulSet bool) (*helmv2.HelmRelease, error) {
 	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v0.5.1/config/charts/inferencepool/values.yaml
 	matchLabels := map[string]string{

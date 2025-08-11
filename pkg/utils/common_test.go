@@ -412,3 +412,21 @@ func TestGetRayLeaderHost(t *testing.T) {
 		})
 	}
 }
+
+func TestInferencePoolName(t *testing.T) {
+	tests := []struct {
+		workspaceName string
+		expected      string
+	}{
+		{"foo", "foo-inferencepool"},
+		{"bar123", "bar123-inferencepool"},
+		{"test-workspace", "test-workspace-inferencepool"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.workspaceName, func(t *testing.T) {
+			actual := InferencePoolName(tt.workspaceName)
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}

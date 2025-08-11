@@ -12,7 +12,7 @@ and Kubernetes volume as the types of tuning input sources, and image, Kubernete
 ### Tuning workspace
 Here are two examples of using KAITO workspace CRD to define workspaces for tuning different models:
 
-Example 1: Tuning [`phi-3-mini`](../../examples/fine-tuning/kaito_workspace_tuning_phi_3.yaml). This example uses a public dataset specified by a URL in the input.
+Example 1: Tuning [`phi-3-mini`](../../../examples/fine-tuning/kaito_workspace_tuning_phi_3.yaml). This example uses a public dataset specified by a URL in the input.
 
 Example 2: Tuning `falcon-7b`. This example shows how to use an image as the source of input data.
 ```yaml
@@ -39,14 +39,14 @@ tuning:
 
 ```
 
-Example 3: Tuning [`phi-3-mini`](../../examples/fine-tuning/kaito_workspace_tuning_phi_3_with_pvc_volume.yaml). This example shows how to use a Kubernetes volume as the source of input dataset and output destination. We use AzureFile as an example, but any other supported volume type can be used. You should save your input dataset in the volume before creating the workspace, and the output adapter will be saved in the output volume after the tuning job is completed.
+Example 3: Tuning [`phi-3-mini`](../../../examples/fine-tuning/kaito_workspace_tuning_phi_3_with_pvc_volume.yaml). This example shows how to use a Kubernetes volume as the source of input dataset and output destination. We use AzureFile as an example, but any other supported volume type can be used. You should save your input dataset in the volume before creating the workspace, and the output adapter will be saved in the output volume after the tuning job is completed.
 
 The detailed `TuningSpec` API definitions can be found [here](https://github.com/kaito-project/kaito/blob/2ccc93daf9d5385649f3f219ff131ee7c9c47f3e/api/v1alpha1/workspace_types.go#L145).
 
 ### Tuning configurations
 KAITO provides default tuning configurations for different tuning methods. They are managed by Kubernetes configmaps.
-- [default LoRA configmap](../../charts/kaito/workspace/templates/lora-params.yaml)
-- [default QLoRA configmap](../../charts/kaito/workspace/templates/qlora-params.yaml)
+- [default LoRA configmap](../../../charts/kaito/workspace/templates/lora-params.yaml)
+- [default QLoRA configmap](../../../charts/kaito/workspace/templates/qlora-params.yaml)
 
 ## Tuning configmaps
 User can specify a customized configmap via the `Config` field of the `TuningSpec`. The customized configmap should be structured based on the default configmaps provided by KAITO. Please read the following section carefully when attempting to change the default parameters used by KAITO.

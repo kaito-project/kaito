@@ -5,7 +5,7 @@ slug: /
 
 :::info What's NEW!
 
-Added custom workspace examples for HuggingFace models [openai/gpt-oss-20b](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_workspace_gpt_oss_20b_custom.yaml) and [openai/gpt-oss-120b](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_workspace_gpt_oss_120b_custom.yaml). These use a pre-release [`vllm/vllm-openai:gptoss`](https://hub.docker.com/layers/vllm/vllm-openai/gptoss/images/sha256-23c3feefba723be97ff9e9bd769aed7d165839a79bc042eb8f3a13dd2a469e1c) image and are **not recommended for production**. We are actively working on adding official KAITO presets for these models.
+Added custom workspace examples for HuggingFace models [openai/gpt-oss-20b](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_workspace_gpt_oss_20b.yaml) and [openai/gpt-oss-120b](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_workspace_gpt_oss_120b.yaml). These use a pre-release [`vllm/vllm-openai:gptoss`](https://hub.docker.com/layers/vllm/vllm-openai/gptoss/images/sha256-23c3feefba723be97ff9e9bd769aed7d165839a79bc042eb8f3a13dd2a469e1c) image and are **not recommended for production**. We are actively working on adding official KAITO presets for these models.
 
 
 Retrieval Augmented Generation (RAG) support is live! - KAITO RagEngine uses LlamaIndex and FAISS, learn about from [here](https://kaito-project.github.io/kaito/docs/rag)!

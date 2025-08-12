@@ -52,7 +52,7 @@ func TestCheckResourceStatus(t *testing.T) {
 		hr := &helmv2.HelmRelease{
 			Status: helmv2.HelmReleaseStatus{
 				Conditions: []metav1.Condition{{
-					Type:   "Ready",
+					Type:   consts.ConditionReady,
 					Status: metav1.ConditionTrue,
 				}},
 			},
@@ -77,7 +77,7 @@ func TestCheckResourceStatus(t *testing.T) {
 		oci := &sourcev1.OCIRepository{
 			Status: sourcev1.OCIRepositoryStatus{
 				Conditions: []metav1.Condition{{
-					Type:   "Ready",
+					Type:   consts.ConditionReady,
 					Status: metav1.ConditionTrue,
 				}},
 			},

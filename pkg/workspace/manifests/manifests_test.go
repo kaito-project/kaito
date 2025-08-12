@@ -14,13 +14,18 @@
 package manifests
 
 import (
+	"encoding/json"
 	"testing"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/stretchr/testify/assert"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
@@ -37,40 +42,92 @@ func TestGenerateInferencePoolOCIRepository(t *testing.T) {
 	assert.Equal(t, workspace.Name, owner.Name)
 	assert.True(t, *owner.Controller)
 
-	assert.Equal(t, "oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool", repo.Spec.URL)
+	assert.Equal(t, consts.InferencePoolChartURL, repo.Spec.URL)
 	if assert.NotNil(t, repo.Spec.Reference) {
-		assert.Equal(t, "v0.5.1", repo.Spec.Reference.Tag)
+		assert.Equal(t, consts.InferencePoolChartVersion, repo.Spec.Reference.Tag)
 	}
 }
 
 func TestGenerateInferencePoolHelmRelease(t *testing.T) {
-	workspace := test.MockWorkspaceWithPreset
+	base := test.MockWorkspaceWithPreset.DeepCopy()
+	base.Name = "test-workspace"
+	base.Namespace = "kaito"
 
-	// deployment mode
-	hrDep, err := GenerateInferencePoolHelmRelease(workspace, false)
-	assert.NoError(t, err)
-	assertBaseHelmRelease(t, workspace, hrDep)
-	assert.Equal(t, "OCIRepository", hrDep.Spec.ChartRef.Kind)
-	assert.Equal(t, utils.InferencePoolName(workspace.Name), hrDep.Spec.ChartRef.Name)
-
-	// statefulset mode (currently no difference, but keep for future divergence)
-	hrSts, err := GenerateInferencePoolHelmRelease(workspace, true)
-	assert.NoError(t, err)
-	assertBaseHelmRelease(t, workspace, hrSts)
-}
-
-func assertBaseHelmRelease(t *testing.T, w *kaitov1beta1.Workspace, hr *helmv2.HelmRelease) {
-	assert.Equal(t, utils.InferencePoolName(w.Name), hr.Name)
-	assert.Equal(t, w.Namespace, hr.Namespace)
-	assert.Len(t, hr.OwnerReferences, 1)
-	owner := hr.OwnerReferences[0]
-	assert.Equal(t, kaitov1beta1.GroupVersion.String(), owner.APIVersion)
-	assert.Equal(t, "Workspace", owner.Kind)
-	assert.Equal(t, w.Name, owner.Name)
-	assert.True(t, *owner.Controller)
-	if assert.NotNil(t, hr.Spec.ChartRef) {
-		assert.Equal(t, "OCIRepository", hr.Spec.ChartRef.Kind)
-		assert.Equal(t, w.Namespace, hr.Spec.ChartRef.Namespace)
+	tests := []struct {
+		name          string
+		workspace     *kaitov1beta1.Workspace
+		isStatefulSet bool
+		expected      map[string]any
+	}{
+		{
+			name:          "deployment inference pool helm values",
+			workspace:     base.DeepCopy(),
+			isStatefulSet: false,
+			expected: map[string]any{
+				"inferenceExtension": map[string]any{
+					"image": map[string]any{
+						"hub":        consts.GatewayAPIInferenceExtensionImageRepository,
+						"tag":        consts.InferencePoolChartVersion,
+						"pullPolicy": string(corev1.PullIfNotPresent),
+					},
+				},
+				"pluginsConfigFile": "plugins-v2.yaml",
+				"inferencePool": map[string]any{
+					"targetPortNumber": float64(consts.PortInferenceServer),
+					"modelServers": map[string]any{
+						"matchLabels": map[string]any{
+							kaitov1beta1.LabelWorkspaceName: base.Name,
+						},
+					},
+				},
+			},
+		},
+		{
+			name:          "statefulset inference pool helm values",
+			workspace:     base.DeepCopy(),
+			isStatefulSet: true,
+			expected: map[string]any{
+				"inferenceExtension": map[string]any{
+					"image": map[string]any{
+						"hub":        consts.GatewayAPIInferenceExtensionImageRepository,
+						"tag":        consts.InferencePoolChartVersion,
+						"pullPolicy": string(corev1.PullIfNotPresent),
+					},
+				},
+				"pluginsConfigFile": "plugins-v2.yaml",
+				"inferencePool": map[string]any{
+					"targetPortNumber": float64(consts.PortInferenceServer),
+					"modelServers": map[string]any{
+						"matchLabels": map[string]any{
+							kaitov1beta1.LabelWorkspaceName: base.Name,
+							appsv1.PodIndexLabel:            "0",
+						},
+					},
+				},
+			},
+		},
 	}
-	assert.NotNil(t, hr.Spec.Values)
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace, tc.isStatefulSet)
+			assert.NoError(t, err)
+			assert.NotNil(t, helmRelease)
+
+			assert.Equal(t, utils.InferencePoolName(base.Name), helmRelease.Name)
+			assert.Equal(t, base.Namespace, helmRelease.Namespace)
+			if assert.NotNil(t, helmRelease.Spec.ChartRef) {
+				assert.Equal(t, helmv2.CrossNamespaceSourceReference{
+					Kind:      sourcev1.OCIRepositoryKind,
+					Namespace: base.Namespace,
+					Name:      utils.InferencePoolName(base.Name),
+				}, *helmRelease.Spec.ChartRef)
+			}
+
+			assert.NotNil(t, helmRelease.Spec.Values)
+			vals := map[string]any{}
+			assert.NoError(t, json.Unmarshal(helmRelease.Spec.Values.Raw, &vals))
+			assert.Equal(t, tc.expected, vals)
+		})
+	}
 }

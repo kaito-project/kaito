@@ -28,6 +28,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -474,7 +475,7 @@ func validateGatewayAPIInferenceExtensionResources(workspaceObj *kaitov1beta1.Wo
 				return false
 			}
 			for _, cond := range ociRepository.Status.Conditions {
-				if cond.Type == "Ready" && cond.Status == metav1.ConditionTrue {
+				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
 					return true
 				}
 			}
@@ -493,7 +494,7 @@ func validateGatewayAPIInferenceExtensionResources(workspaceObj *kaitov1beta1.Wo
 				return false
 			}
 			for _, cond := range helmRelease.Status.Conditions {
-				if cond.Type == "Ready" && cond.Status == metav1.ConditionTrue {
+				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
 					return true
 				}
 			}

@@ -898,7 +898,6 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 	}
 
 	model := plugin.KaitoModelRegister.MustGet(string(wObj.Inference.Preset.Name))
-	inferenceParam := model.GetInferenceParameters()
 
 	// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
 	workloadObj, _ := inference.GeneratePresetInference(ctx, wObj, "", model, c.Client)
@@ -919,14 +918,18 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 					errs = append(errs, err)
 				}
 			}
+			// Existing resource already matches the desired spec (oldObj); continue to next object
 			continue
 		}
+
 		if !apierrors.IsNotFound(err) {
 			errs = append(errs, err)
 		}
 		if err := resources.CreateResource(ctx, obj, c.Client); client.IgnoreAlreadyExists(err) != nil {
 			errs = append(errs, err)
 		}
+
+		inferenceParam := model.GetInferenceParameters()
 		if err := resources.CheckResourceStatus(obj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
 			errs = append(errs, err)
 		}
@@ -956,14 +959,15 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
-	// If the Gateway API Inference Extension feature gate is enabled,
-	// we need to ensure all relevant kinds are registered in the cluster.
 	if featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
+		// Verify that all prerequisite CRDs exist before configuring watches that depend on them.
+		// - FluxCD HelmRelease / OCIRepository: required for installing and reconciling the InferencePool Helm chart.
+		// - Gateway API Inference Extension InferencePool / InferenceModel: required runtime CRDs that the Workspace
+		//   controller indirectly relies on (Helm chart renders resources referencing them).
+		// Failing fast here provides a clear, actionable error instead of deferred reconcile failures later.
 		for _, gvk := range []schema.GroupVersionKind{
-			// CRDs from Flux CD - for reconciling https://github.com/kubernetes-sigs/gateway-api-inference-extension/tree/v0.5.1/config/charts/inferencepool
 			helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind),
 			sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind),
-			// CRDs from Gateway API Inference Extension
 			gaiev1alpha2.SchemeGroupVersion.WithKind("InferencePool"),
 			gaiev1alpha2.SchemeGroupVersion.WithKind("InferenceModel"),
 		} {
@@ -975,6 +979,8 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				return fmt.Errorf("%s not found in the cluster, please ensure the Gateway API Inference Extension is installed", gvk.String())
 			}
 		}
+
+		// We don't need to own InferencePool and InferenceModel because they are managed by Flux's HelmRelease
 		builder = builder.
 			Owns(&helmv2.HelmRelease{}).
 			Owns(&sourcev1.OCIRepository{})

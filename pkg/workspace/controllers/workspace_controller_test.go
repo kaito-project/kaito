@@ -1320,11 +1320,11 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 						Namespace: "kaito",
 					},
 					Spec: sourcev1.OCIRepositorySpec{
-						URL:       "oci://example.com/custom/inferencepool",  // differs from desired
+						URL:       consts.InferencePoolChartURL,
 						Reference: &sourcev1.OCIRepositoryRef{Tag: "v0.5.0"}, // differs from desired
 					},
 					Status: sourcev1.OCIRepositoryStatus{
-						Conditions: []v1.Condition{{Type: "Ready", Status: v1.ConditionTrue}},
+						Conditions: []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}},
 					},
 				}
 				repoMap[client.ObjectKeyFromObject(repo)] = repo

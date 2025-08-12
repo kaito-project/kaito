@@ -57,11 +57,16 @@ const (
 
 	// InferencePoolChartURL is the OCI registry URL for the Gateway API Inference Extension inferencepool chart.
 	InferencePoolChartURL = "oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool"
+
 	// InferencePoolChartVersion is the tag/version of the inferencepool chart to deploy.
+	// MUST KEEP IN SYNC with the version in go.mod.
 	InferencePoolChartVersion = "v0.5.1"
 
 	// GatewayAPIInferenceExtensionImageRepository is the image repository for the Gateway API Inference Extension components.
 	GatewayAPIInferenceExtensionImageRepository = "mcr.microsoft.com/oss/v2/gateway-api-inference-extension"
+
+	// ConditionReady is the condition type for a ready condition.
+	ConditionReady = "Ready"
 )
 
 var (

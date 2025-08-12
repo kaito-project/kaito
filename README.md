@@ -6,11 +6,12 @@
 [![codecov](https://codecov.io/gh/kaito-project/kaito/graph/badge.svg?token=XAQLLPB2AR)](https://codecov.io/gh/kaito-project/kaito)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fkaito-project%2Fkaito.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fkaito-project%2Fkaito?ref=badge_shield)
 
-| ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![notification](website/static/img/bell.svg) What is NEW! |
+| --------------------------------------------------------- |
+| Added custom workspace examples for HuggingFace models [openai/gpt-oss-20b](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_workspace_gpt_oss_20b_custom.yaml) and [openai/gpt-oss-120b](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_workspace_gpt_oss_120b_custom.yaml). These use a pre-release [`vllm/vllm-openai:gptoss`](https://hub.docker.com/layers/vllm/vllm-openai/gptoss/images/sha256-23c3feefba723be97ff9e9bd769aed7d165839a79bc042eb8f3a13dd2a469e1c) image and are **not recommended for production**. We are actively working on adding official KAITO presets for these models. |
 | Retrieval Augmented Generation (RAG) support is live! - KAITO RagEngine uses LlamaIndex and FAISS, learn about from [here](https://kaito-project.github.io/kaito/docs/rag)! |
-| Latest Release: Aug 7th, 2025. KAITO v0.6.0                                                                                                                                                                                                  |
-| First Release: Nov 15th, 2023. KAITO v0.1.0.                                                                                                                                                                                                   |
+| Latest Release: Aug 7th, 2025. KAITO v0.6.0 |
+| First Release: Nov 15th, 2023. KAITO v0.1.0. |
 
 KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
 The target models are popular open-sourced large models such as [phi-4](https://huggingface.co/microsoft/phi-4) and [llama](https://huggingface.co/meta-llama).

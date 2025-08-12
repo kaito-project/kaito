@@ -579,6 +579,8 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 	mockWorkspaceWithPreferredNodes.Resource.PreferredNodes = []string{"node-p1", "node-p2"}
 	mockWorkspaceWithPreferredNodes.Resource.Count = ptr.To(2)
 
+	mockWorkspaceWithSinglePreferredNode := test.MockWorkspaceWithPreferredNodes.DeepCopy()
+
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
 		workspace     *v1beta1.Workspace
@@ -616,6 +618,79 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 			expectedError: nil,
 			expectedNodes: []string{"node1"},
 			disableNAP:    false,
+		},
+		"Gets all qualified nodes with preferred": {
+			callMocks: func(c *test.MockClient) {
+				nodeList := test.MockNodeList
+
+				nodeList.Items = append(nodeList.Items, deletedNode)
+
+				nodesFromOtherVendor := []corev1.Node{
+					{
+						ObjectMeta: v1.ObjectMeta{
+							Name: "node-p1",
+							Labels: map[string]string{
+								corev1.LabelInstanceTypeStable: "vendor1",
+							},
+						},
+						Status: corev1.NodeStatus{
+							Conditions: []corev1.NodeCondition{
+								{
+									Type:   corev1.NodeReady,
+									Status: corev1.ConditionTrue,
+								},
+							},
+						},
+					},
+					{
+						ObjectMeta: v1.ObjectMeta{
+							Name: "node-p2",
+							Labels: map[string]string{
+								corev1.LabelInstanceTypeStable: "vendor2",
+							},
+						},
+						Status: corev1.NodeStatus{
+							Conditions: []corev1.NodeCondition{
+								{
+									Type:   corev1.NodeReady,
+									Status: corev1.ConditionFalse,
+								},
+							},
+						},
+					},
+					{
+						ObjectMeta: v1.ObjectMeta{
+							Name: "node-p3",
+							Labels: map[string]string{
+								corev1.LabelInstanceTypeStable: "vendor1",
+							},
+						},
+						Status: corev1.NodeStatus{
+							Conditions: []corev1.NodeCondition{
+								{
+									Type:   corev1.NodeReady,
+									Status: corev1.ConditionTrue,
+								},
+							},
+						},
+					},
+				}
+				nodeList.Items = append(nodeList.Items, nodesFromOtherVendor...)
+
+				relevantMap := c.CreateMapWithType(nodeList)
+				//insert node objects into the map
+				for _, obj := range test.MockNodeList.Items {
+					n := obj
+					objKey := client.ObjectKeyFromObject(&n)
+
+					relevantMap[objKey] = &n
+				}
+
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
+			},
+			workspace:     mockWorkspaceWithSinglePreferredNode,
+			expectedError: nil,
+			expectedNodes: []string{"node-p1"},
 		},
 		"NAP disabled: all preferred nodes present and ready, returns all": {
 			callMocks: func(c *test.MockClient) {
@@ -824,7 +899,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 			}
 			assert.NoError(t, err)
 			assert.NotNil(t, nodes)
-			assert.Equal(t, len(nodes), len(tc.expectedNodes))
+			assert.Equal(t, len(tc.expectedNodes), len(nodes))
 		})
 	}
 }

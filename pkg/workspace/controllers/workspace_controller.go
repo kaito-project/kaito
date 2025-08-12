@@ -33,6 +33,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
@@ -481,12 +482,21 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 			return nil, nil
 		}
 
+		preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
 		for index := range nodeList.Items {
 			node := nodeList.Items[index]
 			if nodeIsReadyAndNotDeleting(node) {
-				// match the instanceType
-				if node.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
+				// match the preferred node
+				if preferredNodeSet.Has(node.Name) {
 					qualifiedNodes = append(qualifiedNodes, lo.ToPtr(node))
+					continue
+				}
+
+				// match the instanceType
+				if len(wObj.Resource.PreferredNodes) == 0 { // don't match in perferred nodes mode
+					if node.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
+						qualifiedNodes = append(qualifiedNodes, lo.ToPtr(node))
+					}
 				}
 			}
 		}

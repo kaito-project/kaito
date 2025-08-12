@@ -23,7 +23,7 @@ on:
         default: "swedencentral"
       k8s_version:
         type: string
-        default: "1.30.0"
+        default: "1.31.10"
 
 jobs:
   e2e-tests:
@@ -32,9 +32,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    
+
     env:
-      TEST_SUITE: ${{ inputs.node_provisioner }}      
+      TEST_SUITE: ${{ inputs.node_provisioner }}
       GO_VERSION: "1.24"
       KARPENTER_NAMESPACE: "karpenter"
       GPU_PROVISIONER_NAMESPACE: "gpu-provisioner"
@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           ref: ${{ inputs.git_sha }}
-      
+
       - name: Run e2e-base-setup composite action
         id: base-setup
         uses: ./.github/actions/e2e-base-setup
@@ -69,7 +69,7 @@ jobs:
         run: |
           echo "REGISTRY=${{ inputs.registry }}" >> $GITHUB_ENV
           echo "VERSION=$(echo ${{ inputs.tag }} | tr -d v)" >> $GITHUB_ENV
-      
+
       - name: build kaito RAG Engine image
         if: ${{ !inputs.isRelease }}
         shell: bash
@@ -77,7 +77,7 @@ jobs:
           make docker-build-ragengine
         env:
           REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
-      
+
       - name: build kaito RAG Engine service image
         if: ${{ !inputs.isRelease }}
         shell: bash
@@ -85,10 +85,10 @@ jobs:
           make docker-build-ragservice
         env:
           REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
-      
+
       - name: Remove existing Go modules directory
         run: sudo rm -rf ~/go/pkg/mod
-      
+
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5.5.0
         with:
@@ -96,7 +96,7 @@ jobs:
 
       - name: Install Helm
         uses: azure/setup-helm@v4
-      
+
       - name: Install KAITO RAG Engine helm chart
         if: ${{ !inputs.isRelease }}
         shell: bash

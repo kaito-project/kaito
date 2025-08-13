@@ -62,6 +62,8 @@ type InferenceServiceSpec struct {
 	// AccessSecret is the name of the secret that contains the service access token.
 	// +optional
 	AccessSecret string `json:"accessSecret,omitempty"`
+	// ContextWindowSize is the context window size for the inference service.
+	ContextWindowSize int `json:"contextWindowSize,omitempty"`
 }
 
 type RAGEngineSpec struct {

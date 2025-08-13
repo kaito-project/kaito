@@ -98,6 +98,27 @@ func TestGenerateRAGDeploymentManifest(t *testing.T) {
 		if ownerRef.Controller == nil || !*ownerRef.Controller {
 			t.Error("Expected owner reference Controller to be true")
 		}
+
+		// Verify the environment variables in the container
+		requiredEnvs := map[string]string{
+			"VECTOR_DB_TYPE":     "faiss",
+			"EMBEDDING_TYPE":     "local",
+			"LLM_CONTEXT_WINDOW": "512",
+			"MODEL_ID":           "BAAI/bge-small-en-v1.5",
+			"LLM_INFERENCE_URL":  "http://localhost:5000/chat",
+		}
+		envs := obj.Spec.Template.Spec.Containers[0].Env
+		for i := range envs {
+			if _, exists := requiredEnvs[envs[i].Name]; exists {
+				if requiredEnvs[envs[i].Name] != envs[i].Value {
+					t.Errorf("Expected %s to be %s, got %s", envs[i].Name, requiredEnvs[envs[i].Name], envs[i].Value)
+				}
+				delete(requiredEnvs, envs[i].Name)
+			}
+		}
+		if len(requiredEnvs) > 0 {
+			t.Errorf("Missing required environment variables: %v", requiredEnvs)
+		}
 	})
 }
 

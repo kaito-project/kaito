@@ -139,5 +139,10 @@ func (e *InferenceServiceSpec) validateCreate() (errs *apis.FieldError) {
 	if err != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("URL input error: %v", err), "remote url"))
 	}
+
+	if e.ContextWindowSize <= 0 {
+		errs = errs.Also(apis.ErrInvalidValue("ContextWindowSize must be a positive integer", "contextWindowSize"))
+	}
+
 	return errs
 }

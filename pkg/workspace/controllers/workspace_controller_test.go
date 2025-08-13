@@ -726,12 +726,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 						},
 					},
 				}}
-				// relevantMap := c.CreateMapWithType(nodeList)
-				// for _, obj := range nodeList.Items {
-				// 	n := obj
-				// 	objKey := client.ObjectKeyFromObject(&n)
-				// 	relevantMap[objKey] = &n
-				// }
+
 				c.CreateOrUpdateObjectInMap(&nodeList.Items[0])
 				c.CreateOrUpdateObjectInMap(&nodeList.Items[1])
 

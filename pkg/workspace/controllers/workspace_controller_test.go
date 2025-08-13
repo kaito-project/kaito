@@ -886,17 +886,12 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 			nodes, err := reconciler.getAllQualifiedNodes(ctx, tc.workspace)
 
 			if tc.expectedError != nil {
-				fmt.Printf("Nodes are %v\n", nodes)
 				assert.NotNil(t, err)
-				fmt.Printf("Err is %v\n", err)
 				assert.Equal(t, tc.expectedError, err)
 				assert.Nil(t, nodes)
 				return
 			}
 
-			if err != nil {
-				t.Errorf("Unexpected error: %v", err)
-			}
 			assert.NoError(t, err)
 			assert.NotNil(t, nodes)
 			assert.Equal(t, len(tc.expectedNodes), len(nodes))
@@ -1049,7 +1044,7 @@ func TestApplyWorkspaceResource(t *testing.T) {
 			}
 			ctx := context.Background()
 
-			err := reconciler.applyWorkspaceResource(ctx, &tc.workspace) // TODO: fix this nil pointer error
+			err := reconciler.applyWorkspaceResource(ctx, &tc.workspace)
 			if tc.expectedError == nil {
 				assert.NoError(t, err)
 			} else {

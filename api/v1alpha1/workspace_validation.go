@@ -29,7 +29,6 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -57,14 +56,6 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	errmsgs := validation.IsDNS1123Label(w.Name)
 	if len(errmsgs) > 0 {
 		errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "name"))
-	}
-	// Check if node auto-provisioning is disabled and validate preferred nodes
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		if len(w.Resource.PreferredNodes) != *w.Resource.Count {
-			errs = errs.Also(apis.ErrInvalidValue(
-				fmt.Sprintf("When node auto-provisioning is disabled, the number of preferred nodes (%d) must match the count (%d)",
-					len(w.Resource.PreferredNodes), *w.Resource.Count), "preferredNodes"))
-		}
 	}
 
 	base := apis.GetBaseline(ctx)

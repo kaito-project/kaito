@@ -15,10 +15,12 @@
 from typing import List, Optional
 import json
 import time
+import logging
 from vector_store_manager.manager import VectorStoreManager
 from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
 from embedding.remote_embedding import RemoteEmbeddingModel
 from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.exception_handlers import http_exception_handler
 from models import (IndexRequest, ListDocumentsResponse, UpdateDocumentRequest,
                     QueryRequest, QueryResponse, Document, HealthStatus, DeleteDocumentRequest,
                     DeleteDocumentResponse, UpdateDocumentResponse, ChatCompletionResponse)
@@ -65,6 +67,10 @@ from ragengine.metrics.prometheus_metrics import (
     MODE_REMOTE
 )
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
 @app.middleware("http")
 async def track_requests(request: Request, call_next):
@@ -104,6 +110,12 @@ vector_store_handler = FaissVectorStoreHandler(embedding_manager)
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
+
+@app.exception_handler(HTTPException)
+async def global_exception_log_handler(request: Request, exc: HTTPException):
+    if exc.status_code >= 500:
+        logger.error(f"Unexpected error for {request.method} {request.url}: {exc}", exc_info=True)
+    return await http_exception_handler(request, exc)
 
 @app.get("/metrics", tags=["Monitoring"])
 async def metrics():

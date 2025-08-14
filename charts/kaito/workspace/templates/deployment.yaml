@@ -35,6 +35,8 @@ spec:
           args:
             - --feature-gates={{ include "utils.joinKeyValuePairs" .Values.featureGates }}
           env:
+            - name: CONFIG_LOGGING_NAME
+              value: "kaito-logging-config"
             - name: WEBHOOK_SERVICE
               value: {{ include "kaito.fullname" . }}-svc
             - name: WEBHOOK_PORT

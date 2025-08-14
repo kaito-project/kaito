@@ -32,7 +32,7 @@ echo "Created temporary directory: $TEMP_DIR"
 echo "Cloning $REPO repository..."
 git clone "$REPO" "$REPO_DIR"
 echo "Checking out revision: $REVISION"
-(cd "$REPO_DIR" && git switch -c "$REVISION") || { echo "Failed to checkout revision $REVISION"; exit 1; }
+(cd "$REPO_DIR" && git checkout "$REVISION") || { echo "Failed to checkout revision $REVISION"; exit 1; }
 
 helm template --release-name local-csi-driver \
   --set image.driver.tag="0.0.1-latest" \

@@ -43,7 +43,7 @@ The above figure presents the KAITO architecture overview. Its major components 
 </div>
 
 As illustrated in the above figure, the **RAGEngine controller** reconciles the `ragengine` custom resource and creates a `RAGService` deployment. The `RAGService` provides the following capabilities:
-  - **Orchstration**: use [LlamaIndex](https://github.com/run-llama/llama_index) orchestrator.
+  - **Orchestration**: use [LlamaIndex](https://github.com/run-llama/llama_index) orchestrator.
   - **Embedding**: support both local and remote embedding services, to embed queries and documents in the vector database.
   - **Vector database**: support a built-in [faiss](https://github.com/facebookresearch/faiss) in-memory vector database. Remote vector database support will be added soon.
   - **Backend inference**: support any OAI compatible inference service.

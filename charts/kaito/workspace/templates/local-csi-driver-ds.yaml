@@ -249,9 +249,6 @@ spec:
         volumeMounts:
         - mountPath: /dev
           name: device
-        - mountPath: /etc/kubernetes/
-          name: k8s-cfg
-          readOnly: true
         - mountPath: /csi
           name: csi-socket-dir
         - mountPath: /var/lib/kubelet/
@@ -391,10 +388,6 @@ spec:
           path: /dev
           type: Directory
         name: device
-      - hostPath:
-          path: /etc/kubernetes/
-          type: DirectoryOrCreate
-        name: k8s-cfg
       - hostPath:
           path: /var/lib/kubelet/plugins/localdisk.csi.acstor.io/
           type: DirectoryOrCreate

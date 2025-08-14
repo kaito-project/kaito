@@ -33,6 +33,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+            - name: CONFIG_LOGGING_NAME
+              value: "kaito-logging-config"
             - name: WEBHOOK_SERVICE
               value: {{ include "kaito.fullname" . }}
             - name: WEBHOOK_PORT

@@ -37,6 +37,7 @@ from ragengine.config import LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
 from ragengine.models import ChatCompletionResponse, Document, messages_to_prompt
+from ragengine.vector_store.node_processors.contex_selection_node_processor import ContextSelectionProcessor
 from ragengine.vector_store.transformers.custom_transformer import CustomTransformer
 
 # Configure logging
@@ -352,6 +353,13 @@ class BaseVectorStore(ABC):
             similarity_top_k=request.get("top_k", 5),
             chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
             verbose=True,
+            node_postprocessors=[
+                ContextSelectionProcessor(
+                    llm=self.llm,
+                    max_tokens=request.get("max_tokens"),
+                    similarity_threshold=0.8
+                )
+            ]
         )
 
         logger.info("Processing chat completion request with prompt.")

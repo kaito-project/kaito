@@ -406,8 +406,9 @@ func GenerateInferencePoolHelmRelease(workspaceObj *kaitov1beta1.Workspace, isSt
 		kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
 	}
 	if isStatefulSet {
-		// When using StatefulSet, only the leader pod (with pod index 0) is serving traffic.
-		// Set an additional label to select the leader pod ONLY.
+		// Endpoint Picker from Gateway API Inference Extension expects to pick an endpoint that can serve traffic.
+		// In a multi-node inference environment, this means we need to select the leader pod (with pod index 0)
+		// since only the leader pod is capable of serving traffic.
 		matchLabels[appsv1.PodIndexLabel] = "0"
 	}
 
@@ -419,8 +420,8 @@ func GenerateInferencePoolHelmRelease(workspaceObj *kaitov1beta1.Workspace, isSt
 				"tag":        consts.InferencePoolChartVersion,
 				"pullPolicy": string(corev1.PullIfNotPresent),
 			},
+			"pluginsConfigFile": "plugins-v2.yaml",
 		},
-		"pluginsConfigFile": "plugins-v2.yaml",
 		"inferencePool": map[string]any{
 			"targetPortNumber": consts.PortInferenceServer,
 			"modelServers": map[string]any{

@@ -148,42 +148,54 @@ jobs:
 
       - name: Validate response content
         run: |
+          # Set up port forwarding to the workspace service
+          echo "Setting up port forwarding..."
+          kubectl port-forward service/workspace-aikit-test 8080:80 &
+          PORT_FORWARD_PID=$!
+
+          # Wait for port-forward to be ready
+          sleep 5
+
           # Test that we get expected model information
-          kubectl run test-validator --image=curlimages/curl:latest --rm -i --restart=Never -- sh -c "
-            echo 'Validating model response contains expected data...'
-            MODELS_RESPONSE=\$(curl --fail --retry 5 --retry-all-errors http://workspace-aikit-test.default.svc.cluster.local:80/v1/models)
-            echo \"Models response: \$MODELS_RESPONSE\"
+          echo 'Validating model response contains expected data...'
+          MODELS_RESPONSE=$(curl -s http://localhost:8080/v1/models)
+          echo "Models response: $MODELS_RESPONSE"
 
-            # Extract the first model name from the response
-            MODEL_NAME=\$(echo \"\$MODELS_RESPONSE\" | grep -o '\"id\":[[:space:]]*\"[^\"]*\"' | head -1 | sed 's/\"id\":[[:space:]]*\"\([^\"]*\)\"/\1/')
-            echo \"Extracted model name: \$MODEL_NAME\"
+          # Extract the first model name from the response
+          MODEL_NAME=$(echo "$MODELS_RESPONSE" | grep -o '"id":[[:space:]]*"[^"]*"' | head -1 | sed 's/"id":[[:space:]]*"\([^"]*\)"/\1/')
+          echo "Extracted model name: $MODEL_NAME"
 
-            # Check if response contains 'llama'
-            if echo \"\$MODELS_RESPONSE\" | grep -i 'llama'; then
-              echo 'Model response validation passed!'
-            else
-              echo 'Model response validation failed - no llama model found'
-              exit 1
-            fi
+          # Check if response contains 'llama'
+          if echo "$MODELS_RESPONSE" | grep -i 'llama'; then
+            echo 'Model response validation passed!'
+          else
+            echo 'Model response validation failed - no llama model found'
+            kill $PORT_FORWARD_PID
+            exit 1
+          fi
 
-            echo 'Testing completion response...'
-            COMPLETION_RESPONSE=\$(curl --fail --retry 5 --retry-all-errors \
-              -H 'Content-Type: application/json' \
-              -d \"{
-                \\\"model\\\": \\\"\$MODEL_NAME\\\",
-                \\\"messages\\\": [{\\\"role\\\": \\\"user\\\", \\\"content\\\": \\\"hello\\\"}]
-              }\" \
-              http://workspace-aikit-test.default.svc.cluster.local:80/v1/chat/completions)
-            echo \"Completion response: \$COMPLETION_RESPONSE\"
+          echo 'Testing completion response...'
+          COMPLETION_RESPONSE=$(curl -s -X POST \
+            -H 'Content-Type: application/json' \
+            -d "{
+              \"model\": \"$MODEL_NAME\",
+              \"messages\": [{\"role\": \"user\", \"content\": \"hello\"}]
+            }" \
+            http://localhost:8080/v1/chat/completions)
+          echo "Completion response: $COMPLETION_RESPONSE"
 
-            # Check if we get some response with expected fields
-            if echo \"\$COMPLETION_RESPONSE\" | grep -E '(choices|text|usage)'; then
-              echo 'Completion response validation passed!'
-            else
-              echo 'Completion response validation failed - missing expected fields'
-              exit 1
-            fi
-          "
+          # Check if we get some response with expected fields
+          if echo "$COMPLETION_RESPONSE" | grep -E '(choices|text|usage)'; then
+            echo 'Completion response validation passed!'
+          else
+            echo 'Completion response validation failed - missing expected fields'
+            kill $PORT_FORWARD_PID
+            exit 1
+          fi
+
+          # Clean up port forwarding
+          kill $PORT_FORWARD_PID
+          echo 'Validation completed successfully!'
 
       - name: Debug info
         if: always()
@@ -191,23 +203,23 @@ jobs:
           echo "=== Workspace Status ==="
           kubectl get workspace workspace-aikit-test -o yaml
 
+          echo "=== Workspace events ==="
+          kubectl describe workspace workspace-aikit-test
+
           echo "=== Pods ==="
           kubectl get pods -A -o wide
 
           echo "=== Services ==="
           kubectl get services workspace-aikit-test -o yaml
 
-          echo "=== Pod Logs ==="
+          echo "=== Pod events ==="
+          kubectl describe pods -l kaito.sh/workspace=workspace-aikit-test
+
+          echo "=== Inference Pod Logs ==="
           kubectl logs -l kaito.sh/workspace=workspace-aikit-test --tail=-1
 
           echo "=== Controller logs ==="
-          kubectl logs -l app.kubernetes.io/name=workspace -n ${{ env.KAITO_NAMESPACE }} --tail=-1 || true
-
-          echo "=== Workspace events ==="
-          kubectl describe workspace workspace-aikit-test || true
-
-          echo "=== Pod events ==="
-          kubectl describe pods -l kaito.sh/workspace=workspace-aikit-test || true
+          kubectl logs -l app.kubernetes.io/name=workspace -n ${{ env.KAITO_NAMESPACE }} --tail=-1
 
           echo "=== Node information ==="
-          kubectl describe nodes || true
+          kubectl describe nodes

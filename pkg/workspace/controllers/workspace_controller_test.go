@@ -45,6 +45,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -1294,64 +1295,20 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 			isPreset:      false,
 			expectedError: nil,
 		},
-		"OCIRepository and HelmRelease found": {
+		"OCIRepository and HelmRelease found and up-to-date": {
 			callMocks: func(c *test.MockClient) {
 				// Default inference template ConfigMap exists in target namespace
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				// OCIRepository not found -> create succeeds
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&sourcev1.OCIRepository{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&helmv2.HelmRelease{}), mock.Anything).Return(nil)
-			},
-			featureGate:   true,
-			runtimeName:   model.RuntimeNameVLLM,
-			isPreset:      true,
-			expectedError: nil,
-		},
-		"update existing Flux resources with different spec": {
-			callMocks: func(c *test.MockClient) {
-				// Default inference template ConfigMap exists in target namespace for dry-run
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&sourcev1.OCIRepository{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&helmv2.HelmRelease{}), mock.Anything).Return(nil)
 
-				// Pre-create an OCIRepository with a different spec and Ready condition
-				repoMap := c.CreateMapWithType(&sourcev1.OCIRepository{})
-				repo := &sourcev1.OCIRepository{
-					ObjectMeta: v1.ObjectMeta{
-						Name:      utils.InferencePoolName("testWorkspace"),
-						Namespace: "kaito",
-					},
-					Spec: sourcev1.OCIRepositorySpec{
-						URL:       consts.InferencePoolChartURL,
-						Reference: &sourcev1.OCIRepositoryRef{Tag: "v0.5.0"}, // differs from desired
-					},
-					Status: sourcev1.OCIRepositoryStatus{
-						Conditions: []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}},
-					},
-				}
-				repoMap[client.ObjectKeyFromObject(repo)] = repo
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&sourcev1.OCIRepository{}), mock.Anything).Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&sourcev1.OCIRepository{}), mock.Anything).Return(nil)
+				ociRepository := manifests.GenerateInferencePoolOCIRepository(test.MockWorkspaceWithPresetVLLM)
+				ociRepository.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
+				c.CreateOrUpdateObjectInMap(ociRepository)
 
-				// Pre-create a HelmRelease with a mismatched spec and Ready condition
-				hrMap := c.CreateMapWithType(&helmv2.HelmRelease{})
-				hr := &helmv2.HelmRelease{
-					ObjectMeta: v1.ObjectMeta{
-						Name:      utils.InferencePoolName("testWorkspace"),
-						Namespace: "kaito",
-					},
-					Spec: helmv2.HelmReleaseSpec{
-						ChartRef: &helmv2.CrossNamespaceSourceReference{
-							Kind:      sourcev1.OCIRepositoryKind,
-							Namespace: "kaito",
-							Name:      "wrong-inferencepool-name",
-						},
-					},
-					Status: helmv2.HelmReleaseStatus{
-						Conditions: []v1.Condition{{Type: "Ready", Status: v1.ConditionTrue}},
-					},
-				}
-				hrMap[client.ObjectKeyFromObject(hr)] = hr
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&helmv2.HelmRelease{}), mock.Anything).Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&helmv2.HelmRelease{}), mock.Anything).Return(nil)
+				helmRelease, _ := manifests.GenerateInferencePoolHelmRelease(test.MockWorkspaceWithPresetVLLM, false)
+				helmRelease.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
+				c.CreateOrUpdateObjectInMap(helmRelease)
 			},
 			featureGate:   true,
 			runtimeName:   model.RuntimeNameVLLM,

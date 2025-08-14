@@ -70,8 +70,8 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 						"tag":        consts.InferencePoolChartVersion,
 						"pullPolicy": string(corev1.PullIfNotPresent),
 					},
+					"pluginsConfigFile": "plugins-v2.yaml",
 				},
-				"pluginsConfigFile": "plugins-v2.yaml",
 				"inferencePool": map[string]any{
 					"targetPortNumber": float64(consts.PortInferenceServer),
 					"modelServers": map[string]any{
@@ -93,8 +93,8 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 						"tag":        consts.InferencePoolChartVersion,
 						"pullPolicy": string(corev1.PullIfNotPresent),
 					},
+					"pluginsConfigFile": "plugins-v2.yaml",
 				},
-				"pluginsConfigFile": "plugins-v2.yaml",
 				"inferencePool": map[string]any{
 					"targetPortNumber": float64(consts.PortInferenceServer),
 					"modelServers": map[string]any{

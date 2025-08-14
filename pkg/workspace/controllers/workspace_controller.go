@@ -31,13 +31,11 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
@@ -909,33 +907,59 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 		return err
 	}
 
-	errs := []error{}
-	for _, obj := range []client.Object{ociRepository, helmRelease} {
-		oldObj := obj.DeepCopyObject()
-		if err := resources.GetResource(ctx, obj.GetName(), obj.GetNamespace(), c.Client, obj); err == nil {
-			if !equality.Semantic.DeepEqual(oldObj, obj) {
-				if err := c.Update(ctx, obj); err != nil {
-					errs = append(errs, err)
-				}
-			}
-			// Existing resource already matches the desired spec (oldObj); continue to next object
-			continue
-		}
-
+	// Create or update OCIRepository
+	existingOCIRepo := &sourcev1.OCIRepository{}
+	err = resources.GetResource(ctx, ociRepository.Name, ociRepository.Namespace, c.Client, existingOCIRepo)
+	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			errs = append(errs, err)
+			return err
 		}
-		if err := resources.CreateResource(ctx, obj, c.Client); client.IgnoreAlreadyExists(err) != nil {
-			errs = append(errs, err)
+		if err := resources.CreateResource(ctx, ociRepository, c.Client); err != nil {
+			return err
 		}
-
-		inferenceParam := model.GetInferenceParameters()
-		if err := resources.CheckResourceStatus(obj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
-			errs = append(errs, err)
+	} else {
+		equal, err := utils.ClientObjectSpecEqual(ociRepository, existingOCIRepo)
+		if err != nil {
+			return err
+		}
+		if !equal {
+			existingOCIRepo.Spec = ociRepository.Spec
+			if err := c.Update(ctx, existingOCIRepo); err != nil {
+				return err
+			}
 		}
 	}
 
-	return kerrors.NewAggregate(errs)
+	// Check if HelmRelease exists
+	existingHelmRelease := &helmv2.HelmRelease{}
+	err = resources.GetResource(ctx, helmRelease.Name, helmRelease.Namespace, c.Client, existingHelmRelease)
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+		if err := resources.CreateResource(ctx, helmRelease, c.Client); err != nil {
+			return err
+		}
+	} else {
+		equal, err := utils.ClientObjectSpecEqual(helmRelease, existingHelmRelease)
+		if err != nil {
+			return err
+		}
+		if !equal {
+			existingHelmRelease.Spec = helmRelease.Spec
+			if err := c.Update(ctx, existingHelmRelease); err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, resource := range []client.Object{ociRepository, helmRelease} {
+		if err := resources.CheckResourceStatus(resource, c.Client, 5*time.Minute); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

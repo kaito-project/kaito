@@ -493,10 +493,8 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 				}
 
 				// match the instanceType
-				if len(wObj.Resource.PreferredNodes) == 0 { // don't match in perferred nodes mode
-					if node.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
-						qualifiedNodes = append(qualifiedNodes, lo.ToPtr(node))
-					}
+				if node.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
+					qualifiedNodes = append(qualifiedNodes, lo.ToPtr(node))
 				}
 			}
 		}

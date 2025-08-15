@@ -1,0 +1,51 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-gpt-oss-20b
+resource:
+  instanceType: Standard_NV36ads_A10_v5
+  labelSelector:
+    matchLabels:
+      node.kubernetes.io/instance-type: Standard_NV36ads_A10_v5
+inference:
+  template:
+    metadata:
+      labels:
+        app: gpt-oss-20b
+    spec:
+      containers:
+        - name: vllm-openai
+          image: vllm/vllm-openai:gptoss
+          imagePullPolicy: IfNotPresent
+          args:
+            - --model
+            - openai/gpt-oss-20b
+            - --swap-space
+            - "4"
+            - --gpu-memory-utilization
+            - "0.85"
+            - --port
+            - "5000"
+          # https://github.com/vllm-project/vllm/issues/22290#issuecomment-3157328173
+          env:
+            - name: VLLM_ATTENTION_BACKEND
+              value: TRITON_ATTN_VLLM_V1
+          ports:
+            - containerPort: 5000
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+            requests:
+              nvidia.com/gpu: 1
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 600
+            periodSeconds: 20

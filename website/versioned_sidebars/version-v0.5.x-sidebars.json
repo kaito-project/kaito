@@ -15,15 +15,6 @@
     },
     {
       "type": "category",
-      "label": "Cloud Providers",
-      "collapsed": false,
-      "items": [
-        "azure",
-        "aws"
-      ]
-    },
-    {
-      "type": "category",
       "label": "Features",
       "collapsed": false,
       "items": [
@@ -34,6 +25,14 @@
         "custom-model",
         "tool-calling",
         "model-as-oci-artifacts"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Cloud Providers",
+      "collapsed": false,
+      "items": [
+        "aws"
       ]
     },
     {

@@ -159,10 +159,10 @@ Testing on Standard_NC24s_v3 with phi4 model shows significant improvements:
 
 The evaluation compared different configurations:
 
-| Configuration                  | Description                                  | Benefits                               |
-| ------------------------------ | -------------------------------------------- | -------------------------------------- |
-| Baseline (single-layer-tar-gz) | Current approach with all files in one layer | Simple, self-contained                 |
-| OCI Artifacts                  | Base image + separate model artifacts        | Reduced build time, better performance |
+| Configuration | Description | Benefits |
+|---------------|-------------|----------|
+| Baseline (single-layer-tar-gz) | Current approach with all files in one layer | Simple, self-contained |
+| OCI Artifacts | Base image + separate model artifacts | Reduced build time, better performance |
 
 ## Getting Started
 
@@ -186,3 +186,4 @@ If you encounter issues with OCI Artifacts:
 - Verify registry compatibility with OCI Artifacts specification
 - Check initContainer logs for artifact download status
 - Refer to the [technical specification](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250609-model-as-oci-artifacts.md) for advanced configuration options
+

@@ -40,7 +40,7 @@ EOF
 ```
 
 - `default_registry`: The container registry where Tilt pushes development images (e.g. `<acr_name>.azurecr.io`). Ensure you're logged in with `docker login` and have push/pull permissions.
-if you want to use Azure Container Registry (ACR), set up a new ACR instance and attach it to your AKS cluster with these commands:
+If you want to use Azure Container Registry (ACR), set up a new ACR instance and attach it to your AKS cluster with these commands:
 
 ```bash
 export ACR_NAME=<acr_name>

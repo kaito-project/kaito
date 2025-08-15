@@ -8,7 +8,7 @@
 
 | ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Retrieval Augmented Generation (RAG) support is live! - KAITO RagEngine uses LlamaIndex and FAISS, learn about from [here](https://kaito-project.github.io/kaito/docs/rag)! |
+| Retrieval Augmented Generation (RAG) support is live! - KAITO RagEngine uses LlamaIndex and FAISS, learn about it [here](https://kaito-project.github.io/kaito/docs/rag)! |
 | Latest Release: Aug 7th, 2025. KAITO v0.6.0                                                                                                                                                                                                  |
 | First Release: Nov 15th, 2023. KAITO v0.1.0.                                                                                                                                                                                                   |
 
@@ -78,7 +78,7 @@ inference:
 $ kubectl apply -f examples/inference/kaito_workspace_phi_3.5-instruct.yaml
 ```
 
-The workspace status can be tracked by running the following command. When the WORKSPACEREADY column becomes `True`, the model has been deployed successfully.
+The workspace status can be tracked by running the following command. When the WORKSPACESUCCEEDED column becomes `True`, the model has been deployed successfully.
 
 ```sh
 $ kubectl get workspace workspace-phi-3-5-mini

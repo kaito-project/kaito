@@ -147,7 +147,7 @@ jobs:
           echo "Models response: $MODELS_RESPONSE"
 
           # Extract the first model name from the response
-          MODEL_NAME=$(echo "$MODELS_RESPONSE" | grep -o '"id":[[:space:]]*"[^"]*"' | head -1 | sed 's/"id":[[:space:]]*"\([^"]*\)"/\1/')
+          MODEL_NAME=$(echo "$MODELS_RESPONSE" | jq -r '.data[0].id')
           echo "Extracted model name: $MODEL_NAME"
 
           # Check if response contains 'llama'

@@ -167,7 +167,7 @@ jobs:
           echo "Completion response: $COMPLETION_RESPONSE"
 
           # Check if we get some response with expected fields
-          if echo "$COMPLETION_RESPONSE" | jq -e 'type=="object" and has("choices") and has("usage"))'; then
+          if echo "$COMPLETION_RESPONSE" | jq -e '(type=="object" and has("choices") and has("usage"))'; then
             echo 'Completion response validation passed!'
           else
             echo 'Completion response validation failed - missing expected fields'

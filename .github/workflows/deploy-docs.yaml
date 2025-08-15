@@ -7,7 +7,7 @@ on:
     - '.github/workflows/deploy-docs.yaml'
     - 'website/**'
     tags:
-    - 'v[0-9]+.[0-9]+.[0-9]+*'
+    - 'v[0-9]+.[0-9]+.0'
   pull_request:
     branches:
     - main
@@ -59,7 +59,7 @@ jobs:
 
     - run: yarn install --frozen-lockfile
     
-    - name: Create or update docs version for release
+    - name: Create docs version for release
       if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push'
       run: |
         # Extract version from git tag (e.g., v0.5.0 -> 0.5)
@@ -67,47 +67,29 @@ jobs:
         MINOR_VERSION=$(echo $TAG_VERSION | cut -d. -f1-2)
         VERSION_NAME="v${MINOR_VERSION}.x"
         
-        echo "Detected new tag: $TAG_VERSION"
-        echo "Processing docs version: $VERSION_NAME"
+        echo "Detected new minor release tag: $TAG_VERSION"
+        echo "Creating docs version: $VERSION_NAME"
         
         # Check if this version already exists
         if [ -d "versioned_docs/version-$VERSION_NAME" ]; then
-          echo "Version $VERSION_NAME already exists, updating with latest docs"
-          
-          # Remove existing versioned docs to update them
-          rm -rf "versioned_docs/version-$VERSION_NAME"
-          rm -f "versioned_sidebars/version-$VERSION_NAME-sidebars.json"
-          
-          # Remove the version from versions.json temporarily
-          if [ -f "versions.json" ]; then
-            node -e "
-              const fs = require('fs');
-              const versions = JSON.parse(fs.readFileSync('versions.json', 'utf8'));
-              const filtered = versions.filter(v => v !== '$VERSION_NAME');
-              fs.writeFileSync('versions.json', JSON.stringify(filtered, null, 2));
-            "
-          fi
-          
-          # Create the version again with updated docs
-          npm run docusaurus docs:version $VERSION_NAME
-          echo "Updated existing version $VERSION_NAME with latest docs"
+          echo "Version $VERSION_NAME already exists, skipping creation"
         else
           echo "Creating new docs version: $VERSION_NAME"
           npm run docusaurus docs:version $VERSION_NAME
           echo "Created new version $VERSION_NAME"
-        fi
-        
-        # Configure git for committing
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        # Add and commit the versioned docs
-        git add versioned_docs/ versioned_sidebars/ versions.json
-        if git diff --staged --quiet; then
-          echo "No changes to commit"
-        else
-          git commit -m "docs: update version $VERSION_NAME for release $TAG_VERSION"
-          git push origin main
+          
+          # Configure git for committing
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Add and commit the versioned docs
+          git add versioned_docs/ versioned_sidebars/ versions.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs: create version $VERSION_NAME for release $TAG_VERSION"
+            git push origin main
+          fi
         fi
     
     - run: yarn build

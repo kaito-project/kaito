@@ -3,9 +3,9 @@ name: Create Versioned Documentation
 on:
   push:
     tags:
-      # Trigger on new minor version tags (e.g., v0.6.0, v0.7.0, v1.0.0) and patch releases (e.g., v0.6.1, v0.6.2)
-      # This regex matches tags like v0.6.0, v1.0.0, v0.5.1, v0.5.2
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      # Trigger only on new minor version tags (e.g., v0.6.0, v0.7.0, v1.0.0)
+      # This regex matches tags like v0.6.0, v1.0.0 but excludes patch releases like v0.6.1, v0.6.2
+      - 'v[0-9]+.[0-9]+.0'
 
 permissions:
   contents: read
@@ -55,23 +55,13 @@ jobs:
       - name: Extract version from tag
         id: get-version
         run: |
-          # Extract version from tag (e.g., v0.6.0 -> v0.6.x, v0.6.1 -> v0.6.x)
+          # Extract version from tag (e.g., v0.6.0 -> v0.6.x)
           VERSION_TAG=${GITHUB_REF#refs/tags/}
           echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_OUTPUT
           
-          # Convert v0.6.0, v0.6.1, etc. to v0.6.x format for documentation versioning
-          DOC_VERSION=$(echo $VERSION_TAG | sed -E 's/^v([0-9]+)\.([0-9]+)\.[0-9]+$/v\1.\2.x/')
+          # Convert v0.6.0 to v0.6.x format for documentation versioning
+          DOC_VERSION=$(echo $VERSION_TAG | sed -E 's/^v([0-9]+)\.([0-9]+)\.0$/v\1.\2.x/')
           echo "DOC_VERSION=$DOC_VERSION" >> $GITHUB_OUTPUT
-          
-          # Check if this is a patch release (not x.y.0)
-          PATCH_NUMBER=$(echo $VERSION_TAG | sed -E 's/^v[0-9]+\.[0-9]+\.([0-9]+)$/\1/')
-          if [ "$PATCH_NUMBER" != "0" ]; then
-            echo "IS_PATCH_RELEASE=true" >> $GITHUB_OUTPUT
-            echo "This is a patch release (patch number: $PATCH_NUMBER)"
-          else
-            echo "IS_PATCH_RELEASE=false" >> $GITHUB_OUTPUT
-            echo "This is a minor release"
-          fi
           
           echo "Creating documentation version: $DOC_VERSION from tag: $VERSION_TAG"
 
@@ -86,43 +76,14 @@ jobs:
             echo "Documentation version ${{ steps.get-version.outputs.DOC_VERSION }} does not exist, will create"
           fi
 
-      - name: Remove existing versioned docs for patch releases
-        if: steps.get-version.outputs.IS_PATCH_RELEASE == 'true' && steps.check-version.outputs.VERSION_EXISTS == 'true'
-        run: |
-          echo "This is a patch release and version ${{ steps.get-version.outputs.DOC_VERSION }} exists. Removing old versioned docs to update with latest content..."
-          
-          # Remove the existing versioned docs directory
-          if [ -d "versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}" ]; then
-            rm -rf "versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}"
-            echo "✓ Removed versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}"
-          fi
-          
-          # Remove the existing versioned sidebar
-          if [ -f "versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json" ]; then
-            rm -f "versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json"
-            echo "✓ Removed versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json"
-          fi
-          
-          # Remove the version from versions.json
-          if [ -f "versions.json" ]; then
-            # Create a temporary file without the version we want to remove
-            jq --arg version "${{ steps.get-version.outputs.DOC_VERSION }}" 'del(.[] | select(. == $version))' versions.json > versions.json.tmp
-            mv versions.json.tmp versions.json
-            echo "✓ Removed ${{ steps.get-version.outputs.DOC_VERSION }} from versions.json"
-          fi
-
       - name: Create versioned documentation
-        if: steps.check-version.outputs.VERSION_EXISTS == 'false' || steps.get-version.outputs.IS_PATCH_RELEASE == 'true'
+        if: steps.check-version.outputs.VERSION_EXISTS == 'false'
         run: |
-          if [ "${{ steps.get-version.outputs.IS_PATCH_RELEASE }}" == "true" ]; then
-            echo "Creating updated documentation version: ${{ steps.get-version.outputs.DOC_VERSION }} for patch release ${{ steps.get-version.outputs.VERSION_TAG }}"
-          else
-            echo "Creating new documentation version: ${{ steps.get-version.outputs.DOC_VERSION }}"
-          fi
+          echo "Creating new documentation version: ${{ steps.get-version.outputs.DOC_VERSION }}"
           npm run docusaurus docs:version ${{ steps.get-version.outputs.DOC_VERSION }}
 
       - name: Fix relative links in versioned docs
-        if: steps.check-version.outputs.VERSION_EXISTS == 'false' || steps.get-version.outputs.IS_PATCH_RELEASE == 'true'
+        if: steps.check-version.outputs.VERSION_EXISTS == 'false'
         run: |
           echo "Fixing relative links in versioned documentation..."
           
@@ -151,7 +112,7 @@ jobs:
           fi
 
       - name: Verify versioned files were created
-        if: steps.check-version.outputs.VERSION_EXISTS == 'false' || steps.get-version.outputs.IS_PATCH_RELEASE == 'true'
+        if: steps.check-version.outputs.VERSION_EXISTS == 'false'
         run: |
           echo "Checking if versioned files were created..."
           
@@ -180,37 +141,37 @@ jobs:
           fi
 
       - name: Configure Git
-        if: steps.check-version.outputs.VERSION_EXISTS == 'false' || steps.get-version.outputs.IS_PATCH_RELEASE == 'true'
+        if: steps.check-version.outputs.VERSION_EXISTS == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Create release pull request
-        if: steps.check-version.outputs.VERSION_EXISTS == 'false' || steps.get-version.outputs.IS_PATCH_RELEASE == 'true'
+        if: steps.check-version.outputs.VERSION_EXISTS == 'false'
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
           commit-message: |
-            docs: ${{ steps.get-version.outputs.IS_PATCH_RELEASE == 'true' && 'update' || 'add' }} versioned documentation for ${{ steps.get-version.outputs.DOC_VERSION }}
+            docs: add versioned documentation for ${{ steps.get-version.outputs.DOC_VERSION }}
             
-            - ${{ steps.get-version.outputs.IS_PATCH_RELEASE == 'true' && 'Updated' || 'Created' }} versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}/
-            - ${{ steps.get-version.outputs.IS_PATCH_RELEASE == 'true' && 'Updated' || 'Created' }} versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json  
+            - Created versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}/
+            - Created versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json  
             - Updated versions.json
             - Fixed relative links for versioned docs directory structure
             
             Triggered by release tag: ${{ steps.get-version.outputs.VERSION_TAG }}
-          title: "docs: ${{ steps.get-version.outputs.IS_PATCH_RELEASE == 'true' && 'update' || 'add' }} versioned documentation for ${{ steps.get-version.outputs.DOC_VERSION }}"
+          title: "docs: add versioned documentation for ${{ steps.get-version.outputs.DOC_VERSION }}"
           branch: "docs/version-${{ steps.get-version.outputs.DOC_VERSION }}-${{ steps.get-version.outputs.VERSION_TAG }}"
           signoff: true
           body: |
-            This PR ${{ steps.get-version.outputs.IS_PATCH_RELEASE == 'true' && 'updates' || 'adds' }} versioned documentation for release ${{ steps.get-version.outputs.DOC_VERSION }}.
+            This PR adds versioned documentation for release ${{ steps.get-version.outputs.DOC_VERSION }}.
 
             ## Changes
-            - ✅ ${{ steps.get-version.outputs.IS_PATCH_RELEASE == 'true' && 'Updated' || 'Created' }} \`versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}/\` directory with current docs content
-            - ✅ ${{ steps.get-version.outputs.IS_PATCH_RELEASE == 'true' && 'Updated' || 'Created' }} \`versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json\` with current sidebar configuration  
+            - ✅ Created \`versioned_docs/version-${{ steps.get-version.outputs.DOC_VERSION }}/\` directory with current docs content
+            - ✅ Created \`versioned_sidebars/version-${{ steps.get-version.outputs.DOC_VERSION }}-sidebars.json\` with current sidebar configuration  
             - ✅ Updated \`versions.json\` to include the version
             - ✅ Fixed relative links in markdown files to account for versioned docs directory structure
 
             ## Release Type
-            ${{ steps.get-version.outputs.IS_PATCH_RELEASE == 'true' && '🔧 **Patch Release**: This updates the existing documentation for the minor version series with the latest changes from the patch release.' || '🆕 **Minor Release**: This creates new versioned documentation for a new minor version.' }}
+            🆕 **Minor Release**: This creates new versioned documentation for a new minor version.
 
             ## Triggered by
             Release tag: \`${{ steps.get-version.outputs.VERSION_TAG }}\`
@@ -223,7 +184,7 @@ jobs:
             The version will also appear in the documentation version dropdown." \
               --head "$BRANCH_NAME" \
               --base main
-      - name: Skip - Version already exists and not a patch release
-        if: steps.check-version.outputs.VERSION_EXISTS == 'true' && steps.get-version.outputs.IS_PATCH_RELEASE == 'false'
+      - name: Skip - Version already exists
+        if: steps.check-version.outputs.VERSION_EXISTS == 'true'
         run: |
-          echo "Skipping documentation versioning - version ${{ steps.get-version.outputs.DOC_VERSION }} already exists in versions.json and this is not a patch release"
+          echo "Skipping documentation versioning - version ${{ steps.get-version.outputs.DOC_VERSION }} already exists in versions.json"

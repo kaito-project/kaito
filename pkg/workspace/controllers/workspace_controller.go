@@ -47,6 +47,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
@@ -360,6 +361,11 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 	newNodesCount := lo.FromPtr(wObj.Resource.Count) - len(selectedNodes)
 
 	if newNodesCount > 0 {
+		// Check if node auto-provisioning is disabled
+		if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+			return fmt.Errorf("node auto-provisioning is disabled but insufficient nodes available: need %d nodes, have %d selected nodes", lo.FromPtr(wObj.Resource.Count), len(selectedNodes))
+		}
+
 		klog.InfoS("need to create more nodes", "NodeCount", newNodesCount)
 		if err := c.updateStatusConditionIfNotMatch(ctx, wObj,
 			kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionUnknown,
@@ -419,46 +425,77 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 	return nil
 }
 
+func nodeIsReadyAndNotDeleting(node corev1.Node) bool {
+
+	// skip nodes that are being deleted
+	if node.DeletionTimestamp != nil {
+		return false
+	}
+
+	// skip nodes that are not ready
+	_, statusRunning := lo.Find(node.Status.Conditions, func(condition corev1.NodeCondition) bool {
+		return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
+	})
+
+	return statusRunning
+}
+
 func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, error) {
 	var qualifiedNodes []*corev1.Node
 
-	nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
-	if err != nil {
-		return nil, err
-	}
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		for _, name := range wObj.Resource.PreferredNodes {
+			// Get the node with a client call
+			node, err := resources.GetNode(ctx, name, c.Client)
+			if err != nil {
+				klog.ErrorS(err, "failed to get preferred node", "node", name)
+				continue
+			}
 
-	if len(nodeList.Items) == 0 {
-		klog.InfoS("no current nodes match the workspace resource spec", "workspace", klog.KObj(wObj))
-		return nil, nil
-	}
-
-	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
-
-	for index := range nodeList.Items {
-		nodeObj := nodeList.Items[index]
-		// skip nodes that are being deleted
-		if nodeObj.DeletionTimestamp != nil {
-			continue
+			if nodeIsReadyAndNotDeleting(*node) {
+				// Check that all labels in wObj.Resource.LabelSelector.MatchLabels are present in the node's labels.
+				allLabelsMatch := true
+				for k, v := range wObj.Resource.LabelSelector.MatchLabels {
+					val, ok := node.Labels[k]
+					if !ok || v != val {
+						allLabelsMatch = false
+						break
+					}
+				}
+				if allLabelsMatch {
+					qualifiedNodes = append(qualifiedNodes, node)
+				}
+			}
 		}
 
-		// skip nodes that are not ready
-		_, statusRunning := lo.Find(nodeObj.Status.Conditions, func(condition corev1.NodeCondition) bool {
-			return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
-		})
-		if !statusRunning {
-			continue
+		if len(qualifiedNodes) < *wObj.Resource.Count {
+			return nil, fmt.Errorf("when node auto-provisioning is disabled, at least %d preferred nodes must match the label selector and be ready and not deleting, only have %d", *wObj.Resource.Count, len(qualifiedNodes))
+		}
+	} else {
+		nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
+		if err != nil {
+			return nil, err
 		}
 
-		// match the preferred node
-		if preferredNodeSet.Has(nodeObj.Name) {
-			qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
-			continue
+		if len(nodeList.Items) == 0 {
+			klog.InfoS("no current nodes match the workspace resource spec", "workspace", klog.KObj(wObj))
+			return nil, nil
 		}
 
-		// match the instanceType
-		if len(wObj.Resource.PreferredNodes) == 0 { // don't match in perferred nodes mode
-			if nodeObj.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
-				qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
+		preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
+		for index := range nodeList.Items {
+			node := nodeList.Items[index]
+			if nodeIsReadyAndNotDeleting(node) {
+				// match the preferred node
+				if preferredNodeSet.Has(node.Name) {
+					qualifiedNodes = append(qualifiedNodes, lo.ToPtr(node))
+					continue
+				}
+
+				// match the instanceType
+				if node.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
+					qualifiedNodes = append(qualifiedNodes, lo.ToPtr(node))
+				}
 			}
 		}
 	}

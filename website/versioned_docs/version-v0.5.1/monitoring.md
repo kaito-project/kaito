@@ -23,7 +23,7 @@ vLLM V1 engine is now enabled by default. Check [here](https://docs.vllm.ai/en/l
 | System Stats - Cache | `vllm:gpu_cache_usage_perc` | Gauge | GPU KV-cache usage. 1 means 100 percent usage |
 | System Stats - Cache | `vllm:cpu_cache_usage_perc` | Gauge | CPU KV-cache usage. 1 means 100 percent usage (DEPRECATED: KV cache offloading is not used in V1) |
 | System Stats - Cache | `vllm:cpu_prefix_cache_hit_rate` | Gauge | CPU prefix cache block hit rate (DEPRECATED: KV cache offloading is not used in V1) |
-| System Stats - Cache | `vllm:gpu_prefix_cache_hit_rate` | Gauge | GPU prefix cache block hit rat (DEPRECATED: use `vllm:gpu_prefix_cache_queries` and `vllm:gpu_prefix_cache_hits in V1`) |
+| System Stats - Cache | `vllm:gpu_prefix_cache_hit_rate` | Gauge | GPU prefix cache block hit rate (DEPRECATED: use `vllm:gpu_prefix_cache_queries` and `vllm:gpu_prefix_cache_hits in V1`) |
 | System Stats - Cache | `vllm:gpu_cache_usage_perc` | Counter | GPU prefix cache queries, in terms of number of queried blocks (V1 only) |
 | System Stats - Cache | `vllm:gpu_prefix_cache_hits` | Counter | GPU prefix cache hits, in terms of number of cached blocks (V1 only) |
 | Iteration Stats | `vllm:num_preemptions_total` | Counter | Cumulative number of preemption from the engine |

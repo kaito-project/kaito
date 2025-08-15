@@ -24,7 +24,7 @@ KAITO can use [Karpenter](https://karpenter.sh/) to automatically provision GPU 
 Alternative: If you already have GPU nodes or manage them separately, use the preferred nodes approach in the [Quick Start](quick-start) instead.
 :::
 
-## Setup Auto-Provisioning
+## Set Up Auto-Provisioning
 
 ### Create EKS Cluster and install Karpenter
 

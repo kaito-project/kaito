@@ -42,7 +42,7 @@ Track the workspace status to see when the model has been deployed successfully:
 kubectl get workspace workspace-phi-3-5-mini
 ```
 
-When the `WORKSPACEREADY` column becomes `True`, the model has been deployed successfully:
+When the `WORKSPACESUCCEEDED` column becomes `True`, the model has been deployed successfully:
 
 ```bash
 NAME                     INSTANCE                   RESOURCEREADY   INFERENCEREADY   JOBSTARTED   WORKSPACESUCCEEDED   AGE

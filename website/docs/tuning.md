@@ -130,7 +130,7 @@ Figure 1. KAITO tuning pod structure.
 All three containers use shared local volumes (by mounting the same `EmptyDir` volumes), hence file copies between containers are avoided.
 
 ## Pod structure when input and output are specified as Kubernetes volumes
-When the input and output are specified as Kubernetes volumes, the initcontainer and sidecar container are removed and only the main container is used. Since the input dataset and ouput destination are already available in the specified volumes, the main container can directly access them.
+When the input and output are specified as Kubernetes volumes, the initcontainer and sidecar container are removed and only the main container is used. Since the input dataset and output destination are already available in the specified volumes, the main container can directly access them.
 
 Other than the absence of the init and sidecar containers, the main container is the same as described in the previous section.
 

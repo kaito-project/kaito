@@ -85,7 +85,7 @@ inference:
 $ kubectl apply -f $kaito_workspace_aws
 ```
 
-The workspace status can be tracked by running the following command. When the WORKSPACEREADY column becomes `True`, the model has been deployed successfully.
+The workspace status can be tracked by running the following command. When the `WORKSPACESUCCEEDED` column becomes `True`, the model has been deployed successfully.
 
 ```sh
 $ kubectl get workspace workspace-falcon-7b

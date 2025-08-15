@@ -21,7 +21,7 @@ Each preset model has its own hardware requirements in terms of GPU count and GP
 
 ## Distributed inference
 
-For models that support distributed inference, when the node count is larger than one, [torch distributed elastic](https://pytorch.org/docs/stable/distributed.elastic.html) is configured with master/worker pods running in multiple nodes and the service endpoint is the master pod.
+For models that support distributed inference, when the node count is larger than one, [Torch Distributed Elastic](https://pytorch.org/docs/stable/distributed.elastic.html) is configured with master/worker pods running in multiple nodes and the service endpoint is the master pod.
 
 The following preset models support multi-node distributed inference:
 

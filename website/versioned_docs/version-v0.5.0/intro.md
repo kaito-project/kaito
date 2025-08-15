@@ -5,7 +5,7 @@ slug: /
 
 :::info What's NEW!
 
-Retrieval Augmented Generation (RAG) support is live! - KAITO RagEngine uses LlamaIndex and FAISS, learn about from [here](https://kaito-project.github.io/kaito/docs/rag)!
+Retrieval Augmented Generation (RAG) support is live! - KAITO RagEngine uses LlamaIndex and FAISS, learn about it [here](https://kaito-project.github.io/kaito/docs/rag)!
 **Latest Release:** July 2nd, 2025. KAITO v0.5.0.
 
 **First Release:** Nov 15th, 2023. KAITO v0.1.0.
@@ -46,7 +46,7 @@ The [*gpu-provisioner*](https://github.com/Azure/gpu-provisioner) is an open sou
 
 
 As illustrated in the above figure, the **RAGEngine controller** reconciles the `ragengine` custom resource and creates a `RAGService` deployment. The `RAGService` provides the following capabilities:
-  - **Orchstration**: use [LlamaIndex](https://github.com/run-llama/llama_index) orchestrator.
+  - **Orchestration**: use [LlamaIndex](https://github.com/run-llama/llama_index) orchestrator.
   - **Embedding**: support both local and remote embedding services, to embed queries and documents in the vector database.
   - **Vector database**: support a built-in [faiss](https://github.com/facebookresearch/faiss) in-memory vector database. Remote vector database support will be added soon.
   - **Backend inference**: support any OAI compatible inference service.

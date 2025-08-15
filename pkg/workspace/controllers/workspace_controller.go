@@ -878,7 +878,7 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 		if !apierrors.IsNotFound(err) {
 			return err
 		}
-		if err := resources.CreateResource(ctx, ociRepository, c.Client); err != nil {
+		if err := resources.CreateResource(ctx, ociRepository, c.Client); client.IgnoreAlreadyExists(err) != nil {
 			return err
 		}
 	} else {
@@ -901,7 +901,7 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 		if !apierrors.IsNotFound(err) {
 			return err
 		}
-		if err := resources.CreateResource(ctx, helmRelease, c.Client); err != nil {
+		if err := resources.CreateResource(ctx, helmRelease, c.Client); client.IgnoreAlreadyExists(err) != nil {
 			return err
 		}
 	} else {

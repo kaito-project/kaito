@@ -126,22 +126,7 @@ jobs:
       - name: Wait for inference to be ready
         run: |
           echo "Waiting for inference to be ready..."
-          timeout=300
-          while [ $timeout -gt 0 ]; do
-            inference_status=$(kubectl get workspace workspace-aikit-test -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || echo "")
-            if [ "$inference_status" = "True" ]; then
-              echo "InferenceReady condition is True"
-              break
-            fi
-            echo "Waiting for InferenceReady condition... (status: $inference_status, $timeout seconds remaining)"
-            sleep 10
-            timeout=$((timeout - 10))
-          done
-
-          if [ $timeout -le 0 ]; then
-            echo "Timeout waiting for InferenceReady condition"
-            exit 1
-          fi
+          kubectl wait --for='jsonpath={.status.conditions[?(@.type=="InferenceReady")].status}=True' workspace/workspace-aikit-test --timeout 300s
 
           echo "Waiting for pods to be running..."
           kubectl wait --for=condition=Ready --timeout=300s pods -l kaito.sh/workspace=workspace-aikit-test

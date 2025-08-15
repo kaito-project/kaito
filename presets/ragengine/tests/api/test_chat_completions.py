@@ -11,20 +11,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+import time
 from unittest.mock import patch
 
-import pytest
 import httpx
+import pytest
 import respx
-import time
-import re
+
 
 @pytest.fixture(autouse=True)
 def overwrite_inference_url(monkeypatch):
-    import ragengine.inference.inference
     import ragengine.config
-    monkeypatch.setattr(ragengine.config, "LLM_INFERENCE_URL", "http://localhost:5000/v1/chat/completions")
-    monkeypatch.setattr(ragengine.inference.inference, "LLM_INFERENCE_URL", "http://localhost:5000/v1/chat/completions")
+    import ragengine.inference.inference
+
+    monkeypatch.setattr(
+        ragengine.config,
+        "LLM_INFERENCE_URL",
+        "http://localhost:5000/v1/chat/completions",
+    )
+    monkeypatch.setattr(
+        ragengine.inference.inference,
+        "LLM_INFERENCE_URL",
+        "http://localhost:5000/v1/chat/completions",
+    )
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -48,26 +59,24 @@ async def test_chat_completions_basic_success(mock_get, async_client):
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": "This is a helpful response about the test document."
+                    "content": "This is a helpful response about the test document.",
                 },
-                "finish_reason": "stop"
+                "finish_reason": "stop",
             }
         ],
-        "usage": {
-            "prompt_tokens": 25,
-            "completion_tokens": 12,
-            "total_tokens": 37
-        }
+        "usage": {"prompt_tokens": 25, "completion_tokens": 12, "total_tokens": 37},
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Index some test documents
     index_request = {
         "index_name": "test_index",
         "documents": [
             {"text": "This is a test document about AI and machine learning."},
-            {"text": "Another document discussing natural language processing."}
-        ]
+            {"text": "Another document discussing natural language processing."},
+        ],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -77,17 +86,15 @@ async def test_chat_completions_basic_success(mock_get, async_client):
     chat_request = {
         "index_name": "test_index",
         "model": "mock-model",
-        "messages": [
-            {"role": "user", "content": "What can you tell me about AI?"}
-        ],
+        "messages": [{"role": "user", "content": "What can you tell me about AI?"}],
         "temperature": 0.7,
         "max_tokens": 100,
-        "top_k": 2
+        "top_k": 2,
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 200
-    
+
     response_data = response.json()
     assert "id" in response_data
     assert response_data["object"] == "chat.completion"
@@ -95,16 +102,35 @@ async def test_chat_completions_basic_success(mock_get, async_client):
     assert response_data["model"] == "mock-model"
     assert len(response_data["choices"]) == 1
     assert response_data["choices"][0]["message"]["role"] == "assistant"
-    assert response_data["choices"][0]["message"]["content"] == "This is a helpful response about the test document."
+    assert (
+        response_data["choices"][0]["message"]["content"]
+        == "This is a helpful response about the test document."
+    )
     assert response_data["choices"][0]["finish_reason"] == "stop"
     assert response_data["choices"][0]["index"] == 0
     assert "source_nodes" in response_data
     assert len(response_data["source_nodes"]) > 0
 
-    response = await async_client.get(f"/metrics")
+    response = await async_client.get("/metrics")
     assert response.status_code == 200
-    assert len(re.findall(r'rag_index_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
-    assert len(re.findall(r'rag_chat_requests_total{status="success"} ([1-9]\d*).0', response.text)) == 1
+    assert (
+        len(
+            re.findall(
+                r'rag_index_requests_total{status="success"} ([1-9]\d*).0',
+                response.text,
+            )
+        )
+        == 1
+    )
+    assert (
+        len(
+            re.findall(
+                r'rag_chat_requests_total{status="success"} ([1-9]\d*).0', response.text
+            )
+        )
+        == 1
+    )
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -123,32 +149,41 @@ async def test_chat_completions_without_index_name(mock_get, async_client):
         "object": "chat.completion",
         "created": int(time.time()),
         "model": "mock-model",
-        "choices": [{
-            "index": 0,
-            "message": {"role": "assistant", "content": "This is a direct LLM response"},
-            "finish_reason": "stop"
-        }]
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "This is a direct LLM response",
+                },
+                "finish_reason": "stop",
+            }
+        ],
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Test request without index_name (should trigger passthrough)
     chat_request = {
         "model": "mock-model",
-        "messages": [
-            {"role": "user", "content": "Hello, how are you?"}
-        ],
+        "messages": [{"role": "user", "content": "Hello, how are you?"}],
         "temperature": 0.7,
-        "max_tokens": 100
+        "max_tokens": 100,
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 200
-    
+
     response_data = response.json()
     assert response_data["id"] == "chatcmpl-test123"
-    assert response_data["choices"][0]["message"]["content"] == "This is a direct LLM response"
+    assert (
+        response_data["choices"][0]["message"]["content"]
+        == "This is a direct LLM response"
+    )
     # Should have source_nodes field but it should be None for passthrough requests
     assert response_data["source_nodes"] is None
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -167,24 +202,35 @@ async def test_chat_completions_with_tools(mock_get, async_client):
         "object": "chat.completion",
         "created": int(time.time()),
         "model": "mock-model",
-        "choices": [{
-            "index": 0,
-            "message": {
-                "role": "assistant", 
-                "content": None,
-                "tool_calls": [{"id": "call123", "type": "function", "function": {"name": "test_tool", "arguments": '{"param1": "value1"}'}}]
-            },
-            "finish_reason": "tool_calls"
-        }]
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": [
+                        {
+                            "id": "call123",
+                            "type": "function",
+                            "function": {
+                                "name": "test_tool",
+                                "arguments": '{"param1": "value1"}',
+                            },
+                        }
+                    ],
+                },
+                "finish_reason": "tool_calls",
+            }
+        ],
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Test request with tools (should trigger passthrough)
     chat_request = {
         "model": "mock-model",
-        "messages": [
-            {"role": "user", "content": "Use a tool to help me"}
-        ],
+        "messages": [{"role": "user", "content": "Use a tool to help me"}],
         "tools": [
             {
                 "type": "function",
@@ -194,20 +240,24 @@ async def test_chat_completions_with_tools(mock_get, async_client):
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "param1": {"type": "string", "description": "A test parameter"}
+                            "param1": {
+                                "type": "string",
+                                "description": "A test parameter",
+                            }
                         },
-                    }
-                }
+                    },
+                },
             }
-        ]
+        ],
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 200
-    
+
     response_data = response.json()
     assert response_data["choices"][0]["finish_reason"] == "tool_calls"
     assert "tool_calls" in response_data["choices"][0]["message"]
+
 
 @pytest.mark.asyncio
 async def test_chat_completions_nonexistent_index(async_client):
@@ -215,14 +265,13 @@ async def test_chat_completions_nonexistent_index(async_client):
     chat_request = {
         "index_name": "nonexistent_index",
         "model": "mock-model",
-        "messages": [
-            {"role": "user", "content": "Test question"}
-        ]
+        "messages": [{"role": "user", "content": "Test question"}],
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 404
     assert "No such index: 'nonexistent_index' exists" in response.json()["detail"]
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -236,16 +285,17 @@ async def test_chat_completions_invalid_request_format(mock_get, async_client):
     }
 
     # Mock HTTPX response for passthrough LLM call (in case it gets that far)
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(400, json={"error": "Invalid request"}))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(400, json={"error": "Invalid request"})
+    )
 
     # Test missing messages
-    chat_request = {
-        "model": "mock-model"
-    }
+    chat_request = {"model": "mock-model"}
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 400
     assert "Invalid request" in response.json()["detail"]
+
 
 @pytest.mark.asyncio
 async def test_chat_completions_missing_role_in_message(async_client):
@@ -255,8 +305,8 @@ async def test_chat_completions_missing_role_in_message(async_client):
         "index_name": "test_index",
         "documents": [
             {"text": "This is a test document about AI and machine learning."},
-            {"text": "Another document discussing natural language processing."}
-        ]
+            {"text": "Another document discussing natural language processing."},
+        ],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -265,17 +315,16 @@ async def test_chat_completions_missing_role_in_message(async_client):
     chat_request = {
         "index_name": "test_index",
         "model": "mock-model",
-        "messages": [
-            {"content": "What can you tell me about AI?"}
-        ],
+        "messages": [{"content": "What can you tell me about AI?"}],
         "temperature": 0.7,
         "max_tokens": 100,
-        "top_k": 2
+        "top_k": 2,
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 400
     assert "messages must contain 'role'" in response.json()["detail"]
+
 
 @pytest.mark.asyncio
 async def test_chat_completions_missing_content_for_user_role(async_client):
@@ -285,8 +334,8 @@ async def test_chat_completions_missing_content_for_user_role(async_client):
         "index_name": "test_index",
         "documents": [
             {"text": "This is a test document about AI and machine learning."},
-            {"text": "Another document discussing natural language processing."}
-        ]
+            {"text": "Another document discussing natural language processing."},
+        ],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -295,17 +344,18 @@ async def test_chat_completions_missing_content_for_user_role(async_client):
     chat_request = {
         "index_name": "test_index",
         "model": "mock-model",
-        "messages": [
-            {"role": "user"}
-        ],
+        "messages": [{"role": "user"}],
         "temperature": 0.7,
         "max_tokens": 100,
-        "top_k": 2
+        "top_k": 2,
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 400
-    assert "messages must contain 'content' for role 'user'" in response.json()["detail"]
+    assert (
+        "messages must contain 'content' for role 'user'" in response.json()["detail"]
+    )
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -329,25 +379,21 @@ async def test_chat_completions_system_message(mock_get, async_client):
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": "This is a helpful response about the test document."
+                    "content": "This is a helpful response about the test document.",
                 },
-                "finish_reason": "stop"
+                "finish_reason": "stop",
             }
         ],
-        "usage": {
-            "prompt_tokens": 25,
-            "completion_tokens": 12,
-            "total_tokens": 37
-        }
+        "usage": {"prompt_tokens": 25, "completion_tokens": 12, "total_tokens": 37},
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Index some test documents
     index_request = {
         "index_name": "test_index",
-        "documents": [
-            {"text": "Document about machine learning algorithms."}
-        ]
+        "documents": [{"text": "Document about machine learning algorithms."}],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -358,18 +404,25 @@ async def test_chat_completions_system_message(mock_get, async_client):
         "index_name": "test_index",
         "model": "mock-model",
         "messages": [
-            {"role": "system", "content": "You are a helpful AI assistant specializing in machine learning."},
-            {"role": "user", "content": "Tell me about algorithms."}
+            {
+                "role": "system",
+                "content": "You are a helpful AI assistant specializing in machine learning.",
+            },
+            {"role": "user", "content": "Tell me about algorithms."},
         ],
-        "temperature": 0.5
+        "temperature": 0.5,
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 200
-    
+
     response_data = response.json()
-    assert response_data["choices"][0]["message"]["content"] == "This is a helpful response about the test document."
+    assert (
+        response_data["choices"][0]["message"]["content"]
+        == "This is a helpful response about the test document."
+    )
     assert len(response_data["source_nodes"]) > 0
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -384,21 +437,28 @@ async def test_chat_completions_unsupported_message_role(mock_get, async_client)
 
     # Mock HTTPX response for passthrough LLM call
     mock_response = {"detail": "bad request format"}
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(400, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(400, json=mock_response)
+    )
 
     # Test request with unsupported role (should trigger passthrough)
     chat_request = {
         "model": "mock-model",
         "messages": [
-            {"role": "function", "content": "Function response", "name": "test_function"}
-        ]
+            {
+                "role": "function",
+                "content": "Function response",
+                "name": "test_function",
+            }
+        ],
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 400
-    
+
     response_data = response.json()
     assert "bad request format" in response_data["detail"]
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -417,35 +477,45 @@ async def test_chat_completions_complex_user_content(mock_get, async_client):
         "object": "chat.completion",
         "created": int(time.time()),
         "model": "mock-model",
-        "choices": [{
-            "index": 0,
-            "message": {"role": "assistant", "content": "Complex content response"},
-            "finish_reason": "stop"
-        }]
+        "choices": [
+            {
+                "index": 0,
+                "message": {"role": "assistant", "content": "Complex content response"},
+                "finish_reason": "stop",
+            }
+        ],
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Test request with complex content (should trigger passthrough)
     chat_request = {
         "model": "mock-model",
         "messages": [
             {
-                "role": "user", 
+                "role": "user",
                 "content": [
                     {"type": "text", "text": "What's in this image?"},
-                    {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,..."}}
-                ]
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": "data:image/jpeg;base64,..."},
+                    },
+                ],
             }
-        ]
+        ],
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 200
-    
+
     response_data = response.json()
-    assert response_data["choices"][0]["message"]["content"] == "Complex content response"
+    assert (
+        response_data["choices"][0]["message"]["content"] == "Complex content response"
+    )
     # Should have source_nodes field but it should be None for passthrough requests
     assert response_data["source_nodes"] is None
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -468,20 +538,20 @@ async def test_chat_completions_developer_role(mock_get, async_client):
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": "This is a helpful response about the test document."
+                    "content": "This is a helpful response about the test document.",
                 },
-                "finish_reason": "stop"
+                "finish_reason": "stop",
             }
-        ]
+        ],
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Index some test documents
     index_request = {
         "index_name": "test_index",
-        "documents": [
-            {"text": "Technical documentation about APIs."}
-        ]
+        "documents": [{"text": "Technical documentation about APIs."}],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -493,15 +563,19 @@ async def test_chat_completions_developer_role(mock_get, async_client):
         "model": "mock-model",
         "messages": [
             {"role": "developer", "content": "Debug information: API call failed"},
-            {"role": "user", "content": "Help me understand the API."}
-        ]
+            {"role": "user", "content": "Help me understand the API."},
+        ],
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 200
-    
+
     response_data = response.json()
-    assert response_data["choices"][0]["message"]["content"] == "This is a helpful response about the test document."
+    assert (
+        response_data["choices"][0]["message"]["content"]
+        == "This is a helpful response about the test document."
+    )
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -516,7 +590,9 @@ async def test_chat_completions_with_top_k_parameter(mock_get, async_client):
 
     # Mock HTTPX response for Custom Inference API
     mock_response = {"result": "Response based on top documents."}
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Index multiple test documents
     index_request = {
@@ -526,8 +602,8 @@ async def test_chat_completions_with_top_k_parameter(mock_get, async_client):
             {"text": "Second document about deep learning."},
             {"text": "Third document about neural networks."},
             {"text": "Fourth document about AI applications."},
-            {"text": "Fifth document about data science."}
-        ]
+            {"text": "Fifth document about data science."},
+        ],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -537,18 +613,17 @@ async def test_chat_completions_with_top_k_parameter(mock_get, async_client):
     chat_request = {
         "index_name": "test_index",
         "model": "mock-model",
-        "messages": [
-            {"role": "user", "content": "Tell me about machine learning."}
-        ],
-        "top_k": 3
+        "messages": [{"role": "user", "content": "Tell me about machine learning."}],
+        "top_k": 3,
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 200
-    
+
     response_data = response.json()
     # Should return up to 3 source nodes based on top_k parameter
     assert len(response_data["source_nodes"]) <= 3
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -562,14 +637,14 @@ async def test_chat_completions_error_handling(mock_get, async_client):
     }
 
     # Mock HTTPX response with error
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(500, json={"error": "Internal server error"}))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(500, json={"error": "Internal server error"})
+    )
 
     # Index some test documents
     index_request = {
         "index_name": "test_index",
-        "documents": [
-            {"text": "Test document."}
-        ]
+        "documents": [{"text": "Test document."}],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -579,17 +654,16 @@ async def test_chat_completions_error_handling(mock_get, async_client):
     chat_request = {
         "index_name": "test_index",
         "model": "mock-model",
-        "messages": [
-            {"role": "user", "content": "Test question."}
-        ]
+        "messages": [{"role": "user", "content": "Test question."}],
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 500
     assert "An unexpected error occurred" in response.json()["detail"]
 
+
 @pytest.mark.asyncio
-@respx.mock 
+@respx.mock
 @patch("requests.get")
 async def test_chat_completions_assistant_message_with_content(mock_get, async_client):
     """Test chat completion with assistant message that has content."""
@@ -601,28 +675,28 @@ async def test_chat_completions_assistant_message_with_content(mock_get, async_c
 
     # Mock HTTPX response for Custom Inference API
     mock_response = {
-            "id": "chatcmpl-test123",
-            "object": "chat.completion",
-            "model": "mock-model",
-            "choices": [
-                {
-                    "index": 0,
-                    "message": {
-                        "role": "assistant",
-                        "content": "This is a helpful response about the test document."
-                    },
-                    "finish_reason": "stop"
-                }
-            ]
-        }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+        "id": "chatcmpl-test123",
+        "object": "chat.completion",
+        "model": "mock-model",
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "This is a helpful response about the test document.",
+                },
+                "finish_reason": "stop",
+            }
+        ],
+    }
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Index some test documents
     index_request = {
         "index_name": "test_index",
-        "documents": [
-            {"text": "Conversation about AI."}
-        ]
+        "documents": [{"text": "Conversation about AI."}],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -634,16 +708,23 @@ async def test_chat_completions_assistant_message_with_content(mock_get, async_c
         "model": "mock-model",
         "messages": [
             {"role": "user", "content": "Hello"},
-            {"role": "assistant", "content": "Hello! How can I help you?"},  # Assistant message with content
-            {"role": "user", "content": "Can you help me?"}
-        ]
+            {
+                "role": "assistant",
+                "content": "Hello! How can I help you?",
+            },  # Assistant message with content
+            {"role": "user", "content": "Can you help me?"},
+        ],
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 200
-    
+
     response_data = response.json()
-    assert response_data["choices"][0]["message"]["content"] == "This is a helpful response about the test document."
+    assert (
+        response_data["choices"][0]["message"]["content"]
+        == "This is a helpful response about the test document."
+    )
+
 
 @pytest.mark.asyncio
 async def test_chat_completions_metrics_tracking(async_client):
@@ -651,25 +732,24 @@ async def test_chat_completions_metrics_tracking(async_client):
     # Test successful request
     chat_request = {
         "model": "mock-model",
-        "messages": [
-            {"role": "user", "content": "Hello"}
-        ]
+        "messages": [{"role": "user", "content": "Hello"}],
     }
 
     # This will fail but should still track metrics
     await async_client.post("/v1/chat/completions", json=chat_request)
     # Should fail due to validation error or missing setup
-    
+
     # Check metrics endpoint
     metrics_response = await async_client.get("/metrics")
     assert metrics_response.status_code == 200
-    
+
     # Should have at least one chat request recorded (success or failure)
     metrics_text = metrics_response.text
     assert "rag_chat_requests_total" in metrics_text
     assert "rag_chat_latency" in metrics_text
 
-@pytest.mark.asyncio 
+
+@pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")
 async def test_chat_completions_mixed_message_types(mock_get, async_client):
@@ -690,20 +770,20 @@ async def test_chat_completions_mixed_message_types(mock_get, async_client):
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": "This is a helpful response about the test document."
+                    "content": "This is a helpful response about the test document.",
                 },
-                "finish_reason": "stop"
+                "finish_reason": "stop",
             }
-        ]
+        ],
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Index some test documents
     index_request = {
         "index_name": "test_index",
-        "documents": [
-            {"text": "Technical documentation about software development."}
-        ]
+        "documents": [{"text": "Technical documentation about software development."}],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -718,16 +798,23 @@ async def test_chat_completions_mixed_message_types(mock_get, async_client):
             {"role": "user", "content": "I need help with coding."},
             {"role": "assistant", "content": "I'd be happy to help with coding."},
             {"role": "user", "content": "What about software development?"},
-            {"role": "developer", "content": "Debug: User asking about software development"}
-        ]
+            {
+                "role": "developer",
+                "content": "Debug: User asking about software development",
+            },
+        ],
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 200
-    
+
     response_data = response.json()
-    assert response_data["choices"][0]["message"]["content"] == "This is a helpful response about the test document."
+    assert (
+        response_data["choices"][0]["message"]["content"]
+        == "This is a helpful response about the test document."
+    )
     assert len(response_data["source_nodes"]) > 0
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -741,16 +828,16 @@ async def test_chat_completions_empty_messages_list(mock_get, async_client):
     }
 
     # Mock HTTPX response for passthrough LLM call (in case it gets that far)
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(400, json={"error": "Invalid request"}))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(400, json={"error": "Invalid request"})
+    )
 
-    chat_request = {
-        "model": "mock-model",
-        "messages": []
-    }
+    chat_request = {"model": "mock-model", "messages": []}
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 400
     assert "Invalid request" in response.json()["detail"]
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -769,32 +856,34 @@ async def test_chat_completions_with_functions(mock_get, async_client):
         "object": "chat.completion",
         "created": int(time.time()),
         "model": "mock-model",
-        "choices": [{
-            "index": 0,
-            "message": {"role": "assistant", "content": "Function-enabled response"},
-            "finish_reason": "stop"
-        }]
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "Function-enabled response",
+                },
+                "finish_reason": "stop",
+            }
+        ],
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Test request with functions (should trigger passthrough)
     chat_request = {
         "model": "mock-model",
-        "messages": [
-            {"role": "user", "content": "Use a function to help me"}
-        ],
-        "functions": [
-            {
-                "name": "test_function",
-                "description": "A test function"
-            }
-        ]
+        "messages": [{"role": "user", "content": "Use a function to help me"}],
+        "functions": [{"name": "test_function", "description": "A test function"}],
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 200
-    
+
     response_data = response.json()
-    assert response_data["choices"][0]["message"]["content"] == "Function-enabled response"
+    assert (
+        response_data["choices"][0]["message"]["content"] == "Function-enabled response"
+    )
     # Should have source_nodes field but it should be None for passthrough requests
     assert response_data["source_nodes"] is None

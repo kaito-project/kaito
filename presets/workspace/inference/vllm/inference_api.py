@@ -20,12 +20,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+import psutil
 import torch
 import uvloop
-import psutil
-import vllm.envs as envs
-from vllm.utils import FlexibleArgumentParser
 import vllm.entrypoints.openai.api_server as api_server
+import vllm.envs as envs
 import yaml
 from vllm.engine.llm_engine import EngineArgs, LLMEngine, VllmConfig
 from vllm.entrypoints.openai.serving_models import LoRAModulePath
@@ -74,8 +73,8 @@ class KAITOArgumentParser(argparse.ArgumentParser):
         self.add_argument(
             "--kaito-kv-cache-cpu-memory-utilization",
             type=float,
-            default=0.5, 
-            help="KV cache CPU memory utilization."
+            default=0.5,
+            help="KV cache CPU memory utilization.",
         )
 
     def _reset_vllm_defaults(self):
@@ -110,7 +109,9 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             if kaito_args.kaito_max_probe_steps is None:
                 kaito_args.kaito_max_probe_steps = file_config.max_probe_steps
             if kaito_args.kaito_kv_cache_cpu_memory_utilization is None:
-                kaito_args.kaito_kv_cache_cpu_memory_utilization = file_config.kv_cache_cpu_memory_utilization
+                kaito_args.kaito_kv_cache_cpu_memory_utilization = (
+                    file_config.kv_cache_cpu_memory_utilization
+                )
 
             for key, value in file_config.vllm.items():
                 runtime_args.append(f"--{key}")
@@ -145,7 +146,9 @@ class KaitoConfig:
         return KaitoConfig(
             vllm=config_data.get("vllm", {}),
             max_probe_steps=config_data.get("max_probe_steps", 6),
-            kv_cache_cpu_memory_utilization=config_data.get('kv_cache_cpu_memory_utilization', 0.5)
+            kv_cache_cpu_memory_utilization=config_data.get(
+                "kv_cache_cpu_memory_utilization", 0.5
+            ),
         )
 
     def to_yaml(self) -> str:
@@ -288,23 +291,39 @@ def try_get_max_available_seq_len(args: argparse.Namespace) -> int | None:
         logger.info(f"Using model default max_model_len {max_model_len}")
         return None
 
+
 def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
     """
     Set KV cache offloading to CPU RAM if applicable.
     This is only applicable when VLLM_USE_V1 is enabled and
     kaito_kv_cache_cpu_memory_utilization is set.
     """
-    if not envs.is_set("VLLM_USE_V1") and args.kaito_kv_cache_cpu_memory_utilization > 0:
-        logger.info(f"VLLM_USE_V1 is not set, but kaito_kv_cache_cpu_memory_utilization is set as {args.kaito_kv_cache_cpu_memory_utilization}, "
-                       "run create_engine_config to check whether VLLM_USE_V1 should be set.")
+    if (
+        not envs.is_set("VLLM_USE_V1")
+        and args.kaito_kv_cache_cpu_memory_utilization > 0
+    ):
+        logger.info(
+            f"VLLM_USE_V1 is not set, but kaito_kv_cache_cpu_memory_utilization is set as {args.kaito_kv_cache_cpu_memory_utilization}, "
+            "run create_engine_config to check whether VLLM_USE_V1 should be set."
+        )
         EngineArgs.from_cli_args(copy.deepcopy(args)).create_engine_config()
 
-    if envs.is_set("VLLM_USE_V1") and envs.VLLM_USE_V1 and args.kaito_kv_cache_cpu_memory_utilization > 0:
+    if (
+        envs.is_set("VLLM_USE_V1")
+        and envs.VLLM_USE_V1
+        and args.kaito_kv_cache_cpu_memory_utilization > 0
+    ):
         os.environ["LMCACHE_CHUNK_SIZE"] = "256"
         os.environ["LMCACHE_LOCAL_CPU"] = "True"
-        available_memory_gb = (psutil.virtual_memory().total - psutil.virtual_memory().used) / (1024 ** 3)
-        logger.info(f"VLLM_USE_V1 is set, Offload KV cache to CPU RAM, size limit: {available_memory_gb} * {args.kaito_kv_cache_cpu_memory_utilization} GB")
-        os.environ["LMCACHE_MAX_LOCAL_CPU_SIZE"] = f"{available_memory_gb * args.kaito_kv_cache_cpu_memory_utilization}"
+        available_memory_gb = (
+            psutil.virtual_memory().total - psutil.virtual_memory().used
+        ) / (1024**3)
+        logger.info(
+            f"VLLM_USE_V1 is set, Offload KV cache to CPU RAM, size limit: {available_memory_gb} * {args.kaito_kv_cache_cpu_memory_utilization} GB"
+        )
+        os.environ["LMCACHE_MAX_LOCAL_CPU_SIZE"] = (
+            f"{available_memory_gb * args.kaito_kv_cache_cpu_memory_utilization}"
+        )
 
         if args.kv_transfer_config is None:
             args.kv_transfer_config = {
@@ -312,7 +331,10 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
                 "kv_role": "kv_both",
             }
     else:
-        logger.info("VLLM_USE_V1 or kv_cache_cpu_memory_utilization is not set, do not use KV cache offload to CPU RAM.")
+        logger.info(
+            "VLLM_USE_V1 or kv_cache_cpu_memory_utilization is not set, do not use KV cache offload to CPU RAM."
+        )
+
 
 if __name__ == "__main__":
     parser = KAITOArgumentParser(description="KAITO wrapper of vLLM serving server")

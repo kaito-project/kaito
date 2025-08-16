@@ -181,6 +181,10 @@ spec:
                     description: AccessSecret is the name of the secret that contains
                       the service access token.
                     type: string
+                  contextWindowSize:
+                    description: ContextWindowSize is the context window size for
+                      the inference service.
+                    type: integer
                   url:
                     description: URL points to a running inference service endpoint
                       which accepts http(s) payload.

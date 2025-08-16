@@ -477,10 +477,11 @@ func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL, llmPath string) *kaitov1alp
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
 		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NV36ads_A10_v5", "BAAI/bge-small-en-v1.5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"apps": "phi-4"},
+				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
 			&kaitov1alpha1.InferenceServiceSpec{
-				URL: serviceURL,
+				URL:               serviceURL,
+				ContextWindowSize: 128000,
 			},
 		)
 
@@ -499,7 +500,8 @@ func createLocalPreferredNodesRAGEngine(baseURL, preferredNode string) *kaitov1a
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
 			&kaitov1alpha1.InferenceServiceSpec{
-				URL: serviceURL,
+				URL:               serviceURL,
+				ContextWindowSize: 128000,
 			},
 		)
 
@@ -518,8 +520,9 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
 			&kaitov1alpha1.InferenceServiceSpec{
-				URL:          hfURL,
-				AccessSecret: "huggingface-token",
+				URL:               hfURL,
+				AccessSecret:      "huggingface-token",
+				ContextWindowSize: 128000,
 			},
 		)
 

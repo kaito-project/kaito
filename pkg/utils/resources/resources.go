@@ -18,15 +18,19 @@ import (
 	"fmt"
 	"time"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func CreateResource(ctx context.Context, resource client.Object, kubeClient client.Client) error {
@@ -39,6 +43,10 @@ func CreateResource(ctx context.Context, resource client.Object, kubeClient clie
 		klog.InfoS("CreateService", "service", klog.KObj(r))
 	case *corev1.ConfigMap:
 		klog.InfoS("CreateConfigMap", "configmap", klog.KObj(r))
+	case *helmv2.HelmRelease:
+		klog.InfoS("CreateHelmRelease", "helmrelease", klog.KObj(r))
+	case *sourcev1.OCIRepository:
+		klog.InfoS("CreateOCIRepository", "ocirepository", klog.KObj(r))
 	}
 
 	// Create the resource.
@@ -109,6 +117,20 @@ func CheckResourceStatus(obj client.Object, kubeClient client.Client, timeoutDur
 				if k8sResource.Status.Succeeded > 0 || (k8sResource.Status.Ready != nil && *k8sResource.Status.Ready > 0) {
 					klog.InfoS("job status is active/succeeded", "name", k8sResource.Name)
 					return nil
+				}
+			case *helmv2.HelmRelease:
+				for _, condition := range k8sResource.Status.Conditions {
+					if condition.Type == consts.ConditionReady && condition.Status == metav1.ConditionTrue {
+						klog.InfoS("helmrelease status is ready", "helmrelease", k8sResource.Name)
+						return nil
+					}
+				}
+			case *sourcev1.OCIRepository:
+				for _, condition := range k8sResource.Status.Conditions {
+					if condition.Type == consts.ConditionReady && condition.Status == metav1.ConditionTrue {
+						klog.InfoS("ocirepository status is ready", "ocirepository", k8sResource.Name)
+						return nil
+					}
 				}
 			default:
 				return fmt.Errorf("unsupported resource type")

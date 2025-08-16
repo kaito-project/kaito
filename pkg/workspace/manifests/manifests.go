@@ -15,21 +15,25 @@ package manifests
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 
-	"github.com/kaito-project/kaito/api/v1beta1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
@@ -41,11 +45,11 @@ func GenerateHeadlessServiceManifest(workspaceObj *kaitov1beta1.Workspace) *core
 	}
 
 	return &corev1.Service{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceName,
 			Namespace: workspaceObj.Namespace,
-			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
 		},
 		Spec: corev1.ServiceSpec{
@@ -68,11 +72,11 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 	}
 
 	return &corev1.Service{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      workspaceObj.Name,
 			Namespace: workspaceObj.Namespace,
-			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
 		},
 		Spec: corev1.ServiceSpec{
@@ -83,7 +87,7 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 					Name:       "http",
 					Protocol:   corev1.ProtocolTCP,
 					Port:       80,
-					TargetPort: intstr.FromInt32(5000),
+					TargetPort: intstr.FromInt32(consts.PortInferenceServer),
 				},
 				{
 					Name:       "ray",
@@ -111,18 +115,18 @@ func GenerateStatefulSetManifest(revisionNum string, replicas int) func(*generat
 		selector := map[string]string{
 			kaitov1beta1.LabelWorkspaceName: ctx.Workspace.Name,
 		}
-		labelselector := &v1.LabelSelector{
+		labelselector := &metav1.LabelSelector{
 			MatchLabels: selector,
 		}
 
-		ss.ObjectMeta = v1.ObjectMeta{
+		ss.ObjectMeta = metav1.ObjectMeta{
 			Name:      ctx.Workspace.Name,
 			Namespace: ctx.Workspace.Namespace,
 			Annotations: map[string]string{
 				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
 			},
-			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
 		}
 		ss.Spec = appsv1.StatefulSetSpec{
@@ -134,7 +138,7 @@ func GenerateStatefulSetManifest(revisionNum string, replicas int) func(*generat
 			},
 			Selector: labelselector,
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Labels: selector,
 				},
 			},
@@ -165,21 +169,21 @@ func GenerateTuningJobManifest(revisionNum string) func(*generator.WorkspaceGene
 			kaitov1beta1.LabelWorkspaceName: ctx.Workspace.Name,
 		}
 
-		j.ObjectMeta = v1.ObjectMeta{
+		j.ObjectMeta = metav1.ObjectMeta{
 			Name:      ctx.Workspace.Name,
 			Namespace: ctx.Workspace.Namespace,
 			Labels:    labels,
 			Annotations: map[string]string{
 				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
 			},
-			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
 		}
 
 		j.Spec = batchv1.JobSpec{
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Labels: labels,
 				},
 			},
@@ -203,15 +207,15 @@ func GenerateDeploymentManifest(revisionNum string, replicas int) func(*generato
 		selector := map[string]string{
 			kaitov1beta1.LabelWorkspaceName: ctx.Workspace.Name,
 		}
-		labelselector := &v1.LabelSelector{
+		labelselector := &metav1.LabelSelector{
 			MatchLabels: selector,
 		}
 
-		d.ObjectMeta = v1.ObjectMeta{
+		d.ObjectMeta = metav1.ObjectMeta{
 			Name:      ctx.Workspace.Name,
 			Namespace: ctx.Workspace.Namespace,
-			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
 			Annotations: map[string]string{
 				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
@@ -234,7 +238,7 @@ func GenerateDeploymentManifest(revisionNum string, replicas int) func(*generato
 			},
 			Selector: labelselector,
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Labels: selector,
 				},
 			},
@@ -302,7 +306,7 @@ func GenerateDeploymentManifestWithPodTemplate(workspaceObj *kaitov1beta1.Worksp
 		templateCopy.ObjectMeta.Labels = make(map[string]string)
 	}
 	templateCopy.ObjectMeta.Labels[kaitov1beta1.LabelWorkspaceName] = workspaceObj.Name
-	labelselector := &v1.LabelSelector{
+	labelselector := &metav1.LabelSelector{
 		MatchLabels: map[string]string{
 			kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
 		},
@@ -328,11 +332,11 @@ func GenerateDeploymentManifestWithPodTemplate(workspaceObj *kaitov1beta1.Worksp
 	}
 
 	return &appsv1.Deployment{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      workspaceObj.Name,
 			Namespace: workspaceObj.Namespace,
-			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -348,7 +352,7 @@ func GetModelImageName(presetObj *pkgmodel.PresetParam) string {
 }
 
 // GenerateModelPullerContainer creates an init container that pulls model images using ORAS
-func GenerateModelPullerContainer(ctx context.Context, workspaceObj *v1beta1.Workspace, presetObj *pkgmodel.PresetParam) []corev1.Container {
+func GenerateModelPullerContainer(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, presetObj *pkgmodel.PresetParam) []corev1.Container {
 	if presetObj.DownloadAtRuntime {
 		// If the preset is set to download at runtime, we don't need to pull the model weights.
 		return nil
@@ -373,4 +377,81 @@ func GenerateModelPullerContainer(ctx context.Context, workspaceObj *v1beta1.Wor
 	}
 
 	return []corev1.Container{puller}
+}
+
+// GenerateInferencePoolOCIRepository generates a Flux OCIRepository for the inference pool.
+func GenerateInferencePoolOCIRepository(workspaceObj *kaitov1beta1.Workspace) *sourcev1.OCIRepository {
+	return &sourcev1.OCIRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      utils.InferencePoolName(workspaceObj.Name),
+			Namespace: workspaceObj.Namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+			},
+		},
+		Spec: sourcev1.OCIRepositorySpec{
+			// Chart source for Gateway API Inference Extension inference pool;
+			// keep in sync with consts.InferencePoolChartVersion when upgrading.
+			URL: consts.InferencePoolChartURL,
+			Reference: &sourcev1.OCIRepositoryRef{
+				Tag: consts.InferencePoolChartVersion,
+			},
+		},
+	}
+}
+
+// GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
+func GenerateInferencePoolHelmRelease(workspaceObj *kaitov1beta1.Workspace, isStatefulSet bool) (*helmv2.HelmRelease, error) {
+	matchLabels := map[string]string{
+		kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
+	}
+	if isStatefulSet {
+		// Endpoint Picker from Gateway API Inference Extension expects to pick an endpoint that can serve traffic.
+		// In a multi-node inference environment, this means we need to select the leader pod (with pod index 0)
+		// since only the leader pod is capable of serving traffic.
+		matchLabels[appsv1.PodIndexLabel] = "0"
+	}
+
+	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v0.5.1/config/charts/inferencepool/values.yaml
+	helmValues := map[string]any{
+		"inferenceExtension": map[string]any{
+			"image": map[string]string{
+				"hub":        consts.GatewayAPIInferenceExtensionImageRepository,
+				"tag":        consts.InferencePoolChartVersion,
+				"pullPolicy": string(corev1.PullIfNotPresent),
+			},
+			"pluginsConfigFile": "plugins-v2.yaml",
+		},
+		"inferencePool": map[string]any{
+			"targetPortNumber": consts.PortInferenceServer,
+			"modelServers": map[string]any{
+				"matchLabels": matchLabels,
+			},
+		},
+	}
+	rawHelmValues, err := json.Marshal(helmValues)
+	if err != nil {
+		return nil, err
+	}
+
+	return &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      utils.InferencePoolName(workspaceObj.Name),
+			Namespace: workspaceObj.Namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+			},
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			// Referencing the OCIRepository created above
+			ChartRef: &helmv2.CrossNamespaceSourceReference{
+				Kind:      sourcev1.OCIRepositoryKind,
+				Namespace: workspaceObj.Namespace,
+				Name:      utils.InferencePoolName(workspaceObj.Name),
+			},
+			Values: &apiextensionsv1.JSON{
+				Raw: rawHelmValues,
+			},
+		},
+	}, nil
 }

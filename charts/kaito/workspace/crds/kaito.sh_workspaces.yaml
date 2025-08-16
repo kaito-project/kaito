@@ -523,6 +523,11 @@ spec:
                 required:
                 - name
                 type: object
+              replicas:
+                description: Number of desired inference workloads, Default value
+                  is 1.
+                format: int32
+                type: integer
               template:
                 description: |-
                   Template specifies the Pod template used to run the inference service. Users can specify custom Pod settings
@@ -550,7 +555,9 @@ spec:
             properties:
               count:
                 default: 1
-                description: Count is the required number of GPU nodes.
+                description: |-
+                  Deprecated: Count is deprecated in v1beta1 and will be removed in a future version.
+                  Count is the required number of GPU nodes.
                 type: integer
               instanceType:
                 default: Standard_NC24ads_A100_v4
@@ -689,6 +696,27 @@ spec:
                   - type
                   type: object
                 type: array
+              inference:
+                description: |-
+                  Inference provides the status of the inference service.
+                  It is only set when the InferenceSpec is specified in the Workspace.
+                properties:
+                  perReplicaNodeCount:
+                    description: PerReplicaNodeCount is used for recording the number
+                      of gpu nodes for one replica of workspace workload.
+                    format: int32
+                    type: integer
+                  replicas:
+                    description: Total number of running inference workloads of the
+                      workspace.
+                    format: int32
+                    type: integer
+                  targetNodeCount:
+                    description: TargetNodeCount is used for recording the total number
+                      of gpu nodes for the workspace.
+                    format: int32
+                    type: integer
+                type: object
               workerNodes:
                 description: WorkerNodes is the list of nodes chosen to run the workload
                   based on the workspace resource requirement.
@@ -801,4 +829,7 @@ spec:
     served: true
     storage: true
     subresources:
+      scale:
+        specReplicasPath: .spec.inference.replicas
+        statusReplicasPath: .status.inference.replicas
       status: {}

@@ -383,3 +383,18 @@ func ClientObjectSpecEqual(a, b client.Object) (bool, error) {
 	}
 	return aOK && bOK && equality.Semantic.DeepEqual(aSpec, bSpec), nil
 }
+
+// IsNodeReady checks if a Kubernetes node is in ready state
+func IsNodeReady(node *corev1.Node) bool {
+	// skip nodes that are being deleted
+	if !node.DeletionTimestamp.IsZero() {
+		return false
+	}
+
+	for _, condition := range node.Status.Conditions {
+		if condition.Type == corev1.NodeReady {
+			return condition.Status == corev1.ConditionTrue
+		}
+	}
+	return false
+}

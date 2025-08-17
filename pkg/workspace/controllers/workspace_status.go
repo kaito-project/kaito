@@ -15,11 +15,7 @@ package controllers
 
 import (
 	"context"
-	"reflect"
-	"sort"
 
-	"github.com/samber/lo"
-	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -71,17 +67,4 @@ func (c *WorkspaceReconciler) updateStatusConditionIfNotMatch(ctx context.Contex
 		Message:            cMessage,
 	}
 	return c.updateWorkspaceStatus(ctx, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, &cObj, nil)
-}
-
-func (c *WorkspaceReconciler) updateStatusNodeListIfNotMatch(ctx context.Context, wObj *kaitov1beta1.Workspace, validNodeList []*corev1.Node) error {
-	nodeNameList := lo.Map(validNodeList, func(v *corev1.Node, _ int) string {
-		return v.Name
-	})
-	sort.Strings(wObj.Status.WorkerNodes)
-	sort.Strings(nodeNameList)
-	if reflect.DeepEqual(wObj.Status.WorkerNodes, nodeNameList) {
-		return nil
-	}
-	klog.InfoS("updateStatusNodeList", "workspace", klog.KObj(wObj))
-	return c.updateWorkspaceStatus(ctx, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, nil, nodeNameList)
 }

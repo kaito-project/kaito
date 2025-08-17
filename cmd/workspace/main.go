@@ -48,6 +48,8 @@ import (
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers/garbagecollect"
+	"github.com/kaito-project/kaito/pkg/workspace/controllers/nodeclaim"
+	"github.com/kaito-project/kaito/pkg/workspace/controllers/noderesource"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
@@ -156,6 +158,18 @@ func main() {
 	)
 	if err = pvGCReconciler.SetupWithManager(mgr); err != nil {
 		klog.ErrorS(err, "unable to create controller", "controller", "PersistentVolumeGC")
+		exitWithErrorFunc()
+	}
+
+	nodeClaimReconciler := nodeclaim.NewNodeClaimReconciler()
+	if err = nodeClaimReconciler.SetupWithManager(mgr); err != nil {
+		klog.ErrorS(err, "unable to create controller", "controller", "NodeClaim")
+		exitWithErrorFunc()
+	}
+
+	nodeResourceReconciler := noderesource.NewNodeResourceReconciler()
+	if err = nodeResourceReconciler.SetupWithManager(mgr); err != nil {
+		klog.ErrorS(err, "unable to create controller", "controller", "NodeResource")
 		exitWithErrorFunc()
 	}
 

@@ -18,7 +18,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -27,37 +26,32 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
-	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
-	"k8s.io/utils/clock"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	gaiev1alpha2 "sigs.k8s.io/gateway-api-inference-extension/api/v1alpha2"
-	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	ctrlutils "github.com/kaito-project/kaito/pkg/workspace/controllers/utils"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
@@ -74,19 +68,14 @@ type WorkspaceReconciler struct {
 	Log      logr.Logger
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
-
-	klogger      klog.Logger
-	expectations *utils.ControllerExpectations
 }
 
 func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder) *WorkspaceReconciler {
 	return &WorkspaceReconciler{
-		Client:       client,
-		Scheme:       scheme,
-		Log:          log,
-		klogger:      klog.NewKlogr().WithName("WorkspaceController"),
-		Recorder:     Recorder,
-		expectations: utils.NewControllerExpectations(),
+		Client:   client,
+		Scheme:   scheme,
+		Log:      log,
+		Recorder: Recorder,
 	}
 }
 
@@ -94,23 +83,20 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 	workspaceObj := &kaitov1beta1.Workspace{}
 	if err := c.Client.Get(ctx, req.NamespacedName, workspaceObj); err != nil {
 		if apierrors.IsNotFound(err) {
-			c.expectations.DeleteExpectations(c.klogger, req.String())
 			return reconcile.Result{}, nil
 		}
 		klog.ErrorS(err, "failed to get workspace", "workspace", req.Name)
 		return reconcile.Result{}, err
 	}
 
-	klog.InfoS("Reconciling", "workspace", req.NamespacedName)
-
-	if workspaceObj.DeletionTimestamp.IsZero() {
-		if err := c.ensureFinalizer(ctx, workspaceObj); err != nil {
-			return reconcile.Result{}, err
-		}
-	} else {
-		// Handle deleting workspace, garbage collect all the resources.
-		return c.deleteWorkspace(ctx, workspaceObj)
+	// if the condition ConditionTypeResourceStatus is not true, we should return directly.
+	resourceStatusCondition := meta.FindStatusCondition(workspaceObj.Status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus))
+	if resourceStatusCondition == nil || resourceStatusCondition.Status != metav1.ConditionTrue {
+		klog.InfoS("Resource of Workspace is not ready", "workspace", req.NamespacedName)
+		return reconcile.Result{}, nil
 	}
+
+	klog.InfoS("Reconciling", "workspace", req.NamespacedName)
 
 	if err := c.syncControllerRevision(ctx, workspaceObj); err != nil {
 		return reconcile.Result{}, err
@@ -124,47 +110,8 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 	return result, nil
 }
 
-func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) error {
-	if !controllerutil.ContainsFinalizer(workspaceObj, consts.WorkspaceFinalizer) {
-		patch := client.MergeFrom(workspaceObj.DeepCopy())
-		controllerutil.AddFinalizer(workspaceObj, consts.WorkspaceFinalizer)
-		if err := c.Client.Patch(ctx, workspaceObj, patch); err != nil {
-			klog.ErrorS(err, "failed to ensure the finalizer to the workspace", "workspace", klog.KObj(workspaceObj))
-			return err
-		}
-	}
-	return nil
-}
-
 func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
-	reqKey := client.ObjectKeyFromObject(wObj).String()
-	// nodeclaim don't meet expectation if no enough nodeclaim events are observed within the timeout period.
-	if !c.expectations.SatisfiedExpectations(c.klogger, reqKey) {
-		startTime := c.expectations.GetExpectationStartTime(reqKey)
-		requeueTime := time.Second * 5
-		if startTime != nil {
-			requeueTime = startTime.Add(utils.ExpectationsTimeout).Sub(clock.RealClock{}.Now())
-			if requeueTime < 0 {
-				requeueTime = 100 * time.Millisecond
-			}
-		}
-		return reconcile.Result{RequeueAfter: requeueTime}, nil
-	}
-
-	// Read ResourceSpec
-	err := c.applyWorkspaceResource(ctx, wObj)
-	if err != nil {
-		if errors.Is(err, reconcile.TerminalError(nil)) {
-			return reconcile.Result{}, nil
-		}
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
-			"workspaceFailed", err.Error()); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return reconcile.Result{}, updateErr
-		}
-		return reconcile.Result{}, err
-	}
-
+	var err error
 	if wObj.Tuning != nil {
 		if err = c.applyTuning(ctx, wObj); err != nil {
 			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
@@ -233,16 +180,6 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	return reconcile.Result{}, nil
 }
 
-func (c *WorkspaceReconciler) deleteWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
-	klog.InfoS("deleteWorkspace", "workspace", klog.KObj(wObj))
-	err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeDeleting, metav1.ConditionTrue, "workspaceDeleted", "workspace is being deleted")
-	if err != nil {
-		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-		return reconcile.Result{}, err
-	}
-
-	return c.garbageCollectWorkspace(ctx, wObj)
-}
 func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	currentHash := computeHash(wObj)
 	annotations := wObj.GetAnnotations()
@@ -353,289 +290,6 @@ func computeHash(w *kaitov1beta1.Workspace) string {
 	encoder.Encode(w.Inference)
 	encoder.Encode(w.Tuning)
 	return hex.EncodeToString(hasher.Sum(nil))
-}
-
-// applyWorkspaceResource applies workspace resource spec.
-func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
-	// Wait for pending nodeClaims if any before we decide whether to create new node or not.
-	if err := nodeclaim.WaitForPendingNodeClaims(ctx, wObj, c.Client); err != nil {
-		return err
-	}
-
-	// Find all nodes that meet the requirements, they are not necessarily created by machines/nodeClaims.
-	validNodes, err := c.getAllQualifiedNodes(ctx, wObj)
-	if err != nil {
-		return err
-	}
-
-	//nolint:staticcheck //SA1019: deprecate Resource.Count field
-	selectedNodes := utils.SelectNodes(validNodes, wObj.Resource.PreferredNodes, wObj.Status.WorkerNodes, lo.FromPtr(wObj.Resource.Count))
-
-	//nolint:staticcheck //SA1019: deprecate Resource.Count field
-	newNodesCount := lo.FromPtr(wObj.Resource.Count) - len(selectedNodes)
-
-	if newNodesCount > 0 {
-		// Check if node auto-provisioning is disabled
-		if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-			//nolint:staticcheck //SA1019: deprecate Resource.Count field
-			return fmt.Errorf("node auto-provisioning is disabled but insufficient nodes available: need %d nodes, have %d selected nodes", lo.FromPtr(wObj.Resource.Count), len(selectedNodes))
-		}
-
-		klog.InfoS("need to create more nodes", "NodeCount", newNodesCount)
-		if err := c.updateStatusConditionIfNotMatch(ctx, wObj,
-			kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionUnknown,
-			"CreateNodeClaimPending", fmt.Sprintf("creating %d nodeClaims", newNodesCount)); err != nil {
-			klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return err
-		}
-
-		err := c.createNewNodes(ctx, wObj, newNodesCount)
-		if err != nil {
-			return fmt.Errorf("failed to create new nodes: %w", err)
-		}
-		// terminate the current reconciliation and rely on NodeClaim creation event to trigger a new reconciliation
-		return reconcile.TerminalError(errors.New("waiting for new nodes to be created"))
-	}
-
-	// Ensure all gpu plugins are running successfully.
-	knownGPUConfig, _ := utils.GetGPUConfigBySKU(wObj.Resource.InstanceType)
-	if len(wObj.Resource.PreferredNodes) == 0 && knownGPUConfig != nil {
-		for i := range selectedNodes {
-			err = c.ensureNodePlugins(ctx, wObj, selectedNodes[i])
-			if err != nil {
-				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
-					"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
-					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-					return updateErr
-				}
-				return err
-			}
-		}
-	}
-
-	if err = c.updateStatusConditionIfNotMatch(ctx, wObj,
-		kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
-		"installNodePluginsSuccess", "nodeClaim plugins have been installed successfully"); err != nil {
-		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-		return err
-	}
-
-	// Add the valid nodes names to the WorkspaceStatus.WorkerNodes.
-	err = c.updateStatusNodeListIfNotMatch(ctx, wObj, selectedNodes)
-	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
-			"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return updateErr
-		}
-		return err
-	}
-
-	if err = c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue,
-		"workspaceResourceStatusSuccess", "workspace resource is ready"); err != nil {
-		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-		return err
-	}
-
-	return nil
-}
-
-func nodeIsReadyAndNotDeleting(node corev1.Node) bool {
-
-	// skip nodes that are being deleted
-	if node.DeletionTimestamp != nil {
-		return false
-	}
-
-	// skip nodes that are not ready
-	_, statusRunning := lo.Find(node.Status.Conditions, func(condition corev1.NodeCondition) bool {
-		return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
-	})
-
-	return statusRunning
-}
-
-func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, error) {
-	var qualifiedNodes []*corev1.Node
-
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		for _, name := range wObj.Resource.PreferredNodes {
-			// Get the node with a client call
-			node, err := resources.GetNode(ctx, name, c.Client)
-			if err != nil {
-				klog.ErrorS(err, "failed to get preferred node", "node", name)
-				continue
-			}
-
-			if nodeIsReadyAndNotDeleting(*node) {
-				// Check that all labels in wObj.Resource.LabelSelector.MatchLabels are present in the node's labels.
-				allLabelsMatch := true
-				for k, v := range wObj.Resource.LabelSelector.MatchLabels {
-					val, ok := node.Labels[k]
-					if !ok || v != val {
-						allLabelsMatch = false
-						break
-					}
-				}
-				if allLabelsMatch {
-					qualifiedNodes = append(qualifiedNodes, node)
-				}
-			}
-		}
-		//nolint:staticcheck //SA1019: deprecate Resource.Count field
-		if len(qualifiedNodes) < *wObj.Resource.Count {
-			//nolint:staticcheck //SA1019: deprecate Resource.Count field
-			return nil, fmt.Errorf("when node auto-provisioning is disabled, at least %d preferred nodes must match the label selector and be ready and not deleting, only have %d", *wObj.Resource.Count, len(qualifiedNodes))
-		}
-	} else {
-		nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(nodeList.Items) == 0 {
-			klog.InfoS("no current nodes match the workspace resource spec", "workspace", klog.KObj(wObj))
-			return nil, nil
-		}
-
-		preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
-		for index := range nodeList.Items {
-			node := nodeList.Items[index]
-			if nodeIsReadyAndNotDeleting(node) {
-				// match the preferred node
-				if preferredNodeSet.Has(node.Name) {
-					qualifiedNodes = append(qualifiedNodes, lo.ToPtr(node))
-					continue
-				}
-
-				// match the instanceType
-				if node.Labels[corev1.LabelInstanceTypeStable] == wObj.Resource.InstanceType {
-					qualifiedNodes = append(qualifiedNodes, lo.ToPtr(node))
-				}
-			}
-		}
-	}
-
-	return qualifiedNodes, nil
-}
-
-// determineNodeOSDiskSize returns the appropriate OS disk size for the workspace
-func (c *WorkspaceReconciler) determineNodeOSDiskSize(wObj *kaitov1beta1.Workspace) string {
-	var nodeOSDiskSize string
-	if wObj.Inference != nil && wObj.Inference.Preset != nil && wObj.Inference.Preset.Name != "" {
-		presetName := string(wObj.Inference.Preset.Name)
-		nodeOSDiskSize = plugin.KaitoModelRegister.MustGet(presetName).
-			GetInferenceParameters().DiskStorageRequirement
-	}
-	if nodeOSDiskSize == "" {
-		nodeOSDiskSize = "1024Gi" // The default OS size is used
-	}
-	return nodeOSDiskSize
-}
-
-// createAllNodeClaims creates multiple NodeClaims in parallel and returns the created NodeClaim objects
-func (c *WorkspaceReconciler) createAllNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, count int, nodeOSDiskSize string) ([]*karpenterv1.NodeClaim, error) {
-	klog.InfoS("Creating multiple NodeClaims", "count", count, "workspace", klog.KObj(wObj))
-
-	nodeClaims := make([]*karpenterv1.NodeClaim, 0, count)
-
-	for range count {
-		var newNodeClaim *karpenterv1.NodeClaim
-
-		// Set expectations before creating the NodeClaim in case event handler
-		// observes the NodeClaim creation event before the controller does.
-		c.expectations.ExpectCreations(c.klogger, client.ObjectKeyFromObject(wObj).String(), 1)
-		newNodeCreated := false
-		err := retry.OnError(retry.DefaultRetry, func(err error) bool {
-			return apierrors.IsAlreadyExists(err)
-		}, func() error {
-			newNodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, wObj)
-			err0 := nodeclaim.CreateNodeClaim(ctx, newNodeClaim, c.Client)
-			if err0 == nil {
-				newNodeCreated = true
-			}
-			return err0
-		})
-		if !newNodeCreated {
-			// Decrement the expected number of creates because the informer won't observe this nodeclaim
-			c.expectations.CreationObserved(c.klogger, client.ObjectKeyFromObject(wObj).String())
-		}
-
-		if err != nil {
-			klog.ErrorS(err, "failed to create nodeClaim", "nodeClaim", newNodeClaim.Name)
-			return nil, fmt.Errorf("failed to create nodeClaim %s: %w", newNodeClaim.Name, err)
-		}
-		klog.InfoS("NodeClaim created successfully", "nodeClaim", newNodeClaim.Name, "workspace", klog.KObj(wObj))
-
-		nodeClaims = append(nodeClaims, newNodeClaim)
-	}
-
-	return nodeClaims, nil
-}
-
-func (c *WorkspaceReconciler) createNewNodes(ctx context.Context, wObj *kaitov1beta1.Workspace, newNodesCount int) error {
-	// Create all node claims at once
-	nodeOSDiskSize := c.determineNodeOSDiskSize(wObj)
-	_, err := c.createAllNodeClaims(ctx, wObj, newNodesCount, nodeOSDiskSize)
-	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
-			"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return updateErr
-		}
-		return err
-	}
-	if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
-		"workspaceResourceCreated", "nodeclaims created successfully"); updateErr != nil {
-		klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-		return updateErr
-	}
-	return nil
-}
-
-// ensureNodePlugins ensures node plugins are installed.
-func (c *WorkspaceReconciler) ensureNodePlugins(ctx context.Context, wObj *kaitov1beta1.Workspace, nodeObj *corev1.Node) error {
-	timeClock := clock.RealClock{}
-	tick := timeClock.NewTicker(consts.NodePluginInstallTimeout)
-	defer tick.Stop()
-
-	hasUpdatedLabel := false
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-tick.C():
-			return fmt.Errorf("node plugin installation timed out. node %s is not ready", nodeObj.Name)
-		default:
-			// get fresh node object
-			freshNode, err := resources.GetNode(ctx, nodeObj.Name, c.Client)
-			if err != nil {
-				klog.ErrorS(err, "cannot get node", "node", nodeObj.Name)
-				return err
-			}
-
-			//Nvidia Plugin
-			if found := resources.CheckNvidiaPlugin(ctx, freshNode); found {
-				return nil
-			}
-
-			if !hasUpdatedLabel {
-				err = resources.UpdateNodeWithLabel(ctx, freshNode, resources.LabelKeyNvidia, resources.LabelValueNvidia, c.Client)
-				if apierrors.IsNotFound(err) {
-					klog.ErrorS(err, "nvidia plugin cannot be installed, node not found", "node", freshNode.Name)
-					if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-						"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {
-						klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-						return updateErr
-					}
-					return err
-				}
-				hasUpdatedLabel = true
-			}
-
-			time.Sleep(1 * time.Second)
-		}
-	}
 }
 
 // getPresetName returns the preset name from wObj if available
@@ -760,14 +414,17 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta
 // applyInference applies inference spec.
 func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	var err error
+	var workloadIsDeployment bool
 	func() {
 		if wObj.Inference.Template != nil {
+			workloadIsDeployment = true
 			var workloadObj client.Object
 			// TODO: handle update
 			workloadObj, err = inference.CreateTemplateInference(ctx, wObj, c.Client)
 			if err != nil {
 				return
 			}
+
 			if err = resources.CheckResourceStatus(workloadObj, c.Client, time.Duration(10)*time.Minute); err != nil {
 				return
 			}
@@ -797,10 +454,18 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 			case *appsv1.Deployment:
 				existingObj = &appsv1.Deployment{}
 				desiredPodSpec = &workloadObj.Spec.Template.Spec
+				workloadIsDeployment = true
 			}
 
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
 				klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
+				if _, ok := workloadObj.(*appsv1.Deployment); ok {
+					isScaled := ctrlutils.ScaleDeploymentIfNeeded(ctx, c.Client, client.ObjectKeyFromObject(existingObj), wObj)
+					if isScaled {
+						return
+					}
+				}
+
 				annotations := existingObj.GetAnnotations()
 				if annotations == nil {
 					annotations = make(map[string]string)
@@ -847,6 +512,15 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		}
 	}()
 
+	// if the underlay workload of workspace is Deployment, we need to update workspace.Status.Inference according to the Deployment
+	if workloadIsDeployment {
+		// Update workspace.Status.Inference based on the Deployment status
+		if err := c.updateWorkspaceInferenceStatus(ctx, wObj); err != nil {
+			klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
+			return err
+		}
+	}
+
 	if err != nil {
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
 			"WorkspaceInferenceStatusFailed", err.Error()); updateErr != nil {
@@ -862,6 +536,57 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return err
 	}
+	return nil
+}
+
+func (c *WorkspaceReconciler) updateWorkspaceInferenceStatus(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	// Get the related deployment from kube-apiserver directly
+	deployment := &appsv1.Deployment{}
+	err := resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, deployment)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			// Deployment doesn't exist, nothing to update
+			return nil
+		}
+		return fmt.Errorf("failed to get deployment: %w", err)
+	}
+
+	// Initialize inference status if it doesn't exist
+	if wObj.Status.Inference == nil {
+		wObj.Status.Inference = &kaitov1beta1.InferenceStatus{}
+	}
+
+	// Track if any fields are updated
+	updated := false
+
+	// Set workspace.Status.Inference.Replicas = deployment.Status.Replicas
+	if wObj.Status.Inference.Replicas != deployment.Status.Replicas {
+		wObj.Status.Inference.Replicas = deployment.Status.Replicas
+		updated = true
+	}
+
+	// Use deployment label selectors for pods to set workspace.Status.Inference.Selector
+	selectorString := ""
+	if deployment.Spec.Selector != nil {
+		selectorString = metav1.FormatLabelSelector(deployment.Spec.Selector)
+	}
+	if wObj.Status.Inference.Selector != selectorString {
+		wObj.Status.Inference.Selector = selectorString
+		updated = true
+	}
+
+	// If these fields are updated, update workspace status
+	if updated {
+		return updateWorkspaceWithRetry(ctx, c.Client, wObj, func(workspace *kaitov1beta1.Workspace) error {
+			if workspace.Status.Inference == nil {
+				workspace.Status.Inference = &kaitov1beta1.InferenceStatus{}
+			}
+			workspace.Status.Inference.Replicas = deployment.Status.Replicas
+			workspace.Status.Inference.Selector = selectorString
+			return nil
+		})
+	}
+
 	return nil
 }
 
@@ -977,14 +702,6 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.Deployment{}).
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&batchv1.Job{}).
-		Watches(&karpenterv1.NodeClaim{},
-			&nodeClaimEventHandler{
-				logger:         c.klogger,
-				expectations:   c.expectations,
-				enqueueHandler: enqueueWorkspaceForNodeClaim,
-			},
-			builder.WithPredicates(nodeclaim.NodeClaimPredicate),
-		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
 	if featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {

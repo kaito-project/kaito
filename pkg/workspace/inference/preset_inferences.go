@@ -137,24 +137,10 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	}
 
 	gpuConfig := getGPUConfig(gctx)
-	// initially respect the user setting by deploying the model on the same number of nodes as the user requested
-
-	//nolint:staticcheck //SA1019: deprecate Resource.Count field
-	numNodes := *workspaceObj.Resource.Count
-	// if gpu mem is known, we can setup the distributed correctly
-	if gpuConfig.GPUMemGB > 0 && gpuConfig.GPUCount > 0 {
-		// Calculate the minimum number of nodes required to satisfy the model's total GPU memory requirement.
-		// The goal is to maximize GPU utilization and not spread the model across too many nodes.
-		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement)
-		totalGPUMemoryPerNode := resource.NewQuantity(int64(gpuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI)
-
-		minimumNodes := 0
-		for ; totalGPUMemoryRequired.Sign() > 0; totalGPUMemoryRequired.Sub(*totalGPUMemoryPerNode) {
-			minimumNodes++
-		}
-		if minimumNodes < numNodes {
-			numNodes = minimumNodes
-		}
+	// Set the target node count for the inference deployment
+	numNodes := 1 // default value
+	if workspaceObj.Status.Inference != nil {
+		numNodes = int(workspaceObj.Status.Inference.TargetNodeCount)
 	}
 
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{

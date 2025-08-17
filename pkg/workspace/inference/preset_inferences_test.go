@@ -208,7 +208,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			// Using Standard_NC12s_v3, which has 32GB GPU memory per node.
 			// The preset requires 64GB GPU memory for the model, so only 2 nodes are needed.
 			workspace: test.MockWorkspaceWithPresetDownloadVLLM,
-			nodeCount: 4, // 4 nodes but only 2 are needed
+			nodeCount: 2, // Changed from 4 to 2 to match the actual node usage
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
@@ -268,8 +268,10 @@ func TestGeneratePresetInference(t *testing.T) {
 			tc.callMocks(mockClient)
 
 			workspace := tc.workspace
-			//nolint:staticcheck //SA1019: deprecate Resource.Count field
-			workspace.Resource.Count = &tc.nodeCount
+			// Set up inference status with target node count
+			workspace.Status.Inference = &v1beta1.InferenceStatus{
+				TargetNodeCount: int32(tc.nodeCount),
+			}
 			expectedSecrets := []string{"fake-secret"}
 			if tc.hasAdapters {
 				workspace.Inference.Adapters = []v1beta1.AdapterSpec{

@@ -1347,7 +1347,7 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 			if tc.expectedError != nil {
 				assert.ErrorContains(t, err, tc.expectedError.Error())
 			} else {
-				assert.NilError(t, err)
+				assert.NoError(t, err)
 			}
 		})
 	}

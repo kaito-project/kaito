@@ -45,7 +45,7 @@ guidellm benchmark \
 
 The A10 GPU shows good performance for moderate workloads but begins to struggle under high concurrent load, particularly at 16 requests per second, where the latency spikes from 480 ms to 14 seconds.
 
-The A100, on the other hand, maintains consistent latency as the requests per second increase, meaning it has more than enough bandwith to run this model. And since no performance degredation was observed, it is likely overpowered for this workload.
+The A100, on the other hand, maintains consistent latency as the requests per second increase, meaning it has more than enough bandwidth to run this model. And since no performance degredation was observed, it is likely overpowered for this workload.
 
 ### Inter-Token Latency (ITL) Comparison  
 

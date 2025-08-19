@@ -581,6 +581,7 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 	}
 	mockWorkspaceWithPreferredNodes := test.MockWorkspaceWithPreferredNodes.DeepCopy()
 	mockWorkspaceWithPreferredNodes.Resource.PreferredNodes = []string{"node-p1", "node-p2"}
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
 	mockWorkspaceWithPreferredNodes.Resource.Count = ptr.To(2)
 
 	mockWorkspaceWithSinglePreferredNode := test.MockWorkspaceWithPreferredNodes.DeepCopy()

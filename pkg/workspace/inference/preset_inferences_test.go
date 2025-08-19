@@ -268,6 +268,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			tc.callMocks(mockClient)
 
 			workspace := tc.workspace
+			//nolint:staticcheck //SA1019: deprecate Resource.Count field
 			workspace.Resource.Count = &tc.nodeCount
 			expectedSecrets := []string{"fake-secret"}
 			if tc.hasAdapters {

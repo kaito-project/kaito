@@ -138,6 +138,8 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	gpuConfig := getGPUConfig(gctx)
 	// initially respect the user setting by deploying the model on the same number of nodes as the user requested
+
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
 	numNodes := *workspaceObj.Resource.Count
 	// if gpu mem is known, we can setup the distributed correctly
 	if gpuConfig.GPUMemGB > 0 && gpuConfig.GPUCount > 0 {

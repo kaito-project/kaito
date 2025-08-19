@@ -368,13 +368,16 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 		return err
 	}
 
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
 	selectedNodes := utils.SelectNodes(validNodes, wObj.Resource.PreferredNodes, wObj.Status.WorkerNodes, lo.FromPtr(wObj.Resource.Count))
 
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
 	newNodesCount := lo.FromPtr(wObj.Resource.Count) - len(selectedNodes)
 
 	if newNodesCount > 0 {
 		// Check if node auto-provisioning is disabled
 		if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+			//nolint:staticcheck //SA1019: deprecate Resource.Count field
 			return fmt.Errorf("node auto-provisioning is disabled but insufficient nodes available: need %d nodes, have %d selected nodes", lo.FromPtr(wObj.Resource.Count), len(selectedNodes))
 		}
 
@@ -479,8 +482,9 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 				}
 			}
 		}
-
+		//nolint:staticcheck //SA1019: deprecate Resource.Count field
 		if len(qualifiedNodes) < *wObj.Resource.Count {
+			//nolint:staticcheck //SA1019: deprecate Resource.Count field
 			return nil, fmt.Errorf("when node auto-provisioning is disabled, at least %d preferred nodes must match the label selector and be ready and not deleting, only have %d", *wObj.Resource.Count, len(qualifiedNodes))
 		}
 	} else {

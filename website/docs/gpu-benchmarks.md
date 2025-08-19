@@ -2,14 +2,14 @@
 title: GPU Benchmarks
 ---
 
-These benchmarks help users choose the optimal GPU SKU for running their AI models with Kaito. We compare performance characteristics across different Azure GPU instance types to guide cost-effective hardware selection.
+These benchmarks help users choose the optimal GPU SKU for running their AI models with Kaito. We compare performance characteristics across different GPU types to guide cost-effective hardware selection.
 
 ## Test Setup
 
-We built a cluster with Kaito and a single GPU node (without node auto-provisioning). The following Azure GPU instance types were used to represent a small and medium size node. 
+We built a cluster with Kaito and a single GPU node (without node auto-provisioning). The following Nvidia GPU instance types were used to represent a small and medium size node. 
 
-- Standard_NV36ads_A10_v5: 1x NVIDIA A10 GPU (24GB VRAM)
-- Standard_NC24ads_A100_v4: 1x NVIDIA A100 GPU (80GB VRAM)
+- 1x Nvidia A10 GPU (24GB VRAM)
+- 1x Nvidia A100 GPU (80GB VRAM)
 
 A Kaito workspace was created with the `phi-4-mini-instruct` model and `max-model-len = 50000` in the inference config map. 
 
@@ -41,7 +41,7 @@ guidellm benchmark \
 
 ### Time to First Token (TTFT) Comparison
 
-![TTFT Benchmarks](ttft-benchmark.png)
+![TTFT Benchmarks](/static/ttft-benchmark.png)
 
 The A10 GPU shows good performance for moderate workloads but begins to struggle under high concurrent load, particularly at 16 requests per second, where the latency spikes from 480 ms to 14 seconds.
 
@@ -49,7 +49,7 @@ The A100, on the other hand, maintains consistent latency as the requests per se
 
 ### Inter-Token Latency (ITL) Comparison  
 
-![ITL Benchmarks](itl-benchmark.png)
+![ITL Benchmarks](/static/itl-benchmark.png)
 
 The A10 GPU shows an exponential increase in ITL as the request rate increases, indicating that it struggles to keep up with the demands of higher concurrency.
 

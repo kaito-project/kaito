@@ -33,11 +33,17 @@ from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
 from pydantic import ValidationError
 
-from ragengine.config import LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N, RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO
+from ragengine.config import (
+    LLM_RERANKER_BATCH_SIZE,
+    LLM_RERANKER_TOP_N,
+    RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO,
+)
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
 from ragengine.models import ChatCompletionResponse, Document, messages_to_prompt
-from ragengine.vector_store.node_processors.contex_selection_node_processor import ContextSelectionProcessor
+from ragengine.vector_store.node_processors.contex_selection_node_processor import (
+    ContextSelectionProcessor,
+)
 from ragengine.vector_store.transformers.custom_transformer import CustomTransformer
 
 # Configure logging
@@ -351,7 +357,7 @@ class BaseVectorStore(ABC):
         prompt_len = self.llm.count_tokens(prompt)
         if prompt_len > self.llm.metadata.context_window:
             logger.error(f"Prompt length ({prompt_len}) exceeds context window ({self.llm.metadata.context_window}).")
-            raise HTTPException(status_code=400, detail=f"Prompt length exceeds context window.")
+            raise HTTPException(status_code=400, detail="Prompt length exceeds context window.")
 
         if max_tokens and max_tokens > self.llm.metadata.context_window - prompt_len:
             # max_tokens is greater than the available tokens

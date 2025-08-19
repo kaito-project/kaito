@@ -13,8 +13,6 @@
 
 import logging
 
-from typing import List, Optional
-
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
 from llama_index.core.llms.llm import LLM
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
@@ -36,14 +34,14 @@ class ContextSelectionProcessor(BaseNodePostprocessor):
 
     _max_tokens: int = PrivateAttr()
     _rag_context_token_fill_ratio: float = PrivateAttr()
-    _similarity_threshold: Optional[float] = PrivateAttr()
+    _similarity_threshold: float | None = PrivateAttr()
 
     def __init__(
         self,
         rag_context_token_fill_ratio: float,
-        llm: Optional[LLM] = None,
-        max_tokens: Optional[int] = None,
-        similarity_threshold: Optional[float] = None,
+        llm: LLM | None = None,
+        max_tokens: int | None = None,
+        similarity_threshold: float | None = None,
     ) -> None:
         llm = llm or Settings.llm
 
@@ -68,9 +66,9 @@ class ContextSelectionProcessor(BaseNodePostprocessor):
 
     def _postprocess_nodes(
         self,
-        nodes: List[NodeWithScore],
-        query_bundle: Optional[QueryBundle] = None,
-    ) -> List[NodeWithScore]:
+        nodes: list[NodeWithScore],
+        query_bundle: QueryBundle | None = None,
+    ) -> list[NodeWithScore]:
         if query_bundle is None:
             raise ValueError("Query bundle must be provided.")
         if len(nodes) == 0:
@@ -91,7 +89,7 @@ class ContextSelectionProcessor(BaseNodePostprocessor):
         # the scores from faiss are distances and we want to rerank based on relevance
         ranked_nodes = sorted(nodes, key=lambda x: x.score or 0.0)
 
-        result: List[NodeWithScore] = []
+        result: list[NodeWithScore] = []
         for idx in range(len(ranked_nodes)):
             node = ranked_nodes[idx]
             if self._similarity_threshold is not None and node.score > self._similarity_threshold:

@@ -11,18 +11,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
 from unittest.mock import patch
 
-import pytest
 import httpx
+import pytest
 import respx
-import time
-import re
+
 
 @pytest.fixture(autouse=True)
 def overwrite_inference_url(monkeypatch):
-    import ragengine.inference.inference
     import ragengine.config
+    import ragengine.inference.inference
     monkeypatch.setattr(ragengine.config, "LLM_INFERENCE_URL", "http://localhost:5000/v1/chat/completions")
     monkeypatch.setattr(ragengine.inference.inference, "LLM_INFERENCE_URL", "http://localhost:5000/v1/chat/completions")
     monkeypatch.setattr(ragengine.config, "LLM_CONTEXT_WINDOW", 10000)

@@ -19,17 +19,21 @@ from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import NodeWithScore, QueryBundle
 from llama_index.core.settings import Settings
 
-ADDITION_PROMPT_TOKENS = 150 # Accounts for the addition prompt added by llamaindex after node processing
+ADDITION_PROMPT_TOKENS = (
+    150  # Accounts for the addition prompt added by llamaindex after node processing
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 class ContextSelectionProcessor(BaseNodePostprocessor):
     """
     Context selection processor.
     This processor selects nodes based on their relevance to the query and the available context window.
     """
+
     llm: LLM = Field(description="The llm to get metadata from.")
 
     _max_tokens: int = PrivateAttr()
@@ -52,13 +56,9 @@ class ContextSelectionProcessor(BaseNodePostprocessor):
         self._rag_context_token_fill_ratio = rag_context_token_fill_ratio
 
         # Use the passed in max_tokens or the context window size if not provided
-        self._max_tokens = (
-            max_tokens or llm.metadata.context_window
-        )
+        self._max_tokens = max_tokens or llm.metadata.context_window
 
-        self._similarity_threshold = (
-            similarity_threshold or None
-        )
+        self._similarity_threshold = similarity_threshold or None
 
     @classmethod
     def class_name(cls) -> str:
@@ -76,14 +76,24 @@ class ContextSelectionProcessor(BaseNodePostprocessor):
 
         query_token_aproximation = self.llm.count_tokens(query_bundle.query_str)
         # Total tokens available for context after accounting only for query
-        available_tokens_for_context = self.llm.metadata.context_window - query_token_aproximation - ADDITION_PROMPT_TOKENS
+        available_tokens_for_context = (
+            self.llm.metadata.context_window
+            - query_token_aproximation
+            - ADDITION_PROMPT_TOKENS
+        )
         # Take the lesser of the max_tokens param and available context
-        available_tokens_for_context = min(self._max_tokens, available_tokens_for_context)
+        available_tokens_for_context = min(
+            self._max_tokens, available_tokens_for_context
+        )
         # Apply the RAG context fill ratio
-        available_tokens_for_context = int(available_tokens_for_context * self._rag_context_token_fill_ratio)
+        available_tokens_for_context = int(
+            available_tokens_for_context * self._rag_context_token_fill_ratio
+        )
 
         if available_tokens_for_context <= 0:
-            logger.warning("No available tokens for context after accounting for query and addition prompt.")
+            logger.warning(
+                "No available tokens for context after accounting for query and addition prompt."
+            )
             return []
 
         # the scores from faiss are distances and we want to rerank based on relevance
@@ -92,7 +102,10 @@ class ContextSelectionProcessor(BaseNodePostprocessor):
         result: list[NodeWithScore] = []
         for idx in range(len(ranked_nodes)):
             node = ranked_nodes[idx]
-            if self._similarity_threshold is not None and node.score > self._similarity_threshold:
+            if (
+                self._similarity_threshold is not None
+                and node.score > self._similarity_threshold
+            ):
                 continue
 
             node_token_approximation = self.llm.count_tokens(node.text)
@@ -102,5 +115,7 @@ class ContextSelectionProcessor(BaseNodePostprocessor):
             available_tokens_for_context -= node_token_approximation
             result.append(node)
 
-        logger.info(f"Selected {len(result)} nodes out of {len(nodes)} based on context window and similarity threshold.")
+        logger.info(
+            f"Selected {len(result)} nodes out of {len(nodes)} based on context window and similarity threshold."
+        )
         return result

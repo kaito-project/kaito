@@ -88,7 +88,7 @@ async def test_chat_completions_basic_success(mock_get, async_client):
         "model": "mock-model",
         "messages": [{"role": "user", "content": "What can you tell me about AI?"}],
         "temperature": 0.7,
-        "max_tokens": 100
+        "max_tokens": 100,
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
@@ -316,7 +316,7 @@ async def test_chat_completions_missing_role_in_message(async_client):
         "model": "mock-model",
         "messages": [{"content": "What can you tell me about AI?"}],
         "temperature": 0.7,
-        "max_tokens": 100
+        "max_tokens": 100,
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
@@ -344,7 +344,7 @@ async def test_chat_completions_missing_content_for_user_role(async_client):
         "model": "mock-model",
         "messages": [{"role": "user"}],
         "temperature": 0.7,
-        "max_tokens": 100
+        "max_tokens": 100,
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
@@ -837,6 +837,7 @@ async def test_chat_completions_with_functions(mock_get, async_client):
     # Should have source_nodes field but it should be None for passthrough requests
     assert response_data["source_nodes"] is None
 
+
 @pytest.mark.asyncio
 @patch("requests.get")
 async def test_chat_completions_prompt_exceeds_context_window(mock_get, async_client):
@@ -844,7 +845,9 @@ async def test_chat_completions_prompt_exceeds_context_window(mock_get, async_cl
     # Mock the response for the default model fetch with a small context window
     mock_get.return_value.status_code = 200
     mock_get.return_value.json.return_value = {
-        "data": [{"id": "small-model", "max_model_len": 100}]  # Very small context window
+        "data": [
+            {"id": "small-model", "max_model_len": 100}
+        ]  # Very small context window
     }
 
     # Index some test documents
@@ -852,7 +855,7 @@ async def test_chat_completions_prompt_exceeds_context_window(mock_get, async_cl
         "index_name": "test_index",
         "documents": [
             {"text": "This is a test document about AI and machine learning."}
-        ]
+        ],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -860,26 +863,29 @@ async def test_chat_completions_prompt_exceeds_context_window(mock_get, async_cl
 
     # Create a very long message that will exceed the context window
     long_message = "This is a very long message. " * 50  # This should exceed 100 tokens
-    
+
     chat_request = {
         "index_name": "test_index",
         "model": "small-model",
-        "messages": [
-            {"role": "user", "content": long_message}
-        ]
+        "messages": [{"role": "user", "content": long_message}],
     }
 
-    with patch('ragengine.config.LLM_CONTEXT_WINDOW', 100), \
-         patch('ragengine.inference.inference.LLM_CONTEXT_WINDOW', 100), \
-         patch('ragengine.inference.inference.Inference.count_tokens', return_value=150):
+    with (
+        patch("ragengine.config.LLM_CONTEXT_WINDOW", 100),
+        patch("ragengine.inference.inference.LLM_CONTEXT_WINDOW", 100),
+        patch("ragengine.inference.inference.Inference.count_tokens", return_value=150),
+    ):
         response = await async_client.post("/v1/chat/completions", json=chat_request)
         assert response.status_code == 400
         assert "Prompt length exceeds context window" in response.json()["detail"]
 
+
 @pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")
-async def test_chat_completions_max_tokens_exceeds_available_space(mock_get, async_client):
+async def test_chat_completions_max_tokens_exceeds_available_space(
+    mock_get, async_client
+):
     """Test chat completion when max_tokens exceeds available space after prompt."""
     # Mock the response for the default model fetch
     mock_get.return_value.status_code = 200
@@ -896,22 +902,19 @@ async def test_chat_completions_max_tokens_exceeds_available_space(mock_get, asy
         "choices": [
             {
                 "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": "This is a response."
-                },
-                "finish_reason": "stop"
+                "message": {"role": "assistant", "content": "This is a response."},
+                "finish_reason": "stop",
             }
-        ]
+        ],
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Index some test documents
     index_request = {
         "index_name": "test_index",
-        "documents": [
-            {"text": "This is a test document."}
-        ]
+        "documents": [{"text": "This is a test document."}],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -921,16 +924,16 @@ async def test_chat_completions_max_tokens_exceeds_available_space(mock_get, asy
     chat_request = {
         "index_name": "test_index",
         "model": "mock-model",
-        "messages": [
-            {"role": "user", "content": "Short question?"}
-        ],
-        "max_tokens": 500  # This exceeds our context window of 200
+        "messages": [{"role": "user", "content": "Short question?"}],
+        "max_tokens": 500,  # This exceeds our context window of 200
     }
 
     # Mock the LLM context window and count_tokens method
-    with patch('ragengine.config.LLM_CONTEXT_WINDOW', 200), \
-         patch('ragengine.inference.inference.LLM_CONTEXT_WINDOW', 200), \
-         patch('ragengine.inference.inference.Inference.count_tokens', return_value=50):
+    with (
+        patch("ragengine.config.LLM_CONTEXT_WINDOW", 200),
+        patch("ragengine.inference.inference.LLM_CONTEXT_WINDOW", 200),
+        patch("ragengine.inference.inference.Inference.count_tokens", return_value=50),
+    ):
         response = await async_client.post("/v1/chat/completions", json=chat_request)
 
         # The response might fail due to mocking issues, but that's ok
@@ -938,14 +941,15 @@ async def test_chat_completions_max_tokens_exceeds_available_space(mock_get, asy
         # We can verify this by checking that the response is not a validation error (422)
         # which would indicate the request didn't reach the business logic
         assert response.status_code != 422  # Not a validation error
-        
+
         # If it's a 400/500, that's likely from the mocked LLM response
         # If it's a 200, that means everything worked including our logic
         assert response.status_code in [200, 400, 500]
 
+
 @pytest.mark.asyncio
 @respx.mock
-@patch("requests.get") 
+@patch("requests.get")
 async def test_chat_completions_max_tokens_adjustment_warning(mock_get, async_client):
     """Test that max_tokens gets adjusted with warning when it exceeds available space."""
     # Mock the response for the default model fetch
@@ -963,50 +967,55 @@ async def test_chat_completions_max_tokens_adjustment_warning(mock_get, async_cl
         "choices": [
             {
                 "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": "Adjusted response."
-                },
-                "finish_reason": "stop"
+                "message": {"role": "assistant", "content": "Adjusted response."},
+                "finish_reason": "stop",
             }
-        ]
+        ],
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Index some test documents
     index_request = {
         "index_name": "test_index",
-        "documents": [
-            {"text": "This is a test document for token adjustment."}
-        ]
+        "documents": [{"text": "This is a test document for token adjustment."}],
     }
 
     response = await async_client.post("/index", json=index_request)
     assert response.status_code == 200
 
     chat_request = {
-        "index_name": "test_index", 
+        "index_name": "test_index",
         "model": "mock-model",
         "messages": [
-            {"role": "user", "content": "This is a reasonably long question that uses some tokens?"}
+            {
+                "role": "user",
+                "content": "This is a reasonably long question that uses some tokens?",
+            }
         ],
-        "max_tokens": 800  # This should exceed available space after prompt
+        "max_tokens": 800,  # This should exceed available space after prompt
     }
 
     # Mock the LLM context window and count_tokens method
-    with patch('ragengine.config.LLM_CONTEXT_WINDOW', 1000), \
-         patch('ragengine.inference.inference.LLM_CONTEXT_WINDOW', 1000), \
-         patch('ragengine.inference.inference.Inference.count_tokens', return_value=300):
+    with (
+        patch("ragengine.config.LLM_CONTEXT_WINDOW", 1000),
+        patch("ragengine.inference.inference.LLM_CONTEXT_WINDOW", 1000),
+        patch("ragengine.inference.inference.Inference.count_tokens", return_value=300),
+    ):
         response = await async_client.post("/v1/chat/completions", json=chat_request)
 
         # Verify the response reaches our business logic (not a validation error)
         assert response.status_code != 422  # Not a validation error
         assert response.status_code in [200, 400, 500]  # Various possible outcomes
 
+
 @pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")
-async def test_chat_completions_context_window_boundary_conditions(mock_get, async_client):
+async def test_chat_completions_context_window_boundary_conditions(
+    mock_get, async_client
+):
     """Test chat completion at context window boundary conditions."""
     # Mock the response for the default model fetch
     mock_get.return_value.status_code = 200
@@ -1023,39 +1032,36 @@ async def test_chat_completions_context_window_boundary_conditions(mock_get, asy
         "choices": [
             {
                 "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": "Boundary response."
-                },
-                "finish_reason": "stop"
+                "message": {"role": "assistant", "content": "Boundary response."},
+                "finish_reason": "stop",
             }
-        ]
+        ],
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Index some test documents
     index_request = {
         "index_name": "boundary_test_index",
-        "documents": [
-            {"text": "Boundary test document for context window testing."}
-        ]
+        "documents": [{"text": "Boundary test document for context window testing."}],
     }
 
     response = await async_client.post("/index", json=index_request)
     assert response.status_code == 200
 
     # Test case 1: Prompt exactly at context window limit (should succeed but with no context)
-    with patch('ragengine.config.LLM_CONTEXT_WINDOW', 500), \
-         patch('ragengine.inference.inference.LLM_CONTEXT_WINDOW', 500), \
-         patch('ragengine.inference.inference.Inference.count_tokens', return_value=500):
+    with (
+        patch("ragengine.config.LLM_CONTEXT_WINDOW", 500),
+        patch("ragengine.inference.inference.LLM_CONTEXT_WINDOW", 500),
+        patch("ragengine.inference.inference.Inference.count_tokens", return_value=500),
+    ):
         chat_request = {
             "index_name": "boundary_test_index",
-            "model": "boundary-model", 
-            "messages": [
-                {"role": "user", "content": "Boundary test message"}
-            ]
+            "model": "boundary-model",
+            "messages": [{"role": "user", "content": "Boundary test message"}],
         }
-        
+
         response = await async_client.post("/v1/chat/completions", json=chat_request)
         # Should succeed but with warning about no available context tokens
         assert response.status_code == 200
@@ -1066,41 +1072,47 @@ async def test_chat_completions_context_window_boundary_conditions(mock_get, asy
         assert "message" in response_data["choices"][0]
 
     # Test case 1.5: Prompt exceeds context window limit (should fail)
-    with patch('ragengine.config.LLM_CONTEXT_WINDOW', 500), \
-         patch('ragengine.inference.inference.LLM_CONTEXT_WINDOW', 500), \
-         patch('ragengine.inference.inference.Inference.count_tokens', return_value=501):
+    with (
+        patch("ragengine.config.LLM_CONTEXT_WINDOW", 500),
+        patch("ragengine.inference.inference.LLM_CONTEXT_WINDOW", 500),
+        patch("ragengine.inference.inference.Inference.count_tokens", return_value=501),
+    ):
         chat_request = {
             "index_name": "boundary_test_index",
             "model": "boundary-model",
             "messages": [
-                        {"role": "user", "content": "Boundary test message that exceeds context window"}
-                    ]
+                {
+                    "role": "user",
+                    "content": "Boundary test message that exceeds context window",
                 }
-        
+            ],
+        }
+
         response = await async_client.post("/v1/chat/completions", json=chat_request)
         assert response.status_code == 400
         assert "Prompt length exceeds context window" in response.json()["detail"]
 
     # Test case 2: Prompt just under context window limit (should succeed)
-    with patch('ragengine.config.LLM_CONTEXT_WINDOW', 500), \
-         patch('ragengine.inference.inference.LLM_CONTEXT_WINDOW', 500), \
-         patch('ragengine.inference.inference.Inference.count_tokens', return_value=499):
+    with (
+        patch("ragengine.config.LLM_CONTEXT_WINDOW", 500),
+        patch("ragengine.inference.inference.LLM_CONTEXT_WINDOW", 500),
+        patch("ragengine.inference.inference.Inference.count_tokens", return_value=499),
+    ):
         chat_request = {
             "index_name": "boundary_test_index",
             "model": "boundary-model",
-            "messages": [
-                {"role": "user", "content": "Boundary test message"}
-            ],
-            "max_tokens": 1  # Only 1 token available
+            "messages": [{"role": "user", "content": "Boundary test message"}],
+            "max_tokens": 1,  # Only 1 token available
         }
-        
+
         response = await async_client.post("/v1/chat/completions", json=chat_request)
         assert response.status_code == 200
         response_data = response.json()
-        # Verify the response has the expected structure  
+        # Verify the response has the expected structure
         assert "choices" in response_data
         assert len(response_data["choices"]) > 0
         assert "message" in response_data["choices"][0]
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -1116,7 +1128,7 @@ async def test_chat_completions_no_max_tokens_specified(mock_get, async_client):
     # Mock HTTPX response for Custom Inference API
     mock_response = {
         "id": "chatcmpl-no-max-tokens",
-        "object": "chat.completion", 
+        "object": "chat.completion",
         "created": int(time.time()),
         "model": "mock-model",
         "choices": [
@@ -1124,20 +1136,20 @@ async def test_chat_completions_no_max_tokens_specified(mock_get, async_client):
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": "Response without max tokens constraint."
+                    "content": "Response without max tokens constraint.",
                 },
-                "finish_reason": "stop"
+                "finish_reason": "stop",
             }
-        ]
+        ],
     }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(return_value=httpx.Response(200, json=mock_response))
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
 
     # Index some test documents
     index_request = {
         "index_name": "no_max_tokens_index",
-        "documents": [
-            {"text": "Test document for no max tokens scenario."}
-        ]
+        "documents": [{"text": "Test document for no max tokens scenario."}],
     }
 
     response = await async_client.post("/index", json=index_request)
@@ -1147,15 +1159,15 @@ async def test_chat_completions_no_max_tokens_specified(mock_get, async_client):
     chat_request = {
         "index_name": "no_max_tokens_index",
         "model": "mock-model",
-        "messages": [
-            {"role": "user", "content": "Test question without max tokens?"}
-        ]
+        "messages": [{"role": "user", "content": "Test question without max tokens?"}],
         # No max_tokens specified
     }
 
-    with patch('ragengine.config.LLM_CONTEXT_WINDOW', 2048), \
-         patch('ragengine.inference.inference.LLM_CONTEXT_WINDOW', 2048), \
-         patch('ragengine.inference.inference.Inference.count_tokens', return_value=100):
+    with (
+        patch("ragengine.config.LLM_CONTEXT_WINDOW", 2048),
+        patch("ragengine.inference.inference.LLM_CONTEXT_WINDOW", 2048),
+        patch("ragengine.inference.inference.Inference.count_tokens", return_value=100),
+    ):
         response = await async_client.post("/v1/chat/completions", json=chat_request)
 
         # Verify the response reaches our business logic (not a validation error)

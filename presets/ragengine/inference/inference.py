@@ -59,6 +59,7 @@ DEFAULT_HEADERS = {
 DEFAULT_HTTP_TIMEOUT = 300.0  # Seconds
 DEFAULT_HTTP_SUCCESS_CODE = 200
 
+
 class Inference(CustomLLM):
     params: dict = {}
     _default_model: str = None
@@ -66,7 +67,6 @@ class Inference(CustomLLM):
     _model_retrieval_attempted: bool = False
     _async_http_client: httpx.AsyncClient = PrivateAttr(default=None)
     _token_encoder: Any = None
-
 
     async def _get_httpx_client(self):
         """Lazily initializes the HTTP client on first request."""
@@ -166,29 +166,58 @@ class Inference(CustomLLM):
             base_model, base_max_len = self._get_default_model_info()
 
             # 3 characters per token is a conservative approximation for English text and code. For other languages, this may vary.
-            content_token_approximation = sum(self.count_tokens(message.content) for message in messages if message.content) if messages else 0
-            logger.info(f"Content token approximation: {content_token_approximation} tokens for messages")
+            content_token_approximation = (
+                sum(
+                    self.count_tokens(message.content)
+                    for message in messages
+                    if message.content
+                )
+                if messages
+                else 0
+            )
+            logger.info(
+                f"Content token approximation: {content_token_approximation} tokens for messages"
+            )
 
             if content_token_approximation > LLM_CONTEXT_WINDOW:
-                logger.error(f"Content length exceeds context window size ({LLM_CONTEXT_WINDOW}). Please reduce the length of the messages.")
-                raise HTTPException(status_code=400, detail=f"Content length exceeds context window size ({LLM_CONTEXT_WINDOW}). Please reduce the length of the messages.")
+                logger.error(
+                    f"Content length exceeds context window size ({LLM_CONTEXT_WINDOW}). Please reduce the length of the messages."
+                )
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Content length exceeds context window size ({LLM_CONTEXT_WINDOW}). Please reduce the length of the messages.",
+                )
 
             # if max_tokens is not provided but content length is less than the context window, we can pass None for max_tokens to allow the model to decide
             max_tokens = kwargs.get("max_tokens")
             if max_tokens is not None:
                 logger.info(f"Using provided max_tokens: {max_tokens} tokens")
                 if max_tokens > LLM_CONTEXT_WINDOW:
-                    logger.error(f"Provided max_tokens ({max_tokens}) exceeds context window size ({LLM_CONTEXT_WINDOW}). Adjusting to fit within context window.")
-                    raise HTTPException(status_code=400, detail=f"Provided max_tokens ({max_tokens}) exceeds context window size ({LLM_CONTEXT_WINDOW}). Adjusting to fit within context window.")
+                    logger.error(
+                        f"Provided max_tokens ({max_tokens}) exceeds context window size ({LLM_CONTEXT_WINDOW}). Adjusting to fit within context window."
+                    )
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Provided max_tokens ({max_tokens}) exceeds context window size ({LLM_CONTEXT_WINDOW}). Adjusting to fit within context window.",
+                    )
                 else:
-                    available_tokens_for_completion = LLM_CONTEXT_WINDOW - content_token_approximation
+                    available_tokens_for_completion = (
+                        LLM_CONTEXT_WINDOW - content_token_approximation
+                    )
                     if max_tokens > available_tokens_for_completion:
-                        logger.warning(f"Provided max_tokens ({max_tokens}) plus content length ({content_token_approximation}) exceeds context window size ({LLM_CONTEXT_WINDOW}). Adjusting max_tokens to {available_tokens_for_completion}.")
+                        logger.warning(
+                            f"Provided max_tokens ({max_tokens}) plus content length ({content_token_approximation}) exceeds context window size ({LLM_CONTEXT_WINDOW}). Adjusting max_tokens to {available_tokens_for_completion}."
+                        )
                         max_tokens = available_tokens_for_completion
-            
+
             if max_tokens and max_tokens < 0:
-                logger.error(f"max_tokens ({max_tokens}) is negative after content token approximation.")
-                raise HTTPException(status_code=400, detail=f"Provided content length exceeds max_tokens limit ({max_tokens}). Please reduce the length of the messages or increase max_tokens.")
+                logger.error(
+                    f"max_tokens ({max_tokens}) is negative after content token approximation."
+                )
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Provided content length exceeds max_tokens limit ({max_tokens}). Please reduce the length of the messages or increase max_tokens.",
+                )
 
             req = {
                 "model": self.get_param("model", base_model),
@@ -430,7 +459,7 @@ class Inference(CustomLLM):
         """Closes the HTTP client when shutting down."""
         if self._async_http_client:
             await self._async_http_client.aclose()
-    
+
     def count_tokens(self, prompt):
         """Counts the tokens in the input prompt."""
         if self._token_encoder is None:
@@ -439,7 +468,9 @@ class Inference(CustomLLM):
                 if default_model and "gpt" in default_model:
                     self._token_encoder = tiktoken.encoding_for_model(default_model)
             except Exception as e:
-                logger.warning(f"failed to get token encoder during initialization: {e}")
+                logger.warning(
+                    f"failed to get token encoder during initialization: {e}"
+                )
 
         try:
             if self._token_encoder is None:
@@ -448,4 +479,6 @@ class Inference(CustomLLM):
             return len(self._token_encoder.encode(prompt))
         except Exception as e:
             logger.error(f"Error during tokenization: {e}")
-            return int(len(prompt) / 3)  # Fallback to character count if tokenization fails
+            return int(
+                len(prompt) / 3
+            )  # Fallback to character count if tokenization fails

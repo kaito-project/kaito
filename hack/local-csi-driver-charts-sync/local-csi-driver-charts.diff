@@ -1,5 +1,5 @@
 diff --git a/./local-csi-driver-charts.yaml b/./charts/kaito/workspace/templates/local-csi-driver-ds.yaml
-index 93d0b571..cd8173e2 100644
+index e7365b6..82e259f 100644
 --- a/./local-csi-driver-charts.yaml
 +++ b/./charts/kaito/workspace/templates/local-csi-driver-ds.yaml
 @@ -4,13 +4,9 @@ apiVersion: v1
@@ -80,33 +80,21 @@ index 93d0b571..cd8173e2 100644
        annotations:
          kubectl.kubernetes.io/default-container: driver
      spec:
-@@ -221,7 +201,7 @@ spec:
+@@ -222,7 +202,7 @@ spec:
            valueFrom:
              fieldRef:
                fieldPath: spec.nodeName
 -        image: "localcsidriver.azurecr.io/acstor/local-csi-driver:0.0.1-latest"
-+        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.3"
++        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.4"
          imagePullPolicy: IfNotPresent
          livenessProbe:
            httpGet:
-@@ -262,9 +242,6 @@ spec:
-         volumeMounts:
-         - mountPath: /dev
-           name: device
--        - mountPath: /etc/kubernetes/
--          name: k8s-cfg
--          readOnly: true
-         - mountPath: /csi
-           name: csi-socket-dir
-         - mountPath: /var/lib/kubelet/
-@@ -404,10 +381,6 @@ spec:
-           path: /dev
-           type: Directory
-         name: device
--      - hostPath:
--          path: /etc/kubernetes/
--          type: DirectoryOrCreate
--        name: k8s-cfg
-       - hostPath:
-           path: /var/lib/kubelet/plugins/localdisk.csi.acstor.io/
-           type: DirectoryOrCreate
+@@ -287,8 +267,6 @@ spec:
+         - --capacity-poll-interval=15s
+         - --v=2
+         env:
+-        # POD_NAME and POD_NAMESPACE are used for capacity tracking support
+-        # More info: https://github.com/kubernetes-csi/external-provisioner?tab=readme-ov-file#capacity-support
+         - name: NAMESPACE
+           valueFrom:
+             fieldRef:

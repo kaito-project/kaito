@@ -702,22 +702,28 @@ spec:
                   It is only set when the InferenceSpec is specified in the Workspace.
                 properties:
                   perReplicaNodeCount:
-                    description: PerReplicaNodeCount is used for recording the number
-                      of gpu nodes for one replica of workspace workload.
+                    description: |-
+                      PerReplicaNodeCount is used for recording the number of gpu nodes for one replica of workspace workload.
+                      This field remains immutable after being set.
                     format: int32
                     type: integer
                   replicas:
-                    description: Total number of running inference workloads of the
-                      workspace.
+                    description: |-
+                      Total number of running inference workloads of the workspace.
+                      This field is dynamic and changes based on scaling actions. It will set to Deployement.Status.Replicas
+                      when underlay workload is Deployment for Workspace.
                     format: int32
                     type: integer
                   selector:
-                    description: Selector is used to select the pods for the inference
-                      workload.
+                    description: |-
+                      Selector is used to select the pods that provide metrics for making scaling action decisions.
+                      This field must be set when HPA and VPA is used for scaling.
                     type: string
                   targetNodeCount:
-                    description: TargetNodeCount is used for recording the total number
-                      of gpu nodes for the workspace.
+                    description: |-
+                      TargetNodeCount is used for recording the desired number of gpu nodes that needed for all replicas of workspace.
+                      This field is dynamic and changes based on scaling actions. It has a specific calculation formula:
+                      TargetNodeCount = Resource.Replicas * InferenceStatus.PerReplicaNodeCount
                     format: int32
                     type: integer
                 type: object

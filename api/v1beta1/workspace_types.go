@@ -109,15 +109,21 @@ type InferenceSpec struct {
 
 type InferenceStatus struct {
 	// Total number of running inference workloads of the workspace.
+	// This field is dynamic and changes based on scaling actions. It will set to Deployement.Status.Replicas
+	// when underlay workload is Deployment for Workspace.
 	Replicas int32 `json:"replicas,omitempty"`
 
-	// Selector is used to select the pods for the inference workload.
+	// Selector is used to select the pods that provide metrics for making scaling action decisions.
+	// This field must be set when HPA and VPA is used for scaling.
 	Selector string `json:"selector,omitempty"`
 
 	// PerReplicaNodeCount is used for recording the number of gpu nodes for one replica of workspace workload.
+	// This field remains immutable after being set.
 	PerReplicaNodeCount int32 `json:"perReplicaNodeCount,omitempty"`
 
-	// TargetNodeCount is used for recording the total number of gpu nodes for the workspace.
+	// TargetNodeCount is used for recording the desired number of gpu nodes that needed for all replicas of workspace.
+	// This field is dynamic and changes based on scaling actions. It has a specific calculation formula:
+	// TargetNodeCount = Resource.Replicas * InferenceStatus.PerReplicaNodeCount
 	TargetNodeCount int32 `json:"targetNodeCount,omitempty"`
 }
 

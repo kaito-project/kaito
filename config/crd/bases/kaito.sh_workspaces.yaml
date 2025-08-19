@@ -711,6 +711,10 @@ spec:
                       workspace.
                     format: int32
                     type: integer
+                  selector:
+                    description: Selector is used to select the pods for the inference
+                      workload.
+                    type: string
                   targetNodeCount:
                     description: TargetNodeCount is used for recording the total number
                       of gpu nodes for the workspace.
@@ -830,6 +834,7 @@ spec:
     storage: true
     subresources:
       scale:
+        labelSelectorPath: .status.inference.selector
         specReplicasPath: .spec.inference.replicas
         statusReplicasPath: .status.inference.replicas
       status: {}

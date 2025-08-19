@@ -111,6 +111,9 @@ type InferenceStatus struct {
 	// Total number of running inference workloads of the workspace.
 	Replicas int32 `json:"replicas,omitempty"`
 
+	// Selector is used to select the pods for the inference workload.
+	Selector string `json:"selector,omitempty"`
+
 	// PerReplicaNodeCount is used for recording the number of gpu nodes for one replica of workspace workload.
 	PerReplicaNodeCount int32 `json:"perReplicaNodeCount,omitempty"`
 
@@ -216,7 +219,7 @@ type WorkspaceStatus struct {
 // +kubebuilder:printcolumn:name="JobStarted",type="string",JSONPath=".status.conditions[?(@.type==\"JobStarted\")].status",description=""
 // +kubebuilder:printcolumn:name="WorkspaceSucceeded",type="string",JSONPath=".status.conditions[?(@.type==\"WorkspaceSucceeded\")].status",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
-// +kubebuilder:subresource:scale:specpath=.spec.inference.replicas,statuspath=.status.inference.replicas
+// +kubebuilder:subresource:scale:specpath=.spec.inference.replicas,statuspath=.status.inference.replicas,selectorpath=.status.inference.selector
 type Workspace struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

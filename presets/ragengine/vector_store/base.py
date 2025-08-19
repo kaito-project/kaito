@@ -372,7 +372,7 @@ class BaseVectorStore(ABC):
                 ContextSelectionProcessor(
                     rag_context_token_fill_ratio=request.get("context_token_ratio", RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO),
                     llm=self.llm,
-                    max_tokens=request.get("max_tokens"),
+                    max_tokens=max_tokens,
                     similarity_threshold=0.8
                 )
             ]

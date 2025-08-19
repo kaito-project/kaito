@@ -41,7 +41,7 @@ guidellm benchmark \
 
 ### Time to First Token (TTFT) Comparison
 
-![TTFT Benchmarks](/static/ttft-benchmark.png)
+![TTFT Benchmarks](/img/ttft-benchmark.png)
 
 The A10 GPU shows good performance for moderate workloads but begins to struggle under high concurrent load, particularly at 16 requests per second, where the latency spikes from 480 ms to 14 seconds.
 
@@ -49,7 +49,7 @@ The A100, on the other hand, maintains consistent latency as the requests per se
 
 ### Inter-Token Latency (ITL) Comparison  
 
-![ITL Benchmarks](/static/itl-benchmark.png)
+![ITL Benchmarks](/img/itl-benchmark.png)
 
 The A10 GPU shows an exponential increase in ITL as the request rate increases, indicating that it struggles to keep up with the demands of higher concurrency.
 

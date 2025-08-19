@@ -4,6 +4,18 @@ variable "location" {
   description = "value of location"
 }
 
+variable "node_pool_count" {
+  type        = number
+  default     = 1
+  description = "Number of nodes in the AKS node pool"
+}
+
+variable "node_pool_vm_size" {
+  type        = string
+  default     = "standard_d2s_v6"
+  description = "VM size for the AKS node pool"
+}
+
 variable "kaito_gpu_provisioner_version" {
   type        = string
   default     = "0.3.5"

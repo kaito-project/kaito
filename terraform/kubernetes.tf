@@ -8,8 +8,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
   default_node_pool {
     name       = "default"
-    node_count = 1
-    vm_size    = "Standard_D2_v2"
+    node_count = var.node_pool_count
+    vm_size    = var.node_pool_vm_size
 
     upgrade_settings {
       drain_timeout_in_minutes      = 0

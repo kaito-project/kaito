@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from typing import List, Optional
 
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
@@ -20,7 +22,10 @@ from llama_index.core.schema import NodeWithScore, QueryBundle
 from llama_index.core.settings import Settings
 
 ADDITION_PROMPT_TOKENS = 150 # Accounts for the addition prompt added by llamaindex after node processing
-DEFAULT_RESPONSE_TOKEN_BUFFER = 1000  # Default buffer for response tokens to avoid exceeding context window
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class ContextSelectionProcessor(BaseNodePostprocessor):
     """
@@ -30,14 +35,14 @@ class ContextSelectionProcessor(BaseNodePostprocessor):
     llm: LLM = Field(description="The llm to get metadata from.")
 
     _max_tokens: int = PrivateAttr()
-    _response_token_buffer: int = PrivateAttr()
+    _rag_context_token_fill_ratio: float = PrivateAttr()
     _similarity_threshold: Optional[float] = PrivateAttr()
 
     def __init__(
         self,
+        rag_context_token_fill_ratio: float,
         llm: Optional[LLM] = None,
         max_tokens: Optional[int] = None,
-        response_token_buffer: Optional[int] = None,
         similarity_threshold: Optional[float] = None,
     ) -> None:
         llm = llm or Settings.llm
@@ -46,13 +51,11 @@ class ContextSelectionProcessor(BaseNodePostprocessor):
             llm=llm,
         )
 
+        self._rag_context_token_fill_ratio = rag_context_token_fill_ratio
+
         # Use the passed in max_tokens or the context window size if not provided
         self._max_tokens = (
             max_tokens or llm.metadata.context_window
-        )
-
-        self._response_token_buffer = (
-            response_token_buffer or DEFAULT_RESPONSE_TOKEN_BUFFER
         )
 
         self._similarity_threshold = (
@@ -73,15 +76,16 @@ class ContextSelectionProcessor(BaseNodePostprocessor):
         if len(nodes) == 0:
             return []
 
-        query_token_aproximation = int(len(query_bundle.query_str) / 3) if query_bundle.query_str else 0
+        query_token_aproximation = self.llm.count_tokens(query_bundle.query_str)
         # Total tokens available for context after accounting only for query
         available_tokens_for_context = self.llm.metadata.context_window - query_token_aproximation - ADDITION_PROMPT_TOKENS
-
-        # max_tokens can be equal to the context window size, so we need to account for the response token buffer.
-        # we handle updating the max_tokens value we send to the LLM in our inference code.
-        available_tokens_for_context -= min(self._max_tokens, self._response_token_buffer)
+        # Take the lesser of the max_tokens param and available context
+        available_tokens_for_context = min(self._max_tokens, available_tokens_for_context)
+        # Apply the RAG context fill ratio
+        available_tokens_for_context = int(available_tokens_for_context * self._rag_context_token_fill_ratio)
 
         if available_tokens_for_context <= 0:
+            logger.warning("No available tokens for context after accounting for query and addition prompt.")
             return []
 
         # the scores from faiss are distances and we want to rerank based on relevance
@@ -93,11 +97,12 @@ class ContextSelectionProcessor(BaseNodePostprocessor):
             if self._similarity_threshold is not None and node.score > self._similarity_threshold:
                 continue
 
-            node_token_approximation = int(len(node.node.get_text()) / 3) if node.node.get_text() else 0
+            node_token_approximation = self.llm.count_tokens(node.text)
             if node_token_approximation > available_tokens_for_context:
                 continue
 
             available_tokens_for_context -= node_token_approximation
             result.append(node)
 
+        logger.info(f"Selected {len(result)} nodes out of {len(nodes)} based on context window and similarity threshold.")
         return result

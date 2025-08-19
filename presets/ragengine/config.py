@@ -77,3 +77,11 @@ LLM_CONTEXT_WINDOW = int(
 # Vector database configuration
 VECTOR_DB_IMPLEMENTATION = os.getenv("VECTOR_DB_IMPLEMENTATION", "faiss")
 DEFAULT_VECTOR_DB_PERSIST_DIR = os.getenv("DEFAULT_VECTOR_DB_PERSIST_DIR", "storage")
+
+"""
+=========================================================================
+"""
+
+# RAG configurations
+RAG_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", 0.85))
+RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO = float(os.getenv("RAG_CONTEXT_TOKEN_FILL_RATIO", 0.5))

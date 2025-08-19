@@ -184,7 +184,6 @@ class BaseVectorStoreTest(ABC):
                 "messages": [
                     {"role": "user", "content": "What is the first document?"}
                 ],
-                "top_k": 1,
                 "temperature": 0.7,
                 "max_tokens": 100,
             }
@@ -192,7 +191,7 @@ class BaseVectorStoreTest(ABC):
 
         assert chat_results is not None
         assert chat_results.source_nodes is not None
-        assert len(chat_results.source_nodes) == 1
+        assert len(chat_results.source_nodes) == 2
         assert chat_results.source_nodes[0].text == "First document"
         assert chat_results.source_nodes[0].doc_id == index_doc_resp[0]
         assert chat_results.id is not None

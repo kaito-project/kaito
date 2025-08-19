@@ -252,7 +252,6 @@ async def index_documents(request: IndexRequest):
     {
       "index_name": "example_index",
       "query": "What is RAG?",
-      "top_k": 5,
       "llm_params": {"temperature": 0.7, "max_tokens": 2048},
       "rerank_params": {"top_n": 3}  # ⚠️ Experimental Feature
     }
@@ -348,8 +347,7 @@ async def query_index(request: QueryRequest):
       ],
       "temperature": 0.7,
       "max_tokens": 2048,
-      "top_k": 5,
-      "rerank_params": {"top_n": 3}
+      "context_token_ratio": 0.5
     }
     ```
 

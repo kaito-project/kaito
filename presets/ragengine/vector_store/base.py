@@ -33,7 +33,7 @@ from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
 from pydantic import ValidationError
 
-from ragengine.config import LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N
+from ragengine.config import LLM_RERANKER_BATCH_SIZE, LLM_RERANKER_TOP_N, RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
 from ragengine.models import ChatCompletionResponse, Document, messages_to_prompt
@@ -251,6 +251,9 @@ class BaseVectorStore(ABC):
                 detail=f"No such index: '{request.get('index_name')}' exists.",
             )
 
+        if request.get("context_token_ratio") and (request.get("context_token_ratio") < 0.2 or request.get("context_token_ratio") > 0.8):
+            raise HTTPException(status_code=400, detail=f"Invalid context_token_ratio: {request.get('context_token_ratio')}. Must be between 0.2 and 0.8.")
+
         llm_params = {}
         if request.get("model") is not None:
             llm_params["model"] = request.get("model")
@@ -343,18 +346,31 @@ class BaseVectorStore(ABC):
                         detail="Invalid request format: user messages must contain 'content'.",
                     )
 
+        max_tokens = request.get("max_tokens")
         prompt = messages_to_prompt(request.get("messages", []))
+        prompt_len = self.llm.count_tokens(prompt)
+        if prompt_len > self.llm.metadata.context_window:
+            logger.error(f"Prompt length ({prompt_len}) exceeds context window ({self.llm.metadata.context_window}).")
+            raise HTTPException(status_code=400, detail=f"Prompt length exceeds context window.")
+
+        if max_tokens and max_tokens > self.llm.metadata.context_window - prompt_len:
+            # max_tokens is greater than the available tokens
+            # this edit will make sure we dont add more context in the rag than we should
+            # we also handle updating the max_tokens within the inference code before shipping to LLM based off added context
+            logger.warning(f"max_tokens ({max_tokens}) is greater than available context after prompt consideration. Setting to {self.llm.metadata.context_window - prompt_len}.")
+            max_tokens = self.llm.metadata.context_window - prompt_len
 
         logger.info(
             f"Creating chat engine for index '{request.get('index_name')}' with prompt: {prompt}"
         )
         chat_engine = self.index_map[request.get("index_name")].as_chat_engine(
             llm=self.llm,
-            similarity_top_k=request.get("top_k", 5),
+            similarity_top_k=100, # Might want to make this a function of avg doc node size in an index but this should be a wide enough default
             chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
             verbose=True,
             node_postprocessors=[
                 ContextSelectionProcessor(
+                    rag_context_token_fill_ratio=request.get("context_token_ratio", RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO),
                     llm=self.llm,
                     max_tokens=request.get("max_tokens"),
                     similarity_threshold=0.8

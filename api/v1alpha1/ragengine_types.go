@@ -62,7 +62,17 @@ type InferenceServiceSpec struct {
 	// AccessSecret is the name of the secret that contains the service access token.
 	// +optional
 	AccessSecret string `json:"accessSecret,omitempty"`
-	// ContextWindowSize is the context window size for the inference service.
+	// ContextWindowSize defines the maximum number of tokens that can be sent to the LLM in a single request.
+	// This value is critical for accurately managing how much of the original query and supporting documents
+	// (retrieved via RAG) can be included in the prompt without exceeding the model's input limit.
+	//
+	// It is used to determine how much space is available for retrieved documents after accounting for the query,
+	// system prompts, formatting tokens, and any other fixed prompt components.
+	//
+	// Setting this value correctly is essential for ensuring that the RAG system does not truncate important
+	// context or exceed model limits, which can lead to degraded response quality or inference errors.
+	//
+	// Must match the token limit of the LLM backend being used (e.g., 8K, 16K, 32K tokens).
 	ContextWindowSize int `json:"contextWindowSize,omitempty"`
 }
 

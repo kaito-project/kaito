@@ -107,17 +107,10 @@ def detect_changes_in_yaml(yaml_main, yaml_pr):
 
 def models_to_build(files_changed):
     """Models to build based on changed files."""
-    models, seen_model_types = set(), set()
+    models = set()
     if supp_models_yaml in files_changed:
         yaml_main = get_yaml_from_branch("main", supp_models_yaml)
         models.update(detect_changes_in_yaml(yaml_main, YAML_PR))
-    for model, model_info in MODELS.items():
-        if model_info["type"] not in seen_model_types and any(
-            file.startswith(f"presets/workspace/inference/{model_info['type']}")
-            for file in files_changed
-        ):
-            models.add(model)
-            seen_model_types.add(model_info["type"])
     return list(models)
 
 

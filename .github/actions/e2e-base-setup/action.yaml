@@ -114,11 +114,32 @@ runs:
       run: |
         make generate
 
+    - name: build KAITO base image
+      shell: bash
+      if: ${{ inputs.build_kaito_base_image == 'true' }}
+      run: |
+        docker buildx build \
+          --builder img-builder \
+          --build-arg VERSION=$VERSION \
+          --build-arg MODEL_TYPE=text-generation \
+          --output type=image,name=$REGISTRY/kaito-base:$VERSION,push=true,compression=zstd \
+          -f ./docker/presets/models/tfs/Dockerfile .
+
+        # Override base image properties in supported_models.yaml for testing purposes.
+        # The updated supported_models.yaml will be read by the Workspace controller via
+        # go:embed in presets/workspace/models/metadata.go.
+        yq '(.models[0].registry = "${{ env.REGISTRY }}")' -i presets/workspace/models/supported_models.yaml
+        yq '(.models[0].tag = "${{ env.VERSION }}")' -i presets/workspace/models/supported_models.yaml
+
+        cat presets/workspace/models/supported_models.yaml
+
     - name: build KAITO image
       if: ${{ inputs.isRelease == 'false' }}
       shell: bash
       run: |
         make docker-build-workspace
+      env:
+        ARCH: amd64
 
     - name: create cluster
       shell: bash

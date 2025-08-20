@@ -90,7 +90,7 @@ class KAITOArgumentParser(argparse.ArgumentParser):
         engine_default_args = {
             "model": "/workspace/vllm/weights",
             "cpu_offload_gb": 0,
-            "gpu_memory_utilization": 0.95,
+            "gpu_memory_utilization": get_max_gpu_memory_utilization(),
             "swap_space": 4,
             "disable_log_stats": False,
             "uvicorn_log_level": "error",
@@ -291,6 +291,24 @@ def try_get_max_available_seq_len(args: argparse.Namespace) -> int | None:
         return None
 
 
+def get_max_gpu_memory_utilization() -> float:
+    # Derive an optimal gpu_memory_utilization from the current CUDA free/total
+    # bytes on the active device. This caps vLLM's GPU usage to what is actually
+    # available at runtime (accounting for driver/context/other processes) to reduce
+    # OOM risk during inference. Floor to 2 decimals to avoid rounding
+    # up. See https://github.com/kaito-project/kaito/issues/1374.
+    free_memory, total_memory = torch.cuda.mem_get_info()
+
+    # Reserve 1.5 GiB for vLLM runtime overhead to prevent OOM errors during initialization.
+    # This buffer is critical for smaller GPUs (e.g. A10) where memory margins are tight.
+    free_memory -= 1.5 * 1024**3
+
+    # Cap GPU memory utilization to 0.95 to preserve old behavior
+    gpu_memory_utilization = min(0.95, round(free_memory / total_memory, 2))
+    logger.info(f"Set default gpu_memory_utilization to {gpu_memory_utilization}")
+    return gpu_memory_utilization
+
+
 def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
     """
     Set KV cache offloading to CPU RAM if applicable.
@@ -318,10 +336,14 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
             psutil.virtual_memory().total - psutil.virtual_memory().used
         ) / (1024**3)
         logger.info(
-            f"VLLM_USE_V1 is set, Offload KV cache to CPU RAM, size limit: {available_memory_gb} * {args.kaito_kv_cache_cpu_memory_utilization} GB"
+            f"VLLM_USE_V1 is set, Offload KV cache to CPU RAM, size limit: {available_memory_gb} * {args.kaito_kv_cache_cpu_memory_utilization} GB split among {args.tensor_parallel_size} GPUs"
         )
+
+        # When using tensor parallelism, the KV cache CPU memory allocation must be divided evenly
+        # across all GPUs. Each GPU should only allocate its portion (1/tensor_parallel_size) of the
+        # total available CPU memory to prevent OOM.
         os.environ["LMCACHE_MAX_LOCAL_CPU_SIZE"] = (
-            f"{available_memory_gb * args.kaito_kv_cache_cpu_memory_utilization}"
+            f"{available_memory_gb * args.kaito_kv_cache_cpu_memory_utilization / args.tensor_parallel_size}"
         )
 
         if args.kv_transfer_config is None:

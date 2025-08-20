@@ -15,6 +15,8 @@ package utils
 
 import (
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -58,6 +60,8 @@ func GetClusterClient(cluster *Cluster) {
 	utilruntime.Must(kaitoutils.KarpenterSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(azurev1alpha2.SchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(helmv2.AddToScheme(scheme))
+	utilruntime.Must(sourcev1.AddToScheme(scheme))
 
 	restConfig := config.GetConfigOrDie()
 
@@ -68,5 +72,4 @@ func GetClusterClient(cluster *Cluster) {
 
 	cluster.DynamicClient, err = dynamic.NewForConfig(restConfig)
 	gomega.Expect(err).Should(gomega.Succeed(), "Failed to set up Dynamic Client")
-
 }

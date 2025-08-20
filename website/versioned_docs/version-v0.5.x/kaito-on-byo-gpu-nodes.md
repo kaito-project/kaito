@@ -210,7 +210,7 @@ EOF
 ```
 
 :::note
-In the above configuration you can see we have use a node labelSelector value as `apps: gpu`, this is the same label we have applied when we added the GPU node pool earlier.
+In the above configuration you can see we have used a node labelSelector value as `apps: gpu`, this is the same label we have applied when we added the GPU node pool earlier.
 :::
 
 Ensure that the workspace is ready by running the following command:
@@ -240,7 +240,7 @@ export CLUSTERIP=$(kubectl get \
 Let's send a request to the workspace to get an inference response. Modify the prompt as you see fit:
 
 ```bash
-export QUESTION="What's are LLMs?"
+export QUESTION="What are LLMs?"
 ```
 
 Run the following command to send the request:

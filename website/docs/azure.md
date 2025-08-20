@@ -8,7 +8,7 @@ This guide covers setting up auto-provisioning capabilities for KAITO on Azure K
 
 - An AKS cluster with KAITO workspace controller installed
   - See [Step 1](#step-1-create-and-configure-an-aks-cluster) to create an AKS cluster
-  - See [Installation](installation) to installing the KAITO workspace controller
+  - See [Installation](installation) to install the KAITO workspace controller
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) for managing Azure resources
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) configured to access your AKS cluster
 
@@ -32,7 +32,7 @@ Choose auto-provisioning when:
 Alternative: If you already have GPU nodes or manage them separately, use the [preferred nodes approach](quick-start#option-1-using-preferred-nodes-existing-gpu-nodes) instead.
 :::
 
-## Setup Auto-Provisioning
+## Set Up Auto-Provisioning
 
 ### Step 1: Create and configure an AKS Cluster
 

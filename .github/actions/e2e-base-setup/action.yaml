@@ -26,7 +26,7 @@ inputs:
   k8s_version:
     description: "Kubernetes version"
     required: false
-    default: "1.30.0"
+    default: "1.31.10"
 
 outputs:
   cluster_name:
@@ -166,6 +166,7 @@ runs:
         REGISTRY: ${{ env.REGISTRY }}
         VERSION: ${{ env.VERSION }}
         TEST_SUITE: ${{ inputs.node_provisioner }}
+        HELM_INSTALL_EXTRA_ARGS: "--set featureGates.gatewayAPIInferenceExtension=true"
 
     - name: Set up E2E ACR Credentials and Secret
       shell: bash

@@ -366,7 +366,7 @@ POST /v1/chat/completions
   ],
   "temperature": 0.7,
   "max_tokens": 2048,
-  "top_k": 5
+  "context_token_ratio": 0.5
 }
 ```
 
@@ -375,7 +375,7 @@ POST /v1/chat/completions
 - `messages`: Array of message objects with `role` and `content` fields.
 - `temperature`: (optional) Controls randomness in the response (0.0 to 1.0).
 - `max_tokens`: (optional) Maximum number of tokens to generate.
-- `top_k`: (optional) Number of top documents to retrieve from the index.
+- `context_token_ratio`: (optional) The percentage of tokens from the available context to add documents from the RAG. If the `max_tokens` parameter is used, the amount of tokens filled with RAG documents will be ~= `max_tokens * context_token_ratio`. If not, the amount of tokens filled with RAG documents will be ~= `(llm_context_window_size - prompt_token_count) * context_token_ratio`
 
 ### Chat Completions Response
 

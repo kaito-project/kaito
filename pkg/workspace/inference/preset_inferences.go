@@ -41,20 +41,17 @@ import (
 
 const (
 	ProbePath = "/health"
-
-	// PortInferenceServer is the default port for the inference server.
-	PortInferenceServer = 5000
 )
 
 var (
 	containerPorts = []corev1.ContainerPort{{
-		ContainerPort: int32(PortInferenceServer),
+		ContainerPort: int32(consts.PortInferenceServer),
 	}}
 
 	defaultLivenessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt(PortInferenceServer),
+				Port: intstr.FromInt32(consts.PortInferenceServer),
 				Path: ProbePath,
 			},
 		},
@@ -65,7 +62,7 @@ var (
 	defaultReadinessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt(PortInferenceServer),
+				Port: intstr.FromInt32(consts.PortInferenceServer),
 				Path: ProbePath,
 			},
 		},
@@ -141,6 +138,8 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	gpuConfig := getGPUConfig(gctx)
 	// initially respect the user setting by deploying the model on the same number of nodes as the user requested
+
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
 	numNodes := *workspaceObj.Resource.Count
 	// if gpu mem is known, we can setup the distributed correctly
 	if gpuConfig.GPUMemGB > 0 && gpuConfig.GPUCount > 0 {
@@ -265,7 +264,7 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	case probeTypeLiveness:
 		args["ray-port"] = strconv.Itoa(pkgmodel.PortRayCluster)
 	case probeTypeReadiness:
-		args["vllm-port"] = strconv.Itoa(PortInferenceServer)
+		args["vllm-port"] = strconv.FormatInt(int64(consts.PortInferenceServer), 10)
 	}
 
 	// for distributed inference, we cannot use the default http probe since only the leader pod

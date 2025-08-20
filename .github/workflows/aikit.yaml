@@ -1,0 +1,207 @@
+name: AIKit Integration Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      aikit_image:
+        description: 'AIKit container image to test'
+        required: false
+        default: 'ghcr.io/kaito-project/aikit/llama3.2:1b'
+        type: string
+  pull_request:
+    branches:
+      - main
+
+env:
+  KIND_VERSION: "0.29.0"
+  KUBECTL_VERSION: "1.33.0"
+  AIKIT_IMAGE: ${{ github.event.inputs.aikit_image || 'ghcr.io/kaito-project/aikit/llama3.2:1b' }}
+  KAITO_NAMESPACE: "kaito-system"
+
+jobs:
+  aikit-integration-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install kind
+        run: |
+          curl -Lo ./kind "https://github.com/kubernetes-sigs/kind/releases/download/v${{ env.KIND_VERSION }}/kind-linux-amd64"
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+
+      - name: Install Helm
+        uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4.3.0
+
+      - name: Create kind cluster
+        run: |
+          cat << EOF > kind-config.yaml
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          name: kaito
+          nodes:
+          - role: control-plane
+            kubeadmConfigPatches:
+            - |
+              kind: InitConfiguration
+              nodeRegistration:
+                kubeletExtraArgs:
+                  node-labels: "apps=aikit-test"
+          EOF
+          kind create cluster --config kind-config.yaml
+          kubectl cluster-info
+
+      - name: Build workspace controller
+        run: |
+          # Use the docker-build-workspace target with local configuration
+          make docker-build-workspace
+
+          # Load into kind cluster
+          kind load docker-image local/workspace:test --name kaito
+        env:
+          REGISTRY: "local"
+          IMG_NAME: "workspace"
+          IMG_TAG: "test"
+          OUTPUT_TYPE: "type=docker"
+          ARCH: "amd64"
+
+      - name: Deploy KAITO workspace controller
+        run: |
+          # Update the Helm values with our local image
+          yq -i '(.image.repository) = "local/workspace"' ./charts/kaito/workspace/values.yaml
+          yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
+
+          kubectl create namespace ${{ env.KAITO_NAMESPACE }}
+
+          # Install via Helm
+          # CSI Local Node cannot be configured to not deploy and it crashes on kind on github runners for unknown reasons
+          # so we need to filter it out its components
+          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --include-crds --debug --wait | awk '
+            BEGIN { RS="---\n"; ORS="---\n"; csi=0 }
+            /kind: ServiceAccount/ && /name: csi-local-node/ { csi=1 }
+            /kind: StorageClass/ && /name: kaito-local-nvme-disk/ { csi=1 }
+            /kind: ClusterRole/ && /name: csi-local-node-role/ { csi=1 }
+            /kind: ClusterRoleBinding/ && /name: csi-local-node-binding/ { csi=1 }
+            /kind: DaemonSet/ && /name: csi-local-node/ { csi=1 }
+            !csi { print }
+            { csi=0 }
+          ' | kubectl apply -f -
+
+          # Wait for controller to be ready
+          kubectl wait --for=condition=available --timeout=300s deployment/kaito-workspace -n ${{ env.KAITO_NAMESPACE }}
+
+      - name: Create AIKit workspace
+        run: |
+          cat << EOF > aikit-workspace.yaml
+          apiVersion: kaito.sh/v1beta1
+          kind: Workspace
+          metadata:
+            name: workspace-aikit-test
+          resource:
+            labelSelector:
+              matchLabels:
+                apps: aikit-test
+            preferredNodes:
+              - kaito-control-plane
+          inference:
+            template:
+              spec:
+                containers:
+                  - name: aikit-llama
+                    image: ${{ env.AIKIT_IMAGE }}
+                    args:
+                      - "run"
+                      - "--address=:5000"
+          EOF
+          kubectl apply -f aikit-workspace.yaml
+
+      - name: Wait for inference to be ready
+        run: |
+          echo "Waiting for inference to be ready..."
+          kubectl wait --for='jsonpath={.status.conditions[?(@.type=="InferenceReady")].status}=True' workspace/workspace-aikit-test --timeout 300s
+
+      - name: Validate response content
+        run: |
+          # Set up port forwarding to the workspace service
+          echo "Setting up port forwarding..."
+          kubectl port-forward service/workspace-aikit-test 8080:80 &
+          PORT_FORWARD_PID=$!
+
+          # Wait for port-forward to be ready
+          sleep 5
+
+          # Test that we get expected model information
+          echo 'Validating model response contains expected data...'
+          MODELS_RESPONSE=$(curl -s http://localhost:8080/v1/models)
+          echo "Models response: $MODELS_RESPONSE"
+
+          # Extract the first model name from the response
+          MODEL_NAME=$(echo "$MODELS_RESPONSE" | jq -r '.data[0].id')
+          echo "Extracted model name: $MODEL_NAME"
+
+          # Check if response contains 'llama'
+          if echo "$MODELS_RESPONSE" | grep -i 'llama'; then
+            echo 'Model response validation passed!'
+          else
+            echo 'Model response validation failed - no llama model found'
+            kill $PORT_FORWARD_PID
+            exit 1
+          fi
+
+          echo 'Testing completion response...'
+          COMPLETION_RESPONSE=$(curl -s -X POST \
+            -H 'Content-Type: application/json' \
+            -d "{
+              \"model\": \"$MODEL_NAME\",
+              \"messages\": [{\"role\": \"user\", \"content\": \"hello\"}]
+            }" \
+            http://localhost:8080/v1/chat/completions)
+          echo "Completion response: $COMPLETION_RESPONSE"
+
+          # Check if we get some response with expected fields
+          if echo "$COMPLETION_RESPONSE" | jq -e '(type=="object" and has("choices") and has("usage"))'; then
+            echo 'Completion response validation passed!'
+          else
+            echo 'Completion response validation failed - missing expected fields'
+            kill $PORT_FORWARD_PID
+            exit 1
+          fi
+
+          # Clean up port forwarding
+          kill $PORT_FORWARD_PID
+          echo 'Validation completed successfully!'
+
+      - name: Debug info
+        if: always()
+        run: |
+          echo "=== Workspace Status ==="
+          kubectl get workspace workspace-aikit-test -o yaml
+
+          echo "=== Workspace events ==="
+          kubectl describe workspace workspace-aikit-test
+
+          echo "=== Pods ==="
+          kubectl get pods -A -o wide
+
+          echo "=== Services ==="
+          kubectl get services workspace-aikit-test -o yaml
+
+          echo "=== Pod events ==="
+          kubectl describe pods -l kaito.sh/workspace=workspace-aikit-test
+
+          echo "=== Inference Pod Logs ==="
+          kubectl logs -l kaito.sh/workspace=workspace-aikit-test --tail=-1
+
+          echo "=== Controller logs ==="
+          kubectl logs -l app.kubernetes.io/name=workspace -n ${{ env.KAITO_NAMESPACE }} --tail=-1
+
+          echo "=== Node information ==="
+          kubectl describe nodes

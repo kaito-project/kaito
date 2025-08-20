@@ -12,19 +12,25 @@
 # limitations under the License.
 
 
-import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1" # Force CPU-only execution for testing
-os.environ["OMP_NUM_THREADS"] = "1" # Force single-threaded for testing to prevent segfault while loading embedding model
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Force CPU-only execution for testing
+# Force single-threaded for testing to prevent segfault while loading embedding model
+os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"  # Force MKL to use a single thread
 
-import nest_asyncio
 import asyncio
-import pytest_asyncio
+
 import httpx
+import nest_asyncio
+import pytest_asyncio
+
 from ragengine.main import app, vector_store_handler
+
 nest_asyncio.apply()
+
 
 @pytest_asyncio.fixture
 async def async_client():
@@ -32,11 +38,13 @@ async def async_client():
     async with httpx.AsyncClient(app=app, base_url="http://localhost") as client:
         yield client
 
+
 @pytest_asyncio.fixture(scope="session")
 def event_loop():
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
+
 
 @pytest_asyncio.fixture(autouse=True)
 def clear_index():

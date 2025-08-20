@@ -52,12 +52,12 @@ You need to create GPU nodes in order to run a Workspace with KAITO. There are t
 ### Option 1: Bring your own GPU nodes
 
 :::tip
-This is recommended if you just want to try KAITO with the least amount of setup required or if you only plan to use 1-2 GPU nodes. If your cloud provider is not listed in the [Auto-provisioning section](#option-2-auto-provision-gpu-nodes), you must create your own GPU nodes. If it is, you can still manually create the nodes if you don't want to setup auto-provisioning.
+This is recommended if you just want to try KAITO with the least amount of setup required or if you only plan to use 1-2 GPU nodes. If your cloud provider is not listed in the [Auto-provisioning section](#option-2-auto-provision-gpu-nodes), you must create your own GPU nodes. If it is, you can still manually create the nodes if you don't want to set up auto-provisioning.
 :::
 
 Create your GPU nodes and label them for quick access. In these docs, we will use the label `accelerator=nvidia` but any label can work.
 
-List your your GPU nodes and verify that they are all present and ready.
+List your GPU nodes and verify that they are all present and ready.
 
 ```bash
 kubectl get nodes -l accelerator=nvidia

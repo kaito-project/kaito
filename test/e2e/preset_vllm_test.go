@@ -18,11 +18,17 @@ import (
 	"math/rand"
 	"time"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -63,6 +69,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
 	It("should create a single-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
@@ -85,6 +92,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
 	It("should create a multi-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
@@ -109,6 +117,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
 	It("should create a deepseek-distilled-qwen-14b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
@@ -131,6 +140,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
 	It("should create a falcon workspace with preset public mode successfully", func() {
@@ -153,6 +163,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
 	It("should create a mistral workspace with preset public mode successfully", func() {
@@ -175,6 +186,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
 	It("should create a Phi-2 workspace with preset public mode successfully", func() {
@@ -197,6 +209,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
 	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
@@ -219,6 +232,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
 	It("should create a qwen2.5 coder workspace with preset public mode and 2 gpu successfully", func() {
@@ -242,6 +256,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
 	It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelA100Required, func() {
@@ -274,6 +289,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInitContainers(workspaceObj, expectedInitContainers)
 
 		validateAdapterLoadedInVLLM(workspaceObj, phi4AdapterName)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
 	It("should create a llama-3.3-70b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
@@ -298,6 +314,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 })
 
@@ -439,4 +456,49 @@ func createLlama3_3_70BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode in
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
+}
+
+func validateGatewayAPIInferenceExtensionResources(workspaceObj *kaitov1beta1.Workspace) {
+	// Only validate if the Inference Preset is set
+	if workspaceObj.Inference.Preset == nil {
+		return
+	}
+
+	By("Checking Flux OCIRepository is Ready", func() {
+		Eventually(func() bool {
+			ociRepository := &sourcev1.OCIRepository{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      kaitoutils.InferencePoolName(workspaceObj.Name),
+			}, ociRepository, &client.GetOptions{})
+			if err != nil {
+				return false
+			}
+			for _, cond := range ociRepository.Status.Conditions {
+				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
+					return true
+				}
+			}
+			return false
+		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(), "Failed to validate Flux OCIRepository is Ready")
+	})
+
+	By("Checking Flux HelmRelease is Ready", func() {
+		Eventually(func() bool {
+			helmRelease := &helmv2.HelmRelease{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      kaitoutils.InferencePoolName(workspaceObj.Name),
+			}, helmRelease, &client.GetOptions{})
+			if err != nil {
+				return false
+			}
+			for _, cond := range helmRelease.Status.Conditions {
+				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
+					return true
+				}
+			}
+			return false
+		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(), "Failed to validate Flux HelmRelease is Ready")
+	})
 }

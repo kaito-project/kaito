@@ -31,8 +31,10 @@ const (
 	NvidiaGPU                     = "nvidia.com/gpu"
 
 	// Feature flags
-	FeatureFlagVLLM            = "vLLM"
-	FeatureFlagEnsureNodeClass = "ensureNodeClass"
+	FeatureFlagVLLM                         = "vLLM"
+	FeatureFlagEnsureNodeClass              = "ensureNodeClass"
+	FeatureFlagDisableNodeAutoProvisioning  = "disableNodeAutoProvisioning"
+	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
 
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"
@@ -49,6 +51,22 @@ const (
 	GpuSkuPrefix = "Standard_N"
 
 	NodePluginInstallTimeout = 60 * time.Second
+
+	// PortInferenceServer is the default port for the inference server.
+	PortInferenceServer = int32(5000)
+
+	// InferencePoolChartURL is the OCI registry URL for the Gateway API Inference Extension inferencepool chart.
+	InferencePoolChartURL = "oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool"
+
+	// InferencePoolChartVersion is the tag/version of the inferencepool chart to deploy.
+	// MUST KEEP IN SYNC with the version in go.mod.
+	InferencePoolChartVersion = "v0.5.1"
+
+	// GatewayAPIInferenceExtensionImageRepository is the image repository for the Gateway API Inference Extension components.
+	GatewayAPIInferenceExtensionImageRepository = "mcr.microsoft.com/oss/v2/gateway-api-inference-extension"
+
+	// ConditionReady is the condition type for a ready condition.
+	ConditionReady = "Ready"
 )
 
 var (

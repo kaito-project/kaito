@@ -23,7 +23,7 @@ on:
         default: "swedencentral"
       k8s_version:
         type: string
-        default: "1.30.0"
+        default: "1.31.10"
 
 jobs:
   e2e-tests:
@@ -33,7 +33,7 @@ jobs:
     permissions:
       contents: read
       id-token: write # This is required for requesting the JWT
-    
+
     env:
       TEST_SUITE: ${{ inputs.node_provisioner }}
       GO_VERSION: "1.24"
@@ -84,10 +84,10 @@ jobs:
           make docker-build-dataset
         env:
           REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
-      
+
       - name: Remove existing Go modules directory
         run: sudo rm -rf ~/go/pkg/mod
-      
+
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5.5.0
         with:

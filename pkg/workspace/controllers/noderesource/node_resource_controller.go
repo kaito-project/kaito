@@ -190,7 +190,7 @@ func (c *NodeResourceReconciler) getReadyNodesFromNodeClaims(ctx context.Context
 		return nil, fmt.Errorf("failed to get NodeClaims: %w", err)
 	}
 
-	var nodes []*corev1.Node
+	nodes := make([]*corev1.Node, 0, len(nodeClaims))
 
 	// For each NodeClaim, get the corresponding Node
 	for _, nodeClaim := range nodeClaims {
@@ -254,7 +254,7 @@ func (c *NodeResourceReconciler) getReadyNodesMatchingLabelSelector(ctx context.
 	}
 
 	// Filter nodes that are ready
-	var readyNodes []*corev1.Node
+	readyNodes := make([]*corev1.Node, 0, len(nodeList.Items))
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
 
@@ -286,7 +286,7 @@ func (c *NodeResourceReconciler) updateWorkspaceStatusIfNeeded(ctx context.Conte
 	}
 
 	// Extract node names from ready nodes
-	var readyNodeNames []string
+	readyNodeNames := make([]string, 0, len(nodes))
 	for _, node := range nodes {
 		readyNodeNames = append(readyNodeNames, node.Name)
 	}

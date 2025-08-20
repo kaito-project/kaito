@@ -57,7 +57,7 @@ func GetBringYourOwnNodes(ctx context.Context, c client.Client, wObj *kaitov1bet
 	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
 
 	// Filter nodes that are in the preferred nodes list and are ready
-	var availableBYONodes []*corev1.Node
+	availableBYONodes := make([]*corev1.Node, 0, len(nodeList.Items))
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
 

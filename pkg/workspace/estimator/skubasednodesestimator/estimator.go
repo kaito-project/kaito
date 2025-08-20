@@ -17,12 +17,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/samber/lo"
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/samber/lo"
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 type SKUBasedNodesEstimator struct {

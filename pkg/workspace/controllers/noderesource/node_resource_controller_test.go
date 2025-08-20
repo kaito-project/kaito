@@ -449,7 +449,13 @@ func TestNodeResourceReconcilerReconcileComprehensive(t *testing.T) {
 			*ws = *workspace
 		}).Return(nil)
 
-		// Mock GetRequiredNodeClaimsCount call in ensureNvidiaDevicePluginsReady
+		// Mock all NodeList calls (GetBringYourOwnNodes, updateWorkspaceStatusIfNeeded)
+		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+			nodeList := args.Get(1).(*corev1.NodeList)
+			nodeList.Items = []corev1.Node{} // No BYO nodes initially
+		}).Return(nil)
+
+		// Mock all NodeClaim List calls
 		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Run(func(args mock.Arguments) {
 			ncList := args.Get(1).(*karpenterv1.NodeClaimList)
 			ncList.Items = []karpenterv1.NodeClaim{
@@ -491,6 +497,12 @@ func TestNodeResourceReconcilerReconcileComprehensive(t *testing.T) {
 					},
 				},
 			}
+		}).Return(nil)
+
+		// Mock workspace get for status update
+		mockClient.On("Get", mock.IsType(context.Background()), client.ObjectKey{Name: "test-workspace", Namespace: "default"}, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(2).(*kaitov1beta1.Workspace)
+			*ws = *workspace
 		}).Return(nil)
 
 		// Mock status update for GPU capacity not ready
@@ -548,7 +560,30 @@ func TestNodeResourceReconcilerReconcileComprehensive(t *testing.T) {
 			*ws = *workspace
 		}).Return(nil)
 
-		// Mock GetRequiredNodeClaimsCount call
+		// Mock all NodeList calls (GetBringYourOwnNodes, updateWorkspaceStatusIfNeeded)
+		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+			nodeList := args.Get(1).(*corev1.NodeList)
+			nodeList.Items = []corev1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-node",
+						Labels: map[string]string{
+							"kaito.sh/workspace": "test-workspace",
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionTrue,
+							},
+						},
+					},
+				},
+			}
+		}).Return(nil)
+
+		// Mock all NodeClaim List calls
 		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Run(func(args mock.Arguments) {
 			ncList := args.Get(1).(*karpenterv1.NodeClaimList)
 			ncList.Items = []karpenterv1.NodeClaim{
@@ -592,27 +627,10 @@ func TestNodeResourceReconcilerReconcileComprehensive(t *testing.T) {
 			}
 		}).Return(nil)
 
-		// Mock nodes list for updateWorkspaceStatusIfNeeded
-		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-			nodeList := args.Get(1).(*corev1.NodeList)
-			nodeList.Items = []corev1.Node{
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "test-node",
-						Labels: map[string]string{
-							"kaito.sh/workspace": "test-workspace",
-						},
-					},
-					Status: corev1.NodeStatus{
-						Conditions: []corev1.NodeCondition{
-							{
-								Type:   corev1.NodeReady,
-								Status: corev1.ConditionTrue,
-							},
-						},
-					},
-				},
-			}
+		// Mock workspace get for status update
+		mockClient.On("Get", mock.IsType(context.Background()), client.ObjectKey{Name: "test-workspace", Namespace: "default"}, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(2).(*kaitov1beta1.Workspace)
+			*ws = *workspace
 		}).Return(nil)
 
 		// Mock status update for successful completion
@@ -639,6 +657,12 @@ func TestEnsureNvidiaDevicePluginsReady(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource:   kaitov1beta1.ResourceSpec{Count: &[]int{1}[0], InstanceType: "Standard_NC12s_v3"},
 		}
+
+		// Mock GetBringYourOwnNodes call (happens first in GetRequiredNodeClaimsCount)
+		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+			nodeList := args.Get(1).(*corev1.NodeList)
+			nodeList.Items = []corev1.Node{} // No BYO nodes
+		}).Return(nil)
 
 		// Mock failure when listing NodeClaims
 		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(fmt.Errorf("failed to list nodeclaims"))
@@ -748,6 +772,12 @@ func TestEnsureNvidiaDevicePluginsReady(t *testing.T) {
 			Resource:   kaitov1beta1.ResourceSpec{Count: &[]int{1}[0], InstanceType: "Standard_NC12s_v3"},
 		}
 
+		// Mock GetBringYourOwnNodes call (happens first in GetRequiredNodeClaimsCount)
+		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+			nodeList := args.Get(1).(*corev1.NodeList)
+			nodeList.Items = []corev1.Node{} // No BYO nodes
+		}).Return(nil)
+
 		// Mock NodeClaims count
 		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Run(func(args mock.Arguments) {
 			ncList := args.Get(1).(*karpenterv1.NodeClaimList)
@@ -810,6 +840,12 @@ func TestEnsureNvidiaDevicePluginsReady(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource:   kaitov1beta1.ResourceSpec{Count: &[]int{1}[0], InstanceType: "Standard_NC12s_v3"},
 		}
+
+		// Mock GetBringYourOwnNodes call (happens first in GetRequiredNodeClaimsCount)
+		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+			nodeList := args.Get(1).(*corev1.NodeList)
+			nodeList.Items = []corev1.Node{} // No BYO nodes
+		}).Return(nil)
 
 		// Mock NodeClaims count
 		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Run(func(args mock.Arguments) {

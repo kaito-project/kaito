@@ -76,6 +76,16 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             type=float,
             help="KV cache CPU memory utilization.",
         )
+        self.add_argument(
+            "--kaito-kv-cache-max-local-disk-size",
+            type=int,
+            help="KV cache max local disk size in GB.",
+        )
+        self.add_argument(
+            "--kaito-kv-cache-local-disk-path",
+            type=str,
+            help="KV cache local disk path.",
+        )
 
     def _reset_vllm_defaults(self):
         local_rank = int(os.environ.get("LOCAL_RANK", 0))  # Default to 0 if not set
@@ -112,6 +122,14 @@ class KAITOArgumentParser(argparse.ArgumentParser):
                 kaito_args.kaito_kv_cache_cpu_memory_utilization = (
                     file_config.kv_cache_cpu_memory_utilization
                 )
+            if kaito_args.kaito_kv_cache_max_local_disk_size is None:
+                kaito_args.kaito_kv_cache_max_local_disk_size = (
+                    file_config.kv_cache_max_local_disk_size
+                )
+            if kaito_args.kaito_kv_cache_local_disk_path is None:
+                kaito_args.kaito_kv_cache_local_disk_path = (
+                    file_config.kv_cache_local_disk_path
+                )
 
             for key, value in file_config.vllm.items():
                 runtime_args.append(f"--{key}")
@@ -139,6 +157,12 @@ class KaitoConfig:
     # Optional: CPU memory utilization for the vllm engine in kv cache offload mode. (default: 0.5, set to 0 to disable)
     kv_cache_cpu_memory_utilization: float
 
+    # Optional: Max local disk size in GB for the kv cache. (default: 0)
+    kv_cache_max_local_disk_size: int
+
+    # Optional: Local disk path for the kv cache. (default: "")
+    kv_cache_local_disk_path: str
+
     @staticmethod
     def from_yaml(yaml_file: str) -> "KaitoConfig":
         with open(yaml_file) as file:
@@ -149,6 +173,10 @@ class KaitoConfig:
             kv_cache_cpu_memory_utilization=config_data.get(
                 "kv_cache_cpu_memory_utilization", 0.5
             ),
+            kv_cache_max_local_disk_size=config_data.get(
+                "kv_cache_max_local_disk_size", 0
+            ),
+            kv_cache_local_disk_path=config_data.get("kv_cache_local_disk_path", ""),
         )
 
     def to_yaml(self) -> str:
@@ -356,6 +384,20 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
                 "kv_connector": "LMCacheConnectorV1",
                 "kv_role": "kv_both",
             }
+
+        if (
+            args.kaito_kv_cache_local_disk_path != ""
+            and args.kaito_kv_cache_max_local_disk_size > 0
+        ):
+            logger.info(
+                f"Offload KV cache to local disk, path: {args.kaito_kv_cache_local_disk_path}, size limit: {args.kaito_kv_cache_max_local_disk_size} GB"
+            )
+            os.environ["LMCACHE_USE_EXPERIMENTAL"] = "True"
+            os.environ["LMCACHE_LOCAL_DISK"] = args.kaito_kv_cache_local_disk_path
+            os.environ["LMCACHE_MAX_LOCAL_DISK_SIZE"] = str(
+                args.kaito_kv_cache_max_local_disk_size
+            )
+            os.environ["LMCACHE_EXTRA_CONFIG"] = '{"use_odirect": True}'
     else:
         logger.info(
             "VLLM_USE_V1 or kv_cache_cpu_memory_utilization is not set, do not use KV cache offload to CPU RAM."

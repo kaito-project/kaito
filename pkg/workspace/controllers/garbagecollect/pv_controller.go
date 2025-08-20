@@ -178,6 +178,7 @@ func (c *PersistentVolumeGCReconciler) SetupWithManager(mgr ctrl.Manager) error 
 	c.Recorder = mgr.GetEventRecorderFor("PersistentVolumeGCController")
 
 	builder := ctrl.NewControllerManagedBy(mgr).
+		Named("PersistentVolumeGCController").
 		For(&corev1.PersistentVolume{}, builder.WithPredicates(storageClassFilter())).
 		Watches(&corev1.PersistentVolumeClaim{}, PVCToPVMapFunc).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})

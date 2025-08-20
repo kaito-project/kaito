@@ -696,6 +696,7 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("Workspace")
 
 	builder := ctrl.NewControllerManagedBy(mgr).
+		Named("WorkspaceController").
 		For(&kaitov1beta1.Workspace{}).
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.ControllerRevision{}).

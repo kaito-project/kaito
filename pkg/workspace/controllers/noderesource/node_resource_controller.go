@@ -383,6 +383,7 @@ func (c *NodeResourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Client = mgr.GetClient()
 
 	builder := ctrl.NewControllerManagedBy(mgr).
+		Named("NodeResourceController").
 		For(&kaitov1beta1.Workspace{}).
 		Watches(&karpenterv1.NodeClaim{},
 			handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {

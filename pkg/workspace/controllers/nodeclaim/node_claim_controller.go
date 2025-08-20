@@ -54,7 +54,7 @@ type NodeClaimReconciler struct {
 func NewNodeClaimReconciler() *NodeClaimReconciler {
 	return &NodeClaimReconciler{
 		Estimator:    &skubasednodesestimator.SKUBasedNodesEstimator{},
-		logger:       klog.NewKlogr().WithName("WorkspaceController"),
+		logger:       klog.NewKlogr().WithName("NodeClaim"),
 		expectations: utils.NewControllerExpectations(),
 	}
 }

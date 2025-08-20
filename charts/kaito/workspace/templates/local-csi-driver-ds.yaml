@@ -193,6 +193,7 @@ spec:
         - --trace-sample-rate=1000000
         - --trace-service-id=$(POD_NAME)
         - --v=2
+        - --enable-cleanup=true
         command:
         - /local-csi-driver
         env:
@@ -208,7 +209,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.3"
+        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.4"
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:

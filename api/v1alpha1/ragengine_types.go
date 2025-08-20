@@ -62,7 +62,7 @@ type InferenceServiceSpec struct {
 	// AccessSecret is the name of the secret that contains the service access token.
 	// +optional
 	AccessSecret string `json:"accessSecret,omitempty"`
-	// ContextWindowSize defines the maximum number of tokens that can be sent to the LLM in a single request.
+	// ContextWindowSize defines the combined maximum of input and output tokens that can be handled by the LLM in a single request.
 	// This value is critical for accurately managing how much of the original query and supporting documents
 	// (retrieved via RAG) can be included in the prompt without exceeding the model's input limit.
 	//

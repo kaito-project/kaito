@@ -56,7 +56,6 @@ var (
 	}
 	deepseekLlama8bRunParamsVLLM = map[string]string{
 		"dtype":            "float16",
-		"enable-reasoning": "",
 		"reasoning-parser": "deepseek_r1",
 	}
 	deepseekQwen14bRunParams = map[string]string{
@@ -65,7 +64,6 @@ var (
 	}
 	deepseekQwen14bRunParamsVLLM = map[string]string{
 		"dtype":            "float16",
-		"enable-reasoning": "",
 		"reasoning-parser": "deepseek_r1",
 	}
 	deepseekR1RunParams = map[string]string{
@@ -74,7 +72,6 @@ var (
 		"allow_remote_files": "",
 	}
 	deepseekR1RunParamsVLLM = map[string]string{
-		"enable-reasoning":        "",
 		"reasoning-parser":        "deepseek_r1",
 		"chat-template":           "/workspace/chat_templates/tool-chat-deepseekr1.jinja",
 		"tool-call-parser":        "deepseek_v3",

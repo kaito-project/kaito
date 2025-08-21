@@ -22,14 +22,18 @@ import (
 	"strings"
 
 	"github.com/distribution/reference"
+	"github.com/samber/lo"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -59,12 +63,40 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "name"))
 	}
 
-	// Check if node auto-provisioning is disabled and validate preferred nodes
+	if k8sclient.Client == nil {
+		errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
+		return errs
+	}
+
+	nodeList := &corev1.NodeList{}
+	err := k8sclient.Client.List(ctx, nodeList, client.MatchingLabels(w.Resource.LabelSelector.MatchLabels))
+	if err != nil {
+		errs = errs.Also(apis.ErrGeneric("Failed to list nodes"))
+		return errs
+	}
+
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		if len(w.Resource.PreferredNodes) < *w.Resource.Count {
-			errs = errs.Also(apis.ErrInvalidValue(
-				fmt.Sprintf("When node auto-provisioning is disabled, the number of preferred nodes (%d) must be at least the required amount (%d) set in count",
-					len(w.Resource.PreferredNodes), *w.Resource.Count), "preferredNodes"))
+		numReady := 0
+		for _, node := range nodeList.Items {
+			if nodeIsReadyAndNotDeleting(node) {
+				numReady++
+			}
+		}
+
+		if numReady < *w.Resource.Count {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Not enough ready nodes available: %d/%d", numReady, *w.Resource.Count)))
+		}
+	} else {
+		if w.Resource.InstanceType == "" {
+			errs = errs.Also(apis.ErrMissingField("InstanceType"))
+			return errs
+		}
+
+		// Check that `node.kubernetes.io/instance-type` matches instance type.
+		for _, node := range nodeList.Items {
+			if node.Labels["node.kubernetes.io/instance-type"] != w.Resource.InstanceType {
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Node %s instance type %s does not match Resource.InstanceType %s", node.Name, node.Labels["node.kubernetes.io/instance-type"], w.Resource.InstanceType)))
+			}
 		}
 	}
 
@@ -532,4 +564,16 @@ func validateDuplicateName(adapters []AdapterSpec, nameMap map[string]bool) (err
 		}
 	}
 	return errs
+}
+
+func nodeIsReadyAndNotDeleting(node corev1.Node) bool {
+	if node.DeletionTimestamp != nil {
+		return false
+	}
+
+	_, statusRunning := lo.Find(node.Status.Conditions, func(condition corev1.NodeCondition) bool {
+		return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
+	})
+
+	return statusRunning
 }

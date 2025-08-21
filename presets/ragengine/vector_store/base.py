@@ -379,7 +379,7 @@ class BaseVectorStore(ABC):
             max_tokens = self.llm.metadata.context_window - prompt_len
 
         logger.info(
-            f"Creating chat engine for index '{request.get('index_name')}' with prompt: {prompt}"
+            f"Creating chat engine for index '{request.get('index_name')}' with prompt size: {prompt_len}"
         )
         chat_engine = self.index_map[
             request.get("index_name")
@@ -387,7 +387,6 @@ class BaseVectorStore(ABC):
             llm=self.llm,
             similarity_top_k=100,  # Might want to make this a function of avg doc node size in an index but this should be a wide enough default
             chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
-            verbose=True,
             node_postprocessors=[
                 ContextSelectionProcessor(
                     rag_context_token_fill_ratio=request.get(

@@ -36,7 +36,7 @@ func UpdateStatusConditionIfNotMatch(ctx context.Context, c client.Client, wObj 
 		}
 	}
 	klog.InfoS("updateStatusCondition", "workspace", klog.KObj(wObj), "conditionType", cType, "status", cStatus, "reason", cReason, "message", cMessage)
-	cObj := metav1.Condition{
+	condition := metav1.Condition{
 		Type:               string(cType),
 		Status:             cStatus,
 		Reason:             cReason,
@@ -44,11 +44,14 @@ func UpdateStatusConditionIfNotMatch(ctx context.Context, c client.Client, wObj 
 		Message:            cMessage,
 		LastTransitionTime: metav1.Now(),
 	}
-	return UpdateWorkspaceStatus(ctx, c, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, &cObj)
+	return UpdateWorkspaceStatus(ctx, c, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
+		meta.SetStatusCondition(&status.Conditions, condition)
+		return nil
+	})
 }
 
 // UpdateWorkspaceStatus updates the workspace status with the provided condition
-func UpdateWorkspaceStatus(ctx context.Context, c client.Client, name *client.ObjectKey, condition *metav1.Condition) error {
+func UpdateWorkspaceStatus(ctx context.Context, c client.Client, name *client.ObjectKey, modifyFn func(*kaitov1beta1.WorkspaceStatus) error) error {
 	return retry.OnError(retry.DefaultRetry,
 		func(err error) bool {
 			return apierrors.IsServiceUnavailable(err) || apierrors.IsServerTimeout(err) || apierrors.IsTooManyRequests(err) || apierrors.IsConflict(err)
@@ -62,8 +65,10 @@ func UpdateWorkspaceStatus(ctx context.Context, c client.Client, name *client.Ob
 				}
 				return nil
 			}
-			if condition != nil {
-				meta.SetStatusCondition(&wObj.Status.Conditions, *condition)
+			if modifyFn != nil {
+				if err := modifyFn(&wObj.Status); err != nil {
+					return err
+				}
 			}
 			return c.Status().Update(ctx, wObj)
 		})

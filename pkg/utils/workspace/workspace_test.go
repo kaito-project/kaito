@@ -320,7 +320,10 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 
 		ctx := context.Background()
 		key := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-		err := UpdateWorkspaceStatus(ctx, mockClient, key, condition)
+		err := UpdateWorkspaceStatus(ctx, mockClient, key, func(status *kaitov1beta1.WorkspaceStatus) error {
+			meta.SetStatusCondition(&status.Conditions, *condition)
+			return nil
+		})
 
 		assert.NoError(t, err)
 		mockClient.AssertExpectations(t)
@@ -345,7 +348,10 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 
 		ctx := context.Background()
 		key := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-		err := UpdateWorkspaceStatus(ctx, mockClient, key, condition)
+		err := UpdateWorkspaceStatus(ctx, mockClient, key, func(status *kaitov1beta1.WorkspaceStatus) error {
+			meta.SetStatusCondition(&status.Conditions, *condition)
+			return nil
+		})
 
 		assert.NoError(t, err) // Should not return error for NotFound
 		mockClient.AssertExpectations(t)
@@ -368,7 +374,10 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 
 		ctx := context.Background()
 		key := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-		err := UpdateWorkspaceStatus(ctx, mockClient, key, condition)
+		err := UpdateWorkspaceStatus(ctx, mockClient, key, func(status *kaitov1beta1.WorkspaceStatus) error {
+			meta.SetStatusCondition(&status.Conditions, *condition)
+			return nil
+		})
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "network error")
@@ -447,7 +456,10 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 
 		ctx := context.Background()
 		key := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-		err := UpdateWorkspaceStatus(ctx, mockClient, key, condition)
+		err := UpdateWorkspaceStatus(ctx, mockClient, key, func(status *kaitov1beta1.WorkspaceStatus) error {
+			meta.SetStatusCondition(&status.Conditions, *condition)
+			return nil
+		})
 
 		assert.NoError(t, err)
 		mockClient.AssertExpectations(t)
@@ -488,7 +500,10 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 
 		ctx := context.Background()
 		key := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-		err := UpdateWorkspaceStatus(ctx, mockClient, key, condition)
+		err := UpdateWorkspaceStatus(ctx, mockClient, key, func(status *kaitov1beta1.WorkspaceStatus) error {
+			meta.SetStatusCondition(&status.Conditions, *condition)
+			return nil
+		})
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "permanent error")

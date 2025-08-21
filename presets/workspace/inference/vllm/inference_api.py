@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import psutil
+import pynvml
 import torch
 import uvloop
 import vllm.entrypoints.openai.api_server as api_server
@@ -291,20 +292,24 @@ def try_get_max_available_seq_len(args: argparse.Namespace) -> int | None:
         return None
 
 
-def get_max_gpu_memory_utilization() -> float:
-    # Derive an optimal gpu_memory_utilization from the current CUDA free/total
-    # bytes on the active device. This caps vLLM's GPU usage to what is actually
-    # available at runtime (accounting for driver/context/other processes) to reduce
-    # OOM risk during inference. Floor to 2 decimals to avoid rounding
-    # up. See https://github.com/kaito-project/kaito/issues/1374.
-    free_memory, total_memory = torch.cuda.mem_get_info()
+def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
+    # Calculate gpu_memory_utilization based on available GPU memory.
+    # This ensures vLLM only uses currently free memory to avoid OOM errors.
+    # See https://github.com/kaito-project/kaito/issues/1374.
+    pynvml.nvmlInit()
+    handle = pynvml.nvmlDeviceGetHandleByIndex(device_index)
+    info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+    pynvml.nvmlShutdown()
 
-    # Reserve 1.5 GiB for vLLM runtime overhead to prevent OOM errors during initialization.
-    # This buffer is critical for smaller GPUs (e.g. A10) where memory margins are tight.
-    free_memory -= 1.5 * 1024**3
+    # Reserve an additional 600MiB for pytorch memory fragments, calculated based on profiling
+    free_memory = info.free - 600 * 1024**2
 
-    # Cap GPU memory utilization to 0.95 to preserve old behavior
-    gpu_memory_utilization = min(0.95, round(free_memory / total_memory, 2))
+    # Floor to 2 decimal places
+    gpu_memory_utilization = (free_memory * 100 // info.total) / 100
+
+    # The value is capped at 0.95 to maintain compatibility with previous behavior
+    gpu_memory_utilization = min(0.95, gpu_memory_utilization)
+
     logger.info(f"Set default gpu_memory_utilization to {gpu_memory_utilization}")
     return gpu_memory_utilization
 

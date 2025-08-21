@@ -73,7 +73,6 @@ class KAITOArgumentParser(argparse.ArgumentParser):
         self.add_argument(
             "--kaito-kv-cache-cpu-memory-utilization",
             type=float,
-            default=0.5,
             help="KV cache CPU memory utilization.",
         )
 

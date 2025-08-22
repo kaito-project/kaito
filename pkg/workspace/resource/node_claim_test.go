@@ -43,6 +43,9 @@ func TestSyncNodeClaims(t *testing.T) {
 
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+			Resource: kaitov1beta1.ResourceSpec{
+				LabelSelector: &metav1.LabelSelector{},
+			},
 		}
 
 		// Mock GetRequiredNodeClaimsCount to return error
@@ -71,7 +74,7 @@ func TestSyncNodeClaims(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{},
 			},
 			Status: kaitov1beta1.WorkspaceStatus{
@@ -127,6 +130,9 @@ func TestEnsureNodeClaims(t *testing.T) {
 
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+			Resource: kaitov1beta1.ResourceSpec{
+				LabelSelector: &metav1.LabelSelector{},
+			},
 		}
 
 		// Set expectations to not be satisfied
@@ -146,6 +152,9 @@ func TestEnsureNodeClaims(t *testing.T) {
 
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+			Resource: kaitov1beta1.ResourceSpec{
+				LabelSelector: &metav1.LabelSelector{},
+			},
 		}
 
 		// Mock GetBringYourOwnNodes to fail
@@ -173,7 +182,7 @@ func TestEnsureNodeClaims(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{}, // Empty preferred nodes means no BYO nodes when auto provisioning enabled
 			},
 			Status: kaitov1beta1.WorkspaceStatus{
@@ -234,7 +243,7 @@ func TestEnsureNodeClaims(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{}, // Empty preferred nodes
 			},
 			Inference: &kaitov1beta1.InferenceSpec{}, // Add inference spec
@@ -311,6 +320,9 @@ func TestAreNodeClaimsReady(t *testing.T) {
 
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+			Resource: kaitov1beta1.ResourceSpec{
+				LabelSelector: &metav1.LabelSelector{},
+			},
 		}
 
 		// Mock GetBringYourOwnNodes to fail
@@ -347,6 +359,9 @@ func TestAreNodeClaimsReady(t *testing.T) {
 
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+			Resource: kaitov1beta1.ResourceSpec{
+				LabelSelector: &metav1.LabelSelector{},
+			},
 			Status: kaitov1beta1.WorkspaceStatus{
 				Inference: &kaitov1beta1.InferenceStatus{
 					TargetNodeCount: 2,
@@ -405,7 +420,7 @@ func TestAreNodeClaimsReady(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{"ready-node"}, // Include BYO node in preferred nodes
 			},
 			Status: kaitov1beta1.WorkspaceStatus{

@@ -437,30 +437,25 @@ func CheckNodeClass(ctx context.Context, kClient client.Client) error {
 
 // GetBringYourOwnNodes finds all BYO nodes that match the workspace's label selector
 func GetBringYourOwnNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*v1.Node, error) {
-	// List all nodes in the cluster
 	nodeList, err := resources.ListNodes(ctx, c, wObj.Resource.LabelSelector.MatchLabels)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create a set of preferred node names for fast lookup
 	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
 
-	// Filter nodes that are in the preferred nodes list and are ready
 	availableBYONodes := make([]*v1.Node, 0, len(nodeList.Items))
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
 
 		// if node provision is disabled, preferred nodes will be ignored.
 		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-			// Check if this node is in the preferred nodes list
 			if !preferredNodeSet.Has(node.Name) {
 				continue
 			}
 		}
 
-		// Check if the node is ready
-		if !IsNodeReady(node) {
+		if !NodeIsReadyAndNotDeleting(node) {
 			klog.V(4).InfoS("BYO node is not ready, skipping",
 				"node", node.Name,
 				"workspace", klog.KObj(wObj))
@@ -478,15 +473,14 @@ func GetBringYourOwnNodes(ctx context.Context, c client.Client, wObj *kaitov1bet
 	return availableBYONodes, nil
 }
 
-// GetExistingNodeClaims retrieves all NodeClaims associated with the given workspace
+// GetExistingNodeClaims retrieves all NodeClaims(including deleting nodeclaim) associated with the given workspace
 func GetExistingNodeClaims(ctx context.Context, c client.Reader, wObj *kaitov1beta1.Workspace) ([]*karpenterv1.NodeClaim, error) {
 	nodeClaimList := &karpenterv1.NodeClaimList{}
 
-	// List NodeClaims with labels that match this workspace
 	listOpts := []client.ListOption{
-		client.InNamespace(wObj.Namespace),
 		client.MatchingLabels{
-			kaitov1beta1.LabelWorkspaceName: wObj.Name,
+			kaitov1beta1.LabelWorkspaceName:      wObj.Name,
+			kaitov1beta1.LabelWorkspaceNamespace: wObj.Namespace,
 		},
 	}
 
@@ -494,7 +488,6 @@ func GetExistingNodeClaims(ctx context.Context, c client.Reader, wObj *kaitov1be
 		return nil, fmt.Errorf("failed to list NodeClaims: %w", err)
 	}
 
-	// Convert to slice of pointers for easier manipulation
 	nodeClaims := make([]*karpenterv1.NodeClaim, 0, len(nodeClaimList.Items))
 	for i := range nodeClaimList.Items {
 		nodeClaims = append(nodeClaims, &nodeClaimList.Items[i])
@@ -509,13 +502,12 @@ func GetRequiredNodeClaimsCount(ctx context.Context, c client.Client, wObj *kait
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		return 0, nil
 	}
-	// Find available preferred nodes
+
 	availableBYONodes, err := GetBringYourOwnNodes(ctx, c, wObj)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get available BYO nodes: %w", err)
 	}
 
-	// Configure targetNodeCount to 1 for non-inference workloads like tuning job.
 	targetNodeCount := 1
 	if wObj.Inference != nil && wObj.Status.Inference != nil {
 		targetNodeCount = int(wObj.Status.Inference.TargetNodeCount)
@@ -525,11 +517,14 @@ func GetRequiredNodeClaimsCount(ctx context.Context, c client.Client, wObj *kait
 	return max(0, targetNodeCount-len(availableBYONodes)), nil
 }
 
-func IsNodeReady(node *v1.Node) bool {
-	for _, condition := range node.Status.Conditions {
-		if condition.Type == v1.NodeReady {
-			return condition.Status == v1.ConditionTrue
-		}
+func NodeIsReadyAndNotDeleting(node *v1.Node) bool {
+	if node.DeletionTimestamp != nil {
+		return false
 	}
-	return false
+
+	_, statusRunning := lo.Find(node.Status.Conditions, func(condition v1.NodeCondition) bool {
+		return condition.Type == v1.NodeReady && condition.Status == v1.ConditionTrue
+	})
+
+	return statusRunning
 }

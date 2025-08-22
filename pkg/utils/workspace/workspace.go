@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package status
+package workspace
 
 import (
 	"context"
@@ -67,4 +67,18 @@ func UpdateWorkspaceStatus(ctx context.Context, c client.Client, name *client.Ob
 			}
 			return c.Status().Update(ctx, wObj)
 		})
+}
+
+// UpdateWorkspaceWithRetry gets the latest workspace object, applies the modify function, and retries on conflict
+func UpdateWorkspaceWithRetry(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace, modifyFn func(*kaitov1beta1.Workspace) error) error {
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		latestWorkspace := &kaitov1beta1.Workspace{}
+		if err := c.Get(ctx, client.ObjectKeyFromObject(wObj), latestWorkspace); err != nil {
+			return err
+		}
+		if err := modifyFn(latestWorkspace); err != nil {
+			return err
+		}
+		return c.Update(ctx, latestWorkspace)
+	})
 }

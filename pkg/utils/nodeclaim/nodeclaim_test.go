@@ -16,7 +16,6 @@ package nodeclaim
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
@@ -309,107 +308,6 @@ func TestCreateKarpenterNodeClass(t *testing.T) {
 	})
 }
 
-func TestIsNodeReady(t *testing.T) {
-	t.Run("Should return true when node has Ready condition with True status", func(t *testing.T) {
-		node := &corev1.Node{
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{
-					{
-						Type:   corev1.NodeReady,
-						Status: corev1.ConditionTrue,
-					},
-				},
-			},
-		}
-
-		result := IsNodeReady(node)
-		assert.Check(t, result == true, "Expected node to be ready")
-	})
-
-	t.Run("Should return false when node has Ready condition with False status", func(t *testing.T) {
-		node := &corev1.Node{
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{
-					{
-						Type:   corev1.NodeReady,
-						Status: corev1.ConditionFalse,
-					},
-				},
-			},
-		}
-
-		result := IsNodeReady(node)
-		assert.Check(t, result == false, "Expected node to not be ready")
-	})
-
-	t.Run("Should return false when node has Ready condition with Unknown status", func(t *testing.T) {
-		node := &corev1.Node{
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{
-					{
-						Type:   corev1.NodeReady,
-						Status: corev1.ConditionUnknown,
-					},
-				},
-			},
-		}
-
-		result := IsNodeReady(node)
-		assert.Check(t, result == false, "Expected node to not be ready")
-	})
-
-	t.Run("Should return false when node has no Ready condition", func(t *testing.T) {
-		node := &corev1.Node{
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{
-					{
-						Type:   corev1.NodeMemoryPressure,
-						Status: corev1.ConditionFalse,
-					},
-				},
-			},
-		}
-
-		result := IsNodeReady(node)
-		assert.Check(t, result == false, "Expected node to not be ready")
-	})
-
-	t.Run("Should return false when node has no conditions", func(t *testing.T) {
-		node := &corev1.Node{
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{},
-			},
-		}
-
-		result := IsNodeReady(node)
-		assert.Check(t, result == false, "Expected node to not be ready")
-	})
-
-	t.Run("Should return true when node has multiple conditions including Ready=True", func(t *testing.T) {
-		node := &corev1.Node{
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{
-					{
-						Type:   corev1.NodeMemoryPressure,
-						Status: corev1.ConditionFalse,
-					},
-					{
-						Type:   corev1.NodeReady,
-						Status: corev1.ConditionTrue,
-					},
-					{
-						Type:   corev1.NodeDiskPressure,
-						Status: corev1.ConditionFalse,
-					},
-				},
-			},
-		}
-
-		result := IsNodeReady(node)
-		assert.Check(t, result == true, "Expected node to be ready")
-	})
-}
-
 func TestGetBringYourOwnNodes(t *testing.T) {
 	t.Run("Should return all ready nodes when no label selector and node provisioning is disabled", func(t *testing.T) {
 		// Save original feature gate value and restore after test
@@ -453,7 +351,7 @@ func TestGetBringYourOwnNodes(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{},
 			},
 		}
@@ -502,7 +400,7 @@ func TestGetBringYourOwnNodes(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{"preferred-node"},
 			},
 		}
@@ -569,39 +467,14 @@ func TestGetBringYourOwnNodes(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{},
 			},
 		}
 
 		_, err := GetBringYourOwnNodes(context.Background(), mockClient, workspace)
 
-		assert.Error(t, err, "failed to list nodes: list failed")
-	})
-
-	t.Run("Should return error when label selector is invalid", func(t *testing.T) {
-		mockClient := test.NewClient()
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector: &metav1.LabelSelector{
-					MatchExpressions: []metav1.LabelSelectorRequirement{
-						{
-							Key:      "invalid",
-							Operator: "InvalidOperator",
-							Values:   []string{"value"},
-						},
-					},
-				},
-				PreferredNodes: []string{},
-			},
-		}
-
-		_, err := GetBringYourOwnNodes(context.Background(), mockClient, workspace)
-
-		assert.Check(t, err != nil, "Expected error for invalid label selector")
-		assert.Check(t, strings.Contains(err.Error(), "failed to convert label selector"), "Expected label selector error")
+		assert.Error(t, err, "list failed")
 	})
 
 	t.Run("Should skip not ready preferred nodes", func(t *testing.T) {
@@ -634,7 +507,7 @@ func TestGetBringYourOwnNodes(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{"not-ready-preferred"},
 			},
 		}
@@ -652,19 +525,19 @@ func TestGetExistingNodeClaims(t *testing.T) {
 
 		nodeClaim1 := &karpenterv1.NodeClaim{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "nodeclaim1",
-				Namespace: "default",
+				Name: "nodeclaim1",
 				Labels: map[string]string{
-					kaitov1beta1.LabelWorkspaceName: "test-workspace",
+					kaitov1beta1.LabelWorkspaceName:      "test-workspace",
+					kaitov1beta1.LabelWorkspaceNamespace: "default",
 				},
 			},
 		}
 		nodeClaim2 := &karpenterv1.NodeClaim{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "nodeclaim2",
-				Namespace: "default",
+				Name: "nodeclaim2",
 				Labels: map[string]string{
-					kaitov1beta1.LabelWorkspaceName: "test-workspace",
+					kaitov1beta1.LabelWorkspaceName:      "test-workspace",
+					kaitov1beta1.LabelWorkspaceNamespace: "default",
 				},
 			},
 		}
@@ -732,10 +605,10 @@ func TestGetExistingNodeClaims(t *testing.T) {
 		// NodeClaim with matching labels
 		matchingNodeClaim := &karpenterv1.NodeClaim{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "matching-nodeclaim",
-				Namespace: "default",
+				Name: "matching-nodeclaim",
 				Labels: map[string]string{
-					kaitov1beta1.LabelWorkspaceName: "test-workspace",
+					kaitov1beta1.LabelWorkspaceName:      "test-workspace",
+					kaitov1beta1.LabelWorkspaceNamespace: "default",
 				},
 			},
 		}
@@ -746,8 +619,8 @@ func TestGetExistingNodeClaims(t *testing.T) {
 
 		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}),
 			mock.MatchedBy(func(opts []client.ListOption) bool {
-				// Verify that the correct options are passed
-				return len(opts) == 2 // InNamespace + MatchingLabels
+				// Verify that the correct options are passed (only MatchingLabels for cluster-scoped resource)
+				return len(opts) == 1 // Only MatchingLabels
 			})).Run(func(args mock.Arguments) {
 			ncl := args.Get(1).(*karpenterv1.NodeClaimList)
 			*ncl = *nodeClaimList
@@ -805,7 +678,7 @@ func TestGetRequiredNodeClaimsCount(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{},
 			},
 			Inference: nil, // Non-inference workload
@@ -837,7 +710,7 @@ func TestGetRequiredNodeClaimsCount(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{},
 			},
 			Inference: &kaitov1beta1.InferenceSpec{}, // Inference workload
@@ -887,7 +760,7 @@ func TestGetRequiredNodeClaimsCount(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{"byo-node1", "byo-node2"}, // Both nodes are preferred
 			},
 			Inference: &kaitov1beta1.InferenceSpec{},
@@ -937,7 +810,7 @@ func TestGetRequiredNodeClaimsCount(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{"byo-node1", "byo-node2"},
 			},
 			Inference: &kaitov1beta1.InferenceSpec{},
@@ -969,14 +842,14 @@ func TestGetRequiredNodeClaimsCount(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{},
 			},
 		}
 
 		_, err := GetRequiredNodeClaimsCount(context.Background(), mockClient, workspace)
 
-		assert.Error(t, err, "failed to get available BYO nodes: failed to list nodes: list failed")
+		assert.Error(t, err, "failed to get available BYO nodes: list failed")
 	})
 
 	t.Run("Should handle workspace without inference status", func(t *testing.T) {
@@ -999,7 +872,7 @@ func TestGetRequiredNodeClaimsCount(t *testing.T) {
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  nil,
+				LabelSelector:  &metav1.LabelSelector{},
 				PreferredNodes: []string{},
 			},
 			Inference: &kaitov1beta1.InferenceSpec{}, // Has inference spec but no status
@@ -1012,5 +885,201 @@ func TestGetRequiredNodeClaimsCount(t *testing.T) {
 
 		assert.Check(t, err == nil, "Not expected to return error")
 		assert.Equal(t, count, 1, "Expected 1 NodeClaim when inference status is nil")
+	})
+}
+
+func TestNodeIsReadyAndNotDeleting(t *testing.T) {
+	t.Run("Should return true for ready node without deletion timestamp", func(t *testing.T) {
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              "ready-node",
+				DeletionTimestamp: nil,
+			},
+			Status: corev1.NodeStatus{
+				Conditions: []corev1.NodeCondition{
+					{
+						Type:   corev1.NodeReady,
+						Status: corev1.ConditionTrue,
+					},
+				},
+			},
+		}
+
+		result := NodeIsReadyAndNotDeleting(node)
+		assert.Check(t, result == true, "Expected ready node without deletion timestamp to return true")
+	})
+
+	t.Run("Should return false for node with deletion timestamp", func(t *testing.T) {
+		now := metav1.Now()
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              "deleting-node",
+				DeletionTimestamp: &now,
+			},
+			Status: corev1.NodeStatus{
+				Conditions: []corev1.NodeCondition{
+					{
+						Type:   corev1.NodeReady,
+						Status: corev1.ConditionTrue,
+					},
+				},
+			},
+		}
+
+		result := NodeIsReadyAndNotDeleting(node)
+		assert.Check(t, result == false, "Expected node with deletion timestamp to return false")
+	})
+
+	t.Run("Should return false for not ready node", func(t *testing.T) {
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              "not-ready-node",
+				DeletionTimestamp: nil,
+			},
+			Status: corev1.NodeStatus{
+				Conditions: []corev1.NodeCondition{
+					{
+						Type:   corev1.NodeReady,
+						Status: corev1.ConditionFalse,
+					},
+				},
+			},
+		}
+
+		result := NodeIsReadyAndNotDeleting(node)
+		assert.Check(t, result == false, "Expected not ready node to return false")
+	})
+
+	t.Run("Should return false for node with unknown ready status", func(t *testing.T) {
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              "unknown-ready-node",
+				DeletionTimestamp: nil,
+			},
+			Status: corev1.NodeStatus{
+				Conditions: []corev1.NodeCondition{
+					{
+						Type:   corev1.NodeReady,
+						Status: corev1.ConditionUnknown,
+					},
+				},
+			},
+		}
+
+		result := NodeIsReadyAndNotDeleting(node)
+		assert.Check(t, result == false, "Expected node with unknown ready status to return false")
+	})
+
+	t.Run("Should return false for node without ready condition", func(t *testing.T) {
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              "no-condition-node",
+				DeletionTimestamp: nil,
+			},
+			Status: corev1.NodeStatus{
+				Conditions: []corev1.NodeCondition{
+					{
+						Type:   corev1.NodeDiskPressure,
+						Status: corev1.ConditionFalse,
+					},
+				},
+			},
+		}
+
+		result := NodeIsReadyAndNotDeleting(node)
+		assert.Check(t, result == false, "Expected node without ready condition to return false")
+	})
+
+	t.Run("Should return false for node with empty conditions", func(t *testing.T) {
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              "empty-conditions-node",
+				DeletionTimestamp: nil,
+			},
+			Status: corev1.NodeStatus{
+				Conditions: []corev1.NodeCondition{},
+			},
+		}
+
+		result := NodeIsReadyAndNotDeleting(node)
+		assert.Check(t, result == false, "Expected node with empty conditions to return false")
+	})
+
+	t.Run("Should return false for both deleting and not ready node", func(t *testing.T) {
+		now := metav1.Now()
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              "deleting-not-ready-node",
+				DeletionTimestamp: &now,
+			},
+			Status: corev1.NodeStatus{
+				Conditions: []corev1.NodeCondition{
+					{
+						Type:   corev1.NodeReady,
+						Status: corev1.ConditionFalse,
+					},
+				},
+			},
+		}
+
+		result := NodeIsReadyAndNotDeleting(node)
+		assert.Check(t, result == false, "Expected deleting and not ready node to return false")
+	})
+
+	t.Run("Should return true when ready condition is among multiple conditions", func(t *testing.T) {
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              "multi-condition-node",
+				DeletionTimestamp: nil,
+			},
+			Status: corev1.NodeStatus{
+				Conditions: []corev1.NodeCondition{
+					{
+						Type:   corev1.NodeMemoryPressure,
+						Status: corev1.ConditionFalse,
+					},
+					{
+						Type:   corev1.NodeDiskPressure,
+						Status: corev1.ConditionFalse,
+					},
+					{
+						Type:   corev1.NodeReady,
+						Status: corev1.ConditionTrue,
+					},
+					{
+						Type:   corev1.NodePIDPressure,
+						Status: corev1.ConditionFalse,
+					},
+				},
+			},
+		}
+
+		result := NodeIsReadyAndNotDeleting(node)
+		assert.Check(t, result == true, "Expected ready node among multiple conditions to return true")
+	})
+
+	t.Run("Should return true when ready condition appears multiple times with mixed statuses", func(t *testing.T) {
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              "mixed-ready-conditions-node",
+				DeletionTimestamp: nil,
+			},
+			Status: corev1.NodeStatus{
+				Conditions: []corev1.NodeCondition{
+					{
+						Type:   corev1.NodeReady,
+						Status: corev1.ConditionFalse,
+					},
+					{
+						Type:   corev1.NodeReady,
+						Status: corev1.ConditionTrue,
+					},
+				},
+			},
+		}
+
+		result := NodeIsReadyAndNotDeleting(node)
+		// The function uses lo.Find which returns true if ANY condition matches, so it will find the true condition
+		assert.Check(t, result == true, "Expected node with mixed ready conditions to return true (finds any true condition)")
 	})
 }

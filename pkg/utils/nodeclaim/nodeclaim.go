@@ -438,20 +438,9 @@ func CheckNodeClass(ctx context.Context, kClient client.Client) error {
 // GetBringYourOwnNodes finds all BYO nodes that match the workspace's label selector
 func GetBringYourOwnNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*v1.Node, error) {
 	// List all nodes in the cluster
-	nodeList := &v1.NodeList{}
-	listOpts := []client.ListOption{}
-
-	// If there's a label selector, add it to the list options
-	if wObj.Resource.LabelSelector != nil {
-		selector, err := metav1.LabelSelectorAsSelector(wObj.Resource.LabelSelector)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert label selector: %w", err)
-		}
-		listOpts = append(listOpts, client.MatchingLabelsSelector{Selector: selector})
-	}
-
-	if err := c.List(ctx, nodeList, listOpts...); err != nil {
-		return nil, fmt.Errorf("failed to list nodes: %w", err)
+	nodeList, err := resources.ListNodes(ctx, c, wObj.Resource.LabelSelector.MatchLabels)
+	if err != nil {
+		return nil, err
 	}
 
 	// Create a set of preferred node names for fast lookup

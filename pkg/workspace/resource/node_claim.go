@@ -357,12 +357,7 @@ func (c *NodeClaimManager) isNodeClaimReady(nodeClaim *karpenterv1.NodeClaim) bo
 
 	// Alternative check: if NodeClaim has been launched successfully
 	// Check if the NodeClaim has a node name assigned (indicates it's provisioned)
-	if nodeClaim.Status.NodeName != "" {
-		return true
-	}
-
-	// If no Ready condition found and no node assigned, consider it not ready
-	return false
+	return nodeClaim.Status.NodeName != ""
 }
 
 // determineNodeOSDiskSize returns the appropriate OS disk size for the workspace

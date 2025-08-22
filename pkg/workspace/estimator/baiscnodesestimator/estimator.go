@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package skubasednodesestimator
+package basicnodesestimator
 
 import (
 	"context"
@@ -26,16 +26,16 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
-type SKUBasedNodesEstimator struct {
+// BasicNodesEstimator calculates node count based on SKU memory and model memory requirement
+type BasicNodesEstimator struct {
 	// no fields
 }
 
-func (e *SKUBasedNodesEstimator) Name() string {
-	// A node estimator calculates node count based on SKU memory and model memory requirement
-	return "sku-based"
+func (e *BasicNodesEstimator) Name() string {
+	return "basic"
 }
 
-func (e *SKUBasedNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) (int32, error) {
+func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) (int32, error) {
 	// If inference is not configured, default to resource count or 1
 	if wObj.Inference == nil || wObj.Inference.Preset == nil || wObj.Inference.Preset.Name == "" {
 		//nolint:staticcheck //SA1019: deprecate Resource.Count field
@@ -66,14 +66,11 @@ func (e *SKUBasedNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *ka
 		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement)
 		totalGPUMemoryPerNodeBytes := int64(gpuConfig.GPUMemGB) * consts.GiBToBytes
 
-		// Convert required memory to bytes for efficient integer division
 		requiredMemoryBytes := totalGPUMemoryRequired.Value()
 
 		// Calculate minimum nodes needed using ceiling division: (a + b - 1) / b
 		minimumNodes := int((requiredMemoryBytes + totalGPUMemoryPerNodeBytes - 1) / totalGPUMemoryPerNodeBytes)
 
-		// Use the smaller of user-requested nodes or calculated minimum nodes
-		// This maximizes GPU utilization while respecting user constraints
 		if minimumNodes < nodeCountPerReplica {
 			nodeCountPerReplica = minimumNodes
 		}

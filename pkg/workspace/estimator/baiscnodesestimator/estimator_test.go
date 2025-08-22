@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package skubasednodesestimator
+package basicnodesestimator
 
 import (
 	"context"
@@ -32,17 +32,17 @@ func init() {
 	test.RegisterTestModel()
 }
 
-func TestSKUBasedNodesEstimator_Name(t *testing.T) {
-	estimator := &SKUBasedNodesEstimator{}
-	assert.Equal(t, "sku-based", estimator.Name())
+func TestBasicNodesEstimator_Name(t *testing.T) {
+	estimator := &BasicNodesEstimator{}
+	assert.Equal(t, "basic", estimator.Name())
 }
 
-func TestSKUBasedNodesEstimator_EstimateNodeCount(t *testing.T) {
+func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 	// Set the cloud provider environment variable for SKU lookup
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	ctx := context.Background()
-	estimator := &SKUBasedNodesEstimator{}
+	estimator := &BasicNodesEstimator{}
 
 	tests := []struct {
 		name          string
@@ -232,12 +232,12 @@ func TestSKUBasedNodesEstimator_EstimateNodeCount(t *testing.T) {
 	}
 }
 
-func TestSKUBasedNodesEstimator_EstimateNodeCount_GPUMemoryCalculation(t *testing.T) {
+func TestBasicNodesEstimator_EstimateNodeCount_GPUMemoryCalculation(t *testing.T) {
 	// Set the cloud provider environment variable for SKU lookup
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	ctx := context.Background()
-	estimator := &SKUBasedNodesEstimator{}
+	estimator := &BasicNodesEstimator{}
 
 	// Test case for detailed GPU memory calculation verification
 	t.Run("Should calculate correct minimum nodes based on GPU memory requirements", func(t *testing.T) {
@@ -270,12 +270,12 @@ func TestSKUBasedNodesEstimator_EstimateNodeCount_GPUMemoryCalculation(t *testin
 	})
 }
 
-func TestSKUBasedNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
+func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 	// Set the cloud provider environment variable for SKU lookup
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	ctx := context.Background()
-	estimator := &SKUBasedNodesEstimator{}
+	estimator := &BasicNodesEstimator{}
 
 	t.Run("Should handle case when nodeCountPerReplica is zero", func(t *testing.T) {
 		// This test covers the new logic where the condition is:

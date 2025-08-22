@@ -26,6 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
@@ -686,4 +687,94 @@ func TestPrepareTrainingOutput(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGenerateBasicTuningPodSpec_NodeAffinity(t *testing.T) {
+	workspace := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-workspace",
+			Namespace: "default",
+		},
+		Resource: kaitov1beta1.ResourceSpec{
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"accelerator":   "nvidia-gpu",
+					"instance-type": "gpu-node",
+				},
+			},
+		},
+		Tuning: &kaitov1beta1.TuningSpec{
+			Preset: &kaitov1beta1.PresetSpec{
+				PresetMeta: kaitov1beta1.PresetMeta{
+					Name: "test-model",
+				},
+			},
+		},
+	}
+
+	gctx := &generator.WorkspaceGeneratorContext{
+		Ctx:       context.Background(),
+		Workspace: workspace,
+		Model:     &mockModel{},
+	}
+
+	// Create a basic pod spec
+	podSpec := &corev1.PodSpec{
+		Containers: []corev1.Container{
+			{
+				Name: workspace.Name,
+			},
+		},
+	}
+
+	// Get the modifier function
+	modifier := GenerateBasicTuningPodSpec(1)
+	err := modifier(gctx, podSpec)
+
+	// Verify no error
+	assert.NoError(t, err)
+
+	// Verify node affinity is set correctly
+	assert.NotNil(t, podSpec.Affinity)
+	assert.NotNil(t, podSpec.Affinity.NodeAffinity)
+	assert.NotNil(t, podSpec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
+
+	nodeSelector := podSpec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+	assert.Len(t, nodeSelector.NodeSelectorTerms, 1)
+	assert.Len(t, nodeSelector.NodeSelectorTerms[0].MatchExpressions, 2)
+
+	// Verify the match expressions contain the expected labels
+	expectedLabels := map[string]string{
+		"accelerator":   "nvidia-gpu",
+		"instance-type": "gpu-node",
+	}
+
+	for _, req := range nodeSelector.NodeSelectorTerms[0].MatchExpressions {
+		assert.Equal(t, corev1.NodeSelectorOpIn, req.Operator)
+		assert.Len(t, req.Values, 1)
+		assert.Equal(t, expectedLabels[req.Key], req.Values[0])
+	}
+}
+
+// mockModel implements pkgmodel.Model for testing
+type mockModel struct{}
+
+func (m *mockModel) GetInferenceParameters() *pkgmodel.PresetParam {
+	return &pkgmodel.PresetParam{
+		GPUCountRequirement: "1",
+	}
+}
+
+func (m *mockModel) GetTuningParameters() *pkgmodel.PresetParam {
+	return &pkgmodel.PresetParam{
+		GPUCountRequirement: "1",
+	}
+}
+
+func (m *mockModel) SupportDistributedInference() bool {
+	return false
+}
+
+func (m *mockModel) SupportTuning() bool {
+	return true
 }

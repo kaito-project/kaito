@@ -785,7 +785,6 @@ async def test_chat_completions_mixed_message_types(mock_get, async_client):
     assert (
         response_data["choices"][0]["message"]["content"]
         == "This is a helpful response about the test document."
-
     )
 
     assert len(response_data["source_nodes"]) > 0

@@ -365,9 +365,7 @@ class BaseVectorStore(ABC):
                     )
 
         max_tokens = request.get("max_tokens")
-        messages = messages_to_simplified_messages(
-            request.get("messages", [])
-        )
+        messages = messages_to_simplified_messages(request.get("messages", []))
 
         chat_history = []
         user_messages_for_prompt = []
@@ -375,7 +373,7 @@ class BaseVectorStore(ABC):
         # Process messages in reverse order to find the last x user messages
         for i in range(len(messages) - 1, -1, -1):
             message = messages[i]
-            
+
             if message.get("role") == "user" and not non_user_message_found:
                 # Collect the last x user messages for combining
                 user_messages_for_prompt.insert(0, message.get("content", ""))
@@ -384,19 +382,22 @@ class BaseVectorStore(ABC):
                 # Convert remaining messages to ChatMessage objects
                 new_message = ChatMessage(message.get("content", ""))
                 new_message.role = MessageRole(message.get("role"))
-                chat_history.insert(0, new_message)  # Insert at beginning to maintain order
+                chat_history.insert(
+                    0, new_message
+                )  # Insert at beginning to maintain order
 
         # Combine the last consecutive user messages into a single string as the prompt
         # Generally there should only be 1 user message on the end but there could be more
-        user_prompt = "\n\n".join(user_messages_for_prompt) if user_messages_for_prompt else ""
+        user_prompt = (
+            "\n\n".join(user_messages_for_prompt) if user_messages_for_prompt else ""
+        )
 
         # validate we have a user prompt. if not using tools/etc. we should have a user prompt
         if user_prompt == "":
-            logger.error(
-                "User prompt must be the last message in the conversation."
-            )
+            logger.error("User prompt must be the last message in the conversation.")
             raise HTTPException(
-                status_code=400, detail="User prompt must be the last message in the conversation."
+                status_code=400,
+                detail="User prompt must be the last message in the conversation.",
             )
 
         total_prompt = messages_to_prompt(request.get("messages", []))
@@ -423,10 +424,8 @@ class BaseVectorStore(ABC):
         )
         # Calculate top_k based on available context. For larger windows, we can afford to retrieve more documents.
         # 750 tokens is a rough estimate based off max 1500 for code and 1000 for text
-        top_k = max(100, (self.llm.metadata.context_window - prompt_len) / 750 )
-        chat_engine = self.index_map[
-            request.get("index_name")
-        ].as_chat_engine(
+        top_k = max(100, (self.llm.metadata.context_window - prompt_len) / 750)
+        chat_engine = self.index_map[request.get("index_name")].as_chat_engine(
             llm=self.llm,
             similarity_top_k=top_k,
             chat_mode=ChatMode.CONTEXT,
@@ -447,10 +446,14 @@ class BaseVectorStore(ABC):
             if self.use_rwlock:
                 async with self.rwlock.reader_lock:
                     self.llm.set_params(llm_params)
-                    chat_result = await chat_engine.achat(user_prompt, chat_history=chat_history)
+                    chat_result = await chat_engine.achat(
+                        user_prompt, chat_history=chat_history
+                    )
             else:
                 self.llm.set_params(llm_params)
-                chat_result = await chat_engine.achat(user_prompt, chat_history=chat_history)
+                chat_result = await chat_engine.achat(
+                    user_prompt, chat_history=chat_history
+                )
 
             return ChatCompletionResponse(
                 id=uuid.uuid4().hex,

@@ -26,6 +26,7 @@ import aiorwlock
 from fastapi import HTTPException
 from llama_index.core import Document as LlamaDocument
 from llama_index.core import StorageContext, VectorStoreIndex, load_index_from_storage
+from llama_index.core.base.llms.types import ChatMessage, MessageRole
 from llama_index.core.chat_engine.types import ChatMode
 from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 from llama_index.core.storage.docstore import SimpleDocumentStore
@@ -40,7 +41,12 @@ from ragengine.config import (
 )
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
-from ragengine.models import ChatCompletionResponse, Document, messages_to_prompt
+from ragengine.models import (
+    ChatCompletionResponse,
+    Document,
+    messages_to_prompt,
+    messages_to_simplified_messages,
+)
 from ragengine.vector_store.node_processors.contex_selection_node_processor import (
     ContextSelectionProcessor,
 )
@@ -359,8 +365,42 @@ class BaseVectorStore(ABC):
                     )
 
         max_tokens = request.get("max_tokens")
-        prompt = messages_to_prompt(request.get("messages", []))
-        prompt_len = self.llm.count_tokens(prompt)
+        messages = messages_to_simplified_messages(
+            request.get("messages", [])
+        )
+
+        chat_history = []
+        user_messages_for_prompt = []
+        non_user_message_found = False
+        # Process messages in reverse order to find the last x user messages
+        for i in range(len(messages) - 1, -1, -1):
+            message = messages[i]
+            
+            if message.get("role") == "user" and not non_user_message_found:
+                # Collect the last x user messages for combining
+                user_messages_for_prompt.insert(0, message.get("content", ""))
+            else:
+                non_user_message_found = True
+                # Convert remaining messages to ChatMessage objects
+                new_message = ChatMessage(message.get("content", ""))
+                new_message.role = MessageRole(message.get("role"))
+                chat_history.insert(0, new_message)  # Insert at beginning to maintain order
+
+        # Combine the last consecutive user messages into a single string as the prompt
+        # Generally there should only be 1 user message on the end but there could be more
+        user_prompt = "\n\n".join(user_messages_for_prompt) if user_messages_for_prompt else ""
+
+        # validate we have a user prompt. if not using tools/etc. we should have a user prompt
+        if user_prompt == "":
+            logger.error(
+                "User prompt must be the last message in the conversation."
+            )
+            raise HTTPException(
+                status_code=400, detail="User prompt must be the last message in the conversation."
+            )
+
+        total_prompt = messages_to_prompt(request.get("messages", []))
+        prompt_len = self.llm.count_tokens(total_prompt)
         if prompt_len > self.llm.metadata.context_window:
             logger.error(
                 f"Prompt length ({prompt_len}) exceeds context window ({self.llm.metadata.context_window})."
@@ -381,12 +421,15 @@ class BaseVectorStore(ABC):
         logger.info(
             f"Creating chat engine for index '{request.get('index_name')}' with prompt size: {prompt_len}"
         )
+        # Calculate top_k based on available context. For larger windows, we can afford to retrieve more documents.
+        # 750 tokens is a rough estimate based off max 1500 for code and 1000 for text
+        top_k = max(100, (self.llm.metadata.context_window - prompt_len) / 750 )
         chat_engine = self.index_map[
             request.get("index_name")
         ].as_chat_engine(
             llm=self.llm,
-            similarity_top_k=100,  # Might want to make this a function of avg doc node size in an index but this should be a wide enough default
-            chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
+            similarity_top_k=top_k,
+            chat_mode=ChatMode.CONTEXT,
             node_postprocessors=[
                 ContextSelectionProcessor(
                     rag_context_token_fill_ratio=request.get(
@@ -394,7 +437,7 @@ class BaseVectorStore(ABC):
                     ),
                     llm=self.llm,
                     max_tokens=max_tokens,
-                    similarity_threshold=0.8,
+                    similarity_threshold=0.85,
                 )
             ],
         )
@@ -404,10 +447,10 @@ class BaseVectorStore(ABC):
             if self.use_rwlock:
                 async with self.rwlock.reader_lock:
                     self.llm.set_params(llm_params)
-                    chat_result = await chat_engine.achat(prompt)
+                    chat_result = await chat_engine.achat(user_prompt, chat_history=chat_history)
             else:
                 self.llm.set_params(llm_params)
-                chat_result = await chat_engine.achat(prompt)
+                chat_result = await chat_engine.achat(user_prompt, chat_history=chat_history)
 
             return ChatCompletionResponse(
                 id=uuid.uuid4().hex,

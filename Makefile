@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-REGISTRY ?= YOUR_REGISTRY
+REGISTRY ?= brfoleragtest.azurecr.io
 IMG_NAME ?= workspace
 VERSION ?= v0.6.0
 GPU_PROVISIONER_VERSION ?= 0.3.5
@@ -265,7 +265,7 @@ create-eks-cluster: ## Create an EKS cluster.
 BUILDX_BUILDER_NAME ?= img-builder
 OUTPUT_TYPE ?= type=registry
 QEMU_VERSION ?= 7.2.0-1
-ARCH ?= amd64,arm64
+ARCH ?= amd64
 BUILDKIT_VERSION ?= v0.18.1
 
 RAGENGINE_IMAGE_NAME ?= ragengine

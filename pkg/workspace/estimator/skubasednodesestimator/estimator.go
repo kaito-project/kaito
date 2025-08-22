@@ -31,6 +31,7 @@ type SKUBasedNodesEstimator struct {
 }
 
 func (e *SKUBasedNodesEstimator) Name() string {
+	// A node estimator calculates node count based on SKU memory and model memory requirement
 	return "sku-based"
 }
 
@@ -73,8 +74,8 @@ func (e *SKUBasedNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *ka
 
 		// Use the smaller of user-requested nodes or calculated minimum nodes
 		// This maximizes GPU utilization while respecting user constraints
-		if minimumNodes > 0 && (nodeCountPerReplica == 0 || minimumNodes < nodeCountPerReplica) {
-			return int32(minimumNodes), nil
+		if minimumNodes < nodeCountPerReplica {
+			nodeCountPerReplica = minimumNodes
 		}
 	}
 

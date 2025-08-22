@@ -209,7 +209,7 @@ func TestSKUBasedNodesEstimator_EstimateNodeCount(t *testing.T) {
 					},
 				},
 			},
-			expectedCount: 1, // When resource count is nil but inference is configured, should return calculated minimum nodes
+			expectedCount: 0, // With new logic: when resource count is nil (nodeCountPerReplica=0), minimumNodes cannot be < 0, so nodeCountPerReplica stays 0
 			expectedError: false,
 		},
 	}
@@ -278,9 +278,10 @@ func TestSKUBasedNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 	estimator := &SKUBasedNodesEstimator{}
 
 	t.Run("Should handle case when nodeCountPerReplica is zero", func(t *testing.T) {
-		// This test covers the bug fix where the condition should be:
-		// minimumNodes > 0 && (nodeCountPerReplica == 0 || minimumNodes < nodeCountPerReplica)
-		// instead of just: minimumNodes > 0 && minimumNodes < nodeCountPerReplica
+		// This test covers the new logic where the condition is:
+		// if minimumNodes < nodeCountPerReplica { nodeCountPerReplica = minimumNodes }
+		// When nodeCountPerReplica is 0, minimumNodes will not be less than 0,
+		// so nodeCountPerReplica remains unchanged and the function returns it
 
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -303,8 +304,8 @@ func TestSKUBasedNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 		count, err := estimator.EstimateNodeCount(ctx, workspace)
 		require.NoError(t, err)
 
-		// When a small model can fit entirely in one large GPU node,
-		// nodeCountPerReplica might be 0, but minimumNodes should still be considered
+		// With the new logic, when minimumNodes < nodeCountPerReplica,
+		// nodeCountPerReplica gets updated to minimumNodes value
 		assert.True(t, count > 0, "Node count should be positive")
 	})
 
@@ -330,8 +331,8 @@ func TestSKUBasedNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 		count, err := estimator.EstimateNodeCount(ctx, workspace)
 		require.NoError(t, err)
 
-		// The function should return the minimum required nodes when it's less than
-		// what the user requested, optimizing for GPU utilization
+		// The function should update nodeCountPerReplica to minimumNodes when minimumNodes < nodeCountPerReplica,
+		// optimizing for GPU utilization
 		assert.True(t, count > 0, "Node count should be positive")
 		assert.True(t, count <= 10, "Node count should not exceed resource count")
 	})

@@ -397,7 +397,6 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
             os.environ["LMCACHE_MAX_LOCAL_DISK_SIZE"] = str(
                 args.kaito_kv_cache_max_local_disk_size
             )
-            os.environ["LMCACHE_EXTRA_CONFIG"] = '{"use_odirect": True}'
     else:
         logger.info(
             "VLLM_USE_V1 or kv_cache_cpu_memory_utilization is not set, do not use KV cache offload to CPU RAM."

@@ -309,6 +309,153 @@ func TestEnsureNodeClaims(t *testing.T) {
 		mockClient.AssertNotCalled(t, "Delete") // Should not delete any NodeClaims
 		mockRecorder.AssertEventCount(t, 0)     // Should not record any events
 	})
+
+	t.Run("Should continue creating when individual NodeClaim creation fails", func(t *testing.T) {
+		// Enable auto provisioning
+		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+		defer func() {
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+		}()
+
+		mockClient := test.NewClient()
+		mockRecorder := &MockEventRecorder{}
+		expectations := utils.NewControllerExpectations()
+		manager := NewNodeClaimManager(mockClient, mockRecorder, expectations)
+
+		workspace := &kaitov1beta1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+			Resource: kaitov1beta1.ResourceSpec{
+				LabelSelector:  &metav1.LabelSelector{},
+				PreferredNodes: []string{}, // Empty preferred nodes
+			},
+			Status: kaitov1beta1.WorkspaceStatus{
+				Inference: &kaitov1beta1.InferenceStatus{
+					TargetNodeCount: 2, // Need 2 NodeClaims (since no BYO nodes match)
+				},
+			},
+		}
+
+		// Mock empty node list (no BYO nodes match)
+		nodeList := &corev1.NodeList{Items: []corev1.Node{}}
+		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+			nl := args.Get(1).(*corev1.NodeList)
+			*nl = *nodeList
+		}).Return(nil)
+
+		// Mock empty NodeClaim list (no existing NodeClaims)
+		nodeClaimList := &karpenterv1.NodeClaimList{Items: []karpenterv1.NodeClaim{}}
+		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Run(func(args mock.Arguments) {
+			ncl := args.Get(1).(*karpenterv1.NodeClaimList)
+			*ncl = *nodeClaimList
+		}).Return(nil)
+
+		// Mock Get for status updates
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Run(func(args mock.Arguments) {
+			w := args.Get(2).(*kaitov1beta1.Workspace)
+			*w = *workspace
+		}).Return(nil)
+
+		// Mock NodeClaim creation to fail
+		mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(errors.New("creation failed"))
+
+		// Mock status updates
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
+
+		err := manager.ensureNodeClaims(context.Background(), workspace)
+
+		// Should continue and not return an error even though individual creation failed
+		assert.NoError(t, err, "Expected no error even when individual NodeClaim creation fails")
+		// Should attempt to create the NodeClaim
+		mockClient.AssertNumberOfCalls(t, "Create", 1)
+		// Should record a failure event
+		mockRecorder.AssertEventCount(t, 1) // Should record 1 failure event
+	})
+
+	t.Run("Should continue deleting when individual NodeClaim deletion fails", func(t *testing.T) {
+		// Enable auto provisioning
+		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+		defer func() {
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+		}()
+
+		mockClient := test.NewClient()
+		mockRecorder := &MockEventRecorder{}
+		expectations := utils.NewControllerExpectations()
+		manager := NewNodeClaimManager(mockClient, mockRecorder, expectations)
+
+		workspace := &kaitov1beta1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+			Resource: kaitov1beta1.ResourceSpec{
+				LabelSelector:  &metav1.LabelSelector{},
+				PreferredNodes: []string{}, // Empty preferred nodes
+			},
+			Status: kaitov1beta1.WorkspaceStatus{
+				Inference: &kaitov1beta1.InferenceStatus{
+					TargetNodeCount: 1, // Need only 1 NodeClaim, but have 2 (need to delete 1)
+				},
+			},
+		}
+
+		// Mock empty node list (no BYO nodes match)
+		nodeList := &corev1.NodeList{Items: []corev1.Node{}}
+		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+			nl := args.Get(1).(*corev1.NodeList)
+			*nl = *nodeList
+		}).Return(nil)
+
+		// Mock NodeClaim list with 2 NodeClaims (need to delete 1)
+		nodeClaim1 := &karpenterv1.NodeClaim{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "nodeclaim-1",
+				Labels: map[string]string{
+					kaitov1beta1.LabelWorkspaceName:      "test-workspace",
+					kaitov1beta1.LabelWorkspaceNamespace: "default",
+				},
+				CreationTimestamp: metav1.Now(),
+			},
+		}
+		nodeClaim2 := &karpenterv1.NodeClaim{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "nodeclaim-2",
+				Labels: map[string]string{
+					kaitov1beta1.LabelWorkspaceName:      "test-workspace",
+					kaitov1beta1.LabelWorkspaceNamespace: "default",
+				},
+				CreationTimestamp: metav1.Now(),
+			},
+		}
+
+		nodeClaimList := &karpenterv1.NodeClaimList{
+			Items: []karpenterv1.NodeClaim{*nodeClaim1, *nodeClaim2},
+		}
+		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Run(func(args mock.Arguments) {
+			ncl := args.Get(1).(*karpenterv1.NodeClaimList)
+			*ncl = *nodeClaimList
+		}).Return(nil)
+
+		// Mock Get for status updates
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Run(func(args mock.Arguments) {
+			w := args.Get(2).(*kaitov1beta1.Workspace)
+			*w = *workspace
+		}).Return(nil)
+
+		// Mock NodeClaim deletion to fail
+		mockClient.On("Delete", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(errors.New("deletion failed"))
+
+		// Mock status updates
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
+
+		err := manager.ensureNodeClaims(context.Background(), workspace)
+
+		// Should continue and not return an error even though individual deletion failed
+		assert.NoError(t, err, "Expected no error even when individual NodeClaim deletion fails")
+		// Should attempt to delete a NodeClaim
+		mockClient.AssertNumberOfCalls(t, "Delete", 1)
+		// Should record a failure event
+		mockRecorder.AssertEventCount(t, 1) // Should record 1 failure event
+	})
 }
 
 func TestAreNodeClaimsReady(t *testing.T) {

@@ -125,11 +125,11 @@ func (c *NodeClaimManager) ensureNodeClaims(ctx context.Context, wObj *kaitov1be
 				if err != nil {
 					c.recorder.Eventf(wObj, "Warning", "NodeClaimCreationFailed",
 						"Failed to create NodeClaim %s for workspace %s: %v", nodeClaim.Name, wObj.Name, err)
-					return fmt.Errorf("failed to create NodeClaim %s: %w", nodeClaim.Name, err)
+				} else {
+					c.recorder.Eventf(wObj, "Warning", "NodeClaimCreationFailed",
+						"Failed to create NodeClaim for workspace %s after retries", wObj.Name)
 				}
-				c.recorder.Eventf(wObj, "Warning", "NodeClaimCreationFailed",
-					"Failed to create NodeClaim for workspace %s after retries", wObj.Name)
-				return fmt.Errorf("failed to create NodeClaim after retries: %w", err)
+				continue // should not return here or expectations will leak
 			}
 
 			klog.InfoS("NodeClaim created successfully",
@@ -139,7 +139,6 @@ func (c *NodeClaimManager) ensureNodeClaims(ctx context.Context, wObj *kaitov1be
 			c.recorder.Eventf(wObj, "Normal", "NodeClaimCreated",
 				"Successfully created NodeClaim %s for workspace %s", nodeClaim.Name, wObj.Name)
 		}
-
 	} else if currentNodeClaimCount > requiredNodeClaimsCount {
 		// Need to delete excess NodeClaims
 		nodesToDelete := currentNodeClaimCount - requiredNodeClaimsCount
@@ -187,7 +186,7 @@ func (c *NodeClaimManager) ensureNodeClaims(ctx context.Context, wObj *kaitov1be
 						"workspace", klog.KObj(wObj))
 					c.recorder.Eventf(wObj, "Warning", "NodeClaimDeletionFailed",
 						"Failed to delete NodeClaim %s for workspace %s: %v", nodeClaim.Name, wObj.Name, err)
-					return fmt.Errorf("failed to delete NodeClaim %s: %w", nodeClaim.Name, err)
+					continue // should not return here or expectations will leak
 				}
 				klog.InfoS("NodeClaim deleted successfully",
 					"nodeClaim", nodeClaim.Name,

@@ -424,7 +424,7 @@ class BaseVectorStore(ABC):
         )
         # Calculate top_k based on available context. For larger windows, we can afford to retrieve more documents.
         # 750 tokens is a rough estimate based off max 1500 for code and 1000 for text
-        top_k = max(100, (self.llm.metadata.context_window - prompt_len) / 750)
+        top_k = max(100, int((self.llm.metadata.context_window - prompt_len) / 750))
         chat_engine = self.index_map[request.get("index_name")].as_chat_engine(
             llm=self.llm,
             similarity_top_k=top_k,

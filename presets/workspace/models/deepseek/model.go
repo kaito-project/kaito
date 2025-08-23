@@ -39,6 +39,10 @@ func init() {
 		Name:     PresetDeepSeekV3Model,
 		Instance: &deepseekD,
 	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     PresetDeepSeekV3_1Model,
+		Instance: &deepseekE,
+	})
 }
 
 const (
@@ -46,6 +50,7 @@ const (
 	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
 	PresetDeepSeekR1Model               = "deepseek-r1-0528"
 	PresetDeepSeekV3Model               = "deepseek-v3-0324"
+	PresetDeepSeekV3_1Model             = "deepseek-v3.1"
 )
 
 var (
@@ -84,6 +89,16 @@ var (
 	}
 	deepseekV3RunParamsVLLM = map[string]string{
 		"chat-template":           "/workspace/chat_templates/tool-chat-deepseekv3.jinja",
+		"tool-call-parser":        "deepseek_v3",
+		"enable-auto-tool-choice": "",
+	}
+	deepseekV3_1RunParams = map[string]string{
+		"torch_dtype":        "bfloat16",
+		"pipeline":           "text-generation",
+		"allow_remote_files": "",
+	}
+	deepseekV3_1RunParamsVLLM = map[string]string{
+		"reasoning-parser":        "deepseek_r1",
 		"tool-call-parser":        "deepseek_v3",
 		"enable-auto-tool-choice": "",
 	}
@@ -208,7 +223,7 @@ type deepseekV3 struct{}
 
 func (*deepseekV3) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetDeepSeekR1Model),
+		Metadata:                  metadata.MustGet(PresetDeepSeekV3Model),
 		DiskStorageRequirement:    "800Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "960Gi", // at least 8 H100
@@ -222,7 +237,7 @@ func (*deepseekV3) GetInferenceParameters() *model.PresetParam {
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:          inference.DefaultVLLMCommand,
-				ModelName:            PresetDeepSeekR1Model,
+				ModelName:            PresetDeepSeekV3Model,
 				ModelRunParams:       deepseekV3RunParamsVLLM,
 				RayLeaderBaseCommand: inference.DefaultVLLMRayLeaderBaseCommand,
 				RayWorkerBaseCommand: inference.DefaultVLLMRayWorkerBaseCommand,
@@ -238,5 +253,44 @@ func (*deepseekV3) SupportDistributedInference() bool {
 	return true
 }
 func (*deepseekV3) SupportTuning() bool {
+	return false
+}
+
+var deepseekE deepseekV3_1
+
+type deepseekV3_1 struct{}
+
+func (*deepseekV3_1) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata:                  metadata.MustGet(PresetDeepSeekV3_1Model),
+		DiskStorageRequirement:    "800Gi",
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "960Gi", // at least 8 H100
+		PerGPUMemoryRequirement:   "0Gi",   // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
+		RuntimeParam: model.RuntimeParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       baseCommandPresetDeepseekInference,
+				AccelerateParams:  inference.DefaultAccelerateParams,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelRunParams:    deepseekV3_1RunParams,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:          inference.DefaultVLLMCommand,
+				ModelName:            PresetDeepSeekV3_1Model,
+				ModelRunParams:       deepseekV3_1RunParamsVLLM,
+				RayLeaderBaseCommand: inference.DefaultVLLMRayLeaderBaseCommand,
+				RayWorkerBaseCommand: inference.DefaultVLLMRayWorkerBaseCommand,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+func (*deepseekV3_1) GetTuningParameters() *model.PresetParam {
+	return nil
+}
+func (*deepseekV3_1) SupportDistributedInference() bool {
+	return true
+}
+func (*deepseekV3_1) SupportTuning() bool {
 	return false
 }

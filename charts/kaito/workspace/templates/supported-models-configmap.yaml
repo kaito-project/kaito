@@ -34,6 +34,12 @@ data:
         runtime: tfs
         downloadAtRuntime: true
         tag: 0.0.1
+      - name: deepseek-v3.1
+        type: text-generation
+        version: https://huggingface.co/deepseek-ai/DeepSeek-V3.1/commit/6599f8e755113ef5dcf38bb8eb70364a591f7376
+        runtime: tfs
+        downloadAtRuntime: true
+        tag: 0.0.1
       - name: falcon-7b
         type: text-generation
         version: https://huggingface.co/tiiuae/falcon-7b/commit/898df1396f35e447d5fe44e0a3ccaaaa69f30d36

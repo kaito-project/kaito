@@ -43,6 +43,12 @@ models:
     runtime: tfs
     downloadAtRuntime: true
     tag: 0.0.1
+  - name: deepseek-v3.1
+    type: text-generation
+    version: https://huggingface.co/deepseek-ai/DeepSeek-V3.1/commit/6599f8e755113ef5dcf38bb8eb70364a591f7376
+    runtime: tfs
+    downloadAtRuntime: true
+    tag: 0.0.1
     # Tag history:
     # 0.0.1 - Initial Release
 

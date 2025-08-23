@@ -32,6 +32,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/clock"
@@ -432,4 +433,114 @@ func CheckNodeClass(ctx context.Context, kClient client.Client) error {
 		}
 	}
 	return nil
+}
+
+// GetBringYourOwnNodes finds all BYO nodes that match the workspace's label selector
+func GetBringYourOwnNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*v1.Node, error) {
+	// List all nodes in the cluster
+	nodeList := &v1.NodeList{}
+	listOpts := []client.ListOption{}
+
+	// If there's a label selector, add it to the list options
+	if wObj.Resource.LabelSelector != nil {
+		selector, err := metav1.LabelSelectorAsSelector(wObj.Resource.LabelSelector)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert label selector: %w", err)
+		}
+		listOpts = append(listOpts, client.MatchingLabelsSelector{Selector: selector})
+	}
+
+	if err := c.List(ctx, nodeList, listOpts...); err != nil {
+		return nil, fmt.Errorf("failed to list nodes: %w", err)
+	}
+
+	// Create a set of preferred node names for fast lookup
+	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
+
+	// Filter nodes that are in the preferred nodes list and are ready
+	availableBYONodes := make([]*v1.Node, 0, len(nodeList.Items))
+	for i := range nodeList.Items {
+		node := &nodeList.Items[i]
+
+		// if node provision is disabled, preferred nodes will be ignored.
+		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+			// Check if this node is in the preferred nodes list
+			if !preferredNodeSet.Has(node.Name) {
+				continue
+			}
+		}
+
+		// Check if the node is ready
+		if !IsNodeReady(node) {
+			klog.V(4).InfoS("BYO node is not ready, skipping",
+				"node", node.Name,
+				"workspace", klog.KObj(wObj))
+			continue
+		}
+
+		availableBYONodes = append(availableBYONodes, node)
+	}
+
+	klog.V(4).InfoS("Found available BYO nodes",
+		"workspace", klog.KObj(wObj),
+		"preferredNodesSpecified", len(wObj.Resource.PreferredNodes),
+		"availableBYONodes", len(availableBYONodes))
+
+	return availableBYONodes, nil
+}
+
+// GetExistingNodeClaims retrieves all NodeClaims associated with the given workspace
+func GetExistingNodeClaims(ctx context.Context, c client.Reader, wObj *kaitov1beta1.Workspace) ([]*karpenterv1.NodeClaim, error) {
+	nodeClaimList := &karpenterv1.NodeClaimList{}
+
+	// List NodeClaims with labels that match this workspace
+	listOpts := []client.ListOption{
+		client.InNamespace(wObj.Namespace),
+		client.MatchingLabels{
+			kaitov1beta1.LabelWorkspaceName: wObj.Name,
+		},
+	}
+
+	if err := c.List(ctx, nodeClaimList, listOpts...); err != nil {
+		return nil, fmt.Errorf("failed to list NodeClaims: %w", err)
+	}
+
+	// Convert to slice of pointers for easier manipulation
+	nodeClaims := make([]*karpenterv1.NodeClaim, 0, len(nodeClaimList.Items))
+	for i := range nodeClaimList.Items {
+		nodeClaims = append(nodeClaims, &nodeClaimList.Items[i])
+	}
+
+	return nodeClaims, nil
+}
+
+// GetRequiredNodeClaimsCount returns the number of NodeClaims required for the given workspace
+func GetRequiredNodeClaimsCount(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) (int, error) {
+	// if node provision is disabled, NodeClaims are not needed.
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		return 0, nil
+	}
+	// Find available preferred nodes
+	availableBYONodes, err := GetBringYourOwnNodes(ctx, c, wObj)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get available BYO nodes: %w", err)
+	}
+
+	// Configure targetNodeCount to 1 for non-inference workloads like tuning job.
+	targetNodeCount := 1
+	if wObj.Inference != nil && wObj.Status.Inference != nil {
+		targetNodeCount = int(wObj.Status.Inference.TargetNodeCount)
+	}
+
+	// Calculate the number of NodeClaims needed (target - BYO nodes)
+	return max(0, targetNodeCount-len(availableBYONodes)), nil
+}
+
+func IsNodeReady(node *v1.Node) bool {
+	for _, condition := range node.Status.Conditions {
+		if condition.Type == v1.NodeReady {
+			return condition.Status == v1.ConditionTrue
+		}
+	}
+	return false
 }

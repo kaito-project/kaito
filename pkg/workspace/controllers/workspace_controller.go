@@ -453,7 +453,7 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 				continue
 			}
 
-			if nodeclaim.NodeIsReadyAndNotDeleting(node) {
+			if resources.NodeIsReadyAndNotDeleting(node) {
 				// Check that all labels in wObj.Resource.LabelSelector.MatchLabels are present in the node's labels.
 				allLabelsMatch := true
 				for k, v := range wObj.Resource.LabelSelector.MatchLabels {
@@ -487,7 +487,7 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 		preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
 		for index := range nodeList.Items {
 			node := nodeList.Items[index]
-			if nodeclaim.NodeIsReadyAndNotDeleting(&node) {
+			if resources.NodeIsReadyAndNotDeleting(&node) {
 				// match the preferred node
 				if preferredNodeSet.Has(node.Name) {
 					qualifiedNodes = append(qualifiedNodes, lo.ToPtr(node))

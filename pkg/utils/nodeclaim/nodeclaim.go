@@ -32,7 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/clock"
@@ -435,45 +434,8 @@ func CheckNodeClass(ctx context.Context, kClient client.Client) error {
 	return nil
 }
 
-// GetBringYourOwnNodes finds all BYO nodes that match the workspace's label selector
-func GetBringYourOwnNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*v1.Node, error) {
-	nodeList, err := resources.ListNodes(ctx, c, wObj.Resource.LabelSelector.MatchLabels)
-	if err != nil {
-		return nil, err
-	}
-
-	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
-
-	availableBYONodes := make([]*v1.Node, 0, len(nodeList.Items))
-	for i := range nodeList.Items {
-		node := &nodeList.Items[i]
-
-		// if node provision is disabled, preferred nodes will be ignored.
-		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-			if !preferredNodeSet.Has(node.Name) {
-				continue
-			}
-		}
-
-		if !NodeIsReadyAndNotDeleting(node) {
-			klog.V(4).InfoS("BYO node is not ready, skipping",
-				"node", node.Name,
-				"workspace", klog.KObj(wObj))
-			continue
-		}
-
-		availableBYONodes = append(availableBYONodes, node)
-	}
-
-	klog.V(4).InfoS("Found available BYO nodes",
-		"workspace", klog.KObj(wObj),
-		"preferredNodesSpecified", len(wObj.Resource.PreferredNodes),
-		"availableBYONodes", len(availableBYONodes))
-
-	return availableBYONodes, nil
-}
-
 // GetExistingNodeClaims retrieves all NodeClaims(including deleting nodeclaim) associated with the given workspace
+// we hope the deleting NodeClaims are cleaned up before we can create new ones.
 func GetExistingNodeClaims(ctx context.Context, c client.Reader, wObj *kaitov1beta1.Workspace) ([]*karpenterv1.NodeClaim, error) {
 	nodeClaimList := &karpenterv1.NodeClaimList{}
 
@@ -503,7 +465,7 @@ func GetRequiredNodeClaimsCount(ctx context.Context, c client.Client, wObj *kait
 		return 0, nil
 	}
 
-	availableBYONodes, err := GetBringYourOwnNodes(ctx, c, wObj)
+	availableBYONodes, err := resources.GetBringYourOwnNodes(ctx, c, wObj)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get available BYO nodes: %w", err)
 	}
@@ -515,16 +477,4 @@ func GetRequiredNodeClaimsCount(ctx context.Context, c client.Client, wObj *kait
 
 	// Calculate the number of NodeClaims needed (target - BYO nodes)
 	return max(0, targetNodeCount-len(availableBYONodes)), nil
-}
-
-func NodeIsReadyAndNotDeleting(node *v1.Node) bool {
-	if node.DeletionTimestamp != nil {
-		return false
-	}
-
-	_, statusRunning := lo.Find(node.Status.Conditions, func(condition v1.NodeCondition) bool {
-		return condition.Type == v1.NodeReady && condition.Status == v1.ConditionTrue
-	})
-
-	return statusRunning
 }

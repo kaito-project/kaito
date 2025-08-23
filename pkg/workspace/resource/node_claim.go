@@ -26,9 +26,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
@@ -50,38 +48,27 @@ func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expecta
 	}
 }
 
-func (c *NodeClaimManager) SyncNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, error) {
-	if err := c.ensureNodeClaims(ctx, wObj); err != nil {
-		return false, err
-	}
-
-	return c.areNodeClaimsReady(ctx, wObj)
-}
-
-// ensureNodeClaims ensures the correct number of NodeClaims for the workspace
-// based on the TargetNodeCount in the workspace status, considering preferred nodes
-func (c *NodeClaimManager) ensureNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+// EnsureNodeClaims ensures the correct number of NodeClaims for the workspace
+// based on the TargetNodeCount in the workspace status, considering BYO nodes
+// only when all required NodeClaims are ready, it will return true.
+func (c *NodeClaimManager) EnsureNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, error) {
 	workspaceKey := client.ObjectKeyFromObject(wObj).String()
 
 	if !c.expectations.SatisfiedExpectations(c.logger, workspaceKey) {
 		klog.V(4).InfoS("Waiting for NodeClaim expectations to be satisfied",
 			"workspace", klog.KObj(wObj))
-		return nil
+		return false, nil
 	}
 
 	// Calculate the number of NodeClaims needed (target - preferred nodes)
 	requiredNodeClaimsCount, err := nodeclaim.GetRequiredNodeClaimsCount(ctx, c.Client, wObj)
 	if err != nil {
-		return fmt.Errorf("failed to get required NodeClaims: %w", err)
+		return false, fmt.Errorf("failed to get required NodeClaims: %w", err)
 	}
-
-	klog.V(4).InfoS("NodeClaim calculation",
-		"workspace", klog.KObj(wObj),
-		"requiredNodeClaims", requiredNodeClaimsCount)
 
 	existingNodeClaims, err := nodeclaim.GetExistingNodeClaims(ctx, c.Client, wObj)
 	if err != nil {
-		return fmt.Errorf("failed to get existing NodeClaims: %w", err)
+		return false, fmt.Errorf("failed to get existing NodeClaims: %w", err)
 	}
 
 	currentNodeClaimCount := len(existingNodeClaims)
@@ -203,103 +190,26 @@ func (c *NodeClaimManager) ensureNodeClaims(ctx context.Context, wObj *kaitov1be
 		klog.V(4).InfoS("NodeClaim count matches required",
 			"workspace", klog.KObj(wObj),
 			"nodeClaimCount", currentNodeClaimCount)
-	}
+		for _, nodeClaim := range existingNodeClaims {
+			if !c.isNodeClaimReady(nodeClaim) {
+				if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
+					"NodeClaimNotReady", fmt.Sprintf("NodeClaim %s is not ready yet", nodeClaim.Name)); updateErr != nil {
+					klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
+				}
 
-	return nil
-}
-
-// areNodeClaimsReady checks if all NodeClaims are ready and match the target count
-func (c *NodeClaimManager) areNodeClaimsReady(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, error) {
-	targetNodeCount := 1
-	if wObj.Status.Inference != nil {
-		targetNodeCount = int(wObj.Status.Inference.TargetNodeCount)
-	}
-
-	availableBYONodes, err := nodeclaim.GetBringYourOwnNodes(ctx, c.Client, wObj)
-	if err != nil {
-		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-			"BYONodeListError", fmt.Sprintf("Failed to get BYO nodes: %v", err)); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
-		}
-		return false, fmt.Errorf("failed to get available BYO nodes: %w", err)
-	}
-
-	// if node provision is disabled, user should ensure the number of BYO nodes more than target nodes.
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		if len(availableBYONodes) < targetNodeCount {
-			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-				"BYONodesNotEnough", fmt.Sprintf("BYO nodes is not enough(ready BYO nodes count: %d, target nodes count: %d", len(availableBYONodes), targetNodeCount)); updateErr != nil {
-				klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
+				return false, nil
 			}
-			return false, fmt.Errorf("when node auto-provisioning is disabled, at least %d BYO nodes must match the label selector and be ready and not deleting, only have %d", targetNodeCount, len(availableBYONodes))
 		}
-
+		// All NodeClaims are ready - update status condition to indicate success
 		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
-			"NodeClaimsReady", fmt.Sprintf("Node auto provisioning is disabled, so NodeClaims is not required(BYO nodes: %d)", len(availableBYONodes))); updateErr != nil {
+			"NodeClaimsReady", fmt.Sprintf("All NodeClaims are ready (NodeClaims: %d)", currentNodeClaimCount)); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
 			return false, fmt.Errorf("failed to update NodeClaim status condition: %w", updateErr)
 		}
 		return true, nil
 	}
 
-	requiredNodeClaims := max(0, targetNodeCount-len(availableBYONodes))
-
-	existingNodeClaims, err := nodeclaim.GetExistingNodeClaims(ctx, c.Client, wObj)
-	if err != nil {
-		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-			"NodeClaimListError", fmt.Sprintf("Failed to get NodeClaims: %v", err)); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
-		}
-		return false, fmt.Errorf("failed to get existing NodeClaims: %w", err)
-	}
-
-	currentNodeClaimCount := len(existingNodeClaims)
-
-	// Check if the number of NodeClaims matches the required count
-	if currentNodeClaimCount != requiredNodeClaims {
-		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-			"NodeClaimCountMismatch", fmt.Sprintf("NodeClaim count (%d) does not match required (%d, target: %d, BYO: %d)", currentNodeClaimCount, requiredNodeClaims, targetNodeCount, len(availableBYONodes))); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
-		}
-
-		klog.V(4).InfoS("NodeClaim count does not match required, waiting for reconcile",
-			"workspace", klog.KObj(wObj),
-			"currentNodeClaims", currentNodeClaimCount,
-			"requiredNodeClaims", requiredNodeClaims,
-			"targetNodeCount", targetNodeCount,
-			"preferredNodes", len(availableBYONodes))
-		return false, nil
-	}
-
-	// Check if all NodeClaims are ready
-	for _, nodeClaim := range existingNodeClaims {
-		if !c.isNodeClaimReady(nodeClaim) {
-			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-				"NodeClaimNotReady", fmt.Sprintf("NodeClaim %s is not ready yet", nodeClaim.Name)); updateErr != nil {
-				klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
-			}
-
-			klog.V(4).InfoS("NodeClaim is not ready yet",
-				"workspace", klog.KObj(wObj),
-				"nodeClaim", nodeClaim.Name,
-				"status", nodeClaim.Status.Conditions)
-			return false, nil
-		}
-	}
-
-	// All NodeClaims are ready - update status condition to indicate success
-	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
-		"NodeClaimsReady", fmt.Sprintf("All NodeClaims are ready (NodeClaims: %d, BYO nodes: %d)", currentNodeClaimCount, len(availableBYONodes))); updateErr != nil {
-		klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
-		return false, fmt.Errorf("failed to update NodeClaim status condition: %w", updateErr)
-	}
-
-	klog.InfoS("All NodeClaims are ready",
-		"workspace", klog.KObj(wObj),
-		"nodeClaimCount", currentNodeClaimCount,
-		"BYONodeCount", len(availableBYONodes),
-		"totalNodes", currentNodeClaimCount+len(availableBYONodes))
-	return true, nil
+	return false, nil
 }
 
 // isNodeClaimReady checks if a NodeClaim is in ready state

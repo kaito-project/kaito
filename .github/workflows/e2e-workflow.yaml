@@ -24,6 +24,8 @@ on:
       k8s_version:
         type: string
         default: "1.31.10"
+      pull_request_number:
+        type: string
 
 jobs:
   e2e-tests:
@@ -53,6 +55,33 @@ jobs:
         with:
           ref: ${{ inputs.git_sha }}
 
+      - name: Install gh
+        run: |
+          (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
+            && sudo mkdir -p -m 755 /etc/apt/keyrings \
+            && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+            && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+            && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+            && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
+            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+            && sudo apt update \
+            && sudo apt install gh -y
+
+      - name: Set BUILD_KAITO_BASE_IMAGE
+        run: |
+          CHANGED_FILES=$(gh pr diff "${{ inputs.pull_request_number }}" --name-only)
+          # Check if specific files in the following directory are modified to determine if base image needs to be built
+          # - presets/workspace/inference/**
+          # - presets/workspace/tuning/**
+          # - docker/presets/models/tfs/Dockerfile
+          if echo "$CHANGED_FILES" | grep -E "(presets/workspace/inference|presets/workspace/tuning|docker/presets/models/tfs/Dockerfile)"; then
+            echo "BUILD_KAITO_BASE_IMAGE=true" >> $GITHUB_ENV
+          else
+            echo "BUILD_KAITO_BASE_IMAGE=false" >> $GITHUB_ENV
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run e2e-base-setup composite action
         id: base-setup
         uses: ./.github/actions/e2e-base-setup
@@ -64,6 +93,7 @@ jobs:
           region: ${{ inputs.region }}
           k8s_version: ${{ inputs.k8s_version }}
           registry: ${{ inputs.registry }}
+          build_kaito_base_image: ${{ env.BUILD_KAITO_BASE_IMAGE }}
 
       - name: Set Registry
         if: ${{ inputs.isRelease }}
@@ -106,7 +136,7 @@ jobs:
           kubectl get pods -n kaito-workspace -o name | grep "^pod/kaito-workspace" | sed 's/^pod\///' | xargs -I {} kubectl logs -n kaito-workspace {}
 
       - name: Run full e2e test
-        if: ${{ inputs.isRelease }}
+        if: ${{ inputs.isRelease || env.BUILD_KAITO_BASE_IMAGE == 'true' }}
         run: |
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
@@ -118,7 +148,7 @@ jobs:
           E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
 
       - name: Run fast e2e test
-        if: ${{ !inputs.isRelease }}
+        if: ${{ !inputs.isRelease && env.BUILD_KAITO_BASE_IMAGE != 'true' }}
         run: |
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
@@ -129,7 +159,6 @@ jobs:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
           E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
-
 
       - name: Cleanup e2e resources
         if: ${{ always() }}

@@ -298,7 +298,7 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 
 func GetBaseImageName() string {
 	presetObj := metadata.MustGet("base")
-	return utils.GetPresetImageName(presetObj.Name, presetObj.Tag)
+	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
 func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {

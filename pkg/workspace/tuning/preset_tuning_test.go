@@ -160,6 +160,7 @@ func TestHandleURLDataSource(t *testing.T) {
 		expectedCommands          string
 		expectedVolumeName        string
 		expectedVolumeMountPath   string
+		expectedVolumeMounts      []corev1.VolumeMount
 	}{
 		"Handle URL Data Source": {
 			workspaceObj: &kaitov1beta1.Workspace{
@@ -174,20 +175,19 @@ func TestHandleURLDataSource(t *testing.T) {
 			expectedCommands:          "curl -sSL -w \"%{http_code}\" -o \"$DATA_VOLUME_PATH/$filename\" \"$url\"",
 			expectedVolumeName:        "data-volume",
 			expectedVolumeMountPath:   utils.DefaultDataVolumePath,
+			expectedVolumeMounts:      []corev1.VolumeMount{{Name: "data-volume", MountPath: utils.DefaultDataVolumePath}},
 		},
 	}
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			initContainer, volume, volumeMount := handleURLDataSource(context.Background(), tc.workspaceObj)
-
+			initContainer, volume, volumeMount := handleURLDataSource(tc.workspaceObj)
 			assert.Equal(t, tc.expectedInitContainerName, initContainer.Name)
 			assert.Equal(t, tc.expectedImage, initContainer.Image)
 			assert.Contains(t, normalize(initContainer.Command[2]), normalize(tc.expectedCommands))
-
 			assert.Equal(t, tc.expectedVolumeName, volume.Name)
-
 			assert.Equal(t, tc.expectedVolumeMountPath, volumeMount.MountPath)
+			assert.Equal(t, tc.expectedVolumeMounts, initContainer.VolumeMounts)
 		})
 	}
 }

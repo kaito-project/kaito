@@ -64,8 +64,8 @@ func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetLlama3_1_8BInstructModel),
 		DiskStorageRequirement:    "110Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "22Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Llama using native vertical model parallel, no per GPU memory requirement.
+		TotalGPUMemoryRequirement: "16.07Gi",
+		BytesPerToken:             131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetLlamaInference,
@@ -108,8 +108,8 @@ func (*llama3_3_70Binstruct) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetLlama3_3_70BInstructModel),
 		DiskStorageRequirement:    "220Gi",
 		GPUCountRequirement:       "4",
-		TotalGPUMemoryRequirement: "320Gi",
-		PerGPUMemoryRequirement:   "80Gi",
+		TotalGPUMemoryRequirement: "141.06Gi",
+		BytesPerToken:             327680,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetLlamaInference,

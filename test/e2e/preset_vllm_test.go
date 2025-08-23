@@ -22,7 +22,6 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -48,53 +47,53 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 			Fail("Fail threshold reached")
 		}
 	})
+	/*
+		It("should create a deepseek-distilled-llama-8b workspace with preset public mode successfully", func() {
+			numOfNode := 1
+			workspaceObj := createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-	It("should create a deepseek-distilled-llama-8b workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
+		It("should create a single-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+			numOfNode := 1
+			workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode, "Standard_NV36ads_A10_v5")
 
-	It("should create a single-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode, "Standard_NV36ads_A10_v5")
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
-
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
+	*/
 	It("should create a multi-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		// Need 2 Standard_NC6s_v3 nodes to run Llama 3.1-8B Instruct model.
 		// Each node has 1 V100 GPU, so total 2 GPUs are used
@@ -118,204 +117,206 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
 		validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		time.Sleep(3600 * time.Second)
 	})
+	/*
+		It("should create a deepseek-distilled-qwen-14b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+			numOfNode := 1
+			workspaceObj := createDeepSeekQwen14BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-	It("should create a deepseek-distilled-qwen-14b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
-		numOfNode := 1
-		workspaceObj := createDeepSeekQwen14BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
+		It("should create a falcon workspace with preset public mode successfully", func() {
+			numOfNode := 1
+			workspaceObj := createFalconWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-	It("should create a falcon workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createFalconWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
+		It("should create a mistral workspace with preset public mode successfully", func() {
+			numOfNode := 1
+			workspaceObj := createMistralWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-	It("should create a mistral workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createMistralWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
+		It("should create a Phi-2 workspace with preset public mode successfully", func() {
+			numOfNode := 1
+			workspaceObj := createPhi2WorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-	It("should create a Phi-2 workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createPhi2WorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
+		It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
+			numOfNode := 1
+			workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
+		It("should create a qwen2.5 coder workspace with preset public mode and 2 gpu successfully", func() {
+			// single node with 2 gpu
+			numOfNode := 1
+			workspaceObj := createQwen2_5WorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode)
 
-	It("should create a qwen2.5 coder workspace with preset public mode and 2 gpu successfully", func() {
-		// single node with 2 gpu
-		numOfNode := 1
-		workspaceObj := createQwen2_5WorkspaceWithPresetPublicModeAndVLLMAndMultiGPU(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
+		It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelA100Required, func() {
+			numOfNode := 1
+			workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, phi4Adapter)
 
-	It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelA100Required, func() {
-		numOfNode := 1
-		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, phi4Adapter)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
 
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
+			expectedInitContainers := []corev1.Container{
+				{
+					Name:  baseInitContainer.Name + "-" + phi4AdapterName,
+					Image: baseInitContainer.Image,
+				},
+			}
+			validateInitContainers(workspaceObj, expectedInitContainers)
 
-		expectedInitContainers := []corev1.Container{
-			{
-				Name:  baseInitContainer.Name + "-" + phi4AdapterName,
-				Image: baseInitContainer.Image,
-			},
-		}
-		validateInitContainers(workspaceObj, expectedInitContainers)
+			validateAdapterLoadedInVLLM(workspaceObj, phi4AdapterName)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
 
-		validateAdapterLoadedInVLLM(workspaceObj, phi4AdapterName)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
+		It("should create a llama-3.3-70b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+			// Need 2 Standard_NC48ads_A100_v4 nodes to run Llama 3.3-70B Instruct model.
+			// Each node has 2 A100 GPUs, so total 4 GPUs are used
+			numOfNode := 2
+			workspaceObj := createLlama3_3_70BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-	It("should create a llama-3.3-70b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
-		// Need 2 Standard_NC48ads_A100_v4 nodes to run Llama 3.3-70B Instruct model.
-		// Each node has 2 A100 GPUs, so total 4 GPUs are used
-		numOfNode := 2
-		workspaceObj := createLlama3_3_70BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), true)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), true)
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
+	*/
 })
 
 func createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {

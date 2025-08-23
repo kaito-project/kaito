@@ -62,8 +62,8 @@ func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetQwen2_5Coder7BInstructModel),
 		DiskStorageRequirement:    "110Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "24Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run qwen using native vertical model parallel, no per GPU memory requirement.
+		TotalGPUMemoryRequirement: "15.23Gi",
+		BytesPerToken:             57344,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,
@@ -87,7 +87,6 @@ func (*qwen2_5Coder7BInstruct) GetTuningParameters() *model.PresetParam {
 		DiskStorageRequirement:    "110Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "24Gi",
-		PerGPUMemoryRequirement:   "24Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				// AccelerateParams: tuning.DefaultAccelerateParams,
@@ -115,8 +114,8 @@ func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetQwen2_5Coder32BInstructModel),
 		DiskStorageRequirement:    "230Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "70Gi", // Requires at least A100 - TODO: Revisit for more accurate metric
-		PerGPUMemoryRequirement:   "0Gi",  // We run qwen using native vertical model parallel, no per GPU memory requirement.
+		TotalGPUMemoryRequirement: "65.57Gi", // Requires at least A100 - TODO: Revisit for more accurate metric
+		BytesPerToken:             262144,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,
@@ -140,7 +139,6 @@ func (*qwen2_5Coder32BInstruct) GetTuningParameters() *model.PresetParam {
 		DiskStorageRequirement:    "230Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "140Gi", // Requires at least 2 A100 - TODO: Revisit for more accurate metric
-		PerGPUMemoryRequirement:   "70Gi",  // TODO: Revisit for more accurate metric
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetQwenTuning,

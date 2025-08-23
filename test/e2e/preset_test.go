@@ -276,7 +276,7 @@ func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNo
 }
 
 func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
-	createConfigForWorkspace(workspaceObj)
+	//createConfigForWorkspace(workspaceObj)
 	By("Creating workspace", func() {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})

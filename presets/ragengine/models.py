@@ -122,6 +122,15 @@ def messages_to_prompt(messages: list[dict]) -> str:
     return "\n".join(string_messages)
 
 
+def messages_to_simplified_messages(messages: list[dict]):
+    """Convert messages to user and system prompt strings."""
+    resp_messages = []
+    for message in messages:
+        content = get_message_content(message)
+        resp_messages.append({"role": message.get("role"), "content": content})
+    return resp_messages
+
+
 def get_message_content(message: dict) -> str:
     """Extract content from a ChatCompletionMessageParam."""
     if message.get("role") == "user":

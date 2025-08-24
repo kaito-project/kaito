@@ -220,8 +220,9 @@ func ConfigAdapterVolume() (corev1.Volume, corev1.VolumeMount) {
 	return volume, volumeMount
 }
 
-func GetPresetImageName(name, tag string) string {
-	return fmt.Sprintf("%s/kaito-%s:%s",
-		os.Getenv("PRESET_REGISTRY_NAME"),
-		name, tag)
+func GetPresetImageName(registry, name, tag string) string {
+	if registry == "" {
+		registry = os.Getenv("PRESET_REGISTRY_NAME")
+	}
+	return fmt.Sprintf("%s/kaito-%s:%s", registry, name, tag)
 }

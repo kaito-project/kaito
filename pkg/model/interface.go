@@ -16,14 +16,12 @@ package model
 import (
 	"fmt"
 	"maps"
-	"math"
 	"path"
 	"strconv"
 	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -56,18 +54,9 @@ const (
 
 	DefaultTuningMainFile = "/workspace/tfs/fine_tuning.py"
 	ConfigfileNameVLLM    = "inference_config.yaml"
-	DefaultMemoryUtilVLLM = 0.9 // Default gpu memory utilization for VLLM runtime
-	UpperMemoryUtilVLLM   = 0.95
 
 	// PortRayCluster is the default port for communication between the head and worker nodes in a Ray cluster.
 	PortRayCluster = 6379
-)
-
-var (
-	// vLLM will do kvcache pre-allocation,
-	// We need to reserve enough memory for other ephemeral operations to avoid OOM.
-	// This is an empirical value.
-	ReservedNonKVCacheMemory = resource.MustParse("1.5Gi")
 )
 
 // Metadata defines the metadata for a model.
@@ -102,6 +91,11 @@ type Metadata struct {
 	// If the model uses the Kaito base image, the tag field can be ignored
 	// +optional
 	Tag string `yaml:"tag,omitempty"`
+
+	// Registry is the container registry where the model is stored.
+	// If this is empty, os.Getenv("PRESET_REGISTRY_NAME") will be used.
+	// +optional
+	Registry string `yaml:"registry,omitempty"`
 }
 
 // Validate checks if the Metadata is valid.
@@ -282,8 +276,6 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		}
 		p.VLLM.ModelRunParams["download-dir"] = utils.DefaultWeightsVolumePath
 	}
-	gpuMemUtil := getGPUMemoryUtilForVLLM(rc.GPUConfig)
-	p.VLLM.ModelRunParams["gpu-memory-utilization"] = strconv.FormatFloat(gpuMemUtil, 'f', 2, 64)
 	if rc.ConfigVolume != nil {
 		p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(rc.ConfigVolume.MountPath, ConfigfileNameVLLM)
 	}
@@ -342,23 +334,6 @@ func (p *PresetParam) Validate(rc RuntimeContext) error {
 		return fmt.Errorf("%s", strings.Join(errs, "; "))
 	}
 	return nil
-}
-
-func getGPUMemoryUtilForVLLM(gpuConfig *sku.GPUConfig) float64 {
-	if gpuConfig == nil || gpuConfig.GPUMemGB <= 0 || gpuConfig.GPUCount <= 0 {
-		return DefaultMemoryUtilVLLM
-	}
-
-	gpuMem := resource.MustParse(fmt.Sprintf("%dGi", gpuConfig.GPUMemGB))
-	gpuMemPerGPU := float64(gpuMem.Value()) / float64(gpuConfig.GPUCount)
-
-	if float64(ReservedNonKVCacheMemory.Value()) >= gpuMemPerGPU {
-		// looks impossible, just prevent this case
-		return DefaultMemoryUtilVLLM
-	}
-
-	util := math.Floor((1.0-float64(ReservedNonKVCacheMemory.Value())/gpuMemPerGPU)*100) / 100
-	return math.Min(util, UpperMemoryUtilVLLM)
 }
 
 // Only support Huggingface for now

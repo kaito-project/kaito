@@ -58,6 +58,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
@@ -157,7 +158,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		if errors.Is(err, reconcile.TerminalError(nil)) {
 			return reconcile.Result{}, nil
 		}
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
+		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 			"workspaceFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return reconcile.Result{}, updateErr
@@ -167,7 +168,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 
 	if wObj.Tuning != nil {
 		if err = c.applyTuning(ctx, wObj); err != nil {
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
+			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 				"workspaceFailed", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return reconcile.Result{}, updateErr
@@ -178,7 +179,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		job := &batchv1.Job{}
 		if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, job); err == nil {
 			if job.Status.Succeeded > 0 {
-				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue,
+				if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue,
 					"workspaceSucceeded", "workspace succeeds"); updateErr != nil {
 					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 					return reconcile.Result{}, updateErr
@@ -188,7 +189,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 				if job.Status.Ready != nil {
 					readyPod = *job.Status.Ready
 				}
-				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
+				if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 					"workspacePending", fmt.Sprintf("workspace has not completed, tuning job has %d active pod, %d ready pod", job.Status.Active, readyPod)); updateErr != nil {
 					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 					return reconcile.Result{}, updateErr
@@ -200,7 +201,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		}
 	} else if wObj.Inference != nil {
 		if err := c.ensureService(ctx, wObj); err != nil {
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
+			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 				"workspaceFailed", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return reconcile.Result{}, updateErr
@@ -208,7 +209,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 			return reconcile.Result{}, err
 		}
 		if err = c.applyInference(ctx, wObj); err != nil {
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
+			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 				"workspaceFailed", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return reconcile.Result{}, updateErr
@@ -216,14 +217,14 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 			return reconcile.Result{}, err
 		}
 		if err = c.ensureGatewayAPIInferenceExtension(ctx, wObj); err != nil {
-			if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
+			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse,
 				"workspaceFailed", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return reconcile.Result{}, updateErr
 			}
 		}
 
-		if err = c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue,
+		if err = workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue,
 			"workspaceSucceeded", "workspace succeeds"); err != nil {
 			klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return reconcile.Result{}, err
@@ -235,7 +236,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 
 func (c *WorkspaceReconciler) deleteWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
 	klog.InfoS("deleteWorkspace", "workspace", klog.KObj(wObj))
-	err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeDeleting, metav1.ConditionTrue, "workspaceDeleted", "workspace is being deleted")
+	err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeDeleting, metav1.ConditionTrue, "workspaceDeleted", "workspace is being deleted")
 	if err != nil {
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return reconcile.Result{}, err
@@ -321,7 +322,7 @@ func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *
 	}
 	annotations[WorkspaceHashAnnotation] = currentHash
 
-	err = updateWorkspaceWithRetry(ctx, c.Client, wObj, func(ws *kaitov1beta1.Workspace) error {
+	err = workspace.UpdateWorkspaceWithRetry(ctx, c.Client, wObj, func(ws *kaitov1beta1.Workspace) error {
 		ws.SetAnnotations(annotations)
 		return nil
 	})
@@ -382,7 +383,7 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 		}
 
 		klog.InfoS("need to create more nodes", "NodeCount", newNodesCount)
-		if err := c.updateStatusConditionIfNotMatch(ctx, wObj,
+		if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj,
 			kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionUnknown,
 			"CreateNodeClaimPending", fmt.Sprintf("creating %d nodeClaims", newNodesCount)); err != nil {
 			klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
@@ -403,7 +404,7 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 		for i := range selectedNodes {
 			err = c.ensureNodePlugins(ctx, wObj, selectedNodes[i])
 			if err != nil {
-				if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+				if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
 					"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
 					klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 					return updateErr
@@ -413,7 +414,7 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 		}
 	}
 
-	if err = c.updateStatusConditionIfNotMatch(ctx, wObj,
+	if err = workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj,
 		kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
 		"installNodePluginsSuccess", "nodeClaim plugins have been installed successfully"); err != nil {
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
@@ -423,7 +424,7 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 	// Add the valid nodes names to the WorkspaceStatus.WorkerNodes.
 	err = c.updateStatusNodeListIfNotMatch(ctx, wObj, selectedNodes)
 	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
 			"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return updateErr
@@ -431,28 +432,13 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 		return err
 	}
 
-	if err = c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue,
+	if err = workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue,
 		"workspaceResourceStatusSuccess", "workspace resource is ready"); err != nil {
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return err
 	}
 
 	return nil
-}
-
-func nodeIsReadyAndNotDeleting(node corev1.Node) bool {
-
-	// skip nodes that are being deleted
-	if node.DeletionTimestamp != nil {
-		return false
-	}
-
-	// skip nodes that are not ready
-	_, statusRunning := lo.Find(node.Status.Conditions, func(condition corev1.NodeCondition) bool {
-		return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
-	})
-
-	return statusRunning
 }
 
 func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, error) {
@@ -467,7 +453,7 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 				continue
 			}
 
-			if nodeIsReadyAndNotDeleting(*node) {
+			if resources.NodeIsReadyAndNotDeleting(node) {
 				// Check that all labels in wObj.Resource.LabelSelector.MatchLabels are present in the node's labels.
 				allLabelsMatch := true
 				for k, v := range wObj.Resource.LabelSelector.MatchLabels {
@@ -501,7 +487,7 @@ func (c *WorkspaceReconciler) getAllQualifiedNodes(ctx context.Context, wObj *ka
 		preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
 		for index := range nodeList.Items {
 			node := nodeList.Items[index]
-			if nodeIsReadyAndNotDeleting(node) {
+			if resources.NodeIsReadyAndNotDeleting(&node) {
 				// match the preferred node
 				if preferredNodeSet.Has(node.Name) {
 					qualifiedNodes = append(qualifiedNodes, lo.ToPtr(node))
@@ -578,14 +564,14 @@ func (c *WorkspaceReconciler) createNewNodes(ctx context.Context, wObj *kaitov1b
 	nodeOSDiskSize := c.determineNodeOSDiskSize(wObj)
 	_, err := c.createAllNodeClaims(ctx, wObj, newNodesCount, nodeOSDiskSize)
 	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
 			"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return updateErr
 		}
 		return err
 	}
-	if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
 		"workspaceResourceCreated", "nodeclaims created successfully"); updateErr != nil {
 		klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return updateErr
@@ -623,7 +609,7 @@ func (c *WorkspaceReconciler) ensureNodePlugins(ctx context.Context, wObj *kaito
 				err = resources.UpdateNodeWithLabel(ctx, freshNode, resources.LabelKeyNvidia, resources.LabelValueNvidia, c.Client)
 				if apierrors.IsNotFound(err) {
 					klog.ErrorS(err, "nvidia plugin cannot be installed, node not found", "node", freshNode.Name)
-					if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
+					if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
 						"checkNodeClaimStatusFailed", err.Error()); updateErr != nil {
 						klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 						return updateErr
@@ -740,7 +726,7 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta
 	}()
 
 	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionFalse,
+		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionFalse,
 			"WorkspaceTuningJobStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return updateErr
@@ -748,7 +734,7 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta
 		return err
 	}
 
-	if err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionTrue,
+	if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeTuningJobStatus, metav1.ConditionTrue,
 		"WorkspaceTuningJobStatusStarted", "Tuning job has started"); err != nil {
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return err
@@ -848,7 +834,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}()
 
 	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
+		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
 			"WorkspaceInferenceStatusFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 			return updateErr
@@ -857,26 +843,12 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		}
 	}
 
-	if err := c.updateStatusConditionIfNotMatch(ctx, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue,
+	if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue,
 		"WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully"); err != nil {
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 		return err
 	}
 	return nil
-}
-
-// updateWorkspaceWithRetry gets the latest workspace object, applies the modify function, and retries on conflict
-func updateWorkspaceWithRetry(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace, modifyFn func(*kaitov1beta1.Workspace) error) error {
-	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		latestWorkspace := &kaitov1beta1.Workspace{}
-		if err := c.Get(ctx, client.ObjectKeyFromObject(wObj), latestWorkspace); err != nil {
-			return err
-		}
-		if err := modifyFn(latestWorkspace); err != nil {
-			return err
-		}
-		return c.Update(ctx, latestWorkspace)
-	})
 }
 
 // ensureGatewayAPIInferenceExtension reconciles Gateway API Inference Extension components for a Workspace.

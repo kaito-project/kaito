@@ -433,3 +433,48 @@ func CheckNodeClass(ctx context.Context, kClient client.Client) error {
 	}
 	return nil
 }
+
+// GetExistingNodeClaims retrieves all NodeClaims(including deleting nodeclaim) associated with the given workspace
+// we hope the deleting NodeClaims are cleaned up before we can create new ones.
+func GetExistingNodeClaims(ctx context.Context, c client.Reader, wObj *kaitov1beta1.Workspace) ([]*karpenterv1.NodeClaim, error) {
+	nodeClaimList := &karpenterv1.NodeClaimList{}
+
+	listOpts := []client.ListOption{
+		client.MatchingLabels{
+			kaitov1beta1.LabelWorkspaceName:      wObj.Name,
+			kaitov1beta1.LabelWorkspaceNamespace: wObj.Namespace,
+		},
+	}
+
+	if err := c.List(ctx, nodeClaimList, listOpts...); err != nil {
+		return nil, fmt.Errorf("failed to list NodeClaims: %w", err)
+	}
+
+	nodeClaims := make([]*karpenterv1.NodeClaim, 0, len(nodeClaimList.Items))
+	for i := range nodeClaimList.Items {
+		nodeClaims = append(nodeClaims, &nodeClaimList.Items[i])
+	}
+
+	return nodeClaims, nil
+}
+
+// GetRequiredNodeClaimsCount returns the number of NodeClaims required for the given workspace
+func GetRequiredNodeClaimsCount(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) (int, error) {
+	// if node provision is disabled, NodeClaims are not needed.
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		return 0, nil
+	}
+
+	availableBYONodes, err := resources.GetBringYourOwnNodes(ctx, c, wObj)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get available BYO nodes: %w", err)
+	}
+
+	targetNodeCount := 1
+	if wObj.Inference != nil && wObj.Status.Inference != nil {
+		targetNodeCount = int(wObj.Status.Inference.TargetNodeCount)
+	}
+
+	// Calculate the number of NodeClaims needed (target - BYO nodes)
+	return max(0, targetNodeCount-len(availableBYONodes)), nil
+}

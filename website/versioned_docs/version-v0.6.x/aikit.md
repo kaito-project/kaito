@@ -108,7 +108,7 @@ resource:
 
 :::
 
-After workspace deployment succeeds, please refer to [Quick Start](quick-start.mdx#monitor-deployment) for monitoring the workspace and testing model inference.
+After workspace deployment succeeds, please refer to [Quick Start](quick-start.md#monitor-deployment) for monitoring the workspace and testing model inference.
 
 #### Custom Model Creation and Integration
 

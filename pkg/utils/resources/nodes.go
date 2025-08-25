@@ -20,11 +20,14 @@ import (
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -119,4 +122,54 @@ func ExtractObjFields(obj client.Object) (instanceType, namespace, name string, 
 		err = fmt.Errorf("unsupported object type: %T", obj)
 	}
 	return
+}
+
+// GetBringYourOwnNodes finds all BYO nodes that match the workspace's label selector
+func GetBringYourOwnNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, error) {
+	nodeList, err := ListNodes(ctx, c, wObj.Resource.LabelSelector.MatchLabels)
+	if err != nil {
+		return nil, err
+	}
+
+	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
+
+	availableBYONodes := make([]*corev1.Node, 0, len(nodeList.Items))
+	for i := range nodeList.Items {
+		node := &nodeList.Items[i]
+
+		// if node provision is disabled, preferred nodes will be ignored.
+		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+			if !preferredNodeSet.Has(node.Name) {
+				continue
+			}
+		}
+
+		if !NodeIsReadyAndNotDeleting(node) {
+			klog.V(4).InfoS("BYO node is not ready, skipping",
+				"node", node.Name,
+				"workspace", klog.KObj(wObj))
+			continue
+		}
+
+		availableBYONodes = append(availableBYONodes, node)
+	}
+
+	klog.V(4).InfoS("Found available BYO nodes",
+		"workspace", klog.KObj(wObj),
+		"preferredNodesSpecified", len(wObj.Resource.PreferredNodes),
+		"availableBYONodes", len(availableBYONodes))
+
+	return availableBYONodes, nil
+}
+
+func NodeIsReadyAndNotDeleting(node *corev1.Node) bool {
+	if node.DeletionTimestamp != nil {
+		return false
+	}
+
+	_, statusRunning := lo.Find(node.Status.Conditions, func(condition corev1.NodeCondition) bool {
+		return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
+	})
+
+	return statusRunning
 }

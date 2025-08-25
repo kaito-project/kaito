@@ -9,22 +9,8 @@ on:
     branches:
       - main
     paths:
-      - 'presets/workspace/inference/**'
-      - 'presets/workspace/models/supported_models.yaml'
+      - presets/workspace/models/supported_models.yaml
   workflow_dispatch:
-    inputs:
-      force-run-all:
-        type: boolean
-        default: false
-        description: "Run all models for build"
-      force-run-all-public:
-        type: boolean
-        default: false
-        description: "Run all public models for build"
-      force-run-all-phi:
-        type: boolean
-        default: false
-        description: "Run all Phi models for build"
 
 env:
     GO_VERSION: "1.24"
@@ -49,20 +35,18 @@ jobs:
           submodules: true
           fetch-depth: 0
 
-      - name: Set FORCE_RUN_ALL Flag
-        id: set_force_run_all
+      - name: Download crane
         run: |
-          echo "FORCE_RUN_ALL=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all == 'true' }}" >> $GITHUB_OUTPUT
-          echo "FORCE_RUN_ALL_PHI=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all-phi == 'true' }}" >> $GITHUB_OUTPUT
+          if ! command -v crane &> /dev/null; then
+            wget -q https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz -O /tmp/crane.tar.gz
+            tar -xzf /tmp/crane.tar.gz -C /tmp crane
+            chmod +x /tmp/crane
+            sudo mv /tmp/crane /usr/local/bin/crane
+          fi
 
-      # This script should output a JSON array of model names
       - name: Determine Affected Models
         id: affected_models
-        run: |
-          PR_BRANCH=${{ env.BRANCH_NAME }} \
-          FORCE_RUN_ALL=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL }} \
-          FORCE_RUN_ALL_PHI=${{ steps.set_force_run_all.outputs.FORCE_RUN_ALL_PHI }} \
-          python3 .github/determine_models.py
+        run: python3 .github/determine_missing_preset_images.py
 
       - name: Print Determined Models
         run: |

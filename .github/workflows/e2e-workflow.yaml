@@ -55,32 +55,25 @@ jobs:
         with:
           ref: ${{ inputs.git_sha }}
 
-      - name: Install gh
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - name: Download crane
         run: |
-          (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
-            && sudo mkdir -p -m 755 /etc/apt/keyrings \
-            && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-            && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
-            && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-            && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
-            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-            && sudo apt update \
-            && sudo apt install gh -y
+          if ! command -v crane &> /dev/null; then
+            wget -q https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz -O /tmp/crane.tar.gz
+            tar -xzf /tmp/crane.tar.gz -C /tmp crane
+            chmod +x /tmp/crane
+            sudo mv /tmp/crane /usr/local/bin/crane
+          fi
 
       - name: Set BUILD_KAITO_BASE_IMAGE
         run: |
-          CHANGED_FILES=$(gh pr diff "${{ inputs.pull_request_number }}" --name-only)
-          # Check if specific files in the following directory are modified to determine if base image needs to be built
-          # - presets/workspace/inference/**
-          # - presets/workspace/tuning/**
-          # - docker/presets/models/tfs/Dockerfile
-          if echo "$CHANGED_FILES" | grep -E "(presets/workspace/inference|presets/workspace/tuning|docker/presets/models/tfs/Dockerfile)"; then
-            echo "BUILD_KAITO_BASE_IMAGE=true" >> $GITHUB_ENV
-          else
-            echo "BUILD_KAITO_BASE_IMAGE=false" >> $GITHUB_ENV
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Check if we are missing the kaito-base image. If we are, we should run full e2e tests. Otherwise, run fast e2e tests.
+          BUILD_KAITO_BASE_IMAGE=$(python3 .github/determine_missing_preset_images.py | jq -r '.[] | select(.name == "base") | length > 0')
+          echo "BUILD_KAITO_BASE_IMAGE=${BUILD_KAITO_BASE_IMAGE}" >> $GITHUB_ENV
 
       - name: Run e2e-base-setup composite action
         id: base-setup
@@ -121,7 +114,7 @@ jobs:
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5.5.0
         with:
-          go-version: ${{ env.GO_VERSION  }}
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Log ${{ inputs.node_provisioner }}
         run: |

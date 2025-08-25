@@ -148,6 +148,9 @@ def main():
     if not model_name:
         print("ERROR: MODEL_NAME environment variable is required", file=sys.stderr)
         sys.exit(1)
+    elif model_name == "base":
+        print("Nothing to build for base model", file=sys.stderr)
+        sys.exit(0)
 
     model_version = os.environ.get("MODEL_VERSION")
     if not model_version:

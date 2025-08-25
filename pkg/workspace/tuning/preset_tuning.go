@@ -29,7 +29,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
@@ -167,7 +166,7 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	}
 
 	podSpec, err := generator.GenerateManifest(gctx,
-		GenerateBasicTuningPodSpec(gpuConfig, skuNumGPUs),
+		GenerateBasicTuningPodSpec(skuNumGPUs),
 		SetTrainingResultVolume,
 		SetTrainingInput,
 		SetTrainingOutputImagePush,
@@ -191,7 +190,7 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	return jobObj, nil
 }
 
-func GenerateBasicTuningPodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		// additional volume
 		var volumes []corev1.Volume
@@ -256,6 +255,29 @@ func GenerateBasicTuningPodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs int) func(*
 		}
 		spec.Volumes = volumes
 		spec.RestartPolicy = corev1.RestartPolicyNever
+
+		// Add node affinity based on label selector from workspace resource
+		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ctx.Workspace.Resource.LabelSelector.MatchLabels))
+		for key, value := range ctx.Workspace.Resource.LabelSelector.MatchLabels {
+			nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
+				Key:      key,
+				Operator: corev1.NodeSelectorOpIn,
+				Values:   []string{value},
+			})
+		}
+
+		spec.Affinity = &corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{
+						{
+							MatchExpressions: nodeRequirements,
+						},
+					},
+				},
+			},
+		}
+
 		return nil
 	}
 }

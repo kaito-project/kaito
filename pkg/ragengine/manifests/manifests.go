@@ -14,6 +14,8 @@
 package manifests
 
 import (
+	"strings"
+
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -127,7 +129,7 @@ func RAGSetEnv(ragEngineObj *kaitov1alpha1.RAGEngine) []corev1.EnvVar {
 			envs = append(envs, modelIDEnv)
 		}
 		if ragEngineObj.Spec.Embedding.Local.ModelAccessSecret != "" {
-			accessSecret := ragEngineObj.Spec.Embedding.Local.ModelAccessSecret
+			accessSecret := strings.TrimRight(ragEngineObj.Spec.Embedding.Local.ModelAccessSecret, "\n")
 			accessSecretEnv := corev1.EnvVar{
 				Name:  "ACCESS_SECRET",
 				Value: accessSecret,

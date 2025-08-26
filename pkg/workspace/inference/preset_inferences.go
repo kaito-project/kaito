@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -407,7 +408,7 @@ func SetModelDownloadInfo(ctx *generator.WorkspaceGeneratorContext, spec *corev1
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{
-						Name: ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret,
+						Name: strings.TrimRight(ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret, "\n"),
 					},
 					Key: "HF_TOKEN",
 				},

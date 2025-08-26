@@ -875,7 +875,7 @@ func TestUpdateWorkspaceStatusIfNeeded(t *testing.T) {
 	}
 }
 
-func TestUpdateWorkspaceStatusWithBothUpdates(t *testing.T) {
+func TestUpdateWorkspaceStatusWithOneRequest(t *testing.T) {
 	tests := []struct {
 		name                 string
 		workerNodes          []string
@@ -961,7 +961,7 @@ func TestUpdateWorkspaceStatusWithBothUpdates(t *testing.T) {
 
 			manager := NewNodeManager(mockClient)
 			nameKey := &client.ObjectKey{Name: "test-workspace", Namespace: "default"}
-			err := manager.updateWorkspaceStatusWithBothUpdates(context.Background(), nameKey, tt.workerNodes, tt.updateWorkerNodes, tt.updateResourceStatus)
+			err := manager.updateWorkspaceStatusWithOneRequest(context.Background(), nameKey, tt.workerNodes, tt.updateWorkerNodes, tt.updateResourceStatus)
 
 			if tt.expectedError {
 				assert.Error(t, err)

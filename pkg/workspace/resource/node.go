@@ -256,12 +256,12 @@ func (c *NodeManager) updateWorkspaceStatusIfNeeded(ctx context.Context, wObj *k
 		"previousNodes", wObj.Status.WorkerNodes,
 		"newNodes", readyNodeNames)
 
-	return c.updateWorkspaceStatusWithBothUpdates(ctx, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace},
+	return c.updateWorkspaceStatusWithOneRequest(ctx, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace},
 		readyNodeNames, needsWorkerNodeUpdate, needsResourceStatusUpdate)
 }
 
-// updateWorkspaceStatusWithBothUpdates updates both WorkerNodes and ResourceStatus condition in a single request
-func (c *NodeManager) updateWorkspaceStatusWithBothUpdates(ctx context.Context, name *client.ObjectKey,
+// updateWorkspaceStatusWithOneRequest updates both WorkerNodes and ResourceStatus condition in a single request
+func (c *NodeManager) updateWorkspaceStatusWithOneRequest(ctx context.Context, name *client.ObjectKey,
 	workerNodes []string, updateWorkerNodes bool, updateResourceStatus bool) error {
 	return retry.OnError(retry.DefaultRetry,
 		func(err error) bool {

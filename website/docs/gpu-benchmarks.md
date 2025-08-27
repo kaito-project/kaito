@@ -2,13 +2,13 @@
 title: GPU Benchmarks
 ---
 
-These benchmarks help users choose the optimal GPU SKU for running their AI models with Kaito. We compare performance characteristics across different GPU types to guide cost-effective hardware selection.
+These benchmarks help users choose the optimal GPU SKU for running their AI models with KAITO. We compare performance characteristics across different GPU types to guide cost-effective hardware selection.
 
 ## Test Setup
 
 ### Infrastructure Configuration
 
-We established a dedicated Kubernetes cluster with Kaito deployed to conduct comprehensive GPU performance benchmarks. The testing infrastructure was configured to evaluate three distinct GPU types: NVIDIA A10, A100, and H100, each representing different performance tiers and cost points in the GPU ecosystem.
+We established a dedicated Kubernetes cluster with KAITO deployed to conduct comprehensive GPU performance benchmarks. The testing infrastructure was configured to evaluate three distinct GPU types: NVIDIA A10, A100, and H100, each representing different performance tiers and cost points in the GPU ecosystem.
 
 ### GPU Selection Rationale
 
@@ -16,17 +16,25 @@ Due to memory and compute constraints, the A10 GPU was evaluated separately usin
 
 ### Benchmark Framework
 
-All performance tests utilized vLLM's official `benchmark_serving.py` script, which provides standardized metrics for evaluating inference server performance. This tool measures critical performance indicators including:
+All performance tests utilized [vLLM](https://github.com/vllm-project/vllm) by running the official `benchmark_serving.py` [script](https://github.com/vllm-project/vllm/blob/main/benchmarks/benchmark_serving.py), which provides standardized metrics for evaluating inference server performance. This tool measures critical performance indicators including:
 
-- **Queries Per Second (QPS)**: Total throughput capacity
-- **Time to First Token (TTFT)**: Initial response latency
-- **Inter-Token Latency (ITL)**: Streaming response consistency
+- **Time to First Token (TTFT)**: How long the user must wait until the model begins to deliver a response.
+- **Inter-Token Latency (ITL)**: How fast the model generates subsequent tokens after it begins its response.
 
 ### Model Configurations
 
+We tested the models `microsoft/Phi-4-mini-instruct` and `meta-llama/Llama-3.1-8B-Instruct`. The following fields were configured:
+
+- **Requests Per Second (RPS)**: Total throughput capacity with latency in powers of two, such as 1, 2, 4, etc. up to 64 for larger GPUs, indicated by the `--request-rate` flag.
+- **Max Concurrency**: The maximum number of simultaneous requests the server can handle, configured with the `--max-concurrency` flag. It was set to 200 for the A10 and H100 tests and 50 for the A10 tests. These values were selected in order to set a ceiling high enough that it will not bottleneck the GPU.
+- **Random Input Length**: The length of the input prompts, configured with the `--random-input-len` flag. This value was increased for larger models/GPUs that could handle an increased workload. A smaller value could represent a conversation workload, while a larger value could represent a document or source code.
+- **Random Output Length**: The length of the expected output responses, configured with the `--random-output-len` flag.
+- **Number of prompts**: We configured each test to run for 60 seconds, so with the number of prompts was set to `$RATE * 60`.
+
+
 #### Phi-4 Mini Instruct Model
 
-The `microsoft/Phi-4-mini-instruct` model was tested with the following configuration optimized for conversational AI workloads:
+The `microsoft/Phi-4-mini-instruct` model was tested with the following configuration with 
 
 ```bash
 python benchmark_serving.py \
@@ -37,7 +45,7 @@ python benchmark_serving.py \
     --endpoint /v1/completions \
     --num-prompts $NUM_PROMPTS \
     --request-rate $RATE \
-    --max-concurrency $MAX_CONCURRENCY \
+    --max-concurrency 200 \
     --random-input-len 200 \
     --random-output-len 200 \
     --dataset-name random \
@@ -65,7 +73,7 @@ python benchmark_serving.py \
     --endpoint /v1/completions \
     --num-prompts $NUM_PROMPTS \
     --request-rate $RATE \
-    --max-concurrency $MAX_CONCURRENCY \
+    --max-concurrency 200 \
     --random-input-len 1000 \
     --random-output-len 200 \
     --dataset-name random \
@@ -75,16 +83,22 @@ python benchmark_serving.py \
 ```
 
 **Test Parameters:**
-- **Input Token Length**: 1000 tokens ()
+- **Input Token Length**: 1000 tokens
 - **Output Token Length**: 200 tokens
 - **Use Case**: Optimized for large context understanding with minimal output generation
 - **Load Pattern**: Variable request rates from 1 to 64 QPS
 
+
+#### A10 GPU
+
+Since the A10 GPU was not powerful enough to run larger models, higher input/output lengths, or higher QPS, we tested it individually with lower settings as to not skew the results of the other GPUs.
+
+- The QPS ranged in powers of two from 1 to 16 instead of 64.
+- For Phi 4 Mini and Llama 3.1 8B, the max concurrency was set to 50 instead of 200.
+
 ### Testing Methodology
 
 ## Benchmark Results
-
-For each model and GPU, we tested the QPS doubling from 1, 2, 4, etc. to 64 and measured the mean time to first token and inter-token latency.
 
 ### A10 GPU results
 
@@ -110,11 +124,11 @@ For each model and GPU, we tested the QPS doubling from 1, 2, 4, etc. to 64 and 
 
 #### Time to First Token
 
-![img](/img/llama-3-1-8b-ttft.png)
+![img](/img/llama-3.1-8b-ttft.png)
 
 #### Inter-Token Latency
 
-![img](/img/llama-3-1-8b-itl.png)
+![img](/img/llama-3.1-8b-itl.png)
 
 ## Performance Analysis
 
@@ -133,7 +147,6 @@ The A10 GPU performas well on Phi 4 Mini but is not suited for larger models suc
 ### A100 vs H100 Comparison
 
 #### Phi 4 Mini Performance
-
 
 - The H100 almost always has a consistent TTFT of around 600-700 ms, which is surprisingly higher than that of the A100. This is likely because the H100 is meant for larger workloads and a smaller model like this is not optimized to take advantage of its bandwidth.
 - The ITL of the H100 is, however, is also consistently lower across all load levels than the A100, which is as expected based as the H100 is a more powerful GPU.
@@ -177,6 +190,8 @@ The benchmark results suggest optimal operating ranges:
 - **Low-load optimal**: 1-8 QPS for consistent, predictable performance
 - **High-throughput optimal**: 16-32 QPS where batching optimizations provide maximum efficiency
 - **Saturation point**: Beyond 32-64 QPS, performance gains diminish and latency increases
+
+KAITO is currently adding a feature to distribute the load across model servers when QPS is high to mitigate these issues.
 
 ## Conclusion
 

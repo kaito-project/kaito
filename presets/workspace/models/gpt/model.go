@@ -25,13 +25,19 @@ import (
 func init() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     PresetGPT_OSS_20BModel,
-		Instance: &gpt20B,
+		Instance: &gptOss20b,
+	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     PresetGPT_OSS_120BModel,
+		Instance: &gptOss120b,
 	})
 }
 
 const (
 	// PresetGPT_OSS_20BModel is the preset name matching supported_models.yaml.
 	PresetGPT_OSS_20BModel = "gpt-oss-20b"
+	// PresetGPT_OSS_120BModel is the preset name matching supported_models.yaml.
+	PresetGPT_OSS_120BModel = "gpt-oss-120b"
 )
 
 var (
@@ -49,7 +55,8 @@ var (
 	}
 )
 
-var gpt20B gpt_oss_20B
+var gptOss20b gpt_oss_20B
+var gptOss120b gpt_oss_120B
 
 type gpt_oss_20B struct{}
 
@@ -88,5 +95,45 @@ func (*gpt_oss_20B) SupportDistributedInference() bool {
 }
 
 func (*gpt_oss_20B) SupportTuning() bool {
+	return false
+}
+
+type gpt_oss_120B struct{}
+
+func (*gpt_oss_120B) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata:                  metadata.MustGet(PresetGPT_OSS_120BModel),
+		DiskStorageRequirement:    "80Gi", // Larger model needs more disk space
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "80Gi", // Single 80GB GPU requirement
+		PerGPUMemoryRequirement:   "0Gi",  // Native vertical model parallel; no per-GPU split requirement
+		RuntimeParam: model.RuntimeParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       baseCommandPresetGPTInference,
+				AccelerateParams:  inference.DefaultAccelerateParams,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelRunParams:    gptRunParams,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:          inference.DefaultVLLMCommand,
+				ModelName:            PresetGPT_OSS_120BModel,
+				ModelRunParams:       gptRunParamsVLLM,
+				RayLeaderBaseCommand: inference.DefaultVLLMRayLeaderBaseCommand,
+				RayWorkerBaseCommand: inference.DefaultVLLMRayWorkerBaseCommand,
+			},
+		},
+		ReadinessTimeout: time.Duration(45) * time.Minute, // Longer timeout for larger model
+	}
+}
+
+func (*gpt_oss_120B) GetTuningParameters() *model.PresetParam {
+	return nil
+}
+
+func (*gpt_oss_120B) SupportDistributedInference() bool {
+	return true
+}
+
+func (*gpt_oss_120B) SupportTuning() bool {
 	return false
 }

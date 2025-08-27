@@ -28,7 +28,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,6 +50,7 @@ const (
 	PresetDeepSeekR1DistillLlama8BModel = "deepseek-r1-distill-llama-8b"
 	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
 	PresetPhi4MiniModel                 = "phi-4-mini-instruct"
+	PresetGPT_OSS_20BModel              = "gpt-oss-20b"
 	WorkspaceHashAnnotation             = "workspace.kaito.io/hash"
 	// WorkspaceRevisionAnnotation represents the revision number of the workload managed by the workspace
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"
@@ -210,7 +210,21 @@ func createPhi3WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 	return workspaceObj
 }
 
-func createCustomTuningConfigMapForE2E() *v1.ConfigMap {
+func createGPTOss20BWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with GPT-OSS-20B preset public mode", func() {
+		uniqueID := fmt.Sprint("preset-gpt-oss-20b-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
+			numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-20b"},
+			}, nil, PresetGPT_OSS_20BModel, nil, nil, nil, "")
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createCustomTuningConfigMapForE2E() *corev1.ConfigMap {
 	configMap := utils.GenerateE2ETuningConfigMapManifest(namespaceName)
 
 	By("Creating a custom workspace tuning configmap for E2E", func() {
@@ -220,7 +234,7 @@ func createCustomTuningConfigMapForE2E() *v1.ConfigMap {
 	return configMap
 }
 
-func createAndValidateConfigMap(configMap *v1.ConfigMap) {
+func createAndValidateConfigMap(configMap *corev1.ConfigMap) {
 	By("Creating ConfigMap", func() {
 		Eventually(func() error {
 			err := utils.TestingCluster.KubeClient.Create(ctx, configMap, &client.CreateOptions{})
@@ -377,7 +391,7 @@ func updateAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 
 func copySecretToNamespace(secretName, targetNamespace string) error {
 	originalNamespace := "default"
-	originalSecret := &v1.Secret{}
+	originalSecret := &corev1.Secret{}
 
 	// Fetch the original secret from the default namespace
 	err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -427,7 +441,7 @@ func validateAssociatedService(workspaceObj *kaitov1beta1.Workspace) {
 	serviceNamespace := workspaceObj.Namespace
 
 	By(fmt.Sprintf("Checking for service %s in namespace %s", serviceName, serviceNamespace), func() {
-		service := &v1.Service{}
+		service := &corev1.Service{}
 
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -613,7 +627,7 @@ func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputIma
 					return false
 				}
 			} else {
-				var pullerContainer *v1.Container
+				var pullerContainer *corev1.Container
 				for _, container := range job.Spec.Template.Spec.InitContainers {
 					if strings.HasPrefix(container.Name, "puller") {
 						pullerContainer = &container
@@ -640,7 +654,7 @@ func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputIma
 					return false
 				}
 			} else {
-				var pusherContainer *v1.Container
+				var pusherContainer *corev1.Container
 				for _, container := range job.Spec.Template.Spec.Containers {
 					if strings.HasPrefix(container.Name, "pusher") {
 						pusherContainer = &container
@@ -1178,6 +1192,26 @@ var _ = Describe("Workspace Preset", func() {
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
+	It("should create a gpt-oss-20b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createGPTOss20BWorkspaceWithPresetPublicMode(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+
+		validateWorkspaceReadiness(workspaceObj)
+	})
+
 	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		configMap := createCustomTuningConfigMapForE2E()
@@ -1266,7 +1300,7 @@ func validateCreateNode(workspaceObj *kaitov1beta1.Workspace, numOfNode int) {
 func validateInferenceConfig(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the inference config exists", func() {
 		Eventually(func() bool {
-			configMap := &v1.ConfigMap{}
+			configMap := &corev1.ConfigMap{}
 			configName := kaitov1beta1.DefaultInferenceConfigTemplate
 			if workspaceObj.Inference.Config != "" {
 				configName = workspaceObj.Inference.Config

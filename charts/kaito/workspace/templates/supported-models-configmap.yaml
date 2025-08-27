@@ -129,3 +129,8 @@ data:
         version: https://huggingface.co/openai/gpt-oss-20b/commit/db6852caddef0cf0c1f729034ed700c84eab376e
         runtime: tfs
         tag: 0.0.1
+      - name: gpt-oss-120b
+        type: text-generation
+        version: https://huggingface.co/openai/gpt-oss-120b/commit/db6852caddef0cf0c1f729034ed700c84eab376e
+        runtime: tfs
+        tag: 0.0.1

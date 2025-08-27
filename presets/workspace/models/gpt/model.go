@@ -1,0 +1,92 @@
+// Copyright (c) KAITO authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package gpt
+
+import (
+	"time"
+
+	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
+)
+
+func init() {
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     PresetGPT_OSS_20BModel,
+		Instance: &gpt20B,
+	})
+}
+
+const (
+	// PresetGPT_OSS_20BModel is the preset name matching supported_models.yaml.
+	PresetGPT_OSS_20BModel = "gpt-oss-20b"
+)
+
+var (
+	baseCommandPresetGPTInference = "accelerate launch"
+	// GPT-OSS uses the Harmony chat format and provides its own chat template in the repo.
+	// We enable allow_remote_files so Transformers can fetch it when needed.
+	gptRunParams = map[string]string{
+		"torch_dtype":        "auto",
+		"pipeline":           "text-generation",
+		"allow_remote_files": "",
+	}
+	gptRunParamsVLLM = map[string]string{
+		"dtype":             "float16",
+		"trust-remote-code": "",
+	}
+)
+
+var gpt20B gpt_oss_20B
+
+type gpt_oss_20B struct{}
+
+func (*gpt_oss_20B) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata:                  metadata.MustGet(PresetGPT_OSS_20BModel),
+		DiskStorageRequirement:    "16Gi",
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "16Gi", // per https://openai.com/index/introducing-gpt-oss/
+		PerGPUMemoryRequirement:   "0Gi",  // Native vertical model parallel; no per-GPU split requirement
+		RuntimeParam: model.RuntimeParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       baseCommandPresetGPTInference,
+				AccelerateParams:  inference.DefaultAccelerateParams,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelRunParams:    gptRunParams,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:          inference.DefaultVLLMCommand,
+				ModelName:            PresetGPT_OSS_20BModel,
+				ModelRunParams:       gptRunParamsVLLM,
+				RayLeaderBaseCommand: inference.DefaultVLLMRayLeaderBaseCommand,
+				RayWorkerBaseCommand: inference.DefaultVLLMRayWorkerBaseCommand,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+
+func (*gpt_oss_20B) GetTuningParameters() *model.PresetParam {
+	return nil
+}
+
+func (*gpt_oss_20B) SupportDistributedInference() bool {
+	return true
+}
+
+func (*gpt_oss_20B) SupportTuning() bool {
+	return false
+}

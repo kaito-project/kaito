@@ -1,0 +1,16 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-gpt-oss-20b
+  annotations:
+    kaito.sh/runtime: transformers
+resource:
+  # instanceType: "Standard_NV36ads_A10_v5"
+  preferredNodes:
+  - aks-a100pool-28869792-vmss000000
+  labelSelector:
+    matchLabels:
+      apps: gpt-oss-20b
+inference:
+  preset:
+    name: "gpt-oss-20b"

@@ -73,7 +73,7 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
     # Generate the CRD manifests and kubectl apply them. Re-generate if anything in deps changes.
     local_resource(
         'crd',
-        make_generate() + ' && ' + make_manifests() + ' && kubectl apply --server-side -f charts/kaito/workspace/crds',
+        make_generate() + ' && ' + make_manifests() + ' && kubectl apply --server-side -f charts/kaito/workspace/crds --force-conflicts',
         deps=['api'],
         ignore=['*/*/zz_generated.deepcopy.go'],
         labels='Workspace',

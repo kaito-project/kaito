@@ -24,6 +24,8 @@ on:
       k8s_version:
         type: string
         default: "1.31.10"
+      pull_request_number:
+        type: string
 
 jobs:
   e2e-tests:
@@ -53,6 +55,26 @@ jobs:
         with:
           ref: ${{ inputs.git_sha }}
 
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - name: Download crane
+        run: |
+          if ! command -v crane &> /dev/null; then
+            wget -q https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz -O /tmp/crane.tar.gz
+            tar -xzf /tmp/crane.tar.gz -C /tmp crane
+            chmod +x /tmp/crane
+            sudo mv /tmp/crane /usr/local/bin/crane
+          fi
+
+      - name: Set BUILD_KAITO_BASE_IMAGE
+        run: |
+          # Check if we are missing the kaito-base image. If we are, we should run full e2e tests. Otherwise, run fast e2e tests.
+          BUILD_KAITO_BASE_IMAGE=$(python3 .github/determine_missing_preset_images.py | jq -r '.[] | select(.name == "base") | length > 0')
+          echo "BUILD_KAITO_BASE_IMAGE=${BUILD_KAITO_BASE_IMAGE}" >> $GITHUB_ENV
+
       - name: Run e2e-base-setup composite action
         id: base-setup
         uses: ./.github/actions/e2e-base-setup
@@ -64,6 +86,7 @@ jobs:
           region: ${{ inputs.region }}
           k8s_version: ${{ inputs.k8s_version }}
           registry: ${{ inputs.registry }}
+          build_kaito_base_image: ${{ env.BUILD_KAITO_BASE_IMAGE }}
 
       - name: Set Registry
         if: ${{ inputs.isRelease }}
@@ -91,7 +114,7 @@ jobs:
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5.5.0
         with:
-          go-version: ${{ env.GO_VERSION  }}
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Log ${{ inputs.node_provisioner }}
         run: |
@@ -106,7 +129,7 @@ jobs:
           kubectl get pods -n kaito-workspace -o name | grep "^pod/kaito-workspace" | sed 's/^pod\///' | xargs -I {} kubectl logs -n kaito-workspace {}
 
       - name: Run full e2e test
-        if: ${{ inputs.isRelease }}
+        if: ${{ inputs.isRelease || env.BUILD_KAITO_BASE_IMAGE == 'true' }}
         run: |
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
@@ -118,7 +141,7 @@ jobs:
           E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
 
       - name: Run fast e2e test
-        if: ${{ !inputs.isRelease }}
+        if: ${{ !inputs.isRelease && env.BUILD_KAITO_BASE_IMAGE != 'true' }}
         run: |
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
@@ -129,7 +152,6 @@ jobs:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
           E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
-
 
       - name: Cleanup e2e resources
         if: ${{ always() }}

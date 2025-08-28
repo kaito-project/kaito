@@ -41,12 +41,15 @@ const (
 var (
 	baseCommandPresetPhiInference = "accelerate launch"
 	baseCommandPresetPhiTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	phiRunParams                  = map[string]string{
+	phi4RunParams                 = map[string]string{
 		"torch_dtype":       "auto",
 		"pipeline":          "text-generation",
 		"trust_remote_code": "",
 	}
-	phiRunParamsVLLM = map[string]string{
+	phi4RunParamsVLLM = map[string]string{
+		"dtype": "float16",
+	}
+	phi4MiniRunParamsVLLM = map[string]string{
 		"dtype":                   "float16",
 		"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
 		"tool-call-parser":        "phi4_mini_json",
@@ -70,12 +73,12 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 				BaseCommand:       baseCommandPresetPhiInference,
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    phiRunParams,
+				ModelRunParams:    phi4RunParams,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
 				ModelName:      PresetPhi4Model,
-				ModelRunParams: phiRunParamsVLLM,
+				ModelRunParams: phi4RunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -119,12 +122,12 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 				BaseCommand:       baseCommandPresetPhiInference,
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    phiRunParams,
+				ModelRunParams:    phi4RunParams,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    inference.DefaultVLLMCommand,
 				ModelName:      PresetPhi4MiniInstructModel,
-				ModelRunParams: phiRunParamsVLLM,
+				ModelRunParams: phi4MiniRunParamsVLLM,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

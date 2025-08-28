@@ -77,6 +77,7 @@ const sidebars = {
                 'monitoring',
                 'kaito-oom-prevention',
                 'kaito-on-byo-gpu-nodes',
+                'gpu-benchmarks'
             ],
         },
         {

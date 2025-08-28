@@ -8,6 +8,9 @@ data:
     # Maximum number of steps to find the max available seq len fitting in the GPU memory.
     max_probe_steps: 6
 
+    # Optional: CPU memory utilization for the vllm engine in kv cache offload mode. (default: 0.5, set to 0 to disable)
+    kv_cache_cpu_memory_utilization: 0.5
+
     vllm:
       cpu-offload-gb: 0
       swap-space: 4

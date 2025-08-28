@@ -349,7 +349,7 @@ func GenerateDeploymentManifestWithPodTemplate(workspaceObj *kaitov1beta1.Worksp
 }
 
 func GetModelImageName(presetObj *pkgmodel.PresetParam) string {
-	return utils.GetPresetImageName(presetObj.Name, presetObj.Tag)
+	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
 // GenerateModelPullerContainer creates an init container that pulls model images using ORAS

@@ -15,6 +15,7 @@ package tuning
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -28,7 +29,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
@@ -44,6 +44,9 @@ const (
 )
 
 var (
+	//go:embed scripts/data-downloader.sh
+	dataDownloaderScript string
+
 	containerPorts = []corev1.ContainerPort{{
 		ContainerPort: consts.PortInferenceServer,
 	}}
@@ -68,7 +71,7 @@ var (
 
 func GetTuningImageInfo() string {
 	presetObj := metadata.MustGet("base")
-	return utils.GetPresetImageName(presetObj.Name, presetObj.Tag)
+	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
 func GetDataSrcImageInfo(ctx context.Context, wObj *kaitov1beta1.Workspace) (string, []corev1.LocalObjectReference) {
@@ -163,7 +166,7 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	}
 
 	podSpec, err := generator.GenerateManifest(gctx,
-		GenerateBasicTuningPodSpec(gpuConfig, skuNumGPUs),
+		GenerateBasicTuningPodSpec(skuNumGPUs),
 		SetTrainingResultVolume,
 		SetTrainingInput,
 		SetTrainingOutputImagePush,
@@ -187,7 +190,7 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	return jobObj, nil
 }
 
-func GenerateBasicTuningPodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		// additional volume
 		var volumes []corev1.Volume
@@ -252,6 +255,29 @@ func GenerateBasicTuningPodSpec(gpuConfig *sku.GPUConfig, skuNumGPUs int) func(*
 		}
 		spec.Volumes = volumes
 		spec.RestartPolicy = corev1.RestartPolicyNever
+
+		// Add node affinity based on label selector from workspace resource
+		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ctx.Workspace.Resource.LabelSelector.MatchLabels))
+		for key, value := range ctx.Workspace.Resource.LabelSelector.MatchLabels {
+			nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
+				Key:      key,
+				Operator: corev1.NodeSelectorOpIn,
+				Values:   []string{value},
+			})
+		}
+
+		spec.Affinity = &corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{
+						{
+							MatchExpressions: nodeRequirements,
+						},
+					},
+				},
+			},
+		}
+
 		return nil
 	}
 }
@@ -371,7 +397,7 @@ func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace
 		return pullerContainer, []corev1.Volume{imagePullSecretVolume, dataVolume}, []corev1.VolumeMount{imagePullSecretVolumeMount, dataVolumeMount}
 
 	case len(input.URLs) > 0:
-		initContainer, volume, volumeMount := handleURLDataSource(ctx, workspaceObj)
+		initContainer, volume, volumeMount := handleURLDataSource(workspaceObj)
 		return initContainer, []corev1.Volume{volume}, []corev1.VolumeMount{volumeMount}
 
 	case input.Volume != nil:
@@ -383,39 +409,12 @@ func prepareDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace
 	}
 }
 
-func handleURLDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) (*corev1.Container, corev1.Volume, corev1.VolumeMount) {
+func handleURLDataSource(workspaceObj *kaitov1beta1.Workspace) (*corev1.Container, corev1.Volume, corev1.VolumeMount) {
+	volume, volumeMount := utils.ConfigDataVolume(nil)
 	initContainer := &corev1.Container{
-		Name:  "data-downloader",
-		Image: "curlimages/curl",
-		Command: []string{"sh", "-c", `
-			if [ -z "$DATA_URLS" ]; then
-				echo "No URLs provided in DATA_URLS."
-				exit 1
-			fi
-			for url in $DATA_URLS; do
-				filename=$(basename "$url" | sed 's/[?=&]/_/g')
-				echo "Downloading $url to $DATA_VOLUME_PATH/$filename"
-				retry_count=0
-				while [ $retry_count -lt 3 ]; do
-					http_status=$(curl -sSL -w "%{http_code}" -o "$DATA_VOLUME_PATH/$filename" "$url")
-					curl_exit_status=$?  # Save the exit status of curl immediately
-					if [ "$http_status" -eq 200 ] && [ -s "$DATA_VOLUME_PATH/$filename" ] && [ $curl_exit_status -eq 0 ]; then
-						echo "Successfully downloaded $url"
-						break
-					else
-						echo "Failed to download $url, HTTP status code: $http_status, retrying..."
-						retry_count=$((retry_count + 1))
-						rm -f "$DATA_VOLUME_PATH/$filename" # Remove incomplete file
-						sleep 2
-					fi
-				done
-				if [ $retry_count -eq 3 ]; then
-					echo "Failed to download $url after 3 attempts"
-					exit 1  # Exit with a non-zero status to indicate failure
-				fi
-			done
-			echo "All downloads completed successfully"
-		`},
+		Name:    "data-downloader",
+		Image:   "curlimages/curl",
+		Command: []string{"sh", "-c", dataDownloaderScript},
 		Env: []corev1.EnvVar{
 			{
 				Name:  "DATA_URLS",
@@ -426,7 +425,7 @@ func handleURLDataSource(ctx context.Context, workspaceObj *kaitov1beta1.Workspa
 				Value: utils.DefaultDataVolumePath,
 			},
 		},
+		VolumeMounts: []corev1.VolumeMount{volumeMount},
 	}
-	volume, volumeMount := utils.ConfigDataVolume(nil)
 	return initContainer, volume, volumeMount
 }

@@ -203,6 +203,7 @@ spec:
                       which accepts http(s) payload.
                     type: string
                 required:
+                - contextWindowSize
                 - url
                 type: object
               queryServiceName:

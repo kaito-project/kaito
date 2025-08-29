@@ -73,7 +73,7 @@ type InferenceServiceSpec struct {
 	// context or exceed model limits, which can lead to degraded response quality or inference errors.
 	//
 	// Must match the token limit of the LLM backend being used (e.g., 8096, 16384, 32768 tokens).
-	ContextWindowSize int `json:"contextWindowSize,omitempty"`
+	ContextWindowSize int `json:"contextWindowSize"`
 }
 
 type RAGEngineSpec struct {

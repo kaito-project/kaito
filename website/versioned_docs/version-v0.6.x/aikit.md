@@ -1,19 +1,19 @@
 # AIKit Integration with KAITO
 
-[AIKit](https://github.com/sozercan/aikit/) provides a streamlined way to package and deploy large language models (LLMs) as container images.
+[AIKit](https://github.com/kaito-project/aikit/) provides a streamlined way to package and deploy large language models (LLMs) as container images.
 
 This document demonstrates how to integrate AIKit-built models with KAITO workspaces for efficient AI model deployment on Kubernetes, including CPU-based inference and custom model creation with a variety of supported formats, such as GGUF, GPTQ, EXL2, and more.
 
-For more detailed information about AIKit, please refer to the [AIKit documentation](https://sozercan.github.io/aikit/docs/). For any AIKit-related issues, please open an issue in the [AIKit repository](https://github.com/sozercan/aikit/issues).
+For more detailed information about AIKit, please refer to the [AIKit documentation](https://kaito-project.github.io/aikit/docs/). For any AIKit-related issues, please open an issue in the [AIKit repository](https://github.com/kaito-project/aikit/issues).
 
 ## Overview
 
 AIKit enables you to:
 
-- 📦 [Package AI models](https://sozercan.github.io/aikit/docs/create-images) as OCI container images with minimal configuration
+- 📦 [Package AI models](https://kaito-project.github.io/aikit/docs/create-images) as OCI container images with minimal configuration
 - 🤏 Minimal image size, resulting in less vulnerabilities and smaller attack surface with a custom distroless-based image
 - 🏃 Run models with a variety of inference backends, such as text or image generation
-- 🖥️ Supports [AMD64 and ARM64 CPUs](https://sozercan.github.io/aikit/docs/create-images#multi-platform-support) and [GPU-accelerated inferencing with NVIDIA GPUs](https://sozercan.github.io/aikit/docs/gpu)
+- 🖥️ Supports [AMD64 and ARM64 CPUs](https://kaito-project.github.io/aikit/docs/create-images#multi-platform-support) and [GPU-accelerated inferencing with NVIDIA GPUs](https://kaito-project.github.io/aikit/docs/gpu)
 - 🪄 Integrate seamlessly with KAITO's infrastructure management and deployment workflows
 
 :::note
@@ -60,7 +60,7 @@ inference:
     spec:
       containers:
         - name: llama-3point2-3b
-          image: ghcr.io/sozercan/llama3.2:3b
+          image: ghcr.io/kaito-project/aikit/llama3.2:3b
           args:
             - "run"
             - "--address=:5000"
@@ -90,7 +90,7 @@ Deploy the workspace using:
 kubectl apply -f aikit-workspace.yaml
 ```
 
-AIKit provides a number of pre-built and curated models that can be used directly. Please refer to [Pre-made Models](https://sozercan.github.io/aikit/docs/premade-models) for available options.
+AIKit provides a number of pre-built and curated models that can be used directly. Please refer to [Pre-made Models](https://kaito-project.github.io/aikit/docs/premade-models) for available options.
 
 :::tip
 
@@ -108,7 +108,7 @@ resource:
 
 :::
 
-After workspace deployment succeeds, please refer to [Quick Start](quick-start.md#monitor-deployment) for monitoring the workspace and testing model inference.
+After workspace deployment succeeds, please refer to [Quick Start](quick-start#monitor-deployment) for monitoring the workspace and testing model inference.
 
 #### Custom Model Creation and Integration
 
@@ -121,13 +121,13 @@ export IMAGE_NAME="your-registry/your-model:latest"
 
 docker buildx build -t $IMAGE_NAME --push \
     --build-arg="model=huggingface://TheBloke/Llama-2-7B-Chat-GGUF/llama-2-7b-chat.Q4_K_M.gguf" \
-    "https://raw.githubusercontent.com/sozercan/aikit/main/models/aikitfile.yaml"
+    "https://raw.githubusercontent.com/kaito-project/aikit/main/models/aikitfile.yaml"
 ```
 
 After building the image, you can use it in your KAITO workspace configuration by updating the `image` field.
 
-For more information on creating custom models, refer to the [AIKit documentation](https://sozercan.github.io/aikit/docs/create-images).
+For more information on creating custom models, refer to the [AIKit documentation](https://kaito-project.github.io/aikit/docs/create-images).
 
 :::info
-AIKit supports a subset of backends, (such as [`llama.cpp`](https://sozercan.github.io/aikit/docs/llama-cpp), [`diffusers`](https://sozercan.github.io/aikit/docs/diffusion), [`exllamav2`](https://sozercan.github.io/aikit/docs/exllama2), and others) from [LocalAI](https://localai.io/) at this time. Please see [Inference Supported Backends](https://sozercan.github.io/aikit/docs/) section for more details, and updates.
+AIKit supports a subset of backends, (such as [`llama.cpp`](https://kaito-project.github.io/aikit/docs/llama-cpp), [`diffusers`](https://kaito-project.github.io/aikit/docs/diffusion), [`exllamav2`](https://kaito-project.github.io/aikit/docs/exllama2), and others) from [LocalAI](https://localai.io/) at this time. Please see [Inference Supported Backends](https://kaito-project.github.io/aikit/docs/) section for more details, and updates.
 :::

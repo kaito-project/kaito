@@ -14,6 +14,8 @@
 package manifests
 
 import (
+	"fmt"
+
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -170,6 +172,13 @@ func RAGSetEnv(ragEngineObj *kaitov1alpha1.RAGEngine) []corev1.EnvVar {
 		}
 		envs = append(envs, accessSecretEnv)
 	}
+
+	contextWindowEnv := corev1.EnvVar{
+		Name:  "LLM_CONTEXT_WINDOW",
+		Value: fmt.Sprintf("%d", ragEngineObj.Spec.InferenceService.ContextWindowSize),
+	}
+	envs = append(envs, contextWindowEnv)
+
 	return envs
 }
 

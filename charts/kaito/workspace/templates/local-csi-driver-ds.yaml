@@ -209,7 +209,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.4"
+        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.5"
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -240,11 +240,10 @@ spec:
             cpu: 10m
             memory: 60Mi
         securityContext:
-          allowPrivilegeEscalation: true
-          capabilities:
-            add:
-            - SYS_ADMIN
           privileged: true
+          capabilities:
+            drop:
+              - ALL
         terminationMessagePath: /tmp/termination-log
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
@@ -305,6 +304,12 @@ spec:
           requests:
             cpu: 10m
             memory: 20Mi
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         volumeMounts:
         - mountPath: /csi
           name: csi-socket-dir
@@ -333,6 +338,12 @@ spec:
           requests:
             cpu: 10m
             memory: 20Mi
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         volumeMounts:
         - mountPath: /csi
           name: csi-socket-dir
@@ -364,6 +375,12 @@ spec:
           requests:
             cpu: 10m
             memory: 20Mi
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         volumeMounts:
         - mountPath: /csi
           name: csi-socket-dir
@@ -376,7 +393,7 @@ spec:
       priorityClassName: system-node-critical
       securityContext:
         seccompProfile:
-          type: Unconfined
+          type: RuntimeDefault
       serviceAccountName: csi-local-node
       terminationGracePeriodSeconds: 60
       tolerations:

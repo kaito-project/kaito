@@ -379,16 +379,16 @@ class BaseVectorStore(ABC):
         for i in range(len(messages) - 1, -1, -1):
             message = messages[i]
             message_content = message.content
-            total_prompt_for_token_aprox = total_prompt_for_token_aprox + "\n\n" + message_content
+            total_prompt_for_token_aprox = (
+                total_prompt_for_token_aprox + "\n\n" + message_content
+            )
             if message.role == MessageRole.USER and not assistant_message_found:
                 # Collect the last x user messages for combining into the prompt
                 user_messages_for_prompt.insert(0, message_content)
             else:
                 if message.role == MessageRole.ASSISTANT:
                     assistant_message_found = True
-                chat_history.insert(
-                    0, message
-                )  # Insert at beginning to maintain order
+                chat_history.insert(0, message)  # Insert at beginning to maintain order
 
         # Combine the last consecutive user messages into a single string as the prompt
         # Generally there should only be 1 user message after the latest assistant message
@@ -400,7 +400,9 @@ class BaseVectorStore(ABC):
         # Validate we have a user prompt. if not using tools/etc. we should have a user prompt
         # as rag retrieval should only be run on user input.
         if user_prompt == "":
-            logger.error("There must be a user prompt since the latest assistant message.")
+            logger.error(
+                "There must be a user prompt since the latest assistant message."
+            )
             raise HTTPException(
                 status_code=400,
                 detail="There must be a user prompt since the latest assistant message.",
@@ -428,7 +430,13 @@ class BaseVectorStore(ABC):
             f"Creating chat engine for index '{request.get('index_name')}' with prompt size: {prompt_len}"
         )
         # Calculate top_k based on available context. For larger windows, we can afford to retrieve more documents.
-        top_k = max(100, int((self.llm.metadata.context_window - prompt_len) / RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION))
+        top_k = max(
+            100,
+            int(
+                (self.llm.metadata.context_window - prompt_len)
+                / RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION
+            ),
+        )
         chat_engine = self.index_map[request.get("index_name")].as_chat_engine(
             llm=self.llm,
             similarity_top_k=top_k,

@@ -113,6 +113,7 @@ class HealthStatus(BaseModel):
 class ChatCompletionResponse(ChatCompletion):
     source_nodes: list[NodeWithScore] | None = None
 
+
 def input_messages_to_llamaindex_messages(messages: list[dict]) -> list[ChatMessage]:
     """Convert openai messages from chat/completions requests into LlamaIndex ChatMessages."""
     resp_messages = []

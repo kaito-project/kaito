@@ -37,9 +37,10 @@ release:
   make_latest: true
 changelog:
   groups:
+    - title: Breaking Changes 💥
+      regexp: ^.*[(\\w)]*:+.*\[BREAKING\].*$
     - title: Features 🌈
       regexp: ^.*feat[(\\w)]*:+.*$
-
     - title: Bug Fixes 🐞
       regexp: ^.*fix[(\\w)]*:+.*$
     - title: Build 🏭

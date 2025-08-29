@@ -38,14 +38,15 @@ from ragengine.config import (
     LLM_RERANKER_BATCH_SIZE,
     LLM_RERANKER_TOP_N,
     RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO,
+    RAG_SIMILARITY_THRESHOLD,
+    RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION,
 )
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
 from ragengine.models import (
     ChatCompletionResponse,
     Document,
-    messages_to_prompt,
-    messages_to_simplified_messages,
+    input_messages_to_llamaindex_messages,
 )
 from ragengine.vector_store.node_processors.contex_selection_node_processor import (
     ContextSelectionProcessor,
@@ -365,43 +366,47 @@ class BaseVectorStore(ABC):
                     )
 
         max_tokens = request.get("max_tokens")
-        messages = messages_to_simplified_messages(request.get("messages", []))
+        messages = input_messages_to_llamaindex_messages(request.get("messages", []))
 
+        total_prompt_for_token_aprox = ""
         chat_history = []
         user_messages_for_prompt = []
-        non_user_message_found = False
-        # Process messages in reverse order to find the last x user messages
+        assistant_message_found = False
+        # Process messages in reverse order to find the last x user messages since last assistant message.
+        # We want to pull all user messages after the last assistant message as we want to run vector search
+        # only on the user messages to have the most relevant content. The rest of the messages will be added
+        # as chat history. This will allow them to be passed into the LLM for context in the order they were received.
         for i in range(len(messages) - 1, -1, -1):
             message = messages[i]
-
-            if message.get("role") == "user" and not non_user_message_found:
-                # Collect the last x user messages for combining
-                user_messages_for_prompt.insert(0, message.get("content", ""))
+            message_content = message.content
+            total_prompt_for_token_aprox = total_prompt_for_token_aprox + "\n\n" + message_content
+            if message.role == MessageRole.USER and not assistant_message_found:
+                # Collect the last x user messages for combining into the prompt
+                user_messages_for_prompt.insert(0, message_content)
             else:
-                non_user_message_found = True
-                # Convert remaining messages to ChatMessage objects
-                new_message = ChatMessage(message.get("content", ""))
-                new_message.role = MessageRole(message.get("role"))
+                if message.role == MessageRole.ASSISTANT:
+                    assistant_message_found = True
                 chat_history.insert(
-                    0, new_message
+                    0, message
                 )  # Insert at beginning to maintain order
 
         # Combine the last consecutive user messages into a single string as the prompt
-        # Generally there should only be 1 user message on the end but there could be more
+        # Generally there should only be 1 user message after the latest assistant message
+        # but there could be more in some cases
         user_prompt = (
             "\n\n".join(user_messages_for_prompt) if user_messages_for_prompt else ""
         )
 
-        # validate we have a user prompt. if not using tools/etc. we should have a user prompt
+        # Validate we have a user prompt. if not using tools/etc. we should have a user prompt
+        # as rag retrieval should only be run on user input.
         if user_prompt == "":
-            logger.error("User prompt must be the last message in the conversation.")
+            logger.error("There must be a user prompt since the latest assistant message.")
             raise HTTPException(
                 status_code=400,
-                detail="User prompt must be the last message in the conversation.",
+                detail="There must be a user prompt since the latest assistant message.",
             )
 
-        total_prompt = messages_to_prompt(request.get("messages", []))
-        prompt_len = self.llm.count_tokens(total_prompt)
+        prompt_len = self.llm.count_tokens(total_prompt_for_token_aprox)
         if prompt_len > self.llm.metadata.context_window:
             logger.error(
                 f"Prompt length ({prompt_len}) exceeds context window ({self.llm.metadata.context_window})."
@@ -423,8 +428,7 @@ class BaseVectorStore(ABC):
             f"Creating chat engine for index '{request.get('index_name')}' with prompt size: {prompt_len}"
         )
         # Calculate top_k based on available context. For larger windows, we can afford to retrieve more documents.
-        # 750 tokens is a rough estimate based off max 1500 for code and 1000 for text
-        top_k = max(100, int((self.llm.metadata.context_window - prompt_len) / 750))
+        top_k = max(100, int((self.llm.metadata.context_window - prompt_len) / RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION))
         chat_engine = self.index_map[request.get("index_name")].as_chat_engine(
             llm=self.llm,
             similarity_top_k=top_k,
@@ -436,7 +440,7 @@ class BaseVectorStore(ABC):
                     ),
                     llm=self.llm,
                     max_tokens=max_tokens,
-                    similarity_threshold=0.85,
+                    similarity_threshold=RAG_SIMILARITY_THRESHOLD,
                 )
             ],
         )

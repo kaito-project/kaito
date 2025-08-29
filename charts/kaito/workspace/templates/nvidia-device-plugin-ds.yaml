@@ -16,6 +16,8 @@ spec:
       labels:
         name: nvidia-device-plugin-ds
     spec:
+      nodeSelector:
+        kubernetes.io/os: linux
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

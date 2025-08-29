@@ -32,7 +32,8 @@ resources:
   requests:
     cpu: 10m
     memory: 64Mi
-nodeSelector: {}
+nodeSelector:
+  kubernetes.io/os: linux
 tolerations: []
 affinity: {}
 # Values can be "azure" or "aws" or "arc"

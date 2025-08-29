@@ -429,7 +429,10 @@ class BaseVectorStore(ABC):
         logger.info(
             f"Creating chat engine for index '{request.get('index_name')}' with prompt size: {prompt_len}"
         )
-        # Calculate top_k based on available context. For larger windows, we can afford to retrieve more documents.
+        # top_k is the max amount of nodes we will fetch from the vector store to add as context onto the request to the llm.
+        # This is calculated based on the available context window and the prompt length.
+        # This calculation is based off latency considerations for faiss which is in memory. We might need to revisit this
+        # calculation for external database vector stores.
         top_k = max(
             100,
             int(

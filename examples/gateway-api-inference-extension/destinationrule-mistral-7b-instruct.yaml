@@ -1,0 +1,10 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: workspace-mistral-7b-instruct-inferencep-epp
+spec:
+  host: workspace-mistral-7b-instruct-inferencep-epp
+  trafficPolicy:
+    tls:
+      mode: SIMPLE
+      insecureSkipVerify: true

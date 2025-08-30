@@ -114,6 +114,30 @@ runs:
       run: |
         make generate
 
+    - name: Install HuggingFace CLI
+      shell: bash
+      run: |
+        echo "Installing HuggingFace CLI..."
+        if ! pip install huggingface-hub; then
+          pip install huggingface-hub --break-system-packages
+        fi
+
+    - name: Install ORAS CLI
+      shell: bash
+      run: |
+        if ! command -v oras &> /dev/null; then
+          echo "Installing ORAS CLI..."
+          ORAS_VERSION=$(curl -s https://api.github.com/repos/oras-project/oras/releases/latest | grep 'tag_name' | cut -d\" -f4)
+          curl -LO "https://github.com/oras-project/oras/releases/download/${ORAS_VERSION}/oras_${ORAS_VERSION#v}_linux_amd64.tar.gz"
+          mkdir -p oras-install/
+          tar -zxf "oras_${ORAS_VERSION#v}_linux_amd64.tar.gz" -C oras-install/
+          sudo mv oras-install/oras /usr/local/bin/
+          rm -rf oras-install "oras_${ORAS_VERSION#v}_linux_amd64.tar.gz"
+        else
+          echo "ORAS CLI already installed."
+        fi
+        oras version
+
     - name: build KAITO base image
       shell: bash
       if: ${{ inputs.build_kaito_base_image == 'true' }}
@@ -125,13 +149,33 @@ runs:
           --output type=image,name=$REGISTRY/kaito-base:$VERSION,push=true,compression=zstd \
           -f ./docker/presets/models/tfs/Dockerfile .
 
-        # Override base image properties in supported_models.yaml for testing purposes.
-        # The updated supported_models.yaml will be read by the Workspace controller via
-        # go:embed in presets/workspace/models/metadata.go.
-        yq '(.models[0].registry = "${{ env.REGISTRY }}")' -i presets/workspace/models/supported_models.yaml
-        yq '(.models[0].tag = "${{ env.VERSION }}")' -i presets/workspace/models/supported_models.yaml
+    - name: Build preset images
+      shell: bash
+      run: |
+        # For building newly introduced preset images or bumping the tags of existing ones.
+        # Without this step, the Workspace controller during e2e test will attempt to pull
+        # non-existent images from remote registry, leading to test failures.
+        python3 .github/determine_missing_preset_images.py | jq -c '.[]' | while read -r model; do
+          export MODEL_NAME=$(echo "$model" | jq -r '.name')
+
+          # Push preset model weights as OCI artifact to ACR using ORAS
+          if [ "$MODEL_NAME" != "base" ]; then
+            export MODEL_VERSION=$(echo "$model" | jq -r '.version')
+            export WEIGHTS_DIR=${{ env.WEIGHTS_DIR }}/$MODEL_NAME
+            export HF_HOME=${{ env.WEIGHTS_DIR }}/$MODEL_NAME
+            python3 docker/presets/models/tfs/download_and_push_model.py "${{ env.REGISTRY }}/kaito-$MODEL_NAME:${{ env.VERSION }}"
+          fi
+
+          # Override image properties in supported_models.yaml for testing purposes.
+          # The updated supported_models.yaml will be read by the Workspace controller via
+          # go:embed in presets/workspace/models/metadata.go.
+          yq '(.models[] | select(.name == strenv(MODEL_NAME)) | .registry) = "${{ env.REGISTRY }}"' -i presets/workspace/models/supported_models.yaml
+          yq '(.models[] | select(.name == strenv(MODEL_NAME)) | .tag) = "${{ env.VERSION }}"' -i presets/workspace/models/supported_models.yaml
+        done
 
         cat presets/workspace/models/supported_models.yaml
+      env:
+        WEIGHTS_DIR: "/datadrive"
 
     - name: build KAITO image
       if: ${{ inputs.isRelease == 'false' }}

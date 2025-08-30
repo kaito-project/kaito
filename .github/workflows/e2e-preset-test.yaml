@@ -3,18 +3,10 @@ name: E2E Preset Test
 on:
     workflow_run:
         workflows: ["Build and Push Preset Models"]
-        types: 
+        types:
             - completed
     workflow_dispatch:
         inputs:
-            force-run-all:
-                type: boolean
-                default: false
-                description: "Test all models for E2E"
-            force-run-all-phi-models:
-                type: boolean
-                default: false
-                description: "Test all Phi models for E2E"
             test-on-vllm:
                 type: boolean
                 default: false
@@ -22,9 +14,6 @@ on:
 
 env:
     GO_VERSION: "1.24"
-    BRANCH_NAME: ${{ github.head_ref || github.ref_name}} 
-    FORCE_RUN_ALL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all == 'true' }}
-    FORCE_RUN_ALL_PHI:  ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force-run-all-phi-models== 'true' }}
     RUNTIME: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.test-on-vllm == 'true') && 'vllm' || 'hf' }}
 
 permissions:
@@ -47,19 +36,23 @@ jobs:
           submodules: true
           fetch-depth: 0
 
-      # This script should output a JSON array of model names
+      - name: Download crane
+        run: |
+            if ! command -v crane &> /dev/null; then
+                wget -q https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz -O /tmp/crane.tar.gz
+                tar -xzf /tmp/crane.tar.gz -C /tmp crane
+                chmod +x /tmp/crane
+                sudo mv /tmp/crane /usr/local/bin/crane
+            fi
+
       - name: Determine Affected Models
         id: affected_models
-        run: |
-            PR_BRANCH=${{ env.BRANCH_NAME }} \
-            FORCE_RUN_ALL=${{ env.FORCE_RUN_ALL }} \
-            FORCE_RUN_ALL_PHI=${{ env.FORCE_RUN_ALL_PHI }} \
-            python3 .github/determine_models.py
+        run: python3 .github/determine_missing_preset_images.py
 
       - name: Print Determined Models
         run: |
             echo "Output from determine_models: ${{ steps.affected_models.outputs.matrix }}"
-    
+
       - name: Check if Matrix is Empty
         id: check_matrix_empty
         run: |
@@ -68,11 +61,11 @@ jobs:
             else
                 echo "is_empty=false" >> $GITHUB_OUTPUT
             fi
-        
+
       - name: Add Config info for Testing
         if: steps.check_matrix_empty.outputs.is_empty == 'false'
         id: images
-        run: |         
+        run: |
             # Read the additional configurations from e2e-preset-configs.json
             CONFIGS=$(cat .github/e2e-preset-configs.json | jq -c '.matrix.image')
 
@@ -82,9 +75,9 @@ jobs:
             ORIGINAL_MATRIX='${{ steps.affected_models.outputs.matrix }}'
             # Check if "base" exists and add test cases for base image
             BASE_IMAGE_TESTS=$(echo "$ORIGINAL_MATRIX" | jq -c '
-                map(select(.name == "base")) | 
+                map(select(.name == "base")) |
                 if length > 0 then
-                    .[0] as $base | 
+                    .[0] as $base |
                     [
                         ($base | .name = "vllm-distributed" | . + {"image-name": "base"})
                         # example to add new case
@@ -120,7 +113,7 @@ jobs:
             ')
 
             echo "full_matrix=$COMBINED_MATRIX" >> $GITHUB_OUTPUT
-      
+
       - name: Print Combined Matrix
         if: steps.check_matrix_empty.outputs.is_empty == 'false'
         run: |
@@ -237,7 +230,7 @@ jobs:
                                 --cluster-name GitRunner \
                                 --resource-group llm-test \
                                 --query 'provisioningState' -o tsv)
-                echo "NODEPOOL_STATE: $NODEPOOL_STATE"          
+                echo "NODEPOOL_STATE: $NODEPOOL_STATE"
                 if [ "$NODEPOOL_STATE" != "Succeeded" ]; then
                     echo "Nodepool exists but is not in a Succeeded state. Please check manually."
                     exit 1
@@ -273,14 +266,14 @@ jobs:
       - name: Test inference endpoint
         run: |
             echo "Testing inference for ${{ matrix.model.name }}"
-            
+
             # Retry logic - attempt up to 3 times
             MAX_ATTEMPTS=3
             ATTEMPT=1
-            
+
             while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
                 echo "Attempt $ATTEMPT of $MAX_ATTEMPTS"
-                
+
                 if [[ "${{ env.RUNTIME }}" == *"vllm"* ]]; then
                     if kubectl exec ${{steps.workload.outputs.RESOURCE_TYPE}}/${{steps.workload.outputs.WORKLOAD_NAME}} -- \
                     curl -s -X POST \
@@ -311,7 +304,7 @@ jobs:
                     -d '{
                         "prompt":"Girafatron is obsessed with giraffes, the most glorious animal on the face of this Earth. Giraftron believes all other animals are irrelevant when compared to the glorious majesty of the giraffe.\nDaniel: Hello, Girafatron!\nGirafatron:",
                         "return_full_text": false,
-                        "clean_up_tokenization_spaces": false, 
+                        "clean_up_tokenization_spaces": false,
                         "prefix": null,
                         "handle_long_generation": null,
                         "generate_kwargs": {
@@ -344,7 +337,7 @@ jobs:
                         break
                     fi
                 fi
-                
+
                 if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
                     echo "Test failed, retrying in 5 seconds..."
                     sleep 5
@@ -352,10 +345,10 @@ jobs:
                     echo "Test failed after $MAX_ATTEMPTS attempts"
                     exit 1
                 fi
-                
+
                 ATTEMPT=$((ATTEMPT + 1))
             done
-      
+
       - name: Cleanup
         if: always()
         run: |
@@ -363,7 +356,7 @@ jobs:
             if [ -n "${{ steps.workload.outputs.RESOURCE_TYPE }}" ]; then
                 # Use RESOURCE_TYPE from the previous step
                 RESOURCE_TYPE=${{ steps.workload.outputs.RESOURCE_TYPE }}
-                
+
                 # Check and Delete K8s Resource (Deployment or StatefulSet)
                 if kubectl get $RESOURCE_TYPE ${{steps.workload.outputs.WORKLOAD_NAME}} > /dev/null 2>&1; then
                     kubectl logs $RESOURCE_TYPE/${{steps.workload.outputs.WORKLOAD_NAME}}
@@ -375,8 +368,8 @@ jobs:
             if kubectl get svc ${{steps.workload.outputs.WORKLOAD_NAME}} > /dev/null 2>&1; then
                 kubectl delete svc ${{steps.workload.outputs.WORKLOAD_NAME}}
             fi
-        
-            # Check and Delete AKS Nodepool if it exists            
+
+            # Check and Delete AKS Nodepool if it exists
             if [ -n "${{ steps.workload.outputs.NODEPOOL_NAME }}" ]; then
                 NODEPOOL_EXIST=$(az aks nodepool show \
                                 --name ${{ steps.workload.outputs.NODEPOOL_NAME }} \

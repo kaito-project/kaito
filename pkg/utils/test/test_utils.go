@@ -327,7 +327,8 @@ var (
 				},
 			},
 			InferenceService: &v1alpha1.InferenceServiceSpec{
-				URL: "http://localhost:5000/chat",
+				URL:               "http://localhost:5000/chat",
+				ContextWindowSize: 512,
 			},
 		},
 	}
@@ -354,7 +355,8 @@ var (
 				},
 			},
 			InferenceService: &v1alpha1.InferenceServiceSpec{
-				URL: "http://localhost:5000/chat",
+				URL:               "http://localhost:5000/chat",
+				ContextWindowSize: 512,
 			},
 		},
 	}
@@ -380,7 +382,8 @@ var (
 				},
 			},
 			InferenceService: &v1alpha1.InferenceServiceSpec{
-				URL: "http://localhost:5000/chat",
+				URL:               "http://localhost:5000/chat",
+				ContextWindowSize: 512,
 			},
 		},
 	}
@@ -406,7 +409,8 @@ var (
 				},
 			},
 			InferenceService: &v1alpha1.InferenceServiceSpec{
-				URL: "http://localhost:5000/chat",
+				URL:               "http://localhost:5000/chat",
+				ContextWindowSize: 512,
 			},
 		},
 	}

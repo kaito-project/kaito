@@ -1,0 +1,34 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: llm-route
+spec:
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: inference-gateway
+  rules:
+  - matches:
+    - headers:
+      - type: Exact
+        name: X-Gateway-Model-Name
+        value: phi-4-mini-instruct
+      path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: workspace-phi-4-mini-inferencepool
+      group: inference.networking.x-k8s.io
+      kind: InferencePool
+  - matches:
+    - headers:
+      - type: Exact
+        name: X-Gateway-Model-Name
+        value: mistral-7b-instruct
+      path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: workspace-mistral-7b-instruct-inferencepool
+      group: inference.networking.x-k8s.io
+      kind: InferencePool

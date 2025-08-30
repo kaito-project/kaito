@@ -34,7 +34,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 					Compute: &ResourceSpec{
 						InstanceType: "Standard_NC12s_v3",
 					},
-					InferenceService: &InferenceServiceSpec{URL: "http://example.com"},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding: &EmbeddingSpec{
 						Local: &LocalEmbeddingSpec{
 							ModelID: "BAAI/bge-small-en-v1.5",
@@ -53,7 +53,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 					Compute: &ResourceSpec{
 						InstanceType: "Standard_NC12s_v3",
 					},
-					InferenceService: &InferenceServiceSpec{URL: "http://example.com"},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 				},
 			},
 			wantErr:  true,
@@ -66,7 +66,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 					Compute: &ResourceSpec{
 						InstanceType: "Standard_NC12s_v3",
 					},
-					InferenceService: &InferenceServiceSpec{URL: "http://example.com"},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding:        &EmbeddingSpec{},
 				},
 			},
@@ -80,7 +80,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 					Compute: &ResourceSpec{
 						InstanceType: "Standard_NC12s_v3",
 					},
-					InferenceService: &InferenceServiceSpec{URL: "http://example.com"},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding: &EmbeddingSpec{
 						Local: &LocalEmbeddingSpec{
 							ModelID: "BAAI/bge-small-en-v1.5",
@@ -97,13 +97,29 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 					Compute: &ResourceSpec{
 						InstanceType: "Standard_NC12s_v3",
 					},
-					InferenceService: &InferenceServiceSpec{URL: "http://example.com"},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding: &EmbeddingSpec{
 						Remote: &RemoteEmbeddingSpec{URL: "http://remote-embedding.com"},
 					},
 				},
 			},
 			wantErr: false,
+		},
+		{
+			name: "Only Remote Embedding with invalid context window size",
+			ragEngine: &RAGEngine{
+				Spec: &RAGEngineSpec{
+					Compute: &ResourceSpec{
+						InstanceType: "Standard_NC12s_v3",
+					},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 0},
+					Embedding: &EmbeddingSpec{
+						Remote: &RemoteEmbeddingSpec{URL: "http://remote-embedding.com"},
+					},
+				},
+			},
+			wantErr:  true,
+			errField: "ContextWindowSize must be a positive integer",
 		},
 	}
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -235,7 +251,8 @@ func TestInferenceServiceValidateCreate(t *testing.T) {
 		{
 			name: "Invalid URL Specified",
 			inferenceService: &InferenceServiceSpec{
-				URL: "invalid-url",
+				URL:               "invalid-url",
+				ContextWindowSize: 512,
 			},
 			wantErr:  true,
 			errField: "URL input error",
@@ -243,9 +260,19 @@ func TestInferenceServiceValidateCreate(t *testing.T) {
 		{
 			name: "Valid URL Specified",
 			inferenceService: &InferenceServiceSpec{
-				URL: "http://example.com",
+				URL:               "http://example.com",
+				ContextWindowSize: 512,
 			},
 			wantErr: false,
+		},
+		{
+			name: "Invalid ContextWindowSize",
+			inferenceService: &InferenceServiceSpec{
+				URL:               "http://example.com",
+				ContextWindowSize: 0,
+			},
+			wantErr:  true,
+			errField: "ContextWindowSize must be a positive integer",
 		},
 	}
 

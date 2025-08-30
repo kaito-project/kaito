@@ -165,7 +165,8 @@ class Inference(CustomLLM):
         try:
             base_model, base_max_len = self._get_default_model_info()
 
-            # 3 characters per token is a conservative approximation for English text and code. For other languages, this may vary.
+            # the "count_tokens" function is used to estimate the number of tokens in the messages.
+            # it tries to fetch the tokenizer for the model but will fall back to a default tokenizer if necessary.
             content_token_approximation = (
                 sum(
                     self.count_tokens(message.content)
@@ -461,7 +462,16 @@ class Inference(CustomLLM):
             await self._async_http_client.aclose()
 
     def count_tokens(self, prompt):
-        """Counts the tokens in the input prompt."""
+        """
+        Counts the tokens in the input prompt.
+
+        We try to find the appropriate tokenizer for the model being used and
+        fall back to a default o200k_base tokenizer if necessary.
+
+        This tokenizers in the tiktoken lib are generally used for openAI models so
+        there may be some discrepancies with other models, which is why we limit the
+        context we add within the RAG to a % of available context.
+        """
         if self._token_encoder is None:
             try:
                 default_model, default_max_len = self._get_default_model_info()

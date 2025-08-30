@@ -14,6 +14,7 @@
 
 from typing import Any
 
+from llama_index.core.base.llms.types import ChatMessage, MessageRole
 from openai.types.chat import (
     ChatCompletion,
 )
@@ -113,13 +114,15 @@ class ChatCompletionResponse(ChatCompletion):
     source_nodes: list[NodeWithScore] | None = None
 
 
-def messages_to_prompt(messages: list[dict]) -> str:
-    """Convert messages to a prompt string."""
-    string_messages = []
+def input_messages_to_llamaindex_messages(messages: list[dict]) -> list[ChatMessage]:
+    """Convert openai messages from chat/completions requests into LlamaIndex ChatMessages."""
+    resp_messages = []
     for message in messages:
         content = get_message_content(message)
-        string_messages.append(f"{message.get('role')}: {content}")
-    return "\n".join(string_messages)
+        new_message = ChatMessage(content)
+        new_message.role = MessageRole(message.get("role"))
+        resp_messages.append(new_message)
+    return resp_messages
 
 
 def get_message_content(message: dict) -> str:

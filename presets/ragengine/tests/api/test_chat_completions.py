@@ -738,6 +738,25 @@ async def test_chat_completions_mixed_message_types(mock_get, async_client):
     response = await async_client.post("/index", json=index_request)
     assert response.status_code == 200
 
+    # Test invalid chat completion with mixed message types
+    chat_request = {
+        "index_name": "test_index",
+        "model": "mock-model",
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "I need help with coding."},
+            {"role": "user", "content": "What should I learn in coding?"},
+            {"role": "assistant", "content": "I'd be happy to help with coding."},
+            {
+                "role": "system",
+                "content": "Debug: User asking about software development",
+            },
+        ],
+    }
+
+    response = await async_client.post("/v1/chat/completions", json=chat_request)
+    assert response.status_code == 400
+
     # Test chat completion with mixed message types
     chat_request = {
         "index_name": "test_index",
@@ -757,11 +776,30 @@ async def test_chat_completions_mixed_message_types(mock_get, async_client):
     response = await async_client.post("/v1/chat/completions", json=chat_request)
     assert response.status_code == 200
 
+    # Test chat completion with mixed message types
+    chat_request = {
+        "index_name": "test_index",
+        "model": "mock-model",
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "I need help with coding."},
+            {"role": "assistant", "content": "I'd be happy to help with coding."},
+            {
+                "role": "developer",
+                "content": "Debug: User asking about software development",
+            },
+            {"role": "user", "content": "What about software development?"},
+        ],
+    }
+    response = await async_client.post("/v1/chat/completions", json=chat_request)
+    assert response.status_code == 200
+
     response_data = response.json()
     assert (
         response_data["choices"][0]["message"]["content"]
         == "This is a helpful response about the test document."
     )
+
     assert len(response_data["source_nodes"]) > 0
 
 

@@ -26,6 +26,7 @@ import aiorwlock
 from fastapi import HTTPException
 from llama_index.core import Document as LlamaDocument
 from llama_index.core import StorageContext, VectorStoreIndex, load_index_from_storage
+from llama_index.core.base.llms.types import MessageRole
 from llama_index.core.chat_engine.types import ChatMode
 from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 from llama_index.core.storage.docstore import SimpleDocumentStore
@@ -37,10 +38,16 @@ from ragengine.config import (
     LLM_RERANKER_BATCH_SIZE,
     LLM_RERANKER_TOP_N,
     RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO,
+    RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION,
+    RAG_SIMILARITY_THRESHOLD,
 )
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
-from ragengine.models import ChatCompletionResponse, Document, messages_to_prompt
+from ragengine.models import (
+    ChatCompletionResponse,
+    Document,
+    input_messages_to_llamaindex_messages,
+)
 from ragengine.vector_store.node_processors.contex_selection_node_processor import (
     ContextSelectionProcessor,
 )
@@ -359,8 +366,49 @@ class BaseVectorStore(ABC):
                     )
 
         max_tokens = request.get("max_tokens")
-        prompt = messages_to_prompt(request.get("messages", []))
-        prompt_len = self.llm.count_tokens(prompt)
+        messages = input_messages_to_llamaindex_messages(request.get("messages", []))
+
+        total_prompt_for_token_aprox = ""
+        chat_history = []
+        user_messages_for_prompt = []
+        assistant_message_found = False
+        # Process messages in reverse order to find the last x user messages since last assistant message.
+        # We want to pull all user messages after the last assistant message as we want to run vector search
+        # only on the user messages to have the most relevant content. The rest of the messages will be added
+        # as chat history. This will allow them to be passed into the LLM for context in the order they were received.
+        for i in range(len(messages) - 1, -1, -1):
+            message = messages[i]
+            message_content = message.content
+            total_prompt_for_token_aprox = (
+                total_prompt_for_token_aprox + "\n\n" + message_content
+            )
+            if message.role == MessageRole.USER and not assistant_message_found:
+                # Collect the last x user messages for combining into the prompt
+                user_messages_for_prompt.insert(0, message_content)
+            else:
+                if message.role == MessageRole.ASSISTANT:
+                    assistant_message_found = True
+                chat_history.insert(0, message)  # Insert at beginning to maintain order
+
+        # Combine the last consecutive user messages into a single string as the prompt
+        # Generally there should only be 1 user message after the latest assistant message
+        # but there could be more in some cases
+        user_prompt = (
+            "\n\n".join(user_messages_for_prompt) if user_messages_for_prompt else ""
+        )
+
+        # Validate we have a user prompt. if not using tools/etc. we should have a user prompt
+        # as rag retrieval should only be run on user input.
+        if user_prompt == "":
+            logger.error(
+                "There must be a user prompt since the latest assistant message."
+            )
+            raise HTTPException(
+                status_code=400,
+                detail="There must be a user prompt since the latest assistant message.",
+            )
+
+        prompt_len = self.llm.count_tokens(total_prompt_for_token_aprox)
         if prompt_len > self.llm.metadata.context_window:
             logger.error(
                 f"Prompt length ({prompt_len}) exceeds context window ({self.llm.metadata.context_window})."
@@ -381,12 +429,21 @@ class BaseVectorStore(ABC):
         logger.info(
             f"Creating chat engine for index '{request.get('index_name')}' with prompt size: {prompt_len}"
         )
-        chat_engine = self.index_map[
-            request.get("index_name")
-        ].as_chat_engine(
+        # top_k is the max amount of nodes we will fetch from the vector store to add as context onto the request to the llm.
+        # This is calculated based on the available context window and the prompt length.
+        # This calculation is based off latency considerations for faiss which is in memory. We might need to revisit this
+        # calculation for external database vector stores.
+        top_k = max(
+            100,
+            int(
+                (self.llm.metadata.context_window - prompt_len)
+                / RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION
+            ),
+        )
+        chat_engine = self.index_map[request.get("index_name")].as_chat_engine(
             llm=self.llm,
-            similarity_top_k=100,  # Might want to make this a function of avg doc node size in an index but this should be a wide enough default
-            chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
+            similarity_top_k=top_k,
+            chat_mode=ChatMode.CONTEXT,
             node_postprocessors=[
                 ContextSelectionProcessor(
                     rag_context_token_fill_ratio=request.get(
@@ -394,7 +451,7 @@ class BaseVectorStore(ABC):
                     ),
                     llm=self.llm,
                     max_tokens=max_tokens,
-                    similarity_threshold=0.8,
+                    similarity_threshold=RAG_SIMILARITY_THRESHOLD,
                 )
             ],
         )
@@ -404,10 +461,14 @@ class BaseVectorStore(ABC):
             if self.use_rwlock:
                 async with self.rwlock.reader_lock:
                     self.llm.set_params(llm_params)
-                    chat_result = await chat_engine.achat(prompt)
+                    chat_result = await chat_engine.achat(
+                        user_prompt, chat_history=chat_history
+                    )
             else:
                 self.llm.set_params(llm_params)
-                chat_result = await chat_engine.achat(prompt)
+                chat_result = await chat_engine.achat(
+                    user_prompt, chat_history=chat_history
+                )
 
             return ChatCompletionResponse(
                 id=uuid.uuid4().hex,

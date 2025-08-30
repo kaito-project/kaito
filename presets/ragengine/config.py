@@ -87,3 +87,10 @@ RAG_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", 0.85))
 RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO = float(
     os.getenv("RAG_CONTEXT_TOKEN_FILL_RATIO", 0.5)
 )
+# When calculating how many documents to fetch in vector search
+# Code splitting has a max of 1500 chars while sentence splitting has a max of 1000.
+# If we take the max of the two, we can use 1500 chars / 3 chars per token
+# as a conservative estimate we get 500 tokens per doc
+RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION = float(
+    os.getenv("RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION", 500)
+)

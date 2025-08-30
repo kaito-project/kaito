@@ -659,8 +659,18 @@ func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1be
 	isStatefulSet := false
 	if presetName := getPresetName(wObj); presetName != "" {
 		model := plugin.KaitoModelRegister.MustGet(presetName)
+
+		// Load ConfigMap if specified
+		var configMap *corev1.ConfigMap
+		if wObj.Inference.Config != "" {
+			cm := &corev1.ConfigMap{}
+			if err := c.Client.Get(ctx, client.ObjectKey{Name: wObj.Inference.Config, Namespace: wObj.Namespace}, cm); err == nil {
+				configMap = cm
+			}
+		}
+
 		// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
-		workloadObj, _ := inference.GeneratePresetInference(ctx, wObj, "", model, c.Client)
+		workloadObj, _ := inference.GeneratePresetInference(ctx, wObj, "", model, c.Client, configMap)
 		_, isStatefulSet = workloadObj.(*appsv1.StatefulSet)
 	}
 
@@ -767,8 +777,18 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 			// volumes) ahead of time. This is important to ensure we are modifying the
 			// correct type of workload (Deployment or StatefulSet) based on the model's
 			// inference parameters.
+
+			// Load ConfigMap if specified
+			var configMap *corev1.ConfigMap
+			if wObj.Inference.Config != "" {
+				cm := &corev1.ConfigMap{}
+				if cmErr := c.Client.Get(ctx, client.ObjectKey{Name: wObj.Inference.Config, Namespace: wObj.Namespace}, cm); cmErr == nil {
+					configMap = cm
+				}
+			}
+
 			var workloadObj client.Object
-			workloadObj, err = inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client)
+			workloadObj, err = inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client, configMap)
 			if err != nil {
 				return
 			}
@@ -873,8 +893,17 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 
 	model := plugin.KaitoModelRegister.MustGet(string(wObj.Inference.Preset.Name))
 
+	// Load ConfigMap if specified
+	var configMap *corev1.ConfigMap
+	if wObj.Inference.Config != "" {
+		cm := &corev1.ConfigMap{}
+		if err := c.Client.Get(ctx, client.ObjectKey{Name: wObj.Inference.Config, Namespace: wObj.Namespace}, cm); err == nil {
+			configMap = cm
+		}
+	}
+
 	// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
-	workloadObj, _ := inference.GeneratePresetInference(ctx, wObj, "", model, c.Client)
+	workloadObj, _ := inference.GeneratePresetInference(ctx, wObj, "", model, c.Client, configMap)
 	_, isStatefulSet := workloadObj.(*appsv1.StatefulSet)
 
 	ociRepository := manifests.GenerateInferencePoolOCIRepository(wObj)

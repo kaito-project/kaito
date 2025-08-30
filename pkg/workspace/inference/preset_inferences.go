@@ -17,8 +17,10 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/samber/lo"
+	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -127,7 +129,7 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 }
 
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
-	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
+	model pkgmodel.Model, kubeClient client.Client, configMap *corev1.ConfigMap) (client.Object, error) {
 
 	gctx := &generator.WorkspaceGeneratorContext{
 		Ctx:        ctx,
@@ -146,14 +148,59 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		// Calculate the minimum number of nodes required to satisfy the model's total GPU memory requirement.
 		// The goal is to maximize GPU utilization and not spread the model across too many nodes.
 		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement)
-		totalGPUMemoryPerNode := resource.NewQuantity(int64(gpuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI)
+		totalGPUMemoryPerGPUBytes := int64(gpuConfig.GPUMemGB) * consts.GiBToBytes / int64(gpuConfig.GPUCount)
+		availableGPUMemoryPerGPUBytes := int64(float64(totalGPUMemoryPerGPUBytes) * 0.9) // utilization is set to default 0.9
 
-		minimumNodes := 0
-		for ; totalGPUMemoryRequired.Sign() > 0; totalGPUMemoryRequired.Sub(*totalGPUMemoryPerNode) {
-			minimumNodes++
+		requiredMemoryBytes := int64(float64(totalGPUMemoryRequired.Value()) * 0.95)
+
+		// Overhead calculation: fixed base overhead (2.3GB) + model length overhead
+		// Following the same algorithm as calculator.go
+		maxModelLen := 2048 // Default value if not found
+
+		// Parse max-model-len from ConfigMap if provided
+		if configMap != nil {
+			if configData, ok := configMap.Data["inference_config.yaml"]; ok {
+				var config v1beta1.InferenceConfig
+				if err := yaml.Unmarshal([]byte(configData), &config); err == nil {
+					// Parse max-model-len from VLLM config
+					if maxModelLenStr, exists := config.VLLM["max-model-len"]; exists && maxModelLenStr != "" {
+						if parsedLen, err := strconv.Atoi(maxModelLenStr); err == nil && parsedLen > 0 {
+							maxModelLen = parsedLen
+							klog.Infof("Using max-model-len from ConfigMap: %d", maxModelLen)
+						}
+					}
+				}
+			}
 		}
-		if minimumNodes < numNodes {
-			numNodes = minimumNodes
+
+		baseOverhead := 2.3 * consts.GiBToBytes // Convert 2.3 GB to bytes
+		kvCache := float64(maxModelLen*model.GetInferenceParameters().BytesPerToken) / float64(gpuConfig.GPUCount)
+		totalOverheadBytes := baseOverhead + kvCache
+
+		// Special case for Falcon models: check if required memory + overhead fits in GPU memory
+		if strings.Contains(strings.ToLower(string(workspaceObj.Inference.Preset.Name)), "falcon") {
+			if int64(requiredMemoryBytes)+int64(totalOverheadBytes) > availableGPUMemoryPerGPUBytes {
+				return nil, fmt.Errorf("GPU memory %d bytes is too small for Falcon model, needs %d bytes (model: %d + overhead: %.0f)",
+					totalGPUMemoryPerGPUBytes, int64(requiredMemoryBytes)+int64(totalOverheadBytes), requiredMemoryBytes, totalOverheadBytes)
+			}
+		}
+
+		if float64(availableGPUMemoryPerGPUBytes) <= totalOverheadBytes {
+			klog.ErrorS(fmt.Errorf("GPU memory too small"), "GPU memory is too small for overhead",
+				"gpuMemory", totalGPUMemoryPerGPUBytes, "totalOverhead", totalOverheadBytes,
+				"base", baseOverhead, "Basic KV Cache", kvCache)
+			// Fall back to user specified number of nodes
+		} else {
+			availableMemoryPerGPU := float64(availableGPUMemoryPerGPUBytes) - totalOverheadBytes
+			minGPUs := int(float64(requiredMemoryBytes)/availableMemoryPerGPU) + 1 // Ceiling
+
+			// Calculate minimum nodes: we need minGPUs GPU groups
+			// If each node has gpuConfig.GPUCount GPUs, we need ceil(minGPUs / gpuConfig.GPUCount) nodes
+			minimumNodes := (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
+
+			if minimumNodes < numNodes {
+				numNodes = minimumNodes
+			}
 		}
 	}
 

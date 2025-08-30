@@ -124,8 +124,8 @@ type PresetParam struct {
 
 	GPUCountRequirement           string         // Number of GPUs required for the Preset. Used for inference.
 	TotalGPUMemoryRequirement     string         // Total GPU memory required for the Preset. Used for inference.
-	PerGPUMemoryRequirement       string         // GPU memory required per GPU. Used for inference.
 	TuningPerGPUMemoryRequirement map[string]int // Min GPU memory per tuning method (batch size 1). Used for tuning.
+	BytesPerToken                 int            // Number of bytes per token for the model. It is calculated by 2 * hidden_layers * kv_heads * head_dim (hidden_size/num_attemtion_numbers) * dtype_size
 
 	RuntimeParam
 

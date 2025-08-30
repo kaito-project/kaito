@@ -49,6 +49,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	gaiev1alpha2 "sigs.k8s.io/gateway-api-inference-extension/api/v1alpha2"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+	v1 "sigs.k8s.io/lws/api/leaderworkerset/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -656,24 +657,17 @@ func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1be
 		return nil
 	}
 
-	isStatefulSet := false
+	isLeaderWorkerSet := false
 	if presetName := getPresetName(wObj); presetName != "" {
 		model := plugin.KaitoModelRegister.MustGet(presetName)
 		// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
 		workloadObj, _ := inference.GeneratePresetInference(ctx, wObj, "", model, c.Client)
-		_, isStatefulSet = workloadObj.(*appsv1.StatefulSet)
+		_, isLeaderWorkerSet = workloadObj.(*v1.LeaderWorkerSet)
 	}
 
-	serviceObj := manifests.GenerateServiceManifest(wObj, serviceType, isStatefulSet)
+	serviceObj := manifests.GenerateServiceManifest(wObj, serviceType, isLeaderWorkerSet)
 	if err := resources.CreateResource(ctx, serviceObj, c.Client); err != nil {
 		return err
-	}
-
-	if isStatefulSet {
-		headlessService := manifests.GenerateHeadlessServiceManifest(wObj)
-		if err := resources.CreateResource(ctx, headlessService, c.Client); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -777,12 +771,13 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 			var existingObj client.Object
 			var desiredPodSpec *corev1.PodSpec
 			switch workloadObj := workloadObj.(type) {
-			case *appsv1.StatefulSet:
-				existingObj = &appsv1.StatefulSet{}
-				desiredPodSpec = &workloadObj.Spec.Template.Spec
 			case *appsv1.Deployment:
 				existingObj = &appsv1.Deployment{}
 				desiredPodSpec = &workloadObj.Spec.Template.Spec
+			case *v1.LeaderWorkerSet:
+				existingObj = &v1.LeaderWorkerSet{}
+				// We use the worker template as the source of truth for pod spec updates
+				desiredPodSpec = &workloadObj.Spec.LeaderWorkerTemplate.WorkerTemplate.Spec
 			}
 
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
@@ -800,10 +795,10 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 
 				var spec *corev1.PodSpec
 				switch existingObj := existingObj.(type) {
-				case *appsv1.StatefulSet:
-					spec = &existingObj.Spec.Template.Spec
 				case *appsv1.Deployment:
 					spec = &existingObj.Spec.Template.Spec
+				case *v1.LeaderWorkerSet:
+					spec = &existingObj.Spec.LeaderWorkerTemplate.WorkerTemplate.Spec
 				}
 
 				// Selectively update the pod spec fields that are relevant to inference,
@@ -875,10 +870,10 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 
 	// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
 	workloadObj, _ := inference.GeneratePresetInference(ctx, wObj, "", model, c.Client)
-	_, isStatefulSet := workloadObj.(*appsv1.StatefulSet)
+	_, isLeaderWorkerSet := workloadObj.(*v1.LeaderWorkerSet)
 
 	ociRepository := manifests.GenerateInferencePoolOCIRepository(wObj)
-	helmRelease, err := manifests.GenerateInferencePoolHelmRelease(wObj, isStatefulSet)
+	helmRelease, err := manifests.GenerateInferencePoolHelmRelease(wObj, isLeaderWorkerSet)
 	if err != nil {
 		return err
 	}
@@ -947,7 +942,7 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.ControllerRevision{}).
 		Owns(&appsv1.Deployment{}).
-		Owns(&appsv1.StatefulSet{}).
+		Owns(&v1.LeaderWorkerSet{}).
 		Owns(&batchv1.Job{}).
 		Watches(&karpenterv1.NodeClaim{},
 			&nodeClaimEventHandler{

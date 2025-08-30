@@ -52,3 +52,11 @@ flux2:
     create: false
   notificationController:
     create: false
+
+# LWS subchart values (effective only when featureGates.lws is true)
+lws:
+  image:
+    manager:
+      repository: registry.k8s.io/lws/lws
+      # tag: ""  # If unset, defaults to the LWS chart appVersion (e.g., v0.7.0)
+      pullPolicy: Always

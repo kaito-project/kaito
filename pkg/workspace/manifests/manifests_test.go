@@ -20,7 +20,6 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/stretchr/testify/assert"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -54,15 +53,15 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 	base.Namespace = "kaito"
 
 	tests := []struct {
-		name          string
-		workspace     *kaitov1beta1.Workspace
-		isStatefulSet bool
-		expected      map[string]any
+		name              string
+		workspace         *kaitov1beta1.Workspace
+		isLeaderWorkerSet bool
+		expected          map[string]any
 	}{
 		{
-			name:          "deployment inference pool helm values",
-			workspace:     base.DeepCopy(),
-			isStatefulSet: false,
+			name:              "deployment inference pool helm values",
+			workspace:         base.DeepCopy(),
+			isLeaderWorkerSet: false,
 			expected: map[string]any{
 				"inferenceExtension": map[string]any{
 					"image": map[string]any{
@@ -83,9 +82,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 			},
 		},
 		{
-			name:          "statefulset inference pool helm values",
-			workspace:     base.DeepCopy(),
-			isStatefulSet: true,
+			name:              "statefulset inference pool helm values",
+			workspace:         base.DeepCopy(),
+			isLeaderWorkerSet: true,
 			expected: map[string]any{
 				"inferenceExtension": map[string]any{
 					"image": map[string]any{
@@ -99,8 +98,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 					"targetPortNumber": float64(consts.PortInferenceServer),
 					"modelServers": map[string]any{
 						"matchLabels": map[string]any{
-							kaitov1beta1.LabelWorkspaceName: base.Name,
-							appsv1.PodIndexLabel:            "0",
+							kaitov1beta1.LabelWorkspaceName:    base.Name,
+							"leaderworkerset.sigs.k8s.io/name": base.Name,
+							"role":                             "leader",
 						},
 					},
 				},
@@ -110,7 +110,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace, tc.isStatefulSet)
+			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace, tc.isLeaderWorkerSet)
 			assert.NoError(t, err)
 			assert.NotNil(t, helmRelease)
 

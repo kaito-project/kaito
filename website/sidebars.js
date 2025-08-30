@@ -67,6 +67,7 @@ const sidebars = {
             collapsed: false,
             items: [
                 'aikit',
+                'gateway-api-inference-extension',
             ],
         },
         {

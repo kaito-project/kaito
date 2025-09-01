@@ -127,7 +127,7 @@ const config = {
                             },
                             {
                                 label: 'Slack',
-                                href: 'https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-37gh89vw7-odHfqmPRc5oRnDG99SBJNA',
+                                href: 'https://cloud-native.slack.com/archives/C09B4EWCZ5M',
                             },
                         ],
                     },

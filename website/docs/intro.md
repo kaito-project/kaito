@@ -63,5 +63,5 @@ The details of the service APIs can be found in this [document](./rag.md).
 ## Community
 
 - **GitHub**: [kaito-project/kaito](https://github.com/kaito-project/kaito)
-- **Slack**: [Join our community](https://join.slack.com/t/kaito-z6a6575/shared_invite/zt-37gh89vw7-odHfqmPRc5oRnDG99SBJNA)
+- **Slack**: [Join #kaito channel in CNCF Slack](https://cloud-native.slack.com/archives/C09B4EWCZ5M)
 - **Email**: [kaito-dev@microsoft.com](mailto:kaito-dev@microsoft.com)

@@ -83,22 +83,14 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 				}
 				phaseCounts[phase]++
 
-    // Track unique models per workspace
-    modelsInWorkspace := make(map[string]struct{})
-    if ws.Inference != nil && ws.Inference.Preset != nil && ws.Inference.Preset.Name != "" {
-        modelsInWorkspace[string(ws.Inference.Preset.Name)] = struct{}{}
-    }
-    if ws.Tuning != nil && ws.Tuning.Preset != nil && ws.Tuning.Preset.Name != "" {
-        modelsInWorkspace[string(ws.Tuning.Preset.Name)] = struct{}{}
-    }
-
-    // Count unique models
-    for modelName := range modelsInWorkspace {
-        if _, ok := modelCounts[modelName]; !ok {
-            modelCounts[modelName] = 0
-        }
-        modelCounts[modelName]++
-    }
+				// Count preset models from this workspace
+				wsModelCounts := countPresetModels(&ws)
+				for modelName, count := range wsModelCounts {
+					if _, ok := modelCounts[modelName]; !ok {
+						modelCounts[modelName] = 0
+					}
+					modelCounts[modelName] += count
+				}
 			}
 
 			for phase, count := range phaseCounts {
@@ -130,4 +122,28 @@ func determineWorkspacePhase(ws *kaitov1beta1.Workspace) string {
 		}
 	}
 	return "pending"
+}
+
+func countPresetModels(ws *kaitov1beta1.Workspace) map[string]float64 {
+	modelCounts := make(map[string]float64)
+
+	if ws == nil {
+		return modelCounts
+	}
+
+	modelsInWorkspace := make(map[string]struct{})
+
+	if ws.Inference != nil && ws.Inference.Preset != nil && ws.Inference.Preset.Name != "" {
+		modelsInWorkspace[string(ws.Inference.Preset.Name)] = struct{}{}
+	}
+
+	if ws.Tuning != nil && ws.Tuning.Preset != nil && ws.Tuning.Preset.Name != "" {
+		modelsInWorkspace[string(ws.Tuning.Preset.Name)] = struct{}{}
+	}
+
+	for modelName := range modelsInWorkspace {
+		modelCounts[modelName] = 1
+	}
+
+	return modelCounts
 }

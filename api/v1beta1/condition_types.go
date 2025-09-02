@@ -36,4 +36,7 @@ const (
 	//For inference, the "True" condition means the inference service is ready to serve requests.
 	//For fine tuning, the "True" condition means the tuning job completes successfully.
 	WorkspaceConditionTypeSucceeded ConditionType = ConditionType("WorkspaceSucceeded")
+
+	// ConditionTypeScalingDownStatus is the state when scaling down nodeClaim.
+	ConditionTypeScalingDownStatus = ConditionType("ScalingDownCompleted")
 )

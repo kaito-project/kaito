@@ -114,6 +114,14 @@ func (m *MockClient) getObjectListFromMap(list k8sClient.ObjectList) k8sClient.O
 			}
 		}
 		return nodeList
+	case *corev1.PodList:
+		podList := &corev1.PodList{}
+		for _, obj := range relevantMap {
+			if pod, ok := obj.(*corev1.Pod); ok {
+				podList.Items = append(podList.Items, *pod)
+			}
+		}
+		return podList
 	case *karpenterv1.NodeClaimList:
 		nodeClaimList := &karpenterv1.NodeClaimList{}
 		for _, obj := range relevantMap {

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"sort"
 
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
@@ -48,179 +49,203 @@ func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expecta
 	}
 }
 
-// EnsureNodeClaims ensures the correct number of NodeClaims for the workspace
-// based on the TargetNodeCount in the workspace status, considering BYO nodes
-// only when all required NodeClaims are ready, it will return true.
-func (c *NodeClaimManager) EnsureNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, error) {
+// DiffNodeClaims compares the current state of NodeClaims with the desired state
+func (c *NodeClaimManager) DiffNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, int, int, []*karpenterv1.NodeClaim, error) {
 	workspaceKey := client.ObjectKeyFromObject(wObj).String()
+	var addedNodeClaimsCount int
+	var deletedNodeClaimsCount int
 
 	if !c.expectations.SatisfiedExpectations(c.logger, workspaceKey) {
 		klog.V(4).InfoS("Waiting for NodeClaim expectations to be satisfied",
 			"workspace", klog.KObj(wObj))
-		return false, nil
+		return false, addedNodeClaimsCount, deletedNodeClaimsCount, nil, nil
 	}
 
-	// Calculate the number of NodeClaims needed (target - preferred nodes)
+	// Calculate the number of NodeClaims required (target - BYO nodes)
 	requiredNodeClaimsCount, err := nodeclaim.GetRequiredNodeClaimsCount(ctx, c.Client, wObj)
 	if err != nil {
-		return false, fmt.Errorf("failed to get required NodeClaims: %w", err)
+		return false, addedNodeClaimsCount, deletedNodeClaimsCount, nil, fmt.Errorf("failed to get required NodeClaims: %w", err)
 	}
 
 	existingNodeClaims, err := nodeclaim.GetExistingNodeClaims(ctx, c.Client, wObj)
 	if err != nil {
-		return false, fmt.Errorf("failed to get existing NodeClaims: %w", err)
+		return false, addedNodeClaimsCount, deletedNodeClaimsCount, nil, fmt.Errorf("failed to get existing NodeClaims: %w", err)
 	}
 
-	currentNodeClaimCount := len(existingNodeClaims)
+	if requiredNodeClaimsCount > len(existingNodeClaims) {
+		addedNodeClaimsCount = requiredNodeClaimsCount - len(existingNodeClaims)
+	} else if requiredNodeClaimsCount < len(existingNodeClaims) {
+		deletedNodeClaimsCount = len(existingNodeClaims) - requiredNodeClaimsCount
+	}
 
-	if currentNodeClaimCount < requiredNodeClaimsCount {
-		nodesToCreate := requiredNodeClaimsCount - currentNodeClaimCount
-		klog.InfoS("Creating additional NodeClaims",
-			"workspace", klog.KObj(wObj),
-			"current", currentNodeClaimCount,
-			"required", requiredNodeClaimsCount,
-			"toCreate", nodesToCreate)
+	return true, addedNodeClaimsCount, deletedNodeClaimsCount, existingNodeClaims, nil
+}
 
-		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-			"CreatingNodeClaims", fmt.Sprintf("Creating %d additional NodeClaims (current: %d, required: %d)", nodesToCreate, currentNodeClaimCount, requiredNodeClaimsCount)); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
-		}
+// ScaleUpNodeClaims scales up the NodeClaims for the given workspace
+// this function will be invoked before creating workloads for workspace in order to ensure nodes.
+func (c *NodeClaimManager) ScaleUpNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, nodesToCreate int) (bool, error) {
+	workspaceKey := client.ObjectKeyFromObject(wObj).String()
+	klog.InfoS("Scaling up additional NodeClaims", "workspace", workspaceKey, "toCreate", nodesToCreate)
 
-		c.expectations.ExpectCreations(c.logger, workspaceKey, nodesToCreate)
+	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
+		"ScalingUpNodeClaims", fmt.Sprintf("Scaling up %d additional NodeClaims", nodesToCreate)); updateErr != nil {
+		klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", workspaceKey)
+		return false, fmt.Errorf("failed to update NodeClaim status condition: %w", updateErr)
+	}
 
-		nodeOSDiskSize := c.determineNodeOSDiskSize(wObj)
+	c.expectations.ExpectCreations(c.logger, workspaceKey, nodesToCreate)
 
-		for range nodesToCreate {
-			var nodeClaim *karpenterv1.NodeClaim
-			var err error
-			created := false
+	nodeOSDiskSize := c.determineNodeOSDiskSize(wObj)
 
-			retry.RetryOnConflict(retry.DefaultRetry, func() error {
-				nodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, wObj)
-				err = c.Client.Create(ctx, nodeClaim)
+	for range nodesToCreate {
+		var nodeClaim *karpenterv1.NodeClaim
+		var err error
+		created := false
 
-				if err == nil {
-					created = true
-					return nil
-				}
-				return err
-			})
+		retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			nodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, wObj)
+			err = c.Client.Create(ctx, nodeClaim)
 
-			if !created {
-				// Failed to create, decrement expectations
-				c.expectations.CreationObserved(c.logger, workspaceKey)
-				if err != nil {
-					c.recorder.Eventf(wObj, "Warning", "NodeClaimCreationFailed",
-						"Failed to create NodeClaim %s for workspace %s: %v", nodeClaim.Name, wObj.Name, err)
-				} else {
-					c.recorder.Eventf(wObj, "Warning", "NodeClaimCreationFailed",
-						"Failed to create NodeClaim for workspace %s after retries", wObj.Name)
-				}
-				continue // should not return here or expectations will leak
+			if err == nil {
+				created = true
+				return nil
 			}
-
-			klog.InfoS("NodeClaim created successfully",
-				"nodeClaim", nodeClaim.Name,
-				"workspace", klog.KObj(wObj))
-
-			c.recorder.Eventf(wObj, "Normal", "NodeClaimCreated",
-				"Successfully created NodeClaim %s for workspace %s", nodeClaim.Name, wObj.Name)
-		}
-	} else if currentNodeClaimCount > requiredNodeClaimsCount {
-		// Need to delete excess NodeClaims
-		nodesToDelete := currentNodeClaimCount - requiredNodeClaimsCount
-		klog.InfoS("Deleting excess NodeClaims",
-			"workspace", klog.KObj(wObj),
-			"current", currentNodeClaimCount,
-			"required", requiredNodeClaimsCount,
-			"toDelete", nodesToDelete)
-
-		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-			"DeletingNodeClaims", fmt.Sprintf("Deleting %d excess NodeClaims (current: %d, required: %d)", nodesToDelete, currentNodeClaimCount, requiredNodeClaimsCount)); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
-		}
-
-		c.expectations.ExpectDeletions(c.logger, workspaceKey, nodesToDelete)
-
-		// Sort NodeClaims for deletion: deletion timestamp set first, then not ready ones,
-		// then by creation timestamp (newest first)
-		sort.Slice(existingNodeClaims, func(i, j int) bool {
-			nodeClaimI := existingNodeClaims[i]
-			nodeClaimJ := existingNodeClaims[j]
-
-			deletingI := nodeClaimI.DeletionTimestamp != nil
-			deletingJ := nodeClaimJ.DeletionTimestamp != nil
-			if deletingI != deletingJ {
-				return deletingI // being deleted comes first
-			}
-
-			readyI := c.isNodeClaimReady(nodeClaimI)
-			readyJ := c.isNodeClaimReady(nodeClaimJ)
-			if readyI != readyJ {
-				return !readyI // not ready comes first (true when i is not ready)
-			}
-
-			return nodeClaimI.CreationTimestamp.After(nodeClaimJ.CreationTimestamp.Time)
+			return err
 		})
 
-		claimsToDelete := min(nodesToDelete, len(existingNodeClaims))
-		for _, nodeClaim := range existingNodeClaims[:claimsToDelete] {
-			if nodeClaim.DeletionTimestamp.IsZero() {
-				if err := c.Client.Delete(ctx, nodeClaim); err != nil {
-					c.expectations.DeletionObserved(c.logger, workspaceKey)
-					klog.ErrorS(err, "failed to delete NodeClaim",
-						"nodeClaim", nodeClaim.Name,
-						"workspace", klog.KObj(wObj))
-					c.recorder.Eventf(wObj, "Warning", "NodeClaimDeletionFailed",
-						"Failed to delete NodeClaim %s for workspace %s: %v", nodeClaim.Name, wObj.Name, err)
-					continue // should not return here or expectations will leak
-				}
-				klog.InfoS("NodeClaim deleted successfully",
-					"nodeClaim", nodeClaim.Name,
-					"creationTimestamp", nodeClaim.CreationTimestamp,
-					"workspace", klog.KObj(wObj))
-
-				c.recorder.Eventf(wObj, "Normal", "NodeClaimDeleted",
-					"Successfully deleted NodeClaim %s for workspace %s", nodeClaim.Name, wObj.Name)
+		if !created {
+			// Failed to create, decrement expectations
+			c.expectations.CreationObserved(c.logger, workspaceKey)
+			if err != nil {
+				c.recorder.Eventf(wObj, "Warning", "NodeClaimCreationFailed",
+					"Failed to create NodeClaim %s for workspace %s: %v", nodeClaim.Name, wObj.Name, err)
 			} else {
-				c.expectations.DeletionObserved(c.logger, workspaceKey)
+				c.recorder.Eventf(wObj, "Warning", "NodeClaimCreationFailed",
+					"Failed to create NodeClaim for workspace %s after retries", wObj.Name)
 			}
+			continue // should not return here or expectations will leak
 		}
-	} else {
-		klog.V(4).InfoS("NodeClaim count matches required",
-			"workspace", klog.KObj(wObj),
-			"nodeClaimCount", currentNodeClaimCount)
-		for _, nodeClaim := range existingNodeClaims {
-			if !c.isNodeClaimReady(nodeClaim) {
-				if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-					"NodeClaimNotReady", fmt.Sprintf("NodeClaim %s is not ready yet", nodeClaim.Name)); updateErr != nil {
-					klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
-				}
 
-				return false, nil
-			}
+		klog.InfoS("NodeClaim created successfully",
+			"nodeClaim", nodeClaim.Name,
+			"workspace", workspaceKey)
+
+		c.recorder.Eventf(wObj, "Normal", "NodeClaimCreated",
+			"Successfully created NodeClaim %s for workspace %s", nodeClaim.Name, workspaceKey)
+	}
+	return true, nil
+}
+
+// ReadyNodeClaimsMeetTarget is used for checking the number of ready nodeclaims(isNodeClaimReadyNotDeleting) meet the target count(workspace.Status.Inference.TargetNodeCount)
+func (c *NodeClaimManager) ReadyNodeClaimsMeetTarget(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
+	targetNodeCount := 1
+	if wObj.Status.Inference != nil && wObj.Status.Inference.TargetNodeCount > 0 {
+		targetNodeCount = int(wObj.Status.Inference.TargetNodeCount)
+	}
+	readyCount := 0
+	for _, claim := range existingNodeClaims {
+		if nodeclaim.IsNodeClaimReadyNotDeleting(claim) {
+			readyCount++
 		}
-		// All NodeClaims are ready - update status condition to indicate success
+	}
+
+	if readyCount >= targetNodeCount {
+		// Enough NodeClaims are ready - update status condition to indicate success
 		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
-			"NodeClaimsReady", fmt.Sprintf("All NodeClaims are ready (NodeClaims: %d)", currentNodeClaimCount)); updateErr != nil {
+			"NodeClaimsReady", fmt.Sprintf("Enough NodeClaims are ready (TargetNodeClaims: %d, CurrentReadyNodeClaims: %d)", targetNodeCount, readyCount)); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
-			return false, fmt.Errorf("failed to update NodeClaim status condition: %w", updateErr)
+			return false, fmt.Errorf("failed to update NodeClaim status condition(NodeClaimsReady): %w", updateErr)
+		}
+		return true, nil
+	} else {
+		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
+			"NodeClaimNotReady", fmt.Sprintf("Ready NodeClaims are not enough (TargetNodeClaims: %d, CurrentReadyNodeClaims: %d)", targetNodeCount, readyCount)); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
+			return false, fmt.Errorf("failed to update NodeClaim status condition(NodeClaimNotReady): %w", updateErr)
+		}
+
+		return false, nil
+	}
+}
+
+// ScaleDownNodeClaims scales down the NodeClaims for a workspace.
+// This function will be invoked after scaling down workloads of workspace in order to ensure nodes without pods can be deleted.
+func (c *NodeClaimManager) ScaleDownNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim, nodesToDelete int) (bool, error) {
+	workspaceKey := client.ObjectKeyFromObject(wObj).String()
+	klog.InfoS("Scaling down excess NodeClaims", "workspace", workspaceKey, "toDelete", nodesToDelete)
+
+	if nodesToDelete == 0 {
+		if curCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(kaitov1beta1.ConditionTypeScalingDownStatus)); curCondition != nil {
+			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeScalingDownStatus, metav1.ConditionTrue, "ScalingDownNodeClaimsCompleted", "Scaling down excess NodeClaims completed"); updateErr != nil {
+				klog.ErrorS(updateErr, "failed to update scaling down status condition(ScalingDownNodeClaimsCompleted)", "workspace", workspaceKey)
+				return false, fmt.Errorf("failed to update scaling down status condition(ScalingDownNodeClaimsCompleted): %w", updateErr)
+			}
 		}
 		return true, nil
 	}
 
-	return false, nil
-}
+	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeScalingDownStatus, metav1.ConditionFalse, "ScalingDownNodeClaims", "Scaling down excess NodeClaims"); updateErr != nil {
+		klog.ErrorS(updateErr, "failed to update scaling down status condition(ScalingDownNodeClaims)", "workspace", workspaceKey)
+		return false, fmt.Errorf("failed to update scaling down status condition(ScalingDownNodeClaims): %w", updateErr)
+	}
 
-// isNodeClaimReady checks if a NodeClaim is in ready state
-func (c *NodeClaimManager) isNodeClaimReady(nodeClaim *karpenterv1.NodeClaim) bool {
-	for _, condition := range nodeClaim.Status.Conditions {
-		if condition.Type == "Ready" {
-			return condition.Status == "True"
+	// filter nodeclaims that has no pod of workspace running on the node
+	// only this kind of nodeclaims can be deleted
+	claimsWithoutPods := make([]*karpenterv1.NodeClaim, 0, len(existingNodeClaims))
+	for _, claim := range existingNodeClaims {
+		if !nodeclaim.HasPodRunningOnNode(ctx, c.Client, wObj, claim) {
+			claimsWithoutPods = append(claimsWithoutPods, claim)
+		}
+	}
+	claimsToDelete := min(nodesToDelete, len(claimsWithoutPods))
+
+	c.expectations.ExpectDeletions(c.logger, workspaceKey, claimsToDelete)
+
+	// Sort NodeClaims for deletion: deletion timestamp set first, then not ready ones,
+	// then by creation timestamp (newest first)
+	sort.Slice(claimsWithoutPods, func(i, j int) bool {
+		nodeClaimI := claimsWithoutPods[i]
+		nodeClaimJ := claimsWithoutPods[j]
+
+		deletingI := nodeClaimI.DeletionTimestamp != nil
+		deletingJ := nodeClaimJ.DeletionTimestamp != nil
+		if deletingI != deletingJ {
+			return deletingI // being deleted comes first
+		}
+
+		readyI := nodeclaim.IsNodeClaimReadyNotDeleting(nodeClaimI)
+		readyJ := nodeclaim.IsNodeClaimReadyNotDeleting(nodeClaimJ)
+		if readyI != readyJ {
+			return !readyI // not ready comes first (true when i is not ready)
+		}
+
+		return nodeClaimI.CreationTimestamp.After(nodeClaimJ.CreationTimestamp.Time)
+	})
+
+	for _, nodeClaim := range claimsWithoutPods[:claimsToDelete] {
+		if nodeClaim.DeletionTimestamp.IsZero() {
+			if err := c.Client.Delete(ctx, nodeClaim); err != nil {
+				c.expectations.DeletionObserved(c.logger, workspaceKey)
+				klog.ErrorS(err, "failed to delete NodeClaim",
+					"nodeClaim", nodeClaim.Name,
+					"workspace", workspaceKey)
+				c.recorder.Eventf(wObj, "Warning", "NodeClaimDeletionFailed",
+					"Failed to delete NodeClaim %s for workspace %s: %v", nodeClaim.Name, wObj.Name, err)
+				continue // should not return here or expectations will leak
+			}
+			klog.InfoS("NodeClaim deleted successfully",
+				"nodeClaim", nodeClaim.Name,
+				"creationTimestamp", nodeClaim.CreationTimestamp,
+				"workspace", workspaceKey)
+
+			c.recorder.Eventf(wObj, "Normal", "NodeClaimDeleted",
+				"Successfully deleted NodeClaim %s for workspace %s", nodeClaim.Name, wObj.Name)
+		} else {
+			c.expectations.DeletionObserved(c.logger, workspaceKey)
 		}
 	}
 
-	return nodeClaim.Status.NodeName != ""
+	return true, nil
 }
 
 // determineNodeOSDiskSize returns the appropriate OS disk size for the workspace

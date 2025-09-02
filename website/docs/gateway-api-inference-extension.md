@@ -65,8 +65,8 @@ helm upgrade -i istio-base oci://$HUB/charts/base --version $TAG -n istio-system
 helm upgrade -i istiod oci://$HUB/charts/istiod \
   --version $TAG \
   -n istio-system \
-  --set meshConfig.defaultConfig.proxyMetadata.SUPPORT_GATEWAY_API_INFERENCE_EXTENSION="true" \
-  --set pilot.env.SUPPORT_GATEWAY_API_INFERENCE_EXTENSION="true" \
+  --set meshConfig.defaultConfig.proxyMetadata.ENABLE_GATEWAY_API_INFERENCE_EXTENSION="true" \
+  --set pilot.env.ENABLE_GATEWAY_API_INFERENCE_EXTENSION="true" \
   --set tag=$TAG \
   --set hub=$HUB \
   --wait

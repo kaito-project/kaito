@@ -61,10 +61,11 @@ type gpt_oss_20B struct{}
 
 func (*gpt_oss_20B) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetGPT_OSS_20BModel),
-		DiskStorageRequirement:    "16Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16Gi", // per https://openai.com/index/introducing-gpt-oss/
+		Metadata:               metadata.MustGet(PresetGPT_OSS_20BModel),
+		DiskStorageRequirement: "16Gi",
+		GPUCountRequirement:    "1",
+		// TotalGPUMemoryRequirement: "16Gi", // per https://openai.com/index/introducing-gpt-oss/
+		TotalGPUMemoryRequirement: "24Gi", // TODO: pod failed with out of memory error on A10 with 24 GB memory.
 		PerGPUMemoryRequirement:   "0Gi",  // Native vertical model parallel; no per-GPU split requirement
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{

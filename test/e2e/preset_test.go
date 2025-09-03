@@ -216,7 +216,7 @@ func createGPTOss20BWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.W
 	By("Creating a workspace CR with GPT-OSS-20B preset public mode", func() {
 		uniqueID := fmt.Sprint("preset-gpt-oss-20b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
-			numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
+			numOfNode, "Standard_NC24ads_A100_v4", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-20b"},
 			}, nil, PresetGPT_OSS_20BModel, nil, nil, nil, "")
 

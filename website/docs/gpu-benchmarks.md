@@ -23,7 +23,7 @@ All performance tests utilized [vLLM](https://github.com/vllm-project/vllm) by r
 
 ### Model Configurations
 
-We tested the models `microsoft/Phi-4-mini-instruct` and `meta-llama/Llama-3.1-8B-Instruct`. The following fields were configured:
+We tested the models [Phi-4-mini-instruct](https://huggingface.co/microsoft/Phi-4-mini-instruct) and [Llama-3.1-8B-Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct). The following fields were configured:
 
 - **Requests Per Second (RPS)**: Total throughput capacity with latency in powers of two, such as 1, 2, 4, etc. up to 64 for larger GPUs, indicated by the `--request-rate` flag.
 - **Max Concurrency**: The maximum number of simultaneous requests the server can handle, configured with the `--max-concurrency` flag. It was set to 200 for the A10 and H100 tests and 50 for the A10 tests. These values were selected in order to set a ceiling high enough that it will not bottleneck the GPU.
@@ -192,6 +192,10 @@ The benchmark results suggest optimal operating ranges:
 - **Saturation point**: Beyond 32-64 QPS, performance gains diminish and latency increases
 
 KAITO is currently adding a feature to distribute the load across model servers when QPS is high to mitigate these issues.
+
+:::note
+We are currently working on adding automatic scaling across model servers when QPS is high.
+:::
 
 ## Conclusion
 

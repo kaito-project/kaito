@@ -50,8 +50,7 @@ var (
 		"allow_remote_files": "",
 	}
 	gptRunParamsVLLM = map[string]string{
-		"dtype":             "float16",
-		"trust-remote-code": "",
+		"dtype": "bfloat16",
 	}
 )
 
@@ -91,7 +90,7 @@ func (*gpt_oss_20B) GetTuningParameters() *model.PresetParam {
 }
 
 func (*gpt_oss_20B) SupportDistributedInference() bool {
-	return true
+	return false
 }
 
 func (*gpt_oss_20B) SupportTuning() bool {

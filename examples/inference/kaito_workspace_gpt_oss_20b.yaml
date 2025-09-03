@@ -2,8 +2,6 @@ apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
   name: workspace-gpt-oss-20b
-  annotations:
-    kaito.sh/runtime: transformers
 resource:
   instanceType: "Standard_NC24ads_A100_v4"
   labelSelector:

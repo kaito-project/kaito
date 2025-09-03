@@ -307,9 +307,16 @@ func TestDiffNodeClaims(t *testing.T) {
 			},
 			expectationsSatisfied: true,
 			setupMocks: func(mockClient *test.MockClient) {
+				// Mock empty node list (for ResolveReadyNodesAndRequiredNodeCount -> GetBYOAndReadyNodes -> ListNodes)
+				nodeList := &corev1.NodeList{Items: []corev1.Node{}}
+				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+					nl := args.Get(1).(*corev1.NodeList)
+					*nl = *nodeList
+				}).Return(nil)
+
 				// Mock empty NodeClaim list
 				nodeClaimList := &karpenterv1.NodeClaimList{Items: []karpenterv1.NodeClaim{}}
-				mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Run(func(args mock.Arguments) {
+				mockClient.On("List", mock.Anything, mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Run(func(args mock.Arguments) {
 					ncl := args.Get(1).(*karpenterv1.NodeClaimList)
 					*ncl = *nodeClaimList
 				}).Return(nil)
@@ -351,7 +358,7 @@ func TestDiffNodeClaims(t *testing.T) {
 			}
 
 			// Execute the function under test
-			ready, addedCount, deletedCount, existingNodeClaims, err := manager.DiffNodeClaims(context.Background(), tc.workspace)
+			ready, addedCount, deletedCount, existingNodeClaims, _, err := manager.DiffNodeClaims(context.Background(), tc.workspace)
 
 			// Assertions
 			assert.Equal(t, tc.expectedReady, ready, "Ready status mismatch")
@@ -1013,7 +1020,6 @@ func TestScaleDownNodeClaims(t *testing.T) {
 		existingNodeClaims        []*karpenterv1.NodeClaim
 		nodesToDelete             int
 		setupMocks                func(*test.MockClient)
-		expectedReady             bool
 		expectedError             string
 		expectedDeletedNodeClaims []string
 		hasExistingCondition      bool
@@ -1031,7 +1037,6 @@ func TestScaleDownNodeClaims(t *testing.T) {
 			setupMocks: func(mockClient *test.MockClient) {
 				// No status update expected when no existing condition
 			},
-			expectedReady: true,
 			expectedError: "",
 		},
 		{
@@ -1062,7 +1067,6 @@ func TestScaleDownNodeClaims(t *testing.T) {
 				mockClient.On("Status").Return(&mockClient.StatusMock).Maybe()
 				mockClient.StatusMock.On("Update", mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
 			},
-			expectedReady: true,
 			expectedError: "",
 		},
 		{
@@ -1094,7 +1098,6 @@ func TestScaleDownNodeClaims(t *testing.T) {
 				// Mock NodeClaim deletion
 				mockClient.On("Delete", mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil).Maybe()
 			},
-			expectedReady:             true,
 			expectedError:             "",
 			expectedDeletedNodeClaims: []string{"claim-1"},
 		},
@@ -1148,7 +1151,6 @@ func TestScaleDownNodeClaims(t *testing.T) {
 					return nc.Name == "claim-without-pods"
 				}), mock.Anything).Return(nil).Maybe()
 			},
-			expectedReady:             true,
 			expectedError:             "",
 			expectedDeletedNodeClaims: []string{"claim-without-pods"}, // Only the one without pods
 		},
@@ -1184,7 +1186,6 @@ func TestScaleDownNodeClaims(t *testing.T) {
 					return nc.Name == "normal-claim"
 				}), mock.Anything).Return(nil).Maybe()
 			},
-			expectedReady:             true,
 			expectedError:             "",
 			expectedDeletedNodeClaims: []string{"normal-claim"}, // Only the non-deleting one
 		},
@@ -1219,7 +1220,6 @@ func TestScaleDownNodeClaims(t *testing.T) {
 				// Mock NodeClaim deletion for multiple nodes
 				mockClient.On("Delete", mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil).Maybe()
 			},
-			expectedReady:             true,
 			expectedError:             "",
 			expectedDeletedNodeClaims: []string{"claim-not-ready-new", "claim-ready-new"}, // Not ready first, then newest
 		},
@@ -1242,7 +1242,6 @@ func TestScaleDownNodeClaims(t *testing.T) {
 				mockClient.On("Status").Return(&mockClient.StatusMock).Maybe()
 				mockClient.StatusMock.On("Update", mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(errors.New("status update failed")).Maybe()
 			},
-			expectedReady: false,
 			expectedError: "failed to update scaling down status condition(ScalingDownNodeClaims): status update failed",
 		},
 		{
@@ -1274,7 +1273,6 @@ func TestScaleDownNodeClaims(t *testing.T) {
 				// Mock NodeClaim deletion failure
 				mockClient.On("Delete", mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(errors.New("deletion failed")).Maybe()
 			},
-			expectedReady:             true, // Function should continue and return true even with deletion failures
 			expectedError:             "",
 			expectedDeletedNodeClaims: []string{}, // No successful deletions
 		},
@@ -1293,10 +1291,7 @@ func TestScaleDownNodeClaims(t *testing.T) {
 			tc.setupMocks(mockClient)
 
 			// Execute the function under test
-			ready, err := manager.ScaleDownNodeClaims(context.Background(), tc.workspace, tc.existingNodeClaims, tc.nodesToDelete)
-
-			// Verify results
-			assert.Equal(t, tc.expectedReady, ready, "Ready status mismatch")
+			err := manager.ScaleDownNodeClaims(context.Background(), tc.workspace, tc.existingNodeClaims, tc.nodesToDelete)
 
 			if tc.expectedError == "" {
 				assert.NoError(t, err, "Expected no error")

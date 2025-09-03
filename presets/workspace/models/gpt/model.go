@@ -62,7 +62,7 @@ type gpt_oss_20B struct{}
 func (*gpt_oss_20B) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:               metadata.MustGet(PresetGPT_OSS_20BModel),
-		DiskStorageRequirement: "16Gi",
+		DiskStorageRequirement: "110Gi",
 		GPUCountRequirement:    "1",
 		// TotalGPUMemoryRequirement: "16Gi", // per https://openai.com/index/introducing-gpt-oss/
 		TotalGPUMemoryRequirement: "24Gi", // TODO: pod failed with out of memory error on A10 with 24 GB memory.
@@ -103,7 +103,7 @@ type gpt_oss_120B struct{}
 func (*gpt_oss_120B) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetGPT_OSS_120BModel),
-		DiskStorageRequirement:    "80Gi", // Larger model needs more disk space
+		DiskStorageRequirement:    "250Gi", // Larger model needs more disk space
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "80Gi", // Single 80GB GPU requirement
 		PerGPUMemoryRequirement:   "0Gi",  // Native vertical model parallel; no per-GPU split requirement
@@ -131,7 +131,7 @@ func (*gpt_oss_120B) GetTuningParameters() *model.PresetParam {
 }
 
 func (*gpt_oss_120B) SupportDistributedInference() bool {
-	return true
+	return false
 }
 
 func (*gpt_oss_120B) SupportTuning() bool {

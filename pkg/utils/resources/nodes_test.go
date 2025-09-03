@@ -152,217 +152,6 @@ func TestCheckNvidiaPlugin(t *testing.T) {
 	}
 }
 
-func TestGetBringYourOwnNodes(t *testing.T) {
-	t.Run("Should return all ready nodes when no label selector and node provisioning is disabled", func(t *testing.T) {
-		// Save original feature gate value and restore after test
-		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
-		defer func() {
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
-		}()
-
-		mockClient := test.NewClient()
-
-		// Create mock nodes
-		readyNode1 := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{Name: "node1"},
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
-			},
-		}
-		readyNode2 := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{Name: "node2"},
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
-			},
-		}
-		notReadyNode := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{Name: "node3"},
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionFalse}},
-			},
-		}
-
-		nodeList := &corev1.NodeList{
-			Items: []corev1.Node{*readyNode1, *readyNode2, *notReadyNode},
-		}
-
-		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-			nl := args.Get(1).(*corev1.NodeList)
-			*nl = *nodeList
-		}).Return(nil)
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  &metav1.LabelSelector{},
-				PreferredNodes: []string{},
-			},
-		}
-
-		nodes, err := GetBringYourOwnNodes(context.Background(), mockClient, workspace)
-
-		assert.Check(t, err == nil, "Not expected to return error")
-		assert.Equal(t, len(nodes), 2, "Expected 2 ready nodes")
-		assert.Equal(t, nodes[0].Name, "node1", "Expected first node to be node1")
-		assert.Equal(t, nodes[1].Name, "node2", "Expected second node to be node2")
-	})
-
-	t.Run("Should return only preferred nodes when specified and node provisioning enabled", func(t *testing.T) {
-		// Ensure feature gate is false (enabled provisioning)
-		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
-		defer func() {
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
-		}()
-
-		mockClient := test.NewClient()
-
-		// Create mock nodes
-		preferredNode := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{Name: "preferred-node"},
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
-			},
-		}
-		nonPreferredNode := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{Name: "non-preferred-node"},
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
-			},
-		}
-
-		nodeList := &corev1.NodeList{
-			Items: []corev1.Node{*preferredNode, *nonPreferredNode},
-		}
-
-		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-			nl := args.Get(1).(*corev1.NodeList)
-			*nl = *nodeList
-		}).Return(nil)
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  &metav1.LabelSelector{},
-				PreferredNodes: []string{"preferred-node"},
-			},
-		}
-
-		nodes, err := GetBringYourOwnNodes(context.Background(), mockClient, workspace)
-
-		assert.Check(t, err == nil, "Not expected to return error")
-		assert.Equal(t, len(nodes), 1, "Expected 1 preferred node")
-		assert.Equal(t, nodes[0].Name, "preferred-node", "Expected preferred node")
-	})
-
-	t.Run("Should filter nodes by label selector", func(t *testing.T) {
-		// Enable auto provisioning and ensure nodes aren't filtered by preferred nodes
-		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true // Disable provisioning so all ready nodes are returned
-		defer func() {
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
-		}()
-
-		mockClient := test.NewClient()
-
-		// Create mock nodes
-		matchingNode := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:   "matching-node",
-				Labels: map[string]string{"env": "production"},
-			},
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
-			},
-		}
-
-		nodeList := &corev1.NodeList{
-			Items: []corev1.Node{*matchingNode},
-		}
-
-		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-			nl := args.Get(1).(*corev1.NodeList)
-			*nl = *nodeList
-		}).Return(nil)
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{"env": "production"},
-				},
-				PreferredNodes: []string{},
-			},
-		}
-
-		nodes, err := GetBringYourOwnNodes(context.Background(), mockClient, workspace)
-
-		assert.Check(t, err == nil, "Not expected to return error")
-		assert.Equal(t, len(nodes), 1, "Expected 1 matching node")
-		assert.Equal(t, nodes[0].Name, "matching-node", "Expected matching node")
-	})
-
-	t.Run("Should return error when node list fails", func(t *testing.T) {
-		mockClient := test.NewClient()
-
-		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(errors.New("list failed"))
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  &metav1.LabelSelector{},
-				PreferredNodes: []string{},
-			},
-		}
-
-		_, err := GetBringYourOwnNodes(context.Background(), mockClient, workspace)
-
-		assert.Error(t, err, "list failed")
-	})
-
-	t.Run("Should skip not ready preferred nodes", func(t *testing.T) {
-		// Ensure feature gate is false (enabled provisioning)
-		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
-		defer func() {
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
-		}()
-
-		mockClient := test.NewClient()
-
-		// Create mock nodes
-		notReadyPreferredNode := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{Name: "not-ready-preferred"},
-			Status: corev1.NodeStatus{
-				Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionFalse}},
-			},
-		}
-
-		nodeList := &corev1.NodeList{
-			Items: []corev1.Node{*notReadyPreferredNode},
-		}
-
-		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-			nl := args.Get(1).(*corev1.NodeList)
-			*nl = *nodeList
-		}).Return(nil)
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-			Resource: kaitov1beta1.ResourceSpec{
-				LabelSelector:  &metav1.LabelSelector{},
-				PreferredNodes: []string{"not-ready-preferred"},
-			},
-		}
-
-		nodes, err := GetBringYourOwnNodes(context.Background(), mockClient, workspace)
-
-		assert.Check(t, err == nil, "Not expected to return error")
-		assert.Equal(t, len(nodes), 0, "Expected no nodes since preferred node is not ready")
-	})
-}
-
 func TestNodeIsReadyAndNotDeleting(t *testing.T) {
 	t.Run("Should return true for ready node without deletion timestamp", func(t *testing.T) {
 		node := &corev1.Node{
@@ -557,4 +346,319 @@ func TestNodeIsReadyAndNotDeleting(t *testing.T) {
 		// The function uses lo.Find which returns true if ANY condition matches, so it will find the true condition
 		assert.Check(t, result == true, "Expected node with mixed ready conditions to return true (finds any true condition)")
 	})
+}
+
+func TestGetBYOAndReadyNodes(t *testing.T) {
+	testcases := []struct {
+		name                          string
+		workspace                     *kaitov1beta1.Workspace
+		nodeList                      *corev1.NodeList
+		listNodesError                error
+		disableNodeAutoProvisioning   bool
+		expectedAvailableBYONodes     int
+		expectedReadyNodes            int
+		expectedError                 string
+		expectedAvailableBYONodeNames []string
+		expectedReadyNodeNames        []string
+	}{
+		{
+			name: "successful_retrieval_with_preferred_nodes",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					PreferredNodes: []string{"ready-node-1", "ready-node-2"},
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "gpu",
+						},
+					},
+				},
+			},
+			nodeList: &corev1.NodeList{
+				Items: []corev1.Node{
+					createMockNode("ready-node-1", true, false, map[string]string{"workload": "gpu"}),
+					createMockNode("ready-node-2", true, false, map[string]string{"workload": "gpu"}),
+					createMockNode("not-preferred-node", true, false, map[string]string{"workload": "gpu"}),
+				},
+			},
+			disableNodeAutoProvisioning:   false,
+			expectedAvailableBYONodes:     2,
+			expectedReadyNodes:            3,
+			expectedError:                 "",
+			expectedAvailableBYONodeNames: []string{"ready-node-1", "ready-node-2"},
+			expectedReadyNodeNames:        []string{"ready-node-1", "ready-node-2", "not-preferred-node"},
+		},
+		{
+			name: "disable_node_auto_provisioning_ignores_preferred_nodes",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					PreferredNodes: []string{"ready-node-1"},
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "gpu",
+						},
+					},
+				},
+			},
+			nodeList: &corev1.NodeList{
+				Items: []corev1.Node{
+					createMockNode("ready-node-1", true, false, map[string]string{"workload": "gpu"}),
+					createMockNode("ready-node-2", true, false, map[string]string{"workload": "gpu"}),
+				},
+			},
+			disableNodeAutoProvisioning:   true,
+			expectedAvailableBYONodes:     2,
+			expectedReadyNodes:            2,
+			expectedError:                 "",
+			expectedAvailableBYONodeNames: []string{"ready-node-1", "ready-node-2"},
+			expectedReadyNodeNames:        []string{"ready-node-1", "ready-node-2"},
+		},
+		{
+			name: "skips_not_ready_nodes",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					PreferredNodes: []string{"not-ready-node", "ready-node"},
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "gpu",
+						},
+					},
+				},
+			},
+			nodeList: &corev1.NodeList{
+				Items: []corev1.Node{
+					createMockNode("not-ready-node", false, false, map[string]string{"workload": "gpu"}),
+					createMockNode("ready-node", true, false, map[string]string{"workload": "gpu"}),
+				},
+			},
+			disableNodeAutoProvisioning:   false,
+			expectedAvailableBYONodes:     1,
+			expectedReadyNodes:            1,
+			expectedError:                 "",
+			expectedAvailableBYONodeNames: []string{"ready-node"},
+			expectedReadyNodeNames:        []string{"ready-node"},
+		},
+		{
+			name: "skips_deleting_nodes",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					PreferredNodes: []string{"deleting-node", "ready-node"},
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "gpu",
+						},
+					},
+				},
+			},
+			nodeList: &corev1.NodeList{
+				Items: []corev1.Node{
+					createMockNode("deleting-node", true, true, map[string]string{"workload": "gpu"}),
+					createMockNode("ready-node", true, false, map[string]string{"workload": "gpu"}),
+				},
+			},
+			disableNodeAutoProvisioning:   false,
+			expectedAvailableBYONodes:     1,
+			expectedReadyNodes:            1,
+			expectedError:                 "",
+			expectedAvailableBYONodeNames: []string{"ready-node"},
+			expectedReadyNodeNames:        []string{"ready-node"},
+		},
+		{
+			name: "empty_node_list",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					PreferredNodes: []string{"node-1"},
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "gpu",
+						},
+					},
+				},
+			},
+			nodeList: &corev1.NodeList{
+				Items: []corev1.Node{},
+			},
+			disableNodeAutoProvisioning:   false,
+			expectedAvailableBYONodes:     0,
+			expectedReadyNodes:            0,
+			expectedError:                 "",
+			expectedAvailableBYONodeNames: []string{},
+			expectedReadyNodeNames:        []string{},
+		},
+		{
+			name: "list_nodes_fails",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "gpu",
+						},
+					},
+				},
+			},
+			listNodesError:            errors.New("failed to list nodes"),
+			expectedAvailableBYONodes: 0,
+			expectedReadyNodes:        0,
+			expectedError:             "failed to list nodes",
+		},
+		{
+			name: "no_preferred_nodes_with_auto_provisioning_enabled",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					PreferredNodes: []string{}, // Empty preferred nodes
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "gpu",
+						},
+					},
+				},
+			},
+			nodeList: &corev1.NodeList{
+				Items: []corev1.Node{
+					createMockNode("ready-node-1", true, false, map[string]string{"workload": "gpu"}),
+					createMockNode("ready-node-2", true, false, map[string]string{"workload": "gpu"}),
+				},
+			},
+			disableNodeAutoProvisioning:   false,
+			expectedAvailableBYONodes:     0, // No nodes added to BYO because they're not in preferred list
+			expectedReadyNodes:            2, // But they're counted as ready
+			expectedError:                 "",
+			expectedAvailableBYONodeNames: []string{},
+			expectedReadyNodeNames:        []string{"ready-node-1", "ready-node-2"},
+		},
+		{
+			name: "mixed_ready_and_not_ready_preferred_nodes",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					PreferredNodes: []string{"ready-node", "not-ready-node", "deleting-node"},
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "gpu",
+						},
+					},
+				},
+			},
+			nodeList: &corev1.NodeList{
+				Items: []corev1.Node{
+					createMockNode("ready-node", true, false, map[string]string{"workload": "gpu"}),
+					createMockNode("not-ready-node", false, false, map[string]string{"workload": "gpu"}),
+					createMockNode("deleting-node", true, true, map[string]string{"workload": "gpu"}),
+				},
+			},
+			disableNodeAutoProvisioning:   false,
+			expectedAvailableBYONodes:     1,
+			expectedReadyNodes:            1,
+			expectedError:                 "",
+			expectedAvailableBYONodeNames: []string{"ready-node"},
+			expectedReadyNodeNames:        []string{"ready-node"},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Set up feature gate for disable node auto provisioning
+			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+			}()
+
+			mockClient := test.NewClient()
+
+			if tc.listNodesError != nil {
+				mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(tc.listNodesError)
+			} else {
+				mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+					nodeList := args.Get(1).(*corev1.NodeList)
+					*nodeList = *tc.nodeList
+				}).Return(nil)
+			}
+
+			availableBYONodes, readyNodes, err := GetBYOAndReadyNodes(context.Background(), mockClient, tc.workspace)
+
+			if tc.expectedError != "" {
+				assert.Check(t, err != nil, "Expected an error")
+				assert.Check(t, err.Error() == tc.expectedError, "Expected error message: %s, got: %s", tc.expectedError, err.Error())
+				return
+			}
+
+			assert.Check(t, err == nil, "Expected no error, got: %v", err)
+			assert.Check(t, len(availableBYONodes) == tc.expectedAvailableBYONodes, "Expected %d available BYO nodes, got %d", tc.expectedAvailableBYONodes, len(availableBYONodes))
+			assert.Check(t, len(readyNodes) == tc.expectedReadyNodes, "Expected %d ready nodes, got %d", tc.expectedReadyNodes, len(readyNodes))
+
+			// Check actual node names
+			actualBYONodeNames := make([]string, len(availableBYONodes))
+			for i, node := range availableBYONodes {
+				actualBYONodeNames[i] = node.Name
+			}
+
+			assert.DeepEqual(t, actualBYONodeNames, tc.expectedAvailableBYONodeNames)
+			assert.DeepEqual(t, readyNodes, tc.expectedReadyNodeNames)
+
+			mockClient.AssertExpectations(t)
+		})
+	}
+}
+
+// Helper function to create mock nodes for testing
+func createMockNode(name string, ready bool, deleting bool, labels map[string]string) corev1.Node {
+	node := corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   name,
+			Labels: labels,
+		},
+		Status: corev1.NodeStatus{
+			Conditions: []corev1.NodeCondition{},
+		},
+	}
+
+	if deleting {
+		now := metav1.Now()
+		node.ObjectMeta.DeletionTimestamp = &now
+	}
+
+	if ready {
+		node.Status.Conditions = append(node.Status.Conditions, corev1.NodeCondition{
+			Type:   corev1.NodeReady,
+			Status: corev1.ConditionTrue,
+		})
+	} else {
+		node.Status.Conditions = append(node.Status.Conditions, corev1.NodeCondition{
+			Type:   corev1.NodeReady,
+			Status: corev1.ConditionFalse,
+		})
+	}
+
+	return node
 }

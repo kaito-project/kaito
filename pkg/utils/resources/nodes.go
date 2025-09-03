@@ -124,31 +124,34 @@ func ExtractObjFields(obj client.Object) (instanceType, namespace, name string, 
 	return
 }
 
-// GetBringYourOwnNodes finds all BYO nodes that match the workspace's label selector
-func GetBringYourOwnNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, error) {
+// GetBYOAndReadyNodes finds all BYO nodes and ready nodes that match the workspace's label selector
+func GetBYOAndReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, []string, error) {
 	nodeList, err := ListNodes(ctx, c, wObj.Resource.LabelSelector.MatchLabels)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
 
 	availableBYONodes := make([]*corev1.Node, 0, len(nodeList.Items))
+	readyNodes := make([]string, 0, len(nodeList.Items))
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
-
-		// if node provision is disabled, preferred nodes will be ignored.
-		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-			if !preferredNodeSet.Has(node.Name) {
-				continue
-			}
-		}
 
 		if !NodeIsReadyAndNotDeleting(node) {
 			klog.V(4).InfoS("BYO node is not ready, skipping",
 				"node", node.Name,
 				"workspace", klog.KObj(wObj))
 			continue
+		} else {
+			readyNodes = append(readyNodes, node.Name)
+		}
+
+		// if node provision is disabled, preferred nodes will be ignored.
+		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+			if !preferredNodeSet.Has(node.Name) {
+				continue
+			}
 		}
 
 		availableBYONodes = append(availableBYONodes, node)
@@ -159,7 +162,7 @@ func GetBringYourOwnNodes(ctx context.Context, c client.Client, wObj *kaitov1bet
 		"preferredNodesSpecified", len(wObj.Resource.PreferredNodes),
 		"availableBYONodes", len(availableBYONodes))
 
-	return availableBYONodes, nil
+	return availableBYONodes, readyNodes, nil
 }
 
 func NodeIsReadyAndNotDeleting(node *corev1.Node) bool {

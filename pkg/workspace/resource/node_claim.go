@@ -50,7 +50,7 @@ func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expecta
 }
 
 // DiffNodeClaims compares the current state of NodeClaims with the desired state
-func (c *NodeClaimManager) DiffNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, int, int, []*karpenterv1.NodeClaim, error) {
+func (c *NodeClaimManager) DiffNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, int, int, []*karpenterv1.NodeClaim, []string, error) {
 	workspaceKey := client.ObjectKeyFromObject(wObj).String()
 	var addedNodeClaimsCount int
 	var deletedNodeClaimsCount int
@@ -58,18 +58,18 @@ func (c *NodeClaimManager) DiffNodeClaims(ctx context.Context, wObj *kaitov1beta
 	if !c.expectations.SatisfiedExpectations(c.logger, workspaceKey) {
 		klog.V(4).InfoS("Waiting for NodeClaim expectations to be satisfied",
 			"workspace", klog.KObj(wObj))
-		return false, addedNodeClaimsCount, deletedNodeClaimsCount, nil, nil
+		return false, addedNodeClaimsCount, deletedNodeClaimsCount, nil, nil, nil
 	}
 
 	// Calculate the number of NodeClaims required (target - BYO nodes)
-	requiredNodeClaimsCount, err := nodeclaim.GetRequiredNodeClaimsCount(ctx, c.Client, wObj)
+	readyNodes, requiredNodeClaimsCount, err := nodeclaim.ResolveReadyNodesAndRequiredNodeClaimCount(ctx, c.Client, wObj)
 	if err != nil {
-		return false, addedNodeClaimsCount, deletedNodeClaimsCount, nil, fmt.Errorf("failed to get required NodeClaims: %w", err)
+		return false, addedNodeClaimsCount, deletedNodeClaimsCount, nil, nil, fmt.Errorf("failed to get required NodeClaims: %w", err)
 	}
 
 	existingNodeClaims, err := nodeclaim.GetExistingNodeClaims(ctx, c.Client, wObj)
 	if err != nil {
-		return false, addedNodeClaimsCount, deletedNodeClaimsCount, nil, fmt.Errorf("failed to get existing NodeClaims: %w", err)
+		return false, addedNodeClaimsCount, deletedNodeClaimsCount, nil, nil, fmt.Errorf("failed to get existing NodeClaims: %w", err)
 	}
 
 	if requiredNodeClaimsCount > len(existingNodeClaims) {
@@ -78,7 +78,7 @@ func (c *NodeClaimManager) DiffNodeClaims(ctx context.Context, wObj *kaitov1beta
 		deletedNodeClaimsCount = len(existingNodeClaims) - requiredNodeClaimsCount
 	}
 
-	return true, addedNodeClaimsCount, deletedNodeClaimsCount, existingNodeClaims, nil
+	return true, addedNodeClaimsCount, deletedNodeClaimsCount, existingNodeClaims, readyNodes, nil
 }
 
 // ScaleUpNodeClaims scales up the NodeClaims for the given workspace
@@ -99,36 +99,20 @@ func (c *NodeClaimManager) ScaleUpNodeClaims(ctx context.Context, wObj *kaitov1b
 
 	for range nodesToCreate {
 		var nodeClaim *karpenterv1.NodeClaim
-		var err error
-		created := false
 
-		retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 			nodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, wObj)
-			err = c.Client.Create(ctx, nodeClaim)
-
-			if err == nil {
-				created = true
-				return nil
-			}
-			return err
+			return c.Client.Create(ctx, nodeClaim)
 		})
 
-		if !created {
+		if err != nil {
 			// Failed to create, decrement expectations
 			c.expectations.CreationObserved(c.logger, workspaceKey)
-			if err != nil {
-				c.recorder.Eventf(wObj, "Warning", "NodeClaimCreationFailed",
-					"Failed to create NodeClaim %s for workspace %s: %v", nodeClaim.Name, wObj.Name, err)
-			} else {
-				c.recorder.Eventf(wObj, "Warning", "NodeClaimCreationFailed",
-					"Failed to create NodeClaim for workspace %s after retries", wObj.Name)
-			}
+			c.recorder.Eventf(wObj, "Warning", "NodeClaimCreationFailed", "Failed to create NodeClaim %s for workspace %s: %v", nodeClaim.Name, wObj.Name, err)
 			continue // should not return here or expectations will leak
 		}
 
-		klog.InfoS("NodeClaim created successfully",
-			"nodeClaim", nodeClaim.Name,
-			"workspace", workspaceKey)
+		klog.InfoS("NodeClaim created successfully", "nodeClaim", nodeClaim.Name, "workspace", workspaceKey)
 
 		c.recorder.Eventf(wObj, "Normal", "NodeClaimCreated",
 			"Successfully created NodeClaim %s for workspace %s", nodeClaim.Name, workspaceKey)
@@ -170,7 +154,7 @@ func (c *NodeClaimManager) ReadyNodeClaimsMeetTarget(ctx context.Context, wObj *
 
 // ScaleDownNodeClaims scales down the NodeClaims for a workspace.
 // This function will be invoked after scaling down workloads of workspace in order to ensure nodes without pods can be deleted.
-func (c *NodeClaimManager) ScaleDownNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim, nodesToDelete int) (bool, error) {
+func (c *NodeClaimManager) ScaleDownNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim, nodesToDelete int) error {
 	workspaceKey := client.ObjectKeyFromObject(wObj).String()
 	klog.InfoS("Scaling down excess NodeClaims", "workspace", workspaceKey, "toDelete", nodesToDelete)
 
@@ -178,15 +162,15 @@ func (c *NodeClaimManager) ScaleDownNodeClaims(ctx context.Context, wObj *kaitov
 		if curCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(kaitov1beta1.ConditionTypeScalingDownStatus)); curCondition != nil {
 			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeScalingDownStatus, metav1.ConditionTrue, "ScalingDownNodeClaimsCompleted", "Scaling down excess NodeClaims completed"); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update scaling down status condition(ScalingDownNodeClaimsCompleted)", "workspace", workspaceKey)
-				return false, fmt.Errorf("failed to update scaling down status condition(ScalingDownNodeClaimsCompleted): %w", updateErr)
+				return fmt.Errorf("failed to update scaling down status condition(ScalingDownNodeClaimsCompleted): %w", updateErr)
 			}
 		}
-		return true, nil
+		return nil
 	}
 
 	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeScalingDownStatus, metav1.ConditionFalse, "ScalingDownNodeClaims", "Scaling down excess NodeClaims"); updateErr != nil {
 		klog.ErrorS(updateErr, "failed to update scaling down status condition(ScalingDownNodeClaims)", "workspace", workspaceKey)
-		return false, fmt.Errorf("failed to update scaling down status condition(ScalingDownNodeClaims): %w", updateErr)
+		return fmt.Errorf("failed to update scaling down status condition(ScalingDownNodeClaims): %w", updateErr)
 	}
 
 	// filter nodeclaims that has no pod of workspace running on the node
@@ -245,7 +229,7 @@ func (c *NodeClaimManager) ScaleDownNodeClaims(ctx context.Context, wObj *kaitov
 		}
 	}
 
-	return true, nil
+	return nil
 }
 
 // determineNodeOSDiskSize returns the appropriate OS disk size for the workspace

@@ -1,6 +1,11 @@
 name: Publish workspace helm chart
 
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (e.g. v0.6.1)'
+        required: true
   repository_dispatch:
     types: [ publish-workspace-helm-chart ]
 
@@ -28,7 +33,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-          ref: ${{ github.event.client_payload.tag }}
+          ref: ${{ github.event.client_payload.tag || github.event.inputs.tag }}
 
       - name: Package workspace helm chart
         run: |

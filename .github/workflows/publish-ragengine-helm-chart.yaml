@@ -1,6 +1,11 @@
 name: Publish ragengine helm chart
 
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (e.g. v0.6.1)'
+        required: true
   repository_dispatch:
     types: [ publish-ragengine-helm-chart ]
 
@@ -28,7 +33,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-          ref: ${{ github.event.client_payload.tag }}
+          ref: ${{ github.event.client_payload.tag || github.event.inputs.tag }}
 
       - name: Package ragengine helm chart
         run: |
@@ -42,5 +47,3 @@ jobs:
           charts_dir: packaged-rag
           target_dir: charts/kaito
           linting: off
-
- 

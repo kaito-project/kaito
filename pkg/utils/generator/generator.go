@@ -21,6 +21,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	lwsv1 "sigs.k8s.io/lws/api/leaderworkerset/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
@@ -38,7 +39,7 @@ type GeneratorContext interface {
 }
 
 type ManifestType interface {
-	appsv1.StatefulSet | appsv1.Deployment | batchv1.Job | corev1.PodSpec
+	appsv1.StatefulSet | appsv1.Deployment | batchv1.Job | corev1.PodSpec | lwsv1.LeaderWorkerSet
 }
 
 type TypedManifestModifier[C GeneratorContext, T ManifestType] func(ctx *C, obj *T) error

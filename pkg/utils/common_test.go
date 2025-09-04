@@ -367,54 +367,6 @@ func TestBuildIfElseCmdStr(t *testing.T) {
 	}
 }
 
-func TestGetRayLeaderHost(t *testing.T) {
-	tests := []struct {
-		name         string
-		meta         metav1.ObjectMeta
-		expectedHost string
-	}{
-		{
-			name: "Standard case",
-			meta: metav1.ObjectMeta{
-				Name:      "my-ray-cluster",
-				Namespace: "default",
-			},
-			expectedHost: "my-ray-cluster-0.my-ray-cluster-headless.default.svc.cluster.local",
-		},
-		{
-			name: "Different name and namespace",
-			meta: metav1.ObjectMeta{
-				Name:      "another-app",
-				Namespace: "kube-system",
-			},
-			expectedHost: "another-app-0.another-app-headless.kube-system.svc.cluster.local",
-		},
-		{
-			name: "Name with hyphens",
-			meta: metav1.ObjectMeta{
-				Name:      "test-ray-app-v1",
-				Namespace: "production",
-			},
-			expectedHost: "test-ray-app-v1-0.test-ray-app-v1-headless.production.svc.cluster.local",
-		},
-		{
-			name: "Namespace with hyphens",
-			meta: metav1.ObjectMeta{
-				Name:      "simple",
-				Namespace: "my-custom-namespace",
-			},
-			expectedHost: "simple-0.simple-headless.my-custom-namespace.svc.cluster.local",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			actualHost := GetRayLeaderHost(tt.meta)
-			assert.Equal(t, tt.expectedHost, actualHost)
-		})
-	}
-}
-
 func TestInferencePoolName(t *testing.T) {
 	tests := []struct {
 		workspaceName string

@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"path"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
@@ -36,6 +37,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
+	lwsv1 "sigs.k8s.io/lws/api/leaderworkerset/v1"
 )
 
 func GenerateHeadlessServiceManifest(workspaceObj *kaitov1beta1.Workspace) *corev1.Service {
@@ -61,14 +63,13 @@ func GenerateHeadlessServiceManifest(workspaceObj *kaitov1beta1.Workspace) *core
 	}
 }
 
-func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType corev1.ServiceType, isStatefulSet bool) *corev1.Service {
+func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType corev1.ServiceType, isLeaderWorkerSet bool) *corev1.Service {
 	selector := map[string]string{
 		kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
 	}
-	// If statefulset, modify the selector to select the pod with index 0 as the endpoint
-	if isStatefulSet {
-		podNameForIndex0 := fmt.Sprintf("%s-0", workspaceObj.Name)
-		selector["statefulset.kubernetes.io/pod-name"] = podNameForIndex0
+	if isLeaderWorkerSet {
+		selector[lwsv1.SetNameLabelKey] = workspaceObj.Name
+		selector["role"] = "leader"
 	}
 
 	return &corev1.Service{
@@ -107,59 +108,6 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 			// (DNS Resolution) During their initialization phase
 			PublishNotReadyAddresses: true,
 		},
-	}
-}
-
-func GenerateStatefulSetManifest(revisionNum string, replicas int) func(*generator.WorkspaceGeneratorContext, *appsv1.StatefulSet) error {
-	return func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
-		selector := map[string]string{
-			kaitov1beta1.LabelWorkspaceName: ctx.Workspace.Name,
-		}
-		labelselector := &metav1.LabelSelector{
-			MatchLabels: selector,
-		}
-
-		ss.ObjectMeta = metav1.ObjectMeta{
-			Name:      ctx.Workspace.Name,
-			Namespace: ctx.Workspace.Namespace,
-			Annotations: map[string]string{
-				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
-			},
-			OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
-			},
-		}
-		ss.Spec = appsv1.StatefulSetSpec{
-			Replicas:            lo.ToPtr(int32(replicas)),
-			PodManagementPolicy: appsv1.ParallelPodManagement,
-			PersistentVolumeClaimRetentionPolicy: &appsv1.StatefulSetPersistentVolumeClaimRetentionPolicy{
-				WhenScaled:  appsv1.RetainPersistentVolumeClaimRetentionPolicyType,
-				WhenDeleted: appsv1.DeletePersistentVolumeClaimRetentionPolicyType,
-			},
-			Selector: labelselector,
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: selector,
-				},
-			},
-		}
-
-		ss.Spec.ServiceName = fmt.Sprintf("%s-headless", ctx.Workspace.Name)
-		return nil
-	}
-}
-
-func AddStatefulSetVolumeClaimTemplates(volumeClaimTemplates corev1.PersistentVolumeClaim) func(*generator.WorkspaceGeneratorContext, *appsv1.StatefulSet) error {
-	return func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
-		ss.Spec.VolumeClaimTemplates = append(ss.Spec.VolumeClaimTemplates, volumeClaimTemplates)
-		return nil
-	}
-}
-
-func SetStatefulSetPodSpec(podSpec *corev1.PodSpec) func(*generator.WorkspaceGeneratorContext, *appsv1.StatefulSet) error {
-	return func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
-		ss.Spec.Template.Spec = *podSpec
-		return nil
 	}
 }
 
@@ -243,6 +191,76 @@ func GenerateDeploymentManifest(revisionNum string, replicas int) func(*generato
 				},
 			},
 		}
+		return nil
+	}
+}
+
+// GenerateLeaderWorkerSetManifest returns a modifier that initializes the LWS object.
+// We create a single group (Replicas=1) with Size equal to the desired number of pods per group.
+func GenerateLeaderWorkerSetManifest(revisionNum string, replicas int, size int32) func(*generator.WorkspaceGeneratorContext, *lwsv1.LeaderWorkerSet) error {
+	return func(ctx *generator.WorkspaceGeneratorContext, lws *lwsv1.LeaderWorkerSet) error {
+		selector := map[string]string{
+			kaitov1beta1.LabelWorkspaceName: ctx.Workspace.Name,
+		}
+
+		lws.ObjectMeta = metav1.ObjectMeta{
+			Name:      ctx.Workspace.Name,
+			Namespace: ctx.Workspace.Namespace,
+			Annotations: map[string]string{
+				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
+			},
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
+			},
+		}
+
+		// One group for the workspace; Size is total pods (leader + workers) per group.
+		lws.Spec = lwsv1.LeaderWorkerSetSpec{
+			Replicas: lo.ToPtr(int32(replicas)),
+			LeaderWorkerTemplate: lwsv1.LeaderWorkerTemplate{
+				Size:          lo.ToPtr(size),
+				RestartPolicy: lwsv1.RecreateGroupOnPodRestart,
+				// WorkerTemplate will be set by SetLeaderWorkerSetPodSpec
+			},
+			RolloutStrategy: lwsv1.RolloutStrategy{ // use defaults
+				Type: lwsv1.RollingUpdateStrategyType,
+			},
+			StartupPolicy: lwsv1.LeaderCreatedStartupPolicy,
+			NetworkConfig: &lwsv1.NetworkConfig{ // Shared headless service by default
+				SubdomainPolicy: lo.ToPtr(lwsv1.SubdomainShared),
+			},
+		}
+		// Inject base labels
+		if lws.Spec.LeaderWorkerTemplate.LeaderTemplate == nil {
+			lws.Spec.LeaderWorkerTemplate.LeaderTemplate = &corev1.PodTemplateSpec{}
+		}
+		if lws.Spec.LeaderWorkerTemplate.LeaderTemplate.Labels == nil {
+			lws.Spec.LeaderWorkerTemplate.LeaderTemplate.Labels = map[string]string{}
+		}
+		maps.Copy(lws.Spec.LeaderWorkerTemplate.LeaderTemplate.Labels, selector)
+		if lws.Spec.LeaderWorkerTemplate.WorkerTemplate.Labels == nil {
+			lws.Spec.LeaderWorkerTemplate.WorkerTemplate.Labels = map[string]string{}
+		}
+		maps.Copy(lws.Spec.LeaderWorkerTemplate.WorkerTemplate.Labels, selector)
+		return nil
+	}
+}
+
+// SetLeaderWorkerSetPodSpec applies the given PodSpec to both leader and worker templates.
+func SetLeaderWorkerSetPodSpec(podSpec *corev1.PodSpec) func(*generator.WorkspaceGeneratorContext, *lwsv1.LeaderWorkerSet) error {
+	return func(ctx *generator.WorkspaceGeneratorContext, lws *lwsv1.LeaderWorkerSet) error {
+		// Leader can reuse the same pod spec; often only the command differs at runtime using env/conditions
+		if lws.Spec.LeaderWorkerTemplate.LeaderTemplate == nil {
+			lws.Spec.LeaderWorkerTemplate.LeaderTemplate = &corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"role": "leader",
+					},
+				},
+			}
+		}
+		lws.Spec.LeaderWorkerTemplate.LeaderTemplate.Spec = *podSpec
+		lws.Spec.LeaderWorkerTemplate.WorkerTemplate.Spec = *podSpec
 		return nil
 	}
 }
@@ -402,15 +420,14 @@ func GenerateInferencePoolOCIRepository(workspaceObj *kaitov1beta1.Workspace) *s
 }
 
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
-func GenerateInferencePoolHelmRelease(workspaceObj *kaitov1beta1.Workspace, isStatefulSet bool) (*helmv2.HelmRelease, error) {
+func GenerateInferencePoolHelmRelease(workspaceObj *kaitov1beta1.Workspace, isLeaderWorkerSet bool) (*helmv2.HelmRelease, error) {
 	matchLabels := map[string]string{
 		kaitov1beta1.LabelWorkspaceName: workspaceObj.Name,
 	}
-	if isStatefulSet {
-		// Endpoint Picker from Gateway API Inference Extension expects to pick an endpoint that can serve traffic.
-		// In a multi-node inference environment, this means we need to select the leader pod (with pod index 0)
-		// since only the leader pod is capable of serving traffic.
-		matchLabels[appsv1.PodIndexLabel] = "0"
+	if isLeaderWorkerSet {
+		// For LWS, select the leader pod
+		matchLabels[lwsv1.SetNameLabelKey] = workspaceObj.Name
+		matchLabels["role"] = "leader"
 	}
 
 	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v0.5.1/config/charts/inferencepool/values.yaml

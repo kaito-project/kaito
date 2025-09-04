@@ -19,7 +19,7 @@ import (
 	"strconv"
 
 	"github.com/samber/lo"
-	appsv1 "k8s.io/api/apps/v1"
+
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -27,6 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	v1 "sigs.k8s.io/lws/api/leaderworkerset/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
@@ -163,17 +164,29 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		SetAdapterPuller,
 	}
 
-	// For multi-node distributed inference with vLLM, we need to use a StatefulSet instead of a Deployment
-	// to ensure pods are created with individual identities (their ordinal indexes) -
-	// https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-identity
+	// For multi-node distributed inference with vLLM, switch to LeaderWorkerSet to orchestrate leader/worker pods
 	if shouldUseDistributedInference(gctx, numNodes) {
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
-		ssOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]{
-			manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
-		}
 
+		// Add storage: prefer NVMe PVC, otherwise use emptyDir
 		if checkIfNVMeAvailable(ctx, &gpuConfig, kubeClient) {
-			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
+			// Mount via PVC name; PodSpec generator already mounts by name
+			// LWS doesn’t accept VolumeClaimTemplates directly; use PVCs referenced in PodSpec
+			pvc := GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)
+			// Attach PVC to PodSpec volumes via a modifier
+			podOpts = append(podOpts, func(_ *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+				spec.Volumes = append(spec.Volumes, corev1.Volume{
+					Name: pvc.Name,
+					VolumeSource: corev1.VolumeSource{
+						Ephemeral: &corev1.EphemeralVolumeSource{
+							VolumeClaimTemplate: &corev1.PersistentVolumeClaimTemplate{
+								Spec: pvc.Spec,
+							},
+						},
+					},
+				})
+				return nil
+			})
 		} else {
 			podOpts = append(podOpts, SetDefaultModelWeightsVolume)
 		}
@@ -182,9 +195,14 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		if err != nil {
 			return nil, err
 		}
-		ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
-
-		return generator.GenerateManifest(gctx, ssOpts...)
+		// LWS size equals total pods per group: leader(1) + workers(numNodes-1)
+		size := int32(numNodes)
+		// Replicas is number of groups; for our case, stick to 1 group
+		lwsOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, v1.LeaderWorkerSet]{
+			manifests.GenerateLeaderWorkerSetManifest(revisionNum, 1, size),
+			manifests.SetLeaderWorkerSetPodSpec(podSpec),
+		}
+		return generator.GenerateManifest(gctx, lwsOpts...)
 	} else {
 		podOpts = append(podOpts, SetDefaultModelWeightsVolume)
 
@@ -258,7 +276,8 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 // getDistributedInferenceProbe returns a container probe configuration for the distributed inference workload.
 func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds int32) *corev1.Probe {
 	args := map[string]string{
-		"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
+		// Use LWS-provided env var for leader address to be compatible with LWS networking
+		"leader-address": "$LWS_LEADER_ADDRESS",
 	}
 	switch probeType {
 	case probeTypeLiveness:
@@ -454,14 +473,16 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 	// 60 seconds initial delay for liveness probe to allow workers to join the cluster
 	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5)
 	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1)
+
 	envVar := corev1.EnvVar{
 		Name: "POD_INDEX",
 		ValueFrom: &corev1.EnvVarSource{
 			FieldRef: &corev1.ObjectFieldSelector{
-				FieldPath: fmt.Sprintf("metadata.labels['%s']", appsv1.PodIndexLabel),
+				FieldPath: fmt.Sprintf("metadata.labels['%s']", v1.WorkerIndexLabelKey),
 			},
 		},
 	}
+
 	for i := range spec.Containers {
 		if spec.Containers[i].Name == ctx.Workspace.Name {
 			spec.Containers[i].LivenessProbe = livenessProbe

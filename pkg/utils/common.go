@@ -328,12 +328,6 @@ func ParseHuggingFaceModelVersion(version string) (repoId string, revision strin
 	return "", "", fmt.Errorf(errInvalidModelVersionURL, version)
 }
 
-// getRayLeaderHost constructs the leader host for the Ray cluster.
-func GetRayLeaderHost(meta metav1.ObjectMeta) string {
-	return fmt.Sprintf("%s-0.%s-headless.%s.svc.cluster.local",
-		meta.Name, meta.Name, meta.Namespace)
-}
-
 // DedupVolumeMounts removes duplicate volume mounts by only keeping the first occurrence of each name
 func DedupVolumeMounts(mounts []corev1.VolumeMount) []corev1.VolumeMount {
 	seen := make(map[string]bool)

@@ -291,7 +291,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// https://docs.vllm.ai/en/latest/serving/distributed_serving.html.
 	p.VLLM.ModelRunParams["pipeline-parallel-size"] = strconv.Itoa(rc.NumNodes)
 
-	// We need to setup multi-node Ray cluster and assume pod index 0 is the leader of the cluster.
+	// We need to setup multi-node Ray cluster and assume leader is identified via POD_INDEX="0".
 	// - leader: start as ray leader along with the model run command
 	// - worker: start as ray worker - don't need to provide the model run command
 	if p.VLLM.RayLeaderParams == nil {
@@ -303,17 +303,18 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	if p.VLLM.RayWorkerParams == nil {
 		p.VLLM.RayWorkerParams = make(map[string]string)
 	}
-	p.VLLM.RayWorkerParams["ray_address"] = utils.GetRayLeaderHost(rc.WorkspaceMetadata)
+	// With LWS, use the injected leader address env variable for workers
+	p.VLLM.RayWorkerParams["ray_address"] = "$LWS_LEADER_ADDRESS"
 	p.VLLM.RayWorkerParams["ray_port"] = strconv.Itoa(PortRayCluster)
 
 	rayLeaderCommand := utils.BuildCmdStr(p.VLLM.RayLeaderBaseCommand, p.VLLM.RayLeaderParams)
 	modelRunCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
 	result := utils.BuildIfElseCmdStr(
-		`[ "${POD_INDEX}" = "0" ]`,                                      // initiate as ray leader if the pod index is 0, otherwise initiate as ray worker
-		strings.Join([]string{rayLeaderCommand, modelRunCommand}, "; "), // command if true, concatenate the ray leader command and model run command
-		map[string]string{},                                             // no parameters needed since the command is already built above
-		p.VLLM.RayWorkerBaseCommand,                                     // command if false
-		p.VLLM.RayWorkerParams,                                          // parameters for the false command
+		`[ "${POD_INDEX}" = "0" ]`,
+		strings.Join([]string{rayLeaderCommand, modelRunCommand}, "; "),
+		map[string]string{},
+		p.VLLM.RayWorkerBaseCommand,
+		p.VLLM.RayWorkerParams,
 	)
 
 	return utils.ShellCmd(result)

@@ -28,6 +28,7 @@ import (
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	lwsv1 "sigs.k8s.io/lws/api/leaderworkerset/v1"
 
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -131,6 +132,15 @@ func CheckResourceStatus(obj client.Object, kubeClient client.Client, timeoutDur
 						klog.InfoS("ocirepository status is ready", "ocirepository", k8sResource.Name)
 						return nil
 					}
+				}
+			case *lwsv1.LeaderWorkerSet:
+				desired := int32(1)
+				if k8sResource.Spec.Replicas != nil {
+					desired = *k8sResource.Spec.Replicas
+				}
+				if k8sResource.Status.ReadyReplicas == desired {
+					klog.InfoS("leaderworkerset status is ready", "leaderworkerset", k8sResource.Name)
+					return nil
 				}
 			default:
 				return fmt.Errorf("unsupported resource type")

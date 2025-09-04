@@ -27,6 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	lwsv1 "sigs.k8s.io/lws/api/leaderworkerset/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -182,8 +183,8 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 			},
-			workload:    "StatefulSet",
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			workload:    "LeaderWorkerSet",
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=$LWS_LEADER_ADDRESS --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -198,7 +199,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				Name: "POD_INDEX",
 				ValueFrom: &corev1.EnvVarSource{
 					FieldRef: &corev1.ObjectFieldSelector{
-						FieldPath: fmt.Sprintf("metadata.labels['%s']", appsv1.PodIndexLabel),
+						FieldPath: fmt.Sprintf("metadata.labels['%s']", lwsv1.WorkerIndexLabelKey),
 					},
 				},
 			}},
@@ -214,8 +215,8 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 			},
-			workload:    "StatefulSet",
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --kaito-config-file=/mnt/config/inference_config.yaml --download-dir=/workspace/weights --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			workload:    "LeaderWorkerSet",
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --kaito-config-file=/mnt/config/inference_config.yaml --download-dir=/workspace/weights --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=$LWS_LEADER_ADDRESS --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -230,7 +231,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				Name: "POD_INDEX",
 				ValueFrom: &corev1.EnvVarSource{
 					FieldRef: &corev1.ObjectFieldSelector{
-						FieldPath: fmt.Sprintf("metadata.labels['%s']", appsv1.PodIndexLabel),
+						FieldPath: fmt.Sprintf("metadata.labels['%s']", lwsv1.WorkerIndexLabelKey),
 					},
 				},
 			}},
@@ -310,11 +311,11 @@ func TestGeneratePresetInference(t *testing.T) {
 				image = t.Spec.Template.Spec.Containers[0].Image
 				envVars = t.Spec.Template.Spec.Containers[0].Env
 				initContainer = t.Spec.Template.Spec.InitContainers
-			case *appsv1.StatefulSet:
-				createdWorkload = "StatefulSet"
-				image = t.Spec.Template.Spec.Containers[0].Image
-				envVars = t.Spec.Template.Spec.Containers[0].Env
-				initContainer = t.Spec.Template.Spec.InitContainers
+			case *lwsv1.LeaderWorkerSet:
+				createdWorkload = "LeaderWorkerSet"
+				image = t.Spec.LeaderWorkerTemplate.LeaderTemplate.Spec.Containers[0].Image
+				envVars = t.Spec.LeaderWorkerTemplate.LeaderTemplate.Spec.Containers[0].Env
+				initContainer = t.Spec.LeaderWorkerTemplate.LeaderTemplate.Spec.InitContainers
 			}
 			if tc.workload != createdWorkload {
 				t.Errorf("%s: returned workload type is wrong", k)
@@ -351,7 +352,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			if tc.workload == "Deployment" {
 				workloadCmd = strings.Join((createdObject.(*appsv1.Deployment)).Spec.Template.Spec.Containers[0].Command, " ")
 			} else {
-				workloadCmd = strings.Join((createdObject.(*appsv1.StatefulSet)).Spec.Template.Spec.Containers[0].Command, " ")
+				workloadCmd = strings.Join((createdObject.(*lwsv1.LeaderWorkerSet)).Spec.LeaderWorkerTemplate.LeaderTemplate.Spec.Containers[0].Command, " ")
 			}
 
 			mainCmd := strings.Split(workloadCmd, "--")[0]
@@ -376,7 +377,7 @@ func TestGeneratePresetInference(t *testing.T) {
 						actualSecrets = append(actualSecrets, secret.Name)
 					}
 				} else {
-					for _, secret := range createdObject.(*appsv1.StatefulSet).Spec.Template.Spec.ImagePullSecrets {
+					for _, secret := range createdObject.(*lwsv1.LeaderWorkerSet).Spec.LeaderWorkerTemplate.LeaderTemplate.Spec.ImagePullSecrets {
 						actualSecrets = append(actualSecrets, secret.Name)
 					}
 				}
@@ -421,7 +422,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 			expectedProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					Exec: &corev1.ExecAction{
-						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/multi-node-health-check.py liveness --leader-address=test-workspace-0.test-workspace-headless.test-ns.svc.cluster.local --ray-port=6379"},
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/multi-node-health-check.py liveness --leader-address=$LWS_LEADER_ADDRESS --ray-port=6379"},
 					},
 				},
 				InitialDelaySeconds:           30,
@@ -445,7 +446,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 			expectedProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					Exec: &corev1.ExecAction{
-						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/multi-node-health-check.py readiness --leader-address=test-workspace-0.test-workspace-headless.test-ns.svc.cluster.local --vllm-port=5000"},
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/multi-node-health-check.py readiness --leader-address=$LWS_LEADER_ADDRESS --vllm-port=5000"},
 					},
 				},
 				InitialDelaySeconds: 30,

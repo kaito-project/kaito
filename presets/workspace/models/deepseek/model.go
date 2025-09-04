@@ -98,8 +98,8 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillLlama8BModel),
 		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16.5Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
+		TotalGPUMemoryRequirement: "16.06Gi",
+		BytesPerToken:             131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
@@ -135,8 +135,8 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillQwen14BModel),
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "25.7Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
+		TotalGPUMemoryRequirement: "29.54Gi",
+		BytesPerToken:             196608,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
@@ -173,7 +173,6 @@ func (*deepseekR1) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement:    "800Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "960Gi", // at least 8 H100
-		PerGPUMemoryRequirement:   "0Gi",   // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
@@ -212,7 +211,6 @@ func (*deepseekV3) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement:    "800Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "960Gi", // at least 8 H100
-		PerGPUMemoryRequirement:   "0Gi",   // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,

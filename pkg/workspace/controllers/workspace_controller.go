@@ -59,6 +59,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/basicnodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
@@ -78,6 +80,7 @@ type WorkspaceReconciler struct {
 
 	klogger      klog.Logger
 	expectations *utils.ControllerExpectations
+	Estimator    estimator.NodesEstimator
 }
 
 func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder) *WorkspaceReconciler {
@@ -88,6 +91,7 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 		klogger:      klog.NewKlogr().WithName("WorkspaceController"),
 		Recorder:     Recorder,
 		expectations: utils.NewControllerExpectations(),
+		Estimator:    &basicnodesestimator.BasicNodesEstimator{},
 	}
 }
 
@@ -936,6 +940,49 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 	}
 
 	return nil
+}
+
+// ConfigureWorkspaceReplicasSetting ensures Replicas, PerReplicaNodeCount and TargetNodeCount are configured for workspace
+func (c *WorkspaceReconciler) ConfigureWorkspaceReplicasSetting(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, error) {
+	if wObj.Inference == nil {
+		return false, nil
+	}
+
+	// if replicas is not set, default to 1
+	if wObj.Inference.Replicas <= 0 {
+		if err := workspace.UpdateWorkspaceWithRetry(ctx, c.Client, wObj, func(ws *kaitov1beta1.Workspace) error {
+			ws.Inference.Replicas = 1
+			return nil
+		}); err != nil {
+			return false, fmt.Errorf("failed to update Workspace inference replicas: %w", err)
+		}
+	}
+
+	desiredReplicas := wObj.Inference.Replicas
+	if wObj.Status.Inference.PerReplicaNodeCount == 0 || wObj.Status.Inference.TargetNodeCount != desiredReplicas*wObj.Status.Inference.PerReplicaNodeCount {
+		if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
+			if status.Inference == nil {
+				status.Inference = &kaitov1beta1.InferenceStatus{}
+			}
+			if status.Inference.PerReplicaNodeCount == 0 {
+				perReplicaNodeCount, err := c.Estimator.EstimateNodeCount(ctx, wObj)
+				if err != nil {
+					return fmt.Errorf("failed to calculate per-replica node count: %w", err)
+				}
+				status.Inference.PerReplicaNodeCount = perReplicaNodeCount
+			}
+
+			if status.Inference.TargetNodeCount != desiredReplicas*status.Inference.PerReplicaNodeCount {
+				status.Inference.TargetNodeCount = desiredReplicas * status.Inference.PerReplicaNodeCount
+			}
+			return nil
+		}); err != nil {
+			return false, fmt.Errorf("failed to update Workspace perReplicaNodeCount and targetNodeCount: %w", err)
+		}
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

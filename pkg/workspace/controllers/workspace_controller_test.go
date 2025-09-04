@@ -1353,3 +1353,375 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 		})
 	}
 }
+
+// mockEstimator is a mock implementation of estimator.NodesEstimator for testing
+type mockEstimator struct {
+	mock.Mock
+}
+
+func (m *mockEstimator) Name() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *mockEstimator) EstimateNodeCount(ctx context.Context, workspace *v1beta1.Workspace) (int32, error) {
+	args := m.Called(ctx, workspace)
+	return args.Get(0).(int32), args.Error(1)
+}
+
+func TestConfigureWorkspaceReplicasSetting(t *testing.T) {
+	tests := []struct {
+		name           string
+		workspace      *v1beta1.Workspace
+		setupMocks     func(*test.MockClient, *mockEstimator)
+		expectedResult bool
+		expectedError  bool
+	}{
+		{
+			name: "should return false when workspace has no inference",
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: nil,
+			},
+			setupMocks: func(c *test.MockClient, e *mockEstimator) {
+				// No mocks needed for this case
+			},
+			expectedResult: false,
+			expectedError:  false,
+		},
+		{
+			name: "should set replicas to 1 when replicas is 0",
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Replicas: 0,
+				},
+				Status: v1beta1.WorkspaceStatus{
+					Inference: &v1beta1.InferenceStatus{
+						PerReplicaNodeCount: 0,
+						TargetNodeCount:     0,
+					},
+				},
+			},
+			setupMocks: func(c *test.MockClient, e *mockEstimator) {
+				// Mock estimator
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{})).Return(int32(2), nil)
+
+				// Mock workspace retrieval for UpdateWorkspaceWithRetry (first call to set replicas)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Inference = &v1beta1.InferenceSpec{Replicas: 0}
+						ws.Status = v1beta1.WorkspaceStatus{
+							Inference: &v1beta1.InferenceStatus{
+								PerReplicaNodeCount: 0,
+								TargetNodeCount:     0,
+							},
+						}
+					}).Return(nil).Once()
+				c.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+
+				// Mock workspace retrieval for UpdateWorkspaceStatus (second call to set status)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Inference = &v1beta1.InferenceSpec{Replicas: 1} // After first update
+						ws.Status = v1beta1.WorkspaceStatus{
+							Inference: &v1beta1.InferenceStatus{
+								PerReplicaNodeCount: 0,
+								TargetNodeCount:     0,
+							},
+						}
+					}).Return(nil).Once()
+				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+			},
+			expectedResult: false,
+			expectedError:  false,
+		},
+		{
+			name: "should set replicas to 1 when replicas is negative",
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Replicas: -1,
+				},
+				Status: v1beta1.WorkspaceStatus{
+					Inference: &v1beta1.InferenceStatus{
+						PerReplicaNodeCount: 0,
+						TargetNodeCount:     0,
+					},
+				},
+			},
+			setupMocks: func(c *test.MockClient, e *mockEstimator) {
+				// Mock estimator
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{})).Return(int32(3), nil)
+
+				// Mock workspace retrieval for UpdateWorkspaceWithRetry (first call to set replicas)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Inference = &v1beta1.InferenceSpec{Replicas: -1}
+						ws.Status = v1beta1.WorkspaceStatus{
+							Inference: &v1beta1.InferenceStatus{
+								PerReplicaNodeCount: 0,
+								TargetNodeCount:     0,
+							},
+						}
+					}).Return(nil).Once()
+				c.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+
+				// Mock workspace retrieval for UpdateWorkspaceStatus (second call to set status)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Inference = &v1beta1.InferenceSpec{Replicas: 1} // After first update
+						ws.Status = v1beta1.WorkspaceStatus{
+							Inference: &v1beta1.InferenceStatus{
+								PerReplicaNodeCount: 0,
+								TargetNodeCount:     0,
+							},
+						}
+					}).Return(nil).Once()
+				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+			},
+			expectedResult: false,
+			expectedError:  false,
+		},
+		{
+			name: "should calculate PerReplicaNodeCount and TargetNodeCount when PerReplicaNodeCount is 0",
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Replicas: 2,
+				},
+				Status: v1beta1.WorkspaceStatus{
+					Inference: &v1beta1.InferenceStatus{
+						PerReplicaNodeCount: 0,
+						TargetNodeCount:     0,
+					},
+				},
+			},
+			setupMocks: func(c *test.MockClient, e *mockEstimator) {
+				// Mock estimator
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{})).Return(int32(3), nil)
+
+				// Mock workspace status update
+				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Inference = &v1beta1.InferenceSpec{Replicas: 2}
+						ws.Status = v1beta1.WorkspaceStatus{
+							Inference: &v1beta1.InferenceStatus{
+								PerReplicaNodeCount: 0,
+								TargetNodeCount:     0,
+							},
+						}
+					}).Return(nil)
+			},
+			expectedResult: false,
+			expectedError:  false,
+		},
+		{
+			name: "should update TargetNodeCount when it doesn't match desired calculation",
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Replicas: 3,
+				},
+				Status: v1beta1.WorkspaceStatus{
+					Inference: &v1beta1.InferenceStatus{
+						PerReplicaNodeCount: 2,
+						TargetNodeCount:     4, // Should be 3 * 2 = 6
+					},
+				},
+			},
+			setupMocks: func(c *test.MockClient, e *mockEstimator) {
+				// Mock workspace status update
+				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Inference = &v1beta1.InferenceSpec{Replicas: 3}
+						ws.Status = v1beta1.WorkspaceStatus{
+							Inference: &v1beta1.InferenceStatus{
+								PerReplicaNodeCount: 2,
+								TargetNodeCount:     4,
+							},
+						}
+					}).Return(nil)
+			},
+			expectedResult: false,
+			expectedError:  false,
+		},
+		{
+			name: "should return true when everything is already configured correctly",
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Replicas: 2,
+				},
+				Status: v1beta1.WorkspaceStatus{
+					Inference: &v1beta1.InferenceStatus{
+						PerReplicaNodeCount: 3,
+						TargetNodeCount:     6, // 2 * 3 = 6
+					},
+				},
+			},
+			setupMocks: func(c *test.MockClient, e *mockEstimator) {
+				// No updates needed, everything is already correct
+			},
+			expectedResult: true,
+			expectedError:  false,
+		},
+		{
+			name: "should handle estimator error",
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Replicas: 2,
+				},
+				Status: v1beta1.WorkspaceStatus{
+					Inference: &v1beta1.InferenceStatus{
+						PerReplicaNodeCount: 0,
+						TargetNodeCount:     0,
+					},
+				},
+			},
+			setupMocks: func(c *test.MockClient, e *mockEstimator) {
+				// Mock estimator error
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{})).Return(int32(0), errors.New("estimator failed"))
+
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Inference = &v1beta1.InferenceSpec{Replicas: 2}
+						ws.Status = v1beta1.WorkspaceStatus{
+							Inference: &v1beta1.InferenceStatus{
+								PerReplicaNodeCount: 0,
+								TargetNodeCount:     0,
+							},
+						}
+					}).Return(nil)
+			},
+			expectedResult: false,
+			expectedError:  true,
+		},
+		{
+			name: "should handle UpdateWorkspaceWithRetry error",
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Replicas: 0,
+				},
+			},
+			setupMocks: func(c *test.MockClient, e *mockEstimator) {
+				// Mock workspace retrieval error for UpdateWorkspaceWithRetry
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(errors.New("get failed"))
+			},
+			expectedResult: false,
+			expectedError:  true,
+		},
+		{
+			name: "should handle UpdateWorkspaceStatus error",
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Replicas: 2,
+				},
+				Status: v1beta1.WorkspaceStatus{
+					Inference: &v1beta1.InferenceStatus{
+						PerReplicaNodeCount: 0,
+						TargetNodeCount:     0,
+					},
+				},
+			},
+			setupMocks: func(c *test.MockClient, e *mockEstimator) {
+				// Mock estimator success
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{})).Return(int32(3), nil)
+
+				// Mock workspace status update error
+				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(errors.New("status update failed"))
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(2).(*v1beta1.Workspace)
+						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
+						ws.Inference = &v1beta1.InferenceSpec{Replicas: 2}
+						ws.Status = v1beta1.WorkspaceStatus{
+							Inference: &v1beta1.InferenceStatus{
+								PerReplicaNodeCount: 0,
+								TargetNodeCount:     0,
+							},
+						}
+					}).Return(nil)
+			},
+			expectedResult: false,
+			expectedError:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := test.NewClient()
+			mockEst := &mockEstimator{}
+
+			// Setup mocks
+			tt.setupMocks(mockClient, mockEst)
+
+			// Create reconciler
+			reconciler := &WorkspaceReconciler{
+				Client:    mockClient,
+				Estimator: mockEst,
+			}
+
+			// Run the function
+			result, err := reconciler.ConfigureWorkspaceReplicasSetting(context.Background(), tt.workspace)
+
+			// Verify results
+			assert.Equal(t, tt.expectedResult, result)
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			// Verify all mock expectations were met
+			mockClient.AssertExpectations(t)
+			mockEst.AssertExpectations(t)
+		})
+	}
+}

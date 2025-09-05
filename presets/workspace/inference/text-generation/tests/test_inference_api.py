@@ -302,10 +302,7 @@ def test_generation_with_max_length(configured_app):
         "prompt": prompt,
         "return_full_text": True,
         "clean_up_tokenization_spaces": False,
-        "generate_kwargs": {
-            "max_length": max_length,
-            "max_new_tokens": None
-        }
+        "generate_kwargs": {"max_length": max_length, "max_new_tokens": None},
     }
 
     response = client.post("/chat", json=request_data)

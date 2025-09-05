@@ -1,0 +1,12 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-gpt-oss-120b
+resource:
+  instanceType: "Standard_NV36ads_A10_v5"
+  labelSelector:
+    matchLabels:
+      apps: gpt-oss-120b
+inference:
+  preset:
+    name: "gpt-oss-120b"

@@ -62,7 +62,7 @@ func (c *NodeClaimManager) DiffNodeClaims(ctx context.Context, wObj *kaitov1beta
 	}
 
 	// Calculate the number of NodeClaims required (target - BYO nodes)
-	readyNodes, requiredNodeClaimsCount, err := nodeclaim.ResolveReadyNodesAndRequiredNodeClaimCount(ctx, c.Client, wObj)
+	readyNodes, targetNodeClaimsCount, err := nodeclaim.ResolveReadyNodesAndTargetNodeClaimCount(ctx, c.Client, wObj)
 	if err != nil {
 		return false, addedNodeClaimsCount, deletedNodeClaimsCount, nil, nil, fmt.Errorf("failed to get required NodeClaims: %w", err)
 	}
@@ -72,10 +72,10 @@ func (c *NodeClaimManager) DiffNodeClaims(ctx context.Context, wObj *kaitov1beta
 		return false, addedNodeClaimsCount, deletedNodeClaimsCount, nil, nil, fmt.Errorf("failed to get existing NodeClaims: %w", err)
 	}
 
-	if requiredNodeClaimsCount > len(existingNodeClaims) {
-		addedNodeClaimsCount = requiredNodeClaimsCount - len(existingNodeClaims)
-	} else if requiredNodeClaimsCount < len(existingNodeClaims) {
-		deletedNodeClaimsCount = len(existingNodeClaims) - requiredNodeClaimsCount
+	if targetNodeClaimsCount > len(existingNodeClaims) {
+		addedNodeClaimsCount = targetNodeClaimsCount - len(existingNodeClaims)
+	} else if targetNodeClaimsCount < len(existingNodeClaims) {
+		deletedNodeClaimsCount = len(existingNodeClaims) - targetNodeClaimsCount
 	}
 
 	return true, addedNodeClaimsCount, deletedNodeClaimsCount, existingNodeClaims, readyNodes, nil
@@ -120,8 +120,8 @@ func (c *NodeClaimManager) ScaleUpNodeClaims(ctx context.Context, wObj *kaitov1b
 	return true, nil
 }
 
-// ReadyNodeClaimsMeetTarget is used for checking the number of ready nodeclaims(isNodeClaimReadyNotDeleting) meet the target count(workspace.Status.Inference.TargetNodeCount)
-func (c *NodeClaimManager) ReadyNodeClaimsMeetTarget(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
+// MeetReadyNodeClaimsTarget is used for checking the number of ready nodeclaims(isNodeClaimReadyNotDeleting) meet the target count(workspace.Status.Inference.TargetNodeCount)
+func (c *NodeClaimManager) MeetReadyNodeClaimsTarget(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
 	targetNodeCount := 1
 	if wObj.Status.Inference != nil && wObj.Status.Inference.TargetNodeCount > 0 {
 		targetNodeCount = int(wObj.Status.Inference.TargetNodeCount)
@@ -229,6 +229,13 @@ func (c *NodeClaimManager) ScaleDownNodeClaims(ctx context.Context, wObj *kaitov
 		}
 	}
 
+	if nodesToDelete > claimsToDelete {
+		klog.InfoS("Not enough NodeClaims can be deleted because some NodeClaims still have pods running or are being deleted",
+			"workspace", workspaceKey,
+			"requestedToDelete", nodesToDelete,
+			"actualDeleted", claimsToDelete)
+		return fmt.Errorf("not enough NodeClaims can be deleted because some NodeClaims still have pods running or are being deleted, return error to trigger reconcile fastly")
+	}
 	return nil
 }
 

@@ -608,7 +608,7 @@ func TestScaleUpNodeClaims(t *testing.T) {
 	}
 }
 
-func TestReadyNodeClaimsMeetTarget(t *testing.T) {
+func TestMeetReadyNodeClaimsTarget(t *testing.T) {
 	// Helper function to create a NodeClaim with specified ready state
 	createNodeClaim := func(name string, ready bool, deleting bool, hasNodeName bool) *karpenterv1.NodeClaim {
 		nodeClaim := &karpenterv1.NodeClaim{
@@ -952,7 +952,7 @@ func TestReadyNodeClaimsMeetTarget(t *testing.T) {
 			}
 
 			// Execute the function under test
-			ready, err := manager.ReadyNodeClaimsMeetTarget(context.Background(), tc.workspace, tc.existingNodeClaims)
+			ready, err := manager.MeetReadyNodeClaimsTarget(context.Background(), tc.workspace, tc.existingNodeClaims)
 
 			// Assertions
 			assert.Equal(t, tc.expectedReady, ready, "Ready status mismatch")
@@ -1151,7 +1151,7 @@ func TestScaleDownNodeClaims(t *testing.T) {
 					return nc.Name == "claim-without-pods"
 				}), mock.Anything).Return(nil).Maybe()
 			},
-			expectedError:             "",
+			expectedError:             "not enough NodeClaims can be deleted because some NodeClaims still have pods running or are being deleted",
 			expectedDeletedNodeClaims: []string{"claim-without-pods"}, // Only the one without pods
 		},
 		{

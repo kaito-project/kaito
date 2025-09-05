@@ -308,7 +308,7 @@ func TestCreateKarpenterNodeClass(t *testing.T) {
 	})
 }
 
-func TestResolveReadyNodesAndRequiredNodeClaimCount(t *testing.T) {
+func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 	testcases := []struct {
 		name                      string
 		workspace                 *kaitov1beta1.Workspace
@@ -553,7 +553,7 @@ func TestResolveReadyNodesAndRequiredNodeClaimCount(t *testing.T) {
 				}).Return(nil)
 			}
 
-			readyNodes, requiredNodeClaimCount, err := ResolveReadyNodesAndRequiredNodeClaimCount(context.Background(), mockClient, tc.workspace)
+			readyNodes, requiredNodeClaimCount, err := ResolveReadyNodesAndTargetNodeClaimCount(context.Background(), mockClient, tc.workspace)
 
 			if tc.expectedError != "" {
 				assert.Check(t, err != nil, "Expected an error")

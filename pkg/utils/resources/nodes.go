@@ -147,14 +147,15 @@ func GetBYOAndReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta
 			readyNodes = append(readyNodes, node.Name)
 		}
 
-		// if node provision is disabled, preferred nodes will be ignored.
 		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-			if !preferredNodeSet.Has(node.Name) {
-				continue
+			// If preferred nodes are specified, only include those nodes
+			if preferredNodeSet.Has(node.Name) {
+				availableBYONodes = append(availableBYONodes, node)
 			}
+		} else {
+			// If node auto-provisioning is disabled, include all ready nodes
+			availableBYONodes = append(availableBYONodes, node)
 		}
-
-		availableBYONodes = append(availableBYONodes, node)
 	}
 
 	klog.V(4).InfoS("Found available BYO nodes",

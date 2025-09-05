@@ -458,8 +458,8 @@ func GetExistingNodeClaims(ctx context.Context, c client.Reader, wObj *kaitov1be
 	return nodeClaims, nil
 }
 
-// ResolveReadyNodesAndRequiredNodeClaimCount returns all ready nodes and the number of NodeClaims(nodes) required for the given workspace
-func ResolveReadyNodesAndRequiredNodeClaimCount(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]string, int, error) {
+// ResolveReadyNodesAndTargetNodeClaimCount returns all ready nodes and the number of target NodeClaims(nodes) for the given workspace
+func ResolveReadyNodesAndTargetNodeClaimCount(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]string, int, error) {
 	availableBYONodes, readyNodes, err := resources.GetBYOAndReadyNodes(ctx, c, wObj)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get available BYO nodes: %w", err)
@@ -470,15 +470,15 @@ func ResolveReadyNodesAndRequiredNodeClaimCount(ctx context.Context, c client.Cl
 		targetNodeCount = int(wObj.Status.Inference.TargetNodeCount)
 	}
 
-	// Calculate the number of NodeClaims(nodes) needed (target - BYO nodes)
-	requiredNodeClaimCount := max(0, targetNodeCount-len(availableBYONodes))
+	// Calculate the number of target NodeClaims(nodes) (target - BYO nodes)
+	targetNodeClaimCount := max(0, targetNodeCount-len(availableBYONodes))
 
 	// if node provision is disabled, NodeClaims(nodes) are not needed.
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		requiredNodeClaimCount = 0
+		targetNodeClaimCount = 0
 	}
 
-	return readyNodes, requiredNodeClaimCount, nil
+	return readyNodes, targetNodeClaimCount, nil
 }
 
 // HasPodRunningOnNode checks if there is a pod running on the node claimed by the NodeClaim

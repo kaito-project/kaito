@@ -663,6 +663,7 @@ func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1be
 	isStatefulSet := false
 	if presetName := getPresetName(wObj); presetName != "" {
 		model := plugin.KaitoModelRegister.MustGet(presetName)
+
 		// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
 		workloadObj, _ := inference.GeneratePresetInference(ctx, wObj, "", model, c.Client)
 		_, isStatefulSet = workloadObj.(*appsv1.StatefulSet)
@@ -771,6 +772,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 			// volumes) ahead of time. This is important to ensure we are modifying the
 			// correct type of workload (Deployment or StatefulSet) based on the model's
 			// inference parameters.
+
 			var workloadObj client.Object
 			workloadObj, err = inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client)
 			if err != nil {

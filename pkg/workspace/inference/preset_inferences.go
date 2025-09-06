@@ -35,6 +35,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/advancednodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -137,23 +138,19 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	}
 
 	gpuConfig := getGPUConfig(gctx)
-	// initially respect the user setting by deploying the model on the same number of nodes as the user requested
-
 	//nolint:staticcheck //SA1019: deprecate Resource.Count field
 	numNodes := *workspaceObj.Resource.Count
-	// if gpu mem is known, we can setup the distributed correctly
-	if gpuConfig.GPUMemGB > 0 && gpuConfig.GPUCount > 0 {
-		// Calculate the minimum number of nodes required to satisfy the model's total GPU memory requirement.
-		// The goal is to maximize GPU utilization and not spread the model across too many nodes.
-		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement)
-		totalGPUMemoryPerNode := resource.NewQuantity(int64(gpuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI)
 
-		minimumNodes := 0
-		for ; totalGPUMemoryRequired.Sign() > 0; totalGPUMemoryRequired.Sub(*totalGPUMemoryPerNode) {
-			minimumNodes++
-		}
-		if minimumNodes < numNodes {
-			numNodes = minimumNodes
+	// Use AdvancedNodesEstimator to optimize the node count if possible
+	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
+	estimatedNodes, err := estimator.EstimateNodeCount(ctx, workspaceObj)
+	if err != nil {
+		klog.ErrorS(err, "Failed to estimate node count, using user specified count", "userCount", numNodes)
+	} else {
+		optimizedNodes := int(estimatedNodes)
+		if optimizedNodes < numNodes {
+			klog.Infof("Optimizing node count from %d to %d based on GPU memory calculation", numNodes, optimizedNodes)
+			numNodes = optimizedNodes
 		}
 	}
 

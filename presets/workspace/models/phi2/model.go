@@ -54,8 +54,8 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi2Model),
 		DiskStorageRequirement:    "80Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "12Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
+		TotalGPUMemoryRequirement: "5.55Gi",
+		BytesPerToken:             327680,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,
@@ -78,7 +78,6 @@ func (*phi2) GetTuningParameters() *model.PresetParam {
 		DiskStorageRequirement:    "80Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				// AccelerateParams: inference.DefaultAccelerateParams,

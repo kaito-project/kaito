@@ -265,11 +265,15 @@ func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, volumeMounts []corev
 		source := adapter.Source
 		sourceName := source.Name
 
-		var volumeMount corev1.VolumeMount
-		var volume corev1.Volume
+		outputDirectory := path.Join("/mnt/adapter", sourceName)
+		pullerContainer := image.NewPullerContainer(source.Image, outputDirectory)
+		pullerContainer.Name += "-" + sourceName
+		pullerContainer.VolumeMounts = volumeMounts
+
 		if len(source.ImagePullSecrets) > 0 {
-			volume, volumeMount = utils.ConfigImagePullSecretVolume(sourceName+"-inference-adapter", source.ImagePullSecrets)
+			volume, volumeMount := utils.ConfigImagePullSecretVolume(sourceName+"-inference-adapter", source.ImagePullSecrets)
 			volumes = append(volumes, volume)
+			pullerContainer.VolumeMounts = append(pullerContainer.VolumeMounts, volumeMount)
 		}
 
 		if adapter.Strength != nil {
@@ -280,10 +284,6 @@ func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, volumeMounts []corev
 			envVars = append(envVars, envVar)
 		}
 
-		outputDirectory := path.Join("/mnt/adapter", sourceName)
-		pullerContainer := image.NewPullerContainer(source.Image, outputDirectory)
-		pullerContainer.Name += "-" + sourceName
-		pullerContainer.VolumeMounts = append(volumeMounts, volumeMount)
 		initContainers = append(initContainers, *pullerContainer)
 	}
 

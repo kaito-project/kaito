@@ -16,6 +16,7 @@ package workspace
 import (
 	"context"
 
+	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -86,4 +87,45 @@ func UpdateWorkspaceWithRetry(ctx context.Context, c client.Client, wObj *kaitov
 		}
 		return c.Update(ctx, latestWorkspace)
 	})
+}
+
+// scaleDeploymentIfNeeded checks if the Deployment specified by key and scales it to match the workspace's target node count if necessary.
+// the bool return value indicates whether scaling was performed.
+// if return true, it means scaling was performed.
+// if return false, it means no scaling was needed.
+func ScaleDeploymentIfNeeded(ctx context.Context, c client.Client, key client.ObjectKey, workspace *kaitov1beta1.Workspace) (bool, error) {
+	if workspace.Status.Inference == nil {
+		return false, nil
+	}
+
+	// Check if the deployment already exists
+	existingDeployment := &appsv1.Deployment{}
+	err := c.Get(ctx, key, existingDeployment)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	targetReplicas := workspace.Status.Inference.TargetNodeCount
+	currentReplicas := *existingDeployment.Spec.Replicas
+
+	// If replicas match, no scaling needed
+	if currentReplicas == targetReplicas {
+		return false, nil
+	}
+
+	// Scale the deployment to match target node count
+	existingDeployment.Spec.Replicas = &targetReplicas
+	err = c.Update(ctx, existingDeployment)
+	if err != nil {
+		klog.ErrorS(err, "failed to scale deployment", "deployment", key.String(),
+			"currentReplicas", currentReplicas, "targetReplicas", targetReplicas)
+		return false, err
+	}
+
+	klog.InfoS("Successfully scaled deployment", "deployment", key.String(),
+		"currentReplicas", currentReplicas, "targetReplicas", targetReplicas)
+	return true, nil
 }

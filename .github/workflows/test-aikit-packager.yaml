@@ -1,0 +1,113 @@
+name: test-aikit-packaging
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - test-aikit-pack
+  workflow_dispatch:
+
+env:
+    GO_VERSION: "1.24"
+    BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+    WEIGHTS_DIR: "/mnt/storage"
+
+permissions:
+  contents: read
+
+jobs:
+  build-models:
+    runs-on: [ "self-hosted", "1ES.Pool=1es-aks-kaito-image-build-agent-pool-ubuntu" ]
+    environment: preset-env
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Ensure Docker is Installed
+        run: |
+          # Add Docker's official GPG key:
+          sudo apt-get update
+          sudo apt-get install ca-certificates curl -y
+          sudo install -m 0755 -d /etc/apt/keyrings
+          sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+          sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+          # Add the repository to Apt sources:
+          echo \
+            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+            $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+            sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin tree -y
+
+          # User Permissions
+          sudo usermod -aG docker $(whoami)
+          sudo systemctl restart docker
+          sudo chmod 666 /var/run/docker.sock
+
+      - name: Configure Docker to Use /mnt/storage/docker
+        run: |
+          sudo systemctl stop docker
+          sudo mkdir -p /mnt/storage/docker
+          # Move existing Docker data
+          if [ -d /var/lib/docker ]; then
+            sudo rsync -aP /var/lib/docker/ /mnt/storage/docker/
+          fi
+          # Configure Docker data-root and enable containerd snapshotter feature for BuildKit
+          sudo tee /etc/docker/daemon.json > /dev/null <<'EOF'
+          {
+            "data-root": "/mnt/storage/docker",
+            "features": {
+              "containerd-snapshotter": true
+            }
+          }
+          EOF
+          sudo systemctl start docker
+
+      - name: Create builder
+        run: |
+          docker info
+          docker buildx create --name test --use --bootstrap
+
+      - name: Start local registry
+        run: docker run -d -p 5000:5000 --name registry registry:2
+
+      - name: List All Disks
+        run: |
+          lsblk
+          df -H
+          if ! mountpoint -q /mnt/storage; then
+            echo "Failed to find required storage partition /mnt/storage"
+            exit 1
+          fi
+
+      - name: Set Permissions for DataDrive /mnt/storage
+        run : |
+          sudo chown -R $(whoami) /mnt/storage
+          sudo chmod -R 775 /mnt/storage
+
+          sudo apt-get update
+          sudo apt-get install acl -y
+
+          sudo setfacl -dm u::rwx /mnt/storage  # Default user permissions
+          sudo setfacl -dm g::rwx /mnt/storage  # Default group permissions
+          sudo setfacl -dm o::rx /mnt/storage   # Default others permissions
+
+      - name: test packaging
+        run: |
+          docker buildx build \
+          --build-arg BUILDKIT_SYNTAX=sozercan/aikit:test \
+          --target packager/modelpack \
+          --build-arg source=huggingface://openai/gpt-oss-20b \
+          --build-arg name=gpt-oss-20b \
+          --no-cache \
+          --progress plain \
+          --output type=local,dest=/mnt/storage/gpt-oss -<<<""
+
+          skopeo copy --dest-tls-verify=false oci:/mnt/storage/gpt-oss/layout docker://localhost:5000/gpt-oss:20b

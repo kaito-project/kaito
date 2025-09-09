@@ -72,7 +72,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetFalcon7BModel),
 		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "14.43Gi",
+		TotalGPUMemoryRequirement: "13.44Gi",
 		BytesPerToken:             8192,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -130,7 +130,7 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetFalcon7BInstructModel),
 		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "14.43Gi",
+		TotalGPUMemoryRequirement: "13.44Gi",
 		BytesPerToken:             8192,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -174,7 +174,7 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetFalcon40BModel),
 		DiskStorageRequirement:    "280Gi",
 		GPUCountRequirement:       "2",
-		TotalGPUMemoryRequirement: "83.65Gi",
+		TotalGPUMemoryRequirement: "77.9Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
@@ -196,7 +196,7 @@ func (*falcon40b) GetTuningParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetFalcon40BModel),
 		DiskStorageRequirement:    "280Gi",
 		GPUCountRequirement:       "2",
-		TotalGPUMemoryRequirement: "83.65Gi",
+		TotalGPUMemoryRequirement: "77.9Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:      baseCommandPresetFalconTuning,
@@ -223,7 +223,7 @@ func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetFalcon40BInstructModel),
 		DiskStorageRequirement:    "280Gi",
 		GPUCountRequirement:       "2",
-		TotalGPUMemoryRequirement: "83.65Gi",
+		TotalGPUMemoryRequirement: "77.9Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,

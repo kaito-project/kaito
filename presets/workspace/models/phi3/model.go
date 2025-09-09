@@ -75,7 +75,7 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi3Mini4kModel),
 		DiskStorageRequirement:    "80Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "7.64Gi",
+		TotalGPUMemoryRequirement: "7.12Gi",
 		BytesPerToken:             393216,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -123,7 +123,7 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi3Mini128kModel),
 		DiskStorageRequirement:    "80Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "7.64Gi",
+		TotalGPUMemoryRequirement: "7.12Gi",
 		BytesPerToken:             393216,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -169,7 +169,7 @@ func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi3_5MiniInstruct),
 		DiskStorageRequirement:    "70Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "7.64Gi",
+		TotalGPUMemoryRequirement: "7.12Gi",
 		BytesPerToken:             393216,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -217,7 +217,7 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi3Medium4kModel),
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "28Gi",
+		TotalGPUMemoryRequirement: "26Gi",
 		BytesPerToken:             204800,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -265,7 +265,7 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi3Medium128kModel),
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "28Gi",
+		TotalGPUMemoryRequirement: "26Gi",
 		BytesPerToken:             204800,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{

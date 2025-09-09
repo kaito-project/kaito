@@ -63,7 +63,7 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetMistral7BModel),
 		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "14.43Gi",
+		TotalGPUMemoryRequirement: "13.44Gi",
 		BytesPerToken:             131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -115,7 +115,7 @@ func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetMistral7BInstructModel),
 		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "14.43Gi",
+		TotalGPUMemoryRequirement: "13.44Gi",
 		BytesPerToken:             131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{

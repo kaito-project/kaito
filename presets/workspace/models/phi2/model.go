@@ -54,7 +54,7 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi2Model),
 		DiskStorageRequirement:    "80Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "5.55Gi",
+		TotalGPUMemoryRequirement: "5.17Gi",
 		BytesPerToken:             327680,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{

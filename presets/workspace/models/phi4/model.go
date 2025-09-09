@@ -66,7 +66,7 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi4Model),
 		DiskStorageRequirement:    "150Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "29.31Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
+		TotalGPUMemoryRequirement: "27.31Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
 		BytesPerToken:             204800,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -114,7 +114,7 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi4MiniInstructModel),
 		DiskStorageRequirement:    "70Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "7.67Gi",
+		TotalGPUMemoryRequirement: "7.15Gi",
 		BytesPerToken:             131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{

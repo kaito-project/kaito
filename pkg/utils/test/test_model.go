@@ -198,6 +198,77 @@ func (*testNoLoraSupportModel) SupportDistributedInference() bool {
 	return false
 }
 
+type testFalcon7BModel struct {
+	baseTestModel
+}
+
+func (*testFalcon7BModel) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Name: "test-falcon-7b",
+			Tag:  "1.0.0",
+		},
+		GPUCountRequirement:       "1",
+		DiskStorageRequirement:    "90Gi",
+		TotalGPUMemoryRequirement: "13.44Gi",
+		BytesPerToken:             8192,
+		RuntimeParam: model.RuntimeParam{
+			DisableTensorParallelism: true, // falcon-7b has 71 attention heads (prime number)
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
+				DisallowLoRA:   true,
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+
+func (*testFalcon7BModel) SupportDistributedInference() bool {
+	return false // Due to tensor parallelism being disabled
+}
+
+type testQwen25Coder32BModel struct {
+	baseTestModel
+}
+
+func (*testQwen25Coder32BModel) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Name: "test-qwen2.5-coder-32b-instruct",
+			Tag:  "1.0.0",
+		},
+		GPUCountRequirement:       "2",
+		DiskStorageRequirement:    "100Gi",
+		TotalGPUMemoryRequirement: "62.5Gi",
+		BytesPerToken:             163840,
+		RuntimeParam: model.RuntimeParam{
+			DisableTensorParallelism: false, // Supports tensor parallelism
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+
+func (*testQwen25Coder32BModel) GetTuningParameters() *model.PresetParam {
+	return nil // Not recommended for further fine-tuning instruct models
+}
+
+func (*testQwen25Coder32BModel) SupportTuning() bool {
+	return false
+}
+
 func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-model",
@@ -222,5 +293,15 @@ func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-model-download",
 		Instance: &testModelDownload{},
+	})
+
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-falcon-7b",
+		Instance: &testFalcon7BModel{},
+	})
+
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-qwen2.5-coder-32b-instruct",
+		Instance: &testQwen25Coder32BModel{},
 	})
 }

@@ -62,7 +62,7 @@ func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetQwen2_5Coder7BInstructModel),
 		DiskStorageRequirement:    "110Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "15.23Gi",
+		TotalGPUMemoryRequirement: "14.19Gi",
 		BytesPerToken:             57344,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -114,7 +114,7 @@ func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetQwen2_5Coder32BInstructModel),
 		DiskStorageRequirement:    "230Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "65.57Gi", // Requires at least A100 - TODO: Revisit for more accurate metric
+		TotalGPUMemoryRequirement: "61.03Gi", // Requires at least A100 - TODO: Revisit for more accurate metric
 		BytesPerToken:             262144,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{

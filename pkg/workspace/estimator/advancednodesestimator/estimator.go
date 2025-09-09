@@ -99,11 +99,8 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 
 		// Calculate minimum nodes: we need minGPUs GPU groups
 		// If each node has gpuConfig.GPUCount GPUs, we need ceil(minGPUs / gpuConfig.GPUCount) nodes
-		minimumNodes := (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
+		nodeCountPerReplica = (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
 
-		// Always return the optimal (minimum) number of nodes required
-		// This provides the most efficient GPU utilization
-		nodeCountPerReplica = minimumNodes
 	}
 
 	return int32(nodeCountPerReplica), nil

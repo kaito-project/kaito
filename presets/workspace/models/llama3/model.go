@@ -64,7 +64,7 @@ func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetLlama3_1_8BInstructModel),
 		DiskStorageRequirement:    "110Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16.07Gi",
+		TotalGPUMemoryRequirement: "14.96Gi",
 		BytesPerToken:             131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -107,8 +107,8 @@ func (*llama3_3_70Binstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                  metadata.MustGet(PresetLlama3_3_70BInstructModel),
 		DiskStorageRequirement:    "220Gi",
-		GPUCountRequirement:       "4",
-		TotalGPUMemoryRequirement: "141.06Gi",
+		GPUCountRequirement:       "1",
+		TotalGPUMemoryRequirement: "131.42Gi",
 		BytesPerToken:             327680,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{

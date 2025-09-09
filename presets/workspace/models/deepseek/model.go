@@ -98,7 +98,7 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillLlama8BModel),
 		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16.06Gi",
+		TotalGPUMemoryRequirement: "14.96Gi",
 		BytesPerToken:             131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -135,7 +135,7 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillQwen14BModel),
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "29.54Gi",
+		TotalGPUMemoryRequirement: "27.51Gi",
 		BytesPerToken:             196608,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -172,7 +172,8 @@ func (*deepseekR1) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetDeepSeekR1Model),
 		DiskStorageRequirement:    "800Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "960Gi", // at least 8 H100
+		TotalGPUMemoryRequirement: "641.3Gi", // at least 8 H100
+		BytesPerToken:             1748992,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,

@@ -232,139 +232,158 @@ func TestAdvancedNodesEstimator_EstimateNodeCount(t *testing.T) {
 	}
 }
 
-func TestAdvancedNodesEstimator_EstimateNodeCount_GPUMemoryCalculation(t *testing.T) {
+func TestAdvancedNodesEstimator_EstimateNodeCount_Falcon7B(t *testing.T) {
 	// Set the cloud provider environment variable for SKU lookup
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	ctx := context.Background()
 	calculator := &AdvancedNodesEstimator{}
 
-	// Test case for detailed GPU memory calculation verification
-	t.Run("Should calculate correct minimum nodes based on GPU memory requirements", func(t *testing.T) {
-		// Use a model that requires significant GPU memory (64Gi)
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-workspace",
-				Namespace: "default",
-			},
-			Resource: kaitov1beta1.ResourceSpec{
-				Count:        ptr.To(10),         // User requests many nodes
-				InstanceType: "Standard_NC6s_v3", // Smaller GPU memory instance
-			},
-			Inference: &kaitov1beta1.InferenceSpec{
-				Preset: &kaitov1beta1.PresetSpec{
-					PresetMeta: kaitov1beta1.PresetMeta{
-						Name: "test-distributed-model", // This model requires 64Gi
+	tests := []struct {
+		name          string
+		workspace     *kaitov1beta1.Workspace
+		expectedCount int32
+		expectedError bool
+		errorContains string
+	}{
+		{
+			name: "Should optimize falcon-7b with A10 GPU - single node sufficient",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-falcon-7b-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count:        ptr.To(3),                 // User requests 3 nodes
+					InstanceType: "Standard_NV36ads_A10_v5", // A10 GPU with 24GB memory
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-falcon-7b", // 13.44Gi requirement, tensor parallelism disabled
+						},
 					},
 				},
 			},
-		}
+			expectedCount: 1, // Should optimize to 1 node (13.44Gi fits easily in 24GB A10 GPU)
+			expectedError: false,
+		},
+		{
+			name: "Should respect user choice for falcon-7b when user requests 1 node",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-falcon-7b-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count:        ptr.To(1),                 // User requests 1 node (already optimal)
+					InstanceType: "Standard_NV36ads_A10_v5", // A10 GPU with 24GB memory
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-falcon-7b", // 13.44Gi requirement
+						},
+					},
+				},
+			},
+			expectedCount: 1, // Should keep user's choice since it's already optimal
+			expectedError: false,
+		},
+		{
+			name: "Should optimize falcon-7b with A100 GPU - single node more than sufficient",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-falcon-7b-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count:        ptr.To(4),                  // User requests 4 nodes
+					InstanceType: "Standard_NC24ads_A100_v4", // A100 GPU with 80GB memory
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-falcon-7b", // 13.44Gi requirement, easily fits in 80GB A100
+						},
+					},
+				},
+			},
+			expectedCount: 1, // Should optimize to 1 node (13.44Gi is tiny compared to 80GB A100 GPU)
+			expectedError: false,
+		},
+	}
 
-		count, err := calculator.EstimateNodeCount(ctx, workspace)
-		require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			count, err := calculator.EstimateNodeCount(ctx, tt.workspace)
 
-		// The calculator should calculate optimal node count based on GPU memory
-		// and return fewer nodes than requested if possible
-		assert.True(t, count > 0, "Node count should be positive")
-		assert.True(t, count <= 10, "Node count should not exceed user request")
-	})
+			if tt.expectedError {
+				require.Error(t, err)
+				if tt.errorContains != "" {
+					assert.Contains(t, err.Error(), tt.errorContains)
+				}
+				assert.Equal(t, tt.expectedCount, count)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedCount, count)
+			}
+		})
+	}
 }
 
-// Note: DeepSeek test removed due to circular dependency issue
-// The deepseek model import causes a circular dependency:
-// advancednodesestimator → deepseek → inference → advancednodesestimator
-
-func TestAdvancedNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
+func TestAdvancedNodesEstimator_EstimateNodeCount_Qwen25Coder32B(t *testing.T) {
 	// Set the cloud provider environment variable for SKU lookup
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	ctx := context.Background()
 	calculator := &AdvancedNodesEstimator{}
 
-	t.Run("Should handle case when nodeCountPerReplica is zero", func(t *testing.T) {
-		// This test covers the new logic where the condition is:
-		// if minimumNodes < nodeCountPerReplica { nodeCountPerReplica = minimumNodes }
-		// When nodeCountPerReplica is 0, minimumNodes will not be less than 0,
-		// so nodeCountPerReplica remains unchanged and the function returns it
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-workspace",
-				Namespace: "default",
-			},
-			Resource: kaitov1beta1.ResourceSpec{
-				Count:        ptr.To(1),
-				InstanceType: "Standard_NC96ads_A100_v4", // Large GPU memory instance
-			},
-			Inference: &kaitov1beta1.InferenceSpec{
-				Preset: &kaitov1beta1.PresetSpec{
-					PresetMeta: kaitov1beta1.PresetMeta{
-						Name: "test-model", // Small model that fits in one GPU
+	tests := []struct {
+		name          string
+		workspace     *kaitov1beta1.Workspace
+		expectedCount int32
+		expectedError bool
+		errorContains string
+	}{
+		{
+			name: "Should optimize qwen2.5-coder-32b with A100 GPU - single node sufficient",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-qwen25-coder-32b-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count:        ptr.To(3),                  // User requests 3 nodes
+					InstanceType: "Standard_NC24ads_A100_v4", // A100 GPU with 80GB memory
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-qwen2.5-coder-32b-instruct", // 62.5Gi requirement, supports tensor parallelism
+						},
 					},
 				},
 			},
-		}
+			expectedCount: 1, // Should optimize to 1 node (62.5Gi fits in 80GB A100 GPU)
+			expectedError: false,
+		},
+	}
 
-		count, err := calculator.EstimateNodeCount(ctx, workspace)
-		require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			count, err := calculator.EstimateNodeCount(ctx, tt.workspace)
 
-		// With the new logic, when minimumNodes < nodeCountPerReplica,
-		// nodeCountPerReplica gets updated to minimumNodes value
-		assert.True(t, count > 0, "Node count should be positive")
-	})
-
-	t.Run("Should return minimum nodes when it's smaller than nodeCountPerReplica", func(t *testing.T) {
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-workspace",
-				Namespace: "default",
-			},
-			Resource: kaitov1beta1.ResourceSpec{
-				Count:        ptr.To(10),         // User wants many nodes
-				InstanceType: "Standard_NC6s_v3", // Small GPU instance
-			},
-			Inference: &kaitov1beta1.InferenceSpec{
-				Preset: &kaitov1beta1.PresetSpec{
-					PresetMeta: kaitov1beta1.PresetMeta{
-						Name: "test-model", // Model that can run efficiently on fewer nodes
-					},
-				},
-			},
-		}
-
-		count, err := calculator.EstimateNodeCount(ctx, workspace)
-		require.NoError(t, err)
-
-		// The function should update nodeCountPerReplica to minimumNodes when minimumNodes < nodeCountPerReplica,
-		// optimizing for GPU utilization
-		assert.True(t, count > 0, "Node count should be positive")
-		assert.True(t, count <= 10, "Node count should not exceed resource count")
-	})
-
-	t.Run("Should return nodeCountPerReplica when minimumNodes is higher", func(t *testing.T) {
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-workspace",
-				Namespace: "default",
-			},
-			Resource: kaitov1beta1.ResourceSpec{
-				Count:        ptr.To(1),          // User wants fewer nodes
-				InstanceType: "Standard_NC6s_v3", // Small GPU instance
-			},
-			Inference: &kaitov1beta1.InferenceSpec{
-				Preset: &kaitov1beta1.PresetSpec{
-					PresetMeta: kaitov1beta1.PresetMeta{
-						Name: "test-distributed-model", // Large model requiring multiple nodes
-					},
-				},
-			},
-		}
-
-		count, err := calculator.EstimateNodeCount(ctx, workspace)
-		require.NoError(t, err)
-
-		// When a model requires more nodes than the minimum calculation suggests,
-		// it should return the user-requested count or calculated requirement
-		assert.True(t, count > 0, "Node count should be positive")
-	})
+			if tt.expectedError {
+				require.Error(t, err)
+				if tt.errorContains != "" {
+					assert.Contains(t, err.Error(), tt.errorContains)
+				}
+				assert.Equal(t, tt.expectedCount, count)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedCount, count)
+			}
+		})
+	}
 }

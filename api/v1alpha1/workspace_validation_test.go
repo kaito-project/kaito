@@ -55,14 +55,12 @@ func (*testModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement:       gpuCountRequirement,
 		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
 	}
 }
 func (*testModel) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement:       gpuCountRequirement,
 		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
 	}
 }
 func (*testModel) SupportDistributedInference() bool {
@@ -78,14 +76,12 @@ func (*testModelStatic) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "16Gi",
 	}
 }
 func (*testModelStatic) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "16Gi",
 	}
 }
 func (*testModelStatic) SupportDistributedInference() bool {
@@ -102,7 +98,6 @@ func (*testModelPrivate) GetInferenceParameters() *model.PresetParam {
 		ImageAccessMode:           string(ModelImageAccessModePrivate),
 		GPUCountRequirement:       gpuCountRequirement,
 		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
 	}
 }
 func (*testModelPrivate) GetTuningParameters() *model.PresetParam {
@@ -110,7 +105,6 @@ func (*testModelPrivate) GetTuningParameters() *model.PresetParam {
 		ImageAccessMode:           string(ModelImageAccessModePrivate),
 		GPUCountRequirement:       gpuCountRequirement,
 		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
 	}
 }
 func (*testModelPrivate) SupportDistributedInference() bool {
@@ -317,20 +311,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			modelTotalGPUMemory: "30Gi",
 			preset:              true,
 			errContent:          "Insufficient number of GPUs",
-			expectErrs:          true,
-			validateTuning:      false,
-		},
-		{
-			name: "Insufficient per GPU memory",
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV6",
-				Count:        pointerToInt(2),
-			},
-			modelGPUCount:       "1",
-			modelPerGPUMemory:   "15Gi",
-			modelTotalGPUMemory: "15Gi",
-			preset:              true,
-			errContent:          "Insufficient per GPU memory",
 			expectErrs:          true,
 			validateTuning:      false,
 		},

@@ -335,11 +335,9 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 
 			machineCount := *r.Count
 			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
-			machinePerGPUMemory := resource.NewQuantity(int64(skuConfig.GPUMemGB/skuConfig.GPUCount)*consts.GiBToBytes, resource.BinarySI) // Ensure it's per GPU
-			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI)        // Total GPU memory
+			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
 
 			modelGPUCount := resource.MustParse(params.GPUCountRequirement)
-			modelPerGPUMemory := resource.MustParse(params.PerGPUMemoryRequirement)
 			modelTotalGPUMemory := resource.MustParse(params.TotalGPUMemoryRequirement)
 
 			// Separate the checks for specific error messages
@@ -355,24 +353,6 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 							machineTotalNumGPUs.String(),
 							presetName,
 							modelGPUCount.Value(),
-						),
-						"instanceType",
-					))
-				}
-			}
-
-			if machinePerGPUMemory.Cmp(modelPerGPUMemory) < 0 {
-				if bypassResourceChecks {
-					klog.Warningf("Bypassing resource check: Insufficient per GPU memory but continuing due to bypass flag. Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
-						instanceType, machinePerGPUMemory.String(), presetName, modelPerGPUMemory.String())
-				} else {
-					errs = errs.Also(apis.ErrInvalidValue(
-						fmt.Sprintf(
-							"Insufficient per GPU memory: Instance type %s provides %s per GPU, but preset %s requires at least %s per GPU",
-							instanceType,
-							machinePerGPUMemory.String(),
-							presetName,
-							modelPerGPUMemory.String(),
 						),
 						"instanceType",
 					))

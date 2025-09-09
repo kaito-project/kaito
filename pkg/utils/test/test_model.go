@@ -83,7 +83,7 @@ func (*testDistributedModel) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement:    "100Gi",
 		TotalGPUMemoryRequirement: "64Gi",
 		RuntimeParam: model.RuntimeParam{
-			DisableTensorParallelism: true,
+			DisableTensorParallelism: false,
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
 				ModelRunParams: emptyParams,

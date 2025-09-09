@@ -55,14 +55,12 @@ func (*testModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement:       gpuCountRequirement,
 		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
 	}
 }
 func (*testModel) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement:       gpuCountRequirement,
 		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
 	}
 }
 func (*testModel) SupportDistributedInference() bool {
@@ -78,14 +76,12 @@ func (*testModelStatic) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "16Gi",
 	}
 }
 func (*testModelStatic) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "16Gi",
 	}
 }
 func (*testModelStatic) SupportDistributedInference() bool {
@@ -105,7 +101,6 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 		},
 		GPUCountRequirement:       "2",
 		TotalGPUMemoryRequirement: "32Gi",
-		PerGPUMemoryRequirement:   "16Gi",
 	}
 }
 func (*testModelDownload) GetTuningParameters() *model.PresetParam {
@@ -320,21 +315,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			preset:              true,
 			runtime:             model.RuntimeNameVLLM,
 			errContent:          "Insufficient number of GPUs",
-			expectErrs:          true,
-			validateTuning:      false,
-		},
-		{
-			name: "Insufficient per GPU memory",
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV6",
-				Count:        pointerToInt(2),
-			},
-			modelGPUCount:       "1",
-			modelPerGPUMemory:   "15Gi",
-			modelTotalGPUMemory: "15Gi",
-			preset:              true,
-			runtime:             model.RuntimeNameVLLM,
-			errContent:          "Insufficient per GPU memory",
 			expectErrs:          true,
 			validateTuning:      false,
 		},

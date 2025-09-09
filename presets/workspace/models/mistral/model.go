@@ -63,8 +63,8 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetMistral7BModel),
 		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "14Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Mistral using native vertical model parallel, no per GPU memory requirement.
+		TotalGPUMemoryRequirement: "14.43Gi",
+		BytesPerToken:             131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,
@@ -88,7 +88,6 @@ func (*mistral7b) GetTuningParameters() *model.PresetParam {
 		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				// AccelerateParams: tuning.DefaultAccelerateParams,
@@ -116,8 +115,8 @@ func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetMistral7BInstructModel),
 		DiskStorageRequirement:    "90Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run mistral using native vertical model parallel, no per GPU memory requirement.
+		TotalGPUMemoryRequirement: "14.43Gi",
+		BytesPerToken:             131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,

@@ -75,8 +75,8 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi3Mini4kModel),
 		DiskStorageRequirement:    "80Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "9Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
+		TotalGPUMemoryRequirement: "7.64Gi",
+		BytesPerToken:             393216,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
@@ -99,7 +99,6 @@ func (*phi3Mini4KInst) GetTuningParameters() *model.PresetParam {
 		DiskStorageRequirement:    "80Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
-		PerGPUMemoryRequirement:   "72Gi",
 		// AccelerateParams:          inference.DefaultAccelerateParams,
 		// ModelRunParams:            phiRunParams,
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -124,8 +123,8 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi3Mini128kModel),
 		DiskStorageRequirement:    "80Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "9Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
+		TotalGPUMemoryRequirement: "7.64Gi",
+		BytesPerToken:             393216,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
@@ -148,7 +147,6 @@ func (*phi3Mini128KInst) GetTuningParameters() *model.PresetParam {
 		DiskStorageRequirement:    "80Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
-		PerGPUMemoryRequirement:   "72Gi",
 		ReadinessTimeout:          time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -171,8 +169,8 @@ func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 		Metadata:                  metadata.MustGet(PresetPhi3_5MiniInstruct),
 		DiskStorageRequirement:    "70Gi",
 		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "8Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
+		TotalGPUMemoryRequirement: "7.64Gi",
+		BytesPerToken:             393216,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
@@ -195,7 +193,6 @@ func (*phi3_5MiniInst) GetTuningParameters() *model.PresetParam {
 		DiskStorageRequirement:    "70Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "72Gi",
-		PerGPUMemoryRequirement:   "72Gi",
 		// AccelerateParams:          inference.DefaultAccelerateParams,
 		// ModelRunParams:            phiRunParams,
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -221,7 +218,7 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "28Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
+		BytesPerToken:             204800,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
@@ -244,7 +241,6 @@ func (*Phi3Medium4kInstruct) GetTuningParameters() *model.PresetParam {
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "80Gi",
-		PerGPUMemoryRequirement:   "80Gi",
 		// AccelerateParams:          inference.DefaultAccelerateParams,
 		// ModelRunParams:            phiRunParams,
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -270,7 +266,7 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "28Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
+		BytesPerToken:             204800,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
@@ -293,7 +289,6 @@ func (*Phi3Medium128kInstruct) GetTuningParameters() *model.PresetParam {
 		DiskStorageRequirement:    "120Gi",
 		GPUCountRequirement:       "1",
 		TotalGPUMemoryRequirement: "80Gi",
-		PerGPUMemoryRequirement:   "80Gi",
 		ReadinessTimeout:          time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{

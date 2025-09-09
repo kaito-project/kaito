@@ -722,6 +722,10 @@ func (c *WorkspaceReconciler) ConfigureWorkspaceReplicasSetting(ctx context.Cont
 	}
 
 	desiredReplicas := wObj.Inference.Replicas
+	if wObj.Status.Inference == nil {
+		wObj.Status.Inference = &kaitov1beta1.InferenceStatus{}
+	}
+
 	if wObj.Status.Inference.PerReplicaNodeCount == 0 || wObj.Status.Inference.TargetNodeCount != desiredReplicas*wObj.Status.Inference.PerReplicaNodeCount {
 		if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
 			if status.Inference == nil {

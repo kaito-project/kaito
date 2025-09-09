@@ -127,6 +127,9 @@ func (c *NodeClaimManager) ScaleUpNodeClaims(ctx context.Context, wObj *kaitov1b
 }
 
 // MeetReadyNodeClaimsTarget is used for checking the number of ready nodeclaims(isNodeClaimReadyNotDeleting) meet the target count(workspace.Status.Inference.TargetNodeCount)
+// the bool return value indicates whether the current reconciliation loop should proceed or not.
+// if return true, it means the number of ready nodeclaims are enough, so the reconciliation can proceed.
+// if return false, it means the number of ready nodeclaims are not enough, so the reconciliation should not proceed.
 func (c *NodeClaimManager) MeetReadyNodeClaimsTarget(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
 	targetNodeCount := 1
 	if wObj.Status.Inference != nil && wObj.Status.Inference.TargetNodeCount > 0 {

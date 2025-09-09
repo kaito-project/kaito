@@ -316,6 +316,55 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
+
+	It("should scale up/down a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
+		nodeCntPerReplica := 1
+		replicas := 1
+		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(nodeCntPerReplica * replicas)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, nodeCntPerReplica*replicas)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(nodeCntPerReplica*replicas), false)
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceInferenceStatus(workspaceObj, int32(nodeCntPerReplica), int32(replicas))
+		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
+
+		// scale up workspace inference replicas from 1 to 2
+		replicas = 2
+		scaleWorkspaceReplicas(workspaceObj, int32(replicas))
+
+		validateCreateNode(workspaceObj, nodeCntPerReplica*replicas)
+		validateResourceStatus(workspaceObj)
+		validateInferenceResource(workspaceObj, int32(nodeCntPerReplica*replicas), false)
+		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceInferenceStatus(workspaceObj, int32(nodeCntPerReplica), int32(replicas))
+		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
+
+		// scale down workspace inference replicas from 2 to 1
+		replicas = 1
+		scaleWorkspaceReplicas(workspaceObj, int32(replicas))
+
+		validateCreateNode(workspaceObj, nodeCntPerReplica*replicas)
+		validateResourceStatus(workspaceObj)
+		validateInferenceResource(workspaceObj, int32(nodeCntPerReplica*replicas), false)
+		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceInferenceStatus(workspaceObj, int32(nodeCntPerReplica), int32(replicas))
+		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
+	})
 })
 
 func createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {

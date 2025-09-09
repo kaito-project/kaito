@@ -26,6 +26,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
+	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -706,6 +707,51 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 			})
 			return conditionFound
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace to be ready")
+	})
+}
+
+func validateWorkspaceInferenceStatus(workspaceObj *kaitov1beta1.Workspace, expectNodesPerReplica, expectReplicas int32) {
+	By("Checking the workspace inference status", func() {
+		Eventually(func() bool {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, workspaceObj, &client.GetOptions{})
+
+			if err != nil {
+				return false
+			}
+
+			if workspaceObj.Inference == nil || workspaceObj.Inference.Replicas != expectReplicas {
+				GinkgoWriter.Printf("Expected %d replicas in inference spec, got %d\n", expectReplicas, workspaceObj.Inference.Replicas)
+				return false
+			}
+
+			if workspaceObj.Status.Inference == nil || workspaceObj.Status.Inference.PerReplicaNodeCount != expectNodesPerReplica {
+				GinkgoWriter.Printf("Expected %d nodes per replica, got %d\n", expectNodesPerReplica, workspaceObj.Status.Inference.PerReplicaNodeCount)
+				return false
+			}
+			if workspaceObj.Status.Inference == nil || workspaceObj.Status.Inference.TargetNodeCount != expectNodesPerReplica*expectReplicas {
+				GinkgoWriter.Printf("Expected %d target nodes, got %d\n", expectNodesPerReplica*expectReplicas, workspaceObj.Status.Inference.TargetNodeCount)
+				return false
+			}
+
+			if workspaceObj.Status.Inference == nil || workspaceObj.Status.Inference.Replicas != expectReplicas {
+				GinkgoWriter.Printf("Expected %d replicas in inference status, got %d\n", expectReplicas, workspaceObj.Status.Inference.Replicas)
+				return false
+			}
+
+			return true
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace inference status to be correct")
+	})
+}
+
+func scaleWorkspaceReplicas(workspaceObj *kaitov1beta1.Workspace, newReplicas int32) {
+	By(fmt.Sprintf("Scaling workspace replicas to %d", newReplicas), func() {
+		Eventually(func() error {
+			scale := &autoscalingv1.Scale{Spec: autoscalingv1.ScaleSpec{Replicas: newReplicas}}
+			return utils.TestingCluster.KubeClient.SubResource("scale").Update(ctx, workspaceObj, client.WithSubResourceBody(scale))
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to scale workspace %s to replicas %d", workspaceObj.Name, newReplicas)
 	})
 }
 

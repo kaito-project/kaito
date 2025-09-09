@@ -362,7 +362,9 @@ func marshalSelectedFields(wObj *kaitov1beta1.Workspace) ([]byte, error) {
 func computeHash(w *kaitov1beta1.Workspace) string {
 	// exclude replicas from hash calculation
 	copiedWorkspace := w.DeepCopy()
-	copiedWorkspace.Inference.Replicas = 0
+	if copiedWorkspace.Inference != nil {
+		copiedWorkspace.Inference.Replicas = 0
+	}
 	hasher := sha256.New()
 	encoder := json.NewEncoder(hasher)
 	encoder.Encode(copiedWorkspace.Resource)

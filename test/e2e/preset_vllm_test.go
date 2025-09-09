@@ -317,7 +317,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
-	It("should scale up/down a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
+	It("should scale up/down a Phi-3-mini-128k-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		nodeCntPerReplica := 1
 		replicas := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(nodeCntPerReplica * replicas)

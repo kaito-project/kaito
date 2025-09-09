@@ -1,0 +1,18 @@
+The Local CSI Driver is getting deployed to your cluster.
+
+To check Local CSI Driver pods status, please run:
+
+  kubectl --namespace={{ .Release.Namespace }} get pods --selector="app.kubernetes.io/name={{ .Release.Name }}" --watch
+
+To create an appropriate StorageClass:
+
+kubectl apply -f - <<EOF
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local
+provisioner: localdisk.csi.acstor.io
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+EOF

@@ -1,0 +1,141 @@
+# Name used for creating resources.
+name: csi-local
+
+# Container image configuration.
+image:
+  # The base repository for the container images. Will be used when `repository`
+  # begins with a '/' for a specific image.
+  baseRepo: mcr.microsoft.com
+  driver:
+    repository: localcsidriver.azurecr.io/acstor/local-csi-driver
+    # When the tag is unset (recommended), the chart version is used as the tag.
+    tag:
+    pullPolicy: IfNotPresent
+  csiProvisioner:
+    repository: /oss/v2/kubernetes-csi/csi-provisioner
+    tag: v5.2.0
+    pullPolicy: IfNotPresent
+  csiResizer:
+    repository: /oss/v2/kubernetes-csi/csi-resizer
+    tag: v1.13.2
+    pullPolicy: IfNotPresent
+  nodeDriverRegistrar:
+    repository: /oss/v2/kubernetes-csi/csi-node-driver-registrar
+    tag: v2.13.0
+    pullPolicy: IfNotPresent
+
+# DaemonSet configuration.
+daemonset:
+  # Node selector for the DaemonSet. If empty, all nodes are selected. This can
+  # be used to install the driver on a subset of nodes with local NVMe storage.
+  nodeSelector: {}
+
+  # Tolerations for the DaemonSet. If empty, no tolerations are applied.
+  # This can be used to install the driver on nodes with specific taints.
+  tolerations:
+  - effect: NoSchedule
+    operator: Exists
+  - effect: NoExecute
+    operator: Exists
+
+  serviceAccount:
+    # Annotations for the service account. If empty, no annotations are applied.
+    annotations: {}
+
+cleanup:
+  # Cleanup volume groups and physical volumes on pod termination if logical volume are not in use.
+  enabled: true
+
+# Webhook configuration.
+webhook:
+  enforceEphemeral:
+    # Enables the enforce ephemeral PVC validation webhook, which enforces that PVCs are
+    # ephemeral, or that the `localdisk.csi.acstor.io/accept-ephemeral-storage` label is set to `true`.
+    enabled: true
+  hyperconverged:
+    # Enables the hyperconverged pod mutation webhook. Required to allow pods to
+    # recover (with empty volumes) after cluster restart if node names change.
+    enabled: true
+  service:
+    # The webhook service's port.
+    port: 443
+    # The target port for the webhook service. The webhook endpoint listens on
+    # this port.
+    targetPort: 9443
+    # The type of the webhook service. Can be ClusterIP, NodePort, or
+    # LoadBalancer.
+    type: ClusterIP
+
+# Resource configuration.
+resources:
+  driver:
+    limits:
+      memory: 600Mi
+    requests:
+      cpu: 10m
+      memory: 60Mi
+  csiProvisioner:
+    limits:
+      memory: 100Mi
+    requests:
+      cpu: 10m
+      memory: 20Mi
+  csiResizer:
+    limits:
+      memory: 500Mi
+    requests:
+      cpu: 10m
+      memory: 20Mi
+  nodeDriverRegistrar:
+    limits:
+      memory: 100Mi
+    requests:
+      cpu: 10m
+      memory: 20Mi
+
+# Observability and health configuration.
+observability:
+  metrics:
+    # Endpoints are always enabled, toggling this only affects the RBAC
+    # rule creation.
+    enabled: true
+  driver:
+    log:
+      level: 2
+    metrics:
+      port: 8080
+    health:
+      port: 8081
+    trace:
+      # The address to send traces to. Disables tracing if not set.
+      endpoint: ""
+      # Sample rate per million. 0 to disable tracing, 1000000 to trace everything.
+      sampleRate: "1000000"
+  csiProvisioner:
+    log:
+      level: 2
+    http:
+      port: 8090
+  csiResizer:
+    log:
+      level: 2
+    http:
+      port: 8091
+  nodeDriverRegistrar:
+    log:
+      level: 1
+    http:
+      port: 8092
+
+# Scalability tuning.
+scalability:
+  driver:
+    workerThreads: 100
+    kubeApi:
+      qps: 100
+      burst: 200
+  csiProvisioner:
+    workerThreads: 100
+    kubeApi:
+      qps: 100
+      burst: 200

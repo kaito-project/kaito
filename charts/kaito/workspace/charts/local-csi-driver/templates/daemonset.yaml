@@ -1,0 +1,292 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Values.name }}-node
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "kaito.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}-node
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}-node
+      annotations:
+        kubectl.kubernetes.io/default-container: driver
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
+
+      containers:
+
+      - name: driver
+        args:
+        - --node-name=$(NODE_NAME)
+        - --pod-name=$(POD_NAME)
+        - --namespace=$(POD_NAMESPACE)
+        - --csi-bind-address=unix:///csi/csi.sock
+        - --webhook-port={{ .Values.webhook.service.targetPort }}
+        - --worker-threads={{ .Values.scalability.driver.workerThreads }}
+        - --kube-api-qps={{ .Values.scalability.driver.kubeApi.qps }}
+        - --kube-api-burst={{ .Values.scalability.driver.kubeApi.burst }}
+        - --metrics-bind-address=:{{ .Values.observability.driver.metrics.port }}
+        - --metrics-secure=false
+        - --health-probe-bind-address=:{{ .Values.observability.driver.health.port }}
+        - --trace-address={{ .Values.observability.driver.trace.endpoint }}
+        - --trace-sample-rate={{ .Values.observability.driver.trace.sampleRate }}
+        - --trace-service-id=$(POD_NAME)
+        - --v={{ .Values.observability.driver.log.level }}
+        - --enable-cleanup={{ .Values.cleanup.enabled }}
+        {{- if or .Values.webhook.enforceEphemeral.enabled .Values.webhook.hyperconverged.enabled }}
+        - --webhook-service-name={{ .Values.name }}-webhook-service
+        {{- end }}
+        {{- if .Values.webhook.enforceEphemeral.enabled }}
+        - --enforce-ephemeral-webhook-config={{ .Values.name }}-enforce-ephemeral
+        {{- end }}
+        {{- if .Values.webhook.hyperconverged.enabled }}
+        - --hyperconverged-webhook-config={{ .Values.name }}-hyperconverged-webhook
+        {{- end }}
+        {{- if or .Values.webhook.enforceEphemeral.enabled .Values.webhook.hyperconverged.enabled }}
+        - --certificate-secret-name={{ .Values.name }}-webhook-cert
+        {{- end }}
+        command:
+        - /local-csi-driver
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        {{- if hasPrefix "/" .Values.image.driver.repository }}
+        image: "{{ .Values.image.baseRepo }}{{ .Values.image.driver.repository }}:{{ .Values.image.driver.tag | default .Chart.AppVersion }}"
+        {{- else }}
+        image: "{{ .Values.image.driver.repository }}:{{ .Values.image.driver.tag | default .Chart.AppVersion }}"
+        {{- end }}
+        imagePullPolicy: {{ .Values.image.driver.pullPolicy }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        ports:
+        - containerPort: {{ .Values.webhook.service.targetPort}}
+          name: webhook-server
+          protocol: TCP
+        - containerPort: {{ .Values.observability.driver.metrics.port }}
+          name: metrics
+          protocol: TCP
+        - containerPort: {{ .Values.observability.driver.health.port }}
+          name: health
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources: {{- toYaml .Values.resources.driver | nindent 10 }}
+        securityContext:
+          privileged: true
+          capabilities:
+            drop:
+              - ALL
+        terminationMessagePath: /tmp/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        {{- if or .Values.webhook.enforceEphemeral.enabled .Values.webhook.hyperconverged.enabled }}
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
+        {{- end }}
+        - mountPath: /dev
+          name: device
+        - mountPath: /csi
+          name: csi-socket-dir
+        - mountPath: /var/lib/kubelet/
+          mountPropagation: Bidirectional
+          name: mountpoint-dir
+
+      - name: csi-provisioner
+        args:
+        - --csi-address=/csi/csi.sock
+        - --node-deployment
+        - --http-endpoint=:{{ .Values.observability.csiProvisioner.http.port }}
+        - --retry-interval-start=1s
+        - --retry-interval-max=30s
+        - --worker-threads={{ .Values.scalability.csiProvisioner.workerThreads }}
+        - --kube-api-qps={{ .Values.scalability.csiProvisioner.kubeApi.qps }}
+        - --kube-api-burst={{ .Values.scalability.csiProvisioner.kubeApi.burst }}
+        - --extra-create-metadata
+        - --feature-gates=Topology=true
+        - --strict-topology=true
+        - --enable-capacity
+        - --capacity-ownerref-level=0
+        - --capacity-poll-interval=15s
+        - --v={{ .Values.observability.csiProvisioner.log.level }}
+        env:
+        # POD_NAME and POD_NAMESPACE are used for capacity tracking support
+        # More info: https://github.com/kubernetes-csi/external-provisioner?tab=readme-ov-file#capacity-support
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        {{- if hasPrefix "/" .Values.image.csiProvisioner.repository }}
+        image: "{{ .Values.image.baseRepo }}{{ .Values.image.csiProvisioner.repository }}:{{ .Values.image.csiProvisioner.tag }}"
+        {{- else }}
+        image: "{{ .Values.image.csiProvisioner.repository }}:{{ .Values.image.csiProvisioner.tag }}"
+        {{- end }}
+        imagePullPolicy: {{ .Values.image.csiProvisioner.pullPolicy }}
+        livenessProbe:
+          failureThreshold: 1
+          initialDelaySeconds: 10
+          periodSeconds: 20
+          tcpSocket:
+            port: provisioner
+          timeoutSeconds: 10
+        ports:
+        - containerPort: {{ .Values.observability.csiProvisioner.http.port }}
+          name: provisioner
+          protocol: TCP
+        resources: {{- toYaml .Values.resources.csiProvisioner | nindent 10 }}
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - mountPath: /csi
+          name: csi-socket-dir
+
+      - name: csi-resizer
+        args:
+        - --csi-address=/csi/csi.sock
+        - --timeout=240s
+        - --handle-volume-inuse-error=true
+        - --http-endpoint=:{{ .Values.observability.csiResizer.http.port }}
+        - --v={{ .Values.observability.csiResizer.log.level }}
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        {{- if hasPrefix "/" .Values.image.csiResizer.repository }}
+        image: "{{ .Values.image.baseRepo }}{{ .Values.image.csiResizer.repository }}:{{ .Values.image.csiResizer.tag }}"
+        {{- else }}
+        image: "{{ .Values.image.csiResizer.repository }}:{{ .Values.image.csiResizer.tag }}"
+        {{- end }}
+        imagePullPolicy: {{ .Values.image.csiResizer.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.observability.csiResizer.http.port }}
+          name: resizer
+          protocol: TCP
+        resources: {{- toYaml .Values.resources.csiResizer | nindent 10 }}
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - mountPath: /csi
+          name: csi-socket-dir
+
+      - name: csi-registrar
+        args:
+        - --csi-address=/csi/csi.sock
+        - --kubelet-registration-path=/var/lib/kubelet/plugins/localdisk.csi.acstor.io/csi.sock
+        - --http-endpoint=:{{ .Values.observability.nodeDriverRegistrar.http.port }}
+        - --v={{ .Values.observability.nodeDriverRegistrar.log.level }}
+        env:
+        {{- if hasPrefix "/" .Values.image.nodeDriverRegistrar.repository }}
+        image: "{{ .Values.image.baseRepo }}{{ .Values.image.nodeDriverRegistrar.repository }}:{{ .Values.image.nodeDriverRegistrar.tag }}"
+        {{- else }}
+        image: "{{ .Values.image.nodeDriverRegistrar.repository }}:{{ .Values.image.nodeDriverRegistrar.tag }}"
+        {{- end }}
+        imagePullPolicy: {{ .Values.image.nodeDriverRegistrar.pullPolicy }}
+        livenessProbe:
+          failureThreshold: 1
+          httpGet:
+            path: /healthz
+            port: registrar
+          initialDelaySeconds: 5
+          periodSeconds: 20
+          timeoutSeconds: 5
+        ports:
+        - containerPort: {{ .Values.observability.nodeDriverRegistrar.http.port }}
+          name: registrar
+          protocol: TCP
+        resources: {{- toYaml .Values.resources.nodeDriverRegistrar | nindent 10 }}
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - mountPath: /csi
+          name: csi-socket-dir
+        - mountPath: /registration
+          name: registration-dir
+
+      hostPID: true
+      nodeSelector: {{- toYaml .Values.daemonset.nodeSelector | nindent 8 }}
+      priorityClassName: system-node-critical
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: {{ .Values.name }}-node
+      terminationGracePeriodSeconds: 60
+      tolerations: {{- toYaml .Values.daemonset.tolerations | nindent 8 }}
+      volumes:
+      {{- if or .Values.webhook.enforceEphemeral.enabled .Values.webhook.hyperconverged.enabled }}
+      - name: cert
+        secret:
+          secretName: {{ .Values.name }}-webhook-cert
+      {{- end }}
+      - hostPath:
+          path: /dev
+          type: Directory
+        name: device
+      - hostPath:
+          path: /var/lib/kubelet/plugins/localdisk.csi.acstor.io/
+          type: DirectoryOrCreate
+        name: csi-socket-dir
+      - hostPath:
+          path: /var/lib/kubelet/plugins_registry/
+          type: Directory
+        name: registration-dir
+      - hostPath:
+          path: /var/lib/kubelet/
+          type: DirectoryOrCreate
+        name: mountpoint-dir

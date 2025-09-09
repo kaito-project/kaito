@@ -1,0 +1,28 @@
+{{- if .Values.webhook.hyperconverged.enabled }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ .Values.name }}-hyperconverged-webhook
+  labels:
+  {{- include "chart.labels" . | nindent 4 }}
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: {{ .Values.name }}-webhook-service
+      namespace: '{{ .Release.Namespace }}'
+      path: /mutate-pod
+  failurePolicy: Ignore
+  name: hyperconverged.localdisk.csi.acstor.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+  sideEffects: None
+{{- end }}

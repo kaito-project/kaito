@@ -37,3 +37,6 @@ dependencies:
   version: "2.16.3"
   repository: https://fluxcd-community.github.io/helm-charts
   condition: featureGates.gatewayAPIInferenceExtension
+- name: local-csi-driver
+  version: "0.2.5"
+  condition: localCSIDriver.useLocalCSIDriver

@@ -1,0 +1,13 @@
+{{- if or .Values.webhook.enforceEphemeral.enabled .Values.webhook.hyperconverged.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.name }}-webhook-cert
+  labels:
+    app.kubernetes.io/component: webhook
+  {{- include "chart.labels" . | nindent 4 }}
+data:
+   tls.key: ""
+   tls.crt: ""
+   ca-cert.pem: ""
+{{- end }}

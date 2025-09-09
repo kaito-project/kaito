@@ -1,0 +1,18 @@
+{{- if or .Values.webhook.enforceEphemeral.enabled .Values.webhook.hyperconverged.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.name }}-webhook-service
+  labels:
+    app.kubernetes.io/component: webhook
+  {{- include "chart.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.webhook.service.type }}
+  selector:
+    app: {{ .Values.name }}-node
+    {{- include "chart.selectorLabels" . | nindent 4 }}
+  ports:
+  - port: {{ .Values.webhook.service.port }}
+    protocol: TCP
+    targetPort: {{ .Values.webhook.service.targetPort }}
+{{- end }}

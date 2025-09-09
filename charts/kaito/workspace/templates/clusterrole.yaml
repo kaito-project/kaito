@@ -75,3 +75,6 @@ rules:
     resources: ["helmreleases"]
     verbs: ["get", "list", "watch", "create", "update"]
   {{- end }}
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch", "update"]

@@ -173,7 +173,8 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	if shouldProceed, err := c.nodeResourceManager.EnsureNodeResource(ctx, wObj, existingNodeClaims, readyNodes); err != nil {
 		return reconcile.Result{}, err
 	} else if !shouldProceed {
-		return reconcile.Result{}, nil
+		// The node resource changes can not trigger workspace controller reconcile, so we need to requeue reconcile when don't proceed because of node resource not ready.
+		return reconcile.Result{RequeueAfter: 2 * time.Second}, nil
 	}
 
 	if wObj.Tuning != nil {

@@ -2,5 +2,8 @@ dependencies:
 - name: flux2
   repository: https://fluxcd-community.github.io/helm-charts
   version: 2.16.3
-digest: sha256:a4d238f7903ccdd446780a21c718d02cc3d6d3979b80c5b1bae848022e8132ac
-generated: "2025-08-06T19:41:44.694298719-04:00"
+- name: local-csi-driver
+  repository: oci://localcsidriver.azurecr.io/acstor/charts
+  version: 0.2.5
+digest: sha256:dd6470f6653695b2a8c5b43085c46c01efee4826297434f468957ff471e078d3
+generated: "2025-09-09T16:57:51.247750234+08:00"

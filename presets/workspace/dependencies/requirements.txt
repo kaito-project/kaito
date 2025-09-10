@@ -23,6 +23,7 @@ ray[default]==2.48.0
 # Utility libraries
 datasets==2.19.1
 bitsandbytes==0.45.3
+triton==3.4.0
 
 # Less critical, can be latest
 gputil

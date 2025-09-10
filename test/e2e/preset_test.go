@@ -213,6 +213,7 @@ func createPhi3WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 
 func createGPTOss20BWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
+
 	By("Creating a workspace CR with GPT-OSS-20B preset public mode", func() {
 		uniqueID := fmt.Sprint("preset-gpt-oss-20b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
@@ -220,8 +221,16 @@ func createGPTOss20BWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.W
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-20b"},
 			}, nil, PresetGPT_OSS_20BModel, nil, nil, nil, "")
 
-		createAndValidateWorkspace(workspaceObj)
+		// Use custom config data with both gpu-memory-utilization and max-model-len
+		customConfigData := map[string]string{
+			"inference_config.yaml": `vllm:
+  gpu-memory-utilization: 0.82  # Controls GPU memory usage (0.0-1.0)
+  max-model-len: 1024`,
+		}
+
+		createAndValidateWorkspace(workspaceObj, customConfigData)
 	})
+
 	return workspaceObj
 }
 
@@ -304,8 +313,12 @@ func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNo
 	return workspaceObj, uniqueID, outputRegistryUrl
 }
 
-func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
-	createConfigForWorkspace(workspaceObj)
+func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace, configMapData ...map[string]string) {
+	var customConfigData map[string]string
+	if len(configMapData) > 0 && configMapData[0] != nil {
+		customConfigData = configMapData[0]
+	}
+	createConfigForWorkspace(workspaceObj, customConfigData)
 	By("Creating workspace", func() {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
@@ -322,7 +335,7 @@ func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func createConfigForWorkspace(workspaceObj *kaitov1beta1.Workspace) {
+func createConfigForWorkspace(workspaceObj *kaitov1beta1.Workspace, customConfigData map[string]string) {
 	if workspaceObj.Inference == nil || workspaceObj.Resource.InstanceType == "" {
 		return
 	}
@@ -335,16 +348,25 @@ func createConfigForWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 	// }
 
 	By("Creating config file", func() {
+		var configData string
+
+		// Use custom config data if provided, otherwise use default
+		if customConfigData != nil && customConfigData["inference_config.yaml"] != "" {
+			configData = customConfigData["inference_config.yaml"]
+		} else {
+			configData = `
+vllm:
+  max-model-len: 1024
+`
+		}
+
 		cm := corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "inference-config",
 				Namespace: workspaceObj.Namespace,
 			},
 			Data: map[string]string{
-				"inference_config.yaml": `
-vllm:
-  max-model-len: 1024
-`,
+				"inference_config.yaml": configData,
 			},
 		}
 		workspaceObj.Inference.Config = cm.Name

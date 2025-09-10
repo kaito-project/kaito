@@ -71,10 +71,13 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 						"tag":        consts.InferencePoolChartVersion,
 						"pullPolicy": string(corev1.PullIfNotPresent),
 					},
-					"pluginsConfigFile": "plugins-v2.yaml",
 				},
 				"inferencePool": map[string]any{
-					"targetPortNumber": float64(consts.PortInferenceServer),
+					"targetPorts": []any{
+						map[string]any{
+							"number": float64(consts.PortInferenceServer),
+						},
+					},
 					"modelServers": map[string]any{
 						"matchLabels": map[string]any{
 							kaitov1beta1.LabelWorkspaceName: base.Name,
@@ -94,10 +97,13 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 						"tag":        consts.InferencePoolChartVersion,
 						"pullPolicy": string(corev1.PullIfNotPresent),
 					},
-					"pluginsConfigFile": "plugins-v2.yaml",
 				},
 				"inferencePool": map[string]any{
-					"targetPortNumber": float64(consts.PortInferenceServer),
+					"targetPorts": []any{
+						map[string]any{
+							"number": float64(consts.PortInferenceServer),
+						},
+					},
 					"modelServers": map[string]any{
 						"matchLabels": map[string]any{
 							kaitov1beta1.LabelWorkspaceName: base.Name,

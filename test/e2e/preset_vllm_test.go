@@ -517,8 +517,7 @@ func createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1
 		// Pass custom config data with gpu-memory-utilization and max-model-len
 		customConfigData := map[string]string{
 			"inference_config.yaml": `vllm:
-  gpu-memory-utilization: 0.82  # Controls GPU memory usage (0.0-1.0)
-  max-model-len: 1024`,
+  gpu-memory-utilization: 0.82  # Controls GPU memory usage (0.0-1.0)`,
 		}
 
 		createAndValidateWorkspace(workspaceObj, customConfigData)

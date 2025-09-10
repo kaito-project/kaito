@@ -211,22 +211,6 @@ func createPhi3WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 	return workspaceObj
 }
 
-func createGPTOss20BWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
-	workspaceObj := &kaitov1beta1.Workspace{}
-
-	By("Creating a workspace CR with GPT-OSS-20B preset public mode", func() {
-		uniqueID := fmt.Sprint("preset-gpt-oss-20b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
-			numOfNode, "Standard_NC24ads_A100_v4", &metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-20b"},
-			}, nil, PresetGPT_OSS_20BModel, nil, nil, nil, "")
-
-		createAndValidateWorkspace(workspaceObj)
-	})
-
-	return workspaceObj
-}
-
 func createGPTOss120BWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with GPT-OSS-120B preset public mode", func() {
@@ -1205,26 +1189,6 @@ var _ = Describe("Workspace Preset", func() {
 	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicMode(numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
-
-		validateWorkspaceReadiness(workspaceObj)
-	})
-
-	It("should create a gpt-oss-20b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		workspaceObj := createGPTOss20BWorkspaceWithPresetPublicMode(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)

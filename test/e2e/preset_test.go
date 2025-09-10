@@ -296,6 +296,9 @@ func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace, configMapD
 		customConfigData = configMapData[0]
 	}
 	createConfigForWorkspace(workspaceObj, customConfigData)
+
+	fmt.Printf("Creating workspace with spec: %+v", workspaceObj)
+
 	By("Creating workspace", func() {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
@@ -325,16 +328,18 @@ func createConfigForWorkspace(workspaceObj *kaitov1beta1.Workspace, customConfig
 	// }
 
 	By("Creating config file", func() {
-		var configData string
+		var configData map[string]string
 
 		// Use custom config data if provided, otherwise use default
-		if customConfigData != nil && customConfigData["inference_config.yaml"] != "" {
-			configData = customConfigData["inference_config.yaml"]
+		if customConfigData != nil {
+			configData = customConfigData
 		} else {
-			configData = `
+			configData = map[string]string{
+				"inference_config.yaml": `
 vllm:
   max-model-len: 1024
-`
+`,
+			}
 		}
 
 		cm := corev1.ConfigMap{
@@ -342,11 +347,11 @@ vllm:
 				Name:      "inference-config",
 				Namespace: workspaceObj.Namespace,
 			},
-			Data: map[string]string{
-				"inference_config.yaml": configData,
-			},
+			Data: configData,
 		}
 		workspaceObj.Inference.Config = cm.Name
+
+		fmt.Printf("Creating configMap: %+v", cm)
 
 		Eventually(func() error {
 			err := utils.TestingCluster.KubeClient.Create(ctx, &cm, &client.CreateOptions{})

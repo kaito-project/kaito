@@ -221,14 +221,7 @@ func createGPTOss20BWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.W
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-20b"},
 			}, nil, PresetGPT_OSS_20BModel, nil, nil, nil, "")
 
-		// Use custom config data with both gpu-memory-utilization and max-model-len
-		customConfigData := map[string]string{
-			"inference_config.yaml": `vllm:
-  gpu-memory-utilization: 0.82  # Controls GPU memory usage (0.0-1.0)
-  max-model-len: 1024`,
-		}
-
-		createAndValidateWorkspace(workspaceObj, customConfigData)
+		createAndValidateWorkspace(workspaceObj)
 	})
 
 	return workspaceObj

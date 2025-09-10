@@ -18,7 +18,7 @@ spec:
         value: /
     backendRefs:
     - name: workspace-phi-4-mini-inferencepool
-      group: inference.networking.x-k8s.io
+      group: inference.networking.k8s.io
       kind: InferencePool
   - matches:
     - headers:
@@ -30,5 +30,5 @@ spec:
         value: /
     backendRefs:
     - name: workspace-mistral-7b-instruct-inferencepool
-      group: inference.networking.x-k8s.io
+      group: inference.networking.k8s.io
       kind: InferencePool

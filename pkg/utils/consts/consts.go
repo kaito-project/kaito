@@ -60,7 +60,7 @@ const (
 
 	// InferencePoolChartVersion is the tag/version of the inferencepool chart to deploy.
 	// MUST KEEP IN SYNC with the version in go.mod.
-	InferencePoolChartVersion = "v0.5.1"
+	InferencePoolChartVersion = "v1.0.0"
 
 	// GatewayAPIInferenceExtensionImageRepository is the image repository for the Gateway API Inference Extension components.
 	GatewayAPIInferenceExtensionImageRepository = "mcr.microsoft.com/oss/v2/gateway-api-inference-extension"

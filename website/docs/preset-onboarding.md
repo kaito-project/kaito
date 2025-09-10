@@ -54,7 +54,7 @@ type gpt_oss_120B struct{}
 In `GetInferenceParameters()`, specify the GPU memory requirements by checking the model specifications. These can typically be found on the website that provides the model. Hugging Face is a good place to start, and this page for [GPT-OSS 120B](https://huggingface.co/openai/gpt-oss-120b) indicates the required GPU memory.
 
 - `DiskStorageRequirement`: Storage needed for model weights
-- `TotalGPUMemoryRequirement`: Total GPU memory needed (e.g., "16Gi" for 20B, "80Gi" for 120B)
+- `TotalSafeTensorFileSize`: Total SafeTensor file size needed (e.g., "16Gi" for 20B, "80Gi" for 120B)
 - `GPUCountRequirement`: Number of GPUs required
 - `PerGPUMemoryRequirement`: Set to "0Gi" for models with native parallel support
 
@@ -128,7 +128,7 @@ func (*modelName) GetTuningParameters() *model.PresetParam {
         Metadata:                  metadata.MustGet(PresetModelName),
         DiskStorageRequirement:    "90Gi",
         GPUCountRequirement:       "1",
-        TotalGPUMemoryRequirement: "16Gi",
+        TotalSafeTensorFileSize: "16Gi",
         PerGPUMemoryRequirement:   "16Gi",
         RuntimeParam: model.RuntimeParam{
             Transformers: model.HuggingfaceTransformersParam{

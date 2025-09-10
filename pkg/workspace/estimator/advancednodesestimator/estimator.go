@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/klog/v2"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -70,7 +71,7 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 
 	// If GPU memory information is available, calculate the optimal node count
 	if gpuConfig.GPUMemGB > 0 && gpuConfig.GPUCount > 0 {
-		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement)
+		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalSafeTensorFileSize)
 		requiredMemoryBytes := int64(float64(totalGPUMemoryRequired.Value()) * 0.95) // vllm model size is about 95% percent of hugging face size
 		totalGPUMemoryPerGPUBytes := int64(gpuConfig.GPUMemGB) * consts.GiBToBytes / int64(gpuConfig.GPUCount)
 		availableGPUMemoryPerGPUBytes := int64(float64(totalGPUMemoryPerGPUBytes) * 0.9) // utilization is set to default 0.9
@@ -99,8 +100,13 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 
 		// Calculate minimum nodes: we need minGPUs GPU groups
 		// If each node has gpuConfig.GPUCount GPUs, we need ceil(minGPUs / gpuConfig.GPUCount) nodes
-		nodeCountPerReplica = (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
+		optimizedNodes := (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
 
+		// Optimization logic moved from preset_inferences.go
+		if optimizedNodes < nodeCountPerReplica {
+			klog.Infof("Optimizing node count from %d to %d based on GPU memory calculation", nodeCountPerReplica, optimizedNodes)
+			nodeCountPerReplica = optimizedNodes
+		}
 	}
 
 	return int32(nodeCountPerReplica), nil

@@ -51,11 +51,11 @@ type phi2 struct{}
 
 func (*phi2) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetPhi2Model),
-		DiskStorageRequirement:    "80Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "5.17Gi",
-		BytesPerToken:             327680,
+		Metadata:                metadata.MustGet(PresetPhi2Model),
+		DiskStorageRequirement:  "80Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "5.18Gi",
+		BytesPerToken:           327680,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,
@@ -74,10 +74,10 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 }
 func (*phi2) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetPhi2Model),
-		DiskStorageRequirement:    "80Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16Gi",
+		Metadata:                metadata.MustGet(PresetPhi2Model),
+		DiskStorageRequirement:  "80Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				// AccelerateParams: inference.DefaultAccelerateParams,

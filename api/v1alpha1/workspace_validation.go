@@ -327,7 +327,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
 
 			modelGPUCount := resource.MustParse(params.GPUCountRequirement)
-			modelTotalGPUMemory := resource.MustParse(params.TotalGPUMemoryRequirement)
+			modelTotalGPUMemory := resource.MustParse(params.TotalSafeTensorFileSize)
 
 			// Separate the checks for specific error messages
 			if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {

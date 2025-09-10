@@ -138,21 +138,15 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	}
 
 	gpuConfig := getGPUConfig(gctx)
-	//nolint:staticcheck //SA1019: deprecate Resource.Count field
-	numNodes := *workspaceObj.Resource.Count
 
 	// Use AdvancedNodesEstimator to optimize the node count if possible
 	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
 	estimatedNodes, err := estimator.EstimateNodeCount(ctx, workspaceObj)
 	if err != nil {
-		klog.ErrorS(err, "Failed to estimate node count, using user specified count", "userCount", numNodes)
-	} else {
-		optimizedNodes := int(estimatedNodes)
-		if optimizedNodes < numNodes {
-			klog.Infof("Optimizing node count from %d to %d based on GPU memory calculation", numNodes, optimizedNodes)
-			numNodes = optimizedNodes
-		}
+		//nolint:staticcheck //SA1019: deprecate Resource.Count field
+		estimatedNodes = int32(*workspaceObj.Resource.Count)
 	}
+	numNodes := int(estimatedNodes)
 
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
 		GenerateInferencePodSpec(&gpuConfig, numNodes),

@@ -63,7 +63,7 @@ func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaito
 
 	// If GPU memory information is available, calculate the optimal node count
 	if gpuConfig.GPUMemGB > 0 && gpuConfig.GPUCount > 0 {
-		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement)
+		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalSafeTensorFileSize)
 		totalGPUMemoryPerNodeBytes := int64(gpuConfig.GPUMemGB) * consts.GiBToBytes
 
 		requiredMemoryBytes := totalGPUMemoryRequired.Value()

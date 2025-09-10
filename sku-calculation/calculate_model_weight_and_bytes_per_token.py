@@ -48,6 +48,20 @@ def list_safetensors_files(model_repo, token=None):
     return safetensor_files
 
 
+def list_bin_files(model_repo, token=None):
+    api_url = f"https://huggingface.co/api/models/{model_repo}"
+    response = make_request(api_url, method="GET", token=token)
+    response.raise_for_status()
+    data = response.json()
+
+    bin_files = [
+        file["rfilename"]
+        for file in data.get("siblings", [])
+        if file["rfilename"].endswith(".bin")
+    ]
+    return bin_files
+
+
 def get_file_size_bytes(model_repo, filename, token=None):
     url = f"https://huggingface.co/{model_repo}/resolve/main/{filename}"
     response = make_request(url, method="HEAD", token=token)
@@ -57,7 +71,13 @@ def get_file_size_bytes(model_repo, filename, token=None):
 
 
 def get_total_safetensors_size(model_repo, token=None):
-    filenames = list_safetensors_files(model_repo, token=token)
+    # Special case for falcon-40b-instruct: use .bin files instead of .safetensors
+    if model_repo == "tiiuae/falcon-40b-instruct":
+        filenames = list_bin_files(model_repo, token=token)
+        print(f"[Special case] Using .bin files for {model_repo}")
+    else:
+        filenames = list_safetensors_files(model_repo, token=token)
+
     total_bytes = 0
     for name in filenames:
         try:

@@ -116,16 +116,20 @@ type PresetParam struct {
 
 	DiskStorageRequirement string // Disk storage requirements for the model.
 	// DiskStorageRequirement is calculated as:
-	// (TotalGPUMemoryRequirement × 2.5 + 48) rounded up to the next multiple of 10.
+	// (TotalSafeTensorFileSize × 2.5 + 48) rounded up to the next multiple of 10.
 	// This formula accounts for model weights, optimization files, and runtime overhead.
 	// Example: For a 14Gi model, calculation is: 14 × 2.5 + 48 = 83, rounded up to 90Gi.
 
 	ImageAccessMode string // Defines where the Image is Public or Private.
 
 	GPUCountRequirement           string         // Number of GPUs required for the Preset. Used for inference.
-	TotalGPUMemoryRequirement     string         // Total GPU memory required for the Preset. Used for inference.
+	TotalSafeTensorFileSize       string         // Total SafeTensor file size for the Preset. Used for inference.
 	TuningPerGPUMemoryRequirement map[string]int // Min GPU memory per tuning method (batch size 1). Used for tuning.
 	BytesPerToken                 int            // Number of bytes per token for the model. It is calculated by 2 * hidden_layers * kv_heads * head_dim (hidden_size/num_attemtion_numbers) * dtype_size
+
+	// To determine TotalSafeTensorFileSize and BytesPerToken values for a new model,
+	// run the sku-calculation/calculate_model_weight_and_bytes_per_token.py script
+	// with the model's Hugging Face repository ID as an argument.
 
 	RuntimeParam
 

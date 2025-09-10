@@ -61,11 +61,11 @@ type llama3_1_8BInstruct struct{}
 
 func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetLlama3_1_8BInstructModel),
-		DiskStorageRequirement:    "110Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "14.96Gi",
-		BytesPerToken:             131072,
+		Metadata:                metadata.MustGet(PresetLlama3_1_8BInstructModel),
+		DiskStorageRequirement:  "110Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "14.96Gi",
+		BytesPerToken:           131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetLlamaInference,
@@ -105,11 +105,11 @@ type llama3_3_70Binstruct struct{}
 // https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/discussions/77
 func (*llama3_3_70Binstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetLlama3_3_70BInstructModel),
-		DiskStorageRequirement:    "220Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "131.42Gi",
-		BytesPerToken:             327680,
+		Metadata:                metadata.MustGet(PresetLlama3_3_70BInstructModel),
+		DiskStorageRequirement:  "220Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "131.42Gi",
+		BytesPerToken:           327680,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetLlamaInference,

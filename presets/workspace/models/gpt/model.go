@@ -64,9 +64,9 @@ func (*gpt_oss_20B) GetInferenceParameters() *model.PresetParam {
 		Metadata:               metadata.MustGet(PresetGPT_OSS_20BModel),
 		DiskStorageRequirement: "110Gi",
 		GPUCountRequirement:    "1",
-		// TotalGPUMemoryRequirement: "16Gi", // per https://openai.com/index/introducing-gpt-oss/
-		TotalGPUMemoryRequirement: "24Gi", // TODO: pod failed with out of memory error on A10 with 24 GB memory.
-		PerGPUMemoryRequirement:   "0Gi",  // Native vertical model parallel; no per-GPU split requirement
+		// TotalSafeTensorFileSize: "16Gi", // per https://openai.com/index/introducing-gpt-oss/
+		TotalSafeTensorFileSize: "25.63Gi", // TODO: pod failed with out of memory error on A10 with 24 GB memory.
+		BytesPerToken:           34560,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetGPTInference,
@@ -100,11 +100,11 @@ type gpt_oss_120B struct{}
 
 func (*gpt_oss_120B) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetGPT_OSS_120BModel),
-		DiskStorageRequirement:    "250Gi", // Larger model needs more disk space
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "80Gi", // Single 80GB GPU requirement
-		PerGPUMemoryRequirement:   "0Gi",  // Native vertical model parallel; no per-GPU split requirement
+		Metadata:                metadata.MustGet(PresetGPT_OSS_120BModel),
+		DiskStorageRequirement:  "250Gi", // Larger model needs more disk space
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "121.54Gi", // Single 80GB GPU requirement
+		BytesPerToken:           51840,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetGPTInference,

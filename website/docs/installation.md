@@ -20,11 +20,11 @@ Before you begin, ensure you have the following tools installed:
 Install the KAITO workspace controller using Helm:
 
 ```bash
-export KAITO_WORKSPACE_VERSION=0.6.0
 export CLUSTER_NAME=kaito
 
-helm install kaito-workspace \
-  https://github.com/kaito-project/kaito/raw/gh-pages/charts/kaito/workspace-$KAITO_WORKSPACE_VERSION.tgz \
+helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+helm repo update
+helm upgrade --install kaito/workspace \
   --namespace kaito-workspace \
   --create-namespace \
   --set clusterName="$CLUSTER_NAME" \
@@ -46,8 +46,8 @@ You should see the workspace controller pod in a `Running` state.
 
 You need to create GPU nodes in order to run a Workspace with KAITO. There are two options:
 
-- **Bring your own GPU (BYO) nodes**: Create your own GPU nodes to run KAITO deployments on. 
-- **Auto-provisioning**: Set up automatic GPU node provisioning for your cloud provider. 
+- **Bring your own GPU (BYO) nodes**: Create your own GPU nodes to run KAITO deployments on.
+- **Auto-provisioning**: Set up automatic GPU node provisioning for your cloud provider.
 
 ### Option 1: Bring your own GPU nodes
 

@@ -5,12 +5,11 @@ KAITO RAGEngine provides Retrieval-Augmented Generation (RAG) capabilities for A
 ## Install
 
 ```bash
-export REGISTRY=mcr.microsoft.com/aks/kaito
-export IMG_NAME=ragengine
-export IMG_TAG=0.6.0
-helm install ragengine ./charts/kaito/ragengine  \
---set image.repository=${REGISTRY}/${IMG_NAME} --set image.tag=${IMG_TAG} \
---namespace kaito-ragengine --create-namespace
+helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+helm repo update
+helm upgrade --install kaito/ragengine \
+  --namespace kaito-ragengine \
+  --create-namespace
 ```
 
 ## Prerequisites

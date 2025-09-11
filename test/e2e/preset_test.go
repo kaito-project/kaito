@@ -345,7 +345,7 @@ vllm:
 
 		cm := corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "inference-config",
+				Name:      workspaceObj.Name + "-config",
 				Namespace: workspaceObj.Namespace,
 			},
 			Data: configData,

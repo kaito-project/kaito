@@ -2,5 +2,8 @@ dependencies:
 - name: flux2
   repository: https://fluxcd-community.github.io/helm-charts
   version: 2.16.3
-digest: sha256:a4d238f7903ccdd446780a21c718d02cc3d6d3979b80c5b1bae848022e8132ac
-generated: "2025-08-06T19:41:44.694298719-04:00"
+- name: lws
+  repository: oci://registry.k8s.io/lws/charts
+  version: 0.7.0
+digest: sha256:54d2c7feee42ba6b6d9b0cc27586e503e47b2cf8b21c3aad59ef6c89f05e3ecc
+generated: "2025-08-19T20:03:57.812309717+10:00"

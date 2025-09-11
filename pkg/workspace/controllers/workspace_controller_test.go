@@ -38,6 +38,7 @@ import (
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+	lwsv1 "sigs.k8s.io/lws/api/leaderworkerset/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -403,7 +404,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 		"Fail to get inference because associated workload with workspace cannot be retrieved": {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(errors.New("Failed to get resource"))
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&lwsv1.LeaderWorkerSet{}), mock.Anything).Return(errors.New("Failed to get resource"))
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},
@@ -434,30 +435,33 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 		"Apply inference from existing workload": {
 			callMocks: func(c *test.MockClient) {
 				numRep := int32(1)
-				relevantMap := c.CreateMapWithType(&appsv1.StatefulSet{})
-				relevantMap[client.ObjectKey{Namespace: "kaito", Name: "testWorkspace"}] = &appsv1.StatefulSet{
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				// Use LeaderWorkerSet instead of StatefulSet
+				relevantMap := c.CreateMapWithType(&lwsv1.LeaderWorkerSet{})
+				relevantMap[client.ObjectKey{Namespace: "kaito", Name: "testWorkspace"}] = &lwsv1.LeaderWorkerSet{
 					ObjectMeta: v1.ObjectMeta{
 						Name:      "testWorkspace",
 						Namespace: "kaito",
 					},
-					Spec: appsv1.StatefulSetSpec{
+					Spec: lwsv1.LeaderWorkerSetSpec{
 						Replicas: &numRep,
-						Template: corev1.PodTemplateSpec{
-							Spec: corev1.PodSpec{
-								Containers: []corev1.Container{{
-									Name:  "inference-container",
-									Image: "inference-image:latest",
-								}},
+						LeaderWorkerTemplate: lwsv1.LeaderWorkerTemplate{
+							WorkerTemplate: corev1.PodTemplateSpec{
+								Spec: corev1.PodSpec{
+									Containers: []corev1.Container{{
+										Name:  "inference-container",
+										Image: "inference-image:latest",
+									}},
+								},
 							},
 						},
 					},
-					Status: appsv1.StatefulSetStatus{
+					Status: lwsv1.LeaderWorkerSetStatus{
 						ReadyReplicas: 1,
 					},
 				}
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
-				c.On("Update", mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&lwsv1.LeaderWorkerSet{}), mock.Anything).Return(nil)
+				c.On("Update", mock.Anything, mock.IsType(&lwsv1.LeaderWorkerSet{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},

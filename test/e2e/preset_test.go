@@ -297,9 +297,6 @@ func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace, configMapD
 	}
 	createConfigForWorkspace(workspaceObj, customConfigData)
 
-	fmt.Printf("Creating workspace with spec: %+v\n", workspaceObj)
-	fmt.Printf("Workspace inference is %+v\n", workspaceObj.Inference)
-
 	By("Creating workspace", func() {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
@@ -351,8 +348,6 @@ vllm:
 			Data: configData,
 		}
 		workspaceObj.Inference.Config = cm.Name
-
-		fmt.Printf("Creating configMap: %+v\n", cm)
 
 		Eventually(func() error {
 			err := utils.TestingCluster.KubeClient.Create(ctx, &cm, &client.CreateOptions{})

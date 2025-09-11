@@ -20,12 +20,20 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
 func CreateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, kubeClient client.Client) (client.Object, error) {
 	depObj := manifests.GenerateDeploymentManifestWithPodTemplate(workspaceObj, tolerations)
-	err := resources.CreateResource(ctx, client.Object(depObj), kubeClient)
+	isScaled, err := workspace.ScaleDeploymentIfNeeded(ctx, kubeClient, client.ObjectKeyFromObject(depObj), workspaceObj)
+	if err != nil {
+		return nil, err
+	} else if isScaled {
+		return depObj, nil
+	}
+
+	err = resources.CreateResource(ctx, client.Object(depObj), kubeClient)
 	if client.IgnoreAlreadyExists(err) != nil {
 		return nil, err
 	}

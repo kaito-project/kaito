@@ -50,6 +50,9 @@ func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expecta
 }
 
 // DiffNodeClaims compares the current state of NodeClaims with the desired state
+// the bool return value indicates whether the current reconciliation loop should proceed or not.
+// if return true, it means the nodeclaims sync has already completed, so the reconciliation can proceed.
+// if return false, it means the nodeclaims sync has not completed yet, so the reconciliation should not proceed.
 func (c *NodeClaimManager) DiffNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, int, int, []*karpenterv1.NodeClaim, []string, error) {
 	workspaceKey := client.ObjectKeyFromObject(wObj).String()
 	var addedNodeClaimsCount int
@@ -83,6 +86,9 @@ func (c *NodeClaimManager) DiffNodeClaims(ctx context.Context, wObj *kaitov1beta
 
 // ScaleUpNodeClaims scales up the NodeClaims for the given workspace
 // this function will be invoked before creating workloads for workspace in order to ensure nodes.
+// the bool return value indicates whether the current reconciliation loop should proceed or not.
+// if return true, it means the nodeclaims scaleup has already completed, so the reconciliation can proceed.
+// if return false, it means the nodeclaims scaleup has not completed yet, so the reconciliation should not proceed.
 func (c *NodeClaimManager) ScaleUpNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, nodesToCreate int) (bool, error) {
 	workspaceKey := client.ObjectKeyFromObject(wObj).String()
 	klog.InfoS("Scaling up additional NodeClaims", "workspace", workspaceKey, "toCreate", nodesToCreate)
@@ -121,6 +127,9 @@ func (c *NodeClaimManager) ScaleUpNodeClaims(ctx context.Context, wObj *kaitov1b
 }
 
 // MeetReadyNodeClaimsTarget is used for checking the number of ready nodeclaims(isNodeClaimReadyNotDeleting) meet the target count(workspace.Status.Inference.TargetNodeCount)
+// the bool return value indicates whether the current reconciliation loop should proceed or not.
+// if return true, it means the number of ready nodeclaims are enough, so the reconciliation can proceed.
+// if return false, it means the number of ready nodeclaims are not enough, so the reconciliation should not proceed.
 func (c *NodeClaimManager) MeetReadyNodeClaimsTarget(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
 	targetNodeCount := 1
 	if wObj.Status.Inference != nil && wObj.Status.Inference.TargetNodeCount > 0 {

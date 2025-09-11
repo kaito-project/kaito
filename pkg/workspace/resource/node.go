@@ -43,6 +43,11 @@ func NewNodeManager(c client.Client) *NodeManager {
 	}
 }
 
+// EnsureNodeResource is used for ensuring node label(accelerator:nvidia) and GPU capacity on all auto-provisioned nodes for the workspace.
+// It also updates the WorkspaceStatus.WorkerNodes with the names of all ready nodes associated with the workspace.
+// the bool return value indicates whether the current reconciliation loop should proceed or not.
+// if return true, it means the node resource(like label and device plugin) are ready for all auto-provisioned nodes, so the reconciliation can proceed.
+// if return false, the reconciliation should not proceed.
 func (c *NodeManager) EnsureNodeResource(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim, workerNodes []string) (bool, error) {
 	// ensure Nvidia device plugins are ready for the workspace when instance type is known.
 	knownGPUConfig, _ := utils.GetGPUConfigBySKU(wObj.Resource.InstanceType)

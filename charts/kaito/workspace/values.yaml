@@ -20,7 +20,7 @@ featureGates:
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
 localCSIDriver:
-  useLocalCSIDriver: false
+  useLocalCSIDriver: true
 webhook:
   port: 9443
 # Knative logging configuration

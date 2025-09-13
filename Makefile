@@ -28,6 +28,11 @@ GINKGO_BIN := ginkgo
 GINKGO := $(TOOLS_BIN_DIR)/$(GINKGO_BIN)-$(GINKGO_VER)
 TEST_SUITE ?= gpuprovisioner
 
+MANIFEST_ROOT ?= config
+CRD_ROOT ?= $(MANIFEST_ROOT)/crd/bases
+WEBHOOK_ROOT ?= $(MANIFEST_ROOT)/webhook
+RBAC_ROOT ?= $(MANIFEST_ROOT)/rbac
+
 AZURE_SUBSCRIPTION_ID ?= $(AZURE_SUBSCRIPTION_ID)
 AZURE_LOCATION ?= eastus
 AKS_K8S_VERSION ?= 1.31.10
@@ -113,7 +118,35 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole, and Cus
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	$(MAKE) generate-modules generate-manifests generate-go
+
+generate-go: $(CONTROLLER_GEN) $(MOCKGEN) $(CONVERSION_GEN) ## Runs Go related generate targets.
+	$(CONTROLLER_GEN) \
+		paths=./api/... \
+		object:headerFile=./hack/boilerplate.go.txt
+
+	go generate ./...
+
+.PHONY: generate-manifests
+generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
+	$(CONTROLLER_GEN) \
+		paths=./api/... \
+		crd:crdVersions=v1 \
+		rbac:roleName=base-manager-role \
+		output:crd:dir=$(CRD_ROOT) \
+		output:webhook:dir=$(WEBHOOK_ROOT) \
+		webhook
+
+	$(CONTROLLER_GEN) \
+		paths=./... \
+		output:rbac:dir=$(RBAC_ROOT) \
+		rbac:roleName=base-manager-role
+
+
+.PHONY: generate-modules
+generate-modules: ## Run go mod tidy to ensure modules are up to date
+	go mod tidy
+	cd $(TOOLS_DIR); go mod tidy
 
 .PHONY: compare-model-configs
 compare-model-configs: ## Compare supported_models.yaml with ConfigMap template (ignoring comments).

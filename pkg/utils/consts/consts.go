@@ -19,7 +19,9 @@ const (
 	// WorkspaceFinalizer is used to make sure that workspace controller handles garbage collection.
 	WorkspaceFinalizer = "workspace.finalizer.kaito.sh"
 	// RAGEngineFinalizer is used to make sure that ragengine controller handles garbage collection.
-	RAGEngineFinalizer            = "ragengine.finalizer.kaito.sh"
+	RAGEngineFinalizer = "ragengine.finalizer.kaito.sh"
+	// AutoIndexerFinalizer is used to make sure that autoindexer controller handles garbage collection.
+	AutoIndexerFinalizer          = "autoindexer.finalizer.kaito.sh"
 	DefaultReleaseNamespaceEnvVar = "RELEASE_NAMESPACE"
 	AzureCloudName                = "azure"
 	AWSCloudName                  = "aws"

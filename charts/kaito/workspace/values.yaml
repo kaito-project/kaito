@@ -53,3 +53,10 @@ flux2:
     create: false
   notificationController:
     create: false
+nvidia-device-plugin:
+  nfd:
+    enabled: true # Explicitly set to true to ensure NFD is installed with the plugin.
+  gfd:
+    enabled: true
+  devicePlugin:
+    enabled: true

@@ -14,7 +14,7 @@
 package utils
 
 import (
-	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
+	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/onsi/gomega"
@@ -58,7 +58,7 @@ func GetClusterClient(cluster *Cluster) {
 	utilruntime.Must(kaitov1alpha1.AddToScheme(scheme))
 	utilruntime.Must(kaitov1beta1.AddToScheme(scheme))
 	utilruntime.Must(kaitoutils.KarpenterSchemeBuilder.AddToScheme(scheme))
-	utilruntime.Must(azurev1alpha2.SchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(azurev1beta1.SchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(helmv2.AddToScheme(scheme))
 	utilruntime.Must(sourcev1.AddToScheme(scheme))

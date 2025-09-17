@@ -35,7 +35,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator/advancednodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -139,23 +138,8 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	gpuConfig := getGPUConfig(gctx)
 
-	var numNodes int
-	// Use AdvancedNodesEstimator only for vLLM runtime
-	if v1beta1.GetWorkspaceRuntimeName(workspaceObj) == pkgmodel.RuntimeNameVLLM {
-		estimator := &advancednodesestimator.AdvancedNodesEstimator{}
-		klog.Infof("[EstimateNodeCount] workspace=%s", workspaceObj.Name)
-		estimatedNodes, err := estimator.EstimateNodeCount(ctx, workspaceObj, kubeClient)
-		if err != nil {
-			//nolint:staticcheck //SA1019: deprecate Resource.Count field
-			estimatedNodes = int32(*workspaceObj.Resource.Count)
-		}
-		numNodes = int(estimatedNodes)
-	} else {
-		// For non-vLLM runtime, use the Resource.Count directly
-		//nolint:staticcheck //SA1019: deprecate Resource.Count field
-		numNodes = int(*workspaceObj.Resource.Count)
-		klog.Infof("[EstimateNodeCount] workspace=%s using Resource.Count=%d for non-vLLM runtime", workspaceObj.Name, numNodes)
-	}
+	// Set the target node count for the inference workload
+	numNodes := int(workspaceObj.Status.TargetNodeCount)
 
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
 		GenerateInferencePodSpec(&gpuConfig, numNodes),

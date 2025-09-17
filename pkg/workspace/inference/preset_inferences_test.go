@@ -35,6 +35,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/advancednodesestimator"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -259,6 +260,7 @@ func TestGeneratePresetInference(t *testing.T) {
 		},
 	}
 
+	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -270,6 +272,18 @@ func TestGeneratePresetInference(t *testing.T) {
 			workspace := tc.workspace
 			//nolint:staticcheck //SA1019: deprecate Resource.Count field
 			workspace.Resource.Count = &tc.nodeCount
+
+			// Set the Status.Inference.TargetNodeCount for proper node count calculation
+			if workspace.Inference != nil {
+				nodeCount, err := estimator.EstimateNodeCount(t.Context(), workspace, mockClient)
+				if err != nil {
+					t.Errorf("%s: failed to estimate node count: %v", k, err)
+					return
+				}
+				workspace.Status.TargetNodeCount = int32(nodeCount)
+				t.Logf("Estimated node count: %d", nodeCount)
+			}
+
 			expectedSecrets := []string{"fake-secret"}
 			if tc.hasAdapters {
 				workspace.Inference.Adapters = []v1beta1.AdapterSpec{

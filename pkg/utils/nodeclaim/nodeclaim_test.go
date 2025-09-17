@@ -321,28 +321,6 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 		expectedError             string
 	}{
 		{
-			name: "successful_no_inference_status_defaults_to_1",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"workload": "gpu",
-						},
-					},
-				},
-				Inference: &kaitov1beta1.InferenceSpec{},
-			},
-			mockBYONodes:              []*corev1.Node{},
-			mockReadyNodes:            []string{"node1", "node2"},
-			mockError:                 nil,
-			featureGateDisabled:       false,
-			expectedReadyNodes:        []string{"node1", "node2"},
-			expectedRequiredNodeCount: 1, // target=1, BYO=0, required=1
-			expectedError:             "",
-		},
-		{
 			name: "successful_with_inference_status",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
@@ -356,9 +334,7 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 				},
 				Inference: &kaitov1beta1.InferenceSpec{},
 				Status: kaitov1beta1.WorkspaceStatus{
-					Inference: &kaitov1beta1.InferenceStatus{
-						TargetNodeCount: 3,
-					},
+					TargetNodeCount: 3,
 				},
 			},
 			mockBYONodes:              []*corev1.Node{{ObjectMeta: metav1.ObjectMeta{Name: "byo-node"}}},
@@ -383,9 +359,7 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 				},
 				Inference: &kaitov1beta1.InferenceSpec{},
 				Status: kaitov1beta1.WorkspaceStatus{
-					Inference: &kaitov1beta1.InferenceStatus{
-						TargetNodeCount: 2,
-					},
+					TargetNodeCount: 2,
 				},
 			},
 			mockBYONodes: []*corev1.Node{
@@ -414,9 +388,7 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 				},
 				Inference: &kaitov1beta1.InferenceSpec{},
 				Status: kaitov1beta1.WorkspaceStatus{
-					Inference: &kaitov1beta1.InferenceStatus{
-						TargetNodeCount: 5,
-					},
+					TargetNodeCount: 5,
 				},
 			},
 			mockBYONodes:              []*corev1.Node{{ObjectMeta: metav1.ObjectMeta{Name: "byo-node"}}},
@@ -448,53 +420,6 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 			expectedReadyNodes:        nil,
 			expectedRequiredNodeCount: 0,
 			expectedError:             "failed to get available BYO nodes: failed to list nodes",
-		},
-		{
-			name: "nil_inference_spec",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"workload": "gpu",
-						},
-					},
-				},
-				Inference: nil,
-			},
-			mockBYONodes:              []*corev1.Node{},
-			mockReadyNodes:            []string{"node1"},
-			mockError:                 nil,
-			featureGateDisabled:       false,
-			expectedReadyNodes:        []string{"node1"},
-			expectedRequiredNodeCount: 1, // defaults to 1
-			expectedError:             "",
-		},
-		{
-			name: "nil_status_inference",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"workload": "gpu",
-						},
-					},
-				},
-				Inference: &kaitov1beta1.InferenceSpec{},
-				Status: kaitov1beta1.WorkspaceStatus{
-					Inference: nil,
-				},
-			},
-			mockBYONodes:              []*corev1.Node{},
-			mockReadyNodes:            []string{"node1"},
-			mockError:                 nil,
-			featureGateDisabled:       false,
-			expectedReadyNodes:        []string{"node1"},
-			expectedRequiredNodeCount: 1, // defaults to 1
-			expectedError:             "",
 		},
 	}
 
@@ -568,123 +493,4 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 			mockClient.AssertExpectations(t)
 		})
 	}
-}
-
-func TestGetExistingNodeClaims(t *testing.T) {
-	t.Run("Should return NodeClaims associated with workspace", func(t *testing.T) {
-		mockClient := test.NewClient()
-
-		nodeClaim1 := &karpenterv1.NodeClaim{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "nodeclaim1",
-				Labels: map[string]string{
-					kaitov1beta1.LabelWorkspaceName:      "test-workspace",
-					kaitov1beta1.LabelWorkspaceNamespace: "default",
-				},
-			},
-		}
-		nodeClaim2 := &karpenterv1.NodeClaim{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "nodeclaim2",
-				Labels: map[string]string{
-					kaitov1beta1.LabelWorkspaceName:      "test-workspace",
-					kaitov1beta1.LabelWorkspaceNamespace: "default",
-				},
-			},
-		}
-
-		nodeClaimList := &karpenterv1.NodeClaimList{
-			Items: []karpenterv1.NodeClaim{*nodeClaim1, *nodeClaim2},
-		}
-
-		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Run(func(args mock.Arguments) {
-			ncl := args.Get(1).(*karpenterv1.NodeClaimList)
-			*ncl = *nodeClaimList
-		}).Return(nil)
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-		}
-
-		nodeClaims, err := GetExistingNodeClaims(context.Background(), mockClient, workspace)
-
-		assert.Check(t, err == nil, "Not expected to return error")
-		assert.Equal(t, len(nodeClaims), 2, "Expected 2 NodeClaims")
-		assert.Equal(t, nodeClaims[0].Name, "nodeclaim1", "Expected first NodeClaim")
-		assert.Equal(t, nodeClaims[1].Name, "nodeclaim2", "Expected second NodeClaim")
-	})
-
-	t.Run("Should return empty list when no NodeClaims found", func(t *testing.T) {
-		mockClient := test.NewClient()
-
-		nodeClaimList := &karpenterv1.NodeClaimList{
-			Items: []karpenterv1.NodeClaim{},
-		}
-
-		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Run(func(args mock.Arguments) {
-			ncl := args.Get(1).(*karpenterv1.NodeClaimList)
-			*ncl = *nodeClaimList
-		}).Return(nil)
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-		}
-
-		nodeClaims, err := GetExistingNodeClaims(context.Background(), mockClient, workspace)
-
-		assert.Check(t, err == nil, "Not expected to return error")
-		assert.Equal(t, len(nodeClaims), 0, "Expected no NodeClaims")
-	})
-
-	t.Run("Should return error when list fails", func(t *testing.T) {
-		mockClient := test.NewClient()
-
-		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(errors.New("list failed"))
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-		}
-
-		_, err := GetExistingNodeClaims(context.Background(), mockClient, workspace)
-
-		assert.Error(t, err, "failed to list NodeClaims: list failed")
-	})
-
-	t.Run("Should filter NodeClaims by workspace labels", func(t *testing.T) {
-		mockClient := test.NewClient()
-
-		// NodeClaim with matching labels
-		matchingNodeClaim := &karpenterv1.NodeClaim{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "matching-nodeclaim",
-				Labels: map[string]string{
-					kaitov1beta1.LabelWorkspaceName:      "test-workspace",
-					kaitov1beta1.LabelWorkspaceNamespace: "default",
-				},
-			},
-		}
-
-		nodeClaimList := &karpenterv1.NodeClaimList{
-			Items: []karpenterv1.NodeClaim{*matchingNodeClaim},
-		}
-
-		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}),
-			mock.MatchedBy(func(opts []client.ListOption) bool {
-				// Verify that the correct options are passed (only MatchingLabels for cluster-scoped resource)
-				return len(opts) == 1 // Only MatchingLabels
-			})).Run(func(args mock.Arguments) {
-			ncl := args.Get(1).(*karpenterv1.NodeClaimList)
-			*ncl = *nodeClaimList
-		}).Return(nil)
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-		}
-
-		nodeClaims, err := GetExistingNodeClaims(context.Background(), mockClient, workspace)
-
-		assert.Check(t, err == nil, "Not expected to return error")
-		assert.Equal(t, len(nodeClaims), 1, "Expected 1 matching NodeClaim")
-		assert.Equal(t, nodeClaims[0].Name, "matching-nodeclaim", "Expected matching NodeClaim")
-	})
 }

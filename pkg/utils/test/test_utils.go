@@ -909,6 +909,9 @@ var (
 		Inference: &v1beta1.InferenceSpec{
 			Template: &corev1.PodTemplateSpec{},
 		},
+		Status: v1beta1.WorkspaceStatus{
+			TargetNodeCount: 1,
+		},
 	}
 )
 

@@ -21,9 +21,7 @@ import (
 	"reflect"
 	"sort"
 	"testing"
-	"time"
 
-	"github.com/awslabs/operatorpkg/status"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/stretchr/testify/assert"
@@ -34,11 +32,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/klog/v2"
-	"k8s.io/utils/ptr"
-	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -46,6 +40,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/basicnodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
@@ -492,12 +487,21 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			tc.callMocks(mockClient)
 
 			reconciler := &WorkspaceReconciler{
-				Client: mockClient,
-				Scheme: test.NewTestScheme(),
+				Client:    mockClient,
+				Scheme:    test.NewTestScheme(),
+				Estimator: &basicnodesestimator.BasicNodesEstimator{},
 			}
 			ctx := context.Background()
 
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+			if tc.workspace.Status.TargetNodeCount == 0 {
+				cnt, err := reconciler.Estimator.EstimateNodeCount(t.Context(), &tc.workspace, mockClient)
+				if err != nil {
+					t.Errorf("Failed to estimate node count: %v", err)
+					return
+				}
+				tc.workspace.Status.TargetNodeCount = cnt
+			}
 
 			err := reconciler.applyInference(ctx, &tc.workspace)
 			if tc.expectedError == nil {
@@ -557,509 +561,6 @@ func TestApplyInferenceWithTemplate(t *testing.T) {
 			ctx := context.Background()
 
 			err := reconciler.applyInference(ctx, &tc.workspace)
-			if tc.expectedError == nil {
-				assert.NoError(t, err)
-			} else {
-				assert.Equal(t, tc.expectedError.Error(), err.Error())
-			}
-		})
-	}
-}
-
-func TestGetAllQualifiedNodes(t *testing.T) {
-	// Save and restore feature gate state
-	originalNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalNAP }()
-
-	deletedNode := corev1.Node{
-		ObjectMeta: v1.ObjectMeta{
-			Name: "node4",
-			Labels: map[string]string{
-				corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
-			},
-			DeletionTimestamp: &v1.Time{Time: time.Now()},
-		},
-	}
-	mockWorkspaceWithPreferredNodes := test.MockWorkspaceWithPreferredNodes.DeepCopy()
-	mockWorkspaceWithPreferredNodes.Resource.PreferredNodes = []string{"node-p1", "node-p2"}
-	//nolint:staticcheck //SA1019: deprecate Resource.Count field
-	mockWorkspaceWithPreferredNodes.Resource.Count = ptr.To(2)
-
-	mockWorkspaceWithSinglePreferredNode := test.MockWorkspaceWithPreferredNodes.DeepCopy()
-
-	testcases := map[string]struct {
-		callMocks     func(c *test.MockClient)
-		workspace     *v1beta1.Workspace
-		expectedError error
-		expectedNodes []string
-		disableNAP    bool
-	}{
-		"Fails to get qualified nodes because can't list nodes": {
-			callMocks: func(c *test.MockClient) {
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(errors.New("Failed to list nodes"))
-			},
-			workspace:     test.MockWorkspaceDistributedModel,
-			expectedError: errors.New("Failed to list nodes"),
-			expectedNodes: nil,
-			disableNAP:    false,
-		},
-		"Gets all qualified nodes": {
-			callMocks: func(c *test.MockClient) {
-				nodeList := test.MockNodeList
-
-				nodeList.Items = append(nodeList.Items, deletedNode)
-
-				relevantMap := c.CreateMapWithType(nodeList)
-				//insert node objects into the map
-				for _, obj := range test.MockNodeList.Items {
-					n := obj
-					objKey := client.ObjectKeyFromObject(&n)
-
-					relevantMap[objKey] = &n
-				}
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
-			},
-			workspace:     test.MockWorkspaceDistributedModel,
-			expectedError: nil,
-			expectedNodes: []string{"node1"},
-			disableNAP:    false,
-		},
-		"Gets all qualified nodes with preferred": {
-			callMocks: func(c *test.MockClient) {
-				nodeList := test.MockNodeList
-
-				nodeList.Items = append(nodeList.Items, deletedNode)
-
-				nodesFromOtherVendor := []corev1.Node{
-					{
-						ObjectMeta: v1.ObjectMeta{
-							Name: "node-p1",
-							Labels: map[string]string{
-								corev1.LabelInstanceTypeStable: "vendor1",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{
-								{
-									Type:   corev1.NodeReady,
-									Status: corev1.ConditionTrue,
-								},
-							},
-						},
-					},
-					{
-						ObjectMeta: v1.ObjectMeta{
-							Name: "node-p2",
-							Labels: map[string]string{
-								corev1.LabelInstanceTypeStable: "vendor2",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{
-								{
-									Type:   corev1.NodeReady,
-									Status: corev1.ConditionFalse,
-								},
-							},
-						},
-					},
-					{
-						ObjectMeta: v1.ObjectMeta{
-							Name: "node-p3",
-							Labels: map[string]string{
-								corev1.LabelInstanceTypeStable: "vendor1",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{
-								{
-									Type:   corev1.NodeReady,
-									Status: corev1.ConditionTrue,
-								},
-							},
-						},
-					},
-				}
-				nodeList.Items = append(nodeList.Items, nodesFromOtherVendor...)
-
-				relevantMap := c.CreateMapWithType(nodeList)
-				//insert node objects into the map
-				for _, obj := range test.MockNodeList.Items {
-					n := obj
-					objKey := client.ObjectKeyFromObject(&n)
-
-					relevantMap[objKey] = &n
-				}
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
-			},
-			workspace:     mockWorkspaceWithSinglePreferredNode,
-			expectedError: nil,
-			expectedNodes: []string{"node-p1"},
-		},
-		"NAP disabled: all preferred nodes present and ready, returns all": {
-			callMocks: func(c *test.MockClient) {
-				nodeList := &corev1.NodeList{Items: []corev1.Node{
-					{
-						ObjectMeta: v1.ObjectMeta{
-							Name: "node-p1",
-							Labels: map[string]string{
-								corev1.LabelInstanceTypeStable: "vendor1",
-								"apps":                         "test",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{{
-								Type:   corev1.NodeReady,
-								Status: corev1.ConditionTrue,
-							}},
-						},
-					},
-					{
-						ObjectMeta: v1.ObjectMeta{
-							Name: "node-p2",
-							Labels: map[string]string{
-								corev1.LabelInstanceTypeStable: "vendor2",
-								"apps":                         "test",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{{
-								Type:   corev1.NodeReady,
-								Status: corev1.ConditionTrue,
-							}},
-						},
-					},
-				}}
-
-				c.CreateOrUpdateObjectInMap(&nodeList.Items[0])
-				c.CreateOrUpdateObjectInMap(&nodeList.Items[1])
-
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-
-			},
-			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
-			expectedError: nil,
-			expectedNodes: []string{"node-p1", "node-p2"},
-			disableNAP:    true,
-		},
-		"NAP disabled: one preferred node not ready, returns error": {
-			callMocks: func(c *test.MockClient) {
-				nodeList := &corev1.NodeList{Items: []corev1.Node{
-					{
-						ObjectMeta: v1.ObjectMeta{
-							Name: "node-p1",
-							Labels: map[string]string{
-								corev1.LabelInstanceTypeStable: "vendor1",
-								"apps":                         "test",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{{
-								Type:   corev1.NodeReady,
-								Status: corev1.ConditionTrue,
-							}},
-						},
-					},
-					{
-						ObjectMeta: v1.ObjectMeta{
-							Name: "node-p2",
-							Labels: map[string]string{
-								corev1.LabelInstanceTypeStable: "vendor2",
-								"apps":                         "test",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{{
-								Type:   corev1.NodeReady,
-								Status: corev1.ConditionFalse,
-							}},
-						},
-					},
-				}}
-
-				c.CreateOrUpdateObjectInMap(&nodeList.Items[0])
-				c.CreateOrUpdateObjectInMap(&nodeList.Items[1])
-
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-			},
-			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
-			expectedError: errors.New("when node auto-provisioning is disabled, at least 2 preferred nodes must match the label selector and be ready and not deleting, only have 1"),
-			expectedNodes: nil,
-			disableNAP:    true,
-		},
-		"NAP disabled: one preferred node deleting, returns error": {
-			callMocks: func(c *test.MockClient) {
-				deletingTime := v1.Time{Time: time.Now()}
-				nodeList := &corev1.NodeList{Items: []corev1.Node{
-					{
-						ObjectMeta: v1.ObjectMeta{
-							Name: "node-p1",
-							Labels: map[string]string{
-								corev1.LabelInstanceTypeStable: "vendor1",
-								"apps":                         "test",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{{
-								Type:   corev1.NodeReady,
-								Status: corev1.ConditionTrue,
-							}},
-						},
-					},
-					{
-						ObjectMeta: v1.ObjectMeta{
-							Name: "node-p2",
-							Labels: map[string]string{
-								corev1.LabelInstanceTypeStable: "vendor2",
-								"apps":                         "test",
-							},
-							DeletionTimestamp: &deletingTime,
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{{
-								Type:   corev1.NodeReady,
-								Status: corev1.ConditionTrue,
-							}},
-						},
-					},
-				}}
-
-				c.CreateOrUpdateObjectInMap(&nodeList.Items[0])
-				c.CreateOrUpdateObjectInMap(&nodeList.Items[1])
-
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-			},
-			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
-			expectedError: errors.New("when node auto-provisioning is disabled, at least 2 preferred nodes must match the label selector and be ready and not deleting, only have 1"),
-			expectedNodes: nil,
-			disableNAP:    true,
-		},
-		"NAP disabled: missing preferred node, returns error": {
-			callMocks: func(c *test.MockClient) {
-				nodeList := &corev1.NodeList{Items: []corev1.Node{
-					{
-						ObjectMeta: v1.ObjectMeta{
-							Name: "node-p1",
-							Labels: map[string]string{
-								corev1.LabelInstanceTypeStable: "vendor1",
-								"apps":                         "test",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{{
-								Type:   corev1.NodeReady,
-								Status: corev1.ConditionTrue,
-							}},
-						},
-					},
-				}}
-
-				c.CreateOrUpdateObjectInMap(&nodeList.Items[0])
-
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(errors.New("nodes \"node-p2\" not found"))
-			},
-			workspace:     mockWorkspaceWithPreferredNodes.DeepCopy(),
-			expectedError: errors.New("when node auto-provisioning is disabled, at least 2 preferred nodes must match the label selector and be ready and not deleting, only have 1"),
-			expectedNodes: nil,
-			disableNAP:    true,
-		},
-	}
-
-	for k, tc := range testcases {
-		t.Run(k, func(t *testing.T) {
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNAP
-
-			mockClient := test.NewClient()
-			reconciler := &WorkspaceReconciler{
-				Client: mockClient,
-				Scheme: test.NewTestScheme(),
-			}
-			ctx := context.Background()
-
-			tc.callMocks(mockClient)
-
-			nodes, err := reconciler.getAllQualifiedNodes(ctx, tc.workspace)
-
-			if tc.expectedError != nil {
-				assert.NotNil(t, err)
-				assert.Equal(t, tc.expectedError, err)
-				assert.Nil(t, nodes)
-				return
-			}
-
-			assert.NoError(t, err)
-			assert.NotNil(t, nodes)
-			assert.Equal(t, len(tc.expectedNodes), len(nodes))
-		})
-	}
-}
-
-func TestApplyWorkspaceResource(t *testing.T) {
-	test.RegisterTestModel()
-	testcases := map[string]struct {
-		callMocks          func(c *test.MockClient)
-		expectedError      error
-		workspace          v1beta1.Workspace
-		estimatorNodeCount int32
-	}{
-		"Fail to apply workspace because associated nodeClaim cannot be retrieved": {
-			callMocks: func(c *test.MockClient) {
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(errors.New("failed to retrieve nodeClaims"))
-
-			},
-			workspace:          *test.MockWorkspaceBaseModel,
-			expectedError:      errors.New("failed to retrieve nodeClaims"),
-			estimatorNodeCount: 1,
-		},
-		"Fail to apply workspace with nodeClaims because can't get qualified nodes": {
-			callMocks: func(c *test.MockClient) {
-				nodeClaimList := test.MockNodeClaimList
-				relevantMap := c.CreateMapWithType(nodeClaimList)
-				c.CreateOrUpdateObjectInMap(&test.MockNodeClaim)
-
-				//insert nodeClaim objects into the map
-				for _, obj := range nodeClaimList.Items {
-					m := obj
-					objKey := client.ObjectKeyFromObject(&m)
-
-					relevantMap[objKey] = &m
-				}
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(errors.New("failed to list nodes"))
-			},
-			workspace:          *test.MockWorkspaceBaseModel,
-			expectedError:      errors.New("failed to list nodes"),
-			estimatorNodeCount: 1,
-		},
-		"Successfully apply workspace resource with nodeClaim": {
-			callMocks: func(c *test.MockClient) {
-				nodeList := test.MockNodeList
-				relevantMap := c.CreateMapWithType(nodeList)
-				//insert node objects into the map
-				for _, obj := range nodeList.Items {
-					n := obj
-					objKey := client.ObjectKeyFromObject(&n)
-
-					relevantMap[objKey] = &n
-				}
-
-				node1 := test.MockNodeList.Items[0]
-				//insert node object into the map
-				c.CreateOrUpdateObjectInMap(&node1)
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-			},
-			workspace:          *test.MockWorkspaceBaseModel,
-			expectedError:      nil,
-			estimatorNodeCount: 1,
-		},
-		"Successfully apply workspace resource with nodeClaim and preferred nodes": {
-			callMocks: func(c *test.MockClient) {
-				nodeList := test.MockNodeList
-				relevantMap := c.CreateMapWithType(nodeList)
-				//insert node objects into the map
-				for _, obj := range nodeList.Items {
-					n := obj
-					objKey := client.ObjectKeyFromObject(&n)
-
-					relevantMap[objKey] = &n
-				}
-
-				node1 := test.MockNodeList.Items[0]
-				//insert node object into the map
-				c.CreateOrUpdateObjectInMap(&node1)
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
-				// no get node query is needed here as we are not updating the node
-
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-			},
-			workspace:          *test.MockWorkspaceWithPreferredNodes,
-			expectedError:      nil,
-			estimatorNodeCount: 1, // Only need 1 node, which matches the available preferred node
-		},
-		"Update node Failed with NotFound error": {
-			callMocks: func(c *test.MockClient) {
-				nodeList := test.MockNodeList
-				relevantMap := c.CreateMapWithType(nodeList)
-				//insert node objects into the map
-				for _, obj := range nodeList.Items {
-					n := obj
-					objKey := client.ObjectKeyFromObject(&n)
-
-					relevantMap[objKey] = &n
-				}
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
-
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&corev1.Node{}), mock.Anything).Return(apierrors.NewNotFound(corev1.Resource("Node"), "node1"))
-
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-
-			},
-			workspace:          *test.MockWorkspaceBaseModel,
-			expectedError:      apierrors.NewNotFound(corev1.Resource("Node"), "node1"),
-			estimatorNodeCount: 1,
-		},
-	}
-
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	for k, tc := range testcases {
-		t.Run(k, func(t *testing.T) {
-			mockClient := test.NewClient()
-			tc.callMocks(mockClient)
-
-			// Create and setup mock estimator
-			mockEst := &mockEstimator{}
-			mockEst.On("EstimateNodeCount", mock.Anything, mock.Anything, mock.Anything).Return(tc.estimatorNodeCount, nil)
-
-			mockNodeClaim := &karpenterv1.NodeClaim{}
-
-			mockClient.UpdateCb = func(key types.NamespacedName) {
-				mockClient.GetObjectFromMap(mockNodeClaim, key)
-				mockNodeClaim.Status.Conditions = []status.Condition{
-					{
-						Type:   string(apis.ConditionReady),
-						Status: v1.ConditionTrue,
-					},
-				}
-				mockClient.CreateOrUpdateObjectInMap(mockNodeClaim)
-			}
-
-			reconciler := &WorkspaceReconciler{
-				Client:       mockClient,
-				Scheme:       test.NewTestScheme(),
-				Estimator:    mockEst,
-				expectations: utils.NewControllerExpectations(),
-				klogger:      klog.NewKlogr().WithName("WorkspaceController"),
-			}
-			ctx := context.Background()
-
-			err := reconciler.applyWorkspaceResource(ctx, &tc.workspace)
 			if tc.expectedError == nil {
 				assert.NoError(t, err)
 			} else {
@@ -1384,357 +885,108 @@ func (m *mockEstimator) EstimateNodeCount(ctx context.Context, workspace *v1beta
 	return args.Get(0).(int32), args.Error(1)
 }
 
-func TestConfigureWorkspaceReplicasSetting(t *testing.T) {
-	tests := []struct {
-		name           string
+func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
+	tests := map[string]struct {
 		workspace      *v1beta1.Workspace
-		setupMocks     func(*test.MockClient, *mockEstimator)
-		expectedResult bool
+		setupMocks     func(*test.MockClient, *mockEstimator, *int32)
 		expectedError  bool
+		expectedTarget int32
 	}{
-		{
-			name: "should return false when workspace has no inference",
+		"should return false when targetNodeCount already set": {
 			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: nil,
+				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 2},
 			},
-			setupMocks: func(c *test.MockClient, e *mockEstimator) {
-				// No mocks needed for this case
-			},
-			expectedResult: false,
+			setupMocks:     func(c *test.MockClient, e *mockEstimator, _ *int32) {},
 			expectedError:  false,
+			expectedTarget: 2,
 		},
-		{
-			name: "should set replicas to 1 when replicas is 0",
+		"should set targetNodeCount to 1 when zero and no inference": {
 			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: &v1beta1.InferenceSpec{
-					Replicas: 0,
-				},
-				Status: v1beta1.WorkspaceStatus{
-					Inference: &v1beta1.InferenceStatus{
-						PerReplicaNodeCount: 0,
-						TargetNodeCount:     0,
-					},
-				},
+				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
-			setupMocks: func(c *test.MockClient, e *mockEstimator) {
-				// Mock estimator
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(2), nil)
-
-				// Mock workspace retrieval for UpdateWorkspaceWithRetry (first call to set replicas)
+			setupMocks: func(c *test.MockClient, e *mockEstimator, updatedTarget *int32) {
+				// Mock Get used by UpdateWorkspaceStatus to populate the workspace object
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ws := args.Get(2).(*v1beta1.Workspace)
 						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
-						ws.Inference = &v1beta1.InferenceSpec{Replicas: 0}
-						ws.Status = v1beta1.WorkspaceStatus{
-							Inference: &v1beta1.InferenceStatus{
-								PerReplicaNodeCount: 0,
-								TargetNodeCount:     0,
-							},
-						}
+						ws.Status = v1beta1.WorkspaceStatus{TargetNodeCount: 0}
 					}).Return(nil).Once()
-				c.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-
-				// Mock workspace retrieval for UpdateWorkspaceStatus (second call to set status)
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1beta1.Workspace)
-						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
-						ws.Inference = &v1beta1.InferenceSpec{Replicas: 1} // After first update
-						ws.Status = v1beta1.WorkspaceStatus{
-							Inference: &v1beta1.InferenceStatus{
-								PerReplicaNodeCount: 0,
-								TargetNodeCount:     0,
-							},
-						}
-					}).Return(nil).Once()
-				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+						ws := args.Get(1).(*v1beta1.Workspace)
+						*updatedTarget = ws.Status.TargetNodeCount
+					}).Return(nil)
 			},
-			expectedResult: false,
 			expectedError:  false,
+			expectedTarget: 1,
 		},
-		{
-			name: "should set replicas to 1 when replicas is negative",
+		"should use estimator when inference present and set returned value": {
 			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: &v1beta1.InferenceSpec{
-					Replicas: -1,
-				},
-				Status: v1beta1.WorkspaceStatus{
-					Inference: &v1beta1.InferenceStatus{
-						PerReplicaNodeCount: 0,
-						TargetNodeCount:     0,
-					},
-				},
+				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-preset"}}},
+				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
-			setupMocks: func(c *test.MockClient, e *mockEstimator) {
-				// Mock estimator
+			setupMocks: func(c *test.MockClient, e *mockEstimator, updatedTarget *int32) {
 				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(3), nil)
-
-				// Mock workspace retrieval for UpdateWorkspaceWithRetry (first call to set replicas)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ws := args.Get(2).(*v1beta1.Workspace)
 						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
-						ws.Inference = &v1beta1.InferenceSpec{Replicas: -1}
-						ws.Status = v1beta1.WorkspaceStatus{
-							Inference: &v1beta1.InferenceStatus{
-								PerReplicaNodeCount: 0,
-								TargetNodeCount:     0,
-							},
-						}
+						ws.Status = v1beta1.WorkspaceStatus{TargetNodeCount: 0}
 					}).Return(nil).Once()
-				c.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-
-				// Mock workspace retrieval for UpdateWorkspaceStatus (second call to set status)
+				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						ws := args.Get(1).(*v1beta1.Workspace)
+						*updatedTarget = ws.Status.TargetNodeCount
+					}).Return(nil)
+			},
+			expectedError:  false,
+			expectedTarget: 3,
+		},
+		"should return error when estimator fails": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-preset"}}},
+				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
+			},
+			setupMocks: func(c *test.MockClient, e *mockEstimator, _ *int32) {
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(0), fmt.Errorf("estimator error"))
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ws := args.Get(2).(*v1beta1.Workspace)
 						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
-						ws.Inference = &v1beta1.InferenceSpec{Replicas: 1} // After first update
-						ws.Status = v1beta1.WorkspaceStatus{
-							Inference: &v1beta1.InferenceStatus{
-								PerReplicaNodeCount: 0,
-								TargetNodeCount:     0,
-							},
-						}
+						ws.Status = v1beta1.WorkspaceStatus{TargetNodeCount: 0}
 					}).Return(nil).Once()
-				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},
-			expectedResult: false,
-			expectedError:  false,
-		},
-		{
-			name: "should calculate PerReplicaNodeCount and TargetNodeCount when PerReplicaNodeCount is 0",
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: &v1beta1.InferenceSpec{
-					Replicas: 2,
-				},
-				Status: v1beta1.WorkspaceStatus{
-					Inference: &v1beta1.InferenceStatus{
-						PerReplicaNodeCount: 0,
-						TargetNodeCount:     0,
-					},
-				},
-			},
-			setupMocks: func(c *test.MockClient, e *mockEstimator) {
-				// Mock estimator
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(3), nil)
-
-				// Mock workspace status update
-				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
-					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1beta1.Workspace)
-						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
-						ws.Inference = &v1beta1.InferenceSpec{Replicas: 2}
-						ws.Status = v1beta1.WorkspaceStatus{
-							Inference: &v1beta1.InferenceStatus{
-								PerReplicaNodeCount: 0,
-								TargetNodeCount:     0,
-							},
-						}
-					}).Return(nil)
-			},
-			expectedResult: false,
-			expectedError:  false,
-		},
-		{
-			name: "should update TargetNodeCount when it doesn't match desired calculation",
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: &v1beta1.InferenceSpec{
-					Replicas: 3,
-				},
-				Status: v1beta1.WorkspaceStatus{
-					Inference: &v1beta1.InferenceStatus{
-						PerReplicaNodeCount: 2,
-						TargetNodeCount:     4, // Should be 3 * 2 = 6
-					},
-				},
-			},
-			setupMocks: func(c *test.MockClient, e *mockEstimator) {
-				// Mock workspace status update
-				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
-					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1beta1.Workspace)
-						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
-						ws.Inference = &v1beta1.InferenceSpec{Replicas: 3}
-						ws.Status = v1beta1.WorkspaceStatus{
-							Inference: &v1beta1.InferenceStatus{
-								PerReplicaNodeCount: 2,
-								TargetNodeCount:     4,
-							},
-						}
-					}).Return(nil)
-			},
-			expectedResult: false,
-			expectedError:  false,
-		},
-		{
-			name: "should return true when everything is already configured correctly",
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: &v1beta1.InferenceSpec{
-					Replicas: 2,
-				},
-				Status: v1beta1.WorkspaceStatus{
-					Inference: &v1beta1.InferenceStatus{
-						PerReplicaNodeCount: 3,
-						TargetNodeCount:     6, // 2 * 3 = 6
-					},
-				},
-			},
-			setupMocks: func(c *test.MockClient, e *mockEstimator) {
-				// No updates needed, everything is already correct
-			},
-			expectedResult: true,
-			expectedError:  false,
-		},
-		{
-			name: "should handle estimator error",
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: &v1beta1.InferenceSpec{
-					Replicas: 2,
-				},
-				Status: v1beta1.WorkspaceStatus{
-					Inference: &v1beta1.InferenceStatus{
-						PerReplicaNodeCount: 0,
-						TargetNodeCount:     0,
-					},
-				},
-			},
-			setupMocks: func(c *test.MockClient, e *mockEstimator) {
-				// Mock estimator error
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(0), errors.New("estimator failed"))
-
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
-					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1beta1.Workspace)
-						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
-						ws.Inference = &v1beta1.InferenceSpec{Replicas: 2}
-						ws.Status = v1beta1.WorkspaceStatus{
-							Inference: &v1beta1.InferenceStatus{
-								PerReplicaNodeCount: 0,
-								TargetNodeCount:     0,
-							},
-						}
-					}).Return(nil)
-			},
-			expectedResult: false,
 			expectedError:  true,
-		},
-		{
-			name: "should handle UpdateWorkspaceWithRetry error",
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: &v1beta1.InferenceSpec{
-					Replicas: 0,
-				},
-			},
-			setupMocks: func(c *test.MockClient, e *mockEstimator) {
-				// Mock workspace retrieval error for UpdateWorkspaceWithRetry
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(errors.New("get failed"))
-			},
-			expectedResult: false,
-			expectedError:  true,
-		},
-		{
-			name: "should handle UpdateWorkspaceStatus error",
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: &v1beta1.InferenceSpec{
-					Replicas: 2,
-				},
-				Status: v1beta1.WorkspaceStatus{
-					Inference: &v1beta1.InferenceStatus{
-						PerReplicaNodeCount: 0,
-						TargetNodeCount:     0,
-					},
-				},
-			},
-			setupMocks: func(c *test.MockClient, e *mockEstimator) {
-				// Mock estimator success
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(3), nil)
-
-				// Mock workspace status update error
-				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(errors.New("status update failed"))
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
-					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1beta1.Workspace)
-						ws.ObjectMeta = v1.ObjectMeta{Name: "test-workspace", Namespace: "default"}
-						ws.Inference = &v1beta1.InferenceSpec{Replicas: 2}
-						ws.Status = v1beta1.WorkspaceStatus{
-							Inference: &v1beta1.InferenceStatus{
-								PerReplicaNodeCount: 0,
-								TargetNodeCount:     0,
-							},
-						}
-					}).Return(nil)
-			},
-			expectedResult: false,
-			expectedError:  true,
+			expectedTarget: 0,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			mockClient := test.NewClient()
 			mockEst := &mockEstimator{}
+			var updatedTarget int32
 
-			// Setup mocks
-			tt.setupMocks(mockClient, mockEst)
-
-			// Create reconciler
-			reconciler := &WorkspaceReconciler{
-				Client:    mockClient,
-				Estimator: mockEst,
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient, mockEst, &updatedTarget)
 			}
 
-			// Run the function
-			result, err := reconciler.ConfigureWorkspaceReplicasSetting(context.Background(), tt.workspace)
-
-			// Verify results
-			assert.Equal(t, tt.expectedResult, result)
+			reconciler := &WorkspaceReconciler{Client: mockClient, Estimator: mockEst}
+			err := reconciler.UpdateWorkspaceTargetNodeCount(context.Background(), tt.workspace)
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
 			}
+			if !tt.expectedError {
+				assert.Equal(t, tt.expectedTarget, tt.workspace.Status.TargetNodeCount)
+			}
 
-			// Verify all mock expectations were met
 			mockClient.AssertExpectations(t)
 			mockEst.AssertExpectations(t)
 		})

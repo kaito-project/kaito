@@ -231,7 +231,7 @@ var _ = Describe("Workspace Preset", func() {
 	AfterEach(func() {
 		if CurrentSpecReport().Failed() {
 			utils.PrintPodLogsOnFailure(namespaceName, "")     // The Preset Pod
-			utils.PrintPodLogsOnFailure("kaito-workspace", "") // The Kaito Workspace Pod
+			utils.PrintPodLogsOnFailure("kaito-workspace", "") // The KAITO Workspace Pod
 			if !*skipGPUProvisionerCheck {
 				utils.PrintPodLogsOnFailure("gpu-provisioner", "") // The gpu-provisioner Pod
 			}

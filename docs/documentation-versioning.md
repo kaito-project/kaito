@@ -1,10 +1,10 @@
 # Documentation Versioning Workflow
 
-This document explains how the automated documentation versioning workflow works in the Kaito project.
+This document explains how the automated documentation versioning workflow works in the KAITO project.
 
 ## Overview
 
-The `docs-versioning.yaml` GitHub Actions workflow automatically creates versioned documentation when new minor versions are released. This ensures that users can access documentation for specific versions of Kaito.
+The `docs-versioning.yaml` GitHub Actions workflow automatically creates versioned documentation when new minor versions are released. This ensures that users can access documentation for specific versions of KAITO.
 
 ## How it Works
 

@@ -14,24 +14,24 @@ see-also:
 
 # Title
 
-Support scale subresource api for workspace in kaito
+Support scale subresource api for workspace in KAITO
 
 ## Summary
 
 As the number of waiting inference requests increase, It is necessary to scale more inference instances in order to preventing to block inference requests. on the other hand, If the number of waiting inference requests declines, we should consider to reduce inference instances for improving gpu resource utilization.
 
-We hope to provide an auto-scaler feature for scaling inference workloads automatically in terms of changes of custom metrics from inference pods, and this auto scaler doesn't depend on other components(this means Kaito is a self-contained component without dependencies). and we will divide this auto-scaler feature into two parts as following:
+We hope to provide an auto-scaler feature for scaling inference workloads automatically in terms of changes of custom metrics from inference pods, and this auto scaler doesn't depend on other components(this means KAITO is a self-contained component without dependencies). and we will divide this auto-scaler feature into two parts as following:
 
-- Part one: support scale subresource api for workspace, so different auto-scaler solutions such as KEDA, HPA, etc. can be integrated with Kaito to mamage inference workloads dynamically. This part is addressed in this proposal.
+- Part one: support scale subresource api for workspace, so different auto-scaler solutions such as KEDA, HPA, etc. can be integrated with KAITO to mamage inference workloads dynamically. This part is addressed in this proposal.
 - Part two: support a customized auto-sacler for kaito. The auto-scaler is designed for a minimalistic configuration experience, with most parameters pre-tuned for optimal performance. This allows users to easily get started without requiring specialized knowledge of LLM. This part will be addressed in another proposal.
 
 ## Motivation
 
-LLM inference service is a baisc and widly-used feature in Kaito, and Kaito community interest in auto scaler for inference workloads continues to intensify, related issues: [#306](https://github.com/kaito-project/kaito/issues/306), [#1104](https://github.com/kaito-project/kaito/issues/1104).
+LLM inference service is a baisc and widly-used feature in KAITO, and KAITO community interest in auto scaler for inference workloads continues to intensify, related issues: [#306](https://github.com/kaito-project/kaito/issues/306), [#1104](https://github.com/kaito-project/kaito/issues/1104).
 
 From the technical perspective, It's a good idea to provide auto-scaler capability, becasue the auto-scaler of inference workloads dynamically adjusts the number of inference instances based on request volume--scaling up during traffic spikes to improve inference speed, and scaling down during low demand to minimize GPU resource waste.
 
-To ensure different auto-scaler solutions can integrate with Kaito to manage inference workloads dynamically, We aim to support scale subresource API for Workspace CRD in kaito.
+To ensure different auto-scaler solutions can integrate with KAITO to manage inference workloads dynamically, We aim to support scale subresource API for Workspace CRD in KAITO.
 
 ### Goals
 

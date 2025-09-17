@@ -175,7 +175,7 @@ $(RAGENGINE_E2E_TEST): ## Build the RAG Engine e2e test binary without running i
 	(cd test/rage2e && go test -c . -o $(RAGENGINE_E2E_TEST))
 
 .PHONY: kaito-workspace-e2e-test
-kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO) ## Run e2e tests for Kaito Workspace.
+kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO) ## Run e2e tests for KAITO Workspace.
 	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) \
  	AI_MODELS_REGISTRY=$(AI_MODELS_REGISTRY) GPU_PROVISIONER_NAMESPACE=$(GPU_PROVISIONER_NAMESPACE) GPU_PROVISIONER_NAME=$(GPU_PROVISIONER_NAME) \
  	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_NAMESPACE=$(KAITO_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
@@ -183,7 +183,7 @@ kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO) ## Run e2e tests for Kaito Works
  	$(GINKGO) -v -trace $(GINKGO_ARGS) $(E2E_TEST)
 
 .PHONY: kaito-ragengine-e2e-test
-kaito-ragengine-e2e-test: $(RAGENGINE_E2E_TEST) $(GINKGO) ## Run e2e tests for Kaito RAG Engine.
+kaito-ragengine-e2e-test: $(RAGENGINE_E2E_TEST) $(GINKGO) ## Run e2e tests for KAITO RAG Engine.
 	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) \
 	AI_MODELS_REGISTRY=$(AI_MODELS_REGISTRY) GPU_PROVISIONER_NAMESPACE=$(GPU_PROVISIONER_NAMESPACE)  GPU_PROVISIONER_NAME=$(GPU_PROVISIONER_NAME) KAITO_NAMESPACE=$(KAITO_NAMESPACE) \
 	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_RAGENGINE_NAMESPACE=$(KAITO_RAGENGINE_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
@@ -214,7 +214,7 @@ create-aks-cluster: ## Create an AKS cluster with MSI, OIDC, and workload identi
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
 
 .PHONY: create-aks-cluster-with-kaito
-create-aks-cluster-with-kaito: ## Create an AKS cluster with MSI, OIDC, and Kaito enabled.
+create-aks-cluster-with-kaito: ## Create an AKS cluster with MSI, OIDC, and KAITO enabled.
 	az aks create  --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
 	--location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) \
 	--kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys  \
@@ -372,13 +372,13 @@ docker-build-llm-reference-preset: docker-buildx ## Build Docker image for LLM r
 		--build-arg VERSION=$(VERSION) .
 
 ## --------------------------------------
-## Kaito Installation
+## KAITO Installation
 ## --------------------------------------
 
-##@ Kaito Installation
+##@ KAITO Installation
 
 .PHONY: prepare-kaito-addon-identity
-prepare-kaito-addon-identity: ## Create Azure identity and federated credential for Kaito addon.
+prepare-kaito-addon-identity: ## Create Azure identity and federated credential for KAITO addon.
 	IDENTITY_PRINCIPAL_ID=$(shell az identity show --name "ai-toolchain-operator-$(AZURE_CLUSTER_NAME)" -g "$(AZURE_RESOURCE_GROUP_MC)"  --query 'principalId');\
 	az role assignment create --assignee $$IDENTITY_PRINCIPAL_ID --scope "/subscriptions/$(AZURE_SUBSCRIPTION_ID)/resourceGroups/$(AZURE_RESOURCE_GROUP_MC)"  --role "Contributor"
 
@@ -388,7 +388,7 @@ prepare-kaito-addon-identity: ## Create Azure identity and federated credential 
     --subject system:serviceaccount:"$(KAITO_NAMESPACE):kaito-gpu-provisioner" --audience api://AzureADTokenExchange
 
 .PHONY: az-patch-install-helm
-az-patch-install-helm: ## Install Kaito workspace Helm chart and set Azure client env vars and settings in Helm values.
+az-patch-install-helm: ## Install KAITO workspace Helm chart and set Azure client env vars and settings in Helm values.
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    ./charts/kaito/workspace/values.yaml
@@ -398,7 +398,7 @@ az-patch-install-helm: ## Install Kaito workspace Helm chart and set Azure clien
 	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
 .PHONY: az-patch-install-ragengine-helm
-az-patch-install-ragengine-helm: ## Install Kaito RAG Engine Helm chart and set Azure client env vars and settings in Helm values.
+az-patch-install-ragengine-helm: ## Install KAITO RAG Engine Helm chart and set Azure client env vars and settings in Helm values.
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
@@ -408,7 +408,7 @@ az-patch-install-ragengine-helm: ## Install Kaito RAG Engine Helm chart and set 
 	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
 .PHONY: az-patch-install-ragengine-helm-e2e
-az-patch-install-ragengine-helm-e2e: ## Install Kaito RAG Engine Helm chart for e2e tests and set Azure client env vars and settings in Helm values.
+az-patch-install-ragengine-helm-e2e: ## Install KAITO RAG Engine Helm chart for e2e tests and set Azure client env vars and settings in Helm values.
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
@@ -421,7 +421,7 @@ az-patch-install-ragengine-helm-e2e: ## Install Kaito RAG Engine Helm chart for 
 	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
 .PHONY: aws-patch-install-helm
-aws-patch-install-helm: ## Install Kaito workspace Helm chart and set AWS env vars and settings in Helm values.
+aws-patch-install-helm: ## Install KAITO workspace Helm chart and set AWS env vars and settings in Helm values.
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    	./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               	./charts/kaito/workspace/values.yaml
 	yq -i '(.clusterName)                                                   = "$(AWS_CLUSTER_NAME)"'                    		./charts/kaito/workspace/values.yaml

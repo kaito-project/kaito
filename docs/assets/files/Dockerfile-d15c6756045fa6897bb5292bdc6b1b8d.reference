@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-# Specify the repository source URL for reference and access in Kaito packages.
+# Specify the repository source URL for reference and access in KAITO packages.
 LABEL org.opencontainers.image.source=https://github.com/kaito-project/kaito
 
 ARG MODEL_TYPE

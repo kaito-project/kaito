@@ -465,10 +465,7 @@ func ResolveReadyNodesAndTargetNodeClaimCount(ctx context.Context, c client.Clie
 		return nil, 0, fmt.Errorf("failed to get available BYO nodes: %w", err)
 	}
 
-	targetNodeCount := 1
-	if wObj.Inference != nil && wObj.Status.Inference != nil {
-		targetNodeCount = int(wObj.Status.Inference.TargetNodeCount)
-	}
+	targetNodeCount := int(wObj.Status.TargetNodeCount)
 
 	// Calculate the number of target NodeClaims(nodes) (target - BYO nodes)
 	targetNodeClaimCount := max(0, targetNodeCount-len(availableBYONodes))

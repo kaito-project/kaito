@@ -321,28 +321,6 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 		expectedError             string
 	}{
 		{
-			name: "successful_no_inference_status_defaults_to_1",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"workload": "gpu",
-						},
-					},
-				},
-				Inference: &kaitov1beta1.InferenceSpec{},
-			},
-			mockBYONodes:              []*corev1.Node{},
-			mockReadyNodes:            []string{"node1", "node2"},
-			mockError:                 nil,
-			featureGateDisabled:       false,
-			expectedReadyNodes:        []string{"node1", "node2"},
-			expectedRequiredNodeCount: 1, // target=1, BYO=0, required=1
-			expectedError:             "",
-		},
-		{
 			name: "successful_with_inference_status",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
@@ -356,9 +334,7 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 				},
 				Inference: &kaitov1beta1.InferenceSpec{},
 				Status: kaitov1beta1.WorkspaceStatus{
-					Inference: &kaitov1beta1.InferenceStatus{
-						TargetNodeCount: 3,
-					},
+					TargetNodeCount: 3,
 				},
 			},
 			mockBYONodes:              []*corev1.Node{{ObjectMeta: metav1.ObjectMeta{Name: "byo-node"}}},
@@ -383,9 +359,7 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 				},
 				Inference: &kaitov1beta1.InferenceSpec{},
 				Status: kaitov1beta1.WorkspaceStatus{
-					Inference: &kaitov1beta1.InferenceStatus{
-						TargetNodeCount: 2,
-					},
+					TargetNodeCount: 2,
 				},
 			},
 			mockBYONodes: []*corev1.Node{
@@ -414,9 +388,7 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 				},
 				Inference: &kaitov1beta1.InferenceSpec{},
 				Status: kaitov1beta1.WorkspaceStatus{
-					Inference: &kaitov1beta1.InferenceStatus{
-						TargetNodeCount: 5,
-					},
+					TargetNodeCount: 5,
 				},
 			},
 			mockBYONodes:              []*corev1.Node{{ObjectMeta: metav1.ObjectMeta{Name: "byo-node"}}},
@@ -448,53 +420,6 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 			expectedReadyNodes:        nil,
 			expectedRequiredNodeCount: 0,
 			expectedError:             "failed to get available BYO nodes: failed to list nodes",
-		},
-		{
-			name: "nil_inference_spec",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"workload": "gpu",
-						},
-					},
-				},
-				Inference: nil,
-			},
-			mockBYONodes:              []*corev1.Node{},
-			mockReadyNodes:            []string{"node1"},
-			mockError:                 nil,
-			featureGateDisabled:       false,
-			expectedReadyNodes:        []string{"node1"},
-			expectedRequiredNodeCount: 1, // defaults to 1
-			expectedError:             "",
-		},
-		{
-			name: "nil_status_inference",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"workload": "gpu",
-						},
-					},
-				},
-				Inference: &kaitov1beta1.InferenceSpec{},
-				Status: kaitov1beta1.WorkspaceStatus{
-					Inference: nil,
-				},
-			},
-			mockBYONodes:              []*corev1.Node{},
-			mockReadyNodes:            []string{"node1"},
-			mockError:                 nil,
-			featureGateDisabled:       false,
-			expectedReadyNodes:        []string{"node1"},
-			expectedRequiredNodeCount: 1, // defaults to 1
-			expectedError:             "",
 		},
 	}
 

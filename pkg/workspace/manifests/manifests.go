@@ -340,8 +340,7 @@ func GenerateDeploymentManifestWithPodTemplate(workspaceObj *kaitov1beta1.Worksp
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
-			//nolint:staticcheck //SA1019: deprecate Resource.Count field
-			Replicas: lo.ToPtr(int32(*workspaceObj.Resource.Count)),
+			Replicas: lo.ToPtr(workspaceObj.Status.TargetNodeCount),
 			Selector: labelselector,
 			Template: *templateCopy,
 		},

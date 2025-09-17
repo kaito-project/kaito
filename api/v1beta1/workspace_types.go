@@ -85,8 +85,6 @@ type PresetSpec struct {
 }
 
 type InferenceSpec struct {
-	// Number of desired inference workloads, Default value is 1.
-	Replicas int32 `json:"replicas,omitempty"`
 	// Preset describes the base model that will be deployed with preset configurations.
 	// +optional
 	Preset *PresetSpec `json:"preset,omitempty"`
@@ -105,26 +103,6 @@ type InferenceSpec struct {
 	// Users can specify multiple adapters for the model and the respective weight of using each of them.
 	// +optional
 	Adapters []AdapterSpec `json:"adapters,omitempty"`
-}
-
-type InferenceStatus struct {
-	// Total number of running inference workloads of the workspace.
-	// This field is dynamic and changes based on scaling actions. It will set to Deployement.Status.Replicas
-	// when underlay workload is Deployment for Workspace.
-	Replicas int32 `json:"replicas,omitempty"`
-
-	// Selector is used to select the pods that provide metrics for making scaling action decisions.
-	// This field must be set when HPA and VPA is used for scaling.
-	Selector string `json:"selector,omitempty"`
-
-	// PerReplicaNodeCount is used for recording the number of gpu nodes for one replica of workspace workload.
-	// This field remains immutable after being set.
-	PerReplicaNodeCount int32 `json:"perReplicaNodeCount,omitempty"`
-
-	// TargetNodeCount is used for recording the desired number of gpu nodes that needed for all replicas of workspace.
-	// This field is dynamic and changes based on scaling actions. It has a specific calculation formula:
-	// TargetNodeCount = Resource.Replicas * InferenceStatus.PerReplicaNodeCount
-	TargetNodeCount int32 `json:"targetNodeCount,omitempty"`
 }
 
 type AdapterSpec struct {
@@ -208,10 +186,9 @@ type WorkspaceStatus struct {
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
-	// Inference provides the status of the inference service.
-	// It is only set when the InferenceSpec is specified in the Workspace.
-	// +optional
-	Inference *InferenceStatus `json:"inference,omitempty"`
+	// TargetNodeCount is used for recording the desired number of gpu nodes that needed for the workspace.
+	// This field remains immutable after being set by NodesEstimator.
+	TargetNodeCount int32 `json:"targetNodeCount,omitempty"`
 }
 
 // Workspace is the Schema for the workspaces API
@@ -225,7 +202,6 @@ type WorkspaceStatus struct {
 // +kubebuilder:printcolumn:name="JobStarted",type="string",JSONPath=".status.conditions[?(@.type==\"JobStarted\")].status",description=""
 // +kubebuilder:printcolumn:name="WorkspaceSucceeded",type="string",JSONPath=".status.conditions[?(@.type==\"WorkspaceSucceeded\")].status",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
-// +kubebuilder:subresource:scale:specpath=.spec.inference.replicas,statuspath=.status.inference.replicas,selectorpath=.status.inference.selector
 type Workspace struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

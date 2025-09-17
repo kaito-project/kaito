@@ -49,7 +49,7 @@ func TestEnsureNodeResource(t *testing.T) {
 		existingNodeClaims []*karpenterv1.NodeClaim
 		workerNodes        []string
 		setup              func(*test.MockClient)
-		expectedReady      bool
+		expectedExitLoop   bool
 		expectedError      bool
 	}{
 		{
@@ -73,8 +73,8 @@ func TestEnsureNodeResource(t *testing.T) {
 				// Mock status update for worker nodes and resource status
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
-			expectedReady: true,
-			expectedError: false,
+			expectedExitLoop: false,
+			expectedError:    false,
 		},
 		{
 			name: "Should succeed when GPU instance type and device plugins are ready",
@@ -130,8 +130,8 @@ func TestEnsureNodeResource(t *testing.T) {
 				// Mock status update
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
-			expectedReady: true,
-			expectedError: false,
+			expectedExitLoop: false,
+			expectedError:    false,
 		},
 		{
 			name: "Should fail when device plugins check fails due to node get error",
@@ -161,8 +161,8 @@ func TestEnsureNodeResource(t *testing.T) {
 				// Mock status update for error condition
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
-			expectedReady: false,
-			expectedError: true,
+			expectedExitLoop: true,
+			expectedError:    true,
 		},
 		{
 			name: "Should update worker nodes when they differ",
@@ -185,8 +185,8 @@ func TestEnsureNodeResource(t *testing.T) {
 				// Mock status update for worker nodes and resource status
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
-			expectedReady: true,
-			expectedError: false,
+			expectedExitLoop: false,
+			expectedError:    false,
 		},
 	}
 
@@ -198,7 +198,7 @@ func TestEnsureNodeResource(t *testing.T) {
 			manager := NewNodeManager(mockClient)
 			ready, err := manager.EnsureNodeResource(context.Background(), tt.workspace, tt.existingNodeClaims, tt.workerNodes)
 
-			assert.Equal(t, tt.expectedReady, ready)
+			assert.Equal(t, tt.expectedExitLoop, ready)
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {
@@ -383,6 +383,51 @@ func TestEnsureNodePlugin(t *testing.T) {
 			},
 			expectedReady: true,
 			expectedError: false,
+		},
+		{
+			name: "Should return error when node update fails while adding label",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType:  "Standard_NC12s_v3",
+					LabelSelector: &metav1.LabelSelector{},
+				},
+			},
+			readyNodeClaims: []*karpenterv1.NodeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-nodeclaim"},
+					Status: karpenterv1.NodeClaimStatus{
+						NodeName: "test-node",
+					},
+				},
+			},
+			setup: func(mockClient *test.MockClient) {
+				// Create a node that lacks the accelerator label but has GPU capacity
+				node := &corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-node",
+						Labels: map[string]string{
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
+						Capacity:   corev1.ResourceList{resources.CapacityNvidiaGPU: resource.MustParse("1")},
+					},
+				}
+				mockClient.CreateOrUpdateObjectInMap(node)
+
+				// Get returns nil to indicate node exists
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+				// Simulate Update failing when adding the label
+				mockClient.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("update failed"))
+
+				// Expect status update attempt for error condition
+				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			},
+			expectedReady: false,
+			expectedError: true,
 		},
 	}
 

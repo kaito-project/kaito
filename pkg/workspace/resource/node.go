@@ -43,6 +43,11 @@ func NewNodeManager(c client.Client) *NodeManager {
 	}
 }
 
+// EnsureNodeResource is used for ensuring node label(accelerator:nvidia) and GPU capacity on all auto-provisioned nodes for the workspace.
+// It also updates the WorkspaceStatus.WorkerNodes with the names of all ready nodes associated with the workspace.
+// the bool return value indicates whether the current reconciliation loop should exit or not.
+// if return false, it means the node resource(like label and device plugin) are ready for all auto-provisioned nodes, so the reconciliation loop should not exit and continue.
+// if return true, the reconciliation loop should exit.
 func (c *NodeManager) EnsureNodeResource(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim, workerNodes []string) (bool, error) {
 	// ensure Nvidia device plugins are ready for the workspace when instance type is known.
 	knownGPUConfig, _ := utils.GetGPUConfigBySKU(wObj.Resource.InstanceType)
@@ -58,11 +63,11 @@ func (c *NodeManager) EnsureNodeResource(ctx context.Context, wObj *kaitov1beta1
 			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
 				"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-				return isReady, updateErr
+				return true, updateErr
 			}
-			return isReady, err
+			return true, err
 		} else if !isReady {
-			return isReady, nil
+			return true, nil
 		}
 	}
 
@@ -76,19 +81,19 @@ func (c *NodeManager) EnsureNodeResource(ctx context.Context, wObj *kaitov1beta1
 			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
 				"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-				return false, updateErr
+				return true, updateErr
 			}
-			return false, err
+			return true, err
 		}
 	}
 
 	if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue,
 		"workspaceResourceStatusSuccess", "workspace resource is ready"); err != nil {
 		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-		return false, err
+		return true, err
 	}
 
-	return true, nil
+	return false, nil
 }
 
 // ensureNodePlugin ensures that NVIDIA device plugins are ready on all nodes for the workspace

@@ -46,6 +46,11 @@ func ValidateNodeClaimCreation(ctx context.Context, workspaceObj *v1beta1.Worksp
 			}
 
 			for _, nodeClaim := range nodeClaimList.Items {
+				fmt.Printf("NodeClaim: %s for workspace: %s\n", nodeClaim.Name, workspaceObj.Name)
+				for _, condition := range nodeClaim.GetConditions() {
+					fmt.Printf("Condition: %s, Status: %s\n", condition.Type, condition.Status)
+				}
+
 				_, conditionFound := lo.Find(nodeClaim.GetConditions(), func(condition status.Condition) bool {
 					return condition.Type == string(apis.ConditionReady) && condition.Status == metav1.ConditionTrue
 				})

@@ -263,7 +263,7 @@ func (c *WorkspaceReconciler) deleteWorkspace(ctx context.Context, wObj *kaitov1
 	return c.garbageCollectWorkspace(ctx, wObj)
 }
 func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
-	currentHash := computeHash(wObj)
+	currentHash := ComputeHash(wObj)
 	annotations := wObj.GetAnnotations()
 	if annotations == nil {
 		annotations = make(map[string]string)
@@ -365,7 +365,7 @@ func marshalSelectedFields(wObj *kaitov1beta1.Workspace) ([]byte, error) {
 	return jsonData, nil
 }
 
-func computeHash(w *kaitov1beta1.Workspace) string {
+func ComputeHash(w *kaitov1beta1.Workspace) string {
 	hasher := sha256.New()
 	encoder := json.NewEncoder(hasher)
 	encoder.Encode(w.Resource)

@@ -42,12 +42,14 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers/garbagecollect"
+	"github.com/kaito-project/kaito/pkg/workspace/controllers/inferenceset"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
@@ -67,6 +69,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(kaitov1alpha1.AddToScheme(scheme))
 	utilruntime.Must(kaitov1beta1.AddToScheme(scheme))
 	utilruntime.Must(kaitoutils.KarpenterSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(azurev1beta1.SchemeBuilder.AddToScheme(scheme))
@@ -150,6 +153,18 @@ func main() {
 		exitWithErrorFunc()
 	}
 
+	inferenceSetReconciler := inferenceset.NewInferenceSetReconciler(
+		kClient,
+		mgr.GetScheme(),
+		log.Log.WithName("controllers").WithName("InferenceSet"),
+		mgr.GetEventRecorderFor("KAITO-InferenceSet-controller"),
+	)
+
+	if err = inferenceSetReconciler.SetupWithManager(mgr); err != nil {
+		klog.ErrorS(err, "unable to create controller", "controller", "InferenceSet")
+		exitWithErrorFunc()
+	}
+
 	pvGCReconciler := garbagecollect.NewPersistentVolumeGCReconciler(
 		kClient,
 		mgr.GetEventRecorderFor("KAITO-PersistentVolumeGC-controller"),
@@ -184,7 +199,7 @@ func main() {
 		})
 		ctx = sharedmain.WithHealthProbesDisabled(ctx)
 		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewWorkspaceWebhooks()...)
+		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewControllerWebhooks()...)
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
 		time.Sleep(2 * time.Second)

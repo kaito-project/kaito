@@ -28,10 +28,11 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
-func NewWorkspaceWebhooks() []knativeinjection.ControllerConstructor {
+func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
 	return []knativeinjection.ControllerConstructor{
 		certificates.NewController,
 		NewWorkspaceCRDValidationWebhook,
+		NewInferenceSetCRDValidationWebhook,
 	}
 }
 
@@ -45,7 +46,21 @@ func NewWorkspaceCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) 
 	)
 }
 
+func NewInferenceSetCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
+	return validation.NewAdmissionController(ctx,
+		"validation.inferenceset.kaito.sh",
+		"/validate/inferenceset.kaito.sh",
+		InferenceSetResources,
+		func(ctx context.Context) context.Context { return ctx },
+		true,
+	)
+}
+
 var WorkspaceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
 	kaitov1alpha1.GroupVersion.WithKind("Workspace"): &kaitov1alpha1.Workspace{},
 	kaitov1beta1.GroupVersion.WithKind("Workspace"):  &kaitov1beta1.Workspace{},
+}
+
+var InferenceSetResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
+	kaitov1alpha1.GroupVersion.WithKind("InferenceSet"): &kaitov1alpha1.InferenceSet{},
 }

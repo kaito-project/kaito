@@ -90,7 +90,7 @@ func GenerateIndexingJobManifest(config JobConfig) *batchv1.Job {
 					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
-					RestartPolicy: corev1.RestartPolicyNever,
+					RestartPolicy: corev1.RestartPolicyOnFailure,
 					Containers: []corev1.Container{
 						generateIndexingContainer(config),
 					},
@@ -167,7 +167,7 @@ func generateIndexingContainer(config JobConfig) corev1.Container {
 		Resources:       resourceRequirements,
 		Env:             generateEnvironmentVariables(config.AutoIndexer),
 		Command:         []string{"python"},
-		Args:            []string{"autoindexer_service.py", "--mode=index"},
+		Args:            []string{"main.py", "--mode=index"},
 	}
 
 	return container
@@ -256,7 +256,7 @@ func generateDataSourceConfig(dataSource kaitov1alpha1.DataSourceSpec) (string, 
 	case kaitov1alpha1.DataSourceTypeStatic:
 		if dataSource.Static != nil {
 			config["static"] = map[string]interface{}{
-				"endpoint": dataSource.Static.Endpoint,
+				"endpoints": dataSource.Static.Endpoints,
 			}
 		}
 	}
@@ -293,17 +293,17 @@ func generateCredentialsConfig(credentials *kaitov1alpha1.CredentialsSpec) (stri
 // generateRetryPolicyConfig serializes the retry policy configuration to JSON
 func generateRetryPolicyConfig(retryPolicy *kaitov1alpha1.RetryPolicySpec) (string, error) {
 	config := map[string]interface{}{
-		"maxRetries":      retryPolicy.MaxRetries,
-		"backoffStrategy": retryPolicy.BackoffStrategy,
+		"maxRetries": retryPolicy.MaxRetries,
+		// "backoffStrategy": retryPolicy.BackoffStrategy,
 	}
 
-	if retryPolicy.InitialDelay != nil {
-		config["initialDelay"] = retryPolicy.InitialDelay.Duration.String()
-	}
+	// if retryPolicy.InitialDelay != nil {
+	// 	config["initialDelay"] = retryPolicy.InitialDelay.Duration.String()
+	// }
 
-	if retryPolicy.MaxDelay != nil {
-		config["maxDelay"] = retryPolicy.MaxDelay.Duration.String()
-	}
+	// if retryPolicy.MaxDelay != nil {
+	// 	config["maxDelay"] = retryPolicy.MaxDelay.Duration.String()
+	// }
 
 	configBytes, err := json.Marshal(config)
 	if err != nil {

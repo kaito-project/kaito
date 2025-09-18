@@ -1,2 +1,5 @@
 requests>=2.31.0
 urllib3>=2.0.0
+chardet==5.2.0
+PyPDF2>=3.0.0
+pdfplumber>=0.9.0

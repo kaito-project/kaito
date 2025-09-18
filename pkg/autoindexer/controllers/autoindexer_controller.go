@@ -16,6 +16,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 	"time"
 
@@ -60,8 +61,8 @@ func NewAutoIndexerReconciler(client client.Client, scheme *runtime.Scheme, log 
 	}
 }
 
-//+kubebuilder:rbac:groups=kaito.sh,resources=autoindexers,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=kaito.sh,resources=autoindexers/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=kaito.sh,resources=autoindexers,verbs=get;list;watch;update;patch
+//+kubebuilder:rbac:groups=kaito.sh,resources=autoindexers/status,verbs=get;list;update;patch
 //+kubebuilder:rbac:groups=kaito.sh,resources=autoindexers/finalizers,verbs=update
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=batch,resources=cronjobs,verbs=get;list;watch;create;update;patch;delete
@@ -81,9 +82,9 @@ func (r *AutoIndexerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	klog.InfoS("Reconciling", "AutoIndexer", req.NamespacedName)
 
 	if autoIndexerObj.DeletionTimestamp.IsZero() {
-		if err := r.ensureFinalizer(ctx, autoIndexerObj); err != nil {
-			return ctrl.Result{}, err
-		}
+		// if err := r.ensureFinalizer(ctx, autoIndexerObj); err != nil {
+		// 	return ctrl.Result{}, err
+		// }
 	} else {
 		// Handle deleting autoindexer, garbage collect all the resources.
 		return r.deleteAutoIndexer(ctx, autoIndexerObj)
@@ -113,14 +114,14 @@ func (r *AutoIndexerReconciler) ensureFinalizer(ctx context.Context, autoIndexer
 // addAutoIndexer handles the reconciliation logic for creating/updating AutoIndexer
 func (r *AutoIndexerReconciler) addAutoIndexer(ctx context.Context, autoIndexerObj *kaitov1alpha1.AutoIndexer) (ctrl.Result, error) {
 	// Check if suspend is true
-	if autoIndexerObj.Spec.Suspend != nil && *autoIndexerObj.Spec.Suspend {
-		klog.InfoS("AutoIndexer is suspended, skipping reconciliation", "autoindexer", klog.KObj(autoIndexerObj))
-		if err := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeScheduled, metav1.ConditionFalse,
-			"Suspended", "AutoIndexer is suspended"); err != nil {
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
-	}
+	// if autoIndexerObj.Spec.Suspend != nil && *autoIndexerObj.Spec.Suspend {
+	// 	klog.InfoS("AutoIndexer is suspended, skipping reconciliation", "autoindexer", klog.KObj(autoIndexerObj))
+	// 	if err := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeScheduled, metav1.ConditionFalse,
+	// 		"Suspended", "AutoIndexer is suspended"); err != nil {
+	// 		return ctrl.Result{}, err
+	// 	}
+	// 	return ctrl.Result{}, nil
+	// }
 
 	// Validate that referenced RAGEngine exists
 	if err := r.validateRAGEngineRef(ctx, autoIndexerObj); err != nil {
@@ -199,7 +200,7 @@ func (r *AutoIndexerReconciler) ensureCronJob(ctx context.Context, autoIndexerOb
 		AutoIndexer:     autoIndexerObj,
 		JobName:         fmt.Sprintf("%s-cronjob", autoIndexerObj.Name),
 		JobType:         "scheduled-indexing",
-		Image:           manifests.AutoIndexerImage,
+		Image:           getImageConfig().GetImage(),
 		ImagePullPolicy: "IfNotPresent",
 	}
 
@@ -239,7 +240,7 @@ func (r *AutoIndexerReconciler) ensureJob(ctx context.Context, autoIndexerObj *k
 		AutoIndexer:     autoIndexerObj,
 		JobName:         fmt.Sprintf("%s-job", autoIndexerObj.Name),
 		JobType:         "one-time-indexing",
-		Image:           manifests.AutoIndexerImage,
+		Image:           getImageConfig().GetImage(),
 		ImagePullPolicy: "IfNotPresent",
 	}
 
@@ -376,4 +377,30 @@ func (r *AutoIndexerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // equalCronJobs compares two CronJob specs for equality
 func equalCronJobs(existing, desired *batchv1.CronJob) bool {
 	return reflect.DeepEqual(existing.Spec, desired.Spec)
+}
+
+type ImageConfig struct {
+	RegistryName string
+	ImageName    string
+	ImageTag     string
+}
+
+func (ic ImageConfig) GetImage() string {
+	return fmt.Sprintf("%s/%s:%s", ic.RegistryName, ic.ImageName, ic.ImageTag)
+}
+
+func getImageConfig() ImageConfig {
+	return ImageConfig{
+		RegistryName: getEnv("PRESET_AUTO_INDEXER_REGISTRY_NAME", "aimodelsregistrytest.azurecr.io"),
+		ImageName:    getEnv("PRESET_AUTO_INDEXER_IMAGE_NAME", "kaito-autoindexer"),
+		ImageTag:     getEnv("PRESET_AUTO_INDEXER_IMAGE_TAG", "0.6.0"),
+	}
+}
+
+func getEnv(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }

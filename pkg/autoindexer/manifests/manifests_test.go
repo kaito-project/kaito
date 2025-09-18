@@ -53,8 +53,8 @@ func createTestAutoIndexer(name, namespace string, schedule *string) *kaitov1alp
 				},
 			},
 			RetryPolicy: &kaitov1alpha1.RetryPolicySpec{
-				MaxRetries:      3,
-				BackoffStrategy: "exponential",
+				MaxRetries: 3,
+				// BackoffStrategy: "exponential",
 			},
 		},
 	}
@@ -365,7 +365,7 @@ func TestGenerateDataSourceConfig(t *testing.T) {
 	staticDataSource := kaitov1alpha1.DataSourceSpec{
 		Type: kaitov1alpha1.DataSourceTypeStatic,
 		Static: &kaitov1alpha1.StaticDataSourceSpec{
-			Endpoint: "https://api.example.com/docs",
+			Endpoints: []string{"https://api.example.com/docs"},
 		},
 	}
 

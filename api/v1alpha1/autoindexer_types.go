@@ -39,10 +39,9 @@ type AutoIndexer struct {
 // AutoIndexerSpec defines the desired state of AutoIndexer
 type AutoIndexerSpec struct {
 
-	// TODO: CHANGE TO OBJECT REF
 	// RAGEngineRef references the RAGEngine resource to use for indexing
 	// +kubebuilder:validation:Required
-	RAGEngineRef metav1.ObjectMeta `json:"ragEngineRef"`
+	RAGEngineRef RAGEngineReference `json:"ragEngineRef"`
 
 	// IndexName is the name of the index where documents will be stored
 	// +kubebuilder:validation:Required
@@ -72,11 +71,22 @@ type AutoIndexerSpec struct {
 	Suspend *bool `json:"suspend,omitempty"`
 }
 
+// RAGEngineReference defines a reference to a ragengine object
+type RAGEngineReference struct {
+	// Name defines the ragengine name
+	// +kubebuilder:validation:Required
+	Name string `json:"name"`
+
+	// Namespace defines the namespace of the ragengine
+	// +kubebuilder:validation:Required
+	Namespace string `json:"namespace"`
+}
+
 // DataSourceSpec defines the source of documents to be indexed
 type DataSourceSpec struct {
 	// Type specifies the data source type
 	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=GitHub;S3;API;ConfigMap;Secret
+	// +kubebuilder:validation:Enum=Git;Static
 	Type DataSourceType `json:"type"`
 
 	// GitHub defines configuration for GitHub repository data sources
@@ -89,7 +99,7 @@ type DataSourceSpec struct {
 }
 
 // DataSourceType defines the supported data source types
-// +kubebuilder:validation:Enum=GitHub;S3;API;ConfigMap;Secret
+// +kubebuilder:validation:Enum=Git;Static
 type DataSourceType string
 
 const (
@@ -122,9 +132,9 @@ type GitDataSourceSpec struct {
 
 // APIDataSourceSpec defines REST API configuration
 type StaticDataSourceSpec struct {
-	// API endpoint URL
+	// data endpoint URLs
 	// +kubebuilder:validation:Required
-	Endpoints []string `json:"endpoint"`
+	Endpoints []string `json:"endpoints"`
 }
 
 // CredentialsSpec defines authentication credentials
@@ -163,19 +173,6 @@ type RetryPolicySpec struct {
 	// Maximum number of retries
 	// +optional
 	MaxRetries int32 `json:"maxRetries,omitempty"`
-
-	// Backoff strategy
-	// +optional
-	// +kubebuilder:validation:Enum=linear;exponential
-	BackoffStrategy string `json:"backoffStrategy,omitempty"`
-
-	// Initial delay between retries
-	// +optional
-	InitialDelay *metav1.Duration `json:"initialDelay,omitempty"`
-
-	// Maximum delay between retries
-	// +optional
-	MaxDelay *metav1.Duration `json:"maxDelay,omitempty"`
 }
 
 // AutoIndexerStatus defines the observed state of AutoIndexer

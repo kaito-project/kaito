@@ -137,7 +137,7 @@ def test_environment_variable_parsing():
     
     # Mock environment variables
     with patch.dict(os.environ, test_env_vars):
-        from autoindexer_service import AutoIndexerService
+        from presets.autoindexer.main import AutoIndexerService
         
         # Mock the RAG client to avoid actual network calls
         with patch('autoindexer_service.KAITORAGClient') as mock_rag_client_class:

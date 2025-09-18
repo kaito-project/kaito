@@ -47,8 +47,9 @@ class AutoIndexerService:
     Main AutoIndexer service that coordinates document indexing from data sources to RAG engines.
     """
 
-    def __init__(self):
+    def __init__(self, dry_run: bool = False):
         """Initialize the AutoIndexer service with environment variables."""
+        self.dry_run = dry_run
         self.index_name = self._get_required_env("INDEX_NAME")
         self.ragengine_endpoint = self._get_required_env("RAGENGINE_ENDPOINT")
         self.datasource_type = self._get_required_env("DATASOURCE_TYPE")
@@ -114,6 +115,12 @@ class AutoIndexerService:
             
             # Index documents in RAG engine
             logger.info("Indexing documents in RAG engine")
+            if self.dry_run:
+                logger.info("Dry-run mode enabled, skipping actual indexing")
+                for doc in documents:
+                    logger.debug(f"Document to index: {doc}")
+                return True
+
             success = self._index_documents(documents)
             
             if success:
@@ -235,13 +242,8 @@ def main():
     # Set logging level
     logging.getLogger().setLevel(getattr(logging, args.log_level))
     
-    if args.dry_run:
-        logger.info("Running in dry-run mode - no documents will be indexed")
-        # TODO: Implement dry-run functionality
-        return True
-    
     try:
-        service = AutoIndexerService()
+        service = AutoIndexerService(dry_run=args.dry_run)
         success = service.run()
         
         if success:

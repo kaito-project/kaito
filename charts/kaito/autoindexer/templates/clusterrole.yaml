@@ -1,0 +1,41 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kaito.fullname" . }}-clusterrole
+  labels:
+    {{- include "kaito.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["kaito.sh"]
+    resources: ["autoindexers"]
+    verbs: ["update","patch","get","list","watch"]
+  - apiGroups: ["kaito.sh"]
+    resources: ["autoindexers/status"]
+    verbs: ["update","patch","get","list","watch"]
+  - apiGroups: ["kaito.sh"]
+    resources: ["ragengines"]
+    verbs: ["get","list","watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get","list","watch","create","delete","update","patch"]
+  - apiGroups: [""]
+    resources: ["nodes", "namespaces"]
+    verbs: ["get","list","watch","update","patch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get","list","watch","create", "delete", "update", "patch"]
+  - apiGroups: [ "" ]
+    resources: [ "pods"]
+    verbs: ["get","list","watch","create", "update", "patch" ]
+  - apiGroups: [ "" ]
+    resources: [ "configmaps" ]
+    verbs: [ "get","list","watch","create", "delete" ]
+  - apiGroups: [ "apps" ]
+    resources: ["deployments" ]
+    verbs: ["get","list","watch","create", "delete","update", "patch"]
+  - apiGroups: [ "apps" ]
+    resources: ["controllerrevisions" ]
+    verbs: [ "get","list","watch","create", "delete","update", "patch"]

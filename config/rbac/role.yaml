@@ -5,9 +5,16 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - kaito.sh
+  - ""
   resources:
-  - workspaces
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
   verbs:
   - create
   - delete
@@ -16,3 +23,40 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kaito.sh
+  resources:
+  - autoindexers
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kaito.sh
+  resources:
+  - autoindexers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - kaito.sh
+  resources:
+  - autoindexers/status
+  verbs:
+  - get
+  - list
+  - patch
+  - update

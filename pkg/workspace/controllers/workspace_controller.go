@@ -123,11 +123,9 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 		return reconcile.Result{}, err
 	}
 
-	// Configure targetNodeCount for the workspace if needed.
-	if skipReconcile, err := c.ConfigureWorkspaceTargetNodeCount(ctx, workspaceObj); err != nil {
+	// update targetNodeCount for the workspace
+	if err := c.UpdateWorkspaceTargetNodeCount(ctx, workspaceObj); err != nil {
 		return reconcile.Result{}, err
-	} else if skipReconcile {
-		return reconcile.Result{}, nil
 	}
 
 	return c.addOrUpdateWorkspace(ctx, workspaceObj)
@@ -146,36 +144,43 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 }
 
 func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
-	// diff node claims
-	skipReconcile, addedNodeClaimsCount, existingNodeClaims, readyNodes, err := c.nodeClaimManager.DiffNodeClaims(ctx, wObj)
-	if err != nil {
-		return reconcile.Result{}, err
-	} else if skipReconcile {
+	workspaceKey := client.ObjectKeyFromObject(wObj).String()
+	if !c.expectations.SatisfiedExpectations(c.Log, workspaceKey) {
+		klog.V(4).InfoS("Waiting for NodeClaim expectations to be satisfied",
+			"workspace", workspaceKey)
 		return reconcile.Result{}, nil
 	}
 
-	// provision nodeclaims
-	if addedNodeClaimsCount > 0 {
-		if skipReconcile, err := c.nodeClaimManager.ProvisionUpNodeClaims(ctx, wObj, addedNodeClaimsCount); err != nil {
-			return reconcile.Result{}, err
-		} else if skipReconcile {
-			return reconcile.Result{}, nil
-		}
+	// diff node claims
+	addedNodeClaimsCount, existingNodeClaims, readyNodes, err := c.nodeClaimManager.CheckNodeClaims(ctx, wObj)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// create nodeclaims
+	if err := c.nodeClaimManager.CreateUpNodeClaims(ctx, wObj, addedNodeClaimsCount); err != nil {
+		return reconcile.Result{}, err
 	}
 
 	// check nodeclaims meet the target count
-	if skipReconcile, err := c.nodeClaimManager.MeetReadyNodeClaimsTarget(ctx, wObj, existingNodeClaims); err != nil {
+	if areReady, err := c.nodeClaimManager.AreNodeClaimsReady(ctx, wObj, existingNodeClaims); err != nil {
 		return reconcile.Result{}, err
-	} else if skipReconcile {
+	} else if !areReady {
+		// Not enough ready nodeclaims, requeue and wait for next reconcile
 		return reconcile.Result{}, nil
 	}
 
-	// ensure node resources
-	if skipReconcile, err := c.nodeResourceManager.EnsureNodeResource(ctx, wObj, existingNodeClaims, readyNodes); err != nil {
+	// check node plugins ready
+	if areReady, err := c.nodeResourceManager.AreNodePluginsReady(ctx, wObj, existingNodeClaims); err != nil {
 		return reconcile.Result{}, err
-	} else if skipReconcile {
+	} else if !areReady {
 		// The node resource changes can not trigger workspace controller reconcile, so we need to requeue reconcile when don't proceed because of node resource not ready.
 		return reconcile.Result{RequeueAfter: 2 * time.Second}, nil
+	}
+
+	// update worker nodes in status
+	if err := c.nodeResourceManager.UpdateWorkerNodesInStatus(ctx, wObj, readyNodes); err != nil {
+		return reconcile.Result{}, err
 	}
 
 	if wObj.Tuning != nil {
@@ -690,15 +695,12 @@ func (c *WorkspaceReconciler) ensureGatewayAPIInferenceExtension(ctx context.Con
 	return nil
 }
 
-// ConfigureWorkspaceReplicasSetting ensures Replicas, PerReplicaNodeCount and TargetNodeCount are configured for workspace
-// the bool return value indicates whether the current reconciliation loop should exit or not.
-// if return false, it means the targetNodeCount is already configured, so the reconciliation should not exit.
-// if return true, it means the targetNodeCount is not configured yet, so the reconciliation should exit.
-func (c *WorkspaceReconciler) ConfigureWorkspaceTargetNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, error) {
+// UpdateWorkspaceTargetNodeCount is used for updating the targetNodeCount in workspace status when it is 0.
+func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	var err error
+	targetNodeCount := int32(1)
 	if wObj.Status.TargetNodeCount == 0 {
 		if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
-			targetNodeCount := int32(1)
 			if wObj.Inference != nil {
 				targetNodeCount, err = c.Estimator.EstimateNodeCount(ctx, wObj)
 				if err != nil {
@@ -711,12 +713,13 @@ func (c *WorkspaceReconciler) ConfigureWorkspaceTargetNodeCount(ctx context.Cont
 			status.TargetNodeCount = int32(targetNodeCount)
 			return nil
 		}); err != nil {
-			return true, fmt.Errorf("failed to update Workspace status targetNodeCount: %w", err)
+			return fmt.Errorf("failed to update Workspace status targetNodeCount: %w", err)
 		}
-		return true, nil
+		// Update the wObj to reflect the latest status change.
+		wObj.Status.TargetNodeCount = targetNodeCount
 	}
 
-	return false, nil
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

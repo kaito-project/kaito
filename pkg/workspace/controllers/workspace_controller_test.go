@@ -885,11 +885,10 @@ func (m *mockEstimator) EstimateNodeCount(ctx context.Context, workspace *v1beta
 	return args.Get(0).(int32), args.Error(1)
 }
 
-func TestConfigureWorkspaceTargetNodeCount(t *testing.T) {
+func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 	tests := map[string]struct {
 		workspace      *v1beta1.Workspace
 		setupMocks     func(*test.MockClient, *mockEstimator, *int32)
-		expectedResult bool
 		expectedError  bool
 		expectedTarget int32
 	}{
@@ -899,7 +898,6 @@ func TestConfigureWorkspaceTargetNodeCount(t *testing.T) {
 				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 2},
 			},
 			setupMocks:     func(c *test.MockClient, e *mockEstimator, _ *int32) {},
-			expectedResult: false,
 			expectedError:  false,
 			expectedTarget: 2,
 		},
@@ -922,7 +920,6 @@ func TestConfigureWorkspaceTargetNodeCount(t *testing.T) {
 						*updatedTarget = ws.Status.TargetNodeCount
 					}).Return(nil)
 			},
-			expectedResult: true,
 			expectedError:  false,
 			expectedTarget: 1,
 		},
@@ -946,7 +943,6 @@ func TestConfigureWorkspaceTargetNodeCount(t *testing.T) {
 						*updatedTarget = ws.Status.TargetNodeCount
 					}).Return(nil)
 			},
-			expectedResult: true,
 			expectedError:  false,
 			expectedTarget: 3,
 		},
@@ -965,7 +961,6 @@ func TestConfigureWorkspaceTargetNodeCount(t *testing.T) {
 						ws.Status = v1beta1.WorkspaceStatus{TargetNodeCount: 0}
 					}).Return(nil).Once()
 			},
-			expectedResult: true,
 			expectedError:  true,
 			expectedTarget: 0,
 		},
@@ -982,15 +977,14 @@ func TestConfigureWorkspaceTargetNodeCount(t *testing.T) {
 			}
 
 			reconciler := &WorkspaceReconciler{Client: mockClient, Estimator: mockEst}
-			res, err := reconciler.ConfigureWorkspaceTargetNodeCount(context.Background(), tt.workspace)
+			err := reconciler.UpdateWorkspaceTargetNodeCount(context.Background(), tt.workspace)
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
 			}
-			assert.Equal(t, tt.expectedResult, res)
-			if !tt.expectedError && tt.expectedResult {
-				assert.Equal(t, tt.expectedTarget, updatedTarget)
+			if !tt.expectedError {
+				assert.Equal(t, tt.expectedTarget, tt.workspace.Status.TargetNodeCount)
 			}
 
 			mockClient.AssertExpectations(t)

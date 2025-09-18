@@ -47,51 +47,41 @@ func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expecta
 	}
 }
 
-// DiffNodeClaims compares the current state of NodeClaims with the desired state
-// the bool return value indicates whether the current reconciliation loop should exit or not.
-// if return true, it means the nodeclaims sync has already completed, so the reconciliation should exit.
-// if return false, it means the nodeclaims sync has not completed yet, so the reconciliation should not exit.
-func (c *NodeClaimManager) DiffNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, int, []*karpenterv1.NodeClaim, []string, error) {
-	workspaceKey := client.ObjectKeyFromObject(wObj).String()
+// CheckNodeClaims checks the current state of NodeClaims with the target count recorded in the workspace.Status.
+func (c *NodeClaimManager) CheckNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace) (int, []*karpenterv1.NodeClaim, []string, error) {
 	var addedNodeClaimsCount int
-
-	if !c.expectations.SatisfiedExpectations(c.logger, workspaceKey) {
-		klog.V(4).InfoS("Waiting for NodeClaim expectations to be satisfied",
-			"workspace", klog.KObj(wObj))
-		return true, addedNodeClaimsCount, nil, nil, nil
-	}
 
 	// Calculate the number of NodeClaims required (target - BYO nodes)
 	readyNodes, targetNodeClaimsCount, err := nodeclaim.ResolveReadyNodesAndTargetNodeClaimCount(ctx, c.Client, wObj)
 	if err != nil {
-		return true, addedNodeClaimsCount, nil, nil, fmt.Errorf("failed to get required NodeClaims: %w", err)
+		return addedNodeClaimsCount, nil, nil, fmt.Errorf("failed to get required NodeClaims: %w", err)
 	}
 
 	existingNodeClaims, err := nodeclaim.GetExistingNodeClaims(ctx, c.Client, wObj)
 	if err != nil {
-		return true, addedNodeClaimsCount, nil, nil, fmt.Errorf("failed to get existing NodeClaims: %w", err)
+		return addedNodeClaimsCount, nil, nil, fmt.Errorf("failed to get existing NodeClaims: %w", err)
 	}
 
 	if targetNodeClaimsCount > len(existingNodeClaims) {
 		addedNodeClaimsCount = targetNodeClaimsCount - len(existingNodeClaims)
 	}
 
-	return false, addedNodeClaimsCount, existingNodeClaims, readyNodes, nil
+	return addedNodeClaimsCount, existingNodeClaims, readyNodes, nil
 }
 
-// ProvisionUpNodeClaims creates a specified number of NodeClaims as defined by nodesToCreate for the given workspace.
+// CreateUpNodeClaims creates a specified number of NodeClaims as defined by nodesToCreate for the given workspace.
 // this function will be invoked before creating workloads for workspace in order to ensure nodes.
-// the bool return value indicates whether the current reconciliation loop should exit or not.
-// if return true, it means the nodeclaims provision has not completed yet, so the reconciliation should exit.
-// if return false, it means the nodeclaims provision has already completed, so the reconciliation should not exit.
-func (c *NodeClaimManager) ProvisionUpNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, nodesToCreate int) (bool, error) {
+func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, nodesToCreate int) error {
 	workspaceKey := client.ObjectKeyFromObject(wObj).String()
-	klog.InfoS("Provisioning up additional NodeClaims", "workspace", workspaceKey, "toCreate", nodesToCreate)
+	klog.InfoS("Creating additional NodeClaims", "workspace", workspaceKey, "toCreate", nodesToCreate)
+	if nodesToCreate <= 0 {
+		return nil
+	}
 
 	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-		"ProvisioningUpNodeClaims", fmt.Sprintf("Provisioning up %d additional NodeClaims", nodesToCreate)); updateErr != nil {
+		"CreatingUpNodeClaims", fmt.Sprintf("Creating up %d additional NodeClaims", nodesToCreate)); updateErr != nil {
 		klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", workspaceKey)
-		return true, fmt.Errorf("failed to update NodeClaim status condition: %w", updateErr)
+		return fmt.Errorf("failed to update NodeClaim status condition: %w", updateErr)
 	}
 
 	c.expectations.ExpectCreations(c.logger, workspaceKey, nodesToCreate)
@@ -118,14 +108,11 @@ func (c *NodeClaimManager) ProvisionUpNodeClaims(ctx context.Context, wObj *kait
 		c.recorder.Eventf(wObj, "Normal", "NodeClaimCreated",
 			"Successfully created NodeClaim %s for workspace %s", nodeClaim.Name, workspaceKey)
 	}
-	return false, nil
+	return nil
 }
 
-// MeetReadyNodeClaimsTarget is used for checking the number of ready nodeclaims(isNodeClaimReadyNotDeleting) meet the target count(workspace.Status.TargetNodeCount)
-// the bool return value indicates whether the current reconciliation loop should exit or not.
-// if return true, it means the number of ready nodeclaims are not enough, so the reconciliation should exit.
-// if return false, it means the number of ready nodeclaims are enough, so the reconciliation should not exit.
-func (c *NodeClaimManager) MeetReadyNodeClaimsTarget(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
+// AreNodeClaimsReady is used for checking the number of ready nodeclaims(isNodeClaimReadyNotDeleting) meet the target count(workspace.Status.TargetNodeCount)
+func (c *NodeClaimManager) AreNodeClaimsReady(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
 	targetNodeCount := int(wObj.Status.TargetNodeCount)
 	readyCount := 0
 	for _, claim := range existingNodeClaims {
@@ -138,18 +125,18 @@ func (c *NodeClaimManager) MeetReadyNodeClaimsTarget(ctx context.Context, wObj *
 		// Enough NodeClaims are ready - update status condition to indicate success
 		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
 			"NodeClaimsReady", fmt.Sprintf("Enough NodeClaims are ready (TargetNodeClaims: %d, CurrentReadyNodeClaims: %d)", targetNodeCount, readyCount)); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
+			klog.ErrorS(updateErr, "failed to update NodeClaim status condition NodeClaimsReady to true", "workspace", klog.KObj(wObj))
 			return false, fmt.Errorf("failed to update NodeClaim status condition(NodeClaimsReady): %w", updateErr)
 		}
-		return false, nil
+		return true, nil
 	} else {
 		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
 			"NodeClaimNotReady", fmt.Sprintf("Ready NodeClaims are not enough (TargetNodeClaims: %d, CurrentReadyNodeClaims: %d)", targetNodeCount, readyCount)); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", klog.KObj(wObj))
+			klog.ErrorS(updateErr, "failed to update NodeClaim status condition NodeClaimsReady to false", "workspace", klog.KObj(wObj))
 			return false, fmt.Errorf("failed to update NodeClaim status condition(NodeClaimNotReady): %w", updateErr)
 		}
 
-		return true, nil
+		return false, nil
 	}
 }
 

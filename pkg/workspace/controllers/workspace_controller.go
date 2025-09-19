@@ -163,17 +163,17 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	}
 
 	// check nodeclaims meet the target count
-	if areReady, err := c.nodeClaimManager.AreNodeClaimsReady(ctx, wObj, existingNodeClaims); err != nil {
+	if ready, err := c.nodeClaimManager.AreNodeClaimsReady(ctx, wObj, existingNodeClaims); err != nil {
 		return reconcile.Result{}, err
-	} else if !areReady {
+	} else if !ready {
 		// Not enough ready nodeclaims, requeue and wait for next reconcile
 		return reconcile.Result{}, nil
 	}
 
 	// check node plugins ready
-	if areReady, err := c.nodeResourceManager.AreNodePluginsReady(ctx, wObj, existingNodeClaims); err != nil {
+	if ready, err := c.nodeResourceManager.AreNodePluginsReady(ctx, wObj, existingNodeClaims); err != nil {
 		return reconcile.Result{}, err
-	} else if !areReady {
+	} else if !ready {
 		// The node resource changes can not trigger workspace controller reconcile, so we need to requeue reconcile when don't proceed because of node resource not ready.
 		return reconcile.Result{RequeueAfter: 2 * time.Second}, nil
 	}

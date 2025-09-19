@@ -6,8 +6,8 @@ reviewers:
   - "@Fei-Guo"
   - "@rambohe-ch"
   - "@zhuangqh"
-creation-date: 2025-09-17
-last-updated: 2025-09-17
+creation-date: 2025-09-18
+last-updated: 2025-09-18
 status: provisional
 see-also:
 ---
@@ -73,15 +73,24 @@ spec:
     type: RollingUpdate
 ```
 
-- related fields:
+### related fields in `InferenceSet` CR
   - `spec.Replicas`
-    number of workspace CR created by InferenceSet controller
+
+    number of `workspace` CR created by InferenceSet controller
   - `spec.quota`
-    optional, total GPU node count limit for InferenceSet
+
+    (optional) total GPU node count limit for InferenceSet, this is used in autoscaling scenario, every workspace CR would consumes a few CPU nodes, the total CPU node should not exceed this quota otherwise there would be error during autoscaling
   - `spec.selector.matchLabels`
+
     workspace created by InferenceSet controller would use this label in resource.labelSelector
   - `spec.updateStrategy.type`
-    available values: `RollingUpdate`, `OnDelete` (same as updateStrategy of `StatefulSet`)
+
+    allows you to configure and disable automated rolling updates for existing workspace CRs, available values: `RollingUpdate`(default), `OnDelete`, and `rollingUpdate` supports `maxUnavailable`.
+     - following fields supports update:
+       - `spec.Replicas`
+       - `spec.quota`
+       - `spec.template.adapters`
+
 
 ## Implementation Strategy
 
@@ -94,6 +103,13 @@ the `InferenceSet` controller would create a few `Workspace` CRs per the `Infere
 
 ### Step 2:
 Address other functionalities, e.g. Update Strategy
+  - `spec.updateStrategy.type`
+
+    allows you to configure and disable automated rolling updates for existing workspace CRs, available values: `RollingUpdate`(default), `OnDelete`, and `rollingUpdate` supports `maxUnavailable`.
+     - following fields supports update:
+       - `spec.Replicas`
+       - `spec.quota`
+       - `spec.template.adapters`
 
 ## Implementation History
 - [ ] 09/18/2025: Open proposal PR

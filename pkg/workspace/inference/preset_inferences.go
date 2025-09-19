@@ -35,7 +35,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator/advancednodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -139,14 +138,8 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	gpuConfig := getGPUConfig(gctx)
 
-	// Use AdvancedNodesEstimator to optimize the node count if possible
-	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
-	estimatedNodes, err := estimator.EstimateNodeCount(ctx, workspaceObj)
-	if err != nil {
-		//nolint:staticcheck //SA1019: deprecate Resource.Count field
-		estimatedNodes = int32(*workspaceObj.Resource.Count)
-	}
-	numNodes := int(estimatedNodes)
+	// Set the target node count for the inference workload
+	numNodes := int(workspaceObj.Status.TargetNodeCount)
 
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
 		GenerateInferencePodSpec(&gpuConfig, numNodes),

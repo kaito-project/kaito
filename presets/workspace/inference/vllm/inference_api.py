@@ -229,7 +229,7 @@ def binary_search_with_limited_steps(
 
 def is_context_length_safe(executor: ExecutorBase, context_length: int) -> bool:
     """
-    Check if the avilable gpu blocks is enough for the given num_gpu_blocks.
+    Check if the available gpu blocks is enough for the given num_gpu_blocks.
     """
     # Profile memory usage with max_num_sequences sequences and the total
     # number of tokens equal to max_num_batched_tokens.

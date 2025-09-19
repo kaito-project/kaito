@@ -215,7 +215,7 @@ class ModelConfig:
 @dataclass
 class QuantizationConfig(BitsAndBytesConfig):
     """
-    Quanitization Configuration
+    Quantization Configuration
     """
 
     quant_method: str = field(

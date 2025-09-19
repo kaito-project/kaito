@@ -10,7 +10,7 @@ models:
     # 0.0.6 - bump vLLM to 0.10.1.1, transformers to 4.55.2, torch to 2.7.1, lmcache to 0.3.3, ray to 2.48.0, accelerate to 1.3.0
     # 0.0.5 - update chat-template for new models
     # 0.0.4 - bump vLLM to 0.9.0.
-    # 0.0.3 - add depdenencies to support vLLM multi-node distributed inference
+    # 0.0.3 - add dependencies to support vLLM multi-node distributed inference
     # 0.0.2 - bump vLLM to 0.8.5. Tool chat template added.
     # 0.0.1 - Initial Release
 

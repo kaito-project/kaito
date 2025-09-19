@@ -133,7 +133,7 @@ sequenceDiagram
 3. **Can the feature be disabled once it has been enabled?**
    - No, once OCI artifacts are used, the system will rely on them for model distribution
 
-4. **What happens if we reenable the feature if it was previously rolled back?**
+4. **What happens if we re-enable the feature if it was previously rolled back?**
    - No special considerations, the system will start using OCI artifacts for model distribution
 
 5. **Are there any tests for feature enablement/disablement?**

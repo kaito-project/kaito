@@ -46,7 +46,7 @@ To ensure ease of use, the specialized kaito scaler is hosted in an independent 
 
 ### Non-Goals/Future Work
 
-- The time efficiency of the auto-scaler is not within the scope of this proposal, as it is influenced by mutliple external factors, including GPU node provisioning, LLM image pulling, etc.
+- The time efficiency of the auto-scaler is not within the scope of this proposal, as it is influenced by multiple external factors, including GPU node provisioning, LLM image pulling, etc.
 - Only support scale vllm workload, and non-vllm is not covered.
 
 ## Proposal
@@ -55,10 +55,10 @@ Keda can provides both metric-based and time-based scaler capability, but for me
 
 ![keda-prometheus-cron-auto-scaler](../../static/img/keda-prometheus-cron-auto-scaler.png)
 
-- **Keda**: includes two components: metrics-adapter and keda-core. metrics-adpter is used for exposing external metrics on kube-apiserver wihch will be used by native HPA. keda-core includes the core logic of keda system, like the generation of HPA resource according to ScaledObject, and supporting different scalers(like prometheus, cron scalers).
+- **Keda**: includes two components: metrics-adapter and keda-core. metrics-adpter is used for exposing external metrics on kube-apiserver which will be used by native HPA. keda-core includes the core logic of keda system, like the generation of HPA resource according to ScaledObject, and supporting different scalers(like prometheus, cron scalers).
 - **Scalers**: Keda providers more than 100+ scalers, but these scalers are only used for providing metrics for native HPA, and the scaling logic and actions are taken by native HPA.
-- **HPA**: native scaler capability in K8s, scale workloads accroding to HPA resource that created by keda, pull metrics and calculate the desired replicas at a interval time and invokes the `/scale` subresource API of the target workspace when scaling needed.
-- **Prometheus**: scrape specified metrics at a interval cycle accroding to PodMonitor configurations.
+- **HPA**: native scaler capability in K8s, scale workloads according to HPA resource that created by keda, pull metrics and calculate the desired replicas at a interval time and invokes the `/scale` subresource API of the target workspace when scaling needed.
+- **Prometheus**: scrape specified metrics at a interval cycle according to PodMonitor configurations.
 
 ### Time-based Scaler of Keda
 
@@ -405,7 +405,7 @@ triggers:
     # Optional: Timeout for metric scraping in seconds
     # Default: 5
     scrapeTimeout: "5"
-  # Optional: TLS Authentication used by keda-core to acess keda-kaito-scaler
+  # Optional: TLS Authentication used by keda-core to access keda-kaito-scaler
   # Default: "keda-kaito-creds"
   authenticationRef:
     name: keda-kaito-creds

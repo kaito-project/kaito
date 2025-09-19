@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -244,6 +245,25 @@ vllm:
 
 func TestResourceSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
+
+	// Create fake client with test nodes for BYO mode validation
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		// Add a test node with NVIDIA GPU labels for BYO mode validation
+		&v1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test-gpu-node",
+				Labels: map[string]string{
+					"nvidia.com/gpu.count":   "8",
+					"nvidia.com/gpu.memory":  "80000MiB",
+					"nvidia.com/gpu.product": "NVIDIA-A100-SXM4-80GB",
+				},
+			},
+		},
+	).Build()
+	k8sclient.SetGlobalClient(client)
+
 	tests := []struct {
 		name                    string
 		resourceSpec            *ResourceSpec
@@ -426,8 +446,21 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
+	// Save original feature gate value and restore it after test
+	originalNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalNAP
+	}()
+
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			// For tests that expect NAP mode validation errors, disable BYO mode
+			if tc.name == "Insufficient total GPU memory" || tc.name == "Insufficient number of GPUs" || tc.name == "Invalid SKU" || tc.name == "HuggingFace Transformers + Distributed Inference" {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			} else {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+			}
+
 			if tc.validateTuning {
 				tuningSpec := &TuningSpec{}
 				errs := tc.resourceSpec.validateCreateWithTuning(tuningSpec)
@@ -468,7 +501,14 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				totalSafeTensorFileSize = tc.totalSafeTensorFileSize
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
-				errs := tc.resourceSpec.validateCreateWithInference(&spec, false, tc.runtime)
+				// Create a dummy workspace for the test
+				workspace := &Workspace{
+					Resource:  *tc.resourceSpec,
+					Inference: &spec,
+				}
+				ctx := context.Background()
+
+				errs := tc.resourceSpec.validateCreateWithInference(ctx, workspace, &spec, false, tc.runtime)
 				hasErrs := errs != nil
 				if hasErrs != tc.expectErrs {
 					t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -1132,6 +1172,17 @@ func TestWorkspaceValidateName(t *testing.T) {
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
 		defaultInferenceConfigMapManifest(),
+		// Add a test node with NVIDIA GPU labels for BYO mode validation
+		&v1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test-gpu-node",
+				Labels: map[string]string{
+					"nvidia.com/gpu.count":   "2",
+					"nvidia.com/gpu.memory":  "16000MiB",
+					"nvidia.com/gpu.product": "NVIDIA-Tesla-V100",
+				},
+			},
+		},
 	).Build()
 	k8sclient.SetGlobalClient(client)
 
@@ -1141,8 +1192,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 			Namespace: "kaito",
 		},
 		Resource: ResourceSpec{
-			InstanceType: "Standard_NC6s_v3",
-			Count:        pointerToInt(1),
+			Count: pointerToInt(1),
 		},
 		Inference: &InferenceSpec{
 			Preset: &PresetSpec{

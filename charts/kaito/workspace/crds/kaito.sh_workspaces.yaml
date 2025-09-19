@@ -562,8 +562,8 @@ spec:
               instanceType:
                 description: |-
                   InstanceType specifies the GPU node SKU.
-                  This field is required when NAP (Node Auto Provisioning) is enabled.
-                  When NAP is disabled, this field should not be specified (use preferredNodes instead).
+                  Required when node auto-provisioning is enabled (NAP).
+                  Must be empty when node auto-provisioning is disabled (BYO).
                 type: string
               labelSelector:
                 description: LabelSelector specifies the required labels for the GPU

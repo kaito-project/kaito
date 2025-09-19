@@ -560,10 +560,10 @@ spec:
                   Count is the required number of GPU nodes.
                 type: integer
               instanceType:
-                default: Standard_NC24ads_A100_v4
                 description: |-
                   InstanceType specifies the GPU node SKU.
-                  This field defaults to "Standard_NC24ads_A100_v4" if not specified.
+                  Required when node auto-provisioning is enabled (NAP).
+                  Must be empty when node auto-provisioning is disabled (BYO).
                 type: string
               labelSelector:
                 description: LabelSelector specifies the required labels for the GPU

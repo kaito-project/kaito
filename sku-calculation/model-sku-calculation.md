@@ -148,3 +148,50 @@ final_max_token_length = min(calculated_max_token_length, max_position_embedding
 
 This ensures that the token length does not exceed the model's architectural limitations.
 
+### Understanding max_position_embeddings
+
+The `max_position_embeddings` parameter is a critical architectural constraint that defines the maximum sequence length a model can handle during training and inference.
+
+**What is max_position_embeddings:**
+- **Definition**: The maximum number of tokens that the model's positional encoding can handle
+- **Source**: Found in the model's `config.json` file in the Hugging Face repository
+- **Purpose**: Defines the upper limit for input sequence length during model training
+
+**Why this constraint matters:**
+1. **Positional Encoding Limitation**: Transformer models use positional encodings to understand token positions in a sequence. The model is only trained with positions up to `max_position_embeddings`
+2. **Training Context**: Models are trained with specific maximum sequence lengths, and exceeding this limit can lead to:
+   - Degraded model performance
+   - Unexpected behavior or errors
+   - Potential inference failures
+
+**Common max_position_embeddings values:**
+- **2048**: Traditional limit for many early transformer models (GPT-2, early LLaMA variants)
+- **4096**: Common in modern models (LLaMA-2, some Mistral variants)
+- **8192**: Extended context models (some Code Llama variants)
+- **32768**: Long context models (LLaMA-2-32k, some specialized variants)
+- **131072**: Very long context models (specialized research models)
+
+**Example from config.json:**
+```json
+{
+  "architectures": ["LlamaForCausalLM"],
+  "hidden_size": 4096,
+  "num_attention_heads": 32,
+  "num_hidden_layers": 32,
+  "max_position_embeddings": 4096,
+  ...
+}
+```
+
+**Practical implications:**
+- If your GPU memory allows for `max_token_length = 8192` but the model's `max_position_embeddings = 4096`, the effective limit is 4096
+- Users can configure higher values in their ConfigMap, but the system will automatically cap it at the model's architectural limit
+- This prevents runtime errors and ensures optimal model performance
+
+**KAITO Implementation:**
+In KAITO's estimator logic, this constraint is enforced by:
+1. Reading the model's `max_position_embeddings` from the model metadata
+2. Calculating the maximum possible token length based on available GPU memory
+3. Taking the minimum of these two values as the final limit
+4. Using this final value for both node estimation and runtime configuration
+

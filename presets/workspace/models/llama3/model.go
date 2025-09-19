@@ -66,6 +66,7 @@ func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "14.96Gi",
 		BytesPerToken:           131072,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetLlamaInference,
@@ -110,6 +111,7 @@ func (*llama3_3_70Binstruct) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "131.42Gi",
 		BytesPerToken:           327680,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetLlamaInference,

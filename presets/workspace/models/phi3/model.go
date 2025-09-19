@@ -77,6 +77,7 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "7.12Gi",
 		BytesPerToken:           393216,
+		ModelTokenLimit:         4096, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
@@ -125,6 +126,7 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "7.12Gi",
 		BytesPerToken:           393216,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
@@ -171,6 +173,7 @@ func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "7.12Gi",
 		BytesPerToken:           393216,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
@@ -219,6 +222,7 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "26Gi",
 		BytesPerToken:           204800,
+		ModelTokenLimit:         4096, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
@@ -267,6 +271,7 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "26Gi",
 		BytesPerToken:           204800,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,

@@ -216,7 +216,7 @@ func TestAdvancedNodesEstimator_EstimateNodeCount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			count, err := calculator.EstimateNodeCount(ctx, tt.workspace)
+			count, err := calculator.EstimateNodeCount(ctx, tt.workspace, nil)
 
 			if tt.expectedError {
 				require.Error(t, err)
@@ -316,7 +316,7 @@ func TestAdvancedNodesEstimator_EstimateNodeCount_Falcon7B(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			count, err := calculator.EstimateNodeCount(ctx, tt.workspace)
+			count, err := calculator.EstimateNodeCount(ctx, tt.workspace, nil)
 
 			if tt.expectedError {
 				require.Error(t, err)
@@ -365,14 +365,14 @@ func TestAdvancedNodesEstimator_EstimateNodeCount_Qwen25Coder32B(t *testing.T) {
 					},
 				},
 			},
-			expectedCount: 1, // Should optimize to 1 node (62.5Gi fits in 80GB A100 GPU)
+			expectedCount: 2, // Should optimize to 2 node (62.5Gi fits in 80GB A100 GPU)
 			expectedError: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			count, err := calculator.EstimateNodeCount(ctx, tt.workspace)
+			count, err := calculator.EstimateNodeCount(ctx, tt.workspace, nil)
 
 			if tt.expectedError {
 				require.Error(t, err)

@@ -16,14 +16,18 @@ package advancednodesestimator
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
 
 // AdvancedNodesEstimator estimates node count based on SKU memory and model memory requirement
@@ -35,7 +39,7 @@ func (c *AdvancedNodesEstimator) Name() string {
 	return "advanced"
 }
 
-func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspace *kaitov1beta1.Workspace) (int32, error) {
+func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspace *kaitov1beta1.Workspace, client client.Client) (int32, error) {
 	// If inference is not configured, default to resource count or 1
 	if workspace.Inference == nil || workspace.Inference.Preset == nil || workspace.Inference.Preset.Name == "" {
 		//nolint:staticcheck //SA1019: deprecate Resource.Count field
@@ -66,15 +70,39 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		nodeCountPerReplica = int(*workspace.Resource.Count)
 	}
 
-	// Use default max-model-len value
-	maxModelLen := 2048 // Default value
+	// maxModelLen logic:
+	// 1. If user has no custom config, use default 2048
+	// 2. If user has custom configmap but no max-model-len, use 2048
+	// 3. If user has configmap with max-model-len, use user's value
+	maxModelLen := 2048
+
+	if workspace.Inference.Config != "" {
+		// User has custom ConfigMap, try to read it
+		configMapName := workspace.Inference.Config
+		configMap := &corev1.ConfigMap{}
+		err := resources.GetResource(ctx, configMapName, workspace.Namespace, client, configMap)
+		if err != nil {
+			klog.Warningf("[AdvancedEstimator] Failed to get ConfigMap %s: %v, using default maxModelLen=%d", configMapName, err, maxModelLen)
+		} /* else {
+			// Search for max-model-len in ConfigMap data
+			for _, content := range configMap.Data {
+				if userMaxModelLen, found := utils.ParseExplicitMaxModelLen(content); found {
+					maxModelLen = userMaxModelLen
+					klog.Infof("[AdvancedEstimator] Found user max-model-len=%d in ConfigMap %s", maxModelLen, configMapName)
+					break
+				}
+			}
+		} */
+	}
+
+	klog.Infof("[AdvancedEstimator] workspace=%s maxModelLen=%d", workspace.Name, maxModelLen)
 
 	// If GPU memory information is available, calculate the optimal node count
 	if gpuConfig.GPUMemGB > 0 && gpuConfig.GPUCount > 0 {
 		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalSafeTensorFileSize)
-		requiredMemoryBytes := int64(float64(totalGPUMemoryRequired.Value()) * 0.95) // vllm model size is about 95% percent of hugging face size
+		requiredMemoryBytes := int64(float64(totalGPUMemoryRequired.Value()) * 1.02) // vllm model size is about 102% percent of hugging face size
 		totalGPUMemoryPerGPUBytes := int64(gpuConfig.GPUMemGB) * consts.GiBToBytes / int64(gpuConfig.GPUCount)
-		availableGPUMemoryPerGPUBytes := int64(float64(totalGPUMemoryPerGPUBytes) * 0.9) // utilization is set to default 0.9
+		availableGPUMemoryPerGPUBytes := int64(float64(totalGPUMemoryPerGPUBytes) * 0.82) // utilization is set to default 0.82
 
 		// Overhead calculation: fixed base overhead (2.3GB) + model length overhead
 		// Following the same algorithm as preset_inferences.go
@@ -100,14 +128,14 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 
 		// Calculate minimum nodes: we need minGPUs GPU groups
 		// If each node has gpuConfig.GPUCount GPUs, we need ceil(minGPUs / gpuConfig.GPUCount) nodes
-		optimizedNodes := (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
+		nodeCountPerReplica = (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
 
-		// Optimization logic moved from preset_inferences.go
-		if optimizedNodes < nodeCountPerReplica {
-			klog.Infof("Optimizing node count from %d to %d based on GPU memory calculation", nodeCountPerReplica, optimizedNodes)
-			nodeCountPerReplica = optimizedNodes
+		// Special case for Falcon models: they cannot be distributed across multiple nodes
+		if nodeCountPerReplica > 1 && strings.Contains(presetName, "falcon") {
+			return 0, fmt.Errorf("falcon models cannot be distributed across more than 1 GPU node, calculated nodes: %d", nodeCountPerReplica)
 		}
 	}
 
+	klog.Infof("[AdvancedEstimator] Final result: nodeCountPerReplica=%d for workspace %s", nodeCountPerReplica, workspace.Name)
 	return int32(nodeCountPerReplica), nil
 }

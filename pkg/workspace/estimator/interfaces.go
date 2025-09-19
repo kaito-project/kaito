@@ -16,6 +16,8 @@ package estimator
 import (
 	"context"
 
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
@@ -24,6 +26,6 @@ type NodesEstimator interface {
 	// Name returns the name of the nodes estimator.
 	Name() string
 
-	// EstimateNodeCount estimates the number of nodes required for the given workspace.
-	EstimateNodeCount(ctx context.Context, workspace *kaitov1beta1.Workspace) (int32, error)
+	// EstimateNodeCount estimates nodes. Reads max-model-len from workspace ConfigMap if available.
+	EstimateNodeCount(ctx context.Context, workspace *kaitov1beta1.Workspace, client client.Client) (int32, error)
 }

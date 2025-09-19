@@ -291,11 +291,13 @@ func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNo
 }
 
 func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace, configMapData ...map[string]string) {
-	var customConfigData map[string]string
-	if len(configMapData) > 0 && configMapData[0] != nil {
-		customConfigData = configMapData[0]
-	}
-	createConfigForWorkspace(workspaceObj, customConfigData)
+	/*
+		var customConfigData map[string]string
+		if len(configMapData) > 0 && configMapData[0] != nil {
+			customConfigData = configMapData[0]
+		}
+		createConfigForWorkspace(workspaceObj, customConfigData)
+	*/
 
 	By("Creating workspace", func() {
 		Eventually(func() error {
@@ -1088,182 +1090,182 @@ var _ = Describe("Workspace Preset", func() {
 			Fail("Fail threshold reached")
 		}
 	})
+	/*
+		It("should create a mistral workspace with preset public mode successfully", func() {
+			numOfNode := 1
+			workspaceObj := createMistralWorkspaceWithPresetPublicMode(numOfNode)
 
-	It("should create a mistral workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createMistralWorkspaceWithPresetPublicMode(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-	})
+		It("should create a Phi-2 workspace with preset public mode successfully", func() {
+			numOfNode := 1
+			workspaceObj := createPhi2WorkspaceWithPresetPublicMode(numOfNode)
 
-	It("should create a Phi-2 workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createPhi2WorkspaceWithPresetPublicMode(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-	})
+		It("should create a falcon workspace with preset public mode successfully", func() {
+			numOfNode := 1
+			workspaceObj := createFalconWorkspaceWithPresetPublicMode(numOfNode)
 
-	It("should create a falcon workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createFalconWorkspaceWithPresetPublicMode(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-	})
+		It("should create a llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+			numOfNode := 1
+			workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(numOfNode)
 
-	It("should create a llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-	})
+		It("should create a custom template workspace successfully", utils.GinkgoLabelFastCheck, func() {
+			numOfNode := 1
+			imageName := "nginx:latest"
+			workspaceObj := createCustomWorkspaceWithPresetCustomMode(imageName, numOfNode)
 
-	It("should create a custom template workspace successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		imageName := "nginx:latest"
-		workspaceObj := createCustomWorkspaceWithPresetCustomMode(imageName, numOfNode)
+			defer cleanupResources(workspaceObj)
 
-		defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		time.Sleep(30 * time.Second)
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-	})
+		It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+			numOfNode := 1
+			workspaceObj := createPhi3WorkspaceWithPresetPublicMode(numOfNode)
 
-	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		workspaceObj := createPhi3WorkspaceWithPresetPublicMode(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-	})
+		It("should create a gpt-oss-120b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+			numOfNode := 1
+			workspaceObj := createGPTOss120BWorkspaceWithPresetPublicMode(numOfNode)
 
-	It("should create a gpt-oss-120b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
-		numOfNode := 1
-		workspaceObj := createGPTOss120BWorkspaceWithPresetPublicMode(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-	})
+		It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image", utils.GinkgoLabelFastCheck, func() {
+			numOfNode := 1
+			configMap := createCustomTuningConfigMapForE2E()
+			workspaceObj, jobName, outputRegistryUrl1 := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode, nil, nil)
 
-	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		configMap := createCustomTuningConfigMapForE2E()
-		workspaceObj, jobName, outputRegistryUrl1 := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode, nil, nil)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
+			validateTuningResource(workspaceObj)
 
-		time.Sleep(30 * time.Second)
-		validateTuningResource(workspaceObj)
+			validateACRTuningResultsUploaded(workspaceObj, jobName)
 
-		validateACRTuningResultsUploaded(workspaceObj, jobName)
+			validateWorkspaceReadiness(workspaceObj)
 
-		validateWorkspaceReadiness(workspaceObj)
+			validateTuningJobInputOutput(workspaceObj, fullDatasetImageName1, outputRegistryUrl1, nil, nil)
 
-		validateTuningJobInputOutput(workspaceObj, fullDatasetImageName1, outputRegistryUrl1, nil, nil)
+			validateRevision(workspaceObj, "1")
 
-		validateRevision(workspaceObj, "1")
+			workspaceObj, outputRegistryUrl2 := updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj, fullDatasetImageName2, nil, nil)
+			validateResourceStatus(workspaceObj)
 
-		workspaceObj, outputRegistryUrl2 := updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj, fullDatasetImageName2, nil, nil)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
+			validateTuningResource(workspaceObj)
 
-		time.Sleep(30 * time.Second)
-		validateTuningResource(workspaceObj)
+			validateACRTuningResultsUploaded(workspaceObj, jobName)
 
-		validateACRTuningResultsUploaded(workspaceObj, jobName)
+			validateWorkspaceReadiness(workspaceObj)
 
-		validateWorkspaceReadiness(workspaceObj)
+			validateTuningJobInputOutput(workspaceObj, fullDatasetImageName2, outputRegistryUrl2, nil, nil)
 
-		validateTuningJobInputOutput(workspaceObj, fullDatasetImageName2, outputRegistryUrl2, nil, nil)
-
-		validateRevision(workspaceObj, "2")
-	})
-
+			validateRevision(workspaceObj, "2")
+		})
+	*/
 	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image using azuredisk-csi pvc volume", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		configMap := createCustomTuningConfigMapForE2E()

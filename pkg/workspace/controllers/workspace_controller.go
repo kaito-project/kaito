@@ -51,6 +51,7 @@ import (
 	gaiev1alpha2 "sigs.k8s.io/gateway-api-inference-extension/apix/v1alpha2"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
+	"github.com/kaito-project/kaito/api/v1beta1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
@@ -61,7 +62,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator/basicnodesestimator"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/advancednodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
@@ -92,7 +93,7 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 		klogger:      klog.NewKlogr().WithName("WorkspaceController"),
 		Recorder:     Recorder,
 		expectations: utils.NewControllerExpectations(),
-		Estimator:    &basicnodesestimator.BasicNodesEstimator{},
+		Estimator:    &advancednodesestimator.AdvancedNodesEstimator{},
 	}
 }
 
@@ -374,11 +375,23 @@ func (c *WorkspaceReconciler) applyWorkspaceResource(ctx context.Context, wObj *
 		return err
 	}
 
-	//nolint:staticcheck //SA1019: deprecate Resource.Count field
-	selectedNodes := utils.SelectNodes(validNodes, wObj.Resource.PreferredNodes, wObj.Status.WorkerNodes, lo.FromPtr(wObj.Resource.Count))
+	// Calculate the actual required number of nodes using the estimator
+	var requiredNodeCount int
+	if wObj.Inference != nil && v1beta1.GetWorkspaceRuntimeName(wObj) == pkgmodel.RuntimeNameVLLM {
+		// Use estimator to calculate required nodes (estimator reads ConfigMap directly)
+		requiredNodeCountInt32, err := c.Estimator.EstimateNodeCount(ctx, wObj, c.Client)
+		if err != nil {
+			return fmt.Errorf("failed to estimate required node count: %w", err)
+		}
+		requiredNodeCount = int(requiredNodeCountInt32)
+	} else {
+		//nolint:staticcheck //SA1019: deprecate Resource.Count field
+		requiredNodeCount = lo.FromPtr(wObj.Resource.Count)
+	}
 
-	//nolint:staticcheck //SA1019: deprecate Resource.Count field
-	newNodesCount := lo.FromPtr(wObj.Resource.Count) - len(selectedNodes)
+	selectedNodes := utils.SelectNodes(validNodes, wObj.Resource.PreferredNodes, wObj.Status.WorkerNodes, requiredNodeCount)
+
+	newNodesCount := requiredNodeCount - len(selectedNodes)
 
 	if newNodesCount > 0 {
 		// Check if node auto-provisioning is disabled
@@ -968,7 +981,7 @@ func (c *WorkspaceReconciler) ConfigureWorkspaceReplicasSetting(ctx context.Cont
 				status.Inference = &kaitov1beta1.InferenceStatus{}
 			}
 			if status.Inference.PerReplicaNodeCount == 0 {
-				perReplicaNodeCount, err := c.Estimator.EstimateNodeCount(ctx, wObj)
+				perReplicaNodeCount, err := c.Estimator.EstimateNodeCount(ctx, wObj, c.Client)
 				if err != nil {
 					return fmt.Errorf("failed to calculate per-replica node count: %w", err)
 				}

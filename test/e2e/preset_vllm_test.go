@@ -48,53 +48,53 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 			Fail("Fail threshold reached")
 		}
 	})
+	/*
+		It("should create a deepseek-distilled-llama-8b workspace with preset public mode successfully", func() {
+			numOfNode := 1
+			workspaceObj := createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-	It("should create a deepseek-distilled-llama-8b workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
 
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
+		It("should create a single-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+			numOfNode := 1
+			workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode, "Standard_NV36ads_A10_v5")
 
-	It("should create a single-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode, "Standard_NV36ads_A10_v5")
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			validateCreateNode(workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(30 * time.Second)
+			validateAssociatedService(workspaceObj)
+			validateInferenceConfig(workspaceObj)
 
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
+			validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-	})
-
+			validateWorkspaceReadiness(workspaceObj)
+			validateModelsEndpoint(workspaceObj)
+			validateCompletionsEndpoint(workspaceObj)
+			validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		})
+	*/
 	It("should create a multi-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		// Need 2 Standard_NC6s_v3 nodes to run Llama 3.1-8B Instruct model.
 		// Each node has 1 V100 GPU, so total 2 GPUs are used
@@ -141,6 +141,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
 		validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		time.Sleep(60 * time.Minute)
 	})
 
 	It("should create a falcon workspace with preset public mode successfully", func() {

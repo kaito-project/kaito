@@ -56,6 +56,7 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "5.18Gi",
 		BytesPerToken:           327680,
+		ModelTokenLimit:         2048, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,

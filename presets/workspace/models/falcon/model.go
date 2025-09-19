@@ -74,6 +74,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "13.44Gi",
 		BytesPerToken:           8192,
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
@@ -102,6 +103,7 @@ func (*falcon7b) GetTuningParameters() *model.PresetParam {
 		DiskStorageRequirement:  "90Gi",
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "16Gi",
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:      baseCommandPresetFalconTuning,
@@ -132,6 +134,7 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "13.44Gi",
 		BytesPerToken:           8192,
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
@@ -176,6 +179,7 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "2",
 		TotalSafeTensorFileSize: "77.9Gi",
 		BytesPerToken:           8192,
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
@@ -199,6 +203,7 @@ func (*falcon40b) GetTuningParameters() *model.PresetParam {
 		GPUCountRequirement:     "2",
 		TotalSafeTensorFileSize: "77.9Gi",
 		BytesPerToken:           1966080,
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:      baseCommandPresetFalconTuning,
@@ -227,6 +232,7 @@ func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "2",
 		TotalSafeTensorFileSize: "77.9Gi",
 		BytesPerToken:           1966080,
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,

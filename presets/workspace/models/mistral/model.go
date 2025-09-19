@@ -65,6 +65,7 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "13.49Gi",
 		BytesPerToken:           131072,
+		ModelTokenLimit:         32768, // max_position_embeddings from HF config (v0.1/0.2)
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,
@@ -117,6 +118,7 @@ func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "13.49Gi",
 		BytesPerToken:           131072,
+		ModelTokenLimit:         32768, // max_position_embeddings from HF config (v0.2)
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,

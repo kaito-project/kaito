@@ -100,6 +100,7 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "14.96Gi",
 		BytesPerToken:           131072,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
@@ -137,6 +138,7 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "27.51Gi",
 		BytesPerToken:           196608,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
@@ -174,6 +176,7 @@ func (*deepseekR1) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "641.3Gi", // at least 8 H100
 		BytesPerToken:           1748992,
+		ModelTokenLimit:         163840, // max_position_embeddings from DeepSeek-R1-0528 config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
@@ -213,6 +216,7 @@ func (*deepseekV3) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "641.3Gi", // at least 8 H100
 		BytesPerToken:           1748992,
+		ModelTokenLimit:         163840, // max_position_embeddings from DeepSeek-V3-0324 config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,

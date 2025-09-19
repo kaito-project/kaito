@@ -109,7 +109,7 @@ type InferenceSpec struct {
 
 type InferenceStatus struct {
 	// Total number of running inference workloads of the workspace.
-	// This field is dynamic and changes based on scaling actions. It will set to Deployement.Status.Replicas
+	// This field is dynamic and changes based on scaling actions. It will set to Deployment.Status.Replicas
 	// when underlay workload is Deployment for Workspace.
 	Replicas int32 `json:"replicas,omitempty"`
 

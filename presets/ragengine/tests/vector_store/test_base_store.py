@@ -558,7 +558,7 @@ func main() {}"""
         )
         assert len(result) == 5
 
-        # validate loaded index doesnt change the original index
+        # validate loaded index doesn't change the original index
         await vector_store_manager.delete_documents(
             second_index_name, [result[0]["doc_id"]]
         )

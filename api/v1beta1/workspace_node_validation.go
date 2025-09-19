@@ -182,10 +182,34 @@ func (f *GPUMemoryFilter) Filter(ctx context.Context, workspace *Workspace, node
 type GPUAlreadyAssignedFilter struct{}
 
 func (f *GPUAlreadyAssignedFilter) Filter(ctx context.Context, workspace *Workspace, nodeGroups []GPUNodeGroup) []GPUNodeGroup {
-	// For now, this filter doesn't do anything special
-	// In a full implementation, this would check if GPUs are already allocated to other workspaces
-	// This requires examining running pods and their resource requests
-	return nodeGroups
+	var filtered []GPUNodeGroup
+	currentWorkspaceName := workspace.Name
+
+	for _, group := range nodeGroups {
+		var availableNodes []*corev1.Node
+
+		for _, node := range group.Nodes {
+			// Check if node has workspace assignment label
+			if assignedWorkspace, exists := node.Labels["workspace.kaito.io/name"]; exists {
+				// If assigned to a different workspace, skip this node
+				if assignedWorkspace != currentWorkspaceName {
+					continue
+				}
+				// If assigned to current workspace, include it
+			}
+			// If no assignment label or assigned to current workspace, include node
+			availableNodes = append(availableNodes, node)
+		}
+
+		// Only include the group if it has available nodes
+		if len(availableNodes) > 0 {
+			groupCopy := group
+			groupCopy.Nodes = availableNodes
+			filtered = append(filtered, groupCopy)
+		}
+	}
+
+	return filtered
 }
 
 // Scheduler is used internally for validation and is not part of the CRD API

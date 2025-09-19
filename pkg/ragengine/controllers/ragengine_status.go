@@ -58,7 +58,7 @@ func (c *RAGEngineReconciler) updateStatusConditionIfNotMatch(ctx context.Contex
 	cStatus metav1.ConditionStatus, cReason, cMessage string) error {
 	if curCondition := meta.FindStatusCondition(ragObj.Status.Conditions, string(cType)); curCondition != nil {
 		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage {
-			// Nonthing to change
+			// Nothing to change
 			return nil
 		}
 	}

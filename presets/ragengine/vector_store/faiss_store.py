@@ -30,7 +30,7 @@ class FaissVectorStoreHandler(BaseVectorStore):
         self, index_name: str, documents: list[Document]
     ) -> list[str]:
         faiss_index = faiss.IndexFlatL2(self.dimension)
-        # we cant use the IndexFlatL2 directly as its delete functionality changes document ids.
+        # we can't use the IndexFlatL2 directly as its delete functionality changes document ids.
         # we can wrap it in the IDMap to keep the same functionality but also be able to index by ids and support delete with llama_index
         # https://github.com/facebookresearch/faiss/wiki/Faiss-indexes#supported-operations
         id_index = faiss.IndexIDMap(faiss_index)

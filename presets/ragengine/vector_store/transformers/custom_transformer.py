@@ -35,15 +35,15 @@ class CustomTransformer(TransformComponent):
         node_metadata = node.metadata
         split_type = node_metadata.get("split_type", "default")
         if split_type == "code":
-            langauge = node_metadata.get("language", "")
-            if not langauge:
+            language = node_metadata.get("language", "")
+            if not language:
                 raise ValueError("Language not specified in node metadata.")
 
-            if langauge not in self._code_splitters:
-                self._code_splitters[langauge] = CodeSplitter(
-                    language=langauge,
+            if language not in self._code_splitters:
+                self._code_splitters[language] = CodeSplitter(
+                    language=language,
                 )
-            return self._code_splitters[langauge]([node])
+            return self._code_splitters[language]([node])
         else:
             # Default to sentence splitting
             return self._sentence_splitter([node])

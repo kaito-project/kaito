@@ -110,7 +110,7 @@ var _ = Describe("RAGEngine", func() {
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
 
-		searchQuerySuccess := "KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
+		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
 		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, true)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
@@ -176,7 +176,7 @@ var _ = Describe("RAGEngine", func() {
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
 
-		searchQuerySuccess := "KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
+		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
 		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
@@ -243,7 +243,7 @@ var _ = Describe("RAGEngine", func() {
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
 
-		searchQuerySuccess := "KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
+		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
 		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
@@ -306,11 +306,11 @@ var _ = Describe("RAGEngine", func() {
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
 
-		searchQuerySuccess := "KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
+		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
 		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
 
-		persistLogSuccess := "Successfully persisted index KAITO"
+		persistLogSuccess := "Successfully persisted index kaito"
 		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
 
@@ -736,7 +736,7 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) (map[strin
     "index_name": "kaito",
     "documents": [
         {
-            "text": "KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster",
+            "text": "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster",
             "metadata": {"author": "kaito", "category": "kaito"}
         }
     ]
@@ -745,7 +745,7 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) (map[strin
 		PodName:            fmt.Sprintf("index-pod-%s", utils.GenerateRandomString()),
 		CurlCommand:        curlCommand,
 		Namespace:          ragengineObj.ObjectMeta.Namespace,
-		ExpectedLogContent: "KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster",
+		ExpectedLogContent: "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster",
 		WaitForRunning:     false,
 		ParseJSONResponse:  true,
 		JSONStartMarker:    "[",
@@ -761,7 +761,7 @@ func createAndValidateUpdateDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, d
     "documents": [
         {
 			"doc_id": "` + docID + `",
-            "text": "KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster. It now has RAG capabilities.",
+            "text": "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster. It now has RAG capabilities.",
             "metadata": {"author": "kaito", "category": "ai-ml"}
         }
     ]

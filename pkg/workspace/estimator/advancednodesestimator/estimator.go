@@ -83,16 +83,7 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		err := resources.GetResource(ctx, configMapName, workspace.Namespace, client, configMap)
 		if err != nil {
 			klog.Warningf("[AdvancedEstimator] Failed to get ConfigMap %s: %v, using default maxModelLen=%d", configMapName, err, maxModelLen)
-		} /* else {
-			// Search for max-model-len in ConfigMap data
-			for _, content := range configMap.Data {
-				if userMaxModelLen, found := utils.ParseExplicitMaxModelLen(content); found {
-					maxModelLen = userMaxModelLen
-					klog.Infof("[AdvancedEstimator] Found user max-model-len=%d in ConfigMap %s", maxModelLen, configMapName)
-					break
-				}
-			}
-		} */
+		}
 	}
 
 	klog.Infof("[AdvancedEstimator] workspace=%s maxModelLen=%d", workspace.Name, maxModelLen)

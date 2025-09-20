@@ -24,7 +24,7 @@ export CLUSTER_NAME=kaito
 
 helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
 helm repo update
-helm upgrade --install kaito/workspace \
+helm upgrade --install kaito-workspace kaito/workspace \
   --namespace kaito-workspace \
   --create-namespace \
   --set clusterName="$CLUSTER_NAME" \

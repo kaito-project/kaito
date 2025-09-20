@@ -11,7 +11,7 @@ This document presents how to use the KAITO `ragengine` Custom Resource Definiti
 ```bash
 helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
 helm repo update
-helm upgrade --install kaito/ragengine \
+helm upgrade --install kaito-ragengine kaito/ragengine \
   --namespace kaito-ragengine \
   --create-namespace
 ```

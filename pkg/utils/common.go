@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	awsapis "github.com/aws/karpenter-provider-aws/pkg/apis"
-	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
+	awsv1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
@@ -46,7 +46,7 @@ const (
 
 var (
 	karpenterSchemeGroupVersion = schema.GroupVersion{Group: karpenterapis.Group, Version: "v1"}
-	awsSchemeGroupVersion       = schema.GroupVersion{Group: awsapis.Group, Version: "v1beta1"}
+	awsSchemeGroupVersion       = schema.GroupVersion{Group: awsapis.Group, Version: "v1"}
 
 	KarpenterSchemeBuilder = runtime.NewSchemeBuilder(func(scheme *runtime.Scheme) error {
 		scheme.AddKnownTypes(karpenterSchemeGroupVersion,
@@ -60,8 +60,8 @@ var (
 	})
 	AwsSchemeBuilder = runtime.NewSchemeBuilder(func(scheme *runtime.Scheme) error {
 		scheme.AddKnownTypes(awsSchemeGroupVersion,
-			&awsv1beta1.EC2NodeClass{},
-			&awsv1beta1.EC2NodeClassList{},
+			&awsv1.EC2NodeClass{},
+			&awsv1.EC2NodeClassList{},
 		)
 		metav1.AddToGroupVersion(scheme, awsSchemeGroupVersion)
 		return nil

@@ -20,10 +20,12 @@ import (
 	"testing"
 
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -244,6 +246,25 @@ vllm:
 
 func TestResourceSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
+
+	// Create fake client with test nodes for BYO mode validation
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		// Add a test node with NVIDIA GPU labels for BYO mode validation
+		&v1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test-gpu-node",
+				Labels: map[string]string{
+					"nvidia.com/gpu.count":   "8",
+					"nvidia.com/gpu.memory":  "80000MiB",
+					"nvidia.com/gpu.product": "NVIDIA-A100-SXM4-80GB",
+				},
+			},
+		},
+	).Build()
+	k8sclient.SetGlobalClient(client)
+
 	tests := []struct {
 		name                    string
 		resourceSpec            *ResourceSpec
@@ -426,8 +447,21 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
+	// Save original feature gate value and restore it after test
+	originalNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalNAP
+	}()
+
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			// For tests that expect NAP mode validation errors, disable BYO mode
+			if tc.name == "Insufficient total GPU memory" || tc.name == "Insufficient number of GPUs" || tc.name == "Invalid SKU" || tc.name == "HuggingFace Transformers + Distributed Inference" {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			} else {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+			}
+
 			if tc.validateTuning {
 				tuningSpec := &TuningSpec{}
 				errs := tc.resourceSpec.validateCreateWithTuning(tuningSpec)
@@ -468,7 +502,14 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				totalSafeTensorFileSize = tc.totalSafeTensorFileSize
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
-				errs := tc.resourceSpec.validateCreateWithInference(&spec, false, tc.runtime)
+				// Create a dummy workspace for the test
+				workspace := &Workspace{
+					Resource:  *tc.resourceSpec,
+					Inference: &spec,
+				}
+				ctx := context.Background()
+
+				errs := tc.resourceSpec.validateCreateWithInference(ctx, workspace, &spec, false, tc.runtime)
 				hasErrs := errs != nil
 				if hasErrs != tc.expectErrs {
 					t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -1132,6 +1173,17 @@ func TestWorkspaceValidateName(t *testing.T) {
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
 		defaultInferenceConfigMapManifest(),
+		// Add a test node with NVIDIA GPU labels for BYO mode validation
+		&v1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test-gpu-node",
+				Labels: map[string]string{
+					"nvidia.com/gpu.count":   "2",
+					"nvidia.com/gpu.memory":  "16000MiB",
+					"nvidia.com/gpu.product": "NVIDIA-Tesla-V100",
+				},
+			},
+		},
 	).Build()
 	k8sclient.SetGlobalClient(client)
 
@@ -1141,8 +1193,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 			Namespace: "kaito",
 		},
 		Resource: ResourceSpec{
-			InstanceType: "Standard_NC6s_v3",
-			Count:        pointerToInt(1),
+			Count: pointerToInt(1),
 		},
 		Inference: &InferenceSpec{
 			Preset: &PresetSpec{
@@ -2036,6 +2087,136 @@ other_field: value
 				if !strings.Contains(errMsg, tc.errContent) {
 					t.Errorf("validateInferenceConfig() error message = %v, expected to contain = %v", errMsg, tc.errContent)
 				}
+			}
+		})
+	}
+}
+
+func TestGPUAlreadyAssignedFilter(t *testing.T) {
+	ctx := context.Background()
+
+	// Create test nodes with different assignment states
+	nodeUnassigned := &v1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node-unassigned",
+			Labels: map[string]string{
+				"nvidia.com/gpu.count":   "2",
+				"nvidia.com/gpu.memory":  "16000MiB",
+				"nvidia.com/gpu.product": "NVIDIA-Tesla-V100",
+			},
+		},
+	}
+
+	nodeAssignedToSelf := &v1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node-assigned-to-self",
+			Labels: map[string]string{
+				"nvidia.com/gpu.count":    "2",
+				"nvidia.com/gpu.memory":   "16000MiB",
+				"nvidia.com/gpu.product":  "NVIDIA-Tesla-V100",
+				"workspace.kaito.io/name": "my-workspace",
+			},
+		},
+	}
+
+	nodeAssignedToOther := &v1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node-assigned-to-other",
+			Labels: map[string]string{
+				"nvidia.com/gpu.count":    "2",
+				"nvidia.com/gpu.memory":   "16000MiB",
+				"nvidia.com/gpu.product":  "NVIDIA-Tesla-V100",
+				"workspace.kaito.io/name": "other-workspace",
+			},
+		},
+	}
+
+	tests := []struct {
+		name          string
+		workspaceName string
+		inputNodes    []*v1.Node
+		expectedNodes []string
+	}{
+		{
+			name:          "Filter out node assigned to other workspace",
+			workspaceName: "my-workspace",
+			inputNodes:    []*v1.Node{nodeUnassigned, nodeAssignedToSelf, nodeAssignedToOther},
+			expectedNodes: []string{"node-unassigned", "node-assigned-to-self"},
+		},
+		{
+			name:          "Keep all unassigned nodes when no assignment conflicts",
+			workspaceName: "my-workspace",
+			inputNodes:    []*v1.Node{nodeUnassigned},
+			expectedNodes: []string{"node-unassigned"},
+		},
+		{
+			name:          "Keep node assigned to same workspace",
+			workspaceName: "my-workspace",
+			inputNodes:    []*v1.Node{nodeAssignedToSelf},
+			expectedNodes: []string{"node-assigned-to-self"},
+		},
+		{
+			name:          "Filter out all nodes assigned to different workspace",
+			workspaceName: "my-workspace",
+			inputNodes:    []*v1.Node{nodeAssignedToOther},
+			expectedNodes: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create node group with test nodes
+			nodeGroups := []GPUNodeGroup{
+				{
+					GPUProduct: "NVIDIA-Tesla-V100",
+					GPUCount:   2,
+					GPUMemory:  *resource.NewQuantity(16000*1024*1024, resource.BinarySI),
+					Nodes:      tt.inputNodes,
+				},
+			}
+
+			// Create workspace
+			workspace := &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: tt.workspaceName,
+				},
+			}
+
+			// Apply filter
+			filter := &GPUAlreadyAssignedFilter{}
+			filteredGroups := filter.Filter(ctx, workspace, nodeGroups)
+
+			// Verify results
+			var actualNodes []string
+			if len(filteredGroups) > 0 {
+				for _, node := range filteredGroups[0].Nodes {
+					actualNodes = append(actualNodes, node.Name)
+				}
+			}
+
+			if len(actualNodes) != len(tt.expectedNodes) {
+				t.Errorf("Expected %d nodes, got %d nodes", len(tt.expectedNodes), len(actualNodes))
+				t.Errorf("Expected nodes: %v", tt.expectedNodes)
+				t.Errorf("Actual nodes: %v", actualNodes)
+				return
+			}
+
+			// Check that all expected nodes are present
+			expectedSet := make(map[string]bool)
+			for _, name := range tt.expectedNodes {
+				expectedSet[name] = true
+			}
+
+			for _, actualName := range actualNodes {
+				if !expectedSet[actualName] {
+					t.Errorf("Unexpected node in results: %s", actualName)
+				}
+				delete(expectedSet, actualName)
+			}
+
+			// Check that no expected nodes are missing
+			for missingName := range expectedSet {
+				t.Errorf("Expected node missing from results: %s", missingName)
 			}
 		})
 	}

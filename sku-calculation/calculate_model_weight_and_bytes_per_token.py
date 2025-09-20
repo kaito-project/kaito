@@ -43,7 +43,7 @@ def list_safetensors_files(model_repo, token=None):
     safetensor_files = [
         file["rfilename"]
         for file in data.get("siblings", [])
-        if file["rfilename"].endswith(".safetensors")
+        if file["rfilename"].endswith(".safetensors") and "/" not in file["rfilename"]
     ]
     return safetensor_files
 
@@ -57,7 +57,7 @@ def list_bin_files(model_repo, token=None):
     bin_files = [
         file["rfilename"]
         for file in data.get("siblings", [])
-        if file["rfilename"].endswith(".bin")
+        if file["rfilename"].endswith(".bin") and "/" not in file["rfilename"]
     ]
     return bin_files
 
@@ -71,7 +71,8 @@ def get_file_size_bytes(model_repo, filename, token=None):
 
 
 def get_total_safetensors_size(model_repo, token=None):
-    # Special case for falcon-40b-instruct: use .bin files instead of .safetensors
+    # Special case for falcon-40b-instruct: use .bin files instead of
+    # .safetensors
     if model_repo == "tiiuae/falcon-40b-instruct":
         filenames = list_bin_files(model_repo, token=token)
         print(f"[Special case] Using .bin files for {model_repo}")
@@ -96,7 +97,12 @@ def get_total_safetensors_size(model_repo, token=None):
     return total_gb, total_gib
 
 
-def compute_formula(model_repo, token=None):
+def compute_formula_and_context_limit(model_repo, token=None):
+    """Compute bytes-per-token formula helper value and retrieve context window.
+
+    Returns:
+        (formula_result, max_position_embeddings)
+    """
     config_url = f"https://huggingface.co/{model_repo}/resolve/main/config.json"
     response = make_request(config_url, method="GET", token=token)
     response.raise_for_status()
@@ -115,7 +121,16 @@ def compute_formula(model_repo, token=None):
         kv_heads = attention_heads
 
     result = 2 * hidden_layers * kv_heads * (hidden_size / attention_heads) * 2
-    return result
+
+    # Extract context window / max position embeddings with common fallbacks
+    max_pos = (
+        config.get("max_position_embeddings")
+        or config.get("n_ctx")
+        or config.get("seq_length")
+        or config.get("max_seq_len")
+        or config.get("max_sequence_length")
+    )
+    return result, max_pos
 
 
 if __name__ == "__main__":
@@ -135,11 +150,18 @@ if __name__ == "__main__":
     try:
         total_gb, total_gib = get_total_safetensors_size(model_repo, token=token)
         print(
-            f"Model weight size: {total_gb:.2f} GB (decimal), {total_gib:.2f} GiB (binary)"
+            f"Model weight size: {total_gb:.2f} GB (decimal), {
+                total_gib:.2f} GiB (binary)"
         )
 
-        formula_result = compute_formula(model_repo, token=token)
+        formula_result, max_pos = compute_formula_and_context_limit(
+            model_repo, token=token
+        )
         print(f"Formula result: {formula_result}")
+        if max_pos is not None:
+            print(f"max_position_embeddings: {max_pos}")
+        else:
+            print("max_position_embeddings: (not found in config)")
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 401:

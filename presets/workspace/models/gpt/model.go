@@ -49,9 +49,7 @@ var (
 		"pipeline":           "text-generation",
 		"allow_remote_files": "",
 	}
-	gptRunParamsVLLM = map[string]string{
-		"dtype": "bfloat16",
-	}
+	gptRunParamsVLLM = map[string]string{} // TODO: add the dtype to the gpt model
 )
 
 var gptOss20b gpt_oss_20B
@@ -65,8 +63,9 @@ func (*gpt_oss_20B) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement: "110Gi",
 		GPUCountRequirement:    "1",
 		// TotalSafeTensorFileSize: "16Gi", // per https://openai.com/index/introducing-gpt-oss/
-		TotalSafeTensorFileSize: "25.63Gi", // TODO: pod failed with out of memory error on A10 with 24 GB memory.
+		TotalSafeTensorFileSize: "12.9Gi", // TODO: pod failed with out of memory error on A10 with 24 GB memory.
 		BytesPerToken:           34560,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetGPTInference,
@@ -103,8 +102,9 @@ func (*gpt_oss_120B) GetInferenceParameters() *model.PresetParam {
 		Metadata:                metadata.MustGet(PresetGPT_OSS_120BModel),
 		DiskStorageRequirement:  "250Gi", // Larger model needs more disk space
 		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "121.54Gi", // Single 80GB GPU requirement
+		TotalSafeTensorFileSize: "60.77Gi", // Single 80GB GPU requirement
 		BytesPerToken:           51840,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetGPTInference,

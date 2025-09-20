@@ -19,6 +19,7 @@ import (
 
 	"github.com/samber/lo"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -35,7 +36,7 @@ func (e *BasicNodesEstimator) Name() string {
 	return "basic"
 }
 
-func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) (int32, error) {
+func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace, client client.Client) (int32, error) {
 	// If inference is not configured, default to resource count or 1
 	if wObj.Inference == nil || wObj.Inference.Preset == nil || wObj.Inference.Preset.Name == "" {
 		//nolint:staticcheck //SA1019: deprecate Resource.Count field

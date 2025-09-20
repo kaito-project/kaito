@@ -16,6 +16,8 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
@@ -27,6 +29,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 // InferenceConfig represents the structure of the inference configuration
@@ -85,30 +88,31 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 		return apis.ErrGeneric(fmt.Sprintf("Failed to parse inference_config.yaml: %v", err), "inference_config.yaml")
 	}
 
-	// Check if required fields are present
-	modelLenRequired := false
-
 	// Get SKU handler to check GPU configuration
-	skuHandler, err := utils.GetSKUHandler()
-	if err != nil {
-		return apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType")
-	}
-	if skuConfig := skuHandler.GetGPUConfigBySKU(w.Resource.InstanceType); skuConfig != nil {
-		// Check if this is a multi-GPU instance with less than 20GB per GPU
-		gpuMemPerGPU := skuConfig.GPUMemGB / skuConfig.GPUCount
-		// For multi-GPU instances with less than 20GB per GPU, max-model-len is required
-		if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20 {
-			modelLenRequired = true
-		}
-	}
-	if w.Resource.Count != nil && *w.Resource.Count > 1 {
-		modelLenRequired = true
-	}
 
-	if modelLenRequired {
-		maxModelLen, exists := inferenceConfig.VLLM["max-model-len"]
-		if !exists || maxModelLen == "" {
-			return apis.ErrMissingField("max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU or distributed inference")
+	// Double-check that we're using vLLM runtime for the following validations
+	if GetWorkspaceRuntimeName(w) == model.RuntimeNameVLLM {
+		// If max-model-len is specified, validate it does not exceed the model's theoretical maximum (ModelTokenLimit)
+		if rawMaxModelLen, exists := inferenceConfig.VLLM["max-model-len"]; exists && strings.TrimSpace(rawMaxModelLen) != "" {
+			if w.Inference != nil && w.Inference.Preset != nil {
+				presetName := strings.ToLower(string(w.Inference.Preset.Name))
+				if plugin.IsValidPreset(presetName) {
+					modelPreset := plugin.KaitoModelRegister.MustGet(presetName)
+					params := modelPreset.GetInferenceParameters()
+					if params != nil && params.ModelTokenLimit > 0 { // Only validate when we have a positive limit
+						val, err := strconv.Atoi(strings.TrimSpace(rawMaxModelLen))
+						if err != nil {
+							return apis.ErrInvalidValue(fmt.Sprintf("max-model-len must be an integer: %v", err), "max-model-len")
+						}
+						if val > params.ModelTokenLimit {
+							return apis.ErrInvalidValue(
+								fmt.Sprintf("max-model-len %d exceeds model's maximum supported context window %d (ModelTokenLimit)", val, params.ModelTokenLimit),
+								"max-model-len",
+							)
+						}
+					}
+				}
+			}
 		}
 	}
 

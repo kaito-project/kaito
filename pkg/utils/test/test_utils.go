@@ -87,7 +87,8 @@ var (
 			Namespace: "kaito",
 		},
 		Resource: v1beta1.ResourceSpec{
-			Count: &gpuNodeCount,
+			Count:        &gpuNodeCount,
+			InstanceType: "Standard_NC12s_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -265,6 +266,31 @@ var (
 			Preset: &v1beta1.PresetSpec{
 				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-model-download",
+				},
+				PresetOptions: v1beta1.PresetOptions{
+					ModelAccessSecret: "test-secret",
+				},
+			},
+		},
+	}
+	MockWorkspaceWithPresetDownloadA100VLLM = &v1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testWorkspace",
+			Namespace: "kaito",
+		},
+		Resource: v1beta1.ResourceSpec{
+			Count:        &gpuNodeCount,
+			InstanceType: "Standard_NC48ads_A100_v4",
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"apps": "test",
+				},
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
+					Name: "test-model-download-a100",
 				},
 				PresetOptions: v1beta1.PresetOptions{
 					ModelAccessSecret: "test-secret",

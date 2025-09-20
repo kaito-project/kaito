@@ -120,12 +120,12 @@ type PresetParam struct {
 	// This formula accounts for model weights, optimization files, and runtime overhead.
 	// Example: For a 14Gi model, calculation is: 14 × 2.5 + 48 = 83, rounded up to 90Gi.
 
-	ImageAccessMode string // Defines where the Image is Public or Private.
-
+	ImageAccessMode               string         // Defines where the Image is Public or Private.
 	GPUCountRequirement           string         // Number of GPUs required for the Preset. Used for inference.
 	TotalSafeTensorFileSize       string         // Total SafeTensor file size for the Preset. Used for inference.
 	TuningPerGPUMemoryRequirement map[string]int // Min GPU memory per tuning method (batch size 1). Used for tuning.
 	BytesPerToken                 int            // Number of bytes per token for the model. It is calculated by 2 * hidden_layers * kv_heads * head_dim (hidden_size/num_attemtion_numbers) * dtype_size
+	ModelTokenLimit               int            // Maximum number of tokens (context window) supported by the model. Maps to 'max_position_embeddings' in the model's Hugging Face config.json.
 
 	// To determine TotalSafeTensorFileSize and BytesPerToken values for a new model,
 	// run the sku-calculation/calculate_model_weight_and_bytes_per_token.py script
@@ -222,6 +222,7 @@ type RuntimeContext struct {
 	NumNodes             int
 	WorkspaceMetadata    metav1.ObjectMeta
 	DistributedInference bool
+	MaxModelLen          int // max-model-len parameter for vLLM
 	RuntimeContextExtraArguments
 }
 
@@ -264,6 +265,11 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	if p.VLLM.ModelName != "" {
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}
+	if rc.MaxModelLen > 0 {
+		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
+	}
+	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.82"
+
 	if !p.DisableTensorParallelism {
 		// Tensor Parallelism (TP) is set to the number of GPUs on a given node per vLLM guidance:
 		// https://docs.vllm.ai/en/latest/serving/distributed_serving.html.

@@ -139,14 +139,23 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	gpuConfig := getGPUConfig(gctx)
 
-	// Use AdvancedNodesEstimator to optimize the node count if possible
-	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
-	estimatedNodes, err := estimator.EstimateNodeCount(ctx, workspaceObj)
-	if err != nil {
+	var numNodes int
+	// Use AdvancedNodesEstimator only for vLLM runtime
+	if v1beta1.GetWorkspaceRuntimeName(workspaceObj) == pkgmodel.RuntimeNameVLLM {
+		estimator := &advancednodesestimator.AdvancedNodesEstimator{}
+		klog.Infof("[EstimateNodeCount] workspace=%s", workspaceObj.Name)
+		estimatedNodes, err := estimator.EstimateNodeCount(ctx, workspaceObj, kubeClient)
+		if err != nil {
+			//nolint:staticcheck //SA1019: deprecate Resource.Count field
+			estimatedNodes = int32(*workspaceObj.Resource.Count)
+		}
+		numNodes = int(estimatedNodes)
+	} else {
+		// For non-vLLM runtime, use the Resource.Count directly
 		//nolint:staticcheck //SA1019: deprecate Resource.Count field
-		estimatedNodes = int32(*workspaceObj.Resource.Count)
+		numNodes = int(*workspaceObj.Resource.Count)
+		klog.Infof("[EstimateNodeCount] workspace=%s using Resource.Count=%d for non-vLLM runtime", workspaceObj.Name, numNodes)
 	}
-	numNodes := int(estimatedNodes)
 
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
 		GenerateInferencePodSpec(&gpuConfig, numNodes),
@@ -307,6 +316,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			return err
 		}
 
+		// debug print of configVolume (requested)
+		klog.Infof("[debug] configVolume name=%s keys=%v", configVolume.Name, lo.Keys(configVolume.Data))
+
 		// additional volume
 		var volumes []corev1.Volume
 		var volumeMounts []corev1.VolumeMount
@@ -347,6 +359,28 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		// inference command
 		inferenceParam := ctx.Model.GetInferenceParameters().DeepCopy()
 		runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
+
+		// Calculate max-model-len for runtime context
+		maxModelLen := 2048 // Default value
+		if ctx.Workspace.Inference != nil {
+			if runtimeName == pkgmodel.RuntimeNameVLLM {
+				presetParams := ctx.Model.GetInferenceParameters()
+				if presetParams != nil {
+					if raw, ok := configVolume.Data["inference_config.yaml"]; ok && raw != "" {
+						// First check if user provided explicit value in ConfigMap
+						//if v, ok2 := utils.ParseExplicitMaxModelLen(raw); ok2 {
+						//maxModelLen = v
+						//klog.Infof("[RuntimeContext] workspace=%s using user explicit max-model-len=%d", ctx.Workspace.Name, maxModelLen)
+						//} else {
+						// If no user value, compute planned value
+						maxModelLen = computeMaxModelLen(presetParams, gpuConfig, numNodes)
+						klog.Infof("[RuntimeContext] workspace=%s using computed max-model-len=%d (gpuConfig=%+v, numNodes=%d)", ctx.Workspace.Name, maxModelLen, *gpuConfig, numNodes)
+						//}
+					}
+				}
+			}
+		}
+
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
@@ -355,6 +389,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			NumNodes:             numNodes,
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
 			DistributedInference: ctx.Model.SupportDistributedInference(),
+			MaxModelLen:          maxModelLen,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
 				AdaptersEnabled: len(ctx.Workspace.Inference.Adapters) > 0,
 			},

@@ -34,6 +34,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/klog/v2"
 	"k8s.io/utils/ptr"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -902,17 +903,19 @@ func TestGetAllQualifiedNodes(t *testing.T) {
 func TestApplyWorkspaceResource(t *testing.T) {
 	test.RegisterTestModel()
 	testcases := map[string]struct {
-		callMocks     func(c *test.MockClient)
-		expectedError error
-		workspace     v1beta1.Workspace
+		callMocks          func(c *test.MockClient)
+		expectedError      error
+		workspace          v1beta1.Workspace
+		estimatorNodeCount int32
 	}{
 		"Fail to apply workspace because associated nodeClaim cannot be retrieved": {
 			callMocks: func(c *test.MockClient) {
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(errors.New("failed to retrieve nodeClaims"))
 
 			},
-			workspace:     *test.MockWorkspaceBaseModel,
-			expectedError: errors.New("failed to retrieve nodeClaims"),
+			workspace:          *test.MockWorkspaceBaseModel,
+			expectedError:      errors.New("failed to retrieve nodeClaims"),
+			estimatorNodeCount: 1,
 		},
 		"Fail to apply workspace with nodeClaims because can't get qualified nodes": {
 			callMocks: func(c *test.MockClient) {
@@ -932,8 +935,9 @@ func TestApplyWorkspaceResource(t *testing.T) {
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(errors.New("failed to list nodes"))
 			},
-			workspace:     *test.MockWorkspaceBaseModel,
-			expectedError: errors.New("failed to list nodes"),
+			workspace:          *test.MockWorkspaceBaseModel,
+			expectedError:      errors.New("failed to list nodes"),
+			estimatorNodeCount: 1,
 		},
 		"Successfully apply workspace resource with nodeClaim": {
 			callMocks: func(c *test.MockClient) {
@@ -960,8 +964,9 @@ func TestApplyWorkspaceResource(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},
-			workspace:     *test.MockWorkspaceBaseModel,
-			expectedError: nil,
+			workspace:          *test.MockWorkspaceBaseModel,
+			expectedError:      nil,
+			estimatorNodeCount: 1,
 		},
 		"Successfully apply workspace resource with nodeClaim and preferred nodes": {
 			callMocks: func(c *test.MockClient) {
@@ -981,6 +986,7 @@ func TestApplyWorkspaceResource(t *testing.T) {
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 				// no get node query is needed here as we are not updating the node
@@ -988,8 +994,9 @@ func TestApplyWorkspaceResource(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},
-			workspace:     *test.MockWorkspaceWithPreferredNodes,
-			expectedError: nil,
+			workspace:          *test.MockWorkspaceWithPreferredNodes,
+			expectedError:      nil,
+			estimatorNodeCount: 1, // Only need 1 node, which matches the available preferred node
 		},
 		"Update node Failed with NotFound error": {
 			callMocks: func(c *test.MockClient) {
@@ -1014,8 +1021,9 @@ func TestApplyWorkspaceResource(t *testing.T) {
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 
 			},
-			workspace:     *test.MockWorkspaceBaseModel,
-			expectedError: apierrors.NewNotFound(corev1.Resource("Node"), "node1"),
+			workspace:          *test.MockWorkspaceBaseModel,
+			expectedError:      apierrors.NewNotFound(corev1.Resource("Node"), "node1"),
+			estimatorNodeCount: 1,
 		},
 	}
 
@@ -1024,6 +1032,10 @@ func TestApplyWorkspaceResource(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
+
+			// Create and setup mock estimator
+			mockEst := &mockEstimator{}
+			mockEst.On("EstimateNodeCount", mock.Anything, mock.Anything, mock.Anything).Return(tc.estimatorNodeCount, nil)
 
 			mockNodeClaim := &karpenterv1.NodeClaim{}
 
@@ -1039,8 +1051,11 @@ func TestApplyWorkspaceResource(t *testing.T) {
 			}
 
 			reconciler := &WorkspaceReconciler{
-				Client: mockClient,
-				Scheme: test.NewTestScheme(),
+				Client:       mockClient,
+				Scheme:       test.NewTestScheme(),
+				Estimator:    mockEst,
+				expectations: utils.NewControllerExpectations(),
+				klogger:      klog.NewKlogr().WithName("WorkspaceController"),
 			}
 			ctx := context.Background()
 
@@ -1364,8 +1379,8 @@ func (m *mockEstimator) Name() string {
 	return args.String(0)
 }
 
-func (m *mockEstimator) EstimateNodeCount(ctx context.Context, workspace *v1beta1.Workspace) (int32, error) {
-	args := m.Called(ctx, workspace)
+func (m *mockEstimator) EstimateNodeCount(ctx context.Context, workspace *v1beta1.Workspace, client client.Client) (int32, error) {
+	args := m.Called(ctx, workspace, client)
 	return args.Get(0).(int32), args.Error(1)
 }
 
@@ -1411,7 +1426,7 @@ func TestConfigureWorkspaceReplicasSetting(t *testing.T) {
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator) {
 				// Mock estimator
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{})).Return(int32(2), nil)
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(2), nil)
 
 				// Mock workspace retrieval for UpdateWorkspaceWithRetry (first call to set replicas)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
@@ -1465,7 +1480,7 @@ func TestConfigureWorkspaceReplicasSetting(t *testing.T) {
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator) {
 				// Mock estimator
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{})).Return(int32(3), nil)
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(3), nil)
 
 				// Mock workspace retrieval for UpdateWorkspaceWithRetry (first call to set replicas)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
@@ -1519,7 +1534,7 @@ func TestConfigureWorkspaceReplicasSetting(t *testing.T) {
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator) {
 				// Mock estimator
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{})).Return(int32(3), nil)
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(3), nil)
 
 				// Mock workspace status update
 				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
@@ -1617,7 +1632,7 @@ func TestConfigureWorkspaceReplicasSetting(t *testing.T) {
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator) {
 				// Mock estimator error
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{})).Return(int32(0), errors.New("estimator failed"))
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(0), errors.New("estimator failed"))
 
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
@@ -1672,7 +1687,7 @@ func TestConfigureWorkspaceReplicasSetting(t *testing.T) {
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator) {
 				// Mock estimator success
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{})).Return(int32(3), nil)
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(3), nil)
 
 				// Mock workspace status update error
 				c.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(errors.New("status update failed"))

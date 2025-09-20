@@ -118,6 +118,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
 		validateGatewayAPIInferenceExtensionResources(workspaceObj)
+		time.Sleep(60 * time.Minute)
 	})
 
 	It("should create a deepseek-distilled-qwen-14b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {

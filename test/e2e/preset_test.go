@@ -291,11 +291,6 @@ func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNo
 }
 
 func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace, configMapData ...map[string]string) {
-	var customConfigData map[string]string
-	if len(configMapData) > 0 && configMapData[0] != nil {
-		customConfigData = configMapData[0]
-	}
-	createConfigForWorkspace(workspaceObj, customConfigData)
 
 	By("Creating workspace", func() {
 		Eventually(func() error {
@@ -310,50 +305,6 @@ func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace, configMapD
 			}, workspaceObj, &client.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
-	})
-}
-
-func createConfigForWorkspace(workspaceObj *kaitov1beta1.Workspace, customConfigData map[string]string) {
-	if workspaceObj.Inference == nil || workspaceObj.Resource.InstanceType == "" {
-		return
-	}
-
-	// TODO: uncomment the following lines when A10 GPU support is added
-	// handler := sku.GetCloudSKUHandler(consts.AzureCloudName)
-	// gpuConfig := handler.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
-	// if gpuConfig == nil || (gpuConfig.GPUCount <= 1 && lo.FromPtr(workspaceObj.Resource.Count) <= 1) {
-	// 	return
-	// }
-
-	By("Creating config file", func() {
-		var configData map[string]string
-
-		// Use custom config data if provided, otherwise use default
-		if customConfigData != nil {
-			configData = customConfigData
-		} else {
-			configData = map[string]string{
-				"inference_config.yaml": `
-vllm:
-  max-model-len: 1024
-`,
-			}
-		}
-
-		cm := corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      workspaceObj.Name + "-config",
-				Namespace: workspaceObj.Namespace,
-			},
-			Data: configData,
-		}
-		workspaceObj.Inference.Config = cm.Name
-
-		Eventually(func() error {
-			err := utils.TestingCluster.KubeClient.Create(ctx, &cm, &client.CreateOptions{})
-			return client.IgnoreAlreadyExists(err)
-		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create configmap %s", cm.Name)
 	})
 }
 

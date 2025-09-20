@@ -171,6 +171,41 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 	}
 }
 
+type testModelDownloadA100 struct {
+	baseTestModel
+}
+
+func (*testModelDownloadA100) SupportDistributedInference() bool {
+	return true
+}
+
+func (*testModelDownloadA100) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Name:              "test-model-download-a100",
+			Tag:               "1.0.0",
+			Version:           "https://huggingface.co/test-repo/test-model-a100/commit/test-revision",
+			DownloadAtRuntime: true,
+		},
+		GPUCountRequirement:     "1",
+		DiskStorageRequirement:  "100Gi",
+		TotalSafeTensorFileSize: "64Gi",
+		RuntimeParam: model.RuntimeParam{
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				AccelerateParams:  emptyParams,
+				ModelRunParams:    emptyParams,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+
 func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata: model.Metadata{
@@ -293,6 +328,11 @@ func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-model-download",
 		Instance: &testModelDownload{},
+	})
+
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-model-download-a100",
+		Instance: &testModelDownloadA100{},
 	})
 
 	plugin.KaitoModelRegister.Register(&plugin.Registration{

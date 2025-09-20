@@ -26,9 +26,7 @@ def liveness(args):
     # Checking the Ray job's entrypoint is the best we can do to identify the VLLM inference job
     inference_job = next(
         filter(
-            lambda job: job.entrypoint.startswith(
-                "python3 /workspace/vllm/inference_api.py"
-            ),
+            lambda job: job.entrypoint.startswith("VLLM::EngineCore"),
             list_jobs(address=gcs),
         ),
         None,

@@ -114,6 +114,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInferenceResource(workspaceObj, int32(numOfNode), true)
 
+		time.Sleep(1 * time.Minute)
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)

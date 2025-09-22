@@ -20,14 +20,14 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 )
 
-func TestComputePlannedMaxModelLen(t *testing.T) {
+func TestComputeMaxModelLen(t *testing.T) {
 	tests := []struct {
-		name                string
-		preset              *pkgmodel.PresetParam
-		gpu                 *sku.GPUConfig
-		nodeCountPerReplica int
-		expected            int
-		description         string
+		name             string
+		preset           *pkgmodel.PresetParam
+		gpu              *sku.GPUConfig
+		numRequiredNodes int
+		expected         int
+		description      string
 	}{
 		{
 			name:   "nil preset",
@@ -36,9 +36,9 @@ func TestComputePlannedMaxModelLen(t *testing.T) {
 				GPUMemGB: 24,
 				GPUCount: 2,
 			},
-			nodeCountPerReplica: 1,
-			expected:            0,
-			description:         "should return 0 for nil preset",
+			numRequiredNodes: 1,
+			expected:         0,
+			description:      "should return 0 for nil preset",
 		},
 		{
 			name: "invalid BytesPerToken",
@@ -54,9 +54,9 @@ func TestComputePlannedMaxModelLen(t *testing.T) {
 				GPUMemGB: 24,
 				GPUCount: 2,
 			},
-			nodeCountPerReplica: 1,
-			expected:            0,
-			description:         "should return 0 for invalid BytesPerToken",
+			numRequiredNodes: 1,
+			expected:         0,
+			description:      "should return 0 for invalid BytesPerToken",
 		},
 		{
 			name: "deepseek-r1-distill-llama-8b on Standard_NV36ads_A10_v5",
@@ -72,9 +72,9 @@ func TestComputePlannedMaxModelLen(t *testing.T) {
 				GPUMemGB: 24, // A10 has 24GB memory
 				GPUCount: 1,  // Standard_NV36ads_A10_v5 has 1 GPU
 			},
-			nodeCountPerReplica: 1,
-			expected:            17152, // Calculated result from actual formula
-			description:         "deepseek-r1-distill-llama-8b with vLLM on Standard_NV36ads_A10_v5",
+			numRequiredNodes: 1,
+			expected:         21248,
+			description:      "deepseek-r1-distill-llama-8b with vLLM on Standard_NV36ads_A10_v5",
 		},
 		{
 			name: "deepseek-r1-distill-qwen-14b on Standard_NV72ads_A10_v5",
@@ -90,9 +90,9 @@ func TestComputePlannedMaxModelLen(t *testing.T) {
 				GPUMemGB: 48, // Standard_NV72ads_A10_v5 has 48GB memory
 				GPUCount: 2,  // Standard_NV72ads_A10_v5 has 2 GPUs
 			},
-			nodeCountPerReplica: 1,
-			expected:            36352, // Calculated result from actual formula
-			description:         "deepseek-r1-distill-qwen-14b with vLLM on Standard_NV72ads_A10_v5",
+			numRequiredNodes: 1,
+			expected:         41728,
+			description:      "deepseek-r1-distill-qwen-14b with vLLM on Standard_NV72ads_A10_v5",
 		},
 		{
 			name: "deepseek-r1-distill-qwen-14b on Standard_NC24ads_A100_v4",
@@ -108,9 +108,9 @@ func TestComputePlannedMaxModelLen(t *testing.T) {
 				GPUMemGB: 80, // A100 has 80GB memory
 				GPUCount: 1,  // Standard_NC24ads_A100_v4 has 1 GPU
 			},
-			nodeCountPerReplica: 1,
-			expected:            131072, // Clamped to ModelTokenLimit (original calculation: 192456)
-			description:         "deepseek-r1-distill-qwen-14b with vLLM on Standard_NC24ads_A100_v4",
+			numRequiredNodes: 1,
+			expected:         131072, // Clamped to ModelTokenLimit (original calculation: 192456)
+			description:      "deepseek-r1-distill-qwen-14b with vLLM on Standard_NC24ads_A100_v4",
 		},
 		{
 			name: "llama-3.3-70b-instruct on Standard_NC24ads_A100_v4",
@@ -126,15 +126,15 @@ func TestComputePlannedMaxModelLen(t *testing.T) {
 				GPUMemGB: 80, // A100 has 80GB memory
 				GPUCount: 1,  // Standard_NC24ads_A100_v4 has 1 GPU per node
 			},
-			nodeCountPerReplica: 3,
-			expected:            131072, // Clamped to ModelTokenLimit (original calculation: 183014)
-			description:         "llama-3.3-70b-instruct with vLLM on 3 nodes x Standard_NC24ads_A100_v4",
+			numRequiredNodes: 3,
+			expected:         22016,
+			description:      "llama-3.3-70b-instruct with vLLM on 3 nodes x Standard_NC24ads_A100_v4",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := computePlannedMaxModelLen(tt.preset, tt.gpu, tt.nodeCountPerReplica)
+			result := computeMaxModelLen(tt.preset, tt.gpu, tt.numRequiredNodes)
 			if result != tt.expected {
 				t.Errorf("Test %s failed: expected %d, got %d", tt.name, tt.expected, result)
 			}

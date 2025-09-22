@@ -268,7 +268,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	if rc.MaxModelLen > 0 {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
 	}
-	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.82"
+	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.84"
 
 	if !p.DisableTensorParallelism {
 		// Tensor Parallelism (TP) is set to the number of GPUs on a given node per vLLM guidance:

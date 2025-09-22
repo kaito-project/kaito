@@ -114,33 +114,6 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 				}
 			}
 		}
-	} else {
-		// Check if required fields are present
-		modelLenRequired := false
-
-		// Get SKU handler to check GPU configuration
-		skuHandler, err := utils.GetSKUHandler()
-		if err != nil {
-			return apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType")
-		}
-		if skuConfig := skuHandler.GetGPUConfigBySKU(w.Resource.InstanceType); skuConfig != nil {
-			// Check if this is a multi-GPU instance with less than 20GB per GPU
-			gpuMemPerGPU := skuConfig.GPUMemGB / skuConfig.GPUCount
-			// For multi-GPU instances with less than 20GB per GPU, max-model-len is required
-			if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20 {
-				modelLenRequired = true
-			}
-		}
-		if w.Resource.Count != nil && *w.Resource.Count > 1 {
-			modelLenRequired = true
-		}
-
-		if modelLenRequired {
-			maxModelLen, exists := inferenceConfig.VLLM["max-model-len"]
-			if !exists || maxModelLen == "" {
-				return apis.ErrMissingField("max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU or distributed inference")
-			}
-		}
 	}
 
 	return errs

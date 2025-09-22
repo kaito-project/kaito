@@ -48,53 +48,53 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 			Fail("Fail threshold reached")
 		}
 	})
-	/*
-		It("should create a deepseek-distilled-llama-8b workspace with preset public mode successfully", func() {
-			numOfNode := 1
-			workspaceObj := createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-			defer cleanupResources(workspaceObj)
-			time.Sleep(30 * time.Second)
+	It("should create a deepseek-distilled-llama-8b workspace with preset public mode successfully", func() {
+		numOfNode := 1
+		workspaceObj := createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-			validateCreateNode(workspaceObj, numOfNode)
-			validateResourceStatus(workspaceObj)
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
 
-			time.Sleep(30 * time.Second)
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
 
-			validateAssociatedService(workspaceObj)
-			validateInferenceConfig(workspaceObj)
+		time.Sleep(30 * time.Second)
 
-			validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
-			validateWorkspaceReadiness(workspaceObj)
-			validateModelsEndpoint(workspaceObj)
-			validateCompletionsEndpoint(workspaceObj)
-			validateGatewayAPIInferenceExtensionResources(workspaceObj)
-		})
+		validateInferenceResource(workspaceObj, int32(numOfNode), false)
 
-		It("should create a single-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-			numOfNode := 1
-			workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode, "Standard_NV36ads_A10_v5")
+		validateWorkspaceReadiness(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
+	})
 
-			defer cleanupResources(workspaceObj)
-			time.Sleep(30 * time.Second)
+	It("should create a single-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode, "Standard_NV36ads_A10_v5")
 
-			validateCreateNode(workspaceObj, numOfNode)
-			validateResourceStatus(workspaceObj)
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
 
-			time.Sleep(30 * time.Second)
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
 
-			validateAssociatedService(workspaceObj)
-			validateInferenceConfig(workspaceObj)
+		time.Sleep(30 * time.Second)
 
-			validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
 
-			validateWorkspaceReadiness(workspaceObj)
-			validateModelsEndpoint(workspaceObj)
-			validateCompletionsEndpoint(workspaceObj)
-			validateGatewayAPIInferenceExtensionResources(workspaceObj)
-		})
-	*/
+		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
+		validateGatewayAPIInferenceExtensionResources(workspaceObj)
+	})
+
 	It("should create a multi-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		// Need 2 Standard_NC6s_v3 nodes to run Llama 3.1-8B Instruct model.
 		// Each node has 1 V100 GPU, so total 2 GPUs are used
@@ -141,7 +141,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
 		validateGatewayAPIInferenceExtensionResources(workspaceObj)
-		time.Sleep(60 * time.Minute)
 	})
 
 	It("should create a falcon workspace with preset public mode successfully", func() {
@@ -518,7 +517,7 @@ func createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1
 		// Pass custom config data with gpu-memory-utilization and max-model-len
 		customConfigData := map[string]string{
 			"inference_config.yaml": `vllm:
-  gpu-memory-utilization: 0.82  # Controls GPU memory usage (0.0-1.0)
+  gpu-memory-utilization: 0.84  # Controls GPU memory usage (0.0-1.0)
   max-model-len: 1024`,
 		}
 

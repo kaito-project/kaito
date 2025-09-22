@@ -365,7 +365,7 @@ func TestAdvancedNodesEstimator_EstimateNodeCount_Qwen25Coder32B(t *testing.T) {
 					},
 				},
 			},
-			expectedCount: 2, // Should optimize to 2 node (62.5Gi fits in 80GB A100 GPU)
+			expectedCount: 1, // Should optimize to 1 node (62.5Gi fits in 80GB A100 GPU with 0.84 utilization)
 			expectedError: false,
 		},
 	}

@@ -1751,7 +1751,7 @@ func TestInferenceConfigMapValidation(t *testing.T) {
 				"inference_config.yaml": `
 vllm:
   max-model-len: 20480
-  gpu-memory-utilization: 0.82
+  gpu-memory-utilization: 0.84
 `,
 			},
 		},
@@ -1765,7 +1765,7 @@ vllm:
 				"inference_config.yaml": `
 vllm:
   max-model-len: 2048
-  gpu-memory-utilization: 0.82
+  gpu-memory-utilization: 0.84
 `,
 			},
 		},

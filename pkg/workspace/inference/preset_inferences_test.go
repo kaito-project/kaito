@@ -67,7 +67,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.82 --max-model-len=2048 --tensor-parallel-size=2 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
 		},
 
@@ -82,7 +82,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-no-tensor-parallel-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.82 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
 		},
 
@@ -97,7 +97,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-no-lora-support-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.82 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
 		},
 
@@ -110,7 +110,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			},
 			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
-			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.82 --max-model-len=2048 --tensor-parallel-size=2 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters:        true,
 			expectedVolume:     "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{{
@@ -160,7 +160,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 			},
 			workload:    "Deployment",
-			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.82 --max-model-len=2048 --tensor-parallel-size=2 --model=test-repo/test-model-a100 --code-revision=test-revision --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml`,
+			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --model=test-repo/test-model-a100 --code-revision=test-revision --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -183,7 +183,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 			},
 			workload:    "StatefulSet",
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=4 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.82 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=4 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=3 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=3 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -208,14 +208,14 @@ func TestGeneratePresetInference(t *testing.T) {
 			// Using Standard_NC12s_v3, which has 32GB GPU memory per node.
 			// The preset requires 64GB GPU memory for the model, so only 4 nodes are needed.
 			workspace: test.MockWorkspaceWithPresetDownloadVLLM,
-			nodeCount: 6, // 6 nodes but only 4 are needed
+			nodeCount: 4, // 4 nodes are needed
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 			},
 			workload:    "StatefulSet",
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=4 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.82 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=4 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=3 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=3 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{

@@ -373,7 +373,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 						//klog.Infof("[RuntimeContext] workspace=%s using user explicit max-model-len=%d", ctx.Workspace.Name, maxModelLen)
 						//} else {
 						// If no user value, compute planned value
-						maxModelLen = computePlannedMaxModelLen(presetParams, gpuConfig, numNodes)
+						maxModelLen = computeMaxModelLen(presetParams, gpuConfig, numNodes)
 						klog.Infof("[RuntimeContext] workspace=%s using computed max-model-len=%d (gpuConfig=%+v, numNodes=%d)", ctx.Workspace.Name, maxModelLen, *gpuConfig, numNodes)
 						//}
 					}

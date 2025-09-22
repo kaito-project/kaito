@@ -16,7 +16,6 @@ package advancednodesestimator
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -83,16 +82,15 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		err := resources.GetResource(ctx, configMapName, workspace.Namespace, client, configMap)
 		if err != nil {
 			klog.Warningf("[AdvancedEstimator] Failed to get ConfigMap %s: %v, using default maxModelLen=%d", configMapName, err, maxModelLen)
-		} /* else {
-			// Search for max-model-len in ConfigMap data
-			for _, content := range configMap.Data {
-				if userMaxModelLen, found := utils.ParseExplicitMaxModelLen(content); found {
+		} else {
+			// Parse the ConfigMap content for max-model-len
+			if configData, exists := configMap.Data["inference_config.yaml"]; exists {
+				if userMaxModelLen, found := utils.ParseExplicitMaxModelLen(configData); found {
 					maxModelLen = userMaxModelLen
-					klog.Infof("[AdvancedEstimator] Found user max-model-len=%d in ConfigMap %s", maxModelLen, configMapName)
-					break
+					klog.Infof("[AdvancedEstimator] workspace=%s using user explicit max-model-len=%d from ConfigMap %s", workspace.Name, maxModelLen, configMapName)
 				}
 			}
-		} */
+		}
 	}
 
 	klog.Infof("[AdvancedEstimator] workspace=%s maxModelLen=%d", workspace.Name, maxModelLen)
@@ -102,7 +100,7 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalSafeTensorFileSize)
 		requiredMemoryBytes := int64(float64(totalGPUMemoryRequired.Value()) * 1.02) // vllm model size is about 102% percent of hugging face size
 		totalGPUMemoryPerGPUBytes := int64(gpuConfig.GPUMemGB) * consts.GiBToBytes / int64(gpuConfig.GPUCount)
-		availableGPUMemoryPerGPUBytes := int64(float64(totalGPUMemoryPerGPUBytes) * 0.82) // utilization is set to default 0.82
+		availableGPUMemoryPerGPUBytes := int64(float64(totalGPUMemoryPerGPUBytes) * 0.84) // utilization is set to default 0.84
 
 		// Overhead calculation: fixed base overhead (2.3GB) + model length overhead
 		// Following the same algorithm as preset_inferences.go
@@ -130,9 +128,13 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		// If each node has gpuConfig.GPUCount GPUs, we need ceil(minGPUs / gpuConfig.GPUCount) nodes
 		nodeCountPerReplica = (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
 
-		// Special case for Falcon models: they cannot be distributed across multiple nodes
-		if nodeCountPerReplica > 1 && strings.Contains(presetName, "falcon") {
-			return 0, fmt.Errorf("falcon models cannot be distributed across more than 1 GPU node, calculated nodes: %d", nodeCountPerReplica)
+		// Special case for models with disabled tensor parallelism: they cannot be distributed across multiple nodes
+		if nodeCountPerReplica > 1 && model.GetInferenceParameters().DisableTensorParallelism {
+			return 0, fmt.Errorf("models with disabled tensor parallelism cannot be distributed across more than 1 GPU node, calculated nodes: %d", nodeCountPerReplica)
+		}
+
+		if nodeCountPerReplica > 1 && !model.SupportDistributedInference() {
+			return 0, fmt.Errorf("models with disabled support distributed inference cannot be distributed across more than 1 GPU node, please use a node with larger GPU memory, calculated nodes: %d", nodeCountPerReplica)
 		}
 	}
 

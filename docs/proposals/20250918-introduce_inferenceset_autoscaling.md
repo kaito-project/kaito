@@ -69,11 +69,13 @@ spec:
         modelAccessSecret: "hf-token"
       adapters:
         ...
+      template: # pod template
+        ...
   updateStrategy:
     type: RollingUpdate
 ```
 
-### related fields in `InferenceSet` CR
+### related fields in `InferenceSet` Custom Resource(CR)
   - `spec.Replicas`
 
     number of `workspace` CR created by InferenceSet controller

@@ -135,6 +135,8 @@ func (c *NodeClaimManager) AreNodeClaimsReady(ctx context.Context, wObj *kaitov1
 		}
 		return true, nil
 	} else {
+		klog.InfoS("Ready nodeClaims for workspace are not enough currently", "workspace", client.ObjectKeyFromObject(wObj).String(),
+			"targetNodeClaims", targetNodeCount, "currentReadyNodeClaims", readyCount)
 		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
 			"NodeClaimNotReady", fmt.Sprintf("Ready NodeClaims are not enough (TargetNodeClaims: %d, CurrentReadyNodeClaims: %d)", targetNodeCount, readyCount)); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update NodeClaim status condition NodeClaimsReady to false", "workspace", klog.KObj(wObj))

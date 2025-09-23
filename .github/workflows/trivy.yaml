@@ -21,6 +21,7 @@ jobs:
           - target: docker-build-ragservice
             image: test/kaito-rag-service:v0.0.1
             registry: test
+            build_flags: "--target dependencies"
 
     steps:
 
@@ -33,7 +34,7 @@ jobs:
           export IMG_TAG=latest
           export OUTPUT_TYPE="type=docker"
           export ARCH="amd64"
-          make ${{ matrix.target }} BUILD_FLAGS="--target dependencies"
+          make ${{ matrix.target }} BUILD_FLAGS="${{ matrix.build_flags }}"
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1

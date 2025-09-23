@@ -547,6 +547,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 				currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 				// If the current workload revision matches the one in Workspace, we do not need to update it.
 				if ok && currentRevisionStr == revisionStr {
+					err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout)
 					return
 				}
 
@@ -573,9 +574,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 					return
 				}
 
-				if err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {
-					return
-				}
+				err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout)
 				return
 			} else if !apierrors.IsNotFound(err) {
 				return

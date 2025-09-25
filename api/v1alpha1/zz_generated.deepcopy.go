@@ -239,16 +239,6 @@ func (in *InferenceSetList) DeepCopyObject() runtime.Object {
 func (in *InferenceSetSpec) DeepCopyInto(out *InferenceSetSpec) {
 	*out = *in
 	in.Template.DeepCopyInto(&out.Template)
-	if in.Replicas != nil {
-		in, out := &in.Replicas, &out.Replicas
-		*out = new(int)
-		**out = **in
-	}
-	if in.NodeCountLimit != nil {
-		in, out := &in.NodeCountLimit, &out.NodeCountLimit
-		*out = new(int)
-		**out = **in
-	}
 	if in.Selector != nil {
 		in, out := &in.Selector, &out.Selector
 		*out = new(v1.LabelSelector)

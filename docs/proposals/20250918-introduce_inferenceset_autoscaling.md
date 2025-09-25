@@ -98,13 +98,13 @@ spec:
 // InferenceSetTemplate defines the template for creating InferenceSet instances.
 type InferenceSetTemplate struct {
 	Resource  ResourceSpec   `json:"resource,omitempty"`
-	Inference *InferenceSpec `json:"inference,omitempty"`
+	Inference InferenceSpec `json:"inference,omitempty"`
 }
 
 // InferenceSetSpec defines the desired state of InferenceSet
 type InferenceSetSpec struct {
 	// Template is the template used to create the InferenceSet.
-	Template *InferenceSetTemplate `json:"template"`
+	Template InferenceSetTemplate `json:"template"`
 	// Replicas is the desired number of workspaces to be created.
 	// +optional
 	// +kubebuilder:default:=1
@@ -143,7 +143,7 @@ type InferenceSet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   *InferenceSetSpec  `json:"spec,omitempty"`
+	Spec   InferenceSetSpec  `json:"spec,omitempty"`
 	Status InferenceSetStatus `json:"status,omitempty"`
 }
 ```

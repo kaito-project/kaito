@@ -63,7 +63,7 @@ spec:
   template:
     resource:
       instanceType: "Standard_NC24ads_A100_v4"
-    inference: # fields in inference are the same as in workspace.resource.inference
+    inference: # fields in inference are the same as in workspace.inference
       preset:
         name: "llama2-7b"
         modelAccessSecret: "hf-token"

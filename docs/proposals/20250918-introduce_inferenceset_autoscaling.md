@@ -129,6 +129,9 @@ type InferenceSetStatus struct {
 	// Replicas is the total number of workspaces created by the InferenceSet.
 	// +required
 	Replicas int `json:"replicas"`
+	// Selector is used to select the pods that provide metrics for making scaling action decisions.
+	// This field must be set when HPA and VPA is used for scaling.
+	Selector string `json:"selector,omitempty"`
 	// Conditions report the current conditions of the InferenceSet.
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
@@ -137,6 +140,7 @@ type InferenceSetStatus struct {
 // InferenceSet is the Schema for the InferenceSet API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
 // +kubebuilder:resource:path=inferencesets,scope=Namespaced,categories=inferenceset,shortName={is,isets}
 // +kubebuilder:storageversion
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description=""

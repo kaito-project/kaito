@@ -372,6 +372,11 @@ spec:
                 description: Replicas is the total number of workspaces created by
                   the InferenceSet.
                 type: integer
+              selector:
+                description: |-
+                  Selector is used to select the pods that provide metrics for making scaling action decisions.
+                  This field must be set when HPA and VPA is used for scaling.
+                type: string
             required:
             - replicas
             type: object
@@ -379,4 +384,8 @@ spec:
     served: true
     storage: true
     subresources:
+      scale:
+        labelSelectorPath: .status.selector
+        specReplicasPath: .spec.replicas
+        statusReplicasPath: .status.replicas
       status: {}

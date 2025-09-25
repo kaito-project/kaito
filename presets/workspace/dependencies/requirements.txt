@@ -3,7 +3,7 @@
 # Core Dependencies
 vllm==0.10.1.1
 transformers==4.55.2
-torch==2.7.1
+torch==2.8.0
 accelerate==1.3.0
 fastapi==0.116.1
 pydantic>=2.9

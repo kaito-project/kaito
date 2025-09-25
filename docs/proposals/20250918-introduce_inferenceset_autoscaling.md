@@ -97,7 +97,7 @@ spec:
 ```go
 // InferenceSetTemplate defines the template for creating InferenceSet instances.
 type InferenceSetTemplate struct {
-	Resource  ResourceSpec   `json:"resource,omitempty"`
+	Resource  ResourceSpec  `json:"resource,omitempty"`
 	Inference InferenceSpec `json:"inference,omitempty"`
 }
 
@@ -108,11 +108,11 @@ type InferenceSetSpec struct {
 	// Replicas is the desired number of workspaces to be created.
 	// +optional
 	// +kubebuilder:default:=1
-	Replicas *int `json:"replicas,omitempty"`
+	Replicas int `json:"replicas,omitempty"`
 	// NodeCountLimit is the maximum number of GPU nodes that can be created for the InferenceSet.
 	// If not specified, there is no limit on the number of GPU nodes that can be created.
 	// +optional
-	NodeCountLimit *int `json:"nodeCountLimit,omitempty"`
+	NodeCountLimit int `json:"nodeCountLimit,omitempty"`
 	// workspace created by InferenceSet controller would use this label in resource.labelSelector
 	// +required
 	Selector *metav1.LabelSelector `json:"labelSelector"`
@@ -126,6 +126,9 @@ type InferenceSetSpec struct {
 
 // InferenceSetStatus defines the observed state of InferenceSet
 type InferenceSetStatus struct {
+	// Replicas is the total number of workspaces created by the InferenceSet.
+	// +required
+	Replicas int `json:"replicas"`
 	// Conditions report the current conditions of the InferenceSet.
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
@@ -143,7 +146,7 @@ type InferenceSet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   InferenceSetSpec  `json:"spec,omitempty"`
+	Spec   InferenceSetSpec   `json:"spec,omitempty"`
 	Status InferenceSetStatus `json:"status,omitempty"`
 }
 ```

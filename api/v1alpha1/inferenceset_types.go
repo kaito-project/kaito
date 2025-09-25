@@ -31,11 +31,11 @@ type InferenceSetSpec struct {
 	// Replicas is the desired number of workspaces to be created.
 	// +optional
 	// +kubebuilder:default:=1
-	Replicas *int `json:"replicas,omitempty"`
+	Replicas int `json:"replicas,omitempty"`
 	// NodeCountLimit is the maximum number of GPU nodes that can be created for the InferenceSet.
 	// If not specified, there is no limit on the number of GPU nodes that can be created.
 	// +optional
-	NodeCountLimit *int `json:"nodeCountLimit,omitempty"`
+	NodeCountLimit int `json:"nodeCountLimit,omitempty"`
 	// workspace created by InferenceSet controller would use this label in resource.labelSelector
 	// +required
 	Selector *metav1.LabelSelector `json:"labelSelector"`
@@ -49,6 +49,9 @@ type InferenceSetSpec struct {
 
 // InferenceSetStatus defines the observed state of InferenceSet
 type InferenceSetStatus struct {
+	// Replicas is the total number of workspaces created by the InferenceSet.
+	// +required
+	Replicas int `json:"replicas"`
 	// Conditions report the current conditions of the InferenceSet.
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`

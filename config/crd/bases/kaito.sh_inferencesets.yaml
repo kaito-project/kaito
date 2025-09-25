@@ -368,6 +368,12 @@ spec:
                   - type
                   type: object
                 type: array
+              replicas:
+                description: Replicas is the total number of workspaces created by
+                  the InferenceSet.
+                type: integer
+            required:
+            - replicas
             type: object
         type: object
     served: true

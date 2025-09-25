@@ -55,7 +55,7 @@ metadata:
   name: llama2-7b
 spec:
   replicas: 3 # number of workspace CR created by InferenceSet controller
-  quota: 10 # optional, total GPU node count limit for InferenceSet
+  nodeCountLimit: 10 # optional, total GPU node count limit for InferenceSet
   selector:
     matchLabels:
       # workspace created by InferenceSet controller would use this label in resource.labelSelector
@@ -79,9 +79,9 @@ spec:
   - `spec.Replicas`
 
     number of `workspace` CR created by InferenceSet controller
-  - `spec.quota`
+  - `spec.nodeCountLimit`
 
-    (optional) total GPU node count limit for InferenceSet, this is used in autoscaling scenario, every workspace CR would consumes a few CPU nodes, the total CPU node should not exceed this quota otherwise there would be error during autoscaling
+    (optional) total GPU node count limit for InferenceSet, this is used in autoscaling scenario, every workspace CR would consumes a few CPU nodes, the total CPU node should not exceed this nodeCountLimit otherwise there would be error during autoscaling
   - `spec.selector.matchLabels`
 
     workspace created by InferenceSet controller would use this label in resource.labelSelector
@@ -90,9 +90,63 @@ spec:
     allows you to configure and disable automated rolling updates for existing workspace CRs, available values: `RollingUpdate`(default), `OnDelete`, and `rollingUpdate` supports `maxUnavailable`.
      - following fields supports update:
        - `spec.Replicas`
-       - `spec.quota`
+       - `spec.nodeCountLimit`
        - `spec.template.adapters`
 
+### InferenceSet API
+```go
+// InferenceSetTemplate defines the template for creating InferenceSet instances.
+type InferenceSetTemplate struct {
+	Resource  ResourceSpec   `json:"resource,omitempty"`
+	Inference *InferenceSpec `json:"inference,omitempty"`
+}
+
+// InferenceSetSpec defines the desired state of InferenceSet
+type InferenceSetSpec struct {
+	// Template is the template used to create the InferenceSet.
+	Template *InferenceSetTemplate `json:"template"`
+	// Replicas is the desired number of workspaces to be created.
+	// +optional
+	// +kubebuilder:default:=1
+	Replicas *int `json:"replicas,omitempty"`
+	// NodeCountLimit is the maximum number of GPU nodes that can be created for the InferenceSet.
+	// If not specified, there is no limit on the number of GPU nodes that can be created.
+	// +optional
+	NodeCountLimit *int `json:"nodeCountLimit,omitempty"`
+	// workspace created by InferenceSet controller would use this label in resource.labelSelector
+	// +required
+	Selector *metav1.LabelSelector `json:"labelSelector"`
+	// UpdateStrategy indicates the strategy to use to replace existing workspaces with new ones.
+	// +optional
+	// +kubebuilder:default:={"type":"RollingUpdate","rollingUpdate":{"maxUnavailable":1}}
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	UpdateStrategy appsv1.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty"`
+}
+
+// InferenceSetStatus defines the observed state of InferenceSet
+type InferenceSetStatus struct {
+	// Conditions report the current conditions of the InferenceSet.
+	// +optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+}
+
+// InferenceSet is the Schema for the InferenceSet API
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:path=inferencesets,scope=Namespaced,categories=inferenceset,shortName={is,isets}
+// +kubebuilder:storageversion
+// +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description=""
+// +kubebuilder:printcolumn:name="ReadyReplicas",type="integer",JSONPath=".status.readyReplicas",description=""
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
+type InferenceSet struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   *InferenceSetSpec  `json:"spec,omitempty"`
+	Status InferenceSetStatus `json:"status,omitempty"`
+}
+```
 
 ## Implementation Strategy
 
@@ -110,8 +164,10 @@ Address other functionalities, e.g. Update Strategy
     allows you to configure and disable automated rolling updates for existing workspace CRs, available values: `RollingUpdate`(default), `OnDelete`, and `rollingUpdate` supports `maxUnavailable`.
      - following fields supports update:
        - `spec.Replicas`
-       - `spec.quota`
+       - `spec.nodeCountLimit`
        - `spec.template.adapters`
 
 ## Implementation History
-- [ ] 09/18/2025: Open proposal PR
+- [x] 09/18/2025: Open proposal PR
+- [x] 09/25/2025: address comments and add InferenceSet API
+

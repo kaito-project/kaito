@@ -25,16 +25,12 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 )
 
 type InferenceSetReconciler struct {
@@ -84,20 +80,12 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("InferenceSet")
 
 	builder := ctrl.NewControllerManagedBy(mgr).
-		For(&kaitov1beta1.Workspace{}).
+		For(&kaitov1alpha1.InferenceSet{}).
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.ControllerRevision{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&batchv1.Job{}).
-		Watches(&karpenterv1.NodeClaim{},
-			&nodeClaimEventHandler{
-				logger:         c.klogger,
-				expectations:   c.expectations,
-				enqueueHandler: enqueueWorkspaceForNodeClaim,
-			},
-			builder.WithPredicates(nodeclaim.NodeClaimPredicate),
-		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
 	//go monitorWorkspaces(context.Background(), c.Client)

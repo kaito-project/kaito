@@ -25,11 +25,14 @@ Before enabling this feature in KAITO, ensure the following are installed in you
 The feature is off by default. Enable it by setting the workspace chart feature gate:
 
 ```bash
-# Based on https://kaito-project.github.io/kaito/docs/installation
-helm upgrade --install kaito-workspace \
-  https://github.com/kaito-project/kaito/raw/gh-pages/charts/kaito/workspace-$KAITO_WORKSPACE_VERSION.tgz \
+export CLUSTER_NAME=kaito
+
+helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+helm repo update
+helm upgrade --install kaito-workspace kaito/workspace \
   --namespace kaito-workspace \
   --create-namespace \
+  --set clusterName="$CLUSTER_NAME" \
   --set featureGates.gatewayAPIInferenceExtension=true \
   --wait
 ```

@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -409,15 +410,16 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 		"Create preset inference because inference workload did not exist": {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(test.NotFoundError()).Times(4)
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-					depObj := &appsv1.Deployment{}
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(test.NotFoundError()).Times(4)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+					ssObj := &appsv1.StatefulSet{}
 					key := client.ObjectKey{Namespace: "kaito", Name: "testWorkspace"}
-					c.GetObjectFromMap(depObj, key)
-					depObj.Status.ReadyReplicas = 1
-					c.CreateOrUpdateObjectInMap(depObj)
+					c.GetObjectFromMap(ssObj, key)
+					ssObj.Status.ReadyReplicas = 1
+					c.CreateOrUpdateObjectInMap(ssObj)
 				})
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
 
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 
@@ -461,18 +463,19 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			expectedError: nil,
 		},
 
-		"Update deployment with new configuration": {
+		"Update statefulset with new configuration": {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				// Mocking existing Deployment object
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+				// Mocking existing StatefulSet object
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						dep := args.Get(2).(*appsv1.Deployment)
-						*dep = test.MockDeploymentUpdated
+						ss := args.Get(2).(*appsv1.StatefulSet)
+						*ss = test.MockStatefulSetUpdated
 					}).
 					Return(nil)
 
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
 			},
@@ -818,6 +821,9 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&sourcev1.OCIRepository{}), mock.Anything).Return(nil)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&helmv2.HelmRelease{}), mock.Anything).Return(nil)
+				// Add Update mocks in case the objects need updating
+				c.On("Update", mock.Anything, mock.IsType(&sourcev1.OCIRepository{}), mock.Anything).Return(nil)
+				c.On("Update", mock.Anything, mock.IsType(&helmv2.HelmRelease{}), mock.Anything).Return(nil)
 
 				ociRepository := manifests.GenerateInferencePoolOCIRepository(test.MockWorkspaceWithPresetVLLM)
 				ociRepository.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}

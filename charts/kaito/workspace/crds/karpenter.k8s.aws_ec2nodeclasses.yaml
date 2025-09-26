@@ -722,7 +722,7 @@ spec:
                         default: active
                         description: |-
                           The state of the capacity reservation. A capacity reservation is considered to be expiring if it is within the EC2
-                          reclaimation window. Only capacity-block reservations may be in this state.
+                          reclamation window. Only capacity-block reservations may be in this state.
                         enum:
                           - active
                           - expiring

@@ -150,6 +150,18 @@ func main() {
 		exitWithErrorFunc()
 	}
 
+	inferenceSetReconciler := controllers.NewInferenceSetReconciler(
+		kClient,
+		mgr.GetScheme(),
+		log.Log.WithName("controllers").WithName("InferenceSet"),
+		mgr.GetEventRecorderFor("KAITO-InferenceSet-controller"),
+	)
+
+	if err = inferenceSetReconciler.SetupWithManager(mgr); err != nil {
+		klog.ErrorS(err, "unable to create controller", "controller", "InferenceSet")
+		exitWithErrorFunc()
+	}
+
 	pvGCReconciler := garbagecollect.NewPersistentVolumeGCReconciler(
 		kClient,
 		mgr.GetEventRecorderFor("KAITO-PersistentVolumeGC-controller"),

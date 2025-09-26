@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS dependencies
+FROM python:3.13-slim AS dependencies
 
 # Install system dependencies for building Python packages
 RUN apt-get update && apt-get upgrade -y \

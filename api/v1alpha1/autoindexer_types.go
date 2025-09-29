@@ -67,6 +67,7 @@ type AutoIndexerSpec struct {
 	RetryPolicy *RetryPolicySpec `json:"retryPolicy,omitempty"`
 
 	// Suspend can be set to true to suspend the indexing schedule
+	// This will also suspend any drift detection for data sources
 	// +optional
 	Suspend *bool `json:"suspend,omitempty"`
 }
@@ -111,7 +112,7 @@ const (
 type GitDataSourceSpec struct {
 	// Repository URL
 	// +kubebuilder:validation:Required
-	Repository string `json:"repository"`
+	RepositoryURL string `json:"repositoryURL"`
 
 	// Branch to checkout (default: main)
 	// +optional
@@ -170,7 +171,10 @@ type SecretKeyRef struct {
 
 // RetryPolicySpec defines retry behavior for failed operations
 type RetryPolicySpec struct {
-	// Maximum number of retries
+	// Maximum number of retries applied to failed indexing jobs
+	// Default is 3
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:default=3
 	// +optional
 	MaxRetries int32 `json:"maxRetries,omitempty"`
 }
@@ -184,6 +188,10 @@ type AutoIndexerStatus struct {
 	// LastCommit is the last processed commit hash for Git sources
 	// +optional
 	LastCommit string `json:"lastCommit,omitempty"`
+
+	// LastRunDocuments indicates the number of documents indexed in the last run
+	// +optional
+	LastRunDocuments int32 `json:"lastRunDocuments,omitempty"`
 
 	// Phase represents the current phase of the AutoIndexer
 	// +optional

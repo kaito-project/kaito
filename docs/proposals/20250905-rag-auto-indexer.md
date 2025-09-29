@@ -26,9 +26,10 @@ Currently, KAITO's RAG engine requires manual document indexing through API call
 ### Goals
 
 - **Declarative Configuration**: Users define data sources and sync policies via YAML
-- **Single-Source Support**: Start with support for GitHub repositories, and in the future expand to other entities like blob storage, databases, and other common data sources
+- **Single-Source Support**: Start with support for GitHub repositories and Static Files, and in the future expand to other entities like blob storage, databases, and other common data sources
 - **Flexible Scheduling**: Support for single-run, cron-based, and long running indexing operations
 - **Incremental Updates**: Efficient processing of only changed documents where possible
+- **Drift Detection**: Have drift detection per AutoIndexer to validate if there have been changes to the indexed data.
 - **Error Handling**: Retry mechanisms and status reporting
 - **Integration**: Seamless integration with existing RAGEngine CRDs
 
@@ -38,82 +39,6 @@ Currently, KAITO's RAG engine requires manual document indexing through API call
 - Complex data transformation pipelines (focuses on document extraction and basic metadata)
 - Custom authentication beyond standard Kubernetes secrets
 
-## Proposal
-
-### Auto Indexer CRD Design
-
-```yaml
-apiVersion: kaito.sh/v1alpha1
-kind: AutoIndexer
-metadata:
-  name: docs-indexer
-  namespace: default
-spec:
-  ragEngineRef:
-    name: my-rag-engine
-    namespace: my-rag-ns
-    indexName: documentation-index
-
-  dataSource:
-    type: GitHub
-    gitHub:
-      schedule: "0 2 * * *"
-      repository: https://github.com/myorg/documentation
-      branch: main
-      paths:
-        - "docs/"
-        - "README.md"
-        - "*.md"
-      excludePaths:
-        - ".git/"
-		- "*.yaml"
-		- "*.yml"
-        - "node_modules/"
-        - "*.tmp"
-      credentials:
-        type: SecretRef  # or WorkloadIdentity, ServiceAccount
-        secretRef:
-          name: github-token
-          key: token
-
-  retryPolicy:
-    maxRetries: 3
-    backoffStrategy: exponential
-
-status:
-  lastIndexed: "2023-09-05T02:00:00Z"
-  lastCommit: "abc123def456"
-  phase: Pending  # or Running, Completed, Failed, Retrying, Unknown
-  successfulRunCount: 3
-  errorRunCount: 0
-  documentsProcessed: 42
-  nextScheduledRun: "2023-09-05T04:00:00Z"
-  errors: []
-  conditions:
-    - type: Ready
-      status: "False"
-      reason: IndexingInProgress
-      message: "Currently indexing latest docs from GitHub"
-      lastTransitionTime: "2023-09-05T02:00:00Z"
-
-    - type: Scheduled
-      status: "True"
-      reason: CronScheduleDetected
-      message: "Next run at 2023-09-05T04:00:00Z"
-      lastTransitionTime: "2023-09-05T02:01:00Z"
-
-    - type: Indexing
-      status: "True"
-      reason: IndexJobRunning
-      message: "Documents are being processed"
-      lastTransitionTime: "2023-09-05T02:00:00Z"
-
-    - type: Error
-      status: "False"
-      reason: LastRunSuccessful
-      lastTransitionTime: "2023-09-05T02:00:00Z"
-```
-
 ## API Design
 
 The AutoIndexer introduces a new Custom Resource Definition (CRD) to KAITO's API.
@@ -121,306 +46,210 @@ The AutoIndexer introduces a new Custom Resource Definition (CRD) to KAITO's API
 ### CRD Definition
 
 ```go
+// AutoIndexer is the Schema for the autoindexer API
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:path=autoindexers,scope=Namespaced,categories=autoindexer,shortName=ragai
+// +kubebuilder:storageversion
+// +kubebuilder:printcolumn:name="ResourceReady",type="string",JSONPath=".status.conditions[?(@.type==\"ResourceReady\")].status",description=""
+// +kubebuilder:printcolumn:name="Scheduled",type="string",JSONPath=".status.conditions[?(@.type==\"AutoIndexerScheduled\")].status",description=""
+// +kubebuilder:printcolumn:name="Indexing",type="string",JSONPath=".status.conditions[?(@.type==\"AutoIndexerIndexing\")].status",description=""
+// +kubebuilder:printcolumn:name="Error",type="string",JSONPath=".status.conditions[?(@.type==\"AutoIndexerError\")].status",description=""
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
+type AutoIndexer struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec AutoIndexerSpec `json:"spec,omitempty"`
+
+	Status AutoIndexerStatus `json:"status,omitempty"`
+}
+
 // AutoIndexerSpec defines the desired state of AutoIndexer
 type AutoIndexerSpec struct {
 
-	// TODO: CHANGE TO OBJECT REF
-    // RAGEngineRef references the RAGEngine resource to use for indexing
-    // +kubebuilder:validation:Required
-    RAGEngineRef RAGEngineReference `json:"ragEngineRef"`
+	// RAGEngineRef references the RAGEngine resource to use for indexing
+	// +kubebuilder:validation:Required
+	RAGEngineRef RAGEngineReference `json:"ragEngineRef"`
 
 	// IndexName is the name of the index where documents will be stored
-    // +kubebuilder:validation:Required
-    // +kubebuilder:validation:MinLength=1
-    // +kubebuilder:validation:Pattern=`^[a-z0-9][a-z0-9\-]*[a-z0-9]$`
-    IndexName string `json:"indexName"`
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:Pattern=`^[a-z0-9][a-z0-9\-]*[a-z0-9]$`
+	IndexName string `json:"indexName"`
 
-    // DataSource defines where to retrieve documents for indexing
-    // +kubebuilder:validation:Required
-    DataSource DataSourceSpec `json:"dataSource"`
+	// DataSource defines where to retrieve documents for indexing
+	// +kubebuilder:validation:Required
+	DataSource DataSourceSpec `json:"dataSource"`
+
+	// Credentials for private repositories
+	// +optional
+	Credentials *CredentialsSpec `json:"credentials,omitempty"`
 
 	// Schedule defines when the indexing should run (cron format)
-    // +kubebuilder:validation:Required
-    // +kubebuilder:validation:Pattern=`^(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})$`
-    Schedule string `json:"schedule"`
+	// +optional
+	// +kubebuilder:validation:Pattern=`^(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})$`
+	Schedule *string `json:"schedule"`
 
-    // RetryPolicy defines how failed indexing jobs should be retried
-    // +optional
-    RetryPolicy *RetryPolicySpec `json:"retryPolicy,omitempty"`
+	// RetryPolicy defines how failed indexing jobs should be retried
+	// +optional
+	RetryPolicy *RetryPolicySpec `json:"retryPolicy,omitempty"`
 
-    // Suspend can be set to true to suspend the indexing schedule
-    // +optional
-    Suspend *bool `json:"suspend,omitempty"`
+	// Suspend can be set to true to suspend the indexing schedule
+	// This will also suspend any drift detection for data sources
+	// +optional
+	Suspend *bool `json:"suspend,omitempty"`
+}
+
+// RAGEngineReference defines a reference to a ragengine object
+type RAGEngineReference struct {
+	// Name defines the ragengine name
+	// +kubebuilder:validation:Required
+	Name string `json:"name"`
+
+	// Namespace defines the namespace of the ragengine
+	// +kubebuilder:validation:Required
+	Namespace string `json:"namespace"`
 }
 
 // DataSourceSpec defines the source of documents to be indexed
 type DataSourceSpec struct {
-    // Type specifies the data source type
-    // +kubebuilder:validation:Required
-    // +kubebuilder:validation:Enum=GitHub;S3;API;ConfigMap;Secret
-    Type DataSourceType `json:"type"`
+	// Type specifies the data source type
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Enum=Git;Static
+	Type DataSourceType `json:"type"`
 
-    // GitHub defines configuration for GitHub repository data sources
-    // +optional
-    Git *GitHubDataSourceSpec `json:"gitHub,omitempty"`
+	// GitHub defines configuration for GitHub repository data sources
+	// +optional
+	Git *GitDataSourceSpec `json:"gitHub,omitempty"`
 
-	//TODO: Add storage account
-	AzureStorageAccount ...
-
-    // // S3 defines configuration for S3-based data sources
-    // // +optional
-    // S3 *S3DataSourceSpec `json:"s3,omitempty"`
-
-    // API defines configuration for API-based data sources
-    // +optional
-    API *APIDataSourceSpec `json:"api,omitempty"`
-
-    // ConfigMap defines configuration for ConfigMap-based data sources
-    // +optional
-    ConfigMap *ConfigMapDataSourceSpec `json:"configMap,omitempty"`
-
-    // // Secret defines configuration for Secret-based data sources
-    // // +optional
-    // Secret *SecretDataSourceSpec `json:"secret,omitempty"`
+	// Static defines configuration for static data sources
+	// +optional
+	Static *StaticDataSourceSpec `json:"static,omitempty"`
 }
 
 // DataSourceType defines the supported data source types
-// +kubebuilder:validation:Enum=GitHub;S3;API;ConfigMap;Secret
+// +kubebuilder:validation:Enum=Git;Static
 type DataSourceType string
 
 const (
-    DataSourceTypeGitHub    DataSourceType = "GitHub"
-    DataSourceTypeS3        DataSourceType = "S3"
-    DataSourceTypeAPI       DataSourceType = "API"
-    DataSourceTypeConfigMap DataSourceType = "ConfigMap"
-    DataSourceTypeSecret    DataSourceType = "Secret"
+	DataSourceTypeGitHub DataSourceType = "Git"
+	DataSourceTypeStatic DataSourceType = "Static"
 )
 
 // GitHubDataSourceSpec defines GitHub repository configuration
 type GitDataSourceSpec struct {
-    // Repository URL
-    // +kubebuilder:validation:Required
-    Repository string `json:"repository"`
+	// Repository URL
+	// +kubebuilder:validation:Required
+	RepositoryURL string `json:"repositoryURL"`
 
-    // Branch to checkout (default: main)
-    // +optional
-    Branch string `json:"branch,omitempty"`
+	// Branch to checkout (default: main)
+	// +optional
+	Branch string `json:"branch,omitempty"`
 
-    // Specific paths to index within the repository
-    // +optional
-    Paths []string `json:"paths,omitempty"`
+	// Commit SHA to checkout (optional)
+	// +optional
+	Commit string `json:"commit,omitempty"`
 
-    // Paths to exclude from indexing
-    // +optional
-    ExcludePaths []string `json:"excludePaths,omitempty"`
+	// Specific paths to index within the repository
+	// +optional
+	Paths []string `json:"paths,omitempty"`
 
-    // Credentials for private repositories
-    // +optional
-    Credentials *CredentialsSpec `json:"credentials,omitempty"`
-}
-
-// AzureStorageAccount defines Storage Account configuration
-type AzureStorageAccount struct {
-    // Storage Account ARM Id
-    // +kubebuilder:validation:Required
-    Id string `json:"id"`
-
-    // Prefix to filter objects
-    // +optional
-    Prefix string `json:"prefix,omitempty"`
-
-    // Credentials for S3 access
-    // +optional
-    Credentials *CredentialsSpec `json:"credentials,omitempty"`
+	// Paths to exclude from indexing
+	// +optional
+	ExcludePaths []string `json:"excludePaths,omitempty"`
 }
 
 // APIDataSourceSpec defines REST API configuration
 type StaticDataSourceSpec struct {
-    // API endpoint URL
-    // +kubebuilder:validation:Required
-    Endpoint string `json:"endpoint"`
-
-    // Credentials for API access
-    // +optional
-    Credentials *CredentialsSpec `json:"credentials,omitempty"`
-}
-
-// HeaderValue can be a literal string or reference to a secret
-type HeaderValue struct {
-    // Value is a literal header value
-    // +optional
-    Value string `json:"value,omitempty"`
-
-    // SecretRef references a secret key for the header value
-    // +optional
-    SecretRef *SecretKeyRef `json:"secretRef,omitempty"`
-}
-
-// PaginationSpec defines API pagination configuration
-type PaginationSpec struct {
-    // Type of pagination (cursor, offset, page)
-    // +kubebuilder:validation:Required
-    // +kubebuilder:validation:Enum=cursor;offset;page
-    Type string `json:"type"`
-
-    // Parameter name for page size limit
-    // +optional
-    LimitParam string `json:"limitParam,omitempty"`
-
-    // Parameter name for cursor/offset/page
-    // +optional
-    CursorParam string `json:"cursorParam,omitempty"`
-
-    // Page size
-    // +optional
-    PageSize int32 `json:"pageSize,omitempty"`
-}
-
-// ConfigMapDataSourceSpec defines ConfigMap configuration
-type ConfigMapDataSourceSpec struct {
-    // ConfigMap name
-    // +kubebuilder:validation:Required
-    Name string `json:"name"`
-
-    // Namespace (defaults to AutoIndexer namespace)
-    // +optional
-    Namespace string `json:"namespace,omitempty"`
-
-    // Specific keys to process (processes all if empty)
-    // +optional
-    Keys []string `json:"keys,omitempty"`
-
-    // Schedule defines when the indexing should run (cron format)
-    // +kubebuilder:validation:Required
-    // +kubebuilder:validation:Pattern=`^(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})$`
-    Schedule string `json:"schedule"`
-}
-
-// SecretDataSourceSpec defines Secret configuration
-type SecretDataSourceSpec struct {
-    // Secret name
-    // +kubebuilder:validation:Required
-    Name string `json:"name"`
-
-    // Namespace (defaults to AutoIndexer namespace)
-    // +optional
-    Namespace string `json:"namespace,omitempty"`
-
-    // Specific keys to process (processes all if empty)
-    // +optional
-    Keys []string `json:"keys,omitempty"`
+	// data endpoint URLs
+	// +kubebuilder:validation:Required
+	Endpoints []string `json:"endpoints"`
 }
 
 // CredentialsSpec defines authentication credentials
 type CredentialsSpec struct {
-    // Type specifies the credential type
-    // +kubebuilder:validation:Required
-    // +kubebuilder:validation:Enum=SecretRef;WorkloadIdentity;ServiceAccount
-    Type CredentialType `json:"type"`
+	// Type specifies the credential type
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Enum=SecretRef
+	Type CredentialType `json:"type"`
 
-    // Secret reference containing credentials
-    // +optional
-    SecretRef *SecretKeyRef `json:"secretRef,omitempty"`
-
-    // WorkloadIdentity configuration for cloud-native authentication
-    // +optional
-    WorkloadIdentity *WorkloadIdentitySpec `json:"workloadIdentity,omitempty"`
-
-    // ServiceAccount name for Kubernetes service account authentication
-    // +optional
-    ServiceAccount string `json:"serviceAccount,omitempty"`
+	// Secret reference containing credentials
+	// +optional
+	SecretRef *SecretKeyRef `json:"secretRef,omitempty"`
 }
 
 // CredentialType defines the supported credential types
-// +kubebuilder:validation:Enum=SecretRef;WorkloadIdentity;ServiceAccount
+// +kubebuilder:validation:Enum=SecretRef
 type CredentialType string
 
 const (
-    CredentialTypeSecretRef        CredentialType = "SecretRef"
-    CredentialTypeWorkloadIdentity CredentialType = "WorkloadIdentity"
-    CredentialTypeServiceAccount   CredentialType = "ServiceAccount"
+	CredentialTypeSecretRef CredentialType = "SecretRef"
 )
-
-// WorkloadIdentitySpec defines workload identity configuration
-type WorkloadIdentitySpec struct {
-    // ClientID for the workload identity
-    // +optional
-    ClientID string `json:"clientId,omitempty"`
-
-    // TenantID for Azure workload identity
-    // +optional
-    TenantID string `json:"tenantId,omitempty"`
-}
 
 // SecretKeyRef references a key in a Secret
 type SecretKeyRef struct {
-    // Secret name
-    // +kubebuilder:validation:Required
-    Name string `json:"name"`
+	// Secret name
+	// +kubebuilder:validation:Required
+	Name string `json:"name"`
 
-    // Key within the secret
-    // +kubebuilder:validation:Required
-    Key string `json:"key"`
+	// Key within the secret
+	// +kubebuilder:validation:Required
+	Key string `json:"key"`
 }
 
 // RetryPolicySpec defines retry behavior for failed operations
 type RetryPolicySpec struct {
-    // Maximum number of retries
-    // +optional
-    MaxRetries int32 `json:"maxRetries,omitempty"`
-
-    // Backoff strategy
-    // +optional
-    // +kubebuilder:validation:Enum=linear;exponential
-    BackoffStrategy string `json:"backoffStrategy,omitempty"`
-
-    // Initial delay between retries
-    // +optional
-    InitialDelay *metav1.Duration `json:"initialDelay,omitempty"`
-
-    // Maximum delay between retries
-    // +optional
-    MaxDelay *metav1.Duration `json:"maxDelay,omitempty"`
+	// Maximum number of retries applied to failed indexing jobs
+	// Default is 3
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:default=3
+	// +optional
+	MaxRetries int32 `json:"maxRetries,omitempty"`
 }
 
 // AutoIndexerStatus defines the observed state of AutoIndexer
 type AutoIndexerStatus struct {
-    // LastIndexed timestamp of the last successful indexing
-    // +optional
-    LastIndexed *metav1.Time `json:"lastIndexed,omitempty"`
+	// LastIndexed timestamp of the last successful indexing
+	// +optional
+	LastIndexed *metav1.Time `json:"lastIndexed,omitempty"`
 
-    // LastCommit is the last processed commit hash for Git sources
-    // +optional
-    LastCommit string `json:"lastCommit,omitempty"`
+	// LastCommit is the last processed commit hash for Git sources
+	// +optional
+	LastCommit string `json:"lastCommit,omitempty"`
 
-    // Phase represents the current phase of the AutoIndexer
-    // +optional
-    // +kubebuilder:validation:Enum=Pending;Running;Completed;Failed;Retrying;Unknown
-    Phase AutoIndexerPhase `json:"phase,omitempty"`
+	// LastRunDocuments indicates the number of documents indexed in the last run
+	// +optional
+	LastRunDocuments int32 `json:"lastRunDocuments,omitempty"`
 
-    // SuccessfulRunCount tracks successful indexing runs
-    // +optional
-    SuccessfulRunCount int32 `json:"successfulRunCount,omitempty"`
+	// Phase represents the current phase of the AutoIndexer
+	// +optional
+	// +kubebuilder:validation:Enum=Pending;Running;Completed;Failed;Retrying;Unknown
+	Phase AutoIndexerPhase `json:"phase,omitempty"`
 
-    // ErrorRunCount tracks failed indexing runs
-    // +optional
-    ErrorRunCount int32 `json:"errorRunCount,omitempty"`
+	// SuccessfulRunCount tracks successful indexing runs
+	// +optional
+	SuccessfulRunCount int32 `json:"successfulRunCount,omitempty"`
 
-    // Number of documents processed in the last run
-    // +optional
-    DocumentsProcessed int32 `json:"documentsProcessed,omitempty"`
+	// ErrorRunCount tracks failed indexing runs
+	// +optional
+	ErrorRunCount int32 `json:"errorRunCount,omitempty"`
 
-    // NextScheduledRun shows when the next indexing is scheduled
-    // +optional
-    NextScheduledRun *metav1.Time `json:"nextScheduledRun,omitempty"`
+	// Number of documents processed in the last run
+	// +optional
+	DocumentsProcessed int32 `json:"documentsProcessed,omitempty"`
 
-    // Errors from the last indexing operation
-    // +optional
-    Errors []string `json:"errors,omitempty"`
+	// NextScheduledRun shows when the next indexing is scheduled
+	// +optional
+	NextScheduledRun *metav1.Time `json:"nextScheduledRun,omitempty"`
 
-    // Conditions represent the current service state
-    // +optional
-    Conditions []metav1.Condition `json:"conditions,omitempty"`
+	// Errors from the last indexing operation
+	// +optional
+	Errors []string `json:"errors,omitempty"`
+
+	// Conditions represent the current service state
+	// +optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // AutoIndexerPhase defines the current phase of the AutoIndexer
@@ -428,12 +257,12 @@ type AutoIndexerStatus struct {
 type AutoIndexerPhase string
 
 const (
-    AutoIndexerPhasePending   AutoIndexerPhase = "Pending"
-    AutoIndexerPhaseRunning   AutoIndexerPhase = "Running"
-    AutoIndexerPhaseCompleted AutoIndexerPhase = "Completed"
-    AutoIndexerPhaseFailed    AutoIndexerPhase = "Failed"
-    AutoIndexerPhaseRetrying  AutoIndexerPhase = "Retrying"
-    AutoIndexerPhaseUnknown   AutoIndexerPhase = "Unknown"
+	AutoIndexerPhasePending   AutoIndexerPhase = "Pending"
+	AutoIndexerPhaseRunning   AutoIndexerPhase = "Running"
+	AutoIndexerPhaseCompleted AutoIndexerPhase = "Completed"
+	AutoIndexerPhaseFailed    AutoIndexerPhase = "Failed"
+	AutoIndexerPhaseRetrying  AutoIndexerPhase = "Retrying"
+	AutoIndexerPhaseUnknown   AutoIndexerPhase = "Unknown"
 )
 ```
 

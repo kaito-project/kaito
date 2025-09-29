@@ -52,11 +52,11 @@ This new `InferenceSet` CRD and controller are specifically designed for executi
 apiVersion: kaito.sh/v1alpha1
 kind: InferenceSet
 metadata:
-  name: llama2-7b
+  name: llama-3-1-8b
 spec:
-  replicas: 3 # number of workspace CR created by InferenceSet controller
+  replicas: 2 # number of workspace CR created by InferenceSet controller
   nodeCountLimit: 10 # optional, total GPU node count limit for InferenceSet
-  selector:
+  labelSelector:
     matchLabels:
       # workspace created by InferenceSet controller would use this label in resource.labelSelector
       apps: large-model
@@ -65,8 +65,9 @@ spec:
       instanceType: "Standard_NC24ads_A100_v4"
     inference: # fields in inference are the same as in workspace.inference
       preset:
-        name: "llama2-7b"
-        modelAccessSecret: "hf-token"
+        name: llama-3.1-8b-instruct
+        presetOptions:
+          modelAccessSecret: hf-token
       adapters:
         ...
       template: # pod template
@@ -95,10 +96,16 @@ spec:
 
 ### InferenceSet API
 ```go
+type InferenceSetResourceSpec struct {
+	// InstanceType specifies the GPU node SKU.
+	// +required
+	InstanceType string `json:"instanceType,omitempty"`
+}
+
 // InferenceSetTemplate defines the template for creating InferenceSet instances.
 type InferenceSetTemplate struct {
-	Resource  ResourceSpec  `json:"resource,omitempty"`
-	Inference InferenceSpec `json:"inference,omitempty"`
+	Resource  InferenceSetResourceSpec   `json:"resource,omitempty"`
+	Inference kaitov1beta1.InferenceSpec `json:"inference,omitempty"`
 }
 
 // InferenceSetSpec defines the desired state of InferenceSet
@@ -152,6 +159,14 @@ type InferenceSet struct {
 
 	Spec   InferenceSetSpec   `json:"spec,omitempty"`
 	Status InferenceSetStatus `json:"status,omitempty"`
+}
+
+// InferenceSetList contains a list of InferenceSet
+// +kubebuilder:object:root=true
+type InferenceSetList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []InferenceSet `json:"items"`
 }
 ```
 

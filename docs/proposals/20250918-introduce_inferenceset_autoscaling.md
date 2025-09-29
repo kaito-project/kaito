@@ -26,11 +26,11 @@ Due to some technical issues (as explained in next `Motivation` section), we wan
 
 ## Motivation
 
-LLM inference service is a baisc and widly-used feature in Kaito, and Kaito community interest in auto scaler for inference workloads continues to intensify, related issues: [#306](https://github.com/kaito-project/kaito/issues/306), [#1104](https://github.com/kaito-project/kaito/issues/1104).
+LLM inference service is a basic and widly-used feature in Kaito, and Kaito community interest in auto scaler for inference workloads continues to intensify, related issues: [#306](https://github.com/kaito-project/kaito/issues/306), [#1104](https://github.com/kaito-project/kaito/issues/1104).
 
-From the technical perspective, It's a good idea to provide auto-scaler capability, becasue the auto-scaler of inference workloads dynamically adjusts the number of inference instances based on request volume--scaling up during traffic spikes to improve inference speed, and scaling down during low demand to minimize GPU resource waste.
+From the technical perspective, It's a good idea to provide auto-scaler capability, because the auto-scaler of inference workloads dynamically adjusts the number of inference instances based on request volume--scaling up during traffic spikes to improve inference speed, and scaling down during low demand to minimize GPU resource waste.
 
-To overcome these issues, we want to introduce a new `InferenceSet` CRD and Controller for scaling inference workloads automatically. If you want to run inference workloads with autoscaling capablity, you could create a `InferenceSet` CR, and kaito InferenceSet controller would create a series of kaito workspaces per replica number setting in `InferenceSet` CR, and autoscale per the inference workloads requests.
+To overcome these issues, we want to introduce a new `InferenceSet` CRD and Controller for scaling inference workloads automatically. If you want to run inference workloads with autoscaling capability, you could create a `InferenceSet` CR, and kaito InferenceSet controller would create a series of kaito workspaces per replica number setting in `InferenceSet` CR, and autoscale per the inference workloads requests.
 
 This new `InferenceSet` CRD and controller are specifically designed for executing inference workloads with autoscaling capability. It is important to note that this proposal has no impact on fine-tuning and RAG features, and there is no breaking change on existing inference workload usage.
 

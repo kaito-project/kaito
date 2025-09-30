@@ -144,25 +144,27 @@ type GitDataSourceSpec struct {
 	RepositoryURL string `json:"repositoryURL"`
 
 	// Branch to checkout (default: main)
-	// +optional
+	// +kubebuilder:validation:Required
 	Branch string `json:"branch,omitempty"`
 
-	// Commit SHA to checkout (optional)
+	// Commit SHA to checkout. If included, only this commit will be put into the index
 	// +optional
-	Commit string `json:"commit,omitempty"`
+	Commit *string `json:"commit,omitempty"`
 
-	// Specific paths to index within the repository
+	// Specific paths to index within the repository.
+	// Can be directories, specific files, or specific extension types: /src, main.py, *.go
 	// +optional
 	Paths []string `json:"paths,omitempty"`
 
-	// Paths to exclude from indexing
+	// Paths to exclude from indexing. ExcludePaths takes priority over Paths.
+	// Can be directories, specific files, or specific extension types: /src, main.py, *.go
 	// +optional
 	ExcludePaths []string `json:"excludePaths,omitempty"`
 }
 
 // APIDataSourceSpec defines REST API configuration
 type StaticDataSourceSpec struct {
-	// data endpoint URLs
+	// data endpoint URLs that should point to individual UTF-8 or pdf files.
 	// +kubebuilder:validation:Required
 	Endpoints []string `json:"endpoints"`
 }
@@ -205,7 +207,7 @@ type RetryPolicySpec struct {
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:default=3
 	// +optional
-	MaxRetries int32 `json:"maxRetries,omitempty"`
+	MaxRetries *int32 `json:"maxRetries,omitempty"`
 }
 
 // AutoIndexerStatus defines the observed state of AutoIndexer
@@ -216,11 +218,7 @@ type AutoIndexerStatus struct {
 
 	// LastCommit is the last processed commit hash for Git sources
 	// +optional
-	LastCommit string `json:"lastCommit,omitempty"`
-
-	// LastRunDocuments indicates the number of documents indexed in the last run
-	// +optional
-	LastRunDocuments int32 `json:"lastRunDocuments,omitempty"`
+	LastCommit *string `json:"lastCommit,omitempty"`
 
 	// Phase represents the current phase of the AutoIndexer
 	// +optional
@@ -228,15 +226,12 @@ type AutoIndexerStatus struct {
 	Phase AutoIndexerPhase `json:"phase,omitempty"`
 
 	// SuccessfulRunCount tracks successful indexing runs
-	// +optional
 	SuccessfulRunCount int32 `json:"successfulRunCount,omitempty"`
 
 	// ErrorRunCount tracks failed indexing runs
-	// +optional
 	ErrorRunCount int32 `json:"errorRunCount,omitempty"`
 
 	// Number of documents processed in the last run
-	// +optional
 	DocumentsProcessed int32 `json:"documentsProcessed,omitempty"`
 
 	// NextScheduledRun shows when the next indexing is scheduled
@@ -266,353 +261,187 @@ const (
 )
 ```
 
-### Architectural Benefits
 
-Moving the `indexName` into the data source configuration provides several key advantages:
 
-1. **Per-Source Index Targeting**: Each data source can write to its own dedicated index, enabling better organization and isolation
-2. **Flexible Index Strategies**: Different data sources can use different indexing approaches (e.g., separate indices for documentation vs. code)
-3. **Simplified Single-Source Model**: Aligns perfectly with the "one data source per AutoIndexer" approach, eliminating coordination complexity
-4. **Cleaner Resource Boundaries**: Each AutoIndexer resource has a clear, single responsibility for one data source and one target index
+### Data Source Example
 
-### Design Decision: Single Data Source per AutoIndexer
 
-After careful consideration, we've chosen the **single data source per AutoIndexer** approach for the following reasons:
+#### Static
 
-#### Advantages of Single Data Source Model
+This example demonstrates how to configure an AutoIndexer to periodically fetch and index documents from a set of static file endpoints (such as PDFs or text files hosted on HTTP/S). This is useful for regularly updating a RAG index with files that are externally hosted and do not change frequently.
 
-1. **Operational Simplicity**
-   - Each AutoIndexer has one clear responsibility
-   - Simpler debugging and troubleshooting
-   - Clear resource ownership and lifecycle management
-
-2. **Independent Scaling**
-   - Each data source can be scheduled independently
-   - Different retry policies and resource requirements per source
-   - No coordination overhead between different source types
-
-3. **Index Flexibility** 
-   - Each data source targets its own index
-   - Different indexing strategies per data source type
-   - Better isolation and organization of indexed content
-
-4. **Resource Management**
-   - Kubernetes-native resource model (one CRD per logical unit)
-   - Easier RBAC and access control management
-   - Cleaner status reporting and monitoring
-
-#### Implementation Benefits
-
-- **No coordination logic needed**: Each AutoIndexer operates independently
-- **Simpler controller logic**: Focus on single data source handling
-- **Better error isolation**: Failures in one data source don't affect others
-- **Easier testing**: Each data source type can be tested in isolation
-
-This approach follows Kubernetes best practices of having focused, single-responsibility resources while providing maximum flexibility through the per-source index configuration.
-
-### Architecture
-
-#### Components
-
-1. **Auto Indexer Controller**
-   - Watches AutoIndexer CRDs
-   - Manages sync scheduling and execution
-   - Handles resource lifecycle
-
-2. **Data Source Adapters**
-   - Pluggable adapters for different data source types
-   - Handle authentication, connection management
-   - Implement incremental update detection
-
-3. **Document Processor**
-   - Extracts text from various file formats
-   - Applies configured splitting strategies
-   - Generates document metadata
-
-4. **Sync Orchestrator** 
-   - Coordinates multi-source syncing
-   - Manages parallel processing
-   - Handles error recovery and retries
-
-#### Data Flow
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Data Sources  │───▶│  Data Adapters   │───▶│ Doc Processor   │
-│  - Git repos    │    │  - Git client    │    │ - Text extract  │
-│  - Blob storage │    │  - Blob client   │    │ - Splitting     │
-│  - Databases    │    │  - DB client     │    │ - Metadata      │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                                         │
-┌─────────────────┐    ┌──────────────────┐             │
-│   RAG Engine    │◀───│ Sync Orchestrator│◀────────────┘
-│  - Index mgmt   │    │ - Batching       │
-│  - Doc updates  │    │ - Error handling │
-└─────────────────┘    │ - Status updates │
-                       └──────────────────┘
-```
-
-### Data Source Types
-
-#### Git Repository
 ```yaml
-type: "git"
-config:
-  repository: "https://github.com/org/repo.git"
-  branch: "main"
-  paths: ["docs/", "README.md"]
-  filePatterns: ["*.md", "*.rst"]
-  excludePatterns: [".git/", "node_modules/"]
-  authentication:
-    secretRef:
-      name: "git-credentials"
-      key: "token"
+apiVersion: kaito.ai/v1alpha1
+kind: AutoIndexer
+metadata:
+	name: static-files-indexer
+spec:
+	ragEngineRef:
+		name: my-ragengine
+		namespace: default
+	indexName: my-static-index
+	dataSource:
+		type: Static
+		static:
+			endpoints:
+				- https://example.com/docs/file1.pdf
+				- https://example.com/docs/file2.txt
+	schedule: "@daily"
 ```
 
-**Features:**
-- Clone/pull repository changes
-- Incremental updates based on commit history
-- Path and pattern-based filtering
-- Support for private repositories via tokens/SSH
 
-#### Azure Blob Storage
+#### Git
+
+This example shows how to configure an AutoIndexer to index documents from a Git repository. The indexer will clone the specified repository, process only the listed paths (e.g., `docs/` and `src/`), and exclude any files in the `test/` directory. The schedule is set to run every day at 2am, ensuring the index stays up-to-date with the latest changes in the repository.
+
 ```yaml
-type: "azureBlob"
-config:
-  storageAccount: "mystorageaccount"
-  containerName: "documents" 
-  prefix: "public/"
-  filePatterns: ["*.pdf", "*.docx", "*.txt"]
-  authentication:
-    secretRef:
-      name: "azure-storage"
-      key: "connectionString"
+apiVersion: kaito.ai/v1alpha1
+kind: AutoIndexer
+metadata:
+	name: github-indexer
+spec:
+	ragEngineRef:
+		name: my-ragengine
+		namespace: default
+	indexName: my-git-index
+	dataSource:
+		type: Git
+		git:
+			repositoryURL: https://github.com/org/repo.git
+			branch: main
+			paths:
+				- docs/
+				- src/
+			excludePaths:
+				- test/
+	schedule: "0 2 * * *" # every day at 2am
 ```
 
-**Features:**
-- List and download blob changes
-- Incremental updates based on lastModified timestamps
-- Pattern-based file filtering
-- Support for various authentication methods
 
-#### Database
+##### Single Commit
+
+This example demonstrates how to index a specific commit from a Git repository. The AutoIndexer will fetch only the state of the repository at the given commit SHA, rather than tracking ongoing changes. This is useful for one-time or point-in-time indexing of a codebase or documentation snapshot.
+
 ```yaml
-type: "database"
-config:
-  driver: "postgresql"
-  connectionString:
-    secretRef:
-      name: "db-config"
-      key: "connectionString"
-  query: "SELECT id, content, updated_at FROM documents WHERE active = true"
-  textColumn: "content"
-  metadataColumns: ["id", "updated_at"]
-  incrementalColumn: "updated_at"
+apiVersion: kaito.ai/v1alpha1
+kind: AutoIndexer
+metadata:
+	name: github-single-commit-indexer
+spec:
+	ragEngineRef:
+		name: my-ragengine
+		namespace: default
+	indexName: my-git-index
+	dataSource:
+		type: Git
+		git:
+			repositoryURL: https://github.com/org/repo.git
+			branch: main
+			commit: "abc123def456"
+			paths:
+				- docs/
 ```
 
-**Features:**
-- SQL query-based document extraction
-- Incremental updates using timestamp columns
-- Configurable text and metadata column mapping
-- Support for PostgreSQL, MySQL, SQLite
+### Credential Spec
 
-#### Additional Sources (Future)
-- **AWS S3**: Similar to Azure Blob with S3-specific authentication
-- **Google Cloud Storage**: GCS bucket integration
-- **Confluence**: Wiki/documentation platform integration
-- **SharePoint**: Microsoft SharePoint document libraries
-- **Kusto/Azure Data Explorer**: Query-based data extraction
 
-### Scheduling Options
+This section shows how to provide credentials to the AutoIndexer for accessing private data sources, such as private GitHub repositories. The credentials are referenced from a Kubernetes Secret, ensuring sensitive information is not stored directly in the CRD.
 
-#### Cron-based Scheduling
+Example:
 ```yaml
-schedule:
-  cron: "0 */6 * * *"  # Every 6 hours
+spec:
+	credentials:
+		type: SecretRef
+		secretRef:
+			name: github-token
+			key: token
 ```
+Where `github-token` is a Kubernetes secret containing the access token under the key `token`.
 
-#### Event-driven Sync
-```yaml
-schedule:
-  webhook:
-    enabled: true
-    path: "/webhook"
-    authentication:
-      secretRef:
-        name: "webhook-secret"
-        key: "token"
-```
+#### Future: Secret Store CSI Driver
 
-#### One-time Execution
-```yaml
-schedule:
-  runOnce: true
-```
+In the future, support for [Secret Store CSI Driver](https://secrets-store-csi-driver.sigs.k8s.io/) can be added to allow integration with external secret management systems (e.g., AWS Secrets Manager, Azure Key Vault, HashiCorp Vault). This would enable referencing secrets managed outside Kubernetes, improving security and flexibility for enterprise deployments.
 
-### Update Strategies
+## Controller Design
 
-#### Incremental Updates
-- **Git**: Use commit history to identify changed files
-- **Blob Storage**: Compare lastModified timestamps
-- **Database**: Use incremental column (timestamp/sequence)
-- **Benefits**: Faster sync times, reduced API calls
+### CRD Handling / Reconcile Lifecycle
 
-#### Full Refresh
-- Re-processes all documents from scratch
-- Useful for major schema changes or corruption recovery
-- Higher resource usage but guaranteed consistency
+The AutoIndexer controller will watch for changes to AutoIndexer CRDs. For each CRD, it will determine whether to create a Kubernetes Job or CronJob based on the presence of the `schedule` field:
 
-#### Merge Strategy
-- Combines incremental detection with conflict resolution
-- Configurable policies for handling document conflicts
+- **If `schedule` is present:** The controller will create or update a CronJob that runs according to the specified schedule, ensuring periodic indexing.
+- **If `schedule` is absent:** The controller will create a one-time Job to perform a single indexing run.
 
-### Error Handling and Monitoring
+The controller will manage the lifecycle of these Jobs/CronJobs, ensuring that failed runs are retried according to the `retryPolicy` and that suspended AutoIndexers do not trigger new jobs. Each job will be responsible for fetching data, processing documents, and uploading them to the RAG engine with appropriate metadata.
 
-#### Retry Logic
-```yaml
-retryPolicy:
-  maxRetries: 3
-  backoffStrategy: "exponential"  # linear, exponential
-  initialDelay: "30s"
-  maxDelay: "300s"
-```
+### Validation webhook
+A validating webhook will be used to:
+- ensure `RAGEngineRef` exists,
+- ensure `credentials.secretRef` exists if provided,
+- validate `schedule` is valid cron or @every format,
+- ensure `indexName` conforms to naming constraints.
+- ensure `dataSource` definitions are valid.
 
-#### Status Reporting
-- Per-source sync status and metrics
-- Error details and resolution guidance
-- Integration with Kubernetes events and metrics
+We will follow the same setup for webhooks as the Workspace and RAGEngine controllers.
 
-#### Monitoring Integration
-- Prometheus metrics for sync performance
-- Grafana dashboards for operational visibility
-- Alert integration for sync failures
 
-## Implementation Plan
+### Finalizer (cleanup of external docs)
+We add a finalizer `autoindexers.kaito.ai/cleanup` to AutoIndexer objects when created and OwnerReferences to the Job/CronJob/ConfigMap that are created. On deletion the controller:
+- Waits for current indexing come to a terminal state if not already.
+- If we eventually want to handle any RAG releated cleanup we can do it here. But we will leave the docs for now.
+- Cleans up the Job/CronJob/ConfigMap. 
+- After successful cleanup removes finalizer allowing the AutoIndexer to be deleted.
 
-### Phase 1: Core Framework (Milestone 1)
-- [ ] AutoIndexer CRD definition and validation
-- [ ] Basic controller framework and scheduling
-- [ ] Git repository data source adapter
-- [ ] Document processing pipeline
-- [ ] Integration with existing RAGEngine
+Admins can forcibly remove the finalizer if necessary, but this will leave index artifacts intact.
 
-### Phase 2: Additional Sources (Milestone 2)
-- [ ] Azure Blob Storage adapter
-- [ ] Database adapter (PostgreSQL/MySQL)
-- [ ] Advanced scheduling (webhooks, one-time)
-- [ ] Incremental update mechanisms
 
-### Phase 3: Advanced Features (Milestone 3)
-- [ ] Additional data sources (AWS S3, GCS)
-- [ ] Custom document splitters
-- [ ] Advanced error handling and monitoring
-- [ ] Performance optimizations and scaling
+### Drift Detection
 
-### Phase 4: Enterprise Features (Milestone 4)
-- [ ] Confluence/SharePoint adapters
-- [ ] Advanced authentication methods
-- [ ] Multi-tenancy support
-- [ ] Backup and disaster recovery
+Drift detection will be implemented as a background process within the controller. It will periodically check each AutoIndexer to ensure that the indexed documents in the RAG engine match the expected state.
 
-## Security Considerations
+The process will:
+- Validate the AutoIndexer is in a `Completed` state
+- Query the RAG engine's list documents API, filtering by autoindexer-specific metadata (e.g. autoindexer name). This will require an update to include the total count of documents with the exact metadata on the `ListDocumentsResponse`.
+- Compare the actual document count in the RAG index to the `lastRunDocuments` value recorded in the AutoIndexer status.
+- If a mismatch is detected, the controller can trigger the AutoIndexer to run immediately to bring the index back into a compliant state.
 
-### Authentication
-- Kubernetes secrets for credential storage
-- Support for workload identity/managed identity/service principal
-- Token rotation and expiration handling
+This approach ensures that the index remains consistent with the source data and provides visibility into drift events for operators. This approach is higher level than checking every document within the index, but will satisfy our initial drift detection goals.
+### Status Updates
 
-### Network Security
-- Private endpoint support for data sources
-- Network policies for controller pods
-- TLS encryption for all communications
+Each AutoIndexer run (Job or CronJob) will write its execution status, including details such as the last processed commit, number of documents processed, and any errors, into a dedicated ConfigMap. The controller will watch these ConfigMaps and use their contents to update the status fields of the corresponding AutoIndexer CRD.
 
-### RBAC
-- Dedicated service accounts for data source access
-- Principle of least privilege for resource access
-- Audit logging for sync operations
+This mechanism decouples the job execution environment from the controller, allowing for robust status reporting even if jobs run in isolated pods. The controller will update fields such as `LastCommit`, `DocumentsProcessed`, `LastIndexed`, and error conditions based on the latest job results found in the ConfigMap.
 
-## Alternatives Considered
+## Service (k8s Job) Design
 
-### External Tools Integration
-**Option**: Integrate with existing ETL tools (Apache Airflow, Azure Data Factory)
-**Pros**: Mature ecosystem, extensive source support
-**Cons**: Additional complexity, external dependencies, not Kubernetes-native
+### Valid Encoding Checks
 
-### Serverless Functions
-**Option**: Use serverless functions (Azure Functions, AWS Lambda) for sync logic
-**Pros**: Automatic scaling, cost-effective for infrequent syncs
-**Cons**: Cold start latency, limited runtime, complex state management
+The AutoIndexer will ensure that all ingested documents are decoded using a robust encoding detection and fallback strategy. For each file or URL:
 
-### Operator SDK vs Custom Controller
-**Option**: Build using Operator SDK framework
-**Pros**: Best practices, standardized patterns
-**Cons**: Additional learning curve, framework overhead
-**Decision**: Use Operator SDK for standardization
+- Attempt to detect encoding from HTTP headers (e.g., `Content-Type: charset`)
+- Use the `chardet` library to guess encoding with high confidence
+- Try common encodings in order: UTF-8, UTF-8-SIG, Latin1, CP1252, ISO-8859-1
+- If all else fails, decode with UTF-8 and error replacement
 
-## Testing Strategy
+This ensures that documents with various encodings are handled gracefully, and errors are logged for any files that cannot be decoded.
+### PDF Handling
 
-### Unit Tests
-- Data adapter functionality
-- Document processing logic
-- Scheduling and retry mechanisms
+PDF files are detected by content-type or file extension. The AutoIndexer will extract text from PDFs using the `PyMuPDF` library to extract text from each page. If the extraction is not successful, the document is skipped and an error is logged. This approach maximizes compatibility with a wide range of PDF files and ensures that both text and tabular data are captured where possible.
+### RAG Document Handling
 
-### Integration Tests  
-- End-to-end sync workflows
-- RAGEngine integration
-- Error scenario handling
+Each document ingested by the AutoIndexer will be uploaded to the RAG engine with metadata that includes:
+- The AutoIndexer name
+- Source URL or file path
 
-### Performance Tests
-- Large dataset processing
-- Concurrent sync operations  
-- Resource utilization
+This metadata enables filtering on ingested documents for drift detection, and allows for efficient cleanup or re-indexing of documents when source data changes.
+#### Git Repository handling
 
-## Documentation Plan
+For Git data sources, the AutoIndexer will:
 
-### User Documentation
-- Getting started guide
-- Data source configuration examples
-- Troubleshooting common issues
+1. Clone the repository locally using the configuration provided (repo URL, branch, commit, etc.)
+2. On the first run, index all files matching the configured paths and upload them to the RAG engine with appropriate metadata.
+3. On subsequent runs, use the last processed commit (from the status ConfigMap) to determine the commit range. Use the diff between the current and last run commit to identify added, updated, deleted, or renamed files between the last and current commit.
+4. For added/updated files: re-index and upload to the RAG engine. For deleted files: remove from the RAG index. For renamed files: treat as delete+add.
+5. After processing, update the ConfigMap with the new commit hash and document counts.
 
-### Developer Documentation
-- Adding new data source adapters
-- Custom splitter development
-- Controller architecture
+This incremental approach ensures efficient updates and minimizes unnecessary reprocessing, while keeping the RAG index in sync with the source repository.
 
-### Operations Documentation
-- Monitoring and alerting setup
-- Performance tuning guidelines
-- Backup and recovery procedures
-
-## Success Metrics
-
-### Functional Metrics
-- Number of supported data source types
-- Sync reliability (>99% success rate)
-- Time to initial index creation (<30 minutes for typical datasets)
-
-### Performance Metrics
-- Document processing throughput (>1000 docs/minute)
-- Incremental sync efficiency (<10% of full sync time)
-- Resource utilization optimization
-
-### Adoption Metrics
-- Number of AutoIndexer instances deployed
-- User satisfaction survey results
-- Community contributions and feedback
-
-## Future Enhancements
-
-### Advanced Processing
-- ML-based document classification
-- Automatic metadata extraction
-- Content quality scoring
-
-### Real-time Sync
-- Event-driven updates via change streams
-- WebSocket-based real-time synchronization
-- Stream processing integration
-
-### Multi-tenancy
-- Namespace-based isolation
-- Resource quotas and limits
-- Tenant-specific configurations

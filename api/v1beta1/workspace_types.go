@@ -31,9 +31,9 @@ type ResourceSpec struct {
 	Count *int `json:"count,omitempty"`
 
 	// InstanceType specifies the GPU node SKU.
-	// This field defaults to "Standard_NC24ads_A100_v4" if not specified.
+	// This field is required when node auto-provisioning is enabled.
+	// This field must be empty when node auto-provisioning is disabled (BYO scenario).
 	// +optional
-	// +kubebuilder:default:="Standard_NC24ads_A100_v4"
 	InstanceType string `json:"instanceType,omitempty"`
 
 	// LabelSelector specifies the required labels for the GPU nodes.
@@ -42,6 +42,7 @@ type ResourceSpec struct {
 	// PreferredNodes is an optional node list specified by the user.
 	// If a node in the list does not have the required labels, it will be ignored.
 	// The controller will use the `InstanceType` to create the remaining nodes.
+	// When node auto-provisioning is disabled: This field does not affect node selection; nodes are selected via labelSelector only.
 	// +optional
 	PreferredNodes []string `json:"preferredNodes,omitempty"`
 }

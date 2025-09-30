@@ -192,6 +192,7 @@ jobs:
           kubectl get pods -A -o wide
 
           echo "=== Services ==="
+          kubectl get services -A
           kubectl get services workspace-aikit-test -o yaml
 
           echo "=== Pod events ==="

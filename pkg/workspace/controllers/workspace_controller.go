@@ -111,6 +111,8 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 
 	klog.InfoS("Reconciling", "workspace", req.NamespacedName)
 
+	klog.InfoS("Disable NAP flag is", "value", featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning])
+
 	if workspaceObj.DeletionTimestamp.IsZero() {
 		if err := c.ensureFinalizer(ctx, workspaceObj); err != nil {
 			return reconcile.Result{}, err

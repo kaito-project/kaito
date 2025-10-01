@@ -27,7 +27,7 @@ var (
 	FeatureGates = map[string]bool{
 		consts.FeatureFlagVLLM:                         true,
 		consts.FeatureFlagEnsureNodeClass:              false,
-		consts.FeatureFlagDisableNodeAutoProvisioning:  true,
+		consts.FeatureFlagDisableNodeAutoProvisioning:  false,
 		consts.FeatureFlagGatewayAPIInferenceExtension: false,
 		//	Add more feature gates here
 	}

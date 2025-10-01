@@ -54,6 +54,7 @@ The AutoIndexer introduces a new Custom Resource Definition (CRD) to KAITO's API
 // +kubebuilder:printcolumn:name="ResourceReady",type="string",JSONPath=".status.conditions[?(@.type==\"ResourceReady\")].status",description=""
 // +kubebuilder:printcolumn:name="Scheduled",type="string",JSONPath=".status.conditions[?(@.type==\"AutoIndexerScheduled\")].status",description=""
 // +kubebuilder:printcolumn:name="Indexing",type="string",JSONPath=".status.conditions[?(@.type==\"AutoIndexerIndexing\")].status",description=""
+// +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description=""
 // +kubebuilder:printcolumn:name="Error",type="string",JSONPath=".status.conditions[?(@.type==\"AutoIndexerError\")].status",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
 type AutoIndexer struct {
@@ -465,6 +466,10 @@ The AutoIndexer CRD status is the primary way for operators and automation to un
 - `AutoIndexerError`: The last run had an error (see `Errors`).
 - `AutoIndexerDriftDetected`: Drift detection discovered mismatches.
 
+**Events:**
+- Emit `Normal` events on Job/CronJob created successfully, completed successfully, Drift Detection triggers resync
+- Emint `Warning` events on jobs failed, suspension failed, and cleanup failed
+
 **Best practices:**
 - Use `ObservedGeneration` to ensure status reflects the current spec.
 - Include a `LastRunID` or similar field to correlate jobs, ConfigMaps, and logs.
@@ -509,6 +514,35 @@ Each indexing job should run with a minimal ServiceAccount, with only the follow
 - Mount credentials as secrets (env)
 
 By following these RBAC and security guidelines, the AutoIndexer system minimizes its attack surface and ensures that both the controller and jobs operate with the least privilege required for their function.
+
+### Metrics (Prometheus)
+
+The AutoIndexer controller exposes Prometheus metrics to provide observability into indexing activity, failures, and drift detection. These metrics enable operators to build dashboards, set alerts, and monitor system health.
+
+**Core metrics:**
+
+| Metric                                  | Type    | Labels                                                     | Description                                                                                |
+| --------------------------------------- | ------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `autoindexer_runs_total`                | Counter | `autoindexer`, `namespace`, `status` (`success` / `error`) | Total number of AutoIndexer runs attempted, partitioned by success or error.               |
+| `autoindexer_documents_processed_total` | Counter | `autoindexer`, `namespace`                                 | Total number of documents processed across all runs.                                       |
+| `autoindexer_last_run_duration_seconds` | Gauge   | `autoindexer`, `namespace`                                 | Duration of the most recent run in seconds.                                                |
+| `autoindexer_active_jobs`               | Gauge   | `namespace`                                                | Current number of active indexing Jobs across the cluster.                                 |
+| `autoindexer_drift_events_total`        | Counter | `autoindexer`, `namespace`                                 | Number of times drift detection triggered a reindex.                                       |
+| `autoindexer_cleanup_failures_total`    | Counter | `autoindexer`, `namespace`                                 | Number of failed cleanup attempts during deletion (if finalizer logic is added in future). |
+
+**Exporting metrics:**
+
+* Metrics are exposed at the controller’s HTTP `/metrics` endpoint for scraping by Prometheus.
+* Labels always include at least `autoindexer` and `namespace` to support multi-tenant clusters.
+
+**Example alerting rules for customers:**
+
+* **High failure rate**: Alert if `autoindexer_runs_total{status="error"}` increases rapidly over a short period.
+* **No runs succeeding**: Alert if a particular AutoIndexer has not incremented `autoindexer_runs_total{status="success"}` in N hours.
+* **Long runs**: Alert if `autoindexer_last_run_duration_seconds` exceeds a threshold (e.g., 1h).
+* **Unexpected drift**: Alert if `autoindexer_drift_events_total` grows too quickly, indicating possible source instability.
+
+This metrics set provides both **per-AutoIndexer insights** (success/failure trends, documents processed, run duration) and **cluster-wide visibility** (active jobs, drift events).
 
 
 ## Service (k8s Job) Design

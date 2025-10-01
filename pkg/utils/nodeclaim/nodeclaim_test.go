@@ -340,10 +340,10 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 				},
 			},
 			mockBYONodes:              []*corev1.Node{{ObjectMeta: metav1.ObjectMeta{Name: "byo-node"}}},
-			mockReadyNodes:            []string{"node1", "node2", "byo-node"},
+			mockReadyNodes:            []string{"byo-node"}, // Only existing BYO node, others will be provisioned
 			mockError:                 nil,
 			featureGateDisabled:       false,
-			expectedReadyNodes:        []string{"node1", "node2", "byo-node"},
+			expectedReadyNodes:        []string{"byo-node"},
 			expectedRequiredNodeCount: 2, // target=3, BYO=1, required=2
 			expectedError:             "",
 		},
@@ -464,14 +464,7 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 					nodeItems = append(nodeItems, node)
 				}
 
-				// Add BYO nodes to preferred nodes list if any
-				if len(tc.mockBYONodes) > 0 {
-					preferredNodes := make([]string, len(tc.mockBYONodes))
-					for i, byoNode := range tc.mockBYONodes {
-						preferredNodes[i] = byoNode.Name
-					}
-					tc.workspace.Resource.PreferredNodes = preferredNodes
-				}
+				// BYO nodes are now determined by matching the label selector, not by preferred nodes
 
 				nodeList := &corev1.NodeList{Items: nodeItems}
 				mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {

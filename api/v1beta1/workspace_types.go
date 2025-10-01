@@ -40,9 +40,7 @@ type ResourceSpec struct {
 	LabelSelector *metav1.LabelSelector `json:"labelSelector"`
 
 	// PreferredNodes is an optional node list specified by the user.
-	// If a node in the list does not have the required labels, it will be ignored.
-	// The controller will use the `InstanceType` to create the remaining nodes.
-	// When node auto-provisioning is disabled: This field does not affect node selection; nodes are selected via labelSelector only.
+	// This field is deprecated in v1beta1 and will be removed in a future version.
 	// +optional
 	PreferredNodes []string `json:"preferredNodes,omitempty"`
 }

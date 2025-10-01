@@ -576,12 +576,11 @@ func TestGetGPUConfig(t *testing.T) {
 				GPUCount: 1, // From test-model's GPUCountRequirement
 			},
 		},
-		"PreferredNodes path - bypass SKU path": {
+		"Get config from node status when instanceType is unknown": {
 			workspace: &v1beta1.Workspace{
 				Resource: v1beta1.ResourceSpec{
-					InstanceType:   "Standard_NC24ads_A100_v4",
-					PreferredNodes: []string{"preferred-node"},
-					LabelSelector:  &metav1.LabelSelector{},
+					InstanceType:  "unknown-instance-type",
+					LabelSelector: &metav1.LabelSelector{},
 				},
 				Status: v1beta1.WorkspaceStatus{
 					WorkerNodes: []string{"gpu-node-1"},

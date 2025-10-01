@@ -20,14 +20,11 @@ import (
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -136,15 +133,13 @@ func GetBYOAndReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta
 		return nil, nil, err
 	}
 
-	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
-
 	availableBYONodes := make([]*corev1.Node, 0, len(nodeList.Items))
 	readyNodes := make([]string, 0, len(nodeList.Items))
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
 
 		if !NodeIsReadyAndNotDeleting(node) {
-			klog.V(4).InfoS("BYO node is not ready, skipping",
+			klog.V(4).InfoS("Node is not ready, skipping",
 				"node", node.Name,
 				"workspace", klog.KObj(wObj))
 			continue
@@ -152,21 +147,15 @@ func GetBYOAndReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta
 			readyNodes = append(readyNodes, node.Name)
 		}
 
-		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-			// If preferred nodes are specified, only include those nodes
-			if preferredNodeSet.Has(node.Name) {
-				availableBYONodes = append(availableBYONodes, node)
-			}
-		} else {
-			// If node auto-provisioning is disabled, include all ready nodes
-			availableBYONodes = append(availableBYONodes, node)
-		}
+		// When NAP is enabled, all nodes selected by the label selector are provisioned by NAP
+		// When NAP is disabled, all nodes matching the label selector are BYO nodes
+		// In both cases, let the k8s scheduler decide which nodes to use
+		availableBYONodes = append(availableBYONodes, node)
 	}
 
-	klog.V(4).InfoS("Found available BYO nodes",
+	klog.V(4).InfoS("Found available nodes",
 		"workspace", klog.KObj(wObj),
-		"preferredNodesSpecified", len(wObj.Resource.PreferredNodes),
-		"availableBYONodes", len(availableBYONodes))
+		"availableNodes", len(availableBYONodes))
 
 	return availableBYONodes, readyNodes, nil
 }

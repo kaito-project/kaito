@@ -29,6 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -187,15 +188,16 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) sku.GPUConfig {
 	var gpuConfig *sku.GPUConfig
 	var err error
-	// 1. try to get GPU config from known sku if instanceType is set
-	if len(ctx.Workspace.Resource.PreferredNodes) == 0 {
+
+	// 1. When NAP is enabled, try to get GPU config from known SKU if instanceType is set
+	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		gpuConfig, _ = utils.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
 		if gpuConfig != nil {
 			return *gpuConfig
 		}
 	}
 
-	// 2. try to get GPU config from the node status
+	// 2. try to get GPU config from the node status (works for both NAP and BYO scenarios)
 	gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx.Ctx, ctx.KubeClient, ctx.Workspace.Status.WorkerNodes)
 	if err == nil {
 		return *gpuConfig

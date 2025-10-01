@@ -213,6 +213,10 @@ type RetryPolicySpec struct {
 
 // AutoIndexerStatus defines the observed state of AutoIndexer
 type AutoIndexerStatus struct {
+	// LastRunID is a reference to the last run id that is unique per autoindexer run
+	// +optional
+	LastRunID string `json:"lastRunID,omitempty"`
+
 	// LastIndexed timestamp of the last successful indexing
 	// +optional
 	LastIndexed *metav1.Time `json:"lastIndexed,omitempty"`
@@ -220,6 +224,10 @@ type AutoIndexerStatus struct {
 	// LastCommit is the last processed commit hash for Git sources
 	// +optional
 	LastCommit *string `json:"lastCommit,omitempty"`
+
+	// LastRunDurationSeconds is the duration of the last indexer run in seconds
+	// +optional
+	LastRunDurationSeconds int32 `json:"lastRunDurationSeconds,omitempty"`
 
 	// Phase represents the current phase of the AutoIndexer
 	// +optional
@@ -377,7 +385,7 @@ The AutoIndexer controller is responsible for ensuring the desired state of each
 - Creating or patching a child Job or CronJob based on the presence of `spec.schedule`.
 - Ensuring child jobs have the correct pod template, including service account, secret mounts, resource limits, and security context.
 - Respecting the `suspend` field: for CronJobs, set `.spec.suspend=true`; for Jobs, do not create new runs if suspended.
-- Watching for job completion by monitoring ConfigMaps written by jobs, or by reading Job status.
+- Watching for job completion by reading Job status.
 - Updating the AutoIndexer CRD status with results from the latest run, including `LastIndexed`, `DocumentsProcessed`, `LastCommit`, and error conditions.
 - Handling deletion and finalizer logic, ensuring external resources are cleaned up before the CRD is removed.
 
@@ -450,11 +458,14 @@ The AutoIndexer CRD status is the primary way for operators and automation to un
 
 **Status Fields:**
 - `Phase`: High-level lifecycle state (`Pending`, `Running`, `Completed`, `Failed`, `Retrying`, `Unknown`).
+- `LastRunID`: Run ID to correlate jobs, configmaps, and logs.
+- `LastRunDurationSeconds`: Captures the last run duration
 - `LastIndexed`: Timestamp of the last successful indexing run.
 - `LastCommit`: Last processed commit hash for Git sources.
 - `DocumentsProcessed`: Number of documents processed in the last run.
 - `SuccessfulRunCount` / `ErrorRunCount`: Cumulative counters for successful and failed runs.
 - `NextScheduledRun`: When the next run is expected (for scheduled indexers).
+- `ObservedGeneration`: Capture the observed generation to alidate the status reflects the current spec.
 - `Errors`: List of error messages from the last run.
 - `Conditions`: Array of condition objects for fine-grained state and error reporting.
 
@@ -469,11 +480,6 @@ The AutoIndexer CRD status is the primary way for operators and automation to un
 **Events:**
 - Emit `Normal` events on Job/CronJob created successfully, completed successfully, Drift Detection triggers resync
 - Emint `Warning` events on jobs failed, suspension failed, and cleanup failed
-
-**Best practices:**
-- Use `ObservedGeneration` to ensure status reflects the current spec.
-- Include a `LastRunID` or similar field to correlate jobs, ConfigMaps, and logs.
-- For long-running or complex jobs, consider adding `LastRunDurationSeconds` for operational dashboards.
 
 The controller should update status promptly after each run, and surface partial failures (e.g., some files failed to process) in the `Errors` field and conditions. This enables both automated remediation and clear operator visibility into the health and progress of each AutoIndexer.
 
@@ -579,4 +585,69 @@ For Git data sources, the AutoIndexer will:
 5. After processing, update the ConfigMap with the new commit hash and document counts.
 
 This incremental approach ensures efficient updates and minimizes unnecessary reprocessing, while keeping the RAG index in sync with the source repository.
+
+### Run Identity and Result Reporting
+
+Each AutoIndexer run must be uniquely identifiable so that operators and automation can correlate the Job, its logs, the generated ConfigMap, and the CRD status. To achieve this, we introduce a **Run ID** (`RUN_ID`) and a structured **ConfigMap** result for each run.
+
+#### Run ID
+
+* **Definition:** A unique string generated per AutoIndexer run.
+
+* **Format:**
+  * Run ID: `<autoindexer-name>-<job-name>`
+
+* **Propagation:**
+
+  * The controller injects the Run ID into the Job/CronJob pod spec as an environment variable `RUN_ID` as well as on labels/annotations.
+  * The Job uses the Run ID in logging.
+  * The Job uses the Run ID in naming its result ConfigMap.
+
+* **Usage:**
+
+  * Operators can trace a run end-to-end with:
+    * `kubectl get job -l autoindexer.kaito.ai/run-id=<RUN_ID>`
+    * `kubectl logs job/<job-name>`
+    * `kubectl get configmap autoindexer-<autoindexer_name>`
+  * The controller records `status.lastRunID` for correlation.
+
+#### Result ConfigMap
+
+At the end of execution, each Job writes to a ConfigMap containing the run summary. This ConfigMap is the **source of truth** for run results and is consumed by the controller to update the AutoIndexer status.
+
+**Naming:**
+
+```
+autoindexer-<autoindexer_name>
+```
+
+**Labels:**
+
+* `autoindexer.kaito.ai/name`: Parent AutoIndexer resource.
+* `autoindexer.kaito.ai/run-id`: Run ID string.
+* `autoindexer.kaito.ai/index`: Target index name.
+* `autoindexer.kaito.ai/result`: `success` or `error`.
+
+**Data fields (example):**
+
+```yaml
+data:
+  runID: "github-indexer-20251001t1315z-7f9c3a"
+  startTime: "2025-10-01T13:15:00Z"
+  completionTime: "2025-10-01T13:17:42Z"
+  durationSeconds: "162"
+  lastCommit: "abc123def456"               # Git only
+  documentsProcessed: "128"
+  errors: |                                # optional, only if any
+    - failed to parse docs/guide.pdf
+    - unsupported encoding in src/old.py
+```
+
+**Controller behavior:**
+
+* Watches for ConfigMaps with label `autoindexer.kaito.ai/name=<autoindexer_name>`.
+* Updates CRD status fields:
+  * `lastRunID`, `lastCommit`, `documentsProcessed`.
+  * Increments `successfulRunCount` or `errorRunCount`.
+  * Sets `errors` from the ConfigMap if present.
 

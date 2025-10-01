@@ -238,7 +238,7 @@ type AutoIndexerStatus struct {
 	// +optional
 	NextScheduledRun *metav1.Time `json:"nextScheduledRun,omitempty"`
 
-	// observedGeneration represents the .metadata.generation of the Job or CronJob created in the last run
+	// observedGeneration represents the observed .metadata.generation of the AutoIndexer
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`

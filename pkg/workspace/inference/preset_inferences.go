@@ -189,26 +189,43 @@ func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) sku.GPUConfig {
 	var gpuConfig *sku.GPUConfig
 	var err error
 
-	// 1. When NAP is enabled, try to get GPU config from known SKU if instanceType is set
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		gpuConfig, _ = utils.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
-		if gpuConfig != nil {
-			return *gpuConfig
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
+		// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
+		if ctx.Workspace.Resource.LabelSelector != nil && len(ctx.Workspace.Status.WorkerNodes) == 0 {
+			availableBYONodes, _, err := resources.GetBYOAndReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
+			if err == nil && len(availableBYONodes) > 0 {
+				gpuConfig, err = utils.TryGetGPUConfigFromNodeList(ctx.Ctx, availableBYONodes)
+				if err == nil && gpuConfig != nil {
+					return *gpuConfig
+				}
+			}
+		}
+	} else {
+		// NAP is enabled - try to get GPU config from known SKU if instanceType is set
+		if ctx.Workspace.Resource.InstanceType != "" {
+			gpuConfig, _ = utils.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
+			if gpuConfig != nil {
+				return *gpuConfig
+			}
+		}
+
+		// Fallback to trying node status for NAP scenario
+		if len(ctx.Workspace.Status.WorkerNodes) > 0 {
+			gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx.Ctx, ctx.KubeClient, ctx.Workspace.Status.WorkerNodes)
+			if err == nil && gpuConfig != nil {
+				return *gpuConfig
+			}
 		}
 	}
 
-	// 2. try to get GPU config from the node status (works for both NAP and BYO scenarios)
-	gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx.Ctx, ctx.KubeClient, ctx.Workspace.Status.WorkerNodes)
-	if err == nil {
-		return *gpuConfig
-	}
-
-	// 3. if both above methods fail, use the default GPU count requirement from the model
-	//    FIXME: assume gpu nodes are provided here. cpu inference should not go through this path.
+	// Final fallback: use the default GPU count requirement from the model
+	// FIXME: assume gpu nodes are provided here. cpu inference should not go through this path.
 	defaultNumGPU := resource.MustParse(ctx.Model.GetInferenceParameters().GPUCountRequirement)
 	skuNumGPUs := int(defaultNumGPU.Value())
 	return sku.GPUConfig{
 		GPUCount: skuNumGPUs,
+		GPUMemGB: 0, // Unknown memory when falling back to defaults
 	}
 }
 

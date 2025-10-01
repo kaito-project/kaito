@@ -17,7 +17,7 @@ securityContext:
       - "ALL"
 featureGates:
   vLLM: true
-  disableNodeAutoProvisioning: false
+  disableNodeAutoProvisioning: true
   gatewayAPIInferenceExtension: false
 webhook:
   port: 9443

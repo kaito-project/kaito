@@ -3,7 +3,7 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.0.8
+    tag: 0.0.9
     # Tag history:
     # 0.0.8 - Fix multi-node-health-check issue
     # 0.0.7 - bump lmcache to 0.3.5

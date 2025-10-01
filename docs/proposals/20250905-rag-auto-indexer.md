@@ -89,7 +89,7 @@ type AutoIndexerSpec struct {
 	// Schedule defines when the indexing should run (cron format)
 	// +optional
 	// +kubebuilder:validation:Pattern=`^(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})$`
-	Schedule *string `json:"schedule"`
+	Schedule *string `json:"schedule,omitempty"`
 
 	// RetryPolicy defines how failed indexing jobs should be retried
 	// +optional
@@ -119,9 +119,9 @@ type DataSourceSpec struct {
 	// +kubebuilder:validation:Enum=Git;Static
 	Type DataSourceType `json:"type"`
 
-	// GitHub defines configuration for GitHub repository data sources
+	// Git defines configuration for Git repository data sources
 	// +optional
-	Git *GitDataSourceSpec `json:"gitHub,omitempty"`
+	Git *GitDataSourceSpec `json:"git,omitempty"`
 
 	// Static defines configuration for static data sources
 	// +optional
@@ -145,7 +145,7 @@ type GitDataSourceSpec struct {
 
 	// Branch to checkout (default: main)
 	// +kubebuilder:validation:Required
-	Branch string `json:"branch,omitempty"`
+	Branch string `json:"branch"`
 
 	// Commit SHA to checkout. If included, only this commit will be put into the index
 	// +optional
@@ -226,17 +226,22 @@ type AutoIndexerStatus struct {
 	Phase AutoIndexerPhase `json:"phase,omitempty"`
 
 	// SuccessfulRunCount tracks successful indexing runs
-	SuccessfulRunCount int32 `json:"successfulRunCount,omitempty"`
+	SuccessfulRunCount int32 `json:"successfulRunCount"`
 
 	// ErrorRunCount tracks failed indexing runs
-	ErrorRunCount int32 `json:"errorRunCount,omitempty"`
+	ErrorRunCount int32 `json:"errorRunCount"`
 
 	// Number of documents processed in the last run
-	DocumentsProcessed int32 `json:"documentsProcessed,omitempty"`
+	DocumentsProcessed int32 `json:"documentsProcessed"`
 
 	// NextScheduledRun shows when the next indexing is scheduled
 	// +optional
 	NextScheduledRun *metav1.Time `json:"nextScheduledRun,omitempty"`
+
+	// observedGeneration represents the .metadata.generation of the Job or CronJob created in the last run
+	// +optional
+	// +kubebuilder:validation:Minimum=0
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
 	// Errors from the last indexing operation
 	// +optional
@@ -364,52 +369,147 @@ In the future, support for [Secret Store CSI Driver](https://secrets-store-csi-d
 
 ## Controller Design
 
-### CRD Handling / Reconcile Lifecycle
+### Reconcile Lifecycle & Controller Responsibilities
 
-The AutoIndexer controller will watch for changes to AutoIndexer CRDs. For each CRD, it will determine whether to create a Kubernetes Job or CronJob based on the presence of the `schedule` field:
+The AutoIndexer controller is responsible for ensuring the desired state of each AutoIndexer resource is reflected in the cluster and the external RAG engine. The controller's reconcile loop is designed to be idempotent, robust, and observable. Key responsibilities include:
 
-- **If `schedule` is present:** The controller will create or update a CronJob that runs according to the specified schedule, ensuring periodic indexing.
-- **If `schedule` is absent:** The controller will create a one-time Job to perform a single indexing run.
+- Creating or patching a child Job or CronJob based on the presence of `spec.schedule`.
+- Ensuring child jobs have the correct pod template, including service account, secret mounts, resource limits, and security context.
+- Respecting the `suspend` field: for CronJobs, set `.spec.suspend=true`; for Jobs, do not create new runs if suspended.
+- Watching for job completion by monitoring ConfigMaps written by jobs, or by reading Job status.
+- Updating the AutoIndexer CRD status with results from the latest run, including `LastIndexed`, `DocumentsProcessed`, `LastCommit`, and error conditions.
+- Handling deletion and finalizer logic, ensuring external resources are cleaned up before the CRD is removed.
 
-The controller will manage the lifecycle of these Jobs/CronJobs, ensuring that failed runs are retried according to the `retryPolicy` and that suspended AutoIndexers do not trigger new jobs. Each job will be responsible for fetching data, processing documents, and uploading them to the RAG engine with appropriate metadata.
+The controller should use exponential backoff for retries, and ensure that status updates are only made when the observed generation matches the current spec. When running multiple controller replicas, leader election should be enabled to avoid race conditions.
+
+**Operational best practices:**
+- Set `concurrencyPolicy: Forbid` on CronJobs to prevent overlapping runs for the same AutoIndexer.
+- Limit job history with `successfulJobsHistoryLimit` and `failedJobsHistoryLimit`.
+- Use `activeDeadlineSeconds` to bound job runtime and avoid runaway pods.
+- Use minimal RBAC for both controller and job pods, and mount credentials as secrets.
+- Set OwnerReferences on all child resources for automatic garbage collection.
+
+This design ensures that the controller is robust, observable, and easy to operate, while providing a clear separation of concerns between the controller and the indexing jobs.
 
 ### Validation webhook
-A validating webhook will be used to:
-- ensure `RAGEngineRef` exists,
-- ensure `credentials.secretRef` exists if provided,
-- validate `schedule` is valid cron or @every format,
-- ensure `indexName` conforms to naming constraints.
-- ensure `dataSource` definitions are valid.
+
+Admission webhooks can be used to reduce invalid objects and inject defaults before the controller acts. They add operational complexity (certs, admission server), but are valuable in production.
+
+
+**Validating webhook:**
+- Confirm referenced `RAGEngineRef` exists (optionally check it is `Ready`).
+- Validate `credentials.secretRef` exists and contains the expected key when `Credentials.Type == SecretRef`.
+- Validate `schedule` syntax using a robust cron parser (e.g., robfig/cron).
+- Validate `indexName` uniqueness across the referenced `RAGEngine` (optional, scope can be namespace or RAGEngine).
+- Block obviously invalid `repositoryURL` format (basic regex/URL parse).
+- Ensure `dataSource` definitions are valid.
 
 We will follow the same setup for webhooks as the Workspace and RAGEngine controllers.
 
 
-### Finalizer (cleanup of external docs)
-We add a finalizer `autoindexers.kaito.ai/cleanup` to AutoIndexer objects when created and OwnerReferences to the Job/CronJob/ConfigMap that are created. On deletion the controller:
-- Waits for current indexing come to a terminal state if not already.
-- If we eventually want to handle any RAG releated cleanup we can do it here. But we will leave the docs for now.
-- Cleans up the Job/CronJob/ConfigMap. 
-- After successful cleanup removes finalizer allowing the AutoIndexer to be deleted.
+### OwnerReferences and Deletion Safety
 
-Admins can forcibly remove the finalizer if necessary, but this will leave index artifacts intact.
+Child resources created by an AutoIndexer (Jobs, CronJobs, ConfigMaps) will always be created with an `ownerReference` pointing back to the AutoIndexer. This ensures Kubernetes garbage collects them automatically when the AutoIndexer resource is deleted, without requiring custom cleanup logic in the controller.
 
+Because the AutoIndexer does not currently remove documents from the external RAG engine on deletion, **a finalizer is not strictly required**. The external state is intentionally left intact.
+
+However, to avoid deleting an AutoIndexer while it still has an active indexing run:
+
+1. The controller will check for active Jobs when it sees a `DeletionTimestamp` on the AutoIndexer.
+2. If Jobs are still running, the controller will update status to `Terminating` and emit a warning Event.
+3. Once all active Jobs complete (succeed or fail), the controller allows deletion to proceed naturally through Kubernetes garbage collection.
+
+**Key details:**
+
+* No finalizer is needed unless future versions add RAG document cleanup.
+* OwnerReferences guarantee cluster resources are cleaned up automatically.
+* The controller’s only responsibility at deletion time is to block premature cleanup while work is in-flight.
+
+This keeps the implementation simple, follows Kubernetes conventions, and avoids dangling child resources while still ensuring safe termination.
 
 ### Drift Detection
 
-Drift detection will be implemented as a background process within the controller. It will periodically check each AutoIndexer to ensure that the indexed documents in the RAG engine match the expected state.
+Drift detection ensures that the RAG index remains consistent with the source data over time, even as documents are added, updated, or deleted at the source. There are several possible approaches to drift detection, each with different trade-offs:
 
-The process will:
-- Validate the AutoIndexer is in a `Completed` state
-- Query the RAG engine's list documents API, filtering by autoindexer-specific metadata (e.g. autoindexer name). This will require an update to include the total count of documents with the exact metadata on the `ListDocumentsResponse`.
-- Compare the actual document count in the RAG index to the `lastRunDocuments` value recorded in the AutoIndexer status.
-- If a mismatch is detected, the controller can trigger the AutoIndexer to run immediately to bring the index back into a compliant state.
+**1. Count-only (recommended for v1):**
+The controller periodically queries the RAG engine's list documents API, filtering by autoindexer-specific metadata (e.g., autoindexer name and index). It compares the actual document count in the RAG index to the `lastRunDocuments` value recorded in the AutoIndexer status. If a mismatch is detected, the controller triggers a reindex to bring the index back into compliance.
 
-This approach ensures that the index remains consistent with the source data and provides visibility into drift events for operators. This approach is higher level than checking every document within the index, but will satisfy our initial drift detection goals.
-### Status Updates
+*Pros:* Simple, fast, and low-overhead. Good for catching obvious drift.
+*Cons:* May miss subtle changes (e.g., content changes that don't affect count).
+
+**2. Per-document manifest/checksum:**
+Maintain a manifest mapping source paths to document IDs and checksums. On each run, compare the manifest to the current state in the RAG engine to detect precise adds, updates, and deletes. This is more accurate but more complex as the controller itself would need to run very similar logic to the Jobs/CronJobs.
+
+**Chosen approach:**
+For the initial implementation, we will use the count-only method. This provides a good balance of simplicity and effectiveness, and can be extended to more precise methods in the future as needed. The count-based approach is sufficient for most operational scenarios and is easy to reason about for both users and operators.
+
+### Status Semantics & Conditions
+
+The AutoIndexer CRD status is the primary way for operators and automation to understand the current and historical state of each indexer. The controller is responsible for keeping status fields and conditions up to date, reflecting both the desired and observed state.
+
+**Status Fields:**
+- `Phase`: High-level lifecycle state (`Pending`, `Running`, `Completed`, `Failed`, `Retrying`, `Unknown`).
+- `LastIndexed`: Timestamp of the last successful indexing run.
+- `LastCommit`: Last processed commit hash for Git sources.
+- `DocumentsProcessed`: Number of documents processed in the last run.
+- `SuccessfulRunCount` / `ErrorRunCount`: Cumulative counters for successful and failed runs.
+- `NextScheduledRun`: When the next run is expected (for scheduled indexers).
+- `Errors`: List of error messages from the last run.
+- `Conditions`: Array of condition objects for fine-grained state and error reporting.
+
+**Condition Types:**
+- `ResourceReady`: The AutoIndexer is ready and its child resources are configured.
+- `AutoIndexerScheduled`: CronJob exists and is scheduled.
+- `AutoIndexerIndexing`: A job is currently running.
+- `AutoIndexerCompleted`: The last run succeeded.
+- `AutoIndexerError`: The last run had an error (see `Errors`).
+- `AutoIndexerDriftDetected`: Drift detection discovered mismatches.
+
+**Best practices:**
+- Use `ObservedGeneration` to ensure status reflects the current spec.
+- Include a `LastRunID` or similar field to correlate jobs, ConfigMaps, and logs.
+- For long-running or complex jobs, consider adding `LastRunDurationSeconds` for operational dashboards.
+
+The controller should update status promptly after each run, and surface partial failures (e.g., some files failed to process) in the `Errors` field and conditions. This enables both automated remediation and clear operator visibility into the health and progress of each AutoIndexer.
 
 Each AutoIndexer run (Job or CronJob) will write its execution status, including details such as the last processed commit, number of documents processed, and any errors, into a dedicated ConfigMap. The controller will watch these ConfigMaps and use their contents to update the status fields of the corresponding AutoIndexer CRD.
 
 This mechanism decouples the job execution environment from the controller, allowing for robust status reporting even if jobs run in isolated pods. The controller will update fields such as `LastCommit`, `DocumentsProcessed`, `LastIndexed`, and error conditions based on the latest job results found in the ConfigMap.
+
+### RBAC & Security
+
+Proper RBAC (Role-Based Access Control) is essential for both the AutoIndexer controller and the indexing jobs to ensure least-privilege operation and cluster security.
+
+### Controller ServiceAccount (RBAC)
+
+The controller should have a dedicated ServiceAccount with the following permissions:
+
+- `get, list, watch, create, patch, update` on `autoindexers.kaito.ai` (the CRD)
+- `update` on `autoindexers.kaito.ai/status` (status subresource)
+- `get, list, watch, create, update, patch, delete` on Jobs and CronJobs
+- `get, create, update, patch, delete` on ConfigMaps used for run results
+- `get, list` on Secrets (to read credentials specified by SecretRef)
+- `get, list, watch` on RAGEngine CR if that is a CRD
+- `create, list` on Events (optional, for emitting Kubernetes events)
+
+**Security best practices:**
+- Use a dedicated ServiceAccount for the controller, not the default.
+- Do not grant cluster-wide permissions unless necessary; prefer namespace-scoped roles.
+- Use PodSecurity admission or PodSecurityPolicy to restrict controller pod privileges (no hostPath, no privileged, no hostNetwork).
+
+### Indexer Job ServiceAccount (RBAC)
+
+Each indexing job should run with a minimal ServiceAccount, with only the following permissions:
+
+- `get` on referenced Secrets in its namespace (for credentials)
+- `create` on result ConfigMaps (if using ConfigMaps for job result communication)
+
+**Security best practices for jobs:**
+- Do not allow the job to update CRD status directly (prefer controller to update status).
+- Mount credentials as secrets (env)
+
+By following these RBAC and security guidelines, the AutoIndexer system minimizes its attack surface and ensures that both the controller and jobs operate with the least privilege required for their function.
+
 
 ## Service (k8s Job) Design
 
@@ -420,9 +520,9 @@ The AutoIndexer will ensure that all ingested documents are decoded using a robu
 - Attempt to detect encoding from HTTP headers (e.g., `Content-Type: charset`)
 - Use the `chardet` library to guess encoding with high confidence
 - Try common encodings in order: UTF-8, UTF-8-SIG, Latin1, CP1252, ISO-8859-1
-- If all else fails, decode with UTF-8 and error replacement
+- If these fail, we will log the errors but continue to index documents.
 
-This ensures that documents with various encodings are handled gracefully, and errors are logged for any files that cannot be decoded.
+This ensures that documents with various encodings are handled gracefully, and errors are logged for any files that cannot be decoded, which will be written to the ConfigMap and added to the AutoIndexer Status by the Controller after the run.
 ### PDF Handling
 
 PDF files are detected by content-type or file extension. The AutoIndexer will extract text from PDFs using the `PyMuPDF` library to extract text from each page. If the extraction is not successful, the document is skipped and an error is logged. This approach maximizes compatibility with a wide range of PDF files and ensures that both text and tabular data are captured where possible.
@@ -430,7 +530,8 @@ PDF files are detected by content-type or file extension. The AutoIndexer will e
 
 Each document ingested by the AutoIndexer will be uploaded to the RAG engine with metadata that includes:
 - The AutoIndexer name
-- Source URL or file path
+- Source URL or file path - used for sequential updates
+- Depending on file extension, we will use Sentence or Code Splitting automatically.
 
 This metadata enables filtering on ingested documents for drift detection, and allows for efficient cleanup or re-indexing of documents when source data changes.
 #### Git Repository handling

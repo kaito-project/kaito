@@ -34,7 +34,7 @@ metadata:
   name: workspace-gemma-3-27b-instruct
 spec:
   resource:
-    instanceType: Standard_NC48ads_A100_v4
+    instanceType: Standard_ND96isr_H100_v5
     labelSelector:
       matchLabels:
         apps: gemma-3-27b-instruct

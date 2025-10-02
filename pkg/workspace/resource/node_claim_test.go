@@ -269,6 +269,12 @@ func setupWorkspaceStatusMock(mockClient *test.MockClient, workspace *kaitov1bet
 		*ws = *workspace
 	}).Return(nil).Maybe()
 
+	// Mock List call for nodes (needed by GetBYOAndReadyNodes)
+	mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+		nodeList := args.Get(1).(*corev1.NodeList)
+		nodeList.Items = []corev1.Node{} // Return empty node list for test
+	}).Return(nil).Maybe()
+
 	// Mock status update
 	mockClient.On("Status").Return(&mockClient.StatusMock).Maybe()
 	if statusUpdateError != nil {

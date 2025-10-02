@@ -23,7 +23,7 @@ Today, KAITO fast-fails on potential OOM errors by ensuring the instance type's 
 
 The goal of this proposal is to allow KAITO to validate the GPU requirements for nodes without using a SKU map or a specified instance type, which enables accurate validation with BYO nodes from any cloud provider. This proposal is tightly coupled with the [BYO scenario redesign](20250820-byo-nodes.md) and unblocks it by removing the dependency on instance types for BYO nodes. Instead, the GPU requirement validation will be done using provider-neutral runtime node attributes discovered via node labels sourced from NVIDIA GPU Feature Discovery (GFD) which provides information such as GPU product, count, and memory. These nodes will still need to be homogeneous in terms of GPU product and configuration to simplify scheduling and the GPU requirement estimations. 
 
-BYO and NAP will be also be mutually exclusive in order to simplify the scheduling logic. BYO will now be supported by disabling NAP, and the instanceType is no longer required while NAP scenarios will continue to rely on ``workspace.resource.instanceType`` for provisioning decisions.
+BYO and NAP will be also be mutually exclusive in order to simplify the scheduling logic. BYO will now be supported by disabling NAP, and the instance type is no longer required while NAP scenarios will continue to rely on `workspace.resource.instanceType` for provisioning decisions.
 
 ## Non-Goals
 
@@ -77,7 +77,7 @@ The proposed algorithm is as follows:
 
 #### NAP Scenario:
 
-The `workspace.resource.instanceType` is no longer defaulted to `Standard_NC24ads_A100_v4`. It must be explicity set and the webhook will fail if empty. The existing logic remains unchanged.
+The `workspace.resource.instanceType` is no longer defaulted to `Standard_NC24ads_A100_v4`. It must be explicitly set and the webhook will fail if empty. The existing logic remains unchanged.
 
 #### NAP Disabled:
 
@@ -100,6 +100,6 @@ The `workspace.resource.instanceType` is no longer defaulted to `Standard_NC24ad
 ## Work Items
 
 - [ ] ⁠Deprecate `.resource.preferredNodes` in Workspace CRD
-- [ ] Install nvidia-device-plugin and gpu-feature-discovery via Helm chart dependencies, removing existing DaemonSet harcoded in the Workspace Helm chart
+- [ ] Install nvidia-device-plugin and gpu-feature-discovery via Helm chart dependencies, removing existing DaemonSet hard coded in the Workspace Helm chart
 - [ ] Implement the proposed node selection algorithm in the KAITO Workspace controller
 - [ ] Convert `.resource.instanceType` to an optional field with no default value

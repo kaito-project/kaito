@@ -34,15 +34,13 @@ metadata:
   name: workspace-gemma-3-27b-instruct
 spec:
   resource:
-    instanceType: Standard_ND96isr_H100_v5
+    instanceType: Standard_NC24ads_A100_v4
     labelSelector:
       matchLabels:
         apps: gemma-3-27b-instruct
   inference:
     preset:
       name: gemma-3-27b-instruct
-    accessModes:
-      - modelAccessSecret
   modelAccessSecret: hf-token-secret
 ```
 

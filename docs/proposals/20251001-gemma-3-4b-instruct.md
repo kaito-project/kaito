@@ -41,8 +41,6 @@ spec:
   inference:
     preset:
       name: gemma-3-4b-instruct
-    accessModes:
-      - modelAccessSecret
   modelAccessSecret: hf-token-secret
 ```
 

@@ -210,7 +210,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 
 	if result, err := c.reconcileNodes(ctx, wObj); err != nil {
 		return result, err
-	} else if result.Requeue || result.RequeueAfter > 0 {
+	} else if result.RequeueAfter > 0 {
 		return result, nil
 	}
 

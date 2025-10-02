@@ -598,7 +598,8 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 				}).Return(nil)
 			}
 
-			availableBYONodes, readyNodes, err := GetReadyNodes(context.Background(), mockClient, tc.workspace)
+			readyNodes, err := GetReadyNodes(context.Background(), mockClient, tc.workspace)
+			availableBYONodes := readyNodes
 
 			if tc.expectedError != "" {
 				assert.Check(t, err != nil, "Expected an error")
@@ -617,7 +618,11 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 			}
 
 			assert.DeepEqual(t, actualBYONodeNames, tc.expectedAvailableBYONodeNames)
-			assert.DeepEqual(t, readyNodes, tc.expectedReadyNodeNames)
+			actualReadyNodeNames := make([]string, len(readyNodes))
+			for i, node := range readyNodes {
+				actualReadyNodeNames[i] = node.Name
+			}
+			assert.DeepEqual(t, actualReadyNodeNames, tc.expectedReadyNodeNames)
 
 			mockClient.AssertExpectations(t)
 		})

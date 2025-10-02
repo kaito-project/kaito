@@ -222,14 +222,19 @@ class BaseVectorStoreTest(ABC):
         assert json_request["temperature"] == 0.7
         assert len(json_request["messages"]) == 2
         assert json_request["messages"][0]["role"] == "system"
-        assert "Use the context information below to assist the user." in json_request["messages"][0]["content"]
+        assert (
+            "Use the context information below to assist the user."
+            in json_request["messages"][0]["content"]
+        )
         assert json_request["messages"][1]["role"] == "user"
         assert json_request["messages"][1]["content"] == "What is the first document?"
 
     @pytest.mark.asyncio
     @respx.mock
     @patch("requests.get")
-    async def test_chat_completions_with_no_context(self, mock_get, vector_store_manager, monkeypatch):
+    async def test_chat_completions_with_no_context(
+        self, mock_get, vector_store_manager, monkeypatch
+    ):
         import ragengine.config
         import ragengine.inference.inference
 
@@ -271,17 +276,13 @@ class BaseVectorStoreTest(ABC):
         documents = [
             Document(text="Cats and dogs are animals", metadata={"type": "text"}),
         ]
-        await vector_store_manager.index_documents(
-            "test_index", documents
-        )
+        await vector_store_manager.index_documents("test_index", documents)
 
         chat_results = await vector_store_manager.chat_completion(
             {
                 "index_name": "test_index",
                 "model": "mock-model",
-                "messages": [
-                    {"role": "user", "content": "What is pasta made of?"}
-                ],
+                "messages": [{"role": "user", "content": "What is pasta made of?"}],
                 "temperature": 0.7,
                 "max_tokens": 100,
             }

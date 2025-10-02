@@ -20,6 +20,7 @@ import (
 	"sort"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -41,20 +42,20 @@ func NewNodeManager(c client.Client) *NodeManager {
 	}
 }
 
-// AreNodePluginsReady is used for ensuring node label(accelerator:nvidia) and GPU capacity on all auto-provisioned nodes for the workspace.
-func (c *NodeManager) AreNodePluginsReady(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
+// SetNodePluginsReadyCondition is used for ensuring node label(accelerator:nvidia) and GPU capacity on all auto-provisioned nodes for the workspace.
+func (c *NodeManager) SetNodePluginsReadyCondition(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
 	// ensure Nvidia device plugins are ready for the workspace when instance type is known.
 	knownGPUConfig, _ := utils.GetGPUConfigBySKU(wObj.Resource.InstanceType)
 	if knownGPUConfig != nil {
 		if areReady, err := c.checkNodePlugin(ctx, wObj, existingNodeClaims); err != nil {
-			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodePluginStatus, metav1.ConditionFalse,
 				"nodePluginIsNotReady", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return false, updateErr
 			}
 			return false, err
 		} else if !areReady {
-			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodePluginStatus, metav1.ConditionFalse,
 				"nodePluginIsNotReady", "waiting all node plugins to be ready"); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return false, updateErr
@@ -127,8 +128,8 @@ func (c *NodeManager) getReadyNodesFromNodeClaims(ctx context.Context, wObj *kai
 	return nodes, nil
 }
 
-// AreNodesReady is used for checking the number of ready nodes meet the target node count. Updates the status condition accordingly.
-func (c *NodeManager) AreNodesReady(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, error) {
+// SetNodesReadyCondition is used for checking the number of ready nodes meet the target node count. Updates the status condition accordingly.
+func (c *NodeManager) SetNodesReadyCondition(ctx context.Context, wObj *kaitov1beta1.Workspace) (ready bool, retErr error) {
 	nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
 	if err != nil {
 		return false, fmt.Errorf("failed to list nodes: %w", err)
@@ -142,6 +143,13 @@ func (c *NodeManager) AreNodesReady(ctx context.Context, wObj *kaitov1beta1.Work
 			readyCount++
 		}
 	}
+
+	defer func() {
+		// Update the list of nodes, but don't block setting the condition on it.
+		if err := c.UpdateWorkerNodesInStatus(ctx, wObj, nodeList.Items); err != nil {
+			retErr = err
+		}
+	}()
 
 	if readyCount >= targetNodeCount {
 		// Enough Nodes are ready - update status condition to indicate success
@@ -164,8 +172,48 @@ func (c *NodeManager) AreNodesReady(ctx context.Context, wObj *kaitov1beta1.Work
 	}
 }
 
+// propagateOwnedConditions checks the owned conditions, and if any one is false, it sets the condition to false with the reason and message of the first false condition found.
+func propagateOwnedConditions(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace, condition kaitov1beta1.ConditionType, conditionTypes []kaitov1beta1.ConditionType) error {
+	for _, cType := range conditionTypes {
+		cStatus := meta.FindStatusCondition(wObj.Status.Conditions, string(cType))
+		if cStatus == nil || cStatus.Status != metav1.ConditionTrue {
+			// Set the owned condition to false with the reason and message of the first false condition found.
+			if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c, wObj, condition, metav1.ConditionFalse, cStatus.Reason, cStatus.Message); err != nil {
+				klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
+				return err
+			}
+			return nil
+		}
+	}
+
+	return nil
+}
+
+// SetResourceReadyCondition updates the worker nodes list in workspace status.
+func (c *NodeManager) SetResourceReadyCondition(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	ownedConditions := []kaitov1beta1.ConditionType{
+		kaitov1beta1.ConditionTypeNodeClaimStatus,
+		kaitov1beta1.ConditionTypeNodeStatus,
+		kaitov1beta1.ConditionTypeNodePluginStatus,
+	}
+
+	// If any owned condition is false, set the resource condition to false and return.
+	if err := propagateOwnedConditions(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, ownedConditions); err != nil {
+		return err
+	}
+
+	// All owned conditions are true, set the resource condition to true.
+	if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue,
+		"workspaceResourceStatusSuccess", "workspace resource is ready"); err != nil {
+		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
+		return err
+	}
+
+	return nil
+}
+
 // UpdateWorkerNodesInStatus updates the worker nodes list in workspace status.
-func (c *NodeManager) UpdateWorkerNodesInStatus(ctx context.Context, wObj *kaitov1beta1.Workspace, readyNodes []*corev1.Node) error {
+func (c *NodeManager) UpdateWorkerNodesInStatus(ctx context.Context, wObj *kaitov1beta1.Workspace, readyNodes []corev1.Node) error {
 	nodeNames := make([]string, 0, len(readyNodes))
 	for _, node := range readyNodes {
 		nodeNames = append(nodeNames, node.Name)
@@ -177,19 +225,8 @@ func (c *NodeManager) UpdateWorkerNodesInStatus(ctx context.Context, wObj *kaito
 			status.WorkerNodes = nodeNames
 			return nil
 		}); err != nil {
-			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
-				"workspaceResourceStatusFailed", err.Error()); updateErr != nil {
-				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-				return updateErr
-			}
 			return err
 		}
-	}
-
-	if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue,
-		"workspaceResourceStatusSuccess", "workspace resource is ready"); err != nil {
-		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-		return err
 	}
 
 	return nil

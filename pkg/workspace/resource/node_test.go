@@ -173,7 +173,7 @@ func TestAreNodePluginsReady(t *testing.T) {
 			defer os.Unsetenv("CLOUD_PROVIDER")
 
 			manager := NewNodeManager(mockClient)
-			ready, err := manager.AreNodePluginsReady(context.Background(), tt.workspace, tt.existingNodeClaims)
+			ready, err := manager.SetNodePluginsReadyCondition(context.Background(), tt.workspace, tt.existingNodeClaims)
 
 			assert.Equal(t, tt.expectedError, err != nil)
 			assert.Equal(t, tt.expectedReady, ready)

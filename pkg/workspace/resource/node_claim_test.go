@@ -242,7 +242,7 @@ func TestCheckNodeClaims(t *testing.T) {
 			}
 
 			// Execute the function under test
-			addedCount, existingNodeClaims, _, err := manager.CheckNodeClaims(context.Background(), tc.workspace)
+			addedCount, existingNodeClaims, err := manager.CheckNodeClaims(context.Background(), tc.workspace)
 
 			// Assertions
 			assert.Equal(t, tc.expectedAddedCount, addedCount, "Added count mismatch")
@@ -686,7 +686,7 @@ func TestAreNodeClaimsReady(t *testing.T) {
 			}
 
 			// Execute the function under test
-			ready, err := manager.AreNodeClaimsReady(context.Background(), tc.workspace, tc.existingNodeClaims)
+			ready, err := manager.SetNodeClaimsReadyCondition(context.Background(), tc.workspace, tc.existingNodeClaims)
 
 			// Assertions
 			assert.Equal(t, tc.expectedReady, ready, "Ready state mismatch")

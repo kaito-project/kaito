@@ -146,7 +146,7 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 	return nil
 }
 
-func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
+func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
 	workspaceKey := client.ObjectKeyFromObject(wObj).String()
 	if !c.expectations.SatisfiedExpectations(c.Log, workspaceKey) {
 		klog.V(4).InfoS("Waiting for NodeClaim expectations to be satisfied",
@@ -154,7 +154,11 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		return reconcile.Result{}, nil
 	}
 
-	var err error
+	defer func() {
+		if err := c.nodeResourceManager.SetResourceReadyCondition(ctx, wObj); err != nil {
+			klog.ErrorS(err, "failed to update resource status", "workspace", klog.KObj(wObj))
+		}
+	}()
 
 	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// diff node claims
@@ -169,7 +173,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		}
 
 		// check nodeclaims meet the target count
-		if ready, err := c.nodeClaimManager.AreNodeClaimsReady(ctx, wObj, existingNodeClaims); err != nil {
+		if ready, err := c.nodeClaimManager.SetNodeClaimsReadyCondition(ctx, wObj, existingNodeClaims); err != nil {
 			return reconcile.Result{}, err
 		} else if !ready {
 			// Not enough ready nodeclaims, requeue and wait for next reconcile
@@ -177,7 +181,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		}
 
 		// check node plugins ready
-		if ready, err := c.nodeResourceManager.AreNodePluginsReady(ctx, wObj, existingNodeClaims); err != nil {
+		if ready, err := c.nodeResourceManager.SetNodePluginsReadyCondition(ctx, wObj, existingNodeClaims); err != nil {
 			return reconcile.Result{}, err
 		} else if !ready {
 			// The node resource changes can not trigger workspace controller reconcile, so we need to requeue reconcile when don't proceed because of node resource not ready.
@@ -186,23 +190,31 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	}
 
 	// Check if selected nodes are ready in both NAP and BYO scenarios.
-	if ready, err := c.nodeResourceManager.AreNodesReady(ctx, wObj); err != nil {
+	if ready, err := c.nodeResourceManager.SetNodesReadyCondition(ctx, wObj); err != nil {
 		return reconcile.Result{}, err
 	} else if !ready {
 		// Not enough ready nodes, requeue and wait for next reconcile.
 		return reconcile.Result{}, nil
 	}
 
-	readyNodes, err := resources.GetReadyNodes(ctx, c.Client, wObj)
-	if err != nil {
-		return reconcile.Result{}, err
+	return reconcile.Result{}, nil
+}
+
+func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
+	workspaceKey := client.ObjectKeyFromObject(wObj).String()
+	if !c.expectations.SatisfiedExpectations(c.Log, workspaceKey) {
+		klog.V(4).InfoS("Waiting for NodeClaim expectations to be satisfied",
+			"workspace", workspaceKey)
+		return reconcile.Result{}, nil
 	}
 
-	// update worker nodes in status
-	// TODO: update the status when NAP is disabled as well.
-	if err := c.nodeResourceManager.UpdateWorkerNodesInStatus(ctx, wObj, readyNodes); err != nil {
-		return reconcile.Result{}, err
+	if result, err := c.reconcileNodes(ctx, wObj); err != nil {
+		return result, err
+	} else if result.Requeue || result.RequeueAfter > 0 {
+		return result, nil
 	}
+
+	var err error
 
 	if wObj.Tuning != nil {
 		if err = c.applyTuning(ctx, wObj); err != nil {

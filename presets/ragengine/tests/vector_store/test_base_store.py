@@ -14,8 +14,8 @@
 
 import json
 import os
-from abc import ABC, abstractmethod
 import time
+from abc import ABC, abstractmethod
 from unittest.mock import patch
 
 import httpx
@@ -271,7 +271,7 @@ class BaseVectorStoreTest(ABC):
         documents = [
             Document(text="Cats and dogs are animals", metadata={"type": "text"}),
         ]
-        index_doc_resp = await vector_store_manager.index_documents(
+        await vector_store_manager.index_documents(
             "test_index", documents
         )
 

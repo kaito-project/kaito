@@ -14,9 +14,16 @@ see-also:
 
 ## Goals
 
-Today, KAITO fast-fails on potential OOM errors by ensuring the instance type's GPU count and memory obtained from cloud SKU maps is larger than the preset mode's total GPU memory requirement. This only works to a certain extent where Karpenter is installed beforehand and SKU maps are maintained (currently Azure and AWS). However, this requirement blocks adoption in BYO nodes scenario or other clouds without SKU maps.
+Today, KAITO fast-fails on potential OOM errors by ensuring the instance type's GPU count and memory obtained from cloud SKU maps is larger than the preset mode's total GPU memory requirement. This approach has several limitations:
 
-The goal is to preserve the same fast-fail behavior in BYO scenario but remove cloud/SKU coupling when instanceType is empty by basing capacity checks on provider-neutral runtime node attributes discovered via node labels and keeping homogeneous placement across identical node configurations (defined by GPU product, count, and memory). BYO will be supported by leaving instanceType empty (or even leaving the entire resource field empty), while NAP scenarios will continue to rely on ``workspace.resource.instanceType`` for provisioning decisions.
+- It requires maintaining a SKU map and updating it as new instance types are released or deprecated, which is labor-intensive and error-prone.
+- The SKU map is cloud-provider specific, currently supporting only Azure and AWS.
+- It blocks validation BYO node scenarios where users bring their own nodes with GPUs. In order for BYO node validation to work, the existing nodes still have to be an instance type existing in the SKU map, and the user must manually specify it in the `instanceType` field as well. Howevere, KAITO should work with any node as long as it has the required GPU resources and without requiring the user to explicitly specify an instance type.
+- It also requires Karpenter to be installed beforehand.
+
+The goal of this proposal is to allow KAITO to validate the GPU requirements for nodes without using a SKU map or a specified instance type, which enables accurate validation with BYO nodes from any cloud provider. This proposal is tightly coupled with the [BYO scenario redesign](20250820-byo-nodes.md) and unblocks it by removing the dependency on instance types for BYO nodes. Instead, the GPU requirement validation will be done using provider-neutral runtime node attributes discovered via node labels sourced from NVIDIA GPU Feature Discovery (GFD) which provides information such as GPU product, count, and memory. These nodes will still need to be homogeneous in terms of GPU product and configuration to simplify scheduling and the GPU requirement estimations. 
+
+BYO and NAP will be also be mutually exclusive in order to simplify the scheduling logic. BYO will now be supported by disabling NAP, and the instanceType is no longer required while NAP scenarios will continue to rely on ``workspace.resource.instanceType`` for provisioning decisions.
 
 ## Non-Goals
 

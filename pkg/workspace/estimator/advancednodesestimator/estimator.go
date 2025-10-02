@@ -61,7 +61,7 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		// NAP is disabled (BYO scenario) - instanceType is optional
 		// Try to get GPU config from existing nodes
 		if client != nil {
-			availableBYONodes, _, err := resources.GetBYOAndReadyNodes(ctx, client, workspace)
+			availableBYONodes, err := resources.GetReadyNodes(ctx, client, workspace)
 			if err == nil && len(availableBYONodes) > 0 {
 				gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, client, []string{availableBYONodes[0].Name})
 			}

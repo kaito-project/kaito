@@ -121,8 +121,8 @@ func ExtractObjFields(obj client.Object) (instanceType, namespace, name string, 
 	return
 }
 
-// GetBYOAndReadyNodes finds all BYO nodes and ready nodes that match the workspace's label selector
-func GetBYOAndReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, []string, error) {
+// GetReadyNodes finds all ready nodes that match the workspace's label selector
+func GetReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, error) {
 	var matchLabels client.MatchingLabels
 	if wObj.Resource.LabelSelector != nil {
 		matchLabels = wObj.Resource.LabelSelector.MatchLabels
@@ -130,11 +130,10 @@ func GetBYOAndReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta
 
 	nodeList, err := ListNodes(ctx, c, matchLabels)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	availableBYONodes := make([]*corev1.Node, 0, len(nodeList.Items))
-	readyNodes := make([]string, 0, len(nodeList.Items))
+	readyNodes := make([]*corev1.Node, 0, len(nodeList.Items))
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
 
@@ -144,20 +143,16 @@ func GetBYOAndReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta
 				"workspace", klog.KObj(wObj))
 			continue
 		} else {
-			readyNodes = append(readyNodes, node.Name)
+			readyNodes = append(readyNodes, node)
 		}
 
-		// When NAP is enabled, all nodes selected by the label selector are provisioned by NAP
-		// When NAP is disabled, all nodes matching the label selector are BYO nodes
-		// In both cases, let the k8s scheduler decide which nodes to use
-		availableBYONodes = append(availableBYONodes, node)
 	}
 
-	klog.V(4).InfoS("Found available nodes",
+	klog.V(4).InfoS("Found ready nodes",
 		"workspace", klog.KObj(wObj),
-		"availableNodes", len(availableBYONodes))
+		"readyNodes", len(readyNodes))
 
-	return availableBYONodes, readyNodes, nil
+	return readyNodes, nil
 }
 
 func NodeIsReadyAndNotDeleting(node *corev1.Node) bool {

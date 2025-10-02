@@ -158,7 +158,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 
 	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// diff node claims
-		addedNodeClaimsCount, existingNodeClaims, readyNodes, err := c.nodeClaimManager.CheckNodeClaims(ctx, wObj)
+		addedNodeClaimsCount, existingNodeClaims, err := c.nodeClaimManager.CheckNodeClaims(ctx, wObj)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -183,12 +183,25 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 			// The node resource changes can not trigger workspace controller reconcile, so we need to requeue reconcile when don't proceed because of node resource not ready.
 			return reconcile.Result{RequeueAfter: 2 * time.Second}, nil
 		}
+	}
 
-		// update worker nodes in status
-		// TODO: update the status when NAP is disabled as well.
-		if err := c.nodeResourceManager.UpdateWorkerNodesInStatus(ctx, wObj, readyNodes); err != nil {
-			return reconcile.Result{}, err
-		}
+	// Check if selected nodes are ready in both NAP and BYO scenarios.
+	if ready, err := c.nodeResourceManager.AreNodesReady(ctx, wObj); err != nil {
+		return reconcile.Result{}, err
+	} else if !ready {
+		// Not enough ready nodes, requeue and wait for next reconcile.
+		return reconcile.Result{}, nil
+	}
+
+	readyNodes, err := resources.GetReadyNodes(ctx, c.Client, wObj)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// update worker nodes in status
+	// TODO: update the status when NAP is disabled as well.
+	if err := c.nodeResourceManager.UpdateWorkerNodesInStatus(ctx, wObj, readyNodes); err != nil {
+		return reconcile.Result{}, err
 	}
 
 	if wObj.Tuning != nil {

@@ -64,9 +64,9 @@ func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaito
 		// NAP is disabled (BYO scenario) - instanceType is optional
 		// Try to get GPU config from existing nodes
 		if client != nil {
-			availableBYONodes, _, err := resources.GetBYOAndReadyNodes(ctx, client, wObj)
-			if err == nil && len(availableBYONodes) > 0 {
-				gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, client, []string{availableBYONodes[0].Name})
+			readyNodes, err := resources.GetReadyNodes(ctx, client, wObj)
+			if err == nil && len(readyNodes) > 0 {
+				gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, client, []string{readyNodes[0].Name})
 			}
 		}
 

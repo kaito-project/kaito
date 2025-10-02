@@ -598,7 +598,7 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 				}).Return(nil)
 			}
 
-			availableBYONodes, readyNodes, err := GetBYOAndReadyNodes(context.Background(), mockClient, tc.workspace)
+			availableBYONodes, readyNodes, err := GetReadyNodes(context.Background(), mockClient, tc.workspace)
 
 			if tc.expectedError != "" {
 				assert.Check(t, err != nil, "Expected an error")

@@ -18,7 +18,10 @@ type ConditionType string
 
 const (
 	// ConditionTypeNodeClaimStatus is the state when checking nodeClaim status.
-	ConditionTypeNodeClaimStatus = ConditionType("NodeClaimReady")
+	ConditionTypeNodeClaimStatus = ConditionType("NodeClaimsReady")
+
+	// ConditionTypeNodeStatus is the state when checking node status.
+	ConditionTypeNodeStatus = ConditionType("NodesReady")
 
 	// ConditionTypeResourceStatus is the state when Resource has been created.
 	ConditionTypeResourceStatus = ConditionType("ResourceReady")

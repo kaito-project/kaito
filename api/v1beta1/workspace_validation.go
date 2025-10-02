@@ -68,9 +68,6 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.Resource.InstanceType != "" {
 			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
 		}
-
-		// Note: preferredNodes does not affect node selection when NAP is disabled.
-		// Node selection is controlled by labelSelector, and the operator will not provision new nodes.
 	} else {
 		// When NAP is enabled, instanceType must be specified for node provisioning
 		if w.Resource.InstanceType == "" {
@@ -333,12 +330,9 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	instanceType := string(r.InstanceType)
 
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		if r.InstanceType != "" {
-			// This validation should only run for BYO scenarios
-			errs = errs.Also(apis.ErrInvalidValue("InstanceType must be empty for BYO node selection validation", "instanceType"))
+		if presetName != "" { // TODO: can preset name ever be empty?
+			errs = errs.Also(r.validateBYONodeSelection(presetName))
 		}
-
-		errs = errs.Also(r.validateBYONodeSelection(presetName))
 	} else {
 		skuHandler, err := utils.GetSKUHandler()
 		if err != nil {

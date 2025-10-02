@@ -193,9 +193,9 @@ func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) sku.GPUConfig {
 		// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
 		// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
 		if ctx.Workspace.Resource.LabelSelector != nil && len(ctx.Workspace.Status.WorkerNodes) == 0 {
-			availableBYONodes, _, err := resources.GetBYOAndReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
-			if err == nil && len(availableBYONodes) > 0 {
-				gpuConfig, err = utils.TryGetGPUConfigFromNodeList(ctx.Ctx, availableBYONodes)
+			readyNodes, err := resources.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
+			if err == nil && len(readyNodes) > 0 {
+				gpuConfig, err = utils.TryGetGPUConfigFromNodeList(ctx.Ctx, readyNodes)
 				if err == nil && gpuConfig != nil {
 					return *gpuConfig
 				}

@@ -124,7 +124,7 @@ func TestAdvancedNodesEstimator_EstimateNodeCount(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "Should return error for invalid instance type",
+			name: "Should fallback to BYO logic for invalid instance type (NAP disabled by default)",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -142,12 +142,33 @@ func TestAdvancedNodesEstimator_EstimateNodeCount(t *testing.T) {
 					},
 				},
 			},
-			expectedCount: 0,
-			expectedError: true,
-			errorContains: "GPU config is nil for instance type",
+			expectedCount: 1, // Falls back to BYO logic with default GPU config
+			expectedError: false,
 		},
 		{
-			name: "Should calculate optimal node count when GPU memory allows optimization",
+			name: "Should fallback to BYO logic when instanceType is missing (NAP disabled by default)",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count: ptr.To(1),
+					// InstanceType deliberately empty
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+			expectedCount: 1, // Falls back to BYO logic with default GPU config
+			expectedError: false,
+		},
+		{
+			name: "Should respect user node count in BYO scenario (NAP disabled by default)",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -165,7 +186,7 @@ func TestAdvancedNodesEstimator_EstimateNodeCount(t *testing.T) {
 					},
 				},
 			},
-			expectedCount: 1, // Should optimize to 1 node (8Gi easily fits in 80GB GPU)
+			expectedCount: 4, // Respects user count in BYO mode (no memory optimization)
 			expectedError: false,
 		},
 		{

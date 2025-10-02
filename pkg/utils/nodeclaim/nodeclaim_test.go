@@ -496,3 +496,140 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 		})
 	}
 }
+
+func TestResolveReadyNodesAndTargetNodeClaimCount_PreferredNodes(t *testing.T) {
+	testcases := map[string]struct {
+		name                      string
+		workspace                 *kaitov1beta1.Workspace
+		mockBYONodes              []*corev1.Node
+		mockReadyNodes            []string
+		expectedReadyNodes        []string
+		expectedRequiredNodeCount int
+		expectedError             string
+	}{
+		"preferred_node_exists_should_not_create_nodeclaim": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "gpu",
+						},
+					},
+					PreferredNodes: []string{"preferred-node-1"},
+				},
+				Inference: &kaitov1beta1.InferenceSpec{},
+				Status: kaitov1beta1.WorkspaceStatus{
+					TargetNodeCount: 1, // Need 1 node total
+				},
+			},
+			mockBYONodes: []*corev1.Node{{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "preferred-node-1",
+					Labels: map[string]string{
+						"workload": "gpu", // Must match LabelSelector
+					},
+				},
+				Status: corev1.NodeStatus{
+					Conditions: []corev1.NodeCondition{{
+						Type:   corev1.NodeReady,
+						Status: corev1.ConditionTrue,
+					}},
+				},
+			}}, // 1 preferred node available with matching labels
+			mockReadyNodes:            []string{"preferred-node-1"},
+			expectedReadyNodes:        []string{"preferred-node-1"},
+			expectedRequiredNodeCount: 0, // target=1, BYO=1, max(0, 1-1)=0 - NO NODECLAIM NEEDED
+			expectedError:             "",
+		},
+		"preferred_node_not_found_should_create_nodeclaim": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "gpu",
+						},
+					},
+					PreferredNodes: []string{"preferred-node-1"},
+				},
+				Inference: &kaitov1beta1.InferenceSpec{},
+				Status: kaitov1beta1.WorkspaceStatus{
+					TargetNodeCount: 1, // Need 1 node total
+				},
+			},
+			mockBYONodes:              []*corev1.Node{}, // No preferred node available
+			mockReadyNodes:            []string{},
+			expectedReadyNodes:        []string{},
+			expectedRequiredNodeCount: 1, // target=1, BYO=0, max(0, 1-0)=1 - NODECLAIM NEEDED
+			expectedError:             "",
+		},
+		"multiple_preferred_nodes_with_partial_availability": {
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "gpu",
+						},
+					},
+					PreferredNodes: []string{"preferred-node-1", "preferred-node-2", "preferred-node-3"},
+				},
+				Inference: &kaitov1beta1.InferenceSpec{},
+				Status: kaitov1beta1.WorkspaceStatus{
+					TargetNodeCount: 3, // Need 3 nodes total
+				},
+			},
+			mockBYONodes: []*corev1.Node{{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "preferred-node-1",
+					Labels: map[string]string{
+						"workload": "gpu", // Must match LabelSelector
+					},
+				},
+				Status: corev1.NodeStatus{
+					Conditions: []corev1.NodeCondition{{
+						Type:   corev1.NodeReady,
+						Status: corev1.ConditionTrue,
+					}},
+				},
+			}}, // Only 1 of 3 preferred nodes available with matching labels
+			mockReadyNodes:            []string{"preferred-node-1"},
+			expectedReadyNodes:        []string{"preferred-node-1"},
+			expectedRequiredNodeCount: 2, // target=3, BYO=1, max(0, 3-1)=2 - 2 NODECLAIMS NEEDED
+			expectedError:             "",
+		},
+	}
+
+	for testName, tc := range testcases {
+		t.Run(testName, func(t *testing.T) {
+			mockClient := test.NewClient()
+
+			// Mock the List call for nodes
+			mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+				nodeList := args.Get(1).(*corev1.NodeList)
+				nodeList.Items = make([]corev1.Node, len(tc.mockBYONodes))
+				for i, node := range tc.mockBYONodes {
+					nodeList.Items[i] = *node
+				}
+			}).Return(nil)
+
+			readyNodes, requiredNodeClaimCount, err := ResolveReadyNodesAndTargetNodeClaimCount(context.Background(), mockClient, tc.workspace)
+
+			if tc.expectedError != "" {
+				assert.Check(t, err != nil, "Expected an error")
+				assert.Check(t, err.Error() == tc.expectedError, "Expected error message: %s, got: %s", tc.expectedError, err.Error())
+				return
+			}
+
+			assert.Check(t, err == nil, "Expected no error, got: %v", err)
+			assert.DeepEqual(t, readyNodes, tc.expectedReadyNodes)
+			assert.Equal(t, requiredNodeClaimCount, tc.expectedRequiredNodeCount, "Expected required node count: %d, got: %d", tc.expectedRequiredNodeCount, requiredNodeClaimCount)
+
+			mockClient.AssertExpectations(t)
+		})
+	}
+}

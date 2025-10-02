@@ -28,6 +28,9 @@ spec:
     - jsonPath: .status.conditions[?(@.type=="AutoIndexerIndexing")].status
       name: Indexing
       type: string
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
     - jsonPath: .status.conditions[?(@.type=="AutoIndexerError")].status
       name: Error
       type: string
@@ -89,37 +92,44 @@ spec:
               dataSource:
                 description: DataSource defines where to retrieve documents for indexing
                 properties:
-                  gitHub:
-                    description: GitHub defines configuration for GitHub repository
-                      data sources
+                  git:
+                    description: Git defines configuration for Git repository data
+                      sources
                     properties:
                       branch:
                         description: 'Branch to checkout (default: main)'
                         type: string
                       commit:
-                        description: Commit SHA to checkout (optional)
+                        description: Commit SHA to checkout. If included, only this
+                          commit will be put into the index
                         type: string
                       excludePaths:
-                        description: Paths to exclude from indexing
+                        description: |-
+                          Paths to exclude from indexing. ExcludePaths takes priority over Paths.
+                          Can be directories, specific files, or specific extension types: /src, main.py, *.go
                         items:
                           type: string
                         type: array
                       paths:
-                        description: Specific paths to index within the repository
+                        description: |-
+                          Specific paths to index within the repository.
+                          Can be directories, specific files, or specific extension types: /src, main.py, *.go
                         items:
                           type: string
                         type: array
-                      repository:
+                      repositoryURL:
                         description: Repository URL
                         type: string
                     required:
-                    - repository
+                    - branch
+                    - repositoryURL
                     type: object
                   static:
                     description: Static defines configuration for static data sources
                     properties:
                       endpoints:
-                        description: data endpoint URLs
+                        description: data endpoint URLs that should point to individual
+                          UTF-8 or pdf files.
                         items:
                           type: string
                         type: array
@@ -164,8 +174,12 @@ spec:
                   retried
                 properties:
                   maxRetries:
-                    description: Maximum number of retries
+                    default: 3
+                    description: |-
+                      Maximum number of retries applied to failed indexing jobs
+                      Default is 3
                     format: int32
+                    minimum: 0
                     type: integer
                 type: object
               schedule:
@@ -175,7 +189,9 @@ spec:
                   ?){5,7})$
                 type: string
               suspend:
-                description: Suspend can be set to true to suspend the indexing schedule
+                description: |-
+                  Suspend can be set to true to suspend the indexing schedule
+                  This will also suspend any drift detection for data sources
                 type: boolean
             required:
             - dataSource
@@ -276,10 +292,25 @@ spec:
                 description: LastIndexed timestamp of the last successful indexing
                 format: date-time
                 type: string
+              lastRunDurationSeconds:
+                description: LastRunDurationSeconds is the duration of the last indexer
+                  run in seconds
+                format: int32
+                type: integer
+              lastRunID:
+                description: LastRunID is a reference to the last run id that is unique
+                  per autoindexer run
+                type: string
               nextScheduledRun:
                 description: NextScheduledRun shows when the next indexing is scheduled
                 format: date-time
                 type: string
+              observedGeneration:
+                description: observedGeneration represents the observed .metadata.generation
+                  of the AutoIndexer
+                format: int64
+                minimum: 0
+                type: integer
               phase:
                 allOf:
                 - enum:
@@ -302,6 +333,10 @@ spec:
                 description: SuccessfulRunCount tracks successful indexing runs
                 format: int32
                 type: integer
+            required:
+            - documentsProcessed
+            - errorRunCount
+            - successfulRunCount
             type: object
         type: object
     served: true

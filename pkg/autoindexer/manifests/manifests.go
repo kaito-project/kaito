@@ -246,7 +246,7 @@ func generateDataSourceConfig(dataSource kaitov1alpha1.DataSourceSpec) (string, 
 	case kaitov1alpha1.DataSourceTypeGitHub:
 		if dataSource.Git != nil {
 			config["git"] = map[string]interface{}{
-				"repository":   dataSource.Git.Repository,
+				"repository":   dataSource.Git.RepositoryURL,
 				"branch":       dataSource.Git.Branch,
 				"commit":       dataSource.Git.Commit,
 				"paths":        dataSource.Git.Paths,
@@ -325,8 +325,8 @@ func getJobLabels(autoIndexer *kaitov1alpha1.AutoIndexer, jobType string) map[st
 
 // getBackoffLimit returns the backoff limit based on retry policy
 func getBackoffLimit(retryPolicy *kaitov1alpha1.RetryPolicySpec) *int32 {
-	if retryPolicy != nil && retryPolicy.MaxRetries > 0 {
-		return &retryPolicy.MaxRetries
+	if retryPolicy != nil && retryPolicy.MaxRetries != nil && *retryPolicy.MaxRetries > 0 {
+		return retryPolicy.MaxRetries
 	}
 	return ptr.To[int32](3) // Default backoff limit
 }

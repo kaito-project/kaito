@@ -18,7 +18,9 @@ import (
 	"flag"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
+	"time"
 
 	//+kubebuilder:scaffold:imports
 	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
@@ -27,6 +29,8 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/klog/v2"
+	"knative.dev/pkg/injection/sharedmain"
+	"knative.dev/pkg/webhook"
 	ctrl "sigs.k8s.io/controller-runtime"
 	runtimecache "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -39,7 +43,13 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/autoindexer/controllers"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+)
+
+const (
+	WebhookServiceName = "WEBHOOK_SERVICE"
+	WebhookServicePort = "WEBHOOK_PORT"
 )
 
 var (
@@ -65,6 +75,7 @@ func init() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
+	var enableWebhook bool
 	var probeAddr string
 	var featureGates string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
@@ -72,7 +83,9 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flag.StringVar(&featureGates, "feature-gates", "vLLM=true", "Enable Kaito feature gates. Default, vLLM=true.")
+	flag.BoolVar(&enableWebhook, "webhook", true,
+		"Enable webhook for controller manager. Default is true.")
+	flag.StringVar(&featureGates, "feature-gates", "", "Enable AutoIndexer feature gates. Comma-separated list of feature names and values. Example: 'FeatureA=true,FeatureB=false'")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -81,7 +94,7 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	// ctx := withShutdownSignal(context.Background())
+	ctx := withShutdownSignal(context.Background())
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
@@ -134,6 +147,26 @@ func main() {
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		klog.ErrorS(err, "unable to set up ready check")
 		exitWithErrorFunc()
+	}
+
+	if enableWebhook {
+		klog.InfoS("starting webhook reconcilers")
+		p, err := strconv.Atoi(os.Getenv(WebhookServicePort))
+		if err != nil {
+			klog.ErrorS(err, "unable to parse the webhook port number")
+			exitWithErrorFunc()
+		}
+		ctx := webhook.WithOptions(ctx, webhook.Options{
+			ServiceName: os.Getenv(WebhookServiceName),
+			Port:        p,
+			SecretName:  "autoindexer-webhook-cert",
+		})
+		ctx = sharedmain.WithHealthProbesDisabled(ctx)
+		ctx = sharedmain.WithHADisabled(ctx)
+		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewRAGEngineWebhooks()...)
+
+		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
+		time.Sleep(2 * time.Second)
 	}
 
 	klog.InfoS("starting manager")

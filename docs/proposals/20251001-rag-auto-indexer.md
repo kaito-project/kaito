@@ -192,9 +192,9 @@ type SecretKeyRef struct {
 
 // AutoIndexerStatus defines the observed state of AutoIndexer
 type AutoIndexerStatus struct {
-	// LastIndexedTimespamp is the timestamp of the end of the last successful indexing
+	// LastIndexingTimespamp is the timestamp of the end of the last successful indexing
 	// +optional
-	LastIndexedTimespamp *metav1.Time `json:"lastIndexedTimestamp,omitempty"`
+	LastIndexingTimespamp *metav1.Time `json:"lastIndexingTimespamp,omitempty"`
 
 	// LastCommit is the last processed commit hash for Git sources
 	// +optional
@@ -215,7 +215,7 @@ type AutoIndexerStatus struct {
 	// ErrorIndexingCount tracks failed indexing runs
 	ErrorIndexingCount int32 `json:"errorIndexingCount"`
 
-	// NumOfDocumentInIndex is the count of documents in the index after the last run
+	// NumOfDocumentInIndex is the count of documents in the index after the latest run managed by this autoindexer instance
 	NumOfDocumentInIndex int32 `json:"numOfDocumentInIndex"`
 
 	// NextScheduledIndexing shows when the next indexing is scheduled
@@ -226,10 +226,6 @@ type AutoIndexerStatus struct {
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
-
-	// Errors from the last indexing operation
-	// +optional
-	Errors []string `json:"errors,omitempty"`
 
 	// Conditions represent the current service state
 	// +optional
@@ -360,8 +356,6 @@ The AutoIndexer controller is responsible for ensuring the desired state of each
 - Updating the AutoIndexer CRD status with results in the event of a failed run. The Jobs created by the AutoIndexer will update the status once they complete their indexing.
 - Handling deletion logic, ensuring any external resources are cleaned up before the CRD is removed.
 
-The controller should use exponential backoff for retries, and ensure that status updates are only made when the observed generation matches the current spec. When running multiple controller replicas, leader election should be enabled to avoid race conditions.
-
 **Operational best practices:**
 - Set `concurrencyPolicy: Forbid` on CronJobs to prevent overlapping runs for the same AutoIndexer.
 - Limit job history with `successfulJobsHistoryLimit` and `failedJobsHistoryLimit`.
@@ -449,13 +443,12 @@ The AutoIndexer CRD status is the primary way for operators and automation to un
 **Status Fields:**
 - `IndexingPhase`: High-level lifecycle state (`Pending`, `Running`, `Completed`, `Failed`, `Retrying`, `Unknown`).
 - `LastIndexingDurationSeconds`: Captures the last run duration
-- `LastIndexedTimespamp`: Timestamp of the last successful indexing run.
+- `LastIndexingTimespamp`: Timestamp of the last successful indexing run.
 - `LastIndexedCommit`: Last processed commit hash for Git sources.
 - `NumOfDocumentInIndex`: Number of documents processed in the last run.
 - `SuccessfulIndexingCount` / `ErrorIndexingCount`: Cumulative counters for successful and failed runs.
 - `NextScheduledIndexing`: When the next run is expected (for scheduled indexers).
 - `ObservedGeneration`: Capture the observed generation to alidate the status reflects the current spec.
-- `Errors`: List of error messages from the last run.
 - `Conditions`: Array of condition objects for fine-grained state and error reporting.
 
 **Condition Types:**
@@ -463,14 +456,14 @@ The AutoIndexer CRD status is the primary way for operators and automation to un
 - `AutoIndexerScheduled`: CronJob exists and is scheduled.
 - `AutoIndexerIndexing`: A job is currently running.
 - `AutoIndexerCompleted`: The last run succeeded.
-- `AutoIndexerError`: The last run had an error (see `Errors`).
+- `AutoIndexerError`: The last run had an error.
 - `AutoIndexerDriftDetected`: Drift detection discovered mismatches.
 
 **Events:**
 - Emit `Normal` events on Job/CronJob created successfully, completed successfully, Drift Detection triggers resync
 - Emint `Warning` events on jobs failed, suspension failed, and cleanup failed
 
-The Jobs should update status after each run, and surface partial failures (e.g., some files failed to process) in the `Errors` field, while the controller will handle conditions. This enables both automated remediation and clear operator visibility into the health and progress of each AutoIndexer.
+The Jobs should update status after each run, and surface partial failures (e.g., some files failed to process). This enables both automated remediation and clear operator visibility into the health and progress of each AutoIndexer.
 
 ### RBAC & Security
 
@@ -490,7 +483,6 @@ The controller should have a dedicated ServiceAccount with the following permiss
 **Security best practices:**
 - Use a dedicated ServiceAccount for the controller, not the default.
 - Do not grant cluster-wide permissions unless necessary; prefer namespace-scoped roles.
-- Use PodSecurity admission or PodSecurityPolicy to restrict controller pod privileges (no hostPath, no privileged, no hostNetwork).
 
 ### Indexer Job ServiceAccount (RBAC)
 

@@ -69,9 +69,10 @@ type AutoIndexer struct {
 // AutoIndexerSpec defines the desired state of AutoIndexer
 type AutoIndexerSpec struct {
 
-	// RAGEngineRef references the RAGEngine resource to use for indexing
+	// RAGEngine references the name RAGEngine resource to use for indexing.
+	// The RAGEngine must be in the same namespace as the AutoIndexer.
 	// +kubebuilder:validation:Required
-	RAGEngineRef RAGEngineReference `json:"ragEngineRef"`
+	RAGEngine string `json:"ragEngine"`
 
 	// IndexName is the name of the index where documents will be stored
 	// +kubebuilder:validation:Required
@@ -92,25 +93,10 @@ type AutoIndexerSpec struct {
 	// +kubebuilder:validation:Pattern=`^(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})$`
 	Schedule *string `json:"schedule,omitempty"`
 
-	// RetryPolicy defines how failed indexing jobs should be retried
-	// +optional
-	RetryPolicy *RetryPolicySpec `json:"retryPolicy,omitempty"`
-
 	// Suspend can be set to true to suspend the indexing schedule
 	// This will also suspend any drift detection for data sources
 	// +optional
 	Suspend *bool `json:"suspend,omitempty"`
-}
-
-// RAGEngineReference defines a reference to a ragengine object
-type RAGEngineReference struct {
-	// Name defines the ragengine name
-	// +kubebuilder:validation:Required
-	Name string `json:"name"`
-
-	// Namespace defines the namespace of the ragengine
-	// +kubebuilder:validation:Required
-	Namespace string `json:"namespace"`
 }
 
 // DataSourceSpec defines the source of documents to be indexed
@@ -140,9 +126,10 @@ const (
 
 // GitHubDataSourceSpec defines GitHub repository configuration
 type GitDataSourceSpec struct {
-	// Repository URL
+	// Repository to index. If the repository is not public and a token is needed for access,
+	// the access token can be stored in a secret and loaded with the SecretRef in the credential spec
 	// +kubebuilder:validation:Required
-	RepositoryURL string `json:"repositoryURL"`
+	Repository string `json:"repository"`
 
 	// Branch to checkout (default: main)
 	// +kubebuilder:validation:Required
@@ -165,9 +152,11 @@ type GitDataSourceSpec struct {
 
 // APIDataSourceSpec defines REST API configuration
 type StaticDataSourceSpec struct {
-	// data endpoint URLs that should point to individual UTF-8 or pdf files.
+	// URLs that should point to individual text encoding (UTF-8, UTF-8-SIG, Latin1, etc) or pdf files.
+	// If an access token is needed for the URL's, the access token can be stored in a secret
+	// and loaded with the SecretRef in the credential spec
 	// +kubebuilder:validation:Required
-	Endpoints []string `json:"endpoints"`
+	URLs []string `json:"urls"`
 }
 
 // CredentialsSpec defines authentication credentials
@@ -201,51 +190,37 @@ type SecretKeyRef struct {
 	Key string `json:"key"`
 }
 
-// RetryPolicySpec defines retry behavior for failed operations
-type RetryPolicySpec struct {
-	// Maximum number of retries applied to failed indexing jobs
-	// Default is 3
-	// +kubebuilder:validation:Minimum=0
-	// +kubebuilder:default=3
-	// +optional
-	MaxRetries *int32 `json:"maxRetries,omitempty"`
-}
-
 // AutoIndexerStatus defines the observed state of AutoIndexer
 type AutoIndexerStatus struct {
-	// LastRunID is a reference to the last run id that is unique per autoindexer run
+	// LastIndexedTimespamp is the timestamp of the end of the last successful indexing
 	// +optional
-	LastRunID string `json:"lastRunID,omitempty"`
-
-	// LastIndexed timestamp of the last successful indexing
-	// +optional
-	LastIndexed *metav1.Time `json:"lastIndexed,omitempty"`
+	LastIndexedTimespamp *metav1.Time `json:"lastIndexedTimestamp,omitempty"`
 
 	// LastCommit is the last processed commit hash for Git sources
 	// +optional
-	LastCommit *string `json:"lastCommit,omitempty"`
+	LastIndexedCommit *string `json:"lastIndexedCommit,omitempty"`
 
 	// LastRunDurationSeconds is the duration of the last indexer run in seconds
 	// +optional
-	LastRunDurationSeconds int32 `json:"lastRunDurationSeconds,omitempty"`
+	LastIndexingDurationSeconds int32 `json:"lastIndexingDurationSeconds,omitempty"`
 
-	// Phase represents the current phase of the AutoIndexer
+	// IndexingPhase represents the current phase of the AutoIndexer
 	// +optional
 	// +kubebuilder:validation:Enum=Pending;Running;Completed;Failed;Retrying;Unknown
-	Phase AutoIndexerPhase `json:"phase,omitempty"`
+	IndexingPhase AutoIndexerPhase `json:"indexingPhase,omitempty"`
 
-	// SuccessfulRunCount tracks successful indexing runs
-	SuccessfulRunCount int32 `json:"successfulRunCount"`
+	// SuccessfulIndexingCount tracks successful indexing runs
+	SuccessfulIndexingCount int32 `json:"successfulIndexingCount"`
 
-	// ErrorRunCount tracks failed indexing runs
-	ErrorRunCount int32 `json:"errorRunCount"`
+	// ErrorIndexingCount tracks failed indexing runs
+	ErrorIndexingCount int32 `json:"errorIndexingCount"`
 
-	// Number of documents processed in the last run
-	DocumentsProcessed int32 `json:"documentsProcessed"`
+	// NumOfDocumentInIndex is the count of documents in the index after the last run
+	NumOfDocumentInIndex int32 `json:"numOfDocumentInIndex"`
 
-	// NextScheduledRun shows when the next indexing is scheduled
+	// NextScheduledIndexing shows when the next indexing is scheduled
 	// +optional
-	NextScheduledRun *metav1.Time `json:"nextScheduledRun,omitempty"`
+	NextScheduledIndexing *metav1.Time `json:"nextScheduledIndexing,omitempty"`
 
 	// observedGeneration represents the observed .metadata.generation of the AutoIndexer
 	// +optional
@@ -290,9 +265,7 @@ kind: AutoIndexer
 metadata:
 	name: static-files-indexer
 spec:
-	ragEngineRef:
-		name: my-ragengine
-		namespace: default
+	ragEngine: my-ragengine
 	indexName: my-static-index
 	dataSource:
 		type: Static
@@ -314,9 +287,7 @@ kind: AutoIndexer
 metadata:
 	name: github-indexer
 spec:
-	ragEngineRef:
-		name: my-ragengine
-		namespace: default
+	ragEngineRef: my-ragengine
 	indexName: my-git-index
 	dataSource:
 		type: Git
@@ -383,18 +354,17 @@ In the future, support for [Secret Store CSI Driver](https://secrets-store-csi-d
 The AutoIndexer controller is responsible for ensuring the desired state of each AutoIndexer resource is reflected in the cluster and the external RAG engine. The controller's reconcile loop is designed to be idempotent, robust, and observable. Key responsibilities include:
 
 - Creating or patching a child Job or CronJob based on the presence of `spec.schedule`.
-- Ensuring child jobs have the correct pod template, including service account, secret mounts, resource limits, and security context.
+- Ensuring child jobs have the correct pod template, including service account, secret mounts, and security context.
 - Respecting the `suspend` field: for CronJobs, set `.spec.suspend=true`; for Jobs, do not create new runs if suspended.
 - Watching for job completion by reading Job status.
-- Updating the AutoIndexer CRD status with results from the latest run, including `LastIndexed`, `DocumentsProcessed`, `LastCommit`, and error conditions.
-- Handling deletion and finalizer logic, ensuring external resources are cleaned up before the CRD is removed.
+- Updating the AutoIndexer CRD status with results in the event of a failed run. The Jobs created by the AutoIndexer will update the status once they complete their indexing.
+- Handling deletion logic, ensuring any external resources are cleaned up before the CRD is removed.
 
 The controller should use exponential backoff for retries, and ensure that status updates are only made when the observed generation matches the current spec. When running multiple controller replicas, leader election should be enabled to avoid race conditions.
 
 **Operational best practices:**
 - Set `concurrencyPolicy: Forbid` on CronJobs to prevent overlapping runs for the same AutoIndexer.
 - Limit job history with `successfulJobsHistoryLimit` and `failedJobsHistoryLimit`.
-- Use `activeDeadlineSeconds` to bound job runtime and avoid runaway pods.
 - Use minimal RBAC for both controller and job pods, and mount credentials as secrets.
 - Set OwnerReferences on all child resources for automatic garbage collection.
 
@@ -406,11 +376,11 @@ Admission webhooks can be used to reduce invalid objects and inject defaults bef
 
 
 **Validating webhook:**
-- Confirm referenced `RAGEngineRef` exists (optionally check it is `Ready`).
+- Confirm referenced `RAGEngine` exists (optionally check it is `Ready`).
 - Validate `credentials.secretRef` exists and contains the expected key when `Credentials.Type == SecretRef`.
 - Validate `schedule` syntax using a robust cron parser (e.g., robfig/cron).
 - Validate `indexName` uniqueness across the referenced `RAGEngine` (optional, scope can be namespace or RAGEngine).
-- Block obviously invalid `repositoryURL` format (basic regex/URL parse).
+- Block obviously invalid `repository` format (basic regex/URL parse).
 - Ensure `dataSource` definitions are valid.
 
 We will follow the same setup for webhooks as the Workspace and RAGEngine controllers.
@@ -418,7 +388,7 @@ We will follow the same setup for webhooks as the Workspace and RAGEngine contro
 
 ### OwnerReferences and Deletion Safety
 
-Child resources created by an AutoIndexer (Jobs, CronJobs, ConfigMaps) will always be created with an `ownerReference` pointing back to the AutoIndexer. This ensures Kubernetes garbage collects them automatically when the AutoIndexer resource is deleted, without requiring custom cleanup logic in the controller.
+Child resources created by an AutoIndexer (Jobs, CronJobs) will always be created with an `ownerReference` pointing back to the AutoIndexer. This ensures Kubernetes garbage collects them automatically when the AutoIndexer resource is deleted, without requiring custom cleanup logic in the controller.
 
 Because the AutoIndexer does not currently remove documents from the external RAG engine on deletion, **a finalizer is not strictly required**. The external state is intentionally left intact.
 
@@ -441,7 +411,7 @@ This keeps the implementation simple, follows Kubernetes conventions, and avoids
 Drift detection ensures that the RAG index remains consistent with the source data over time, even as documents are added, updated, or deleted at the source. There are several possible approaches to drift detection, each with different trade-offs:
 
 **1. Count-only (recommended for v1):**
-The controller periodically queries the RAG engine's list documents API, filtering by autoindexer-specific metadata (e.g., autoindexer name and index). It compares the actual document count in the RAG index to the `lastRunDocuments` value recorded in the AutoIndexer status. If a mismatch is detected, the controller triggers a reindex to bring the index back into compliance.
+The controller periodically queries the RAG engine's list documents API, filtering by autoindexer-specific metadata (e.g., autoindexer name and index). It compares the actual document count in the RAG index to the `NumOfDocumentInIndex` value recorded in the AutoIndexer status. If a mismatch is detected, the controller triggers a reindex to bring the index back into compliance.
 
 *Pros:* Simple, fast, and low-overhead. Good for catching obvious drift.
 *Cons:* May miss subtle changes (e.g., content changes that don't affect count).
@@ -452,19 +422,38 @@ Maintain a manifest mapping source paths to document IDs and checksums. On each 
 **Chosen approach:**
 For the initial implementation, we will use the count-only method. This provides a good balance of simplicity and effectiveness, and can be extended to more precise methods in the future as needed. The count-based approach is sufficient for most operational scenarios and is easy to reason about for both users and operators.
 
+### Handling AutoIndexer updates and drift detection job runs
+
+#### Handling Updates
+
+**AutoIndexers without a schedule:**
+- When an AutoIndexer is updated and does not have a schedule, we will delete the previously created Job (if it exists) and create a new Job reflecting the updated spec. This ensures that the latest configuration is always used, and the job will run immediately.
+
+**AutoIndexers with a schedule:**
+- For scheduled AutoIndexers, we will update the CronJob spec as needed. The CronJob controller will handle future runs using the updated configuration, so there is no need to delete or recreate existing Jobs.
+
+#### Drift Detection Job Runs
+
+**AutoIndexers without a schedule:**
+- To handle drift detection, we will delete any existing Job and create a new Job to run immediately. This ensures that drift detection is always performed with the most current configuration and data.
+
+**AutoIndexers with a schedule:**
+- For scheduled AutoIndexers, we will temporarily suspend the CronJob to prevent new scheduled runs.
+- We will then create a Job based on the current CronJob spec to handle drift detection immediately.
+- After the Job completes, we will remove the suspension from the CronJob and cleanup the standalone job, allowing scheduled runs to resume as normal.
+
 ### Status Semantics & Conditions
 
-The AutoIndexer CRD status is the primary way for operators and automation to understand the current and historical state of each indexer. The controller is responsible for keeping status fields and conditions up to date, reflecting both the desired and observed state.
+The AutoIndexer CRD status is the primary way for operators and automation to understand the current and historical state of each indexer. The AutoIndexer jobs are mainly responsible for keeping the status updated on the AutoIndexer, with the controller updating conditions and in some instances status fields.
 
 **Status Fields:**
-- `Phase`: High-level lifecycle state (`Pending`, `Running`, `Completed`, `Failed`, `Retrying`, `Unknown`).
-- `LastRunID`: Run ID to correlate jobs, configmaps, and logs.
-- `LastRunDurationSeconds`: Captures the last run duration
-- `LastIndexed`: Timestamp of the last successful indexing run.
-- `LastCommit`: Last processed commit hash for Git sources.
-- `DocumentsProcessed`: Number of documents processed in the last run.
-- `SuccessfulRunCount` / `ErrorRunCount`: Cumulative counters for successful and failed runs.
-- `NextScheduledRun`: When the next run is expected (for scheduled indexers).
+- `IndexingPhase`: High-level lifecycle state (`Pending`, `Running`, `Completed`, `Failed`, `Retrying`, `Unknown`).
+- `LastIndexingDurationSeconds`: Captures the last run duration
+- `LastIndexedTimespamp`: Timestamp of the last successful indexing run.
+- `LastIndexedCommit`: Last processed commit hash for Git sources.
+- `NumOfDocumentInIndex`: Number of documents processed in the last run.
+- `SuccessfulIndexingCount` / `ErrorIndexingCount`: Cumulative counters for successful and failed runs.
+- `NextScheduledIndexing`: When the next run is expected (for scheduled indexers).
 - `ObservedGeneration`: Capture the observed generation to alidate the status reflects the current spec.
 - `Errors`: List of error messages from the last run.
 - `Conditions`: Array of condition objects for fine-grained state and error reporting.
@@ -481,11 +470,7 @@ The AutoIndexer CRD status is the primary way for operators and automation to un
 - Emit `Normal` events on Job/CronJob created successfully, completed successfully, Drift Detection triggers resync
 - Emint `Warning` events on jobs failed, suspension failed, and cleanup failed
 
-The controller should update status promptly after each run, and surface partial failures (e.g., some files failed to process) in the `Errors` field and conditions. This enables both automated remediation and clear operator visibility into the health and progress of each AutoIndexer.
-
-Each AutoIndexer run (Job or CronJob) will write its execution status, including details such as the last processed commit, number of documents processed, and any errors, into a dedicated ConfigMap. The controller will watch these ConfigMaps and use their contents to update the status fields of the corresponding AutoIndexer CRD.
-
-This mechanism decouples the job execution environment from the controller, allowing for robust status reporting even if jobs run in isolated pods. The controller will update fields such as `LastCommit`, `DocumentsProcessed`, `LastIndexed`, and error conditions based on the latest job results found in the ConfigMap.
+The Jobs should update status after each run, and surface partial failures (e.g., some files failed to process) in the `Errors` field, while the controller will handle conditions. This enables both automated remediation and clear operator visibility into the health and progress of each AutoIndexer.
 
 ### RBAC & Security
 
@@ -498,7 +483,6 @@ The controller should have a dedicated ServiceAccount with the following permiss
 - `get, list, watch, create, patch, update` on `autoindexers.kaito.ai` (the CRD)
 - `update` on `autoindexers.kaito.ai/status` (status subresource)
 - `get, list, watch, create, update, patch, delete` on Jobs and CronJobs
-- `get, create, update, patch, delete` on ConfigMaps used for run results
 - `get, list` on Secrets (to read credentials specified by SecretRef)
 - `get, list, watch` on RAGEngine CR if that is a CRD
 - `create, list` on Events (optional, for emitting Kubernetes events)
@@ -512,12 +496,9 @@ The controller should have a dedicated ServiceAccount with the following permiss
 
 Each indexing job should run with a minimal ServiceAccount, with only the following permissions:
 
+- `get, list` on `autoindexers.kaito.ai` (the CRD) for Status updates
+- `get, list, update` on `autoindexers.kaito.ai/status` (status subresource)
 - `get` on referenced Secrets in its namespace (for credentials)
-- `create` on result ConfigMaps (if using ConfigMaps for job result communication)
-
-**Security best practices for jobs:**
-- Do not allow the job to update CRD status directly (prefer controller to update status).
-- Mount credentials as secrets (env)
 
 By following these RBAC and security guidelines, the AutoIndexer system minimizes its attack surface and ensures that both the controller and jobs operate with the least privilege required for their function.
 
@@ -562,7 +543,7 @@ The AutoIndexer will ensure that all ingested documents are decoded using a robu
 - Try common encodings in order: UTF-8, UTF-8-SIG, Latin1, CP1252, ISO-8859-1
 - If these fail, we will log the errors but continue to index documents.
 
-This ensures that documents with various encodings are handled gracefully, and errors are logged for any files that cannot be decoded, which will be written to the ConfigMap and added to the AutoIndexer Status by the Controller after the run.
+This ensures that documents with various encodings are handled gracefully, and errors are logged for any files that cannot be decoded, which will be written to the AutoIndexer status after the run in finished.
 ### PDF Handling
 
 PDF files are detected by content-type or file extension. The AutoIndexer will extract text from PDFs using the `PyMuPDF` library to extract text from each page. If the extraction is not successful, the document is skipped and an error is logged. This approach maximizes compatibility with a wide range of PDF files and ensures that both text and tabular data are captured where possible.
@@ -580,74 +561,32 @@ For Git data sources, the AutoIndexer will:
 
 1. Clone the repository locally using the configuration provided (repo URL, branch, commit, etc.)
 2. On the first run, index all files matching the configured paths and upload them to the RAG engine with appropriate metadata.
-3. On subsequent runs, use the last processed commit (from the status ConfigMap) to determine the commit range. Use the diff between the current and last run commit to identify added, updated, deleted, or renamed files between the last and current commit.
+3. On subsequent runs, use the last processed commit (from the AutoIndexer status) to determine the commit range. Use the diff between the current and last run commit to identify added, updated, deleted, or renamed files between the last and current commit.
 4. For added/updated files: re-index and upload to the RAG engine. For deleted files: remove from the RAG index. For renamed files: treat as delete+add.
-5. After processing, update the ConfigMap with the new commit hash and document counts.
 
 This incremental approach ensures efficient updates and minimizes unnecessary reprocessing, while keeping the RAG index in sync with the source repository.
 
-### Run Identity and Result Reporting
 
-Each AutoIndexer run must be uniquely identifiable so that operators and automation can correlate the Job, its logs, the generated ConfigMap, and the CRD status. To achieve this, we introduce a **Run ID** (`RUN_ID`) and a structured **ConfigMap** result for each run.
+### Result Reporting
 
-#### Run ID
+The indexing Job is granted permissions to update the status field directly on its owning AutoIndexer CRD. This allows the Job to report its progress, completion, or any errors encountered during execution by updating the AutoIndexer status in real time.
 
-* **Definition:** A unique string generated per AutoIndexer run.
+If a Job fails to update the AutoIndexer status (for example, due to RBAC issues or transient API errors), the AutoIndexer controller will detect this and update the AutoIndexer with a failed status. This ensures that the status of the AutoIndexer always accurately reflects the outcome of the indexing operation, even in the case of Job-level reporting failures.
 
-* **Format:**
-  * Run ID: `<autoindexer-name>-<job-name>`
 
-* **Propagation:**
+## Next Steps
 
-  * The controller injects the Run ID into the Job/CronJob pod spec as an environment variable `RUN_ID` as well as on labels/annotations.
-  * The Job uses the Run ID in logging.
-  * The Job uses the Run ID in naming its result ConfigMap.
+After the initial implementation, several enhancements are top of mind to expand the capabilities of the AutoIndexer and include:
 
-* **Usage:**
+- **CSV/Excel Handling for Static Data Sources:**
+	- Add support for ingesting and processing CSV and Excel files as part of the Static data source type. This will enable users to index tabular data from spreadsheets and structured text files, broadening the range of supported document formats.
 
-  * Operators can trace a run end-to-end with:
-    * `kubectl get job -l autoindexer.kaito.ai/run-id=<RUN_ID>`
-    * `kubectl logs job/<job-name>`
-    * `kubectl get configmap autoindexer-<autoindexer_name>`
-  * The controller records `status.lastRunID` for correlation.
+- **New Data Source Types:**
+	- Introduce support for additional data source types, such as:
+		- **Blob Storage:** Integrate with cloud object storage providers (e.g., AWS S3, Azure Blob Storage, Google Cloud Storage) to index documents stored in buckets.
+		- **Databases:** Enable direct indexing from relational or NoSQL databases, allowing users to keep RAG indexes in sync with evolving database content.
 
-#### Result ConfigMap
+These features will further increase the flexibility and applicability of the AutoIndexer for a wide variety of enterprise and data engineering use cases.
 
-At the end of execution, each Job writes to a ConfigMap containing the run summary. This ConfigMap is the **source of truth** for run results and is consumed by the controller to update the AutoIndexer status.
 
-**Naming:**
-
-```
-autoindexer-<autoindexer_name>
-```
-
-**Labels:**
-
-* `autoindexer.kaito.ai/name`: Parent AutoIndexer resource.
-* `autoindexer.kaito.ai/run-id`: Run ID string.
-* `autoindexer.kaito.ai/index`: Target index name.
-* `autoindexer.kaito.ai/result`: `success` or `error`.
-
-**Data fields (example):**
-
-```yaml
-data:
-  runID: "github-indexer-20251001t1315z-7f9c3a"
-  startTime: "2025-10-01T13:15:00Z"
-  completionTime: "2025-10-01T13:17:42Z"
-  durationSeconds: "162"
-  lastCommit: "abc123def456"               # Git only
-  documentsProcessed: "128"
-  errors: |                                # optional, only if any
-    - failed to parse docs/guide.pdf
-    - unsupported encoding in src/old.py
-```
-
-**Controller behavior:**
-
-* Watches for ConfigMaps with label `autoindexer.kaito.ai/name=<autoindexer_name>`.
-* Updates CRD status fields:
-  * `lastRunID`, `lastCommit`, `documentsProcessed`.
-  * Increments `successfulRunCount` or `errorRunCount`.
-  * Sets `errors` from the ConfigMap if present.
 

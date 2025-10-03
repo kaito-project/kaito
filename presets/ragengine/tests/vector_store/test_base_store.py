@@ -12,7 +12,9 @@
 # limitations under the License.
 
 
+import json
 import os
+import time
 from abc import ABC, abstractmethod
 from unittest.mock import patch
 
@@ -211,6 +213,110 @@ class BaseVectorStoreTest(ABC):
         assert (
             respx.calls.call_count == 1
         )  # Ensure only one LLM inference request was made
+
+        # Validate the request being sent to the LLM
+        llm_req = respx.calls[0].request
+        json_request = json.loads(llm_req.content)
+        print(json_request)
+        assert json_request["model"] == "mock-model"
+        assert json_request["temperature"] == 0.7
+        assert len(json_request["messages"]) == 2
+        assert json_request["messages"][0]["role"] == "system"
+        assert (
+            "Use the context information below to assist the user."
+            in json_request["messages"][0]["content"]
+        )
+        assert json_request["messages"][1]["role"] == "user"
+        assert json_request["messages"][1]["content"] == "What is the first document?"
+
+    @pytest.mark.asyncio
+    @respx.mock
+    @patch("requests.get")
+    async def test_chat_completions_with_no_context(
+        self, mock_get, vector_store_manager, monkeypatch
+    ):
+        import ragengine.config
+        import ragengine.inference.inference
+
+        monkeypatch.setattr(
+            ragengine.config,
+            "LLM_INFERENCE_URL",
+            "http://localhost:5000/v1/chat/completions",
+        )
+        monkeypatch.setattr(
+            ragengine.inference.inference,
+            "LLM_INFERENCE_URL",
+            "http://localhost:5000/v1/chat/completions",
+        )
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "data": [{"id": "mock-model", "max_model_len": 2048}]
+        }
+
+        mock_response = {
+            "id": "chatcmpl-test123",
+            "created": int(time.time()),
+            "object": "chat.completion",
+            "model": "mock-model",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "This is a helpful response about the test document.",
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
+        }
+        respx.post("http://localhost:5000/v1/chat/completions").mock(
+            return_value=httpx.Response(200, json=mock_response)
+        )
+
+        documents = [
+            Document(text="Cats and dogs are animals", metadata={"type": "text"}),
+        ]
+        await vector_store_manager.index_documents("test_index", documents)
+
+        chat_results = await vector_store_manager.chat_completion(
+            {
+                "index_name": "test_index",
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "What is pasta made of?"}],
+                "temperature": 0.7,
+                "max_tokens": 100,
+            }
+        )
+
+        assert chat_results is not None
+        assert chat_results.source_nodes is None
+        assert chat_results.id is not None
+        assert chat_results.model == "mock-model"
+        assert chat_results.object == "chat.completion"
+        assert chat_results.created is not None
+        assert chat_results.choices is not None
+        assert len(chat_results.choices) == 1
+        assert chat_results.choices[0].finish_reason == "stop"
+        assert chat_results.choices[0].index == 0
+        assert chat_results.choices[0].message.role == "assistant"
+        assert (
+            chat_results.choices[0].message.content
+            == "This is a helpful response about the test document."
+        )
+
+        assert (
+            respx.calls.call_count == 1
+        )  # Ensure only one LLM inference request was made
+
+        # Validate the request being sent to the LLM
+        llm_req = respx.calls[0].request
+        json_request = json.loads(llm_req.content)
+        print(json_request)
+        assert json_request["model"] == "mock-model"
+        assert json_request["temperature"] == 0.7
+        assert len(json_request["messages"]) == 1
+        assert json_request["messages"][0]["role"] == "user"
+        assert json_request["messages"][0]["content"] == "What is pasta made of?"
 
     @pytest.mark.asyncio
     async def test_add_document(self, vector_store_manager):

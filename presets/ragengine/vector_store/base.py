@@ -470,6 +470,18 @@ class BaseVectorStore(ABC):
                     user_prompt, chat_history=chat_history
                 )
 
+            # If no relevant context is found, the llamaindex response synthesizers will send an empty response without hitting the llm.
+            # We will instead send the passthrough request directly to the llm rather than send an empty response to the user
+            # https://github.com/run-llama/llama_index/blob/8469a034226d20b70a667dc7faf013770716709f/llama-index-core/llama_index/core/response_synthesizers/base.py#L271
+            if (
+                len(chat_result.source_nodes) == 0
+                and chat_result.response.strip() == "Empty Response"
+            ):
+                logger.info(
+                    "No relevant context found for the query. Falling back to passthrough request"
+                )
+                return await self.llm.chat_completions_passthrough(openai_request)
+
             return ChatCompletionResponse(
                 id=uuid.uuid4().hex,
                 object="chat.completion",

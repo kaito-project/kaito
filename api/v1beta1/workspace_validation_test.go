@@ -1843,3 +1843,455 @@ vllm:
 		})
 	}
 }
+
+func TestValidateBYONodes(t *testing.T) {
+	RegisterValidationTestModels()
+
+	// Set environment variables
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+
+	tests := []struct {
+		name          string
+		resourceSpec  *ResourceSpec
+		nodes         []v1.Node
+		presetName    string
+		expectErrs    bool
+		errContains   string
+	}{
+		{
+			name: "Valid single A100 node with sufficient GPU memory",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"gpu": "a100",
+					},
+				},
+			},
+			nodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-a100-1",
+						Labels: map[string]string{
+							"gpu":                    "a100",
+							"nvidia.com/gpu.product": "NVIDIA-A100-SXM4-80GB",
+							"nvidia.com/gpu.count":   "1",
+							"nvidia.com/gpu.memory":  "80",
+						},
+					},
+				},
+			},
+			presetName: "test-validation-static", // 16Gi requirement
+			expectErrs: false,
+		},
+		{
+			name: "Valid multiple H100 nodes with uniform configuration",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(2),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"gpu": "h100",
+					},
+				},
+			},
+			nodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-h100-1",
+						Labels: map[string]string{
+							"gpu":                    "h100",
+							"nvidia.com/gpu.product": "NVIDIA-H100-SXM5-94GB",
+							"nvidia.com/gpu.count":   "2",
+							"nvidia.com/gpu.memory":  "94",
+						},
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-h100-2",
+						Labels: map[string]string{
+							"gpu":                    "h100",
+							"nvidia.com/gpu.product": "NVIDIA-H100-SXM5-94GB",
+							"nvidia.com/gpu.count":   "2",
+							"nvidia.com/gpu.memory":  "94",
+						},
+					},
+				},
+			},
+			presetName: "test-validation-static", // 16Gi requirement
+			expectErrs: false,
+		},
+		{
+			name: "Invalid - no nodes matching label selector",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"gpu": "nonexistent",
+					},
+				},
+			},
+			nodes:       []v1.Node{}, // No nodes available
+			presetName:  "test-validation-static",
+			expectErrs:  true,
+			errContains: "No nodes found matching the labelSelector",
+		},
+		{
+			name: "Invalid - missing GPU product label",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"gpu": "v100",
+					},
+				},
+			},
+			nodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-missing-gpu-product",
+						Labels: map[string]string{
+							"gpu":                   "v100",
+							"nvidia.com/gpu.count":  "1",
+							"nvidia.com/gpu.memory": "16",
+							// Missing nvidia.com/gpu.product
+						},
+					},
+				},
+			},
+			presetName:  "test-validation-static",
+			expectErrs:  true,
+			errContains: "missing nvidia.com/gpu.product label",
+		},
+		{
+			name: "Invalid - missing GPU count label",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"gpu": "v100",
+					},
+				},
+			},
+			nodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-missing-gpu-count",
+						Labels: map[string]string{
+							"gpu":                    "v100",
+							"nvidia.com/gpu.product": "NVIDIA-V100-SXM2-16GB",
+							"nvidia.com/gpu.memory":  "16",
+							// Missing nvidia.com/gpu.count
+						},
+					},
+				},
+			},
+			presetName:  "test-validation-static",
+			expectErrs:  true,
+			errContains: "missing nvidia.com/gpu.count label",
+		},
+		{
+			name: "Invalid - missing GPU memory label",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"gpu": "v100",
+					},
+				},
+			},
+			nodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-missing-gpu-memory",
+						Labels: map[string]string{
+							"gpu":                    "v100",
+							"nvidia.com/gpu.product": "NVIDIA-V100-SXM2-16GB",
+							"nvidia.com/gpu.count":   "1",
+							// Missing nvidia.com/gpu.memory
+						},
+					},
+				},
+			},
+			presetName:  "test-validation-static",
+			expectErrs:  true,
+			errContains: "missing nvidia.com/gpu.memory label",
+		},
+		{
+			name: "Invalid - non-uniform GPU products",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(2),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"workload": "gpu",
+					},
+				},
+			},
+			nodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-v100",
+						Labels: map[string]string{
+							"workload":               "gpu",
+							"nvidia.com/gpu.product": "NVIDIA-V100-SXM2-16GB",
+							"nvidia.com/gpu.count":   "1",
+							"nvidia.com/gpu.memory":  "16",
+						},
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-a100",
+						Labels: map[string]string{
+							"workload":               "gpu",
+							"nvidia.com/gpu.product": "NVIDIA-A100-SXM4-80GB",
+							"nvidia.com/gpu.count":   "1",
+							"nvidia.com/gpu.memory":  "80",
+						},
+					},
+				},
+			},
+			presetName:  "test-validation-static",
+			expectErrs:  true,
+			errContains: "Non-uniform GPU product",
+		},
+		{
+			name: "Invalid - non-uniform GPU counts",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(2),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"workload": "gpu",
+					},
+				},
+			},
+			nodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-1gpu",
+						Labels: map[string]string{
+							"workload":               "gpu",
+							"nvidia.com/gpu.product": "NVIDIA-V100-SXM2-16GB",
+							"nvidia.com/gpu.count":   "1",
+							"nvidia.com/gpu.memory":  "16",
+						},
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-2gpu",
+						Labels: map[string]string{
+							"workload":               "gpu",
+							"nvidia.com/gpu.product": "NVIDIA-V100-SXM2-16GB",
+							"nvidia.com/gpu.count":   "2",
+							"nvidia.com/gpu.memory":  "16",
+						},
+					},
+				},
+			},
+			presetName:  "test-validation-static",
+			expectErrs:  true,
+			errContains: "Non-uniform GPU count",
+		},
+		{
+			name: "Invalid - non-uniform GPU memory",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(2),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"workload": "gpu",
+					},
+				},
+			},
+			nodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-16gb",
+						Labels: map[string]string{
+							"workload":               "gpu",
+							"nvidia.com/gpu.product": "NVIDIA-V100-SXM2-16GB",
+							"nvidia.com/gpu.count":   "1",
+							"nvidia.com/gpu.memory":  "16",
+						},
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-32gb",
+						Labels: map[string]string{
+							"workload":               "gpu",
+							"nvidia.com/gpu.product": "NVIDIA-V100-SXM2-16GB",
+							"nvidia.com/gpu.count":   "1",
+							"nvidia.com/gpu.memory":  "32",
+						},
+					},
+				},
+			},
+			presetName:  "test-validation-static",
+			expectErrs:  true,
+			errContains: "Non-uniform GPU memory",
+		},
+		{
+			name: "Invalid - insufficient GPU memory for non-distributed model (T4 nodes with small memory)",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"gpu": "t4",
+					},
+				},
+			},
+			nodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-t4",
+						Labels: map[string]string{
+							"gpu":                    "t4",
+							"nvidia.com/gpu.product": "NVIDIA-T4-16GB",
+							"nvidia.com/gpu.count":   "1",
+							"nvidia.com/gpu.memory":  "8", // Only 8GB, but model needs 16Gi
+						},
+					},
+				},
+			},
+			presetName:  "test-validation-static", // Needs 16Gi, doesn't support distributed
+			expectErrs:  true,
+			errContains: "Insufficient GPU memory per node",
+		},
+		{
+			name: "Valid - distributed model on nodes with insufficient individual memory (distributed inference supported)",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(2),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"gpu": "v100",
+					},
+				},
+			},
+			nodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-v100-1",
+						Labels: map[string]string{
+							"gpu":                    "v100",
+							"nvidia.com/gpu.product": "NVIDIA-V100-SXM2-16GB",
+							"nvidia.com/gpu.count":   "1",
+							"nvidia.com/gpu.memory":  "16",
+						},
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-v100-2",
+						Labels: map[string]string{
+							"gpu":                    "v100",
+							"nvidia.com/gpu.product": "NVIDIA-V100-SXM2-16GB",
+							"nvidia.com/gpu.count":   "1",
+							"nvidia.com/gpu.memory":  "16",
+						},
+					},
+				},
+			},
+			presetName: "test-validation-download", // Supports distributed inference
+			expectErrs: false,
+		},
+		{
+			name: "Invalid - missing labelSelector",
+			resourceSpec: &ResourceSpec{
+				InstanceType:  "", // Empty instanceType indicates BYO mode
+				Count:         pointerToInt(1),
+				LabelSelector: nil, // No label selector provided
+			},
+			nodes:       []v1.Node{},
+			presetName:  "test-validation-static",
+			expectErrs:  true,
+			errContains: "labelSelector.matchLabels is required for BYO node selection",
+		},
+		{
+			name: "Invalid - empty matchLabels in labelSelector",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: nil, // Empty match labels
+				},
+			},
+			nodes:       []v1.Node{},
+			presetName:  "test-validation-static",
+			expectErrs:  true,
+			errContains: "labelSelector.matchLabels is required for BYO node selection",
+		},
+		{
+			name: "Valid - V100 nodes with exact memory requirement",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"node-type": "gpu-v100",
+					},
+				},
+			},
+			nodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-v100-exact",
+						Labels: map[string]string{
+							"node-type":              "gpu-v100",
+							"nvidia.com/gpu.product": "NVIDIA-V100-SXM2-16GB",
+							"nvidia.com/gpu.count":   "1",
+							"nvidia.com/gpu.memory":  "16", // Exactly 16GB = 16Gi required
+						},
+					},
+				},
+			},
+			presetName: "test-validation-static", // Needs exactly 16Gi
+			expectErrs: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create fake client with test nodes
+			scheme := runtime.NewScheme()
+			_ = v1.AddToScheme(scheme)
+
+			// Convert []v1.Node to []runtime.Object
+			objects := make([]runtime.Object, len(tc.nodes))
+			for i, node := range tc.nodes {
+				nodeCopy := node.DeepCopy()
+				objects[i] = nodeCopy
+			}
+
+			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(objects...).Build()
+			k8sclient.SetGlobalClient(client)
+
+			// Call validateBYONodeSelection directly
+			errs := tc.resourceSpec.validateBYONodeSelection(tc.presetName)
+			hasErrs := errs != nil
+
+			if hasErrs != tc.expectErrs {
+				t.Errorf("validateBYONodeSelection() errors = %v, expectErrs %v", errs, tc.expectErrs)
+			}
+
+			if hasErrs && tc.errContains != "" {
+				errMsg := errs.Error()
+				if !strings.Contains(errMsg, tc.errContains) {
+					t.Errorf("validateBYONodeSelection() error message = %v, expected to contain = %v", errMsg, tc.errContains)
+				}
+			}
+		})
+	}
+}

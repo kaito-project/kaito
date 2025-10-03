@@ -173,12 +173,14 @@ func (c *NodeManager) SetNodesReadyCondition(ctx context.Context, wObj *kaitov1b
 }
 
 // propagateOwnedConditions checks the owned conditions, and if any one is false, it sets the condition to false with the reason and message of the first false condition found.
-func propagateOwnedConditions(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace, condition kaitov1beta1.ConditionType, conditionTypes []kaitov1beta1.ConditionType) error {
+func (c *NodeManager) propagateOwnedConditions(ctx context.Context, wObj *kaitov1beta1.Workspace, condition kaitov1beta1.ConditionType, conditionTypes []kaitov1beta1.ConditionType) error {
 	for _, cType := range conditionTypes {
-		cStatus := meta.FindStatusCondition(wObj.Status.Conditions, string(cType))
-		if cStatus == nil || cStatus.Status != metav1.ConditionTrue {
+		ownedCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(cType))
+		if ownedCondition == nil {
+			continue // Condition not found, skip to the next one
+		} else if ownedCondition.Status != metav1.ConditionTrue {
 			// Set the owned condition to false with the reason and message of the first false condition found.
-			if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c, wObj, condition, metav1.ConditionFalse, cStatus.Reason, cStatus.Message); err != nil {
+			if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, condition, metav1.ConditionFalse, ownedCondition.Reason, ownedCondition.Message); err != nil {
 				klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return err
 			}
@@ -198,7 +200,7 @@ func (c *NodeManager) SetResourceReadyCondition(ctx context.Context, wObj *kaito
 	}
 
 	// If any owned condition is false, set the resource condition to false and return.
-	if err := propagateOwnedConditions(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, ownedConditions); err != nil {
+	if err := c.propagateOwnedConditions(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, ownedConditions); err != nil {
 		return err
 	}
 

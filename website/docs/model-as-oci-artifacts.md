@@ -66,6 +66,10 @@ KAITO implements a two-component architecture:
 
 This architectural separation enables model images to be built once and reused across multiple base image updates, significantly reducing maintenance overhead.
 
+### 4. Caching OCI Artifacts on High-Performance Local Storage
+
+For optimal model loading speed, KAITO caches model weights on high-performance local storage, such as NVMe disks available on GPU VMs. When local NVMe disks are present, KAITO provisions persistent volumes using the [local-csi-driver](https://github.com/Azure/local-csi-driver). This setup ensures that model weights are stored and accessed from fast, local storage, significantly reducing model load times and improving inference startup performance.
+
 ## When to Use OCI Artifacts
 
 KAITO automatically uses OCI Artifacts for supported models, providing benefits in several scenarios:
@@ -84,6 +88,7 @@ The OCI Artifacts approach provides the most benefit when:
 - Network bandwidth is limited or expensive
 - Build infrastructure resources are constrained
 - Deployment frequency is high
+- High-performance local storage is availble for caching
 
 ## Architecture
 
@@ -144,6 +149,7 @@ Most OCI registries support OCI artifacts. For a complete list of compatible reg
 - **Reduced Build Time**: Model images only need to be built once
 - **Faster Pulls**: Improved download concurrency and compression
 - **Better Resource Usage**: Optimized bandwidth utilization
+- **Faster model loading**: Reduced model load times and improved inference startup latency, when high-performance local storage is avilable.
 
 ### Operational Benefits
 
@@ -163,6 +169,10 @@ The evaluation compared different configurations:
 |---------------|-------------|----------|
 | Baseline (single-layer-tar-gz) | Current approach with all files in one layer | Simple, self-contained |
 | OCI Artifacts | Base image + separate model artifacts | Reduced build time, better performance |
+
+When caching model files on local NVMe disks, testing on Standard_NC80adis_H100_v5 with Llama-3.3-70B-Instruct model shows significant improvements on model loading times:
+
+![Model loading time benchmarking](/img/kaito-model-loading-with-local-csi.png)
 
 ## Getting Started
 
@@ -186,4 +196,3 @@ If you encounter issues with OCI Artifacts:
 - Verify registry compatibility with OCI Artifacts specification
 - Check initContainer logs for artifact download status
 - Refer to the [technical specification](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250609-model-as-oci-artifacts.md) for advanced configuration options
-

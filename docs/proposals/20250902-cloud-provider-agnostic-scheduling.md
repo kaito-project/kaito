@@ -44,7 +44,7 @@ One way to source provider‑neutral GPU attributes is NVIDIA [GPU Feature Disco
 
 ### Dependency Installation
 
-We can install the `nvidia-device-plugin` and the `gpu-feature-discovery` Helm charts as a dependencies defined in `Chart.yaml`. Each chart is conditionally installed based on the feature gate `disableNodeAutoProvisioning` and a new feature gate `nvidiaDevicePlugin.enabled` (default true) to allow users to disable the installation. This also replaces the existing DaemonSet that installs the NVIDIA device plugin manually and allows it to be disabled with a flag.
+We can install the `nvidia-device-plugin` and the `gpu-feature-discovery` Helm charts as a dependencies defined in `Chart.yaml`. Each chart is conditionally installed based on the feature gate `disableNodeAutoProvisioning` and a new feature gate `nvidiaDevicePlugin.enabled` (default true) to allow users to disable the installation. This also replaces the existing [DaemonSet](https://github.com/kaito-project/kaito/blob/main/charts/kaito/workspace/templates/nvidia-device-plugin-ds.yaml) that installs the NVIDIA device plugin manually and allows it to be disabled with a flag.
 
 
 The `gpu-feature-discovery` Helm chart is a subchart of `nvidia-device-plugin` and will not work without NVIDIA device plugin present. We install it as a separate dependency to allow the user to install the GFD chart but not the NVIDIA device plugin in case they already have the device plugin installed via other means, i.e. a DaemonSet. 

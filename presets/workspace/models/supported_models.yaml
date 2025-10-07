@@ -5,6 +5,7 @@ models:
     runtime: tfs
     tag: 0.0.9
     # Tag history:
+    # 0.0.10 - bump vLLM to 0.10.2 and torch to 2.8.0
     # 0.0.9 - bump pip to 25.3
     # 0.0.8 - Fix multi-node-health-check issue
     # 0.0.7 - bump lmcache to 0.3.5

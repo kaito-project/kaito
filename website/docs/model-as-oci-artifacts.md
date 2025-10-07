@@ -88,7 +88,7 @@ The OCI Artifacts approach provides the most benefit when:
 - Network bandwidth is limited or expensive
 - Build infrastructure resources are constrained
 - Deployment frequency is high
-- High-performance local storage is availble for caching
+- High-performance local storage is available for caching
 
 ## Architecture
 
@@ -149,7 +149,7 @@ Most OCI registries support OCI artifacts. For a complete list of compatible reg
 - **Reduced Build Time**: Model images only need to be built once
 - **Faster Pulls**: Improved download concurrency and compression
 - **Better Resource Usage**: Optimized bandwidth utilization
-- **Faster model loading**: Reduced model load times and improved inference startup latency, when high-performance local storage is avilable.
+- **Faster model loading**: Reduced model load times and improved inference startup latency, when high-performance local storage is available.
 
 ### Operational Benefits
 

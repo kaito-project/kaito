@@ -121,7 +121,7 @@ jobs:
           RAGENGINE_SERVICE_IMG_TAG: ${{ env.VERSION }}
 
       - name: Create node pool for RAG workloads
-        uses: azure/CLI@v2.1.0
+        uses: azure/CLI@v2.2.0
         with:
           inlineScript: |
             az aks nodepool add \
@@ -150,7 +150,7 @@ jobs:
         if: ${{ always() }}
         env:
           AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
-        uses: azure/CLI@v2.1.0
+        uses: azure/CLI@v2.2.0
         with:
           inlineScript: |
             set +e

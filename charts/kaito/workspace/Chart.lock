@@ -4,9 +4,9 @@ dependencies:
   version: 2.16.3
 - name: nvidia-device-plugin
   repository: https://nvidia.github.io/k8s-device-plugin
-  version: 0.17.2
+  version: 0.17.4
 - name: gpu-feature-discovery
   repository: https://nvidia.github.io/k8s-device-plugin
-  version: 0.17.2
-digest: sha256:87e04125b91b649d244d21f1a121ae66a653832721c95a020669f1a82086698f
-generated: "2025-10-01T18:33:36.028631643-04:00"
+  version: 0.17.4
+digest: sha256:0f69b16d71043859ba2d36f3ec03bf5be77663fac037f7a66d3c40e6056f4927
+generated: "2025-10-09T18:00:54.70648-04:00"

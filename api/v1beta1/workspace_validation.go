@@ -336,7 +336,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 
 				machineCount := *r.Count
 				machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
-				machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
+				machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
 
 				modelGPUCount := resource.MustParse(params.GPUCountRequirement)
 				modelTotalGPUMemory := resource.MustParse(params.TotalSafeTensorFileSize)
@@ -381,7 +381,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 				// If the model preset supports distributed inference, and a single machine has insufficient GPU memory to run the model,
 				// then we need to make sure the Workspace is not using the Huggingface Transformers runtime since it no longer supports
 				// multi-node distributed inference.
-				totalGPUMemoryPerMachine := resource.NewQuantity(int64(skuConfig.GPUMemGB)*consts.GiBToBytes, resource.BinarySI)
+				totalGPUMemoryPerMachine := resource.NewQuantity(int64(skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI)
 				distributedInferenceRequired := modelTotalGPUMemory.Cmp(*totalGPUMemoryPerMachine) > 0
 				if modelPreset.SupportDistributedInference() && distributedInferenceRequired && runtime == model.RuntimeNameHuggingfaceTransformers {
 					errs = errs.Also(apis.ErrGeneric("Multi-node distributed inference is not supported with Huggingface Transformers runtime"))

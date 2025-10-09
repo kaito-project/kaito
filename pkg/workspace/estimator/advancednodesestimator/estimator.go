@@ -61,9 +61,13 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		// NAP is disabled (BYO scenario) - instanceType is optional
 		// Try to get GPU config from existing nodes
 		if client != nil {
-			readyNodes, err := resources.GetReadyNodes(ctx, client, workspace)
-			if err == nil && len(readyNodes) > 0 {
+			if readyNodes, err := resources.GetReadyNodes(ctx, client, workspace); err != nil {
+				return 0, fmt.Errorf("failed to list ready nodes: %w", err)
+			} else if len(readyNodes) > 0 {
 				gpuConfig, err = utils.TryGetGPUConfigFromNodes(ctx, readyNodes)
+				if err != nil {
+					return 0, fmt.Errorf("failed to get GPU config from existing nodes: %w", err)
+				}
 			}
 		}
 

@@ -23,13 +23,13 @@ import (
 type InferenceSetResourceSpec struct {
 	// InstanceType specifies the GPU node SKU.
 	// +required
-	InstanceType string `json:"instanceType,omitempty"`
+	InstanceType string `json:"instanceType"`
 }
 
 // InferenceSetTemplate defines the template for creating InferenceSet instances.
 type InferenceSetTemplate struct {
-	Resource  InferenceSetResourceSpec   `json:"resource,omitempty"`
-	Inference kaitov1beta1.InferenceSpec `json:"inference,omitempty"`
+	Resource  InferenceSetResourceSpec   `json:"resource"`
+	Inference kaitov1beta1.InferenceSpec `json:"inference"`
 }
 
 // InferenceSetSpec defines the desired state of InferenceSet
@@ -84,7 +84,11 @@ type InferenceSet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   InferenceSetSpec   `json:"spec,omitempty"`
+	// Spec defines the desired state of InferenceSet
+	// +required
+	Spec InferenceSetSpec `json:"spec"`
+
+	// Status defines the observed state of InferenceSet
 	Status InferenceSetStatus `json:"status,omitempty"`
 }
 

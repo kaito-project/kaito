@@ -52,7 +52,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: InferenceSetSpec defines the desired state of InferenceSet
+            description: Spec defines the desired state of InferenceSet
             properties:
               labelSelector:
                 description: workspace created by InferenceSet controller would use
@@ -218,7 +218,12 @@ spec:
                       instanceType:
                         description: InstanceType specifies the GPU node SKU.
                         type: string
+                    required:
+                    - instanceType
                     type: object
+                required:
+                - inference
+                - resource
                 type: object
               updateStrategy:
                 default:
@@ -233,7 +238,7 @@ spec:
             - template
             type: object
           status:
-            description: InferenceSetStatus defines the observed state of InferenceSet
+            description: Status defines the observed state of InferenceSet
             properties:
               conditions:
                 description: Conditions report the current conditions of the InferenceSet.
@@ -322,6 +327,8 @@ spec:
             - readyReplicas
             - replicas
             type: object
+        required:
+        - spec
         type: object
     served: true
     storage: true

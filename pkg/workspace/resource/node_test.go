@@ -482,7 +482,7 @@ func TestSetNodesReadyCondition(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType: "Standard_NC12s_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -542,7 +542,7 @@ func TestSetNodesReadyCondition(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType: "Standard_NC12s_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -602,7 +602,7 @@ func TestSetNodesReadyCondition(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType: "Standard_NC12s_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -663,7 +663,7 @@ func TestSetNodesReadyCondition(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType: "Standard_NC12s_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -686,7 +686,7 @@ func TestSetNodesReadyCondition(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType: "Standard_NC12s_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -906,13 +906,13 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 
 func TestPropagateOwnedConditions(t *testing.T) {
 	tests := []struct {
-		name               string
-		workspace          *kaitov1beta1.Workspace
-		condition          kaitov1beta1.ConditionType
-		conditionTypes     []kaitov1beta1.ConditionType
-		setup              func(*test.MockClient)
-		expectedError      bool
-		expectedCondition  metav1.ConditionStatus
+		name              string
+		workspace         *kaitov1beta1.Workspace
+		condition         kaitov1beta1.ConditionType
+		conditionTypes    []kaitov1beta1.ConditionType
+		setup             func(*test.MockClient)
+		expectedError     bool
+		expectedCondition metav1.ConditionStatus
 	}{
 		{
 			name: "Should set condition to false when first owned condition is false",

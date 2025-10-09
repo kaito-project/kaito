@@ -657,9 +657,9 @@ func TestAreNodeClaimsReady(t *testing.T) {
 
 func TestDetermineNodeOSDiskSize(t *testing.T) {
 	tests := []struct {
-		name                  string
-		workspace             *kaitov1beta1.Workspace
-		expectedDiskSize      string
+		name             string
+		workspace        *kaitov1beta1.Workspace
+		expectedDiskSize string
 	}{
 		{
 			name: "Should return default disk size when workspace has no inference spec",

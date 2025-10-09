@@ -27,7 +27,8 @@ import uvloop
 import vllm.entrypoints.openai.api_server as api_server
 import vllm.envs as envs
 import yaml
-from vllm.engine.llm_engine import EngineArgs, LLMEngine, VllmConfig
+from vllm.engine.arg_utils import EngineArgs
+from vllm.engine.llm_engine import LLMEngine, VllmConfig
 from vllm.entrypoints.openai.serving_models import LoRAModulePath
 from vllm.executor.executor_base import ExecutorBase
 from vllm.utils import FlexibleArgumentParser

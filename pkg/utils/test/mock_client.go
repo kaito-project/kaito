@@ -185,6 +185,11 @@ func (m *MockClient) IsObjectNamespaced(obj runtime.Object) (bool, error) {
 	panic("unimplemented")
 }
 
+// Apply implements client.Client
+func (m *MockClient) Apply(ctx context.Context, obj runtime.ApplyConfiguration, opts ...k8sClient.ApplyOption) error {
+	panic("unimplemented")
+}
+
 func (m *MockClient) Scheme() *runtime.Scheme {
 	args := m.Called()
 	return args.Get(0).(*runtime.Scheme)

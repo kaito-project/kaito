@@ -49,6 +49,7 @@ import (
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers/garbagecollect"
+	"github.com/kaito-project/kaito/pkg/workspace/controllers/inferenceset"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
@@ -152,7 +153,7 @@ func main() {
 		exitWithErrorFunc()
 	}
 
-	inferenceSetReconciler := controllers.NewInferenceSetReconciler(
+	inferenceSetReconciler := inferenceset.NewInferenceSetReconciler(
 		kClient,
 		mgr.GetScheme(),
 		log.Log.WithName("controllers").WithName("InferenceSet"),

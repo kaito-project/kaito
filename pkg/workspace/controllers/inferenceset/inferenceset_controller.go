@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controllers
+package inferenceset
 
 import (
 	"context"
@@ -43,6 +43,7 @@ import (
 const (
 	InferenceSetHashAnnotation = "inferenceset.kaito.io/hash"
 	InferenceSetNameLabel      = "inferenceset.kaito.io/name"
+	revisionHashSuffix         = 5
 )
 
 type InferenceSetReconciler struct {

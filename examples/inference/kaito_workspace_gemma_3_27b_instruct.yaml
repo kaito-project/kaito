@@ -1,0 +1,14 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-gemma-3-27b-instruct
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"  # A100 required for 27B model
+  labelSelector:
+    matchLabels:
+      apps: gemma-3-27b-instruct
+inference:
+  preset:
+    name: "gemma-3-27b-instruct"
+    presetOptions:
+      modelAccessSecret: hf-token

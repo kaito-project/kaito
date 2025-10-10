@@ -229,6 +229,24 @@ models:
     # 0.1.0 - vLLM, Transformers, and several other library updates and fixes
     # 0.0.1 - New Model!
 
+  # Gemma 3
+  - name: gemma-3-4b-instruct
+    type: text-generation
+    version: https://huggingface.co/google/gemma-3-4b-it/commit/093f9f388b31de276ce2de164bdc2081324b9767
+    runtime: tfs
+    downloadAtRuntime: true
+    tag: 0.0.1
+    # Tag history:
+    # 0.0.1 - New Model!
+  - name: gemma-3-27b-instruct
+    type: text-generation
+    version: https://huggingface.co/google/gemma-3-27b-it/commit/005ad3404e59d6023443cb575daa05336842228a
+    runtime: tfs
+    downloadAtRuntime: true
+    tag: 0.0.1
+    # Tag history:
+    # 0.0.1 - New Model!
+
   # GPT-OSS
   - name: gpt-oss-20b
     type: text-generation

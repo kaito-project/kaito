@@ -124,6 +124,18 @@ data:
         version: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Llama-8B/commit/6a6f4aa4197940add57724a7707d069478df56b1
         runtime: tfs
         tag: 0.2.0
+      - name: gemma-3-4b-instruct
+        type: text-generation
+        version: https://huggingface.co/google/gemma-3-4b-it/commit/093f9f388b31de276ce2de164bdc2081324b9767
+        runtime: tfs
+        downloadAtRuntime: true
+        tag: 0.0.1
+      - name: gemma-3-27b-instruct
+        type: text-generation
+        version: https://huggingface.co/google/gemma-3-27b-it/commit/005ad3404e59d6023443cb575daa05336842228a
+        runtime: tfs
+        downloadAtRuntime: true
+        tag: 0.0.1
       - name: gpt-oss-20b
         type: text-generation
         version: https://huggingface.co/openai/gpt-oss-20b/commit/db6852caddef0cf0c1f729034ed700c84eab376e

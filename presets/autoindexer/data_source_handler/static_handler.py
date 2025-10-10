@@ -1,3 +1,17 @@
+# Copyright (c) KAITO authors.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 import contextlib
 import io
 import json
@@ -13,6 +27,8 @@ from autoindexer.data_source_handler.handler import (
     DataSourceError,
     DataSourceHandler,
 )
+from autoindexer.rag.rag_client import KAITORAGClient
+from autoindexer.rag.utils import get_file_extension_language
 
 logger = logging.getLogger(__name__)
 
@@ -48,12 +64,102 @@ class StaticDataSourceHandler(DataSourceHandler):
         self.config = config
         self.credentials = credentials or {}
         
+        if not self.config.get("autoindexer_name"):
+            raise DataSourceError("Static data source configuration missin 'autoindexer_name' value")
+
+        self.autoindexer_name = self.config("autoindexer_name")
+
         # Validate required configuration
         if not self.config.get("static"):
             raise DataSourceError("Static data source configuration is missing 'static' section")
         
         self.static_config = self.config["static"]
         logger.info(f"Initialized static data source handler with config: {self.static_config}")
+
+    def update_index(self, index_name: str, rag_client: KAITORAGClient) -> list[str]:
+        """
+        Update the index with documents from the data source.
+        
+        Args:
+            index_name: Name of the index to update
+            rag_client: Instance of the KAITORAGClient to use for indexing
+
+        Returns:
+            list[str]: List of error messages, if any
+        """
+        errors = []
+        
+        try:
+            documents = []
+
+            if "urls" in self.static_config:
+                url_list = self.static_config["urls"]
+                if isinstance(url_list, str):
+                    url_list = [url_list]
+                
+                for url in url_list:
+                    try:
+                        content = self._fetch_content_from_url(url)
+                        if content:
+                            curr_doc = {
+                                "text": content,
+                                "metadata": {
+                                    "autoindexer": self.autoindexer_name,
+                                    "source_type": "url",
+                                    "source_url": url,
+                                    "timestamp": self._get_current_timestamp()
+                                }
+                            }
+
+                            file_extension_from_url = ""
+                            url_parts = os.path.splitext(urlparse(url).path)
+                            if len(url_parts) > 1:
+                                file_extension_from_url = url_parts[1]
+                            language = get_file_extension_language(file_extension_from_url)
+                            if language:
+                                curr_doc["metadata"]["language"] = language
+                                curr_doc["metadata"]["split_type"] = "code"
+                            documents.append(curr_doc)
+                            logger.info(f"Successfully fetched content from {url}")
+
+                            if len(documents) >= 10:
+                                logger.info(f"Batch indexing {len(documents)} documents into index '{index_name}'")
+                                response = rag_client.index_documents(index_name=index_name, documents=documents)
+                                logger.info(f"Indexing response: {response}")
+                                documents = []
+                        else:
+                            logger.warning(f"No content retrieved from {url}")
+                    except Exception as e:
+                        logger.error(f"Failed to fetch content from {url}: {e}")
+                        raise DataSourceError(f"Failed to fetch content from {url}: {e}")
+                    
+                    if len(documents) > 0:
+                        logger.info(f"Batch indexing {len(documents)} documents into index '{index_name}'")
+                        response = rag_client.index_documents(index_name=index_name, documents=documents)
+                        logger.info(f"Indexing response: {response}")
+                        documents = []
+            else:
+                logger.warning("No 'urls' found in static data source configuration")
+
+            if not documents:
+                logger.warning("No documents fetched from static data source")
+                return ["No documents fetched from static data source"]
+            
+            logger.info(f"Indexing {len(documents)} documents into index '{index_name}'")
+            response = rag_client.index_documents(index_name=index_name, documents=documents)
+            logger.info(f"Indexing response: {response}")
+            
+        except DataSourceError as e:
+            error_msg = f"Data source error: {e}"
+            logger.error(error_msg)
+            errors.append(error_msg)
+        except Exception as e:
+            error_msg = f"Unexpected error during indexing: {e}"
+            logger.error(error_msg)
+            errors.append(error_msg)
+        
+        return errors
+        
 
     def fetch_documents(self) -> list[dict[str, Any]]:
         """

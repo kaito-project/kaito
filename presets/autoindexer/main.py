@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (c) KAITO authors.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 
 """
 AutoIndexer Service
@@ -155,6 +154,7 @@ class AutoIndexerService:
                 if ds_config.get("git") and ds_config["type"] == "Git":
                     git_config = ds_config["git"]
                     self.datasource_config.update({
+                        "autoindexer_name": self.autoindexer_name,
                         "repository": git_config.get("repository"),
                         "branch": git_config.get("branch", "main"),
                         "commit": git_config.get("commit"),
@@ -166,6 +166,7 @@ class AutoIndexerService:
                 elif ds_config.get("static") and ds_config["type"] == "Static":
                     static_config = ds_config["static"]
                     self.datasource_config.update({
+                        "autoindexer_name": self.autoindexer_name,
                         "urls": static_config.get("urls", [])
                     })
                     logger.info("Updated Static data source configuration from CRD")
@@ -195,38 +196,20 @@ class AutoIndexerService:
             
             # Fetch documents from data source
             logger.info("Fetching documents from data source")
-            documents = self._fetch_documents()
-            
-            if not documents:
-                logger.warning("No documents found in data source")
-                duration = int(time.time() - start_time)
-                self._update_indexing_completion(True, duration, 0)
-                self._update_status_condition("AutoIndexerSucceeded", "True", "NoDocuments", "No documents found in data source")
-                return True  # Not necessarily an error
-            
-            logger.info(f"Found {len(documents)} documents to index")
-            
-            # Index documents in RAG engine
-            logger.info("Indexing documents in RAG engine")
-            if self.dry_run:
-                logger.info("Dry-run mode enabled, skipping actual indexing")
-                for doc in documents:
-                    logger.debug(f"Document to index: {doc}")
-                duration = int(time.time() - start_time)
-                self._update_indexing_completion(True, duration, len(documents))
-                self._update_status_condition("AutoIndexerSucceeded", "True", "DryRunCompleted", "Dry run completed successfully")
-                return True
+            errors = self._update_index()
 
-            success = self._index_documents(documents)
-            duration = int(time.time() - start_time)
-            
-            if success:
+            response = self.rag_client.list_documents(self.index_name, metadata_filter={"autoindexer_name": self.autoindexer_name}, limit=1, offset=0)
+            index_document_count = response.get("total", 0)
+
+            if not errors:
                 logger.info("Document indexing completed successfully")
-                self._update_indexing_completion(True, duration, len(documents))
+                self._update_indexing_completion(True, duration, index_document_count)
                 self._update_status_condition("AutoIndexerSucceeded", "True", "IndexingCompleted", "Document indexing completed successfully")
                 return True
             else:
+                logger.warning(f"Errors occurred while fetching documents: {errors}")
                 logger.error("Document indexing failed")
+                duration = int(time.time() - start_time)
                 self._update_indexing_completion(False, duration, 0)
                 self._update_status_condition("AutoIndexerError", "True", "IndexingFailed", "Document indexing failed")
                 return False
@@ -238,6 +221,26 @@ class AutoIndexerService:
             self._update_status_condition("AutoIndexerError", "True", "ServiceError", f"AutoIndexer service failed: {str(e)}")
             return False
 
+    def _update_index(self) -> list[str]:
+        """
+        Update the index with documents from the data source.
+        
+        Returns:
+            List[str]: List of error messages, if any
+        """
+        try:
+            errors = self.data_source_handler.update_index(self.index_name, self.rag_client)
+            return errors
+                
+        except DataSourceError as e:
+            error_msg = f"Data source error: {e}"
+            logger.error(error_msg)
+            return [error_msg]
+        except Exception as e:
+            error_msg = f"Unexpected error during indexing: {e}"
+            logger.error(error_msg, exc_info=True)
+            return [error_msg]
+
     def _fetch_documents(self) -> list[dict[str, Any]]:
         """
         Fetch documents from the configured data source.
@@ -246,7 +249,7 @@ class AutoIndexerService:
             List[Dict[str, Any]]: List of documents with 'text' and optional 'metadata'
         """
         try:
-            return self.data_source_handler.fetch_documents()
+            return self.data_source_handler.update_index()
         except DataSourceError as e:
             logger.error(f"Failed to fetch documents: {e}")
             raise

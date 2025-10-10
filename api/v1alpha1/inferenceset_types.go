@@ -37,8 +37,7 @@ type InferenceSetSpec struct {
 	// Template is the template used to create the InferenceSet.
 	Template InferenceSetTemplate `json:"template"`
 	// Replicas is the desired number of workspaces to be created.
-	// +optional
-	// +kubebuilder:default:=1
+	// +required
 	Replicas int `json:"replicas,omitempty"`
 	// NodeCountLimit is the maximum number of GPU nodes that can be created for the InferenceSet.
 	// If not specified, there is no limit on the number of GPU nodes that can be created.
@@ -58,11 +57,9 @@ type InferenceSetSpec struct {
 // InferenceSetStatus defines the observed state of InferenceSet
 type InferenceSetStatus struct {
 	// Replicas is the total number of workspaces created by the InferenceSet.
-	// +required
-	Replicas int `json:"replicas"`
+	Replicas int `json:"replicas,omitempty"`
 	// ReadyReplicas is the number of workspaces that are in ready state.
-	// +required
-	ReadyReplicas int `json:"readyReplicas"`
+	ReadyReplicas int `json:"readyReplicas,omitempty"`
 	// Selector is used to select the pods that provide metrics for making scaling action decisions.
 	// This field must be set when HPA and VPA is used for scaling.
 	Selector string `json:"selector,omitempty"`

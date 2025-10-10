@@ -170,13 +170,24 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, is
 		// We should delete the extra workspaces that are created by this inferenceset
 		klog.InfoS("Found extra workspaces, deleting...", "current", len(wsList.Items), "desired", isObj.Spec.Replicas)
 		for i := isObj.Spec.Replicas; i < len(wsList.Items); i++ {
-			if wsList.Items[i].DeletionTimestamp.IsZero() {
-				klog.InfoS("Deleting extra workspace...", "workspace", wsList.Items[i].Name)
-				if err := c.Client.Delete(ctx, &wsList.Items[i], &client.DeleteOptions{}); err != nil {
-					klog.ErrorS(err, "failed to delete extra workspace", "workspace", klog.KObj(&wsList.Items[i]))
+			deleteWorkspaceName := isObj.Name + "-" + strconv.Itoa(i)
+			wsObj := inferenceset.GetWorkspace(deleteWorkspaceName, wsList)
+			if wsObj == nil {
+				klog.InfoS("Workspace not found, skipping...", "workspace", deleteWorkspaceName)
+				continue
+			}
+			if wsObj.DeletionTimestamp.IsZero() {
+				klog.InfoS("Deleting extra workspace...", "workspace", wsObj.Name)
+				if err := c.Client.Delete(ctx, wsObj, &client.DeleteOptions{}); err != nil {
+					klog.ErrorS(err, "failed to delete extra workspace", "workspace", klog.KObj(wsObj))
 					return ctrl.Result{}, err
 				}
 			}
+		}
+
+		// After deleting the extra workspaces, we should requeue to wait for the deletion to complete
+		if wsList, err = inferenceset.ListWorkspaces(ctx, isObj, c.Client); err != nil {
+			return ctrl.Result{}, err
 		}
 	}
 

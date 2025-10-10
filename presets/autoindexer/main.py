@@ -30,9 +30,13 @@ from typing import Any
 
 import requests
 
-from data_sources import DataSourceError, StaticDataSourceHandler
-from rag_client import KAITORAGClient
-
+from autoindexer.data_source_handler.git_handler import GitDataSourceHandler
+from autoindexer.data_source_handler.handler import DataSourceError
+from autoindexer.data_source_handler.static_handler import (
+    StaticDataSourceHandler,
+)
+from autoindexer.k8s.k8s_client import AutoIndexerK8sClient
+from autoindexer.rag.rag_client import KAITORAGClient
 
 # Configure logging
 logging.basicConfig(
@@ -50,13 +54,27 @@ class AutoIndexerService:
     def __init__(self, dry_run: bool = False):
         """Initialize the AutoIndexer service with environment variables."""
         self.dry_run = dry_run
-        self.index_name = self._get_required_env("INDEX_NAME")
-        self.ragengine_endpoint = self._get_required_env("RAGENGINE_ENDPOINT")
-        self.datasource_type = self._get_required_env("DATASOURCE_TYPE")
-        self.datasource_config = self._get_optional_env_json("DATASOURCE_CONFIG")
-        self.credentials_config = self._get_optional_env_json("CREDENTIALS_CONFIG")
-        self.retry_policy = self._get_optional_env_json("RETRY_POLICY")
+        self.access_secret = self._get_required_env("ACCESS_SECRET")
+        self.autoindexer_name = self._get_required_env("AUTOINDEXER_NAME")
+        self.namespace = self._get_required_env("NAMESPACE")
         
+        # Initialize Kubernetes client for CRD interaction
+        self.k8s_client = None
+        try:
+            self.k8s_client = AutoIndexerK8sClient()
+            logger.info("Kubernetes client initialized successfully")
+            
+            # Try to get configuration from the AutoIndexer CRD
+            crd_config = self.k8s_client.get_autoindexer_config()
+            if crd_config:
+                logger.info("Found AutoIndexer CRD configuration, using it to supplement environment config")
+                self._apply_crd_config(crd_config)
+            
+        except Exception as e:
+            logger.warning(f"Failed to initialize Kubernetes client: {e}")
+            logger.info("Continuing without Kubernetes integration")
+            raise
+
         # Initialize RAG client
         self.rag_client = KAITORAGClient(self.ragengine_endpoint)
         
@@ -90,8 +108,74 @@ class AutoIndexerService:
                 config=self.datasource_config or {},
                 credentials=self.credentials_config
             )
+        elif self.datasource_type.lower() == "git":
+            return GitDataSourceHandler(
+                config=self.datasource_config or {},
+                credentials=self.access_secret
+            )
         else:
             raise ValueError(f"Unsupported data source type: {self.datasource_type}")
+
+    def _apply_crd_config(self, crd_config: dict[str, Any]):
+        """Apply configuration from AutoIndexer CRD to supplement environment variables."""
+        try:
+            # Update index name from CRD if not set via environment
+            if crd_config.get("indexName"):
+                self.index_name = crd_config["indexName"]
+                logger.info(f"Using index name from CRD: {self.index_name}")
+            else:
+                raise ValueError("indexName must be specified via autoindexer CRD")
+            
+            # Update RAG engine endpoint from CRD if not set via environment
+            if crd_config.get("ragEngine"):
+                # Construct endpoint from RAG engine name (assuming same namespace)
+                rag_engine_name = crd_config["ragEngine"]
+                namespace = self.k8s_client.namespace if self.k8s_client else "default"
+                self.ragengine_endpoint = f"http://{rag_engine_name}.{namespace}.svc.cluster.local:80"
+                logger.info(f"Using RAG engine endpoint from CRD: {self.ragengine_endpoint}")
+            else:
+                raise ValueError("ragEngine must be specified via autoindexer CRD")
+            
+            # Update data source configuration from CRD
+            if crd_config.get("dataSource"):
+                ds_config = crd_config["dataSource"]
+                
+                # Override data source type if not set via environment
+                if ds_config.get("type"):
+                    self.datasource_type = ds_config["type"]
+                    logger.info(f"Using data source type from CRD: {self.datasource_type}")
+                else:
+                    raise ValueError("dataSource type must be specified via autoindexer CRD")
+                
+                # Merge data source configuration
+                if not self.datasource_config:
+                    self.datasource_config = {}
+                
+                # Add specific data source configurations based on type
+                if ds_config.get("git") and ds_config["type"] == "Git":
+                    git_config = ds_config["git"]
+                    self.datasource_config.update({
+                        "repository": git_config.get("repository"),
+                        "branch": git_config.get("branch", "main"),
+                        "commit": git_config.get("commit"),
+                        "paths": git_config.get("paths", []),
+                        "excludePaths": git_config.get("excludePaths", [])
+                    })
+                    logger.info("Updated Git data source configuration from CRD")
+                
+                elif ds_config.get("static") and ds_config["type"] == "Static":
+                    static_config = ds_config["static"]
+                    self.datasource_config.update({
+                        "urls": static_config.get("urls", [])
+                    })
+                    logger.info("Updated Static data source configuration from CRD")
+                
+                else:
+                    raise ValueError("Unsupported or missing data source configuration in CRD")
+                
+        except Exception as e:
+            logger.warning(f"Failed to apply CRD configuration: {e}")
+            raise
 
     def run(self) -> bool:
         """
@@ -100,8 +184,14 @@ class AutoIndexerService:
         Returns:
             bool: True if successful, False otherwise
         """
+        start_time = time.time()
+        
         try:
             logger.info("Starting document indexing process")
+            
+            # Update phase and status to indicate we're starting
+            self._update_indexing_phase("Running")
+            self._update_status_condition("AutoIndexerIndexing", "True", "IndexingStarted", "Document indexing process has started")
             
             # Fetch documents from data source
             logger.info("Fetching documents from data source")
@@ -109,6 +199,9 @@ class AutoIndexerService:
             
             if not documents:
                 logger.warning("No documents found in data source")
+                duration = int(time.time() - start_time)
+                self._update_indexing_completion(True, duration, 0)
+                self._update_status_condition("AutoIndexerSucceeded", "True", "NoDocuments", "No documents found in data source")
                 return True  # Not necessarily an error
             
             logger.info(f"Found {len(documents)} documents to index")
@@ -119,19 +212,30 @@ class AutoIndexerService:
                 logger.info("Dry-run mode enabled, skipping actual indexing")
                 for doc in documents:
                     logger.debug(f"Document to index: {doc}")
+                duration = int(time.time() - start_time)
+                self._update_indexing_completion(True, duration, len(documents))
+                self._update_status_condition("AutoIndexerSucceeded", "True", "DryRunCompleted", "Dry run completed successfully")
                 return True
 
             success = self._index_documents(documents)
+            duration = int(time.time() - start_time)
             
             if success:
                 logger.info("Document indexing completed successfully")
+                self._update_indexing_completion(True, duration, len(documents))
+                self._update_status_condition("AutoIndexerSucceeded", "True", "IndexingCompleted", "Document indexing completed successfully")
                 return True
             else:
                 logger.error("Document indexing failed")
+                self._update_indexing_completion(False, duration, 0)
+                self._update_status_condition("AutoIndexerError", "True", "IndexingFailed", "Document indexing failed")
                 return False
                 
         except Exception as e:
+            duration = int(time.time() - start_time)
             logger.error(f"AutoIndexer service failed: {e}", exc_info=True)
+            self._update_indexing_completion(False, duration, 0)
+            self._update_status_condition("AutoIndexerError", "True", "ServiceError", f"AutoIndexer service failed: {str(e)}")
             return False
 
     def _fetch_documents(self) -> list[dict[str, Any]]:
@@ -173,12 +277,17 @@ class AutoIndexerService:
                 
                 # Index documents in batches
                 batch_size = 100  # Configurable batch size
+                processed_count = 0
                 for i in range(0, len(documents), batch_size):
                     batch = documents[i:i + batch_size]
                     logger.info(f"Indexing batch {i//batch_size + 1} ({len(batch)} documents)")
                     
                     response = self.rag_client.index_documents(self.index_name, batch)
                     logger.debug(f"Batch indexing response: {response}")
+                    
+                    # Update progress after each batch
+                    processed_count += len(batch)
+                    self._update_indexing_progress(len(documents), processed_count)
                 
                 logger.info("All documents indexed successfully")
                 return True
@@ -214,6 +323,47 @@ class AutoIndexerService:
         except Exception as e:
             # If we can't list indexes, assume the index will be created automatically
             logger.warning(f"Could not verify index existence: {e}")
+
+    def _update_status_condition(self, condition_type: str, status: str, reason: str, message: str):
+        """Update status condition in the AutoIndexer CRD if Kubernetes client is available."""
+        if self.k8s_client:
+            try:
+                self.k8s_client.add_status_condition(condition_type, status, reason, message)
+            except Exception as e:
+                logger.warning(f"Failed to update status condition: {e}")
+        else:
+            logger.debug(f"Status update (no K8s client): {condition_type}={status} - {reason}: {message}")
+
+    def _update_indexing_progress(self, total_documents: int, processed_documents: int):
+        """Update indexing progress in the AutoIndexer CRD if Kubernetes client is available."""
+        if self.k8s_client:
+            try:
+                self.k8s_client.update_indexing_progress(total_documents, processed_documents)
+            except Exception as e:
+                logger.warning(f"Failed to update indexing progress: {e}")
+        else:
+            logger.debug(f"Progress update (no K8s client): {processed_documents}/{total_documents} documents processed")
+
+    def _update_indexing_phase(self, phase: str):
+        """Update indexing phase in the AutoIndexer CRD if Kubernetes client is available."""
+        if self.k8s_client:
+            try:
+                self.k8s_client.update_indexing_phase(phase)
+            except Exception as e:
+                logger.warning(f"Failed to update indexing phase: {e}")
+        else:
+            logger.debug(f"Phase update (no K8s client): {phase}")
+
+    def _update_indexing_completion(self, success: bool, duration_seconds: int, document_count: int, commit_hash: str | None = None):
+        """Update status when indexing completes."""
+        if self.k8s_client:
+            try:
+                self.k8s_client.update_indexing_completion(success, duration_seconds, document_count, commit_hash)
+            except Exception as e:
+                logger.warning(f"Failed to update indexing completion: {e}")
+        else:
+            status = "success" if success else "failed"
+            logger.debug(f"Completion update (no K8s client): {status}, {document_count} documents, {duration_seconds}s")
 
 
 def main():

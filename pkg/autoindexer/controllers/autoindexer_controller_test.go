@@ -57,10 +57,7 @@ func TestAutoIndexerReconciler_Reconcile(t *testing.T) {
 			Namespace: "default",
 		},
 		Spec: kaitov1alpha1.AutoIndexerSpec{
-			RAGEngineRef: metav1.ObjectMeta{
-				Name:      "test-ragengine",
-				Namespace: "default",
-			},
+			RAGEngine: "test-ragengine",
 			IndexName: "test-index",
 			DataSource: kaitov1alpha1.DataSourceSpec{
 				Type: kaitov1alpha1.DataSourceTypeGitHub,
@@ -100,52 +97,6 @@ func TestAutoIndexerReconciler_Reconcile(t *testing.T) {
 	// Verify finalizer was added
 	updatedAutoIndexer := &kaitov1alpha1.AutoIndexer{}
 	err = client.Get(ctx, req.NamespacedName, updatedAutoIndexer)
-	if err != nil {
-		t.Fatalf("Failed to get updated AutoIndexer: %v", err)
-	}
-
-	found := false
-	for _, finalizer := range updatedAutoIndexer.Finalizers {
-		if finalizer == consts.AutoIndexerFinalizer {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Error("AutoIndexer finalizer was not added")
-	}
-}
-
-func TestAutoIndexerReconciler_ensureFinalizer(t *testing.T) {
-	scheme := runtime.NewScheme()
-	_ = kaitov1alpha1.AddToScheme(scheme)
-
-	autoIndexer := &kaitov1alpha1.AutoIndexer{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-autoindexer",
-			Namespace: "default",
-		},
-	}
-
-	client := fake.NewClientBuilder().
-		WithScheme(scheme).
-		WithObjects(autoIndexer).
-		Build()
-
-	recorder := record.NewFakeRecorder(10)
-	reconciler := NewAutoIndexerReconciler(client, scheme, logr.Discard(), recorder)
-
-	ctx := context.Background()
-
-	// Test adding finalizer
-	err := reconciler.ensureFinalizer(ctx, autoIndexer)
-	if err != nil {
-		t.Fatalf("ensureFinalizer failed: %v", err)
-	}
-
-	// Verify finalizer was added
-	updatedAutoIndexer := &kaitov1alpha1.AutoIndexer{}
-	err = client.Get(ctx, types.NamespacedName{Name: "test-autoindexer", Namespace: "default"}, updatedAutoIndexer)
 	if err != nil {
 		t.Fatalf("Failed to get updated AutoIndexer: %v", err)
 	}

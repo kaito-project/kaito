@@ -39,7 +39,7 @@ func (r *AutoIndexerReconciler) updateAutoIndexerStatus(ctx context.Context, aut
 
 	// Update phase and counts based on job states
 	if len(jobs.Items) == 0 {
-		autoIndexerObj.Status.Phase = kaitov1alpha1.AutoIndexerPhasePending
+		autoIndexerObj.Status.IndexingPhase = kaitov1alpha1.AutoIndexerPhasePending
 	} else {
 		r.updatePhaseFromJobs(autoIndexerObj, jobs.Items)
 	}
@@ -65,29 +65,29 @@ func (r *AutoIndexerReconciler) updatePhaseFromJobs(autoIndexerObj *kaitov1alpha
 			failedJobs++
 		} else if job.Status.Succeeded > 0 {
 			completedJobs++
-			// Update last indexed timestamp
-			if job.Status.CompletionTime != nil && (autoIndexerObj.Status.LastIndexed == nil || job.Status.CompletionTime.After(autoIndexerObj.Status.LastIndexed.Time)) {
-				autoIndexerObj.Status.LastIndexed = job.Status.CompletionTime
+			// Update last indexing timestamp
+			if job.Status.CompletionTime != nil && (autoIndexerObj.Status.LastIndexingTimestamp == nil || job.Status.CompletionTime.After(autoIndexerObj.Status.LastIndexingTimestamp.Time)) {
+				autoIndexerObj.Status.LastIndexingTimestamp = job.Status.CompletionTime
 			}
 		}
 	}
 
 	// Update counts
-	autoIndexerObj.Status.SuccessfulRunCount = int32(completedJobs)
-	autoIndexerObj.Status.ErrorRunCount = int32(failedJobs)
+	autoIndexerObj.Status.SuccessfulIndexingCount = int32(completedJobs)
+	autoIndexerObj.Status.ErrorIndexingCount = int32(failedJobs)
 
 	// Determine phase
 	if runningJobs > 0 {
-		autoIndexerObj.Status.Phase = kaitov1alpha1.AutoIndexerPhaseRunning
+		autoIndexerObj.Status.IndexingPhase = kaitov1alpha1.AutoIndexerPhaseRunning
 	} else if failedJobs > 0 && completedJobs == 0 {
-		autoIndexerObj.Status.Phase = kaitov1alpha1.AutoIndexerPhaseFailed
+		autoIndexerObj.Status.IndexingPhase = kaitov1alpha1.AutoIndexerPhaseFailed
 	} else if completedJobs > 0 && failedJobs == 0 {
-		autoIndexerObj.Status.Phase = kaitov1alpha1.AutoIndexerPhaseCompleted
+		autoIndexerObj.Status.IndexingPhase = kaitov1alpha1.AutoIndexerPhaseCompleted
 	} else if failedJobs > 0 && completedJobs > 0 {
 		// Mixed results - check if retrying
-		autoIndexerObj.Status.Phase = kaitov1alpha1.AutoIndexerPhaseRetrying
+		autoIndexerObj.Status.IndexingPhase = kaitov1alpha1.AutoIndexerPhaseRetrying
 	} else {
-		autoIndexerObj.Status.Phase = kaitov1alpha1.AutoIndexerPhaseUnknown
+		autoIndexerObj.Status.IndexingPhase = kaitov1alpha1.AutoIndexerPhaseUnknown
 	}
 }
 
@@ -107,7 +107,7 @@ func (r *AutoIndexerReconciler) updateNextScheduledRun(ctx context.Context, auto
 			// Calculate next run based on schedule
 			// This is a simplified calculation - in practice, you'd want to use a proper cron parser
 			nextRun := cronJob.Status.LastScheduleTime.Add(time.Hour) // Placeholder logic
-			autoIndexerObj.Status.NextScheduledRun = &metav1.Time{Time: nextRun}
+			autoIndexerObj.Status.NextScheduledIndexing = &metav1.Time{Time: nextRun}
 		}
 	}
 
@@ -181,18 +181,6 @@ func (r *AutoIndexerReconciler) handleJobFailure(ctx context.Context, autoIndexe
 	errorMessage := fmt.Sprintf("Indexing job %s failed: %v", job.Name, err)
 	r.recordAutoIndexerEvent(autoIndexerObj, "Warning", "JobFailed", errorMessage)
 
-	// Add to status errors
-	if autoIndexerObj.Status.Errors == nil {
-		autoIndexerObj.Status.Errors = []string{}
-	}
-	autoIndexerObj.Status.Errors = append(autoIndexerObj.Status.Errors, errorMessage)
-
-	// Limit the number of stored errors to avoid unbounded growth
-	const maxErrors = 10
-	if len(autoIndexerObj.Status.Errors) > maxErrors {
-		autoIndexerObj.Status.Errors = autoIndexerObj.Status.Errors[len(autoIndexerObj.Status.Errors)-maxErrors:]
-	}
-
 	// Update condition
 	r.setAutoIndexerCondition(autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeError, metav1.ConditionTrue, "JobFailed", errorMessage)
 
@@ -204,9 +192,6 @@ func (r *AutoIndexerReconciler) handleJobSuccess(ctx context.Context, autoIndexe
 	// Record success
 	successMessage := fmt.Sprintf("Indexing job %s completed successfully", job.Name)
 	r.recordAutoIndexerEvent(autoIndexerObj, "Normal", "JobSucceeded", successMessage)
-
-	// Clear previous errors on success
-	autoIndexerObj.Status.Errors = nil
 
 	// Update condition
 	r.setAutoIndexerCondition(autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeSucceeded, metav1.ConditionTrue, "JobSucceeded", successMessage)

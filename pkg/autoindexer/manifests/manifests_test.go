@@ -31,10 +31,7 @@ func createTestAutoIndexer(name, namespace string, schedule *string) *kaitov1alp
 			Namespace: namespace,
 		},
 		Spec: kaitov1alpha1.AutoIndexerSpec{
-			RAGEngineRef: metav1.ObjectMeta{
-				Name:      "test-ragengine",
-				Namespace: namespace,
-			},
+			RAGEngine: "test-ragengine",
 			IndexName: "test-index",
 			DataSource: kaitov1alpha1.DataSourceSpec{
 				Type: kaitov1alpha1.DataSourceTypeGitHub,
@@ -51,10 +48,6 @@ func createTestAutoIndexer(name, namespace string, schedule *string) *kaitov1alp
 					Name: "github-credentials",
 					Key:  "token",
 				},
-			},
-			RetryPolicy: &kaitov1alpha1.RetryPolicySpec{
-				MaxRetries: 3,
-				// BackoffStrategy: "exponential",
 			},
 		},
 	}
@@ -126,12 +119,9 @@ func TestGenerateIndexingJobManifest(t *testing.T) {
 	}
 
 	expectedEnvVars := []string{
-		EnvIndexName,
-		EnvRAGEngineEndpoint,
-		EnvDataSourceType,
-		EnvDataSourceConfig,
-		EnvCredentialsConfig,
-		EnvRetryPolicy,
+		EnvAccessSecret,
+		EnvAutoIndexerName,
+		EnvNamespace,
 	}
 
 	for _, envVar := range expectedEnvVars {
@@ -309,97 +299,5 @@ func TestGetDefaultJobConfig(t *testing.T) {
 
 	if config.JobName == "" {
 		t.Error("Default config should generate a job name")
-	}
-}
-
-func TestGenerateRAGEngineEndpoint(t *testing.T) {
-	autoIndexer := createTestAutoIndexer("test-autoindexer", "default", nil)
-
-	endpoint := generateRAGEngineEndpoint(autoIndexer)
-	expected := "http://test-ragengine.default.svc.cluster.local:80"
-
-	if endpoint != expected {
-		t.Errorf("Expected endpoint %s, got %s", expected, endpoint)
-	}
-
-	// Test with different namespace in RAGEngineRef
-	autoIndexer.Spec.RAGEngineRef.Namespace = "other-namespace"
-	endpoint = generateRAGEngineEndpoint(autoIndexer)
-	expected = "http://test-ragengine.other-namespace.svc.cluster.local:80"
-
-	if endpoint != expected {
-		t.Errorf("Expected endpoint %s, got %s", expected, endpoint)
-	}
-
-	// Test with empty namespace in RAGEngineRef (should use AutoIndexer namespace)
-	autoIndexer.Spec.RAGEngineRef.Namespace = ""
-	endpoint = generateRAGEngineEndpoint(autoIndexer)
-	expected = "http://test-ragengine.default.svc.cluster.local:80"
-
-	if endpoint != expected {
-		t.Errorf("Expected endpoint %s, got %s", expected, endpoint)
-	}
-}
-
-func TestGenerateDataSourceConfig(t *testing.T) {
-	// Test Git data source
-	gitDataSource := kaitov1alpha1.DataSourceSpec{
-		Type: kaitov1alpha1.DataSourceTypeGitHub,
-		Git: &kaitov1alpha1.GitDataSourceSpec{
-			Repository: "https://github.com/example/test-repo",
-			Branch:     "main",
-			Paths:      []string{"docs/"},
-		},
-	}
-
-	config, err := generateDataSourceConfig(gitDataSource)
-	if err != nil {
-		t.Fatalf("Failed to generate Git data source config: %v", err)
-	}
-
-	if config == "" {
-		t.Error("Generated config should not be empty")
-	}
-
-	// Test Static data source
-	staticDataSource := kaitov1alpha1.DataSourceSpec{
-		Type: kaitov1alpha1.DataSourceTypeStatic,
-		Static: &kaitov1alpha1.StaticDataSourceSpec{
-			Endpoints: []string{"https://api.example.com/docs"},
-		},
-	}
-
-	config, err = generateDataSourceConfig(staticDataSource)
-	if err != nil {
-		t.Fatalf("Failed to generate Static data source config: %v", err)
-	}
-
-	if config == "" {
-		t.Error("Generated config should not be empty")
-	}
-}
-
-func TestGetBackoffLimit(t *testing.T) {
-	// Test with retry policy
-	retryPolicy := &kaitov1alpha1.RetryPolicySpec{
-		MaxRetries: 5,
-	}
-
-	backoffLimit := getBackoffLimit(retryPolicy)
-	if *backoffLimit != 5 {
-		t.Errorf("Expected backoff limit 5, got %d", *backoffLimit)
-	}
-
-	// Test without retry policy (should use default)
-	backoffLimit = getBackoffLimit(nil)
-	if *backoffLimit != 3 {
-		t.Errorf("Expected default backoff limit 3, got %d", *backoffLimit)
-	}
-
-	// Test with zero max retries (should use default)
-	retryPolicy.MaxRetries = 0
-	backoffLimit = getBackoffLimit(retryPolicy)
-	if *backoffLimit != 3 {
-		t.Errorf("Expected default backoff limit 3 for zero retries, got %d", *backoffLimit)
 	}
 }

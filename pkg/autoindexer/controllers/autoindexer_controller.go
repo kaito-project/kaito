@@ -22,6 +22,8 @@ import (
 
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,7 +37,6 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/autoindexer/manifests"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -63,10 +64,12 @@ func NewAutoIndexerReconciler(client client.Client, scheme *runtime.Scheme, log 
 
 //+kubebuilder:rbac:groups=kaito.sh,resources=autoindexers,verbs=get;list;watch;update;patch
 //+kubebuilder:rbac:groups=kaito.sh,resources=autoindexers/status,verbs=get;list;update;patch
-//+kubebuilder:rbac:groups=kaito.sh,resources=autoindexers/finalizers,verbs=update
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=batch,resources=cronjobs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
+//+kubebuilder:rbac:groups="",resources=serviceaccounts,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -81,12 +84,7 @@ func (r *AutoIndexerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	klog.InfoS("Reconciling", "AutoIndexer", req.NamespacedName)
 
-	if autoIndexerObj.DeletionTimestamp.IsZero() {
-		// if err := r.ensureFinalizer(ctx, autoIndexerObj); err != nil {
-		// 	return ctrl.Result{}, err
-		// }
-	} else {
-		// Handle deleting autoindexer, garbage collect all the resources.
+	if !autoIndexerObj.DeletionTimestamp.IsZero() {
 		return r.deleteAutoIndexer(ctx, autoIndexerObj)
 	}
 
@@ -96,19 +94,6 @@ func (r *AutoIndexerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	return result, nil
-}
-
-// ensureFinalizer adds the finalizer if it doesn't exist
-func (r *AutoIndexerReconciler) ensureFinalizer(ctx context.Context, autoIndexerObj *kaitov1alpha1.AutoIndexer) error {
-	if !controllerutil.ContainsFinalizer(autoIndexerObj, consts.AutoIndexerFinalizer) {
-		patch := client.MergeFrom(autoIndexerObj.DeepCopy())
-		controllerutil.AddFinalizer(autoIndexerObj, consts.AutoIndexerFinalizer)
-		if err := r.Client.Patch(ctx, autoIndexerObj, patch); err != nil {
-			klog.ErrorS(err, "failed to ensure the finalizer to the autoindexer", "autoindexer", klog.KObj(autoIndexerObj))
-			return err
-		}
-	}
-	return nil
 }
 
 // addAutoIndexer handles the reconciliation logic for creating/updating AutoIndexer
@@ -131,6 +116,16 @@ func (r *AutoIndexerReconciler) addAutoIndexer(ctx context.Context, autoIndexerO
 			return ctrl.Result{}, updateErr
 		}
 		return ctrl.Result{RequeueAfter: time.Minute * 5}, err
+	}
+
+	// Ensure RBAC resources exist
+	if err := r.ensureRBACResources(ctx, autoIndexerObj); err != nil {
+		if updateErr := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeError, metav1.ConditionTrue,
+			"RBACFailed", err.Error()); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update autoindexer status", "autoindexer", klog.KObj(autoIndexerObj))
+			return ctrl.Result{}, updateErr
+		}
+		return ctrl.Result{}, err
 	}
 
 	// Handle scheduled vs one-time execution
@@ -174,8 +169,8 @@ func (r *AutoIndexerReconciler) addAutoIndexer(ctx context.Context, autoIndexerO
 func (r *AutoIndexerReconciler) validateRAGEngineRef(ctx context.Context, autoIndexerObj *kaitov1alpha1.AutoIndexer) error {
 	ragEngine := &kaitov1alpha1.RAGEngine{}
 	ragEngineKey := client.ObjectKey{
-		Name:      autoIndexerObj.Spec.RAGEngineRef.Name,
-		Namespace: autoIndexerObj.Spec.RAGEngineRef.Namespace,
+		Name:      autoIndexerObj.Spec.RAGEngine,
+		Namespace: autoIndexerObj.Namespace,
 	}
 
 	// If namespace is not specified in the ref, use the AutoIndexer's namespace
@@ -188,6 +183,112 @@ func (r *AutoIndexerReconciler) validateRAGEngineRef(ctx context.Context, autoIn
 			return fmt.Errorf("referenced RAGEngine %s/%s not found", ragEngineKey.Namespace, ragEngineKey.Name)
 		}
 		return fmt.Errorf("failed to get referenced RAGEngine: %w", err)
+	}
+
+	return nil
+}
+
+// ensureRBACResources creates or updates RBAC resources for AutoIndexer jobs
+func (r *AutoIndexerReconciler) ensureRBACResources(ctx context.Context, autoIndexerObj *kaitov1alpha1.AutoIndexer) error {
+	// Ensure ServiceAccount
+	if err := r.ensureServiceAccount(ctx, autoIndexerObj); err != nil {
+		return fmt.Errorf("failed to ensure ServiceAccount: %w", err)
+	}
+
+	// Ensure Role
+	if err := r.ensureRole(ctx, autoIndexerObj); err != nil {
+		return fmt.Errorf("failed to ensure Role: %w", err)
+	}
+
+	// Ensure RoleBinding
+	if err := r.ensureRoleBinding(ctx, autoIndexerObj); err != nil {
+		return fmt.Errorf("failed to ensure RoleBinding: %w", err)
+	}
+
+	return nil
+}
+
+// ensureServiceAccount creates or updates a ServiceAccount for AutoIndexer jobs
+func (r *AutoIndexerReconciler) ensureServiceAccount(ctx context.Context, autoIndexerObj *kaitov1alpha1.AutoIndexer) error {
+	serviceAccount := manifests.GenerateServiceAccountManifest(autoIndexerObj)
+
+	// Check if ServiceAccount already exists
+	existingSA := &corev1.ServiceAccount{}
+	err := r.Get(ctx, types.NamespacedName{Name: serviceAccount.Name, Namespace: serviceAccount.Namespace}, existingSA)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			// Create the ServiceAccount
+			klog.InfoS("Creating ServiceAccount", "serviceaccount", klog.KObj(serviceAccount), "autoindexer", klog.KObj(autoIndexerObj))
+			return r.Create(ctx, serviceAccount)
+		}
+		return err
+	}
+
+	// Update the existing ServiceAccount if needed
+	if !hasOwnerReference(existingSA, autoIndexerObj) {
+		klog.InfoS("Updating ServiceAccount", "serviceaccount", klog.KObj(serviceAccount), "autoindexer", klog.KObj(autoIndexerObj))
+		existingSA.OwnerReferences = serviceAccount.OwnerReferences
+		existingSA.Labels = serviceAccount.Labels
+		return r.Update(ctx, existingSA)
+	}
+
+	return nil
+}
+
+// ensureRole creates or updates a Role for AutoIndexer jobs
+func (r *AutoIndexerReconciler) ensureRole(ctx context.Context, autoIndexerObj *kaitov1alpha1.AutoIndexer) error {
+	role := manifests.GenerateRoleManifest(autoIndexerObj)
+
+	// Check if Role already exists
+	existingRole := &rbacv1.Role{}
+	err := r.Get(ctx, types.NamespacedName{Name: role.Name, Namespace: role.Namespace}, existingRole)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			// Create the Role
+			klog.InfoS("Creating Role", "role", klog.KObj(role), "autoindexer", klog.KObj(autoIndexerObj))
+			return r.Create(ctx, role)
+		}
+		return err
+	}
+
+	// Update the existing Role if needed
+	if !reflect.DeepEqual(existingRole.Rules, role.Rules) || !hasOwnerReference(existingRole, autoIndexerObj) {
+		klog.InfoS("Updating Role", "role", klog.KObj(role), "autoindexer", klog.KObj(autoIndexerObj))
+		existingRole.Rules = role.Rules
+		existingRole.OwnerReferences = role.OwnerReferences
+		existingRole.Labels = role.Labels
+		return r.Update(ctx, existingRole)
+	}
+
+	return nil
+}
+
+// ensureRoleBinding creates or updates a RoleBinding for AutoIndexer jobs
+func (r *AutoIndexerReconciler) ensureRoleBinding(ctx context.Context, autoIndexerObj *kaitov1alpha1.AutoIndexer) error {
+	roleBinding := manifests.GenerateRoleBindingManifest(autoIndexerObj)
+
+	// Check if RoleBinding already exists
+	existingRB := &rbacv1.RoleBinding{}
+	err := r.Get(ctx, types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, existingRB)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			// Create the RoleBinding
+			klog.InfoS("Creating RoleBinding", "rolebinding", klog.KObj(roleBinding), "autoindexer", klog.KObj(autoIndexerObj))
+			return r.Create(ctx, roleBinding)
+		}
+		return err
+	}
+
+	// Update the existing RoleBinding if needed
+	if !reflect.DeepEqual(existingRB.Subjects, roleBinding.Subjects) ||
+		!reflect.DeepEqual(existingRB.RoleRef, roleBinding.RoleRef) ||
+		!hasOwnerReference(existingRB, autoIndexerObj) {
+		klog.InfoS("Updating RoleBinding", "rolebinding", klog.KObj(roleBinding), "autoindexer", klog.KObj(autoIndexerObj))
+		existingRB.Subjects = roleBinding.Subjects
+		existingRB.RoleRef = roleBinding.RoleRef
+		existingRB.OwnerReferences = roleBinding.OwnerReferences
+		existingRB.Labels = roleBinding.Labels
+		return r.Update(ctx, existingRB)
 	}
 
 	return nil
@@ -273,17 +374,20 @@ func (r *AutoIndexerReconciler) deleteAutoIndexer(ctx context.Context, autoIndex
 	klog.InfoS("Deleting AutoIndexer", "autoindexer", klog.KObj(autoIndexerObj))
 
 	// Clean up owned resources (Jobs, CronJobs, etc.)
-	if err := r.cleanupOwnedResources(ctx, autoIndexerObj); err != nil {
-		klog.ErrorS(err, "failed to cleanup owned resources", "autoindexer", klog.KObj(autoIndexerObj))
+	// Wait for all owned Jobs to complete before removing the finalizer
+	jobs := &batchv1.JobList{}
+	if err := r.Client.List(ctx, jobs, client.InNamespace(autoIndexerObj.Namespace), client.MatchingLabels{
+		AutoIndexerNameLabel: autoIndexerObj.Name,
+	}); err != nil {
+		klog.ErrorS(err, "failed to list jobs for deletion wait", "autoindexer", klog.KObj(autoIndexerObj))
 		return ctrl.Result{}, err
 	}
-
-	// Remove finalizer
-	patch := client.MergeFrom(autoIndexerObj.DeepCopy())
-	controllerutil.RemoveFinalizer(autoIndexerObj, consts.AutoIndexerFinalizer)
-	if err := r.Client.Patch(ctx, autoIndexerObj, patch); err != nil {
-		klog.ErrorS(err, "failed to remove finalizer from autoindexer", "autoindexer", klog.KObj(autoIndexerObj))
-		return ctrl.Result{}, err
+	for _, job := range jobs.Items {
+		// If job is not completed or failed, requeue
+		if job.Status.Succeeded == 0 && job.Status.Failed == 0 {
+			klog.InfoS("Waiting for Job to complete before deleting AutoIndexer", "job", job.Name, "autoindexer", klog.KObj(autoIndexerObj))
+			return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
+		}
 	}
 
 	klog.InfoS("AutoIndexer deleted successfully", "autoindexer", klog.KObj(autoIndexerObj))
@@ -317,6 +421,58 @@ func (r *AutoIndexerReconciler) cleanupOwnedResources(ctx context.Context, autoI
 	for _, cronJob := range cronJobs.Items {
 		if err := r.Client.Delete(ctx, &cronJob); err != nil && !apierrors.IsNotFound(err) {
 			return fmt.Errorf("failed to delete cronjob %s: %w", cronJob.Name, err)
+		}
+	}
+
+	// Clean up RBAC resources
+	if err := r.cleanupRBACResources(ctx, autoIndexerObj); err != nil {
+		return fmt.Errorf("failed to cleanup RBAC resources: %w", err)
+	}
+
+	return nil
+}
+
+// cleanupRBACResources removes RBAC resources owned by this AutoIndexer
+func (r *AutoIndexerReconciler) cleanupRBACResources(ctx context.Context, autoIndexerObj *kaitov1alpha1.AutoIndexer) error {
+	// Clean up ServiceAccounts
+	serviceAccounts := &corev1.ServiceAccountList{}
+	if err := r.Client.List(ctx, serviceAccounts, client.InNamespace(autoIndexerObj.Namespace), client.MatchingLabels{
+		AutoIndexerNameLabel: autoIndexerObj.Name,
+	}); err != nil {
+		return fmt.Errorf("failed to list serviceaccounts: %w", err)
+	}
+
+	for _, sa := range serviceAccounts.Items {
+		if err := r.Client.Delete(ctx, &sa); err != nil && !apierrors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete serviceaccount %s: %w", sa.Name, err)
+		}
+	}
+
+	// Clean up Roles
+	roles := &rbacv1.RoleList{}
+	if err := r.Client.List(ctx, roles, client.InNamespace(autoIndexerObj.Namespace), client.MatchingLabels{
+		AutoIndexerNameLabel: autoIndexerObj.Name,
+	}); err != nil {
+		return fmt.Errorf("failed to list roles: %w", err)
+	}
+
+	for _, role := range roles.Items {
+		if err := r.Client.Delete(ctx, &role); err != nil && !apierrors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete role %s: %w", role.Name, err)
+		}
+	}
+
+	// Clean up RoleBindings
+	roleBindings := &rbacv1.RoleBindingList{}
+	if err := r.Client.List(ctx, roleBindings, client.InNamespace(autoIndexerObj.Namespace), client.MatchingLabels{
+		AutoIndexerNameLabel: autoIndexerObj.Name,
+	}); err != nil {
+		return fmt.Errorf("failed to list rolebindings: %w", err)
+	}
+
+	for _, rb := range roleBindings.Items {
+		if err := r.Client.Delete(ctx, &rb); err != nil && !apierrors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete rolebinding %s: %w", rb.Name, err)
 		}
 	}
 
@@ -370,6 +526,9 @@ func (r *AutoIndexerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&kaitov1alpha1.AutoIndexer{}).
 		Owns(&batchv1.Job{}).
 		Owns(&batchv1.CronJob{}).
+		Owns(&corev1.ServiceAccount{}).
+		Owns(&rbacv1.Role{}).
+		Owns(&rbacv1.RoleBinding{}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5}).
 		Complete(r)
 }
@@ -403,4 +562,14 @@ func getEnv(key, defaultValue string) string {
 		return defaultValue
 	}
 	return value
+}
+
+// hasOwnerReference checks if the resource has an owner reference to the given object
+func hasOwnerReference(obj metav1.Object, owner metav1.Object) bool {
+	for _, ref := range obj.GetOwnerReferences() {
+		if ref.UID == owner.GetUID() {
+			return true
+		}
+	}
+	return false
 }

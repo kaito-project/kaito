@@ -1,48 +1,20 @@
-# Copyright (c) KAITO authors.
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
+import contextlib
+import io
 import json
 import logging
 import os
-from abc import ABC, abstractmethod
 from typing import Any
 from urllib.parse import urlparse
-import chardet
-import io
 
+import chardet
 import requests
 
+from autoindexer.data_source_handler.handler import (
+    DataSourceError,
+    DataSourceHandler,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class DataSourceError(Exception):
-    """Exception raised for data source related errors."""
-    pass
-
-
-class DataSourceHandler(ABC):
-    """Abstract base class for data source handlers."""
-    
-    @abstractmethod
-    def fetch_documents(self) -> list[dict[str, Any]]:
-        """
-        Fetch documents from the data source.
-        
-        Returns:
-            list[dict[str, Any]]: List of documents with 'text' and optional 'metadata'
-        """
-        pass
 
 
 class StaticDataSourceHandler(DataSourceHandler):
@@ -261,10 +233,7 @@ class StaticDataSourceHandler(DataSourceHandler):
             return True
         
         # GitHub blob URLs (convert to raw)
-        if 'github.com' in parsed_url.netloc and '/blob/' in path:
-            return True
-        
-        return False
+        return bool('github.com' in parsed_url.netloc and '/blob/' in path)
 
     def _is_pdf_content(self, raw_content: bytes, content_type: str, url: str) -> bool:
         """
@@ -287,10 +256,7 @@ class StaticDataSourceHandler(DataSourceHandler):
             return True
         
         # Check PDF magic bytes (PDF files start with %PDF)
-        if raw_content.startswith(b'%PDF'):
-            return True
-        
-        return False
+        return bool(raw_content.startswith(b'%PDF'))
 
     def _extract_pdf_text(self, raw_content: bytes, url: str) -> str:
         """
@@ -451,10 +417,8 @@ class StaticDataSourceHandler(DataSourceHandler):
         # Try to determine encoding from content-type header
         encoding = None
         if 'charset=' in content_type:
-            try:
+            with contextlib.suppress(Exception):
                 encoding = content_type.split('charset=')[1].split(';')[0].strip()
-            except Exception:
-                pass
         
         # List of encodings to try in order
         encodings_to_try = []
@@ -550,26 +514,3 @@ class StaticDataSourceHandler(DataSourceHandler):
         """Get current timestamp in ISO format."""
         from datetime import datetime
         return datetime.utcnow().isoformat() + 'Z'
-
-
-class GitDataSourceHandler(DataSourceHandler):
-    """
-    Handler for Git data sources.
-    
-    This handler supports:
-    - Cloning Git repositories
-    - Checking out specific branches or commits
-    - Reading files from the repository
-    
-    NOTE: This is a placeholder for future implementation
-    """
-    
-    def __init__(self, config: dict[str, Any], credentials: dict[str, Any] | None = None):
-        """Initialize the Git data source handler."""
-        self.config = config
-        self.credentials = credentials or {}
-        raise NotImplementedError("Git data source handler is not yet implemented")
-    
-    def fetch_documents(self) -> list[dict[str, Any]]:
-        """Fetch documents from Git repositories."""
-        raise NotImplementedError("Git data source handler is not yet implemented")

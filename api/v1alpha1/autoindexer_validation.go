@@ -47,11 +47,8 @@ func (a *AutoIndexer) Validate(ctx context.Context) (errs *apis.FieldError) {
 }
 func (a *AutoIndexer) validateCreate() (errs *apis.FieldError) {
 
-	if a.Spec.RAGEngineRef.Name == "" {
-		errs = errs.Also(apis.ErrMissingField("ragEngineRef.name"))
-	}
-	if a.Spec.RAGEngineRef.Namespace == "" {
-		errs = errs.Also(apis.ErrMissingField("ragEngineRef.namespace"))
+	if a.Spec.RAGEngine == "" {
+		errs = errs.Also(apis.ErrMissingField("ragEngine"))
 	}
 	if a.Spec.IndexName == "" {
 		errs = errs.Also(apis.ErrMissingField("indexName"))
@@ -84,10 +81,6 @@ func (a *AutoIndexer) validateCreate() (errs *apis.FieldError) {
 			errs = errs.Also(apis.ErrInvalidValue(s, "schedule"))
 		}
 	}
-	// Validate RetryPolicy if present
-	if a.Spec.RetryPolicy != nil && a.Spec.RetryPolicy.MaxRetries != nil && *a.Spec.RetryPolicy.MaxRetries < 0 {
-		errs = errs.Also(apis.ErrOutOfBoundsValue(*a.Spec.RetryPolicy.MaxRetries, 0, -1, "retryPolicy.maxRetries"))
-	}
 	return errs
 }
 
@@ -115,8 +108,8 @@ func (ds *DataSourceSpec) validate() *apis.FieldError {
 }
 
 func (g *GitDataSourceSpec) validate() *apis.FieldError {
-	if g.RepositoryURL == "" {
-		return apis.ErrMissingField("repositoryURL")
+	if g.Repository == "" {
+		return apis.ErrMissingField("repository")
 	}
 	if g.Branch == "" {
 		return apis.ErrMissingField("branch")
@@ -170,14 +163,14 @@ func (g *GitDataSourceSpec) validate() *apis.FieldError {
 }
 
 func (s *StaticDataSourceSpec) validate() *apis.FieldError {
-	if len(s.Endpoints) == 0 {
-		return apis.ErrMissingField("endpoints")
+	if len(s.URLs) == 0 {
+		return apis.ErrMissingField("urls")
 	}
-	for i, ep := range s.Endpoints {
+	for i, url := range s.URLs {
 		// Basic URL validation
-		u, err := apis.ParseURL(ep)
+		u, err := apis.ParseURL(url)
 		if err != nil || u.Scheme == "" || u.Host == "" {
-			return apis.ErrInvalidValue(ep, "endpoints").ViaFieldIndex("endpoints", i)
+			return apis.ErrInvalidValue(url, "urls").ViaFieldIndex("urls", i)
 		}
 	}
 	return nil

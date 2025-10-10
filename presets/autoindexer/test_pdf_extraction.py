@@ -4,7 +4,9 @@ Simple test script to verify PDF text extraction functionality.
 """
 
 import logging
-from data_sources import StaticDataSourceHandler, DataSourceError
+
+from autoindexer.data_source_handler.handler import DataSourceError
+from autoindexer.data_source_handler.static_handler import StaticDataSourceHandler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

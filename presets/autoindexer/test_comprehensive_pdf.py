@@ -4,7 +4,9 @@ Test PDF extraction with various types of PDFs including GitHub-hosted ones.
 """
 
 import logging
-from data_sources import StaticDataSourceHandler, DataSourceError
+
+from autoindexer.data_source_handler.handler import DataSourceError
+from autoindexer.data_source_handler.static_handler import StaticDataSourceHandler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -40,7 +42,7 @@ def test_github_pdf():
                 # Show a preview of the content
                 lines = text_content.split('\n')
                 print(f"  Number of lines: {len(lines)}")
-                print(f"  Preview (first 300 characters):")
+                print("  Preview (first 300 characters):")
                 print(f"    {text_content[:300].replace(chr(10), ' ')[:300]}...")
                 
                 # Show if it contains page markers
@@ -87,11 +89,11 @@ def test_multiple_formats():
                 # Determine file type from URL
                 url = doc['metadata']['source_url']
                 if url.endswith('.pdf'):
-                    print(f"  File type: PDF")
+                    print("  File type: PDF")
                 elif url.endswith('.md'):
-                    print(f"  File type: Markdown")
+                    print("  File type: Markdown")
                 else:
-                    print(f"  File type: Other")
+                    print("  File type: Other")
                     
                 print(f"  Preview: {doc['text'][:150].replace(chr(10), ' ')[:150]}...")
                     

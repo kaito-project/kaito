@@ -40,9 +40,10 @@ type AutoIndexer struct {
 // AutoIndexerSpec defines the desired state of AutoIndexer
 type AutoIndexerSpec struct {
 
-	// RAGEngineRef references the RAGEngine resource to use for indexing
+	// RAGEngine references the name RAGEngine resource to use for indexing.
+	// The RAGEngine must be in the same namespace as the AutoIndexer.
 	// +kubebuilder:validation:Required
-	RAGEngineRef RAGEngineReference `json:"ragEngineRef"`
+	RAGEngine string `json:"ragEngine"`
 
 	// IndexName is the name of the index where documents will be stored
 	// +kubebuilder:validation:Required
@@ -63,25 +64,10 @@ type AutoIndexerSpec struct {
 	// +kubebuilder:validation:Pattern=`^(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})$`
 	Schedule *string `json:"schedule,omitempty"`
 
-	// RetryPolicy defines how failed indexing jobs should be retried
-	// +optional
-	RetryPolicy *RetryPolicySpec `json:"retryPolicy,omitempty"`
-
 	// Suspend can be set to true to suspend the indexing schedule
 	// This will also suspend any drift detection for data sources
 	// +optional
 	Suspend *bool `json:"suspend,omitempty"`
-}
-
-// RAGEngineReference defines a reference to a ragengine object
-type RAGEngineReference struct {
-	// Name defines the ragengine name
-	// +kubebuilder:validation:Required
-	Name string `json:"name"`
-
-	// Namespace defines the namespace of the ragengine
-	// +kubebuilder:validation:Required
-	Namespace string `json:"namespace"`
 }
 
 // DataSourceSpec defines the source of documents to be indexed
@@ -111,9 +97,10 @@ const (
 
 // GitHubDataSourceSpec defines GitHub repository configuration
 type GitDataSourceSpec struct {
-	// Repository URL
+	// Repository to index. If the repository is not public and a token is needed for access,
+	// the access token can be stored in a secret and loaded with the SecretRef in the credential spec
 	// +kubebuilder:validation:Required
-	RepositoryURL string `json:"repositoryURL"`
+	Repository string `json:"repository"`
 
 	// Branch to checkout (default: main)
 	// +kubebuilder:validation:Required
@@ -136,9 +123,11 @@ type GitDataSourceSpec struct {
 
 // APIDataSourceSpec defines REST API configuration
 type StaticDataSourceSpec struct {
-	// data endpoint URLs that should point to individual UTF-8 or pdf files.
+	// URLs that should point to individual text encoding (UTF-8, UTF-8-SIG, Latin1, etc) or pdf files.
+	// If an access token is needed for the URL's, the access token can be stored in a secret
+	// and loaded with the SecretRef in the credential spec
 	// +kubebuilder:validation:Required
-	Endpoints []string `json:"endpoints"`
+	URLs []string `json:"urls"`
 }
 
 // CredentialsSpec defines authentication credentials
@@ -172,60 +161,42 @@ type SecretKeyRef struct {
 	Key string `json:"key"`
 }
 
-// RetryPolicySpec defines retry behavior for failed operations
-type RetryPolicySpec struct {
-	// Maximum number of retries applied to failed indexing jobs
-	// Default is 3
-	// +kubebuilder:validation:Minimum=0
-	// +kubebuilder:default=3
-	// +optional
-	MaxRetries *int32 `json:"maxRetries,omitempty"`
-}
-
 // AutoIndexerStatus defines the observed state of AutoIndexer
 type AutoIndexerStatus struct {
-	// LastRunID is a reference to the last run id that is unique per autoindexer run
+	// LastIndexingTimestamp is the timestamp of the end of the last successful indexing
 	// +optional
-	LastRunID string `json:"lastRunID,omitempty"`
-
-	// LastIndexed timestamp of the last successful indexing
-	// +optional
-	LastIndexed *metav1.Time `json:"lastIndexed,omitempty"`
+	LastIndexingTimestamp *metav1.Time `json:"lastIndexingTimestamp,omitempty"`
 
 	// LastCommit is the last processed commit hash for Git sources
 	// +optional
-	LastCommit *string `json:"lastCommit,omitempty"`
+	LastIndexedCommit *string `json:"lastIndexedCommit,omitempty"`
 
 	// LastRunDurationSeconds is the duration of the last indexer run in seconds
 	// +optional
-	LastRunDurationSeconds int32 `json:"lastRunDurationSeconds,omitempty"`
+	LastIndexingDurationSeconds int32 `json:"lastIndexingDurationSeconds,omitempty"`
 
-	// Phase represents the current phase of the AutoIndexer
+	// IndexingPhase represents the current phase of the AutoIndexer
 	// +optional
 	// +kubebuilder:validation:Enum=Pending;Running;Completed;Failed;Retrying;Unknown
-	Phase AutoIndexerPhase `json:"phase,omitempty"`
+	IndexingPhase AutoIndexerPhase `json:"indexingPhase,omitempty"`
 
-	// SuccessfulRunCount tracks successful indexing runs
-	SuccessfulRunCount int32 `json:"successfulRunCount"`
+	// SuccessfulIndexingCount tracks successful indexing runs
+	SuccessfulIndexingCount int32 `json:"successfulIndexingCount"`
 
-	// ErrorRunCount tracks failed indexing runs
-	ErrorRunCount int32 `json:"errorRunCount"`
+	// ErrorIndexingCount tracks failed indexing runs
+	ErrorIndexingCount int32 `json:"errorIndexingCount"`
 
-	// Number of documents processed in the last run
-	DocumentsProcessed int32 `json:"documentsProcessed"`
+	// NumOfDocumentInIndex is the count of documents in the index after the latest run managed by this autoindexer instance
+	NumOfDocumentInIndex int32 `json:"numOfDocumentInIndex"`
 
-	// NextScheduledRun shows when the next indexing is scheduled
+	// NextScheduledIndexing shows when the next indexing is scheduled
 	// +optional
-	NextScheduledRun *metav1.Time `json:"nextScheduledRun,omitempty"`
+	NextScheduledIndexing *metav1.Time `json:"nextScheduledIndexing,omitempty"`
 
 	// observedGeneration represents the observed .metadata.generation of the AutoIndexer
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
-
-	// Errors from the last indexing operation
-	// +optional
-	Errors []string `json:"errors,omitempty"`
 
 	// Conditions represent the current service state
 	// +optional

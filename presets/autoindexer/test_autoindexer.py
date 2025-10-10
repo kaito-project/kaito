@@ -24,7 +24,7 @@ import os
 import tempfile
 from unittest.mock import MagicMock, patch
 
-from data_sources import StaticDataSourceHandler
+from autoindexer.data_source_handler.static_handler import StaticDataSourceHandler
 
 
 def test_static_data_source_with_content():
@@ -137,10 +137,10 @@ def test_environment_variable_parsing():
     
     # Mock environment variables
     with patch.dict(os.environ, test_env_vars):
-        from presets.autoindexer.main import AutoIndexerService
+        from autoindexer.main import AutoIndexerService
         
         # Mock the RAG client to avoid actual network calls
-        with patch('autoindexer_service.KAITORAGClient') as mock_rag_client_class:
+        with patch('autoindexer.rag.KAITORAGClient') as mock_rag_client_class:
             mock_rag_client = MagicMock()
             mock_rag_client.list_indexes.return_value = {"indexes": []}
             mock_rag_client.index_documents.return_value = {"status": "success"}

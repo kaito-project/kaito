@@ -1,4 +1,4 @@
-FROM python:3.13-slim AS dependencies
+FROM python:3.14-slim AS dependencies
 
 ARG MODEL_TYPE
 ARG VERSION

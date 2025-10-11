@@ -53,12 +53,27 @@ func monitorInferenceSets(ctx context.Context, k8sClient client.Client) {
 
 			if err := k8sClient.List(ctx, &isList); err != nil {
 				klog.Errorf("failed to list all inferencesets: %v", err)
+				inferencesetPhaseCount.Reset()
 				continue
+			}
+
+			phaseCounts := map[string]float64{
+				"succeeded": 0,
+				"error":     0,
+				"pending":   0,
+				"deleting":  0,
 			}
 
 			for _, is := range isList.Items {
 				phase := determineInferenceSetPhase(&is)
-				klog.InfoS("InferenceSet phase", "inferenceset", klog.KObj(&is), "phase", phase)
+				if _, ok := phaseCounts[phase]; !ok {
+					phaseCounts[phase] = 0
+				}
+				phaseCounts[phase]++
+			}
+
+			for phase, count := range phaseCounts {
+				inferencesetPhaseCount.WithLabelValues(phase).Set(count)
 			}
 		}
 	}

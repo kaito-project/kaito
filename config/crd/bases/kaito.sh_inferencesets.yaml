@@ -1,0 +1,336 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: inferencesets.kaito.sh
+spec:
+  group: kaito.sh
+  names:
+    categories:
+    - inferenceset
+    kind: InferenceSet
+    listKind: InferenceSetList
+    plural: inferencesets
+    shortNames:
+    - is
+    - isets
+    singular: inferenceset
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.replicas
+      name: Replicas
+      type: integer
+    - jsonPath: .status.readyReplicas
+      name: ReadyReplicas
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: InferenceSet is the Schema for the InferenceSet API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec defines the desired state of InferenceSet
+            properties:
+              labelSelector:
+                description: workspace created by InferenceSet controller would use
+                  this label in resource.labelSelector
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: |-
+                        A label selector requirement is a selector that contains values, a key, and an operator that
+                        relates the key and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: |-
+                            operator represents a key's relationship to a set of values.
+                            Valid operators are In, NotIn, Exists and DoesNotExist.
+                          type: string
+                        values:
+                          description: |-
+                            values is an array of string values. If the operator is In or NotIn,
+                            the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                            the values array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: atomic
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                    x-kubernetes-list-type: atomic
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                      map is equivalent to an element of matchExpressions, whose key field is "key", the
+                      operator is "In", and the values array contains only "value". The requirements are ANDed.
+                    type: object
+                type: object
+                x-kubernetes-map-type: atomic
+              nodeCountLimit:
+                description: |-
+                  NodeCountLimit is the maximum number of GPU nodes that can be created for the InferenceSet.
+                  If not specified, there is no limit on the number of GPU nodes that can be created.
+                type: integer
+              replicas:
+                description: Replicas is the desired number of workspaces to be created.
+                type: integer
+              template:
+                description: Template is the template used to create the InferenceSet.
+                properties:
+                  inference:
+                    properties:
+                      adapters:
+                        description: |-
+                          Adapters are integrated into the base model for inference.
+                          Users can specify multiple adapters for the model and the respective weight of using each of them.
+                        items:
+                          properties:
+                            source:
+                              description: Source describes where to obtain the adapter
+                                data.
+                              properties:
+                                image:
+                                  description: |-
+                                    The name of the image that contains the source data. The assumption is that the source data locates in the
+                                    `data` directory in the image.
+                                  type: string
+                                imagePullSecrets:
+                                  description: ImagePullSecrets is a list of secret
+                                    names in the same namespace used for pulling the
+                                    data image.
+                                  items:
+                                    type: string
+                                  type: array
+                                name:
+                                  description: |-
+                                    The name of the dataset. The same name will be used as a container name.
+                                    It must be a valid DNS subdomain value,
+                                  type: string
+                                urls:
+                                  description: URLs specifies the links to the public
+                                    data sources. E.g., files in a public github repository.
+                                  items:
+                                    type: string
+                                  type: array
+                                volumeSource:
+                                  description: The mounted volume that contains the
+                                    data.
+                                  x-kubernetes-preserve-unknown-fields: true
+                              type: object
+                            strength:
+                              description: |-
+                                Strength specifies the default multiplier for applying the adapter weights to the raw model weights.
+                                It is usually a float number between 0 and 1. It is defined as a string type to be language agnostic.
+                              type: string
+                          type: object
+                        type: array
+                      config:
+                        description: |-
+                          Config specifies the name of a custom ConfigMap that contains inference arguments.
+                          If specified, the ConfigMap must be in the same namespace as the Workspace custom resource.
+                        type: string
+                      preset:
+                        description: Preset describes the base model that will be
+                          deployed with preset configurations.
+                        properties:
+                          accessMode:
+                            default: public
+                            description: |-
+                              Deprecated: This field is deprecated in v1beta1 and will be removed in a future version.
+                              AccessMode specifies whether the containerized model image is accessible via public registry
+                              or private registry. This field defaults to "public" if not specified.
+                              If this field is "private", user needs to provide the private image information in PresetOptions.
+                            enum:
+                            - public
+                            - private
+                            type: string
+                          name:
+                            description: Name of the supported models with preset
+                              configurations.
+                            type: string
+                          presetOptions:
+                            properties:
+                              image:
+                                description: |-
+                                  Deprecated: This field is deprecated in v1beta1 and will be removed in a future version.
+                                  Image is the name of the containerized model image.
+                                type: string
+                              imagePullSecrets:
+                                description: |-
+                                  Deprecated: This field is deprecated in v1beta1 and will be removed in a future version.
+                                  ImagePullSecrets is a list of secret names in the same namespace used for pulling the model image.
+                                items:
+                                  type: string
+                                type: array
+                              modelAccessSecret:
+                                description: ModelAccessSecret is the name of the
+                                  secret that contains the huggingface access token.
+                                type: string
+                            type: object
+                        required:
+                        - name
+                        type: object
+                      template:
+                        description: |-
+                          Template specifies the Pod template used to run the inference service. Users can specify custom Pod settings
+                          if the preset configurations cannot meet the requirements. Note that if Preset is specified, Template should not
+                          be specified and vice versa.
+                        x-kubernetes-preserve-unknown-fields: true
+                    type: object
+                  resource:
+                    properties:
+                      instanceType:
+                        description: InstanceType specifies the GPU node SKU.
+                        type: string
+                    required:
+                    - instanceType
+                    type: object
+                required:
+                - inference
+                - resource
+                type: object
+              updateStrategy:
+                default:
+                  rollingUpdate:
+                    maxUnavailable: 1
+                  type: RollingUpdate
+                description: UpdateStrategy indicates the strategy to use to replace
+                  existing workspaces with new ones.
+                x-kubernetes-preserve-unknown-fields: true
+            required:
+            - labelSelector
+            - template
+            type: object
+          status:
+            description: Status defines the observed state of InferenceSet
+            properties:
+              conditions:
+                description: Conditions report the current conditions of the InferenceSet.
+                items:
+                  description: "Condition contains details for one aspect of the current
+                    state of this API Resource.\n---\nThis struct is intended for
+                    direct use as an array at the field path .status.conditions.  For
+                    example,\n\n\n\ttype FooStatus struct{\n\t    // Represents the
+                    observations of a foo's current state.\n\t    // Known .status.conditions.type
+                    are: \"Available\", \"Progressing\", and \"Degraded\"\n\t    //
+                    +patchMergeKey=type\n\t    // +patchStrategy=merge\n\t    // +listType=map\n\t
+                    \   // +listMapKey=type\n\t    Conditions []metav1.Condition `json:\"conditions,omitempty\"
+                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`\n\n\n\t
+                    \   // other fields\n\t}"
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: |-
+                        type of condition in CamelCase or in foo.example.com/CamelCase.
+                        ---
+                        Many .condition.type values are consistent across resources like Available, but because arbitrary conditions can be
+                        useful (see .node.status.conditions), the ability to deconflict is important.
+                        The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              readyReplicas:
+                description: ReadyReplicas is the number of workspaces that are in
+                  ready state.
+                type: integer
+              replicas:
+                description: Replicas is the total number of workspaces created by
+                  the InferenceSet.
+                type: integer
+              selector:
+                description: |-
+                  Selector is used to select the pods that provide metrics for making scaling action decisions.
+                  This field must be set when HPA and VPA is used for scaling.
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      scale:
+        labelSelectorPath: .status.selector
+        specReplicasPath: .spec.replicas
+        statusReplicasPath: .status.replicas
+      status: {}

@@ -1,0 +1,34 @@
+# permissions for end users to edit inferencesets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: inferenceset-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: kaito
+    app.kubernetes.io/part-of: kaito
+    app.kubernetes.io/managed-by: kustomize
+  name: inferenceset-editor-role
+rules:
+- apiGroups: ["kaito.sh"]
+  resources: ["workspaces"]
+  verbs: ["update","patch","get","list","watch","create","delete"]
+- apiGroups: ["kaito.sh"]
+  resources: ["workspaces/status"]
+  verbs: ["update","patch","get","list","watch"]
+- apiGroups: ["kaito.sh"]
+  resources: ["inferencesets"]
+  verbs: ["update","patch","get","list","watch"]
+- apiGroups: ["kaito.sh"]
+  resources: ["inferencesets/status"]
+  verbs: ["update","patch","get","list","watch"]
+- apiGroups: [ "apps" ]
+  resources: ["controllerrevisions" ]
+  verbs: [ "get","list","watch","create","delete","update","patch"]
+- apiGroups: ["admissionregistration.k8s.io"]
+  resources: ["validatingwebhookconfigurations"]
+  verbs: ["get","list","watch"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create","patch","update"]

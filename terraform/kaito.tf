@@ -51,6 +51,13 @@ resource "helm_release" "kaito_workspace" {
   chart            = "https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/gh-pages/charts/kaito/workspace-${var.kaito_workspace_version}.tgz"
   namespace        = "kaito-workspace"
   create_namespace = true
+
+  set = [
+    for feature in var.kaito_workspace_features : {
+      name  = "featureGates.${feature}"
+      value = "true"
+    }
+  ]
 }
 
 # Create a secret to store the Azure Container Registry credentials for the workspace to refer to when pushing and pulling images from the registry

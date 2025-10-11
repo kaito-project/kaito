@@ -45,3 +45,9 @@ variable "kaito_ragengine_version" {
   default     = "0.7.0"
   description = "KAITO RAGEngine version"
 }
+
+variable "kaito_workspace_features" {
+  type        = list(string)
+  default     = ["gatewayAPIInferenceExtension"]
+  description = "List of KAITO workspace features to enable"
+}

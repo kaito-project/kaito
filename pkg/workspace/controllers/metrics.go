@@ -23,7 +23,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
@@ -66,7 +65,7 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 			}
 
 			for _, ws := range wsList.Items {
-				phase := determineWorkspacePhase(&ws)
+				phase := DeterminePhase(ws.Status.Conditions)
 				if _, ok := phaseCounts[phase]; !ok {
 					phaseCounts[phase] = 0
 				}
@@ -80,57 +79,14 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 	}
 }
 
-func determineWorkspacePhase(ws *kaitov1beta1.Workspace) string {
-	for _, cond := range ws.Status.Conditions {
+func DeterminePhase(conditions []metav1.Condition) string {
+	for _, cond := range conditions {
 		switch kaitov1beta1.ConditionType(cond.Type) {
 		case kaitov1beta1.WorkspaceConditionTypeDeleting:
 			if cond.Status == metav1.ConditionTrue {
 				return "deleting"
 			}
 		case kaitov1beta1.WorkspaceConditionTypeSucceeded:
-			if cond.Status == metav1.ConditionTrue {
-				return "succeeded"
-			}
-			if cond.Status == metav1.ConditionFalse {
-				return "error"
-			}
-		}
-	}
-	return "pending"
-}
-
-func monitorInferenceSets(ctx context.Context, k8sClient client.Client) {
-	ticker := time.NewTicker(1 * time.Minute)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			var isList kaitov1alpha1.InferenceSetList
-
-			if err := k8sClient.List(ctx, &isList); err != nil {
-				klog.Errorf("failed to list all inferencesets: %v", err)
-				continue
-			}
-
-			for _, is := range isList.Items {
-				phase := determineInferenceSetPhase(&is)
-				klog.InfoS("InferenceSet phase", "inferenceset", klog.KObj(&is), "phase", phase)
-			}
-		}
-	}
-}
-
-func determineInferenceSetPhase(is *kaitov1alpha1.InferenceSet) string {
-	for _, cond := range is.Status.Conditions {
-		switch kaitov1alpha1.ConditionType(cond.Type) {
-		case kaitov1alpha1.InferenceSetConditionTypeDeleting:
-			if cond.Status == metav1.ConditionTrue {
-				return "deleting"
-			}
-		case kaitov1alpha1.InferenceSetConditionTypeSucceeded:
 			if cond.Status == metav1.ConditionTrue {
 				return "succeeded"
 			}

@@ -18,12 +18,12 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 )
 
 var (
@@ -50,15 +50,35 @@ func monitorInferenceSets(ctx context.Context, k8sClient client.Client) {
 			return
 		case <-ticker.C:
 			var isList kaitov1alpha1.InferenceSetList
+
 			if err := k8sClient.List(ctx, &isList); err != nil {
 				klog.Errorf("failed to list all inferencesets: %v", err)
 				continue
 			}
 
 			for _, is := range isList.Items {
-				phase := controllers.DeterminePhase(is.Status.Conditions)
+				phase := determineInferenceSetPhase(&is)
 				klog.InfoS("InferenceSet phase", "inferenceset", klog.KObj(&is), "phase", phase)
 			}
 		}
 	}
+}
+
+func determineInferenceSetPhase(is *kaitov1alpha1.InferenceSet) string {
+	for _, cond := range is.Status.Conditions {
+		switch kaitov1alpha1.ConditionType(cond.Type) {
+		case kaitov1alpha1.InferenceSetConditionTypeDeleting:
+			if cond.Status == metav1.ConditionTrue {
+				return "deleting"
+			}
+		case kaitov1alpha1.InferenceSetConditionTypeSucceeded:
+			if cond.Status == metav1.ConditionTrue {
+				return "succeeded"
+			}
+			if cond.Status == metav1.ConditionFalse {
+				return "error"
+			}
+		}
+	}
+	return "pending"
 }

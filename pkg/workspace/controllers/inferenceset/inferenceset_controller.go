@@ -38,6 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/inferenceset"
+	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 )
 
 const (
@@ -73,13 +74,14 @@ func (c *InferenceSetReconciler) Reconcile(ctx context.Context, req reconcile.Re
 	if err := c.Client.Get(ctx, req.NamespacedName, isObj); err != nil {
 		if apierrors.IsNotFound(err) {
 			c.expectations.DeleteExpectations(c.klogger, req.String())
+			klog.InfoS("Inference set not found, might be deleted already", "inference set", req.Name)
 			return reconcile.Result{}, nil
 		}
 		klog.ErrorS(err, "failed to get inference set", "inference set", req.Name)
 		return reconcile.Result{}, err
 	}
 
-	klog.InfoS("Reconciling", "inference set", req.NamespacedName)
+	klog.InfoS("Reconciling", "inference set", req.NamespacedName, "name", req.Name)
 	if isObj.DeletionTimestamp.IsZero() {
 		if err := c.ensureFinalizer(ctx, isObj); err != nil {
 			return reconcile.Result{}, err
@@ -235,22 +237,31 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, is
 		}
 	}
 
+	// check whether all the workspaces are ready
+	readyReplicas := 0
+	for _, ws := range wsList.Items {
+		if controllers.DetermineWorkspacePhase(&ws) == "succeeded" {
+			readyReplicas++
+		}
+	}
+
 	// update the replicas in the status
 	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: isObj.Name, Namespace: isObj.Namespace}, func(status *kaitov1alpha1.InferenceSetStatus) error {
 		status.Replicas = isObj.Spec.Replicas
-		status.ReadyReplicas = isObj.Spec.Replicas
+		status.ReadyReplicas = readyReplicas
 		return nil
 	}); err != nil {
 		klog.ErrorS(err, "failed to update inferenceset replicas", "inferenceset", klog.KObj(isObj))
 		return reconcile.Result{}, err
 	}
 
-	if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, isObj, kaitov1alpha1.InferenceSetConditionTypeSucceeded, metav1.ConditionTrue,
-		"inferencesetSucceeded", "inferenceset succeeds"); err != nil {
-		klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(isObj))
-		return reconcile.Result{}, err
+	if readyReplicas == isObj.Spec.Replicas {
+		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, isObj, kaitov1alpha1.InferenceSetConditionTypeSucceeded, metav1.ConditionTrue,
+			"inferencesetSucceeded", "inferenceset succeeds"); err != nil {
+			klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(isObj))
+			return reconcile.Result{}, err
+		}
 	}
-
 	return reconcile.Result{}, nil
 }
 

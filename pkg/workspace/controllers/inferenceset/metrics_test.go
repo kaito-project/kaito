@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controllers
+package inferenceset
 
 import (
 	"testing"
@@ -19,22 +19,22 @@ import (
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 )
 
-func TestDetermineWorkspacePhase(t *testing.T) {
+func TestDetermineInferenceSetPhase(t *testing.T) {
 	tests := []struct {
 		name     string
-		ws       *kaitov1beta1.Workspace
+		is       *kaitov1alpha1.InferenceSet
 		expected string
 	}{
 		{
-			name: "workspace is deleting",
-			ws: &kaitov1beta1.Workspace{
-				Status: kaitov1beta1.WorkspaceStatus{
+			name: "inferenceset is deleting",
+			is: &kaitov1alpha1.InferenceSet{
+				Status: kaitov1alpha1.InferenceSetStatus{
 					Conditions: []metav1.Condition{
 						{
-							Type:   string(kaitov1beta1.WorkspaceConditionTypeDeleting),
+							Type:   string(kaitov1alpha1.InferenceSetConditionTypeDeleting),
 							Status: metav1.ConditionTrue,
 						},
 					},
@@ -43,12 +43,12 @@ func TestDetermineWorkspacePhase(t *testing.T) {
 			expected: "deleting",
 		},
 		{
-			name: "workspace succeeded",
-			ws: &kaitov1beta1.Workspace{
-				Status: kaitov1beta1.WorkspaceStatus{
+			name: "inferenceset succeeded",
+			is: &kaitov1alpha1.InferenceSet{
+				Status: kaitov1alpha1.InferenceSetStatus{
 					Conditions: []metav1.Condition{
 						{
-							Type:   string(kaitov1beta1.WorkspaceConditionTypeSucceeded),
+							Type:   string(kaitov1alpha1.InferenceSetConditionTypeSucceeded),
 							Status: metav1.ConditionTrue,
 						},
 					},
@@ -57,12 +57,12 @@ func TestDetermineWorkspacePhase(t *testing.T) {
 			expected: "succeeded",
 		},
 		{
-			name: "workspace error",
-			ws: &kaitov1beta1.Workspace{
-				Status: kaitov1beta1.WorkspaceStatus{
+			name: "inferenceset error",
+			is: &kaitov1alpha1.InferenceSet{
+				Status: kaitov1alpha1.InferenceSetStatus{
 					Conditions: []metav1.Condition{
 						{
-							Type:   string(kaitov1beta1.WorkspaceConditionTypeSucceeded),
+							Type:   string(kaitov1alpha1.InferenceSetConditionTypeSucceeded),
 							Status: metav1.ConditionFalse,
 						},
 					},
@@ -71,18 +71,18 @@ func TestDetermineWorkspacePhase(t *testing.T) {
 			expected: "error",
 		},
 		{
-			name: "workspace pending with no conditions",
-			ws: &kaitov1beta1.Workspace{
-				Status: kaitov1beta1.WorkspaceStatus{
+			name: "inferenceset pending with no conditions",
+			is: &kaitov1alpha1.InferenceSet{
+				Status: kaitov1alpha1.InferenceSetStatus{
 					Conditions: []metav1.Condition{},
 				},
 			},
 			expected: "pending",
 		},
 		{
-			name: "workspace pending with unknown condition",
-			ws: &kaitov1beta1.Workspace{
-				Status: kaitov1beta1.WorkspaceStatus{
+			name: "inferenceset pending with unknown condition",
+			is: &kaitov1alpha1.InferenceSet{
+				Status: kaitov1alpha1.InferenceSetStatus{
 					Conditions: []metav1.Condition{
 						{
 							Type:   "UnknownCondition",
@@ -95,15 +95,15 @@ func TestDetermineWorkspacePhase(t *testing.T) {
 		},
 		{
 			name: "deleting takes precedence over succeeded",
-			ws: &kaitov1beta1.Workspace{
-				Status: kaitov1beta1.WorkspaceStatus{
+			is: &kaitov1alpha1.InferenceSet{
+				Status: kaitov1alpha1.InferenceSetStatus{
 					Conditions: []metav1.Condition{
 						{
-							Type:   string(kaitov1beta1.WorkspaceConditionTypeDeleting),
+							Type:   string(kaitov1alpha1.InferenceSetConditionTypeDeleting),
 							Status: metav1.ConditionTrue,
 						},
 						{
-							Type:   string(kaitov1beta1.WorkspaceConditionTypeSucceeded),
+							Type:   string(kaitov1alpha1.InferenceSetConditionTypeSucceeded),
 							Status: metav1.ConditionTrue,
 						},
 					},
@@ -115,7 +115,7 @@ func TestDetermineWorkspacePhase(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := DetermineWorkspacePhase(tt.ws)
+			result := determineInferenceSetPhase(tt.is)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

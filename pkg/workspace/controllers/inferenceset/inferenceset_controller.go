@@ -204,9 +204,12 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, is
 		createWorkspace := false
 		workspaceName := isObj.Name + "-" + strconv.Itoa(i)
 		workspaceObj := inferenceset.GetWorkspace(workspaceName, wsList)
+		var workspaceHash string
 		if workspaceObj == nil {
 			workspaceObj = &kaitov1beta1.Workspace{}
 			createWorkspace = true
+		} else {
+			workspaceHash = controllers.ComputeHash(workspaceObj)
 		}
 
 		workspaceObj.Namespace = isObj.Namespace
@@ -229,6 +232,12 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, is
 				return reconcile.Result{}, err
 			}
 		} else {
+			// check whether the workspace needs to be updated
+			if controllers.ComputeHash(workspaceObj) == workspaceHash {
+				klog.InfoS("workspace is up to date", "workspace", workspaceObj.Name, "index", i)
+				continue
+			}
+
 			klog.InfoS("updating workspace", "workspace", workspaceObj.Name, "index", i)
 			if err := c.Client.Update(ctx, workspaceObj); err != nil {
 				klog.ErrorS(err, "failed to update workspace", "workspace", workspaceObj.Name)
@@ -291,7 +300,6 @@ func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, isO
 
 	if len(revisions.Items) > 0 {
 		latestRevision = &revisions.Items[len(revisions.Items)-1]
-
 		revisionNum = latestRevision.Revision + 1
 	}
 	newRevision := &appsv1.ControllerRevision{

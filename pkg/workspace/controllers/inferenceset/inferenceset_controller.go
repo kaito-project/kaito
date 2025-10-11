@@ -159,6 +159,12 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, is
 		return reconcile.Result{}, nil
 	}
 
+	isKey := client.ObjectKeyFromObject(isObj).String()
+	if !c.expectations.SatisfiedExpectations(c.Log, isKey) {
+		klog.V(4).InfoS("Waiting for expectations to be satisfied", "inferenceset", isKey)
+		return reconcile.Result{}, nil
+	}
+
 	// Check if there are any existing workspaces associated with this inferenceset.
 	wsList, err := inferenceset.ListWorkspaces(ctx, isObj, c.Client)
 	if err != nil {

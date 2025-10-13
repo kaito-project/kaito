@@ -12,8 +12,6 @@
 # limitations under the License.
 
 
-from typing import Any
-
 from ragengine.models import Document, ListDocumentsResponse
 from ragengine.vector_store.base import BaseVectorStore
 

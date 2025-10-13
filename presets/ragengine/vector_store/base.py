@@ -720,8 +720,10 @@ class BaseVectorStore(ABC):
         )
 
         # Return list of valid documents
-        docs=[doc for doc in docs if isinstance(doc, dict)]
-        return ListDocumentsResponse(documents=docs, count=len(docs), total_items=total_count)
+        docs = [doc for doc in docs if isinstance(doc, dict)]
+        return ListDocumentsResponse(
+            documents=docs, count=len(docs), total_items=total_count
+        )
 
     async def delete_index(self, index_name: str):
         """Common logic for deleting an index."""

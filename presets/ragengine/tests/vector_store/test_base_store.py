@@ -582,7 +582,9 @@ func main() {}"""
         truncated_result = await vector_store_manager.list_documents_in_index(
             index_name, limit=1, offset=0, max_text_length=5
         )
-        assert len(next(iter(truncated_result.documents)).text) == 5  # Ensure truncation
+        assert (
+            len(next(iter(truncated_result.documents)).text) == 5
+        )  # Ensure truncation
 
         # 8. max_text_length is None (Full text should return)
         full_text_result = await vector_store_manager.list_documents_in_index(
@@ -619,14 +621,18 @@ func main() {}"""
             index_name, limit=5, offset=0, metadata_filter={"branch": "main"}
         )
         assert len(first_five_results.documents) == 5
-        assert all(doc.metadata["branch"] == "main" for doc in first_five_results.documents)
+        assert all(
+            doc.metadata["branch"] == "main" for doc in first_five_results.documents
+        )
         assert first_five_results.total_items == 10
 
         second_five_results = await vector_store_manager.list_documents_in_index(
             index_name, limit=5, offset=5, metadata_filter={"branch": "main"}
         )
         assert len(second_five_results.documents) == 5
-        assert all(doc.metadata["branch"] == "main" for doc in second_five_results.documents)
+        assert all(
+            doc.metadata["branch"] == "main" for doc in second_five_results.documents
+        )
         assert first_five_results != second_five_results
         assert second_five_results.total_items == 10
 
@@ -655,7 +661,11 @@ func main() {}"""
         new_branch_docs = [
             Document(
                 text=f"New Document {i}",
-                metadata={"type": "text", "filename": f"file_{i}", "branch": "new_branch"},
+                metadata={
+                    "type": "text",
+                    "filename": f"file_{i}",
+                    "branch": "new_branch",
+                },
             )
             for i in range(7)
         ]
@@ -672,7 +682,6 @@ func main() {}"""
         assert len(result.documents) == 1
         assert result.total_items == 7
         assert result.documents[0].metadata["branch"] == "new_branch"
-
 
     @pytest.mark.asyncio
     async def test_persist_and_load_as_seperate_index(self, vector_store_manager):

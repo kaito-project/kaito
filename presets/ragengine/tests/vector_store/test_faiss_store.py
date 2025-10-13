@@ -34,8 +34,24 @@ class TestFaissVectorStore(BaseVectorStoreTest):
 
     @pytest.mark.asyncio
     async def check_indexed_documents(self, vector_store_manager):
-        expected_output_1 = [Document(doc_id="", text="First document in index1", metadata={"type": "text"}, hash_value="1e64a170be48c45efeaa8667ab35919106da0489ec99a11d0029f2842db133aa", is_truncated=False)]
-        expected_output_2 = [Document(doc_id="", text="First document in index2", metadata={"type": "text"}, hash_value="a222f875b83ce8b6eb72b3cae278b620de9bcc7c6b73222424d3ce979d1a463b", is_truncated=False)]
+        expected_output_1 = [
+            Document(
+                doc_id="",
+                text="First document in index1",
+                metadata={"type": "text"},
+                hash_value="1e64a170be48c45efeaa8667ab35919106da0489ec99a11d0029f2842db133aa",
+                is_truncated=False,
+            )
+        ]
+        expected_output_2 = [
+            Document(
+                doc_id="",
+                text="First document in index2",
+                metadata={"type": "text"},
+                hash_value="a222f875b83ce8b6eb72b3cae278b620de9bcc7c6b73222424d3ce979d1a463b",
+                is_truncated=False,
+            )
+        ]
 
         for index, expected_output in zip(
             ["index1", "index2"], [expected_output_1, expected_output_2], strict=False
@@ -45,10 +61,10 @@ class TestFaissVectorStore(BaseVectorStoreTest):
             )
 
             assert all(
-                resp_doc.text == expected_doc.text and
-                    resp_doc.hash_value == expected_doc.hash_value and
-                    resp_doc.metadata == expected_doc.metadata
-                  for resp_doc, expected_doc in zip(resp.documents, expected_output)
+                resp_doc.text == expected_doc.text
+                and resp_doc.hash_value == expected_doc.hash_value
+                and resp_doc.metadata == expected_doc.metadata
+                for resp_doc, expected_doc in zip(resp.documents, expected_output)
             )
 
     @property

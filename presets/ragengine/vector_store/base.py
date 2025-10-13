@@ -694,6 +694,24 @@ class BaseVectorStore(ABC):
         """
         Return a dictionary of document metadata for the given index.
         """
+        if self.use_rwlock:
+            async with self.rwlock.reader_lock:
+                return await self._list_documents_in_index(
+                    index_name, limit, offset, max_text_length, metadata_filter
+                )
+
+        return await self._list_documents_in_index(
+            index_name, limit, offset, max_text_length, metadata_filter
+        )
+
+    async def _list_documents_in_index(
+        self,
+        index_name: str,
+        limit: int,
+        offset: int,
+        max_text_length: int | None = None,
+        metadata_filter: dict[str, Any] | None = None,
+    ) -> ListDocumentsResponse:
         vector_store_index = self.index_map.get(index_name)
         if not vector_store_index:
             raise HTTPException(
@@ -744,13 +762,17 @@ class BaseVectorStore(ABC):
         """
         Filter documents based on metadata.
         """
+        total_count = 0
+        curr_index = 0
         filtered_docs = []
         for doc_id, doc_stub in doc_items:
             doc_metadata = getattr(doc_stub, "metadata", {})
             if all(doc_metadata.get(k) == v for k, v in metadata_filter.items()):
-                filtered_docs.append((doc_id, doc_stub))
-        total_count = len(filtered_docs)
-        return islice(filtered_docs, offset, offset + limit), total_count
+                total_count += 1
+                if curr_index >= offset and len(filtered_docs) < limit:
+                    filtered_docs.append((doc_id, doc_stub))
+                curr_index += 1
+        return filtered_docs, total_count
 
     async def document_exists(
         self, index_name: str, doc: Document, doc_id: str

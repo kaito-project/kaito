@@ -514,7 +514,7 @@ func (r *ResourceSpec) validateBYONodeSelection(presetName string) (errs *apis.F
 	}
 
 	// Step 4: Calculate total GPU memory per node
-	referenceGPUMemoryBytes := referenceGPUMemoryInt * 1024 * 1024 // Note: nvidia.com/gpu.memory is in MiB not GiB
+	referenceGPUMemoryBytes := referenceGPUMemoryInt * consts.MiBToBytes // Note: nvidia.com/gpu.memory is in MiB not GiB
 	totalGPUMemoryPerNode := referenceGPUCountPerNode * referenceGPUMemoryBytes
 
 	// Step 5: Get preset requirements and check resource availability

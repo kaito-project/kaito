@@ -30,8 +30,9 @@ const (
 var (
 	baseCommandPresetGemma3Inference = "accelerate launch"
 	gemma3RunParams                  = map[string]string{
-		"torch_dtype": "auto",
-		"pipeline":    "text-generation",
+		"torch_dtype":        "auto",
+		"pipeline":           "text-generation",
+		"allow_remote_files": "",
 	}
 	gemma3RunParamsVLLM = map[string]string{
 		"dtype": "bfloat16",

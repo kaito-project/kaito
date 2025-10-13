@@ -749,7 +749,7 @@ class BaseVectorStore(ABC):
             doc_metadata = getattr(doc_stub, "metadata", {})
             if all(doc_metadata.get(k) == v for k, v in metadata_filter.items()):
                 filtered_docs.append((doc_id, doc_stub))
-            total_count = len(filtered_docs)
+        total_count = len(filtered_docs)
         return islice(filtered_docs, offset, offset + limit), total_count
 
     async def document_exists(

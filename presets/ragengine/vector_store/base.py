@@ -46,6 +46,7 @@ from ragengine.inference.inference import Inference
 from ragengine.models import (
     ChatCompletionResponse,
     Document,
+    ListDocumentsResponse,
     input_messages_to_llamaindex_messages,
 )
 from ragengine.vector_store.node_processors.contex_selection_node_processor import (
@@ -689,7 +690,7 @@ class BaseVectorStore(ABC):
         offset: int,
         max_text_length: int | None = None,
         metadata_filter: dict[str, Any] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> ListDocumentsResponse:
         """
         Return a dictionary of document metadata for the given index.
         """
@@ -701,8 +702,9 @@ class BaseVectorStore(ABC):
 
         doc_store = vector_store_index.docstore
         doc_store_items = doc_store.docs.items()
+        total_count = len(doc_store_items)
         if metadata_filter is not None:
-            docs_items = await self._filter_documents(
+            docs_items, total_count = await self._filter_documents(
                 doc_store_items, metadata_filter, offset, limit
             )
         else:
@@ -718,7 +720,8 @@ class BaseVectorStore(ABC):
         )
 
         # Return list of valid documents
-        return [doc for doc in docs if isinstance(doc, dict)]
+        docs=[doc for doc in docs if isinstance(doc, dict)]
+        return ListDocumentsResponse(documents=docs, count=len(docs), total_items=total_count)
 
     async def delete_index(self, index_name: str):
         """Common logic for deleting an index."""
@@ -744,7 +747,8 @@ class BaseVectorStore(ABC):
             doc_metadata = getattr(doc_stub, "metadata", {})
             if all(doc_metadata.get(k) == v for k, v in metadata_filter.items()):
                 filtered_docs.append((doc_id, doc_stub))
-        return islice(filtered_docs, offset, offset + limit)
+            total_count = len(filtered_docs)
+        return islice(filtered_docs, offset, offset + limit), total_count
 
     async def document_exists(
         self, index_name: str, doc: Document, doc_id: str

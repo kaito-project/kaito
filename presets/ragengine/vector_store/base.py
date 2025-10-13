@@ -763,15 +763,13 @@ class BaseVectorStore(ABC):
         Filter documents based on metadata.
         """
         total_count = 0
-        curr_index = 0
         filtered_docs = []
         for doc_id, doc_stub in doc_items:
             doc_metadata = getattr(doc_stub, "metadata", {})
             if all(doc_metadata.get(k) == v for k, v in metadata_filter.items()):
-                total_count += 1
-                if curr_index >= offset and len(filtered_docs) < limit:
+                if total_count >= offset and len(filtered_docs) < limit:
                     filtered_docs.append((doc_id, doc_stub))
-                curr_index += 1
+                total_count += 1
         return filtered_docs, total_count
 
     async def document_exists(

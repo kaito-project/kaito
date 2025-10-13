@@ -60,7 +60,8 @@ func (*gemma3_4BInstruct) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement:  "60Gi",
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "8.6Gi",
-		BytesPerToken:           348160, // TODO: max_token check
+		BytesPerToken:           348160,
+		ModelTokenLimit:         131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetGemma3Inference,
@@ -99,6 +100,7 @@ func (*gemma3_27BInstruct) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "54.8Gi",
 		BytesPerToken:           666624,
+		ModelTokenLimit:         131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetGemma3Inference,

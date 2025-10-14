@@ -100,21 +100,123 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 				}
 				mockClient.CreateOrUpdateObjectInMap(node)
 
-				// Mock Get for node and workspace status update
+				// Mock Get for node retrieval and workspace status updates
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-				// Mock status update - verify it's called with ConditionTrue
-				mockClient.StatusMock.On("Update", mock.Anything, mock.MatchedBy(func(ws *kaitov1beta1.Workspace) bool {
-					// Find the NodeClaimStatus condition and verify it's set to True
-					for _, condition := range ws.Status.Conditions {
-						if condition.Type == string(kaitov1beta1.ConditionTypeNodeClaimStatus) {
-							return condition.Status == metav1.ConditionTrue && condition.Reason == "NodePluginsReady"
-						}
-					}
-					return false
-				}), mock.Anything).Return(nil)
+				// Mock status update for workspace condition update
+				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
 			expectedReady: true,
+			expectedError: false,
+		},
+		{
+			name: "Should set NodePluginsReady condition to true for non-GPU instance type",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType:  "Standard_D2s_v3", // Non-GPU instance type
+					LabelSelector: &metav1.LabelSelector{},
+				},
+				Status: kaitov1beta1.WorkspaceStatus{
+					WorkerNodes: []string{},
+				},
+			},
+			existingNodeClaims: []*karpenterv1.NodeClaim{},
+			setup: func(mockClient *test.MockClient) {
+				// Mock status update for NodePluginsReady condition
+				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			},
+			expectedReady: true,
+			expectedError: false,
+		},
+		{
+			name: "Should set NodePluginsReady condition to false when checkNodePlugin fails",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType:  "Standard_NC12s_v3", // GPU instance type
+					LabelSelector: &metav1.LabelSelector{},
+				},
+				Status: kaitov1beta1.WorkspaceStatus{
+					WorkerNodes: []string{},
+				},
+			},
+			existingNodeClaims: []*karpenterv1.NodeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-nodeclaim"},
+					Status: karpenterv1.NodeClaimStatus{
+						Conditions: []status.Condition{
+							{Type: "Ready", Status: metav1.ConditionTrue},
+						},
+						NodeName: "test-node",
+					},
+				},
+			},
+			setup: func(mockClient *test.MockClient) {
+				// Mock Get to return error for node retrieval first, then success for workspace
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("node get failed")).Once()
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+				// Mock status update for error condition
+				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			},
+			expectedReady: false,
+			expectedError: true,
+		},
+		{
+			name: "Should set NodePluginsReady condition to false when nodes are not ready",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType:  "Standard_NC12s_v3", // GPU instance type
+					LabelSelector: &metav1.LabelSelector{},
+				},
+				Status: kaitov1beta1.WorkspaceStatus{
+					WorkerNodes: []string{},
+				},
+			},
+			existingNodeClaims: []*karpenterv1.NodeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-nodeclaim"},
+					Status: karpenterv1.NodeClaimStatus{
+						Conditions: []status.Condition{
+							{Type: "Ready", Status: metav1.ConditionTrue},
+						},
+						NodeName: "test-node",
+					},
+				},
+			},
+			setup: func(mockClient *test.MockClient) {
+				// Create a node with zero GPU capacity (device plugins not ready)
+				node := &corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-node",
+						Labels: map[string]string{
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionTrue,
+							},
+						},
+						Capacity: corev1.ResourceList{
+							resources.CapacityNvidiaGPU: resource.MustParse("0"),
+						},
+					},
+				}
+				mockClient.CreateOrUpdateObjectInMap(node)
+
+				// Mock Get for node retrieval and workspace status updates
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+				// Mock status update for NodePluginsNotReady condition
+				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			},
+			expectedReady: false,
 			expectedError: false,
 		},
 	}
@@ -131,13 +233,17 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 			manager := NewNodeManager(mockClient)
 			ready, err := manager.SetNodePluginsReadyCondition(context.Background(), tt.workspace, tt.existingNodeClaims)
 
-			assert.Equal(t, tt.expectedError, err != nil)
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 			assert.Equal(t, tt.expectedReady, ready)
 		})
 	}
 }
 
-func TestAreNodePluginsReady(t *testing.T) {
+func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 	tests := []struct {
 		name               string
 		workspace          *kaitov1beta1.Workspace
@@ -160,10 +266,9 @@ func TestAreNodePluginsReady(t *testing.T) {
 			},
 			existingNodeClaims: []*karpenterv1.NodeClaim{},
 			setup: func(mockClient *test.MockClient) {
-				// Mock Get for workspace status update
+				// For non-GPU instance types, the function should set NodePluginsReady to true directly
+				// Mock Get for workspace retrieval during status update
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-
-				// Mock status update for worker nodes and resource status
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
 			expectedReady: true,

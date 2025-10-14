@@ -445,6 +445,119 @@ func TestCreateNodeClaims(t *testing.T) {
 	}
 }
 
+func TestSetNodeClaimsReadyCondition_SetsToTrue(t *testing.T) {
+	// Helper function to create NodeClaim with ready condition
+	createNodeClaim := func(name string, isReady bool, isDeleting bool) *karpenterv1.NodeClaim {
+		nodeClaim := &karpenterv1.NodeClaim{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: name,
+			},
+			Status: karpenterv1.NodeClaimStatus{
+				NodeName: "test-node-" + name,
+			},
+		}
+
+		if isDeleting {
+			now := metav1.Now()
+			nodeClaim.DeletionTimestamp = &now
+		}
+
+		if isReady {
+			nodeClaim.Status.Conditions = []status.Condition{
+				{
+					Type:   "Ready",
+					Status: metav1.ConditionTrue,
+				},
+			}
+		} else {
+			nodeClaim.Status.Conditions = []status.Condition{
+				{
+					Type:   "Ready",
+					Status: metav1.ConditionFalse,
+				},
+			}
+		}
+
+		return nodeClaim
+	}
+
+	// Define test cases specifically for verifying condition is set to True
+	testCases := []struct {
+		name               string
+		workspace          *kaitov1beta1.Workspace
+		existingNodeClaims []*karpenterv1.NodeClaim
+		setupMocks         func(*test.MockClient)
+		expectedReady      bool
+		expectedError      string
+	}{
+		{
+			name: "Should set NodeClaimsReady condition to true when enough ready node claims",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Status: kaitov1beta1.WorkspaceStatus{
+					TargetNodeCount: 2,
+				},
+			},
+			existingNodeClaims: []*karpenterv1.NodeClaim{
+				createNodeClaim("nodeclaim-1", true, false),
+				createNodeClaim("nodeclaim-2", true, false),
+			},
+			setupMocks: func(mockClient *test.MockClient) {
+				// Mock workspace Get and Status update calls
+				setupWorkspaceStatusMock(mockClient, &kaitov1beta1.Workspace{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+					Status:     kaitov1beta1.WorkspaceStatus{TargetNodeCount: 2},
+				}, nil)
+
+				// Specifically verify the condition is set to True with correct reason
+				mockClient.StatusMock.On("Update", mock.Anything, mock.MatchedBy(func(ws *kaitov1beta1.Workspace) bool {
+					// Find the NodeClaimStatus condition and verify it's set to True
+					for _, condition := range ws.Status.Conditions {
+						if condition.Type == string(kaitov1beta1.ConditionTypeNodeClaimStatus) {
+							return condition.Status == metav1.ConditionTrue && condition.Reason == "NodeClaimsReady"
+						}
+					}
+					return false
+				}), mock.Anything).Return(nil).Maybe()
+			},
+			expectedReady: true,
+			expectedError: "",
+		},
+	}
+
+	// Run all test cases using a for loop
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Set up mocks
+			mockClient := test.NewClient()
+			mockRecorder := record.NewFakeRecorder(100)
+			expectations := utils.NewControllerExpectations()
+			manager := NewNodeClaimManager(mockClient, mockRecorder, expectations)
+
+			// Set up test-specific mocks
+			if tc.setupMocks != nil {
+				tc.setupMocks(mockClient)
+			}
+
+			// Execute the function under test
+			ready, err := manager.SetNodeClaimsReadyCondition(context.Background(), tc.workspace, tc.existingNodeClaims)
+
+			// Assertions
+			assert.Equal(t, tc.expectedReady, ready, "Ready state mismatch")
+
+			if tc.expectedError != "" {
+				assert.Error(t, err, "Expected error but got none")
+				assert.Contains(t, err.Error(), tc.expectedError, "Error message mismatch")
+			} else {
+				assert.NoError(t, err, "Expected no error but got: %v", err)
+			}
+
+			// Verify mock expectations
+			mockClient.AssertExpectations(t)
+		})
+	}
+}
+
 func TestAreNodeClaimsReady(t *testing.T) {
 	// Helper function to create NodeClaim with ready condition
 	createNodeClaim := func(name string, isReady bool, isDeleting bool) *karpenterv1.NodeClaim {

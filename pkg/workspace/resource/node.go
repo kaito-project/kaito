@@ -49,20 +49,27 @@ func (c *NodeManager) SetNodePluginsReadyCondition(ctx context.Context, wObj *ka
 	if knownGPUConfig != nil {
 		if areReady, err := c.checkNodePlugin(ctx, wObj, existingNodeClaims); err != nil {
 			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodePluginStatus, metav1.ConditionFalse,
-				"nodePluginIsNotReady", err.Error()); updateErr != nil {
+				"NodePluginsNotReady", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return false, updateErr
 			}
 			return false, err
 		} else if !areReady {
 			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodePluginStatus, metav1.ConditionFalse,
-				"nodePluginIsNotReady", "waiting all node plugins to be ready"); updateErr != nil {
+				"NodePluginsNotReady", "waiting all node plugins to be ready"); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return false, updateErr
 			}
 			return false, nil
 		}
 	}
+
+	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
+		"NodePluginsReady", fmt.Sprintf("All Node Plugins are ready for %d Node Claims", len(existingNodeClaims))); updateErr != nil {
+		klog.ErrorS(updateErr, "failed to update NodePlugin status condition NodePluginsReady to true", "workspace", klog.KObj(wObj))
+		return false, fmt.Errorf("failed to update NodePlugin status condition(NodePluginsReady): %w", updateErr)
+	}
+
 	return true, nil
 }
 
@@ -72,6 +79,7 @@ func (c *NodeManager) checkNodePlugin(ctx context.Context, wObj *kaitov1beta1.Wo
 	if err != nil {
 		return false, fmt.Errorf("failed to get ready nodes from nodeClaims: %w", err)
 	} else if len(nodes) != len(existingNodeClaims) {
+		klog.Infof("node plugins not ready, # nodes (%d) is not equal to # nodeClaims (%d) for workspace %s/%s", len(nodes), len(existingNodeClaims), wObj.Namespace, wObj.Name)
 		return false, nil
 	}
 
@@ -90,13 +98,17 @@ func (c *NodeManager) checkNodePlugin(ctx context.Context, wObj *kaitov1beta1.Wo
 
 		gpuCapacity := node.Status.Capacity[resources.CapacityNvidiaGPU]
 		if gpuCapacity.IsZero() {
+			klog.Infof("node plugins not ready, %s does not have GPU capacity for workspace %s/%s", node.Name, wObj.Namespace, wObj.Name)
 			return false, nil
 		}
 
 		if node.Labels[corev1.LabelInstanceTypeStable] != wObj.Resource.InstanceType {
+			klog.Infof("node plugins not ready, %s instance type label %s does not match workspace instance type %s", node.Name, node.Labels[corev1.LabelInstanceTypeStable], wObj.Resource.InstanceType)
 			return false, nil
 		}
 	}
+
+	klog.Infof("all node plugins are ready for workspace %s/%s", wObj.Namespace, wObj.Name)
 
 	return true, nil
 }

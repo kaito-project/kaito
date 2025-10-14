@@ -101,7 +101,6 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 				mockClient.CreateOrUpdateObjectInMap(node)
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-
 				// Create workspace object in the mock object map for Get calls
 				workspace := &kaitov1beta1.Workspace{
 					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
@@ -228,7 +227,6 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 				}
 				mockClient.CreateOrUpdateObjectInMap(node)
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-
 
 				// Create workspace object in the mock object map for Get calls
 				workspace := &kaitov1beta1.Workspace{

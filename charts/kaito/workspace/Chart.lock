@@ -2,11 +2,8 @@ dependencies:
 - name: flux2
   repository: https://fluxcd-community.github.io/helm-charts
   version: 2.16.3
-- name: nvidia-device-plugin
-  repository: https://nvidia.github.io/k8s-device-plugin
-  version: 0.17.4
 - name: gpu-feature-discovery
   repository: https://nvidia.github.io/k8s-device-plugin
   version: 0.17.4
-digest: sha256:0f69b16d71043859ba2d36f3ec03bf5be77663fac037f7a66d3c40e6056f4927
-generated: "2025-10-09T18:00:54.70648-04:00"
+digest: sha256:2c0be9a5d9530162e8987a1f5fcf50e871e8d4c61acffec71606499c11b5e49c
+generated: "2025-10-14T15:00:24.44897663-04:00"

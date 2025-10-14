@@ -39,8 +39,6 @@ affinity: {}
 # Values can be "azure" or "aws" or "arc"
 cloudProviderName: "azure"
 clusterName: "kaito"
-nvidiaDevicePlugin:
-  enabled: true
 # Set values for the Flux controller to only install the Helm controller
 flux2:
   helmController:
@@ -55,9 +53,6 @@ flux2:
     create: false
   notificationController:
     create: false
-nvidia-device-plugin:
-  devicePlugin:
-    enabled: true
 gpu-feature-discovery:
   devicePlugin:
     enabled: false

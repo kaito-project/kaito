@@ -65,12 +65,12 @@ class StaticDataSourceHandler(DataSourceHandler):
         self.credentials = credentials or {}
         
         if not self.config.get("autoindexer_name"):
-            raise DataSourceError("Static data source configuration missin 'autoindexer_name' value")
+            raise DataSourceError("Static data source configuration missing 'autoindexer_name' value")
 
-        self.autoindexer_name = self.config("autoindexer_name")
+        self.autoindexer_name = self.config.get("autoindexer_name")
 
         # Validate required configuration
-        if not self.config.get("static"):
+        if "static" not in self.config:
             raise DataSourceError("Static data source configuration is missing 'static' section")
         
         self.static_config = self.config["static"]
@@ -132,22 +132,15 @@ class StaticDataSourceHandler(DataSourceHandler):
                     except Exception as e:
                         logger.error(f"Failed to fetch content from {url}: {e}")
                         raise DataSourceError(f"Failed to fetch content from {url}: {e}")
-                    
-                    if len(documents) > 0:
-                        logger.info(f"Batch indexing {len(documents)} documents into index '{index_name}'")
-                        response = rag_client.index_documents(index_name=index_name, documents=documents)
-                        logger.info(f"Indexing response: {response}")
-                        documents = []
+                        
+                # Index any remaining documents after processing all URLs
+                if len(documents) > 0:
+                    logger.info(f"Final batch indexing {len(documents)} documents into index '{index_name}'")
+                    response = rag_client.index_documents(index_name=index_name, documents=documents)
+                    logger.info(f"Indexing response: {response}")
             else:
                 logger.warning("No 'urls' found in static data source configuration")
-
-            if not documents:
-                logger.warning("No documents fetched from static data source")
                 return ["No documents fetched from static data source"]
-            
-            logger.info(f"Indexing {len(documents)} documents into index '{index_name}'")
-            response = rag_client.index_documents(index_name=index_name, documents=documents)
-            logger.info(f"Indexing response: {response}")
             
         except DataSourceError as e:
             error_msg = f"Data source error: {e}"
@@ -618,5 +611,5 @@ class StaticDataSourceHandler(DataSourceHandler):
 
     def _get_current_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
-        from datetime import datetime
-        return datetime.utcnow().isoformat() + 'Z'
+        from datetime import UTC, datetime
+        return datetime.now(UTC).isoformat().replace('+00:00', 'Z')

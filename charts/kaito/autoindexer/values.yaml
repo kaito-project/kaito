@@ -5,7 +5,7 @@ replicaCount: 1
 image:
   repository: brfoletest.azurecr.io/autoindexer
   pullPolicy: IfNotPresent
-  tag: 0.6.0
+  tag: 0.7.0
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -31,4 +31,4 @@ affinity: {}
 presetAutoIndexerRegistryName: "brfoletest.azurecr.io"
 presetAutoIndexerImageName: "autoindexer-service"
 presetAutoIndexerImageTag: v0.0.1
-clusterName: autoindexer-test
+clusterName: kaito-dogfood

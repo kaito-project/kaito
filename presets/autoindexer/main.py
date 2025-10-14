@@ -57,6 +57,13 @@ class AutoIndexerService:
         self.autoindexer_name = self._get_required_env("AUTOINDEXER_NAME")
         self.namespace = self._get_required_env("NAMESPACE")
         
+        # Initialize configuration attributes with defaults
+        self.index_name = None
+        self.ragengine_endpoint = None
+        self.datasource_type = None
+        self.datasource_config = None
+        self.credentials_config = None
+        
         # Initialize Kubernetes client for CRD interaction
         self.k8s_client = None
         try:
@@ -74,7 +81,9 @@ class AutoIndexerService:
             logger.info("Continuing without Kubernetes integration")
             raise
 
-        # Initialize RAG client
+        # Initialize RAG client (after CRD config is applied)
+        if not self.ragengine_endpoint:
+            raise ValueError("RAG engine endpoint must be configured via CRD or environment variables")
         self.rag_client = KAITORAGClient(self.ragengine_endpoint)
         
         # Initialize data source handler
@@ -201,6 +210,8 @@ class AutoIndexerService:
             response = self.rag_client.list_documents(self.index_name, metadata_filter={"autoindexer_name": self.autoindexer_name}, limit=1, offset=0)
             index_document_count = response.get("total", 0)
 
+            duration = int(time.time() - start_time)
+            
             if not errors:
                 logger.info("Document indexing completed successfully")
                 self._update_indexing_completion(True, duration, index_document_count)
@@ -209,7 +220,6 @@ class AutoIndexerService:
             else:
                 logger.warning(f"Errors occurred while fetching documents: {errors}")
                 logger.error("Document indexing failed")
-                duration = int(time.time() - start_time)
                 self._update_indexing_completion(False, duration, 0)
                 self._update_status_condition("AutoIndexerError", "True", "IndexingFailed", "Document indexing failed")
                 return False

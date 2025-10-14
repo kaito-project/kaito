@@ -108,6 +108,7 @@ class AutoIndexerK8sClient:
                 name=name
             )
             logger.debug(f"Retrieved AutoIndexer {namespace}/{name}")
+            logger.info(f"AutoIndexer details: {response}")
             return response
             
         except ApiException as e:

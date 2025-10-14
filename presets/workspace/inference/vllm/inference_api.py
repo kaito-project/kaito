@@ -168,7 +168,11 @@ def load_lora_adapters(adapters_dir: str) -> Union[List[LoRARequest], None]:
     for adapter in os.listdir(adapters_dir):
         adapter_path = os.path.join(adapters_dir, adapter)
         if os.path.isdir(adapter_path):
-            lora_list.append(LoRARequest(lora_name=adapter, lora_path=adapter_path, lora_int_id=lora_int_id))
+            lora_list.append(
+                LoRARequest(
+                    lora_name=adapter, lora_path=adapter_path, lora_int_id=lora_int_id
+                )
+            )
             lora_int_id += 1
 
     return lora_list

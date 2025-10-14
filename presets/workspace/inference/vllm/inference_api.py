@@ -18,7 +18,7 @@ import logging
 import os
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Union, List, Optional
+from typing import Any
 
 import psutil
 import pynvml
@@ -27,11 +27,11 @@ import uvloop
 import vllm.entrypoints.openai.api_server as api_server
 import vllm.envs as envs
 import yaml
+from vllm.config import VllmConfig
 from vllm.engine.arg_utils import EngineArgs
 from vllm.engine.llm_engine import LLMEngine
-from vllm.config import VllmConfig
-from vllm.lora.request import LoRARequest
 from vllm.executor.executor_base import ExecutorBase
+from vllm.lora.request import LoRARequest
 from vllm.utils import FlexibleArgumentParser
 
 # Initialize logger
@@ -157,8 +157,8 @@ class KaitoConfig:
         return yaml.dump(self.__dict__)
 
 
-def load_lora_adapters(adapters_dir: str) -> Union[List[LoRARequest], None]:
-    lora_list: List[LoRARequest] = []
+def load_lora_adapters(adapters_dir: str) -> list[LoRARequest] | None:
+    lora_list: list[LoRARequest] = []
 
     if not os.path.exists(adapters_dir):
         return lora_list
@@ -255,7 +255,7 @@ def is_context_length_safe(executor: ExecutorBase, context_length: int) -> bool:
     return available_gpu_blocks >= num_gpu_blocks
 
 
-def try_get_max_available_seq_len(args: argparse.Namespace) -> Optional[int]:
+def try_get_max_available_seq_len(args: argparse.Namespace) -> int | None:
     if args.max_model_len is not None:
         logger.info(f"max_model_len is set to {args.max_model_len}, skip probing.")
         return None

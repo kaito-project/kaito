@@ -99,9 +99,14 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 					},
 				}
 				mockClient.CreateOrUpdateObjectInMap(node)
-
-				// Mock Get for node retrieval and workspace status updates
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+
+				// Create workspace object in the mock object map for Get calls
+				workspace := &kaitov1beta1.Workspace{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				}
+				mockClient.CreateOrUpdateObjectInMap(workspace)
 
 				// Mock status update for workspace condition update
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -123,6 +128,13 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 			},
 			existingNodeClaims: []*karpenterv1.NodeClaim{},
 			setup: func(mockClient *test.MockClient) {
+				// Create workspace object in the mock object map for status updates
+				workspace := &kaitov1beta1.Workspace{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				}
+				mockClient.CreateOrUpdateObjectInMap(workspace)
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
 				// Mock status update for NodePluginsReady condition
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
@@ -153,9 +165,15 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 				},
 			},
 			setup: func(mockClient *test.MockClient) {
-				// Mock Get to return error for node retrieval first, then success for workspace
-				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("node get failed")).Once()
-				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				// Create workspace object in the mock object map for Get calls
+				workspace := &kaitov1beta1.Workspace{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				}
+				mockClient.CreateOrUpdateObjectInMap(workspace)
+
+				// Don't create the node in ObjectMap to simulate Get failure
+				// Mock Get to return an error for node operations
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("node get failed"))
 
 				// Mock status update for error condition
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -209,9 +227,14 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 					},
 				}
 				mockClient.CreateOrUpdateObjectInMap(node)
-
-				// Mock Get for node retrieval and workspace status updates
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+
+				// Create workspace object in the mock object map for Get calls
+				workspace := &kaitov1beta1.Workspace{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				}
+				mockClient.CreateOrUpdateObjectInMap(workspace)
 
 				// Mock status update for NodePluginsNotReady condition
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -267,7 +290,15 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 			existingNodeClaims: []*karpenterv1.NodeClaim{},
 			setup: func(mockClient *test.MockClient) {
 				// For non-GPU instance types, the function should set NodePluginsReady to true directly
-				// Mock Get for workspace retrieval during status update
+				// Create workspace object in the mock object map for Get calls
+				workspace := &kaitov1beta1.Workspace{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+					Resource: kaitov1beta1.ResourceSpec{
+						InstanceType:  "Standard_D2s_v3", // Non-GPU instance type
+						LabelSelector: &metav1.LabelSelector{},
+					},
+				}
+				mockClient.CreateOrUpdateObjectInMap(workspace)
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
@@ -320,8 +351,9 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 					},
 				}
 				mockClient.CreateOrUpdateObjectInMap(node)
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-				// Mock Get for node and workspace status update
+				// Node and workspace exist in ObjectMap for status updates
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 				// Mock status update
@@ -351,7 +383,7 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 				},
 			},
 			setup: func(mockClient *test.MockClient) {
-				// Mock Get for workspace status update
+				// Mock failing node Get - this should fail when getting the node, not from ObjectMap
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("node get failed"))
 
 				// Mock status update for error condition
@@ -408,7 +440,7 @@ func TestCheckNodePlugin(t *testing.T) {
 				},
 			},
 			setup: func(mockClient *test.MockClient) {
-				// Mock failing node Get
+				// Mock failing node Get - this should fail when getting the node, not from ObjectMap
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("node get failed"))
 
 				// Mock status update for error condition
@@ -505,6 +537,12 @@ func TestCheckNodePlugin(t *testing.T) {
 				}
 				mockClient.CreateOrUpdateObjectInMap(node)
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+				// Create workspace object in the mock object map for status updates
+				workspace := &kaitov1beta1.Workspace{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				}
+				mockClient.CreateOrUpdateObjectInMap(workspace)
 
 				// Mock status update for GPU capacity not ready
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -634,12 +672,19 @@ func TestCheckNodePlugin(t *testing.T) {
 					},
 				}
 				mockClient.CreateOrUpdateObjectInMap(node)
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-				// Get returns nil to indicate node exists
+				// Node exists in ObjectMap
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 				// Simulate Update failing when adding the label
 				mockClient.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("update failed"))
+
+				// Create workspace object in the mock object map for status updates
+				workspace := &kaitov1beta1.Workspace{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				}
+				mockClient.CreateOrUpdateObjectInMap(workspace)
 
 				// Expect status update attempt for error condition
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)

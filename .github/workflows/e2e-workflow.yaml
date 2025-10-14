@@ -153,12 +153,12 @@ jobs:
           E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
           E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
 
-      # - name: Cleanup e2e resources
-      #   if: ${{ always() }}
-      #   env:
-      #     AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
-      #   uses: azure/CLI@v2.2.0
-      #   with:
-      #     inlineScript: |
-      #       set +e
-      #       az group delete --name "${AZURE_RESOURCE_GROUP}" --yes --no-wait || true
+      - name: Cleanup e2e resources
+        if: ${{ always() }}
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+        uses: azure/CLI@v2.2.0
+        with:
+          inlineScript: |
+            set +e
+            az group delete --name "${AZURE_RESOURCE_GROUP}" --yes --no-wait || true

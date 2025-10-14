@@ -8,15 +8,26 @@ After installing KAITO, you can quickly deploy a phi-4-mini-instruct inference s
 
 - A Kubernetes cluster with KAITO installed (see [Installation](installation))
 - `kubectl` configured to access your cluster
-- **GPU nodes available in your cluster** - You have two options:
-  - **Bring your own GPU (BYO) nodes**: If you already have GPU nodes in your cluster, you can use the preferred nodes approach (shown below)
-  - **Auto-provisioning**: Set up automatic GPU node provisioning for your cloud provider (see [these steps](installation#option-2-auto-provision-gpu-nodes))
+- **GPU nodes available in your cluster** - You have two **mutually exclusive** options:
+  - **Bring your own GPU (BYO) nodes**: If you already have GPU nodes in your cluster, you can use the preferred nodes approach (shown below). **Requires Node Auto Provisioning to be disabled.**
+  - **Auto-provisioning**: Set up automatic GPU node provisioning for your cloud provider (see [these steps](installation#option-2-auto-provision-gpu-nodes)). **Cannot be used with BYO nodes.**
 
 ## Deploy Your First Model
 
-Your model can be deployed either on your own GPU nodes, or KAITO can auto-provision nodes for it to run on.
+Your model can be deployed either on your own GPU nodes, or KAITO can auto-provision nodes for it to run on. **These options are mutually exclusive** - you must choose one approach.
+
+:::warning Important
+BYO nodes and Auto-provisioning are **mutually exclusive**. If you're using your own GPU nodes, ensure KAITO was installed with `--set featureGates.disableNodeAutoProvisioning=true`. If you're using auto-provisioning, do not use this flag.
+:::
 
 ### Option 1: Bring your own GPU nodes
+
+:::info Prerequisites for BYO Nodes
+Before using this option, ensure that:
+1. KAITO was installed with Node Auto Provisioning disabled: `--set featureGates.disableNodeAutoProvisioning=true`
+2. You have existing GPU nodes in your cluster
+3. Your GPU nodes are properly labeled for workload selection
+:::
 
 Let's start by deploying a phi-4-mini-instruct model on your existing GPU nodes.
 
@@ -49,9 +60,6 @@ kind: Workspace
 metadata:
   name: workspace-phi-4-mini
 resource:
-  preferredNodes:
-    - gpunp-26695285-vmss000000
-    - gpunp-26695285-vmss000001
   labelSelector:
     matchLabels:
       apps: llm-inference
@@ -60,11 +68,17 @@ inference:
     name: phi-4-mini-instruct
 ```
 
+:::note
+Make sure that `resource.instanceType` is empty when using BYO as it's only used for the auto-provisioning scenario.
+:::
+
 Apply your configuration to your cluster:
 
 ```bash
 kubectl apply -f phi-4-workspace.yaml
 ```
+
+The nodes will be populated with their specs using [NVIDIA GPU Feature Discovery](https://github.com/NVIDIA/k8s-device-plugin/tree/main/docs/gpu-feature-discovery#deployment-via-helm), and KAITO will verify that your nodes have the proper memory, # GPUS, etc. to run the model.
 
 ### Option 2: Auto-provision GPU nodes
 
@@ -90,7 +104,7 @@ kind: Workspace
 metadata:
   name: workspace-phi-4-mini
 resource:
-  instanceType: "Standard_NC6s_v3" # Will trigger node creation
+  instanceType: "Standard_NC6s_v3" # Specifies the node type that will be auto-provisioned.
   labelSelector:
     matchLabels:
       apps: phi-4-mini
@@ -116,7 +130,7 @@ kind: Workspace
 metadata:
   name: workspace-phi-4-mini
 resource:
-  instanceType: "g5.4xlarge" # Will trigger node creation
+  instanceType: "g5.4xlarge" # Specifies the node type that will be auto-provisioned.
   labelSelector:
     matchLabels:
       apps: phi-4-mini

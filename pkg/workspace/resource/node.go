@@ -64,7 +64,7 @@ func (c *NodeManager) SetNodePluginsReadyCondition(ctx context.Context, wObj *ka
 		}
 	}
 
-	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
+	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodePluginStatus, metav1.ConditionTrue,
 		"NodePluginsReady", fmt.Sprintf("All Node Plugins are ready for %d Node Claims", len(existingNodeClaims))); updateErr != nil {
 		klog.ErrorS(updateErr, "failed to update NodePlugin status condition NodePluginsReady to true", "workspace", klog.KObj(wObj))
 		return false, fmt.Errorf("failed to update NodePlugin status condition(NodePluginsReady): %w", updateErr)

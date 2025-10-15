@@ -470,6 +470,7 @@ func TestResolveReadyNodesAndTargetNodeClaimCount(t *testing.T) {
 					for i, byoNode := range tc.mockBYONodes {
 						preferredNodes[i] = byoNode.Name
 					}
+					//nolint:staticcheck // SA1019
 					tc.workspace.Resource.PreferredNodes = preferredNodes
 				}
 

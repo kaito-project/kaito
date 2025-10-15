@@ -37,3 +37,7 @@ dependencies:
   version: "2.16.3"
   repository: https://fluxcd-community.github.io/helm-charts
   condition: featureGates.gatewayAPIInferenceExtension
+- name: gpu-feature-discovery
+  version: 0.17.4
+  repository: https://nvidia.github.io/k8s-device-plugin
+  condition: featureGates.disableNodeAutoProvisioning # Only install GFD when NAP is disabled.

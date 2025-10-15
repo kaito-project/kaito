@@ -349,11 +349,12 @@ func main() {}"""
             "test_code_index", documents[0], result[0]
         )
 
-        all_docs = await vector_store_manager.list_documents_in_index(
+        resp = await vector_store_manager.list_documents_in_index(
             "test_code_index", limit=10, offset=0
         )
-        assert len(all_docs) == 1
-        assert all_docs[0]["text"] == sample_go_code
+        assert len(resp.documents) == 1
+        assert resp.documents[0].text == sample_go_code
+        assert resp.total_items == 1
 
         try:
             # Attempt to index a document with no language
@@ -491,13 +492,13 @@ func main() {}"""
         ids = await vector_store_manager.index_documents("test_add_index", documents)
 
         # Check if the documents were indexed correctly
-        all_docs = await vector_store_manager.list_documents_in_index(
+        resp = await vector_store_manager.list_documents_in_index(
             "test_add_index", limit=10, offset=1
         )
-        print(all_docs)
 
         # Validate id's from index_documents match the expected ids
-        assert all(doc["doc_id"] == ids[idx] for idx, doc in enumerate(all_docs))
+        assert all(doc.doc_id == ids[idx] for idx, doc in enumerate(resp.documents))
+        assert resp.total_items == 11
 
     @pytest.mark.asyncio
     async def test_persist_index(self, vector_store_manager):
@@ -539,50 +540,58 @@ func main() {}"""
         result = await vector_store_manager.list_documents_in_index(
             index_name, limit=5, offset=0
         )
-        assert len(result) == 5
+        assert len(result.documents) == 5
+        assert result.total_items == 10
 
         # 2. Offset 5, Limit 5 (Next Batch)
         result = await vector_store_manager.list_documents_in_index(
             index_name, limit=5, offset=5
         )
-        assert len(result) == 5
+        assert len(result.documents) == 5
+        assert result.total_items == 10
 
         # 3. Offset at max (Empty Case)
         result = await vector_store_manager.list_documents_in_index(
             index_name, limit=5, offset=10
         )
-        assert index_name not in result or len(result) == 0
+        assert index_name not in result.documents or len(result.documents) == 0
+        assert result.total_items == 10
 
         # 4. Limit larger than available docs
         result = await vector_store_manager.list_documents_in_index(
             index_name, limit=15, offset=0
         )
-        assert len(result) == 10  # Should return only available docs
+        assert len(result.documents) == 10  # Should return only available docs
+        assert result.total_items == 10
 
         # 5. Limit exactly matches available docs
         result = await vector_store_manager.list_documents_in_index(
             index_name, limit=10, offset=0
         )
-        assert len(result) == 10
+        assert len(result.documents) == 10
+        assert result.total_items == 10
 
         # 6. Limit of 1 (Single-Doc Retrieval)
         result = await vector_store_manager.list_documents_in_index(
             index_name, limit=1, offset=0
         )
-        assert len(result) == 1
+        assert len(result.documents) == 1
+        assert result.total_items == 10
 
         # 7. max_text_length truncation check
         truncated_result = await vector_store_manager.list_documents_in_index(
             index_name, limit=1, offset=0, max_text_length=5
         )
-        assert len(next(iter(truncated_result))["text"]) == 5  # Ensure truncation
+        assert (
+            len(next(iter(truncated_result.documents)).text) == 5
+        )  # Ensure truncation
 
         # 8. max_text_length is None (Full text should return)
         full_text_result = await vector_store_manager.list_documents_in_index(
             index_name, limit=1, offset=0, max_text_length=None
         )
         assert (
-            "Document" in next(iter(full_text_result))["text"]
+            "Document" in next(iter(full_text_result.documents)).text
         )  # Ensure no truncation
 
     @pytest.mark.asyncio
@@ -604,21 +613,28 @@ func main() {}"""
         result = await vector_store_manager.list_documents_in_index(
             index_name, limit=5, offset=0, metadata_filter={"filename": "file_1"}
         )
-        assert len(result) == 1
-        assert result[0]["metadata"]["filename"] == "file_1"
+        assert len(result.documents) == 1
+        assert result.documents[0].metadata["filename"] == "file_1"
+        assert result.total_items == 1
 
         first_five_results = await vector_store_manager.list_documents_in_index(
             index_name, limit=5, offset=0, metadata_filter={"branch": "main"}
         )
-        assert len(first_five_results) == 5
-        assert all(doc["metadata"]["branch"] == "main" for doc in first_five_results)
+        assert len(first_five_results.documents) == 5
+        assert all(
+            doc.metadata["branch"] == "main" for doc in first_five_results.documents
+        )
+        assert first_five_results.total_items == 10
 
         second_five_results = await vector_store_manager.list_documents_in_index(
             index_name, limit=5, offset=5, metadata_filter={"branch": "main"}
         )
-        assert len(second_five_results) == 5
-        assert all(doc["metadata"]["branch"] == "main" for doc in second_five_results)
+        assert len(second_five_results.documents) == 5
+        assert all(
+            doc.metadata["branch"] == "main" for doc in second_five_results.documents
+        )
         assert first_five_results != second_five_results
+        assert second_five_results.total_items == 10
 
         # multiple filters
         result = await vector_store_manager.list_documents_in_index(
@@ -627,9 +643,10 @@ func main() {}"""
             offset=0,
             metadata_filter={"filename": "file_5", "branch": "main"},
         )
-        assert len(result) == 1
-        assert result[0]["metadata"]["filename"] == "file_5"
-        assert result[0]["metadata"]["branch"] == "main"
+        assert len(result.documents) == 1
+        assert result.documents[0].metadata["filename"] == "file_5"
+        assert result.documents[0].metadata["branch"] == "main"
+        assert result.total_items == 1
 
         # no results
         result = await vector_store_manager.list_documents_in_index(
@@ -638,7 +655,33 @@ func main() {}"""
             offset=0,
             metadata_filter={"filename": "file_15", "branch": "main"},
         )
-        assert len(result) == 0
+        assert len(result.documents) == 0
+        assert result.total_items == 0
+
+        new_branch_docs = [
+            Document(
+                text=f"New Document {i}",
+                metadata={
+                    "type": "text",
+                    "filename": f"file_{i}",
+                    "branch": "new_branch",
+                },
+            )
+            for i in range(7)
+        ]
+
+        await vector_store_manager.index_documents(index_name, new_branch_docs)
+        # multiple filters
+        result = await vector_store_manager.list_documents_in_index(
+            index_name,
+            limit=1,
+            offset=0,
+            metadata_filter={"branch": "new_branch"},
+        )
+
+        assert len(result.documents) == 1
+        assert result.total_items == 7
+        assert result.documents[0].metadata["branch"] == "new_branch"
 
     @pytest.mark.asyncio
     async def test_persist_and_load_as_seperate_index(self, vector_store_manager):
@@ -662,11 +705,12 @@ func main() {}"""
         result = await vector_store_manager.list_documents_in_index(
             second_index_name, limit=5, offset=0
         )
-        assert len(result) == 5
+        assert len(result.documents) == 5
+        assert result.total_items == 10
 
         # validate loaded index doesn't change the original index
         await vector_store_manager.delete_documents(
-            second_index_name, [result[0]["doc_id"]]
+            second_index_name, [result.documents[0].doc_id]
         )
 
         first_index_result = await vector_store_manager.list_documents_in_index(
@@ -675,17 +719,17 @@ func main() {}"""
         second_index_result = await vector_store_manager.list_documents_in_index(
             second_index_name, limit=10, offset=0
         )
-        assert len(first_index_result) == 10
-        assert len(second_index_result) == 9
+        assert len(first_index_result.documents) == 10
+        assert len(second_index_result.documents) == 9
 
-        second_index_result[0]["text"] = "Modified text"
+        second_index_result.documents[0].text = "Modified text"
         second_update_result = await vector_store_manager.update_documents(
             second_index_name,
             [
                 Document(
-                    doc_id=second_index_result[0]["doc_id"],
+                    doc_id=second_index_result.documents[0].doc_id,
                     text="Modified text",
-                    metadata=second_index_result[0]["metadata"],
+                    metadata=second_index_result.documents[0].metadata,
                 )
             ],
         )
@@ -693,10 +737,10 @@ func main() {}"""
         assert second_update_result["updated_documents"][0].text == "Modified text"
 
         second_delete_result = await vector_store_manager.delete_documents(
-            second_index_name, [second_index_result[0]["doc_id"]]
+            second_index_name, [second_index_result.documents[0].doc_id]
         )
         assert len(second_delete_result["deleted_doc_ids"]) == 1
         assert (
             second_delete_result["deleted_doc_ids"][0]
-            == second_index_result[0]["doc_id"]
+            == second_index_result.documents[0].doc_id
         )

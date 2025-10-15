@@ -1,0 +1,14 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-gemma-3-4b-instruct
+resource:
+  instanceType: "Standard_NV36ads_A10_v5"  # A10 sufficient for 4B model
+  labelSelector:
+    matchLabels:
+      apps: gemma-3-4b-instruct
+inference:
+  preset:
+    name: "gemma-3-4b-instruct"
+    presetOptions:
+      modelAccessSecret: hf-token

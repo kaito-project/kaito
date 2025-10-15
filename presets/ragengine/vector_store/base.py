@@ -46,6 +46,7 @@ from ragengine.inference.inference import Inference
 from ragengine.models import (
     ChatCompletionResponse,
     Document,
+    ListDocumentsResponse,
     input_messages_to_llamaindex_messages,
 )
 from ragengine.vector_store.node_processors.contex_selection_node_processor import (
@@ -689,10 +690,28 @@ class BaseVectorStore(ABC):
         offset: int,
         max_text_length: int | None = None,
         metadata_filter: dict[str, Any] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> ListDocumentsResponse:
         """
         Return a dictionary of document metadata for the given index.
         """
+        if self.use_rwlock:
+            async with self.rwlock.reader_lock:
+                return await self._list_documents_in_index(
+                    index_name, limit, offset, max_text_length, metadata_filter
+                )
+
+        return await self._list_documents_in_index(
+            index_name, limit, offset, max_text_length, metadata_filter
+        )
+
+    async def _list_documents_in_index(
+        self,
+        index_name: str,
+        limit: int,
+        offset: int,
+        max_text_length: int | None = None,
+        metadata_filter: dict[str, Any] | None = None,
+    ) -> ListDocumentsResponse:
         vector_store_index = self.index_map.get(index_name)
         if not vector_store_index:
             raise HTTPException(
@@ -701,8 +720,9 @@ class BaseVectorStore(ABC):
 
         doc_store = vector_store_index.docstore
         doc_store_items = doc_store.docs.items()
+        total_count = len(doc_store_items)
         if metadata_filter is not None:
-            docs_items = await self._filter_documents(
+            docs_items, total_count = await self._filter_documents(
                 doc_store_items, metadata_filter, offset, limit
             )
         else:
@@ -718,7 +738,10 @@ class BaseVectorStore(ABC):
         )
 
         # Return list of valid documents
-        return [doc for doc in docs if isinstance(doc, dict)]
+        docs = [doc for doc in docs if isinstance(doc, dict)]
+        return ListDocumentsResponse(
+            documents=docs, count=len(docs), total_items=total_count
+        )
 
     async def delete_index(self, index_name: str):
         """Common logic for deleting an index."""
@@ -739,12 +762,15 @@ class BaseVectorStore(ABC):
         """
         Filter documents based on metadata.
         """
+        total_count = 0
         filtered_docs = []
         for doc_id, doc_stub in doc_items:
             doc_metadata = getattr(doc_stub, "metadata", {})
             if all(doc_metadata.get(k) == v for k, v in metadata_filter.items()):
-                filtered_docs.append((doc_id, doc_stub))
-        return islice(filtered_docs, offset, offset + limit)
+                if total_count >= offset and len(filtered_docs) < limit:
+                    filtered_docs.append((doc_id, doc_stub))
+                total_count += 1
+        return filtered_docs, total_count
 
     async def document_exists(
         self, index_name: str, doc: Document, doc_id: str

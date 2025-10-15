@@ -71,7 +71,7 @@ jobs:
           IMG_NAME: "workspace"
           IMG_TAG: "test"
           OUTPUT_TYPE: "type=docker"
-          ARCH: "amd64"
+          PLATFORMS: "linux/amd64"
 
       - name: Deploy KAITO workspace controller
         run: |

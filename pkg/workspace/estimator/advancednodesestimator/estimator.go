@@ -23,6 +23,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
@@ -52,12 +54,43 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 	presetName := string(workspace.Inference.Preset.Name)
 	model := plugin.KaitoModelRegister.MustGet(presetName)
 
-	gpuConfig, err := utils.GetGPUConfigBySKU(workspace.Resource.InstanceType)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get GPU config for instance type %s: %w", workspace.Resource.InstanceType, err)
-	}
-	if gpuConfig == nil {
-		return 0, fmt.Errorf("GPU config is nil for instance type %s", workspace.Resource.InstanceType)
+	var gpuConfig *sku.GPUConfig
+	var err error
+
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		// NAP is disabled (BYO scenario) - instanceType is optional
+		// Try to get GPU config from existing nodes
+		if client != nil {
+			if readyNodes, err := resources.GetReadyNodes(ctx, client, workspace); err != nil {
+				return 0, fmt.Errorf("failed to list ready nodes: %w", err)
+			} else if len(readyNodes) > 0 {
+				gpuConfig, err = utils.TryGetGPUConfigFromNodes(ctx, readyNodes)
+				if err != nil {
+					return 0, fmt.Errorf("failed to get GPU config from existing nodes: %w", err)
+				}
+			}
+		}
+
+		// If we can't get GPU config from nodes, fall back to minimal default
+		if gpuConfig == nil {
+			gpuConfig = &sku.GPUConfig{
+				GPUCount:  1,
+				GPUMemGiB: 0, // Unknown memory, will skip memory-based optimization
+			}
+		}
+	} else {
+		// NAP is enabled - instanceType is required and must be valid
+		if workspace.Resource.InstanceType == "" {
+			return 0, fmt.Errorf("instanceType is required when node auto-provisioning is enabled")
+		}
+
+		gpuConfig, err = utils.GetGPUConfigBySKU(workspace.Resource.InstanceType)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get GPU config for instance type %s: %w", workspace.Resource.InstanceType, err)
+		}
+		if gpuConfig == nil {
+			return 0, fmt.Errorf("GPU config is nil for instance type %s", workspace.Resource.InstanceType)
+		}
 	}
 
 	// Start with the user-requested node count (default is 1)

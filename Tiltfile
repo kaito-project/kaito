@@ -19,6 +19,7 @@ else:
     feature_gates = {
         'vLLM': True,
         'gatewayAPIInferenceExtension': True,
+        'disableNodeAutoProvisioning': True,
     }
 
 def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
@@ -33,7 +34,7 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
 
     def yaml():
         cluster_name = k8s_context() if not settings.get('cluster_name') else settings['cluster_name']
-        helm_template = 'helm template kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set clusterName={} --set image.repository=controller --set image.tag=latest --set featureGates.gatewayAPIInferenceExtension={}'.format(cluster_name, feature_gates['gatewayAPIInferenceExtension'])
+        helm_template = 'helm template kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set clusterName={} --set image.repository=controller --set image.tag=latest --set featureGates.gatewayAPIInferenceExtension={} --set featureGates.disableNodeAutoProvisioning={}'.format(cluster_name, feature_gates['gatewayAPIInferenceExtension'], feature_gates['disableNodeAutoProvisioning'])
         # Set the image name and tag to controller:latest for Tilt to
         # substitute later during docker_build_with_restart
         data = local(helm_template, quiet=True)
@@ -99,12 +100,8 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
                  'validation.workspace.kaito.sh:validatingwebhookconfiguration',
         ],
     )
-    k8s_resource(
-        workload='nvidia-device-plugin-daemonset',
-        new_name='device plugin',
-        labels='Dependencies',
-    )
-
+    # TODO: install the device plugin daemonset when NAP is enabled since the Helm chart is not installed.
+    
     # Re-compile the manager binary when anything in deps changes.
     local_resource(
         'manager',

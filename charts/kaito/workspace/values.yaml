@@ -53,3 +53,8 @@ flux2:
     create: false
   notificationController:
     create: false
+gpu-feature-discovery:
+  devicePlugin:
+    enabled: false
+  gfd:
+    enabled: true

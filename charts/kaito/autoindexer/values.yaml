@@ -3,9 +3,9 @@
 # Declare variables to be passed into your templates.
 replicaCount: 1
 image:
-  repository: brfoletest.azurecr.io/autoindexer
-  pullPolicy: Always
-  tag: latest
+  repository: mcr.microsoft.com/aks/kaito/autoindexer
+  pullPolicy: IfNotPresent
+  tag: 0.7.0
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -30,7 +30,6 @@ resources:
 nodeSelector: {}
 tolerations: []
 affinity: {}
-presetAutoIndexerRegistryName: "brfoletest.azurecr.io"
+presetAutoIndexerRegistryName: "mcr.microsoft.com/aks/kaito"
 presetAutoIndexerImageName: "autoindexer-service"
-presetAutoIndexerImageTag: latest
-clusterName: kaito-dogfood
+presetAutoIndexerImageTag: 0.7.0

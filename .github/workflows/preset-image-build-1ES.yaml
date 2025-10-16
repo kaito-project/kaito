@@ -11,6 +11,9 @@ on:
     paths:
       - presets/workspace/models/supported_models.yaml
   workflow_dispatch:
+  pull_request:
+    branches:
+    - main
 
 env:
     GO_VERSION: "1.24"
@@ -167,6 +170,18 @@ jobs:
           sudo setfacl -dm u::rwx /mnt/storage  # Default user permissions
           sudo setfacl -dm g::rwx /mnt/storage  # Default group permissions
           sudo setfacl -dm o::rx /mnt/storage   # Default others permissions
+
+      - name: Set up Docker Buildx
+        run: |
+          make docker-buildx
+          docker buildx build \
+            --builder img-builder \
+            --build-arg VERSION=v0.1.0 \
+            --build-arg MODEL_TYPE=text-generation \
+            --platform linux/amd64,linux/arm64 \
+            --output type=image,name=test,push=true,compression=zstd \
+            -f ./docker/presets/models/tfs/Dockerfile .
+        shell: bash
 
       - name: Authenticate to ACR
         run: |

@@ -112,7 +112,13 @@ class TestAutoIndexerService:
                     "autoindexer_name": "test-autoindexer",
                     "urls": ["https://example.com/doc.txt"]
                 }
-                mock_static_handler.assert_called_once_with(config=expected_config, credentials=None)
+                mock_static_handler.assert_called_once_with(
+                    index_name="test-index",
+                    config=expected_config, 
+                    rag_client=mock_rag_client.return_value,
+                    autoindexer_client=mock_k8s_client,
+                    credentials="test-secret"
+                )
                 assert hasattr(service, 'data_source_handler')
                 assert service.data_source_handler == mock_static_handler.return_value
                 
@@ -152,7 +158,7 @@ class TestAutoIndexerService:
         incomplete_env = {"ACCESS_SECRET": "test-secret"}  # Missing other required vars
         
         with patch.dict(os.environ, incomplete_env, clear=True), \
-             pytest.raises(ValueError, match="Required environment variable"):
+             pytest.raises(ValueError, match="RAG engine endpoint must be configured"):
             AutoIndexerService()
 
     def test_init_k8s_client_failure(self, valid_env_vars):
@@ -217,7 +223,7 @@ class TestAutoIndexerService:
             service.k8s_client.update_indexing_completion.assert_called_with(True, 30, 5, None)
             
             # Verify indexing was performed
-            service.data_source_handler.update_index.assert_called_once_with("test-index", service.rag_client)
+            service.data_source_handler.update_index.assert_called_once_with()
 
     def test_run_with_indexing_errors(self, valid_env_vars, mock_k8s_client, mock_rag_client, mock_static_handler):
         """Test run with indexing errors."""
@@ -248,6 +254,7 @@ class TestAutoIndexerService:
             
             # Mock exception during indexing
             service.data_source_handler.update_index.side_effect = Exception("Unexpected error")
+            service.rag_client.list_documents.return_value = {"total": 0}
             
             with patch('time.time', side_effect=[1000.0] + [1020.0] * 10):  # 20 second duration, multiple calls
                 result = service.run()

@@ -91,8 +91,8 @@ func TestGenerateIndexingJobManifest(t *testing.T) {
 	}
 
 	// Validate job spec
-	if job.Spec.Template.Spec.RestartPolicy != corev1.RestartPolicyNever {
-		t.Errorf("Expected restart policy Never, got %s", job.Spec.Template.Spec.RestartPolicy)
+	if job.Spec.Template.Spec.RestartPolicy != corev1.RestartPolicyOnFailure {
+		t.Errorf("Expected restart policy OnFailure, got %s", job.Spec.Template.Spec.RestartPolicy)
 	}
 
 	if len(job.Spec.Template.Spec.Containers) != 1 {
@@ -119,7 +119,6 @@ func TestGenerateIndexingJobManifest(t *testing.T) {
 	}
 
 	expectedEnvVars := []string{
-		EnvAccessSecret,
 		EnvAutoIndexerName,
 		EnvNamespace,
 	}
@@ -130,13 +129,20 @@ func TestGenerateIndexingJobManifest(t *testing.T) {
 		}
 	}
 
-	// Validate volumes and volume mounts for credentials
-	if len(job.Spec.Template.Spec.Volumes) == 0 {
-		t.Error("Expected volumes for credentials, but none found")
+	// Check if ACCESS_SECRET env var is set correctly with SecretRef
+	found := false
+	for _, env := range container.Env {
+		if env.Name == EnvAccessSecret {
+			if env.ValueFrom != nil && env.ValueFrom.SecretKeyRef != nil {
+				if env.ValueFrom.SecretKeyRef.Name == "github-credentials" && env.ValueFrom.SecretKeyRef.Key == "token" {
+					found = true
+					break
+				}
+			}
+		}
 	}
-
-	if len(container.VolumeMounts) == 0 {
-		t.Error("Expected volume mounts for credentials, but none found")
+	if !found {
+		t.Error("Expected ACCESS_SECRET environment variable with correct SecretRef not found")
 	}
 }
 
@@ -293,8 +299,8 @@ func TestGetDefaultJobConfig(t *testing.T) {
 		t.Errorf("Expected image %s, got %s", AutoIndexerImage, config.Image)
 	}
 
-	if config.ImagePullPolicy != corev1.PullIfNotPresent {
-		t.Errorf("Expected pull policy %s, got %s", corev1.PullIfNotPresent, config.ImagePullPolicy)
+	if config.ImagePullPolicy != corev1.PullAlways {
+		t.Errorf("Expected pull policy %s, got %s", corev1.PullAlways, config.ImagePullPolicy)
 	}
 
 	if config.JobName == "" {

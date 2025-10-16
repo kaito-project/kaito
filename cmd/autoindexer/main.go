@@ -42,8 +42,8 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/pkg/autoindexer/controllers"
+	"github.com/kaito-project/kaito/pkg/autoindexer/webhooks"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
-	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 )
 
@@ -163,7 +163,7 @@ func main() {
 		})
 		ctx = sharedmain.WithHealthProbesDisabled(ctx)
 		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewRAGEngineWebhooks()...)
+		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewAutoIndexerWebhooks()...)
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
 		time.Sleep(2 * time.Second)

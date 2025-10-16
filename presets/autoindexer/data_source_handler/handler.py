@@ -13,8 +13,8 @@
 
 
 from abc import ABC, abstractmethod
-from typing import Any
 
+from autoindexer.k8s.k8s_client import AutoIndexerK8sClient
 from autoindexer.rag.rag_client import KAITORAGClient
 
 
@@ -27,13 +27,9 @@ class DataSourceHandler(ABC):
     """Abstract base class for data source handlers."""
 
     @abstractmethod
-    def update_index(self, index_name: str, rag_client: KAITORAGClient) -> list[str]:
+    def update_index(self) -> list[str]:
         """
         Update the index with documents from the data source.
-        
-        Args:
-            index_name: Name of the index to update
-            rag_client: Instance of the KAITORAGClient to use for indexing
 
         Returns:
             list[str]: List of error messages, if any
@@ -41,11 +37,8 @@ class DataSourceHandler(ABC):
         pass
 
     @abstractmethod
-    def fetch_documents(self) -> list[dict[str, Any]]:
+    def update_autoindexer_status(self):
         """
-        Fetch documents from the data source.
-        
-        Returns:
-            list[dict[str, Any]]: List of documents with 'text' and optional 'metadata'
+        Update the AutoIndexer CRD status based on the current index state and indexing status.
         """
         pass

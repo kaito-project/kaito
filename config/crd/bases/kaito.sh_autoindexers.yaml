@@ -28,7 +28,7 @@ spec:
     - jsonPath: .status.conditions[?(@.type=="AutoIndexerIndexing")].status
       name: Indexing
       type: string
-    - jsonPath: .status.phase
+    - jsonPath: .status.indexingPhase
       name: Phase
       type: string
     - jsonPath: .status.conditions[?(@.type=="AutoIndexerError")].status
@@ -117,24 +117,28 @@ spec:
                         items:
                           type: string
                         type: array
-                      repositoryURL:
-                        description: Repository URL
+                      repository:
+                        description: |-
+                          Repository to index. If the repository is not public and a token is needed for access,
+                          the access token can be stored in a secret and loaded with the SecretRef in the credential spec
                         type: string
                     required:
                     - branch
-                    - repositoryURL
+                    - repository
                     type: object
                   static:
                     description: Static defines configuration for static data sources
                     properties:
-                      endpoints:
-                        description: data endpoint URLs that should point to individual
-                          UTF-8 or pdf files.
+                      urls:
+                        description: |-
+                          URLs that should point to individual text encoding (UTF-8, UTF-8-SIG, Latin1, etc) or pdf files.
+                          If an access token is needed for the URL's, the access token can be stored in a secret
+                          and loaded with the SecretRef in the credential spec
                         items:
                           type: string
                         type: array
                     required:
-                    - endpoints
+                    - urls
                     type: object
                   type:
                     allOf:
@@ -155,33 +159,11 @@ spec:
                 minLength: 1
                 pattern: ^[a-z0-9][a-z0-9\-]*[a-z0-9]$
                 type: string
-              ragEngineRef:
-                description: RAGEngineRef references the RAGEngine resource to use
-                  for indexing
-                properties:
-                  name:
-                    description: Name defines the ragengine name
-                    type: string
-                  namespace:
-                    description: Namespace defines the namespace of the ragengine
-                    type: string
-                required:
-                - name
-                - namespace
-                type: object
-              retryPolicy:
-                description: RetryPolicy defines how failed indexing jobs should be
-                  retried
-                properties:
-                  maxRetries:
-                    default: 3
-                    description: |-
-                      Maximum number of retries applied to failed indexing jobs
-                      Default is 3
-                    format: int32
-                    minimum: 0
-                    type: integer
-                type: object
+              ragEngine:
+                description: |-
+                  RAGEngine references the name RAGEngine resource to use for indexing.
+                  The RAGEngine must be in the same namespace as the AutoIndexer.
+                type: string
               schedule:
                 description: Schedule defines when the indexing should run (cron format)
                 pattern: ^(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every
@@ -196,7 +178,7 @@ spec:
             required:
             - dataSource
             - indexName
-            - ragEngineRef
+            - ragEngine
             type: object
           status:
             description: AutoIndexerStatus defines the observed state of AutoIndexer
@@ -271,47 +253,11 @@ spec:
                   - type
                   type: object
                 type: array
-              documentsProcessed:
-                description: Number of documents processed in the last run
+              errorIndexingCount:
+                description: ErrorIndexingCount tracks failed indexing runs
                 format: int32
                 type: integer
-              errorRunCount:
-                description: ErrorRunCount tracks failed indexing runs
-                format: int32
-                type: integer
-              errors:
-                description: Errors from the last indexing operation
-                items:
-                  type: string
-                type: array
-              lastCommit:
-                description: LastCommit is the last processed commit hash for Git
-                  sources
-                type: string
-              lastIndexed:
-                description: LastIndexed timestamp of the last successful indexing
-                format: date-time
-                type: string
-              lastRunDurationSeconds:
-                description: LastRunDurationSeconds is the duration of the last indexer
-                  run in seconds
-                format: int32
-                type: integer
-              lastRunID:
-                description: LastRunID is a reference to the last run id that is unique
-                  per autoindexer run
-                type: string
-              nextScheduledRun:
-                description: NextScheduledRun shows when the next indexing is scheduled
-                format: date-time
-                type: string
-              observedGeneration:
-                description: observedGeneration represents the observed .metadata.generation
-                  of the AutoIndexer
-                format: int64
-                minimum: 0
-                type: integer
-              phase:
+              indexingPhase:
                 allOf:
                 - enum:
                   - Pending
@@ -327,16 +273,46 @@ spec:
                   - Failed
                   - Retrying
                   - Unknown
-                description: Phase represents the current phase of the AutoIndexer
+                description: IndexingPhase represents the current phase of the AutoIndexer
                 type: string
-              successfulRunCount:
-                description: SuccessfulRunCount tracks successful indexing runs
+              lastIndexedCommit:
+                description: LastCommit is the last processed commit hash for Git
+                  sources
+                type: string
+              lastIndexingDurationSeconds:
+                description: LastRunDurationSeconds is the duration of the last indexer
+                  run in seconds
+                format: int32
+                type: integer
+              lastIndexingTimestamp:
+                description: LastIndexingTimestamp is the timestamp of the end of
+                  the last successful indexing
+                format: date-time
+                type: string
+              nextScheduledIndexing:
+                description: NextScheduledIndexing shows when the next indexing is
+                  scheduled
+                format: date-time
+                type: string
+              numOfDocumentInIndex:
+                description: NumOfDocumentInIndex is the count of documents in the
+                  index after the latest run managed by this autoindexer instance
+                format: int32
+                type: integer
+              observedGeneration:
+                description: observedGeneration represents the observed .metadata.generation
+                  of the AutoIndexer
+                format: int64
+                minimum: 0
+                type: integer
+              successfulIndexingCount:
+                description: SuccessfulIndexingCount tracks successful indexing runs
                 format: int32
                 type: integer
             required:
-            - documentsProcessed
-            - errorRunCount
-            - successfulRunCount
+            - errorIndexingCount
+            - numOfDocumentInIndex
+            - successfulIndexingCount
             type: object
         type: object
     served: true

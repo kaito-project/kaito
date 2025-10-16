@@ -17,7 +17,7 @@ Tests for AutoIndexerK8sClient.
 """
 
 import os
-from unittest.mock import mock_open, patch
+from unittest.mock import patch
 
 import pytest
 from kubernetes.client.rest import ApiException
@@ -113,7 +113,8 @@ class TestAutoIndexerK8sClient:
         mock_k8s_config.load_incluster_config.side_effect = ConfigException("Not in cluster")
         mock_k8s_config.load_kube_config.return_value = None  # Success
         
-        with patch.dict(os.environ, {"NAMESPACE": "test-ns", "AUTOINDEXER_NAME": "test-ai"}):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'test-ns'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-ai'):
             client = AutoIndexerK8sClient()
             
         # Verify both config methods were called
@@ -137,7 +138,7 @@ class TestAutoIndexerK8sClient:
         mock_k8s_config.load_incluster_config.return_value = None
         mock_k8s_config.ConfigException = Exception
         
-        with patch.dict(os.environ, {'NAMESPACE': 'custom-namespace'}):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'custom-namespace'):
             client = AutoIndexerK8sClient()
             assert client.namespace == "custom-namespace"
 
@@ -146,8 +147,7 @@ class TestAutoIndexerK8sClient:
         mock_k8s_config.load_incluster_config.return_value = None
         mock_k8s_config.ConfigException = Exception
         
-        with patch.dict(os.environ, {}, clear=True), \
-             patch('builtins.open', mock_open(read_data="service-account-namespace")):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'service-account-namespace'):
             client = AutoIndexerK8sClient()
             assert client.namespace == "service-account-namespace"
 
@@ -156,8 +156,7 @@ class TestAutoIndexerK8sClient:
         mock_k8s_config.load_incluster_config.return_value = None
         mock_k8s_config.ConfigException = Exception
         
-        with patch.dict(os.environ, {}, clear=True), \
-             patch('builtins.open', side_effect=FileNotFoundError()):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'):
             client = AutoIndexerK8sClient()
             assert client.namespace == "default"
 
@@ -168,10 +167,8 @@ class TestAutoIndexerK8sClient:
         
         mock_custom_api.get_namespaced_custom_object.return_value = sample_autoindexer_crd
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             result = client.get_autoindexer()
             
@@ -211,10 +208,8 @@ class TestAutoIndexerK8sClient:
         api_error = ApiException(status=500)
         mock_custom_api.get_namespaced_custom_object.side_effect = api_error
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             
             with pytest.raises(ApiException):
@@ -225,7 +220,8 @@ class TestAutoIndexerK8sClient:
         mock_k8s_config.load_incluster_config.return_value = None
         mock_k8s_config.ConfigException = Exception
         
-        with patch.dict(os.environ, {'NAMESPACE': 'default'}, clear=True):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', ''):
             client = AutoIndexerK8sClient()
             result = client.get_autoindexer()
             
@@ -240,10 +236,8 @@ class TestAutoIndexerK8sClient:
         mock_custom_api.get_namespaced_custom_object.return_value = sample_autoindexer_crd.copy()
         mock_custom_api.patch_namespaced_custom_object_status.return_value = sample_autoindexer_crd
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             
             status_update = {"indexingPhase": "Running"}
@@ -261,10 +255,8 @@ class TestAutoIndexerK8sClient:
         api_error = ApiException(status=404)
         mock_custom_api.get_namespaced_custom_object.side_effect = api_error
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             
             status_update = {"indexingPhase": "Running"}
@@ -283,10 +275,8 @@ class TestAutoIndexerK8sClient:
         mock_custom_api.get_namespaced_custom_object.return_value = crd_copy
         mock_custom_api.patch_namespaced_custom_object_status.return_value = crd_copy
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             
             result = client.add_status_condition(
@@ -316,10 +306,8 @@ class TestAutoIndexerK8sClient:
         mock_custom_api.get_namespaced_custom_object.return_value = crd_copy
         mock_custom_api.patch_namespaced_custom_object_status.return_value = crd_copy
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             
             result = client.add_status_condition(
@@ -339,13 +327,11 @@ class TestAutoIndexerK8sClient:
         mock_custom_api.get_namespaced_custom_object.return_value = sample_autoindexer_crd.copy()
         mock_custom_api.patch_namespaced_custom_object_status.return_value = sample_autoindexer_crd
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             
-            result = client.update_indexing_progress(100, 50)
+            result = client.update_indexing_progress(100)
             
             assert result is True
             mock_custom_api.patch_namespaced_custom_object_status.assert_called_once()
@@ -358,10 +344,8 @@ class TestAutoIndexerK8sClient:
         mock_custom_api.get_namespaced_custom_object.return_value = sample_autoindexer_crd.copy()
         mock_custom_api.patch_namespaced_custom_object_status.return_value = sample_autoindexer_crd
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             
             result = client.update_indexing_phase("Running")
@@ -400,10 +384,8 @@ class TestAutoIndexerK8sClient:
         mock_custom_api.get_namespaced_custom_object.return_value = sample_autoindexer_crd.copy()
         mock_custom_api.patch_namespaced_custom_object_status.return_value = sample_autoindexer_crd
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             
             result = client.update_indexing_completion(
@@ -421,10 +403,8 @@ class TestAutoIndexerK8sClient:
         
         mock_custom_api.get_namespaced_custom_object.return_value = sample_autoindexer_crd
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             config = client.get_autoindexer_config()
             
@@ -440,10 +420,8 @@ class TestAutoIndexerK8sClient:
         api_error = ApiException(status=404)
         mock_custom_api.get_namespaced_custom_object.side_effect = api_error
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             config = client.get_autoindexer_config()
             
@@ -459,10 +437,8 @@ class TestAutoIndexerK8sClient:
         crd_copy["status"]["successfulIndexingCount"] = 5
         mock_custom_api.get_namespaced_custom_object.return_value = crd_copy
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             result = client._increment_counter("successfulIndexingCount")
             
@@ -475,10 +451,8 @@ class TestAutoIndexerK8sClient:
         
         mock_custom_api.get_namespaced_custom_object.return_value = sample_autoindexer_crd.copy()
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             result = client._increment_counter("newCounter")
             
@@ -492,10 +466,8 @@ class TestAutoIndexerK8sClient:
         api_error = ApiException(status=500)
         mock_custom_api.get_namespaced_custom_object.side_effect = api_error
         
-        with patch.dict(os.environ, {
-            'NAMESPACE': 'default',
-            'AUTOINDEXER_NAME': 'test-autoindexer'
-        }):
+        with patch('autoindexer.k8s.k8s_client.NAMESPACE', 'default'), \
+             patch('autoindexer.k8s.k8s_client.AUTOINDEXER_NAME', 'test-autoindexer'):
             client = AutoIndexerK8sClient()
             result = client._increment_counter("errorCounter")
             

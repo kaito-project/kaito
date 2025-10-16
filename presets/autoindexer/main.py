@@ -27,8 +27,7 @@ import sys
 import time
 from typing import Any
 
-import requests
-
+from autoindexer.config import ACCESS_SECRET, AUTOINDEXER_NAME, NAMESPACE
 from autoindexer.data_source_handler.git_handler import GitDataSourceHandler
 from autoindexer.data_source_handler.handler import DataSourceError
 from autoindexer.data_source_handler.static_handler import (
@@ -53,10 +52,10 @@ class AutoIndexerService:
     def __init__(self, dry_run: bool = False):
         """Initialize the AutoIndexer service with environment variables."""
         self.dry_run = dry_run
-        self.access_secret = self._get_required_env("ACCESS_SECRET")
-        self.autoindexer_name = self._get_required_env("AUTOINDEXER_NAME")
-        self.namespace = self._get_required_env("NAMESPACE")
-        
+        self.access_secret = ACCESS_SECRET
+        self.autoindexer_name = AUTOINDEXER_NAME
+        self.namespace = NAMESPACE
+
         # Initialize configuration attributes with defaults
         self.index_name = None
         self.ragengine_endpoint = None
@@ -66,8 +65,10 @@ class AutoIndexerService:
         
         # Initialize Kubernetes client for CRD interaction
         self.k8s_client = None
+        self.autoindexer_client = None  # Alias for k8s_client for compatibility
         try:
             self.k8s_client = AutoIndexerK8sClient()
+            self.autoindexer_client = self.k8s_client  # Set alias
             logger.info("Kubernetes client initialized successfully")
             
             # Try to get configuration from the AutoIndexer CRD
@@ -113,13 +114,18 @@ class AutoIndexerService:
         """Create the appropriate data source handler based on configuration."""
         if self.datasource_type.lower() == "static":
             return StaticDataSourceHandler(
+                index_name=self.index_name,
                 config=self.datasource_config or {},
-                credentials=self.credentials_config
+                rag_client=self.rag_client,
+                autoindexer_client=self.autoindexer_client,
+                credentials=self.access_secret
             )
         elif self.datasource_type.lower() == "git":
             return GitDataSourceHandler(
                 config=self.datasource_config or {},
-                credentials=self.access_secret
+                credentials=self.access_secret,
+                rag_client=self.rag_client,
+                autoindexer_client=self.autoindexer_client
             )
         else:
             raise ValueError(f"Unsupported data source type: {self.datasource_type}")
@@ -202,34 +208,30 @@ class AutoIndexerService:
             # Update phase and status to indicate we're starting
             self._update_indexing_phase("Running")
             self._update_status_condition("AutoIndexerIndexing", "True", "IndexingStarted", "Document indexing process has started")
-            
-            # Fetch documents from data source
-            logger.info("Fetching documents from data source")
-            errors = self._update_index()
 
-            response = self.rag_client.list_documents(self.index_name, metadata_filter={"autoindexer_name": self.autoindexer_name}, limit=1, offset=0)
-            index_document_count = response.get("total", 0)
-
-            duration = int(time.time() - start_time)
-            
-            if not errors:
-                logger.info("Document indexing completed successfully")
-                self._update_indexing_completion(True, duration, index_document_count)
-                self._update_status_condition("AutoIndexerSucceeded", "True", "IndexingCompleted", "Document indexing completed successfully")
-                return True
-            else:
-                logger.warning(f"Errors occurred while fetching documents: {errors}")
-                logger.error("Document indexing failed")
-                self._update_indexing_completion(False, duration, 0)
-                self._update_status_condition("AutoIndexerError", "True", "IndexingFailed", "Document indexing failed")
-                return False
+            # Update the index and check for errors
+            self._update_index()
+            self._update_autoindexer_status()
                 
         except Exception as e:
-            duration = int(time.time() - start_time)
+            # Calculate duration for failure case
+            end_time = time.time()
+            duration_seconds = int(end_time - start_time)
+            
             logger.error(f"AutoIndexer service failed: {e}", exc_info=True)
-            self._update_indexing_completion(False, duration, 0)
             self._update_status_condition("AutoIndexerError", "True", "ServiceError", f"AutoIndexer service failed: {str(e)}")
+            
+            # Try to get document count even in failure case
+            try:
+                documents_response = self.rag_client.list_documents(self.index_name, metadata_filter={"autoindexer": self.autoindexer_name}, limit=1)
+                document_count = documents_response.get("total_items", 0)
+            except Exception:
+                document_count = 0
+                
+            self._update_indexing_completion(False, duration_seconds, document_count, None)
             return False
+
+        return True
 
     def _update_index(self) -> list[str]:
         """
@@ -239,7 +241,7 @@ class AutoIndexerService:
             List[str]: List of error messages, if any
         """
         try:
-            errors = self.data_source_handler.update_index(self.index_name, self.rag_client)
+            errors = self.data_source_handler.update_index()
             return errors
                 
         except DataSourceError as e:
@@ -250,6 +252,13 @@ class AutoIndexerService:
             error_msg = f"Unexpected error during indexing: {e}"
             logger.error(error_msg, exc_info=True)
             return [error_msg]
+    
+    def _update_autoindexer_status(self):
+        """Update the status of the AutoIndexer CRD."""
+        try:
+            self.data_source_handler.update_autoindexer_status()
+        except Exception as e:
+            logger.error(f"Failed to update AutoIndexer status: {e}")
 
     def _ensure_index_exists(self):
         """Ensure the target index exists in the RAG engine."""

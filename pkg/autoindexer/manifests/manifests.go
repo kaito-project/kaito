@@ -337,6 +337,21 @@ func GenerateJobName(autoIndexer *kaitov1alpha1.AutoIndexer, jobType string) str
 	return fmt.Sprintf("%s-job-%d", prefix, timestamp)
 }
 
+// GenerateServiceAccountName creates a unique service account name for the AutoIndexer
+func GenerateServiceAccountName(autoIndexer *kaitov1alpha1.AutoIndexer) string {
+	return fmt.Sprintf("%s-job-sa", autoIndexer.Name)
+}
+
+// GenerateRoleName creates a unique role name for the AutoIndexer
+func GenerateRoleName(autoIndexer *kaitov1alpha1.AutoIndexer) string {
+	return fmt.Sprintf("%s-job-access", autoIndexer.Name)
+}
+
+// GenerateRoleBindingName creates a unique role binding name for the AutoIndexer
+func GenerateRoleBindingName(autoIndexer *kaitov1alpha1.AutoIndexer) string {
+	return fmt.Sprintf("%s-job-access-binding", autoIndexer.Name)
+}
+
 // ValidateJobConfig validates the job configuration
 func ValidateJobConfig(config JobConfig) error {
 	if config.AutoIndexer == nil {
@@ -366,9 +381,9 @@ func GetDefaultJobConfig(autoIndexer *kaitov1alpha1.AutoIndexer, jobType string)
 		JobName:            GenerateJobName(autoIndexer, jobType),
 		JobType:            jobType,
 		Image:              AutoIndexerImage,
-		ImagePullPolicy:    corev1.PullIfNotPresent,
-		ResourceLimits:     nil,                  // Will use defaults
-		ServiceAccountName: "autoindexer-job-sa", // Default, override as needed
+		ImagePullPolicy:    corev1.PullAlways,
+		ResourceLimits:     nil,                                     // Will use defaults
+		ServiceAccountName: GenerateServiceAccountName(autoIndexer), // AutoIndexer-specific service account
 	}
 }
 
@@ -376,7 +391,7 @@ func GetDefaultJobConfig(autoIndexer *kaitov1alpha1.AutoIndexer, jobType string)
 func GenerateServiceAccountManifest(autoIndexer *kaitov1alpha1.AutoIndexer) *corev1.ServiceAccount {
 	return &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "autoindexer-job-sa",
+			Name:      GenerateServiceAccountName(autoIndexer),
 			Namespace: autoIndexer.Namespace,
 			Labels: map[string]string{
 				LabelAutoIndexerName:      autoIndexer.Name,
@@ -393,7 +408,7 @@ func GenerateServiceAccountManifest(autoIndexer *kaitov1alpha1.AutoIndexer) *cor
 func GenerateRoleManifest(autoIndexer *kaitov1alpha1.AutoIndexer) *rbacv1.Role {
 	return &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "autoindexer-job-access",
+			Name:      GenerateRoleName(autoIndexer),
 			Namespace: autoIndexer.Namespace,
 			Labels: map[string]string{
 				LabelAutoIndexerName:      autoIndexer.Name,
@@ -418,7 +433,7 @@ func GenerateRoleManifest(autoIndexer *kaitov1alpha1.AutoIndexer) *rbacv1.Role {
 func GenerateRoleBindingManifest(autoIndexer *kaitov1alpha1.AutoIndexer) *rbacv1.RoleBinding {
 	return &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "autoindexer-job-access-binding",
+			Name:      GenerateRoleBindingName(autoIndexer),
 			Namespace: autoIndexer.Namespace,
 			Labels: map[string]string{
 				LabelAutoIndexerName:      autoIndexer.Name,
@@ -431,13 +446,13 @@ func GenerateRoleBindingManifest(autoIndexer *kaitov1alpha1.AutoIndexer) *rbacv1
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
-				Name:      "autoindexer-job-sa",
+				Name:      GenerateServiceAccountName(autoIndexer),
 				Namespace: autoIndexer.Namespace,
 			},
 		},
 		RoleRef: rbacv1.RoleRef{
 			Kind:     "Role",
-			Name:     "autoindexer-job-access",
+			Name:     GenerateRoleName(autoIndexer),
 			APIGroup: "rbac.authorization.k8s.io",
 		},
 	}

@@ -20,6 +20,7 @@ from requests.exceptions import RequestException
 
 from autoindexer.data_source_handler.handler import DataSourceError
 from autoindexer.data_source_handler.static_handler import StaticDataSourceHandler
+from autoindexer.k8s.k8s_client import AutoIndexerK8sClient
 from autoindexer.rag.rag_client import KAITORAGClient
 
 
@@ -31,11 +32,9 @@ class TestStaticDataSourceHandler:
         """Fixture providing a valid configuration."""
         return {
             "autoindexer_name": "test-autoindexer",
-            "static": {
-                "urls": ["https://example.com/document.md"],
-                "timeout": 30,
-                "max_file_size": 5 * 1024 * 1024  # 5MB
-            }
+            "urls": ["https://example.com/document.md"],
+            "timeout": 30,
+            "max_file_size": 5 * 1024 * 1024  # 5MB
         }
 
     @pytest.fixture
@@ -58,22 +57,39 @@ class TestStaticDataSourceHandler:
         client.index_documents.return_value = {"success": True, "indexed": 1}
         return client
 
-    def test_init_success(self, valid_config):
+    @pytest.fixture
+    def mock_autoindexer_client(self):
+        """Fixture providing a mock AutoIndexer K8s client."""
+        client = Mock(spec=AutoIndexerK8sClient)
+        client.update_indexing_progress.return_value = None
+        return client
+
+    def test_init_success(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test successful initialization."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler(
+            index_name="test-index",
+            config=valid_config,
+            rag_client=mock_rag_client,
+            autoindexer_client=mock_autoindexer_client
+        )
         
         assert handler.config == valid_config
         assert handler.credentials == {}
         assert handler.autoindexer_name == "test-autoindexer"
-        assert handler.static_config == valid_config["static"]
 
-    def test_init_with_credentials(self, valid_config, credentials):
+    def test_init_with_credentials(self, valid_config, credentials, mock_rag_client, mock_autoindexer_client):
         """Test initialization with credentials."""
-        handler = StaticDataSourceHandler(valid_config, credentials)
+        handler = StaticDataSourceHandler(
+            index_name="test-index",
+            config=valid_config,
+            rag_client=mock_rag_client,
+            autoindexer_client=mock_autoindexer_client,
+            credentials=credentials
+        )
         
         assert handler.credentials == credentials
 
-    def test_init_missing_autoindexer_name(self):
+    def test_init_missing_autoindexer_name(self, mock_rag_client, mock_autoindexer_client):
         """Test initialization failure with missing autoindexer_name."""
         config = {
             "static": {
@@ -82,19 +98,27 @@ class TestStaticDataSourceHandler:
         }
         
         with pytest.raises(DataSourceError, match="missing 'autoindexer_name' value"):
-            StaticDataSourceHandler(config)
+            StaticDataSourceHandler(
+                index_name="test-index",
+                config=config,
+                rag_client=mock_rag_client,
+                autoindexer_client=mock_autoindexer_client
+            )
 
-    def test_init_missing_static_section(self):
-        """Test initialization failure with missing static section."""
-        config = {
-            "autoindexer_name": "test-autoindexer"
-        }
+    def test_init_missing_static_section(self, mock_rag_client, mock_autoindexer_client):
+        """Test initialization failure with missing autoindexer_name."""
+        config = {}
         
-        with pytest.raises(DataSourceError, match="missing 'static' section"):
-            StaticDataSourceHandler(config)
+        with pytest.raises(DataSourceError, match="missing 'autoindexer_name' value"):
+            StaticDataSourceHandler(
+                index_name="test-index",
+                config=config,
+                rag_client=mock_rag_client,
+                autoindexer_client=mock_autoindexer_client
+            )
 
     @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_update_index_single_url_success(self, mock_get, valid_config, mock_rag_client):
+    def test_update_index_single_url_success(self, mock_get, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test successful index update with a single URL."""
         # Setup mock response
         mock_response = Mock()
@@ -103,8 +127,13 @@ class TestStaticDataSourceHandler:
         mock_response.iter_content.return_value = [b'Test content from URL']
         mock_get.return_value.__enter__.return_value = mock_response
         
-        handler = StaticDataSourceHandler(valid_config)
-        errors = handler.update_index("test-index", mock_rag_client)
+        handler = StaticDataSourceHandler(
+            index_name="test-index",
+            config=valid_config,
+            rag_client=mock_rag_client,
+            autoindexer_client=mock_autoindexer_client
+        )
+        errors = handler.update_index()
         
         assert errors == []
         mock_rag_client.index_documents.assert_called_once()
@@ -119,16 +148,14 @@ class TestStaticDataSourceHandler:
         assert documents[0]["metadata"]["autoindexer"] == "test-autoindexer"
 
     @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_update_index_multiple_urls(self, mock_get, mock_rag_client):
+    def test_update_index_multiple_urls(self, mock_get, mock_rag_client, mock_autoindexer_client):
         """Test index update with multiple URLs."""
         config = {
             "autoindexer_name": "test-autoindexer",
-            "static": {
-                "urls": [
-                    "https://example.com/doc1.md",
-                    "https://example.com/doc2.txt"
-                ]
-            }
+            "urls": [
+                "https://example.com/doc1.md",
+                "https://example.com/doc2.txt"
+            ]
         }
         
         # Setup mock responses
@@ -141,8 +168,13 @@ class TestStaticDataSourceHandler:
         ]
         mock_get.return_value.__enter__.return_value = mock_response
         
-        handler = StaticDataSourceHandler(config)
-        errors = handler.update_index("test-index", mock_rag_client)
+        handler = StaticDataSourceHandler(
+            index_name="test-index",
+            config=config,
+            rag_client=mock_rag_client,
+            autoindexer_client=mock_autoindexer_client
+        )
+        errors = handler.update_index()
         
         assert errors == []
         assert mock_rag_client.index_documents.call_count == 1
@@ -152,15 +184,13 @@ class TestStaticDataSourceHandler:
         assert len(documents) == 2
 
     @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_update_index_batch_processing(self, mock_get, mock_rag_client):
+    def test_update_index_batch_processing(self, mock_get, mock_rag_client, mock_autoindexer_client):
         """Test batch processing when document count exceeds batch size."""
         # Create config with 12 URLs to trigger batch processing (batch size is 10)
         urls = [f"https://example.com/doc{i}.md" for i in range(12)]
         config = {
             "autoindexer_name": "test-autoindexer",
-            "static": {
-                "urls": urls
-            }
+            "urls": urls
         }
         
         mock_response = Mock()
@@ -169,72 +199,40 @@ class TestStaticDataSourceHandler:
         mock_response.iter_content.return_value = [b'Test content']
         mock_get.return_value.__enter__.return_value = mock_response
         
-        handler = StaticDataSourceHandler(config)
-        errors = handler.update_index("test-index", mock_rag_client)
+        handler = StaticDataSourceHandler("test-index", config, mock_rag_client, mock_autoindexer_client)
+        errors = handler.update_index()
         
         assert errors == []
         # Should be called twice: once for first 10, once for remaining 2
         assert mock_rag_client.index_documents.call_count == 2
 
     @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_update_index_http_error(self, mock_get, valid_config, mock_rag_client):
+    def test_update_index_http_error(self, mock_get, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test handling of HTTP errors during index update."""
         mock_get.return_value.__enter__.side_effect = RequestException("Network error")
         
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         # The method catches exceptions and returns them as errors instead of raising
-        errors = handler.update_index("test-index", mock_rag_client)
+        errors = handler.update_index()
         
-        assert len(errors) == 1
-        assert "Failed to fetch content" in errors[0]
+        assert len(errors) >= 1  # May return multiple error entries for the same failure
+        assert any("Failed to fetch content" in error for error in errors)
 
-    def test_update_index_no_urls(self, mock_rag_client):
+    def test_update_index_no_urls(self, mock_rag_client, mock_autoindexer_client):
         """Test handling when no URLs are configured."""
         config = {
-            "autoindexer_name": "test-autoindexer",
-            "static": {}
+            "autoindexer_name": "test-autoindexer"
         }
         
-        handler = StaticDataSourceHandler(config)
-        errors = handler.update_index("test-index", mock_rag_client)
+        handler = StaticDataSourceHandler("test-index", config, mock_rag_client, mock_autoindexer_client)
+        errors = handler.update_index()
         
         assert len(errors) == 1
         assert "No documents fetched" in errors[0]
 
     @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_fetch_documents_success(self, mock_get, valid_config):
-        """Test successful document fetching."""
-        # Update config to use 'endpoints' for fetch_documents method
-        config = {
-            "autoindexer_name": "test-autoindexer",
-            "static": {
-                "endpoints": ["https://example.com/document.md"]
-            }
-        }
-        
-        mock_response = Mock()
-        mock_response.raise_for_status.return_value = None
-        mock_response.headers = {'content-type': 'text/plain'}
-        mock_response.iter_content.return_value = [b'Test document content']
-        mock_get.return_value.__enter__.return_value = mock_response
-        
-        handler = StaticDataSourceHandler(config)
-        documents = handler.fetch_documents()
-        
-        assert len(documents) == 1
-        assert documents[0]["text"] == "Test document content"
-        assert documents[0]["metadata"]["source_type"] == "url"
-
-    def test_fetch_documents_no_endpoints(self, valid_config):
-        """Test fetch_documents with no endpoints configured."""
-        handler = StaticDataSourceHandler(valid_config)
-        documents = handler.fetch_documents()
-        
-        assert documents == []
-
-    @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_fetch_content_from_url_success(self, mock_get, valid_config):
+    def test_fetch_content_from_url_success(self, mock_get, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test successful content fetching from URL."""
         mock_response = Mock()
         mock_response.raise_for_status.return_value = None
@@ -242,33 +240,33 @@ class TestStaticDataSourceHandler:
         mock_response.iter_content.return_value = [b'Test content']
         mock_get.return_value.__enter__.return_value = mock_response
         
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         content = handler._fetch_content_from_url("https://example.com/test.txt")
         
         assert content == "Test content"
 
     @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_fetch_content_invalid_url(self, mock_get, valid_config):
+    def test_fetch_content_invalid_url(self, mock_get, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test handling of invalid URLs."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         with pytest.raises(DataSourceError, match="Invalid URL format"):
             handler._fetch_content_from_url("not-a-valid-url")
 
     @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_fetch_content_file_too_large_header(self, mock_get, valid_config):
+    def test_fetch_content_file_too_large_header(self, mock_get, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test handling of files that are too large based on Content-Length header."""
         mock_response = Mock()
         mock_response.headers = {'content-length': str(20 * 1024 * 1024)}  # 20MB
         mock_get.return_value.__enter__.return_value = mock_response
         
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         with pytest.raises(DataSourceError, match="File too large"):
             handler._fetch_content_from_url("https://example.com/large-file.txt")
 
     @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_fetch_content_file_too_large_streaming(self, mock_get, valid_config):
+    def test_fetch_content_file_too_large_streaming(self, mock_get, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test handling of files that are too large during streaming."""
         mock_response = Mock()
         mock_response.raise_for_status.return_value = None
@@ -278,13 +276,13 @@ class TestStaticDataSourceHandler:
         mock_response.iter_content.return_value = [large_chunk]
         mock_get.return_value.__enter__.return_value = mock_response
         
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         with pytest.raises(DataSourceError, match="File too large"):
             handler._fetch_content_from_url("https://example.com/large-file.txt")
 
     @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_fetch_content_with_authentication(self, mock_get, valid_config, credentials):
+    def test_fetch_content_with_authentication(self, mock_get, valid_config, credentials, mock_rag_client, mock_autoindexer_client):
         """Test content fetching with HTTP authentication."""
         mock_response = Mock()
         mock_response.raise_for_status.return_value = None
@@ -292,7 +290,7 @@ class TestStaticDataSourceHandler:
         mock_response.iter_content.return_value = [b'Authenticated content']
         mock_get.return_value.__enter__.return_value = mock_response
         
-        handler = StaticDataSourceHandler(valid_config, credentials)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client, credentials)
         handler._fetch_content_from_url("https://example.com/secure.txt")
         
         # Verify authentication was used
@@ -302,7 +300,7 @@ class TestStaticDataSourceHandler:
         assert 'X-Custom-Header' in call_kwargs['headers']
 
     @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_fetch_content_json_processing(self, mock_get, valid_config):
+    def test_fetch_content_json_processing(self, mock_get, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test handling of JSON content with special processing."""
         json_data = {"content": "This is the main content", "other": "ignored"}
         mock_response = Mock()
@@ -311,14 +309,14 @@ class TestStaticDataSourceHandler:
         mock_response.iter_content.return_value = [json.dumps(json_data).encode('utf-8')]
         mock_get.return_value.__enter__.return_value = mock_response
         
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         content = handler._fetch_content_from_url("https://example.com/data.json")
         
         assert content == "This is the main content"
 
-    def test_is_file_url_file_extensions(self, valid_config):
+    def test_is_file_url_file_extensions(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test file URL detection based on file extensions."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         # Test various file extensions
         file_urls = [
@@ -335,9 +333,9 @@ class TestStaticDataSourceHandler:
             parsed_url = urlparse(url)
             assert handler._is_file_url(url, parsed_url) is True
 
-    def test_is_file_url_github_raw(self, valid_config):
+    def test_is_file_url_github_raw(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test file URL detection for GitHub raw URLs."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         url = "https://raw.githubusercontent.com/user/repo/main/README.md"
         from urllib.parse import urlparse
@@ -345,9 +343,9 @@ class TestStaticDataSourceHandler:
         
         assert handler._is_file_url(url, parsed_url) is True
 
-    def test_is_file_url_non_file(self, valid_config):
+    def test_is_file_url_non_file(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test file URL detection for non-file URLs."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         non_file_urls = [
             "https://example.com/",
@@ -360,23 +358,23 @@ class TestStaticDataSourceHandler:
             parsed_url = urlparse(url)
             assert handler._is_file_url(url, parsed_url) is False
 
-    def test_is_pdf_content_content_type(self, valid_config):
+    def test_is_pdf_content_content_type(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test PDF detection based on content type."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         assert handler._is_pdf_content(b'', 'application/pdf', 'test.pdf') is True
         assert handler._is_pdf_content(b'', 'text/plain', 'test.txt') is False
 
-    def test_is_pdf_content_url_extension(self, valid_config):
+    def test_is_pdf_content_url_extension(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test PDF detection based on URL extension."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         assert handler._is_pdf_content(b'', '', 'document.pdf') is True
         assert handler._is_pdf_content(b'', '', 'document.txt') is False
 
-    def test_is_pdf_content_magic_bytes(self, valid_config):
+    def test_is_pdf_content_magic_bytes(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test PDF detection based on magic bytes."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         pdf_content = b'%PDF-1.4\n...'
         text_content = b'This is plain text'
@@ -384,7 +382,7 @@ class TestStaticDataSourceHandler:
         assert handler._is_pdf_content(pdf_content, '', 'unknown') is True
         assert handler._is_pdf_content(text_content, '', 'unknown') is False
 
-    def test_extract_pdf_text_pypdf2_success(self, valid_config):
+    def test_extract_pdf_text_pypdf2_success(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test successful PDF text extraction using PyPDF2."""
         with patch('builtins.__import__') as mock_import:
             # Mock PyPDF2 module
@@ -404,13 +402,13 @@ class TestStaticDataSourceHandler:
             
             mock_import.side_effect = import_side_effect
             
-            handler = StaticDataSourceHandler(valid_config)
+            handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
             result = handler._extract_pdf_text(b'%PDF-1.4...', 'test.pdf')
             
             assert "Page content" in result
             assert "--- Page 1 ---" in result
 
-    def test_extract_pdf_text_pdfplumber_fallback(self, valid_config):
+    def test_extract_pdf_text_pdfplumber_fallback(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test PDF text extraction fallback to pdfplumber."""
         with patch('builtins.__import__') as mock_import:
             # Mock pdfplumber module and PyPDF2 import error
@@ -435,12 +433,12 @@ class TestStaticDataSourceHandler:
             
             mock_import.side_effect = import_side_effect
             
-            handler = StaticDataSourceHandler(valid_config)
+            handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
             result = handler._extract_pdf_text(b'%PDF-1.4...', 'test.pdf')
             
             assert "Page content from pdfplumber" in result
 
-    def test_extract_pdf_text_no_libraries(self, valid_config):
+    def test_extract_pdf_text_no_libraries(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test PDF text extraction failure when no libraries are available."""
         with patch('builtins.__import__') as mock_import:
             def import_side_effect(name, *args, **kwargs):
@@ -450,14 +448,14 @@ class TestStaticDataSourceHandler:
             
             mock_import.side_effect = import_side_effect
             
-            handler = StaticDataSourceHandler(valid_config)
+            handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
             
             with pytest.raises(DataSourceError, match="Unable to extract text from PDF"):
                 handler._extract_pdf_text(b'%PDF-1.4...', 'test.pdf')
 
-    def test_table_to_text_success(self, valid_config):
+    def test_table_to_text_success(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test successful table conversion to text."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         table = [
             ['Header1', 'Header2', 'Header3'],
@@ -470,16 +468,16 @@ class TestStaticDataSourceHandler:
         assert "Header1 | Header2 | Header3" in result
         assert "Row1Col1 | Row1Col2 | Row1Col3" in result
 
-    def test_table_to_text_empty_table(self, valid_config):
+    def test_table_to_text_empty_table(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test table conversion with empty table."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         assert handler._table_to_text([]) == ""
         assert handler._table_to_text(None) == ""
 
-    def test_table_to_text_with_none_values(self, valid_config):
+    def test_table_to_text_with_none_values(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test table conversion with None values."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         table = [['A', None, 'C'], [None, 'B', None]]
         result = handler._table_to_text(table)
@@ -488,11 +486,11 @@ class TestStaticDataSourceHandler:
         assert " | B | " in result
 
     @patch('autoindexer.data_source_handler.static_handler.chardet.detect')
-    def test_decode_content_encoding_detection(self, mock_detect, valid_config):
+    def test_decode_content_encoding_detection(self, mock_detect, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test content decoding with encoding detection."""
         mock_detect.return_value = {'encoding': 'utf-8', 'confidence': 0.9}
         
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         content = "Test content with unicode: café"
         encoded_content = content.encode('utf-8')
         
@@ -500,9 +498,9 @@ class TestStaticDataSourceHandler:
         
         assert result == content
 
-    def test_decode_content_content_type_encoding(self, valid_config):
+    def test_decode_content_content_type_encoding(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test content decoding using encoding from content-type header."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         content = "Test content"
         encoded_content = content.encode('latin1')
         
@@ -514,17 +512,17 @@ class TestStaticDataSourceHandler:
         
         assert result == content
 
-    def test_decode_content_empty_content(self, valid_config):
+    def test_decode_content_empty_content(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test decoding of empty content."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         result = handler._decode_content(b'', 'text/plain', 'empty.txt')
         
         assert result == ""
 
-    def test_decode_content_fallback_with_errors(self, valid_config):
+    def test_decode_content_fallback_with_errors(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test content decoding fallback when all encodings fail."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         # Use bytes that can't be decoded properly
         invalid_content = b'\xff\xfe\x00\x00invalid'
         
@@ -536,27 +534,27 @@ class TestStaticDataSourceHandler:
     @patch('builtins.open', new_callable=mock_open, read_data='File content')
     @patch('os.path.exists', return_value=True)
     @patch('os.path.isfile', return_value=True)
-    def test_read_file_content_success(self, mock_isfile, mock_exists, mock_file, valid_config):
+    def test_read_file_content_success(self, mock_isfile, mock_exists, mock_file, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test successful file content reading."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         result = handler._read_file_content('/path/to/file.txt')
         
         assert result == 'File content'
 
     @patch('os.path.exists', return_value=False)
-    def test_read_file_content_not_found(self, mock_exists, valid_config):
+    def test_read_file_content_not_found(self, mock_exists, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test file reading when file doesn't exist."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         with pytest.raises(DataSourceError, match="File not found"):
             handler._read_file_content('/nonexistent/file.txt')
 
     @patch('os.path.exists', return_value=True)
     @patch('os.path.isfile', return_value=False)
-    def test_read_file_content_not_file(self, mock_isfile, mock_exists, valid_config):
+    def test_read_file_content_not_file(self, mock_isfile, mock_exists, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test file reading when path is not a file."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         with pytest.raises(DataSourceError, match="Path is not a file"):
             handler._read_file_content('/path/to/directory')
@@ -564,17 +562,17 @@ class TestStaticDataSourceHandler:
     @patch('builtins.open', new_callable=mock_open, read_data='')
     @patch('os.path.exists', return_value=True)
     @patch('os.path.isfile', return_value=True)
-    def test_read_file_content_empty_file(self, mock_isfile, mock_exists, mock_file, valid_config):
+    def test_read_file_content_empty_file(self, mock_isfile, mock_exists, mock_file, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test reading empty file."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         result = handler._read_file_content('/path/to/empty.txt')
         
         assert result is None
 
-    def test_get_current_timestamp(self, valid_config):
+    def test_get_current_timestamp(self, valid_config, mock_rag_client, mock_autoindexer_client):
         """Test timestamp generation."""
-        handler = StaticDataSourceHandler(valid_config)
+        handler = StaticDataSourceHandler("test-index", valid_config, mock_rag_client, mock_autoindexer_client)
         
         timestamp = handler._get_current_timestamp()
         
@@ -583,13 +581,11 @@ class TestStaticDataSourceHandler:
         assert 'T' in timestamp  # ISO format should contain 'T'
 
     @patch('autoindexer.data_source_handler.static_handler.requests.get')
-    def test_fetch_content_with_code_language_detection(self, mock_get, mock_rag_client):
+    def test_fetch_content_with_code_language_detection(self, mock_get, mock_rag_client, mock_autoindexer_client):
         """Test language detection for code files during index update."""
         config = {
             "autoindexer_name": "test-autoindexer",
-            "static": {
-                "urls": ["https://example.com/script.py"]
-            }
+            "urls": ["https://example.com/script.py"]
         }
         
         mock_response = Mock()
@@ -598,8 +594,8 @@ class TestStaticDataSourceHandler:
         mock_response.iter_content.return_value = [b'print("Hello, World!")']
         mock_get.return_value.__enter__.return_value = mock_response
         
-        handler = StaticDataSourceHandler(config)
-        errors = handler.update_index("test-index", mock_rag_client)
+        handler = StaticDataSourceHandler("test-index", config, mock_rag_client, mock_autoindexer_client)
+        errors = handler.update_index()
         
         assert errors == []
         

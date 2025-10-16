@@ -35,6 +35,10 @@ spec:
           env:
             - name: CONFIG_LOGGING_NAME
               value: "kaito-logging-config"
+            - name: WEBHOOK_SERVICE
+              value: {{ include "kaito.fullname" . }}
+            - name: WEBHOOK_PORT
+              value: "{{ .Values.webhook.port }}"
             - name: SYSTEM_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -48,6 +52,9 @@ spec:
           ports:
             - name: http-metrics
               containerPort: 8080
+              protocol: TCP
+            - name: https-webhook
+              containerPort: {{ .Values.webhook.port }}
               protocol: TCP
           livenessProbe:
             httpGet:

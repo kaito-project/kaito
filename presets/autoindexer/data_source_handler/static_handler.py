@@ -17,6 +17,7 @@ import io
 import json
 import logging
 import os
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlparse
 
@@ -27,6 +28,7 @@ from autoindexer.data_source_handler.handler import (
     DataSourceError,
     DataSourceHandler,
 )
+from autoindexer.k8s.k8s_client import AutoIndexerK8sClient
 from autoindexer.rag.rag_client import KAITORAGClient
 from autoindexer.rag.utils import get_file_extension_language
 
@@ -52,8 +54,8 @@ class StaticDataSourceHandler(DataSourceHandler):
     - Fallback between extraction methods for better compatibility
     - Configurable file size limits for PDF downloads
     """
-    
-    def __init__(self, config: dict[str, Any], credentials: dict[str, Any] | None = None):
+
+    def __init__(self, index_name: str, config: dict[str, Any], rag_client: KAITORAGClient, autoindexer_client: AutoIndexerK8sClient, credentials: dict[str, Any] | None = None):
         """
         Initialize the static data source handler.
         
@@ -61,39 +63,84 @@ class StaticDataSourceHandler(DataSourceHandler):
             config: Configuration dictionary containing static data source settings
             credentials: Optional credentials for accessing the data source
         """
+
+        self.index_name = index_name
         self.config = config
         self.credentials = credentials or {}
+        self.rag_client = rag_client
+        self.autoindexer_client = autoindexer_client
         
         if not self.config.get("autoindexer_name"):
             raise DataSourceError("Static data source configuration missing 'autoindexer_name' value")
 
         self.autoindexer_name = self.config.get("autoindexer_name")
 
-        # Validate required configuration
-        if "static" not in self.config:
-            raise DataSourceError("Static data source configuration is missing 'static' section")
-        
-        self.static_config = self.config["static"]
-        logger.info(f"Initialized static data source handler with config: {self.static_config}")
+        logger.info(f"Initialized static data source handler with config: {self.config}")
+    
+    def update_autoindexer_status(self):
+        """
+        Update the AutoIndexer CRD status based on the current index state and indexing status.
+        """
+        current_ai = self.autoindexer_client.get_autoindexer()
+        current_status = current_ai["status"]
 
-    def update_index(self, index_name: str, rag_client: KAITORAGClient) -> list[str]:
+
+        status_update = {
+            "lastIndexingTimestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "lastIndexingDurationSeconds": self.total_time.seconds,
+            "indexingPhase": "Completed",
+            "successfulIndexingCount": current_status["successfulIndexingCount"] + 1,
+            "numOfDocumentInIndex": 0,
+            "conditions": current_status.get("conditions", [])
+        }
+        try:
+            list_docs_resp = self.rag_client.list_documents(self.index_name, metadata_filter={"autoindexer": self.autoindexer_name}, limit=1)
+            logger.info(f"Document list response: {list_docs_resp}")
+            status_update["numOfDocumentInIndex"] = list_docs_resp["total_items"]
+        except Exception as e:
+            logger.error(f"Failed to list documents: {e}")
+
+        conditions = {}
+        conditions["AutoIndexerSucceeded"] = self.autoindexer_client._create_condition("AutoIndexerSucceeded", "True", "IndexingCompleted", "Indexing completed successfully")
+        if self.errors:
+            conditions["AutoIndexerError"] = self.autoindexer_client._create_condition("AutoIndexerError", "True", "IndexingErrors", f"Indexing completed with errors: {self.errors}")
+        else:
+            conditions["AutoIndexerError"] = self.autoindexer_client._create_condition("AutoIndexerError", "False", "IndexingCompleted", "No errors during indexing")
+        conditions["AutoIndexerFailed"] = self.autoindexer_client._create_condition("AutoIndexerFailed", "False", "IndexingCompleted", "Indexing completed successfully")
+        conditions["AutoIndexerIndexing"] = self.autoindexer_client._create_condition("AutoIndexerIndexing", "False", "IndexingCompleted", "Document indexing process completed successfully")
+
+        for condition_type, condition_data in conditions.items():
+                # Find existing condition of the same type
+                found = False
+                for i, existing_condition in enumerate(status_update["conditions"]):
+                    if existing_condition.get("type") == condition_type:
+                        # Update existing condition
+                        status_update["conditions"][i] = condition_data
+                        found = True
+                        break
+                
+                if not found:
+                    status_update["conditions"].append(condition_data)
+
+        if not self.autoindexer_client.update_autoindexer_status(status_update, update_success_or_failure=True):
+            logger.error("Failed to update AutoIndexer status")
+
+
+    def update_index(self) -> list[str]:
         """
         Update the index with documents from the data source.
-        
-        Args:
-            index_name: Name of the index to update
-            rag_client: Instance of the KAITORAGClient to use for indexing
 
         Returns:
             list[str]: List of error messages, if any
         """
-        errors = []
+        self.errors = []
+        start_time = datetime.now(UTC)
         
         try:
             documents = []
 
-            if "urls" in self.static_config:
-                url_list = self.static_config["urls"]
+            if "urls" in self.config:
+                url_list = self.config["urls"]
                 if isinstance(url_list, str):
                     url_list = [url_list]
                 
@@ -123,21 +170,20 @@ class StaticDataSourceHandler(DataSourceHandler):
                             logger.info(f"Successfully fetched content from {url}")
 
                             if len(documents) >= 10:
-                                logger.info(f"Batch indexing {len(documents)} documents into index '{index_name}'")
-                                response = rag_client.index_documents(index_name=index_name, documents=documents)
-                                logger.info(f"Indexing response: {response}")
+                                logger.info(f"Batch indexing {len(documents)} documents into index '{self.index_name}'")
+                                self.rag_client.index_documents(index_name=self.index_name, documents=documents)
                                 documents = []
                         else:
                             logger.warning(f"No content retrieved from {url}")
                     except Exception as e:
                         logger.error(f"Failed to fetch content from {url}: {e}")
+                        self.errors.append(f"Failed to fetch content from {url}: {e}")
                         raise DataSourceError(f"Failed to fetch content from {url}: {e}")
                         
                 # Index any remaining documents after processing all URLs
                 if len(documents) > 0:
-                    logger.info(f"Final batch indexing {len(documents)} documents into index '{index_name}'")
-                    response = rag_client.index_documents(index_name=index_name, documents=documents)
-                    logger.info(f"Indexing response: {response}")
+                    logger.info(f"Final batch indexing {len(documents)} documents into index '{self.index_name}'")
+                    self.rag_client.index_documents(index_name=self.index_name, documents=documents)
             else:
                 logger.warning("No 'urls' found in static data source configuration")
                 return ["No documents fetched from static data source"]
@@ -145,55 +191,14 @@ class StaticDataSourceHandler(DataSourceHandler):
         except DataSourceError as e:
             error_msg = f"Data source error: {e}"
             logger.error(error_msg)
-            errors.append(error_msg)
+            self.errors.append(error_msg)
         except Exception as e:
             error_msg = f"Unexpected error during indexing: {e}"
             logger.error(error_msg)
-            errors.append(error_msg)
+            self.errors.append(error_msg)
         
-        return errors
-        
-
-    def fetch_documents(self) -> list[dict[str, Any]]:
-        """
-        Fetch documents from static data sources.
-        
-        Returns:
-            list[dict[str, Any]]: List of documents with 'text' and optional 'metadata'
-        """
-        documents = []
-        
-        # Handle URLs
-        if "endpoints" in self.static_config:
-            url_list = self.static_config["endpoints"]
-            if isinstance(url_list, str):
-                url_list = [url_list]
-            
-            for url in url_list:
-                try:
-                    content = self._fetch_content_from_url(url)
-                    if content:
-                        documents.append({
-                            "text": content,
-                            "metadata": {
-                                "source_type": "url",
-                                "source_url": url,
-                                "timestamp": self._get_current_timestamp()
-                            }
-                        })
-                        logger.info(f"Successfully fetched content from {url}")
-                    else:
-                        logger.warning(f"No content retrieved from {url}")
-                except Exception as e:
-                    logger.error(f"Failed to fetch content from {url}: {e}")
-                    raise DataSourceError(f"Failed to fetch content from {url}: {e}")
-        
-        if not documents:
-            logger.warning("No documents found in static data source configuration")
-        else:
-            logger.info(f"Total documents fetched from static data source: {len(documents)}")
-        
-        return documents
+        self.total_time = datetime.now(UTC) - start_time
+        return self.errors
 
     def _fetch_content_from_url(self, url: str) -> str | None:
         """
@@ -252,8 +257,8 @@ class StaticDataSourceHandler(DataSourceHandler):
                     headers.update(self.credentials["headers"])
             
             # Make request with timeout and streaming for large files
-            timeout = self.static_config.get("timeout", 60)  # Increased timeout for file downloads
-            max_size = self.static_config.get("max_file_size", 10 * 1024 * 1024)  # 10MB default limit
+            timeout = self.config.get("timeout", 60)  # Increased timeout for file downloads
+            max_size = self.config.get("max_file_size", 10 * 1024 * 1024)  # 10MB default limit
             
             logger.info(f"Fetching content from {url} (file_url={is_file_url})")
             
@@ -611,5 +616,4 @@ class StaticDataSourceHandler(DataSourceHandler):
 
     def _get_current_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
-        from datetime import UTC, datetime
         return datetime.now(UTC).isoformat().replace('+00:00', 'Z')

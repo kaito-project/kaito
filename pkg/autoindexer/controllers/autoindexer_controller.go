@@ -98,20 +98,10 @@ func (r *AutoIndexerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 // addAutoIndexer handles the reconciliation logic for creating/updating AutoIndexer
 func (r *AutoIndexerReconciler) addAutoIndexer(ctx context.Context, autoIndexerObj *kaitov1alpha1.AutoIndexer) (ctrl.Result, error) {
-	// Check if suspend is true
-	// if autoIndexerObj.Spec.Suspend != nil && *autoIndexerObj.Spec.Suspend {
-	// 	klog.InfoS("AutoIndexer is suspended, skipping reconciliation", "autoindexer", klog.KObj(autoIndexerObj))
-	// 	if err := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeScheduled, metav1.ConditionFalse,
-	// 		"Suspended", "AutoIndexer is suspended"); err != nil {
-	// 		return ctrl.Result{}, err
-	// 	}
-	// 	return ctrl.Result{}, nil
-	// }
-
 	// Validate that referenced RAGEngine exists
 	if err := r.validateRAGEngineRef(ctx, autoIndexerObj); err != nil {
-		if updateErr := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeError, metav1.ConditionTrue,
-			"RAGEngineNotFound", err.Error()); updateErr != nil {
+		if updateErr := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue,
+			"autoIndexerRAGEngineNotFound", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update autoindexer status", "autoindexer", klog.KObj(autoIndexerObj))
 			return ctrl.Result{}, updateErr
 		}
@@ -120,8 +110,8 @@ func (r *AutoIndexerReconciler) addAutoIndexer(ctx context.Context, autoIndexerO
 
 	// Ensure RBAC resources exist
 	if err := r.ensureRBACResources(ctx, autoIndexerObj); err != nil {
-		if updateErr := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeError, metav1.ConditionTrue,
-			"RBACFailed", err.Error()); updateErr != nil {
+		if updateErr := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue,
+			"autoIndexerEnsureRBACFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update autoindexer status", "autoindexer", klog.KObj(autoIndexerObj))
 			return ctrl.Result{}, updateErr
 		}
@@ -132,23 +122,27 @@ func (r *AutoIndexerReconciler) addAutoIndexer(ctx context.Context, autoIndexerO
 	if autoIndexerObj.Spec.Schedule != nil {
 		// Handle scheduled execution (CronJob)
 		if err := r.ensureCronJob(ctx, autoIndexerObj); err != nil {
-			if updateErr := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeError, metav1.ConditionTrue,
-				"CronJobFailed", err.Error()); updateErr != nil {
+			if updateErr := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue,
+				"autoIndexerEnsureCronJobFailed", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update autoindexer status", "autoindexer", klog.KObj(autoIndexerObj))
 				return ctrl.Result{}, updateErr
 			}
 			return ctrl.Result{}, err
 		}
 
-		if err := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeScheduled, metav1.ConditionTrue,
+		isScheduled := metav1.ConditionTrue
+		if autoIndexerObj.Spec.Suspend != nil && *autoIndexerObj.Spec.Suspend {
+			isScheduled = metav1.ConditionFalse
+		}
+		if err := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeScheduled, isScheduled,
 			"Scheduled", "AutoIndexer is scheduled successfully"); err != nil {
 			return ctrl.Result{}, err
 		}
 	} else {
 		// Handle one-time execution (Job)
 		if err := r.ensureJob(ctx, autoIndexerObj); err != nil {
-			if updateErr := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeError, metav1.ConditionTrue,
-				"JobFailed", err.Error()); updateErr != nil {
+			if updateErr := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue,
+				"autoIndexerEnsureJobFailed", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update autoindexer status", "autoindexer", klog.KObj(autoIndexerObj))
 				return ctrl.Result{}, updateErr
 			}
@@ -156,8 +150,8 @@ func (r *AutoIndexerReconciler) addAutoIndexer(ctx context.Context, autoIndexerO
 		}
 	}
 
-	if err := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.AutoIndexerConditionTypeSucceeded, metav1.ConditionTrue,
-		"AutoIndexerSucceeded", "AutoIndexer succeeds"); err != nil {
+	if err := r.updateStatusConditionIfNotMatch(ctx, autoIndexerObj, kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue,
+		"autoIndexerResourceStatusSuccess", "autoindexer resources are ready"); err != nil {
 		klog.ErrorS(err, "failed to update autoindexer status", "autoindexer", klog.KObj(autoIndexerObj))
 		// Don't return error here as the main reconciliation succeeded
 	}
@@ -298,11 +292,12 @@ func (r *AutoIndexerReconciler) ensureRoleBinding(ctx context.Context, autoIndex
 func (r *AutoIndexerReconciler) ensureCronJob(ctx context.Context, autoIndexerObj *kaitov1alpha1.AutoIndexer) error {
 	// Generate the CronJob manifest
 	config := manifests.JobConfig{
-		AutoIndexer:     autoIndexerObj,
-		JobName:         fmt.Sprintf("%s-cronjob", autoIndexerObj.Name),
-		JobType:         "scheduled-indexing",
-		Image:           getImageConfig().GetImage(),
-		ImagePullPolicy: "IfNotPresent",
+		AutoIndexer:        autoIndexerObj,
+		JobName:            fmt.Sprintf("%s-cronjob", autoIndexerObj.Name),
+		JobType:            "scheduled-indexing",
+		Image:              getImageConfig().GetImage(),
+		ImagePullPolicy:    "Always",
+		ServiceAccountName: manifests.GenerateServiceAccountName(autoIndexerObj),
 	}
 
 	cronJob := manifests.GenerateIndexingCronJobManifest(config)
@@ -338,11 +333,12 @@ func (r *AutoIndexerReconciler) ensureCronJob(ctx context.Context, autoIndexerOb
 func (r *AutoIndexerReconciler) ensureJob(ctx context.Context, autoIndexerObj *kaitov1alpha1.AutoIndexer) error {
 	// Generate the Job manifest
 	config := manifests.JobConfig{
-		AutoIndexer:     autoIndexerObj,
-		JobName:         fmt.Sprintf("%s-job", autoIndexerObj.Name),
-		JobType:         "one-time-indexing",
-		Image:           getImageConfig().GetImage(),
-		ImagePullPolicy: "IfNotPresent",
+		AutoIndexer:        autoIndexerObj,
+		JobName:            fmt.Sprintf("%s-job", autoIndexerObj.Name),
+		JobType:            "one-time-indexing",
+		Image:              getImageConfig().GetImage(),
+		ImagePullPolicy:    "Always",
+		ServiceAccountName: manifests.GenerateServiceAccountName(autoIndexerObj),
 	}
 
 	job := manifests.GenerateIndexingJobManifest(config)

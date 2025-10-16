@@ -1,4 +1,3 @@
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -19,4 +18,4 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["update"]
-    resourceNames: ["ragengine-webhook-cert"]
+    resourceNames: ["autoindexer-webhook-cert"]

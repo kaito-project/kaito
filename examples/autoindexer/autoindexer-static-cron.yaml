@@ -1,10 +1,11 @@
 apiVersion: kaito.sh/v1alpha1
 kind: AutoIndexer
 metadata:
-  name: autoindexer-static
+  name: autoindexer-static-cron
 spec:
   ragEngine: ragengine
   indexName: autoindex-static-test
+  schedule: "* * * * *" # Every minute
   dataSource:
     type: Static
     static:

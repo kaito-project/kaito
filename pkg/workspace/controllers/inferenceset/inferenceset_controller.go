@@ -48,7 +48,6 @@ const (
 	InferenceSetHashAnnotation = "inferenceset.kaito.io/hash"
 	InferenceSetNameLabel      = "inferenceset.kaito.io/name"
 	revisionHashSuffix         = 5
-	WorkspaceNameSuffixLength  = 12
 )
 
 type InferenceSetReconciler struct {
@@ -207,7 +206,6 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			for _, ws := range wsList.Items {
 				// check whether ws.Name is already in deletingWorkspaces
 				if slices.Contains(deletingWorkspaces, ws.Name) {
-					klog.InfoS("Skipping workspace that is already in deletingWorkspaces...", "workspace", klog.KObj(&ws))
 					continue
 				}
 
@@ -237,8 +235,8 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	replicaNumToCreate := iObj.Spec.Replicas - len(wsList.Items)
 	if replicaNumToCreate > 0 {
 		klog.InfoS("Need to create more workspaces...", "current", len(wsList.Items), "desired", iObj.Spec.Replicas)
-		for i := 0; i < replicaNumToCreate; i++ {
-			workspaceName := iObj.Name + "-" + inferenceset.GenerateRandomString(WorkspaceNameSuffixLength)
+		for i := range replicaNumToCreate {
+			workspaceName := workspace.GetWorkspaceNameWithRandomSuffix(iObj.Name)
 			workspaceObj := inferenceset.GetWorkspace(workspaceName, wsList)
 			if workspaceObj == nil {
 				workspaceObj = &kaitov1beta1.Workspace{}
@@ -248,6 +246,9 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			workspaceObj.Labels = map[string]string{
 				consts.InferenceSetMemberLabel:             workspaceObj.Name,
 				consts.WorkspaceCreatedByInferenceSetLabel: iObj.Name,
+			}
+			workspaceObj.OwnerReferences = []metav1.OwnerReference{
+				*metav1.NewControllerRef(iObj, kaitov1alpha1.GroupVersion.WithKind("InferenceSet")),
 			}
 			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
 				InstanceType:  iObj.Spec.Template.Resource.InstanceType,

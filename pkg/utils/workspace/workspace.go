@@ -15,7 +15,10 @@ package workspace
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"reflect"
+	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -30,6 +33,8 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
+
+const WorkspaceNameSuffixLength = 12
 
 var (
 	InferenceSetSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
@@ -147,4 +152,23 @@ func UpdateWorkspaceWithRetry(ctx context.Context, c client.Client, wObj *kaitov
 		}
 		return c.Update(ctx, latestWorkspace)
 	})
+}
+
+// generateRandomString generates a random string of the specified length using digits and lowercase letters.
+func generateRandomString(length int) string {
+	if length <= 0 {
+		return ""
+	}
+	source := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(source)
+	charset := "abcdefghijklmnopqrstuvwxyz0123456789"
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = charset[r.Intn(len(charset))]
+	}
+	return string(result)
+}
+
+func GetWorkspaceNameWithRandomSuffix(baseName string) string {
+	return fmt.Sprintf("%s-%s", baseName, generateRandomString(WorkspaceNameSuffixLength))
 }

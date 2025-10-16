@@ -16,7 +16,9 @@ package workspace
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -509,5 +511,208 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 		assert.Contains(t, err.Error(), "permanent error")
 		mockClient.AssertExpectations(t)
 		mockClient.StatusMock.AssertExpectations(t)
+	})
+}
+
+func TestGenerateRandomString(t *testing.T) {
+	t.Run("Should return empty string for zero length", func(t *testing.T) {
+		result := generateRandomString(0)
+		assert.Equal(t, "", result)
+	})
+
+	t.Run("Should return empty string for negative length", func(t *testing.T) {
+		result := generateRandomString(-5)
+		assert.Equal(t, "", result)
+	})
+
+	t.Run("Should generate string of correct length", func(t *testing.T) {
+		lengths := []int{1, 5, 10, 20, 50}
+		for _, length := range lengths {
+			result := generateRandomString(length)
+			assert.Len(t, result, length)
+		}
+	})
+
+	t.Run("Should only contain lowercase letters and digits", func(t *testing.T) {
+		result := generateRandomString(100)
+		for _, char := range result {
+			assert.True(t, (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9'),
+				"Character '%c' is not a lowercase letter or digit", char)
+		}
+	})
+
+	t.Run("Should generate different strings on consecutive calls", func(t *testing.T) {
+		// Generate multiple strings and check they're not all the same
+		// Note: There's a very small chance this could fail due to randomness
+		strings := make([]string, 10)
+		for i := range strings {
+			strings[i] = generateRandomString(10)
+			time.Sleep(time.Nanosecond) // Ensure different timestamps
+		}
+
+		// Check that not all strings are identical
+		firstString := strings[0]
+		allSame := true
+		for _, s := range strings[1:] {
+			if s != firstString {
+				allSame = false
+				break
+			}
+		}
+		assert.False(t, allSame, "All generated strings are identical, which is highly unlikely")
+	})
+
+	t.Run("Should handle large length values", func(t *testing.T) {
+		result := generateRandomString(1000)
+		assert.Len(t, result, 1000)
+
+		// Verify all characters are valid
+		for _, char := range result {
+			assert.True(t, (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9'))
+		}
+	})
+
+	t.Run("Should generate string with expected character set distribution", func(t *testing.T) {
+		// Generate a long string to check character distribution
+		result := generateRandomString(10000)
+
+		hasLetter := false
+		hasDigit := false
+
+		for _, char := range result {
+			if char >= 'a' && char <= 'z' {
+				hasLetter = true
+			}
+			if char >= '0' && char <= '9' {
+				hasDigit = true
+			}
+			if hasLetter && hasDigit {
+				break
+			}
+		}
+
+		// With 10000 characters, it's virtually certain to have both letters and digits
+		assert.True(t, hasLetter, "Generated string should contain at least one letter")
+		assert.True(t, hasDigit, "Generated string should contain at least one digit")
+	})
+}
+
+func TestGetWorkspaceNameWithRandomSuffix(t *testing.T) {
+	t.Run("Should generate workspace name with correct format", func(t *testing.T) {
+		baseName := "test-workspace"
+		result := GetWorkspaceNameWithRandomSuffix(baseName)
+
+		// Check that the result starts with the base name
+		assert.True(t, strings.HasPrefix(result, baseName+"-"),
+			"Result should start with base name followed by hyphen")
+
+		// Check total length
+		expectedLength := len(baseName) + 1 + WorkspaceNameSuffixLength // +1 for hyphen
+		assert.Len(t, result, expectedLength)
+
+		// Extract and validate the suffix
+		suffix := result[len(baseName)+1:]
+		assert.Len(t, suffix, WorkspaceNameSuffixLength)
+
+		// Verify suffix contains only lowercase letters and digits
+		for _, char := range suffix {
+			assert.True(t, (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9'),
+				"Suffix character '%c' is not a lowercase letter or digit", char)
+		}
+	})
+
+	t.Run("Should handle empty base name", func(t *testing.T) {
+		baseName := ""
+		result := GetWorkspaceNameWithRandomSuffix(baseName)
+
+		// Should be just hyphen plus random suffix
+		assert.True(t, strings.HasPrefix(result, "-"))
+		assert.Len(t, result, 1+WorkspaceNameSuffixLength)
+
+		// Verify the suffix part
+		suffix := result[1:]
+		assert.Len(t, suffix, WorkspaceNameSuffixLength)
+		for _, char := range suffix {
+			assert.True(t, (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9'))
+		}
+	})
+
+	t.Run("Should handle base name with special characters", func(t *testing.T) {
+		baseNames := []string{
+			"test-workspace-123",
+			"test.workspace",
+			"test_workspace",
+			"test/workspace",
+			"test@workspace",
+		}
+
+		for _, baseName := range baseNames {
+			result := GetWorkspaceNameWithRandomSuffix(baseName)
+			assert.True(t, strings.HasPrefix(result, baseName+"-"))
+			assert.Len(t, result, len(baseName)+1+WorkspaceNameSuffixLength)
+		}
+	})
+
+	t.Run("Should generate different suffixes for same base name", func(t *testing.T) {
+		baseName := "test-workspace"
+		results := make([]string, 10)
+
+		for i := range results {
+			results[i] = GetWorkspaceNameWithRandomSuffix(baseName)
+			time.Sleep(time.Nanosecond) // Ensure different timestamps
+		}
+
+		// Check that not all results are identical
+		firstResult := results[0]
+		allSame := true
+		for _, r := range results[1:] {
+			if r != firstResult {
+				allSame = false
+				break
+			}
+		}
+		assert.False(t, allSame, "Should generate different suffixes for the same base name")
+
+		// All should have the same prefix though
+		for _, r := range results {
+			assert.True(t, strings.HasPrefix(r, baseName+"-"))
+		}
+	})
+
+	t.Run("Should handle very long base name", func(t *testing.T) {
+		baseName := strings.Repeat("a", 1000)
+		result := GetWorkspaceNameWithRandomSuffix(baseName)
+
+		assert.True(t, strings.HasPrefix(result, baseName+"-"))
+		assert.Len(t, result, len(baseName)+1+WorkspaceNameSuffixLength)
+	})
+
+	t.Run("Should handle Unicode characters in base name", func(t *testing.T) {
+		baseName := "..-workspace-.."
+		result := GetWorkspaceNameWithRandomSuffix(baseName)
+
+		assert.True(t, strings.HasPrefix(result, baseName+"-"))
+		// Note: len() counts bytes, not runes for Unicode
+		expectedSuffixStart := len(baseName) + 1
+		suffix := result[expectedSuffixStart:]
+
+		// The suffix length should still be WorkspaceNameSuffixLength
+		assert.Len(t, suffix, WorkspaceNameSuffixLength)
+
+		// Verify suffix contains only ASCII lowercase letters and digits
+		for _, char := range suffix {
+			assert.True(t, (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9'))
+		}
+	})
+
+	t.Run("Should maintain consistent suffix length", func(t *testing.T) {
+		baseNames := []string{"short", "medium-length", "very-long-base-name-for-testing"}
+
+		for _, baseName := range baseNames {
+			result := GetWorkspaceNameWithRandomSuffix(baseName)
+			suffix := result[len(baseName)+1:]
+			assert.Len(t, suffix, WorkspaceNameSuffixLength,
+				"Suffix length should always be %d regardless of base name", WorkspaceNameSuffixLength)
+		}
 	})
 }

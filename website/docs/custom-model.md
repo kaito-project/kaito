@@ -2,9 +2,9 @@
 title: Custom Model Integration
 ---
 
-## Using the KAITO base image 
+## Using the KAITO base image
 
-The KAITO base image includes both HuggingFace and vLLM runtime libraries along with corresponding FastAPI server scripts. This provides a convenient way to run **any** HuggingFace model using the **HuggingFace** runtime. 
+The KAITO base image includes both HuggingFace and vLLM runtime libraries along with corresponding FastAPI server scripts. This provides a convenient way to run **any** HuggingFace model using the **HuggingFace** runtime.
 
 Note that the vLLM runtime is not supported for arbitrary custom model deployment.
 

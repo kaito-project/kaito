@@ -138,6 +138,12 @@ rag-service-test: ## Run RAG Engine service tests with pytest.
 	pip install pytest-cov
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
 
+.PHONY: autoindexer-service-test
+autoindexer-service-test: ## Run AutoIndexer service tests with pytest.
+	pip install -r presets/autoindexer/requirements-test.txt
+	pip install pytest-cov
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/autoindexer/tests
+
 .PHONY: tuning-metrics-server-test
 tuning-metrics-server-test: ## Run Tuning Metrics Server tests with pytest.
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
@@ -274,6 +280,9 @@ RAGENGINE_IMAGE_TAG ?= v0.0.1
 RAGENGINE_SERVICE_IMG_NAME ?= kaito-rag-service
 RAGENGINE_SERVICE_IMG_TAG ?= v0.0.1
 
+AUTOINDEXER_SERVICE_IMG_NAME ?= autoindexer-service
+AUTOINDEXER_SERVICE_IMG_TAG ?= latest
+
 E2E_IMAGE_NAME ?= kaito-e2e
 E2E_IMAGE_TAG ?= v0.0.1
 
@@ -315,6 +324,16 @@ docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine serv
         --pull \
 		$(BUILD_FLAGS) \
         --tag $(REGISTRY)/$(RAGENGINE_SERVICE_IMG_NAME):$(RAGENGINE_SERVICE_IMG_TAG) .
+
+.PHONY: docker-build-autoindexer-service
+docker-build-autoindexer-service: docker-buildx ## Build Docker image for Auto Indexer service.
+	docker buildx build \
+        --platform="linux/$(ARCH)" \
+        --output=$(OUTPUT_TYPE) \
+        --file ./docker/autoindexer/service/Dockerfile \
+        --pull \
+		$(BUILD_FLAGS) \
+        --tag $(REGISTRY)/$(AUTOINDEXER_SERVICE_IMG_NAME):$(AUTOINDEXER_SERVICE_IMG_TAG) .
 
 .PHONY: docker-build-adapter
 docker-build-adapter: docker-buildx ## Build Docker images for adapters.

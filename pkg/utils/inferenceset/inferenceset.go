@@ -19,6 +19,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/rand"
+	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -157,4 +159,19 @@ func MarshalInferenceSetFields(iObj *kaitov1alpha1.InferenceSet) ([]byte, error)
 	}
 
 	return jsonData, nil
+}
+
+// GenerateRandomString generates a random string of the specified length using lowercase letters.
+func GenerateRandomString(length int) string {
+	if length <= 0 {
+		return ""
+	}
+	source := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(source)
+	charset := "abcdefghijklmnopqrstuvwxyz"
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = charset[r.Intn(len(charset))]
+	}
+	return string(result)
 }

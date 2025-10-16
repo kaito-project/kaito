@@ -16,6 +16,7 @@ package inferenceset
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 
@@ -47,6 +48,7 @@ const (
 	InferenceSetHashAnnotation = "inferenceset.kaito.io/hash"
 	InferenceSetNameLabel      = "inferenceset.kaito.io/name"
 	revisionHashSuffix         = 5
+	WorkspaceNameSuffixLength  = 12
 )
 
 type InferenceSetReconciler struct {
@@ -176,21 +178,52 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	}
 	klog.InfoS("Found workspaces for inference set", "name", iObj.Name, "current", len(wsList.Items), "desired", iObj.Spec.Replicas)
 
-	if len(wsList.Items) > iObj.Spec.Replicas {
-		// We should delete the extra workspaces that are created by this inferenceset
+	replicaNumToDelete := len(wsList.Items) - iObj.Spec.Replicas
+	var deletingWorkspaces []string
+	if replicaNumToDelete > 0 {
 		klog.InfoS("Found extra workspaces, deleting...", "current", len(wsList.Items), "desired", iObj.Spec.Replicas)
-		for i := iObj.Spec.Replicas; i < len(wsList.Items); i++ {
-			deleteWorkspaceName := iObj.Name + "-" + strconv.Itoa(i)
-			wsObj := inferenceset.GetWorkspace(deleteWorkspaceName, wsList)
-			if wsObj == nil {
-				klog.InfoS("Workspace not found, skipping...", "workspace", deleteWorkspaceName)
-				continue
-			}
-			if wsObj.DeletionTimestamp.IsZero() {
-				klog.InfoS("Deleting extra workspace...", "workspace", wsObj.Name)
-				if err := c.Client.Delete(ctx, wsObj, &client.DeleteOptions{}); err != nil {
-					klog.ErrorS(err, "failed to delete extra workspace", "workspace", klog.KObj(wsObj))
+		// first delete workspace that is not in ready state
+		for _, ws := range wsList.Items {
+			if !ws.DeletionTimestamp.IsZero() {
+				deletingWorkspaces = append(deletingWorkspaces, ws.Name)
+				replicaNumToDelete--
+				klog.InfoS("Skipping workspace that is already being deleted...", "workspace", klog.KObj(&ws))
+			} else if controllers.DetermineWorkspacePhase(&ws) != "succeeded" {
+				klog.InfoS("Deleting non-ready workspace...", "workspace", klog.KObj(&ws))
+				if err := c.Client.Delete(ctx, &ws, &client.DeleteOptions{}); err != nil {
+					klog.ErrorS(err, "failed to delete non-ready workspace", "workspace", klog.KObj(&ws))
 					return ctrl.Result{}, err
+				}
+				deletingWorkspaces = append(deletingWorkspaces, ws.Name)
+				replicaNumToDelete--
+			}
+			if replicaNumToDelete <= 0 {
+				break
+			}
+		}
+
+		// delete rest of extra workspaces
+		if replicaNumToDelete > 0 {
+			for _, ws := range wsList.Items {
+				// check whether ws.Name is already in deletingWorkspaces
+				if slices.Contains(deletingWorkspaces, ws.Name) {
+					klog.InfoS("Skipping workspace that is already in deletingWorkspaces...", "workspace", klog.KObj(&ws))
+					continue
+				}
+
+				if !ws.DeletionTimestamp.IsZero() {
+					replicaNumToDelete--
+					klog.InfoS("Skipping workspace that is already being deleted...", "workspace", klog.KObj(&ws))
+				} else {
+					klog.InfoS("Deleting extra workspace...", "workspace", klog.KObj(&ws))
+					if err := c.Client.Delete(ctx, &ws, &client.DeleteOptions{}); err != nil {
+						klog.ErrorS(err, "failed to delete extra workspace", "workspace", klog.KObj(&ws))
+						return ctrl.Result{}, err
+					}
+					replicaNumToDelete--
+				}
+				if replicaNumToDelete <= 0 {
+					break
 				}
 			}
 		}
@@ -201,48 +234,30 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		}
 	}
 
-	klog.InfoS("begin to create/update workspaces for inference set", "name", iObj.Name, "replicas", iObj.Spec.Replicas)
-	for i := 0; i < iObj.Spec.Replicas; i++ {
-		createWorkspace := false
-		workspaceName := iObj.Name + "-" + strconv.Itoa(i)
-		workspaceObj := inferenceset.GetWorkspace(workspaceName, wsList)
-		var workspaceHash string
-		if workspaceObj == nil {
-			workspaceObj = &kaitov1beta1.Workspace{}
-			createWorkspace = true
-		} else {
-			workspaceHash = controllers.ComputeHash(workspaceObj)
-		}
+	replicaNumToCreate := iObj.Spec.Replicas - len(wsList.Items)
+	if replicaNumToCreate > 0 {
+		klog.InfoS("Need to create more workspaces...", "current", len(wsList.Items), "desired", iObj.Spec.Replicas)
+		for i := 0; i < replicaNumToCreate; i++ {
+			workspaceName := iObj.Name + "-" + inferenceset.GenerateRandomString(WorkspaceNameSuffixLength)
+			workspaceObj := inferenceset.GetWorkspace(workspaceName, wsList)
+			if workspaceObj == nil {
+				workspaceObj = &kaitov1beta1.Workspace{}
+			}
+			workspaceObj.Name = workspaceName
+			workspaceObj.Namespace = iObj.Namespace
+			workspaceObj.Labels = map[string]string{
+				consts.InferenceSetMemberLabel:             workspaceObj.Name,
+				consts.WorkspaceCreatedByInferenceSetLabel: iObj.Name,
+			}
+			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
+				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
+				LabelSelector: iObj.Spec.Selector,
+			}
+			workspaceObj.Inference = &iObj.Spec.Template.Inference
 
-		workspaceObj.Namespace = iObj.Namespace
-		workspaceObj.Name = workspaceName
-
-		workspaceObj.Labels = map[string]string{
-			consts.InferenceSetMemberLabel:             workspaceObj.Name,
-			consts.WorkspaceCreatedByInferenceSetLabel: iObj.Name,
-		}
-		workspaceObj.Resource = kaitov1beta1.ResourceSpec{
-			InstanceType:  iObj.Spec.Template.Resource.InstanceType,
-			LabelSelector: iObj.Spec.Selector,
-		}
-		workspaceObj.Inference = &iObj.Spec.Template.Inference
-
-		if createWorkspace {
 			klog.InfoS("creating workspace", "workspace", workspaceObj.Name, "index", i)
 			if err := c.Client.Create(ctx, workspaceObj); err != nil {
 				klog.ErrorS(err, "failed to create workspace", "workspace", workspaceObj.Name)
-				return reconcile.Result{}, err
-			}
-		} else {
-			// check whether the workspace needs to be updated
-			if controllers.ComputeHash(workspaceObj) == workspaceHash {
-				klog.InfoS("workspace is up to date", "workspace", workspaceObj.Name, "index", i)
-				continue
-			}
-
-			klog.InfoS("updating workspace", "workspace", workspaceObj.Name, "index", i)
-			if err := c.Client.Update(ctx, workspaceObj); err != nil {
-				klog.ErrorS(err, "failed to update workspace", "workspace", workspaceObj.Name)
 				return reconcile.Result{}, err
 			}
 		}

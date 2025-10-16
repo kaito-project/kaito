@@ -939,3 +939,84 @@ func TestListWorkspaces(t *testing.T) {
 		mockClient.AssertExpectations(t)
 	})
 }
+
+func TestGenerateRandomString(t *testing.T) {
+	t.Run("Should generate string with correct length", func(t *testing.T) {
+		lengths := []int{1, 5, 10, 20, 50}
+
+		for _, length := range lengths {
+			result := GenerateRandomString(length)
+			assert.Len(t, result, length)
+		}
+	})
+
+	t.Run("Should only contain lowercase letters", func(t *testing.T) {
+		result := GenerateRandomString(100)
+
+		for _, char := range result {
+			assert.True(t, char >= 'a' && char <= 'z', "Character %c is not a lowercase letter", char)
+		}
+	})
+
+	t.Run("Should generate different strings on subsequent calls", func(t *testing.T) {
+		// Generate multiple strings and check they're not all the same
+		results := make([]string, 10)
+		for i := range results {
+			results[i] = GenerateRandomString(10)
+		}
+
+		// Check that not all strings are identical
+		allSame := true
+		for i := 1; i < len(results); i++ {
+			if results[i] != results[0] {
+				allSame = false
+				break
+			}
+		}
+
+		assert.False(t, allSame, "All generated strings are identical, randomness not working")
+	})
+
+	t.Run("Should handle zero length", func(t *testing.T) {
+		result := GenerateRandomString(0)
+		assert.Empty(t, result)
+		assert.Len(t, result, 0)
+	})
+
+	t.Run("Should handle negative length", func(t *testing.T) {
+		result := GenerateRandomString(-5)
+		assert.Empty(t, result)
+		assert.Len(t, result, 0)
+	})
+
+	t.Run("Should generate non-empty string for positive length", func(t *testing.T) {
+		result := GenerateRandomString(10)
+		assert.NotEmpty(t, result)
+	})
+
+	t.Run("Should generate unique strings with high probability", func(t *testing.T) {
+		// Generate a set of strings and check for uniqueness
+		stringSet := make(map[string]bool)
+		numStrings := 100
+		stringLength := 10
+
+		for i := 0; i < numStrings; i++ {
+			str := GenerateRandomString(stringLength)
+			stringSet[str] = true
+		}
+
+		// With 10-character strings from 26 letters, duplicates should be very rare
+		uniqueCount := len(stringSet)
+		assert.Greater(t, uniqueCount, numStrings*9/10, "Too many duplicate strings generated")
+	})
+
+	t.Run("Should generate very long strings without issues", func(t *testing.T) {
+		result := GenerateRandomString(1000)
+		assert.Len(t, result, 1000)
+
+		// Verify all characters are lowercase letters
+		for _, char := range result {
+			assert.True(t, char >= 'a' && char <= 'z')
+		}
+	})
+}

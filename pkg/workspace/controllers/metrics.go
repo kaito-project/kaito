@@ -34,10 +34,19 @@ var (
 		},
 		[]string{"phase"},
 	)
+
+	presetModelCount = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "kaito_preset_model_count",
+			Help: "Number of Workspaces using each preset model",
+		},
+		[]string{"model"},
+	)
 )
 
 func init() {
 	metrics.Registry.MustRegister(workspacePhaseCount)
+	metrics.Registry.MustRegister(presetModelCount)
 }
 
 func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
@@ -54,6 +63,7 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 			if err := k8sClient.List(ctx, &wsList); err != nil {
 				klog.Errorf("failed to list all workspaces: %v", err)
 				workspacePhaseCount.Reset()
+				presetModelCount.Reset()
 				continue
 			}
 
@@ -64,16 +74,32 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 				"deleting":  0,
 			}
 
+			modelCounts := make(map[string]float64)
+
 			for _, ws := range wsList.Items {
 				phase := determineWorkspacePhase(&ws)
 				if _, ok := phaseCounts[phase]; !ok {
 					phaseCounts[phase] = 0
 				}
 				phaseCounts[phase]++
+
+				// Count preset models from this workspace
+				wsModelCounts := countPresetModels(&ws)
+				for modelName, count := range wsModelCounts {
+					if _, ok := modelCounts[modelName]; !ok {
+						modelCounts[modelName] = 0
+					}
+					modelCounts[modelName] += count
+				}
 			}
 
 			for phase, count := range phaseCounts {
 				workspacePhaseCount.WithLabelValues(phase).Set(count)
+			}
+
+			presetModelCount.Reset()
+			for model, count := range modelCounts {
+				presetModelCount.WithLabelValues(model).Set(count)
 			}
 		}
 	}
@@ -96,4 +122,28 @@ func determineWorkspacePhase(ws *kaitov1beta1.Workspace) string {
 		}
 	}
 	return "pending"
+}
+
+func countPresetModels(ws *kaitov1beta1.Workspace) map[string]float64 {
+	modelCounts := make(map[string]float64)
+
+	if ws == nil {
+		return modelCounts
+	}
+
+	modelsInWorkspace := make(map[string]struct{})
+
+	if ws.Inference != nil && ws.Inference.Preset != nil && ws.Inference.Preset.Name != "" {
+		modelsInWorkspace[string(ws.Inference.Preset.Name)] = struct{}{}
+	}
+
+	if ws.Tuning != nil && ws.Tuning.Preset != nil && ws.Tuning.Preset.Name != "" {
+		modelsInWorkspace[string(ws.Tuning.Preset.Name)] = struct{}{}
+	}
+
+	for modelName := range modelsInWorkspace {
+		modelCounts[modelName] = 1
+	}
+
+	return modelCounts
 }

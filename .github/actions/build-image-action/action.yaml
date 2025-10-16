@@ -112,6 +112,7 @@ runs:
         # Check if the builder instance already exists
         if ! docker buildx inspect $BUILDER_NAME &>/dev/null; then
           echo "Creating new Docker Buildx instance '$BUILDER_NAME'..."
+          docker run --rm --privileged mcr.microsoft.com/mirror/docker/multiarch/qemu-user-static:7.2.0-1 --reset -p yes
           docker buildx create --name=$BUILDER_NAME --driver=docker-container --use --bootstrap --driver-opt image=mcr.microsoft.com/oss/v2/moby/buildkit:v0.20.2
         else
           echo "Docker Buildx instance '$BUILDER_NAME' already exists, using it..."

@@ -8,7 +8,7 @@ The KAITO base image includes both HuggingFace and vLLM runtime libraries along 
 
 Note that the vLLM runtime is not supported for arbitrary custom model deployment.
 
-Here is a **[sample deployment YAML](../../examples/custom-model-integration/custom-model-deployment.yaml)**. To use it:
+Here is a **[sample deployment YAML](https://github.com/kaito-project/kaito/tree/main/examples/custom-model-integration/custom-model-deployment.yaml)**. To use it:
 1. Specify the HuggingFace model ID in the container command.
 2. For models that require a HuggingFace token to download, users need to add the token to the specified secret.
 

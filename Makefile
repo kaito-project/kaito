@@ -265,7 +265,7 @@ create-eks-cluster: ## Create an EKS cluster.
 BUILDX_BUILDER_NAME ?= img-builder
 OUTPUT_TYPE ?= type=registry
 QEMU_VERSION ?= 7.2.0-1
-PLATFORMS ?= linux/amd64,linux/arm64
+ARCH ?= amd64,arm64
 BUILDKIT_VERSION ?= v0.18.1
 
 RAGENGINE_IMAGE_NAME ?= ragengine
@@ -291,7 +291,7 @@ docker-build-workspace: docker-buildx ## Build Docker image for workspace.
 	docker buildx build \
 		--file ./docker/workspace/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="$(PLATFORMS)" \
+		--platform="linux/$(ARCH)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/$(IMG_NAME):$(IMG_TAG) .
@@ -301,7 +301,7 @@ docker-build-ragengine: docker-buildx ## Build Docker image for RAG Engine.
 	docker buildx build \
 		--file ./docker/ragengine/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="$(PLATFORMS)" \
+		--platform="linux/$(ARCH)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/$(RAGENGINE_IMAGE_NAME):$(IMG_TAG) .
@@ -309,7 +309,7 @@ docker-build-ragengine: docker-buildx ## Build Docker image for RAG Engine.
 .PHONY: docker-build-rag-service
 docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine service.
 	docker buildx build \
-        --platform="$(PLATFORMS)" \
+        --platform="linux/$(ARCH)" \
         --output=$(OUTPUT_TYPE) \
         --file ./docker/ragengine/service/Dockerfile \
         --pull \
@@ -322,7 +322,7 @@ docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 		--build-arg ADAPTER_PATH=docker/adapters/adapter1 \
 		--file ./docker/adapters/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="$(PLATFORMS)" \
+		--platform="linux/$(ARCH)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-adapter:0.0.1 .
@@ -330,7 +330,7 @@ docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 		--build-arg ADAPTER_PATH=docker/adapters/adapter2 \
 		--file ./docker/adapters/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="$(PLATFORMS)" \
+		--platform="linux/$(ARCH)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-adapter2:0.0.1 .
@@ -338,7 +338,7 @@ docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 		--build-arg ADAPTER_PATH=docker/adapters/adapter-phi-3-mini-pycoder \
 		--file ./docker/adapters/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="$(PLATFORMS)" \
+		--platform="linux/$(ARCH)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/adapter-phi-3-mini-pycoder:0.0.1 .
@@ -349,7 +349,7 @@ docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 		--build-arg ADAPTER_PATH=docker/datasets/dataset1 \
 		--file ./docker/datasets/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="$(PLATFORMS)" \
+		--platform="linux/$(ARCH)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-dataset:0.0.1 .
@@ -357,7 +357,7 @@ docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 		--build-arg ADAPTER_PATH=docker/datasets/dataset2 \
 		--file ./docker/datasets/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="$(PLATFORMS)" \
+		--platform="linux/$(ARCH)" \
 		--pull \
 		--tag $(REGISTRY)/e2e-dataset2:0.0.1 .
 

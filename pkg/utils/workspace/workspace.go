@@ -15,15 +15,81 @@ package workspace
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
+	"reflect"
+	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+)
+
+const WorkspaceNameSuffixLength = 12
+
+var (
+	InferenceSetSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{Key: consts.WorkspaceCreatedByInferenceSetLabel, Operator: metav1.LabelSelectorOpExists},
+		},
+	})
+
+	WorkspacePredicate = predicate.Funcs{
+		CreateFunc: func(e event.CreateEvent) bool {
+			workspace, ok := e.Object.(*kaitov1beta1.Workspace)
+			if !ok {
+				return false
+			}
+			if !InferenceSetSelector.Matches(labels.Set(workspace.GetLabels())) {
+				return false
+			}
+			return true
+		},
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			oldWorkspace, ok := e.ObjectOld.(*kaitov1beta1.Workspace)
+			if !ok {
+				return false
+			}
+
+			newWorkspace, ok := e.ObjectNew.(*kaitov1beta1.Workspace)
+			if !ok {
+				return false
+			}
+			if !InferenceSetSelector.Matches(labels.Set(oldWorkspace.GetLabels())) {
+				return false
+			}
+
+			if !InferenceSetSelector.Matches(labels.Set(newWorkspace.GetLabels())) {
+				return false
+			}
+
+			oldWorkspaceCopy := oldWorkspace.DeepCopy()
+			newWorkspaceCopy := newWorkspace.DeepCopy()
+
+			oldWorkspaceCopy.ResourceVersion = ""
+			newWorkspaceCopy.ResourceVersion = ""
+			return !reflect.DeepEqual(oldWorkspaceCopy, newWorkspaceCopy)
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			workspace, ok := e.Object.(*kaitov1beta1.Workspace)
+			if !ok {
+				return false
+			}
+			if !InferenceSetSelector.Matches(labels.Set(workspace.GetLabels())) {
+				return false
+			}
+			return true
+		},
+	}
 )
 
 // UpdateStatusConditionIfNotMatch updates the workspace status condition if it doesn't match the current values
@@ -86,4 +152,23 @@ func UpdateWorkspaceWithRetry(ctx context.Context, c client.Client, wObj *kaitov
 		}
 		return c.Update(ctx, latestWorkspace)
 	})
+}
+
+// generateRandomString generates a random string of the specified length using digits and lowercase letters.
+func generateRandomString(length int) string {
+	if length <= 0 {
+		return ""
+	}
+	source := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(source)
+	charset := "abcdefghijklmnopqrstuvwxyz0123456789"
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = charset[r.Intn(len(charset))]
+	}
+	return string(result)
+}
+
+func GetWorkspaceNameWithRandomSuffix(baseName string) string {
+	return fmt.Sprintf("%s-%s", baseName, generateRandomString(WorkspaceNameSuffixLength))
 }

@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
-	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
-	awsv1beta1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1beta1"
+	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
+	awsv1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1"
 	"github.com/awslabs/operatorpkg/status"
 	"github.com/samber/lo"
 	v1 "k8s.io/api/core/v1"
@@ -53,8 +53,27 @@ var (
 	// nodeClaimStatusTimeoutInterval is the interval to check the nodeClaim status.
 	nodeClaimStatusTimeoutInterval = 240 * time.Second
 
+	WorkspaceSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{Key: kaitov1beta1.LabelWorkspaceName, Operator: metav1.LabelSelectorOpExists},
+		},
+	})
+
+	RagEngineSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{Key: kaitov1alpha1.LabelRAGEngineName, Operator: metav1.LabelSelectorOpExists},
+		},
+	})
+
 	NodeClaimPredicate = predicate.Funcs{
 		CreateFunc: func(e event.CreateEvent) bool {
+			nodeclaim, ok := e.Object.(*karpenterv1.NodeClaim)
+			if !ok {
+				return false
+			}
+			if !WorkspaceSelector.Matches(labels.Set(nodeclaim.GetLabels())) && !RagEngineSelector.Matches(labels.Set(nodeclaim.GetLabels())) {
+				return false
+			}
 			return true
 		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
@@ -65,6 +84,13 @@ var (
 
 			newNodeClaim, ok := e.ObjectNew.(*karpenterv1.NodeClaim)
 			if !ok {
+				return false
+			}
+			if !WorkspaceSelector.Matches(labels.Set(oldNodeClaim.GetLabels())) && !RagEngineSelector.Matches(labels.Set(oldNodeClaim.GetLabels())) {
+				return false
+			}
+
+			if !WorkspaceSelector.Matches(labels.Set(newNodeClaim.GetLabels())) && !RagEngineSelector.Matches(labels.Set(newNodeClaim.GetLabels())) {
 				return false
 			}
 
@@ -79,6 +105,13 @@ var (
 			return !reflect.DeepEqual(oldNodeClaimCopy, newNodeClaimCopy)
 		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
+			nodeclaim, ok := e.Object.(*karpenterv1.NodeClaim)
+			if !ok {
+				return false
+			}
+			if !WorkspaceSelector.Matches(labels.Set(nodeclaim.GetLabels())) && !RagEngineSelector.Matches(labels.Set(nodeclaim.GetLabels())) {
+				return false
+			}
 			return true
 		},
 	}
@@ -113,12 +146,17 @@ func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *ka
 	cloudName := os.Getenv("CLOUD_PROVIDER")
 
 	var nodeClassRefKind string
+	var nodeClassRefGroup string
 
-	if cloudName == consts.AzureCloudName {
-		nodeClassRefKind = "AKSNodeClass"
-	} else if cloudName == consts.AWSCloudName { //aws
+	switch cloudName {
+	case consts.AzureCloudName: //azure
+		nodeClassRefKind = "KaitoNodeClass"
+		nodeClassRefGroup = "kaito.sh"
+	case consts.AWSCloudName: //aws
 		nodeClassRefKind = "EC2NodeClass"
+		nodeClassRefGroup = "karpenter.k8s.aws"
 	}
+
 	nodeClaimObj := &karpenterv1.NodeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        nodeClaimName,
@@ -128,8 +166,9 @@ func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *ka
 		},
 		Spec: karpenterv1.NodeClaimSpec{
 			NodeClassRef: &karpenterv1.NodeClassReference{
-				Name: consts.NodeClassName,
-				Kind: nodeClassRefKind,
+				Name:  consts.NodeClassName,
+				Kind:  nodeClassRefKind,
+				Group: nodeClassRefGroup,
 			},
 			Taints: []v1.Taint{
 				{
@@ -172,7 +211,7 @@ func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *ka
 	if cloudName == consts.AzureCloudName {
 		nodeSelector := karpenterv1.NodeSelectorRequirementWithMinValues{
 			NodeSelectorRequirement: v1.NodeSelectorRequirement{
-				Key:      azurev1alpha2.LabelSKUName,
+				Key:      azurev1beta1.LabelSKUName,
 				Operator: v1.NodeSelectorOpIn,
 				Values:   []string{instanceType},
 			},
@@ -207,41 +246,41 @@ func GenerateNodeClaimName(obj client.Object) string {
 	return nodeClaimName
 }
 
-func GenerateAKSNodeClassManifest(ctx context.Context) *azurev1alpha2.AKSNodeClass {
-	return &azurev1alpha2.AKSNodeClass{
+func GenerateAKSNodeClassManifest(ctx context.Context) *azurev1beta1.AKSNodeClass {
+	return &azurev1beta1.AKSNodeClass{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: consts.NodeClassName,
 			Annotations: map[string]string{
 				"kubernetes.io/description": "General purpose AKSNodeClass for running Ubuntu 22.04 nodes",
 			},
 		},
-		Spec: azurev1alpha2.AKSNodeClassSpec{
+		Spec: azurev1beta1.AKSNodeClassSpec{
 			ImageFamily: lo.ToPtr("Ubuntu2204"),
 		},
 	}
 }
 
-func GenerateEC2NodeClassManifest(ctx context.Context) *awsv1beta1.EC2NodeClass {
+func GenerateEC2NodeClassManifest(ctx context.Context) *awsv1.EC2NodeClass {
 	clusterName := os.Getenv("CLUSTER_NAME")
-	return &awsv1beta1.EC2NodeClass{
+	return &awsv1.EC2NodeClass{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				"kubernetes.io/description": "General purpose EC2NodeClass for running Amazon Linux 2 nodes",
 			},
 			Name: consts.NodeClassName,
 		},
-		Spec: awsv1beta1.EC2NodeClassSpec{
-			AMIFamily:           lo.ToPtr(awsv1beta1.AMIFamilyAL2), // Amazon Linux 2
+		Spec: awsv1.EC2NodeClassSpec{
+			AMIFamily:           lo.ToPtr(awsv1.AMIFamilyAL2), // Amazon Linux 2
 			Role:                fmt.Sprintf("KarpenterNodeRole-%s", clusterName),
-			InstanceStorePolicy: lo.ToPtr(awsv1beta1.InstanceStorePolicyRAID0), //required to share node's ephermeral storage among pods that request it
-			SubnetSelectorTerms: []awsv1beta1.SubnetSelectorTerm{
+			InstanceStorePolicy: lo.ToPtr(awsv1.InstanceStorePolicyRAID0), //required to share node's ephermeral storage among pods that request it
+			SubnetSelectorTerms: []awsv1.SubnetSelectorTerm{
 				{
 					Tags: map[string]string{
 						"karpenter.sh/discovery": clusterName, // replace with your cluster name
 					},
 				},
 			},
-			SecurityGroupSelectorTerms: []awsv1beta1.SecurityGroupSelectorTerm{
+			SecurityGroupSelectorTerms: []awsv1.SecurityGroupSelectorTerm{
 				{
 					Tags: map[string]string{
 						"karpenter.sh/discovery": clusterName, // replace with your cluster name
@@ -406,11 +445,11 @@ func CheckNodeClaimStatus(ctx context.Context, nodeClaimObj *karpenterv1.NodeCla
 func IsNodeClassAvailable(ctx context.Context, cloudName string, kubeClient client.Client) bool {
 	if cloudName == consts.AzureCloudName {
 		err := kubeClient.Get(ctx, client.ObjectKey{Name: consts.NodeClassName},
-			&azurev1alpha2.AKSNodeClass{}, &client.GetOptions{})
+			&azurev1beta1.AKSNodeClass{}, &client.GetOptions{})
 		return err == nil
 	} else if cloudName == consts.AWSCloudName {
 		err := kubeClient.Get(ctx, client.ObjectKey{Name: consts.NodeClassName},
-			&awsv1beta1.EC2NodeClass{}, &client.GetOptions{})
+			&awsv1.EC2NodeClass{}, &client.GetOptions{})
 		return err == nil
 	}
 	klog.Error("unsupported cloud provider ", cloudName)
@@ -434,30 +473,6 @@ func CheckNodeClass(ctx context.Context, kClient client.Client) error {
 	return nil
 }
 
-// GetExistingNodeClaims retrieves all NodeClaims(including deleting nodeclaim) associated with the given workspace
-// we hope the deleting NodeClaims are cleaned up before we can create new ones.
-func GetExistingNodeClaims(ctx context.Context, c client.Reader, wObj *kaitov1beta1.Workspace) ([]*karpenterv1.NodeClaim, error) {
-	nodeClaimList := &karpenterv1.NodeClaimList{}
-
-	listOpts := []client.ListOption{
-		client.MatchingLabels{
-			kaitov1beta1.LabelWorkspaceName:      wObj.Name,
-			kaitov1beta1.LabelWorkspaceNamespace: wObj.Namespace,
-		},
-	}
-
-	if err := c.List(ctx, nodeClaimList, listOpts...); err != nil {
-		return nil, fmt.Errorf("failed to list NodeClaims: %w", err)
-	}
-
-	nodeClaims := make([]*karpenterv1.NodeClaim, 0, len(nodeClaimList.Items))
-	for i := range nodeClaimList.Items {
-		nodeClaims = append(nodeClaims, &nodeClaimList.Items[i])
-	}
-
-	return nodeClaims, nil
-}
-
 // ResolveReadyNodesAndTargetNodeClaimCount returns all ready nodes and the number of target NodeClaims(nodes) for the given workspace
 func ResolveReadyNodesAndTargetNodeClaimCount(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]string, int, error) {
 	availableBYONodes, readyNodes, err := resources.GetBYOAndReadyNodes(ctx, c, wObj)
@@ -465,13 +480,17 @@ func ResolveReadyNodesAndTargetNodeClaimCount(ctx context.Context, c client.Clie
 		return nil, 0, fmt.Errorf("failed to get available BYO nodes: %w", err)
 	}
 
-	targetNodeCount := 1
-	if wObj.Inference != nil && wObj.Status.Inference != nil {
-		targetNodeCount = int(wObj.Status.Inference.TargetNodeCount)
-	}
+	targetNodeCount := int(wObj.Status.TargetNodeCount)
 
 	// Calculate the number of target NodeClaims(nodes) (target - BYO nodes)
 	targetNodeClaimCount := max(0, targetNodeCount-len(availableBYONodes))
+
+	klog.InfoS("Resolved node counts for workspace",
+		"workspace", klog.KObj(wObj),
+		"targetNodeCount", targetNodeCount,
+		"availableBYONodes", len(availableBYONodes),
+		"targetNodeClaimCount", targetNodeClaimCount,
+		"autoProvisioningDisabled", featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning])
 
 	// if node provision is disabled, NodeClaims(nodes) are not needed.
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
@@ -479,33 +498,6 @@ func ResolveReadyNodesAndTargetNodeClaimCount(ctx context.Context, c client.Clie
 	}
 
 	return readyNodes, targetNodeClaimCount, nil
-}
-
-// HasPodRunningOnNode checks if there is a pod running on the node claimed by the NodeClaim
-func HasPodRunningOnNode(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace, nodeClaimObj *karpenterv1.NodeClaim) bool {
-	if nodeClaimObj.Status.NodeName == "" {
-		return false
-	}
-	podList := &v1.PodList{}
-	listOpts := []client.ListOption{
-		client.InNamespace(wObj.Namespace),
-		client.MatchingLabels{
-			kaitov1beta1.LabelWorkspaceName:      wObj.Name,
-			kaitov1beta1.LabelWorkspaceNamespace: wObj.Namespace,
-		},
-	}
-
-	if err := c.List(ctx, podList, listOpts...); err != nil {
-		return false
-	}
-
-	for _, pod := range podList.Items {
-		if pod.Spec.NodeName == nodeClaimObj.Status.NodeName {
-			return true
-		}
-	}
-
-	return false
 }
 
 // IsNodeClaimReadyNotDeleting checks if a NodeClaim is in ready state and not being deleted

@@ -9,7 +9,7 @@
 | ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Retrieval Augmented Generation (RAG) support is live! - KAITO RagEngine uses LlamaIndex and FAISS, learn about it [here](https://kaito-project.github.io/kaito/docs/rag)! |
-| Latest Release: Aug 7th, 2025. KAITO v0.6.0                                                                                                                                                                                                  |
+| Latest Release: Sept 23th, 2025. KAITO v0.7.0                                                                                                                                                                                                  |
 | First Release: Nov 15th, 2023. KAITO v0.1.0.                                                                                                                                                                                                   |
 
 KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
@@ -149,7 +149,7 @@ Linux Foundation ID group through the [Linux Foundation Support website](https:/
 
 ## Get Involved!
 
-- Visit [#kaito channel in CNCF Slack](https://cloud-native.slack.com/archives/C09B4EWCZ5M) to discuss features in development and proposals.
+- Visit [#KAITO channel in CNCF Slack](https://cloud-native.slack.com/archives/C09B4EWCZ5M) to discuss features in development and proposals.
 - We host a weekly community meeting for contributors on Tuesdays at 4:00pm PST. Please join here: [meeting link](https://zoom-lfx.platform.linuxfoundation.org/meeting/99948431028?password=05912bb9-53fb-4b22-a634-ab5f8261e94c).
 - Reference the weekly meeting notes in our [KAITO community calls doc](https://docs.google.com/document/d/1OEC-WUQ2wn0TDQPsU09shMoXn5cW3dSrdu-M43Q79dA/edit?usp=sharing)!
 

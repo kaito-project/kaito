@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inference-params
+data:
+  inference_config.yaml: |
+    vllm:
+      gpu-memory-utilization: 0.82  # Controls GPU memory usage (0.0-1.0)
+---
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-gpt-oss-20b
+resource:
+  instanceType: "Standard_NV36ads_A10_v5"
+  labelSelector:
+    matchLabels:
+      apps: gpt-oss-20b
+inference:
+  preset:
+    name: "gpt-oss-20b"
+  config: "inference-params"  # Reference to ConfigMap name

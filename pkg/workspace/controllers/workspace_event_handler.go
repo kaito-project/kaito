@@ -61,6 +61,11 @@ func (n *nodeClaimEventHandler) Create(ctx context.Context, evt event.TypedCreat
 }
 
 func (n *nodeClaimEventHandler) Delete(ctx context.Context, evt event.TypedDeleteEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+	nc := evt.Object.(*karpenterv1.NodeClaim)
+	if key := getControllerKeyForNodeClaim(nc); key != nil {
+		n.expectations.DeletionObserved(n.logger, key.String())
+	}
+
 	n.enqueueHandler.Delete(ctx, evt, q)
 }
 

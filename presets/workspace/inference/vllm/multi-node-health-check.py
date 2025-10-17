@@ -24,15 +24,19 @@ def liveness(args):
     gcs = f"{args.leader_address}:{args.ray_port}"
 
     # Checking the Ray job's entrypoint is the best we can do to identify the VLLM inference job
+    # Process name in VLLM v0 and VLLM v1 is different, but only one of them will exist.
     inference_job = next(
-        filter(
-            lambda job: job.entrypoint.startswith(
+        (
+            job
+            for job in list_jobs(address=gcs)
+            if job.entrypoint.startswith("VLLM::EngineCore")  # vllm v1
+            or job.entrypoint.startswith(
                 "python3 /workspace/vllm/inference_api.py"
-            ),
-            list_jobs(address=gcs),
+            )  # vllm v0
         ),
-        None,
+        None,  # default value if no job matches
     )
+
     assert inference_job is not None, "Inference job not found in Ray jobs"
 
     has_dead_actors = False

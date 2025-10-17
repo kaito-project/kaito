@@ -18,13 +18,13 @@ variable "node_pool_vm_size" {
 
 variable "kaito_gpu_provisioner_version" {
   type        = string
-  default     = "0.3.5"
+  default     = "0.3.6"
   description = "kaito gpu provisioner version"
 }
 
 variable "kaito_workspace_version" {
   type        = string
-  default     = "0.6.0"
+  default     = "0.7.0"
   description = "kaito workspace version"
 }
 
@@ -42,6 +42,12 @@ variable "deploy_kaito_ragengine" {
 
 variable "kaito_ragengine_version" {
   type        = string
-  default     = "0.6.0"
+  default     = "0.7.0"
   description = "KAITO RAGEngine version"
+}
+
+variable "kaito_workspace_features" {
+  type        = list(string)
+  default     = ["gatewayAPIInferenceExtension"]
+  description = "List of KAITO workspace features to enable"
 }

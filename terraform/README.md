@@ -47,6 +47,9 @@ Before you deploy, review the following variables in the [variables.tf](./variab
 - `kaito_gpu_provisioner_version` - The version of the KAITO GPU Provisioner.
 - `kaito_workspace_version` - The version of the KAITO Workspace.
 - `registry_repository_name` - The name of the output image when running a sample fine-tuning job.
+- `deploy_kaito_ragengine` - Whether to deploy the KAITO RAG Engine. Defaults to `true`.
+- `kaito_ragengine_version` - The version of the KAITO RAG Engine.
+- `features` - A list of KAITO features to enable. For example, to enable the Gateway API Inference Extension. Defaults to `["gatewayAPIInferenceExtension"]`.
 
 Run the Terraform apply command and enter `yes` when prompted to deploy the Azure resources.
 

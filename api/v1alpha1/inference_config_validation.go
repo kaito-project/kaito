@@ -95,7 +95,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 	}
 	if skuConfig := skuHandler.GetGPUConfigBySKU(w.Resource.InstanceType); skuConfig != nil {
 		// Check if this is a multi-GPU instance with less than 20GB per GPU
-		gpuMemPerGPU := skuConfig.GPUMemGB / skuConfig.GPUCount
+		gpuMemPerGPU := skuConfig.GPUMemGiB / skuConfig.GPUCount
 		// For multi-GPU instances with less than 20GB per GPU, max-model-len is required
 		if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20 {
 			modelLenRequired = true

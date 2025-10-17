@@ -34,7 +34,7 @@ RUN --mount=type=cache,target=${GOCACHE} \
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/cbl-mariner/distroless/minimal:2.0
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/azurelinux/distroless/minimal:3.0
 WORKDIR /
 COPY --from=builder /workspace/manager .
 COPY --from=builder /workspace/presets/workspace/models/supported_models.yaml .

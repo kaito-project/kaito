@@ -26,13 +26,21 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
-func NewWorkspaceWebhooks() []knativeinjection.ControllerConstructor {
-	return []knativeinjection.ControllerConstructor{
+func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
+	constructor := []knativeinjection.ControllerConstructor{
 		certificates.NewController,
 		NewWorkspaceCRDValidationWebhook,
 	}
+
+	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+		constructor = append(constructor, NewInferenceSetCRDValidationWebhook)
+	}
+
+	return constructor
 }
 
 func NewWorkspaceCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
@@ -45,7 +53,21 @@ func NewWorkspaceCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) 
 	)
 }
 
+func NewInferenceSetCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
+	return validation.NewAdmissionController(ctx,
+		"validation.inferenceset.kaito.sh",
+		"/validate/inferenceset.kaito.sh",
+		InferenceSetResources,
+		func(ctx context.Context) context.Context { return ctx },
+		true,
+	)
+}
+
 var WorkspaceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
 	kaitov1alpha1.GroupVersion.WithKind("Workspace"): &kaitov1alpha1.Workspace{},
 	kaitov1beta1.GroupVersion.WithKind("Workspace"):  &kaitov1beta1.Workspace{},
+}
+
+var InferenceSetResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
+	kaitov1alpha1.GroupVersion.WithKind("InferenceSet"): &kaitov1alpha1.InferenceSet{},
 }

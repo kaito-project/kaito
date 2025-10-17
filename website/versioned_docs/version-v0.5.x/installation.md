@@ -129,7 +129,7 @@ kubectl describe deploy gpu-provisioner -n gpu-provisioner
 ```
 
 ## Troubleshooting
-If you see that the `gpu-provisioner` deployment is not running after some time, it's possible that some values incorrect in your `values.ovveride.yaml`.
+If you see that the `gpu-provisioner` deployment is not running after some time, it's possible that some values incorrect in your `values.override.yaml`.
 
 Run the following command to check `gpu-provisioner` pod logs for additional details.
 

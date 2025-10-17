@@ -9,7 +9,11 @@ This document presents how to use the KAITO `ragengine` Custom Resource Definiti
 > Be sure you've cloned this repo and followed [kaito workspace installation](./installation.md) if you plan to use local embedding model. RAGEngine needs the gpu-provisioner component to provision GPU nodes.
 
 ```bash
-helm install ragengine ./charts/kaito/ragengine --namespace kaito-ragengine --create-namespace
+helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+helm repo update
+helm upgrade --install kaito-ragengine kaito/ragengine \
+  --namespace kaito-ragengine \
+  --create-namespace
 ```
 
 ## Verify installation
@@ -74,6 +78,7 @@ spec:
       modelID: "BAAI/bge-small-en-v1.5"
   inferenceService:
     url: "<inference-url>/v1/completions"
+    contextWindowSize: 512    # Modify to fit the model's context window.
 ```
 
 ### Apply the manifest

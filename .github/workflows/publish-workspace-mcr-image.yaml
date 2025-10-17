@@ -1,5 +1,10 @@
 name: Publish KAITO MCR image
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'tag to be created for this image (e.g. v0.6.0)'
+        required: true
   repository_dispatch:
     types: [ publish-workspace-mcr-image ]
 
@@ -24,14 +29,14 @@ jobs:
 
       - name: Set Image tag
         run: |
-          ver=${{ github.event.client_payload.tag }}
+          ver=${{ github.event.client_payload.tag || github.event.inputs.tag }}
           echo "IMG_TAG=${ver#"v"}" >> $GITHUB_ENV
 
       - uses: actions/checkout@v5.0.0
         with:
           fetch-depth: 0
           submodules: true
-          ref: ${{ github.event.client_payload.tag }}
+          ref: ${{ github.event.client_payload.tag || github.event.inputs.tag }}
 
       - name: Authenticate to ACR
         run: |
@@ -43,7 +48,7 @@ jobs:
         run: |
           OUTPUT_TYPE=type=registry make docker-build-workspace
         env:
-          VERSION: ${{ github.event.client_payload.tag }}
+          VERSION: ${{ github.event.client_payload.tag || github.event.inputs.tag }}
           REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito
           IMG_NAME: workspace
           IMG_TAG: ${{ env.IMG_TAG }}
@@ -57,4 +62,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           event-type: publish-workspace-helm-chart
-          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}'
+          client-payload: '{"tag": "${{ github.event.client_payload.tag || github.event.inputs.tag }}"}'

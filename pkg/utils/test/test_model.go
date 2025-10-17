@@ -30,9 +30,9 @@ func (*baseTestModel) GetInferenceParameters() *model.PresetParam {
 			Name: "test-model",
 			Tag:  "1.0.0",
 		},
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "8Gi",
-		DiskStorageRequirement:    "100Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "8Gi",
+		DiskStorageRequirement:  "100Gi",
 		RuntimeParam: model.RuntimeParam{
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
@@ -79,11 +79,11 @@ func (*testDistributedModel) GetInferenceParameters() *model.PresetParam {
 			Name: "test-distributed-model",
 			Tag:  "1.0.0",
 		},
-		GPUCountRequirement:       "2",
-		DiskStorageRequirement:    "100Gi",
-		TotalGPUMemoryRequirement: "64Gi",
+		GPUCountRequirement:     "2",
+		DiskStorageRequirement:  "100Gi",
+		TotalSafeTensorFileSize: "64Gi",
 		RuntimeParam: model.RuntimeParam{
-			DisableTensorParallelism: true,
+			DisableTensorParallelism: false,
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
 				ModelRunParams: emptyParams,
@@ -111,9 +111,9 @@ func (*testNoTensorParallelModel) GetInferenceParameters() *model.PresetParam {
 			Name: "test-no-tensor-parallel-model",
 			Tag:  "1.0.0",
 		},
-		GPUCountRequirement:       "1",
-		DiskStorageRequirement:    "100Gi",
-		TotalGPUMemoryRequirement: "8Gi",
+		GPUCountRequirement:     "1",
+		DiskStorageRequirement:  "100Gi",
+		TotalSafeTensorFileSize: "8Gi",
 		RuntimeParam: model.RuntimeParam{
 			DisableTensorParallelism: true,
 			VLLM: model.VLLMParam{
@@ -152,9 +152,44 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 			Version:           "https://huggingface.co/test-repo/test-model/commit/test-revision",
 			DownloadAtRuntime: true,
 		},
-		GPUCountRequirement:       "1",
-		DiskStorageRequirement:    "100Gi",
-		TotalGPUMemoryRequirement: "64Gi",
+		GPUCountRequirement:     "1",
+		DiskStorageRequirement:  "100Gi",
+		TotalSafeTensorFileSize: "64Gi",
+		RuntimeParam: model.RuntimeParam{
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				AccelerateParams:  emptyParams,
+				ModelRunParams:    emptyParams,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+
+type testModelDownloadA100 struct {
+	baseTestModel
+}
+
+func (*testModelDownloadA100) SupportDistributedInference() bool {
+	return true
+}
+
+func (*testModelDownloadA100) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Name:              "test-model-download-a100",
+			Tag:               "1.0.0",
+			Version:           "https://huggingface.co/test-repo/test-model-a100/commit/test-revision",
+			DownloadAtRuntime: true,
+		},
+		GPUCountRequirement:     "1",
+		DiskStorageRequirement:  "100Gi",
+		TotalSafeTensorFileSize: "64Gi",
 		RuntimeParam: model.RuntimeParam{
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
@@ -177,8 +212,8 @@ func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
 			Name: "test-no-lora-support-model",
 			Tag:  "1.0.0",
 		},
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "8Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "8Gi",
 		RuntimeParam: model.RuntimeParam{
 			DisableTensorParallelism: true,
 			VLLM: model.VLLMParam{
@@ -195,6 +230,77 @@ func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
 	}
 }
 func (*testNoLoraSupportModel) SupportDistributedInference() bool {
+	return false
+}
+
+type testFalcon7BModel struct {
+	baseTestModel
+}
+
+func (*testFalcon7BModel) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Name: "test-falcon-7b",
+			Tag:  "1.0.0",
+		},
+		GPUCountRequirement:     "1",
+		DiskStorageRequirement:  "90Gi",
+		TotalSafeTensorFileSize: "13.44Gi",
+		BytesPerToken:           8192,
+		RuntimeParam: model.RuntimeParam{
+			DisableTensorParallelism: true, // falcon-7b has 71 attention heads (prime number)
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
+				DisallowLoRA:   true,
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+
+func (*testFalcon7BModel) SupportDistributedInference() bool {
+	return false // Due to tensor parallelism being disabled
+}
+
+type testQwen25Coder32BModel struct {
+	baseTestModel
+}
+
+func (*testQwen25Coder32BModel) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Name: "test-qwen2.5-coder-32b-instruct",
+			Tag:  "1.0.0",
+		},
+		GPUCountRequirement:     "2",
+		DiskStorageRequirement:  "100Gi",
+		TotalSafeTensorFileSize: "62.5Gi",
+		BytesPerToken:           163840,
+		RuntimeParam: model.RuntimeParam{
+			DisableTensorParallelism: false, // Supports tensor parallelism
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+
+func (*testQwen25Coder32BModel) GetTuningParameters() *model.PresetParam {
+	return nil // Not recommended for further fine-tuning instruct models
+}
+
+func (*testQwen25Coder32BModel) SupportTuning() bool {
 	return false
 }
 
@@ -222,5 +328,20 @@ func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-model-download",
 		Instance: &testModelDownload{},
+	})
+
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-model-download-a100",
+		Instance: &testModelDownloadA100{},
+	})
+
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-falcon-7b",
+		Instance: &testFalcon7BModel{},
+	})
+
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-qwen2.5-coder-32b-instruct",
+		Instance: &testQwen25Coder32BModel{},
 	})
 }

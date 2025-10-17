@@ -95,11 +95,12 @@ type llama8b struct{}
 
 func (*llama8b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillLlama8BModel),
-		DiskStorageRequirement:    "90Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16.5Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetDeepSeekR1DistillLlama8BModel),
+		DiskStorageRequirement:  "90Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "14.96Gi",
+		BytesPerToken:           131072,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
@@ -132,11 +133,12 @@ type qwen14b struct{}
 
 func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetDeepSeekR1DistillQwen14BModel),
-		DiskStorageRequirement:    "120Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "25.7Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetDeepSeekR1DistillQwen14BModel),
+		DiskStorageRequirement:  "120Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "27.51Gi",
+		BytesPerToken:           196608,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
@@ -169,11 +171,12 @@ type deepseekR1 struct{}
 
 func (*deepseekR1) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetDeepSeekR1Model),
-		DiskStorageRequirement:    "800Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "960Gi", // at least 8 H100
-		PerGPUMemoryRequirement:   "0Gi",   // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetDeepSeekR1Model),
+		DiskStorageRequirement:  "800Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "641.3Gi", // at least 8 H100
+		BytesPerToken:           1748992,
+		ModelTokenLimit:         163840, // max_position_embeddings from DeepSeek-R1-0528 config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
@@ -208,11 +211,12 @@ type deepseekV3 struct{}
 
 func (*deepseekV3) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetDeepSeekR1Model),
-		DiskStorageRequirement:    "800Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "960Gi", // at least 8 H100
-		PerGPUMemoryRequirement:   "0Gi",   // We run DeepSeek using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetDeepSeekV3Model),
+		DiskStorageRequirement:  "800Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "641.3Gi", // at least 8 H100
+		BytesPerToken:           1748992,
+		ModelTokenLimit:         163840, // max_position_embeddings from DeepSeek-V3-0324 config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,

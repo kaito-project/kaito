@@ -1,11 +1,11 @@
-# Default values for kaito.
+# Default values for KAITO.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 replicaCount: 1
 image:
   repository: mcr.microsoft.com/aks/kaito/workspace
   pullPolicy: IfNotPresent
-  tag: 0.6.0
+  tag: 0.7.0
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -55,8 +55,8 @@ flux2:
     create: false
   notificationController:
     create: false
-local-csi-driver:
-  image:
-    driver:
-      repository: mcr.microsoft.com/acstor/local-csi-driver
-      tag: v0.2.5
+gpu-feature-discovery:
+  devicePlugin:
+    enabled: false
+  gfd:
+    enabled: true

@@ -35,6 +35,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/advancednodesestimator"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -67,7 +68,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
 		},
 
@@ -82,7 +83,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-no-tensor-parallel-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
 		},
 
@@ -97,7 +98,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-no-lora-support-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
 		},
 
@@ -110,7 +111,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			},
 			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
-			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --tensor-parallel-size=2 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters:        true,
 			expectedVolume:     "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{{
@@ -152,15 +153,15 @@ func TestGeneratePresetInference(t *testing.T) {
 			}},
 		},
 
-		"test-model-download/vllm": {
-			workspace: test.MockWorkspaceWithPresetDownloadVLLM,
+		"test-model-download-a100/vllm": {
+			workspace: test.MockWorkspaceWithPresetDownloadA100VLLM,
 			nodeCount: 1,
-			modelName: "test-model-download",
+			modelName: "test-model-download-a100",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 			},
 			workload:    "Deployment",
-			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2 --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml`,
+			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --model=test-repo/test-model-a100 --code-revision=test-revision --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -183,7 +184,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 			},
 			workload:    "StatefulSet",
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=3 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=3 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -206,16 +207,16 @@ func TestGeneratePresetInference(t *testing.T) {
 
 		"test-model-download-distributed/vllm (more nodes than required)": {
 			// Using Standard_NC12s_v3, which has 32GB GPU memory per node.
-			// The preset requires 64GB GPU memory for the model, so only 2 nodes are needed.
+			// The preset requires 64GB GPU memory for the model, so only 4 nodes are needed.
 			workspace: test.MockWorkspaceWithPresetDownloadVLLM,
-			nodeCount: 4, // 4 nodes but only 2 are needed
+			nodeCount: 4, // 4 nodes are needed
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 			},
 			workload:    "StatefulSet",
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=2 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --kaito-config-file=/mnt/config/inference_config.yaml --download-dir=/workspace/weights --pipeline-parallel-size=2 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=3 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=3 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -259,6 +260,7 @@ func TestGeneratePresetInference(t *testing.T) {
 		},
 	}
 
+	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -270,6 +272,18 @@ func TestGeneratePresetInference(t *testing.T) {
 			workspace := tc.workspace
 			//nolint:staticcheck //SA1019: deprecate Resource.Count field
 			workspace.Resource.Count = &tc.nodeCount
+
+			// Set the Status.Inference.TargetNodeCount for proper node count calculation
+			if workspace.Inference != nil {
+				nodeCount, err := estimator.EstimateNodeCount(t.Context(), workspace, mockClient)
+				if err != nil {
+					t.Errorf("%s: failed to estimate node count: %v", k, err)
+					return
+				}
+				workspace.Status.TargetNodeCount = int32(nodeCount)
+				t.Logf("Estimated node count: %d", nodeCount)
+			}
+
 			expectedSecrets := []string{"fake-secret"}
 			if tc.hasAdapters {
 				workspace.Inference.Adapters = []v1beta1.AdapterSpec{
@@ -499,7 +513,7 @@ func TestGetGPUConfig(t *testing.T) {
 			expectedConfig: sku.GPUConfig{
 				SKU:             "Standard_NC24ads_A100_v4",
 				GPUCount:        1,
-				GPUMemGB:        80,
+				GPUMemGiB:       80,
 				GPUModel:        "NVIDIA A100",
 				NVMeDiskEnabled: true,
 			},
@@ -635,8 +649,8 @@ func TestGetGPUConfig(t *testing.T) {
 			}
 
 			// Check GPUMemGB if expected
-			if tc.expectedConfig.GPUMemGB > 0 && config.GPUMemGB != tc.expectedConfig.GPUMemGB {
-				t.Errorf("Expected GPUMemGB %d, got %d", tc.expectedConfig.GPUMemGB, config.GPUMemGB)
+			if tc.expectedConfig.GPUMemGiB > 0 && config.GPUMemGiB != tc.expectedConfig.GPUMemGiB {
+				t.Errorf("Expected GPUMemGB %d, got %d", tc.expectedConfig.GPUMemGiB, config.GPUMemGiB)
 			}
 
 			// Check NVMeDiskEnabled if expected

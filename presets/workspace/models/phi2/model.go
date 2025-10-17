@@ -51,11 +51,12 @@ type phi2 struct{}
 
 func (*phi2) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetPhi2Model),
-		DiskStorageRequirement:    "80Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "12Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetPhi2Model),
+		DiskStorageRequirement:  "80Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "5.18Gi",
+		BytesPerToken:           327680,
+		ModelTokenLimit:         2048, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,
@@ -74,11 +75,10 @@ func (*phi2) GetInferenceParameters() *model.PresetParam {
 }
 func (*phi2) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetPhi2Model),
-		DiskStorageRequirement:    "80Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "16Gi",
+		Metadata:                metadata.MustGet(PresetPhi2Model),
+		DiskStorageRequirement:  "80Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				// AccelerateParams: inference.DefaultAccelerateParams,

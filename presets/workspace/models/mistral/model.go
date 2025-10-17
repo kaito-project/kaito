@@ -60,11 +60,12 @@ type mistral7b struct{}
 
 func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetMistral7BModel),
-		DiskStorageRequirement:    "90Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "14Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Mistral using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetMistral7BModel),
+		DiskStorageRequirement:  "90Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "13.49Gi",
+		BytesPerToken:           131072,
+		ModelTokenLimit:         32768, // max_position_embeddings from HF config (v0.1/0.2)
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,
@@ -84,11 +85,10 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 }
 func (*mistral7b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetMistral7BModel),
-		DiskStorageRequirement:    "90Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "16Gi",
+		Metadata:                metadata.MustGet(PresetMistral7BModel),
+		DiskStorageRequirement:  "90Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "16Gi",
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				// AccelerateParams: tuning.DefaultAccelerateParams,
@@ -113,11 +113,12 @@ type mistral7bInst struct{}
 
 func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetMistral7BInstructModel),
-		DiskStorageRequirement:    "90Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run mistral using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetMistral7BInstructModel),
+		DiskStorageRequirement:  "90Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "13.49Gi",
+		BytesPerToken:           131072,
+		ModelTokenLimit:         32768, // max_position_embeddings from HF config (v0.2)
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				AccelerateParams:  inference.DefaultAccelerateParams,

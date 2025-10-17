@@ -216,7 +216,7 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			count, err := estimator.EstimateNodeCount(ctx, tt.workspace)
+			count, err := estimator.EstimateNodeCount(ctx, tt.workspace, nil)
 
 			if tt.expectedError {
 				require.Error(t, err)
@@ -260,7 +260,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_GPUMemoryCalculation(t *testing.T
 			},
 		}
 
-		count, err := estimator.EstimateNodeCount(ctx, workspace)
+		count, err := estimator.EstimateNodeCount(ctx, workspace, nil)
 		require.NoError(t, err)
 
 		// The estimator should calculate optimal node count based on GPU memory
@@ -301,7 +301,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 			},
 		}
 
-		count, err := estimator.EstimateNodeCount(ctx, workspace)
+		count, err := estimator.EstimateNodeCount(ctx, workspace, nil)
 		require.NoError(t, err)
 
 		// With the new logic, when minimumNodes < nodeCountPerReplica,
@@ -328,7 +328,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 			},
 		}
 
-		count, err := estimator.EstimateNodeCount(ctx, workspace)
+		count, err := estimator.EstimateNodeCount(ctx, workspace, nil)
 		require.NoError(t, err)
 
 		// The function should update nodeCountPerReplica to minimumNodes when minimumNodes < nodeCountPerReplica,
@@ -356,7 +356,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 			},
 		}
 
-		count, err := estimator.EstimateNodeCount(ctx, workspace)
+		count, err := estimator.EstimateNodeCount(ctx, workspace, nil)
 		require.NoError(t, err)
 
 		// When a model requires more nodes than the minimum calculation suggests,

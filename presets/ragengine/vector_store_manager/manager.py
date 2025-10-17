@@ -12,9 +12,7 @@
 # limitations under the License.
 
 
-from typing import Any
-
-from ragengine.models import Document
+from ragengine.models import Document, ListDocumentsResponse
 from ragengine.vector_store.base import BaseVectorStore
 
 
@@ -54,7 +52,7 @@ class VectorStoreManager:
         offset: int,
         max_text_length: int,
         metadata_filter: dict,
-    ) -> list[dict[str, Any]]:
+    ) -> ListDocumentsResponse:
         """List all documents in index."""
         return await self.vector_store.list_documents_in_index(
             index_name, limit, offset, max_text_length, metadata_filter

@@ -41,6 +41,12 @@ const (
 	//WorkspaceConditionTypeDeleting is the Workspace state when starts to get deleted.
 	WorkspaceConditionTypeDeleting = ConditionType("WorkspaceDeleting")
 
+	//InferenceSetConditionTypeDeleting is the InferenceSet state when starts to get deleted.
+	InferenceSetConditionTypeDeleting = ConditionType("InferenceSetDeleting")
+
+	// InferenceSetConditionTypeReady is the InferenceSet state when starts to get ready.
+	InferenceSetConditionTypeReady = ConditionType("InferenceSetReady")
+
 	//WorkspaceConditionTypeSucceeded is the Workspace state that summarizes all operations' states.
 	//For inference, the "True" condition means the inference service is ready to serve requests.
 	//For fine tuning, the "True" condition means the tuning job completes successfully.

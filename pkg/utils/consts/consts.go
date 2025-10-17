@@ -18,6 +18,8 @@ import "time"
 const (
 	// WorkspaceFinalizer is used to make sure that workspace controller handles garbage collection.
 	WorkspaceFinalizer = "workspace.finalizer.kaito.sh"
+	// InferenceSetFinalizer is used to make sure that inferenceset controller handles garbage collection.
+	InferenceSetFinalizer = "inferenceset.finalizer.kaito.sh"
 	// RAGEngineFinalizer is used to make sure that ragengine controller handles garbage collection.
 	RAGEngineFinalizer            = "ragengine.finalizer.kaito.sh"
 	DefaultReleaseNamespaceEnvVar = "RELEASE_NAMESPACE"
@@ -35,6 +37,7 @@ const (
 	FeatureFlagEnsureNodeClass              = "ensureNodeClass"
 	FeatureFlagDisableNodeAutoProvisioning  = "disableNodeAutoProvisioning"
 	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
+	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
 
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"
@@ -60,13 +63,16 @@ const (
 
 	// InferencePoolChartVersion is the tag/version of the inferencepool chart to deploy.
 	// MUST KEEP IN SYNC with the version in go.mod.
-	InferencePoolChartVersion = "v0.5.1"
+	InferencePoolChartVersion = "v1.0.1"
 
 	// GatewayAPIInferenceExtensionImageRepository is the image repository for the Gateway API Inference Extension components.
 	GatewayAPIInferenceExtensionImageRepository = "mcr.microsoft.com/oss/v2/gateway-api-inference-extension"
 
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"
+
+	WorkspaceCreatedByInferenceSetLabel = "inferenceset.kaito.sh/created-by"
+	InferenceSetMemberLabel             = "inferenceset.kaito.sh/member"
 )
 
 var (

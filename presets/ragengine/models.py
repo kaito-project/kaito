@@ -32,6 +32,7 @@ class Document(BaseModel):
 class ListDocumentsResponse(BaseModel):
     documents: list[Document]  # List of DocumentResponses
     count: int  # Number of documents in the current response
+    total_items: int  # Total number of document with filters applied
 
 
 class IndexRequest(BaseModel):

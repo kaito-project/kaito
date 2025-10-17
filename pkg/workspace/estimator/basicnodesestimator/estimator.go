@@ -19,6 +19,7 @@ import (
 
 	"github.com/samber/lo"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -35,7 +36,7 @@ func (e *BasicNodesEstimator) Name() string {
 	return "basic"
 }
 
-func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) (int32, error) {
+func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace, client client.Client) (int32, error) {
 	// If inference is not configured, default to resource count or 1
 	if wObj.Inference == nil || wObj.Inference.Preset == nil || wObj.Inference.Preset.Name == "" {
 		//nolint:staticcheck //SA1019: deprecate Resource.Count field
@@ -62,9 +63,9 @@ func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaito
 	nodeCountPerReplica := lo.FromPtr(wObj.Resource.Count)
 
 	// If GPU memory information is available, calculate the optimal node count
-	if gpuConfig.GPUMemGB > 0 && gpuConfig.GPUCount > 0 {
-		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalGPUMemoryRequirement)
-		totalGPUMemoryPerNodeBytes := int64(gpuConfig.GPUMemGB) * consts.GiBToBytes
+	if gpuConfig.GPUMemGiB > 0 && gpuConfig.GPUCount > 0 {
+		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalSafeTensorFileSize)
+		totalGPUMemoryPerNodeBytes := int64(gpuConfig.GPUMemGiB) * consts.GiBToBytes
 
 		requiredMemoryBytes := totalGPUMemoryRequired.Value()
 

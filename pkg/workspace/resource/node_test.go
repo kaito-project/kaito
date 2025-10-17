@@ -16,6 +16,7 @@ package resource
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/awslabs/operatorpkg/status"
@@ -42,12 +43,11 @@ func TestNewNodeResourceManager(t *testing.T) {
 	assert.Equal(t, mockClient, manager.Client)
 }
 
-func TestEnsureNodeResource(t *testing.T) {
+func TestAreNodePluginsReady(t *testing.T) {
 	tests := []struct {
 		name               string
 		workspace          *kaitov1beta1.Workspace
 		existingNodeClaims []*karpenterv1.NodeClaim
-		workerNodes        []string
 		setup              func(*test.MockClient)
 		expectedReady      bool
 		expectedError      bool
@@ -65,7 +65,6 @@ func TestEnsureNodeResource(t *testing.T) {
 				},
 			},
 			existingNodeClaims: []*karpenterv1.NodeClaim{},
-			workerNodes:        []string{"node1", "node2"},
 			setup: func(mockClient *test.MockClient) {
 				// Mock Get for workspace status update
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -99,7 +98,6 @@ func TestEnsureNodeResource(t *testing.T) {
 					},
 				},
 			},
-			workerNodes: []string{"test-node"},
 			setup: func(mockClient *test.MockClient) {
 				// Create a ready node with GPU capacity and correct labels
 				node := &corev1.Node{
@@ -153,7 +151,6 @@ func TestEnsureNodeResource(t *testing.T) {
 					},
 				},
 			},
-			workerNodes: []string{"test-node"},
 			setup: func(mockClient *test.MockClient) {
 				// Mock Get for workspace status update
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("node get failed"))
@@ -164,30 +161,6 @@ func TestEnsureNodeResource(t *testing.T) {
 			expectedReady: false,
 			expectedError: true,
 		},
-		{
-			name: "Should update worker nodes when they differ",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_D2s_v3",
-					LabelSelector: &metav1.LabelSelector{},
-				},
-				Status: kaitov1beta1.WorkspaceStatus{
-					WorkerNodes: []string{"old-node"},
-				},
-			},
-			existingNodeClaims: []*karpenterv1.NodeClaim{},
-			workerNodes:        []string{"new-node1", "new-node2"},
-			setup: func(mockClient *test.MockClient) {
-				// Mock Get for workspace status update
-				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-
-				// Mock status update for worker nodes and resource status
-				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-			},
-			expectedReady: true,
-			expectedError: false,
-		},
 	}
 
 	for _, tt := range tests {
@@ -195,27 +168,28 @@ func TestEnsureNodeResource(t *testing.T) {
 			mockClient := test.NewClient()
 			tt.setup(mockClient)
 
-			manager := NewNodeManager(mockClient)
-			ready, err := manager.EnsureNodeResource(context.Background(), tt.workspace, tt.existingNodeClaims, tt.workerNodes)
+			// set env CLOUD_PROVIDER to "azure" for AzureSKUHandler
+			os.Setenv("CLOUD_PROVIDER", "azure")
+			defer os.Unsetenv("CLOUD_PROVIDER")
 
+			manager := NewNodeManager(mockClient)
+			ready, err := manager.AreNodePluginsReady(context.Background(), tt.workspace, tt.existingNodeClaims)
+
+			assert.Equal(t, tt.expectedError, err != nil)
 			assert.Equal(t, tt.expectedReady, ready)
-			if tt.expectedError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
+
 		})
 	}
 }
 
-func TestEnsureNodePlugin(t *testing.T) {
+func TestCheckNodePlugin(t *testing.T) {
 	tests := []struct {
-		name            string
-		workspace       *kaitov1beta1.Workspace
-		readyNodeClaims []*karpenterv1.NodeClaim
-		setup           func(*test.MockClient)
-		expectedReady   bool
-		expectedError   bool
+		name               string
+		workspace          *kaitov1beta1.Workspace
+		existingNodeClaims []*karpenterv1.NodeClaim
+		setup              func(*test.MockClient)
+		expectedReady      bool
+		expectedError      bool
 	}{
 		{
 			name: "Should fail when getReadyNodesFromNodeClaims fails",
@@ -226,7 +200,7 @@ func TestEnsureNodePlugin(t *testing.T) {
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
-			readyNodeClaims: []*karpenterv1.NodeClaim{
+			existingNodeClaims: []*karpenterv1.NodeClaim{
 				{
 					ObjectMeta: metav1.ObjectMeta{Name: "test-nodeclaim"},
 					Status: karpenterv1.NodeClaimStatus{
@@ -253,7 +227,7 @@ func TestEnsureNodePlugin(t *testing.T) {
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
-			readyNodeClaims: []*karpenterv1.NodeClaim{
+			existingNodeClaims: []*karpenterv1.NodeClaim{
 				{
 					ObjectMeta: metav1.ObjectMeta{Name: "test-nodeclaim"},
 					Status: karpenterv1.NodeClaimStatus{
@@ -300,7 +274,7 @@ func TestEnsureNodePlugin(t *testing.T) {
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
-			readyNodeClaims: []*karpenterv1.NodeClaim{
+			existingNodeClaims: []*karpenterv1.NodeClaim{
 				{
 					ObjectMeta: metav1.ObjectMeta{Name: "test-nodeclaim"},
 					Status: karpenterv1.NodeClaimStatus{
@@ -340,6 +314,51 @@ func TestEnsureNodePlugin(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "Should wait when node has incorrect instance type label",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType:  "Standard_NC12s_v3",
+					LabelSelector: &metav1.LabelSelector{},
+				},
+			},
+			existingNodeClaims: []*karpenterv1.NodeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-nodeclaim"},
+					Status: karpenterv1.NodeClaimStatus{
+						NodeName: "test-node",
+					},
+				},
+			},
+			setup: func(mockClient *test.MockClient) {
+				// Create a node with incorrect instance type label
+				node := &corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-node",
+						Labels: map[string]string{
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v2",
+							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionTrue,
+							},
+						},
+						Capacity: corev1.ResourceList{
+							resources.CapacityNvidiaGPU: resource.MustParse("1"),
+						},
+					},
+				}
+				mockClient.CreateOrUpdateObjectInMap(node)
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			},
+			expectedReady: false,
+			expectedError: false,
+		},
+		{
 			name: "Should succeed when all nodes have GPU capacity and labels",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
@@ -348,7 +367,7 @@ func TestEnsureNodePlugin(t *testing.T) {
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
-			readyNodeClaims: []*karpenterv1.NodeClaim{
+			existingNodeClaims: []*karpenterv1.NodeClaim{
 				{
 					ObjectMeta: metav1.ObjectMeta{Name: "test-nodeclaim"},
 					Status: karpenterv1.NodeClaimStatus{
@@ -384,6 +403,51 @@ func TestEnsureNodePlugin(t *testing.T) {
 			expectedReady: true,
 			expectedError: false,
 		},
+		{
+			name: "Should return error when node update fails while adding label",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType:  "Standard_NC12s_v3",
+					LabelSelector: &metav1.LabelSelector{},
+				},
+			},
+			existingNodeClaims: []*karpenterv1.NodeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-nodeclaim"},
+					Status: karpenterv1.NodeClaimStatus{
+						NodeName: "test-node",
+					},
+				},
+			},
+			setup: func(mockClient *test.MockClient) {
+				// Create a node that lacks the accelerator label but has GPU capacity
+				node := &corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-node",
+						Labels: map[string]string{
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
+						Capacity:   corev1.ResourceList{resources.CapacityNvidiaGPU: resource.MustParse("1")},
+					},
+				}
+				mockClient.CreateOrUpdateObjectInMap(node)
+
+				// Get returns nil to indicate node exists
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+				// Simulate Update failing when adding the label
+				mockClient.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("update failed"))
+
+				// Expect status update attempt for error condition
+				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			},
+			expectedReady: false,
+			expectedError: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -392,9 +456,9 @@ func TestEnsureNodePlugin(t *testing.T) {
 			tt.setup(mockClient)
 
 			manager := NewNodeManager(mockClient)
-			ready, err := manager.ensureNodePlugin(context.Background(), tt.workspace, tt.readyNodeClaims)
+			areReady, err := manager.checkNodePlugin(context.Background(), tt.workspace, tt.existingNodeClaims)
 
-			assert.Equal(t, tt.expectedReady, ready)
+			assert.Equal(t, tt.expectedReady, areReady)
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {
@@ -414,7 +478,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 		expectedError   bool
 	}{
 		{
-			name: "Should skip NodeClaim without assigned node",
+			name: "Should return error when NodeClaim without assigned node",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
@@ -437,7 +501,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "Should skip when node doesn't exist",
+			name: "Should return error when fail to get node",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
@@ -458,34 +522,10 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(apierrors.NewNotFound(schema.GroupResource{Resource: "nodes"}, "nonexistent-node"))
 			},
 			expectedNodes: 0,
-			expectedError: false,
-		},
-		{
-			name: "Should return error when node Get fails with non-NotFound error",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
-					LabelSelector: &metav1.LabelSelector{},
-				},
-			},
-			readyNodeClaims: []*karpenterv1.NodeClaim{
-				{
-					ObjectMeta: metav1.ObjectMeta{Name: "test-nodeclaim"},
-					Status: karpenterv1.NodeClaimStatus{
-						NodeName: "test-node",
-					},
-				},
-			},
-			setup: func(mockClient *test.MockClient) {
-				// Mock Get to return a different error
-				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("api server error"))
-			},
-			expectedNodes: 0,
 			expectedError: true,
 		},
 		{
-			name: "Should skip node that is not ready",
+			name: "Should return error when node is not ready",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
@@ -512,47 +552,6 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 							{
 								Type:   corev1.NodeReady,
 								Status: corev1.ConditionFalse,
-							},
-						},
-					},
-				}
-				mockClient.CreateOrUpdateObjectInMap(node)
-				mockClient.On("Get", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-			},
-			expectedNodes: 0,
-			expectedError: false,
-		},
-		{
-			name: "Should skip node with different instance type",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
-					LabelSelector: &metav1.LabelSelector{},
-				},
-			},
-			readyNodeClaims: []*karpenterv1.NodeClaim{
-				{
-					ObjectMeta: metav1.ObjectMeta{Name: "test-nodeclaim"},
-					Status: karpenterv1.NodeClaimStatus{
-						NodeName: "test-node",
-					},
-				},
-			},
-			setup: func(mockClient *test.MockClient) {
-				// Create a ready node with different instance type
-				node := &corev1.Node{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "test-node",
-						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_D2s_v3", // Different instance type
-						},
-					},
-					Status: corev1.NodeStatus{
-						Conditions: []corev1.NodeCondition{
-							{
-								Type:   corev1.NodeReady,
-								Status: corev1.ConditionTrue,
 							},
 						},
 					},

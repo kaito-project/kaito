@@ -63,11 +63,12 @@ type phi4Model struct{}
 
 func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetPhi4Model),
-		DiskStorageRequirement:    "150Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "40Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
-		PerGPUMemoryRequirement:   "0Gi",  // We run Phi using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetPhi4Model),
+		DiskStorageRequirement:  "150Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "27.31Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
+		BytesPerToken:           204800,
+		ModelTokenLimit:         16384, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
@@ -87,12 +88,11 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 
 func (*phi4Model) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetPhi4Model),
-		DiskStorageRequirement:    "150Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "70Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
-		PerGPUMemoryRequirement:   "70Gi",
-		ReadinessTimeout:          time.Duration(30) * time.Minute,
+		Metadata:                metadata.MustGet(PresetPhi4Model),
+		DiskStorageRequirement:  "150Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "70Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
+		ReadinessTimeout:        time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetPhiTuning,
@@ -112,11 +112,12 @@ type phi4MiniInstruct struct{}
 
 func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetPhi4MiniInstructModel),
-		DiskStorageRequirement:    "70Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "8Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Phi using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetPhi4MiniInstructModel),
+		DiskStorageRequirement:  "70Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "7.15Gi",
+		BytesPerToken:           131072,
+		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetPhiInference,
@@ -136,12 +137,11 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 
 func (*phi4MiniInstruct) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetPhi4MiniInstructModel),
-		DiskStorageRequirement:    "70Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "72Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
-		PerGPUMemoryRequirement:   "72Gi",
-		ReadinessTimeout:          time.Duration(30) * time.Minute,
+		Metadata:                metadata.MustGet(PresetPhi4MiniInstructModel),
+		DiskStorageRequirement:  "70Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "72Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
+		ReadinessTimeout:        time.Duration(30) * time.Minute,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetPhiTuning,

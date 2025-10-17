@@ -2,8 +2,8 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.6.0
-GPU_PROVISIONER_VERSION ?= 0.3.5
+VERSION ?= v0.7.0
+GPU_PROVISIONER_VERSION ?= 0.3.6
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
@@ -175,7 +175,7 @@ $(RAGENGINE_E2E_TEST): ## Build the RAG Engine e2e test binary without running i
 	(cd test/rage2e && go test -c . -o $(RAGENGINE_E2E_TEST))
 
 .PHONY: kaito-workspace-e2e-test
-kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO) ## Run e2e tests for Kaito Workspace.
+kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO) ## Run e2e tests for KAITO Workspace.
 	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) \
  	AI_MODELS_REGISTRY=$(AI_MODELS_REGISTRY) GPU_PROVISIONER_NAMESPACE=$(GPU_PROVISIONER_NAMESPACE) GPU_PROVISIONER_NAME=$(GPU_PROVISIONER_NAME) \
  	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_NAMESPACE=$(KAITO_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
@@ -183,7 +183,7 @@ kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO) ## Run e2e tests for Kaito Works
  	$(GINKGO) -v -trace $(GINKGO_ARGS) $(E2E_TEST)
 
 .PHONY: kaito-ragengine-e2e-test
-kaito-ragengine-e2e-test: $(RAGENGINE_E2E_TEST) $(GINKGO) ## Run e2e tests for Kaito RAG Engine.
+kaito-ragengine-e2e-test: $(RAGENGINE_E2E_TEST) $(GINKGO) ## Run e2e tests for KAITO RAG Engine.
 	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) \
 	AI_MODELS_REGISTRY=$(AI_MODELS_REGISTRY) GPU_PROVISIONER_NAMESPACE=$(GPU_PROVISIONER_NAMESPACE)  GPU_PROVISIONER_NAME=$(GPU_PROVISIONER_NAME) KAITO_NAMESPACE=$(KAITO_NAMESPACE) \
 	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_RAGENGINE_NAMESPACE=$(KAITO_RAGENGINE_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
@@ -214,7 +214,7 @@ create-aks-cluster: ## Create an AKS cluster with MSI, OIDC, and workload identi
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
 
 .PHONY: create-aks-cluster-with-kaito
-create-aks-cluster-with-kaito: ## Create an AKS cluster with MSI, OIDC, and Kaito enabled.
+create-aks-cluster-with-kaito: ## Create an AKS cluster with MSI, OIDC, and KAITO enabled.
 	az aks create  --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
 	--location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) \
 	--kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys  \
@@ -265,7 +265,7 @@ create-eks-cluster: ## Create an EKS cluster.
 BUILDX_BUILDER_NAME ?= img-builder
 OUTPUT_TYPE ?= type=registry
 QEMU_VERSION ?= 7.2.0-1
-ARCH ?= amd64,arm64
+PLATFORMS ?= linux/amd64,linux/arm64
 BUILDKIT_VERSION ?= v0.18.1
 
 RAGENGINE_IMAGE_NAME ?= ragengine
@@ -291,7 +291,7 @@ docker-build-workspace: docker-buildx ## Build Docker image for workspace.
 	docker buildx build \
 		--file ./docker/workspace/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="linux/$(ARCH)" \
+		--platform="$(PLATFORMS)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/$(IMG_NAME):$(IMG_TAG) .
@@ -301,7 +301,7 @@ docker-build-ragengine: docker-buildx ## Build Docker image for RAG Engine.
 	docker buildx build \
 		--file ./docker/ragengine/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="linux/$(ARCH)" \
+		--platform="$(PLATFORMS)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/$(RAGENGINE_IMAGE_NAME):$(IMG_TAG) .
@@ -309,7 +309,7 @@ docker-build-ragengine: docker-buildx ## Build Docker image for RAG Engine.
 .PHONY: docker-build-rag-service
 docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine service.
 	docker buildx build \
-        --platform="linux/$(ARCH)" \
+        --platform="$(PLATFORMS)" \
         --output=$(OUTPUT_TYPE) \
         --file ./docker/ragengine/service/Dockerfile \
         --pull \
@@ -322,7 +322,7 @@ docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 		--build-arg ADAPTER_PATH=docker/adapters/adapter1 \
 		--file ./docker/adapters/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="linux/$(ARCH)" \
+		--platform="$(PLATFORMS)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-adapter:0.0.1 .
@@ -330,7 +330,7 @@ docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 		--build-arg ADAPTER_PATH=docker/adapters/adapter2 \
 		--file ./docker/adapters/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="linux/$(ARCH)" \
+		--platform="$(PLATFORMS)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-adapter2:0.0.1 .
@@ -338,7 +338,7 @@ docker-build-adapter: docker-buildx ## Build Docker images for adapters.
 		--build-arg ADAPTER_PATH=docker/adapters/adapter-phi-3-mini-pycoder \
 		--file ./docker/adapters/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="linux/$(ARCH)" \
+		--platform="$(PLATFORMS)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/adapter-phi-3-mini-pycoder:0.0.1 .
@@ -349,7 +349,7 @@ docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 		--build-arg ADAPTER_PATH=docker/datasets/dataset1 \
 		--file ./docker/datasets/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="linux/$(ARCH)" \
+		--platform="$(PLATFORMS)" \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/e2e-dataset:0.0.1 .
@@ -357,28 +357,18 @@ docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 		--build-arg ADAPTER_PATH=docker/datasets/dataset2 \
 		--file ./docker/datasets/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
-		--platform="linux/$(ARCH)" \
+		--platform="$(PLATFORMS)" \
 		--pull \
 		--tag $(REGISTRY)/e2e-dataset2:0.0.1 .
 
-.PHONY: docker-build-llm-reference-preset
-docker-build-llm-reference-preset: docker-buildx ## Build Docker image for LLM reference preset.
-	docker buildx build \
-		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:$(VERSION) \
-		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:latest \
-		-f docs/custom-model-integration/Dockerfile.reference \
-		$(BUILD_FLAGS) \
-		--build-arg MODEL_TYPE=text-generation \
-		--build-arg VERSION=$(VERSION) .
-
 ## --------------------------------------
-## Kaito Installation
+## KAITO Installation
 ## --------------------------------------
 
-##@ Kaito Installation
+##@ KAITO Installation
 
 .PHONY: prepare-kaito-addon-identity
-prepare-kaito-addon-identity: ## Create Azure identity and federated credential for Kaito addon.
+prepare-kaito-addon-identity: ## Create Azure identity and federated credential for KAITO addon.
 	IDENTITY_PRINCIPAL_ID=$(shell az identity show --name "ai-toolchain-operator-$(AZURE_CLUSTER_NAME)" -g "$(AZURE_RESOURCE_GROUP_MC)"  --query 'principalId');\
 	az role assignment create --assignee $$IDENTITY_PRINCIPAL_ID --scope "/subscriptions/$(AZURE_SUBSCRIPTION_ID)/resourceGroups/$(AZURE_RESOURCE_GROUP_MC)"  --role "Contributor"
 
@@ -388,7 +378,7 @@ prepare-kaito-addon-identity: ## Create Azure identity and federated credential 
     --subject system:serviceaccount:"$(KAITO_NAMESPACE):kaito-gpu-provisioner" --audience api://AzureADTokenExchange
 
 .PHONY: az-patch-install-helm
-az-patch-install-helm: ## Install Kaito workspace Helm chart and set Azure client env vars and settings in Helm values.
+az-patch-install-helm: ## Install KAITO workspace Helm chart and set Azure client env vars and settings in Helm values.
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    ./charts/kaito/workspace/values.yaml
@@ -398,7 +388,7 @@ az-patch-install-helm: ## Install Kaito workspace Helm chart and set Azure clien
 	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
 .PHONY: az-patch-install-ragengine-helm
-az-patch-install-ragengine-helm: ## Install Kaito RAG Engine Helm chart and set Azure client env vars and settings in Helm values.
+az-patch-install-ragengine-helm: ## Install KAITO RAG Engine Helm chart and set Azure client env vars and settings in Helm values.
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
@@ -408,7 +398,7 @@ az-patch-install-ragengine-helm: ## Install Kaito RAG Engine Helm chart and set 
 	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
 .PHONY: az-patch-install-ragengine-helm-e2e
-az-patch-install-ragengine-helm-e2e: ## Install Kaito RAG Engine Helm chart for e2e tests and set Azure client env vars and settings in Helm values.
+az-patch-install-ragengine-helm-e2e: ## Install KAITO RAG Engine Helm chart for e2e tests and set Azure client env vars and settings in Helm values.
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
 
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/ragengine"'                    ./charts/kaito/ragengine/values.yaml
@@ -421,7 +411,7 @@ az-patch-install-ragengine-helm-e2e: ## Install Kaito RAG Engine Helm chart for 
 	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
 .PHONY: aws-patch-install-helm
-aws-patch-install-helm: ## Install Kaito workspace Helm chart and set AWS env vars and settings in Helm values.
+aws-patch-install-helm: ## Install KAITO workspace Helm chart and set AWS env vars and settings in Helm values.
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    	./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               	./charts/kaito/workspace/values.yaml
 	yq -i '(.clusterName)                                                   = "$(AWS_CLUSTER_NAME)"'                    		./charts/kaito/workspace/values.yaml

@@ -23,7 +23,7 @@ import (
 	"time"
 
 	//+kubebuilder:scaffold:imports
-	azurev1alpha2 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1alpha2"
+	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -42,12 +42,15 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers/garbagecollect"
+	"github.com/kaito-project/kaito/pkg/workspace/controllers/inferenceset"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
@@ -67,9 +70,10 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(kaitov1alpha1.AddToScheme(scheme))
 	utilruntime.Must(kaitov1beta1.AddToScheme(scheme))
 	utilruntime.Must(kaitoutils.KarpenterSchemeBuilder.AddToScheme(scheme))
-	utilruntime.Must(azurev1alpha2.SchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(azurev1beta1.SchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(helmv2.AddToScheme(scheme))
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
@@ -150,6 +154,20 @@ func main() {
 		exitWithErrorFunc()
 	}
 
+	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+		inferenceSetReconciler := inferenceset.NewInferenceSetReconciler(
+			kClient,
+			mgr.GetScheme(),
+			log.Log.WithName("controllers").WithName("InferenceSet"),
+			mgr.GetEventRecorderFor("KAITO-InferenceSet-controller"),
+		)
+
+		if err = inferenceSetReconciler.SetupWithManager(mgr); err != nil {
+			klog.ErrorS(err, "unable to create controller", "controller", "InferenceSet")
+			exitWithErrorFunc()
+		}
+	}
+
 	pvGCReconciler := garbagecollect.NewPersistentVolumeGCReconciler(
 		kClient,
 		mgr.GetEventRecorderFor("KAITO-PersistentVolumeGC-controller"),
@@ -184,7 +202,7 @@ func main() {
 		})
 		ctx = sharedmain.WithHealthProbesDisabled(ctx)
 		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewWorkspaceWebhooks()...)
+		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewControllerWebhooks()...)
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
 		time.Sleep(2 * time.Second)

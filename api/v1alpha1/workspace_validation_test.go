@@ -37,7 +37,7 @@ var InvalidStrength1 string = "invalid"
 var InvalidStrength2 string = "1.5"
 
 var gpuCountRequirement string
-var totalGPUMemoryRequirement string
+var totalSafeTensorFileSize string
 var perGPUMemoryRequirement string
 
 var invalidSourceName string
@@ -53,16 +53,14 @@ type testModel struct{}
 
 func (*testModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:       gpuCountRequirement,
-		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
+		GPUCountRequirement:     gpuCountRequirement,
+		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
 func (*testModel) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:       gpuCountRequirement,
-		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
+		GPUCountRequirement:     gpuCountRequirement,
+		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
 func (*testModel) SupportDistributedInference() bool {
@@ -76,16 +74,14 @@ type testModelStatic struct{}
 
 func (*testModelStatic) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "16Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "16Gi",
 	}
 }
 func (*testModelStatic) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "16Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "16Gi",
 	}
 }
 func (*testModelStatic) SupportDistributedInference() bool {
@@ -99,18 +95,16 @@ type testModelPrivate struct{}
 
 func (*testModelPrivate) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ImageAccessMode:           string(ModelImageAccessModePrivate),
-		GPUCountRequirement:       gpuCountRequirement,
-		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
+		ImageAccessMode:         string(ModelImageAccessModePrivate),
+		GPUCountRequirement:     gpuCountRequirement,
+		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
 func (*testModelPrivate) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		ImageAccessMode:           string(ModelImageAccessModePrivate),
-		GPUCountRequirement:       gpuCountRequirement,
-		TotalGPUMemoryRequirement: totalGPUMemoryRequirement,
-		PerGPUMemoryRequirement:   perGPUMemoryRequirement,
+		ImageAccessMode:         string(ModelImageAccessModePrivate),
+		GPUCountRequirement:     gpuCountRequirement,
+		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
 func (*testModelPrivate) SupportDistributedInference() bool {
@@ -252,16 +246,16 @@ vllm:
 func TestResourceSpecValidateCreate(t *testing.T) {
 	RegisterValidationTestModels()
 	tests := []struct {
-		name                string
-		resourceSpec        *ResourceSpec
-		modelGPUCount       string
-		modelPerGPUMemory   string
-		modelTotalGPUMemory string
-		preset              bool
-		presetNameOverride  string
-		errContent          string // Content expect error to include, if any
-		expectErrs          bool
-		validateTuning      bool // To indicate if we are testing tuning validation
+		name                    string
+		resourceSpec            *ResourceSpec
+		modelGPUCount           string
+		modelPerGPUMemory       string
+		totalSafeTensorFileSize string
+		preset                  bool
+		presetNameOverride      string
+		errContent              string // Content expect error to include, if any
+		expectErrs              bool
+		validateTuning          bool // To indicate if we are testing tuning validation
 	}{
 		{
 			name: "Valid Resource",
@@ -269,13 +263,13 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_ND96asr_v4",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:       "8",
-			modelPerGPUMemory:   "19Gi",
-			modelTotalGPUMemory: "152Gi",
-			preset:              true,
-			errContent:          "",
-			expectErrs:          false,
-			validateTuning:      false,
+			modelGPUCount:           "8",
+			modelPerGPUMemory:       "19Gi",
+			totalSafeTensorFileSize: "152Gi",
+			preset:                  true,
+			errContent:              "",
+			expectErrs:              false,
+			validateTuning:          false,
 		},
 		{
 			name: "Valid Resource - SKU Capacity == Model Requirement",
@@ -283,13 +277,13 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NC12s_v3",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:       "1",
-			modelPerGPUMemory:   "16Gi",
-			modelTotalGPUMemory: "16Gi",
-			preset:              true,
-			errContent:          "",
-			expectErrs:          false,
-			validateTuning:      false,
+			modelGPUCount:           "1",
+			modelPerGPUMemory:       "16Gi",
+			totalSafeTensorFileSize: "16Gi",
+			preset:                  true,
+			errContent:              "",
+			expectErrs:              false,
+			validateTuning:          false,
 		},
 		{
 			name: "Insufficient total GPU memory",
@@ -297,13 +291,13 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NV6",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:       "1",
-			modelPerGPUMemory:   "0",
-			modelTotalGPUMemory: "14Gi",
-			preset:              true,
-			errContent:          "Insufficient total GPU memory",
-			expectErrs:          true,
-			validateTuning:      false,
+			modelGPUCount:           "1",
+			modelPerGPUMemory:       "0",
+			totalSafeTensorFileSize: "14Gi",
+			preset:                  true,
+			errContent:              "Insufficient total GPU memory",
+			expectErrs:              true,
+			validateTuning:          false,
 		},
 
 		{
@@ -312,27 +306,13 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NC24ads_A100_v4",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:       "2",
-			modelPerGPUMemory:   "15Gi",
-			modelTotalGPUMemory: "30Gi",
-			preset:              true,
-			errContent:          "Insufficient number of GPUs",
-			expectErrs:          true,
-			validateTuning:      false,
-		},
-		{
-			name: "Insufficient per GPU memory",
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV6",
-				Count:        pointerToInt(2),
-			},
-			modelGPUCount:       "1",
-			modelPerGPUMemory:   "15Gi",
-			modelTotalGPUMemory: "15Gi",
-			preset:              true,
-			errContent:          "Insufficient per GPU memory",
-			expectErrs:          true,
-			validateTuning:      false,
+			modelGPUCount:           "2",
+			modelPerGPUMemory:       "15Gi",
+			totalSafeTensorFileSize: "30Gi",
+			preset:                  true,
+			errContent:              "Insufficient number of GPUs",
+			expectErrs:              true,
+			validateTuning:          false,
 		},
 
 		{
@@ -451,7 +431,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				}
 
 				gpuCountRequirement = tc.modelGPUCount
-				totalGPUMemoryRequirement = tc.modelTotalGPUMemory
+				totalSafeTensorFileSize = tc.totalSafeTensorFileSize
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
 				errs := tc.resourceSpec.validateCreateWithInference(&spec, false)

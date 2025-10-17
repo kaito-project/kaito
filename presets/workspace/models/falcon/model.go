@@ -69,11 +69,12 @@ type falcon7b struct{}
 
 func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetFalcon7BModel),
-		DiskStorageRequirement:    "90Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "14Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Falcon using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetFalcon7BModel),
+		DiskStorageRequirement:  "90Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "13.44Gi",
+		BytesPerToken:           8192,
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
@@ -98,11 +99,11 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 }
 func (*falcon7b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetFalcon7BModel),
-		DiskStorageRequirement:    "90Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "16Gi",
-		PerGPUMemoryRequirement:   "16Gi",
+		Metadata:                metadata.MustGet(PresetFalcon7BModel),
+		DiskStorageRequirement:  "90Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "16Gi",
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:      baseCommandPresetFalconTuning,
@@ -128,11 +129,12 @@ type falcon7bInst struct{}
 
 func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetFalcon7BInstructModel),
-		DiskStorageRequirement:    "90Gi",
-		GPUCountRequirement:       "1",
-		TotalGPUMemoryRequirement: "14Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Falcon using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetFalcon7BInstructModel),
+		DiskStorageRequirement:  "90Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "13.44Gi",
+		BytesPerToken:           8192,
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
@@ -172,11 +174,12 @@ type falcon40b struct{}
 
 func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetFalcon40BModel),
-		DiskStorageRequirement:    "280Gi",
-		GPUCountRequirement:       "2",
-		TotalGPUMemoryRequirement: "90Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Falcon using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetFalcon40BModel),
+		DiskStorageRequirement:  "280Gi",
+		GPUCountRequirement:     "2",
+		TotalSafeTensorFileSize: "77.9Gi",
+		BytesPerToken:           8192,
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,
@@ -195,11 +198,12 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 }
 func (*falcon40b) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetFalcon40BModel),
-		DiskStorageRequirement:    "280Gi",
-		GPUCountRequirement:       "2",
-		TotalGPUMemoryRequirement: "90Gi",
-		PerGPUMemoryRequirement:   "16Gi",
+		Metadata:                metadata.MustGet(PresetFalcon40BModel),
+		DiskStorageRequirement:  "280Gi",
+		GPUCountRequirement:     "2",
+		TotalSafeTensorFileSize: "77.9Gi",
+		BytesPerToken:           1966080,
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:      baseCommandPresetFalconTuning,
@@ -223,11 +227,12 @@ type falcon40bInst struct{}
 
 func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		Metadata:                  metadata.MustGet(PresetFalcon40BInstructModel),
-		DiskStorageRequirement:    "280Gi",
-		GPUCountRequirement:       "2",
-		TotalGPUMemoryRequirement: "90Gi",
-		PerGPUMemoryRequirement:   "0Gi", // We run Falcon using native vertical model parallel, no per GPU memory requirement.
+		Metadata:                metadata.MustGet(PresetFalcon40BInstructModel),
+		DiskStorageRequirement:  "280Gi",
+		GPUCountRequirement:     "2",
+		TotalSafeTensorFileSize: "77.9Gi",
+		BytesPerToken:           1966080,
+		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetFalconInference,

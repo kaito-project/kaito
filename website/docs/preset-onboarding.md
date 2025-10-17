@@ -6,7 +6,7 @@ This document describes how to add a new supported OSS model in KAITO. The proce
 
 ## Step 1: Make a proposal
 
-This step is done by the requestor. The requestor should make a PR to describe the target OSS model following this [template](https://github.com/kaito-project/kaito/blob/main/docs/proposals/YYYYMMDD-model-template.md). The proposal status should be `provisional` in the beginning. KAITO maintainers will review the PR and decide to accept or reject the PR. The PR could be rejected if the target OSS model has low usage, or it has strict license limitations, or it is a relatively small model with limited capabilities.
+This step is done by the requester. The requester should make a PR to describe the target OSS model following this [template](https://github.com/kaito-project/kaito/blob/main/docs/proposals/YYYYMMDD-model-template.md). The proposal status should be `provisional` in the beginning. KAITO maintainers will review the PR and decide to accept or reject the PR. The PR could be rejected if the target OSS model has low usage, or it has strict license limitations, or it is a relatively small model with limited capabilities.
 
 
 ## Step 2: Validate and test the model
@@ -20,7 +20,7 @@ This step is done by KAITO maintainers. If the model license allows, KAITO maint
 
 ## Step 4: Add preset configurations
 
-This step is done by the requestor. The requestor will work on a PR to register the model with preset configurations. The implementation involves several files and components. Below is a detailed guide using the GPT OSS model addition as an example.
+This step is done by the requester. The requester will work on a PR to register the model with preset configurations. The implementation involves several files and components. Below is a detailed guide using the GPT OSS model addition as an example.
 
 ### 4.1 Create the model package structure
 
@@ -54,7 +54,7 @@ type gpt_oss_120B struct{}
 In `GetInferenceParameters()`, specify the GPU memory requirements by checking the model specifications. These can typically be found on the website that provides the model. Hugging Face is a good place to start, and this page for [GPT-OSS 120B](https://huggingface.co/openai/gpt-oss-120b) indicates the required GPU memory.
 
 - `DiskStorageRequirement`: Storage needed for model weights
-- `TotalGPUMemoryRequirement`: Total GPU memory needed (e.g., "16Gi" for 20B, "80Gi" for 120B)
+- `TotalSafeTensorFileSize`: Total SafeTensor file size needed (e.g., "16Gi" for 20B, "80Gi" for 120B)
 - `GPUCountRequirement`: Number of GPUs required
 - `PerGPUMemoryRequirement`: Set to "0Gi" for models with native parallel support
 
@@ -128,7 +128,7 @@ func (*modelName) GetTuningParameters() *model.PresetParam {
         Metadata:                  metadata.MustGet(PresetModelName),
         DiskStorageRequirement:    "90Gi",
         GPUCountRequirement:       "1",
-        TotalGPUMemoryRequirement: "16Gi",
+        TotalSafeTensorFileSize: "16Gi",
         PerGPUMemoryRequirement:   "16Gi",
         RuntimeParam: model.RuntimeParam{
             Transformers: model.HuggingfaceTransformersParam{
@@ -202,7 +202,7 @@ Create `/presets/workspace/models/{model_family}/README.md` following the standa
 
 ## Step 5: Add E2E tests
 
-This step is done by the requestor. Add comprehensive test coverage for both Transformers and vLLM runtimes.
+This step is done by the requester. Add comprehensive test coverage for both Transformers and vLLM runtimes.
 
 ### 5.1 Add tests to preset_test.go
 

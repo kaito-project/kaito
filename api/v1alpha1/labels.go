@@ -26,7 +26,7 @@ const (
 	// KAITOPrefix Kubernetes Data Mining prefix.
 	KAITOPrefix = "kaito.sh/"
 
-	// AnnotationEnableLB determines whether kaito creates LoadBalancer type service for testing.
+	// AnnotationEnableLB determines whether KAITO creates LoadBalancer type service for testing.
 	AnnotationEnableLB = KAITOPrefix + "enablelb"
 
 	// LabelWorkspaceName is the label for workspace name.
@@ -46,6 +46,9 @@ const (
 
 	// RAGEngineRevisionAnnotation is the Annotations for revision number
 	RAGEngineRevisionAnnotation = "ragengine.kaito.io/revision"
+
+	// InferenceSetRevisionAnnotation is the Annotations for revision number
+	InferenceSetRevisionAnnotation = "inferenceset.kaito.io/revision"
 
 	// AnnotationWorkspaceRuntime is the annotation for runtime selection.
 	AnnotationWorkspaceRuntime = KAITOPrefix + "runtime"

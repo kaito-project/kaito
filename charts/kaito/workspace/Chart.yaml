@@ -6,13 +6,13 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.6.0
+version: 0.7.0
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: 0.6.0
+appVersion: 0.7.0
 home: https://github.com/kaito-project/kaito
 sources:
   - https://github.com/kaito-project/kaito
@@ -37,7 +37,7 @@ dependencies:
   version: "2.16.3"
   repository: https://fluxcd-community.github.io/helm-charts
   condition: featureGates.gatewayAPIInferenceExtension
-- name: local-csi-driver
-  version: "0.2.5"
-  repository: oci://localcsidriver.azurecr.io/acstor/charts
-  condition: localCSIDriver.useLocalCSIDriver
+- name: gpu-feature-discovery
+  version: 0.17.4
+  repository: https://nvidia.github.io/k8s-device-plugin
+  condition: featureGates.disableNodeAutoProvisioning # Only install GFD when NAP is disabled.

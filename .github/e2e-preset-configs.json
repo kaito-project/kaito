@@ -327,6 +327,36 @@
         }
       },
       {
+        "name": "gpt-oss-20b",
+        "node-count": 1,
+        "node-vm-size": "Standard_NV36ads_A10_v5",
+        "node-osdisk-size": 120,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "gptoss20b",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --allow_remote_files",
+            "gpu_count": 1
+          }
+        }
+      },
+      {
+        "name": "gpt-oss-120b",
+        "node-count": 1,
+        "node-vm-size": "Standard_NC24ads_A100_v4",
+        "node-osdisk-size": 200,
+        "OSS": true,
+        "loads_adapter": false,
+        "node_pool": "gptoss120b",
+        "runtimes": {
+          "hf": {
+            "command": "accelerate launch --num_processes 1 --num_machines 1 --machine_rank 0 --gpu_ids all /workspace/tfs/inference_api.py --pipeline text-generation --torch_dtype auto --allow_remote_files",
+            "gpu_count": 1
+          }
+        }
+      },
+      {
         "name": "vllm-distributed",
         "node-count": 2,
         "node-vm-size": "Standard_NV36ads_A10_v5",

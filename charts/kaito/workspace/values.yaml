@@ -60,3 +60,8 @@ gpu-feature-discovery:
     enabled: false
   gfd:
     enabled: true
+local-csi-driver:
+  image:
+    driver:
+      repository: mcr.microsoft.com/acstor/local-csi-driver
+      tag: v0.2.5

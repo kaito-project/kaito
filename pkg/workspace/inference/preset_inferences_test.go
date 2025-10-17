@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -50,7 +51,6 @@ func TestGeneratePresetInference(t *testing.T) {
 		nodeCount          int
 		modelName          string
 		callMocks          func(c *test.MockClient)
-		workload           string
 		expectedCmd        string
 		hasAdapters        bool
 		expectedModelImage string
@@ -63,8 +63,8 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
@@ -78,8 +78,8 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-no-tensor-parallel-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-no-tensor-parallel-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
@@ -93,8 +93,8 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-no-lora-support-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-no-lora-support-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
@@ -108,8 +108,8 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters:        true,
@@ -126,8 +126,8 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
@@ -141,8 +141,8 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			expectedCmd:        "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py",
 			hasAdapters:        true,
@@ -159,8 +159,8 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model-download-a100",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			workload:    "Deployment",
 			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --model=test-repo/test-model-a100 --code-revision=test-revision --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
@@ -182,8 +182,8 @@ func TestGeneratePresetInference(t *testing.T) {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			workload:    "StatefulSet",
 			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=3 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=3 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
@@ -215,7 +215,6 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 			},
-			workload:    "StatefulSet",
 			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=3 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=3 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
@@ -243,8 +242,8 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			workload:    "Deployment",
 			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
@@ -314,25 +313,11 @@ func TestGeneratePresetInference(t *testing.T) {
 			mockClient.CreateOrUpdateObjectInMap(svc)
 
 			createdObject, _ := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient)
-			createdWorkload := ""
-			image := ""
-			envVars := []corev1.EnvVar{}
-			var initContainer []corev1.Container
-			switch t := createdObject.(type) {
-			case *appsv1.Deployment:
-				createdWorkload = "Deployment"
-				image = t.Spec.Template.Spec.Containers[0].Image
-				envVars = t.Spec.Template.Spec.Containers[0].Env
-				initContainer = t.Spec.Template.Spec.InitContainers
-			case *appsv1.StatefulSet:
-				createdWorkload = "StatefulSet"
-				image = t.Spec.Template.Spec.Containers[0].Image
-				envVars = t.Spec.Template.Spec.Containers[0].Env
-				initContainer = t.Spec.Template.Spec.InitContainers
-			}
-			if tc.workload != createdWorkload {
-				t.Errorf("%s: returned workload type is wrong", k)
-			}
+
+			statefulset := createdObject.(*appsv1.StatefulSet)
+			image := statefulset.Spec.Template.Spec.Containers[0].Image
+			envVars := statefulset.Spec.Template.Spec.Containers[0].Env
+			initContainer := statefulset.Spec.Template.Spec.InitContainers
 
 			if tc.expectedModelImage != "" {
 				var pullerContainer corev1.Container
@@ -361,12 +346,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				t.Errorf("%s: EnvVars are not expected, got %v, expect %v", k, envVars, tc.expectedEnvVars)
 			}
 
-			var workloadCmd string
-			if tc.workload == "Deployment" {
-				workloadCmd = strings.Join((createdObject.(*appsv1.Deployment)).Spec.Template.Spec.Containers[0].Command, " ")
-			} else {
-				workloadCmd = strings.Join((createdObject.(*appsv1.StatefulSet)).Spec.Template.Spec.Containers[0].Command, " ")
-			}
+			workloadCmd := strings.Join(statefulset.Spec.Template.Spec.Containers[0].Command, " ")
 
 			mainCmd := strings.Split(workloadCmd, "--")[0]
 			params := toParameterMap(strings.Split(workloadCmd, "--")[1:])
@@ -385,20 +365,16 @@ func TestGeneratePresetInference(t *testing.T) {
 			// Check for adapter volume
 			if tc.hasAdapters {
 				var actualSecrets []string
-				if tc.workload == "Deployment" {
-					for _, secret := range createdObject.(*appsv1.Deployment).Spec.Template.Spec.ImagePullSecrets {
-						actualSecrets = append(actualSecrets, secret.Name)
-					}
-				} else {
-					for _, secret := range createdObject.(*appsv1.StatefulSet).Spec.Template.Spec.ImagePullSecrets {
-						actualSecrets = append(actualSecrets, secret.Name)
-					}
+				for _, secret := range statefulset.Spec.Template.Spec.ImagePullSecrets {
+					actualSecrets = append(actualSecrets, secret.Name)
 				}
+
 				if !reflect.DeepEqual(expectedSecrets, actualSecrets) {
 					t.Errorf("%s: ImagePullSecrets are not expected, got %v, expect %v", k, actualSecrets, expectedSecrets)
 				}
 				found := false
-				for _, volume := range createdObject.(*appsv1.Deployment).Spec.Template.Spec.Volumes {
+
+				for _, volume := range statefulset.Spec.Template.Spec.Volumes {
 					if volume.Name == tc.expectedVolume {
 						found = true
 						break

@@ -26,14 +26,21 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
-	return []knativeinjection.ControllerConstructor{
+	constructor := []knativeinjection.ControllerConstructor{
 		certificates.NewController,
 		NewWorkspaceCRDValidationWebhook,
-		NewInferenceSetCRDValidationWebhook,
 	}
+
+	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+		constructor = append(constructor, NewInferenceSetCRDValidationWebhook)
+	}
+
+	return constructor
 }
 
 func NewWorkspaceCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {

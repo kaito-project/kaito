@@ -37,6 +37,7 @@ const (
 	FeatureFlagEnsureNodeClass              = "ensureNodeClass"
 	FeatureFlagDisableNodeAutoProvisioning  = "disableNodeAutoProvisioning"
 	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
+	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
 
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"

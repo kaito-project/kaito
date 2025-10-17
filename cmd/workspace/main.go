@@ -47,6 +47,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers/garbagecollect"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers/inferenceset"
@@ -153,16 +154,18 @@ func main() {
 		exitWithErrorFunc()
 	}
 
-	inferenceSetReconciler := inferenceset.NewInferenceSetReconciler(
-		kClient,
-		mgr.GetScheme(),
-		log.Log.WithName("controllers").WithName("InferenceSet"),
-		mgr.GetEventRecorderFor("KAITO-InferenceSet-controller"),
-	)
+	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+		inferenceSetReconciler := inferenceset.NewInferenceSetReconciler(
+			kClient,
+			mgr.GetScheme(),
+			log.Log.WithName("controllers").WithName("InferenceSet"),
+			mgr.GetEventRecorderFor("KAITO-InferenceSet-controller"),
+		)
 
-	if err = inferenceSetReconciler.SetupWithManager(mgr); err != nil {
-		klog.ErrorS(err, "unable to create controller", "controller", "InferenceSet")
-		exitWithErrorFunc()
+		if err = inferenceSetReconciler.SetupWithManager(mgr); err != nil {
+			klog.ErrorS(err, "unable to create controller", "controller", "InferenceSet")
+			exitWithErrorFunc()
+		}
 	}
 
 	pvGCReconciler := garbagecollect.NewPersistentVolumeGCReconciler(

@@ -136,6 +136,7 @@ func GetBYOAndReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta
 		return nil, nil, err
 	}
 
+	//nolint:staticcheck // SA1019
 	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
 
 	availableBYONodes := make([]*corev1.Node, 0, len(nodeList.Items))
@@ -165,6 +166,7 @@ func GetBYOAndReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta
 
 	klog.V(4).InfoS("Found available BYO nodes",
 		"workspace", klog.KObj(wObj),
+		//nolint:staticcheck // SA1019
 		"preferredNodesSpecified", len(wObj.Resource.PreferredNodes),
 		"availableBYONodes", len(availableBYONodes))
 

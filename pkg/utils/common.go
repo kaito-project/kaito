@@ -19,6 +19,7 @@ import (
 	"net/url"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 
 	awsapis "github.com/aws/karpenter-provider-aws/pkg/apis"
@@ -184,6 +185,7 @@ func GetGPUConfigBySKU(instanceType string) (*sku.GPUConfig, error) {
 	return skuHandler.GetGPUConfigBySKU(instanceType), nil
 }
 
+// TODO: Remove this function in favor of TryGetGPUConfigFromNodes in a follow up to integrate BYO in the controller.
 func TryGetGPUConfigFromNode(ctx context.Context, kubeClient client.Client, workerNodes []string) (*sku.GPUConfig, error) {
 	skuGPUCount, err := FetchGPUCountFromNodes(ctx, kubeClient, workerNodes)
 	if err != nil || skuGPUCount == 0 {
@@ -197,26 +199,86 @@ func TryGetGPUConfigFromNode(ctx context.Context, kubeClient client.Client, work
 	}, nil
 }
 
+func TryGetGPUConfigFromNodes(ctx context.Context, workerNodes []*corev1.Node) (*sku.GPUConfig, error) {
+	if len(workerNodes) == 0 {
+		return nil, fmt.Errorf("no worker nodes found")
+	}
+
+	// Get the first node to extract GPU configuration
+	for _, node := range workerNodes {
+		// Try to get GPU configuration from nvidia.com labels first
+		if gpuConfig, err := GetGPUConfigFromNvidiaLabels(node); err == nil {
+			return gpuConfig, nil
+		}
+	}
+
+	// Fallback to the previous implementation using only GPU count
+	skuGPUCount := GetPerNodeGPUCountFromNodes(workerNodes)
+	if skuGPUCount == 0 {
+		return nil, fmt.Errorf("failed to fetch GPU count from nodes")
+	}
+
+	return &sku.GPUConfig{
+		SKU:       "unknown", // SKU is not available from nodes
+		GPUCount:  skuGPUCount,
+		GPUModel:  "unknown", // GPU model is not available from nodes
+		GPUMemGiB: 0,         // GPU memory is not available from capacity
+	}, nil
+}
+
+// GetGPUConfigFromNvidiaLabels extracts GPU configuration from nvidia.com labels on a node
+func GetGPUConfigFromNvidiaLabels(node *corev1.Node) (*sku.GPUConfig, error) {
+	gpuProduct, hasGPUProduct := node.Labels[consts.NvidiaGPUProduct]
+	gpuCountStr, hasGPUCount := node.Labels[consts.NvidiaGPUCount]
+	gpuMemoryStr, hasGPUMemory := node.Labels[consts.NvidiaGPUMemory]
+
+	// Check if all required nvidia.com labels are present
+	if !hasGPUProduct || !hasGPUCount || !hasGPUMemory {
+		return nil, fmt.Errorf("missing required nvidia.com labels on node %s", node.Name)
+	}
+
+	// Parse GPU count
+	gpuCount, err := strconv.Atoi(gpuCountStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid nvidia.com/gpu.count value on node %s: %s", node.Name, gpuCountStr)
+	}
+
+	// Parse GPU memory (nvidia.com/gpu.memory is in MiB, convert to GB)
+	gpuMemoryMiB, err := strconv.Atoi(gpuMemoryStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid nvidia.com/gpu.memory value on node %s: %s", node.Name, gpuMemoryStr)
+	}
+
+	gpuMemGiB := int((float64(gpuMemoryMiB) / 1024) + 0.5)
+
+	return &sku.GPUConfig{
+		SKU:       "unknown", // SKU is not available from node labels
+		GPUCount:  gpuCount,
+		GPUModel:  gpuProduct,
+		GPUMemGiB: gpuMemGiB,
+	}, nil
+}
+
 // FetchGPUCountFromNodes retrieves the GPU count from the given node names.
 func FetchGPUCountFromNodes(ctx context.Context, kubeClient client.Client, nodeNames []string) (int, error) {
 	if len(nodeNames) == 0 {
 		return 0, fmt.Errorf("no worker nodes found in the workspace")
 	}
 
-	var allNodes corev1.NodeList
+	allNodes := []*corev1.Node{}
 	for _, nodeName := range nodeNames {
 		node := &corev1.Node{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{Name: nodeName}, node); err != nil { // Note: nodes don't have a namespace here.
 			return 0, fmt.Errorf("failed to get node %s: %w", nodeName, err)
 		}
-		allNodes.Items = append(allNodes.Items, *node)
+		allNodes = append(allNodes, node)
 	}
 
-	return GetPerNodeGPUCountFromNodes(&allNodes), nil
+	return GetPerNodeGPUCountFromNodes(allNodes), nil
 }
 
-func GetPerNodeGPUCountFromNodes(nodeList *corev1.NodeList) int {
-	for _, node := range nodeList.Items {
+func GetPerNodeGPUCountFromNodes(nodes []*corev1.Node) int {
+	for _, node := range nodes {
 		gpuCount, exists := node.Status.Capacity[consts.NvidiaGPU]
 		if exists && gpuCount.String() != "" {
 			return int(gpuCount.Value())

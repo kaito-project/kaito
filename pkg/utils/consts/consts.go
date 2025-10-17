@@ -30,7 +30,11 @@ const (
 	SKUString                     = "sku"
 	MaxRevisionHistoryLimit       = 10
 	GiBToBytes                    = 1024 * 1024 * 1024 // Conversion factor from GiB to bytes
+	MiBToBytes                    = 1024 * 1024        // Conversion factor from MiB to bytes
 	NvidiaGPU                     = "nvidia.com/gpu"
+	NvidiaGPUProduct              = "nvidia.com/gpu.product"
+	NvidiaGPUCount                = "nvidia.com/gpu.count"
+	NvidiaGPUMemory               = "nvidia.com/gpu.memory"
 
 	// Feature flags
 	FeatureFlagVLLM                         = "vLLM"

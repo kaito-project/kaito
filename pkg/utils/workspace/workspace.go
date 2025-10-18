@@ -15,10 +15,10 @@ package workspace
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"reflect"
-	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -159,12 +159,12 @@ func generateRandomString(length int) string {
 	if length <= 0 {
 		return ""
 	}
-	source := rand.NewSource(time.Now().UnixNano())
-	r := rand.New(source)
+
 	charset := "abcdefghijklmnopqrstuvwxyz0123456789"
 	result := make([]byte, length)
 	for i := range result {
-		result[i] = charset[r.Intn(len(charset))]
+		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		result[i] = charset[n.Int64()]
 	}
 	return string(result)
 }

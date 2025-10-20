@@ -419,11 +419,10 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 
 // validateBYONodeSelection validates BYO (Bring Your Own) node selection for workspaces
 // without instanceType specified, following the design spec requirements:
-//  1. Confirm instanceType is empty
-//  2. List matching nodes; fail if there is no matching node
-//  3. Verify uniformity: All nodes must have identical nvidia.com/gpu.product, nvidia.com/gpu.count and nvidia.com/gpu.memory
-//  4. Calculate total GPU memory per node: nvidia.com/gpu.count * nvidia.com/gpu.memory
-//  5. If the preset model does not support multi-node distributed inference, fail if the total GPU memory per node
+//  1. List matching nodes; fail if there is no matching node
+//  2. Verify uniformity: All nodes must have identical nvidia.com/gpu.product, nvidia.com/gpu.count and nvidia.com/gpu.memory
+//  3. Calculate total GPU memory per node: nvidia.com/gpu.count * nvidia.com/gpu.memory
+//  4. If the preset model does not support multi-node distributed inference, fail if the total GPU memory per node
 //     is less than the preset's total GPU memory requirement
 func (r *ResourceSpec) validateBYONodeSelection(presetName string) (errs *apis.FieldError) {
 	if r.LabelSelector == nil || r.LabelSelector.MatchLabels == nil {
@@ -431,18 +430,14 @@ func (r *ResourceSpec) validateBYONodeSelection(presetName string) (errs *apis.F
 		return errs
 	}
 
-	// Access Kubernetes client for node operations
-	if k8sclient.Client == nil {
-		errs = errs.Also(apis.ErrGeneric("Failed to obtain Kubernetes client for node validation"))
-		return errs
-	}
+	kClient := k8sclient.GetGlobalClient()
 
-	// Step 2: List matching nodes
+	// List matching nodes
 	ctx := context.TODO()
 	nodeList := &corev1.NodeList{}
 	labelSelector := client.MatchingLabels(r.LabelSelector.MatchLabels)
 
-	err := k8sclient.Client.List(ctx, nodeList, labelSelector)
+	err := kClient.List(ctx, nodeList, labelSelector)
 	if err != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to list nodes with labelSelector: %v", err)))
 		return errs
@@ -453,7 +448,7 @@ func (r *ResourceSpec) validateBYONodeSelection(presetName string) (errs *apis.F
 		return errs
 	}
 
-	// Step 3: Verify uniformity - all nodes must have identical nvidia.com/gpu.product, nvidia.com/gpu.count and nvidia.com/gpu.memory
+	// Verify uniformity - all nodes must have identical nvidia.com/gpu.product, nvidia.com/gpu.count and nvidia.com/gpu.memory
 	var referenceGPUProduct, referenceGPUCount, referenceGPUMemory string
 	var referenceGPUCountPerNode, referenceGPUMemoryInt int64
 
@@ -513,11 +508,11 @@ func (r *ResourceSpec) validateBYONodeSelection(presetName string) (errs *apis.F
 		return errs
 	}
 
-	// Step 4: Calculate total GPU memory per node
+	// Calculate total GPU memory per node
 	referenceGPUMemoryBytes := referenceGPUMemoryInt * consts.MiBToBytes // Note: nvidia.com/gpu.memory is in MiB not GiB
 	totalGPUMemoryPerNode := referenceGPUCountPerNode * referenceGPUMemoryBytes
 
-	// Step 5: Get preset requirements and check resource availability
+	// Get preset requirements and check resource availability
 	modelPreset := plugin.KaitoModelRegister.MustGet(presetName)
 	params := modelPreset.GetInferenceParameters()
 

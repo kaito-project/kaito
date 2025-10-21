@@ -12,7 +12,7 @@
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 
 REPO=https://github.com/Azure/local-csi-driver.git
-REVISION="06932013f5ab544172636a3d907a551914f64b68"
+REVISION="55a538ca60ed639ffd329d554506eae8866aea36"
 
 TEMP_DIR=$(mktemp -d)
 REPO_DIR="$TEMP_DIR/local-csi-driver"

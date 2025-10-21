@@ -209,7 +209,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.5"
+        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.6"
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -318,7 +318,7 @@ spec:
         args:
         - --csi-address=/csi/csi.sock
         - --timeout=240s
-        - --handle-volume-inuse-error=true
+        - --handle-volume-inuse-error=false
         - --http-endpoint=:8091
         - --v=2
         env:

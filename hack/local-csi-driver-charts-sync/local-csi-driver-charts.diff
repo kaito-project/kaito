@@ -85,7 +85,7 @@ index 44411b40..9b9877c8 100644
              fieldRef:
                fieldPath: spec.nodeName
 -        image: "localcsidriver.azurecr.io/acstor/local-csi-driver:0.0.1-latest"
-+        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.5"
++        image: "mcr.microsoft.com/acstor/local-csi-driver:v0.2.6"
          imagePullPolicy: IfNotPresent
          livenessProbe:
            httpGet:

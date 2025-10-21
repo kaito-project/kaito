@@ -4,6 +4,6 @@ dependencies:
   version: 2.16.3
 - name: gpu-feature-discovery
   repository: https://nvidia.github.io/k8s-device-plugin
-  version: 0.17.4
-digest: sha256:2c0be9a5d9530162e8987a1f5fcf50e871e8d4c61acffec71606499c11b5e49c
-generated: "2025-10-15T16:56:58.630409457-04:00"
+  version: 0.18.0
+digest: sha256:16e3d87455ed85594037098f49ba96aba5fb693fbff6f1e81834e00a26effff5
+generated: "2025-10-21T14:40:13.868037273-04:00"

@@ -109,8 +109,6 @@ jobs:
             labelSelector:
               matchLabels:
                 apps: aikit-test
-            preferredNodes:
-              - kaito-control-plane
           inference:
             template:
               spec:

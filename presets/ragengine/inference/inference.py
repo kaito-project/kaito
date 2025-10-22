@@ -67,6 +67,7 @@ class Inference(CustomLLM):
     _model_retrieval_attempted: bool = False
     _async_http_client: httpx.AsyncClient = PrivateAttr(default=None)
     _token_encoder: Any = None
+    last_usage: dict = None  # Store usage from last LLM API call
 
     async def _get_httpx_client(self):
         """Lazily initializes the HTTP client on first request."""
@@ -241,6 +242,10 @@ class Inference(CustomLLM):
                     req[key] = value
 
             resp = await self._async_post_request_raw(data=req, headers=DEFAULT_HEADERS)
+
+            # Store usage information from LLM response for later retrieval
+            self.last_usage = resp.get("usage")
+
             return ChatResponse(
                 logprobs=resp.get("logprobs", None),
                 delta=resp.get("delta", None),

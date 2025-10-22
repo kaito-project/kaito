@@ -483,6 +483,35 @@ class BaseVectorStore(ABC):
                 )
                 return await self.llm.chat_completions_passthrough(openai_request)
 
+            # Try to get usage from LLM response via the last_usage attribute
+            # The Inference class stores usage from the last LLM API call
+            llm_usage = None
+            if hasattr(self.llm, "last_usage") and self.llm.last_usage:
+                llm_usage = self.llm.last_usage
+
+            if llm_usage:
+                usage = llm_usage
+                logger.info(
+                    f"Token usage from LLM API response: {llm_usage.get('total_tokens', 0)} total tokens "
+                    f"(prompt: {llm_usage.get('prompt_tokens', 0)}, completion: {llm_usage.get('completion_tokens', 0)})"
+                )
+            else:
+                # Fallback to manual calculation if LLM doesn't return usage
+                usage = {
+                    "prompt_tokens": self.llm.count_tokens(
+                        total_prompt_for_token_aprox
+                    ),
+                    "completion_tokens": self.llm.count_tokens(
+                        chat_result.response or ""
+                    ),
+                    "total_tokens": self.llm.count_tokens(total_prompt_for_token_aprox)
+                    + self.llm.count_tokens(chat_result.response or ""),
+                }
+                logger.info(
+                    f"Token usage calculated by manual estimation: {usage['total_tokens']} total tokens "
+                    f"(prompt: {usage['prompt_tokens']}, completion: {usage['completion_tokens']})"
+                )
+
             return ChatCompletionResponse(
                 id=uuid.uuid4().hex,
                 object="chat.completion",
@@ -508,6 +537,7 @@ class BaseVectorStore(ABC):
                     }
                     for source_node in chat_result.source_nodes
                 ],
+                usage=usage,
             )
         except Exception as e:
             logger.error(f"Error during chat completion: {str(e)}")

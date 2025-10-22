@@ -64,4 +64,4 @@ local-csi-driver:
   image:
     driver:
       repository: mcr.microsoft.com/acstor/local-csi-driver
-      tag: v0.2.5
+      tag: v0.2.6

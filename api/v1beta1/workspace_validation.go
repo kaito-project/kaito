@@ -326,8 +326,6 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 			// Return to skip the rest of checks, the Inference spec validation will return proper err msg.
 			return errs
 		}
-	} else {
-		return errs.Also(apis.ErrMissingField("Preset"))
 	}
 
 	instanceType := string(r.InstanceType)

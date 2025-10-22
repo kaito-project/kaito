@@ -326,50 +326,51 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 			// Return to skip the rest of checks, the Inference spec validation will return proper err msg.
 			return errs
 		}
+	} else {
+		return errs.Also(apis.ErrMissingField("Preset"))
 	}
 
 	instanceType := string(r.InstanceType)
 	var skuConfig *sku.GPUConfig
 	var machineCount int
 
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		if presetName != "" { // TODO: can preset name ever be empty?
+	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 
-			kClient := k8sclient.GetGlobalClient()
+	if napDisabled {
+		kClient := k8sclient.GetGlobalClient()
 
-			// List matching nodes
-			ctx := context.TODO()
-			nodeList := &corev1.NodeList{}
-			labelSelector := client.MatchingLabels(r.LabelSelector.MatchLabels)
+		// List matching nodes
+		ctx := context.TODO()
+		nodeList := &corev1.NodeList{}
+		labelSelector := client.MatchingLabels(r.LabelSelector.MatchLabels)
 
-			err := kClient.List(ctx, nodeList, labelSelector)
+		err := kClient.List(ctx, nodeList, labelSelector)
+		if err != nil {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to list nodes with labelSelector: %v", err)))
+			return errs
+		}
+
+		machineCount = len(nodeList.Items)
+		for _, node := range nodeList.Items {
+			// Try to get GPU configuration from nvidia.com labels first
+			gpuConfig, err := utils.GetGPUConfigFromNvidiaLabels(&node)
 			if err != nil {
-				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to list nodes with labelSelector: %v", err)))
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from nvidia labels on node %s: %v", node.Name, err)))
 				return errs
 			}
 
-			machineCount = len(nodeList.Items)
-			for _, node := range nodeList.Items {
-				// Try to get GPU configuration from nvidia.com labels first
-				gpuConfig, err := utils.GetGPUConfigFromNvidiaLabels(&node)
-				if err != nil {
-					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from nvidia labels on node %s: %v", node.Name, err)))
-					return errs
+			if skuConfig == nil {
+				skuConfig = gpuConfig
+			} else {
+				// Verify uniformity
+				if gpuConfig.GPUModel != skuConfig.GPUModel {
+					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU product: node %s has %s GPUs, but reference node has %s GPUs. All nodes must have the same GPU product for homogeneous placement", node.Name, gpuConfig.GPUModel, skuConfig.GPUModel)))
 				}
-
-				if skuConfig == nil {
-					skuConfig = gpuConfig
-				} else {
-					// Verify uniformity
-					if gpuConfig.GPUModel != skuConfig.GPUModel {
-						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU product: node %s has %s GPUs, but reference node has %s GPUs. All nodes must have the same GPU product for homogeneous placement", node.Name, gpuConfig.GPUModel, skuConfig.GPUModel)))
-					}
-					if gpuConfig.GPUCount != skuConfig.GPUCount {
-						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU count: node %s has %d GPUs, but reference node has %d GPUs", node.Name, gpuConfig.GPUCount, skuConfig.GPUCount)))
-					}
-					if gpuConfig.GPUMemGiB != skuConfig.GPUMemGiB {
-						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %d GB memory, but reference node has %d GB memory", node.Name, gpuConfig.GPUMemGiB, skuConfig.GPUMemGiB)))
-					}
+				if gpuConfig.GPUCount != skuConfig.GPUCount {
+					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU count: node %s has %d GPUs, but reference node has %d GPUs", node.Name, gpuConfig.GPUCount, skuConfig.GPUCount)))
+				}
+				if gpuConfig.GPUMemGiB != skuConfig.GPUMemGiB {
+					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %d GB memory, but reference node has %d GB memory", node.Name, gpuConfig.GPUMemGiB, skuConfig.GPUMemGiB)))
 				}
 			}
 		}
@@ -392,7 +393,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 		}
 	}
 
-	if skuConfig != nil && runtime != model.RuntimeNameVLLM && presetName != "" {
+	if skuConfig != nil && (napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled)) {
 		modelPreset := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
 		params := modelPreset.GetInferenceParameters()
 

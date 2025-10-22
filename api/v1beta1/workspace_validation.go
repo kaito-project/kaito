@@ -334,6 +334,16 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	var skuConfig *sku.GPUConfig
 	var machineCount int
 
+	// Validate labelSelector
+	if _, err := metav1.LabelSelectorAsMap(r.LabelSelector); err != nil {
+		errs = errs.Also(apis.ErrInvalidValue(err.Error(), "labelSelector"))
+		return errs
+	}
+
+	if presetName == "" {
+		return errs
+	}
+
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 
 	if napDisabled {
@@ -351,6 +361,10 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 		}
 
 		machineCount = len(nodeList.Items)
+		if machineCount == 0 {
+			errs = errs.Also(apis.ErrGeneric("No nodes found matching the specified label selector"))
+		}
+
 		for _, node := range nodeList.Items {
 			// Try to get GPU configuration from nvidia.com labels first
 			gpuConfig, err := utils.GetGPUConfigFromNvidiaLabels(&node)
@@ -364,15 +378,23 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 			} else {
 				// Verify uniformity
 				if gpuConfig.GPUModel != skuConfig.GPUModel {
-					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU product: node %s has %s GPUs, but reference node has %s GPUs. All nodes must have the same GPU product for homogeneous placement", node.Name, gpuConfig.GPUModel, skuConfig.GPUModel)))
+					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU product: node %s has %s GPUs, but previous node has %s GPUs, all nodes must have the same GPU product for homogeneous placement", node.Name, gpuConfig.GPUModel, skuConfig.GPUModel)))
+					return errs
 				}
 				if gpuConfig.GPUCount != skuConfig.GPUCount {
-					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU count: node %s has %d GPUs, but reference node has %d GPUs", node.Name, gpuConfig.GPUCount, skuConfig.GPUCount)))
+					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU count: node %s has %d GPUs, but previous node has %d GPUs", node.Name, gpuConfig.GPUCount, skuConfig.GPUCount)))
+					return errs
 				}
 				if gpuConfig.GPUMemGiB != skuConfig.GPUMemGiB {
-					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %d GB memory, but reference node has %d GB memory", node.Name, gpuConfig.GPUMemGiB, skuConfig.GPUMemGiB)))
+					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %d GB memory, but previous node has %d GB memory", node.Name, gpuConfig.GPUMemGiB, skuConfig.GPUMemGiB)))
+					return errs
 				}
 			}
+		}
+
+		if skuConfig == nil {
+			errs = errs.Also(apis.ErrGeneric("Failed to determine GPU configuration from existing nodes, ensure nodes have appropriate NVIDIA GPU labels"))
+			return errs
 		}
 	} else {
 		skuHandler, err := utils.GetSKUHandler()
@@ -448,11 +470,6 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 		if modelPreset.SupportDistributedInference() && distributedInferenceRequired && runtime == model.RuntimeNameHuggingfaceTransformers {
 			errs = errs.Also(apis.ErrGeneric("Multi-node distributed inference is not supported with Huggingface Transformers runtime"))
 		}
-	}
-
-	// Validate labelSelector
-	if _, err := metav1.LabelSelectorAsMap(r.LabelSelector); err != nil {
-		errs = errs.Also(apis.ErrInvalidValue(err.Error(), "labelSelector"))
 	}
 
 	return errs

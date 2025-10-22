@@ -305,9 +305,9 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		runtime                 model.RuntimeName
 		errContent              string // Content expect error to include, if any
 		expectErrs              bool
-		validateTuning          bool   // To indicate if we are testing tuning validation
+		validateTuning          bool      // To indicate if we are testing tuning validation
 		testNodes               []v1.Node // Test nodes for BYO scenarios
-		useFeatureGate          bool   // Whether to enable BYO feature gate
+		useFeatureGate          bool      // Whether to enable BYO feature gate
 	}{
 		{
 			name: "Valid Resource",
@@ -503,7 +503,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			useFeatureGate: true,
 		},
 		{
-			name: "Valid - no nodes matching label selector (no validation performed)",
+			name: "Invalid - no nodes matching label selector in BYO",
 			resourceSpec: &ResourceSpec{
 				InstanceType: "", // Empty instanceType indicates BYO mode
 				Count:        pointerToInt(1),
@@ -516,8 +516,8 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			preset:             true,
 			presetNameOverride: "test-validation-static",
 			runtime:            model.RuntimeNameVLLM,
-			expectErrs:         false, // No error when no nodes found, just no validation performed
-			errContent:         "",
+			expectErrs:         true,
+			errContent:         "No nodes found matching the specified label selector",
 			testNodes:          []v1.Node{}, // No nodes available
 			useFeatureGate:     true,
 		},
@@ -668,7 +668,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				},
 			},
 			preset:             true,
-			presetNameOverride: "test-validation-static", // Needs 16Gi, doesn't support distributed
+			presetNameOverride: "test-validation-static",                 // Needs 16Gi, doesn't support distributed
 			runtime:            model.RuntimeNameHuggingfaceTransformers, // Use non-vLLM runtime to get resource validation
 			expectErrs:         true,
 			errContent:         "Insufficient total GPU memory",
@@ -740,8 +740,8 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			preset:             true,
 			presetNameOverride: "test-validation-static",
 			runtime:            model.RuntimeNameVLLM,
-			expectErrs:         false, // No error when no nodes found
-			errContent:         "",
+			expectErrs:         true,
+			errContent:         "No nodes found matching the specified label selector",
 			testNodes:          []v1.Node{},
 			useFeatureGate:     true,
 		},
@@ -1558,11 +1558,11 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 	k8sclient.SetGlobalClient(client)
 
 	tests := []struct {
-		name                 string
-		workspace           *Workspace
-		disableNAP          bool // Whether to disable Node Auto-Provisioning
-		expectErrs          bool
-		errContains         string
+		name        string
+		workspace   *Workspace
+		disableNAP  bool // Whether to disable Node Auto-Provisioning
+		expectErrs  bool
+		errContains string
 	}{
 		{
 			name: "NAP enabled - instanceType required",
@@ -1583,9 +1583,9 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP:    false, // NAP enabled
-			expectErrs:    true,
-			errContains:   "instanceType is required when node auto-provisioning is enabled",
+			disableNAP:  false, // NAP enabled
+			expectErrs:  true,
+			errContains: "instanceType is required when node auto-provisioning is enabled",
 		},
 		{
 			name: "NAP enabled - instanceType provided (valid)",
@@ -1606,9 +1606,9 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP:    false, // NAP enabled
-			expectErrs:    false,
-			errContains:   "",
+			disableNAP:  false, // NAP enabled
+			expectErrs:  false,
+			errContains: "",
 		},
 		{
 			name: "NAP disabled - instanceType must be empty",
@@ -1634,9 +1634,9 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP:    true, // NAP disabled (BYO mode)
-			expectErrs:    true,
-			errContains:   "instanceType must be empty when node auto-provisioning is disabled (BYO scenario)",
+			disableNAP:  true, // NAP disabled (BYO mode)
+			expectErrs:  true,
+			errContains: "instanceType must be empty when node auto-provisioning is disabled (BYO scenario)",
 		},
 		{
 			name: "NAP disabled - instanceType empty (valid)",
@@ -1662,9 +1662,9 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP:    true, // NAP disabled (BYO mode)
-			expectErrs:    false,
-			errContains:   "",
+			disableNAP:  true, // NAP disabled (BYO mode)
+			expectErrs:  false,
+			errContains: "",
 		},
 	}
 
@@ -2413,4 +2413,3 @@ vllm:
 		})
 	}
 }
-

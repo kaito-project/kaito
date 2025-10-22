@@ -338,10 +338,6 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 		return errs
 	}
 
-	if presetName == "" {
-		return errs
-	}
-
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 
 	if napDisabled {
@@ -361,6 +357,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 		machineCount = len(nodeList.Items)
 		if machineCount == 0 {
 			errs = errs.Also(apis.ErrGeneric("No nodes found matching the specified label selector"))
+			return errs
 		}
 
 		for _, node := range nodeList.Items {
@@ -413,60 +410,62 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 		}
 	}
 
-	if skuConfig != nil && (napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled)) {
-		modelPreset := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
-		params := modelPreset.GetInferenceParameters()
+	if presetName != "" && skuConfig != nil {
+		if napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled) {
+			modelPreset := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
+			params := modelPreset.GetInferenceParameters()
 
-		machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
-		machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
+			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
+			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
 
-		modelGPUCount := resource.MustParse(params.GPUCountRequirement)
-		modelTotalGPUMemory := resource.MustParse(params.TotalSafeTensorFileSize)
+			modelGPUCount := resource.MustParse(params.GPUCountRequirement)
+			modelTotalGPUMemory := resource.MustParse(params.TotalSafeTensorFileSize)
 
-		// Separate the checks for specific error messages
-		if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
-			if bypassResourceChecks {
-				klog.Warningf("Bypassing resource check: Insufficient number of GPUs detected but continuing due to bypass flag. Instance type %s provides %s, but preset %s requires at least %d",
-					instanceType, machineTotalNumGPUs.String(), presetName, modelGPUCount.Value())
-			} else {
-				errs = errs.Also(apis.ErrInvalidValue(
-					fmt.Sprintf(
-						"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
-						instanceType,
-						machineTotalNumGPUs.String(),
-						presetName,
-						modelGPUCount.Value(),
-					),
-					"instanceType",
-				))
+			// Separate the checks for specific error messages
+			if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
+				if bypassResourceChecks {
+					klog.Warningf("Bypassing resource check: Insufficient number of GPUs detected but continuing due to bypass flag. Instance type %s provides %s, but preset %s requires at least %d",
+						instanceType, machineTotalNumGPUs.String(), presetName, modelGPUCount.Value())
+				} else {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
+							instanceType,
+							machineTotalNumGPUs.String(),
+							presetName,
+							modelGPUCount.Value(),
+						),
+						"instanceType",
+					))
+				}
 			}
-		}
 
-		if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
-			if bypassResourceChecks {
-				klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
-					instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
-			} else {
-				errs = errs.Also(apis.ErrInvalidValue(
-					fmt.Sprintf(
-						"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
-						instanceType,
-						machineTotalGPUMem.String(),
-						presetName,
-						modelTotalGPUMemory.String(),
-					),
-					"instanceType",
-				))
+			if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
+				if bypassResourceChecks {
+					klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
+						instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
+				} else {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
+							instanceType,
+							machineTotalGPUMem.String(),
+							presetName,
+							modelTotalGPUMemory.String(),
+						),
+						"instanceType",
+					))
+				}
 			}
-		}
 
-		// If the model preset supports distributed inference, and a single machine has insufficient GPU memory to run the model,
-		// then we need to make sure the Workspace is not using the Huggingface Transformers runtime since it no longer supports
-		// multi-node distributed inference.
-		totalGPUMemoryPerMachine := resource.NewQuantity(int64(skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI)
-		distributedInferenceRequired := modelTotalGPUMemory.Cmp(*totalGPUMemoryPerMachine) > 0
-		if modelPreset.SupportDistributedInference() && distributedInferenceRequired && runtime == model.RuntimeNameHuggingfaceTransformers {
-			errs = errs.Also(apis.ErrGeneric("Multi-node distributed inference is not supported with Huggingface Transformers runtime"))
+			// If the model preset supports distributed inference, and a single machine has insufficient GPU memory to run the model,
+			// then we need to make sure the Workspace is not using the Huggingface Transformers runtime since it no longer supports
+			// multi-node distributed inference.
+			totalGPUMemoryPerMachine := resource.NewQuantity(int64(skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI)
+			distributedInferenceRequired := modelTotalGPUMemory.Cmp(*totalGPUMemoryPerMachine) > 0
+			if modelPreset.SupportDistributedInference() && distributedInferenceRequired && runtime == model.RuntimeNameHuggingfaceTransformers {
+				errs = errs.Also(apis.ErrGeneric("Multi-node distributed inference is not supported with Huggingface Transformers runtime"))
+			}
 		}
 	}
 

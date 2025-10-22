@@ -98,8 +98,8 @@ This is recommended for production environments and any non-trivial use cases, o
 
 The following cloud providers support auto-provisioning GPU nodes in addition to BYO nodes.
 
-- [Azure (AKS)](azure#setup-auto-provisioning) - Set up GPU auto-provisioning with Azure GPU Provisioner
-- [AWS (EKS)](aws#setup-auto-provisioning) - Set up GPU auto-provisioning with Karpenter
+- [Azure (AKS)](azure.md#setup-auto-provisioning) - Set up GPU auto-provisioning with Azure GPU Provisioner
+- [AWS (EKS)](aws.md#setup-auto-provisioning) - Set up GPU auto-provisioning with Karpenter
 
 ## Next Steps
 

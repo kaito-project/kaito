@@ -341,57 +341,61 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 
 	if napDisabled {
-		kClient := k8sclient.GetGlobalClient()
+		if presetName != "" { // If the user is using a custom pod template instead of a preset, we don't need to list the BYO nodes to get GPU info as we don't know the GPU requirements of a custom model.
+			// Note: for tests like aikit.yaml, it creates nodes with kind that do not have GPU labels, so we need to account for that case.
+			kClient := k8sclient.GetGlobalClient()
 
-		// List matching nodes
-		ctx := context.TODO()
-		nodeList := &corev1.NodeList{}
-		labelSelector := client.MatchingLabels(r.LabelSelector.MatchLabels)
+			// List matching nodes
+			ctx := context.TODO()
+			nodeList := &corev1.NodeList{}
+			labelSelector := client.MatchingLabels(r.LabelSelector.MatchLabels)
 
-		err := kClient.List(ctx, nodeList, labelSelector)
-		if err != nil {
-			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to list nodes with labelSelector: %v", err)))
-			return errs
-		}
-
-		machineCount = len(nodeList.Items)
-		if machineCount == 0 {
-			errs = errs.Also(apis.ErrGeneric("No nodes found matching the specified label selector"))
-			return errs
-		}
-
-		for _, node := range nodeList.Items {
-			// Try to get GPU configuration from nvidia.com labels first
-			gpuConfig, err := utils.GetGPUConfigFromNvidiaLabels(&node)
+			err := kClient.List(ctx, nodeList, labelSelector)
 			if err != nil {
-				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from nvidia labels on node %s: %v", node.Name, err)))
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to list nodes with labelSelector: %v", err)))
 				return errs
 			}
 
-			if skuConfig == nil {
-				skuConfig = gpuConfig
-			} else {
-				// Verify uniformity
-				if gpuConfig.GPUModel != skuConfig.GPUModel {
-					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU product: node %s has %s GPUs, but previous node has %s GPUs, all nodes must have the same GPU product for homogeneous placement", node.Name, gpuConfig.GPUModel, skuConfig.GPUModel)))
+			machineCount = len(nodeList.Items)
+			if machineCount == 0 {
+				errs = errs.Also(apis.ErrGeneric("No nodes found matching the specified label selector"))
+				return errs
+			}
+
+			for _, node := range nodeList.Items {
+				// Try to get GPU configuration from nvidia.com labels first
+				gpuConfig, err := utils.GetGPUConfigFromNvidiaLabels(&node)
+				if err != nil {
+					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from nvidia labels on node %s: %v", node.Name, err)))
 					return errs
 				}
-				if gpuConfig.GPUCount != skuConfig.GPUCount {
-					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU count: node %s has %d GPUs, but previous node has %d GPUs", node.Name, gpuConfig.GPUCount, skuConfig.GPUCount)))
-					return errs
-				}
-				if gpuConfig.GPUMemGiB != skuConfig.GPUMemGiB {
-					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %d GB memory, but previous node has %d GB memory", node.Name, gpuConfig.GPUMemGiB, skuConfig.GPUMemGiB)))
-					return errs
+
+				if skuConfig == nil {
+					skuConfig = gpuConfig
+				} else {
+					// Verify uniformity
+					if gpuConfig.GPUModel != skuConfig.GPUModel {
+						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU product: node %s has %s GPUs, but previous node has %s GPUs, all nodes must have the same GPU product for homogeneous placement", node.Name, gpuConfig.GPUModel, skuConfig.GPUModel)))
+						return errs
+					}
+					if gpuConfig.GPUCount != skuConfig.GPUCount {
+						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU count: node %s has %d GPUs, but previous node has %d GPUs", node.Name, gpuConfig.GPUCount, skuConfig.GPUCount)))
+						return errs
+					}
+					if gpuConfig.GPUMemGiB != skuConfig.GPUMemGiB {
+						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %d GB memory, but previous node has %d GB memory", node.Name, gpuConfig.GPUMemGiB, skuConfig.GPUMemGiB)))
+						return errs
+					}
 				}
 			}
-		}
 
-		if skuConfig == nil {
-			errs = errs.Also(apis.ErrGeneric("Failed to determine GPU configuration from existing nodes, ensure nodes have appropriate NVIDIA GPU labels"))
-			return errs
+			if skuConfig == nil {
+				errs = errs.Also(apis.ErrGeneric("Failed to determine GPU configuration from existing nodes, ensure nodes have appropriate NVIDIA GPU labels"))
+				return errs
+			}
 		}
-	} else {
+	} else { // NAP enabled
+		// Regardless of if preset is empty or not, we do want to make sure the instance type is valid for NAP and can't skip node validation like BYO.
 		skuHandler, err := utils.GetSKUHandler()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))

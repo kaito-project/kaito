@@ -63,6 +63,10 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				// Mock node get for TryGetGPUConfigFromNode
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				// Mock node list for BYO node discovery
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
@@ -78,6 +82,10 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-no-tensor-parallel-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				// Mock node get for TryGetGPUConfigFromNode
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				// Mock node list for BYO node discovery
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-no-tensor-parallel-model:1.0.0",
@@ -93,6 +101,10 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-no-lora-support-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				// Mock node get for TryGetGPUConfigFromNode
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				// Mock node list for BYO node discovery
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-no-lora-support-model:1.0.0",
@@ -108,6 +120,10 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				// Mock node get for TryGetGPUConfigFromNode
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				// Mock node list for BYO node discovery
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
@@ -126,6 +142,10 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				// Mock node get for TryGetGPUConfigFromNode
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				// Mock node list for BYO node discovery
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
@@ -141,6 +161,10 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				// Mock node get for TryGetGPUConfigFromNode
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				// Mock node list for BYO node discovery
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workload:           "Deployment",
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
@@ -159,6 +183,10 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model-download-a100",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				// Mock node get for TryGetGPUConfigFromNode
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				// Mock node list for BYO node discovery
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workload:    "Deployment",
 			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --model=test-repo/test-model-a100 --code-revision=test-revision --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml`,
@@ -182,6 +210,10 @@ func TestGeneratePresetInference(t *testing.T) {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				// Mock node get for TryGetGPUConfigFromNode
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				// Mock node list for BYO node discovery
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workload:    "StatefulSet",
 			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=3 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=3 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
@@ -214,6 +246,10 @@ func TestGeneratePresetInference(t *testing.T) {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				// Mock node get for TryGetGPUConfigFromNode
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				// Mock node list for BYO node discovery
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workload:    "StatefulSet",
 			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=3 --ray_port=6379; python3 /workspace/vllm/inference_api.py --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=3 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
@@ -243,6 +279,10 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				// Mock node get for TryGetGPUConfigFromNode
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+				// Mock node list for BYO node discovery
+				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
 			workload:    "Deployment",
 			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
@@ -272,6 +312,9 @@ func TestGeneratePresetInference(t *testing.T) {
 			workspace := tc.workspace
 			//nolint:staticcheck //SA1019: deprecate Resource.Count field
 			workspace.Resource.Count = &tc.nodeCount
+
+			// Set WorkerNodes to avoid node listing in tests (for BYO scenarios)
+			workspace.Status.WorkerNodes = []string{"test-node-1"}
 
 			// Set the Status.Inference.TargetNodeCount for proper node count calculation
 			if workspace.Inference != nil {
@@ -576,12 +619,11 @@ func TestGetGPUConfig(t *testing.T) {
 				GPUCount: 1, // From test-model's GPUCountRequirement
 			},
 		},
-		"PreferredNodes path - bypass SKU path": {
+		"Get config from node status when instanceType is unknown": {
 			workspace: &v1beta1.Workspace{
 				Resource: v1beta1.ResourceSpec{
-					InstanceType:   "Standard_NC24ads_A100_v4",
-					PreferredNodes: []string{"preferred-node"},
-					LabelSelector:  &metav1.LabelSelector{},
+					InstanceType:  "unknown-instance-type",
+					LabelSelector: &metav1.LabelSelector{},
 				},
 				Status: v1beta1.WorkspaceStatus{
 					WorkerNodes: []string{"gpu-node-1"},

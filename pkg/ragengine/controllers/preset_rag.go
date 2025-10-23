@@ -125,11 +125,24 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 		if gpuConfig != nil {
 			skuNumGPUs = gpuConfig.GPUCount
 		} else {
-			gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx, kubeClient, ragEngineObj.Status.WorkerNodes)
-			if err != nil {
+			// Get node objects from node names
+			var nodes []*corev1.Node
+			for _, nodeName := range ragEngineObj.Status.WorkerNodes {
+				node, nodeErr := resources.GetNode(ctx, nodeName, kubeClient)
+				if nodeErr == nil {
+					nodes = append(nodes, node)
+				}
+			}
+
+			if len(nodes) > 0 {
+				gpuConfig, err = utils.TryGetGPUConfigFromNodes(ctx, nodes)
+				if err != nil {
+					skuNumGPUs = 0
+				} else if gpuConfig != nil {
+					skuNumGPUs = gpuConfig.GPUCount
+				}
+			} else {
 				skuNumGPUs = 0
-			} else if gpuConfig != nil {
-				skuNumGPUs = gpuConfig.GPUCount
 			}
 		}
 

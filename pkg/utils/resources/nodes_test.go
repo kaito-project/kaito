@@ -362,14 +362,13 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 		expectedReadyNodeNames        []string
 	}{
 		{
-			name: "successful_retrieval_with_preferred_nodes",
+			name: "successful_retrieval_all_matching_nodes",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					PreferredNodes: []string{"ready-node-1", "ready-node-2"},
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "gpu",
@@ -381,25 +380,24 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 				Items: []corev1.Node{
 					createMockNode("ready-node-1", true, false, map[string]string{"workload": "gpu"}),
 					createMockNode("ready-node-2", true, false, map[string]string{"workload": "gpu"}),
-					createMockNode("not-preferred-node", true, false, map[string]string{"workload": "gpu"}),
+					createMockNode("ready-node-3", true, false, map[string]string{"workload": "gpu"}),
 				},
 			},
 			disableNodeAutoProvisioning:   false,
-			expectedAvailableBYONodes:     2,
+			expectedAvailableBYONodes:     3,
 			expectedReadyNodes:            3,
 			expectedError:                 "",
-			expectedAvailableBYONodeNames: []string{"ready-node-1", "ready-node-2"},
-			expectedReadyNodeNames:        []string{"ready-node-1", "ready-node-2", "not-preferred-node"},
+			expectedAvailableBYONodeNames: []string{"ready-node-1", "ready-node-2", "ready-node-3"},
+			expectedReadyNodeNames:        []string{"ready-node-1", "ready-node-2", "ready-node-3"},
 		},
 		{
-			name: "disable_node_auto_provisioning_ignores_preferred_nodes",
+			name: "nap_disabled_includes_all_matching_nodes",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					PreferredNodes: []string{"ready-node-1"},
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "gpu",
@@ -428,7 +426,6 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					PreferredNodes: []string{"not-ready-node", "ready-node"},
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "gpu",
@@ -457,7 +454,6 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					PreferredNodes: []string{"deleting-node", "ready-node"},
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "gpu",
@@ -486,7 +482,6 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					PreferredNodes: []string{"node-1"},
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "gpu",
@@ -525,14 +520,13 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 			expectedError:             "failed to list nodes",
 		},
 		{
-			name: "no_preferred_nodes_with_auto_provisioning_enabled",
+			name: "nap_enabled_includes_all_matching_nodes",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					PreferredNodes: []string{}, // Empty preferred nodes
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "gpu",
@@ -547,21 +541,20 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 				},
 			},
 			disableNodeAutoProvisioning:   false,
-			expectedAvailableBYONodes:     0, // No nodes added to BYO because they're not in preferred list
-			expectedReadyNodes:            2, // But they're counted as ready
+			expectedAvailableBYONodes:     2, // All matching nodes are included
+			expectedReadyNodes:            2,
 			expectedError:                 "",
-			expectedAvailableBYONodeNames: []string{},
+			expectedAvailableBYONodeNames: []string{"ready-node-1", "ready-node-2"},
 			expectedReadyNodeNames:        []string{"ready-node-1", "ready-node-2"},
 		},
 		{
-			name: "mixed_ready_and_not_ready_preferred_nodes",
+			name: "mixed_ready_not_ready_and_deleting_nodes",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					PreferredNodes: []string{"ready-node", "not-ready-node", "deleting-node"},
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "gpu",
@@ -605,7 +598,8 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 				}).Return(nil)
 			}
 
-			availableBYONodes, readyNodes, err := GetBYOAndReadyNodes(context.Background(), mockClient, tc.workspace)
+			readyNodes, err := GetReadyNodes(context.Background(), mockClient, tc.workspace)
+			availableBYONodes := readyNodes
 
 			if tc.expectedError != "" {
 				assert.Check(t, err != nil, "Expected an error")
@@ -624,7 +618,11 @@ func TestGetBYOAndReadyNodes(t *testing.T) {
 			}
 
 			assert.DeepEqual(t, actualBYONodeNames, tc.expectedAvailableBYONodeNames)
-			assert.DeepEqual(t, readyNodes, tc.expectedReadyNodeNames)
+			actualReadyNodeNames := make([]string, len(readyNodes))
+			for i, node := range readyNodes {
+				actualReadyNodeNames[i] = node.Name
+			}
+			assert.DeepEqual(t, actualReadyNodeNames, tc.expectedReadyNodeNames)
 
 			mockClient.AssertExpectations(t)
 		})

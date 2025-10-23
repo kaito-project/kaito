@@ -18,11 +18,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
@@ -124,7 +126,7 @@ func TestAdvancedNodesEstimator_EstimateNodeCount(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "Should return error for invalid instance type",
+			name: "Should return error for invalid instance type when NAP enabled",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -144,10 +146,10 @@ func TestAdvancedNodesEstimator_EstimateNodeCount(t *testing.T) {
 			},
 			expectedCount: 0,
 			expectedError: true,
-			errorContains: "GPU config is nil for instance type",
+			errorContains: "GPU config is nil for instance type Invalid_Instance_Type",
 		},
 		{
-			name: "Should calculate optimal node count when GPU memory allows optimization",
+			name: "Should optimize node count with valid instance type when NAP enabled",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -160,12 +162,12 @@ func TestAdvancedNodesEstimator_EstimateNodeCount(t *testing.T) {
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{
 						PresetMeta: kaitov1beta1.PresetMeta{
-							Name: "test-model", // 8Gi requirement
+							Name: "test-model", // 8Gi requirement, easily fits in single A100
 						},
 					},
 				},
 			},
-			expectedCount: 1, // Should optimize to 1 node (8Gi easily fits in 80GB GPU)
+			expectedCount: 1, // Should optimize to 1 node despite user requesting 4
 			expectedError: false,
 		},
 		{
@@ -228,6 +230,96 @@ func TestAdvancedNodesEstimator_EstimateNodeCount(t *testing.T) {
 				require.NoError(t, err)
 				assert.Equal(t, tt.expectedCount, count)
 			}
+		})
+	}
+}
+
+func TestAdvancedNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
+	// Set the cloud provider environment variable for SKU lookup
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	ctx := context.Background()
+	calculator := &AdvancedNodesEstimator{}
+
+	tests := []struct {
+		name          string
+		workspace     *kaitov1beta1.Workspace
+		expectedCount int32
+		expectedError bool
+		errorContains string
+	}{
+		{
+			name: "Should fallback to BYO logic for invalid instance type (NAP disabled)",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType: "Invalid_Instance_Type",
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+			expectedCount: 1, // Falls back to BYO logic with default GPU config
+			expectedError: false,
+		},
+		{
+			name: "Should fallback to BYO logic when instanceType is missing (NAP disabled)",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					// InstanceType deliberately empty
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+			expectedCount: 1, // Falls back to BYO logic with default GPU config
+			expectedError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Save original feature gate value and enable BYO mode
+			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+			}()
+
+			// Create a mock client for BYO scenarios
+			mockClient := test.NewClient()
+			// Mock empty ready nodes list for BYO tests (no existing nodes to check)
+			mockClient.On("List", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+
+			count, err := calculator.EstimateNodeCount(ctx, tt.workspace, mockClient)
+
+			if tt.expectedError {
+				require.Error(t, err)
+				if tt.errorContains != "" {
+					assert.Contains(t, err.Error(), tt.errorContains)
+				}
+				assert.Equal(t, tt.expectedCount, count)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedCount, count)
+			}
+
+			mockClient.AssertExpectations(t)
 		})
 	}
 }

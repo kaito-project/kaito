@@ -124,7 +124,7 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "Should return error for invalid instance type",
+			name: "Should return error for invalid instance type (NAP enabled by default)",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -144,10 +144,12 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 			},
 			expectedCount: 0,
 			expectedError: true,
-			errorContains: "GPU config is nil for instance type",
+			errorContains: "GPU config is nil for instance type Invalid_Instance_Type",
 		},
+		// TODO: Add BYO test case that sets feature gate to simulate NAP disabled
+		// This would require modifying the feature gate in the test
 		{
-			name: "Should calculate optimal node count when GPU memory allows optimization",
+			name: "Should optimize node count with valid instance type (NAP enabled by default)",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -155,17 +157,17 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 				},
 				Resource: kaitov1beta1.ResourceSpec{
 					Count:        ptr.To(4),                  // User requests 4 nodes
-					InstanceType: "Standard_NC96ads_A100_v4", // Has large GPU memory (320GB)
+					InstanceType: "Standard_NC96ads_A100_v4", // Large instance type with plenty of GPU memory
 				},
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{
 						PresetMeta: kaitov1beta1.PresetMeta{
-							Name: "test-model", // 8Gi requirement
+							Name: "test-model", // 8Gi requirement (small model)
 						},
 					},
 				},
 			},
-			expectedCount: 1, // Should calculate that 1 node is sufficient
+			expectedCount: 1, // Should optimize to 1 node since A100 has enough memory for 8Gi model
 			expectedError: false,
 		},
 		{

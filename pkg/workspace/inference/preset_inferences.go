@@ -29,6 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -187,27 +188,55 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) sku.GPUConfig {
 	var gpuConfig *sku.GPUConfig
 	var err error
-	// 1. try to get GPU config from known sku if instanceType is set
-	//nolint:staticcheck // SA1019
-	if len(ctx.Workspace.Resource.PreferredNodes) == 0 {
-		gpuConfig, _ = utils.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
-		if gpuConfig != nil {
-			return *gpuConfig
+
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
+		// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
+		if ctx.Workspace.Resource.LabelSelector != nil && len(ctx.Workspace.Status.WorkerNodes) == 0 {
+			readyNodes, err := resources.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
+			if err == nil && len(readyNodes) > 0 {
+				gpuConfig, err = utils.TryGetGPUConfigFromNodes(ctx.Ctx, readyNodes)
+				if err == nil && gpuConfig != nil {
+					return *gpuConfig
+				}
+			}
+		}
+	} else {
+		// NAP is enabled - try to get GPU config from known SKU if instanceType is set
+		if ctx.Workspace.Resource.InstanceType != "" {
+			gpuConfig, _ = utils.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
+			if gpuConfig != nil {
+				return *gpuConfig
+			}
+		}
+
+		// Fallback to trying node status for NAP scenario
+		if len(ctx.Workspace.Status.WorkerNodes) > 0 {
+			// Get node objects from node names
+			var nodes []*corev1.Node
+			for _, nodeName := range ctx.Workspace.Status.WorkerNodes {
+				node, nodeErr := resources.GetNode(ctx.Ctx, nodeName, ctx.KubeClient)
+				if nodeErr == nil {
+					nodes = append(nodes, node)
+				}
+			}
+
+			if len(nodes) > 0 {
+				gpuConfig, err = utils.TryGetGPUConfigFromNodes(ctx.Ctx, nodes)
+				if err == nil && gpuConfig != nil {
+					return *gpuConfig
+				}
+			}
 		}
 	}
 
-	// 2. try to get GPU config from the node status
-	gpuConfig, err = utils.TryGetGPUConfigFromNode(ctx.Ctx, ctx.KubeClient, ctx.Workspace.Status.WorkerNodes)
-	if err == nil {
-		return *gpuConfig
-	}
-
-	// 3. if both above methods fail, use the default GPU count requirement from the model
-	//    FIXME: assume gpu nodes are provided here. cpu inference should not go through this path.
+	// Final fallback: use the default GPU count requirement from the model
+	// FIXME: assume gpu nodes are provided here. cpu inference should not go through this path.
 	defaultNumGPU := resource.MustParse(ctx.Model.GetInferenceParameters().GPUCountRequirement)
 	skuNumGPUs := int(defaultNumGPU.Value())
 	return sku.GPUConfig{
-		GPUCount: skuNumGPUs,
+		GPUCount:  skuNumGPUs,
+		GPUMemGiB: 0, // Unknown memory when falling back to defaults
 	}
 }
 
@@ -353,14 +382,14 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 				if presetParams != nil {
 					if raw, ok := configVolume.Data["inference_config.yaml"]; ok && raw != "" {
 						// First check if user provided explicit value in ConfigMap
-						//if v, ok2 := utils.ParseExplicitMaxModelLen(raw); ok2 {
-						//maxModelLen = v
-						//klog.Infof("[RuntimeContext] workspace=%s using user explicit max-model-len=%d", ctx.Workspace.Name, maxModelLen)
-						//} else {
-						// If no user value, compute planned value
+						// if v, ok2 := utils.ParseExplicitMaxModelLen(raw); ok2 {
+						// 	maxModelLen = v
+						// 	klog.Infof("[RuntimeContext] workspace=%s using user explicit max-model-len=%d", ctx.Workspace.Name, maxModelLen)
+						// } else {
+						// 	// If no user value, compute planned value
 						maxModelLen = computeMaxModelLen(presetParams, gpuConfig, numNodes)
 						klog.Infof("[RuntimeContext] workspace=%s using computed max-model-len=%d (gpuConfig=%+v, numNodes=%d)", ctx.Workspace.Name, maxModelLen, *gpuConfig, numNodes)
-						//}
+						// }
 					}
 				}
 			}

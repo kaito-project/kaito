@@ -560,6 +560,10 @@ vet: ## Run go vet against code.
 .PHONY: lint
 lint: $(GOLANGCI_LINT) ## Run golangci-lint against code.
 	$(GOLANGCI_LINT) run -v
+	
+.PHONY: lint-fix
+lint-fix: $(GOLANGCI_LINT) ## Run golangci-lint against code.
+	$(GOLANGCI_LINT) run --fix
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.

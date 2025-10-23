@@ -28,7 +28,7 @@ import (
 	awsv1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1"
 	"github.com/awslabs/operatorpkg/status"
 	"github.com/samber/lo"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -170,39 +170,39 @@ func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *ka
 				Kind:  nodeClassRefKind,
 				Group: nodeClassRefGroup,
 			},
-			Taints: []v1.Taint{
+			Taints: []corev1.Taint{
 				{
 					Key:    consts.SKUString,
 					Value:  consts.GPUString,
-					Effect: v1.TaintEffectNoSchedule,
+					Effect: corev1.TaintEffectNoSchedule,
 				},
 			},
 			Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
 				{
-					NodeSelectorRequirement: v1.NodeSelectorRequirement{
+					NodeSelectorRequirement: corev1.NodeSelectorRequirement{
 						Key:      consts.LabelNodePool,
-						Operator: v1.NodeSelectorOpIn,
+						Operator: corev1.NodeSelectorOpIn,
 						Values:   []string{consts.KaitoNodePoolName},
 					},
 				},
 				{
-					NodeSelectorRequirement: v1.NodeSelectorRequirement{
-						Key:      v1.LabelInstanceTypeStable,
-						Operator: v1.NodeSelectorOpIn,
+					NodeSelectorRequirement: corev1.NodeSelectorRequirement{
+						Key:      corev1.LabelInstanceTypeStable,
+						Operator: corev1.NodeSelectorOpIn,
 						Values:   []string{instanceType},
 					},
 				},
 				{
-					NodeSelectorRequirement: v1.NodeSelectorRequirement{
-						Key:      v1.LabelOSStable,
-						Operator: v1.NodeSelectorOpIn,
+					NodeSelectorRequirement: corev1.NodeSelectorRequirement{
+						Key:      corev1.LabelOSStable,
+						Operator: corev1.NodeSelectorOpIn,
 						Values:   []string{"linux"},
 					},
 				},
 			},
 			Resources: karpenterv1.ResourceRequirements{
-				Requests: v1.ResourceList{
-					v1.ResourceStorage: resource.MustParse(storageRequirement),
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: resource.MustParse(storageRequirement),
 				},
 			},
 		},
@@ -210,9 +210,9 @@ func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *ka
 
 	if cloudName == consts.AzureCloudName {
 		nodeSelector := karpenterv1.NodeSelectorRequirementWithMinValues{
-			NodeSelectorRequirement: v1.NodeSelectorRequirement{
+			NodeSelectorRequirement: corev1.NodeSelectorRequirement{
 				Key:      azurev1beta1.LabelSKUName,
-				Operator: v1.NodeSelectorOpIn,
+				Operator: corev1.NodeSelectorOpIn,
 				Values:   []string{instanceType},
 			},
 		}
@@ -221,9 +221,9 @@ func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *ka
 
 	if cloudName == consts.AWSCloudName {
 		nodeSelector := karpenterv1.NodeSelectorRequirementWithMinValues{
-			NodeSelectorRequirement: v1.NodeSelectorRequirement{
+			NodeSelectorRequirement: corev1.NodeSelectorRequirement{
 				Key:      "karpenter.k8s.aws/instance-gpu-count",
-				Operator: v1.NodeSelectorOpGt,
+				Operator: corev1.NodeSelectorOpGt,
 				Values:   []string{"0"},
 			},
 		}
@@ -337,8 +337,8 @@ func WaitForPendingNodeClaims(ctx context.Context, obj client.Object, kubeClient
 	for i := range nodeClaims.Items {
 		// check if the nodeClaim being created has the requested instance type
 		_, nodeClaimInstanceType := lo.Find(nodeClaims.Items[i].Spec.Requirements, func(requirement karpenterv1.NodeSelectorRequirementWithMinValues) bool {
-			return requirement.Key == v1.LabelInstanceTypeStable &&
-				requirement.Operator == v1.NodeSelectorOpIn &&
+			return requirement.Key == corev1.LabelInstanceTypeStable &&
+				requirement.Operator == corev1.NodeSelectorOpIn &&
 				lo.Contains(requirement.Values, instanceType)
 		})
 		if nodeClaimInstanceType {
@@ -471,33 +471,6 @@ func CheckNodeClass(ctx context.Context, kClient client.Client) error {
 		}
 	}
 	return nil
-}
-
-// ResolveReadyNodesAndTargetNodeClaimCount returns all ready nodes and the number of target NodeClaims(nodes) for the given workspace
-func ResolveReadyNodesAndTargetNodeClaimCount(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]string, int, error) {
-	availableBYONodes, readyNodes, err := resources.GetBYOAndReadyNodes(ctx, c, wObj)
-	if err != nil {
-		return nil, 0, fmt.Errorf("failed to get available BYO nodes: %w", err)
-	}
-
-	targetNodeCount := int(wObj.Status.TargetNodeCount)
-
-	// Calculate the number of target NodeClaims(nodes) (target - BYO nodes)
-	targetNodeClaimCount := max(0, targetNodeCount-len(availableBYONodes))
-
-	klog.InfoS("Resolved node counts for workspace",
-		"workspace", klog.KObj(wObj),
-		"targetNodeCount", targetNodeCount,
-		"availableBYONodes", len(availableBYONodes),
-		"targetNodeClaimCount", targetNodeClaimCount,
-		"autoProvisioningDisabled", featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning])
-
-	// if node provision is disabled, NodeClaims(nodes) are not needed.
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		targetNodeClaimCount = 0
-	}
-
-	return readyNodes, targetNodeClaimCount, nil
 }
 
 // IsNodeClaimReadyNotDeleting checks if a NodeClaim is in ready state and not being deleted

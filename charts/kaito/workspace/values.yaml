@@ -65,3 +65,11 @@ local-csi-driver:
     driver:
       repository: mcr.microsoft.com/acstor/local-csi-driver
       tag: v0.2.6
+  webhook:
+    enforceEphemeral:
+      enabled: false
+    hyperconverged:
+      enabled: false
+  observability:
+    metrics:
+      enabled: false

@@ -1,0 +1,30 @@
+name: Build and Push Skopeo
+on:
+  workflow_dispatch:
+    inputs:
+      _:
+        description: 'Run the following command to retrieve the package versions and revisions available for Skopeo in Azure Linux 3.0:'
+        default: docker run --rm 'mcr.microsoft.com/azurelinux/base/core:3.0' tdnf repoquery 'skopeo' | tr '-' ' ' | awk 'BEGIN { print "VERSION\tREVISION"; }; $1 == "skopeo" { print $2 "\t" $3; };' | sed -E 's/\.azl3\..+//g'
+      version:
+        description: 'Skopeo AzL3 Package Version:'
+        required: true
+      revision:
+        description: 'Skopeo AzL3 Package Revision:'
+        required: true
+permissions:
+  contents: read
+jobs:
+  main:
+    environment: publish-mcr
+    runs-on:
+      - self-hosted
+      - 1ES.Pool=1es-aks-kaito-agent-pool-ubuntu
+    steps:
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Azure Login
+        run: az login --identity
+      - name: ACR Login
+        run: az acr login --name '${{ secrets.KAITO_MCR_REGISTRY }}'
+      - name: Docker Build and Push
+        run: docker buildx build --push --build-arg='VERSION=${{ inputs.version }}' --build-arg='REVISION=${{ inputs.revision }}' --platform='linux/amd64,linux/arm64' --provenance='true' --sbom='true' --tag='${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/skopeo:${{ inputs.version }}-${{ inputs.revision }}' --target='azlinux3/container' ./docker/skopeo

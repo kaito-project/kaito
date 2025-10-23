@@ -185,20 +185,6 @@ func GetGPUConfigBySKU(instanceType string) (*sku.GPUConfig, error) {
 	return skuHandler.GetGPUConfigBySKU(instanceType), nil
 }
 
-// TODO: Remove this function in favor of TryGetGPUConfigFromNodes in a follow up to integrate BYO in the controller.
-func TryGetGPUConfigFromNode(ctx context.Context, kubeClient client.Client, workerNodes []string) (*sku.GPUConfig, error) {
-	skuGPUCount, err := FetchGPUCountFromNodes(ctx, kubeClient, workerNodes)
-	if err != nil || skuGPUCount == 0 {
-		return nil, fmt.Errorf("failed to fetch GPU count from nodes: %w", err)
-	}
-
-	return &sku.GPUConfig{
-		SKU:      "unknown", // SKU is not available from nodes
-		GPUCount: skuGPUCount,
-		GPUModel: "unknown", // GPU model is not available from nodes
-	}, nil
-}
-
 func TryGetGPUConfigFromNodes(ctx context.Context, workerNodes []*corev1.Node) (*sku.GPUConfig, error) {
 	if len(workerNodes) == 0 {
 		return nil, fmt.Errorf("no worker nodes found")

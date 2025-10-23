@@ -42,14 +42,23 @@ func ValidateNodeClaimCreation(ctx context.Context, workspaceObj *v1beta1.Worksp
 			}
 
 			if len(nodeClaimList.Items) != expectedCount {
+				for _, nodeClaim := range nodeClaimList.Items {
+					fmt.Printf("Found nodeClaim: %s\n", nodeClaim.Name)
+					fmt.Printf("NodeClaim is: %+v\n", nodeClaim)
+				}
 				return false
 			}
 
 			for _, nodeClaim := range nodeClaimList.Items {
 				_, conditionFound := lo.Find(nodeClaim.GetConditions(), func(condition status.Condition) bool {
+					fmt.Printf("Found nodeClaim with condition: %s\n", nodeClaim.Name)
+					fmt.Printf("NodeClaim is: %+v\n", nodeClaim)
+					fmt.Printf("ConditionReady is : %+v\n", condition)
 					return condition.Type == string(apis.ConditionReady) && condition.Status == metav1.ConditionTrue
 				})
 				if !conditionFound {
+					fmt.Printf("Found nodeClaim without condition: %s\n", nodeClaim.Name)
+					fmt.Printf("NodeClaim is: %+v\n", nodeClaim)
 					return false
 				}
 			}

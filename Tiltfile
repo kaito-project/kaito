@@ -100,7 +100,12 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
                  'validation.workspace.kaito.sh:validatingwebhookconfiguration',
         ],
     )
-    # TODO: install the device plugin daemonset when NAP is enabled since the Helm chart is not installed.
+    
+    k8s_resource(
+        workload='nvidia-device-plugin-daemonset',
+        new_name='device plugin',
+        labels='Dependencies',
+    )
     
     # Re-compile the manager binary when anything in deps changes.
     local_resource(

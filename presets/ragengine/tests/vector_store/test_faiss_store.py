@@ -17,6 +17,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
+from ragengine.models import Document
 from ragengine.tests.vector_store.test_base_store import BaseVectorStoreTest
 from ragengine.vector_store.faiss_store import FaissVectorStoreHandler
 
@@ -34,39 +35,37 @@ class TestFaissVectorStore(BaseVectorStoreTest):
     @pytest.mark.asyncio
     async def check_indexed_documents(self, vector_store_manager):
         expected_output_1 = [
-            {
-                "hash_value": "1e64a170be48c45efeaa8667ab35919106da0489ec99a11d0029f2842db133aa",
-                "text": "First document in index1",
-                "is_truncated": False,
-                "metadata": {
-                    "type": "text",
-                },
-            }
+            Document(
+                doc_id="",
+                text="First document in index1",
+                metadata={"type": "text"},
+                hash_value="1e64a170be48c45efeaa8667ab35919106da0489ec99a11d0029f2842db133aa",
+                is_truncated=False,
+            )
         ]
-
         expected_output_2 = [
-            {
-                "hash_value": "a222f875b83ce8b6eb72b3cae278b620de9bcc7c6b73222424d3ce979d1a463b",
-                "text": "First document in index2",
-                "is_truncated": False,
-                "metadata": {
-                    "type": "text",
-                },
-            }
+            Document(
+                doc_id="",
+                text="First document in index2",
+                metadata={"type": "text"},
+                hash_value="a222f875b83ce8b6eb72b3cae278b620de9bcc7c6b73222424d3ce979d1a463b",
+                is_truncated=False,
+            )
         ]
 
         for index, expected_output in zip(
             ["index1", "index2"], [expected_output_1, expected_output_2], strict=False
         ):
-            response = await vector_store_manager.list_documents_in_index(
+            resp = await vector_store_manager.list_documents_in_index(
                 index, limit=10, offset=0, max_text_length=1000
             )
 
-            # Remove "doc_id" from each document in the specified index
-            def remove_doc_id(data: list) -> list:
-                return [{k: v for k, v in doc.items() if k != "doc_id"} for doc in data]
-
-            assert remove_doc_id(response) == expected_output
+            assert all(
+                resp_doc.text == expected_doc.text
+                and resp_doc.hash_value == expected_doc.hash_value
+                and resp_doc.metadata == expected_doc.metadata
+                for resp_doc, expected_doc in zip(resp.documents, expected_output)
+            )
 
     @property
     def expected_query_score(self):

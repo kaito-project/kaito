@@ -3,7 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api-inference-extension/pull/1173
-    inference.networking.k8s.io/bundle-version: v1.0.0
+    inference.networking.k8s.io/bundle-version: v1.0.1
   creationTimestamp: null
   name: inferencepools.inference.networking.k8s.io
 spec:

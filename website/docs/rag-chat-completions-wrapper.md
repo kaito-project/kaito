@@ -368,6 +368,8 @@ chat_result = await chat_engine.achat(user_prompt, chat_history=chat_history)
 4. **Prompt Construction**: Selected documents are formatted into the final prompt
 5. **LLM Generation**: Complete prompt (context + history + user query) sent to LLM
 
+**In the event that no relevant context is found, the LlamaIndex library will return an empty response. We look out for this and send the request directly to the LLM without context as described in the bypass handling above.**
+
 ### 4. Token Budget Example
 
 Here's how token allocation works in practice:

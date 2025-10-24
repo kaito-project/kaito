@@ -78,6 +78,7 @@ spec:
       modelID: "BAAI/bge-small-en-v1.5"
   inferenceService:
     url: "<inference-url>/v1/completions"
+    contextWindowSize: 512    # Modify to fit the model's context window.
 ```
 
 ### Apply the manifest

@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kaito.fullname" . }}-inferenceset-clusterrole
+  labels:
+    {{- include "kaito.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["kaito.sh"]
+    resources: ["workspaces"]
+    verbs: ["update", "patch","get","list","watch", "create", "delete"]
+  - apiGroups: ["kaito.sh"]
+    resources: ["workspaces/status"]
+    verbs: ["update", "patch","get","list","watch"]
+  - apiGroups: ["kaito.sh"]
+    resources: ["inferencesets"]
+    verbs: ["update", "patch","get","list","watch"]
+  - apiGroups: ["kaito.sh"]
+    resources: ["inferencesets/status"]
+    verbs: ["update", "patch","get","list","watch"]
+  - apiGroups: [ "apps" ]
+    resources: ["controllerrevisions" ]
+    verbs: [ "get","list","watch","create", "delete","update", "patch"]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations"]
+    verbs: ["get","list","watch"]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations"]
+    verbs: ["update"]
+    resourceNames: ["validation.inferenceset.kaito.sh"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch", "update"]

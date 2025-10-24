@@ -3,7 +3,7 @@
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
 VERSION ?= v0.7.0
-GPU_PROVISIONER_VERSION ?= 0.3.6
+GPU_PROVISIONER_VERSION ?= 0.3.7
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
@@ -360,16 +360,6 @@ docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 		--platform="linux/$(ARCH)" \
 		--pull \
 		--tag $(REGISTRY)/e2e-dataset2:0.0.1 .
-
-.PHONY: docker-build-llm-reference-preset
-docker-build-llm-reference-preset: docker-buildx ## Build Docker image for LLM reference preset.
-	docker buildx build \
-		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:$(VERSION) \
-		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:latest \
-		-f docs/custom-model-integration/Dockerfile.reference \
-		$(BUILD_FLAGS) \
-		--build-arg MODEL_TYPE=text-generation \
-		--build-arg VERSION=$(VERSION) .
 
 ## --------------------------------------
 ## KAITO Installation

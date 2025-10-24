@@ -485,6 +485,13 @@ func ResolveReadyNodesAndTargetNodeClaimCount(ctx context.Context, c client.Clie
 	// Calculate the number of target NodeClaims(nodes) (target - BYO nodes)
 	targetNodeClaimCount := max(0, targetNodeCount-len(availableBYONodes))
 
+	klog.InfoS("Resolved node counts for workspace",
+		"workspace", klog.KObj(wObj),
+		"targetNodeCount", targetNodeCount,
+		"availableBYONodes", len(availableBYONodes),
+		"targetNodeClaimCount", targetNodeClaimCount,
+		"autoProvisioningDisabled", featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning])
+
 	// if node provision is disabled, NodeClaims(nodes) are not needed.
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		targetNodeClaimCount = 0

@@ -582,6 +582,7 @@ async def test_list_documents_in_index_success(async_client):
 
     # Ensure documents exist correctly in the specific index
     assert response_json["count"] == 2
+    assert response_json["total_items"] == 2
     assert len(response_json["documents"]) == 2
     assert all(
         (

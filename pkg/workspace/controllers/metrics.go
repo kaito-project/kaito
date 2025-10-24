@@ -65,7 +65,7 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 			}
 
 			for _, ws := range wsList.Items {
-				phase := determineWorkspacePhase(&ws)
+				phase := DetermineWorkspacePhase(&ws)
 				if _, ok := phaseCounts[phase]; !ok {
 					phaseCounts[phase] = 0
 				}
@@ -79,7 +79,7 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 	}
 }
 
-func determineWorkspacePhase(ws *kaitov1beta1.Workspace) string {
+func DetermineWorkspacePhase(ws *kaitov1beta1.Workspace) string {
 	for _, cond := range ws.Status.Conditions {
 		switch kaitov1beta1.ConditionType(cond.Type) {
 		case kaitov1beta1.WorkspaceConditionTypeDeleting:

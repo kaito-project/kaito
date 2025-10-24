@@ -510,15 +510,13 @@ async def list_documents_in_index(
 
         # Decode the index_name in case it was URL-encoded by the client
         decoded_index_name = unquote(index_name)
-        documents = await rag_ops.list_documents_in_index(
+        result = await rag_ops.list_documents_in_index(
             index_name=decoded_index_name,
             limit=limit,
             offset=offset,
             max_text_length=max_text_length,
             metadata_filter=metadata_filter,
         )
-
-        result = ListDocumentsResponse(documents=documents, count=len(documents))
         status = STATUS_SUCCESS
         return result
     except HTTPException as http_exc:

@@ -73,6 +73,20 @@ func TestParseFeatureGates(t *testing.T) {
 			expectedValue: false,
 		},
 		{
+			name:          "WithEnableInferenceSetController",
+			featureGates:  "enableInferenceSetController=true",
+			expectedError: false,
+			targetFeature: "enableInferenceSetController",
+			expectedValue: true,
+		},
+		{
+			name:          "WithDisableInferenceSetController",
+			featureGates:  "enableInferenceSetController=false",
+			expectedError: false,
+			targetFeature: "enableInferenceSetController",
+			expectedValue: false,
+		},
+		{
 			name:          "WithEmptyFeatureGates",
 			featureGates:  "",
 			expectedError: false,

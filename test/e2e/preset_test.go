@@ -108,21 +108,30 @@ func createCustomWorkspaceWithAdapter(numOfNode int, validAdapters []kaitov1beta
 
 func updateCustomWorkspaceWithAdapter(workspaceObj *kaitov1beta1.Workspace, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
 	By("Updating a workspace with adapter", func() {
-		workspaceObj.Inference.Adapters = validAdapters
+		Eventually(func() error {
+			// Get fresh copy before each update attempt
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, workspaceObj, &client.GetOptions{})
+			if err != nil {
+				return err
+			}
 
-		By("Updating workspace", func() {
-			Eventually(func() error {
-				return utils.TestingCluster.KubeClient.Update(ctx, workspaceObj)
-			}, utils.PollTimeout, utils.PollInterval).
-				Should(Succeed(), "Failed to update workspace %s", workspaceObj.Name)
+			// Apply changes to fresh copy
+			workspaceObj.Inference.Adapters = validAdapters
 
-			By("Validating workspace update", func() {
-				err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-					Namespace: workspaceObj.Namespace,
-					Name:      workspaceObj.Name,
-				}, workspaceObj, &client.GetOptions{})
-				Expect(err).NotTo(HaveOccurred())
-			})
+			// Attempt update with fresh copy
+			return utils.TestingCluster.KubeClient.Update(ctx, workspaceObj)
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to update workspace %s", workspaceObj.Name)
+
+		By("Validating workspace update", func() {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, workspaceObj, &client.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 	return workspaceObj
@@ -371,13 +380,31 @@ func updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj *kaitov1beta1.Wo
 }
 
 func updateAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
-	By("Creating workspace", func() {
+	By("Updating workspace", func() {
+		// Capture the desired changes before we start the retry loop
+		desiredTuningInput := workspaceObj.Tuning.Input
+		desiredTuningOutput := workspaceObj.Tuning.Output
+
 		Eventually(func() error {
+			// Get fresh copy before each update attempt
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, workspaceObj, &client.GetOptions{})
+			if err != nil {
+				return err
+			}
+
+			// Reapply desired changes to fresh copy
+			workspaceObj.Tuning.Input = desiredTuningInput
+			workspaceObj.Tuning.Output = desiredTuningOutput
+
+			// Attempt update with fresh copy
 			return utils.TestingCluster.KubeClient.Update(ctx, workspaceObj)
 		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), "Failed to create workspace %s", workspaceObj.Name)
+			Should(Succeed(), "Failed to update workspace %s", workspaceObj.Name)
 
-		By("Validating workspace creation", func() {
+		By("Validating workspace update", func() {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: workspaceObj.Namespace,
 				Name:      workspaceObj.Name,

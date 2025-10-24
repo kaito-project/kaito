@@ -40,7 +40,6 @@ type ResourceSpec struct {
 	LabelSelector *metav1.LabelSelector `json:"labelSelector"`
 
 	// Deprecated: PreferredNodes is deprecated in v1beta1 and will be removed in a future version.
-	// PreferredNodes is an optional node list specified by the user.
 	// If a node in the list does not have the required labels, it will be ignored.
 	// The controller will use the `InstanceType` to create the remaining nodes.
 	// +optional

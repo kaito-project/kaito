@@ -82,7 +82,9 @@ from ragengine.metrics.prometheus_metrics import (
 # Import Prometheus client for metrics collection
 
 
-app = FastAPI()
+app = FastAPI(
+    title="KAITO RAG Engine",
+)
 
 
 @app.middleware("http")
@@ -153,6 +155,7 @@ async def metrics():
 
 @app.get(
     "/health",
+    tags=["Monitoring"],
     response_model=HealthStatus,
     summary="Health Check for RAG Engine",
     description="""
@@ -187,6 +190,7 @@ def health_check():
 
 @app.post(
     "/index",
+    tags=["Index"],
     response_model=list[Document],
     summary="Index Documents",
     description="""
@@ -242,6 +246,7 @@ async def index_documents(request: IndexRequest):
 
 @app.post(
     "/query",
+    tags=["Query"],
     response_model=QueryResponse,
     summary="Query an Index",
     description="""
@@ -331,6 +336,7 @@ async def query_index(request: QueryRequest):
 
 @app.post(
     "/v1/chat/completions",
+    tags=["Chat"],
     response_model=ChatCompletionResponse,
     summary="OpenAI-Compatible Chat Completions API",
     description="""
@@ -402,6 +408,7 @@ async def chat_completions(request: dict):
 
 @app.get(
     "/indexes",
+    tags=["Index"],
     response_model=list[str],
     summary="List All Indexes",
     description="""
@@ -436,6 +443,7 @@ def list_indexes():
 
 @app.get(
     "/indexes/{index_name}/documents",
+    tags=["Index"],
     response_model=ListDocumentsResponse,
     summary="List Documents in an Index",
     description="""
@@ -533,6 +541,7 @@ async def list_documents_in_index(
 
 @app.post(
     "/indexes/{index_name}/documents",
+    tags=["Index"],
     response_model=UpdateDocumentResponse,
     summary="Update documents in an Index",
     description="""
@@ -581,6 +590,7 @@ async def update_documents_in_index(
 
 @app.post(
     "/indexes/{index_name}/documents/delete",
+    tags=["Index"],
     response_model=DeleteDocumentResponse,
     summary="Delete documents in an Index",
     description="""
@@ -628,6 +638,7 @@ async def delete_documents_in_index(
 
 @app.post(
     "/persist/{index_name}",
+    tags=["Index"],
     summary="Persist Index Data to Disk",
     description="""
     Persist the existing index data to disk at a specified location. This ensures that indexed data is saved.
@@ -681,6 +692,7 @@ async def persist_index(
 
 @app.post(
     "/load/{index_name}",
+    tags=["Index"],
     summary="Load Index Data from Disk",
     description="""
     Load an existing index from disk at a specified location.
@@ -730,6 +742,7 @@ async def load_index(
 
 @app.delete(
     "/indexes/{index_name}",
+    tags=["Index"],
     summary="Delete the Index",
     description="""
     Delete an existing index
@@ -784,4 +797,4 @@ if __name__ == "__main__":
     # llama_index.core.set_global_handler("arize_phoenix")
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=5000, loop="asyncio")
+    uvicorn.run(app, host="0.0.0.0", port=5789, loop="asyncio")

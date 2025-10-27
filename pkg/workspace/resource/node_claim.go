@@ -27,6 +27,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
@@ -56,7 +57,7 @@ func (c *NodeClaimManager) GetTargetNodeClaimCount(ctx context.Context, wObj *ka
 	readyNodesWithoutNodeClaim := 0
 
 	for _, node := range readyNodes {
-		if _, ok := node.Labels["karpenter.sh/nodepool"]; !ok {
+		if _, ok := node.Labels[consts.LabelNodePool]; !ok {
 			readyNodesWithoutNodeClaim++
 		}
 	}

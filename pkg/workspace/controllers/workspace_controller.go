@@ -181,14 +181,9 @@ func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1b
 	}
 
 	// Check if selected nodes are ready in both NAP and BYO scenarios.
-	if ready, err := c.nodeResourceManager.EnsureNodesReady(ctx, wObj); err != nil {
-		return reconcile.Result{}, err
-	} else if !ready {
-		// Not enough ready nodes, requeue and wait for next reconcile.
-		return reconcile.Result{}, nil
-	}
+	_, err := c.nodeResourceManager.EnsureNodesReady(ctx, wObj)
 
-	return reconcile.Result{}, nil
+	return reconcile.Result{}, err
 }
 
 func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {

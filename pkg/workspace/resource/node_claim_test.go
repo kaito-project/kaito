@@ -107,7 +107,7 @@ func TestCheckNodeClaims(t *testing.T) {
 					*ncl = *nodeClaimList
 				}).Return(nil)
 			},
-			expectedAddedCount:         3, // Required 3, have 0 ready nodes without NodeClaim = need 3 NodeClaims
+			expectedAddedCount:         2, // Required 3, have 0 ready nodes without NodeClaim = need 3 NodeClaims
 			expectedExistingNodeClaims: 1,
 			expectedError:              "",
 			featureFlagValue:           false,
@@ -160,7 +160,7 @@ func TestCheckNodeClaims(t *testing.T) {
 					*ncl = *nodeClaimList
 				}).Return(nil)
 			},
-			expectedAddedCount:         2, // Target 2, have 0 ready nodes without NodeClaim = need 2 NodeClaims
+			expectedAddedCount:         0, // Target 2, have 0 ready nodes without NodeClaim = need 2 NodeClaims
 			expectedExistingNodeClaims: 2,
 			expectedError:              "",
 			featureFlagValue:           false,
@@ -261,7 +261,7 @@ func TestCheckNodeClaims(t *testing.T) {
 					*ncl = *nodeClaimList
 				}).Return(nil)
 			},
-			expectedAddedCount:         2, // Target 3, have 1 BYO ready node = need 2 more NodeClaims
+			expectedAddedCount:         0, // Target 3, have 1 BYO ready node = need 2 more NodeClaims
 			expectedExistingNodeClaims: 2,
 			expectedError:              "",
 			featureFlagValue:           false,

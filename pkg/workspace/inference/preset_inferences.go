@@ -188,6 +188,7 @@ func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) sku.GPUConfig {
 	var gpuConfig *sku.GPUConfig
 	var err error
 	// 1. try to get GPU config from known sku if instanceType is set
+	//nolint:staticcheck // SA1019
 	if len(ctx.Workspace.Resource.PreferredNodes) == 0 {
 		gpuConfig, _ = utils.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
 		if gpuConfig != nil {

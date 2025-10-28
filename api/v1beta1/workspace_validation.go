@@ -23,14 +23,18 @@ import (
 
 	"github.com/distribution/reference"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
@@ -59,12 +63,16 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "name"))
 	}
 
-	// Check if node auto-provisioning is disabled and validate preferred nodes
+	// Check node auto-provisioning feature gate and validate instanceType accordingly
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		if len(w.Resource.PreferredNodes) < *w.Resource.Count {
-			errs = errs.Also(apis.ErrInvalidValue(
-				fmt.Sprintf("When node auto-provisioning is disabled, the number of preferred nodes (%d) must be at least the required amount (%d) set in count",
-					len(w.Resource.PreferredNodes), *w.Resource.Count), "preferredNodes"))
+		// When NAP is disabled, instanceType must be empty (BYO scenario)
+		if w.Resource.InstanceType != "" {
+			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
+		}
+	} else {
+		// When NAP is enabled, instanceType must be specified for node provisioning
+		if w.Resource.InstanceType == "" {
+			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled"))
 		}
 	}
 
@@ -319,86 +327,150 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 			return errs
 		}
 	}
+
 	instanceType := string(r.InstanceType)
-
-	skuHandler, err := utils.GetSKUHandler()
-	if err != nil {
-		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
-		return errs
-	}
-
-	// Check if instancetype exists in our SKUs map for the particular cloud provider
-	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig != nil {
-		if runtime != model.RuntimeNameVLLM {
-			if presetName != "" {
-				modelPreset := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
-				params := modelPreset.GetInferenceParameters()
-
-				machineCount := *r.Count
-				machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
-				machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
-
-				modelGPUCount := resource.MustParse(params.GPUCountRequirement)
-				modelTotalGPUMemory := resource.MustParse(params.TotalSafeTensorFileSize)
-
-				// Separate the checks for specific error messages
-				if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
-					if bypassResourceChecks {
-						klog.Warningf("Bypassing resource check: Insufficient number of GPUs detected but continuing due to bypass flag. Instance type %s provides %s, but preset %s requires at least %d",
-							instanceType, machineTotalNumGPUs.String(), presetName, modelGPUCount.Value())
-					} else {
-						errs = errs.Also(apis.ErrInvalidValue(
-							fmt.Sprintf(
-								"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
-								instanceType,
-								machineTotalNumGPUs.String(),
-								presetName,
-								modelGPUCount.Value(),
-							),
-							"instanceType",
-						))
-					}
-				}
-
-				if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
-					if bypassResourceChecks {
-						klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
-							instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
-					} else {
-						errs = errs.Also(apis.ErrInvalidValue(
-							fmt.Sprintf(
-								"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
-								instanceType,
-								machineTotalGPUMem.String(),
-								presetName,
-								modelTotalGPUMemory.String(),
-							),
-							"instanceType",
-						))
-					}
-				}
-
-				// If the model preset supports distributed inference, and a single machine has insufficient GPU memory to run the model,
-				// then we need to make sure the Workspace is not using the Huggingface Transformers runtime since it no longer supports
-				// multi-node distributed inference.
-				totalGPUMemoryPerMachine := resource.NewQuantity(int64(skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI)
-				distributedInferenceRequired := modelTotalGPUMemory.Cmp(*totalGPUMemoryPerMachine) > 0
-				if modelPreset.SupportDistributedInference() && distributedInferenceRequired && runtime == model.RuntimeNameHuggingfaceTransformers {
-					errs = errs.Also(apis.ErrGeneric("Multi-node distributed inference is not supported with Huggingface Transformers runtime"))
-				}
-			}
-		}
-	} else {
-		provider := os.Getenv("CLOUD_PROVIDER")
-		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
-			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
-		}
-	}
+	var skuConfig *sku.GPUConfig
+	var machineCount int
 
 	// Validate labelSelector
 	if _, err := metav1.LabelSelectorAsMap(r.LabelSelector); err != nil {
 		errs = errs.Also(apis.ErrInvalidValue(err.Error(), "labelSelector"))
+		return errs
+	}
+
+	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+
+	if napDisabled {
+		if presetName != "" { // If the user is using a custom pod template instead of a preset, we don't need to list the BYO nodes to get GPU info as we don't know the GPU requirements of a custom model.
+			// Note: for tests like aikit.yaml, it creates nodes with kind that do not have GPU labels, so we need to account for that case.
+			kClient := k8sclient.GetGlobalClient()
+
+			// List matching nodes
+			ctx := context.TODO()
+			nodeList := &corev1.NodeList{}
+			labelSelector := client.MatchingLabels(r.LabelSelector.MatchLabels)
+
+			err := kClient.List(ctx, nodeList, labelSelector)
+			if err != nil {
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to list nodes with labelSelector: %v", err)))
+				return errs
+			}
+
+			machineCount = len(nodeList.Items)
+			if machineCount == 0 {
+				errs = errs.Also(apis.ErrGeneric("No nodes found matching the specified label selector"))
+				return errs
+			}
+
+			for _, node := range nodeList.Items {
+				// Try to get GPU configuration from nvidia.com labels first
+				gpuConfig, err := utils.GetGPUConfigFromNvidiaLabels(&node)
+				if err != nil {
+					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from nvidia labels on node %s: %v", node.Name, err)))
+					return errs
+				}
+
+				if skuConfig == nil {
+					skuConfig = gpuConfig
+				} else {
+					// Verify uniformity
+					if gpuConfig.GPUModel != skuConfig.GPUModel {
+						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU product: node %s has %s GPUs, but previous node has %s GPUs, all nodes must have the same GPU product for homogeneous placement", node.Name, gpuConfig.GPUModel, skuConfig.GPUModel)))
+						return errs
+					}
+					if gpuConfig.GPUCount != skuConfig.GPUCount {
+						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU count: node %s has %d GPUs, but previous node has %d GPUs", node.Name, gpuConfig.GPUCount, skuConfig.GPUCount)))
+						return errs
+					}
+					if gpuConfig.GPUMemGiB != skuConfig.GPUMemGiB {
+						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %d GB memory, but previous node has %d GB memory", node.Name, gpuConfig.GPUMemGiB, skuConfig.GPUMemGiB)))
+						return errs
+					}
+				}
+			}
+
+			if skuConfig == nil {
+				errs = errs.Also(apis.ErrGeneric("Failed to determine GPU configuration from existing nodes, ensure nodes have appropriate NVIDIA GPU labels"))
+				return errs
+			}
+		}
+	} else { // NAP enabled
+		// Regardless of if preset is empty or not, we do want to make sure the instance type is valid for NAP and can't skip node validation like BYO.
+		skuHandler, err := utils.GetSKUHandler()
+		if err != nil {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
+			return errs
+		}
+
+		machineCount = *r.Count
+		skuConfig = skuHandler.GetGPUConfigBySKU(instanceType)
+
+		if skuConfig == nil {
+			provider := os.Getenv("CLOUD_PROVIDER")
+			// Check for other instance types pattern matches if cloud provider is Azure
+			if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
+				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
+			}
+		}
+	}
+
+	if presetName != "" && skuConfig != nil {
+		if napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled) {
+			modelPreset := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
+			params := modelPreset.GetInferenceParameters()
+
+			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
+			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
+
+			modelGPUCount := resource.MustParse(params.GPUCountRequirement)
+			modelTotalGPUMemory := resource.MustParse(params.TotalSafeTensorFileSize)
+
+			// Separate the checks for specific error messages
+			if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
+				if bypassResourceChecks {
+					klog.Warningf("Bypassing resource check: Insufficient number of GPUs detected but continuing due to bypass flag. Instance type %s provides %s, but preset %s requires at least %d",
+						instanceType, machineTotalNumGPUs.String(), presetName, modelGPUCount.Value())
+				} else {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
+							instanceType,
+							machineTotalNumGPUs.String(),
+							presetName,
+							modelGPUCount.Value(),
+						),
+						"instanceType",
+					))
+				}
+			}
+
+			if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
+				if bypassResourceChecks {
+					klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
+						instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
+				} else {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
+							instanceType,
+							machineTotalGPUMem.String(),
+							presetName,
+							modelTotalGPUMemory.String(),
+						),
+						"instanceType",
+					))
+				}
+			}
+
+			// If the model preset supports distributed inference, and a single machine has insufficient GPU memory to run the model,
+			// then we need to make sure the Workspace is not using the Huggingface Transformers runtime since it no longer supports
+			// multi-node distributed inference.
+			totalGPUMemoryPerMachine := resource.NewQuantity(int64(skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI)
+			distributedInferenceRequired := modelTotalGPUMemory.Cmp(*totalGPUMemoryPerMachine) > 0
+			if modelPreset.SupportDistributedInference() && distributedInferenceRequired && runtime == model.RuntimeNameHuggingfaceTransformers {
+				errs = errs.Also(apis.ErrGeneric("Multi-node distributed inference is not supported with Huggingface Transformers runtime"))
+			}
+		}
 	}
 
 	return errs

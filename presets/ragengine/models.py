@@ -12,13 +12,11 @@
 # limitations under the License.
 
 
-from typing import Any
-
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
 from openai.types.chat import (
     ChatCompletion,
 )
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 
 class Document(BaseModel):
@@ -58,6 +56,7 @@ class DeleteDocumentResponse(BaseModel):
     deleted_doc_ids: list[str]
     not_found_doc_ids: list[str]
 
+
 # Define models for NodeWithScore
 class NodeWithScore(BaseModel):
     doc_id: str
@@ -65,6 +64,7 @@ class NodeWithScore(BaseModel):
     text: str
     score: float
     metadata: dict | None = None
+
 
 class HealthStatus(BaseModel):
     status: str

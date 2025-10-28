@@ -28,15 +28,12 @@ from llama_index.core import Document as LlamaDocument
 from llama_index.core import StorageContext, VectorStoreIndex, load_index_from_storage
 from llama_index.core.base.llms.types import MessageRole
 from llama_index.core.chat_engine.types import ChatMode
-from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 from llama_index.core.storage.docstore import SimpleDocumentStore
 from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
 from pydantic import ValidationError
 
 from ragengine.config import (
-    LLM_RERANKER_BATCH_SIZE,
-    LLM_RERANKER_TOP_N,
     RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO,
     RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION,
     RAG_SIMILARITY_THRESHOLD,

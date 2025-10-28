@@ -53,7 +53,6 @@ from ragengine.metrics.prometheus_metrics import (
     e2e_request_latency_seconds,
     e2e_request_total,
     num_requests_running,
-    rag_avg_source_score,
     rag_chat_latency,
     rag_chat_requests_total,
     rag_delete_latency,
@@ -70,7 +69,6 @@ from ragengine.metrics.prometheus_metrics import (
     rag_indexes_update_document_requests_total,
     rag_load_latency,
     rag_load_requests_total,
-    rag_lowest_source_score,
     rag_persist_latency,
     rag_persist_requests_total,
 )
@@ -239,6 +237,7 @@ async def index_documents(request: IndexRequest):
         rag_index_latency.labels(status=status).observe(
             time.perf_counter() - start_time
         )
+
 
 @app.post(
     "/v1/chat/completions",

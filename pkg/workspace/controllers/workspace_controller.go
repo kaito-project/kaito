@@ -153,13 +153,14 @@ func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1b
 
 	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// diff node claims
-		addedNodeClaimsCount, existingNodeClaims, err := c.nodeClaimManager.CheckNodeClaims(ctx, wObj)
+		numNodeClaimsToCreate, existingNodeClaims, err := c.nodeClaimManager.CheckNodeClaims(ctx, wObj)
+		klog.Info("NodeClaims to create", "count", numNodeClaimsToCreate, "workspace", klog.KObj(wObj))
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 
 		// create nodeclaims
-		if err := c.nodeClaimManager.CreateUpNodeClaims(ctx, wObj, addedNodeClaimsCount); err != nil {
+		if err := c.nodeClaimManager.CreateUpNodeClaims(ctx, wObj, numNodeClaimsToCreate); err != nil {
 			return reconcile.Result{}, err
 		}
 

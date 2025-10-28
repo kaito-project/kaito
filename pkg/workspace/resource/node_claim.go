@@ -50,7 +50,7 @@ func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expecta
 	}
 }
 
-func (c *NodeClaimManager) GetTargetNodeClaimCount(ctx context.Context, wObj *kaitov1beta1.Workspace, readyNodes []*corev1.Node) int {
+func (c *NodeClaimManager) GetNumNodeClaimsNeeded(ctx context.Context, wObj *kaitov1beta1.Workspace, readyNodes []*corev1.Node) int {
 	targetNodeCount := int(wObj.Status.TargetNodeCount)
 
 	// Count ready nodes that do NOT have a corresponding NodeClaim
@@ -62,7 +62,7 @@ func (c *NodeClaimManager) GetTargetNodeClaimCount(ctx context.Context, wObj *ka
 		}
 	}
 
-	// Calculate how many NodeClaims we need: target nodes - ready nodes without NodeClaims
+	// Calculate how many NodeClaims we need, including those already provisioned.
 	targetNodeClaimCount := max(0, targetNodeCount-readyNodesWithoutNodeClaim)
 
 	return targetNodeClaimCount
@@ -85,8 +85,17 @@ func (c *NodeClaimManager) CheckNodeClaims(ctx context.Context, wObj *kaitov1bet
 	for i := range ncList.Items {
 		nodeClaims = append(nodeClaims, &ncList.Items[i])
 	}
-	// Calculate the number of node claims to create
-	numNodeClaimsToCreate := c.GetTargetNodeClaimCount(ctx, wObj, readyNodes)
+
+	klog.InfoS("Existing NodeClaims fetched", "count", len(nodeClaims), "workspace", klog.KObj(wObj))
+
+	// Calculate the total number of NodeClaims needed.
+	numNodeClaimsNeeded := c.GetNumNodeClaimsNeeded(ctx, wObj, readyNodes)
+	klog.InfoS("NodeClaims needed calculation", "needed", numNodeClaimsNeeded, "workspace", klog.KObj(wObj))
+
+	// Then, the number of NodeClaims to create is the difference between the total number needed and number of existing NodeClaims.
+	numNodeClaimsToCreate := max(0, numNodeClaimsNeeded-len(nodeClaims))
+
+	klog.InfoS("Number of NodeClaims to create", "count", numNodeClaimsToCreate)
 
 	return numNodeClaimsToCreate, nodeClaims, nil
 }
@@ -141,7 +150,7 @@ func (c *NodeClaimManager) EnsureNodeClaimsReady(ctx context.Context, wObj *kait
 		return false, fmt.Errorf("failed to list ready nodes: %w", err)
 	}
 
-	targetNodeClaimCount := c.GetTargetNodeClaimCount(ctx, wObj, readyNodes)
+	targetNodeClaimCount := c.GetNumNodeClaimsNeeded(ctx, wObj, readyNodes)
 
 	readyCount := 0
 	for _, claim := range existingNodeClaims {

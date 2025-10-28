@@ -92,47 +92,6 @@ class BaseVectorStoreTest(ABC):
     @pytest.mark.asyncio
     @respx.mock
     @patch("requests.get")
-    async def test_query_documents(self, mock_get, vector_store_manager):
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.json.return_value = {
-            "data": [{"id": "mock-model", "max_model_len": 2048}]
-        }
-
-        mock_response = {"result": "This is the completion from the API"}
-        respx.post(LLM_INFERENCE_URL).mock(
-            return_value=httpx.Response(200, json=mock_response)
-        )
-
-        documents = [
-            Document(text="First document", metadata={"type": "text"}),
-            Document(text="Second document", metadata={"type": "text"}),
-        ]
-        index_doc_resp = await vector_store_manager.index_documents(
-            "test_index", documents
-        )
-
-        params = {"temperature": 0.7}
-        query_result = await vector_store_manager.query(
-            "test_index", "First", top_k=1, llm_params=params, rerank_params={}
-        )
-
-        assert query_result is not None
-        assert (
-            query_result["response"]
-            == "{'result': 'This is the completion from the API'}"
-        )
-        assert query_result["source_nodes"][0]["text"] == "First document"
-        assert query_result["source_nodes"][0]["score"] == pytest.approx(
-            self.expected_query_score, rel=1e-6
-        )
-        assert query_result["source_nodes"][0]["doc_id"] == index_doc_resp[0]
-        assert (
-            respx.calls.call_count == 1
-        )  # Ensure only one LLM inference request was made
-
-    @pytest.mark.asyncio
-    @respx.mock
-    @patch("requests.get")
     async def test_chat_completions(self, mock_get, vector_store_manager, monkeypatch):
         import ragengine.config
         import ragengine.inference.inference
@@ -429,15 +388,20 @@ func main() {}"""
             ids[0],
         )
 
-        # Check if the document was updated
-        result = await vector_store_manager.query(
-            "test_index",
-            "Updated Fifth document",
-            top_k=1,
-            llm_params={},
-            rerank_params={},
+        chat_results = await vector_store_manager.chat_completion(
+            {
+                "index_name": "test_index",
+                "model": "mock-model",
+                "messages": [
+                    {"role": "user", "content": "What is the first document?"}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 100,
+            }
         )
-        assert result["source_nodes"][0]["text"] == "Updated Fifth document"
+
+        assert chat_results.source_nodes is not None
+        assert chat_results.source_nodes[0].text == "Updated Fifth document"
 
         # Check documents not found case
         result = await vector_store_manager.update_documents(

@@ -28,8 +28,6 @@ from models import (
     HealthStatus,
     IndexRequest,
     ListDocumentsResponse,
-    QueryRequest,
-    QueryResponse,
     UpdateDocumentRequest,
     UpdateDocumentResponse,
 )
@@ -75,8 +73,6 @@ from ragengine.metrics.prometheus_metrics import (
     rag_lowest_source_score,
     rag_persist_latency,
     rag_persist_requests_total,
-    rag_query_latency,
-    rag_query_requests_total,
 )
 
 # Import Prometheus client for metrics collection
@@ -90,7 +86,6 @@ app = FastAPI(
 @app.middleware("http")
 async def track_requests(request: Request, call_next):
     tracked_paths = [
-        "/query",
         "/index",
         "/indexes",
         "/persist",
@@ -139,7 +134,7 @@ vector_store_handler = FaissVectorStoreHandler(embedding_manager)
 rag_ops = VectorStoreManager(vector_store_handler)
 
 
-@app.get("/metrics", tags=["Monitoring"])
+@app.get("/metrics", operation_id="get_metrics", tags=["Monitoring"])
 async def metrics():
     """
     Expose Prometheus metrics.
@@ -155,6 +150,7 @@ async def metrics():
 
 @app.get(
     "/health",
+    operation_id="get_health",
     tags=["Monitoring"],
     response_model=HealthStatus,
     summary="Health Check for RAG Engine",
@@ -190,6 +186,7 @@ def health_check():
 
 @app.post(
     "/index",
+    operation_id="create_index",
     tags=["Index"],
     response_model=list[Document],
     summary="Index Documents",
@@ -243,99 +240,9 @@ async def index_documents(request: IndexRequest):
             time.perf_counter() - start_time
         )
 
-
-@app.post(
-    "/query",
-    tags=["Query"],
-    response_model=QueryResponse,
-    summary="Query an Index",
-    description="""
-    Query a specific index for documents and optionally rerank with an LLM.
-
-    ## Request Example:
-    ```json
-    {
-      "index_name": "example_index",
-      "query": "What is RAG?",
-      "llm_params": {"temperature": 0.7, "max_tokens": 2048},
-      "rerank_params": {"top_n": 3}  # ⚠️ Experimental Feature
-    }
-    ```
-
-    ## Experimental Warning:
-    - The `rerank_params` option is **experimental** and may cause the query to fail.
-    - If `LLMRerank` produces an invalid or unparsable response, an **error will be raised**.
-    - Expected format:
-      ```
-      Answer:
-      Doc: 9, Relevance: 7
-      Doc: 3, Relevance: 4
-      Doc: 7, Relevance: 3
-      ```
-    - If reranking fails, the request will not return results and will instead raise an error.
-
-    ## Response Example:
-    ```json
-    {
-      "response": "...",
-      "source_nodes": [{"doc_id": "doc1", "node_id": "node1", "text": "RAG explanation...", "score": 0.95, "metadata": {}}],
-      "metadata": {}
-    }
-    ```
-    """,
-)
-async def query_index(request: QueryRequest):
-    start_time = time.perf_counter()
-    status = STATUS_FAILURE  # Default status
-
-    try:
-        llm_params = (
-            request.llm_params or {}
-        )  # Default to empty dict if no params provided
-        rerank_params = (
-            request.rerank_params or {}
-        )  # Default to empty dict if no params provided
-
-        result_dict = await rag_ops.query(
-            request.index_name, request.query, request.top_k, llm_params, rerank_params
-        )
-
-        result = QueryResponse(
-            response=result_dict["response"],
-            source_nodes=result_dict["source_nodes"],
-            metadata=result_dict.get("metadata", {}),
-        )
-
-        # Record source retrieval quality metrics
-        if result.source_nodes and result.response:
-            lowest_score_node = min(result.source_nodes, key=lambda x: x.score)
-            rag_lowest_source_score.observe(lowest_score_node.score)
-
-            scores = [node.score for node in result.source_nodes]
-            avg_score = sum(scores) / len(scores)
-            rag_avg_source_score.observe(avg_score)
-
-        status = STATUS_SUCCESS
-        return result
-    except HTTPException as http_exc:
-        # Preserve HTTP exceptions like 422 from reranker
-        raise http_exc
-    except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"An unexpected error occurred: {str(e)}"
-        )
-    finally:
-        # Record metrics once in finally block
-        rag_query_requests_total.labels(status=status).inc()
-        rag_query_latency.labels(status=status).observe(
-            time.perf_counter() - start_time
-        )
-
-
 @app.post(
     "/v1/chat/completions",
+    operation_id="chat",
     tags=["Chat"],
     response_model=ChatCompletionResponse,
     summary="OpenAI-Compatible Chat Completions API",
@@ -408,6 +315,7 @@ async def chat_completions(request: dict):
 
 @app.get(
     "/indexes",
+    operation_id="list_indexes",
     tags=["Index"],
     response_model=list[str],
     summary="List All Indexes",
@@ -443,6 +351,7 @@ def list_indexes():
 
 @app.get(
     "/indexes/{index_name}/documents",
+    operation_id="list_documents_in_index",
     tags=["Index"],
     response_model=ListDocumentsResponse,
     summary="List Documents in an Index",
@@ -541,6 +450,7 @@ async def list_documents_in_index(
 
 @app.post(
     "/indexes/{index_name}/documents",
+    operation_id="update_documents_in_index",
     tags=["Index"],
     response_model=UpdateDocumentResponse,
     summary="Update documents in an Index",
@@ -590,6 +500,7 @@ async def update_documents_in_index(
 
 @app.post(
     "/indexes/{index_name}/documents/delete",
+    operation_id="delete_documents_in_index",
     tags=["Index"],
     response_model=DeleteDocumentResponse,
     summary="Delete documents in an Index",
@@ -638,6 +549,7 @@ async def delete_documents_in_index(
 
 @app.post(
     "/persist/{index_name}",
+    operation_id="persist_index",
     tags=["Index"],
     summary="Persist Index Data to Disk",
     description="""
@@ -692,6 +604,7 @@ async def persist_index(
 
 @app.post(
     "/load/{index_name}",
+    operation_id="load_index",
     tags=["Index"],
     summary="Load Index Data from Disk",
     description="""
@@ -742,6 +655,7 @@ async def load_index(
 
 @app.delete(
     "/indexes/{index_name}",
+    operation_id="delete_index",
     tags=["Index"],
     summary="Delete the Index",
     description="""

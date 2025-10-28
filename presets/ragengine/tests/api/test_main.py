@@ -15,12 +15,14 @@
 import json
 import os
 import re
+import time
 from unittest.mock import patch
 
 import httpx
 import pytest
 import respx
 
+import ragengine
 from ragengine.config import DEFAULT_VECTOR_DB_PERSIST_DIR
 
 AUTO_GEN_DOC_ID_LEN = 64
@@ -63,7 +65,17 @@ async def test_index_documents_success(async_client):
 @pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")  # Mock the requests.get call for fetching model metadata
-async def test_query_index_success(mock_get, async_client):
+async def test_document_update_success(mock_get, async_client, monkeypatch):
+    monkeypatch.setattr(
+        ragengine.config,
+        "LLM_INFERENCE_URL",
+        "http://localhost:5000/v1/chat/completions",
+    )
+    monkeypatch.setattr(
+        ragengine.inference.inference,
+        "LLM_INFERENCE_URL",
+        "http://localhost:5000/v1/chat/completions",
+    )
     # Mock the response for the default model fetch
     mock_get.return_value.status_code = 200
     mock_get.return_value.json.return_value = {
@@ -71,79 +83,24 @@ async def test_query_index_success(mock_get, async_client):
     }
 
     # Mock HTTPX response for Custom Inference API
-    mock_response = {"result": "This is the completion from the API"}
-    respx.post("http://localhost:5000/v1/completions").mock(
-        return_value=httpx.Response(200, json=mock_response)
-    )
-
-    # Index Request
-    request_data = {
-        "index_name": "test_index",
-        "documents": [
-            {"text": "This is a test document"},
-            {"text": "Another test document"},
+    mock_response = {
+        "id": "chatcmpl-test123",
+        "object": "chat.completion",
+        "created": int(time.time()),
+        "model": "mock-model",
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "This is a helpful response about the test document.",
+                },
+                "finish_reason": "stop",
+            }
         ],
+        "usage": {"prompt_tokens": 25, "completion_tokens": 12, "total_tokens": 37},
     }
-
-    response = await async_client.post("/index", json=request_data)
-    assert response.status_code == 200
-
-    # Query Request
-    request_data = {
-        "index_name": "test_index",
-        "query": "test query",
-        "top_k": 1,
-        "llm_params": {"temperature": 0.7},
-    }
-
-    response = await async_client.post("/query", json=request_data)
-    assert response.status_code == 200
-    assert (
-        response.json()["response"]
-        == "{'result': 'This is the completion from the API'}"
-    )
-    assert len(response.json()["source_nodes"]) == 1
-    assert response.json()["source_nodes"][0]["text"] == "This is a test document"
-    assert response.json()["source_nodes"][0]["score"] == pytest.approx(
-        0.5354418754577637, rel=1e-6
-    )
-    assert response.json()["source_nodes"][0]["metadata"] == {}
-
-    response = await async_client.get("/metrics")
-    assert response.status_code == 200
-    assert (
-        len(
-            re.findall(
-                r'rag_index_requests_total{status="success"} ([1-9]\d*).0',
-                response.text,
-            )
-        )
-        == 1
-    )
-    assert (
-        len(
-            re.findall(
-                r'rag_query_requests_total{status="success"} ([1-9]\d*).0',
-                response.text,
-            )
-        )
-        == 1
-    )
-
-
-@pytest.mark.asyncio
-@respx.mock
-@patch("requests.get")  # Mock the requests.get call for fetching model metadata
-async def test_document_update_success(mock_get, async_client):
-    # Mock the response for the default model fetch
-    mock_get.return_value.status_code = 200
-    mock_get.return_value.json.return_value = {
-        "data": [{"id": "mock-model", "max_model_len": 2048}]
-    }
-
-    # Mock HTTPX response for Custom Inference API
-    mock_response = {"result": "This is the completion from the API"}
-    respx.post("http://localhost:5000/v1/completions").mock(
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
         return_value=httpx.Response(200, json=mock_response)
     )
 
@@ -183,21 +140,22 @@ async def test_document_update_success(mock_get, async_client):
     )
     assert response.json()["unchanged_documents"][0]["text"] == doc1["text"]
 
-    # Query Request
-    request_data = {
+    # Test chat completion request
+    chat_request = {
         "index_name": "test_update_index",
-        "query": "updates test query",
-        "top_k": 1,
-        "llm_params": {"temperature": 0.7},
+        "model": "mock-model",
+        "messages": [{"role": "user", "content": "updates test query"}],
+        "temperature": 0.7,
+        "max_tokens": 50,
     }
 
-    response = await async_client.post("/query", json=request_data)
+    response = await async_client.post("/v1/chat/completions", json=chat_request)
+    print(response.json())
     assert response.status_code == 200
-    assert (
-        response.json()["response"]
-        == "{'result': 'This is the completion from the API'}"
-    )
-    assert len(response.json()["source_nodes"]) == 1
+
+    response_data = response.json()
+    assert "source_nodes" in response_data
+    assert len(response_data["source_nodes"]) == 2
     assert (
         response.json()["source_nodes"][0]["text"] == "This is an updated test document"
     )
@@ -205,7 +163,6 @@ async def test_document_update_success(mock_get, async_client):
         0.48061275482177734, rel=1e-6
     )
     assert response.json()["source_nodes"][0]["metadata"] == {}
-
     assert respx.calls.call_count == 1
 
     response = await async_client.get("/metrics")
@@ -222,7 +179,7 @@ async def test_document_update_success(mock_get, async_client):
     assert (
         len(
             re.findall(
-                r'rag_query_requests_total{status="success"} ([1-9]\d*).0',
+                r'rag_chat_requests_total{status="success"} ([1-9]\d*).0',
                 response.text,
             )
         )
@@ -295,257 +252,6 @@ async def test_document_delete_success(async_client):
         len(
             re.findall(
                 r'rag_indexes_document_requests_total{status="success"} ([1-9]\d*).0',
-                response.text,
-            )
-        )
-        == 1
-    )
-
-
-@pytest.mark.asyncio
-@respx.mock
-@patch("requests.get")  # Mock the requests.get call for fetching model metadata
-async def test_reranker_and_query_with_index(mock_get, async_client):
-    """
-    Test reranker and query functionality with indexed documents.
-
-    This test ensures the following:
-    1. The custom reranker returns a relevance-sorted list of documents.
-    2. The query response matches the expected format and contains the correct top results.
-
-    Template for reranker input:
-    A list of documents is shown below. Each document has a number next to it along with a summary of the document.
-    A question is also provided. Respond with the numbers of the documents you should consult to answer the question,
-    in order of relevance, as well as the relevance score. The relevance score is a number from 1-10 based on how
-    relevant you think the document is to the question. Do not include any documents that are not relevant.
-
-    Example format:
-    Document 1: <summary of document 1>
-    Document 2: <summary of document 2>
-    ...
-    Document 10: <summary of document 10>
-
-    Question: <question>
-    Answer:
-    Doc: 9, Relevance: 7
-    Doc: 3, Relevance: 4
-    Doc: 7, Relevance: 3
-    """
-    # Mock the response for the default model fetch
-    mock_get.return_value.status_code = 200
-    mock_get.return_value.json.return_value = {
-        "data": [{"id": "mock-model", "max_model_len": 2048}]
-    }
-
-    # Mock HTTPX response for reranker and query API calls
-    reranker_mock_response = {
-        "choices": [{"text": "Doc: 4, Relevance: 10\nDoc: 5, Relevance: 10"}]
-    }
-    query_mock_response = {"choices": [{"text": "his is the completion from the API"}]}
-
-    # Mock reranker response
-    respx.post(
-        "http://localhost:5000/v1/completions",
-        content__contains="A list of documents is shown below",
-    ).mock(return_value=httpx.Response(200, json=reranker_mock_response))
-
-    # Mock query response
-    respx.post("http://localhost:5000/v1/completions").mock(
-        return_value=httpx.Response(200, json=query_mock_response)
-    )
-
-    # Define input documents for indexing
-    documents = [
-        "The capital of France is great.",
-        "The capital of France is huge.",
-        "The capital of France is beautiful.",
-        "Have you ever visited Paris? It is a beautiful city where you can eat delicious food and see the Eiffel Tower. I really enjoyed all the cities in France, but its capital with the Eiffel Tower is my favorite city.",
-        "I really enjoyed my trip to Paris, France. The city is beautiful and the food is delicious. I would love to visit again. "
-        "Such a great capital city.",
-    ]
-
-    # Indexing request payload
-    index_request_payload = {
-        "index_name": "test_index",
-        "documents": [{"text": doc.strip()} for doc in documents],
-    }
-
-    # Perform indexing
-    response = await async_client.post("/index", json=index_request_payload)
-    assert response.status_code == 200
-    index_response = response.json()
-
-    # Query request payload with reranking
-    top_n = 2  # The number of relevant docs returned in reranker response
-    query_request_payload = {
-        "index_name": "test_index",
-        "query": "what is the capital of france?",
-        "top_k": 5,
-        "llm_params": {"temperature": 0, "max_tokens": 2000},
-        "rerank_params": {"top_n": top_n},
-    }
-
-    # Perform query
-    response = await async_client.post("/query", json=query_request_payload)
-    assert response.status_code == 200
-    query_response = response.json()
-
-    # Validate query response
-    assert len(query_response["source_nodes"]) == top_n
-
-    # Validate each source node in the query response
-    expected_source_nodes = [
-        {
-            "text": "Have you ever visited Paris? It is a beautiful city where you can eat delicious food and see the Eiffel Tower. I really enjoyed all the cities in France, but its capital with the Eiffel Tower is my favorite city.",
-            "score": 10.0,
-            "metadata": {},
-            "doc_id": index_response[3]["doc_id"],
-        },
-        {
-            "text": "I really enjoyed my trip to Paris, France. The city is beautiful and the "
-            "food is delicious. I would love to visit again. Such a great capital city.",
-            "score": 10.0,
-            "metadata": {},
-            "doc_id": index_response[4]["doc_id"],
-        },
-    ]
-    for i, expected_node in enumerate(expected_source_nodes):
-        actual_node = query_response["source_nodes"][i]
-        assert actual_node["text"] == expected_node["text"]
-        assert actual_node["score"] == expected_node["score"]
-        assert actual_node["metadata"] == expected_node["metadata"]
-        assert actual_node["doc_id"] == expected_node["doc_id"]
-
-    # Ensure HTTPX requests were made
-    assert respx.calls.call_count == 2  # One for rerank, one for query completion
-
-    response = await async_client.get("/metrics")
-    assert response.status_code == 200
-    assert (
-        len(
-            re.findall(
-                r'rag_index_requests_total{status="success"} ([1-9]\d*).0',
-                response.text,
-            )
-        )
-        == 1
-    )
-    assert (
-        len(
-            re.findall(
-                r'rag_query_requests_total{status="success"} ([1-9]\d*).0',
-                response.text,
-            )
-        )
-        == 1
-    )
-
-
-@pytest.mark.asyncio
-@respx.mock
-@patch("requests.get")  # Mock the requests.get call for fetching model metadata
-async def test_reranker_failed_and_query_with_index(mock_get, async_client):
-    """
-    Test a failed reranker request with query.
-    """
-    # Mock the response for the default model fetch
-    mock_get.return_value.status_code = 200
-    mock_get.return_value.json.return_value = {
-        "data": [{"id": "mock-model", "max_model_len": 2048}]
-    }
-
-    # Mock HTTPX response for reranker and query API calls
-    reranker_mock_response = {"choices": [{"text": "Empty Response"}]}
-
-    # Mock reranker response
-    respx.post(
-        "http://localhost:5000/v1/completions",
-        content__contains="A list of documents is shown below",
-    ).mock(return_value=httpx.Response(200, json=reranker_mock_response))
-
-    # Define input documents for indexing
-    documents = [
-        "The capital of France is great.",
-        "The capital of France is huge.",
-        "The capital of France is beautiful.",
-        "Have you ever visited Paris? It is a beautiful city where you can eat delicious food and see the Eiffel Tower. I really enjoyed all the cities in France, but its capital with the Eiffel Tower is my favorite city.",
-        "I really enjoyed my trip to Paris, France. The city is beautiful and the food is delicious. I would love to visit again. "
-        "Such a great capital city.",
-    ]
-
-    # Indexing request payload
-    index_request_payload = {
-        "index_name": "test_index",
-        "documents": [{"text": doc.strip()} for doc in documents],
-    }
-
-    # Perform indexing
-    response = await async_client.post("/index", json=index_request_payload)
-    assert response.status_code == 200
-
-    # Query request payload with reranking
-    top_n = 2  # The number of relevant docs returned in reranker response
-    query_request_payload = {
-        "index_name": "test_index",
-        "query": "what is the capital of france?",
-        "top_k": 5,
-        "llm_params": {"temperature": 0, "max_tokens": 2000},
-        "rerank_params": {"top_n": top_n},
-    }
-
-    # Perform query
-    response = await async_client.post("/query", json=query_request_payload)
-    assert response.status_code == 422
-    assert (
-        response.content
-        == b'{"detail":"Rerank operation failed: Invalid response from LLM. This feature is experimental."}'
-    )
-
-    # Ensure HTTPX requests were made
-    assert respx.calls.call_count == 1  # One for rerank
-
-    response = await async_client.get("/metrics")
-    assert response.status_code == 200
-    assert (
-        len(
-            re.findall(
-                r'rag_index_requests_total{status="success"} ([1-9]\d*).0',
-                response.text,
-            )
-        )
-        == 1
-    )
-    assert (
-        len(
-            re.findall(
-                r'rag_query_requests_total{status="failure"} ([1-9]\d*).0',
-                response.text,
-            )
-        )
-        == 1
-    )
-
-
-@pytest.mark.asyncio
-async def test_query_index_failure(async_client):
-    # Prepare request data for querying.
-    request_data = {
-        "index_name": "non_existent_index",  # Use an index name that doesn't exist
-        "query": "test query",
-        "top_k": 1,
-        "llm_params": {"temperature": 0.7},
-    }
-
-    response = await async_client.post("/query", json=request_data)
-    assert response.status_code == 404
-    assert response.json()["detail"] == "No such index: 'non_existent_index' exists."
-
-    response = await async_client.get("/metrics")
-    assert response.status_code == 200
-    assert (
-        len(
-            re.findall(
-                r'rag_query_requests_total{status="failure"} ([1-9]\d*).0',
                 response.text,
             )
         )
@@ -861,36 +567,3 @@ async def test_delete_index(async_client):
         )
         == 1
     )
-
-
-"""
-Example of a live query test. This test is currently commented out as it requires a valid 
-INFERENCE_URL in config.py. To run the test, ensure that a valid INFERENCE_URL is provided. 
-Upon execution, RAG results should be observed.
-
-def test_live_query_test():
-    # Index
-    request_data = {
-        "index_name": "test_index",
-        "documents": [
-            {"text": "Polar bear – can lift 450Kg (approximately 0.7 times their body weight) \
-                Adult male polar bears can grow to be anywhere between 300 and 700kg"},
-            {"text": "Giraffes are the tallest mammals and are well-adapted to living in trees. \
-                They have few predators as adults."}
-        ]
-    }
-
-    response = client.post("/index", json=request_data)
-    assert response.status_code == 200
-
-    # Query
-    request_data = {
-        "index_name": "test_index",
-        "query": "What is the strongest bear?",
-        "top_k": 1,
-        "llm_params": {"temperature": 0.7}
-    }
-
-    response = client.post("/query", json=request_data)
-    assert response.status_code == 200
-"""

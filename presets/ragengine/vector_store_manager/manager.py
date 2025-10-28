@@ -24,19 +24,6 @@ class VectorStoreManager:
         """Index new documents."""
         return await self.vector_store.index_documents(index_name, documents)
 
-    async def query(
-        self,
-        index_name: str,
-        query: str,
-        top_k: int,
-        llm_params: dict,
-        rerank_params: dict,
-    ):
-        """Query the indexed documents."""
-        return await self.vector_store.query(
-            index_name, query, top_k, llm_params, rerank_params
-        )
-
     async def chat_completion(self, request: dict):
         """Chat completion using the vector store."""
         return await self.vector_store.chat_completion(request)

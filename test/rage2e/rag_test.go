@@ -111,9 +111,6 @@ var _ = Describe("RAGEngine", func() {
 		docID := indexDoc["doc_id"].(string)
 
 		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
-		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, true)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
-
 		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, true)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
 
@@ -175,10 +172,6 @@ var _ = Describe("RAGEngine", func() {
 		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
-
-		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
-		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
 		persistLogSuccess := "Successfully persisted index kaito"
 		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
@@ -242,10 +235,6 @@ var _ = Describe("RAGEngine", func() {
 		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
 		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
 		docID := indexDoc["doc_id"].(string)
-
-		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
-		err = createAndValidateQueryPod(ragengineObj, searchQuerySuccess, false)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryPod")
 
 		persistLogSuccess := "Successfully persisted index kaito"
 		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
@@ -803,46 +792,6 @@ func createAndValidateDeleteIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) erro
 		Namespace:          ragengineObj.ObjectMeta.Namespace,
 		ExpectedLogContent: "Successfully deleted index kaito",
 		WaitForRunning:     false,
-		ParseJSONResponse:  false,
-	}
-	_, err := createAndValidateAPIPod(ragengineObj, opts)
-	return err
-}
-
-func createAndValidateQueryPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSearchQueries string, remote bool) error {
-	var curlCommand string
-	// Note: Request without model specified should still succeed with vLLM. As model name is dynamically fetched.
-	if remote {
-		curlCommand = `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/query \
--H "Content-Type: application/json" \
--d '{
-	"index_name": "kaito",
-	"model": "HuggingFaceH4/zephyr-7b-beta",
-    "query": "what is kaito?",
-    "llm_params": {
-      "max_tokens": 50,
-      "temperature": 0
-    }
-}'`
-	} else {
-		curlCommand = `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/query \
--H "Content-Type: application/json" \
--d '{
-	"index_name": "kaito",
-    "model": "phi-3-mini-128k-instruct",
-    "query": "what is kaito?",
-    "llm_params": {
-      "max_tokens": 50,
-      "temperature": 0
-    }
-}'`
-	}
-	opts := PodValidationOptions{
-		PodName:            fmt.Sprintf("query-pod-%s", utils.GenerateRandomString()),
-		CurlCommand:        curlCommand,
-		Namespace:          ragengineObj.ObjectMeta.Namespace,
-		ExpectedLogContent: expectedSearchQueries,
-		WaitForRunning:     true,
 		ParseJSONResponse:  false,
 	}
 	_, err := createAndValidateAPIPod(ragengineObj, opts)

@@ -58,53 +58,13 @@ class DeleteDocumentResponse(BaseModel):
     deleted_doc_ids: list[str]
     not_found_doc_ids: list[str]
 
-
-class QueryRequest(BaseModel):
-    index_name: str
-    query: str
-    top_k: int = 5
-    # Accept a dictionary for our LLM parameters
-    llm_params: dict[str, Any] | None = Field(
-        default_factory=dict,
-        description="Optional parameters for the language model, e.g., temperature, top_p",
-    )
-    # Accept a dictionary for rerank parameters
-    rerank_params: dict[str, Any] | None = Field(
-        default_factory=dict,
-        description="Experimental: Optional parameters for reranking. Only 'top_n' and 'choice_batch_size' are supported.",
-    )
-
-    @model_validator(mode="after")
-    def validate_params(self) -> "QueryRequest":
-        # Access fields as attributes
-        rerank_params = self.rerank_params
-        top_k = self.top_k
-
-        # Validate rerank parameters
-        if "top_n" in rerank_params:
-            if not isinstance(rerank_params["top_n"], int):
-                raise ValueError("Invalid type: 'top_n' must be an integer.")
-            if rerank_params["top_n"] > top_k:
-                raise ValueError(
-                    "Invalid configuration: 'top_n' for reranking cannot exceed 'top_k' from the RAG query."
-                )
-        return self
-
-
-# Define models for NodeWithScore, and QueryResponse
+# Define models for NodeWithScore
 class NodeWithScore(BaseModel):
     doc_id: str
     node_id: str
     text: str
     score: float
     metadata: dict | None = None
-
-
-class QueryResponse(BaseModel):
-    response: str
-    source_nodes: list[NodeWithScore]
-    metadata: dict | None = None
-
 
 class HealthStatus(BaseModel):
     status: str

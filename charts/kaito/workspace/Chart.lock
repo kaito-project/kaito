@@ -5,5 +5,8 @@ dependencies:
 - name: gpu-feature-discovery
   repository: https://nvidia.github.io/k8s-device-plugin
   version: 0.18.0
-digest: sha256:16e3d87455ed85594037098f49ba96aba5fb693fbff6f1e81834e00a26effff5
-generated: "2025-10-21T14:40:13.868037273-04:00"
+- name: local-csi-driver
+  repository: oci://localcsidriver.azurecr.io/acstor/charts
+  version: 0.2.6
+digest: sha256:82a17788b188dead73501eac49fc06b1000efd373fd8a745bd0fb83f7dee02a3
+generated: "2025-10-28T15:13:17.399314887+08:00"

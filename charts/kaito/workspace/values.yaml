@@ -19,6 +19,8 @@ featureGates:
   vLLM: true
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
+localCSIDriver:
+  useLocalCSIDriver: true
 webhook:
   port: 9443
 # Knative logging configuration
@@ -58,3 +60,16 @@ gpu-feature-discovery:
     enabled: false
   gfd:
     enabled: true
+local-csi-driver:
+  image:
+    driver:
+      repository: mcr.microsoft.com/acstor/local-csi-driver
+      tag: v0.2.6
+  webhook:
+    enforceEphemeral:
+      enabled: false
+    hyperconverged:
+      enabled: false
+  observability:
+    metrics:
+      enabled: false

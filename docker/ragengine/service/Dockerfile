@@ -15,6 +15,9 @@ RUN pip3 install --upgrade pip
 
 FROM dependencies AS base
 
+ARG VERSION
+ENV VERSION=$VERSION
+
 WORKDIR /app
 
 # Set the PYTHONPATH environment variable

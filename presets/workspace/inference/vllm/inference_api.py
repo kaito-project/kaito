@@ -27,9 +27,11 @@ import uvloop
 import vllm.entrypoints.openai.api_server as api_server
 import vllm.envs as envs
 import yaml
-from vllm.engine.llm_engine import EngineArgs, LLMEngine, VllmConfig
-from vllm.entrypoints.openai.serving_models import LoRAModulePath
+from vllm.config import VllmConfig
+from vllm.engine.arg_utils import EngineArgs
+from vllm.engine.llm_engine import LLMEngine
 from vllm.executor.executor_base import ExecutorBase
+from vllm.lora.request import LoRARequest
 from vllm.utils import FlexibleArgumentParser
 
 # Initialize logger
@@ -155,17 +157,23 @@ class KaitoConfig:
         return yaml.dump(self.__dict__)
 
 
-def load_lora_adapters(adapters_dir: str) -> LoRAModulePath | None:
-    lora_list: list[LoRAModulePath] = []
+def load_lora_adapters(adapters_dir: str) -> list[LoRARequest] | None:
+    lora_list: list[LoRARequest] = []
 
     if not os.path.exists(adapters_dir):
         return lora_list
 
     logger.info(f"Loading LoRA adapters from {adapters_dir}")
+    lora_int_id = 1
     for adapter in os.listdir(adapters_dir):
         adapter_path = os.path.join(adapters_dir, adapter)
         if os.path.isdir(adapter_path):
-            lora_list.append(LoRAModulePath(adapter, adapter_path))
+            lora_list.append(
+                LoRARequest(
+                    lora_name=adapter, lora_path=adapter_path, lora_int_id=lora_int_id
+                )
+            )
+            lora_int_id += 1
 
     return lora_list
 

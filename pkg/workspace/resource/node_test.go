@@ -799,7 +799,7 @@ func TestSetNodesReadyCondition_SetsToTrue(t *testing.T) {
 			tt.setup(mockClient)
 
 			manager := NewNodeManager(mockClient)
-			ready, err := manager.EnsureNodesReady(context.Background(), tt.workspace)
+			ready, err := manager.EnsureNodesReady(context.Background(), tt.workspace, []*corev1.Node{}, []*karpenterv1.NodeClaim{})
 
 			assert.Equal(t, tt.expectedReady, ready)
 			if tt.expectedError {
@@ -1079,7 +1079,7 @@ func TestSetNodesReadyCondition(t *testing.T) {
 			tt.setup(mockClient)
 
 			manager := NewNodeManager(mockClient)
-			ready, err := manager.EnsureNodesReady(context.Background(), tt.workspace)
+			ready, err := manager.EnsureNodesReady(context.Background(), tt.workspace, []*corev1.Node{}, []*karpenterv1.NodeClaim{})
 
 			assert.Equal(t, tt.expectedReady, ready)
 			if tt.expectedError {
@@ -1366,7 +1366,7 @@ func TestPropagateOwnedConditions(t *testing.T) {
 			tt.setup(mockClient)
 
 			manager := NewNodeManager(mockClient)
-			err := manager.VerifyOwnedConditions(context.Background(), tt.workspace, tt.condition, tt.conditionTypes)
+			_, err := manager.VerifyOwnedConditions(context.Background(), tt.workspace, tt.condition, tt.conditionTypes)
 
 			if tt.expectedError {
 				assert.Error(t, err)
@@ -1396,10 +1396,6 @@ func TestSetResourceReadyCondition_SetsToTrue(t *testing.T) {
 						},
 						{
 							Type:   string(kaitov1beta1.ConditionTypeNodeStatus),
-							Status: metav1.ConditionTrue,
-						},
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodePluginStatus),
 							Status: metav1.ConditionTrue,
 						},
 					},
@@ -1461,10 +1457,6 @@ func TestSetResourceReadyCondition(t *testing.T) {
 							Type:   string(kaitov1beta1.ConditionTypeNodeStatus),
 							Status: metav1.ConditionTrue,
 						},
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodePluginStatus),
-							Status: metav1.ConditionTrue,
-						},
 					},
 				},
 			},
@@ -1488,10 +1480,6 @@ func TestSetResourceReadyCondition(t *testing.T) {
 						},
 						{
 							Type:   string(kaitov1beta1.ConditionTypeNodeStatus),
-							Status: metav1.ConditionTrue,
-						},
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodePluginStatus),
 							Status: metav1.ConditionTrue,
 						},
 					},
@@ -1519,10 +1507,6 @@ func TestSetResourceReadyCondition(t *testing.T) {
 							Reason:  "NodeNotReady",
 							Message: "Not enough nodes are ready",
 						},
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodePluginStatus),
-							Status: metav1.ConditionTrue,
-						},
 					},
 				},
 			},
@@ -1545,12 +1529,6 @@ func TestSetResourceReadyCondition(t *testing.T) {
 						{
 							Type:   string(kaitov1beta1.ConditionTypeNodeStatus),
 							Status: metav1.ConditionTrue,
-						},
-						{
-							Type:    string(kaitov1beta1.ConditionTypeNodePluginStatus),
-							Status:  metav1.ConditionFalse,
-							Reason:  "nodePluginIsNotReady",
-							Message: "waiting all node plugins to be ready",
 						},
 					},
 				},
@@ -1594,10 +1572,6 @@ func TestSetResourceReadyCondition(t *testing.T) {
 						},
 						{
 							Type:   string(kaitov1beta1.ConditionTypeNodeStatus),
-							Status: metav1.ConditionTrue,
-						},
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodePluginStatus),
 							Status: metav1.ConditionTrue,
 						},
 					},
@@ -1732,7 +1706,12 @@ func TestUpdateWorkerNodesInStatus(t *testing.T) {
 			tt.setup(mockClient)
 
 			manager := NewNodeManager(mockClient)
-			err := manager.UpdateWorkerNodesInStatus(context.Background(), tt.workspace, tt.readyNodes)
+			// Convert []Node to []*Node
+			nodePointers := make([]*corev1.Node, len(tt.readyNodes))
+			for i := range tt.readyNodes {
+				nodePointers[i] = &tt.readyNodes[i]
+			}
+			err := manager.UpdateWorkerNodesInStatus(context.Background(), tt.workspace, nodePointers)
 
 			if tt.expectedError {
 				assert.Error(t, err)

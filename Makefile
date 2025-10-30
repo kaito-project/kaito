@@ -265,7 +265,7 @@ create-eks-cluster: ## Create an EKS cluster.
 BUILDX_BUILDER_NAME ?= img-builder
 OUTPUT_TYPE ?= type=registry
 QEMU_VERSION ?= 7.2.0-1
-ARCH ?= amd64,arm64
+ARCH ?= amd64
 BUILDKIT_VERSION ?= v0.18.1
 
 RAGENGINE_IMAGE_NAME ?= ragengine
@@ -273,6 +273,9 @@ RAGENGINE_IMAGE_TAG ?= v0.0.1
 
 RAGENGINE_SERVICE_IMG_NAME ?= kaito-rag-service
 RAGENGINE_SERVICE_IMG_TAG ?= v0.0.1
+
+KAITO_BASE_IMG_NAME ?= kaito-base
+KAITO_BASE_IMG_TAG ?= v0.0.1
 
 E2E_IMAGE_NAME ?= kaito-e2e
 E2E_IMAGE_TAG ?= v0.0.1
@@ -306,7 +309,19 @@ docker-build-ragengine: docker-buildx ## Build Docker image for RAG Engine.
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/$(RAGENGINE_IMAGE_NAME):$(IMG_TAG) .
 
-.PHONY: docker-build-rag-service
+.PHONY: docker-build-kaito-base
+docker-build-kaito-base: docker-buildx ## Build Docker image for KAITO base.
+	docker buildx build \
+        --build-arg VERSION=$(KAITO_BASE_IMG_TAG) \
+		--build-arg MODEL_TYPE=text-generation \
+        --platform="linux/$(ARCH)" \
+        --output=$(OUTPUT_TYPE) \
+        --file ./docker/presets/models/tfs/Dockerfile \
+        --pull \
+		$(BUILD_FLAGS) \
+        --tag $(REGISTRY)/$(KAITO_BASE_IMG_NAME):$(KAITO_BASE_IMG_TAG) .
+
+.PHONY: docker-build-ragservice
 docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine service.
 	docker buildx build \
         --platform="linux/$(ARCH)" \

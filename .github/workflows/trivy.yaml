@@ -22,6 +22,10 @@ jobs:
             image: test/kaito-rag-service:v0.0.1
             registry: test
             build_flags: "--target dependencies"
+          - target: docker-build-kaito-base
+            image: test/kaito-base:v0.0.1
+            registry: test
+            build_flags: "--target dependencies"
 
     steps:
 

@@ -1366,7 +1366,7 @@ func TestPropagateOwnedConditions(t *testing.T) {
 			tt.setup(mockClient)
 
 			manager := NewNodeManager(mockClient)
-			err := manager.SetConditionWithOwnedConditions(context.Background(), tt.workspace, tt.condition, tt.conditionTypes)
+			err := manager.VerifyOwnedConditions(context.Background(), tt.workspace, tt.condition, tt.conditionTypes)
 
 			if tt.expectedError {
 				assert.Error(t, err)

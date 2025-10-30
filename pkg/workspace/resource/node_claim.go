@@ -50,6 +50,7 @@ func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expecta
 	}
 }
 
+// GetNumNodeClaimsNeeded calculates how many NodeClaims are needed to meet the target node count for the workspace.
 func (c *NodeClaimManager) GetNumNodeClaimsNeeded(ctx context.Context, wObj *kaitov1beta1.Workspace, readyNodes []*corev1.Node) int {
 	targetNodeCount := int(wObj.Status.TargetNodeCount)
 
@@ -69,13 +70,8 @@ func (c *NodeClaimManager) GetNumNodeClaimsNeeded(ctx context.Context, wObj *kai
 }
 
 // CheckNodeClaims checks the current state of NodeClaims for the given workspace and determines how many additional NodeClaims need to be created to meet the target node count.
-func (c *NodeClaimManager) CheckNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace) (int, []*karpenterv1.NodeClaim, error) {
+func (c *NodeClaimManager) CheckNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, readyNodes []*corev1.Node) (int, []*karpenterv1.NodeClaim, error) {
 	// We don't care in this case if the ready nodes come from NodeClaims, meaning ready nodes could come from BYO if the right size and properly labeled.
-	readyNodes, err := resources.GetReadyNodes(ctx, c.Client, wObj)
-	if err != nil {
-		return 0, nil, fmt.Errorf("failed to list ready nodes: %w", err)
-	}
-
 	ncList, err := nodeclaim.ListNodeClaim(ctx, wObj, c.Client)
 	if err != nil {
 		return 0, nil, fmt.Errorf("failed to get existing NodeClaims: %w", err)
@@ -143,7 +139,7 @@ func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1
 }
 
 // EnsureNodeClaimsReady is used for checking the number of ready nodeclaims(isNodeClaimReadyNotDeleting) meet the target NodeClaim count needed. Updates the
-func (c *NodeClaimManager) EnsureNodeClaimsReady(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
+func (c *NodeClaimManager) EnsureNodeClaimsReady(ctx context.Context, wObj *kaitov1beta1.Workspace, readyNodes []*corev1.Node, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
 	// Since NodeClaims are only used when NAP is enabled, we know that all target nodes will be provisioned by NodeClaims instead of BYO nodes.
 	readyNodes, err := resources.GetReadyNodes(ctx, c.Client, wObj)
 	if err != nil {

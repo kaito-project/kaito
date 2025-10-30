@@ -151,10 +151,27 @@ func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1b
 		}
 	}()
 
-	nodeClaims := []*karpenterv1.NodeClaim{}
+	nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
+	if err != nil {
+		return &reconcile.Result{}, err
+	}
+	matchingNodes := []*corev1.Node{}
+	for i := range nodeList.Items {
+		node := &nodeList.Items[i]
+		matchingNodes = append(matchingNodes, node)
+	}
+
+	readyNodes, err := resources.GetReadyNodes(ctx, c.Client, wObj)
+	if err != nil {
+		return &reconcile.Result{}, fmt.Errorf("failed to list ready nodes: %w", err)
+	}
+
+	existingNodeClaims := []*karpenterv1.NodeClaim{}
 	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// diff node claims
-		numNodeClaimsToCreate, existingNodeClaims, err := c.nodeClaimManager.CheckNodeClaims(ctx, wObj)
+		var numNodeClaimsToCreate int
+		var err error
+		numNodeClaimsToCreate, existingNodeClaims, err = c.nodeClaimManager.CheckNodeClaims(ctx, wObj, readyNodes)
 		klog.Info("NodeClaims to create", "count", numNodeClaimsToCreate, "workspace", klog.KObj(wObj))
 		if err != nil {
 			return &reconcile.Result{}, err
@@ -166,7 +183,7 @@ func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1b
 		}
 
 		// check nodeclaims meet the target count
-		if ready, err := c.nodeClaimManager.EnsureNodeClaimsReady(ctx, wObj, existingNodeClaims); err != nil {
+		if ready, err := c.nodeClaimManager.EnsureNodeClaimsReady(ctx, wObj, readyNodes, existingNodeClaims); err != nil {
 			return &reconcile.Result{}, err
 		} else if !ready {
 			// Not enough ready nodeclaims, requeue and wait for next reconcile.
@@ -183,7 +200,7 @@ func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1b
 	}
 
 	// Check if selected nodes are ready in both NAP and BYO scenarios.
-	_, err := c.nodeResourceManager.EnsureNodesReady(ctx, wObj, nodeClaims)
+	_, err = c.nodeResourceManager.EnsureNodesReady(ctx, wObj, matchingNodes, existingNodeClaims)
 
 	return nil, err
 }

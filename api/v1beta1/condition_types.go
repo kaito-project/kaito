@@ -20,9 +20,6 @@ const (
 	// ConditionTypeNodeClaimStatus is the state when checking nodeClaim status.
 	ConditionTypeNodeClaimStatus = ConditionType("NodeClaimsReady")
 
-	// ConditionTypeNodePluginStatus is the state when checking nodePlugin status.
-	ConditionTypeNodePluginStatus = ConditionType("NodePluginsReady")
-
 	// ConditionTypeNodeStatus is the state when checking node status.
 	ConditionTypeNodeStatus = ConditionType("NodesReady")
 

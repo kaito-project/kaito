@@ -144,47 +144,48 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 	return nil
 }
 
-func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
+func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (*reconcile.Result, error) {
 	defer func() {
 		if err := c.nodeResourceManager.SetResourceReadyConditionByStatus(ctx, wObj); err != nil {
 			klog.ErrorS(err, "failed to update resource status", "workspace", klog.KObj(wObj))
 		}
 	}()
 
+	nodeClaims := []*karpenterv1.NodeClaim{}
 	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// diff node claims
 		numNodeClaimsToCreate, existingNodeClaims, err := c.nodeClaimManager.CheckNodeClaims(ctx, wObj)
 		klog.Info("NodeClaims to create", "count", numNodeClaimsToCreate, "workspace", klog.KObj(wObj))
 		if err != nil {
-			return reconcile.Result{}, err
+			return &reconcile.Result{}, err
 		}
 
 		// create nodeclaims
 		if err := c.nodeClaimManager.CreateUpNodeClaims(ctx, wObj, numNodeClaimsToCreate); err != nil {
-			return reconcile.Result{}, err
+			return &reconcile.Result{}, err
 		}
 
 		// check nodeclaims meet the target count
 		if ready, err := c.nodeClaimManager.EnsureNodeClaimsReady(ctx, wObj, existingNodeClaims); err != nil {
-			return reconcile.Result{}, err
+			return &reconcile.Result{}, err
 		} else if !ready {
 			// Not enough ready nodeclaims, requeue and wait for next reconcile.
-			return reconcile.Result{}, nil
+			return &reconcile.Result{}, nil
 		}
 
 		// check node plugins ready
-		if ready, err := c.nodeResourceManager.EnsureNodePluginsReady(ctx, wObj, existingNodeClaims); err != nil {
-			return reconcile.Result{}, err
+		if ready, err := c.nodeResourceManager.CheckIfNodePluginsReady(ctx, wObj, existingNodeClaims); err != nil {
+			return &reconcile.Result{}, err
 		} else if !ready {
 			// The node resource changes can not trigger workspace controller reconcile, so we need to requeue reconcile when don't proceed because of node resource not ready.
-			return reconcile.Result{RequeueAfter: 2 * time.Second}, nil
+			return &reconcile.Result{RequeueAfter: 2 * time.Second}, nil
 		}
 	}
 
 	// Check if selected nodes are ready in both NAP and BYO scenarios.
-	_, err := c.nodeResourceManager.EnsureNodesReady(ctx, wObj)
+	_, err := c.nodeResourceManager.EnsureNodesReady(ctx, wObj, nodeClaims)
 
-	return reconcile.Result{}, err
+	return nil, err
 }
 
 func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
@@ -195,10 +196,8 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		return reconcile.Result{}, nil
 	}
 
-	if result, err := c.reconcileNodes(ctx, wObj); err != nil {
-		return result, err
-	} else if result.RequeueAfter > 0 {
-		return result, nil
+	if result, err := c.reconcileNodes(ctx, wObj); err != nil || result != nil {
+		return *result, err
 	}
 
 	var err error

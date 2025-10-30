@@ -252,7 +252,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 			defer os.Unsetenv("CLOUD_PROVIDER")
 
 			manager := NewNodeManager(mockClient)
-			ready, err := manager.EnsureNodePluginsReady(context.Background(), tt.workspace, tt.existingNodeClaims)
+			ready, err := manager.CheckIfNodePluginsReady(context.Background(), tt.workspace, tt.existingNodeClaims)
 
 			if tt.expectedError {
 				assert.Error(t, err)
@@ -402,7 +402,7 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 			defer os.Unsetenv("CLOUD_PROVIDER")
 
 			manager := NewNodeManager(mockClient)
-			ready, err := manager.EnsureNodePluginsReady(context.Background(), tt.workspace, tt.existingNodeClaims)
+			ready, err := manager.CheckIfNodePluginsReady(context.Background(), tt.workspace, tt.existingNodeClaims)
 
 			assert.Equal(t, tt.expectedError, err != nil)
 			assert.Equal(t, tt.expectedReady, ready)

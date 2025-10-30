@@ -27,7 +27,9 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 )
@@ -42,32 +44,27 @@ func NewNodeManager(c client.Client) *NodeManager {
 	}
 }
 
-// EnsureNodePluginsReady is used for ensuring node label(accelerator:nvidia) and GPU capacity on all auto-provisioned nodes for the workspace.
-func (c *NodeManager) EnsureNodePluginsReady(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
+// CheckIfNodePluginsReady is used for ensuring node label(accelerator:nvidia) and GPU capacity on all auto-provisioned nodes for the workspace.
+// It also updates the Node status condition accordingly.
+func (c *NodeManager) CheckIfNodePluginsReady(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
 	// ensure Nvidia device plugins are ready for the workspace when instance type is known.
 	knownGPUConfig, _ := utils.GetGPUConfigBySKU(wObj.Resource.InstanceType)
 	if knownGPUConfig != nil {
 		if areReady, err := c.checkNodePlugin(ctx, wObj, existingNodeClaims); err != nil {
-			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodePluginStatus, metav1.ConditionFalse,
+			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeStatus, metav1.ConditionFalse,
 				"NodePluginsNotReady", err.Error()); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return false, updateErr
 			}
 			return false, err
 		} else if !areReady {
-			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodePluginStatus, metav1.ConditionFalse,
+			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeStatus, metav1.ConditionFalse,
 				"NodePluginsNotReady", "waiting all node plugins to be ready"); updateErr != nil {
 				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
 				return false, updateErr
 			}
 			return false, nil
 		}
-	}
-
-	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodePluginStatus, metav1.ConditionTrue,
-		"NodePluginsReady", fmt.Sprintf("All Node Plugins are ready for %d Node Claims", len(existingNodeClaims))); updateErr != nil {
-		klog.ErrorS(updateErr, "failed to update NodePlugin status condition NodePluginsReady to true", "workspace", klog.KObj(wObj))
-		return false, fmt.Errorf("failed to update NodePlugin status condition(NodePluginsReady): %w", updateErr)
 	}
 
 	return true, nil
@@ -141,7 +138,7 @@ func (c *NodeManager) getReadyNodesFromNodeClaims(ctx context.Context, wObj *kai
 }
 
 // EnsureNodesReady is used for checking the number of ready nodes meet the target node count. Updates the status condition accordingly.
-func (c *NodeManager) EnsureNodesReady(ctx context.Context, wObj *kaitov1beta1.Workspace) (ready bool, retErr error) {
+func (c *NodeManager) EnsureNodesReady(ctx context.Context, wObj *kaitov1beta1.Workspace, nodeClaims []*karpenterv1.NodeClaim) (ready bool, retErr error) {
 	nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
 	if err != nil {
 		return false, fmt.Errorf("failed to list nodes: %w", err)
@@ -164,8 +161,20 @@ func (c *NodeManager) EnsureNodesReady(ctx context.Context, wObj *kaitov1beta1.W
 		}
 	}()
 
-	if readyCount >= targetNodeCount {
-		// Enough Nodes are ready - update status condition to indicate success
+	if readyCount >= targetNodeCount { // Enough nodes are ready.
+
+		// If NAP is enabled, ensure node plugins are ready.
+		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+			ready, err := c.CheckIfNodePluginsReady(ctx, wObj, nodeClaims)
+			if err != nil {
+				return false, fmt.Errorf("failed to check node plugin readiness: %w", err)
+			}
+			if !ready {
+				return false, nil
+			}
+		}
+
+		// Enough Nodes are ready, mark condition as true.
 		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeStatus, metav1.ConditionTrue,
 			"NodesReady", fmt.Sprintf("Enough Nodes are ready (TargetNodes: %d, CurrentReadyNodes: %d, SelectedNodes: %d)", targetNodeCount, readyCount, len(nodeList.Items))); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update Node status condition NodesReady to true", "workspace", klog.KObj(wObj))
@@ -209,7 +218,6 @@ func (c *NodeManager) SetResourceReadyConditionByStatus(ctx context.Context, wOb
 	ownedConditions := []kaitov1beta1.ConditionType{
 		kaitov1beta1.ConditionTypeNodeClaimStatus,
 		kaitov1beta1.ConditionTypeNodeStatus,
-		kaitov1beta1.ConditionTypeNodePluginStatus,
 	}
 
 	// If any owned condition is false, set the resource condition to false and return.

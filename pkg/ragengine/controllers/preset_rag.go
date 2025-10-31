@@ -116,7 +116,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 	var resourceReq corev1.ResourceRequirements
 
 	if ragEngineObj.Spec.Embedding.Local != nil {
-		var gpuConfig *sku.GPUConfig = nil
+		var gpuConfig *sku.GPUConfig
 		var err error
 		gpuConfig, err = utils.GetGPUConfigBySKU(ragEngineObj.Spec.Compute.InstanceType)
 		if err != nil {

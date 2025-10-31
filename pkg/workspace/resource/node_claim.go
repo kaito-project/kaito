@@ -30,7 +30,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
@@ -140,12 +139,6 @@ func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1
 
 // EnsureNodeClaimsReady is used for checking the number of ready nodeclaims(isNodeClaimReadyNotDeleting) meet the target NodeClaim count needed. Updates the
 func (c *NodeClaimManager) EnsureNodeClaimsReady(ctx context.Context, wObj *kaitov1beta1.Workspace, readyNodes []*corev1.Node, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
-	// Since NodeClaims are only used when NAP is enabled, we know that all target nodes will be provisioned by NodeClaims instead of BYO nodes.
-	readyNodes, err := resources.GetReadyNodes(ctx, c.Client, wObj)
-	if err != nil {
-		return false, fmt.Errorf("failed to list ready nodes: %w", err)
-	}
-
 	targetNodeClaimCount := c.GetNumNodeClaimsNeeded(ctx, wObj, readyNodes)
 
 	readyCount := 0

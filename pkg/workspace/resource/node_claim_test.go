@@ -188,7 +188,7 @@ func TestCheckNodeClaims(t *testing.T) {
 			},
 			readyNodes: []*corev1.Node{
 				// 1 ready BYO node (does not have karpenter.sh/nodepool label)
-				&corev1.Node{
+				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "byo-ready-node-1",
 						Labels: map[string]string{

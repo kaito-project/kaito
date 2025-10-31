@@ -21,8 +21,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -388,10 +388,10 @@ func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 						Name: "byo-gpu-node",
 						Labels: map[string]string{
 							"node.kubernetes.io/instance-type": "Standard_NC96ads_A100_v4",
-							"kubernetes.azure.com/accelerator":  "nvidia-tesla-a100",
-							"nvidia.com/gpu.product":            "Tesla-A100-SXM4-80GB",
-							"nvidia.com/gpu.count":              "4",
-							"nvidia.com/gpu.memory":             "81920", // 80GB in MiB
+							"kubernetes.azure.com/accelerator": "nvidia-tesla-a100",
+							"nvidia.com/gpu.product":           "Tesla-A100-SXM4-80GB",
+							"nvidia.com/gpu.count":             "4",
+							"nvidia.com/gpu.memory":            "81920", // 80GB in MiB
 						},
 					},
 					Status: corev1.NodeStatus{

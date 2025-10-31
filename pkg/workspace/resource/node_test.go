@@ -1157,8 +1157,8 @@ func TestEnsureNodesReady(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-1",
 						Labels: map[string]string{
-							"workload":                         "test",
-							corev1.LabelInstanceTypeStable:     "Standard_NC6s_v3", // Wrong instance type - logged but doesn't fail
+							"workload":                     "test",
+							corev1.LabelInstanceTypeStable: "Standard_NC6s_v3", // Wrong instance type - logged but doesn't fail
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -1199,8 +1199,8 @@ func TestEnsureNodesReady(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-1",
 						Labels: map[string]string{
-							"workload":                         "test",
-							corev1.LabelInstanceTypeStable:     "Standard_NC12s_v3", // Correct instance type
+							"workload":                     "test",
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3", // Correct instance type
 						},
 					},
 					Status: corev1.NodeStatus{

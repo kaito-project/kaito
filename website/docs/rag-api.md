@@ -281,60 +281,6 @@ DELETE /indexes/rag_index
 
 Use this endpoint to permanently remove an index and all its data when it is no longer needed.
 
-## Query Index
-
-To query a specific index for relevant documents, use the `/query` API route. This endpoint accepts a POST request with the index name, query string, and optional parameters for result count, and LLM generation.
-
-### Query Index Request
-
-```json
-POST /query
-{
-  "index_name": "rag_index",
-  "query": "What is RAG?",
-  "top_k": 5,
-  "llm_params": {
-    "temperature": 0.7,
-    "max_tokens": 2048
-  }
-}
-```
-
-- `index_name`: The name of the index to query.
-- `query`: The query string.
-- `top_k`: (optional) Number of top documents to retrieve (default: 5).
-- `llm_params`: (optional) Parameters for LLM-based generation (e.g., temperature, max_tokens).
-
-### Query Index Response
-
-```json
-{
-  "response": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model...",
-  "source_nodes": [
-    {
-      "doc_id": "123456",
-      "node_id": "2853a565-8c1f-4982-acaa-a0ab52691435",
-      "text": "Retrieval Augmented Generation (RAG) is an architecture that augments the capabilities of a Large Language Model...",
-      "score": 0.95,
-      "metadata": {
-        "author": "kaito",
-      }
-    }
-  ],
-  "metadata": {
-    "2853a565-8c1f-4982-acaa-a0ab52691435": {
-      "author": "kaito",
-    }
-  }
-}
-```
-
-- `response`: The generated answer or summary from the LLM (if enabled).
-- `source_nodes`: List of source nodes with their text, score, and metadata.
-- `metadata`: Additional metadata about the query or response.
-
-Use this endpoint to retrieve relevant information from your indexed documents and optionally generate answers using an LLM.
-
 ## OpenAI-Compatible Chat Completions
 
 The RAGEngine provides an OpenAI-compatible chat completions endpoint at `/v1/chat/completions`. This endpoint allows you to use RAG capabilities with the familiar OpenAI API format, making it easy to integrate with existing applications that use OpenAI's chat completions.

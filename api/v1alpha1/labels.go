@@ -47,6 +47,9 @@ const (
 	// RAGEngineRevisionAnnotation is the Annotations for revision number
 	RAGEngineRevisionAnnotation = "ragengine.kaito.io/revision"
 
+	// InferenceSetRevisionAnnotation is the Annotations for revision number
+	InferenceSetRevisionAnnotation = "inferenceset.kaito.io/revision"
+
 	// AnnotationWorkspaceRuntime is the annotation for runtime selection.
 	AnnotationWorkspaceRuntime = KAITOPrefix + "runtime"
 

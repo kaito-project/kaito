@@ -29,6 +29,7 @@ var (
 		consts.FeatureFlagEnsureNodeClass:              false,
 		consts.FeatureFlagDisableNodeAutoProvisioning:  false,
 		consts.FeatureFlagGatewayAPIInferenceExtension: false,
+		consts.FeatureFlagEnableInferenceSetController: false,
 		//	Add more feature gates here
 	}
 )

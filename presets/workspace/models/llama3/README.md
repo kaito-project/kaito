@@ -12,4 +12,4 @@
 
 ## Usage
 
-See [document](../../../../docs/inference/README.md).
+See [document](../../../../website/docs/inference.md).

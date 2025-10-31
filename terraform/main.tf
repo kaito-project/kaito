@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.40.0"
+      version = "=4.47.0"
     }
 
     random = {
@@ -53,8 +53,8 @@ provider "helm" {
 data "azurerm_client_config" "current" {}
 
 resource "random_integer" "example" {
-  min = 10
-  max = 99
+  min = 1000
+  max = 9999
 }
 
 resource "azurerm_resource_group" "example" {

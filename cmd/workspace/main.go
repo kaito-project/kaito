@@ -16,6 +16,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"strconv"
@@ -30,6 +31,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/injection/sharedmain"
 	"knative.dev/pkg/webhook"
@@ -42,12 +44,16 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers/garbagecollect"
+	"github.com/kaito-project/kaito/pkg/workspace/controllers/inferenceset"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
@@ -59,6 +65,8 @@ const (
 var (
 	scheme = runtime.NewScheme()
 
+	workspaceController = fmt.Sprintf("kaito-workspace/%s", version.Version)
+
 	exitWithErrorFunc = func() {
 		klog.Flush()
 		os.Exit(1)
@@ -67,6 +75,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(kaitov1alpha1.AddToScheme(scheme))
 	utilruntime.Must(kaitov1beta1.AddToScheme(scheme))
 	utilruntime.Must(kaitoutils.KarpenterSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(azurev1beta1.SchemeBuilder.AddToScheme(scheme))
@@ -84,19 +93,31 @@ func main() {
 	var enableWebhook bool
 	var probeAddr string
 	var featureGates string
+	var kubeClientQPS int = 30
+	var kubeClientBurst int = 50
+	var printVersionAndExit bool
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.IntVar(&kubeClientQPS, "kube-client-qps", kubeClientQPS, "the rate of qps to kube-apiserver.")
+	flag.IntVar(&kubeClientBurst, "kube-client-burst", kubeClientBurst, "the max allowed burst of queries to the kube-apiserver.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhook, "webhook", true,
 		"Enable webhook for controller manager. Default is true.")
 	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false.")
+	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
 		Development: true,
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+
+	if printVersionAndExit {
+		fmt.Println(version.VersionInfo())
+		os.Exit(0)
+	}
+	klog.Info("version: ", version.VersionInfo())
 
 	if err := featuregates.ParseAndValidateFeatureGates(featureGates); err != nil {
 		klog.ErrorS(err, "unable to set `feature-gates` flag")
@@ -107,7 +128,11 @@ func main() {
 
 	ctx := withShutdownSignal(context.Background())
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	cfg := ctrl.GetConfigOrDie()
+	cfg.UserAgent = workspaceController
+	setRestConfig(cfg, kubeClientQPS, kubeClientBurst)
+
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
 			BindAddress: metricsAddr,
@@ -150,6 +175,20 @@ func main() {
 		exitWithErrorFunc()
 	}
 
+	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+		inferenceSetReconciler := inferenceset.NewInferenceSetReconciler(
+			kClient,
+			mgr.GetScheme(),
+			log.Log.WithName("controllers").WithName("InferenceSet"),
+			mgr.GetEventRecorderFor("KAITO-InferenceSet-controller"),
+		)
+
+		if err = inferenceSetReconciler.SetupWithManager(mgr); err != nil {
+			klog.ErrorS(err, "unable to create controller", "controller", "InferenceSet")
+			exitWithErrorFunc()
+		}
+	}
+
 	pvGCReconciler := garbagecollect.NewPersistentVolumeGCReconciler(
 		kClient,
 		mgr.GetEventRecorderFor("KAITO-PersistentVolumeGC-controller"),
@@ -184,7 +223,7 @@ func main() {
 		})
 		ctx = sharedmain.WithHealthProbesDisabled(ctx)
 		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewWorkspaceWebhooks()...)
+		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewControllerWebhooks()...)
 
 		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
 		time.Sleep(2 * time.Second)
@@ -211,4 +250,13 @@ func withShutdownSignal(ctx context.Context) context.Context {
 		cancel()
 	}()
 	return nctx
+}
+
+func setRestConfig(c *rest.Config, kubeClientQPS, kubeClientBurst int) {
+	if kubeClientQPS > 0 {
+		c.QPS = float32(kubeClientQPS)
+	}
+	if kubeClientBurst > 0 {
+		c.Burst = kubeClientBurst
+	}
 }

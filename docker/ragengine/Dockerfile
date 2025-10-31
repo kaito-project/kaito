@@ -17,6 +17,9 @@ RUN \
 
 FROM dependencies AS builder
 
+ARG VERSION
+ARG BUILD_DATE
+
 # Copy the go source
 COPY cmd/ cmd/
 COPY api/ api/
@@ -29,7 +32,8 @@ COPY pkg/ pkg/
 # by leaving it empty we can ensure that the container and binary shipped on it will have the same platform.
 RUN --mount=type=cache,target=${GOCACHE} \
     --mount=type=cache,id=ragengine-controller,sharing=locked,target=/go/pkg/mod \
-    CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o manager cmd/ragengine/*.go
+    CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} GO111MODULE=on \
+    go build -ldflags "-X 'github.com/kaito-project/kaito/pkg/version.Version=${VERSION}' -X 'github.com/kaito-project/kaito/pkg/version.BuildDate=${BUILD_DATE}'" -a -o manager cmd/ragengine/*.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details

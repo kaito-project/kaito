@@ -29,7 +29,7 @@ func computeMaxModelLen(preset *pkgmodel.PresetParam, gpu *sku.GPUConfig, numReq
 	if preset == nil || gpu == nil || numRequiredNodes <= 0 {
 		return 0
 	}
-	if preset.ModelTokenLimit <= 0 || preset.BytesPerToken <= 0 || gpu.GPUMemGB <= 0 || gpu.GPUCount <= 0 {
+	if preset.ModelTokenLimit <= 0 || preset.BytesPerToken <= 0 || gpu.GPUMemGiB <= 0 || gpu.GPUCount <= 0 {
 		return 0
 	}
 
@@ -89,7 +89,7 @@ func parseModelWeight(totalSafeTensorFileSize string) (float64, bool) {
 // calculateMemoryParameters computes available GPU memory and adjusted bytes per token.
 // Returns the available memory in bytes and the adjusted bytes per token for the calculation.
 func calculateMemoryParameters(preset *pkgmodel.PresetParam, gpu *sku.GPUConfig, numRequiredNodes int, weightGiB float64) (float64, float64) {
-	gpuMemGB := float64(gpu.GPUMemGB)
+	gpuMemGB := float64(gpu.GPUMemGiB)
 	gpuCount := float64(gpu.GPUCount)
 	nodes := float64(numRequiredNodes)
 	bytesPerToken := float64(preset.BytesPerToken)

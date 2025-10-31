@@ -6,14 +6,15 @@ The current supported model families with preset configurations are listed below
 
 | Model Family                                | Compatible KAITO Versions |
 |---------------------------------------------|---------------------------|
+| [deepseek](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/deepseek)     | v0.6.0+                   |
 | [falcon](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/falcon)         | v0.0.1+                   |
+| [llama3](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/llama3)         | v0.4.6+                   |
 | [mistral](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/mistral)       | v0.2.0+                   |
 | [phi2](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/phi2)             | v0.2.0+                   |
 | [phi3](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/phi3)             | v0.3.0+                   |
 | [phi4](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/phi4)             | v0.4.5+                   |
 | [qwen7b](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/qwen)           | v0.4.1+                   |
 | [qwen32b](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/qwen)          | v0.4.5+                   |
-| [llama3](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/llama3)         | v0.4.6+                   |
 
 ## Validation
 
@@ -27,6 +28,7 @@ The following preset models support multi-node distributed inference:
 
 | Model Family | Models | Multi-Node Support |
 |--------------|--------|-------------------|
+| [deepseek](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/deepseek) | `deepseek-r1`, `deepseek-v3` | ✅ |
 | [llama3](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/llama3) | `llama-3.3-70b-instruct` | ✅ |
 
 For detailed information on configuring and using multi-node inference, see the [Multi-Node Inference](./multi-node-inference.md) documentation.

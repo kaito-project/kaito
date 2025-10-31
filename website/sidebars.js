@@ -53,6 +53,7 @@ const sidebars = {
                     },
                     items: [
                         'rag-api',
+                        'rag-chat-completions-wrapper'
                     ],
                 },
                 'custom-model',

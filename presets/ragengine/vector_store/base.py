@@ -28,15 +28,12 @@ from llama_index.core import Document as LlamaDocument
 from llama_index.core import StorageContext, VectorStoreIndex, load_index_from_storage
 from llama_index.core.base.llms.types import MessageRole
 from llama_index.core.chat_engine.types import ChatMode
-from llama_index.core.postprocessor import LLMRerank  # Query with LLM Reranking
 from llama_index.core.storage.docstore import SimpleDocumentStore
 from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
 from pydantic import ValidationError
 
 from ragengine.config import (
-    LLM_RERANKER_BATCH_SIZE,
-    LLM_RERANKER_TOP_N,
     RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO,
     RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION,
     RAG_SIMILARITY_THRESHOLD,
@@ -46,6 +43,7 @@ from ragengine.inference.inference import Inference
 from ragengine.models import (
     ChatCompletionResponse,
     Document,
+    ListDocumentsResponse,
     input_messages_to_llamaindex_messages,
 )
 from ragengine.vector_store.node_processors.contex_selection_node_processor import (
@@ -166,84 +164,6 @@ class BaseVectorStore(ABC):
                 index.set_index_id(index_name)
                 self.index_map[index_name] = index
         return indexed_doc_ids
-
-    async def query(
-        self,
-        index_name: str,
-        query: str,
-        top_k: int,
-        llm_params: dict,
-        rerank_params: dict,
-    ):
-        """
-        Query the indexed documents
-
-        Args:
-            index_name (str): Name of the index to query
-            query (str): Query string
-            top_k (int): Number of initial top results to retrieve
-            llm_params (dict): Optional parameters for the language model
-            rerank_params (dict): Optional configuration for reranking
-                - 'top_n' (int): Number of top documents to return after reranking
-                - 'choice_batch_size' (int):  Number of documents to process in each batch
-
-        Returns:
-            dict: A dictionary containing the response and source nodes.
-        """
-        if index_name not in self.index_map:
-            raise HTTPException(
-                status_code=404, detail=f"No such index: '{index_name}' exists."
-            )
-
-        node_postprocessors = []
-        if rerank_params:
-            # Set default reranking parameters and merge with provided params
-            default_rerank_params = {
-                "choice_batch_size": LLM_RERANKER_BATCH_SIZE,  # Default batch size
-                "top_n": min(
-                    LLM_RERANKER_TOP_N, top_k
-                ),  # Limit top_n to top_k by default
-            }
-            rerank_params = {**default_rerank_params, **rerank_params}
-
-            # Add LLMRerank to postprocessors
-            node_postprocessors.append(
-                LLMRerank(
-                    llm=self.llm,
-                    choice_batch_size=rerank_params["choice_batch_size"],
-                    top_n=rerank_params["top_n"],
-                )
-            )
-
-        query_engine = self.index_map[index_name].as_chat_engine(
-            llm=self.llm,
-            similarity_top_k=top_k,
-            node_postprocessors=node_postprocessors,
-            chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
-            verbose=True,
-        )
-
-        if self.use_rwlock:
-            async with self.rwlock.reader_lock:
-                self.llm.set_params(llm_params)
-                query_result = await query_engine.achat(query)
-        else:
-            self.llm.set_params(llm_params)
-            query_result = await query_engine.achat(query)
-        return {
-            "response": query_result.response,
-            "source_nodes": [
-                {
-                    "doc_id": source_node.node.ref_doc_id,
-                    "node_id": source_node.node_id,
-                    "text": source_node.text,
-                    "score": source_node.score,
-                    "metadata": source_node.metadata,
-                }
-                for source_node in query_result.source_nodes
-            ],
-            "metadata": query_result.metadata,
-        }
 
     async def chat_completion(self, request: dict) -> ChatCompletionResponse:
         """
@@ -470,6 +390,47 @@ class BaseVectorStore(ABC):
                     user_prompt, chat_history=chat_history
                 )
 
+            # If no relevant context is found, the llamaindex response synthesizers will send an empty response without hitting the llm.
+            # We will instead send the passthrough request directly to the llm rather than send an empty response to the user
+            # https://github.com/run-llama/llama_index/blob/8469a034226d20b70a667dc7faf013770716709f/llama-index-core/llama_index/core/response_synthesizers/base.py#L271
+            if (
+                len(chat_result.source_nodes) == 0
+                and chat_result.response.strip() == "Empty Response"
+            ):
+                logger.info(
+                    "No relevant context found for the query. Falling back to passthrough request"
+                )
+                return await self.llm.chat_completions_passthrough(openai_request)
+
+            # Try to get usage from LLM response via the last_usage attribute
+            # The Inference class stores usage from the last LLM API call
+            llm_usage = None
+            if hasattr(self.llm, "last_usage") and self.llm.last_usage:
+                llm_usage = self.llm.last_usage
+
+            if llm_usage:
+                usage = llm_usage
+                logger.info(
+                    f"Token usage from LLM API response: {llm_usage.get('total_tokens', 0)} total tokens "
+                    f"(prompt: {llm_usage.get('prompt_tokens', 0)}, completion: {llm_usage.get('completion_tokens', 0)})"
+                )
+            else:
+                # Fallback to manual calculation if LLM doesn't return usage
+                usage = {
+                    "prompt_tokens": self.llm.count_tokens(
+                        total_prompt_for_token_aprox
+                    ),
+                    "completion_tokens": self.llm.count_tokens(
+                        chat_result.response or ""
+                    ),
+                    "total_tokens": self.llm.count_tokens(total_prompt_for_token_aprox)
+                    + self.llm.count_tokens(chat_result.response or ""),
+                }
+                logger.info(
+                    f"Token usage calculated by manual estimation: {usage['total_tokens']} total tokens "
+                    f"(prompt: {usage['prompt_tokens']}, completion: {usage['completion_tokens']})"
+                )
+
             return ChatCompletionResponse(
                 id=uuid.uuid4().hex,
                 object="chat.completion",
@@ -495,6 +456,7 @@ class BaseVectorStore(ABC):
                     }
                     for source_node in chat_result.source_nodes
                 ],
+                usage=usage,
             )
         except Exception as e:
             logger.error(f"Error during chat completion: {str(e)}")
@@ -677,10 +639,28 @@ class BaseVectorStore(ABC):
         offset: int,
         max_text_length: int | None = None,
         metadata_filter: dict[str, Any] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> ListDocumentsResponse:
         """
         Return a dictionary of document metadata for the given index.
         """
+        if self.use_rwlock:
+            async with self.rwlock.reader_lock:
+                return await self._list_documents_in_index(
+                    index_name, limit, offset, max_text_length, metadata_filter
+                )
+
+        return await self._list_documents_in_index(
+            index_name, limit, offset, max_text_length, metadata_filter
+        )
+
+    async def _list_documents_in_index(
+        self,
+        index_name: str,
+        limit: int,
+        offset: int,
+        max_text_length: int | None = None,
+        metadata_filter: dict[str, Any] | None = None,
+    ) -> ListDocumentsResponse:
         vector_store_index = self.index_map.get(index_name)
         if not vector_store_index:
             raise HTTPException(
@@ -689,8 +669,9 @@ class BaseVectorStore(ABC):
 
         doc_store = vector_store_index.docstore
         doc_store_items = doc_store.docs.items()
+        total_count = len(doc_store_items)
         if metadata_filter is not None:
-            docs_items = await self._filter_documents(
+            docs_items, total_count = await self._filter_documents(
                 doc_store_items, metadata_filter, offset, limit
             )
         else:
@@ -706,7 +687,10 @@ class BaseVectorStore(ABC):
         )
 
         # Return list of valid documents
-        return [doc for doc in docs if isinstance(doc, dict)]
+        docs = [doc for doc in docs if isinstance(doc, dict)]
+        return ListDocumentsResponse(
+            documents=docs, count=len(docs), total_items=total_count
+        )
 
     async def delete_index(self, index_name: str):
         """Common logic for deleting an index."""
@@ -727,12 +711,15 @@ class BaseVectorStore(ABC):
         """
         Filter documents based on metadata.
         """
+        total_count = 0
         filtered_docs = []
         for doc_id, doc_stub in doc_items:
             doc_metadata = getattr(doc_stub, "metadata", {})
             if all(doc_metadata.get(k) == v for k, v in metadata_filter.items()):
-                filtered_docs.append((doc_id, doc_stub))
-        return islice(filtered_docs, offset, offset + limit)
+                if total_count >= offset and len(filtered_docs) < limit:
+                    filtered_docs.append((doc_id, doc_stub))
+                total_count += 1
+        return filtered_docs, total_count
 
     async def document_exists(
         self, index_name: str, doc: Document, doc_id: str

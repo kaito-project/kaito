@@ -12,9 +12,7 @@
 # limitations under the License.
 
 
-from typing import Any
-
-from ragengine.models import Document
+from ragengine.models import Document, ListDocumentsResponse
 from ragengine.vector_store.base import BaseVectorStore
 
 
@@ -25,19 +23,6 @@ class VectorStoreManager:
     async def index(self, index_name: str, documents: list[Document]) -> list[str]:
         """Index new documents."""
         return await self.vector_store.index_documents(index_name, documents)
-
-    async def query(
-        self,
-        index_name: str,
-        query: str,
-        top_k: int,
-        llm_params: dict,
-        rerank_params: dict,
-    ):
-        """Query the indexed documents."""
-        return await self.vector_store.query(
-            index_name, query, top_k, llm_params, rerank_params
-        )
 
     async def chat_completion(self, request: dict):
         """Chat completion using the vector store."""
@@ -54,7 +39,7 @@ class VectorStoreManager:
         offset: int,
         max_text_length: int,
         metadata_filter: dict,
-    ) -> list[dict[str, Any]]:
+    ) -> ListDocumentsResponse:
         """List all documents in index."""
         return await self.vector_store.list_documents_in_index(
             index_name, limit, offset, max_text_length, metadata_filter

@@ -39,6 +39,7 @@ from openai.types.chat import (
 from pydantic import PrivateAttr
 from requests.exceptions import HTTPError
 
+from ragengine import __version__
 from ragengine.config import (
     LLM_ACCESS_SECRET,
     LLM_CONTEXT_WINDOW,
@@ -52,12 +53,15 @@ logger = logging.getLogger(__name__)
 
 OPENAI_URL_PREFIX = "https://api.openai.com"
 HUGGINGFACE_URL_PREFIX = "https://api-inference.huggingface.co"
+DEFAULT_HTTP_TIMEOUT = 300.0  # Seconds
+DEFAULT_HTTP_SUCCESS_CODE = 200
+USER_AGENT = f"KAITO-RagEngine/{__version__}"
+
 DEFAULT_HEADERS = {
     "Authorization": f"Bearer {LLM_ACCESS_SECRET}",
     "Content-Type": "application/json",
+    "User-Agent": USER_AGENT,
 }
-DEFAULT_HTTP_TIMEOUT = 300.0  # Seconds
-DEFAULT_HTTP_SUCCESS_CODE = 200
 
 
 class Inference(CustomLLM):
@@ -67,11 +71,14 @@ class Inference(CustomLLM):
     _model_retrieval_attempted: bool = False
     _async_http_client: httpx.AsyncClient = PrivateAttr(default=None)
     _token_encoder: Any = None
+    last_usage: dict = None  # Store usage from last LLM API call
 
     async def _get_httpx_client(self):
         """Lazily initializes the HTTP client on first request."""
         if self._async_http_client is None:
-            self._async_http_client = httpx.AsyncClient(timeout=DEFAULT_HTTP_TIMEOUT)
+            self._async_http_client = httpx.AsyncClient(
+                timeout=DEFAULT_HTTP_TIMEOUT, headers=DEFAULT_HEADERS
+            )
         return self._async_http_client
 
     def set_params(self, params: dict) -> None:
@@ -241,6 +248,10 @@ class Inference(CustomLLM):
                     req[key] = value
 
             resp = await self._async_post_request_raw(data=req, headers=DEFAULT_HEADERS)
+
+            # Store usage information from LLM response for later retrieval
+            self.last_usage = resp.get("usage")
+
             return ChatResponse(
                 logprobs=resp.get("logprobs", None),
                 delta=resp.get("delta", None),

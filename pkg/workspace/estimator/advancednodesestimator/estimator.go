@@ -96,10 +96,10 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 	klog.Infof("[AdvancedEstimator] workspace=%s maxModelLen=%d", workspace.Name, maxModelLen)
 
 	// If GPU memory information is available, calculate the optimal node count
-	if gpuConfig.GPUMemGB > 0 && gpuConfig.GPUCount > 0 {
+	if gpuConfig.GPUMemGiB > 0 && gpuConfig.GPUCount > 0 {
 		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalSafeTensorFileSize)
 		requiredMemoryBytes := int64(float64(totalGPUMemoryRequired.Value()) * 1.02) // vllm model size is about 102% percent of hugging face size
-		totalGPUMemoryPerGPUBytes := int64(gpuConfig.GPUMemGB) * consts.GiBToBytes / int64(gpuConfig.GPUCount)
+		totalGPUMemoryPerGPUBytes := int64(gpuConfig.GPUMemGiB) * consts.GiBToBytes / int64(gpuConfig.GPUCount)
 		availableGPUMemoryPerGPUBytes := int64(float64(totalGPUMemoryPerGPUBytes) * 0.84) // utilization is set to default 0.84
 
 		// Overhead calculation: fixed base overhead (2.3GB) + model length overhead

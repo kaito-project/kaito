@@ -6,6 +6,8 @@ ARG VERSION
 # https://docs.ray.io/en/latest/cluster/usage-stats.html
 ENV RAY_USAGE_STATS_ENABLED="1"
 
+RUN pip3 install --upgrade pip
+
 # Set the working directory
 WORKDIR /workspace
 
@@ -17,7 +19,8 @@ FROM dependencies AS base
 
 COPY presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
 
-RUN pip install --no-cache-dir -q -r /workspace/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -q -r /workspace/requirements.txt
 
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \

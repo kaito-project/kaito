@@ -35,18 +35,6 @@ rag_embedding_requests_total = Counter(
     labelnames=[STATUS_LABEL, MODE_LABEL],
 )
 
-# Query API metrics
-rag_query_latency = Histogram(
-    "rag_query_latency_seconds",
-    "Time to call '/query' API in seconds",
-    labelnames=[STATUS_LABEL],
-)
-rag_query_requests_total = Counter(
-    "rag_query_requests_total",
-    "Count of successful/failed calling '/query' requests",
-    labelnames=[STATUS_LABEL],
-)
-
 # Chat API metrics
 rag_chat_latency = Histogram(
     "rag_chat_latency_seconds",

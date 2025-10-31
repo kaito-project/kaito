@@ -41,27 +41,6 @@ class KAITORAGClient:
         resp.raise_for_status()
         return resp.json()
 
-    def query(self, index_name, query, llm_temperature, llm_max_tokens, top_k=5):
-        """
-        Query the RAGEngine.
-        query: str, the query text
-        top_k: int, number of results to return
-        metadata: optional dict, additional metadata for the query
-        """
-        url = f"{self.base_url}/query"
-        payload = {
-            "index_name": index_name,
-            "query": query,
-            "top_k": top_k,
-            "llm_params": {
-                "temperature": llm_temperature,
-                "max_tokens": llm_max_tokens,
-            },
-        }
-        resp = requests.post(url, json=payload, headers=self.headers)
-        resp.raise_for_status()
-        return resp.json()
-
     def update_documents(self, index_name, documents):
         """
         Update a document in the RAGEngine.

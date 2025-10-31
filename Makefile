@@ -3,9 +3,16 @@
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
 VERSION ?= v0.7.0
-GPU_PROVISIONER_VERSION ?= 0.3.6
+GPU_PROVISIONER_VERSION ?= 0.3.7
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
+
+# injection variables
+INJECTION_ROOT := github.com/kaito-project/kaito/pkg/version
+BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+GIT_VERSION := $(shell git describe --tags --always --dirty)
+LDFLAGS := -X '$(INJECTION_ROOT).Version=$(GIT_VERSION)' \
+		   -X '$(INJECTION_ROOT).BuildDate=$(BUILD_DATE)'
 
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BIN_DIR := $(abspath $(ROOT_DIR)/bin)
@@ -265,7 +272,7 @@ create-eks-cluster: ## Create an EKS cluster.
 BUILDX_BUILDER_NAME ?= img-builder
 OUTPUT_TYPE ?= type=registry
 QEMU_VERSION ?= 7.2.0-1
-ARCH ?= amd64,arm64
+ARCH ?= amd64
 BUILDKIT_VERSION ?= v0.18.1
 
 RAGENGINE_IMAGE_NAME ?= ragengine
@@ -273,6 +280,10 @@ RAGENGINE_IMAGE_TAG ?= v0.0.1
 
 RAGENGINE_SERVICE_IMG_NAME ?= kaito-rag-service
 RAGENGINE_SERVICE_IMG_TAG ?= v0.0.1
+RAGENGINE_SERVICE_APP_VERSION := $(subst v,,$(RAGENGINE_SERVICE_IMG_TAG))
+
+KAITO_BASE_IMG_NAME ?= kaito-base
+KAITO_BASE_IMG_TAG ?= v0.0.1
 
 E2E_IMAGE_NAME ?= kaito-e2e
 E2E_IMAGE_TAG ?= v0.0.1
@@ -292,6 +303,8 @@ docker-build-workspace: docker-buildx ## Build Docker image for workspace.
 		--file ./docker/workspace/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
+		--build-arg VERSION=$(GIT_VERSION) \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/$(IMG_NAME):$(IMG_TAG) .
@@ -302,13 +315,28 @@ docker-build-ragengine: docker-buildx ## Build Docker image for RAG Engine.
 		--file ./docker/ragengine/Dockerfile \
 		--output=$(OUTPUT_TYPE) \
 		--platform="linux/$(ARCH)" \
+		--build-arg VERSION=$(GIT_VERSION) \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
 		--pull \
 		$(BUILD_FLAGS) \
 		--tag $(REGISTRY)/$(RAGENGINE_IMAGE_NAME):$(IMG_TAG) .
 
-.PHONY: docker-build-rag-service
+.PHONY: docker-build-kaito-base
+docker-build-kaito-base: docker-buildx ## Build Docker image for KAITO base.
+	docker buildx build \
+        --build-arg VERSION=$(KAITO_BASE_IMG_TAG) \
+		--build-arg MODEL_TYPE=text-generation \
+        --platform="linux/$(ARCH)" \
+        --output=$(OUTPUT_TYPE) \
+        --file ./docker/presets/models/tfs/Dockerfile \
+        --pull \
+		$(BUILD_FLAGS) \
+        --tag $(REGISTRY)/$(KAITO_BASE_IMG_NAME):$(KAITO_BASE_IMG_TAG) .
+
+.PHONY: docker-build-ragservice
 docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine service.
 	docker buildx build \
+        --build-arg VERSION=$(RAGENGINE_SERVICE_APP_VERSION) \
         --platform="linux/$(ARCH)" \
         --output=$(OUTPUT_TYPE) \
         --file ./docker/ragengine/service/Dockerfile \
@@ -360,16 +388,6 @@ docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 		--platform="linux/$(ARCH)" \
 		--pull \
 		--tag $(REGISTRY)/e2e-dataset2:0.0.1 .
-
-.PHONY: docker-build-llm-reference-preset
-docker-build-llm-reference-preset: docker-buildx ## Build Docker image for LLM reference preset.
-	docker buildx build \
-		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:$(VERSION) \
-		-t ghcr.io/kaito-repo/kaito/llm-reference-preset:latest \
-		-f docs/custom-model-integration/Dockerfile.reference \
-		$(BUILD_FLAGS) \
-		--build-arg MODEL_TYPE=text-generation \
-		--build-arg VERSION=$(VERSION) .
 
 ## --------------------------------------
 ## KAITO Installation
@@ -498,11 +516,11 @@ aws-karpenter-helm: ## Install AWS Karpenter Helm chart and set AWS env vars and
 
 .PHONY: build-workspace
 build-workspace: manifests generate fmt vet ## Build manager binary.
-	go build -o bin/workspace-manager cmd/workspace/*.go
+	go build -ldflags "$(LDFLAGS)" -o bin/workspace-manager cmd/workspace/*.go
 
 .PHONY: run-workspace
 run-workspace: manifests generate fmt vet ## Run a controller from your host.
-	go run ./cmd/workspace/main.go
+	go run -ldflags "$(LDFLAGS)" ./cmd/workspace/main.go
 
 .PHONY: localbin
 localbin: $(LOCALBIN) ## Create folder for installing local binaries.
@@ -519,11 +537,11 @@ $(LOCALBIN): ## Create folder for installing local binaries.
 
 .PHONY: build-ragengine
 build-ragengine: manifests generate fmt vet ## Build RAG Engine binary.
-	go build -o bin/rag-engine-manager cmd/ragengine/*.go
+	go build -ldflags "$(LDFLAGS)" -o bin/rag-engine-manager cmd/ragengine/*.go
 
 .PHONY: run-ragengine
 run-ragengine: manifests generate fmt vet ## Run RAG Engine controller from command line.
-	go run ./cmd/ragengine/main.go
+	go run -ldflags "$(LDFLAGS)" ./cmd/ragengine/main.go
 
 
 ## --------------------------------------

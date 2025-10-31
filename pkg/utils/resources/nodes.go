@@ -126,11 +126,17 @@ func ExtractObjFields(obj client.Object) (instanceType, namespace, name string, 
 
 // GetBYOAndReadyNodes finds all BYO nodes and ready nodes that match the workspace's label selector
 func GetBYOAndReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, []string, error) {
-	nodeList, err := ListNodes(ctx, c, wObj.Resource.LabelSelector.MatchLabels)
+	var matchLabels client.MatchingLabels
+	if wObj.Resource.LabelSelector != nil {
+		matchLabels = wObj.Resource.LabelSelector.MatchLabels
+	}
+
+	nodeList, err := ListNodes(ctx, c, matchLabels)
 	if err != nil {
 		return nil, nil, err
 	}
 
+	//nolint:staticcheck // SA1019
 	preferredNodeSet := sets.New(wObj.Resource.PreferredNodes...)
 
 	availableBYONodes := make([]*corev1.Node, 0, len(nodeList.Items))
@@ -160,6 +166,7 @@ func GetBYOAndReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta
 
 	klog.V(4).InfoS("Found available BYO nodes",
 		"workspace", klog.KObj(wObj),
+		//nolint:staticcheck // SA1019
 		"preferredNodesSpecified", len(wObj.Resource.PreferredNodes),
 		"availableBYONodes", len(availableBYONodes))
 

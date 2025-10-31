@@ -25,3 +25,30 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: validation.inferenceset.kaito.sh
+  labels:
+    {{- include "kaito.labels" . | nindent 4 }}
+webhooks:
+  - name: validation.inferenceset.kaito.sh
+    admissionReviewVersions: ["v1"]
+    clientConfig:
+      service:
+        name: {{ include "kaito.fullname" . }}-svc
+        namespace: {{ .Release.Namespace }}
+        port: {{ .Values.webhook.port }}
+    failurePolicy: Fail
+    sideEffects: None
+    rules:
+      - apiGroups:
+          - kaito.sh
+        apiVersions:
+          - v1alpha1
+        resources:
+          - inferencesets
+        operations:
+          - CREATE
+          - UPDATE

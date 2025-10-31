@@ -16,6 +16,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"strconv"
@@ -28,6 +29,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/injection/sharedmain"
 	"knative.dev/pkg/webhook"
@@ -45,6 +47,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
 	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/version"
 )
 
 const (
@@ -54,6 +57,8 @@ const (
 
 var (
 	scheme = runtime.NewScheme()
+
+	ragengineController = fmt.Sprintf("kaito-ragengine/%s", version.Version)
 
 	exitWithErrorFunc = func() {
 		klog.Flush()
@@ -78,25 +83,41 @@ func main() {
 	var enableWebhook bool
 	var probeAddr string
 	var featureGates string
+	var kubeClientQPS int = 30
+	var kubeClientBurst int = 50
+	var printVersionAndExit bool
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.IntVar(&kubeClientQPS, "kube-client-qps", kubeClientQPS, "the rate of qps to kube-apiserver.")
+	flag.IntVar(&kubeClientBurst, "kube-client-burst", kubeClientBurst, "the max allowed burst of queries to the kube-apiserver.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhook, "webhook", true,
 		"Enable webhook for controller manager. Default is true.")
 	flag.StringVar(&featureGates, "feature-gates", "vLLM=true", "Enable Kaito feature gates. Default,	vLLM=true.")
+	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
 		Development: true,
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
+	if printVersionAndExit {
+		fmt.Println(version.VersionInfo())
+		os.Exit(0)
+	}
+	klog.Info("version: ", version.VersionInfo())
+
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	ctx := withShutdownSignal(context.Background())
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	cfg := ctrl.GetConfigOrDie()
+	cfg.UserAgent = ragengineController
+	setRestConfig(cfg, kubeClientQPS, kubeClientBurst)
+
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
 			BindAddress: metricsAddr,
@@ -190,4 +211,13 @@ func withShutdownSignal(ctx context.Context) context.Context {
 		cancel()
 	}()
 	return nctx
+}
+
+func setRestConfig(c *rest.Config, kubeClientQPS, kubeClientBurst int) {
+	if kubeClientQPS > 0 {
+		c.QPS = float32(kubeClientQPS)
+	}
+	if kubeClientBurst > 0 {
+		c.Burst = kubeClientBurst
+	}
 }

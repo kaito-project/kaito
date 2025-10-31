@@ -28,6 +28,8 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/kaito-project/kaito/pkg/sku"
 )
 
 func TestFetchGPUCountFromNodes(t *testing.T) {
@@ -521,6 +523,119 @@ func TestClientObjectSpecEqual(t *testing.T) {
 			got, err := ClientObjectSpecEqual(tt.a, tt.b)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
+	tests := []struct {
+		name     string
+		node     *corev1.Node
+		wantErr  bool
+		expected *sku.GPUConfig
+	}{
+		{
+			name: "valid nvidia.com labels",
+			node: &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gpu-node",
+					Labels: map[string]string{
+						"nvidia.com/gpu.product": "Tesla-V100-SXM2-32GB",
+						"nvidia.com/gpu.count":   "2",
+						"nvidia.com/gpu.memory":  "32768", // 32GB in MiB
+					},
+				},
+			},
+			wantErr: false,
+			expected: &sku.GPUConfig{
+				SKU:       "unknown",
+				GPUCount:  2,
+				GPUModel:  "Tesla-V100-SXM2-32GB",
+				GPUMemGiB: 32,
+			},
+		},
+		{
+			name: "missing nvidia.com/gpu.product label",
+			node: &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gpu-node",
+					Labels: map[string]string{
+						"nvidia.com/gpu.count":  "1",
+						"nvidia.com/gpu.memory": "16384",
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "missing nvidia.com/gpu.count label",
+			node: &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gpu-node",
+					Labels: map[string]string{
+						"nvidia.com/gpu.product": "Tesla-T4",
+						"nvidia.com/gpu.memory":  "16384",
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "missing nvidia.com/gpu.memory label",
+			node: &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gpu-node",
+					Labels: map[string]string{
+						"nvidia.com/gpu.product": "Tesla-T4",
+						"nvidia.com/gpu.count":   "1",
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid nvidia.com/gpu.count value",
+			node: &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gpu-node",
+					Labels: map[string]string{
+						"nvidia.com/gpu.product": "Tesla-T4",
+						"nvidia.com/gpu.count":   "invalid",
+						"nvidia.com/gpu.memory":  "16384",
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid nvidia.com/gpu.memory value",
+			node: &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gpu-node",
+					Labels: map[string]string{
+						"nvidia.com/gpu.product": "Tesla-T4",
+						"nvidia.com/gpu.count":   "1",
+						"nvidia.com/gpu.memory":  "invalid",
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GetGPUConfigFromNvidiaLabels(tt.node)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected.SKU, got.SKU)
+				assert.Equal(t, tt.expected.GPUCount, got.GPUCount)
+				assert.Equal(t, tt.expected.GPUModel, got.GPUModel)
+				assert.Equal(t, tt.expected.GPUMemGiB, got.GPUMemGiB)
+			}
 		})
 	}
 }

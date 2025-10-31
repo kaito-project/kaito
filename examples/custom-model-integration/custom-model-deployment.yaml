@@ -7,14 +7,12 @@ resource:
   labelSelector:
     matchLabels:
       apps: custom-llm
-#  preferredNodes:
-#    - <PREFERRED_NODE_HERE>
 inference:
   template:
     spec:
       containers:
         - name: custom-llm-container
-          image: ghcr.io/kaito-project/kaito/llm-reference-preset:latest # KAITO Reference Image
+          image: mcr.microsoft.com/aks/kaito/kaito-base:0.0.8 # KAITO base image which includes hf runtime
           livenessProbe:
             failureThreshold: 3
             httpGet:
@@ -50,7 +48,7 @@ inference:
             - "1"
             - "--gpu_ids"
             - "all"
-            - "inference_api.py"
+            - "tfs/inference_api.py"
             - "--pipeline"
             - "text-generation"
             - "--trust_remote_code"

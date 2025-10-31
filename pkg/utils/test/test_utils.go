@@ -471,6 +471,31 @@ var (
 			},
 		},
 	}
+
+	MockInferenceSetWithDeleteOldCR = v1alpha1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testInferenceSet",
+			Namespace: "kaito",
+			Annotations: map[string]string{
+				"inferenceset.kaito.sh/hash":     "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
+				"inferenceset.kaito.sh/revision": "1",
+			},
+		},
+		Spec: v1alpha1.InferenceSetSpec{
+			Template: v1alpha1.InferenceSetTemplate{
+				Resource: v1alpha1.InferenceSetResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+				},
+				Inference: v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+		},
+	}
 )
 
 var (
@@ -528,6 +553,30 @@ var (
 			},
 		},
 	}
+
+	MockInferenceSetFailToCreateCR = v1alpha1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testInferenceSet-failedtocreateCR",
+			Namespace: "kaito",
+			Annotations: map[string]string{
+				"inferenceset.kaito.sh/revision": "1",
+			},
+		},
+		Spec: v1alpha1.InferenceSetSpec{
+			Template: v1alpha1.InferenceSetTemplate{
+				Resource: v1alpha1.InferenceSetResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+				},
+				Inference: v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+		},
+	}
 )
 
 var (
@@ -574,6 +623,30 @@ var (
 			Preset: &v1beta1.PresetSpec{
 				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-model",
+				},
+			},
+		},
+	}
+
+	MockInferenceSetSuccessful = v1alpha1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testInferenceSet-successful",
+			Namespace: "kaito",
+			Annotations: map[string]string{
+				"inferenceset.kaito.sh/revision": "0",
+			},
+		},
+		Spec: v1alpha1.InferenceSetSpec{
+			Template: v1alpha1.InferenceSetTemplate{
+				Resource: v1alpha1.InferenceSetResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+				},
+				Inference: v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
 				},
 			},
 		},
@@ -625,6 +698,31 @@ var (
 			Preset: &v1beta1.PresetSpec{
 				PresetMeta: v1beta1.PresetMeta{
 					Name: "test-model",
+				},
+			},
+		},
+	}
+
+	MockInferenceSetWithComputeHash = v1alpha1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testInferenceSet",
+			Namespace: "kaito",
+			Annotations: map[string]string{
+				"inferenceset.kaito.sh/hash":     "be5369aea1bec8fc674d900b229888f4b17739e647ca53509953bf2f1f2c0121",
+				"inferenceset.kaito.sh/revision": "1",
+			},
+		},
+		Spec: v1alpha1.InferenceSetSpec{
+			Template: v1alpha1.InferenceSetTemplate{
+				Resource: v1alpha1.InferenceSetResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+				},
+				Inference: v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
 				},
 			},
 		},
@@ -681,6 +779,31 @@ var (
 			},
 		},
 	}
+
+	MockInferenceSetUpdateCR = v1alpha1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testInferenceSet",
+			Namespace: "kaito",
+			Annotations: map[string]string{
+				"inferenceset.kaito.sh/hash":     "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
+				"inferenceset.kaito.sh/revision": "1",
+			},
+		},
+		Spec: v1alpha1.InferenceSetSpec{
+			Template: v1alpha1.InferenceSetTemplate{
+				Resource: v1alpha1.InferenceSetResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+				},
+				Inference: v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+		},
+	}
 )
 
 var (
@@ -715,6 +838,40 @@ var (
 						Image: "fake.kaito.com/kaito-image:0.0.1",
 					},
 					Strength: &ValidStrength,
+				},
+			},
+		},
+	}
+
+	MockInferenceSetWithUpdatedDeployment = v1alpha1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testInferenceSet",
+			Namespace: "kaito",
+			Annotations: map[string]string{
+				"inferenceset.kaito.sh/hash":     "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
+				"inferenceset.kaito.sh/revision": "1",
+			},
+		},
+		Spec: v1alpha1.InferenceSetSpec{
+			Template: v1alpha1.InferenceSetTemplate{
+				Resource: v1alpha1.InferenceSetResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+				},
+				Inference: v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+					Adapters: []v1beta1.AdapterSpec{
+						{
+							Source: &v1beta1.DataSource{
+								Name:  "Adapter-1",
+								Image: "fake.kaito.com/kaito-image:0.0.1",
+							},
+							Strength: &ValidStrength,
+						},
+					},
 				},
 			},
 		},

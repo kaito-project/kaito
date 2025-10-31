@@ -33,7 +33,7 @@ jobs:
           echo "tag=$(echo ${{ github.event.inputs.release_version }})" >> $GITHUB_OUTPUT
 
       - name: Harden Runner
-        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
         with:
           egress-policy: audit
           disable-sudo: true
@@ -89,7 +89,7 @@ jobs:
           ref: ${{ needs.check-tag.outputs.tag }}
 
       - name: Login to ${{ steps.get-registry.outputs.registry_repository }}
-        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -133,7 +133,7 @@ jobs:
     needs: [ check-tag, run-e2e-gh-image ]
     steps:
       - name: 'Dispatch ragengine MCR publishing'
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           event-type: publish-rag-controller-mcr-image

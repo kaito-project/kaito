@@ -48,6 +48,7 @@ import (
 
 func TestApplyRAGEngineResource(t *testing.T) {
 	test.RegisterTestModel()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
 		expectedError error
@@ -700,6 +701,7 @@ func TestEnsureService(t *testing.T) {
 
 func TestReconcile(t *testing.T) {
 	test.RegisterTestModel()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	mockRAGEngineDistributedModel0Node := test.MockRAGEngine
 	mockRAGEngineDistributedModel0Node.Spec.InferenceService = &v1alpha1.InferenceServiceSpec{
 		URL: "http://example.com/inference",

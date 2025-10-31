@@ -120,8 +120,8 @@ func TestGPUConfigLogic(t *testing.T) {
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			ragEngine:        test.MockRAGEngineWithPresetPreferredCPUNodes,
-			expectedGPUReq:   int64(0),
-			expectedLimitReq: int64(0),
+			expectedGPUReq:   int64(1), // Standard_NC24ads_A100_v4 has 1 GPU
+			expectedLimitReq: int64(1), // Standard_NC24ads_A100_v4 has 1 GPU
 		},
 	}
 

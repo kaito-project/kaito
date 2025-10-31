@@ -13,7 +13,7 @@ peft==0.11.1
 numpy<3.0,>=1.25.0
 sentencepiece==0.2.0
 jinja2>=3.1.0
-starlette==0.47.2
+starlette==0.49.1
 lmcache==0.3.5
 
 # For accessing Ray dashboard. ray[default] version should be consistent with the one in vllm/vllm-openai:<vllm-version>.

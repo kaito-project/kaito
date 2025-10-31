@@ -22,6 +22,7 @@ targets:
             - ${VERSION}-${REVISION}.azl3
       runtime:
         bash: {}
+        findutils: {}
         tar: {}
 
 artifacts:

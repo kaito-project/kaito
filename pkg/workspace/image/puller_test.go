@@ -103,7 +103,7 @@ var _ = Describe("Puller", func() {
 			ret := NewPullerContainer(imgRef, volDir)
 			Expect(ret).NotTo(BeNil())
 			Expect(ret.Name).To(Equal("puller"))
-			Expect(ret.Image).To(Equal("quay.io/skopeo/stable:v1.18.0-immutable"))
+			Expect(ret.Image).To(Equal("mcr.microsoft.com/aks/skopeo:1.14.4-6"))
 			Expect(ret.Command).To(Equal([]string{"/bin/sh", "-c"}))
 			Expect(ret.Args).To(Equal([]string{pullerSH}))
 		})

@@ -137,13 +137,16 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		Model:      model,
 	}
 
-	gpuConfig := getGPUConfig(gctx)
+	gpuConfig, err := getGPUConfig(gctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get GPU config: %w", err)
+	}
 
 	// Set the target node count for the inference workload
 	numNodes := int(workspaceObj.Status.TargetNodeCount)
 
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(&gpuConfig, numNodes),
+		GenerateInferencePodSpec(gpuConfig, numNodes),
 		SetModelDownloadInfo,
 		SetAdapterPuller,
 	}
@@ -157,7 +160,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 			manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
 		}
 
-		if checkIfNVMeAvailable(ctx, &gpuConfig, kubeClient) {
+		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
 			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
 		} else {
 			podOpts = append(podOpts, SetDefaultModelWeightsVolume)
@@ -185,58 +188,27 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	}
 }
 
-func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) sku.GPUConfig {
-	var gpuConfig *sku.GPUConfig
-	var err error
-
+func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
 		// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
-		if ctx.Workspace.Resource.LabelSelector != nil {
-			readyNodes, err := resources.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
-			if err == nil && len(readyNodes) > 0 {
-				gpuConfig, err = utils.TryGetGPUConfigFromNodes(ctx.Ctx, readyNodes)
-				if err == nil && gpuConfig != nil {
-					return *gpuConfig
-				}
-			}
+		readyNodes, err := resources.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list ready nodes: %w", err)
 		}
+		if len(readyNodes) == 0 {
+			return nil, fmt.Errorf("no ready nodes found matching the workspace's label selector")
+		}
+
+		return utils.GetGPUConfigFromNodeLabels(readyNodes[0])
 	} else {
-		// NAP is enabled - try to get GPU config from known SKU if instanceType is set
-		if ctx.Workspace.Resource.InstanceType != "" {
-			gpuConfig, _ = utils.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
-			if gpuConfig != nil {
-				return *gpuConfig
-			}
+		// NAP is enabled - try to get GPU config from known SKU
+		gpuConfig, err := utils.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
+		if err != nil {
+			return nil, err
 		}
 
-		// Fallback to trying node status for NAP scenario
-		if len(ctx.Workspace.Status.WorkerNodes) > 0 {
-			// Get node objects from node names
-			var nodes []*corev1.Node
-			for _, nodeName := range ctx.Workspace.Status.WorkerNodes {
-				node, nodeErr := resources.GetNode(ctx.Ctx, nodeName, ctx.KubeClient)
-				if nodeErr == nil {
-					nodes = append(nodes, node)
-				}
-			}
-
-			if len(nodes) > 0 {
-				gpuConfig, err = utils.TryGetGPUConfigFromNodes(ctx.Ctx, nodes)
-				if err == nil && gpuConfig != nil {
-					return *gpuConfig
-				}
-			}
-		}
-	}
-
-	// Final fallback: use the default GPU count requirement from the model
-	// FIXME: assume gpu nodes are provided here. cpu inference should not go through this path.
-	defaultNumGPU := resource.MustParse(ctx.Model.GetInferenceParameters().GPUCountRequirement)
-	skuNumGPUs := int(defaultNumGPU.Value())
-	return sku.GPUConfig{
-		GPUCount:  skuNumGPUs,
-		GPUMemGiB: 0, // Unknown memory when falling back to defaults
+		return gpuConfig, nil
 	}
 }
 

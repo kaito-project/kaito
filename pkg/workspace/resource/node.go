@@ -146,6 +146,24 @@ func (c *NodeManager) EnsureNodesReady(ctx context.Context, wObj *kaitov1beta1.W
 		if resources.NodeIsReadyAndNotDeleting(node) {
 			readyCount++
 		}
+
+		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+			// If NAP is enabled, ensure the nodes have the instance type label set correctly and that it matches the workspace instance type.
+			instanceType, ok := node.Labels[corev1.LabelInstanceTypeStable]
+			var message string
+			if !ok {
+				message = fmt.Sprintf("Node %s is missing required instance type label", node.Name)
+			} else if instanceType != wObj.Resource.InstanceType {
+				message = fmt.Sprintf("Node %s instance type label %s does not match workspace instance type %s", node.Name, instanceType, wObj.Resource.InstanceType)
+			}
+
+			if message != "" {
+				if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeStatus, metav1.ConditionFalse,
+					"NodeNotReady", message); updateErr != nil {
+					return false, fmt.Errorf("failed to update Node status condition(NodeNotReady): %w", updateErr)
+				}
+			}
+		}
 	}
 
 	defer func() {

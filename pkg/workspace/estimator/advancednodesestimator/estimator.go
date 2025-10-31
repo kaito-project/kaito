@@ -58,22 +58,14 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 	var err error
 
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// NAP is disabled (BYO scenario) - instanceType is optional
-		// Try to get GPU config from existing nodes
 		if readyNodes, err := resources.GetReadyNodes(ctx, client, workspace); err != nil {
 			return 0, fmt.Errorf("failed to list ready nodes: %w", err)
-		} else if len(readyNodes) > 0 {
-			gpuConfig, err = utils.TryGetGPUConfigFromNodes(ctx, readyNodes)
+		} else if len(readyNodes) == 0 {
+			return 0, fmt.Errorf("no ready nodes found, unable to determine GPU configuration")
+		} else {
+			gpuConfig, err = utils.GetGPUConfigFromNodeLabels(readyNodes[0])
 			if err != nil {
 				return 0, fmt.Errorf("failed to get GPU config from existing nodes: %w", err)
-			}
-		}
-
-		// If we can't get GPU config from nodes, fall back to minimal default
-		if gpuConfig == nil {
-			gpuConfig = &sku.GPUConfig{
-				GPUCount:  1,
-				GPUMemGiB: 0, // Unknown memory, will skip memory-based optimization
 			}
 		}
 	} else {
@@ -81,9 +73,6 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		gpuConfig, err = utils.GetGPUConfigBySKU(workspace.Resource.InstanceType)
 		if err != nil {
 			return 0, fmt.Errorf("failed to get GPU config for instance type %s: %w", workspace.Resource.InstanceType, err)
-		}
-		if gpuConfig == nil {
-			return 0, fmt.Errorf("GPU config is nil for instance type %s", workspace.Resource.InstanceType)
 		}
 	}
 

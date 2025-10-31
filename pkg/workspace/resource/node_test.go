@@ -31,6 +31,8 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
@@ -816,15 +818,16 @@ func TestSetNodesReadyCondition_SetsToTrue(t *testing.T) {
 	}
 }
 
-func TestSetNodesReadyCondition(t *testing.T) {
+func TestEnsureNodesReady(t *testing.T) {
 	tests := []struct {
-		name          string
-		workspace     *kaitov1beta1.Workspace
-		nodes         []*corev1.Node
-		nodeClaims    []*karpenterv1.NodeClaim
-		setup         func(*test.MockClient)
-		expectedReady bool
-		expectedError bool
+		name                        string
+		workspace                   *kaitov1beta1.Workspace
+		nodes                       []*corev1.Node
+		nodeClaims                  []*karpenterv1.NodeClaim
+		setup                       func(*test.MockClient)
+		disableNodeAutoProvisioning bool
+		expectedReady               bool
+		expectedError               bool
 	}{
 		{
 			name: "Should return true when enough nodes are ready",
@@ -1039,8 +1042,9 @@ func TestSetNodesReadyCondition(t *testing.T) {
 				// Mock UpdateWorkerNodesInStatus to fail (this happens in the defer block)
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("worker nodes update failed")).Maybe()
 			},
-			expectedReady: true,  // Function succeeds initially
-			expectedError: true,  // But returns error due to UpdateWorkerNodesInStatus failing in defer
+			disableNodeAutoProvisioning: true, // If NAP is disabled, we don't want to fail on updating the status due to the missing instance type label as that check should be skipped.
+			expectedReady:               true, // Function succeeds initially
+			expectedError:               true, // But returns error due to UpdateWorkerNodesInStatus failing in defer
 		},
 		{
 			name: "Should return error when status update fails",
@@ -1090,10 +1094,185 @@ func TestSetNodesReadyCondition(t *testing.T) {
 			expectedReady: false,
 			expectedError: true,
 		},
+		{
+			name: "NAP enabled - Should succeed but log warning when node missing instance type label",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "test",
+						},
+					},
+				},
+				Status: kaitov1beta1.WorkspaceStatus{
+					TargetNodeCount: 1,
+				},
+			},
+			nodes: []*corev1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-1",
+						Labels: map[string]string{
+							"workload": "test",
+							// Missing instance type label - logged but doesn't fail
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+						},
+					},
+				},
+			},
+			nodeClaims: []*karpenterv1.NodeClaim{},
+			setup: func(mockClient *test.MockClient) {
+				// Mock status update calls - multiple updates expected (false then true)
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
+				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+			},
+			disableNodeAutoProvisioning: false, // NAP enabled
+			expectedReady:               true,  // Current behavior: succeeds despite warning
+			expectedError:               false,
+		},
+		{
+			name: "NAP enabled - Should succeed but log warning when node has mismatched instance type label",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "test",
+						},
+					},
+				},
+				Status: kaitov1beta1.WorkspaceStatus{
+					TargetNodeCount: 1,
+				},
+			},
+			nodes: []*corev1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-1",
+						Labels: map[string]string{
+							"workload":                         "test",
+							corev1.LabelInstanceTypeStable:     "Standard_NC6s_v3", // Wrong instance type - logged but doesn't fail
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+						},
+					},
+				},
+			},
+			nodeClaims: []*karpenterv1.NodeClaim{},
+			setup: func(mockClient *test.MockClient) {
+				// Mock status update calls - multiple updates expected (false then true)
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
+				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+			},
+			disableNodeAutoProvisioning: false, // NAP enabled
+			expectedReady:               true,  // Current behavior: succeeds despite warning
+			expectedError:               false,
+		},
+		{
+			name: "NAP enabled - Should succeed when node has correct instance type label",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "test",
+						},
+					},
+				},
+				Status: kaitov1beta1.WorkspaceStatus{
+					TargetNodeCount: 1,
+				},
+			},
+			nodes: []*corev1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-1",
+						Labels: map[string]string{
+							"workload":                         "test",
+							corev1.LabelInstanceTypeStable:     "Standard_NC12s_v3", // Correct instance type
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+						},
+					},
+				},
+			},
+			nodeClaims: []*karpenterv1.NodeClaim{},
+			setup: func(mockClient *test.MockClient) {
+				// Mock status update calls for success condition
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
+				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+			},
+			disableNodeAutoProvisioning: false, // NAP enabled
+			expectedReady:               true,
+			expectedError:               false,
+		},
+		{
+			name: "NAP disabled - Should succeed even when node missing instance type label",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Resource: kaitov1beta1.ResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"workload": "test",
+						},
+					},
+				},
+				Status: kaitov1beta1.WorkspaceStatus{
+					TargetNodeCount: 1,
+				},
+			},
+			nodes: []*corev1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-1",
+						Labels: map[string]string{
+							"workload": "test",
+							// Missing instance type label - should be OK when NAP is disabled
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+						},
+					},
+				},
+			},
+			nodeClaims: []*karpenterv1.NodeClaim{},
+			setup: func(mockClient *test.MockClient) {
+				// Mock status update calls for success condition
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
+				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+			},
+			disableNodeAutoProvisioning: true, // NAP disabled
+			expectedReady:               true,
+			expectedError:               false,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Setup feature gate
+			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tt.disableNodeAutoProvisioning
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+			}()
+
 			mockClient := test.NewClient()
 			tt.setup(mockClient)
 

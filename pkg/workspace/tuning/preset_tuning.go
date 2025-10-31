@@ -145,30 +145,11 @@ func SetupTrainingOutputVolume(ctx context.Context, configMap *corev1.ConfigMap,
 func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, revisionNum string,
 	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
 
-	var skuNumGPUs int
 	gpuConfig, err := utils.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
 	if err != nil {
-		// Get node objects from node names
-		var nodes []*corev1.Node
-		for _, nodeName := range workspaceObj.Status.WorkerNodes {
-			node, nodeErr := resources.GetNode(ctx, nodeName, kubeClient)
-			if nodeErr == nil {
-				nodes = append(nodes, node)
-			}
-		}
-
-		if len(nodes) > 0 {
-			gpuConfig, err = utils.TryGetGPUConfigFromNodes(ctx, nodes)
-		}
-
-		if err != nil {
-			defaultNumGPU := resource.MustParse(model.GetTuningParameters().GPUCountRequirement)
-			skuNumGPUs = int(defaultNumGPU.Value())
-		}
+		return nil, err
 	}
-	if gpuConfig != nil {
-		skuNumGPUs = gpuConfig.GPUCount
-	}
+	skuNumGPUs := gpuConfig.GPUCount
 
 	gctx := &generator.WorkspaceGeneratorContext{
 		Ctx:        ctx,

@@ -18,12 +18,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/utils/ptr"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
@@ -45,11 +50,12 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 	estimator := &BasicNodesEstimator{}
 
 	tests := []struct {
-		name          string
-		workspace     *kaitov1beta1.Workspace
-		expectedCount int32
-		expectedError bool
-		errorContains string
+		name                        string
+		workspace                   *kaitov1beta1.Workspace
+		disableNodeAutoProvisioning bool
+		expectedCount               int32
+		expectedError               bool
+		errorContains               string
 	}{
 		{
 			name: "Should return resource count when inference is nil",
@@ -144,10 +150,8 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 			},
 			expectedCount: 0,
 			expectedError: true,
-			errorContains: "GPU config is nil for instance type Invalid_Instance_Type",
+			errorContains: "failed to get GPU config for instance type Invalid_Instance_Type",
 		},
-		// TODO: Add BYO test case that sets feature gate to simulate NAP disabled
-		// This would require modifying the feature gate in the test
 		{
 			name: "Should optimize node count with valid instance type (NAP enabled by default)",
 			workspace: &kaitov1beta1.Workspace{
@@ -218,6 +222,13 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Ensure NAP is enabled (default behavior) for these tests
+			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+			}()
+
 			count, err := estimator.EstimateNodeCount(ctx, tt.workspace, nil)
 
 			if tt.expectedError {
@@ -243,6 +254,13 @@ func TestBasicNodesEstimator_EstimateNodeCount_GPUMemoryCalculation(t *testing.T
 
 	// Test case for detailed GPU memory calculation verification
 	t.Run("Should calculate correct minimum nodes based on GPU memory requirements", func(t *testing.T) {
+		// Ensure NAP is enabled for this test
+		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+		defer func() {
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+		}()
+
 		// Use a model that requires significant GPU memory (64Gi)
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -272,6 +290,212 @@ func TestBasicNodesEstimator_EstimateNodeCount_GPUMemoryCalculation(t *testing.T
 	})
 }
 
+func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
+	// Set the cloud provider environment variable for SKU lookup
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	ctx := context.Background()
+	estimator := &BasicNodesEstimator{}
+
+	tests := []struct {
+		name          string
+		workspace     *kaitov1beta1.Workspace
+		setupMocks    func(*test.MockClient)
+		expectedCount int32
+		expectedError bool
+		errorContains string
+	}{
+		{
+			name: "Should return error when no ready nodes found (NAP disabled)",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count:        ptr.To(1),
+					InstanceType: "Standard_NC6s_v3", // Instance type is optional for BYO
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+			setupMocks: func(mockClient *test.MockClient) {
+				// Mock empty ready nodes list
+				nodeList := &corev1.NodeList{Items: []corev1.Node{}}
+				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+					nl := args.Get(1).(*corev1.NodeList)
+					*nl = *nodeList
+				}).Return(nil)
+			},
+			expectedCount: 0,
+			expectedError: true,
+			errorContains: "no ready nodes found, unable to determine GPU configuration",
+		},
+		{
+			name: "Should return error when GetReadyNodes fails (NAP disabled)",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count: ptr.To(1),
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+			setupMocks: func(mockClient *test.MockClient) {
+				// Mock GetReadyNodes to fail
+				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(assert.AnError)
+			},
+			expectedCount: 0,
+			expectedError: true,
+			errorContains: "failed to list ready nodes",
+		},
+		{
+			name: "Should use GPU config from ready nodes (NAP disabled)",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count: ptr.To(2),
+					// No InstanceType specified - should get config from existing nodes
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+			setupMocks: func(mockClient *test.MockClient) {
+				// Mock ready node with GPU labels
+				readyNode := corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "byo-gpu-node",
+						Labels: map[string]string{
+							"node.kubernetes.io/instance-type": "Standard_NC96ads_A100_v4",
+							"kubernetes.azure.com/accelerator":  "nvidia-tesla-a100",
+							"nvidia.com/gpu.product":            "Tesla-A100-SXM4-80GB",
+							"nvidia.com/gpu.count":              "4",
+							"nvidia.com/gpu.memory":             "81920", // 80GB in MiB
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionTrue,
+							},
+						},
+						Capacity: corev1.ResourceList{
+							resources.CapacityNvidiaGPU: resource.MustParse("4"), // 4 A100 GPUs
+						},
+					},
+				}
+				nodeList := &corev1.NodeList{Items: []corev1.Node{readyNode}}
+				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+					nl := args.Get(1).(*corev1.NodeList)
+					*nl = *nodeList
+				}).Return(nil)
+			},
+			expectedCount: 1, // Should optimize from 2 to 1 node based on A100 memory
+			expectedError: false,
+		},
+		{
+			name: "Should return error when GetGPUConfigFromNodeLabels fails (NAP disabled)",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count: ptr.To(1),
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+			setupMocks: func(mockClient *test.MockClient) {
+				// Mock ready node without proper GPU labels
+				readyNode := corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "cpu-only-node",
+						Labels: map[string]string{
+							"node.kubernetes.io/instance-type": "Standard_D4s_v3", // CPU-only instance
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{
+								Type:   corev1.NodeReady,
+								Status: corev1.ConditionTrue,
+							},
+						},
+					},
+				}
+				nodeList := &corev1.NodeList{Items: []corev1.Node{readyNode}}
+				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+					nl := args.Get(1).(*corev1.NodeList)
+					*nl = *nodeList
+				}).Return(nil)
+			},
+			expectedCount: 0,
+			expectedError: true,
+			errorContains: "failed to get GPU config from existing nodes",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Enable BYO mode (NAP disabled)
+			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+			}()
+
+			// Create a mock client
+			mockClient := test.NewClient()
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient)
+			}
+
+			count, err := estimator.EstimateNodeCount(ctx, tt.workspace, mockClient)
+
+			if tt.expectedError {
+				require.Error(t, err)
+				if tt.errorContains != "" {
+					assert.Contains(t, err.Error(), tt.errorContains)
+				}
+				assert.Equal(t, tt.expectedCount, count)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedCount, count)
+			}
+
+			mockClient.AssertExpectations(t)
+		})
+	}
+}
+
 func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 	// Set the cloud provider environment variable for SKU lookup
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -280,6 +504,13 @@ func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 	estimator := &BasicNodesEstimator{}
 
 	t.Run("Should handle case when nodeCountPerReplica is zero", func(t *testing.T) {
+		// Ensure NAP is enabled for this test
+		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+		defer func() {
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+		}()
+
 		// This test covers the new logic where the condition is:
 		// if minimumNodes < nodeCountPerReplica { nodeCountPerReplica = minimumNodes }
 		// When nodeCountPerReplica is 0, minimumNodes will not be less than 0,
@@ -312,6 +543,13 @@ func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("Should return minimum nodes when it's smaller than nodeCountPerReplica", func(t *testing.T) {
+		// Ensure NAP is enabled for this test
+		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+		defer func() {
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+		}()
+
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-workspace",
@@ -340,6 +578,13 @@ func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("Should return nodeCountPerReplica when minimumNodes is higher", func(t *testing.T) {
+		// Ensure NAP is enabled for this test
+		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+		defer func() {
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+		}()
+
 		workspace := &kaitov1beta1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-workspace",

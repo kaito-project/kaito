@@ -40,6 +40,7 @@ func TestCheckNodeClaims(t *testing.T) {
 	testCases := []struct {
 		name                       string
 		workspace                  *kaitov1beta1.Workspace
+		readyNodes                 []*corev1.Node
 		setupMocks                 func(*test.MockClient)
 		expectedAddedCount         int
 		expectedExistingNodeClaims int
@@ -54,14 +55,8 @@ func TestCheckNodeClaims(t *testing.T) {
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
+			readyNodes: []*corev1.Node{}, // Empty ready nodes
 			setupMocks: func(mockClient *test.MockClient) {
-				// Mock ready nodes list (empty)
-				nodeList := &corev1.NodeList{Items: []corev1.Node{}}
-				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-					nl := args.Get(1).(*corev1.NodeList)
-					*nl = *nodeList
-				}).Return(nil)
-
 				// Mock NodeClaim list to fail
 				mockClient.On("List", mock.Anything, mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(errors.New("list nodeclaims failed"))
 			},
@@ -83,14 +78,8 @@ func TestCheckNodeClaims(t *testing.T) {
 					TargetNodeCount: 3, // Target 3 nodes, no BYO = need 3 NodeClaims, have 1 = add 2
 				},
 			},
+			readyNodes: []*corev1.Node{}, // Empty ready nodes - no ready nodes yet
 			setupMocks: func(mockClient *test.MockClient) {
-				// Mock ready nodes list (empty - no ready nodes yet)
-				nodeList := &corev1.NodeList{Items: []corev1.Node{}}
-				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-					nl := args.Get(1).(*corev1.NodeList)
-					*nl = *nodeList
-				}).Return(nil)
-
 				// Mock existing NodeClaim list with 1 NodeClaim
 				nodeClaim := &karpenterv1.NodeClaim{
 					ObjectMeta: metav1.ObjectMeta{
@@ -125,14 +114,8 @@ func TestCheckNodeClaims(t *testing.T) {
 					TargetNodeCount: 2, // Target 2, no BYO = need 2 NodeClaims, have 2 = perfect match
 				},
 			},
+			readyNodes: []*corev1.Node{}, // Empty ready nodes - NodeClaims exist but not ready yet
 			setupMocks: func(mockClient *test.MockClient) {
-				// Mock ready nodes list (empty - NodeClaims exist but not ready yet)
-				nodeList := &corev1.NodeList{Items: []corev1.Node{}}
-				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-					nl := args.Get(1).(*corev1.NodeList)
-					*nl = *nodeList
-				}).Return(nil)
-
 				// Mock existing NodeClaim list with 2 NodeClaims (matches target)
 				nodeClaims := []karpenterv1.NodeClaim{
 					{
@@ -177,14 +160,8 @@ func TestCheckNodeClaims(t *testing.T) {
 					TargetNodeCount: 1,
 				},
 			},
+			readyNodes: []*corev1.Node{}, // Empty ready nodes
 			setupMocks: func(mockClient *test.MockClient) {
-				// Mock ready nodes list (empty)
-				nodeList := &corev1.NodeList{Items: []corev1.Node{}}
-				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-					nl := args.Get(1).(*corev1.NodeList)
-					*nl = *nodeList
-				}).Return(nil)
-
 				// Mock empty NodeClaim list
 				nodeClaimList := &karpenterv1.NodeClaimList{Items: []karpenterv1.NodeClaim{}}
 				mockClient.On("List", mock.Anything, mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Run(func(args mock.Arguments) {
@@ -209,9 +186,9 @@ func TestCheckNodeClaims(t *testing.T) {
 					TargetNodeCount: 3, // Target 3: have 1 BYO ready node = need 2 more NodeClaims
 				},
 			},
-			setupMocks: func(mockClient *test.MockClient) {
-				// Mock 1 ready BYO node (does not have karpenter.sh/nodepool label)
-				readyNode := corev1.Node{
+			readyNodes: []*corev1.Node{
+				// 1 ready BYO node (does not have karpenter.sh/nodepool label)
+				&corev1.Node{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "byo-ready-node-1",
 						Labels: map[string]string{
@@ -227,13 +204,9 @@ func TestCheckNodeClaims(t *testing.T) {
 							},
 						},
 					},
-				}
-				nodeList := &corev1.NodeList{Items: []corev1.Node{readyNode}}
-				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-					nl := args.Get(1).(*corev1.NodeList)
-					*nl = *nodeList
-				}).Return(nil)
-
+				},
+			},
+			setupMocks: func(mockClient *test.MockClient) {
 				// Mock 2 NodeClaims: 1 that has a ready node, 1 that is still pending
 				nodeClaims := []karpenterv1.NodeClaim{
 					{
@@ -290,7 +263,7 @@ func TestCheckNodeClaims(t *testing.T) {
 			}
 
 			// Execute the function under test
-			addedCount, existingNodeClaims, err := manager.CheckNodeClaims(context.Background(), tc.workspace, []*corev1.Node{})
+			addedCount, existingNodeClaims, err := manager.CheckNodeClaims(context.Background(), tc.workspace, tc.readyNodes)
 
 			// Assertions
 			assert.Equal(t, tc.expectedAddedCount, addedCount, "Added count mismatch")

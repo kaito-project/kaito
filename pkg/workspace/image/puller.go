@@ -64,7 +64,7 @@ func renderPullerSH(imgRef string, volDir string) string {
 func NewPullerContainer(inputImage string, outputDirectory string) *corev1.Container {
 	return &corev1.Container{
 		Name:  "puller",
-		Image: "quay.io/skopeo/stable:v1.18.0-immutable",
+		Image: "mcr.microsoft.com/aks/skopeo:1.14.4-6",
 		Command: []string{
 			"/bin/sh",
 			"-c",

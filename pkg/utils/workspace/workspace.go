@@ -15,9 +15,6 @@ package workspace
 
 import (
 	"context"
-	"crypto/rand"
-	"fmt"
-	"math/big"
 	"reflect"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -152,23 +149,4 @@ func UpdateWorkspaceWithRetry(ctx context.Context, c client.Client, wObj *kaitov
 		}
 		return c.Update(ctx, latestWorkspace)
 	})
-}
-
-// generateRandomString generates a random string of the specified length using digits and lowercase letters.
-func generateRandomString(length int) string {
-	if length <= 0 {
-		return ""
-	}
-
-	charset := "abcdefghijklmnopqrstuvwxyz0123456789"
-	result := make([]byte, length)
-	for i := range result {
-		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
-		result[i] = charset[n.Int64()]
-	}
-	return string(result)
-}
-
-func GetWorkspaceNameWithRandomSuffix(baseName string) string {
-	return fmt.Sprintf("%s-%s", baseName, generateRandomString(WorkspaceNameSuffixLength))
 }

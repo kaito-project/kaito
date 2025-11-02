@@ -236,12 +236,8 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	if replicaNumToCreate > 0 {
 		klog.InfoS("Need to create more workspaces...", "current", len(wsList.Items), "desired", iObj.Spec.Replicas)
 		for i := range replicaNumToCreate {
-			workspaceName := workspace.GetWorkspaceNameWithRandomSuffix(iObj.Name)
-			workspaceObj := inferenceset.GetWorkspace(workspaceName, wsList)
-			if workspaceObj == nil {
-				workspaceObj = &kaitov1beta1.Workspace{}
-			}
-			workspaceObj.Name = workspaceName
+			workspaceObj := &kaitov1beta1.Workspace{}
+			workspaceObj.GenerateName = iObj.Name + "-"
 			workspaceObj.Namespace = iObj.Namespace
 			workspaceObj.Labels = map[string]string{
 				consts.InferenceSetMemberLabel:             workspaceObj.Name,

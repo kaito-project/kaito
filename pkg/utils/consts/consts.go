@@ -76,7 +76,6 @@ const (
 	ConditionReady = "Ready"
 
 	WorkspaceCreatedByInferenceSetLabel = "inferenceset.kaito.sh/created-by"
-	InferenceSetMemberLabel             = "inferenceset.kaito.sh/member"
 )
 
 var (

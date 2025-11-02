@@ -240,7 +240,6 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			workspaceObj.GenerateName = iObj.Name + "-"
 			workspaceObj.Namespace = iObj.Namespace
 			workspaceObj.Labels = map[string]string{
-				consts.InferenceSetMemberLabel:             workspaceObj.Name,
 				consts.WorkspaceCreatedByInferenceSetLabel: iObj.Name,
 			}
 			workspaceObj.OwnerReferences = []metav1.OwnerReference{

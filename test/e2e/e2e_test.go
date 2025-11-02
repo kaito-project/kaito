@@ -28,6 +28,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -96,12 +98,46 @@ var _ = BeforeSuite(func() {
 		},
 	}
 
+	inferenceSet := &kaitov1alpha1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "e2e-inferenceset",
+			Namespace: namespaceName,
+		},
+		Spec: kaitov1alpha1.InferenceSetSpec{
+			Replicas: 1,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app": "e2e-inferenceset",
+				},
+			},
+			Template: kaitov1alpha1.InferenceSetTemplate{
+				Resource: kaitov1alpha1.InferenceSetResourceSpec{
+					InstanceType: "Standard_NV36ads_A10_v5",
+				},
+				Inference: kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "phi-2",
+						},
+					},
+				},
+			},
+		},
+	}
+
 	Eventually(func() error {
 		return utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 			Namespace: kaitoWorkspaceDeployment.Namespace,
 			Name:      kaitoWorkspaceDeployment.Name,
 		}, kaitoWorkspaceDeployment, &client.GetOptions{})
 	}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to wait for	kaito-workspace deployment")
+
+	Eventually(func() error {
+		return utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: inferenceSet.Namespace,
+			Name:      inferenceSet.Name,
+		}, inferenceSet, &client.GetOptions{})
+	}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to create inferenceset for e2e tests")
 
 	// create testing namespace
 	err := utils.TestingCluster.KubeClient.Create(context.TODO(), &corev1.Namespace{

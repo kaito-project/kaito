@@ -117,20 +117,6 @@ func ListWorkspaces(ctx context.Context, iObj *kaitov1alpha1.InferenceSet, kubeC
 	return workspaceList, err
 }
 
-// GetWorkspace retrieves a workspace by name from a list of workspaces.
-// Returns nil if the workspace is not found.
-func GetWorkspace(workspaceName string, workspaceList *kaitov1beta1.WorkspaceList) *kaitov1beta1.Workspace {
-	if workspaceName == "" || workspaceList == nil {
-		return nil
-	}
-	for _, ws := range workspaceList.Items {
-		if ws.Name == workspaceName {
-			return &ws
-		}
-	}
-	return nil
-}
-
 func ComputeInferenceSetHash(iObj *kaitov1alpha1.InferenceSet) string {
 	if iObj == nil {
 		return ""

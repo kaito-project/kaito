@@ -3,9 +3,9 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.0.9
+    tag: 0.0.10
     # Tag history:
-    # 0.0.10 - bump vLLM to 0.10.2 and torch to 2.8.0
+    # 0.0.10 - bump vLLM to 0.11.0, torch to 2.8.0, fastapi to 0.120.2, sentencepiece to 0.2.1, starlette to 0.49.1,lmcache to 0.3.7
     # 0.0.9 - bump pip to 25.3
     # 0.0.8 - Fix multi-node-health-check issue
     # 0.0.7 - bump lmcache to 0.3.5

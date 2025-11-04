@@ -167,7 +167,7 @@ inference-api-e2e: ## Run inference API e2e tests with pytest.
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
-GINKGO_LABEL ?= !A100Required
+GINKGO_LABEL ?= !A100Required && !MultiNode
 GINKGO_NODES ?= 2
 GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 120m
@@ -586,7 +586,7 @@ vet: ## Run go vet against code.
 .PHONY: lint
 lint: $(GOLANGCI_LINT) ## Run golangci-lint against code.
 	$(GOLANGCI_LINT) run -v
-	
+
 .PHONY: lint-fix
 lint-fix: $(GOLANGCI_LINT) ## Run golangci-lint against code.
 	$(GOLANGCI_LINT) run --fix

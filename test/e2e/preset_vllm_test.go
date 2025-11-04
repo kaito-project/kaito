@@ -95,7 +95,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
-	It("should create a multi-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a multi-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelMultiNode, func() {
 		// Need 2 Standard_NC6s_v3 nodes to run Llama 3.1-8B Instruct model.
 		// Each node has 1 V100 GPU, so total 2 GPUs are used
 		numOfNode := 2

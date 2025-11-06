@@ -1,0 +1,35 @@
+# Default values for kaito.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 1
+image:
+  repository: mcr.microsoft.com/aks/kaito/autoindexer
+  pullPolicy: IfNotPresent
+  tag: 0.7.0
+imagePullSecrets: []
+podAnnotations: {}
+podSecurityContext:
+  runAsNonRoot: true
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - "ALL"
+webhook:
+  port: 9443
+# Knative logging configuration
+logging:
+  level: "error"
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 64Mi
+nodeSelector: {}
+tolerations: []
+affinity: {}
+presetAutoIndexerRegistryName: "mcr.microsoft.com/aks/kaito"
+presetAutoIndexerImageName: "autoindexer-service"
+presetAutoIndexerImageTag: 0.7.0

@@ -34,6 +34,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
@@ -349,6 +350,22 @@ func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace, configMapD
 	})
 }
 
+func createAndValidateInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet) {
+	By("Creating InferenceSet", func() {
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, inferenceSetObj, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to create InferenceSet %s", inferenceSetObj.Name)
+	})
+
+	By("Validating InferenceSet creation", func() {
+		err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: inferenceSetObj.Namespace,
+			Name:      inferenceSetObj.Name,
+		}, inferenceSetObj, &client.GetOptions{})
+		Expect(err).NotTo(HaveOccurred())
+	})
+}
+
 func updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj *kaitov1beta1.Workspace, datasetImageName string, inputVolume, outputVolume *corev1.Volume) (*kaitov1beta1.Workspace, string) {
 	e2eOutputImageName := fmt.Sprintf("adapter-%s-e2e-test2", PresetPhi3Mini128kModel)
 	e2eOutputImageTag := utils.GenerateRandomString()
@@ -458,6 +475,27 @@ func validateResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 			})
 			return conditionFound
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for resource status to be ready")
+	})
+}
+
+func validateInferenceSetStatus(inferenceSetObj *kaitov1alpha1.InferenceSet) {
+	By("Checking the InferenceSet status", func() {
+		Eventually(func() bool {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: inferenceSetObj.Namespace,
+				Name:      inferenceSetObj.Name,
+			}, inferenceSetObj, &client.GetOptions{})
+
+			if err != nil {
+				return false
+			}
+
+			_, conditionFound := lo.Find(inferenceSetObj.Status.Conditions, func(condition metav1.Condition) bool {
+				return condition.Type == string(kaitov1beta1.ConditionTypeResourceStatus) &&
+					condition.Status == metav1.ConditionTrue
+			})
+			return conditionFound
+		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for InferenceSet status to be ready")
 	})
 }
 
@@ -870,6 +908,46 @@ func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 			}
 			return nil
 		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
+	})
+
+	return nil
+}
+
+func cleanupResourcesForInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet) {
+	By("Cleaning up InferenceSet resources", func() {
+		if !CurrentSpecReport().Failed() {
+			// delete InferenceSet
+			err := deleteInferenceSet(inferenceSetObj)
+			Expect(err).NotTo(HaveOccurred(), "Failed to delete InferenceSet")
+		} else {
+			GinkgoWriter.Printf("test failed, keep %s \n", inferenceSetObj.Name)
+		}
+	})
+}
+
+func deleteInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet) error {
+	By("Deleting InferenceSet", func() {
+		Eventually(func() error {
+			// Check if the InferenceSet exists
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: inferenceSetObj.Namespace,
+				Name:      inferenceSetObj.Name,
+			}, inferenceSetObj)
+
+			if errors.IsNotFound(err) {
+				GinkgoWriter.Printf("InferenceSet %s does not exist, no need to delete\n", inferenceSetObj.Name)
+				return nil
+			}
+			if err != nil {
+				return fmt.Errorf("error checking if InferenceSet %s exists: %v", inferenceSetObj.Name, err)
+			}
+
+			err = utils.TestingCluster.KubeClient.Delete(ctx, inferenceSetObj, &client.DeleteOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to delete InferenceSet %s: %v", inferenceSetObj.Name, err)
+			}
+			return nil
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete InferenceSet")
 	})
 
 	return nil

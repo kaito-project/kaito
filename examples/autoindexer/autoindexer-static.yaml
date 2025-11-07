@@ -1,0 +1,13 @@
+apiVersion: kaito.sh/v1alpha1
+kind: AutoIndexer
+metadata:
+  name: autoindexer-static
+spec:
+  ragEngine: ragengine
+  indexName: autoindex-static-test
+  dataSource:
+    type: Static
+    static:
+      urls:
+        - "https://raw.githubusercontent.com/kaito-project/kaito-cookbook/master/examples/ragengine-llm-d/10-K/NVDA.pdf"
+        - "https://raw.githubusercontent.com/kaito-project/kaito-cookbook/master/examples/ragengine-llm-d/10-K/BRK-B.pdf"

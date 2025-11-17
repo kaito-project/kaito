@@ -1,8 +1,8 @@
 # Accelerating Kaito E2E Tests with Spegel P2P Distribution
 
-Kaito E2E tests are bottlenecked by slow image pulls of the large `kaito-base` image. With a 3.56 GB base image that needs to be pulled repeatedly across multiple nodes during testing, developers face:
+Kaito E2E tests are bottlenecked by slow image pulls of the large `kaito-base` image. With a 3.56 GB base image that needs to be pulled during testing, developers face:
 
-- **Long test suite runtimes**: ~45 minutes depending on test scenario
+- **Long e2e test runtimes**: ~1 hour
 - **CI/CD pipeline delays**: Test pipelines waiting for image downloads
 - **Developer productivity loss**: Hours wasted waiting for tests to complete
 
@@ -12,9 +12,7 @@ Kaito E2E tests are bottlenecked by slow image pulls of the large `kaito-base` i
 
 Spegel solves this by enabling nodes to share the `kaito-base` image with each other **within the cluster**. After the first node pulls the image from MCR, all subsequent pulls happen via fast peer-to-peer transfer instead of slow external registry downloads.
 
-**Result**: E2E tests should run 3-6x faster with the kaito-base image cached locally across nodes.
-
-This guide demonstrates real-world E2E test performance improvements achieved by testing Spegel for pulling images on Azure Kubernetes Service (AKS).
+This document demonstrates E2E test performance improvements achieved by testing Spegel for pulling images on Azure Kubernetes Service (AKS).
 
 ---
 
@@ -47,7 +45,6 @@ The main objective of integrating Spegel is to **accelerate Kaito E2E test execu
 - **Frequent Pulls**: E2E tests create/destroy pods repeatedly, each needing the base image
 - **Multi-Node Tests**: Tests spread across nodes, all needing the same image
 - **Parallel Execution**: Multiple test scenarios running concurrently
-- **Fresh Environments**: Test isolation requires clean node states
 
 With Spegel, after the first pull, every subsequent test benefits from local P2P caching.
 
@@ -55,14 +52,13 @@ With Spegel, after the first pull, every subsequent test benefits from local P2P
 
 ## Performance Benchmarks
 
-After conducting comprehensive performance testing on AKS focusing on the `kaito-base` image used in E2E tests, plus a representative large AI/ML image (PyTorch) to demonstrate scaling benefits.
+After conducting comprehensive performance testing on AKS focusing on the `kaito-base` image used in E2E tests, plus a representative large image (PyTorch) to demonstrate scaling benefits.
 
 ### Test Environment
 
 - **Platform**: Azure Kubernetes Service (AKS)
 - **Cluster Configuration**: 3-node single nodepool
 - **Node Size**: Standard_D4s_v3 (4 vCPUs, 16 GiB RAM)
-- **Container Runtime**: containerd 1.7.5
 - **Spegel Version**: v0.4.0 (DaemonSet deployment)
 
 ### Test Methodology
@@ -109,7 +105,6 @@ After conducting comprehensive performance testing on AKS focusing on the `kaito
 - **Name**: `pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime`
 - **Size**: 8.85 GB uncompressed
 - **Registry**: Docker Hub
-- **Purpose**: Validates that Spegel benefits scale with larger images
 
 **Performance Results:**
 
@@ -148,10 +143,9 @@ For E2E tests running in the same cluster, intra-cluster P2P is dramatically fas
 
 ### Prerequisites
 
-- Kubernetes cluster (1.21+) with Kaito installed
+- Kubernetes cluster
 - `kubectl` configured to access your cluster
 - Helm 3.x installed
-- Existing Kaito E2E test suite
 
 ### Step 1: Install Spegel
 
@@ -187,7 +181,7 @@ kubectl get pods -n spegel -o wide
 
 ### Step 3: Configure for Kaito E2E Tests
 
-Spegel automatically intercepts image pull requests via containerd registry mirror configuration. **No changes to your Kaito E2E test code or workspace definitions are needed.**
+Spegel automatically intercepts image pull requests via containerd registry mirror configuration.
 
 The `kaito-base` image will automatically be served via P2P after the first pull.
 
@@ -223,43 +217,9 @@ kubectl logs -n spegel -l app.kubernetes.io/name=spegel -f | grep "mirror"
 # {"level":"INFO","handler":"mirror","registry":"mcr.microsoft.com","status":200}
 ```
 
-## Best Practices
-
-### For Development Environments
-
-1. **Enable Spegel Early**: Install Spegel during cluster setup to benefit immediately
-2. **Monitor P2P Efficiency**: Track metrics to ensure >80% P2P effectiveness
-3. **Cache Warming**: Pre-populate cache before large test runs
-4. **Adequate Storage**: Allocate 50+ GB per node for ML image caching
-
-### For CI/CD Pipelines
-
-1. **Sequential Warming**: Run initial image pull before parallel tests
-2. **Persistent Clusters**: Use long-lived test clusters to maximize cache hits
-3. **Performance Tracking**: Collect Spegel metrics as part of test artifacts
-4. **Failure Handling**: Implement graceful degradation if P2P is unavailable
-
----
-
-## Frequently Asked Questions
-
-**Q: Does Spegel work with private registries?**  
-A: Yes, Spegel transparently forwards authentication to upstream registries and supports all standard authentication methods.
-
-**Q: What happens if a Spegel pod fails?**  
-A: Containerd automatically falls back to direct registry pulls. P2P is purely an optimization layer.
-
-**Q: What's the minimum cluster size for benefits?**  
-A: 3-5 nodes minimum. Below that, coordination overhead may exceed transfer benefits.
-
-**Q: How does Spegel handle registry rate limits?**  
-A: Spegel significantly reduces registry requests (70-90%), helping stay well under rate limits.
-
----
-
 ## Conclusion
 
-**Problem**: Kaito E2E tests were painfully slow due to repeated pulls of the 3.56 GB `kaito-base` image from external registries.
+**Problem**: Kaito E2E tests are slow due to repeated pulls of the 3.56 GB `kaito-base` image from external registries.
 
 **Solution**: Spegel P2P caching enables nodes to share the kaito-base image within the cluster.
 

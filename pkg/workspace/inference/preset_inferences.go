@@ -157,7 +157,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	if shouldUseDistributedInference(gctx, numNodes) {
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
 		ssOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]{
-			manifests.GenerateStatefulSetManifest(workspaceObj, revisionNum, numNodes),
+			manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
 		}
 
 		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
@@ -182,7 +182,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		}
 
 		return generator.GenerateManifest(gctx,
-			manifests.GenerateDeploymentManifest(workspaceObj, revisionNum, numNodes),
+			manifests.GenerateDeploymentManifest(revisionNum, numNodes),
 			manifests.SetDeploymentPodSpec(podSpec),
 		)
 	}

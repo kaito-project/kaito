@@ -31,7 +31,6 @@ import (
 	"k8s.io/klog/v2"
 	"k8s.io/utils/ptr"
 
-	"github.com/kaito-project/kaito/api/v1beta1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -112,7 +111,7 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 	}
 }
 
-func GenerateStatefulSetManifest(workspaceObj *v1beta1.Workspace, revisionNum string, replicas int) func(*generator.WorkspaceGeneratorContext, *appsv1.StatefulSet) error {
+func GenerateStatefulSetManifest(revisionNum string, replicas int) func(*generator.WorkspaceGeneratorContext, *appsv1.StatefulSet) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
 		selector := map[string]string{
 			kaitov1beta1.LabelWorkspaceName: ctx.Workspace.Name,
@@ -211,14 +210,14 @@ func SetJobPodSpec(podSpec *corev1.PodSpec) func(*generator.WorkspaceGeneratorCo
 	}
 }
 
-func GenerateDeploymentManifest(workspaceObj *v1beta1.Workspace, revisionNum string, replicas int) func(*generator.WorkspaceGeneratorContext, *appsv1.Deployment) error {
+func GenerateDeploymentManifest(revisionNum string, replicas int) func(*generator.WorkspaceGeneratorContext, *appsv1.Deployment) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, d *appsv1.Deployment) error {
 		selector := map[string]string{
 			kaitov1beta1.LabelWorkspaceName: ctx.Workspace.Name,
 		}
 		// if workspaceObj.Labels contains "inferenceset.kaito.sh/created-by", add it to selector for VPA/HPA purpose
-		if workspaceObj.Labels != nil {
-			if createdBy, exists := workspaceObj.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; exists {
+		if ctx.Workspace.Labels != nil {
+			if createdBy, exists := ctx.Workspace.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; exists {
 				klog.Infof("Adding label %s=%s to deployment selector", consts.WorkspaceCreatedByInferenceSetLabel, createdBy)
 				selector[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
 			}

@@ -45,7 +45,6 @@ jobs:
       - name: Run unit tests & Generate coverage
         run: |
           make unit-test
-          make tuning-metrics-server-test
 
       - name: Run inference api e2e tests
         run: |

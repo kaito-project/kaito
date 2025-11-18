@@ -6,7 +6,7 @@ Kaito E2E tests are bottlenecked by slow image pulls of the large `kaito-base` i
 - **CI/CD pipeline delays**: Test pipelines waiting for image downloads
 - **Developer productivity loss**: Hours wasted waiting for tests to complete
 
-**The core issue**: Every E2E test requires pulling the `kaito-base` image from Microsoft Container Registry (MCR), and with each pull taking 40+ seconds (sometimes > 3 minutes), test suites become painfully slow.
+**The core issue**: Every E2E test requires pulling the `kaito-base` image from Microsoft Container Registry (MCR), and with each pull taking 40+ seconds (sometimes > 3 minutes), test suites become very slow.
 
 ## Spegel P2P Image Caching
 
@@ -123,8 +123,6 @@ After conducting comprehensive performance testing on AKS focusing on the `kaito
 ---
 
 ## Technical Deep Dive
-
-### Why Kaito E2E Tests Benefit Most from Spegel
 
 1. **Repeated Image Pulls**: E2E tests create/destroy pods frequently, each requiring the base image
 2. **Multi-Node Distribution**: Tests run across different nodes, all needing the same image

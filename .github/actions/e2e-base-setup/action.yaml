@@ -160,10 +160,15 @@ runs:
 
           # Push preset model weights as OCI artifact to ACR using ORAS
           if [ "$MODEL_NAME" != "base" ]; then
-            export MODEL_VERSION=$(echo "$model" | jq -r '.version')
-            export WEIGHTS_DIR=${{ env.WEIGHTS_DIR }}/$MODEL_NAME
-            export HF_HOME=${{ env.WEIGHTS_DIR }}/$MODEL_NAME
-            python3 docker/presets/models/tfs/download_and_push_model.py "${{ env.REGISTRY }}/kaito-$MODEL_NAME:${{ env.VERSION }}"
+            export MODEL_VERSION_URL=$(echo "$model" | jq -r '.version')
+
+            # Use shared script to build and push OCI artifact
+            docker/presets/models/tfs/build_oci_artifact.sh \
+              "$MODEL_VERSION_URL" \
+              "kaito-$MODEL_NAME" \
+              "${{ env.REGISTRY }}" \
+              "${{ env.VERSION }}" \
+              "$HF_TOKEN"
           fi
 
           # Override image properties in supported_models.yaml for testing purposes.

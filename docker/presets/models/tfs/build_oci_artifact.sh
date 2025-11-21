@@ -60,7 +60,7 @@ docker buildx build \
   --target packager/modelpack \
   --build-arg source="$SOURCE" \
   --build-arg name="$IMAGE_NAME" \
-  --build-arg exclude="'original/*' 'metal/*'" \
+  --build-arg exclude="'original/**'" \
   --output="$TEMP_DIR" \
   -<<<""
 

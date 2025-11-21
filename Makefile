@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-REGISTRY ?= YOUR_REGISTRY
+REGISTRY ?= brfoletest.azurecr.io
 IMG_NAME ?= workspace
 VERSION ?= v0.7.0
 GPU_PROVISIONER_VERSION ?= 0.3.7
@@ -36,15 +36,16 @@ GINKGO := $(TOOLS_BIN_DIR)/$(GINKGO_BIN)-$(GINKGO_VER)
 TEST_SUITE ?= gpuprovisioner
 
 AZURE_SUBSCRIPTION_ID ?= $(AZURE_SUBSCRIPTION_ID)
-AZURE_LOCATION ?= eastus
+AZURE_LOCATION ?= westeurope
 AKS_K8S_VERSION ?= 1.31.10
-AZURE_CLUSTER_NAME ?= kaito-demo
-AZURE_RESOURCE_GROUP ?= demo
+AZURE_CLUSTER_NAME ?= kaito-dogfood
+AZURE_RESOURCE_GROUP ?= kaito-dogfood
 AZURE_RESOURCE_GROUP_MC=MC_$(AZURE_RESOURCE_GROUP)_$(AZURE_CLUSTER_NAME)_$(AZURE_LOCATION)
 GPU_PROVISIONER_NAMESPACE ?= gpu-provisioner
 GPU_PROVISIONER_NAME ?= gpu-provisioner
 KAITO_NAMESPACE ?= kaito-workspace
 KAITO_RAGENGINE_NAMESPACE ?= kaito-ragengine
+KAITO_AUTOINDEXER_NAMESPACE ?= kaito-autoindexer
 GPU_PROVISIONER_MSI_NAME ?= gpuprovisionerIdentity
 
 ## Azure Karpenter parameters
@@ -117,6 +118,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole, and Cus
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	cp config/crd/bases/kaito.sh_workspaces.yaml charts/kaito/workspace/crds/
 	cp config/crd/bases/kaito.sh_ragengines.yaml charts/kaito/ragengine/crds/
+	cp config/crd/bases/kaito.sh_autoindexers.yaml charts/kaito/autoindexer/crds/
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -144,6 +146,12 @@ rag-service-test: ## Run RAG Engine service tests with pytest.
 	pip install -r presets/ragengine/requirements-test.txt
 	pip install pytest-cov
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
+
+.PHONY: autoindexer-service-test
+autoindexer-service-test: ## Run AutoIndexer service tests with pytest.
+	pip install -r presets/autoindexer/requirements-test.txt
+	pip install pytest-cov
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/autoindexer/tests
 
 .PHONY: tuning-metrics-server-test
 tuning-metrics-server-test: ## Run Tuning Metrics Server tests with pytest.
@@ -285,6 +293,12 @@ RAGENGINE_SERVICE_APP_VERSION := $(subst v,,$(RAGENGINE_SERVICE_IMG_TAG))
 KAITO_BASE_IMG_NAME ?= kaito-base
 KAITO_BASE_IMG_TAG ?= v0.0.1
 
+AUTOINDEXER_SERVICE_IMG_NAME ?= autoindexer-service
+AUTOINDEXER_SERVICE_IMG_TAG ?= latest
+
+AUTOINDEXER_IMAGE_NAME ?= autoindexer
+AUTOINDEXER_IMAGE_TAG ?= v0.0.1
+
 E2E_IMAGE_NAME ?= kaito-e2e
 E2E_IMAGE_TAG ?= v0.0.1
 
@@ -343,6 +357,26 @@ docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine serv
         --pull \
 		$(BUILD_FLAGS) \
         --tag $(REGISTRY)/$(RAGENGINE_SERVICE_IMG_NAME):$(RAGENGINE_SERVICE_IMG_TAG) .
+
+.PHONY: docker-build-autoindexer-service
+docker-build-autoindexer-service: docker-buildx ## Build Docker image for Auto Indexer service.
+	docker buildx build \
+        --platform="linux/$(ARCH)" \
+        --output=$(OUTPUT_TYPE) \
+        --file ./docker/autoindexer/service/Dockerfile \
+        --pull \
+		$(BUILD_FLAGS) \
+        --tag $(REGISTRY)/$(AUTOINDEXER_SERVICE_IMG_NAME):$(AUTOINDEXER_SERVICE_IMG_TAG) .
+
+.PHONY: docker-build-autoindexer
+docker-build-autoindexer: docker-buildx ## Build Docker image for Auto Indexer.
+	docker buildx build \
+		--file ./docker/autoindexer/Dockerfile \
+		--output=$(OUTPUT_TYPE) \
+		--platform="linux/$(ARCH)" \
+		--pull \
+		$(BUILD_FLAGS) \
+		--tag $(REGISTRY)/$(AUTOINDEXER_IMAGE_NAME):latest .
 
 .PHONY: docker-build-adapter
 docker-build-adapter: docker-buildx ## Build Docker images for adapters.
@@ -437,6 +471,19 @@ az-patch-install-ragengine-helm-e2e: ## Install KAITO RAG Engine Helm chart for 
 	yq -i '(.presetRagImageTag)                                         	= "$(RAGENGINE_SERVICE_IMG_TAG)"'             ./charts/kaito/ragengine/values.yaml
 
 	helm install kaito-ragengine ./charts/kaito/ragengine --namespace $(KAITO_RAGENGINE_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
+
+.PHONY: az-patch-install-autoindexer-helm-e2e
+az-patch-install-autoindexer-helm-e2e: ## Install Kaito AutoIndexer Helm chart for e2e tests and set Azure client env vars and settings in Helm values.
+	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+
+	yq -i '(.image.repository)                                              = "$(REGISTRY)/autoindexer"'                    ./charts/kaito/autoindexer/values.yaml
+	yq -i '(.image.tag)                                                     = "latest"'                               ./charts/kaito/autoindexer/values.yaml
+	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/autoindexer/values.yaml
+	yq -i '(.presetAutoIndexerRegistryName)                                 = "$(REGISTRY)"'                              ./charts/kaito/autoindexer/values.yaml
+	yq -i '(.presetAutoIndexerImageName)                                    = "$(AUTOINDEXER_SERVICE_IMG_NAME)"'            ./charts/kaito/autoindexer/values.yaml
+	yq -i '(.presetAutoIndexerImageTag)                                     = "$(AUTOINDEXER_SERVICE_IMG_TAG)"'             ./charts/kaito/autoindexer/values.yaml
+
+	helm install kaito-autoindexer ./charts/kaito/autoindexer --namespace $(KAITO_AUTOINDEXER_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
 .PHONY: aws-patch-install-helm
 aws-patch-install-helm: ## Install KAITO workspace Helm chart and set AWS env vars and settings in Helm values.

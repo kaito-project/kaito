@@ -53,4 +53,12 @@ const (
 	WorkspaceConditionTypeSucceeded ConditionType = ConditionType("WorkspaceSucceeded")
 
 	RAGEngineConditionTypeSucceeded ConditionType = ConditionType("RAGEngineSucceeded")
+
+	AutoIndexerConditionTypeSucceeded ConditionType = ConditionType("AutoIndexerSucceeded")
+
+	AutoIndexerConditionTypeScheduled ConditionType = ConditionType("AutoIndexerScheduled")
+
+	AutoIndexerConditionTypeIndexing ConditionType = ConditionType("AutoIndexerIndexing")
+
+	AutoIndexerConditionTypeError ConditionType = ConditionType("AutoIndexerError")
 )

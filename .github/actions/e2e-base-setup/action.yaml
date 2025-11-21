@@ -98,13 +98,14 @@ runs:
     - name: Create ACR
       shell: bash
       run: |
-          az acr create --name "$AZURE_ACR_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --sku Standard --admin-enabled -o none
+          az acr create --name "$AZURE_ACR_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --location "$AZURE_LOCATION" --sku Standard --admin-enabled -o none
           az acr login  --name "$AZURE_ACR_NAME"
           # Enable anonymous pull and public network access to make it easier for testing
           az acr update --name "$AZURE_ACR_NAME" --anonymous-pull-enabled true
       env:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
+        AZURE_LOCATION: ${{ inputs.region }}
 
     - name: Create Azure Identity
       uses: azure/CLI@v2.1.0

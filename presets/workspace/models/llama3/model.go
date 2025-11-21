@@ -53,6 +53,8 @@ var (
 		"tool-call-parser":        "llama3_json",
 		"enable-auto-tool-choice": "",
 	}
+	// pin the attention backend to triton for llama3 models, as flashinfer is unavailable in KAITO base image.
+	llama3VLLMCommand = "VLLM_ATTENTION_BACKEND=TRITON_ATTN python3 /workspace/vllm/inference_api.py"
 )
 
 var llama3_1_8b_instructA llama3_1_8BInstruct
@@ -75,7 +77,7 @@ func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    llamaRunParams,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:          inference.DefaultVLLMCommand,
+				BaseCommand:          llama3VLLMCommand,
 				ModelName:            PresetLlama3_1_8BInstructModel,
 				ModelRunParams:       llamaRunParamsVLLM,
 				RayLeaderBaseCommand: inference.DefaultVLLMRayLeaderBaseCommand,
@@ -120,7 +122,7 @@ func (*llama3_3_70Binstruct) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    llamaRunParams,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:          inference.DefaultVLLMCommand,
+				BaseCommand:          llama3VLLMCommand,
 				ModelName:            PresetLlama3_3_70BInstructModel,
 				ModelRunParams:       llamaRunParamsVLLM,
 				RayLeaderBaseCommand: inference.DefaultVLLMRayLeaderBaseCommand,

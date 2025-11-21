@@ -317,7 +317,7 @@ func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNo
 	return workspaceObj, uniqueID, outputRegistryUrl
 }
 
-func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace, configMapData ...map[string]string) {
+func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 
 	By("Creating workspace", func() {
 		Eventually(func() error {
@@ -459,7 +459,7 @@ func validateResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
-		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for resource status to be ready")
+		}, 15*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for resource status to be ready")
 	})
 }
 

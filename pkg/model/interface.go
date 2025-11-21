@@ -305,6 +305,9 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// https://docs.vllm.ai/en/latest/serving/distributed_serving.html.
 	p.VLLM.ModelRunParams["pipeline-parallel-size"] = strconv.Itoa(rc.NumNodes)
 
+	// Since vllm 0.12.0, we need to set the distributed-executor-backend explicitly
+	p.VLLM.ModelRunParams["distributed-executor-backend"] = "ray"
+
 	// We need to setup multi-node Ray cluster and assume pod index 0 is the leader of the cluster.
 	// - leader: start as ray leader along with the model run command
 	// - worker: start as ray worker - don't need to provide the model run command

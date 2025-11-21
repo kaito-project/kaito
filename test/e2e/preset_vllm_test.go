@@ -341,7 +341,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gpt-oss-20b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a gpt-oss-20b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
 		numOfNode := 1
 		workspaceObj := createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -566,19 +566,12 @@ func createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1
 
 	By("Creating a workspace CR with GPT-OSS-20B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-gpt-oss-20b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-20b-vllm"},
 			}, nil, PresetGPT_OSS_20BModel, nil, nil, nil, "")
 
-		// Pass custom config data with gpu-memory-utilization and max-model-len
-		customConfigData := map[string]string{
-			"inference_config.yaml": `vllm:
-  gpu-memory-utilization: 0.84  # Controls GPU memory usage (0.0-1.0)
-  max-model-len: 1024`,
-		}
-
-		createAndValidateWorkspace(workspaceObj, customConfigData)
+		createAndValidateWorkspace(workspaceObj)
 	})
 
 	return workspaceObj

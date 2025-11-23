@@ -22,7 +22,7 @@ import (
 
 type InferenceSetResourceSpec struct {
 	// InstanceType specifies the GPU node SKU.
-	// +optional
+	// +required
 	InstanceType string `json:"instanceType"`
 }
 

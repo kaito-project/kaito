@@ -231,7 +231,7 @@ runs:
         REGISTRY: ${{ env.REGISTRY }}
         VERSION: ${{ env.VERSION }}
         TEST_SUITE: ${{ inputs.node_provisioner }}
-        HELM_INSTALL_EXTRA_ARGS: "--set featureGates.gatewayAPIInferenceExtension=true"
+        HELM_INSTALL_EXTRA_ARGS: "--set featureGates.gatewayAPIInferenceExtension=true --set featureGates.enableInferenceSetController=true"
 
     - name: Set up E2E ACR Credentials and Secret
       shell: bash

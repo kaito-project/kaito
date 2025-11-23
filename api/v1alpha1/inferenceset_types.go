@@ -22,12 +22,13 @@ import (
 
 type InferenceSetResourceSpec struct {
 	// InstanceType specifies the GPU node SKU.
-	// +required
+	// +optional
 	InstanceType string `json:"instanceType"`
 }
 
 // InferenceSetTemplate defines the template for creating InferenceSet instances.
 type InferenceSetTemplate struct {
+	// +optional
 	Resource  InferenceSetResourceSpec   `json:"resource"`
 	Inference kaitov1beta1.InferenceSpec `json:"inference"`
 }

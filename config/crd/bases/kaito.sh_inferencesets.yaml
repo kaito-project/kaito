@@ -217,12 +217,9 @@ spec:
                       instanceType:
                         description: InstanceType specifies the GPU node SKU.
                         type: string
-                    required:
-                    - instanceType
                     type: object
                 required:
                 - inference
-                - resource
                 type: object
               updateStrategy:
                 default:

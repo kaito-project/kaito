@@ -84,7 +84,7 @@ jobs:
           # Install via Helm
           # CSI Local Node cannot be configured to not deploy and it crashes on kind on github runners for unknown reasons
           # so we need to filter it out its components
-          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set featureGates.disableNodeAutoProvisioning="true" --include-crds --debug --wait | awk '
+          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set featureGates.disableNodeAutoProvisioning="true" --set featureGates.enableInferenceSetController="true" --include-crds --debug --wait | awk '
             BEGIN { RS="---\n"; ORS="---\n"; csi=0 }
             /kind: ServiceAccount/ && /name: csi-local-node/ { csi=1 }
             /kind: StorageClass/ && /name: kaito-local-nvme-disk/ { csi=1 }
@@ -121,10 +121,40 @@ jobs:
           EOF
           kubectl apply -f aikit-workspace.yaml
 
+      - name: Create AIKit InferenceSet
+        run: |
+          cat << EOF > aikit-inferenceset.yaml
+          apiVersion: kaito.sh/v1alpha1
+          kind: InferenceSet
+          metadata:
+            name: inferenceset-aikit-test
+          spec:
+            labelSelector:
+              matchLabels:
+                apps: aikit-test
+            replicas: 1
+            template:
+              inference:
+                template:
+                  spec:
+                    containers:
+                      - name: aikit-llama
+                        image: ${{ env.AIKIT_IMAGE }}
+                        args:
+                          - "run"
+                          - "--address=:5000"
+          EOF
+          kubectl apply -f aikit-inferenceset.yaml
+
       - name: Wait for inference to be ready
         run: |
           echo "Waiting for inference to be ready..."
           kubectl wait --for='jsonpath={.status.conditions[?(@.type=="InferenceReady")].status}=True' workspace/workspace-aikit-test --timeout 300s
+
+      - name: Wait for inferenceset to be ready
+        run: |
+          echo "Waiting for inferenceset to be ready..."
+          kubectl wait --for='jsonpath={.status.readyReplicas}=1' inferenceset/inferenceset-aikit-test --timeout 300s
 
       - name: Validate response content
         run: |
@@ -180,6 +210,9 @@ jobs:
       - name: Debug info
         if: always()
         run: |
+          echo "=== InferenceSet Status ==="
+          kubectl get inferenceset inferenceset-aikit-test -o yaml
+
           echo "=== Workspace Status ==="
           kubectl get workspace workspace-aikit-test -o yaml
 

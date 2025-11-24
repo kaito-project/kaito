@@ -332,6 +332,9 @@ func GenerateInferenceSetManifestWithVLLM(name, namespace, imageName string, rep
 	inferenceSet := GenerateInferenceSetManifest(name, namespace, imageName, replicas, instanceType,
 		labelSelector, presetName, imagePullSecret, adapters, modelAccessSecret)
 
+	if inferenceSet.Annotations == nil {
+		inferenceSet.Annotations = make(map[string]string)
+	}
 	inferenceSet.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(model.RuntimeNameVLLM)
 	return inferenceSet
 }

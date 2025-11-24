@@ -224,10 +224,13 @@ jobs:
           kill $PORT_FORWARD_PID
           echo 'Validation completed successfully!'
 
-      - name: Check scaledobject created
+      - name: Check ScaledObject and hpa created
         run: |
           echo "Checking for ScaledObject..."
           kubectl describe scaledobject inferenceset-aikit-test
+
+          echo "Checking for HorizontalPodAutoscaler..."
+          kubectl describe hpa keda-hpa-inferenceset-aikit-test
 
       - name: Debug info
         if: always()
@@ -237,6 +240,9 @@ jobs:
 
           echo "=== ScaledObject Status ==="
           kubectl get scaledobject -A
+
+          echo "=== HPA Status ==="
+          kubectl get hpa -A
 
           echo "=== Workspace Status ==="
           kubectl get workspace workspace-aikit-test -o yaml

@@ -214,7 +214,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateGatewayAPIInferenceExtensionResources(workspaceObj)
 	})
 
-	It("should create a Phi-2 InferenceSet with preset public mode successfully", func() {
+	It("should create a Phi-2 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplicas := 2
 		inferenceSetObj := createPhi2InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)

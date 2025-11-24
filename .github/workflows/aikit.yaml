@@ -98,6 +98,19 @@ jobs:
           # Wait for controller to be ready
           kubectl wait --for=condition=available --timeout=300s deployment/kaito-workspace -n ${{ env.KAITO_NAMESPACE }}
 
+      - name: Deploy keda-operator
+        run: |
+          helm repo add kedacore https://kedacore.github.io/charts
+          helm repo update
+          helm install keda kedacore/keda --namespace ${{ env.KAITO_NAMESPACE }} --create-namespace
+          kubectl wait --for=condition=available --timeout=300s deployment/keda-operator -n ${{ env.KAITO_NAMESPACE }}
+
+      - name: Deploy KEDA Kaito Scaler
+        run: |
+          helm repo add keda-kaito-scaler https://kaito-project.github.io/keda-kaito-scaler/charts/kaito-project
+          helm upgrade --install keda-kaito-scaler -n ${{ env.KAITO_NAMESPACE }} keda-kaito-scaler/keda-kaito-scaler --create-namespace
+          kubectl wait --for=condition=available --timeout=300s deployment/keda-kaito-scaler -n ${{ env.KAITO_NAMESPACE }}
+
       - name: Create AIKit workspace
         run: |
           cat << EOF > aikit-workspace.yaml
@@ -128,6 +141,10 @@ jobs:
           kind: InferenceSet
           metadata:
             name: inferenceset-aikit-test
+            annotations:
+              scaledobject.kaito.sh/auto-provision: "true"
+              scaledobject.kaito.sh/max-replicas: "5"
+              scaledobject.kaito.sh/threshold: "10"
           spec:
             labelSelector:
               matchLabels:
@@ -207,11 +224,19 @@ jobs:
           kill $PORT_FORWARD_PID
           echo 'Validation completed successfully!'
 
+      - name: Check scaledobject created
+        run: |
+          echo "Checking for ScaledObject..."
+          kubectl describe scaledobject inferenceset-aikit-test
+
       - name: Debug info
         if: always()
         run: |
           echo "=== InferenceSet Status ==="
           kubectl get inferenceset inferenceset-aikit-test -o yaml
+
+          echo "=== ScaledObject Status ==="
+          kubectl get scaledobject -A
 
           echo "=== Workspace Status ==="
           kubectl get workspace workspace-aikit-test -o yaml

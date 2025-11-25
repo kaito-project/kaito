@@ -581,7 +581,6 @@ func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, e
 			var totalReadyReplicas int32 = 0
 
 			if isStatefulSet {
-				// get statefulset with label "inferenceset.kaito.sh/created-by=<inferenceSetObj.Name>"
 				stsList := &appsv1.StatefulSetList{}
 				err := utils.TestingCluster.KubeClient.List(ctx, stsList)
 				if err != nil {
@@ -590,7 +589,6 @@ func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, e
 				}
 
 				for _, sts := range stsList.Items {
-					// filter out deployment with name starting with inferenceSetObj.Name
 					if !strings.HasPrefix(sts.Name, inferenceSetObj.Name) {
 						continue
 					}
@@ -607,7 +605,6 @@ func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, e
 				}
 
 				for _, dep := range depList.Items {
-					// filter out deployment with name starting with inferenceSetObj.Name
 					if !strings.HasPrefix(dep.Name, inferenceSetObj.Name) {
 						continue
 					}

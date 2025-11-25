@@ -575,6 +575,57 @@ func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedRep
 	})
 }
 
+func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, expectedReplicas int32, isStatefulSet bool) {
+	By("Checking the InferenceSet replicas", func() {
+		Eventually(func() bool {
+			var totalReadyReplicas int32 = 0
+
+			if isStatefulSet {
+				// get statefulset with label "inferenceset.kaito.sh/created-by=<inferenceSetObj.Name>"
+				stsList := &appsv1.StatefulSetList{}
+				err := utils.TestingCluster.KubeClient.List(ctx, stsList)
+				if err != nil {
+					GinkgoWriter.Printf("Error fetching statefulsets: %v\n", err)
+					return false
+				}
+
+				for _, sts := range stsList.Items {
+					// filter out deployment with name starting with inferenceSetObj.Name
+					if !strings.HasPrefix(sts.Name, inferenceSetObj.Name) {
+						continue
+					}
+					GinkgoWriter.Printf("StatefulSet %s has %d ready replicas\n", sts.Name, sts.Status.ReadyReplicas)
+					totalReadyReplicas += sts.Status.ReadyReplicas
+				}
+
+			} else {
+				depList := &appsv1.DeploymentList{}
+				err := utils.TestingCluster.KubeClient.List(ctx, depList)
+				if err != nil {
+					GinkgoWriter.Printf("Error fetching deployments: %v\n", err)
+					return false
+				}
+
+				for _, dep := range depList.Items {
+					// filter out deployment with name starting with inferenceSetObj.Name
+					if !strings.HasPrefix(dep.Name, inferenceSetObj.Name) {
+						continue
+					}
+
+					GinkgoWriter.Printf("Deployment %s has %d ready replicas\n", dep.Name, dep.Status.ReadyReplicas)
+					totalReadyReplicas += dep.Status.ReadyReplicas
+				}
+			}
+
+			if totalReadyReplicas == expectedReplicas {
+				return true
+			}
+
+			return false
+		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for InferenceSet replicas to be ready")
+	})
+}
+
 // validateRevision validates the annotations of the workspace and the workload, as well as the corresponding controller revision
 func validateRevision(workspaceObj *kaitov1beta1.Workspace, revisionStr string) {
 	By("Checking the revisions of the resources", func() {

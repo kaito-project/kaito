@@ -215,12 +215,13 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 	})
 
 	It("should create a Phi-2 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfReplicas := 1
+		numOfReplicas := 2
 		inferenceSetObj := createPhi2InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)
 		time.Sleep(120 * time.Second)
 
 		validateInferenceSetStatus(inferenceSetObj)
+		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas), false)
 	})
 
 	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {

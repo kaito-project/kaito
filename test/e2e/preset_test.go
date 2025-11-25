@@ -491,7 +491,7 @@ func validateInferenceSetStatus(inferenceSetObj *kaitov1alpha1.InferenceSet) {
 			}
 
 			_, conditionFound := lo.Find(inferenceSetObj.Status.Conditions, func(condition metav1.Condition) bool {
-				return condition.Type == string(kaitov1beta1.ConditionTypeResourceStatus) &&
+				return condition.Type == string(kaitov1alpha1.InferenceSetConditionTypeReady) &&
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound

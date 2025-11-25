@@ -218,7 +218,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		numOfReplicas := 1
 		inferenceSetObj := createPhi2InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)
-		time.Sleep(240 * time.Second)
+		time.Sleep(120 * time.Second)
 
 		validateInferenceSetStatus(inferenceSetObj)
 	})

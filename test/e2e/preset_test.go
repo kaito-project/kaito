@@ -592,6 +592,9 @@ func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, e
 					if !strings.HasPrefix(sts.Name, inferenceSetObj.Name) {
 						continue
 					}
+					if strings.Contains(sts.Name, "-inferencepool-") {
+						continue
+					}
 					GinkgoWriter.Printf("StatefulSet %s has %d ready replicas\n", sts.Name, sts.Status.ReadyReplicas)
 					totalReadyReplicas += sts.Status.ReadyReplicas
 				}
@@ -606,6 +609,9 @@ func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, e
 
 				for _, dep := range depList.Items {
 					if !strings.HasPrefix(dep.Name, inferenceSetObj.Name) {
+						continue
+					}
+					if strings.Contains(dep.Name, "-inferencepool-") {
 						continue
 					}
 

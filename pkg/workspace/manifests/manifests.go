@@ -31,6 +31,7 @@ import (
 	"k8s.io/klog/v2"
 	"k8s.io/utils/ptr"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -425,6 +426,26 @@ func GenerateInferencePoolOCIRepository(workspaceObj *kaitov1beta1.Workspace) *s
 	}
 }
 
+func GenerateInferencePoolOCIRepositoryFromInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet) *sourcev1.OCIRepository {
+	return &sourcev1.OCIRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      utils.InferencePoolName(inferenceSetObj.Name),
+			Namespace: inferenceSetObj.Namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(inferenceSetObj, kaitov1alpha1.GroupVersion.WithKind("InferenceSet")),
+			},
+		},
+		Spec: sourcev1.OCIRepositorySpec{
+			// Chart source for Gateway API Inference Extension inference pool;
+			// keep in sync with consts.InferencePoolChartVersion when upgrading.
+			URL: consts.InferencePoolChartURL,
+			Reference: &sourcev1.OCIRepositoryRef{
+				Tag: consts.InferencePoolChartVersion,
+			},
+		},
+	}
+}
+
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
 func GenerateInferencePoolHelmRelease(workspaceObj *kaitov1beta1.Workspace, isStatefulSet bool) (*helmv2.HelmRelease, error) {
 	matchLabels := map[string]string{
@@ -474,6 +495,62 @@ func GenerateInferencePoolHelmRelease(workspaceObj *kaitov1beta1.Workspace, isSt
 				Kind:      sourcev1.OCIRepositoryKind,
 				Namespace: workspaceObj.Namespace,
 				Name:      utils.InferencePoolName(workspaceObj.Name),
+			},
+			Values: &apiextensionsv1.JSON{
+				Raw: rawHelmValues,
+			},
+		},
+	}, nil
+}
+
+func GenerateInferencePoolHelmReleaseFromInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet, isStatefulSet bool) (*helmv2.HelmRelease, error) {
+	matchLabels := map[string]string{
+		consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
+	}
+	if isStatefulSet {
+		// Endpoint Picker from Gateway API Inference Extension expects to pick an endpoint that can serve traffic.
+		// In a multi-node inference environment, this means we need to select the leader pod (with pod index 0)
+		// since only the leader pod is capable of serving traffic.
+		matchLabels[appsv1.PodIndexLabel] = "0"
+	}
+
+	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.0.0/config/charts/inferencepool/values.yaml
+	helmValues := map[string]any{
+		"inferenceExtension": map[string]any{
+			"image": map[string]string{
+				"hub":        consts.GatewayAPIInferenceExtensionImageRepository,
+				"tag":        consts.InferencePoolChartVersion,
+				"pullPolicy": string(corev1.PullIfNotPresent),
+			},
+		},
+		"inferencePool": map[string]any{
+			"targetPorts": []map[string]any{{
+				"number": consts.PortInferenceServer,
+			}},
+			"modelServers": map[string]any{
+				"matchLabels": matchLabels,
+			},
+		},
+	}
+	rawHelmValues, err := json.Marshal(helmValues)
+	if err != nil {
+		return nil, err
+	}
+
+	return &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      utils.InferencePoolName(inferenceSetObj.Name),
+			Namespace: inferenceSetObj.Namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(inferenceSetObj, kaitov1alpha1.GroupVersion.WithKind("InferenceSet")),
+			},
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			// Referencing the OCIRepository created above
+			ChartRef: &helmv2.CrossNamespaceSourceReference{
+				Kind:      sourcev1.OCIRepositoryKind,
+				Namespace: inferenceSetObj.Namespace,
+				Name:      utils.InferencePoolName(inferenceSetObj.Name),
 			},
 			Values: &apiextensionsv1.JSON{
 				Raw: rawHelmValues,

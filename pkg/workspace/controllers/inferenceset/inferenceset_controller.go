@@ -28,6 +28,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
@@ -37,6 +38,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	gaiev1 "sigs.k8s.io/gateway-api-inference-extension/api/v1"
+	gaiev1alpha2 "sigs.k8s.io/gateway-api-inference-extension/apix/v1alpha2"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -338,8 +341,8 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 	// _, isStatefulSet := workloadObj.(*appsv1.StatefulSet)
 	isStatefulSet := true
 
-	ociRepository := manifests.GenerateInferencePoolOCIRepositoryFromInferenceSet(iObj)
-	helmRelease, err := manifests.GenerateInferencePoolHelmReleaseFromInferenceSet(iObj, isStatefulSet)
+	ociRepository := manifests.GenerateInferencePoolOCIRepository(iObj)
+	helmRelease, err := manifests.GenerateInferencePoolHelmRelease(iObj, isStatefulSet)
 	if err != nil {
 		return err
 	}
@@ -501,6 +504,33 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			builder.WithPredicates(workspace.WorkspacePredicate),
 		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
+
+	if featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
+		// Verify that all prerequisite CRDs exist before configuring watches that depend on them.
+		// - FluxCD HelmRelease / OCIRepository: required for installing and reconciling the InferencePool Helm chart.
+		// - Gateway API Inference Extension InferencePool / InferenceModel: required runtime CRDs that the Workspace
+		//   controller indirectly relies on (Helm chart renders resources referencing them).
+		// Failing fast here provides a clear, actionable error instead of deferred reconcile failures later.
+		for _, gvk := range []schema.GroupVersionKind{
+			helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind),
+			sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind),
+			gaiev1.SchemeGroupVersion.WithKind("InferencePool"),
+			gaiev1alpha2.SchemeGroupVersion.WithKind("InferenceObjective"),
+		} {
+			found, err := utils.EnsureKindExists(mgr.GetConfig(), gvk)
+			if err != nil {
+				return fmt.Errorf("failed to ensure kind %s exists: %w", gvk.Kind, err)
+			}
+			if !found {
+				return fmt.Errorf("%s not found in the cluster, please ensure the Gateway API Inference Extension is installed", gvk.String())
+			}
+		}
+
+		// We don't need to own InferencePool and InferenceModel because they are managed by Flux's HelmRelease
+		builder = builder.
+			Owns(&helmv2.HelmRelease{}).
+			Owns(&sourcev1.OCIRepository{})
+	}
 
 	go monitorInferenceSets(context.Background(), c.Client)
 	return builder.Complete(c)

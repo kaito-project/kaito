@@ -215,6 +215,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInferenceSetStatus(inferenceSetObj)
 		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas), false)
+		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
 	})
 
 	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
@@ -632,9 +633,9 @@ func createGPTOss120BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov
 	return workspaceObj
 }
 
-func validateGatewayAPIInferenceExtensionResources(workspaceObj *kaitov1beta1.Workspace) {
+func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1alpha1.InferenceSet) {
 	// Only validate if the Inference Preset is set
-	if workspaceObj.Inference.Preset == nil {
+	if iObj.Spec.Template.Inference.Preset == nil {
 		return
 	}
 
@@ -642,8 +643,8 @@ func validateGatewayAPIInferenceExtensionResources(workspaceObj *kaitov1beta1.Wo
 		Eventually(func() bool {
 			ociRepository := &sourcev1.OCIRepository{}
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: workspaceObj.Namespace,
-				Name:      kaitoutils.InferencePoolName(workspaceObj.Name),
+				Namespace: iObj.Namespace,
+				Name:      kaitoutils.InferencePoolName(iObj.Name),
 			}, ociRepository, &client.GetOptions{})
 			if err != nil {
 				return false
@@ -661,8 +662,8 @@ func validateGatewayAPIInferenceExtensionResources(workspaceObj *kaitov1beta1.Wo
 		Eventually(func() bool {
 			helmRelease := &helmv2.HelmRelease{}
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: workspaceObj.Namespace,
-				Name:      kaitoutils.InferencePoolName(workspaceObj.Name),
+				Namespace: iObj.Namespace,
+				Name:      kaitoutils.InferencePoolName(iObj.Name),
 			}, helmRelease, &client.GetOptions{})
 			if err != nil {
 				return false

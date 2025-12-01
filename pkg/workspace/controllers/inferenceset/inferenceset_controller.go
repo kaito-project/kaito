@@ -316,7 +316,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	return reconcile.Result{}, nil
 }
 
-// ensureGatewayAPIInferenceExtension reconciles Gateway API Inference Extension components for a Workspace.
+// ensureGatewayAPIInferenceExtension reconciles Gateway API Inference Extension components for a InferenceSet.
 //
 // How it works:
 // 1) Dry-runs preset inference generation to determine if the target workload is a StatefulSet.
@@ -327,6 +327,9 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 //
 // Idempotent and safe to call on every reconcile; no-op if preconditions are not met.
 func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
+	if iObj == nil {
+		return fmt.Errorf("InferenceSet object is nil")
+	}
 	runtimeName := kaitov1alpha1.GetInferenceSetRuntimeName(iObj)
 	isPresetInference := iObj.Spec.Template.Inference.Preset != nil
 
@@ -348,7 +351,10 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 	model := plugin.KaitoModelRegister.MustGet(string(iObj.Spec.Template.Inference.Preset.Name))
 
 	// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
-	workloadObj, _ := inference.GeneratePresetInference(ctx, &wsList.Items[0], "", model, c.Client)
+	workloadObj, err := inference.GeneratePresetInference(ctx, &wsList.Items[0], "", model, c.Client)
+	if err != nil {
+		return fmt.Errorf("failed to generate preset inference workload for Gateway API Inference Extension: %w", err)
+	}
 	_, isStatefulSet := workloadObj.(*appsv1.StatefulSet)
 
 	ociRepository := manifests.GenerateInferencePoolOCIRepository(iObj)

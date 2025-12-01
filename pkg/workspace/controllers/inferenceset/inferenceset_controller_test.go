@@ -320,16 +320,16 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 				featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = originalFeatureGate
 			}()
 
-			wObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+			iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
 			if !tc.isPreset {
-				wObj.Spec.Template.Inference.Preset = nil
+				iObj.Spec.Template.Inference.Preset = nil
 			}
 			// Ensure runtime selection aligns with the test case
 			if tc.runtimeName != model.RuntimeNameVLLM {
-				if wObj.Annotations == nil {
-					wObj.Annotations = map[string]string{}
+				if iObj.Annotations == nil {
+					iObj.Annotations = map[string]string{}
 				}
-				wObj.Annotations[v1beta1.AnnotationWorkspaceRuntime] = string(tc.runtimeName)
+				iObj.Annotations[v1beta1.AnnotationWorkspaceRuntime] = string(tc.runtimeName)
 			}
 
 			mockClient := test.NewClient()
@@ -338,12 +338,18 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 			}
 
 			reconciler := &InferenceSetReconciler{Client: mockClient}
-			err := reconciler.ensureGatewayAPIInferenceExtension(context.Background(), wObj)
+			err := reconciler.ensureGatewayAPIInferenceExtension(context.Background(), iObj)
 			if tc.expectedError != nil {
 				assert.ErrorContains(t, err, tc.expectedError.Error())
 			} else {
 				assert.NoError(t, err)
 			}
 		})
+	}
+
+	reconciler := &InferenceSetReconciler{Client: test.NewClient()}
+	err := reconciler.ensureGatewayAPIInferenceExtension(context.Background(), nil)
+	if err == nil || err.Error() != "InferenceSet object is nil" {
+		t.Errorf("Expected error for nil InferenceSet, got: %v", err)
 	}
 }

@@ -293,9 +293,17 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 				ociRepository.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
 				c.CreateOrUpdateObjectInMap(ociRepository)
 
-				helmRelease, _ := manifests.GenerateInferencePoolHelmRelease(test.MockInferenceSetWithPresetVLLM, true)
+				helmRelease, _ := manifests.GenerateInferencePoolHelmRelease(test.MockInferenceSetWithPresetVLLM, false)
 				helmRelease.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
 				c.CreateOrUpdateObjectInMap(helmRelease)
+
+				// mock inferenceset.ListWorkspaces return one workspace with preset VLLM
+				wsList := &v1beta1.WorkspaceList{}
+				wsList.Items = append(wsList.Items, *test.MockWorkspaceWithPresetVLLM)
+				c.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Run(func(args mock.Arguments) {
+					wsListArg := args.Get(1).(*v1beta1.WorkspaceList)
+					*wsListArg = *wsList
+				}).Return(nil)
 			},
 			featureGate:   true,
 			runtimeName:   model.RuntimeNameVLLM,

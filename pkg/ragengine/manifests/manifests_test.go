@@ -119,6 +119,36 @@ func TestGenerateRAGDeploymentManifest(t *testing.T) {
 		if len(requiredEnvs) > 0 {
 			t.Errorf("Missing required environment variables: %v", requiredEnvs)
 		}
+
+		// Verify TerminationGracePeriodSeconds
+		if obj.Spec.Template.Spec.TerminationGracePeriodSeconds == nil || *obj.Spec.Template.Spec.TerminationGracePeriodSeconds != 60 {
+			t.Errorf("Expected TerminationGracePeriodSeconds to be 60")
+		}
+
+		// Verify Lifecycle hooks
+		lifecycle := obj.Spec.Template.Spec.Containers[0].Lifecycle
+		if lifecycle == nil {
+			t.Errorf("Expected Lifecycle to be configured")
+		} else {
+			// Verify PostStart hook
+			if lifecycle.PostStart == nil || lifecycle.PostStart.Exec == nil {
+				t.Errorf("Expected PostStart hook to be configured")
+			} else {
+				expectedPostStart := []string{"python3", "/app/ragengine/lifecycle/hooks.py", "poststart"}
+				if !reflect.DeepEqual(lifecycle.PostStart.Exec.Command, expectedPostStart) {
+					t.Errorf("Expected PostStart command %v, got %v", expectedPostStart, lifecycle.PostStart.Exec.Command)
+				}
+			}
+			// Verify PreStop hook
+			if lifecycle.PreStop == nil || lifecycle.PreStop.Exec == nil {
+				t.Errorf("Expected PreStop hook to be configured")
+			} else {
+				expectedPreStop := []string{"/bin/sh", "-c", "python3 /app/ragengine/lifecycle/hooks.py prestop && sleep 5"}
+				if !reflect.DeepEqual(lifecycle.PreStop.Exec.Command, expectedPreStop) {
+					t.Errorf("Expected PreStop command %v, got %v", expectedPreStop, lifecycle.PreStop.Exec.Command)
+				}
+			}
+		}
 	})
 }
 
@@ -184,6 +214,30 @@ func TestGenerateRAGServiceManifest(t *testing.T) {
 		}
 		if ownerRef.Controller == nil || !*ownerRef.Controller {
 			t.Error("Expected owner reference Controller to be true")
+		}
+	})
+}
+
+func TestRAGSetEnv(t *testing.T) {
+	t.Run("test RAG environment variables", func(t *testing.T) {
+		ragEngine := test.MockRAGEngineWithPreset
+
+		envs := RAGSetEnv(ragEngine)
+
+		// Check for required environment variables
+		envMap := make(map[string]string)
+		for _, env := range envs {
+			envMap[env.Name] = env.Value
+		}
+
+		if envMap["EMBEDDING_TYPE"] != "local" {
+			t.Errorf("expected EMBEDDING_TYPE 'local', got %s", envMap["EMBEDDING_TYPE"])
+		}
+		if envMap["VECTOR_DB_TYPE"] != "faiss" {
+			t.Errorf("expected VECTOR_DB_TYPE 'faiss', got %s", envMap["VECTOR_DB_TYPE"])
+		}
+		if envMap["MODEL_ID"] != "BAAI/bge-small-en-v1.5" {
+			t.Errorf("expected MODEL_ID 'BAAI/bge-small-en-v1.5', got %s", envMap["MODEL_ID"])
 		}
 	})
 }

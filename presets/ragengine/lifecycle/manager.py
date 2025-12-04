@@ -196,11 +196,35 @@ def poststart_handler(base_dir: str | None = None) -> int:
 
     # Check for existing snapshots
     if not latest_link.exists() or not latest_link.is_symlink():
-        print("No previous snapshots found")
-        return 0
+        # LATEST link doesn't exist, try to find the most recent snapshot
+        snapshots_dir = base / "systemsnapshots"
+        if not snapshots_dir.exists():
+            print("No previous snapshots found")
+            return 0
+
+        # Find all snapshot directories
+        all_snapshots = sorted(
+            [d for d in snapshots_dir.iterdir() if d.is_dir()],
+            key=lambda x: x.name,
+            reverse=True,
+        )
+
+        if not all_snapshots:
+            print("No previous snapshots found")
+            return 0
+
+        # Use the most recent snapshot
+        latest = all_snapshots[0]
+        print(f"LATEST link missing, using most recent snapshot: {latest.name}")
+
+        # Recreate LATEST symlink
+        latest_link.symlink_to(latest.relative_to(base))
+        print(f"✓ Recreated LATEST link -> {latest.name}")
+    else:
+        # LATEST link exists, resolve it
+        latest = latest_link.resolve()
 
     # Read snapshot metadata
-    latest = latest_link.resolve()
     meta_file = latest / "metadata.json"
 
     if not meta_file.exists():
@@ -260,7 +284,7 @@ def prestop_handler(base_dir: str | None = None, keep_snapshots: int = 5) -> int
         base_dir = os.getenv("DEFAULT_VECTOR_DB_PERSIST_DIR", "/mnt/vector-db")
 
     base = Path(base_dir)
-    snapshots_dir = base / "snapshots"
+    snapshots_dir = base / "systemsnapshots"
     snapshots_dir.mkdir(parents=True, exist_ok=True)
 
     # Create snapshot directory
@@ -281,35 +305,21 @@ def prestop_handler(base_dir: str | None = None, keep_snapshots: int = 5) -> int
             shutil.rmtree(snap_dir)
             return 0
 
-        # Step 2: Persist each index to base directory
-        persisted = []
+        # Step 2: Persist each index directly to snapshot directory
+        saved = []
         for index_name in index_names:
-            persist_path = str(base / index_name)
+            persist_path = str(snap_dir / index_name)
             print(f"Persisting index: {index_name} to {persist_path}")
 
             if persist_index(index_name, persist_path):
-                persisted.append(index_name)
+                saved.append(index_name)
                 print(f"✓ Persisted: {index_name}")
             else:
                 print(f"✗ Failed to persist: {index_name}")
 
             time.sleep(0.5)  # Rate limiting
 
-        # Step 3: Copy persisted indexes to snapshot
-        saved = []
-        for index_name in persisted:
-            src = base / index_name
-            dst = snap_dir / index_name
-
-            # Verify the index was actually persisted
-            if src.exists() and (src / "docstore.json").exists():
-                shutil.copytree(src, dst)
-                saved.append(index_name)
-                print(f"✓ Saved to snapshot: {index_name}")
-            else:
-                print(f"✗ Index not found on disk: {index_name}")
-
-        # Step 4: Save metadata and update LATEST link
+        # Step 3: Save metadata and update LATEST link
         if saved:
             metadata = {
                 "timestamp": datetime.now().isoformat(),
@@ -323,7 +333,7 @@ def prestop_handler(base_dir: str | None = None, keep_snapshots: int = 5) -> int
             with open(meta_file, "w") as f:
                 json.dump(metadata, f, indent=2)
 
-            # Update LATEST symlink
+            # Update LATEST symlink to point to the new snapshot
             latest_link = base / "LATEST"
             if latest_link.exists():
                 latest_link.unlink()
@@ -331,7 +341,7 @@ def prestop_handler(base_dir: str | None = None, keep_snapshots: int = 5) -> int
 
             print("✓ Metadata saved, LATEST updated")
 
-            # Step 5: Cleanup old snapshots
+            # Step 4: Cleanup old snapshots (keep only the most recent ones)
             all_snapshots = sorted(
                 [d for d in snapshots_dir.iterdir() if d.is_dir()],
                 key=lambda x: x.name,
@@ -343,7 +353,7 @@ def prestop_handler(base_dir: str | None = None, keep_snapshots: int = 5) -> int
                 shutil.rmtree(old_snap)
                 print(f"✓ Deleted old snapshot: {old_snap.name}")
 
-            print(f"=== PreStop Complete: {len(saved)} indexes saved ===")
+            print(f"=== PreStop Complete: {len(saved)} indexes saved to snapshot ===")
             return 0
         else:
             print("No indexes were successfully saved")

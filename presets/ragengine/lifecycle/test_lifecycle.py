@@ -171,7 +171,7 @@ class TestLifecycleManager(unittest.TestCase):
         mock_load.return_value = True
 
         # Create mock snapshot
-        snapshots_dir = self.base_path / "snapshots"
+        snapshots_dir = self.base_path / "systemsnapshots"
         snapshot = snapshots_dir / "2024-11-30T10-00-00_pod-abc123"
         snapshot.mkdir(parents=True)
 
@@ -215,36 +215,37 @@ class TestLifecycleManager(unittest.TestCase):
         result = prestop_handler(base_dir=str(self.base_path))
 
         self.assertEqual(result, 0)
-        # Verify no snapshot directory was created
-        snapshots_dir = self.base_path / "snapshots"
-        self.assertEqual(len(list(snapshots_dir.iterdir())), 0)
+        # Verify no snapshot directory was created (or it's empty)
+        snapshots_dir = self.base_path / "systemsnapshots"
+        if snapshots_dir.exists():
+            self.assertEqual(len(list(snapshots_dir.iterdir())), 0)
 
     @patch.dict(os.environ, {"POD_UID": "test-uid-123", "POD_NAME": "test-pod"})
     @patch("manager.get_indexes")
     @patch("manager.persist_index")
     def test_prestop_with_indexes(self, mock_persist, mock_get_indexes):
-        """Test prestop_handler persists indexes correctly."""
+        """Test prestop_handler persists indexes directly to snapshot directory."""
         mock_get_indexes.return_value = ["index1", "index2"]
         mock_persist.return_value = True
 
-        # Create mock persisted indexes
-        for idx in ["index1", "index2"]:
-            idx_dir = self.base_path / idx
-            idx_dir.mkdir()
-            (idx_dir / "docstore.json").write_text("{}")
-
-        result = prestop_handler(base_dir=str(self.base_path), keep_snapshots=5)
+        result = prestop_handler(base_dir=str(self.base_path))
 
         self.assertEqual(result, 0)
         self.assertEqual(mock_persist.call_count, 2)
 
-        # Verify snapshot was created
-        snapshots_dir = self.base_path / "snapshots"
+        # Verify persist_index was called with snapshot directory paths
+        snapshots_dir = self.base_path / "systemsnapshots"
         snapshots = list(snapshots_dir.iterdir())
         self.assertEqual(len(snapshots), 1)
+        snapshot = snapshots[0]
+
+        # Check that persist_index was called with snapshot subdirectory paths
+        calls = mock_persist.call_args_list
+        for call in calls:
+            path_arg = call[0][1]  # Second argument is the path
+            self.assertIn(str(snapshot), path_arg)
 
         # Verify metadata
-        snapshot = snapshots[0]
         metadata_file = snapshot / "metadata.json"
         self.assertTrue(metadata_file.exists())
 
@@ -253,6 +254,7 @@ class TestLifecycleManager(unittest.TestCase):
 
         self.assertEqual(metadata["index_names"], ["index1", "index2"])
         self.assertEqual(metadata["pod_name"], "test-pod")
+        self.assertEqual(metadata["version"], 1)
 
         # Verify LATEST link
         latest_link = self.base_path / "LATEST"
@@ -267,32 +269,25 @@ class TestLifecycleManager(unittest.TestCase):
         mock_get_indexes.return_value = ["index1"]
         mock_persist.return_value = True
 
-        # Create mock persisted index
-        idx_dir = self.base_path / "index1"
-        idx_dir.mkdir()
-        (idx_dir / "docstore.json").write_text("{}")
-
-        # Create 6 old snapshots
-        snapshots_dir = self.base_path / "snapshots"
+        # Create 5 old snapshots
+        snapshots_dir = self.base_path / "systemsnapshots"
         snapshots_dir.mkdir()
 
-        for i in range(6):
+        for i in range(5):
             old_snapshot = snapshots_dir / f"2024-11-{i + 1:02d}T10-00-00_pod-old"
             old_snapshot.mkdir()
             (old_snapshot / "metadata.json").write_text("{}")
 
+        # Run prestop which will create 1 new snapshot (total 6)
         result = prestop_handler(base_dir=str(self.base_path), keep_snapshots=5)
 
         self.assertEqual(result, 0)
 
-        # Should have 6 snapshots total (5 old + 1 new)
+        # After cleanup with keep_snapshots=5, should only have 5 (the newest ones)
         all_snapshots = sorted(
             list(snapshots_dir.iterdir()), key=lambda x: x.name, reverse=True
         )
-        self.assertEqual(len(all_snapshots), 6)
-
-        # After cleanup, should only have 5 (the newest ones)
-        # The oldest one should have been deleted
+        self.assertEqual(len(all_snapshots), 5)
 
 
 class TestLifecycleIntegration(unittest.TestCase):
@@ -334,7 +329,7 @@ class TestLifecycleIntegration(unittest.TestCase):
         self.assertEqual(prestop_result, 0)
 
         # Verify snapshot was created
-        snapshots_dir = self.base_path / "snapshots"
+        snapshots_dir = self.base_path / "systemsnapshots"
         self.assertTrue(snapshots_dir.exists())
         snapshots = list(snapshots_dir.iterdir())
         self.assertEqual(len(snapshots), 1)

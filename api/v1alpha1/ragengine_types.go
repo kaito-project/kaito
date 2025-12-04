@@ -18,7 +18,14 @@ import (
 )
 
 type StorageSpec struct {
-	//TODO: add vendor specific APIs for accessing vector DB services here.
+	// PersistentVolumeClaim specifies the PVC to use for persisting vector database data.
+	// If not specified, an emptyDir will be used (data will be lost on pod restart).
+	// +optional
+	PersistentVolumeClaim string `json:"persistentVolumeClaim,omitempty"`
+	// MountPath specifies where the volume should be mounted in the container.
+	// Defaults to /mnt/data if not specified.
+	// +optional
+	MountPath string `json:"mountPath,omitempty"`
 }
 
 type RemoteEmbeddingSpec struct {

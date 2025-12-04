@@ -105,6 +105,42 @@ func getEnv(key, defaultValue string) string {
 	return value
 }
 
+// configStorageVolume creates a volume and volume mount for vector database storage
+func configStorageVolume(storageSpec *v1alpha1.StorageSpec) (corev1.Volume, corev1.VolumeMount) {
+	mountPath := "/mnt/data"
+	if storageSpec.MountPath != "" {
+		mountPath = storageSpec.MountPath
+	}
+
+	volumeMount := corev1.VolumeMount{
+		Name:      "vector-db-storage",
+		MountPath: mountPath,
+	}
+
+	var volume corev1.Volume
+	if storageSpec.PersistentVolumeClaim != "" {
+		// Use PVC for persistent storage
+		volume = corev1.Volume{
+			Name: "vector-db-storage",
+			VolumeSource: corev1.VolumeSource{
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+					ClaimName: storageSpec.PersistentVolumeClaim,
+				},
+			},
+		}
+	} else {
+		// Use emptyDir as fallback (data will not persist across pod restarts)
+		volume = corev1.Volume{
+			Name: "vector-db-storage",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		}
+	}
+
+	return volume, volumeMount
+}
+
 func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
@@ -112,6 +148,13 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 	shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
 	volumes = append(volumes, shmVolume)
 	volumeMounts = append(volumeMounts, shmVolumeMount)
+
+	// Configure storage volume for FAISS vector database persistence
+	if ragEngineObj.Spec.Storage != nil {
+		storageVolume, storageVolumeMount := configStorageVolume(ragEngineObj.Spec.Storage)
+		volumes = append(volumes, storageVolume)
+		volumeMounts = append(volumeMounts, storageVolumeMount)
+	}
 
 	var resourceReq corev1.ResourceRequirements
 

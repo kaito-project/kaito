@@ -216,6 +216,17 @@ spec:
                   Storage specifies how to access the vector database used to save the embedding vectors.
                   If this field is not specified, by default, an in-memory vector DB will be used.
                   The data will not be persisted.
+                properties:
+                  mountPath:
+                    description: |-
+                      MountPath specifies where the volume should be mounted in the container.
+                      Defaults to /mnt/data if not specified.
+                    type: string
+                  persistentVolumeClaim:
+                    description: |-
+                      PersistentVolumeClaim specifies the PVC to use for persisting vector database data.
+                      If not specified, an emptyDir will be used (data will be lost on pod restart).
+                    type: string
                 type: object
             required:
             - embedding

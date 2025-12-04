@@ -81,7 +81,8 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1alpha1.RAGEngine, revisi
 					Labels: selector,
 				},
 				Spec: corev1.PodSpec{
-					ImagePullSecrets: imagePullSecretRefs,
+					TerminationGracePeriodSeconds: lo.ToPtr(int64(60)),
+					ImagePullSecrets:              imagePullSecretRefs,
 					Affinity: &corev1.Affinity{
 						NodeAffinity: &corev1.NodeAffinity{
 							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
@@ -105,6 +106,26 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1alpha1.RAGEngine, revisi
 							Ports:          containerPorts,
 							VolumeMounts:   volumeMount,
 							Env:            envs,
+							Lifecycle: &corev1.Lifecycle{
+								PostStart: &corev1.LifecycleHandler{
+									Exec: &corev1.ExecAction{
+										Command: []string{
+											"python3",
+											"/app/ragengine/lifecycle/hooks.py",
+											"poststart",
+										},
+									},
+								},
+								PreStop: &corev1.LifecycleHandler{
+									Exec: &corev1.ExecAction{
+										Command: []string{
+											"/bin/sh",
+											"-c",
+											"python3 /app/ragengine/lifecycle/hooks.py prestop && sleep 5",
+										},
+									},
+								},
+							},
 						},
 					},
 					Tolerations: tolerations,
@@ -117,6 +138,25 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1alpha1.RAGEngine, revisi
 
 func RAGSetEnv(ragEngineObj *kaitov1alpha1.RAGEngine) []corev1.EnvVar {
 	var envs []corev1.EnvVar
+
+	// Add Pod metadata as environment variables for lifecycle hooks
+	envs = append(envs, corev1.EnvVar{
+		Name: "POD_NAME",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.name",
+			},
+		},
+	})
+	envs = append(envs, corev1.EnvVar{
+		Name: "POD_UID",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.uid",
+			},
+		},
+	})
+
 	var embeddingType string
 	if ragEngineObj.Spec.Embedding.Local != nil {
 		embeddingType = "local"
@@ -151,6 +191,22 @@ func RAGSetEnv(ragEngineObj *kaitov1alpha1.RAGEngine) []corev1.EnvVar {
 		Value: "faiss", // TODO: get storage done
 	}
 	envs = append(envs, stoageEnv)
+
+	// Set the vector database persist directory based on storage configuration
+	persistDir := "storage" // default in-memory/ephemeral storage
+	if ragEngineObj.Spec.Storage != nil {
+		mountPath := "/mnt/data"
+		if ragEngineObj.Spec.Storage.MountPath != "" {
+			mountPath = ragEngineObj.Spec.Storage.MountPath
+		}
+		// Append RAGEngine name to ensure unique directory per instance
+		persistDir = fmt.Sprintf("%s/%s", mountPath, ragEngineObj.Name)
+	}
+	persistDirEnv := corev1.EnvVar{
+		Name:  "DEFAULT_VECTOR_DB_PERSIST_DIR",
+		Value: persistDir,
+	}
+	envs = append(envs, persistDirEnv)
 	inferenceServiceURL := ragEngineObj.Spec.InferenceService.URL
 	inferenceServiceURLEnv := corev1.EnvVar{
 		Name:  "LLM_INFERENCE_URL",

@@ -84,7 +84,7 @@ jobs:
           # Install via Helm
           # CSI Local Node cannot be configured to not deploy and it crashes on kind on github runners for unknown reasons
           # so we need to filter it out its components
-          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set featureGates.disableNodeAutoProvisioning="true" --set featureGates.enableInferenceSetController="true" --include-crds --debug --wait | awk '
+          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set featureGates.disableNodeAutoProvisioning="true" --set featureGates.enableInferenceSetController="true" --set featureGates.gatewayAPIInferenceExtension="true" --include-crds --debug --wait | awk '
             BEGIN { RS="---\n"; ORS="---\n"; csi=0 }
             /kind: ServiceAccount/ && /name: csi-local-node/ { csi=1 }
             /kind: StorageClass/ && /name: kaito-local-nvme-disk/ { csi=1 }
@@ -172,6 +172,11 @@ jobs:
         run: |
           echo "Waiting for inferenceset to be ready..."
           kubectl wait --for='jsonpath={.status.readyReplicas}=1' inferenceset/inferenceset-aikit-test --timeout 300s
+
+      - name: Wait for Endpoint Picker (EPP) deployment to be ready
+        run: |
+          echo "Waiting for Endpoint Picker (EPP) deployment to be ready..."
+          kubectl wait --for='jsonpath={.status.readyReplicas}=1' --timeout=300s deployment/inferenceset-aikit-test-inferencepool-epp
 
       - name: Validate response content
         run: |

@@ -43,7 +43,7 @@ When the feature gate is enabled, [Flux](https://fluxcd.io/) will be installed i
 
 When you create a InferenceSet, the KAITO InferenceSet controller will:
 
-1) Dry-run the inference workload to determine whether its a Deployment or StatefulSet (important for how endpoints are selected)
+1) Dry-run the inference workload to determine whether it's a Deployment or StatefulSet (important for how endpoints are selected)
 2) Create or update two Flux resources in the InferenceSet namespace:
 	 - [OCIRepository](https://fluxcd.io/flux/components/source/ocirepositories/): points to the upstream GWIE inferencepool Helm chart
 		 - URL: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
@@ -127,7 +127,7 @@ Apply an Istio DestinationRule. Since EPP runs with `--secure-serving=true` by d
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml
 ```
 
-Create the HTTPRoute that targets the InferenceSets InferencePool (via `.spec.endpointPickerRef`) and defines the routing matchers used by the Gateway:
+Create the HTTPRoute that targets the InferenceSet's InferencePool (via `.spec.endpointPickerRef`) and defines the routing matchers used by the Gateway:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute.yaml

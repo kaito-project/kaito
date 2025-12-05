@@ -1,0 +1,33 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-ragengine-vector-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: managed-csi
+---
+apiVersion: kaito.sh/v1alpha1
+kind: RAGEngine
+metadata:
+  name: ragengine-with-pvc
+spec:
+  compute:
+    instanceType: "Standard_NC6s_v3"  
+    labelSelector:
+      matchLabels:
+        apps: ragengine-example
+  storage:
+    persistentVolumeClaim: pvc-ragengine-vector-db
+    mountPath: /mnt/vector-db
+  embedding:  
+    local:
+      modelID: "BAAI/bge-small-en-v1.5"       
+  inferenceService:  
+    url: "<inference-url>/v1/chat/completions"
+    # phi3-mini-4k-instruct example contextWindowSize
+    # set to your models context window size
+    contextWindowSize: 4000

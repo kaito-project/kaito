@@ -40,6 +40,45 @@ spec:
     url: "<inference-url>/v1/completions"
 ```
 
+### Using Persistent Storage
+
+To enable persistent storage for vector indexes, add a `storage` specification:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-ragengine-vector-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: managed-csi-premium
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: kaito.sh/v1alpha1
+kind: RAGEngine
+metadata:
+  name: ragengine-with-storage
+spec:
+  compute:
+    instanceType: "Standard_NC6s_v3"
+    labelSelector:
+      matchLabels:
+        apps: ragengine-example
+  storage:
+    persistentVolumeClaim: pvc-ragengine-vector-db
+    mountPath: /mnt/vector-db
+  embedding:
+    local:
+      modelID: "BAAI/bge-small-en-v1.5"
+  inferenceService:
+    url: "<inference-url>/v1/completions"
+```
+
+With persistent storage configured, vector indexes are automatically saved during pod termination and restored on startup.
+
 ## Values
 
 | Key                          | Type   | Default                                      | Description                                                   |

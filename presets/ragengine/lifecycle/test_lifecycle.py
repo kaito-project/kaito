@@ -49,10 +49,9 @@ class TestLifecycleManager(unittest.TestCase):
         """Clean up temporary directory."""
         shutil.rmtree(self.test_dir, ignore_errors=True)
 
-    @patch("manager.HAS_REQUESTS", True)
     @patch("manager.requests.get")
-    def test_wait_for_service_success_requests(self, mock_get):
-        """Test wait_for_service succeeds with requests."""
+    def test_wait_for_service_success(self, mock_get):
+        """Test wait_for_service succeeds."""
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_get.return_value = mock_response
@@ -62,20 +61,6 @@ class TestLifecycleManager(unittest.TestCase):
         self.assertTrue(result)
         mock_get.assert_called()
 
-    @patch("manager.HAS_REQUESTS", False)
-    @patch("manager.subprocess.run")
-    def test_wait_for_service_success_curl(self, mock_run):
-        """Test wait_for_service succeeds with curl."""
-        mock_result = MagicMock()
-        mock_result.stdout = "200"
-        mock_run.return_value = mock_result
-
-        result = wait_for_service(timeout=10)
-
-        self.assertTrue(result)
-        mock_run.assert_called()
-
-    @patch("manager.HAS_REQUESTS", True)
     @patch("manager.requests.get")
     def test_wait_for_service_timeout(self, mock_get):
         """Test wait_for_service times out."""
@@ -85,7 +70,6 @@ class TestLifecycleManager(unittest.TestCase):
 
         self.assertFalse(result)
 
-    @patch("manager.HAS_REQUESTS", True)
     @patch("manager.requests.get")
     def test_get_indexes_success(self, mock_get):
         """Test get_indexes returns list of indexes."""
@@ -97,7 +81,6 @@ class TestLifecycleManager(unittest.TestCase):
 
         self.assertEqual(result, ["index1", "index2", "index3"])
 
-    @patch("manager.HAS_REQUESTS", True)
     @patch("manager.requests.get")
     def test_get_indexes_failure(self, mock_get):
         """Test get_indexes handles errors gracefully."""
@@ -107,7 +90,6 @@ class TestLifecycleManager(unittest.TestCase):
 
         self.assertEqual(result, [])
 
-    @patch("manager.HAS_REQUESTS", True)
     @patch("manager.requests.post")
     def test_load_index_success(self, mock_post):
         """Test load_index succeeds."""
@@ -120,7 +102,6 @@ class TestLifecycleManager(unittest.TestCase):
         self.assertTrue(result)
         mock_post.assert_called_once()
 
-    @patch("manager.HAS_REQUESTS", True)
     @patch("manager.requests.post")
     def test_load_index_failure(self, mock_post):
         """Test load_index handles errors."""
@@ -130,7 +111,6 @@ class TestLifecycleManager(unittest.TestCase):
 
         self.assertFalse(result)
 
-    @patch("manager.HAS_REQUESTS", True)
     @patch("manager.requests.post")
     def test_persist_index_success(self, mock_post):
         """Test persist_index succeeds."""
@@ -143,7 +123,6 @@ class TestLifecycleManager(unittest.TestCase):
         self.assertTrue(result)
         mock_post.assert_called_once()
 
-    @patch("manager.HAS_REQUESTS", True)
     @patch("manager.requests.post")
     def test_persist_index_failure(self, mock_post):
         """Test persist_index handles errors."""

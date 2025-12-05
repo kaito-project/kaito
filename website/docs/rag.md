@@ -81,6 +81,51 @@ spec:
     contextWindowSize: 512    # Modify to fit the model's context window.
 ```
 
+### Persistent Storage (Optional)
+RAGEngine supports persistent storage for vector indexes using Kubernetes PersistentVolumeClaims (PVC). When configured, indexed documents are automatically saved to persistent storage and restored on pod restarts. Users can also manually persist and load indexes using the RAG service API endpoints (`/persist/{index_name}` and `/load/{index_name}`).
+
+**Example with Azure Disk PVC:**
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-ragengine-vector-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: managed-csi-premium
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: kaito.sh/v1alpha1
+kind: RAGEngine
+metadata:
+  name: ragengine-with-pvc
+spec:
+  compute:
+    instanceType: "Standard_NC4as_T4_v3"
+    labelSelector:
+      matchLabels:
+        apps: ragengine-example
+  storage:
+    persistentVolumeClaim: pvc-ragengine-vector-db
+    mountPath: /mnt/vector-db
+  embedding:
+    local:
+      modelID: "BAAI/bge-small-en-v1.5"
+  inferenceService:
+    url: "<inference-url>/v1/completions"
+    contextWindowSize: 512
+```
+
+**Key points:**
+- Indexes are automatically persisted when the pod terminates (via PreStop lifecycle hook)
+- Indexes are automatically restored when the pod starts (via PostStart lifecycle hook)
+- Snapshots are stored with timestamps and the 5 most recent snapshots are retained
+- Storage class should support ReadWriteOnce access mode
+
 ### Apply the manifest
 After you create your YAML configuration, run:
 ```sh

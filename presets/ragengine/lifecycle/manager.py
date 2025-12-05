@@ -19,18 +19,12 @@ Handles FAISS index persistence and restoration using existing RAG service APIs.
 import json
 import os
 import shutil
-import subprocess
 import time
 from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
 
-try:
-    import requests
-
-    HAS_REQUESTS = True
-except ImportError:
-    HAS_REQUESTS = False
+import requests
 
 
 def wait_for_service(
@@ -51,29 +45,10 @@ def wait_for_service(
 
     for attempt in range(max_attempts):
         try:
-            if HAS_REQUESTS:
-                response = requests.get(service_url, timeout=2)
-                if response.status_code == 200:
-                    print(f"Service ready after {attempt * 2}s")
-                    return True
-            else:
-                result = subprocess.run(
-                    [
-                        "curl",
-                        "-s",
-                        "-o",
-                        "/dev/null",
-                        "-w",
-                        "%{http_code}",
-                        service_url,
-                    ],
-                    capture_output=True,
-                    text=True,
-                    timeout=2,
-                )
-                if result.stdout.strip() == "200":
-                    print(f"Service ready after {attempt * 2}s")
-                    return True
+            response = requests.get(service_url, timeout=2)
+            if response.status_code == 200:
+                print(f"Service ready after {attempt * 2}s")
+                return True
         except Exception:
             if attempt == 0:
                 print(f"Waiting for service (attempt {attempt + 1}/{max_attempts})...")
@@ -95,17 +70,8 @@ def get_indexes(service_url: str = "http://localhost:5000") -> list[str]:
         List of index names
     """
     try:
-        if HAS_REQUESTS:
-            response = requests.get(f"{service_url}/indexes", timeout=5)
-            return response.json()
-        else:
-            result = subprocess.run(
-                ["curl", "-s", f"{service_url}/indexes"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            return json.loads(result.stdout)
+        response = requests.get(f"{service_url}/indexes", timeout=5)
+        return response.json()
     except Exception as e:
         print(f"Failed to get indexes: {e}")
         return []
@@ -127,14 +93,8 @@ def load_index(
     """
     try:
         url = f"{service_url}/load/{index_name}?path={path}&overwrite=true"
-        if HAS_REQUESTS:
-            response = requests.post(url, timeout=30)
-            return response.status_code == 200
-        else:
-            result = subprocess.run(
-                ["curl", "-s", "-X", "POST", url], capture_output=True, timeout=30
-            )
-            return result.returncode == 0
+        response = requests.post(url, timeout=30)
+        return response.status_code == 200
     except Exception as e:
         print(f"Failed to load index {index_name}: {e}")
         return False
@@ -156,14 +116,8 @@ def persist_index(
     """
     try:
         url = f"{service_url}/persist/{index_name}?path={path}"
-        if HAS_REQUESTS:
-            response = requests.post(url, timeout=30)
-            return response.status_code == 200
-        else:
-            result = subprocess.run(
-                ["curl", "-s", "-X", "POST", url], capture_output=True, timeout=30
-            )
-            return result.returncode == 0
+        response = requests.post(url, timeout=30)
+        return response.status_code == 200
     except Exception as e:
         print(f"Failed to persist index {index_name}: {e}")
         return False

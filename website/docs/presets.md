@@ -12,7 +12,6 @@ The current supported model families with preset configurations are listed below
 | [gpt-oss](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/gpt)           | v0.7.0+                       |
 | [llama](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/llama)           | v0.4.6+                   |
 | [mistral](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/mistral)       | v0.2.0+                   |
-| [phi-2](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/phi2)            | v0.2.0+                   |
 | [phi-3](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/phi3)            | v0.3.0+                   |
 | [phi-4](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/phi4)            | v0.4.5+                   |
 | [qwen](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/qwen)             | v0.4.1+                   |

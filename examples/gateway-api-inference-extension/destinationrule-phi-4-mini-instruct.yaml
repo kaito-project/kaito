@@ -1,9 +1,9 @@
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
-  name: workspace-phi-4-mini-inferencepool-epp
+  name: phi-4-mini-inferencepool-epp
 spec:
-  host: workspace-phi-4-mini-inferencepool-epp
+  host: phi-4-mini-inferencepool-epp
   trafficPolicy:
     tls:
       mode: SIMPLE

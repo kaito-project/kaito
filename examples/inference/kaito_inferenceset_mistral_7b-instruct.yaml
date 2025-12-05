@@ -1,0 +1,15 @@
+apiVersion: kaito.sh/v1alpha1
+kind: InferenceSet
+metadata:
+  name: mistral-7b-instruct
+spec:
+  replicas: 1
+  labelSelector:
+    matchLabels:
+      apps: mistral-7b-instruct
+  template:
+    resource:
+      instanceType: "Standard_NC24ads_A100_v4"
+    inference:
+      preset:
+        name: mistral-7b-instruct

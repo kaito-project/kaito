@@ -207,11 +207,6 @@ kaito-ragengine-e2e-test: $(RAGENGINE_E2E_TEST) $(GINKGO) ## Run e2e tests for K
 create-rg: ## Create Azure resource group.
 	az group create --name $(AZURE_RESOURCE_GROUP) --location $(AZURE_LOCATION) -o none
 
-.PHONY: create-acr
-create-acr: ## Create Azure container registry and login into it.
-	az acr create --name $(AZURE_ACR_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --sku Standard --admin-enabled -o none
-	az acr login  --name $(AZURE_ACR_NAME)
-
 .PHONY: create-aks-cluster
 create-aks-cluster: ## Create an AKS cluster with MSI, OIDC, and workload identity enabled.
 	az aks create  --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \

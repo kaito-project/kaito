@@ -11,7 +11,7 @@ spec:
   - backendRefs:
     - group: inference.networking.k8s.io
       kind: InferencePool
-      name: workspace-phi-4-mini-inferencepool
+      name: phi-4-mini-inferencepool
     matches:
     - path:
         type: PathPrefix

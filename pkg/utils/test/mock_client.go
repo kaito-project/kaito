@@ -26,6 +26,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	k8sClient "sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 // MockClient Client is a mock for the controller-runtime dynamic client interface.
@@ -138,6 +141,22 @@ func (m *MockClient) getObjectListFromMap(list k8sClient.ObjectList) k8sClient.O
 			}
 		}
 		return controllerRevisionList
+	case *kaitov1beta1.WorkspaceList:
+		workspaceList := &kaitov1beta1.WorkspaceList{}
+		for _, obj := range relevantMap {
+			if m, ok := obj.(*kaitov1beta1.Workspace); ok {
+				workspaceList.Items = append(workspaceList.Items, *m)
+			}
+		}
+		return workspaceList
+	case *kaitov1alpha1.InferenceSetList:
+		inferenceSetList := &kaitov1alpha1.InferenceSetList{}
+		for _, obj := range relevantMap {
+			if m, ok := obj.(*kaitov1alpha1.InferenceSet); ok {
+				inferenceSetList.Items = append(inferenceSetList.Items, *m)
+			}
+		}
+		return inferenceSetList
 	}
 	//add additional object lists as needed
 	return nil

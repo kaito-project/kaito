@@ -156,7 +156,7 @@ runs:
         IMAGE_NAME=${{ inputs.image_name }}
         MODEL_NAME=${{ inputs.model_name }}
         MODEL_TYPE=${{ inputs.model_type }}
-        MODEL_VERSION=${{ inputs.model_version }}
+        MODEL_VERSION_URL=${{ inputs.model_version }}
         MODEL_RUNTIME=${{ inputs.model_runtime }}
         MODEL_TAG=${{ inputs.image_tag }}
         WEIGHTS_DIR=${{ inputs.weights_dir }}
@@ -166,15 +166,13 @@ runs:
         # Login to Docker registry
         echo $ACR_PASSWORD | docker login $ACR_NAME.azurecr.io -u $ACR_USERNAME --password-stdin
 
-        # Download model and Generate Dockerfile
-        MODEL_DIR=$WEIGHTS_DIR/$IMAGE_NAME/weights
-
-        MODEL_NAME=${{ inputs.model_name }} \
-        MODEL_VERSION=${{ inputs.model_version }} \
-        WEIGHTS_DIR=$MODEL_DIR \
-        HF_TOKEN=${{ inputs.hf_token }} \
-        HF_HOME=$MODEL_DIR \
-        python3 docker/presets/models/tfs/download_and_push_model.py $ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG
+        # Use shared script to build and push OCI artifact
+        docker/presets/models/tfs/build_oci_artifact.sh \
+          "$MODEL_VERSION_URL" \
+          "$IMAGE_NAME" \
+          "$ACR_NAME.azurecr.io" \
+          "$MODEL_TAG" \
+          "$HF_TOKEN"
 
       shell: bash
 

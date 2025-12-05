@@ -19,12 +19,16 @@ import (
 	"slices"
 	"sort"
 	"strconv"
+	"time"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
@@ -34,14 +38,22 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	gaiev1 "sigs.k8s.io/gateway-api-inference-extension/api/v1"
+	gaiev1alpha2 "sigs.k8s.io/gateway-api-inference-extension/apix/v1alpha2"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/inferenceset"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
 const (
@@ -292,7 +304,118 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			return reconcile.Result{}, err
 		}
 	}
+
+	if err = c.ensureGatewayAPIInferenceExtension(ctx, iObj); err != nil {
+		if updateErr := inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeReady, metav1.ConditionFalse,
+			"inferencesetFailed", err.Error()); updateErr != nil {
+			klog.ErrorS(updateErr, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
+			return reconcile.Result{}, updateErr
+		}
+	}
+
 	return reconcile.Result{}, nil
+}
+
+// ensureGatewayAPIInferenceExtension reconciles Gateway API Inference Extension components for a InferenceSet.
+//
+// How it works:
+// 1) Dry-runs preset inference generation to determine if the target workload is a StatefulSet.
+// 2) Renders a Flux OCIRepository and a HelmRelease for the InferencePool chart.
+// 3) Creates the resources if absent; updates them if the desired spec differs.
+// 4) Waits for resources to become ready using the model's inference readiness timeout.
+// 5) Aggregates and returns any errors.
+//
+// Idempotent and safe to call on every reconcile; no-op if preconditions are not met.
+func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
+	if iObj == nil {
+		return fmt.Errorf("InferenceSet object is nil")
+	}
+	runtimeName := kaitov1alpha1.GetInferenceSetRuntimeName(iObj)
+	isPresetInference := iObj.Spec.Template.Inference.Preset != nil
+
+	// Gateway API Inference Extension is specifically designed to work with vLLM and preset-based inference workloads.
+	if !featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] ||
+		runtimeName != pkgmodel.RuntimeNameVLLM || !isPresetInference {
+		return nil
+	}
+
+	wsList, err := inferenceset.ListWorkspaces(ctx, iObj, c.Client)
+	if err != nil {
+		return err
+	}
+	if len(wsList.Items) == 0 {
+		klog.InfoS("No workspaces found for inferenceset(%s), skipping Gateway API Inference Extension reconciliation", "inferenceset", iObj.Name)
+		return nil
+	}
+
+	model := plugin.KaitoModelRegister.MustGet(string(iObj.Spec.Template.Inference.Preset.Name))
+
+	// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
+	workloadObj, err := inference.GeneratePresetInference(ctx, &wsList.Items[0], "", model, c.Client)
+	if err != nil {
+		return fmt.Errorf("failed to generate preset inference workload for Gateway API Inference Extension: %w", err)
+	}
+	_, isStatefulSet := workloadObj.(*appsv1.StatefulSet)
+
+	ociRepository := manifests.GenerateInferencePoolOCIRepository(iObj)
+	helmRelease, err := manifests.GenerateInferencePoolHelmRelease(iObj, isStatefulSet)
+	if err != nil {
+		return err
+	}
+
+	// Create or update OCIRepository
+	existingOCIRepo := &sourcev1.OCIRepository{}
+	err = resources.GetResource(ctx, ociRepository.Name, ociRepository.Namespace, c.Client, existingOCIRepo)
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+		if err := resources.CreateResource(ctx, ociRepository, c.Client); client.IgnoreAlreadyExists(err) != nil {
+			return err
+		}
+	} else {
+		equal, err := utils.ClientObjectSpecEqual(ociRepository, existingOCIRepo)
+		if err != nil {
+			return err
+		}
+		if !equal {
+			existingOCIRepo.Spec = ociRepository.Spec
+			if err := c.Update(ctx, existingOCIRepo); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Check if HelmRelease exists
+	existingHelmRelease := &helmv2.HelmRelease{}
+	err = resources.GetResource(ctx, helmRelease.Name, helmRelease.Namespace, c.Client, existingHelmRelease)
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+		if err := resources.CreateResource(ctx, helmRelease, c.Client); client.IgnoreAlreadyExists(err) != nil {
+			return err
+		}
+	} else {
+		equal, err := utils.ClientObjectSpecEqual(helmRelease, existingHelmRelease)
+		if err != nil {
+			return err
+		}
+		if !equal {
+			existingHelmRelease.Spec = helmRelease.Spec
+			if err := c.Update(ctx, existingHelmRelease); err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, resource := range []client.Object{ociRepository, helmRelease} {
+		if err := resources.CheckResourceStatus(resource, c.Client, 5*time.Minute); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
@@ -397,6 +520,33 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			builder.WithPredicates(workspace.WorkspacePredicate),
 		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
+
+	if featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
+		// Verify that all prerequisite CRDs exist before configuring watches that depend on them.
+		// - FluxCD HelmRelease / OCIRepository: required for installing and reconciling the InferencePool Helm chart.
+		// - Gateway API Inference Extension InferencePool / InferenceModel: required runtime CRDs that the Workspace
+		//   controller indirectly relies on (Helm chart renders resources referencing them).
+		// Failing fast here provides a clear, actionable error instead of deferred reconcile failures later.
+		for _, gvk := range []schema.GroupVersionKind{
+			helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind),
+			sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind),
+			gaiev1.SchemeGroupVersion.WithKind("InferencePool"),
+			gaiev1alpha2.SchemeGroupVersion.WithKind("InferenceObjective"),
+		} {
+			found, err := utils.EnsureKindExists(mgr.GetConfig(), gvk)
+			if err != nil {
+				return fmt.Errorf("failed to ensure kind %s exists: %w", gvk.Kind, err)
+			}
+			if !found {
+				return fmt.Errorf("%s not found in the cluster, please ensure the Gateway API Inference Extension is installed", gvk.String())
+			}
+		}
+
+		// We don't need to own InferencePool and InferenceModel because they are managed by Flux's HelmRelease
+		builder = builder.
+			Owns(&helmv2.HelmRelease{}).
+			Owns(&sourcev1.OCIRepository{})
+	}
 
 	go monitorInferenceSets(context.Background(), c.Client)
 	return builder.Complete(c)

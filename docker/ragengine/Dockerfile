@@ -24,6 +24,7 @@ ARG BUILD_DATE
 COPY cmd/ cmd/
 COPY api/ api/
 COPY pkg/ pkg/
+COPY presets/ presets/
 
 # Build
 # the GOARCH has not a default value to allow the binary be built according to the host where the command

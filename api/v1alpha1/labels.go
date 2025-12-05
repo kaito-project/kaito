@@ -78,3 +78,24 @@ func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {
 
 	return runtime
 }
+
+func GetInferenceSetRuntimeName(iObj *InferenceSet) model.RuntimeName {
+	if iObj == nil {
+		panic("inferenceset is nil")
+	}
+
+	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+		return model.RuntimeNameHuggingfaceTransformers
+	}
+
+	runtime := model.RuntimeNameVLLM
+	name := iObj.Annotations[AnnotationWorkspaceRuntime]
+	switch name {
+	case string(model.RuntimeNameHuggingfaceTransformers):
+		runtime = model.RuntimeNameHuggingfaceTransformers
+	case string(model.RuntimeNameVLLM):
+		runtime = model.RuntimeNameVLLM
+	}
+
+	return runtime
+}

@@ -173,10 +173,15 @@ jobs:
           echo "Waiting for inferenceset to be ready..."
           kubectl wait --for='jsonpath={.status.readyReplicas}=1' inferenceset/inferenceset-aikit-test --timeout 300s
 
-      - name: Wait for Endpoint Picker (EPP) deployment to be ready
+      - name: Wait for ocirepository to be ready
         run: |
-          echo "Waiting for Endpoint Picker (EPP) deployment to be ready..."
-          kubectl wait --for='jsonpath={.status.readyReplicas}=1' --timeout=300s deployment/inferenceset-aikit-test-inferencepool-epp
+          echo "Waiting for ocirepository to be ready..."
+          kubectl wait --for='jsonpath={.status.conditions[?(@.type=="ArtifactInStorage")].status}=True' --timeout=300s ocirepository/inferenceset-aikit-test-inferencepool
+
+      - name: Wait for helmrelease to be ready
+        run: |
+          echo "Waiting for helmrelease to be ready..."
+          kubectl wait --for='jsonpath={.status.conditions[?(@.type=="Released")].status}=True' --timeout=300s helmrelease/inferenceset-aikit-test-inferencepool
 
       - name: Validate response content
         run: |
@@ -242,6 +247,9 @@ jobs:
         run: |
           echo "=== InferenceSet Status ==="
           kubectl get inferenceset inferenceset-aikit-test -o yaml
+
+          echo "=== ocirepository,helmrelease status ==="
+          kubectl get ocirepository,helmrelease -A
 
           echo "=== ScaledObject Status ==="
           kubectl get scaledobject -A

@@ -227,6 +227,29 @@ var (
 			},
 		},
 	}
+	MockInferenceSetWithPreset = &v1alpha1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testInferenceSet",
+			Namespace: "kaito",
+			Annotations: map[string]string{
+				v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
+			},
+		},
+		Spec: v1alpha1.InferenceSetSpec{
+			Template: v1alpha1.InferenceSetTemplate{
+				Resource: v1alpha1.InferenceSetResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+				},
+				Inference: v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+		},
+	}
 	MockWorkspaceWithPresetVLLM = &v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
@@ -249,6 +272,27 @@ var (
 			},
 		},
 	}
+	MockInferenceSetWithPresetVLLM = &v1alpha1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testInferenceSet",
+			Namespace: "kaito",
+		},
+		Spec: v1alpha1.InferenceSetSpec{
+			Template: v1alpha1.InferenceSetTemplate{
+				Resource: v1alpha1.InferenceSetResourceSpec{
+					InstanceType: "Standard_NC12s_v3",
+				},
+				Inference: v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			},
+		},
+	}
+
 	MockWorkspaceWithPresetDownloadVLLM = &v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",

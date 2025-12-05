@@ -46,7 +46,6 @@ const (
 	PresetFalcon40BModel                = "falcon-40b"
 	PresetMistral7BInstructModel        = "mistral-7b-instruct"
 	PresetQwen2_5Coder7BModel           = "qwen2.5-coder-7b-instruct"
-	PresetPhi2Model                     = "phi-2"
 	PresetPhi3Mini128kModel             = "phi-3-mini-128k-instruct"
 	PresetDeepSeekR1DistillLlama8BModel = "deepseek-r1-distill-llama-8b"
 	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
@@ -160,20 +159,6 @@ func createMistralWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Wor
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-mistral"},
 			}, nil, PresetMistral7BInstructModel, nil, nil, nil, "")
-
-		createAndValidateWorkspace(workspaceObj)
-	})
-	return workspaceObj
-}
-
-func createPhi2WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
-	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Phi 2 preset public mode", func() {
-		uniqueID := fmt.Sprint("preset-phi2-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-2"},
-			}, nil, PresetPhi2Model, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -1234,26 +1219,6 @@ var _ = Describe("Workspace Preset", func() {
 	It("should create a mistral workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createMistralWorkspaceWithPresetPublicMode(numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
-
-		validateWorkspaceReadiness(workspaceObj)
-	})
-
-	It("should create a Phi-2 workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createPhi2WorkspaceWithPresetPublicMode(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)

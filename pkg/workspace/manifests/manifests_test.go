@@ -24,6 +24,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -31,15 +32,15 @@ import (
 )
 
 func TestGenerateInferencePoolOCIRepository(t *testing.T) {
-	workspace := test.MockWorkspaceWithPreset
+	workspace := test.MockInferenceSetWithPreset
 	repo := GenerateInferencePoolOCIRepository(workspace)
 
 	assert.Equal(t, utils.InferencePoolName(workspace.Name), repo.Name)
 	assert.Equal(t, workspace.Namespace, repo.Namespace)
 	assert.Len(t, repo.OwnerReferences, 1)
 	owner := repo.OwnerReferences[0]
-	assert.Equal(t, kaitov1beta1.GroupVersion.String(), owner.APIVersion)
-	assert.Equal(t, "Workspace", owner.Kind)
+	assert.Equal(t, kaitov1alpha1.GroupVersion.String(), owner.APIVersion)
+	assert.Equal(t, "InferenceSet", owner.Kind)
 	assert.Equal(t, workspace.Name, owner.Name)
 	assert.True(t, *owner.Controller)
 
@@ -50,13 +51,13 @@ func TestGenerateInferencePoolOCIRepository(t *testing.T) {
 }
 
 func TestGenerateInferencePoolHelmRelease(t *testing.T) {
-	base := test.MockWorkspaceWithPreset.DeepCopy()
+	base := test.MockInferenceSetWithPreset.DeepCopy()
 	base.Name = "test-workspace"
 	base.Namespace = "kaito"
 
 	tests := []struct {
 		name          string
-		workspace     *kaitov1beta1.Workspace
+		workspace     *kaitov1alpha1.InferenceSet
 		isStatefulSet bool
 		expected      map[string]any
 	}{
@@ -80,7 +81,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 					},
 					"modelServers": map[string]any{
 						"matchLabels": map[string]any{
-							kaitov1beta1.LabelWorkspaceName: base.Name,
+							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
 						},
 					},
 				},
@@ -106,8 +107,8 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 					},
 					"modelServers": map[string]any{
 						"matchLabels": map[string]any{
-							kaitov1beta1.LabelWorkspaceName: base.Name,
-							appsv1.PodIndexLabel:            "0",
+							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
+							appsv1.PodIndexLabel:                       "0",
 						},
 					},
 				},

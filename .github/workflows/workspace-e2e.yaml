@@ -6,7 +6,7 @@ concurrency:
 
 on:
   pull_request:
-    paths-ignore: ['docs/**', '**.md', '**.mdx', '**.png', '**.jpg']
+    paths-ignore: ['docs/**', '**.md', '**.mdx', '**.png', '**.jpg', 'examples/**', 'website/**', 'hack/**']
 
 env:
   GO_VERSION: "1.24"

@@ -1,43 +1,26 @@
-# Model Downloader and OCI Registry Pusher
+# TFS Models Docker Preset
 
-This utility script downloads model files from Hugging Face Hub and pushes them to an OCI (Open Container Initiative) registry using ORAS (OCI Registry As Storage).
+This directory contains the Dockerfile for building base images for TFS models.
 
-## Overview
+It also contains the `build_oci_artifact.sh` script, which is used by GitHub Actions to package Hugging Face models as OCI artifacts using [AIKit](https://github.com/kaito-project/aikit).
 
-The `download_and_push_model.py` script automates the process of:
-1. Downloading model files from Hugging Face Hub
-2. Pushing these files to an OCI-compatible registry
+## build_oci_artifact.sh
 
-## Requirements
+This script automates the process of:
+1. Parsing a Hugging Face model URL to extract the repository ID and revision.
+2. Building an OCI artifact using `docker buildx build` with the `aikit` syntax.
+3. Pushing the artifact to an Azure Container Registry (ACR) using `oras cp`.
 
-- Python 3.x
-- [huggingface_hub](https://github.com/huggingface/huggingface_hub) Python package
-- [ORAS CLI](https://oras.land/docs/installation) installed and available in PATH
-- Optional: Hugging Face authentication token for accessing private models
-
-## Usage
-
-Example.
+### Usage
 
 ```bash
-MODEL_NAME="mistral-7b-instruct" \
-MODEL_VERSION="https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3" \
-WEIGHTS_DIR="/path/to/temp/dir" \
-HF_TOKEN="hf_your_token" \
-./download_and_push_model.py my-registry.com/llm-models/mistral-7b-instruct:v0.3
+./build_oci_artifact.sh <model_version_url> <image_name> <registry> <image_tag> [hf_token]
 ```
 
-### Environment Variables
+### Arguments
 
-- `MODEL_NAME` (required): Name identifier for the model
-- `MODEL_VERSION` (required): URL or identifier of the Hugging Face model
-  - Can be a direct URL like `https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3`
-  - Can include specific commits: `https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3/commit/e0bc86c23ce5aae1db576c8cca6f06f1f73af2db`
-  - Can include branches: `https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3/tree/main`
-- `WEIGHTS_DIR` (optional): Local directory to store downloaded model files (defaults to `/tmp/`)
-- `HF_TOKEN` (optional): Hugging Face authentication token for private models
-
-## Notes
-
-- The script uses a custom media type `application/vnd.kaito.llm.v1` for OCI artifacts
-- Hidden files in the model directory are excluded from being pushed
+- `model_version_url`: The full URL to the Hugging Face model (e.g., `https://huggingface.co/org/repo/tree/revision`).
+- `image_name`: The name of the output image (e.g., `kaito-falcon-7b`).
+- `registry`: The target registry (e.g., `myregistry.azurecr.io`).
+- `image_tag`: The tag for the output image (e.g., `0.0.1`).
+- `hf_token`: (Optional) Hugging Face token for accessing private models.

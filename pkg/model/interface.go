@@ -96,6 +96,10 @@ type Metadata struct {
 	// If this is empty, os.Getenv("PRESET_REGISTRY_NAME") will be used.
 	// +optional
 	Registry string `yaml:"registry,omitempty"`
+
+	// Deprecated indicates if the model is deprecated.
+	// +optional
+	Deprecated bool `yaml:"deprecated,omitempty"`
 }
 
 // Validate checks if the Metadata is valid.

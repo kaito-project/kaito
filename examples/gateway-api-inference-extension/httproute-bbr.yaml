@@ -17,7 +17,7 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: workspace-phi-4-mini-inferencepool
+    - name: phi-4-mini-inferencepool
       group: inference.networking.k8s.io
       kind: InferencePool
   - matches:
@@ -29,6 +29,6 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: workspace-mistral-7b-instruct-inferencepool
+    - name: mistral-7b-instruct-inferencepool
       group: inference.networking.k8s.io
       kind: InferencePool

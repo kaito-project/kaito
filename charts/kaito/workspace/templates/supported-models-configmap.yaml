@@ -69,6 +69,7 @@ data:
         version: https://huggingface.co/microsoft/phi-2/commit/ef382358ec9e382308935a992d908de099b64c23
         runtime: tfs
         tag: 0.2.0
+        deprecated: true
       - name: phi-3-mini-4k-instruct
         type: text-generation
         version: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/commit/0a67737cc96d2554230f90338b163bc6380a2a85
@@ -140,7 +141,7 @@ data:
         type: text-generation
         version: https://huggingface.co/openai/gpt-oss-20b/commit/db6852caddef0cf0c1f729034ed700c84eab376e
         runtime: tfs
-        tag: 0.0.1
+        tag: 0.0.2
       - name: gpt-oss-120b
         type: text-generation
         version: https://huggingface.co/openai/gpt-oss-120b/commit/b5c939de8f754692c1647ca79fbf85e8c1e70f8a

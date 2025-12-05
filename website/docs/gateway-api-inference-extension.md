@@ -2,7 +2,7 @@
 title: Gateway API Inference Extension
 ---
 
-KAITO integrates with [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) (GWIE) to provide model-aware routing and optimal endpoint selection for inference. This page covers what it is, prerequisites, how to enable it in KAITO, how it’s wired, and a quickstart.
+KAITO integrates with [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) (GWIE) to provide model-aware routing and optimal endpoint selection for inference. This page covers what it is, prerequisites, how to enable it in KAITO, how it's wired, and a quickstart.
 
 ## What is it
 
@@ -20,9 +20,9 @@ Before enabling this feature in KAITO, ensure the following are installed in you
 
 - A Gateway API implementation that supports Envoy ext_proc and the Inference Extension pattern. See available Gateway implementations: https://gateway-api-inference-extension.sigs.k8s.io/implementations/gateways/
 
-## Enable in KAITO
+## Enable this feature
 
-The feature is off by default. Enable it by setting the workspace chart feature gate:
+This feature is supported from KAITO v0.8.0, to enable this feature in KAITO helm chart install, you need to enable both InferenceSet Controller and `gatewayAPIInferenceExtension`.
 
 ```bash
 export CLUSTER_NAME=kaito
@@ -33,29 +33,29 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --namespace kaito-workspace \
   --create-namespace \
   --set clusterName="$CLUSTER_NAME" \
-  --set featureGates.gatewayAPIInferenceExtension=true \
+  --set featureGates.gatewayAPIInferenceExtension=true,enableInferenceSetController=true \
   --wait
 ```
 
 ## How KAITO wires it
 
-When the feature gate is enabled, [Flux](https://fluxcd.io/) will be installed in the same namespace as the Workspace controller as a Helm dependency. It is used to deploy and manage the GWIE InferencePool Helm chart for each Workspace.
+When the feature gate is enabled, [Flux](https://fluxcd.io/) will be installed in the same namespace as the InferenceSet controller as a Helm dependency. It is used to deploy and manage the GWIE InferencePool Helm chart for each InferenceSet.
 
-When you create a Workspace, the KAITO Workspace controller will:
+When you create a InferenceSet, the KAITO InferenceSet controller will:
 
-1) Dry-run the inference workload to determine whether it’s a Deployment or StatefulSet (important for how endpoints are selected)
-2) Create or update two Flux resources in the Workspace namespace:
+1) Dry-run the inference workload to determine whether it's a Deployment or StatefulSet (important for how endpoints are selected)
+2) Create or update two Flux resources in the InferenceSet namespace:
 	 - [OCIRepository](https://fluxcd.io/flux/components/source/ocirepositories/): points to the upstream GWIE inferencepool Helm chart
 		 - URL: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
 		 - Tag/Version: https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest
 	 - [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/): references the OCIRepository and applies values to deploy EPP and related resources
 3) Wait for Flux resources to become Ready
 
-You can inspect these resources with kubectl in the Workspace namespace. Updates to the Workspace will reconcile these resources.
+You can inspect these resources with kubectl in the InferenceSet namespace. Updates to the InferenceSet will reconcile these resources.
 
 ## Quickstart
 
-In this quickstart example, we will use Istio as the Gateway API provider to handle traffic management and routing, and deploy KAITO Workspaces to serve inference models. The following steps demonstrate how to set up an end-to-end inference gateway that routes requests to model-serving backends managed by KAITO.
+In this quickstart example, we will use Istio as the Gateway API provider to handle traffic management and routing, and deploy KAITO InferenceSet to serve inference models. The following steps demonstrate how to set up an end-to-end inference gateway that routes requests to model-serving backends managed by KAITO.
 
 ### 1. Install Istio and Deploy Gateway
 
@@ -82,24 +82,23 @@ kubectl apply -k https://github.com/kubernetes-sigs/gateway-api/config/crd?ref=v
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/gateway.yaml
 ```
 
-### 2. Deploy KAITO Workspace
+### 2. Deploy InferenceSet
 
-Create a sample KAITO Workspace (using a vLLM preset) that will host the model server behind the inference gateway:
+Create a sample KAITO InferenceSet (using a vLLM preset) that will host the model server behind the inference gateway:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/inference/kaito_workspace_phi_4_mini.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/inference/kaito_inferenceset_phi_4_mini.yaml
 ```
 
-Once the Workspace is created, verify that Flux's OCIRepository and HelmRelease resources are ready in the Workspace namespace:
+Once the InferenceSet is created, verify that Flux's OCIRepository and HelmRelease resources are ready in the InferenceSet namespace:
 
 ```bash
 kubectl get ocirepository,helmrelease
 
-NAME                                                                        URL                                                                          READY   STATUS                                                                                                        AGE
-ocirepository.source.toolkit.fluxcd.io/workspace-phi-4-mini-inferencepool   oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool   True    stored artifact for digest 'v1.0.0@sha256:5c7266c3f37be940ed2c96a7563520db5c32c08d798d6832f142c98488ebc138'   43h
+NAME                                                              URL                                                                          READY   STATUS                                                                                                        AGE
+ocirepository.source.toolkit.fluxcd.io/phi-4-mini-inferencepool   oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool   True    stored artifact for digest 'v1.0.1@sha256:301b913dbff1d75017db0962b621e6780777dcb658475df60d1c6b5b84ee1635'   33s
 
-NAME                                                                    AGE   READY   STATUS
-helmrelease.helm.toolkit.fluxcd.io/workspace-phi-4-mini-inferencepool   14h   True    Helm install succeeded for release default/workspace-phi-4-mini-inferencepool.v1 with chart inferencepool@1.0.0+5c7266c3f37b
+helmrelease.helm.toolkit.fluxcd.io/phi-4-mini-inferencepool   32s   True    Helm install succeeded for release default/phi-4-mini-inferencepool.v1 with chart inferencepool@1.0.1+301b913dbff1
 ```
 
 Verify that the InferencePool resource is created:
@@ -107,17 +106,17 @@ Verify that the InferencePool resource is created:
 ```bash
 kubectl get inferencepool
 
-NAME                                 AGE
-workspace-phi-4-mini-inferencepool   14h
+NAME                       AGE
+phi-4-mini-inferencepool   69s
 ```
 
-Verify that the Endpoint Picker Pod is running in the Workspace namespace:
+Verify that the Endpoint Picker Pod is running in the InferenceSet namespace:
 
 ```bash
-kubectl get pod -l inferencepool=workspace-phi-4-mini-inferencepool-epp
+kubectl get pod -l inferencepool=phi-4-mini-inferencepool-epp
 
-NAME                                                      READY   STATUS    RESTARTS      AGE
-workspace-phi-4-mini-inferencepool-epp-58bc65b644-kk44j   1/1     Running   0             14h
+NAME                                           READY   STATUS    RESTARTS   AGE
+phi-4-mini-inferencepool-epp-b74f8994b-s9kkt   1/1     Running   0          87s
 ```
 
 ### 3. Deploy DestinationRule and HTTPRoute
@@ -128,7 +127,7 @@ Apply an Istio DestinationRule. Since EPP runs with `--secure-serving=true` by d
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml
 ```
 
-Create the HTTPRoute that targets the Workspace’s InferencePool (via `.spec.endpointPickerRef`) and defines the routing matchers used by the Gateway:
+Create the HTTPRoute that targets the InferenceSet's InferencePool (via `.spec.endpointPickerRef`) and defines the routing matchers used by the Gateway:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute.yaml
@@ -145,15 +144,15 @@ kubectl describe httproute llm-route
 Status:
   Parents:
     Conditions:
-      Last Transition Time:  2025-09-10T18:24:42Z
+      Last Transition Time:  2025-12-02T08:59:58Z
       Message:               Route was valid
-      Observed Generation:   1
+      Observed Generation:   2
       Reason:                Accepted
       Status:                True
       Type:                  Accepted
-      Last Transition Time:  2025-09-10T18:29:08Z
+      Last Transition Time:  2025-12-03T13:35:59Z
       Message:               All references resolved
-      Observed Generation:   1
+      Observed Generation:   2
       Reason:                ResolvedRefs
       Status:                True
       Type:                  ResolvedRefs
@@ -168,17 +167,17 @@ Status:
 Verify that the InferencePool is properly configured and ready to accept traffic by checking its status conditions:
 
 ```bash
-kubectl describe inferencepool workspace-phi-4-mini-inferencepool
+kubectl describe inferencepool phi-4-mini-inferencepool
 
 ...
     Conditions:
-      Last Transition Time:  2025-08-26T18:55:13Z
+      Last Transition Time:  2025-12-03T13:35:59Z
       Message:               Referenced by an HTTPRoute accepted by the parentRef Gateway
       Observed Generation:   1
       Reason:                Accepted
       Status:                True
       Type:                  Accepted
-      Last Transition Time:  2025-08-26T18:55:13Z
+      Last Transition Time:  2025-12-03T13:35:59Z
       Message:               Referenced ExtensionRef resolved successfully
       Observed Generation:   1
       Reason:                ResolvedRefs
@@ -205,7 +204,7 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -s  ht
 {
   "data": [
     {
-      "created": 1756234889,
+      "created": 1764772194,
       "id": "phi-4-mini-instruct",
       "max_model_len": 131072,
       "object": "model",
@@ -219,9 +218,9 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -s  ht
           "allow_sampling": true,
           "allow_search_indices": false,
           "allow_view": true,
-          "created": 1756234889,
+          "created": 1764772194,
           "group": null,
-          "id": "modelperm-de0d47575adf467f8222aac90296aab8",
+          "id": "modelperm-c535582bbc454bbd93cc3cf370318635",
           "is_blocking": false,
           "object": "model_permission",
           "organization": "*"
@@ -255,7 +254,7 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
       "message": {
         "annotations": null,
         "audio": null,
-        "content": "Kubernetes, often abbreviated as K8s, is an open-source platform designed to automate the deployment, scaling, and operation of application containers. It was originally developed by Google and is now maintained by the Cloud Native Computing Foundation (CNCF).",
+        "content": "Kubernetes, often abbreviated as K8s, is an open-source platform designed to automate the deployment, scaling, and operations of containerized applications. Developed by Google and donated to the Cloud Native Computing Foundation (CNCF), Kubernetes provides an orches",
         "function_call": null,
         "reasoning_content": null,
         "refusal": null,
@@ -265,8 +264,8 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
       "stop_reason": null
     }
   ],
-  "created": 1756235005,
-  "id": "chatcmpl-e0a390b5-3066-4c4c-8087-80528bb5d843",
+  "created": 1764815768,
+  "id": "chatcmpl-d503646c-154d-4413-ba1c-cccba73effa7",
   "kv_transfer_params": null,
   "model": "phi-4-mini-instruct",
   "object": "chat.completion",
@@ -284,10 +283,10 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
 
 ### 4. [Optional] Deploy BBR
 
-Deploy a second KAITO Workspace and DestinationRule with a different model to demonstrate multi-model routing. This step uses [`mistral-7b-instruct`](https://github.com/kaito-project/kaito/blob/main/examples/inference/kaito_workspace_mistral_7b-instruct.yaml) as an example:
+Deploy a second KAITO InferenceSet and DestinationRule with a different model to demonstrate multi-model routing. This step uses [`mistral-7b-instruct`](https://github.com/kaito-project/kaito/blob/main/examples/inference/kaito_inferenceset_mistral_7b-instruct.yaml) as an example:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/inference/kaito_workspace_mistral_7b-instruct.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/inference/kaito_inferenceset_mistral_7b-instruct.yaml
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-mistral-7b-instruct.yaml
 ```
 
@@ -336,8 +335,8 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
       "stop_reason": null
     }
   ],
-  "created": 1756237522,
-  "id": "chatcmpl-c7aeedbd-50d1-4ac3-9005-ad8dba451e65",
+  "created": 1764818961,
+  "id": "chatcmpl-e344b96b-94d2-4e6b-b922-05b312dd02bd",
   "kv_transfer_params": null,
   "model": "phi-4-mini-instruct",
   "object": "chat.completion",
@@ -353,7 +352,7 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
 }
 ```
 
-Now, send the same request but change the model name to `mistral-7b-instruct` to verify BBR-driven model-aware routing across multiple Workspaces:
+Now, send the same request but change the model name to `mistral-7b-instruct` to verify BBR-driven model-aware routing across multiple InferenceSets:
 
 ```bash
 kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POST http://$CLUSTERIP/v1/chat/completions \

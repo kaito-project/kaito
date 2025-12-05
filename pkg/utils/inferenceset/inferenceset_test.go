@@ -29,6 +29,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
@@ -827,6 +828,56 @@ func TestListWorkspaces(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, workspaceList)
 		assert.Equal(t, "InferenceSet object is nil", err.Error())
+		mockClient.AssertExpectations(t)
+	})
+
+	t.Run("Should list Workspaces associated with InferenceSet", func(t *testing.T) {
+		mockClient := test.NewClient()
+		ctx := context.Background()
+
+		inferenceset := &kaitov1alpha1.InferenceSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "test-inferenceset",
+				Namespace: "default",
+			},
+		}
+
+		expectedWorkspaces := &kaitov1beta1.WorkspaceList{
+			Items: []kaitov1beta1.Workspace{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "workspace-1",
+						Namespace: "default",
+						Labels: map[string]string{
+							consts.WorkspaceCreatedByInferenceSetLabel: "test-inferenceset",
+						},
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "workspace-2",
+						Namespace: "default",
+						Labels: map[string]string{
+							consts.WorkspaceCreatedByInferenceSetLabel: "test-inferenceset",
+						},
+					},
+				},
+			},
+		}
+
+		// Mock the List call
+		mockClient.On("List", mock.IsType(context.Background()),
+			mock.IsType(&kaitov1beta1.WorkspaceList{}),
+			mock.Anything).Run(func(args mock.Arguments) {
+			wsList := args.Get(1).(*kaitov1beta1.WorkspaceList)
+			*wsList = *expectedWorkspaces
+		}).Return(nil)
+
+		workspaceList, err := ListWorkspaces(ctx, inferenceset, mockClient)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, workspaceList)
+		assert.Equal(t, len(expectedWorkspaces.Items), len(workspaceList.Items))
 		mockClient.AssertExpectations(t)
 	})
 }

@@ -745,6 +745,18 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			testNodes:          []v1.Node{},
 			useFeatureGate:     true,
 		},
+		{
+			name: "Deprecated Model",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC6s_v3",
+				Count:        pointerToInt(1),
+			},
+			preset:             true,
+			presetNameOverride: "phi-2",
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         true,
+			errContent:         "Model phi-2 is deprecated and no longer supported",
+		},
 	}
 
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)

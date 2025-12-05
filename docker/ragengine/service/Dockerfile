@@ -8,7 +8,6 @@ RUN apt-get update && apt-get upgrade -y \
     g++ \
     make \
     perl \
-    curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

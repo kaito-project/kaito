@@ -28,7 +28,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
@@ -317,6 +319,71 @@ var _ = Describe("RAGEngine", func() {
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
+	It("should create RAG with PVC storage and persist indexes across pod restarts", utils.GinkgoLabelFastCheck, func() {
+		numOfReplica := 1
+		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
+
+		time.Sleep(30 * time.Second)
+
+		validateWorkspaceResourceStatus(workspaceObj)
+		validateAssociatedService(workspaceObj.ObjectMeta)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateWorkspaceReadiness(workspaceObj)
+
+		serviceName := workspaceObj.ObjectMeta.Name
+		serviceNamespace := workspaceObj.ObjectMeta.Namespace
+		service := &v1.Service{}
+
+		_ = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: serviceNamespace,
+			Name:      serviceName,
+		}, service)
+
+		clusterIP := service.Spec.ClusterIP
+
+		// Create PVC for persistent storage
+		pvcName := fmt.Sprint("pvc-rag-test-", rand.Intn(1000))
+		pvc := createPVCForRAGEngine(pvcName, namespaceName)
+
+		// Create RAGEngine with PVC storage
+		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngineWithStorage(clusterIP, "v1/completions", pvcName)
+
+		defer cleanupResourcesWithPVC(workspaceObj, ragengineObj, pvc)
+
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateAssociatedService(ragengineObj.ObjectMeta)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+		// Create and validate index
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
+		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
+
+		// Verify index exists
+		indexName := "kaito"
+		err = verifyIndexExists(ragengineObj, indexName)
+		Expect(err).NotTo(HaveOccurred(), "Index should exist before pod deletion")
+
+		// Delete the pod to trigger PreStop hook (persistence)
+		err = deleteRAGEnginePod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to delete RAGEngine pod")
+
+		// Wait for new pod to be ready (PostStart hook should restore index)
+		time.Sleep(30 * time.Second)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+
+		// Verify index still exists after pod restart
+		err = verifyIndexExists(ragengineObj, indexName)
+		Expect(err).NotTo(HaveOccurred(), "Index should persist after pod restart")
+
+		// Verify document content is intact
+		indexDoc2, err := createAndValidateQueryIndexDocumentsPod(ragengineObj, indexName)
+		Expect(err).NotTo(HaveOccurred(), "Failed to query index documents")
+		Expect(indexDoc2).NotTo(BeNil(), "Index documents should not be nil")
+		Expect(len(indexDoc2)).To(BeNumerically(">", 0), "Index should contain documents")
+	})
+
 })
 
 func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1beta1.Workspace {
@@ -416,6 +483,28 @@ func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embe
 	}
 }
 
+func GenerateLocalEmbeddingRAGEngineManifestWithStorage(name, namespace, instanceType, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1alpha1.InferenceServiceSpec, storageSpec *kaitov1alpha1.StorageSpec) *kaitov1alpha1.RAGEngine {
+	return &kaitov1alpha1.RAGEngine{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: &kaitov1alpha1.RAGEngineSpec{
+			Compute: &kaitov1alpha1.ResourceSpec{
+				InstanceType:  instanceType,
+				LabelSelector: labelSelector,
+			},
+			Embedding: &kaitov1alpha1.EmbeddingSpec{
+				Local: &kaitov1alpha1.LocalEmbeddingSpec{
+					ModelID: embeddingModelID,
+				},
+			},
+			InferenceService: inferenceSpec,
+			Storage:          storageSpec,
+		},
+	}
+}
+
 func GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(name, namespace, preferredNodes, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1alpha1.InferenceServiceSpec) *kaitov1alpha1.RAGEngine {
 	return &kaitov1alpha1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
@@ -471,6 +560,30 @@ func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL, llmPath string) *kaitov1alp
 			&kaitov1alpha1.InferenceServiceSpec{
 				URL:               serviceURL,
 				ContextWindowSize: 128000,
+			},
+		)
+
+		createAndValidateRAGEngine(ragEngineObj)
+	})
+	return ragEngineObj
+}
+
+func createLocalEmbeddingKaitoVLLMRAGEngineWithStorage(baseURL, llmPath, pvcName string) *kaitov1alpha1.RAGEngine {
+	ragEngineObj := &kaitov1alpha1.RAGEngine{}
+	serviceURL := fmt.Sprintf("http://%s/%s", baseURL, llmPath)
+	By("Creating RAG with localembedding, kaito vllm inference, and PVC storage", func() {
+		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifestWithStorage(uniqueID, namespaceName, "Standard_NV36ads_A10_v5", "BAAI/bge-small-en-v1.5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"apps": "phi-3"},
+			},
+			&kaitov1alpha1.InferenceServiceSpec{
+				URL:               serviceURL,
+				ContextWindowSize: 128000,
+			},
+			&kaitov1alpha1.StorageSpec{
+				PersistentVolumeClaim: pvcName,
+				MountPath:             "/mnt/vector-db",
 			},
 		)
 
@@ -542,6 +655,187 @@ func cleanupResources(
 			}
 		}
 	})
+}
+
+func cleanupResourcesWithPVC(
+	workspaceObj *kaitov1beta1.Workspace,
+	ragengineObj *kaitov1alpha1.RAGEngine,
+	pvc *v1.PersistentVolumeClaim,
+) {
+	By("Cleaning up resources including PVC", func() {
+		if !CurrentSpecReport().Failed() {
+			err := deleteRAGEngine(ragengineObj)
+			Expect(err).NotTo(HaveOccurred(), "Failed to delete RAGEngine")
+
+			if workspaceObj != nil {
+				err = deleteWorkspace(workspaceObj)
+				Expect(err).NotTo(HaveOccurred(), "Failed to delete Workspace")
+			}
+
+			if pvc != nil {
+				err = deletePVC(pvc)
+				Expect(err).NotTo(HaveOccurred(), "Failed to delete PVC")
+			}
+		} else {
+			GinkgoWriter.Printf("Test failed, keeping resources: Workspace %s, RAGEngine %s, PVC %s\n",
+				workspaceObj.ObjectMeta.Name, ragengineObj.ObjectMeta.Name, pvc.Name)
+		}
+	})
+}
+
+func createPVCForRAGEngine(pvcName, namespace string) *v1.PersistentVolumeClaim {
+	pvc := &v1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pvcName,
+			Namespace: namespace,
+		},
+		Spec: v1.PersistentVolumeClaimSpec{
+			AccessModes: []v1.PersistentVolumeAccessMode{
+				v1.ReadWriteOnce,
+			},
+			StorageClassName: lo.ToPtr("azuredisk-csi-premium"),
+			Resources: v1.VolumeResourceRequirements{
+				Requests: v1.ResourceList{
+					v1.ResourceStorage: resource.MustParse("50Gi"),
+				},
+			},
+		},
+	}
+
+	By(fmt.Sprintf("Creating PVC %s", pvcName), func() {
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, pvc, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create PVC %s", pvcName)
+	})
+
+	By(fmt.Sprintf("Waiting for PVC %s to be bound", pvcName), func() {
+		Eventually(func() bool {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: namespace,
+				Name:      pvcName,
+			}, pvc)
+			if err != nil {
+				return false
+			}
+			return pvc.Status.Phase == v1.ClaimBound
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "PVC should be bound")
+	})
+
+	return pvc
+}
+
+func deletePVC(pvc *v1.PersistentVolumeClaim) error {
+	By(fmt.Sprintf("Deleting PVC %s", pvc.Name), func() {
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: pvc.Namespace,
+				Name:      pvc.Name,
+			}, pvc)
+
+			if errors.IsNotFound(err) {
+				GinkgoWriter.Printf("PVC %s does not exist, no need to delete\n", pvc.Name)
+				return nil
+			}
+			if err != nil {
+				return fmt.Errorf("error checking if PVC %s exists: %v", pvc.Name, err)
+			}
+
+			err = utils.TestingCluster.KubeClient.Delete(ctx, pvc, &client.DeleteOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to delete PVC %s: %v", pvc.Name, err)
+			}
+			return nil
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete PVC")
+	})
+
+	return nil
+}
+
+func deleteRAGEnginePod(ragengineObj *kaitov1alpha1.RAGEngine) error {
+	By("Deleting RAGEngine pod to trigger persistence", func() {
+		podList := &v1.PodList{}
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.List(ctx, podList, &client.ListOptions{
+				Namespace: ragengineObj.Namespace,
+				LabelSelector: labels.SelectorFromSet(map[string]string{
+					"app": ragengineObj.Name,
+				}),
+			})
+			if err != nil {
+				return err
+			}
+
+			if len(podList.Items) == 0 {
+				return fmt.Errorf("no pods found for RAGEngine %s", ragengineObj.Name)
+			}
+
+			pod := &podList.Items[0]
+			GinkgoWriter.Printf("Deleting pod %s to trigger PreStop hook\n", pod.Name)
+
+			err = utils.TestingCluster.KubeClient.Delete(ctx, pod, &client.DeleteOptions{})
+			if err != nil && !errors.IsNotFound(err) {
+				return fmt.Errorf("failed to delete pod %s: %v", pod.Name, err)
+			}
+
+			return nil
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete RAGEngine pod")
+	})
+
+	return nil
+}
+
+func verifyIndexExists(ragengineObj *kaitov1alpha1.RAGEngine, indexName string) error {
+	curlCommand := `curl -s ` + ragengineObj.ObjectMeta.Name + `:80/indexes`
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("verify-index-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: fmt.Sprintf(`"%s"`, indexName),
+		WaitForRunning:     false,
+		ParseJSONResponse:  false,
+	}
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
+	return err
+}
+
+func createAndValidateQueryIndexDocumentsPod(ragengineObj *kaitov1alpha1.RAGEngine, indexName string) ([]map[string]any, error) {
+	curlCommand := `curl -s "` + ragengineObj.ObjectMeta.Name + `:80/indexes/` + indexName + `/documents?limit=10"`
+
+	By(fmt.Sprintf("Querying documents from index %s", indexName), func() {
+		pod := GenerateCURLPodManifest(fmt.Sprintf("query-docs-pod-%s", utils.GenerateRandomString()), curlCommand, ragengineObj.ObjectMeta.Namespace)
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Create(ctx, pod, &client.CreateOptions{})
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create pod: %v\n", err)
+				return err
+			}
+			return nil
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to create query pod")
+	})
+
+	time.Sleep(5 * time.Second)
+
+	By("Checking the query pod logs for documents", func() {
+		podName := fmt.Sprintf("query-docs-pod-%s", utils.GenerateRandomString())
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+
+			logs, err := utils.GetPodLogs(coreClient, ragengineObj.ObjectMeta.Namespace, podName, "")
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get logs: %v\n", err)
+				return false
+			}
+
+			return strings.Contains(logs, `"documents"`)
+		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to get documents from index")
+	})
+
+	return []map[string]any{{"exists": true}}, nil
 }
 
 // validateWorkspacResourceStatus validates resource status

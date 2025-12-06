@@ -21,6 +21,7 @@ models:
     type: text-generation
     version: https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/commit/0e9e39f249a16976918f6564b8830bc894c89659
     runtime: tfs
+    private: true
     downloadAtRuntime: true
     tag: 0.2.0
     # Tag history:
@@ -30,6 +31,7 @@ models:
     type: text-generation
     version: https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct/commit/6f6073b423013f6a7d4d9f39144961bfbfbc386b
     runtime: tfs
+    private: true
     downloadAtRuntime: true
     tag: 0.0.1
     # Tag history:
@@ -122,6 +124,38 @@ models:
     # 0.0.2 - Inference API Cleanup (#233)
     # 0.0.1 - Initial Release
 
+  - name: ministral-3-3b-instruct
+    type: text-generation
+    version: https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512/commit/83e15808ff6a115f18ff8e68123db3ab35035714
+    runtime: tfs
+    downloadAtRuntime: true
+    tag: 0.0.1
+    # Tag history:
+    # 0.0.1 - New Model!
+  - name: ministral-3-8b-instruct
+    type: text-generation
+    version: https://huggingface.co/mistralai/Ministral-3-8B-Instruct-2512/commit/df904c183734f8760042c708d3629a4ed68b103a
+    runtime: tfs
+    downloadAtRuntime: true
+    tag: 0.0.1
+    # Tag history:
+    # 0.0.1 - New Model!
+  - name: ministral-3-14b-instruct
+    type: text-generation
+    version: https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512/commit/6aa4534f7bb46d16753bd12a08b32810a06b7a14
+    runtime: tfs
+    downloadAtRuntime: true
+    tag: 0.0.1
+    # Tag history:
+    # 0.0.1 - New Model!
+  - name: mistral-large-3-675b-instruct
+    type: text-generation
+    version: https://huggingface.co/mistralai/Mistral-Large-3-675B-Instruct-2512/commit/7f13ed24ab52a2a1c35bb26a749ef9d891ee98dd
+    runtime: tfs
+    downloadAtRuntime: true
+    tag: 0.0.1
+    # Tag history:
+    # 0.0.1 - New Model!
   # Phi-2
   - name: phi-2
     type: text-generation

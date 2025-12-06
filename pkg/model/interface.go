@@ -87,6 +87,10 @@ type Metadata struct {
 	// +optional
 	DownloadAtRuntime bool `yaml:"downloadAtRuntime,omitempty"`
 
+	// Private indicates whether the model is a private model.
+	// +optional
+	Private bool `yaml:"private,omitempty"`
+
 	// Tag is the tag of the container image used to run the model.
 	// If the model uses the KAITO base image, the tag field can be ignored
 	// +optional

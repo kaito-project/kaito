@@ -14,12 +14,14 @@ data:
         type: text-generation
         version: https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/commit/0e9e39f249a16976918f6564b8830bc894c89659
         runtime: tfs
+        private: true
         downloadAtRuntime: true
         tag: 0.2.0
       - name: llama-3.3-70b-instruct
         type: text-generation
         version: https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct/commit/6f6073b423013f6a7d4d9f39144961bfbfbc386b
         runtime: tfs
+        private: true
         downloadAtRuntime: true
         tag: 0.0.1
       - name: deepseek-r1-0528
@@ -64,6 +66,30 @@ data:
         version: https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3/commit/e0bc86c23ce5aae1db576c8cca6f06f1f73af2db
         runtime: tfs
         tag: 0.2.0
+      - name: ministral-3-3b-instruct
+        type: text-generation
+        version: https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512/commit/83e15808ff6a115f18ff8e68123db3ab35035714
+        runtime: tfs
+        downloadAtRuntime: true
+        tag: 0.0.1
+      - name: ministral-3-8b-instruct
+        type: text-generation
+        version: https://huggingface.co/mistralai/Ministral-3-8B-Instruct-2512/commit/df904c183734f8760042c708d3629a4ed68b103a
+        runtime: tfs
+        downloadAtRuntime: true
+        tag: 0.0.1
+      - name: ministral-3-14b-instruct
+        type: text-generation
+        version: https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512/commit/6aa4534f7bb46d16753bd12a08b32810a06b7a14
+        runtime: tfs
+        downloadAtRuntime: true
+        tag: 0.0.1
+      - name: mistral-large-3-675b-instruct
+        type: text-generation
+        version: https://huggingface.co/mistralai/Mistral-Large-3-675B-Instruct-2512/commit/7f13ed24ab52a2a1c35bb26a749ef9d891ee98dd
+        runtime: tfs
+        downloadAtRuntime: true
+        tag: 0.0.1
       - name: phi-2
         type: text-generation
         version: https://huggingface.co/microsoft/phi-2/commit/ef382358ec9e382308935a992d908de099b64c23

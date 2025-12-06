@@ -553,9 +553,11 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Runtime validation: %v", err)))
 		}
 		// For models that require downloading at runtime, we need to check if the modelAccessSecret is provided
-		if params.DownloadAtRuntime && i.Preset.PresetOptions.ModelAccessSecret == "" {
-			errs = errs.Also(apis.ErrGeneric("This preset requires a modelAccessSecret with HF_TOKEN key under presetOptions to download the model"))
-		} else if !params.DownloadAtRuntime && i.Preset.PresetOptions.ModelAccessSecret != "" {
+		if params.DownloadAtRuntime {
+			if params.Private && i.Preset.PresetOptions.ModelAccessSecret == "" {
+				errs = errs.Also(apis.ErrGeneric("This preset is private and requires a modelAccessSecret with HF_TOKEN key under presetOptions to download the model"))
+			}
+		} else if i.Preset.PresetOptions.ModelAccessSecret != "" {
 			errs = errs.Also(apis.ErrGeneric("This preset does not require a modelAccessSecret with HF_TOKEN key under presetOptions"))
 		}
 	}

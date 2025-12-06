@@ -96,7 +96,7 @@ extract_configmap_models() {
         found=1; 
         next 
     } 
-    found && /^[[:space:]]*[a-zA-Z]/ && !/^[[:space:]]*models:/ && !/^[[:space:]]*-/ && !/^[[:space:]]*name:/ && !/^[[:space:]]*type:/ && !/^[[:space:]]*version:/ && !/^[[:space:]]*runtime:/ && !/^[[:space:]]*downloadAtRuntime:/ && !/^[[:space:]]*deprecated:/ && !/^[[:space:]]*tag:/ && !/^[[:space:]]*resources:/ && !/^[[:space:]]*instanceType:/ && !/^[[:space:]]*labelSelector:/ && !/^[[:space:]]*preferredInstance:/ { 
+    found && /^[[:space:]]*[a-zA-Z]/ && !/^[[:space:]]*models:/ && !/^[[:space:]]*-/ && !/^[[:space:]]*name:/ && !/^[[:space:]]*type:/ && !/^[[:space:]]*version:/ && !/^[[:space:]]*runtime:/ && !/^[[:space:]]*downloadAtRuntime:/ && !/^[[:space:]]*private:/ && !/^[[:space:]]*deprecated:/ && !/^[[:space:]]*tag:/ && !/^[[:space:]]*resources:/ && !/^[[:space:]]*instanceType:/ && !/^[[:space:]]*labelSelector:/ && !/^[[:space:]]*preferredInstance:/ { 
         found=0 
     } 
     found { 

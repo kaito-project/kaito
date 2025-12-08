@@ -21,7 +21,7 @@ jobs:
       - 1ES.Pool=1es-aks-kaito-agent-pool-ubuntu
     steps:
       - name: Clone Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
       - name: Setup BuildX

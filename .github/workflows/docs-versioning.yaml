@@ -3,9 +3,10 @@ name: Create Versioned Documentation
 on:
   push:
     tags:
-      # Trigger only on new minor version tags (e.g., v0.6.0, v0.7.0, v1.0.0)
-      # This regex matches tags like v0.6.0, v1.0.0 but excludes patch releases like v0.6.1, v0.6.2
+      # Trigger on new minor version tags (e.g., v0.6.0, v0.7.0, v1.0.0) and release candidates (e.g., v0.6.0-rc.0)
+      # This regex matches tags like v0.6.0, v1.0.0, v0.6.0-rc.0 but excludes patch releases like v0.6.1, v0.6.2
       - 'v[0-9]+.[0-9]+.0'
+      - 'v[0-9]+.[0-9]+.0-rc.[0-9]+'
 
 permissions:
   contents: read
@@ -55,10 +56,20 @@ jobs:
       - name: Extract version from tag
         id: get-version
         run: |
-          # Extract version from tag (e.g., v0.6.0 -> v0.6.x)
+          # Extract version from tag (e.g., v0.6.0 -> v0.6.x or v0.6.0-rc.0)
           VERSION_TAG=${GITHUB_REF#refs/tags/}
           echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_OUTPUT
           
+          # Check if this is a release candidate version
+          if [[ $VERSION_TAG =~ -rc\. ]]; then
+            echo "IS_RC=true" >> $GITHUB_OUTPUT
+            echo "Detected release candidate version: $VERSION_TAG"
+            echo "Skipping documentation versioning for RC versions"
+            exit 0
+          else
+            echo "IS_RC=false" >> $GITHUB_OUTPUT
+          fi
+
           # Convert v0.6.0 to v0.6.x format for documentation versioning
           DOC_VERSION=$(echo $VERSION_TAG | sed -E 's/^v([0-9]+)\.([0-9]+)\.0$/v\1.\2.x/')
           echo "DOC_VERSION=$DOC_VERSION" >> $GITHUB_OUTPUT

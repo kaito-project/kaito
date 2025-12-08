@@ -414,21 +414,23 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 
 func SetModelDownloadInfo(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	if ctx.Model.GetInferenceParameters().DownloadAtRuntime {
-		envvar := corev1.EnvVar{
-			Name: "HF_TOKEN",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret,
+		if accessSecret := ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret; accessSecret != "" {
+			envvar := corev1.EnvVar{
+				Name: "HF_TOKEN",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret,
+						},
+						Key: "HF_TOKEN",
 					},
-					Key: "HF_TOKEN",
 				},
-			},
-		}
+			}
 
-		for i := range spec.Containers {
-			// add HF_TOKEN env var to all containers
-			spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
+			for i := range spec.Containers {
+				// add HF_TOKEN env var to all containers
+				spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
+			}
 		}
 		return nil
 	}

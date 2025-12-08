@@ -175,8 +175,10 @@ func (*deepseekR1) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement:  "800Gi",
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "641.3Gi", // at least 8 H100
-		BytesPerToken:           1748992,
-		ModelTokenLimit:         163840, // max_position_embeddings from DeepSeek-R1-0528 config
+		// According to Multi-Head Latent Attention (MLA).
+		// BytesPerToken = 2 * (kv_lora_rank + qk_rope_head_dim) * num_hidden_layers
+		BytesPerToken:   70272,
+		ModelTokenLimit: 163840, // max_position_embeddings from DeepSeek-R1-0528 config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,
@@ -215,8 +217,10 @@ func (*deepseekV3) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement:  "800Gi",
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "641.3Gi", // at least 8 H100
-		BytesPerToken:           1748992,
-		ModelTokenLimit:         163840, // max_position_embeddings from DeepSeek-V3-0324 config
+		// According to Multi-Head Latent Attention (MLA).
+		// BytesPerToken = 2 * (kv_lora_rank + qk_rope_head_dim) * num_hidden_layers
+		BytesPerToken:   70272,
+		ModelTokenLimit: 163840, // max_position_embeddings from DeepSeek-V3-0324 config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       baseCommandPresetDeepseekInference,

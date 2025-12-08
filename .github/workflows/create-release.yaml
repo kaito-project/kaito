@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: 'Release version (e.g., v0.2.2)'
+        description: 'Release version (e.g., v0.2.2 or v0.2.2-rc.0)'
         required: true
         type: string
       release_branch:
@@ -45,8 +45,8 @@ jobs:
       - name: Validate inputs
         run: |
           echo "Creating release ${{ github.event.inputs.release_version }} from branch ${{ github.event.inputs.release_branch }}"
-          if [[ ! "${{ github.event.inputs.release_version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Release version must follow format vX.Y.Z"
+          if [[ ! "${{ github.event.inputs.release_version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "Error: Release version must follow format vX.Y.Z or vX.Y.Z-rc.W"
             exit 1
           fi
           if [[ ! "${{ github.event.inputs.release_branch }}" =~ ^release- ]]; then

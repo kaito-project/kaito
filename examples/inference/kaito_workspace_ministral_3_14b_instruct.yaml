@@ -1,0 +1,12 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-ministral-3-14b-instruct
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: ministral-3-14b-instruct
+inference:
+  preset:
+    name: "ministral-3-14b-instruct"

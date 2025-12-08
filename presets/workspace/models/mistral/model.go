@@ -31,11 +31,32 @@ func init() {
 		Name:     PresetMistral7BInstructModel,
 		Instance: &mistralB,
 	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     PresetMinistral33BInstructModel,
+		Instance: &ministral3_3bInst,
+	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     PresetMinistral38BInstructModel,
+		Instance: &ministral3_8bInst,
+	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     PresetMinistral314BInstructModel,
+		Instance: &ministral3_14bInst,
+	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     PresetMistralLarge3675BInstructModel,
+		Instance: &mistralLarge3_675bInst,
+	})
 }
 
 const (
 	PresetMistral7BModel         = "mistral-7b"
 	PresetMistral7BInstructModel = PresetMistral7BModel + "-instruct"
+
+	PresetMinistral33BInstructModel      = "ministral-3-3b-instruct"
+	PresetMinistral38BInstructModel      = "ministral-3-8b-instruct"
+	PresetMinistral314BInstructModel     = "ministral-3-14b-instruct"
+	PresetMistralLarge3675BInstructModel = "mistral-large-3-675b-instruct"
 )
 
 var (
@@ -48,8 +69,15 @@ var (
 	}
 	mistralRunParamsVLLM = map[string]string{
 		"dtype":                   "float16",
-		"chat-template":           "/workspace/chat_templates/tool-chat-mistral.jinja",
 		"tool-call-parser":        "mistral",
+		"enable-auto-tool-choice": "",
+	}
+	mistral3RunParamsVLLM = map[string]string{
+		"dtype":                   "float16",
+		"tool-call-parser":        "mistral",
+		"tokenizer_mode":          "mistral",
+		"config_format":           "mistral",
+		"load_format":             "mistral",
 		"enable-auto-tool-choice": "",
 	}
 )
@@ -145,3 +173,132 @@ func (*mistral7bInst) SupportDistributedInference() bool {
 func (*mistral7bInst) SupportTuning() bool {
 	return false
 }
+
+var ministral3_3bInst ministral3_3bInstruct
+var ministral3_8bInst ministral3_8bInstruct
+var ministral3_14bInst ministral3_14bInstruct
+var mistralLarge3_675bInst mistralLarge3_675bInstruct
+
+type ministral3_3bInstruct struct{}
+
+func (*ministral3_3bInstruct) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata:                metadata.MustGet(PresetMinistral33BInstructModel),
+		DiskStorageRequirement:  "50Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "8.70Gi",
+		BytesPerToken:           106496,
+		ModelTokenLimit:         262144,
+		RuntimeParam: model.RuntimeParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				AccelerateParams:  inference.DefaultAccelerateParams,
+				ModelRunParams:    mistralRunParams,
+				BaseCommand:       baseCommandPresetMistralInference,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:    inference.DefaultVLLMCommand,
+				ModelName:      PresetMinistral33BInstructModel,
+				ModelRunParams: mistral3RunParamsVLLM,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+func (*ministral3_3bInstruct) GetTuningParameters() *model.PresetParam { return nil }
+func (*ministral3_3bInstruct) SupportDistributedInference() bool       { return false }
+func (*ministral3_3bInstruct) SupportTuning() bool                     { return false }
+
+type ministral3_8bInstruct struct{}
+
+func (*ministral3_8bInstruct) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata:                metadata.MustGet(PresetMinistral38BInstructModel),
+		DiskStorageRequirement:  "100Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "19.41Gi",
+		BytesPerToken:           139264,
+		ModelTokenLimit:         262144,
+		RuntimeParam: model.RuntimeParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				AccelerateParams:  inference.DefaultAccelerateParams,
+				ModelRunParams:    mistralRunParams,
+				BaseCommand:       baseCommandPresetMistralInference,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:    inference.DefaultVLLMCommand,
+				ModelName:      PresetMinistral38BInstructModel,
+				ModelRunParams: mistral3RunParamsVLLM,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+func (*ministral3_8bInstruct) GetTuningParameters() *model.PresetParam { return nil }
+func (*ministral3_8bInstruct) SupportDistributedInference() bool       { return false }
+func (*ministral3_8bInstruct) SupportTuning() bool                     { return false }
+
+type ministral3_14bInstruct struct{}
+
+func (*ministral3_14bInstruct) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata:                metadata.MustGet(PresetMinistral314BInstructModel),
+		DiskStorageRequirement:  "100Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "29.29Gi",
+		BytesPerToken:           163840,
+		ModelTokenLimit:         262144,
+		RuntimeParam: model.RuntimeParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				AccelerateParams:  inference.DefaultAccelerateParams,
+				ModelRunParams:    mistralRunParams,
+				BaseCommand:       baseCommandPresetMistralInference,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:    inference.DefaultVLLMCommand,
+				ModelName:      PresetMinistral314BInstructModel,
+				ModelRunParams: mistral3RunParamsVLLM,
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+func (*ministral3_14bInstruct) GetTuningParameters() *model.PresetParam { return nil }
+func (*ministral3_14bInstruct) SupportDistributedInference() bool       { return false }
+func (*ministral3_14bInstruct) SupportTuning() bool                     { return false }
+
+type mistralLarge3_675bInstruct struct{}
+
+func (*mistralLarge3_675bInstruct) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata:                metadata.MustGet(PresetMistralLarge3675BInstructModel),
+		DiskStorageRequirement:  "800Gi",
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "634.70Gi",
+		// According to Multi-Head Latent Attention (MLA).
+		// BytesPerToken = 2 * (kv_lora_rank + qk_rope_head_dim) * num_hidden_layers
+		BytesPerToken:   70272,
+		ModelTokenLimit: 262144,
+		RuntimeParam: model.RuntimeParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				AccelerateParams:  inference.DefaultAccelerateParams,
+				ModelRunParams:    mistralRunParams,
+				BaseCommand:       baseCommandPresetMistralInference,
+				InferenceMainFile: inference.DefaultTransformersMainFile,
+			},
+			VLLM: model.VLLMParam{
+				BaseCommand:          inference.DefaultVLLMCommand,
+				ModelName:            PresetMistralLarge3675BInstructModel,
+				ModelRunParams:       mistral3RunParamsVLLM,
+				RayLeaderBaseCommand: inference.DefaultVLLMRayLeaderBaseCommand,
+				RayWorkerBaseCommand: inference.DefaultVLLMRayWorkerBaseCommand,
+			},
+		},
+		ReadinessTimeout: time.Duration(60) * time.Minute,
+	}
+}
+func (*mistralLarge3_675bInstruct) GetTuningParameters() *model.PresetParam { return nil }
+func (*mistralLarge3_675bInstruct) SupportDistributedInference() bool       { return true }
+func (*mistralLarge3_675bInstruct) SupportTuning() bool                     { return false }

@@ -22,8 +22,6 @@ import (
 	"sort"
 	"testing"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
@@ -35,13 +33,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/basicnodesestimator"
-	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -775,96 +770,6 @@ func TestSyncControllerRevision(t *testing.T) {
 			}
 			if tc.verifyCalls != nil {
 				tc.verifyCalls(mockClient)
-			}
-		})
-	}
-}
-
-func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
-	test.RegisterTestModel()
-	// Ensure GPU SKU lookup works inside inference dry-run
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	testcases := map[string]struct {
-		callMocks     func(c *test.MockClient)
-		featureGate   bool
-		runtimeName   model.RuntimeName
-		isPreset      bool
-		expectedError error
-	}{
-		"feature gate off returns nil": {
-			callMocks:     func(c *test.MockClient) {},
-			featureGate:   false,
-			runtimeName:   model.RuntimeNameVLLM,
-			isPreset:      true,
-			expectedError: nil,
-		},
-		"runtime not vllm returns nil": {
-			callMocks:     func(c *test.MockClient) {},
-			featureGate:   true,
-			runtimeName:   model.RuntimeNameHuggingfaceTransformers,
-			isPreset:      true,
-			expectedError: nil,
-		},
-		"not preset returns nil": {
-			callMocks:     func(c *test.MockClient) {},
-			featureGate:   true,
-			runtimeName:   model.RuntimeNameVLLM,
-			isPreset:      false,
-			expectedError: nil,
-		},
-		"OCIRepository and HelmRelease found and up-to-date": {
-			callMocks: func(c *test.MockClient) {
-				// Default inference template ConfigMap exists in target namespace
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&sourcev1.OCIRepository{}), mock.Anything).Return(nil)
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&helmv2.HelmRelease{}), mock.Anything).Return(nil)
-
-				ociRepository := manifests.GenerateInferencePoolOCIRepository(test.MockWorkspaceWithPresetVLLM)
-				ociRepository.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
-				c.CreateOrUpdateObjectInMap(ociRepository)
-
-				helmRelease, _ := manifests.GenerateInferencePoolHelmRelease(test.MockWorkspaceWithPresetVLLM, false)
-				helmRelease.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
-				c.CreateOrUpdateObjectInMap(helmRelease)
-			},
-			featureGate:   true,
-			runtimeName:   model.RuntimeNameVLLM,
-			isPreset:      true,
-			expectedError: nil,
-		},
-	}
-
-	for name, tc := range testcases {
-		t.Run(name, func(t *testing.T) {
-			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
-			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = tc.featureGate
-			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = originalFeatureGate
-			}()
-
-			wObj := test.MockWorkspaceWithPresetVLLM.DeepCopy()
-			if !tc.isPreset {
-				wObj.Inference.Preset = nil
-			}
-			// Ensure runtime selection aligns with the test case
-			if tc.runtimeName != model.RuntimeNameVLLM {
-				if wObj.Annotations == nil {
-					wObj.Annotations = map[string]string{}
-				}
-				wObj.Annotations[v1beta1.AnnotationWorkspaceRuntime] = string(tc.runtimeName)
-			}
-
-			mockClient := test.NewClient()
-			if tc.callMocks != nil {
-				tc.callMocks(mockClient)
-			}
-
-			reconciler := &WorkspaceReconciler{Client: mockClient}
-			err := reconciler.ensureGatewayAPIInferenceExtension(context.Background(), wObj)
-			if tc.expectedError != nil {
-				assert.ErrorContains(t, err, tc.expectedError.Error())
-			} else {
-				assert.NoError(t, err)
 			}
 		})
 	}

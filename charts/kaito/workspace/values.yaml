@@ -5,7 +5,7 @@ replicaCount: 1
 image:
   repository: mcr.microsoft.com/aks/kaito/workspace
   pullPolicy: IfNotPresent
-  tag: 0.7.0
+  tag: 0.8.0-rc.0
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -65,10 +65,16 @@ local-csi-driver:
   image:
     driver:
       repository: mcr.microsoft.com/acstor/local-csi-driver
-      tag: v0.2.6
+      tag: v0.2.8
+  daemonset:
+    podSelector:
+      app: csi-local-node
+  cleanup:
+    # TODO: switch to local csi driver builtin cleanup job
+    enabled: false
   webhook:
     enforceEphemeral:
-      enabled: false
+      enabled: true
     hyperconverged:
       enabled: false
   observability:

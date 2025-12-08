@@ -1,11 +1,11 @@
 # Dependencies for TFS
 
 # Core Dependencies
-vllm==0.10.1.1
-transformers==4.55.2
-torch==2.7.1
+vllm==0.12.0
+transformers >= 4.56.0, < 5
+torch==2.9.0
 accelerate==1.3.0
-fastapi==0.116.1
+fastapi[standard] >= 0.115.0
 pydantic>=2.9
 uvicorn[standard]>=0.29.0,<0.30.0  # Allow patch updates
 uvloop
@@ -13,8 +13,8 @@ peft==0.11.1
 numpy<3.0,>=1.25.0
 sentencepiece==0.2.0
 jinja2>=3.1.0
-starlette==0.47.2
-lmcache==0.3.5
+starlette>=0.49.1
+lmcache==0.3.10
 
 # For accessing Ray dashboard. ray[default] version should be consistent with the one in vllm/vllm-openai:<vllm-version>.
 # Check with `docker run --entrypoint "" vllm/vllm-openai:<vllm-version> pip freeze | grep ray`

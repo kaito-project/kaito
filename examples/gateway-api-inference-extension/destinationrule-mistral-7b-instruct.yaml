@@ -1,9 +1,9 @@
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
-  name: workspace-mistral-7b-instruct-inferencep-epp
+  name: mistral-7b-instruct-inference-epp
 spec:
-  host: workspace-mistral-7b-instruct-inferencep-epp
+  host: mistral-7b-instruct-inference-epp
   trafficPolicy:
     tls:
       mode: SIMPLE

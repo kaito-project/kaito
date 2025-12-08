@@ -20,17 +20,24 @@ import (
 	"fmt"
 	"testing"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
 func TestInferenceSetSyncControllerRevision(t *testing.T) {
@@ -240,5 +247,109 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 				tc.verifyCalls(mockClient)
 			}
 		})
+	}
+}
+
+func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
+	test.RegisterTestModel()
+	// Ensure GPU SKU lookup works inside inference dry-run
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	testcases := map[string]struct {
+		callMocks     func(c *test.MockClient)
+		featureGate   bool
+		runtimeName   model.RuntimeName
+		isPreset      bool
+		expectedError error
+	}{
+		"feature gate off returns nil": {
+			callMocks:     func(c *test.MockClient) {},
+			featureGate:   false,
+			runtimeName:   model.RuntimeNameVLLM,
+			isPreset:      true,
+			expectedError: nil,
+		},
+		"runtime not vllm returns nil": {
+			callMocks:     func(c *test.MockClient) {},
+			featureGate:   true,
+			runtimeName:   model.RuntimeNameHuggingfaceTransformers,
+			isPreset:      true,
+			expectedError: nil,
+		},
+		"not preset returns nil": {
+			callMocks:     func(c *test.MockClient) {},
+			featureGate:   true,
+			runtimeName:   model.RuntimeNameVLLM,
+			isPreset:      false,
+			expectedError: nil,
+		},
+		"OCIRepository and HelmRelease found and up-to-date": {
+			callMocks: func(c *test.MockClient) {
+				// Default inference template ConfigMap exists in target namespace
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&sourcev1.OCIRepository{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&helmv2.HelmRelease{}), mock.Anything).Return(nil)
+
+				ociRepository := manifests.GenerateInferencePoolOCIRepository(test.MockInferenceSetWithPresetVLLM)
+				ociRepository.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
+				c.CreateOrUpdateObjectInMap(ociRepository)
+
+				helmRelease, _ := manifests.GenerateInferencePoolHelmRelease(test.MockInferenceSetWithPresetVLLM, false)
+				helmRelease.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
+				c.CreateOrUpdateObjectInMap(helmRelease)
+
+				// mock inferenceset.ListWorkspaces return one workspace with preset VLLM
+				wsList := &v1beta1.WorkspaceList{}
+				wsList.Items = append(wsList.Items, *test.MockWorkspaceWithPresetVLLM)
+				c.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Run(func(args mock.Arguments) {
+					wsListArg := args.Get(1).(*v1beta1.WorkspaceList)
+					*wsListArg = *wsList
+				}).Return(nil)
+			},
+			featureGate:   true,
+			runtimeName:   model.RuntimeNameVLLM,
+			isPreset:      true,
+			expectedError: nil,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
+			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = tc.featureGate
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = originalFeatureGate
+			}()
+
+			iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+			if !tc.isPreset {
+				iObj.Spec.Template.Inference.Preset = nil
+			}
+			// Ensure runtime selection aligns with the test case
+			if tc.runtimeName != model.RuntimeNameVLLM {
+				if iObj.Annotations == nil {
+					iObj.Annotations = map[string]string{}
+				}
+				iObj.Annotations[v1beta1.AnnotationWorkspaceRuntime] = string(tc.runtimeName)
+			}
+
+			mockClient := test.NewClient()
+			if tc.callMocks != nil {
+				tc.callMocks(mockClient)
+			}
+
+			reconciler := &InferenceSetReconciler{Client: mockClient}
+			err := reconciler.ensureGatewayAPIInferenceExtension(context.Background(), iObj)
+			if tc.expectedError != nil {
+				assert.ErrorContains(t, err, tc.expectedError.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+
+	reconciler := &InferenceSetReconciler{Client: test.NewClient()}
+	err := reconciler.ensureGatewayAPIInferenceExtension(context.Background(), nil)
+	if err == nil || err.Error() != "InferenceSet object is nil" {
+		t.Errorf("Expected error for nil InferenceSet, got: %v", err)
 	}
 }

@@ -47,13 +47,13 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers/garbagecollect"
-	"github.com/kaito-project/kaito/pkg/workspace/controllers/inferenceset"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 

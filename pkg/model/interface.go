@@ -87,6 +87,10 @@ type Metadata struct {
 	// +optional
 	DownloadAtRuntime bool `yaml:"downloadAtRuntime,omitempty"`
 
+	// DownloadAuthRequired indicates whether the model requires authentication to download.
+	// +optional
+	DownloadAuthRequired bool `yaml:"downloadAuthRequired,omitempty"`
+
 	// Tag is the tag of the container image used to run the model.
 	// If the model uses the KAITO base image, the tag field can be ignored
 	// +optional
@@ -96,12 +100,16 @@ type Metadata struct {
 	// If this is empty, os.Getenv("PRESET_REGISTRY_NAME") will be used.
 	// +optional
 	Registry string `yaml:"registry,omitempty"`
+
+	// Deprecated indicates if the model is deprecated.
+	// +optional
+	Deprecated bool `yaml:"deprecated,omitempty"`
 }
 
 // Validate checks if the Metadata is valid.
 func (m *Metadata) Validate() error {
-	// Some private models may not have a version URL, so we allow it to be empty until
-	// we remove support for private preset models.
+	// Some models requiring authentication may not have a version URL, so we allow it to be empty until
+	// we remove support for preset models requiring authentication.
 	if m.Version == "" {
 		return nil
 	}
@@ -300,6 +308,9 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// Pipeline Parallelism (PP) is set to the number of nodes for multi-node inference per vLLM guidance:
 	// https://docs.vllm.ai/en/latest/serving/distributed_serving.html.
 	p.VLLM.ModelRunParams["pipeline-parallel-size"] = strconv.Itoa(rc.NumNodes)
+
+	// Since vllm 0.12.0, we need to set the distributed-executor-backend explicitly
+	p.VLLM.ModelRunParams["distributed-executor-backend"] = "ray"
 
 	// We need to setup multi-node Ray cluster and assume pod index 0 is the leader of the cluster.
 	// - leader: start as ray leader along with the model run command

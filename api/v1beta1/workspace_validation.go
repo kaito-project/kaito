@@ -38,6 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -323,6 +324,23 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 		presetName = strings.ToLower(string(inference.Preset.Name))
 		// Since inference.Preset exists, we must validate preset name.
 		if !plugin.IsValidPreset(presetName) {
+			// If the preset is not valid, check if it is a deprecated model
+			// We use recover() to handle the panic from MustGet if the model is not found
+			var isDeprecated bool
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						isDeprecated = false
+					}
+				}()
+				m := metadata.MustGet(presetName)
+				isDeprecated = m.Deprecated
+			}()
+
+			if isDeprecated {
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Model %s is deprecated and no longer supported", presetName), "presetName"))
+				return errs
+			}
 			// Return to skip the rest of checks, the Inference spec validation will return proper err msg.
 			return errs
 		}
@@ -535,9 +553,11 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Runtime validation: %v", err)))
 		}
 		// For models that require downloading at runtime, we need to check if the modelAccessSecret is provided
-		if params.DownloadAtRuntime && i.Preset.PresetOptions.ModelAccessSecret == "" {
-			errs = errs.Also(apis.ErrGeneric("This preset requires a modelAccessSecret with HF_TOKEN key under presetOptions to download the model"))
-		} else if !params.DownloadAtRuntime && i.Preset.PresetOptions.ModelAccessSecret != "" {
+		if params.DownloadAtRuntime {
+			if params.DownloadAuthRequired && i.Preset.PresetOptions.ModelAccessSecret == "" {
+				errs = errs.Also(apis.ErrGeneric("This preset requires authentication and needs a modelAccessSecret with HF_TOKEN key under presetOptions to download the model"))
+			}
+		} else if i.Preset.PresetOptions.ModelAccessSecret != "" {
 			errs = errs.Also(apis.ErrGeneric("This preset does not require a modelAccessSecret with HF_TOKEN key under presetOptions"))
 		}
 	}

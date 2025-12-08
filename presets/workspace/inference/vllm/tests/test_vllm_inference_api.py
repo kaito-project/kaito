@@ -29,7 +29,7 @@ parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
 
 try:
-    from inference_api import KaitoConfig, binary_search_with_limited_steps
+    from inference_api import KaitoConfig
 except ImportError as e:
     raise ImportError(f"Error importing required module(s): {e}") from e
 
@@ -216,33 +216,3 @@ def test_model_list(setup_server):
     assert data["data"][2]["parent"] == TEST_MODEL_NAME, (
         f"The third model should have the test model as parent, but got {data['data'][2]['parent']}"
     )
-
-
-def test_binary_search_with_limited_steps():
-    def is_safe_fn(x):
-        return x <= 10
-
-    # Test case 1: all values are safe
-    result = binary_search_with_limited_steps(10, 1, is_safe_fn)
-    assert result == 10, f"Expected 10, but got {result}"
-
-    result = binary_search_with_limited_steps(10, 10, is_safe_fn)
-    assert result == 10, f"Expected 10, but got {result}"
-
-    # Test case 2: partial safe, find the exact value
-    result = binary_search_with_limited_steps(20, 3, is_safe_fn)
-    assert result == 10, f"Expected 10, but got {result}"
-
-    result = binary_search_with_limited_steps(30, 6, is_safe_fn)
-    assert result == 10, f"Expected 10, but got {result}"
-
-    # Test case 3: partial safe, find an approximate value
-    result = binary_search_with_limited_steps(30, 3, is_safe_fn)
-    assert result == 7, f"Expected 7, but got {result}"
-
-    # Test case 4: all values are unsafe
-    result = binary_search_with_limited_steps(10, 1, lambda x: False)
-    assert result == 0, f"Expected 0, but got {result}"
-
-    result = binary_search_with_limited_steps(20, 100, lambda x: False)
-    assert result == 0, f"Expected 0, but got {result}"

@@ -10,6 +10,10 @@ data:
 apiVersion: kaito.sh/v1alpha1
 kind: InferenceSet
 metadata:
+  annotations:
+    scaledobject.kaito.sh/auto-provision: "true"
+    scaledobject.kaito.sh/max-replicas: "5"
+    scaledobject.kaito.sh/threshold: "10"
   name: llama-3-1-8b
 spec:
   replicas: 2 # number of workspace CR created by InferenceSet controller
@@ -17,7 +21,7 @@ spec:
   labelSelector:
     matchLabels:
       # workspace created by InferenceSet controller would use this label in resource.labelSelector
-      apps: large-model
+      apps: llama-3-1-8b
   template:
     resource:
       instanceType: "Standard_NC24ads_A100_v4"
@@ -26,5 +30,3 @@ spec:
         name: llama-3.1-8b-instruct
         presetOptions:
           modelAccessSecret: hf-token
-  updateStrategy:
-    type: RollingUpdate

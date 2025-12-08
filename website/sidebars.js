@@ -43,7 +43,7 @@ const sidebars = {
             items: [
                 'inference',
                 'multi-node-inference',
-		'keda-autoscaler-inference',
+                'keda-autoscaler-inference',
                 'tuning',
                 {
                     type: 'category',

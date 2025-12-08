@@ -15,7 +15,7 @@ This document outlines the steps to enable intelligent autoscaling for KAITO inf
    - This new CRD and Controller were built on top of the KAITO workspace for intelligent autoscaling, introduced as an alpha feature in KAITO version `v0.8.0`
 
 ## Prerequisites
-- install KEDA
+ - install KEDA
 > The following example demonstrates how to install KEDA using Helm chart. For instructions on installing KEDA through other methods, please refer to the guide [here](https://github.com/kedacore/keda#deploying-keda).
 ```bash
 helm repo add kedacore https://kedacore.github.io/charts
@@ -96,4 +96,4 @@ NAME                    REFERENCE                   TARGETS      MINPODS   MAXPO
 keda-hpa-phi-4          InferenceSet/phi-4          0/10 (avg)   1         5         1          11m
 ```
 
-That's it! Your KAITO workloads will now automatically scale based on the number of waiting inference request(`vllm:num_requests_waiting`).
+That's it! Your KAITO workloads will now automatically scale based on the number of waiting inference requests(`vllm:num_requests_waiting`).

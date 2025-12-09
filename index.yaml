@@ -1,0 +1,744 @@
+apiVersion: v1
+entries:
+  gpu-provisioner:
+  - apiVersion: v2
+    appVersion: 0.2.0
+    created: "2024-04-04T03:49:46.649259483Z"
+    description: A Helm chart for gpu-provisioner
+    digest: a0b97463e26d4f629d3d8865f99ea5ad9eeb1b95224e2511e66c2b2845fa8940
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    name: gpu-provisioner
+    sources:
+    - https://github.com/Azure/gpu-provisioner
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/gpu-provisioner-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2024-03-04T19:13:04.285459152Z"
+    description: A Helm chart for gpu-provisioner
+    digest: 35e2a254b6f6609c3937a31cf865f711251aa397b1c0e8c1144b8317d2d77111
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    name: gpu-provisioner
+    sources:
+    - https://github.com/Azure/gpu-provisioner
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/gpu-provisioner-0.1.0.tgz
+    version: 0.1.0
+  ragengine:
+  - apiVersion: v2
+    appVersion: 0.8.0-rc.0
+    created: "2025-12-08T10:46:02.040656801Z"
+    description: A Helm chart to install AI Toolchain Operator RAGEngine
+    digest: c295da9f2b2ed6fa46c4832a54b525b37352301bc75fc6b927bed6d4e944efb7
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: ragengine
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/ragengine-0.8.0-rc.0.tgz
+    version: 0.8.0-rc.0
+  - apiVersion: v2
+    appVersion: 0.7.2
+    created: "2025-11-01T07:57:47.340991771Z"
+    description: A Helm chart to install AI Toolchain Operator RAGEngine
+    digest: 7ee48c8828cc128a546f3cdadd058bc686400e6c66c75cd32a0f6804a3de12de
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: ragengine
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/ragengine-0.7.2.tgz
+    version: 0.7.2
+  - apiVersion: v2
+    appVersion: 0.7.1
+    created: "2025-10-08T19:48:58.457591203Z"
+    description: A Helm chart to install AI Toolchain Operator RAGEngine
+    digest: 0bbe84365b05979323521bde0d4bbdb5bc54244bdadd56c25e2a02ee161108e3
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: ragengine
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/ragengine-0.7.1.tgz
+    version: 0.7.1
+  - apiVersion: v2
+    appVersion: 0.7.0
+    created: "2025-09-24T00:35:45.359301956Z"
+    description: A Helm chart to install AI Toolchain Operator RAGEngine
+    digest: 3d4b7252ad2d6e1cd30d5c0f5c493e858d582099892d34efcbe2bf46f05a1a04
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: ragengine
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/ragengine-0.7.0.tgz
+    version: 0.7.0
+  - apiVersion: v2
+    appVersion: 0.6.0
+    created: "2025-08-08T06:09:30.883802709Z"
+    description: A Helm chart to install AI Toolchain Operator RAGEngine
+    digest: 37560303e5a93ecfa014e131be36d0421a7bc2bd61c49efb34e4547e1dca8b89
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: ragengine
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/ragengine-0.6.0.tgz
+    version: 0.6.0
+  - apiVersion: v2
+    appVersion: 0.5.1
+    created: "2025-07-21T18:39:39.529238897Z"
+    description: A Helm chart to install AI Toolchain Operator RAGEngine
+    digest: fdd942e77f38693e15d17f95cfbe8d58b169e3c89186ef42e7d4ed1b94e4f90d
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: ragengine
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/ragengine-0.5.1.tgz
+    version: 0.5.1
+  - apiVersion: v2
+    appVersion: 0.5.0
+    created: "2025-07-04T06:00:03.945913185Z"
+    description: A Helm chart to install AI Toolchain Operator RAGEngine
+    digest: 98d74ef3a87bfca04c19213e30f5128747505c5e972fdef9b07c05173765c83f
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: ragengine
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/ragengine-0.5.0.tgz
+    version: 0.5.0
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-05-14T23:11:53.440562696Z"
+    description: A Helm chart to install AI Toolchain Operator RAGEngine
+    digest: 65d4af9468fb35d522ef05af428accfb02079606274d74a86132ca223c1401b5
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: ragengine
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/ragengine-0.0.1.tgz
+    version: 0.0.1
+  workspace:
+  - annotations:
+      artifacthub.io/category: ai-machine-learning
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: GitHub
+            url: https://github.com/kaito-project/kaito
+        - name: Examples
+          url: https://github.com/kaito-project/kaito/tree/main/examples
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 0.8.0-rc.0
+    created: "2025-12-08T10:30:47.229181056Z"
+    dependencies:
+    - condition: featureGates.gatewayAPIInferenceExtension
+      name: flux2
+      repository: https://fluxcd-community.github.io/helm-charts
+      version: 2.16.3
+    - condition: featureGates.disableNodeAutoProvisioning
+      name: gpu-feature-discovery
+      repository: https://nvidia.github.io/k8s-device-plugin
+      version: 0.17.4
+    - condition: localCSIDriver.useLocalCSIDriver
+      name: local-csi-driver
+      repository: oci://localcsidriver.azurecr.io/acstor/charts
+      version: 0.2.8
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 5fad6a3402f1b84f420f55286c83e8ef34cd8f36ec4c3be6cea2bcda41b99d43
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: zhuangqhc@gmail.com
+      name: zhuangqh
+    - email: chwong719@gmail.com
+      name: chewong
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.8.0-rc.0.tgz
+    version: 0.8.0-rc.0
+  - annotations:
+      artifacthub.io/category: ai-machine-learning
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: GitHub
+            url: https://github.com/kaito-project/kaito
+        - name: Examples
+          url: https://github.com/kaito-project/kaito/tree/main/examples
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 0.7.2
+    created: "2025-11-01T07:23:03.776967799Z"
+    dependencies:
+    - condition: featureGates.gatewayAPIInferenceExtension
+      name: flux2
+      repository: https://fluxcd-community.github.io/helm-charts
+      version: 2.16.3
+    - condition: localCSIDriver.useLocalCSIDriver
+      name: local-csi-driver
+      repository: oci://localcsidriver.azurecr.io/acstor/charts
+      version: 0.2.6
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 3c40ea8e0749774cf62fb1bcfc2b072e18364de230c660afaf9f53feb29918ca
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: zhuangqhc@gmail.com
+      name: zhuangqh
+    - email: chwong719@gmail.com
+      name: chewong
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.7.2.tgz
+    version: 0.7.2
+  - annotations:
+      artifacthub.io/category: ai-machine-learning
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: GitHub
+            url: https://github.com/kaito-project/kaito
+        - name: Examples
+          url: https://github.com/kaito-project/kaito/tree/main/examples
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 0.7.1
+    created: "2025-10-08T17:54:04.219649883Z"
+    dependencies:
+    - condition: featureGates.gatewayAPIInferenceExtension
+      name: flux2
+      repository: https://fluxcd-community.github.io/helm-charts
+      version: 2.16.3
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 987a5d4f99ad6e11f36abda76bacef28da308bdd0a676185077e04df79ea05c1
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: zhuangqhc@gmail.com
+      name: zhuangqh
+    - email: chwong719@gmail.com
+      name: chewong
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.7.1.tgz
+    version: 0.7.1
+  - annotations:
+      artifacthub.io/category: ai-machine-learning
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: GitHub
+            url: https://github.com/kaito-project/kaito
+        - name: Examples
+          url: https://github.com/kaito-project/kaito/tree/main/examples
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 0.7.0
+    created: "2025-09-23T22:28:56.090641487Z"
+    dependencies:
+    - condition: featureGates.gatewayAPIInferenceExtension
+      name: flux2
+      repository: https://fluxcd-community.github.io/helm-charts
+      version: 2.16.3
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 1f37e401fcf280c27345a9765594db0ce0479139b8cb3eaf571bb98fcef4f8b3
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: zhuangqhc@gmail.com
+      name: zhuangqh
+    - email: chwong719@gmail.com
+      name: chewong
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.7.0.tgz
+    version: 0.7.0
+  - annotations:
+      artifacthub.io/category: ai-machine-learning
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: GitHub
+            url: https://github.com/kaito-project/kaito
+        - name: Examples
+          url: https://github.com/kaito-project/kaito/tree/main/examples
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 0.6.2
+    created: "2025-09-11T03:33:05.830426556Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 5cb1943ea3775962320da93158a5c199a0b33f405a34a0ab5110b9bc8480d47b
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: zhuangqhc@gmail.com
+      name: zhuangqh
+    - email: chwong719@gmail.com
+      name: chewong
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.6.2.tgz
+    version: 0.6.2
+  - annotations:
+      artifacthub.io/category: ai-machine-learning
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: GitHub
+            url: https://github.com/kaito-project/kaito
+        - name: Examples
+          url: https://github.com/kaito-project/kaito/tree/main/examples
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 0.6.0
+    created: "2025-09-03T22:38:12.250848159Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: af777d44bc0f0e443672313d0c2130a9703691da73edc37aae5ef8cbebe19b07
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: zhuangqhc@gmail.com
+      name: zhuangqh
+    - email: chwong719@gmail.com
+      name: chewong
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.6.1.tgz
+    version: 0.6.1
+  - annotations:
+      artifacthub.io/category: ai-machine-learning
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: GitHub
+            url: https://github.com/kaito-project/kaito
+        - name: Examples
+          url: https://github.com/kaito-project/kaito/tree/main/examples
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 0.6.0
+    created: "2025-08-08T07:20:30.047133452Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 16dbb3c2a7aebd2a807b57507356d6f1b2f5dfe141689cee2f1e423e4284a550
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: zhuangqhc@gmail.com
+      name: zhuangqh
+    - email: chwong719@gmail.com
+      name: chewong
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.6.0.tgz
+    version: 0.6.0
+  - annotations:
+      artifacthub.io/category: ai-machine-learning
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: GitHub
+            url: https://github.com/kaito-project/kaito
+        - name: Examples
+          url: https://github.com/kaito-project/kaito/tree/main/examples
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 0.5.1
+    created: "2025-07-21T18:24:36.332656743Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: fd8e8c95d96595e0dfb058901eb417ccb268f6ac231fbab49bcc2bf60ced5cfc
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: zhuangqhc@gmail.com
+      name: zhuangqh
+    - email: chwong719@gmail.com
+      name: chewong
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.5.1.tgz
+    version: 0.5.1
+  - apiVersion: v2
+    appVersion: 0.5.0
+    created: "2025-07-08T09:53:45.218473465Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: d25d977ec4680bffd8b715eed214ba223438664196229281735c0a0584ff576f
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.5.0.tgz
+    version: 0.5.0
+  - apiVersion: v2
+    appVersion: 0.4.6
+    created: "2025-05-14T23:11:53.441568981Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 2a0dc2a8f11e37f81c0475102eea012eb39a2a157fc10ad56e7f51a5f4208610
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.4.6.tgz
+    version: 0.4.6
+  - apiVersion: v2
+    appVersion: 0.4.5
+    created: "2025-04-18T17:57:11.759871892Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 0ab857821460bbb159586a1582f53482cd078383dbf156ba16e732de6b2ecba7
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.4.5.tgz
+    version: 0.4.5
+  - apiVersion: v2
+    appVersion: 0.4.4
+    created: "2025-01-31T06:36:07.93908414Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 7a5b9142b754321c82ed3ca10b39994d9328515525fa6ee9954b7bcc2cd61319
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.4.4.tgz
+    version: 0.4.4
+  - apiVersion: v2
+    appVersion: 0.4.3
+    created: "2025-01-30T16:43:23.442590948Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: bdadc5cc051349dcd7566a4f03ab2d7e04a53e3a949a77af20eb00d32ebf4215
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.4.3.tgz
+    version: 0.4.3
+  - apiVersion: v2
+    appVersion: 0.4.2
+    created: "2025-01-16T12:50:54.569089232Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: b390330322b804fcb149f4a0d499fa7fdcbdeba199b7e90fbe2f43f5d2b88b42
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.4.2.tgz
+    version: 0.4.2
+  - apiVersion: v2
+    appVersion: 0.4.1
+    created: "2025-01-03T05:40:16.118537846Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 31b0556e9ee8118160c5c148cfa95a7faf311ebc4e09d8a946af66375928b795
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.4.1.tgz
+    version: 0.4.1
+  - apiVersion: v2
+    appVersion: 0.4.0
+    created: "2024-12-06T01:31:58.110512268Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 8082c99ff123addf6e7aa7b328e8bbeea06050457de57829b23b132375091fcb
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.4.0.tgz
+    version: 0.4.0
+  - apiVersion: v2
+    appVersion: 0.3.2
+    created: "2024-11-16T00:39:25.358160047Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: f365b69d9d9a39df0cbc86b65acee57eeb846be6adb96d5993868d10a151aed5
+    home: https://github.com/Azure/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/Azure/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.3.2.tgz
+    version: 0.3.2
+  - apiVersion: v2
+    appVersion: 0.3.1
+    created: "2024-09-07T20:25:01.305206777Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 5cfa4d68cea46b4a89500099b792a9df7e059410e11b1149a966d7a1c91c9553
+    home: https://github.com/Azure/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/Azure/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.3.1.tgz
+    version: 0.3.1
+  - apiVersion: v2
+    appVersion: 0.3.0
+    created: "2024-07-12T07:17:25.733208262Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 89688b462975e8e83b6fb3a23304feb834800be201915526857e45b5bd6de65d
+    home: https://github.com/Azure/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/Azure/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.3.0.tgz
+    version: 0.3.0
+  - apiVersion: v2
+    appVersion: 0.2.2
+    created: "2024-04-04T03:49:46.649729814Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: d3f199e93856d1281f96ad3ecb132489e91aa17819483e9f3faa679501862cdd
+    home: https://github.com/Azure/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/Azure/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.2.2.tgz
+    version: 0.2.2
+  - apiVersion: v2
+    appVersion: 0.2.1
+    created: "2024-03-19T21:38:11.932572749Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: e8a1351da2a36edc62badaa0ce1ea83bfc5ad1328b3c3e2822a12f74cb681118
+    home: https://github.com/Azure/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/Azure/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.2.1.tgz
+    version: 0.2.1
+  - apiVersion: v2
+    appVersion: 0.2.0
+    created: "2024-03-04T19:13:04.286022224Z"
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 7b808263ef6560d53b85d9a69423bf5b5dd0dc0816d24855a8a91e61ded2d27d
+    home: https://github.com/Azure/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: hebaelayoty@gmail.com
+      name: helayoty
+    - email: ishaanforthewin@gmail.com
+      name: ishaansehgal99
+    name: workspace
+    sources:
+    - https://github.com/Azure/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-12-08T10:46:02.039912115Z"

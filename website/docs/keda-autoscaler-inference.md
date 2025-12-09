@@ -65,12 +65,12 @@ metadata:
     scaledobject.kaito.sh/auto-provision: "true"
     scaledobject.kaito.sh/metricName: "vllm:num_requests_waiting"
     scaledobject.kaito.sh/threshold: "10"
-  name: phi-4
+  name: phi-4-mini
   namespace: default
 spec:
   labelSelector:
     matchLabels:
-      apps: phi-4
+      apps: phi-4-mini
   replicas: 1
   nodeCountLimit: 5
   template:
@@ -87,11 +87,11 @@ EOF
 ```bash
 # kubectl get scaledobject
 NAME           SCALETARGETKIND                  SCALETARGETNAME   MIN   MAX   READY   ACTIVE    FALLBACK   PAUSED   TRIGGERS   AUTHENTICATIONS           AGE
-phi-4          kaito.sh/v1alpha1.InferenceSet   phi-4             1     5     True    True     False      False    external   keda-kaito-scaler-creds   10m
+phi-4-mini     kaito.sh/v1alpha1.InferenceSet   phi-4-mini        1     5     True    True     False      False    external   keda-kaito-scaler-creds   10m
 
 # kubectl get hpa
 NAME                    REFERENCE                   TARGETS      MINPODS   MAXPODS   REPLICAS   AGE
-keda-hpa-phi-4          InferenceSet/phi-4          0/10 (avg)   1         5         1          11m
+keda-hpa-phi-4-mini     InferenceSet/phi-4-mini     0/10 (avg)   1         5         1          11m
 ```
 
 That's it! Your KAITO workloads will now automatically scale based on the number of waiting inference requests(`vllm:num_requests_waiting`).

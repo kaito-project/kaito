@@ -12,6 +12,7 @@ kind: InferenceSet
 metadata:
   annotations:
     scaledobject.kaito.sh/auto-provision: "true"
+    scaledobject.kaito.sh/metricName: "vllm:num_requests_waiting"
     scaledobject.kaito.sh/threshold: "10"
   name: llama-3-1-8b
 spec:

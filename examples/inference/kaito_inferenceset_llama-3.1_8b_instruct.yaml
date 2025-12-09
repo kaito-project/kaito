@@ -12,7 +12,6 @@ kind: InferenceSet
 metadata:
   annotations:
     scaledobject.kaito.sh/auto-provision: "true"
-    scaledobject.kaito.sh/max-replicas: "5"
     scaledobject.kaito.sh/threshold: "10"
   name: llama-3-1-8b
 spec:

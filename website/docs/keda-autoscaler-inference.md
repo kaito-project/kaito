@@ -6,7 +6,7 @@ title: KEDA Auto-Scaler for inference workloads
 
 ## Overview
 
-This document outlines the steps to enable intelligent autoscaling for KAITO inference workloads by utilizing the following components and features:
+This document outlines the steps to enable intelligent autoscaling based on the service monitoring metrics for KAITO inference workloads by utilizing the following components and features:
  - [KEDA](https://github.com/kedacore/keda)
    - Kubernetes-based Event Driven Autoscaling component
  - [keda-kaito-scaler](https://github.com/kaito-project/keda-kaito-scaler)
@@ -95,3 +95,47 @@ keda-hpa-phi-4-mini     InferenceSet/phi-4-mini     0/10 (avg)   1         5    
 ```
 
 That's it! Your KAITO workloads will now automatically scale based on the number of waiting inference requests(`vllm:num_requests_waiting`).
+
+ - in below example, when `vllm:num_requests_waiting` exceeds the threshold (10s) for more than 60 seconds, KEDA will scale up a new `InferenceSet/phi-4-mini` replica.
+
+```yaml
+Every 2.0s: kubectl describe hpa
+Name:                                                     keda-hpa-phi-4-mini
+Namespace:                                                default
+Labels:                                                   app.kubernetes.io/managed-by=keda-operator
+                                                          app.kubernetes.io/name=keda-hpa-phi-4-mini
+                                                          app.kubernetes.io/part-of=phi-4-mini
+                                                          app.kubernetes.io/version=2.18.1
+                                                          scaledobject.keda.sh/name=phi-4-mini
+Annotations:                                              scaledobject.kaito.sh/managed-by: keda-kaito-scaler
+CreationTimestamp:                                        Tue, 09 Dec 2025 03:35:09 +0000
+Reference:                                                InferenceSet/phi-4-mini
+Metrics:                                                  ( current / target )
+  "s0-vllm:num_requests_waiting" (target average value):  58 / 10
+Min replicas:                                             1
+Max replicas:                                             5
+Behavior:
+  Scale Up:
+    Stabilization Window: 60 seconds
+    Select Policy: Max
+    Policies:
+      - Type: Pods  Value: 1  Period: 300 seconds
+  Scale Down:
+    Stabilization Window: 300 seconds
+    Select Policy: Max
+    Policies:
+      - Type: Pods  Value: 1  Period: 600 seconds
+InferenceSet pods:  2 current / 2 desired
+Conditions:
+  Type            Status  Reason            Message
+  ----            ------  ------            -------
+  AbleToScale     True    ReadyForNewScale  recommended size matches current size
+  ScalingActive   True    ValidMetricFound  the HPA was able to successfully calculate a replica count from external metric s0-vllm:num_requests_waiting(&Lab
+elSelector{MatchLabels:map[string]string{scaledobject.keda.sh/name: phi-4-mini,},MatchExpressions:[]LabelSelectorRequirement{},})
+  ScalingLimited  True    ScaleUpLimit      the desired replica count is increasing faster than the maximum scale rate
+Events:
+  Type    Reason             Age   From                       Message
+  ----    ------             ----  ----                       -------
+  Normal  SuccessfulRescale  33s   horizontal-pod-autoscaler  New size: 2; reason: external metric s0-vllm:num_requests_waiting(&LabelSelector{MatchLabels:ma
+p[string]string{scaledobject.keda.sh/name: phi-4-mini,},MatchExpressions:[]LabelSelectorRequirement{},}) above target
+```

@@ -202,7 +202,7 @@ entries:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: GitHub
-            url: https://github.com/kaito-project/kaito
+          url: https://github.com/kaito-project/kaito
         - name: Examples
           url: https://github.com/kaito-project/kaito/tree/main/examples
       artifacthub.io/prerelease: "false"
@@ -244,7 +244,7 @@ entries:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: GitHub
-            url: https://github.com/kaito-project/kaito
+          url: https://github.com/kaito-project/kaito
         - name: Examples
           url: https://github.com/kaito-project/kaito/tree/main/examples
       artifacthub.io/prerelease: "false"
@@ -282,7 +282,7 @@ entries:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: GitHub
-            url: https://github.com/kaito-project/kaito
+          url: https://github.com/kaito-project/kaito
         - name: Examples
           url: https://github.com/kaito-project/kaito/tree/main/examples
       artifacthub.io/prerelease: "false"
@@ -316,7 +316,7 @@ entries:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: GitHub
-            url: https://github.com/kaito-project/kaito
+          url: https://github.com/kaito-project/kaito
         - name: Examples
           url: https://github.com/kaito-project/kaito/tree/main/examples
       artifacthub.io/prerelease: "false"
@@ -350,7 +350,7 @@ entries:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: GitHub
-            url: https://github.com/kaito-project/kaito
+          url: https://github.com/kaito-project/kaito
         - name: Examples
           url: https://github.com/kaito-project/kaito/tree/main/examples
       artifacthub.io/prerelease: "false"
@@ -379,7 +379,7 @@ entries:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: GitHub
-            url: https://github.com/kaito-project/kaito
+          url: https://github.com/kaito-project/kaito
         - name: Examples
           url: https://github.com/kaito-project/kaito/tree/main/examples
       artifacthub.io/prerelease: "false"
@@ -408,7 +408,7 @@ entries:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: GitHub
-            url: https://github.com/kaito-project/kaito
+          url: https://github.com/kaito-project/kaito
         - name: Examples
           url: https://github.com/kaito-project/kaito/tree/main/examples
       artifacthub.io/prerelease: "false"
@@ -437,7 +437,7 @@ entries:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: GitHub
-            url: https://github.com/kaito-project/kaito
+          url: https://github.com/kaito-project/kaito
         - name: Examples
           url: https://github.com/kaito-project/kaito/tree/main/examples
       artifacthub.io/prerelease: "false"

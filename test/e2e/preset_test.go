@@ -513,46 +513,27 @@ func validateAssociatedService(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-// validateInferenceResource validates inference deployment
-func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedReplicas int32, isStatefulSet bool) {
+// validateInferenceResource validates inference StatefulSet
+func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedReplicas int32) {
 	By("Checking the inference resource", func() {
 		Eventually(func() bool {
-			var err error
-			var readyReplicas int32
-
-			if isStatefulSet {
-				sts := &appsv1.StatefulSet{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      workspaceObj.Name,
-						Namespace: workspaceObj.Namespace,
-					},
-				}
-				err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-					Namespace: workspaceObj.Namespace,
+			sts := &appsv1.StatefulSet{
+				ObjectMeta: metav1.ObjectMeta{
 					Name:      workspaceObj.Name,
-				}, sts)
-				readyReplicas = sts.Status.ReadyReplicas
-
-			} else {
-				dep := &appsv1.Deployment{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      workspaceObj.Name,
-						Namespace: workspaceObj.Namespace,
-					},
-				}
-				err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 					Namespace: workspaceObj.Namespace,
-					Name:      workspaceObj.Name,
-				}, dep)
-				readyReplicas = dep.Status.ReadyReplicas
+				},
 			}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, sts)
 
 			if err != nil {
 				GinkgoWriter.Printf("Error fetching resource: %v\n", err)
 				return false
 			}
 
-			if readyReplicas == expectedReplicas {
+			if sts.Status.ReadyReplicas == expectedReplicas {
 				return true
 			}
 
@@ -561,56 +542,30 @@ func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedRep
 	})
 }
 
-func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, expectedReplicas int32, isStatefulSet bool) {
+func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, expectedReplicas int32) {
 	By("Checking the InferenceSet replicas", func() {
 		Eventually(func() bool {
 			var totalReadyReplicas int32 = 0
 
-			if isStatefulSet {
-				stsList := &appsv1.StatefulSetList{}
-				err := utils.TestingCluster.KubeClient.List(ctx, stsList)
-				if err != nil {
-					GinkgoWriter.Printf("Error fetching statefulsets: %v\n", err)
-					return false
-				}
-
-				for _, sts := range stsList.Items {
-					if !strings.HasPrefix(sts.Name, inferenceSetObj.Name) {
-						continue
-					}
-					if strings.Contains(sts.Name, "-inferencepool-") {
-						continue
-					}
-					GinkgoWriter.Printf("StatefulSet %s has %d ready replicas\n", sts.Name, sts.Status.ReadyReplicas)
-					totalReadyReplicas += sts.Status.ReadyReplicas
-				}
-
-			} else {
-				depList := &appsv1.DeploymentList{}
-				err := utils.TestingCluster.KubeClient.List(ctx, depList)
-				if err != nil {
-					GinkgoWriter.Printf("Error fetching deployments: %v\n", err)
-					return false
-				}
-
-				for _, dep := range depList.Items {
-					if !strings.HasPrefix(dep.Name, inferenceSetObj.Name) {
-						continue
-					}
-					if strings.Contains(dep.Name, "-inferencepool-") {
-						continue
-					}
-
-					GinkgoWriter.Printf("Deployment %s has %d ready replicas\n", dep.Name, dep.Status.ReadyReplicas)
-					totalReadyReplicas += dep.Status.ReadyReplicas
-				}
+			stsList := &appsv1.StatefulSetList{}
+			err := utils.TestingCluster.KubeClient.List(ctx, stsList)
+			if err != nil {
+				GinkgoWriter.Printf("Error fetching statefulsets: %v\n", err)
+				return false
 			}
 
-			if totalReadyReplicas == expectedReplicas {
-				return true
+			for _, sts := range stsList.Items {
+				if !strings.HasPrefix(sts.Name, inferenceSetObj.Name) {
+					continue
+				}
+				if strings.Contains(sts.Name, "-inferencepool-") {
+					continue
+				}
+				GinkgoWriter.Printf("StatefulSet %s has %d ready replicas\n", sts.Name, sts.Status.ReadyReplicas)
+				totalReadyReplicas += sts.Status.ReadyReplicas
 			}
 
-			return false
+			return totalReadyReplicas == expectedReplicas
 		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for InferenceSet replicas to be ready")
 	})
 }
@@ -621,16 +576,16 @@ func validateRevision(workspaceObj *kaitov1beta1.Workspace, revisionStr string) 
 		Eventually(func() bool {
 			var isWorkloadAnnotationCorrect bool
 			if workspaceObj.Inference != nil {
-				dep := &appsv1.Deployment{}
+				sts := &appsv1.StatefulSet{}
 				err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 					Namespace: workspaceObj.Namespace,
 					Name:      workspaceObj.Name,
-				}, dep)
+				}, sts)
 				if err != nil {
 					GinkgoWriter.Printf("Error fetching resource: %v\n", err)
 					return false
 				}
-				isWorkloadAnnotationCorrect = dep.Annotations[WorkspaceRevisionAnnotation] == revisionStr
+				isWorkloadAnnotationCorrect = sts.Annotations[WorkspaceRevisionAnnotation] == revisionStr
 			} else if workspaceObj.Tuning != nil {
 				job := &batchv1.Job{}
 				err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -846,7 +801,7 @@ func validateModelsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 			}
 
 			namespace := workspaceObj.Namespace
-			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
+			podName, err := utils.GetPodNameForWorkspace(coreClient, namespace, deploymentName)
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
 				return false
@@ -889,7 +844,7 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 			}
 
 			namespace := workspaceObj.Namespace
-			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
+			podName, err := utils.GetPodNameForWorkspace(coreClient, namespace, deploymentName)
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
 				return false
@@ -1232,7 +1187,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1252,7 +1207,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1272,7 +1227,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1290,7 +1245,7 @@ var _ = Describe("Workspace Preset", func() {
 
 		time.Sleep(30 * time.Second)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1310,7 +1265,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1330,7 +1285,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1350,7 +1305,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1370,7 +1325,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})

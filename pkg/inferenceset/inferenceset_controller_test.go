@@ -297,6 +297,9 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 				helmRelease.Status.Conditions = []v1.Condition{{Type: consts.ConditionReady, Status: v1.ConditionTrue}}
 				c.CreateOrUpdateObjectInMap(helmRelease)
 
+				// Mock Update call for HelmRelease (in case specs are not equal)
+				c.On("Update", mock.Anything, mock.IsType(&helmv2.HelmRelease{}), mock.Anything).Return(nil)
+
 				// mock inferenceset.ListWorkspaces return one workspace with preset VLLM
 				wsList := &v1beta1.WorkspaceList{}
 				wsList.Items = append(wsList.Items, *test.MockWorkspaceWithPresetVLLM)

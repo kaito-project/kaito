@@ -547,17 +547,8 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 				return
 			}
 
-			// Assign the correct type to existingObj based on the type of workloadObj.
-			var existingObj client.Object
-			var desiredPodSpec *corev1.PodSpec
-			switch workloadObj := workloadObj.(type) {
-			case *appsv1.StatefulSet:
-				existingObj = &appsv1.StatefulSet{}
-				desiredPodSpec = &workloadObj.Spec.Template.Spec
-			case *appsv1.Deployment:
-				existingObj = &appsv1.Deployment{}
-				desiredPodSpec = &workloadObj.Spec.Template.Spec
-			}
+			existingObj := &appsv1.StatefulSet{}
+			desiredPodSpec := workloadObj.(*appsv1.StatefulSet).Spec.Template.Spec
 
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
 				klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
@@ -573,13 +564,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 					return
 				}
 
-				var spec *corev1.PodSpec
-				switch existingObj := existingObj.(type) {
-				case *appsv1.StatefulSet:
-					spec = &existingObj.Spec.Template.Spec
-				case *appsv1.Deployment:
-					spec = &existingObj.Spec.Template.Spec
-				}
+				spec := &existingObj.Spec.Template.Spec
 
 				// Selectively update the pod spec fields that are relevant to inference,
 				// and leave the rest unchanged in case user has customized them.

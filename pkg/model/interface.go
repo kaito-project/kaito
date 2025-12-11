@@ -36,9 +36,6 @@ type Model interface {
 	GetTuningParameters() *PresetParam
 
 	// SupportDistributedInference checks if the model supports distributed inference.
-	// If true, the inference workload will use 'StatefulSet' instead of 'Deployment'
-	// as the workload type. See https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250325-distributed-inference.md
-	// for more details.
 	SupportDistributedInference() bool
 
 	// SupportTuning checks if the model supports tuning.

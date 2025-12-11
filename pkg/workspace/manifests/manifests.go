@@ -306,7 +306,7 @@ func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, volumeMounts []corev
 	return initContainers, envVars, volumes
 }
 
-func GenerateDeploymentManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, tolerations []corev1.Toleration) *appsv1.Deployment {
+func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, tolerations []corev1.Toleration) *appsv1.StatefulSet {
 	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(workspaceObj.Resource.LabelSelector.MatchLabels))
 	for key, value := range workspaceObj.Resource.LabelSelector.MatchLabels {
 		nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
@@ -357,7 +357,7 @@ func GenerateDeploymentManifestWithPodTemplate(workspaceObj *kaitov1beta1.Worksp
 		templateCopy.Spec.Tolerations = append(templateCopy.Spec.Tolerations, tolerations...)
 	}
 
-	return &appsv1.Deployment{
+	return &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      workspaceObj.Name,
 			Namespace: workspaceObj.Namespace,
@@ -365,7 +365,7 @@ func GenerateDeploymentManifestWithPodTemplate(workspaceObj *kaitov1beta1.Worksp
 				*metav1.NewControllerRef(workspaceObj, kaitov1beta1.GroupVersion.WithKind("Workspace")),
 			},
 		},
-		Spec: appsv1.DeploymentSpec{
+		Spec: appsv1.StatefulSetSpec{
 			Replicas: lo.ToPtr(workspaceObj.Status.TargetNodeCount),
 			Selector: labelselector,
 			Template: *templateCopy,

@@ -14,6 +14,10 @@ This document outlines the steps to enable intelligent autoscaling based on the 
  - KAITO `InferenceSet` CRD and Controller
    - This new CRD and Controller were built on top of the KAITO workspace for intelligent autoscaling, introduced as an alpha feature in KAITO version `v0.8.0`
 
+### Architecture
+
+ ![keda-kaito-scaler-arch](/img/keda-kaito-scaler-arch.png)
+
 ## Prerequisites
  - install KEDA
 > The following example demonstrates how to install KEDA using Helm chart. For instructions on installing KEDA through other methods, please refer to the guide [here](https://github.com/kedacore/keda#deploying-keda).

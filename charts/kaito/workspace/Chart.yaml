@@ -27,8 +27,8 @@ annotations:
   artifacthub.io/category: ai-machine-learning
   artifacthub.io/license: Apache-2.0
   artifacthub.io/links: |
-    - name: GitHub
-        url: https://github.com/kaito-project/kaito
+    - name: Documentation
+      url: https://kaito-project.github.io/kaito/docs/
     - name: Examples
       url: https://github.com/kaito-project/kaito/tree/main/examples
   artifacthub.io/prerelease: "false"

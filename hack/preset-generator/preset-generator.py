@@ -11,12 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import argparse
 import json
 import logging
-from typing import Dict, Optional
-from dataclasses import dataclass, field, asdict
+import os
+from dataclasses import asdict, dataclass, field
+
 import yaml
 from huggingface_hub import HfFileSystem
 
@@ -30,14 +30,14 @@ class Metadata:
         True  # Typically true for Kaito presets generated dynamically
     )
     download_auth_required: bool = False
-    tag: Optional[str] = None
+    tag: str | None = None
 
 
 @dataclass
 class VLLMParam:
     # TODO: figure out tool-parser, reasoning-parser, model weights format, etc.
     model_name: str = ""
-    model_run_params: Dict[str, str] = field(default_factory=dict)
+    model_run_params: dict[str, str] = field(default_factory=dict)
     disallow_lora: bool = False
 
 
@@ -57,7 +57,7 @@ class PresetParam(Metadata, RuntimeParam):
 
 
 class PresetGenerator:
-    def __init__(self, model_repo: str, token: Optional[str] = None):
+    def __init__(self, model_repo: str, token: str | None = None):
         self.model_repo = model_repo
         self.token = token or os.environ.get("HF_TOKEN")
         self.fs = HfFileSystem(token=self.token)

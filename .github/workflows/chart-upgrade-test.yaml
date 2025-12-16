@@ -6,157 +6,83 @@ on:
       - 'charts/**'
   workflow_dispatch:
     inputs:
-      git_sha:
-        description: "Git commit SHA"
-        required: false
-        default: ""
-      node_provisioner:
-        description: "Provisioner type"
-        required: false
-        default: "gpuprovisioner"
-      region:
-        description: "Azure location"
-        required: false
-        default: "eastus"
-      k8s_version:
-        description: "Kubernetes version"
-        required: false
-        default: "1.32.9"
+      old_chart_version:
+        description: "Old chart version to upgrade from"
+        required: true
+        default: "0.7.1"
+        type: string
 
 permissions:
   id-token: write
   contents: read
 
+env:
+  KIND_VERSION: "0.29.0"
+  KUBECTL_VERSION: "1.33.0"
+  OLD_CHART_VERSION: ${{ github.event.inputs.old_chart_version || '0.7.1' }}
+
 jobs:
   chart-upgrade-test:
-    runs-on: [ "self-hosted", "hostname:kaito-e2e-github-runner" ]
-    environment: e2e-test
-    env:
-      GO_VERSION: "1.24"
-      TEST_SUITE: ${{ inputs.node_provisioner }}
-    
+    runs-on: ubuntu-latest
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
         with:
           egress-policy: audit
-          disable-sudo: true
-          disable-telemetry: true
 
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.git_sha || github.sha }}
 
-      - name: Set e2e Resource and Cluster Name
-        shell: bash
+      - name: Install kind
         run: |
-          ID="ri${{ github.run_id }}rn${{ github.run_number }}ra${{ github.run_attempt }}"
-          echo "VERSION=${ID}" >> $GITHUB_ENV
-          echo "CLUSTER_NAME=kaito${ID}" >> $GITHUB_ENV
-          echo "REGISTRY=kaito${ID}.azurecr.io" >> $GITHUB_ENV
-
-      - name: Set up Go 1.24
-        uses: actions/setup-go@v5.2.0
-        with:
-          go-version: "1.24"
-
-      - name: Install Azure CLI latest
-        shell: bash
-        run: |
-          if ! which az > /dev/null; then
-            echo "Azure CLI not found. Installing..."
-            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          else
-            echo "Azure CLI already installed."
-          fi
-
-      - name: Azure CLI Login
-        shell: bash
-        run: |
-          az login --identity
+          curl -Lo ./kind "https://github.com/kubernetes-sigs/kind/releases/download/v${{ env.KIND_VERSION }}/kind-linux-amd64"
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
-
-      - name: Create Resource Group
-        shell: bash
-        run: |
-          make create-rg
-        env:
-          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
-
-      - name: Create ACR
-        shell: bash
-        run: |
-          az acr create --name "$AZURE_ACR_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --location "$AZURE_LOCATION" --sku Standard --admin-enabled -o none
-          az acr login  --name "$AZURE_ACR_NAME"
-          # Enable anonymous pull and public network access to make it easier for testing
-          az acr update --name "$AZURE_ACR_NAME" --anonymous-pull-enabled true
-        env:
-          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
-          AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
-          AZURE_LOCATION: ${{ inputs.region }}
-
-      - name: Create Azure Identity
-        uses: azure/CLI@v2.1.0
+        uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4.3.0
         with:
-          inlineScript: |
-            az identity create --name "${{ inputs.node_provisioner }}Identity" --resource-group "${{ env.CLUSTER_NAME }}"
+          version: 'v3.19.4'
 
-      - name: Generate APIs
-        shell: bash
+      - name: Create kind cluster
         run: |
-          make generate
+          cat << EOF > kind-config.yaml
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          name: kaito
+          nodes:
+          - role: control-plane
+            kubeadmConfigPatches:
+            - |
+              kind: InitConfiguration
+              nodeRegistration:
+                kubeletExtraArgs:
+                  node-labels: "apps=aikit-test"
+          EOF
+          kind create cluster --config kind-config.yaml
+          kubectl cluster-info
 
-      - name: build KAITO image
-        shell: bash
+      - name: Build workspace controller
         run: |
+          # Use the docker-build-workspace target with local configuration
           make docker-build-workspace
-        env:
-          ARCH: amd64
 
-      - name: create cluster
-        shell: bash
-        run: |
-          if [ "${{ inputs.node_provisioner }}" == "gpuprovisioner" ]; then
-            make create-aks-cluster
-          else
-            make create-aks-cluster-for-karpenter
-          fi
+          # Load into kind cluster
+          kind load docker-image local/workspace:test --name kaito
         env:
-          AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
-          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
-          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-          AZURE_LOCATION: ${{ inputs.region }}
-          AKS_K8S_VERSION: ${{ inputs.k8s_version }}
+          REGISTRY: "local"
+          IMG_NAME: "workspace"
+          IMG_TAG: "test"
+          OUTPUT_TYPE: "type=docker"
+          ARCH: "amd64"
 
-      - name: Create Identities and Permissions for ${{ inputs.node_provisioner }}
-        shell: bash
-        run: |
-          AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
-          make generate-identities
-        env:
-          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
-          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-          TEST_SUITE: ${{ inputs.node_provisioner }}
-
-      - name: Install gpu-provisioner helm chart
-        if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
-        shell: bash
-        run: |
-          AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
-          make gpu-provisioner-helm
-        env:
-          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
-          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-
-      - name: Install old chart (0.7.1)
+      - name: Install old chart (${{ env.OLD_CHART_VERSION }})
         shell: bash
         run: |
           helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
           helm repo update
-          helm install kaito-workspace kaito/workspace --version 0.7.1 --namespace kaito-workspace --create-namespace
+          helm install kaito-workspace kaito/workspace --version ${{ env.OLD_CHART_VERSION }} --namespace kaito-workspace --create-namespace
           
           # Wait for deployment to be available
           kubectl wait --for=condition=available deploy "kaito-workspace" -n kaito-workspace --timeout=300s
@@ -164,20 +90,15 @@ jobs:
       - name: Upgrade to current chart
         shell: bash
         run: |
-          # Update values.yaml to use the image built in this workflow
-          yq -i '(.image.repository) = "$(REGISTRY)/workspace"' ./charts/kaito/workspace/values.yaml
-          yq -i '(.image.tag) = "$(VERSION)"' ./charts/kaito/workspace/values.yaml
-          yq -i '(.clusterName) = "$(AZURE_CLUSTER_NAME)"' ./charts/kaito/workspace/values.yaml
-          
+          # Update the Helm values with our local image
+          yq -i '(.image.repository) = "local/workspace"' ./charts/kaito/workspace/values.yaml
+          yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
+
           # Upgrade the chart
           helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace
-          
+
           # Wait for deployment to be rolled out
           kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s
-        env:
-          REGISTRY: ${{ env.REGISTRY }}
-          VERSION: ${{ env.VERSION }}
-          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
 
       - name: Cleanup
         if: always()

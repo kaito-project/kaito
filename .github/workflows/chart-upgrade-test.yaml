@@ -17,7 +17,7 @@ on:
       region:
         description: "Azure location"
         required: false
-        default: "eastus"
+        default: "swedencentral"
       k8s_version:
         description: "Kubernetes version"
         required: false
@@ -165,9 +165,9 @@ jobs:
         shell: bash
         run: |
           # Update values.yaml to use the image built in this workflow
-          yq -i '(.image.repository) = "$REGISTRY/workspace"' ./charts/kaito/workspace/values.yaml
-          yq -i '(.image.tag) = "$VERSION"' ./charts/kaito/workspace/values.yaml
-          yq -i '(.clusterName) = "$AZURE_CLUSTER_NAME"' ./charts/kaito/workspace/values.yaml
+          yq -i '.image.repository = strenv(REGISTRY) + "/workspace"' ./charts/kaito/workspace/values.yaml
+          yq -i '.image.tag = strenv(VERSION)' ./charts/kaito/workspace/values.yaml
+          yq -i '.clusterName = strenv(AZURE_CLUSTER_NAME)' ./charts/kaito/workspace/values.yaml
 
           # Upgrade the chart
           helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace

@@ -165,10 +165,10 @@ jobs:
         shell: bash
         run: |
           # Update values.yaml to use the image built in this workflow
-          yq -i '(.image.repository) = "$(REGISTRY)/workspace"' ./charts/kaito/workspace/values.yaml
-          yq -i '(.image.tag) = "$(VERSION)"' ./charts/kaito/workspace/values.yaml
-          yq -i '(.clusterName) = "$(AZURE_CLUSTER_NAME)"' ./charts/kaito/workspace/values.yaml
-          
+          yq -i '(.image.repository) = "$REGISTRY/workspace"' ./charts/kaito/workspace/values.yaml
+          yq -i '(.image.tag) = "$VERSION"' ./charts/kaito/workspace/values.yaml
+          yq -i '(.clusterName) = "$AZURE_CLUSTER_NAME"' ./charts/kaito/workspace/values.yaml
+
           # Upgrade the chart
           helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace
           

@@ -5,15 +5,15 @@ on:
     paths:
       - 'charts/**'
   workflow_dispatch:
-    inputs:
-      git_sha:
-        description: "Git commit SHA"
-        required: false
-        default: ""
+    inputs: {}
 
 permissions:
   id-token: write
   contents: read
+
+env:
+  KIND_VERSION: "0.29.0"
+  KUBECTL_VERSION: "1.33.0"
 
 jobs:
   chart-upgrade-test:
@@ -27,8 +27,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ inputs.git_sha || github.sha }}
 
       - name: Install kind
         run: |

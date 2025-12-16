@@ -5,7 +5,12 @@ on:
     paths:
       - 'charts/**'
   workflow_dispatch:
-    inputs: {}
+    inputs:
+      old_chart_version:
+        description: "Old chart version to upgrade from"
+        required: true
+        default: "0.7.1"
+        type: string
 
 permissions:
   id-token: write
@@ -14,6 +19,7 @@ permissions:
 env:
   KIND_VERSION: "0.29.0"
   KUBECTL_VERSION: "1.33.0"
+  OLD_CHART_VERSION: ${{ github.event.inputs.old_chart_version || '0.7.1' }}
 
 jobs:
   chart-upgrade-test:
@@ -35,7 +41,7 @@ jobs:
           sudo mv ./kind /usr/local/bin/kind
 
       - name: Install Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v3.9.0
 
       - name: Create kind cluster
         run: |
@@ -69,12 +75,12 @@ jobs:
           OUTPUT_TYPE: "type=docker"
           ARCH: "amd64"
 
-      - name: Install old chart (0.7.1)
+      - name: Install old chart (${{ env.OLD_CHART_VERSION }})
         shell: bash
         run: |
           helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
           helm repo update
-          helm install kaito-workspace kaito/workspace --version 0.7.1 --namespace kaito-workspace --create-namespace
+          helm install kaito-workspace kaito/workspace --version ${{ env.OLD_CHART_VERSION }} --namespace kaito-workspace --create-namespace
           
           # Wait for deployment to be available
           kubectl wait --for=condition=available deploy "kaito-workspace" -n kaito-workspace --timeout=300s

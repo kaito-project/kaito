@@ -92,7 +92,6 @@ jobs:
           yq -i '(.image.repository) = "local/workspace"' ./charts/kaito/workspace/values.yaml
           yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
 
-          kubectl create namespace kaito-workspace || true
           # Upgrade the chart
           helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace
 

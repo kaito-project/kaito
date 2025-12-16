@@ -77,7 +77,7 @@ jobs:
           az login --identity
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v3
 
       - name: Create Resource Group
         shell: bash

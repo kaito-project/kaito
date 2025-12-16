@@ -41,7 +41,7 @@ jobs:
           sudo mv ./kind /usr/local/bin/kind
 
       - name: Install Helm
-        uses: azure/setup-helm@v3.9.0
+        uses: azure/setup-helm@v3.18.3
 
       - name: Create kind cluster
         run: |

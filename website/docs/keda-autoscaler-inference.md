@@ -23,7 +23,7 @@ This document outlines the steps to enable intelligent autoscaling based on the 
 > The following example demonstrates how to install KEDA using Helm chart. For instructions on installing KEDA through other methods, please refer to the guide [here](https://github.com/kedacore/keda#deploying-keda).
 ```bash
 helm repo add kedacore https://kedacore.github.io/charts
-helm install keda kedacore/keda --namespace keda --create-namespace
+helm install keda kedacore/keda --namespace kaito-workspace --create-namespace
 ```
 
  - install keda-kaito-scaler

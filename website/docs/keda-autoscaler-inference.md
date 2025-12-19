@@ -19,17 +19,25 @@ This document outlines the steps to enable intelligent autoscaling based on the 
  ![keda-kaito-scaler-arch](/img/keda-kaito-scaler-arch.png)
 
 ## Prerequisites
+
  - install KEDA
-> The following example demonstrates how to install KEDA using Helm chart. For instructions on installing KEDA through other methods, please refer to the guide [here](https://github.com/kedacore/keda#deploying-keda).
+> The following example demonstrates how to install KEDA using Helm chart. For instructions on installing KEDA addon on AKS, you could refer to the guide [here](https://learn.microsoft.com/en-us/azure/aks/keda-deploy-add-on-cli)
+
 ```bash
 helm repo add kedacore https://kedacore.github.io/charts
 helm install keda kedacore/keda --namespace kaito-workspace --create-namespace
 ```
 
  - install keda-kaito-scaler
+
+:::tip
+Ensure that keda-kaito-scaler is installed within the same namespace as KEDA. If KEDA is deployed as a managed addon on AKS, then keda-kaito-scaler should be installed in the `kube-system` namespace.
+:::
+
 ```bash
+export KEDA_NAMESPACE=kaito-workspace
 helm repo add keda-kaito-scaler https://kaito-project.github.io/keda-kaito-scaler/charts/kaito-project
-helm upgrade --install keda-kaito-scaler -n kaito-workspace keda-kaito-scaler/keda-kaito-scaler --create-namespace
+helm upgrade --install keda-kaito-scaler -n $KEDA_NAMESPACE keda-kaito-scaler/keda-kaito-scaler --create-namespace
 ```
 
 ## Enable this feature

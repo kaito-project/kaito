@@ -1,0 +1,26 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: validation.autoindexer.kaito.sh
+  labels:
+    {{- include "kaito.labels" . | nindent 4 }}
+webhooks:
+  - name: validation.autoindexer.kaito.sh
+    admissionReviewVersions: ["v1"]
+    clientConfig:
+      service:
+        name: {{ include "kaito.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+        port: {{ .Values.webhook.port }}
+    failurePolicy: Fail
+    sideEffects: None
+    rules:
+      - apiGroups:
+          - kaito.sh
+        apiVersions:
+          - v1alpha1
+        resources:
+          - autoindexer
+        operations:
+          - CREATE
+          - UPDATE

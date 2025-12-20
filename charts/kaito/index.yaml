@@ -201,6 +201,48 @@ entries:
       artifacthub.io/category: ai-machine-learning
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
+        - name: Documentation
+          url: https://kaito-project.github.io/kaito/docs/
+        - name: Examples
+          url: https://github.com/kaito-project/kaito/tree/main/examples
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 0.8.0
+    created: "2025-12-20T04:25:02.631829593Z"
+    dependencies:
+    - condition: featureGates.gatewayAPIInferenceExtension
+      name: flux2
+      repository: https://fluxcd-community.github.io/helm-charts
+      version: 2.16.3
+    - condition: featureGates.disableNodeAutoProvisioning
+      name: gpu-feature-discovery
+      repository: https://nvidia.github.io/k8s-device-plugin
+      version: 0.17.4
+    - condition: localCSIDriver.useLocalCSIDriver
+      name: local-csi-driver
+      repository: oci://localcsidriver.azurecr.io/acstor/charts
+      version: 0.2.9
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 732789d50274c3729b9017a5f636fb446cb0d6252df7cd6f746532025ec36ca6
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: zhuangqhc@gmail.com
+      name: zhuangqh
+    - email: chwong719@gmail.com
+      name: chewong
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.8.0.tgz
+    version: 0.8.0
+  - annotations:
+      artifacthub.io/category: ai-machine-learning
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
         - name: GitHub
           url: https://github.com/kaito-project/kaito
         - name: Examples
@@ -741,4 +783,4 @@ entries:
     urls:
     - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.1.0.tgz
     version: 0.1.0
-generated: "2025-12-08T10:46:02.039912115Z"
+generated: "2025-12-20T04:25:02.623193796Z"

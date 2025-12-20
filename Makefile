@@ -2,7 +2,7 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.8.0-rc.0
+VERSION ?= v0.8.0
 GPU_PROVISIONER_VERSION ?= 0.3.8
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))

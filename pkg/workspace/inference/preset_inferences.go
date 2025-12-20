@@ -151,41 +151,31 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		SetAdapterPuller,
 	}
 
-	// For multi-node distributed inference with vLLM, we need to use a StatefulSet instead of a Deployment
-	// to ensure pods are created with individual identities (their ordinal indexes) -
+	// Use StatefulSet for all use cases to ensure consistent pod identity and storage management
+	// For multi-node distributed inference with vLLM, we need StatefulSet to ensure pods are
+	// created with individual identities (their ordinal indexes) -
 	// https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-identity
 	if shouldUseDistributedInference(gctx, numNodes) {
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
-		ssOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]{
-			manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
-		}
+	}
 
-		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
-			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
-		} else {
-			podOpts = append(podOpts, SetDefaultModelWeightsVolume)
-		}
+	ssOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]{
+		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
+	}
 
-		podSpec, err := generator.GenerateManifest(gctx, podOpts...)
-		if err != nil {
-			return nil, err
-		}
-		ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
-
-		return generator.GenerateManifest(gctx, ssOpts...)
+	if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
+		ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
 	} else {
 		podOpts = append(podOpts, SetDefaultModelWeightsVolume)
-
-		podSpec, err := generator.GenerateManifest(gctx, podOpts...)
-		if err != nil {
-			return nil, err
-		}
-
-		return generator.GenerateManifest(gctx,
-			manifests.GenerateDeploymentManifest(revisionNum, numNodes),
-			manifests.SetDeploymentPodSpec(podSpec),
-		)
 	}
+
+	podSpec, err := generator.GenerateManifest(gctx, podOpts...)
+	if err != nil {
+		return nil, err
+	}
+	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
+
+	return generator.GenerateManifest(gctx, ssOpts...)
 }
 
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {

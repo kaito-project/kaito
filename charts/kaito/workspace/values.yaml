@@ -65,16 +65,34 @@ local-csi-driver:
   image:
     driver:
       repository: mcr.microsoft.com/acstor/local-csi-driver
-      tag: v0.2.8
+      tag: v0.2.9
+    manager:
+      repository: mcr.microsoft.com/acstor/local-csi-manager
+      tag: v0.2.9
   daemonset:
     podSelector:
       app: csi-local-node
   cleanup:
-    # TODO: switch to local csi driver builtin cleanup job
-    enabled: false
+    enabled: true
+    # LVM logical volume garbage collection configuration driven by PV annotation mismatches.
+    lvGarbageCollection:
+      # Enable event-driven LV garbage collection for PV node annotation mismatches
+      enabled: true
+    # LVM orphan cleanup configuration
+    lvmOrphanCleanup:
+      # Enable periodic orphaned LVM Logical Volume cleanup scanning
+      enabled: true
+      # Interval for scanning and cleaning up orphaned LVM volumes
+      interval: 5m
+    # PV cleanup controller configuration.
+    # This controller watches for Released PersistentVolumes and removes finalizers
+    # when nodes are unavailable, allowing PVs to be deleted.
+    pvCleanup:
+      # Enable the PV cleanup controller in the manager deployment
+      enabled: true
   webhook:
     enforceEphemeral:
-      enabled: true
+      enabled: false
     hyperconverged:
       enabled: false
   observability:

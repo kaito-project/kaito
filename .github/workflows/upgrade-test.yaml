@@ -1,0 +1,130 @@
+name: Upgrade Compatibility Test
+
+on:
+  pull_request: {}
+  workflow_dispatch:
+    inputs:
+      old_chart_version:
+        description: "Old chart version to upgrade from"
+        required: true
+        default: "0.7.1"
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  OLD_CHART_VERSION: ${{ github.event.inputs.old_chart_version || '0.7.1' }}
+
+jobs:
+  chart-upgrade-test:
+    runs-on: [ "self-hosted", "hostname:kaito-e2e-github-runner" ]
+    environment: e2e-test
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run e2e-base-setup composite action
+        uses: ./.github/actions/e2e-base-setup
+        with:
+          git_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          skip_helm_install: true
+
+      - name: Build workspace controller
+        run: |
+          make docker-build-workspace
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMG_NAME: "workspace"
+          IMG_TAG: "test"
+          OUTPUT_TYPE: "type=registry"
+          ARCH: "amd64"
+
+      - name: Install old chart (${{ env.OLD_CHART_VERSION }})
+        shell: bash
+        run: |
+          helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+          helm repo update
+          helm install kaito-workspace kaito/workspace --version ${{ env.OLD_CHART_VERSION }} --namespace kaito-workspace --create-namespace
+          
+          # Wait for deployment to be available
+          kubectl wait --for=condition=available deploy "kaito-workspace" -n kaito-workspace --timeout=300s
+
+      - name: Create mistral-7b-instruct workspace
+        shell: bash
+        run: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: kaito.sh/v1beta1
+          kind: Workspace
+          metadata:
+            name: workspace-mistral-7b-instruct
+          resource:
+            instanceType: "Standard_NV36ads_A10_v5"
+            labelSelector:
+              matchLabels:
+                apps: mistral-7b-instruct
+          inference:
+            preset:
+              name: mistral-7b-instruct
+          EOF
+
+      - name: Wait for workspace readiness (old controller)
+        shell: bash
+        run: |
+          # Wait for workspace to be ready
+          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1000s
+          
+          # Verify it is using a Deployment
+          if ! kubectl get deployment workspace-mistral-7b-instruct; then
+            echo "Error: Deployment not found for workspace"
+            exit 1
+          fi
+
+      - name: Upgrade to current chart
+        shell: bash
+        run: |
+          # Update the Helm values with our built image
+          yq -i '(.image.repository) = "'"${REGISTRY}"'/workspace"' ./charts/kaito/workspace/values.yaml
+          yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
+
+          # Upgrade the chart
+          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace
+
+          # Wait for deployment to be rolled out
+          kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+
+      - name: Verify migration to StatefulSet
+        shell: bash
+        run: |
+          # Wait for workspace to be ready again if needed
+          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=600s
+          
+          # Verify it is now using a StatefulSet
+          if ! kubectl get statefulset workspace-mistral-7b-instruct; then
+            echo "Error: StatefulSet not found for workspace after upgrade"
+            exit 1
+          fi
+          
+          # Verify Deployment is gone
+          if kubectl get deployment workspace-mistral-7b-instruct 2>/dev/null; then
+            echo "Error: Old Deployment still exists"
+            exit 1
+          fi
+
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          az group delete --name "${{ env.CLUSTER_NAME }}" --yes --no-wait || true

@@ -184,7 +184,7 @@ type ministral3_3bInstruct struct{}
 func (*ministral3_3bInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                metadata.MustGet(PresetMinistral33BInstructModel),
-		DiskStorageRequirement:  "50Gi",
+		DiskStorageRequirement:  "70Gi",
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "8.70Gi",
 		BytesPerToken:           106496,

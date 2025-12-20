@@ -396,17 +396,6 @@ func ComputeHash(w *kaitov1beta1.Workspace) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-// getPresetName returns the preset name from wObj if available
-func getPresetName(wObj *kaitov1beta1.Workspace) string {
-	if wObj.Inference != nil && wObj.Inference.Preset != nil {
-		return string(wObj.Inference.Preset.Name)
-	}
-	if wObj.Tuning != nil && wObj.Tuning.Preset != nil {
-		return string(wObj.Tuning.Preset.Name)
-	}
-	return ""
-}
-
 func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	serviceType := corev1.ServiceTypeClusterIP
 	wAnnotation := wObj.GetAnnotations()
@@ -418,35 +407,15 @@ func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1be
 		}
 	}
 
-	existingSVC := &corev1.Service{}
-	err := resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingSVC)
-	if err != nil {
-		if !apierrors.IsNotFound(err) {
-			return err
-		}
-	} else {
-		return nil
-	}
-
-	isStatefulSet := false
-	if presetName := getPresetName(wObj); presetName != "" {
-		model := plugin.KaitoModelRegister.MustGet(presetName)
-
-		// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
-		workloadObj, _ := inference.GeneratePresetInference(ctx, wObj, "", model, c.Client)
-		_, isStatefulSet = workloadObj.(*appsv1.StatefulSet)
-	}
-
-	serviceObj := manifests.GenerateServiceManifest(wObj, serviceType, isStatefulSet)
+	serviceObj := manifests.GenerateServiceManifest(wObj, serviceType)
 	if err := resources.CreateResource(ctx, serviceObj, c.Client); err != nil {
 		return err
 	}
 
-	if isStatefulSet {
-		headlessService := manifests.GenerateHeadlessServiceManifest(wObj)
-		if err := resources.CreateResource(ctx, headlessService, c.Client); err != nil {
-			return err
-		}
+	// headless service for worker pod to discover the leader pod
+	headlessService := manifests.GenerateHeadlessServiceManifest(wObj)
+	if err := resources.CreateResource(ctx, headlessService, c.Client); err != nil {
+		return err
 	}
 
 	return nil
@@ -518,6 +487,31 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta
 
 // applyInference applies inference spec.
 func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	// From v0.8.0 onwards, StatefulSet is the default workload for all workspaces.
+	// This block purges existing Deployments and migrates them to StatefulSets later.
+	// WARNING: This migration will cause a few minutes of service downtime.
+	existingDeploy := appsv1.Deployment{}
+	if err := resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, &existingDeploy); err == nil {
+		c.Recorder.Eventf(wObj, "Warning", "WorkloadMigration",
+			"Migrating inference workload from Deployment to StatefulSet, this will cause a few minutes of downtime.")
+		klog.InfoS("Delete existing deployment workload for workspace", "workspace", klog.KObj(wObj))
+		if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse,
+			"WorkspaceInferenceMigration", "Migrating inference workload from Deployment to StatefulSet"); err != nil {
+			klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
+			return err
+		}
+		err = c.Delete(ctx, &existingDeploy, &client.DeleteOptions{
+			Preconditions: &metav1.Preconditions{
+				UID: &existingDeploy.UID,
+			},
+		})
+		if err != nil && !apierrors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete old inference deployment: %w", err)
+		}
+	} else if !apierrors.IsNotFound(err) {
+		return fmt.Errorf("failed to get existing inference deployment: %w", err)
+	}
+
 	var err error
 	func() {
 		if wObj.Inference.Template != nil {
@@ -536,28 +530,14 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 			inferenceParam := model.GetInferenceParameters()
 			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 
-			// Generate the inference workload (including adapters and their associated
-			// volumes) ahead of time. This is important to ensure we are modifying the
-			// correct type of workload (Deployment or StatefulSet) based on the model's
-			// inference parameters.
-
 			var workloadObj client.Object
 			workloadObj, err = inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client)
 			if err != nil {
 				return
 			}
 
-			// Assign the correct type to existingObj based on the type of workloadObj.
-			var existingObj client.Object
-			var desiredPodSpec *corev1.PodSpec
-			switch workloadObj := workloadObj.(type) {
-			case *appsv1.StatefulSet:
-				existingObj = &appsv1.StatefulSet{}
-				desiredPodSpec = &workloadObj.Spec.Template.Spec
-			case *appsv1.Deployment:
-				existingObj = &appsv1.Deployment{}
-				desiredPodSpec = &workloadObj.Spec.Template.Spec
-			}
+			existingObj := &appsv1.StatefulSet{}
+			desiredPodSpec := workloadObj.(*appsv1.StatefulSet).Spec.Template.Spec
 
 			if err = resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err == nil {
 				klog.InfoS("An inference workload already exists for workspace", "workspace", klog.KObj(wObj))
@@ -573,13 +553,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 					return
 				}
 
-				var spec *corev1.PodSpec
-				switch existingObj := existingObj.(type) {
-				case *appsv1.StatefulSet:
-					spec = &existingObj.Spec.Template.Spec
-				case *appsv1.Deployment:
-					spec = &existingObj.Spec.Template.Spec
-				}
+				spec := &existingObj.Spec.Template.Spec
 
 				// Selectively update the pod spec fields that are relevant to inference,
 				// and leave the rest unchanged in case user has customized them.
@@ -602,8 +576,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 				return
 			}
 
-			err = resources.CreateResource(ctx, workloadObj, c.Client)
-			if client.IgnoreAlreadyExists(err) != nil {
+			if err = resources.CreateResource(ctx, workloadObj, c.Client); err != nil {
 				return
 			}
 			if err = resources.CheckResourceStatus(workloadObj, c.Client, inferenceParam.ReadinessTimeout); err != nil {

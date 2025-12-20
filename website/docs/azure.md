@@ -77,7 +77,7 @@ az role assignment create \
 Install the Azure GPU Provisioner using Helm:
 
 ```bash
-export GPU_PROVISIONER_VERSION=0.3.7
+export GPU_PROVISIONER_VERSION=0.3.8
 
 # Download and configure Helm values
 curl -sO https://raw.githubusercontent.com/Azure/gpu-provisioner/main/hack/deploy/configure-helm-values.sh

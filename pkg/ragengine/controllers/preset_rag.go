@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -106,7 +106,7 @@ func getEnv(key, defaultValue string) string {
 }
 
 // configStorageVolume creates a volume and volume mount for vector database storage
-func configStorageVolume(storageSpec *v1alpha1.StorageSpec) (corev1.Volume, corev1.VolumeMount) {
+func configStorageVolume(storageSpec *v1beta1.StorageSpec) (corev1.Volume, corev1.VolumeMount) {
 	mountPath := "/mnt/data"
 	if storageSpec.MountPath != "" {
 		mountPath = storageSpec.MountPath
@@ -141,7 +141,7 @@ func configStorageVolume(storageSpec *v1alpha1.StorageSpec) (corev1.Volume, core
 	return volume, volumeMount
 }
 
-func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
+func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 

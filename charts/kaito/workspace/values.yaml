@@ -20,6 +20,8 @@ featureGates:
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: false
+nvidiaDevicePlugin:
+  enabled: false
 localCSIDriver:
   useLocalCSIDriver: true
 webhook:

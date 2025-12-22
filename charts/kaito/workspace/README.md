@@ -34,3 +34,4 @@ helm install workspace ./charts/kaito/workspace  \
 | tolerations                              | list   | `[]`                                    |                                                               |
 | webhook.port                             | int    | `9443`                                  |                                                               |
 | cloudProviderName                        | string | `"azure"`                               | Karpenter cloud provider name. Values can be "azure" or "aws" |
+| nvidiaDevicePlugin.enabled               | bool   | `false`                                 | Enable deployment of NVIDIA device plugin DaemonSet. Set to true only if your cluster doesn't already have the NVIDIA device plugin installed. |

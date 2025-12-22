@@ -21,7 +21,7 @@ featureGates:
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: false
 nvidiaDevicePlugin:
-  enabled: false
+  enabled: true
 localCSIDriver:
   useLocalCSIDriver: true
 webhook:

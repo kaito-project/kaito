@@ -42,6 +42,7 @@ featureGates:
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: false
 nvidiaDevicePlugin:
+  enabled: true
   daemonsetName: "nvidia-device-plugin-daemonset"
   image: "mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.17.0"
   imagePullPolicy: "IfNotPresent"

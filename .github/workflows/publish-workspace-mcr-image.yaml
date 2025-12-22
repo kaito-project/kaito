@@ -32,7 +32,7 @@ jobs:
           ver=${{ github.event.client_payload.tag || github.event.inputs.tag }}
           echo "IMG_TAG=${ver#"v"}" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true

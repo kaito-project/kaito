@@ -114,10 +114,11 @@ func TestRAGEngineUpdateStatusConditionIfNotMatch(t *testing.T) {
 
 		ragengine.Status.Conditions = []metav1.Condition{
 			{
-				Type:    string(conditionType),
-				Status:  conditionStatus,
-				Reason:  conditionReason,
-				Message: conditionMessage,
+				Type:               string(conditionType),
+				Status:             conditionStatus,
+				Reason:             conditionReason,
+				Message:            conditionMessage,
+				ObservedGeneration: ragengine.GetGeneration(),
 			},
 		}
 
@@ -179,5 +180,43 @@ func TestRAGEngineUpdateStatusConditionIfNotMatch(t *testing.T) {
 
 		err := reconciler.updateStatusConditionIfNotMatch(ctx, ragengine, conditionType, conditionStatus, conditionReason, conditionMessage)
 		assert.Nil(t, err)
+	})
+
+	t.Run("Should update when observedGeneration does not match current generation", func(t *testing.T) {
+		mockClient := test.NewClient()
+		reconciler := &RAGEngineReconciler{
+			Client: mockClient,
+			Scheme: test.NewTestScheme(),
+		}
+		ctx := context.Background()
+		ragengine := test.MockRAGEngineDistributedModel
+		conditionType := kaitov1alpha1.ConditionType("TestCondition")
+		conditionStatus := metav1.ConditionStatus("True")
+		conditionReason := "TestReason"
+		conditionMessage := "TestMessage"
+
+		// Set the generation to 4 to simulate spec changes
+		ragengine.Generation = 4
+
+		// Set up condition with stale observedGeneration (1)
+		ragengine.Status.Conditions = []metav1.Condition{
+			{
+				Type:               string(conditionType),
+				Status:             conditionStatus,
+				Reason:             conditionReason,
+				Message:            conditionMessage,
+				ObservedGeneration: 1, // Stale generation
+			},
+		}
+
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+
+		err := reconciler.updateStatusConditionIfNotMatch(ctx, ragengine, conditionType, conditionStatus, conditionReason, conditionMessage)
+		assert.Nil(t, err)
+
+		// Verify that the client update methods were called (meaning the status was updated)
+		mockClient.AssertExpectations(t)
+		mockClient.StatusMock.AssertExpectations(t)
 	})
 }

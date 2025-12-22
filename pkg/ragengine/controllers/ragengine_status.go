@@ -57,7 +57,7 @@ func (c *RAGEngineReconciler) updateRAGEngineStatus(ctx context.Context, name *c
 func (c *RAGEngineReconciler) updateStatusConditionIfNotMatch(ctx context.Context, ragObj *kaitov1alpha1.RAGEngine, cType kaitov1alpha1.ConditionType,
 	cStatus metav1.ConditionStatus, cReason, cMessage string) error {
 	if curCondition := meta.FindStatusCondition(ragObj.Status.Conditions, string(cType)); curCondition != nil {
-		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage {
+		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage && curCondition.ObservedGeneration == ragObj.GetGeneration() {
 			// Nothing to change
 			return nil
 		}

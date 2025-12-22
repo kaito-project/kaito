@@ -46,10 +46,11 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 			Status: kaitov1alpha1.InferenceSetStatus{
 				Conditions: []metav1.Condition{
 					{
-						Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
-						Status:  metav1.ConditionTrue,
-						Reason:  "ResourcesReady",
-						Message: "All resources are ready",
+						Type:               string(kaitov1beta1.ConditionTypeResourceStatus),
+						Status:             metav1.ConditionTrue,
+						Reason:             "ResourcesReady",
+						Message:            "All resources are ready",
+						ObservedGeneration: 1,
 					},
 				},
 			},
@@ -274,6 +275,55 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "get error")
 		mockClient.AssertExpectations(t)
+	})
+
+	t.Run("Should update when observedGeneration does not match current generation", func(t *testing.T) {
+		mockClient := test.NewClient()
+
+		inferenceset := &kaitov1alpha1.InferenceSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:       "test-inferenceset",
+				Namespace:  "default",
+				Generation: 4, // Current generation
+			},
+			Status: kaitov1alpha1.InferenceSetStatus{
+				Conditions: []metav1.Condition{
+					{
+						Type:               string(kaitov1alpha1.ConditionTypeResourceStatus),
+						Status:             metav1.ConditionTrue,
+						Reason:             "ResourcesReady",
+						Message:            "All resources are ready",
+						ObservedGeneration: 1, // Stale generation
+					},
+				},
+			},
+		}
+
+		// Mock the Get call for UpdateInferenceSetStatus
+		mockClient.On("Get", mock.IsType(context.Background()),
+			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
+			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			is := args.Get(2).(*kaitov1alpha1.InferenceSet)
+			*is = *inferenceset
+		}).Return(nil)
+
+		// Mock the Status().Update call
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
+			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			is := args.Get(1).(*kaitov1alpha1.InferenceSet)
+			// Verify the condition was updated with new observedGeneration
+			condition := meta.FindStatusCondition(is.Status.Conditions, string(kaitov1alpha1.ConditionTypeResourceStatus))
+			assert.NotNil(t, condition)
+			assert.Equal(t, int64(4), condition.ObservedGeneration)
+		}).Return(nil)
+
+		ctx := context.Background()
+		err := UpdateStatusConditionIfNotMatch(ctx, mockClient, inferenceset,
+			kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue, "ResourcesReady", "All resources are ready")
+
+		assert.NoError(t, err)
+		mockClient.AssertExpectations(t)
+		mockClient.StatusMock.AssertExpectations(t)
 	})
 }
 

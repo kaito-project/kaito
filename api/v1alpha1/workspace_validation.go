@@ -342,7 +342,11 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 
 			machineCount := *r.Count
 			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
-			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
+			// skuConfig.GPUMemGiB is already in bytes, so we need to multiply by machineCount
+			machineTotalGPUMem := skuConfig.GPUMemGiB.DeepCopy()
+			for i := 1; i < machineCount; i++ {
+				machineTotalGPUMem.Add(skuConfig.GPUMemGiB)
+			}
 
 			modelGPUCount := resource.MustParse(params.GPUCountRequirement)
 			modelTotalGPUMemory := resource.MustParse(params.TotalSafeTensorFileSize)

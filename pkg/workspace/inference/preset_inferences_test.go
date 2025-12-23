@@ -498,7 +498,7 @@ func TestGetGPUConfig(t *testing.T) {
 			expectedConfig: &sku.GPUConfig{
 				SKU:             "Standard_NC24ads_A100_v4",
 				GPUCount:        1,
-				GPUMemGiB:       80,
+				GPUMemGiB:       sku.NewGPUMemGiB(80),
 				GPUModel:        "NVIDIA A100",
 				NVMeDiskEnabled: true,
 			},
@@ -650,9 +650,9 @@ func TestGetGPUConfig(t *testing.T) {
 				t.Errorf("Expected GPUModel %s, got %s", tc.expectedConfig.GPUModel, config.GPUModel)
 			}
 
-			// Check GPUMemGB if expected
-			if tc.expectedConfig.GPUMemGiB > 0 && config.GPUMemGiB != tc.expectedConfig.GPUMemGiB {
-				t.Errorf("Expected GPUMemGB %d, got %d", tc.expectedConfig.GPUMemGiB, config.GPUMemGiB)
+			// Check GPUMemGiB if expected
+			if tc.expectedConfig.GPUMemGiB.Value() > 0 && tc.expectedConfig.GPUMemGiB.Cmp(config.GPUMemGiB) != 0 {
+				t.Errorf("Expected GPUMemGiB %s, got %s", tc.expectedConfig.GPUMemGiB.String(), config.GPUMemGiB.String())
 			}
 
 			// Check NVMeDiskEnabled if expected

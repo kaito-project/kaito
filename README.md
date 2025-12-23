@@ -9,7 +9,7 @@
 | ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Mistral 3 models are supported in the latest [release](https://github.com/kaito-project/kaito/releases). Learn about the new models from [here](https://mistral.ai/news/mistral-3)! |
-| Latest Release: Dec 7th, 2025. KAITO v0.8.0-rc.0                                                                                                                                                                                                  |
+| Latest Release: Dec 20th, 2025. KAITO v0.8.0                                                                                                                                                                                                  |
 | First Release: Nov 15th, 2023. KAITO v0.1.0.                                                                                                                                                                                                   |
 
 KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.

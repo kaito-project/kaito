@@ -5,7 +5,7 @@ replicaCount: 1
 image:
   repository: mcr.microsoft.com/aks/kaito/ragengine
   pullPolicy: IfNotPresent
-  tag: 0.8.0-rc.0
+  tag: 0.8.0
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -34,4 +34,4 @@ affinity: {}
 cloudProviderName: "azure"
 presetRagRegistryName: "mcr.microsoft.com/aks/kaito"
 presetRagImageName: "kaito-rag-service"
-presetRagImageTag: 0.8.0-rc.0
+presetRagImageTag: 0.8.0

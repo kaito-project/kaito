@@ -5,7 +5,7 @@ replicaCount: 1
 image:
   repository: mcr.microsoft.com/aks/kaito/workspace
   pullPolicy: IfNotPresent
-  tag: 0.8.0-rc.0
+  tag: 0.8.0
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -20,6 +20,8 @@ featureGates:
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: false
+nvidiaDevicePlugin:
+  enabled: true
 localCSIDriver:
   useLocalCSIDriver: true
 webhook:
@@ -66,9 +68,17 @@ local-csi-driver:
     driver:
       repository: mcr.microsoft.com/acstor/local-csi-driver
       tag: v0.2.9
+      pullPolicy: Always
     manager:
       repository: mcr.microsoft.com/acstor/local-csi-manager
       tag: v0.2.9
+      pullPolicy: Always
+    csiProvisioner:
+      pullPolicy: Always
+    csiResizer:
+      pullPolicy: Always
+    nodeDriverRegistrar:
+      pullPolicy: Always
   daemonset:
     podSelector:
       app: csi-local-node

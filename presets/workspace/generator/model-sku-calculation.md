@@ -40,7 +40,7 @@ Where:
 
 #### Model Parameter Space
 
-The model weight size can be calculated using the model configuration methods implemented in the [`calculate_model_weight_and_bytes_per_token.py`](./calculate_model_weight_and_bytes_per_token.py) file. This model weight size corresponds to the total size of all safetensors files from the model's Hugging Face repository. This represents the static memory footprint required to load the model parameters into GPU memory. In experimental observations, the actual VRAM usage is approximately 102% of the model weight size.
+The model weight size can be calculated using the model configuration methods implemented in the [`preset_generator.py`](./preset_generator.py) file. This model weight size corresponds to the total size of all safetensors files from the model's Hugging Face repository. This represents the static memory footprint required to load the model parameters into GPU memory. In experimental observations, the actual VRAM usage is approximately 102% of the model weight size.
 
 **Multi-GPU Distribution:**
 When using multiple GPUs with tensor parallelism, the model weight is evenly distributed across all GPUs. Therefore, each GPU receives:
@@ -74,7 +74,7 @@ Bytes_per_token = 2 × hidden_layers × kv_heads × head_dim × dtype_size
 
 The `max_token_length` can be configured in the configMap. If not specified, the default value is 2048.
 
-The `Bytes_per_token` can also be calculated using the [`calculate_model_weight_and_bytes_per_token.py`](./calculate_model_weight_and_bytes_per_token.py) file.
+The `Bytes_per_token` can also be calculated using the [`preset_generator.py`](./preset_generator.py) file.
 
 The `tensor_parallel_size` is the number of effective GPU nodes.
 

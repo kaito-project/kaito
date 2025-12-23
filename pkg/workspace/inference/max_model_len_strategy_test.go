@@ -33,7 +33,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 			name:   "nil preset",
 			preset: nil,
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: 24,
+				GPUMemGiB: sku.NewGPUMemGiB(24),
 				GPUCount:  2,
 			},
 			numRequiredNodes: 1,
@@ -51,7 +51,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 				TotalSafeTensorFileSize: "7.5Gi",
 			},
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: 24,
+				GPUMemGiB: sku.NewGPUMemGiB(24),
 				GPUCount:  2,
 			},
 			numRequiredNodes: 1,
@@ -69,8 +69,8 @@ func TestComputeMaxModelLen(t *testing.T) {
 				TotalSafeTensorFileSize: "14.96Gi", // From actual model config
 			},
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: 24, // A10 has 24GB memory
-				GPUCount:  1,  // Standard_NV36ads_A10_v5 has 1 GPU
+				GPUMemGiB: sku.NewGPUMemGiB(24), // A10 has 24GB memory
+				GPUCount:  1,                     // Standard_NV36ads_A10_v5 has 1 GPU
 			},
 			numRequiredNodes: 1,
 			expected:         21248,
@@ -87,8 +87,8 @@ func TestComputeMaxModelLen(t *testing.T) {
 				TotalSafeTensorFileSize: "27.51Gi", // From actual model config
 			},
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: 48, // Standard_NV72ads_A10_v5 has 48GB memory
-				GPUCount:  2,  // Standard_NV72ads_A10_v5 has 2 GPUs
+				GPUMemGiB: sku.NewGPUMemGiB(48), // Standard_NV72ads_A10_v5 has 48GB memory
+				GPUCount:  2,                     // Standard_NV72ads_A10_v5 has 2 GPUs
 			},
 			numRequiredNodes: 1,
 			expected:         41728,
@@ -105,8 +105,8 @@ func TestComputeMaxModelLen(t *testing.T) {
 				TotalSafeTensorFileSize: "27.51Gi", // From actual model config
 			},
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: 80, // A100 has 80GB memory
-				GPUCount:  1,  // Standard_NC24ads_A100_v4 has 1 GPU
+				GPUMemGiB: sku.NewGPUMemGiB(80), // A100 has 80GB memory
+				GPUCount:  1,                     // Standard_NC24ads_A100_v4 has 1 GPU
 			},
 			numRequiredNodes: 1,
 			expected:         131072, // Clamped to ModelTokenLimit (original calculation: 192456)
@@ -123,8 +123,8 @@ func TestComputeMaxModelLen(t *testing.T) {
 				TotalSafeTensorFileSize: "131.42Gi", // From actual model config
 			},
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: 80, // A100 has 80GB memory
-				GPUCount:  1,  // Standard_NC24ads_A100_v4 has 1 GPU per node
+				GPUMemGiB: sku.NewGPUMemGiB(80), // A100 has 80GB memory
+				GPUCount:  1,                     // Standard_NC24ads_A100_v4 has 1 GPU per node
 			},
 			numRequiredNodes: 3,
 			expected:         22016,

@@ -441,7 +441,7 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 				SKU:       "unknown",
 				GPUCount:  2,
 				GPUModel:  "Tesla-V100-SXM2-32GB",
-				GPUMemGiB: 32,
+				GPUMemGiB: sku.NewGPUMemGiB(32),
 			},
 		},
 		{
@@ -524,7 +524,7 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 				assert.Equal(t, tt.expected.SKU, got.SKU)
 				assert.Equal(t, tt.expected.GPUCount, got.GPUCount)
 				assert.Equal(t, tt.expected.GPUModel, got.GPUModel)
-				assert.Equal(t, tt.expected.GPUMemGiB, got.GPUMemGiB)
+				assert.True(t, tt.expected.GPUMemGiB.Cmp(got.GPUMemGiB) == 0, "GPUMemGiB should match")
 			}
 		})
 	}

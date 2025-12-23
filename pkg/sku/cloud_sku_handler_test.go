@@ -42,6 +42,34 @@ func TestAzureSKUHandler(t *testing.T) {
 	if gpuConfig2 != nil {
 		t.Errorf("Unsupported SKU found in GPUConfigs")
 	}
+
+	// Test case-insensitive matching - lowercase
+	skuLower := "standard_nc6s_v3"
+	gpuConfigLower := handler.GetGPUConfigBySKU(skuLower)
+	if gpuConfigLower == nil {
+		t.Fatalf("Case-insensitive lookup failed for lowercase SKU: %s", skuLower)
+	}
+	if gpuConfigLower.SKU != "Standard_NC6s_v3" {
+		t.Errorf("Expected SKU 'Standard_NC6s_v3', got '%s'", gpuConfigLower.SKU)
+	}
+
+	// Test case-insensitive matching - uppercase
+	skuUpper := "STANDARD_NC6S_V3"
+	gpuConfigUpper := handler.GetGPUConfigBySKU(skuUpper)
+	if gpuConfigUpper == nil {
+		t.Fatalf("Case-insensitive lookup failed for uppercase SKU: %s", skuUpper)
+	}
+	if gpuConfigUpper.SKU != "Standard_NC6s_v3" {
+		t.Errorf("Expected SKU 'Standard_NC6s_v3', got '%s'", gpuConfigUpper.SKU)
+	}
+
+	// Test case-insensitive matching - mixed case
+	skuMixed := "standard_D2S_v6"
+	gpuConfigMixed := handler.GetGPUConfigBySKU(skuMixed)
+	// This should NOT be found as it's not a real Azure GPU SKU
+	if gpuConfigMixed != nil {
+		t.Errorf("Unsupported SKU 'standard_D2S_v6' should not be found")
+	}
 }
 
 func TestAwsSKUHandler(t *testing.T) {

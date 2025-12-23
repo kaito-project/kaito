@@ -121,6 +121,57 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			wantErr:  true,
 			errField: "ContextWindowSize must be a positive integer",
 		},
+		{
+			name: "Case insensitive instance type - lowercase",
+			ragEngine: &RAGEngine{
+				Spec: &RAGEngineSpec{
+					Compute: &ResourceSpec{
+						InstanceType: "standard_nc12s_v3",
+					},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
+					Embedding: &EmbeddingSpec{
+						Local: &LocalEmbeddingSpec{
+							ModelID: "BAAI/bge-small-en-v1.5",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Case insensitive instance type - uppercase",
+			ragEngine: &RAGEngine{
+				Spec: &RAGEngineSpec{
+					Compute: &ResourceSpec{
+						InstanceType: "STANDARD_NC12S_V3",
+					},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
+					Embedding: &EmbeddingSpec{
+						Local: &LocalEmbeddingSpec{
+							ModelID: "BAAI/bge-small-en-v1.5",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Case insensitive instance type - mixed case",
+			ragEngine: &RAGEngine{
+				Spec: &RAGEngineSpec{
+					Compute: &ResourceSpec{
+						InstanceType: "standard_NC12s_V3",
+					},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
+					Embedding: &EmbeddingSpec{
+						Local: &LocalEmbeddingSpec{
+							ModelID: "BAAI/bge-small-en-v1.5",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	for _, tt := range tests {

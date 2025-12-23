@@ -90,12 +90,16 @@ func (r *ResourceSpec) validateRAGCreate() (errs *apis.FieldError) {
 
 	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig == nil {
 		provider := os.Getenv("CLOUD_PROVIDER")
-		// Check for other instance types pattern matches if cloud provider is Azure
-		// Use case-insensitive prefix matching for Azure N-series and D-series SKUs
-		instanceTypeUpper := strings.ToUpper(instanceType)
-		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceTypeUpper, strings.ToUpper(N_SERIES_PREFIX)) && !strings.HasPrefix(instanceTypeUpper, strings.ToUpper(D_SERIES_PREFIX))) {
-			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
+		// For Azure, allow N-series and D-series SKUs even if not in the GPU SKU list
+		// These series may include non-GPU VMs. Use case-insensitive matching.
+		if provider == consts.AzureCloudName {
+			instanceTypeUpper := strings.ToUpper(instanceType)
+			if strings.HasPrefix(instanceTypeUpper, "STANDARD_N") || strings.HasPrefix(instanceTypeUpper, "STANDARD_D") {
+				// Valid Azure N-series or D-series SKU
+				return errs
+			}
 		}
+		errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 	}
 
 	// Validate labelSelector

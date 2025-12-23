@@ -387,7 +387,9 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	} else {
 		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
+		// Use case-insensitive prefix matching for Azure N-series and D-series SKUs
+		instanceTypeUpper := strings.ToUpper(instanceType)
+		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceTypeUpper, strings.ToUpper(N_SERIES_PREFIX)) && !strings.HasPrefix(instanceTypeUpper, strings.ToUpper(D_SERIES_PREFIX))) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}

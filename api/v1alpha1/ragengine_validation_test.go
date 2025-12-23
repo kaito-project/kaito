@@ -172,6 +172,51 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Case insensitive D-series (non-GPU) - lowercase",
+			ragEngine: &RAGEngine{
+				Spec: &RAGEngineSpec{
+					Compute: &ResourceSpec{
+						InstanceType: "standard_d2s_v6",
+					},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
+					Embedding: &EmbeddingSpec{
+						Remote: &RemoteEmbeddingSpec{URL: "http://remote-embedding.com"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Case insensitive D-series (non-GPU) - proper case",
+			ragEngine: &RAGEngine{
+				Spec: &RAGEngineSpec{
+					Compute: &ResourceSpec{
+						InstanceType: "Standard_D2S_v6",
+					},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
+					Embedding: &EmbeddingSpec{
+						Remote: &RemoteEmbeddingSpec{URL: "http://remote-embedding.com"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Case insensitive D-series (non-GPU) - mixed case",
+			ragEngine: &RAGEngine{
+				Spec: &RAGEngineSpec{
+					Compute: &ResourceSpec{
+						InstanceType: "STANDARD_d2S_V6",
+					},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
+					Embedding: &EmbeddingSpec{
+						Remote: &RemoteEmbeddingSpec{URL: "http://remote-embedding.com"},
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	for _, tt := range tests {

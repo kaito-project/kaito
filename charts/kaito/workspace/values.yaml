@@ -59,6 +59,13 @@ flux2:
   notificationController:
     create: false
 gpu-feature-discovery:
+  affinity:
+    nodeAffinity: null
+  nfd:
+    master:
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
   devicePlugin:
     enabled: false
   gfd:

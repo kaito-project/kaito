@@ -220,6 +220,10 @@ type VLLMModel struct {
 	ReasoningParser string `yaml:"reasoningParser,omitempty"`
 
 	ChatTemplate string `yaml:"chatTemplate,omitempty"`
+
+	TrustRemoteCode bool `yaml:"trustRemoteCode,omitempty"`
+
+	AllowRemoteFiles bool `yaml:"allowRemoteFiles,omitempty"`
 }
 
 // Validate checks if the VLLMModel is valid.

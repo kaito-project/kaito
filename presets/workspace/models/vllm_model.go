@@ -79,6 +79,12 @@ func (m *vllmModel) GetInferenceParameters() *model.PresetParam {
 	if m.model.ChatTemplate != "" {
 		runParamsVLLM["chat-template"] = m.model.ChatTemplate
 	}
+	if m.model.TrustRemoteCode {
+		runParamsVLLM["trust-remote-code"] = ""
+	}
+	if m.model.AllowRemoteFiles {
+		runParamsVLLM["allow-remote-files"] = ""
+	}
 
 	presetParam := &model.PresetParam{
 		Metadata:                *metaData,

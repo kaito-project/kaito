@@ -1,0 +1,46 @@
+models:
+  - name: glm-4.5
+    type: text-generation
+    version: https://huggingface.co/zai-org/GLM-4.5/commit/cbb2c7cfb52fa128a9660cb1a7a78e017899e115
+    runtime: tfs
+    downloadAuthRequired: true
+    downloadAtRuntime: true
+    modelFileSizeGB: 668
+    diskStorageRequirement: 718Gi
+    bytesPerToken: 376832
+    modelTokenLimit: 131072
+    toolCallParser: glm45
+    reasoningParser: glm45
+  - name: mimo-v2-flash
+    type: text-generation
+    version: https://huggingface.co/XiaomiMiMo/MiMo-V2-Flash/commit/5a6637311bf106051fc92b9cff04f836d8a017c5
+    runtime: tfs
+    downloadAuthRequired: true
+    downloadAtRuntime: true
+    modelFileSizeGB: 292
+    diskStorageRequirement: 342Gi
+    bytesPerToken: 147456
+    modelTokenLimit: 262144
+  - name: minimax-m1-40k
+    type: text-generation
+    version: https://huggingface.co/MiniMaxAI/MiniMax-M1-40k/commit/2d1d1c2f00c97fc1245bfce7648649b76e0a8e6e
+    runtime: tfs
+    downloadAuthRequired: true
+    downloadAtRuntime: true
+    modelFileSizeGB: 850
+    diskStorageRequirement: 900Gi
+    bytesPerToken: 327680
+    modelTokenLimit: 10240000
+    toolCallParser: minimax
+    chatTemplate: minimax_m1.jinja
+  - name: qwen3-coder-30b-a3b-instruct
+    type: text-generation
+    version: https://huggingface.co/Qwen/Qwen3-Coder-30B-A3B-Instruct/commit/b2cff646eb4bb1d68355c01b18ae02e7cf42d120
+    runtime: tfs
+    downloadAuthRequired: true
+    downloadAtRuntime: true
+    modelFileSizeGB: 57
+    diskStorageRequirement: 107Gi
+    bytesPerToken: 98304
+    modelTokenLimit: 262144
+    toolCallParser: hermes

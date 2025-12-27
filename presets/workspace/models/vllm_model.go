@@ -19,6 +19,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/klog/v2"
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
@@ -50,6 +51,7 @@ func init() {
 			Name:     m.Name,
 			Instance: &vllmModel{model: m},
 		})
+		klog.InfoS("Registered VLLM model preset", "model", m.Name)
 	}
 
 }

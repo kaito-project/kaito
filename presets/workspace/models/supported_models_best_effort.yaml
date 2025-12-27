@@ -10,6 +10,27 @@ models:
     bytesPerToken: 131072
     modelTokenLimit: 32768
     trustRemoteCode: true
+  - name: gemma-3-1b-it
+    type: text-generation
+    version: https://huggingface.co/google/gemma-3-1b-it/commit/dcc83ea841ab6100d6b47a070329e1ba4cf78752
+    runtime: tfs
+    downloadAtRuntime: true
+    downloadAuthRequired: true
+    modelFileSizeGB: 2
+    diskStorageRequirement: 52Gi
+    bytesPerToken: 26624
+    modelTokenLimit: 32768
+  - name: glm-4-9b-chat-hf
+    type: text-generation
+    version: https://huggingface.co/zai-org/glm-4-9b-chat-hf/commit/8599336fc6c125203efb2360bfaf4c80eef1d1bf
+    runtime: tfs
+    downloadAtRuntime: true
+    downloadAuthRequired: true
+    modelFileSizeGB: 18
+    diskStorageRequirement: 68Gi
+    bytesPerToken: 40960
+    modelTokenLimit: 131072
+    trustRemoteCode: true
   - name: glm-4.5
     type: text-generation
     version: https://huggingface.co/zai-org/GLM-4.5/commit/cbb2c7cfb52fa128a9660cb1a7a78e017899e115
@@ -32,6 +53,17 @@ models:
     diskStorageRequirement: 64Gi
     bytesPerToken: 131072
     modelTokenLimit: 32768
+    trustRemoteCode: true
+  - name: kimi-linear-48b-a3b-instruct
+    type: text-generation
+    version: https://huggingface.co/moonshotai/Kimi-Linear-48B-A3B-Instruct/commit/e1df551a447157d4658b573f9a695d57658590e9
+    runtime: tfs
+    downloadAtRuntime: true
+    downloadAuthRequired: true
+    modelFileSizeGB: 92
+    diskStorageRequirement: 142Gi
+    bytesPerToken: 31104
+    modelTokenLimit: 2048
     trustRemoteCode: true
   - name: minimax-m1-40k
     type: text-generation

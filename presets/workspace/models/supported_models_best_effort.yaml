@@ -5,6 +5,14 @@ models:
     diskStorageRequirement: 62Gi
     bytesPerToken: 131072
     modelTokenLimit: 32768
+  - name: deepseek-v3-1-base
+    version: https://huggingface.co/deepseek-ai/DeepSeek-V3.1-Base/commit/d3d4eafdc470de44bbf6f0a74f852eb522357be8
+    modelFileSizeGB: 642
+    diskStorageRequirement: 692Gi
+    bytesPerToken: 70272
+    modelTokenLimit: 163840
+    toolCallParser: deepseek_v3
+    chatTemplate: tool-chat-deepseekv3.jinja
   - name: gemma-3-1b-it
     version: https://huggingface.co/google/gemma-3-1b-it/commit/dcc83ea841ab6100d6b47a070329e1ba4cf78752
     modelFileSizeGB: 2

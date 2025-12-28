@@ -1,42 +1,24 @@
 models:
   - name: chatglm2-6b
-    type: text-generation
     version: https://huggingface.co/zai-org/chatglm2-6b/commit/d2e2d91789248536a747d9ce60642a336444186c
-    runtime: tfs
-    downloadAtRuntime: true
-    downloadAuthRequired: true
     modelFileSizeGB: 12
     diskStorageRequirement: 62Gi
     bytesPerToken: 131072
     modelTokenLimit: 32768
-    trustRemoteCode: true
   - name: gemma-3-1b-it
-    type: text-generation
     version: https://huggingface.co/google/gemma-3-1b-it/commit/dcc83ea841ab6100d6b47a070329e1ba4cf78752
-    runtime: tfs
-    downloadAtRuntime: true
-    downloadAuthRequired: true
     modelFileSizeGB: 2
     diskStorageRequirement: 52Gi
     bytesPerToken: 26624
     modelTokenLimit: 32768
   - name: glm-4-9b-chat-hf
-    type: text-generation
     version: https://huggingface.co/zai-org/glm-4-9b-chat-hf/commit/8599336fc6c125203efb2360bfaf4c80eef1d1bf
-    runtime: tfs
-    downloadAtRuntime: true
-    downloadAuthRequired: true
     modelFileSizeGB: 18
     diskStorageRequirement: 68Gi
     bytesPerToken: 40960
     modelTokenLimit: 131072
-    trustRemoteCode: true
   - name: glm-4.5
-    type: text-generation
     version: https://huggingface.co/zai-org/GLM-4.5/commit/cbb2c7cfb52fa128a9660cb1a7a78e017899e115
-    runtime: tfs
-    downloadAtRuntime: true
-    downloadAuthRequired: true
     modelFileSizeGB: 668
     diskStorageRequirement: 718Gi
     bytesPerToken: 376832
@@ -44,48 +26,37 @@ models:
     toolCallParser: glm45
     reasoningParser: glm45
   - name: hunyuan-7b-instruct
-    type: text-generation
     version: https://huggingface.co/tencent/Hunyuan-7B-Instruct/commit/6fd6ecb05e76589bc43b79f49e3619445c6b4593
-    runtime: tfs
-    downloadAtRuntime: true
-    downloadAuthRequired: true
     modelFileSizeGB: 14
     diskStorageRequirement: 64Gi
     bytesPerToken: 131072
     modelTokenLimit: 32768
-    trustRemoteCode: true
-  - name: kimi-linear-48b-a3b-instruct
-    type: text-generation
-    version: https://huggingface.co/moonshotai/Kimi-Linear-48B-A3B-Instruct/commit/e1df551a447157d4658b573f9a695d57658590e9
-    runtime: tfs
-    downloadAtRuntime: true
-    downloadAuthRequired: true
-    modelFileSizeGB: 92
-    diskStorageRequirement: 142Gi
-    bytesPerToken: 31104
-    modelTokenLimit: 2048
-    trustRemoteCode: true
+  - name: mimo-7b-rl
+    version: https://huggingface.co/XiaomiMiMo/MiMo-7B-RL/commit/6299b5a2c45daf0c429285c92b8e61a5bd011c0d
+    modelFileSizeGB: 15
+    diskStorageRequirement: 65Gi
+    bytesPerToken: 147456
+    modelTokenLimit: 32768
   - name: minimax-m1-40k
-    type: text-generation
     version: https://huggingface.co/MiniMaxAI/MiniMax-M1-40k/commit/2d1d1c2f00c97fc1245bfce7648649b76e0a8e6e
-    runtime: tfs
-    downloadAtRuntime: true
-    downloadAuthRequired: true
     modelFileSizeGB: 850
     diskStorageRequirement: 900Gi
     bytesPerToken: 327680
     modelTokenLimit: 10240000
     toolCallParser: minimax
     chatTemplate: minimax_m1.jinja
-    trustRemoteCode: true
   - name: qwen3-coder-30b-a3b-instruct
-    type: text-generation
     version: https://huggingface.co/Qwen/Qwen3-Coder-30B-A3B-Instruct/commit/b2cff646eb4bb1d68355c01b18ae02e7cf42d120
-    runtime: tfs
-    downloadAtRuntime: true
-    downloadAuthRequired: true
     modelFileSizeGB: 57
     diskStorageRequirement: 107Gi
     bytesPerToken: 98304
     modelTokenLimit: 262144
     toolCallParser: hermes
+  - name: seed-oss-36b-instruct
+    version: https://huggingface.co/ByteDance-Seed/Seed-OSS-36B-Instruct/commit/497f1dca95ebdec98e41d517b9f060ee753c902f
+    modelFileSizeGB: 68
+    diskStorageRequirement: 118Gi
+    bytesPerToken: 262144
+    modelTokenLimit: 524288
+    toolCallParser: seed_oss
+    chatTemplate: seed-oss-36b-instruct.jinja

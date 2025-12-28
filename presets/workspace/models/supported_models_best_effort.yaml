@@ -39,6 +39,14 @@ models:
     diskStorageRequirement: 64Gi
     bytesPerToken: 131072
     modelTokenLimit: 32768
+  - name: hunyuan-a13b-instruct
+    version: https://huggingface.co/tencent/Hunyuan-A13B-Instruct/commit/290ddb9a56ed23c2c83a1c8081533e58925df952
+    modelFileSizeGB: 150
+    diskStorageRequirement: 200Gi
+    bytesPerToken: 131072
+    modelTokenLimit: 32768
+    toolCallParser: hunyuan_a13b
+    reasoningParser: hunyuan_a13b
   - name: mimo-7b-rl
     version: https://huggingface.co/XiaomiMiMo/MiMo-7B-RL/commit/6299b5a2c45daf0c429285c92b8e61a5bd011c0d
     modelFileSizeGB: 15
@@ -53,6 +61,12 @@ models:
     modelTokenLimit: 10240000
     toolCallParser: minimax
     chatTemplate: minimax_m1.jinja
+  - name: minitron-8b-base
+    version: https://huggingface.co/nvidia/Minitron-8B-Base/commit/e2c30f2d4c8751f21b33be2b403d10d5f373ffc1
+    modelFileSizeGB: 16
+    diskStorageRequirement: 66Gi
+    bytesPerToken: 131072
+    modelTokenLimit: 4096
   - name: qwen3-coder-30b-a3b-instruct
     version: https://huggingface.co/Qwen/Qwen3-Coder-30B-A3B-Instruct/commit/b2cff646eb4bb1d68355c01b18ae02e7cf42d120
     modelFileSizeGB: 57

@@ -181,31 +181,12 @@ type VLLMModel struct {
 	// It is used to register the model information and retrieve it later.
 	Name string `yaml:"name"`
 
-	// ModelType is the type of the model, which indicates the kind of model
-	// it is. Currently, the only supported types are "text-generation" and
-	// "llama2-completion" (deprecated).
-	ModelType string `yaml:"type"`
+	DType string `yaml:"dtype,omitempty"`
 
 	// Version is the version of the model. It is a URL that points to the
 	// model's huggingface page, which contains the model's repository ID
 	// and revision ID, e.g. https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff.
 	Version string `yaml:"version"`
-
-	// Runtime is the runtime environment in which the model operates.
-	// Currently, the only supported runtime is "tfs".
-	Runtime string `yaml:"runtime"`
-
-	// DownloadAtRuntime indicates whether the model should be downloaded
-	// at runtime. If set to true, the model will be downloaded when the
-	// model deployment is created, and the container image will always be
-	// the KAITO base image. If set to false, a container image whose name
-	// contains the model name will be used, in which the model weights are baked.
-	// +optional
-	DownloadAtRuntime bool `yaml:"downloadAtRuntime,omitempty"`
-
-	// DownloadAuthRequired indicates whether the model requires authentication to download.
-	// +optional
-	DownloadAuthRequired bool `yaml:"downloadAuthRequired,omitempty"`
 
 	ModelFileSizeGB string `yaml:"modelFileSizeGB,omitempty"`
 
@@ -220,8 +201,6 @@ type VLLMModel struct {
 	ReasoningParser string `yaml:"reasoningParser,omitempty"`
 
 	ChatTemplate string `yaml:"chatTemplate,omitempty"`
-
-	TrustRemoteCode bool `yaml:"trustRemoteCode,omitempty"`
 
 	AllowRemoteFiles bool `yaml:"allowRemoteFiles,omitempty"`
 }

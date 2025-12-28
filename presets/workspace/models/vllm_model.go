@@ -53,7 +53,6 @@ func init() {
 		})
 		klog.InfoS("Registered VLLM model preset", "model", m.Name)
 	}
-
 }
 
 type vllmModel struct {
@@ -63,15 +62,20 @@ type vllmModel struct {
 func (m *vllmModel) GetInferenceParameters() *model.PresetParam {
 	metaData := &model.Metadata{
 		Name:                 m.model.Name,
-		ModelType:            m.model.ModelType,
+		ModelType:            "text-generation",
 		Version:              m.model.Version,
-		Runtime:              m.model.Runtime,
-		DownloadAtRuntime:    m.model.DownloadAtRuntime,
-		DownloadAuthRequired: m.model.DownloadAuthRequired,
+		Runtime:              "tfs",
+		DownloadAtRuntime:    true,
+		DownloadAuthRequired: true,
 	}
 
 	runParamsVLLM := map[string]string{
-		"dtype": "float16",
+		"trust-remote-code": "",
+	}
+	if m.model.DType != "" {
+		runParamsVLLM["dtype"] = m.model.DType
+	} else {
+		runParamsVLLM["dtype"] = "bfloat16"
 	}
 
 	if m.model.ToolCallParser != "" {
@@ -79,10 +83,8 @@ func (m *vllmModel) GetInferenceParameters() *model.PresetParam {
 		runParamsVLLM["enable-auto-tool-choice"] = ""
 	}
 	if m.model.ChatTemplate != "" {
-		runParamsVLLM["chat-template"] = m.model.ChatTemplate
-	}
-	if m.model.TrustRemoteCode {
-		runParamsVLLM["trust-remote-code"] = ""
+		// todo: verify whether ChatTemplate file name is valid
+		runParamsVLLM["chat-template"] = "/workspace/chat_templates/" + m.model.ChatTemplate
 	}
 	if m.model.AllowRemoteFiles {
 		runParamsVLLM["allow-remote-files"] = ""
@@ -90,7 +92,6 @@ func (m *vllmModel) GetInferenceParameters() *model.PresetParam {
 
 	presetParam := &model.PresetParam{
 		Metadata:                *metaData,
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: m.model.ModelFileSizeGB,
 		DiskStorageRequirement:  m.model.DiskStorageRequirement,
 		BytesPerToken:           m.model.BytesPerToken,

@@ -144,6 +144,9 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		// If each node has gpuConfig.GPUCount GPUs, we need ceil(minGPUs / gpuConfig.GPUCount) nodes
 		nodeCountPerReplica = (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
 
+		klog.Infof("totalGPUMemoryRequired(%s), requiredMemoryBytes(%d), totalGPUMemoryPerGPUBytes(%d), availableGPUMemoryPerGPUBytes(%d), overhead(%.0f), availableMemoryPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
+			totalGPUMemoryRequired.String(), requiredMemoryBytes, totalGPUMemoryPerGPUBytes, availableGPUMemoryPerGPUBytes, overhead, availableMemoryPerGPU, minGPUs, nodeCountPerReplica, workspace.Name)
+
 		// Special case for models with disabled tensor parallelism: they cannot be distributed across multiple nodes
 		if nodeCountPerReplica > 1 && model.GetInferenceParameters().DisableTensorParallelism {
 			return 0, fmt.Errorf("models with disabled tensor parallelism cannot be distributed across more than 1 GPU node, calculated nodes: %d", nodeCountPerReplica)

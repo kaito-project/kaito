@@ -114,7 +114,7 @@ func (*vllmModel) GetTuningParameters() *model.PresetParam {
 }
 
 func (*vllmModel) SupportDistributedInference() bool {
-	return false
+	return true
 }
 
 func (*vllmModel) SupportTuning() bool {

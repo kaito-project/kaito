@@ -181,6 +181,7 @@ type VLLMModel struct {
 	// It is used to register the model information and retrieve it later.
 	Name string `yaml:"name"`
 
+	// DType is the data type used for model weights, default is bfloat16.
 	DType string `yaml:"dtype,omitempty"`
 
 	// Version is the version of the model. It is a URL that points to the
@@ -188,6 +189,8 @@ type VLLMModel struct {
 	// and revision ID, e.g. https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff.
 	Version string `yaml:"version"`
 
+	// DownloadAuthRequired indicates whether the model requires authentication to download.
+	// +optional
 	DownloadAuthRequired bool `yaml:"downloadAuthRequired,omitempty"`
 
 	ModelFileSize string `yaml:"modelFileSize,omitempty"`

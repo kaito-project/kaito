@@ -1,84 +1,16 @@
 models:
-  - name: chatglm2-6b
-    version: https://huggingface.co/zai-org/chatglm2-6b/commit/d2e2d91789248536a747d9ce60642a336444186c
-    modelFileSizeGB: 12
-    diskStorageRequirement: 62Gi
-    bytesPerToken: 131072
-    modelTokenLimit: 32768
   - name: deepseek-v3-1-base
     version: https://huggingface.co/deepseek-ai/DeepSeek-V3.1-Base/commit/d3d4eafdc470de44bbf6f0a74f852eb522357be8
-    modelFileSizeGB: 642
+    modelFileSize: 642Gi
     diskStorageRequirement: 692Gi
     bytesPerToken: 70272
     modelTokenLimit: 163840
     toolCallParser: deepseek_v3
     chatTemplate: tool-chat-deepseekv3.jinja
-  - name: gemma-3-1b-it
-    version: https://huggingface.co/google/gemma-3-1b-it/commit/dcc83ea841ab6100d6b47a070329e1ba4cf78752
-    modelFileSizeGB: 2
-    diskStorageRequirement: 52Gi
-    bytesPerToken: 26624
-    modelTokenLimit: 32768
-  - name: glm-4-9b-chat-hf
-    version: https://huggingface.co/zai-org/glm-4-9b-chat-hf/commit/8599336fc6c125203efb2360bfaf4c80eef1d1bf
-    modelFileSizeGB: 18
-    diskStorageRequirement: 68Gi
-    bytesPerToken: 40960
-    modelTokenLimit: 131072
-  - name: glm-4.5
-    version: https://huggingface.co/zai-org/GLM-4.5/commit/cbb2c7cfb52fa128a9660cb1a7a78e017899e115
-    modelFileSizeGB: 668
-    diskStorageRequirement: 718Gi
-    bytesPerToken: 376832
-    modelTokenLimit: 131072
-    toolCallParser: glm45
-    reasoningParser: glm45
-  - name: hunyuan-7b-instruct
-    version: https://huggingface.co/tencent/Hunyuan-7B-Instruct/commit/6fd6ecb05e76589bc43b79f49e3619445c6b4593
-    modelFileSizeGB: 14
-    diskStorageRequirement: 64Gi
-    bytesPerToken: 131072
-    modelTokenLimit: 32768
-  - name: hunyuan-a13b-instruct
-    version: https://huggingface.co/tencent/Hunyuan-A13B-Instruct/commit/290ddb9a56ed23c2c83a1c8081533e58925df952
-    modelFileSizeGB: 150
-    diskStorageRequirement: 200Gi
-    bytesPerToken: 131072
-    modelTokenLimit: 32768
-    toolCallParser: hunyuan_a13b
-    reasoningParser: hunyuan_a13b
-  - name: mimo-7b-rl
-    version: https://huggingface.co/XiaomiMiMo/MiMo-7B-RL/commit/6299b5a2c45daf0c429285c92b8e61a5bd011c0d
-    modelFileSizeGB: 15
-    diskStorageRequirement: 65Gi
-    bytesPerToken: 147456
-    modelTokenLimit: 32768
-  - name: minimax-m1-40k
-    version: https://huggingface.co/MiniMaxAI/MiniMax-M1-40k/commit/2d1d1c2f00c97fc1245bfce7648649b76e0a8e6e
-    modelFileSizeGB: 850
-    diskStorageRequirement: 900Gi
-    bytesPerToken: 327680
-    modelTokenLimit: 10240000
-    toolCallParser: minimax
-    chatTemplate: minimax_m1.jinja
-  - name: minitron-8b-base
-    version: https://huggingface.co/nvidia/Minitron-8B-Base/commit/e2c30f2d4c8751f21b33be2b403d10d5f373ffc1
-    modelFileSizeGB: 16
-    diskStorageRequirement: 66Gi
-    bytesPerToken: 131072
-    modelTokenLimit: 4096
   - name: qwen3-coder-30b-a3b-instruct
     version: https://huggingface.co/Qwen/Qwen3-Coder-30B-A3B-Instruct/commit/b2cff646eb4bb1d68355c01b18ae02e7cf42d120
-    modelFileSizeGB: 57
+    modelFileSize: 57Gi
     diskStorageRequirement: 107Gi
     bytesPerToken: 98304
     modelTokenLimit: 262144
     toolCallParser: hermes
-  - name: seed-oss-36b-instruct
-    version: https://huggingface.co/ByteDance-Seed/Seed-OSS-36B-Instruct/commit/497f1dca95ebdec98e41d517b9f060ee753c902f
-    modelFileSizeGB: 68
-    diskStorageRequirement: 118Gi
-    bytesPerToken: 262144
-    modelTokenLimit: 524288
-    toolCallParser: seed_oss
-    chatTemplate: seed-oss-36b-instruct.jinja

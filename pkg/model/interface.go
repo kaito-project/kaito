@@ -188,7 +188,9 @@ type VLLMModel struct {
 	// and revision ID, e.g. https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff.
 	Version string `yaml:"version"`
 
-	ModelFileSizeGB string `yaml:"modelFileSizeGB,omitempty"`
+	DownloadAuthRequired bool `yaml:"downloadAuthRequired,omitempty"`
+
+	ModelFileSize string `yaml:"modelFileSize,omitempty"`
 
 	DiskStorageRequirement string `yaml:"diskStorageRequirement,omitempty"`
 

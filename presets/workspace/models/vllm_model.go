@@ -49,24 +49,24 @@ func init() {
 		utilruntime.Must(m.Validate())
 		plugin.KaitoModelRegister.Register(&plugin.Registration{
 			Name:     m.Name,
-			Instance: &vllmModel{model: m},
+			Instance: &vLLMCompatibleModel{model: m},
 		})
 		klog.InfoS("Registered VLLM model preset", "model", m.Name)
 	}
 }
 
-type vllmModel struct {
+type vLLMCompatibleModel struct {
 	model model.VLLMModel
 }
 
-func (m *vllmModel) GetInferenceParameters() *model.PresetParam {
+func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	metaData := &model.Metadata{
 		Name:                 m.model.Name,
 		ModelType:            "text-generation",
 		Version:              m.model.Version,
 		Runtime:              "tfs",
 		DownloadAtRuntime:    true,
-		DownloadAuthRequired: true,
+		DownloadAuthRequired: m.model.DownloadAuthRequired,
 	}
 
 	runParamsVLLM := map[string]string{
@@ -92,7 +92,7 @@ func (m *vllmModel) GetInferenceParameters() *model.PresetParam {
 
 	presetParam := &model.PresetParam{
 		Metadata:                *metaData,
-		TotalSafeTensorFileSize: m.model.ModelFileSizeGB,
+		TotalSafeTensorFileSize: m.model.ModelFileSize,
 		DiskStorageRequirement:  m.model.DiskStorageRequirement,
 		BytesPerToken:           m.model.BytesPerToken,
 		ModelTokenLimit:         m.model.ModelTokenLimit,
@@ -109,14 +109,14 @@ func (m *vllmModel) GetInferenceParameters() *model.PresetParam {
 	return presetParam
 }
 
-func (*vllmModel) GetTuningParameters() *model.PresetParam {
+func (*vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
 	return nil
 }
 
-func (*vllmModel) SupportDistributedInference() bool {
+func (*vLLMCompatibleModel) SupportDistributedInference() bool {
 	return true
 }
 
-func (*vllmModel) SupportTuning() bool {
+func (*vLLMCompatibleModel) SupportTuning() bool {
 	return false
 }

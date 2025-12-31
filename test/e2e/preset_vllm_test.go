@@ -385,7 +385,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a qwen3-coder-30b-a3b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+	It("should create a qwen3-coder-30b-a3b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 

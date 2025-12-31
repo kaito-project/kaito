@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
@@ -46,8 +46,8 @@ func TestUpdateRAGEngineStatus(t *testing.T) {
 		}
 		workerNodes := []string{"node1", "node2"}
 
-		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
 
 		err := reconciler.updateRAGEngineStatus(ctx, &client.ObjectKey{Name: ragengine.Name, Namespace: ragengine.Namespace}, &condition, workerNodes)
 		assert.Nil(t, err)
@@ -69,7 +69,7 @@ func TestUpdateRAGEngineStatus(t *testing.T) {
 		}
 		workerNodes := []string{"node1", "node2"}
 
-		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(errors.New("Get operation failed"))
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(errors.New("Get operation failed"))
 
 		err := reconciler.updateRAGEngineStatus(ctx, &client.ObjectKey{Name: ragengine.Name, Namespace: ragengine.Namespace}, &condition, workerNodes)
 		assert.NotNil(t, err)
@@ -91,7 +91,7 @@ func TestUpdateRAGEngineStatus(t *testing.T) {
 		}
 		workerNodes := []string{"node1", "node2"}
 
-		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(apierrors.NewNotFound(schema.GroupResource{}, "ragengine"))
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(apierrors.NewNotFound(schema.GroupResource{}, "ragengine"))
 
 		err := reconciler.updateRAGEngineStatus(ctx, &client.ObjectKey{Name: ragengine.Name, Namespace: ragengine.Namespace}, &condition, workerNodes)
 		assert.Nil(t, err)
@@ -107,7 +107,7 @@ func TestRAGEngineUpdateStatusConditionIfNotMatch(t *testing.T) {
 		}
 		ctx := context.Background()
 		ragengine := test.MockRAGEngineDistributedModel
-		conditionType := kaitov1alpha1.ConditionType("TestCondition")
+		conditionType := kaitov1beta1.ConditionType("TestCondition")
 		conditionStatus := metav1.ConditionStatus("True")
 		conditionReason := "TestReason"
 		conditionMessage := "TestMessage"
@@ -133,7 +133,7 @@ func TestRAGEngineUpdateStatusConditionIfNotMatch(t *testing.T) {
 		}
 		ctx := context.Background()
 		ragengine := test.MockRAGEngineDistributedModel
-		conditionType := kaitov1alpha1.ConditionType("TestCondition")
+		conditionType := kaitov1beta1.ConditionType("TestCondition")
 		conditionStatus := metav1.ConditionStatus("True")
 		conditionReason := "TestReason"
 		conditionMessage := "TestMessage"
@@ -146,8 +146,8 @@ func TestRAGEngineUpdateStatusConditionIfNotMatch(t *testing.T) {
 				Message: "DifferentMessage",
 			},
 		}
-		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
 
 		err := reconciler.updateStatusConditionIfNotMatch(ctx, ragengine, conditionType, conditionStatus, conditionReason, conditionMessage)
 		assert.Nil(t, err)
@@ -161,7 +161,7 @@ func TestRAGEngineUpdateStatusConditionIfNotMatch(t *testing.T) {
 		}
 		ctx := context.Background()
 		ragengine := test.MockRAGEngineDistributedModel
-		conditionType := kaitov1alpha1.ConditionType("TestCondition")
+		conditionType := kaitov1beta1.ConditionType("TestCondition")
 		conditionStatus := metav1.ConditionStatus("True")
 		conditionReason := "TestReason"
 		conditionMessage := "TestMessage"
@@ -174,8 +174,8 @@ func TestRAGEngineUpdateStatusConditionIfNotMatch(t *testing.T) {
 				Message: conditionMessage,
 			},
 		}
-		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
-		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1alpha1.RAGEngine{}), mock.Anything).Return(nil)
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
 
 		err := reconciler.updateStatusConditionIfNotMatch(ctx, ragengine, conditionType, conditionStatus, conditionReason, conditionMessage)
 		assert.Nil(t, err)

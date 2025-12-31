@@ -2,8 +2,8 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.8.0-rc.0
-GPU_PROVISIONER_VERSION ?= 0.3.7
+VERSION ?= v0.8.0
+GPU_PROVISIONER_VERSION ?= 0.3.8
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
@@ -37,7 +37,7 @@ TEST_SUITE ?= gpuprovisioner
 
 AZURE_SUBSCRIPTION_ID ?= $(AZURE_SUBSCRIPTION_ID)
 AZURE_LOCATION ?= eastus
-AKS_K8S_VERSION ?= 1.31.10
+AKS_K8S_VERSION ?= 1.33.5
 AZURE_CLUSTER_NAME ?= kaito-demo
 AZURE_RESOURCE_GROUP ?= demo
 AZURE_RESOURCE_GROUP_MC=MC_$(AZURE_RESOURCE_GROUP)_$(AZURE_CLUSTER_NAME)_$(AZURE_LOCATION)
@@ -157,12 +157,15 @@ tuning-metrics-server-test: ## Run Tuning Metrics Server tests with pytest.
 
 ##@ E2E Tests
 
-.PHONY: interference-api-e2e
+.PHONY: inference-api-e2e
 inference-api-e2e: ## Run inference API e2e tests with pytest.
 	pip install -r ./presets/workspace/dependencies/requirements-test.txt
 	pip install pytest-cov
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
+
+	pip install -r ./presets/workspace/generator/requirements.txt
+	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/generator/
 
 # Ginkgo configurations
 GINKGO_FOCUS ?=

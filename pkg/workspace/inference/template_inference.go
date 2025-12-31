@@ -24,7 +24,7 @@ import (
 )
 
 func CreateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, kubeClient client.Client) (client.Object, error) {
-	depObj := manifests.GenerateDeploymentManifestWithPodTemplate(workspaceObj, tolerations)
+	depObj := manifests.GenerateManifestWithPodTemplate(workspaceObj, tolerations)
 	err := resources.CreateResource(ctx, client.Object(depObj), kubeClient)
 	if client.IgnoreAlreadyExists(err) != nil {
 		return nil, err

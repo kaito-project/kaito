@@ -100,16 +100,16 @@ func GetPodNameForJob(coreClient *kubernetes.Clientset, namespace, jobName strin
 	return podList.Items[0].Name, nil
 }
 
-func GetPodNameForDeployment(coreClient *kubernetes.Clientset, namespace, deploymentName string) (string, error) {
+func GetPodNameForWorkspace(coreClient *kubernetes.Clientset, namespace, workspaceName string) (string, error) {
 	podList, err := coreClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("kaito.sh/workspace=%s", deploymentName),
+		LabelSelector: fmt.Sprintf("kaito.sh/workspace=%s", workspaceName),
 	})
 	if err != nil {
 		return "", err
 	}
 
 	if len(podList.Items) == 0 {
-		return "", fmt.Errorf("no pods found for job %s", deploymentName)
+		return "", fmt.Errorf("no pods found for workspace %s", workspaceName)
 	}
 
 	return podList.Items[0].Name, nil

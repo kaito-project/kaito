@@ -36,9 +36,6 @@ type Model interface {
 	GetTuningParameters() *PresetParam
 
 	// SupportDistributedInference checks if the model supports distributed inference.
-	// If true, the inference workload will use 'StatefulSet' instead of 'Deployment'
-	// as the workload type. See https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250325-distributed-inference.md
-	// for more details.
 	SupportDistributedInference() bool
 
 	// SupportTuning checks if the model supports tuning.
@@ -136,7 +133,7 @@ type PresetParam struct {
 	ModelTokenLimit               int            // Maximum number of tokens (context window) supported by the model. Maps to 'max_position_embeddings' in the model's Hugging Face config.json.
 
 	// To determine TotalSafeTensorFileSize and BytesPerToken values for a new model,
-	// run the sku-calculation/calculate_model_weight_and_bytes_per_token.py script
+	// run the presets/workspace/generator/preset_generator.py script
 	// with the model's Hugging Face repository ID as an argument.
 
 	RuntimeParam

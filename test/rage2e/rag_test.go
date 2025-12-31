@@ -145,7 +145,7 @@ var _ = Describe("RAGEngine", func() {
 
 		validateAssociatedService(workspaceObj.ObjectMeta)
 
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 
@@ -204,7 +204,7 @@ var _ = Describe("RAGEngine", func() {
 
 		validateAssociatedService(workspaceObj.ObjectMeta)
 
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 
@@ -267,7 +267,7 @@ var _ = Describe("RAGEngine", func() {
 
 		validateAssociatedService(workspaceObj.ObjectMeta)
 
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 
@@ -328,7 +328,7 @@ var _ = Describe("RAGEngine", func() {
 
 		validateWorkspaceResourceStatus(workspaceObj)
 		validateAssociatedService(workspaceObj.ObjectMeta)
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
 		validateWorkspaceReadiness(workspaceObj)
 
 		serviceName := workspaceObj.ObjectMeta.Name

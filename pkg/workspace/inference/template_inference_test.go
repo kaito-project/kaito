@@ -32,19 +32,19 @@ func TestCreateTemplateInference(t *testing.T) {
 	}{
 		"Fail to create template inference because deployment creation fails": {
 			callMocks: func(c *test.MockClient) {
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1.Deployment{}), mock.Anything).Return(errors.New("Failed to create resource"))
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1.StatefulSet{}), mock.Anything).Return(errors.New("Failed to create resource"))
 			},
 			expectedError: errors.New("Failed to create resource"),
 		},
 		"Successfully creates template inference because deployment already exists": {
 			callMocks: func(c *test.MockClient) {
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1.Deployment{}), mock.Anything).Return(test.IsAlreadyExistsError())
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1.StatefulSet{}), mock.Anything).Return(test.IsAlreadyExistsError())
 			},
 			expectedError: nil,
 		},
 		"Successfully creates template inference by creating a new deployment": {
 			callMocks: func(c *test.MockClient) {
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1.Deployment{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&v1.StatefulSet{}), mock.Anything).Return(nil)
 			},
 			expectedError: nil,
 		},
@@ -60,9 +60,9 @@ func TestCreateTemplateInference(t *testing.T) {
 				assert.Check(t, err == nil, "Not expected to return error")
 				assert.Check(t, obj != nil, "Return object should not be nil")
 
-				deploymentObj, ok := obj.(*v1.Deployment)
-				assert.Check(t, ok, "Returned object should be of type *v1.Deployment")
-				assert.Check(t, deploymentObj != nil, "Returned object should not be nil")
+				statefulSetObj, ok := obj.(*v1.StatefulSet)
+				assert.Check(t, ok, "Returned object should be of type *v1.StatefulSet")
+				assert.Check(t, statefulSetObj != nil, "Returned object should not be nil")
 			} else {
 				assert.Equal(t, tc.expectedError.Error(), err.Error())
 			}

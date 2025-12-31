@@ -65,7 +65,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -87,7 +87,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -111,7 +111,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), true)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		time.Sleep(1 * time.Minute)
 		validateWorkspaceReadiness(workspaceObj)
@@ -134,7 +134,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -156,7 +156,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -178,7 +178,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -192,7 +192,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		time.Sleep(120 * time.Second)
 
 		validateInferenceSetStatus(inferenceSetObj)
-		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas), false)
+		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
 		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
 	})
 
@@ -211,7 +211,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -234,7 +234,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -256,7 +256,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -290,7 +290,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), true)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -312,7 +312,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -334,7 +334,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -356,7 +356,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -378,7 +378,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -400,7 +400,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 		validateModelsEndpoint(workspaceObj)

@@ -5,7 +5,7 @@
 ```bash
 export REGISTRY=mcr.microsoft.com/aks/kaito
 export IMG_NAME=workspace
-export IMG_TAG=0.8.0-rc.0
+export IMG_TAG=0.8.0
 helm install workspace ./charts/kaito/workspace  \
 --set image.repository=${REGISTRY}/${IMG_NAME} --set image.tag=${IMG_TAG} \
 --namespace kaito-workspace --create-namespace
@@ -34,3 +34,4 @@ helm install workspace ./charts/kaito/workspace  \
 | tolerations                              | list   | `[]`                                    |                                                               |
 | webhook.port                             | int    | `9443`                                  |                                                               |
 | cloudProviderName                        | string | `"azure"`                               | Karpenter cloud provider name. Values can be "azure" or "aws" |
+| nvidiaDevicePlugin.enabled               | bool   | `true`                                  | Enable deployment of NVIDIA device plugin DaemonSet. Set to false if your cluster already has the NVIDIA device plugin installed (e.g., via GPU Operator). |

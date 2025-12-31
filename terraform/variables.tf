@@ -18,13 +18,13 @@ variable "node_pool_vm_size" {
 
 variable "kaito_gpu_provisioner_version" {
   type        = string
-  default     = "0.3.7"
+  default     = "0.3.8"
   description = "kaito gpu provisioner version"
 }
 
 variable "kaito_workspace_version" {
   type        = string
-  default     = "0.7.0"
+  default     = "0.8.0"
   description = "kaito workspace version"
 }
 

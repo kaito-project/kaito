@@ -22,11 +22,15 @@ inputs:
   region:
     description: "the azure location to run the e2e test in"
     required: false
-    default: "eastus"
+    default: "swedencentral"
   k8s_version:
     description: "Kubernetes version"
     required: false
     default: "1.32.9"
+  skip_helm_install:
+    description: "Skip Helm installation of KAITO charts"
+    required: false
+    default: "false"
 
 outputs:
   cluster_name:
@@ -87,6 +91,8 @@ runs:
 
     - name: Install Helm
       uses: azure/setup-helm@v4
+      with:
+        version: 'v3.19.4'
 
     - name: Create Resource Group
       shell: bash
@@ -230,6 +236,7 @@ runs:
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
 
     - name: Install KAITO Workspace helm chart
+      if: ${{ inputs.skip_helm_install == 'false' }}
       shell: bash
       run: |
         make az-patch-install-helm

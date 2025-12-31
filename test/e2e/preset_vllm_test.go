@@ -72,6 +72,28 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
+	It("should create a qwen3-coder-30b-a3b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
+	})
+
 	It("should create a single-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode, "Standard_NV36ads_A10_v5")
@@ -366,28 +388,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 	It("should create a gpt-oss-120b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
 		numOfNode := 1
 		workspaceObj := createGPTOss120BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-	})
-
-	It("should create a qwen3-coder-30b-a3b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		workspaceObj := createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)

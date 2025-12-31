@@ -31,7 +31,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
@@ -362,30 +361,31 @@ func (c *RAGEngineReconciler) applyRAGEngineResource(ctx context.Context, ragEng
 		return err
 	}
 
-	selectedNodes := utils.SelectNodes(validNodes, ragEngineObj.Spec.Compute.PreferredNodes, ragEngineObj.Status.WorkerNodes, lo.FromPtr(ragEngineObj.Spec.Compute.Count))
-	newNodesCount := lo.FromPtr(ragEngineObj.Spec.Compute.Count) - len(selectedNodes)
-
-	if newNodesCount > 0 {
-		klog.InfoS("need to create more nodes", "NodeCount", newNodesCount)
+	// RAGEngine requires exactly 1 node
+	var selectedNodes []*corev1.Node
+	if len(validNodes) == 0 {
+		// No existing nodes, need to create one
+		klog.InfoS("need to create a new node", "ragengine", klog.KObj(ragEngineObj))
 		if err := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj,
 			kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionUnknown,
-			"CreateNodeClaimPending", fmt.Sprintf("creating %d nodeClaims", newNodesCount)); err != nil {
+			"CreateNodeClaimPending", "creating 1 nodeClaim"); err != nil {
 			klog.ErrorS(err, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
 			return err
 		}
 
-		for i := 0; i < newNodesCount; i++ {
-			newNode, err := c.createAndValidateNode(ctx, ragEngineObj)
-			if err != nil {
-				if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
-					"ragengineResourceStatusFailed", err.Error()); updateErr != nil {
-					klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
-					return updateErr
-				}
-				return err
+		newNode, err := c.createAndValidateNode(ctx, ragEngineObj)
+		if err != nil {
+			if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+				"ragengineResourceStatusFailed", err.Error()); updateErr != nil {
+				klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
+				return updateErr
 			}
-			selectedNodes = append(selectedNodes, newNode)
+			return err
 		}
+		selectedNodes = []*corev1.Node{newNode}
+	} else {
+		// Select the best qualified node from existing nodes
+		selectedNodes = utils.SelectNodes(validNodes, nil, ragEngineObj.Status.WorkerNodes, 1)
 	}
 
 	// Ensure all gpu plugins are running successfully.
@@ -394,7 +394,7 @@ func (c *RAGEngineReconciler) applyRAGEngineResource(ctx context.Context, ragEng
 		return err
 	}
 
-	if len(ragEngineObj.Spec.Compute.PreferredNodes) == 0 && knownGPUConfig != nil {
+	if knownGPUConfig != nil {
 		for i := range selectedNodes {
 			err = c.ensureNodePlugins(ctx, ragEngineObj, selectedNodes[i])
 			if err != nil {
@@ -449,8 +449,6 @@ func (c *RAGEngineReconciler) getAllQualifiedNodes(ctx context.Context, ragEngin
 		return nil, nil
 	}
 
-	preferredNodeSet := sets.New(ragEngineObj.Spec.Compute.PreferredNodes...)
-
 	for index := range nodeList.Items {
 		nodeObj := nodeList.Items[index]
 		// skip nodes that are being deleted
@@ -463,12 +461,6 @@ func (c *RAGEngineReconciler) getAllQualifiedNodes(ctx context.Context, ragEngin
 			return condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue
 		})
 		if !statusRunning {
-			continue
-		}
-
-		// match the preferred node
-		if preferredNodeSet.Has(nodeObj.Name) {
-			qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
 			continue
 		}
 

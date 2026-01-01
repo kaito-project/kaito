@@ -14,6 +14,8 @@
 package sku
 
 import (
+	"strings"
+
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -44,15 +46,22 @@ func GetCloudSKUHandler(cloud string) CloudSKUHandler {
 }
 
 type generalSKUHandler struct {
-	supportedSKUs map[string]GPUConfig
+	supportedSKUs         map[string]GPUConfig
+	supportedSKUsLowerKey map[string]GPUConfig
 }
 
 func NewGeneralSKUHandler(supportedSKUs []GPUConfig) CloudSKUHandler {
 	skuMap := make(map[string]GPUConfig)
+	skuMapLowerKey := make(map[string]GPUConfig)
 	for _, sku := range supportedSKUs {
 		skuMap[sku.SKU] = sku
+		// Store with lowercase key for case-insensitive lookup
+		skuMapLowerKey[strings.ToLower(sku.SKU)] = sku
 	}
-	return &generalSKUHandler{supportedSKUs: skuMap}
+	return &generalSKUHandler{
+		supportedSKUs:         skuMap,
+		supportedSKUsLowerKey: skuMapLowerKey,
+	}
 }
 
 func (b *generalSKUHandler) GetSupportedSKUs() []string {
@@ -64,7 +73,12 @@ func (b *generalSKUHandler) GetSupportedSKUs() []string {
 }
 
 func (b *generalSKUHandler) GetGPUConfigBySKU(sku string) *GPUConfig {
+	// First try exact match for backward compatibility
 	if config, ok := b.supportedSKUs[sku]; ok {
+		return &config
+	}
+	// Fall back to case-insensitive match
+	if config, ok := b.supportedSKUsLowerKey[strings.ToLower(sku)]; ok {
 		return &config
 	}
 	return nil

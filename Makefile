@@ -388,6 +388,22 @@ docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 		--tag $(REGISTRY)/e2e-dataset2:0.0.1 .
 
 ## --------------------------------------
+## Helm
+## --------------------------------------
+
+##@ Helm
+
+.PHONY: helm-package-workspace
+helm-package-workspace: ## Build Helm chart for workspace.
+	cd ./charts/kaito/workspace && helm package .
+	helm push ./charts/kaito/workspace/$(IMG_NAME)-$(IMG_TAG).tgz oci://$(REGISTRY)
+
+.PHONY: helm-package-ragengine
+helm-package-ragengine: ## Build Helm chart for RAG Engine.
+	cd ./charts/kaito/ragengine && helm package .
+	helm push ./charts/kaito/ragengine/$(RAGENGINE_IMAGE_NAME)-$(IMG_TAG).tgz oci://$(REGISTRY)
+
+## --------------------------------------
 ## KAITO Installation
 ## --------------------------------------
 

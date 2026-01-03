@@ -72,6 +72,13 @@ jobs:
     outputs:
       registry_repository: ${{ steps.get-registry.outputs.registry_repository }}
     steps:
+      - name: Install ORAS
+        run: |
+          VER='1.3.0'
+          curl -LO "https://github.com/oras-project/oras/releases/download/v${VER}/oras_${VER}_linux_amd64.tar.gz"
+          sudo tar -zxf "./oras_${VER}_linux_amd64.tar.gz" -C '/usr/local/bin'
+          rm -f "./oras_${VER}_linux_amd64.tar.gz"
+
       - id: get-registry
         run: |
           # registry must be in lowercase
@@ -97,7 +104,15 @@ jobs:
 
       - name: Build image
         run: |
-          OUTPUT_TYPE=type=registry make docker-build-workspace
+          INDEX_REF="${REGISTRY}/${IMG_NAME}:${IMG_TAG}"
+
+          make docker-build-workspace
+          IMAGE_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
+
+          make helm-package-workspace
+          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
+
+          oras manifest index create "${INDEX_REF}" "${IMAGE_DIG}" "${CHART_DIG}"
         env:
           VERSION: ${{ needs.check-tag.outputs.tag }}
           REGISTRY: ${{ steps.get-registry.outputs.registry_repository }}

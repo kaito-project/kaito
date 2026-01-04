@@ -33,7 +33,7 @@ var (
 )
 
 // VLLMCatalog is a struct that holds a list of supported models parsed
-// from preset/workspace/models/supported_models_best_effort.yaml. The YAML file is
+// from presets/workspace/models/supported_models_best_effort.yaml. The YAML file is
 // considered the source of truth for the model metadata, and any
 // information in the YAML file should not be hardcoded in the codebase.
 type VLLMCatalog struct {
@@ -83,11 +83,13 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		runParamsVLLM["enable-auto-tool-choice"] = ""
 	}
 	if m.model.ChatTemplate != "" {
-		// todo: verify whether ChatTemplate file name is valid
 		runParamsVLLM["chat-template"] = "/workspace/chat_templates/" + m.model.ChatTemplate
 	}
 	if m.model.AllowRemoteFiles {
 		runParamsVLLM["allow-remote-files"] = ""
+	}
+	if m.model.ReasoningParser != "" {
+		runParamsVLLM["reasoning-parser"] = m.model.ReasoningParser
 	}
 
 	presetParam := &model.PresetParam{

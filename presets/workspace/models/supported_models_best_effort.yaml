@@ -1,16 +1,18 @@
 models:
   - name: deepseek-v3-1-base
-    version: https://huggingface.co/deepseek-ai/DeepSeek-V3.1-Base/commit/d3d4eafdc470de44bbf6f0a74f852eb522357be8
+    version: https://huggingface.co/deepseek-ai/DeepSeek-V3.1-Base
     modelFileSize: 642Gi
     diskStorageRequirement: 692Gi
     bytesPerToken: 70272
     modelTokenLimit: 163840
     toolCallParser: deepseek_v3
     chatTemplate: tool-chat-deepseekv3.jinja
+    reasoningParser: deepseek_v3
   - name: qwen3-coder-30b-a3b-instruct
-    version: https://huggingface.co/Qwen/Qwen3-Coder-30B-A3B-Instruct/commit/b2cff646eb4bb1d68355c01b18ae02e7cf42d120
+    version: https://huggingface.co/Qwen/Qwen3-Coder-30B-A3B-Instruct
     modelFileSize: 57Gi
     diskStorageRequirement: 107Gi
     bytesPerToken: 98304
     modelTokenLimit: 262144
     toolCallParser: hermes
+    reasoningParser: qwen3

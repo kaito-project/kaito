@@ -176,6 +176,52 @@ type VLLMParam struct {
 	DisallowLoRA bool
 }
 
+type VLLMModel struct {
+	// Name is the name of the model, which serves as a unique identifier.
+	// It is used to register the model information and retrieve it later.
+	Name string `yaml:"name"`
+
+	// DType is the data type used for model weights, default is bfloat16.
+	DType string `yaml:"dtype,omitempty"`
+
+	// Version is the version of the model. It is a URL that points to the
+	// model's huggingface page, which contains the model's repository ID
+	// and revision ID, e.g. https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff.
+	Version string `yaml:"version"`
+
+	// DownloadAuthRequired indicates whether the model requires authentication to download.
+	// +optional
+	DownloadAuthRequired bool `yaml:"downloadAuthRequired,omitempty"`
+
+	ModelFileSize string `yaml:"modelFileSize,omitempty"`
+
+	DiskStorageRequirement string `yaml:"diskStorageRequirement,omitempty"`
+
+	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
+
+	ModelTokenLimit int `yaml:"modelTokenLimit,omitempty"`
+
+	ToolCallParser string `yaml:"toolCallParser,omitempty"`
+
+	ReasoningParser string `yaml:"reasoningParser,omitempty"`
+
+	ChatTemplate string `yaml:"chatTemplate,omitempty"`
+
+	AllowRemoteFiles bool `yaml:"allowRemoteFiles,omitempty"`
+}
+
+// Validate checks if the VLLMModel is valid.
+func (m *VLLMModel) Validate() error {
+	// Some models requiring authentication may not have a version URL, so we allow it to be empty until
+	// we remove support for preset models requiring authentication.
+	if m.Version == "" {
+		return nil
+	}
+
+	_, _, err := utils.ParseHuggingFaceModelVersion(m.Version)
+	return err
+}
+
 func (p *PresetParam) DeepCopy() *PresetParam {
 	if p == nil {
 		return nil

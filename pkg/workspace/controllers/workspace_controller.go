@@ -94,6 +94,7 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 }
 
 func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
+	klog.InfoS("Reconciling workspace", "workspace", req.NamespacedName, "request name", req.Name)
 	workspaceObj := &kaitov1beta1.Workspace{}
 	if err := c.Client.Get(ctx, req.NamespacedName, workspaceObj); err != nil {
 		if apierrors.IsNotFound(err) {

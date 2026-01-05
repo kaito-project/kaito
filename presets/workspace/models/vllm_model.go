@@ -25,8 +25,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
-const DefaultVLLMCommand = "python3 /workspace/vllm/inference_api.py"
-
 var (
 	//go:embed supported_models_best_effort.yaml
 	vLLMModelsYAML []byte
@@ -100,9 +98,11 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         m.model.ModelTokenLimit,
 		RuntimeParam: model.RuntimeParam{
 			VLLM: model.VLLMParam{
-				BaseCommand:    DefaultVLLMCommand,
-				ModelName:      metaData.Name,
-				ModelRunParams: runParamsVLLM,
+				BaseCommand:          DefaultVLLMCommand,
+				ModelName:            metaData.Name,
+				ModelRunParams:       runParamsVLLM,
+				RayLeaderBaseCommand: DefaultVLLMRayLeaderBaseCommand,
+				RayWorkerBaseCommand: DefaultVLLMRayWorkerBaseCommand,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

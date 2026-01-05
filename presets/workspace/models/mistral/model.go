@@ -102,7 +102,7 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetMistral7BModel,
 				ModelRunParams: mistralRunParamsVLLM,
 			},
@@ -155,7 +155,7 @@ func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetMistral7BInstructModel,
 				ModelRunParams: mistralRunParamsVLLM,
 			},
@@ -197,7 +197,7 @@ func (*ministral3_3bInstruct) GetInferenceParameters() *model.PresetParam {
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetMinistral33BInstructModel,
 				ModelRunParams: mistral3RunParamsVLLM,
 			},
@@ -227,7 +227,7 @@ func (*ministral3_8bInstruct) GetInferenceParameters() *model.PresetParam {
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetMinistral38BInstructModel,
 				ModelRunParams: mistral3RunParamsVLLM,
 			},
@@ -257,7 +257,7 @@ func (*ministral3_14bInstruct) GetInferenceParameters() *model.PresetParam {
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetMinistral314BInstructModel,
 				ModelRunParams: mistral3RunParamsVLLM,
 			},
@@ -289,11 +289,11 @@ func (*mistralLarge3_675bInstruct) GetInferenceParameters() *model.PresetParam {
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:          inference.DefaultVLLMCommand,
+				BaseCommand:          metadata.DefaultVLLMCommand,
 				ModelName:            PresetMistralLarge3675BInstructModel,
 				ModelRunParams:       mistral3RunParamsVLLM,
-				RayLeaderBaseCommand: inference.DefaultVLLMRayLeaderBaseCommand,
-				RayWorkerBaseCommand: inference.DefaultVLLMRayWorkerBaseCommand,
+				RayLeaderBaseCommand: metadata.DefaultVLLMRayLeaderBaseCommand,
+				RayWorkerBaseCommand: metadata.DefaultVLLMRayWorkerBaseCommand,
 			},
 		},
 		ReadinessTimeout: time.Duration(60) * time.Minute,

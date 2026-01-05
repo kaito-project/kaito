@@ -639,7 +639,7 @@ func createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kai
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Qwen3 Coder 30B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-qwen3-coder-30b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV72ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-coder-30b-vllm"},
 			}, nil, PresetQwen3_Coder30BModel, nil, nil, nil, "")

@@ -182,6 +182,7 @@ type VLLMModel struct {
 	Name string `yaml:"name"`
 
 	// DType is the data type used for model weights, default is bfloat16.
+	// +optional
 	DType string `yaml:"dtype,omitempty"`
 
 	// Version is the version of the model. It is a URL that points to the
@@ -193,29 +194,42 @@ type VLLMModel struct {
 	// +optional
 	DownloadAuthRequired bool `yaml:"downloadAuthRequired,omitempty"`
 
+	// ModelFileSize is the size of the model file, example: 14Gi.
 	ModelFileSize string `yaml:"modelFileSize,omitempty"`
 
+	// DiskStorageRequirement is the disk storage requirement for the model, example: 90Gi.
 	DiskStorageRequirement string `yaml:"diskStorageRequirement,omitempty"`
 
+	// BytesPerToken is the number of bytes used to represent each token in the model.
 	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
 
+	// ModelTokenLimit is the maximum number of tokens (context window) supported by the model.
 	ModelTokenLimit int `yaml:"modelTokenLimit,omitempty"`
 
+	// ToolCallParser specifies the parser used for tool calls within the model.
+	// +optional
 	ToolCallParser string `yaml:"toolCallParser,omitempty"`
 
+	// ReasoningParser specifies the parser used for reasoning within the model.
+	// +optional
 	ReasoningParser string `yaml:"reasoningParser,omitempty"`
 
+	// ChatTemplate is the chat template file name used for chat models.
+	// +optional
 	ChatTemplate string `yaml:"chatTemplate,omitempty"`
 
+	// AllowRemoteFiles indicates whether the model allows loading remote files.
+	// +optional
 	AllowRemoteFiles bool `yaml:"allowRemoteFiles,omitempty"`
 }
 
 // Validate checks if the VLLMModel is valid.
 func (m *VLLMModel) Validate() error {
-	// Some models requiring authentication may not have a version URL, so we allow it to be empty until
-	// we remove support for preset models requiring authentication.
+	if m.Name == "" {
+		return fmt.Errorf("model name is required")
+	}
 	if m.Version == "" {
-		return nil
+		return fmt.Errorf("model version is required")
 	}
 
 	_, _, err := utils.ParseHuggingFaceModelVersion(m.Version)

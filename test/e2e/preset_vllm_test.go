@@ -72,9 +72,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a qwen3-coder-30b-a3b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a qwen2-7b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		workspaceObj := createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createQWen2_7BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -635,14 +635,14 @@ func createGPTOss120BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov
 	return workspaceObj
 }
 
-func createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createQWen2_7BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Qwen3 Coder 30B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-qwen3-coder-30b-", rand.Intn(1000))
+	By("Creating a workspace CR with Qwen2 7B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-qwen2-7b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV72ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-coder-30b-vllm"},
-			}, nil, PresetQwen3_Coder30BModel, nil, nil, nil, "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen2-7b-vllm"},
+			}, nil, PresetQwen2_7BModel, nil, nil, nil, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})

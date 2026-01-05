@@ -46,7 +46,7 @@ const (
 	PresetFalcon40BModel                = "falcon-40b"
 	PresetMistral7BInstructModel        = "mistral-7b-instruct"
 	PresetQwen2_5Coder7BModel           = "qwen2.5-coder-7b-instruct"
-	PresetQwen3_Coder30BModel           = "qwen3-coder-30b-a3b-instruct"
+	PresetQwen2_7BModel                 = "qwen2-7b"
 	PresetPhi3Mini128kModel             = "phi-3-mini-128k-instruct"
 	PresetDeepSeekR1DistillLlama8BModel = "deepseek-r1-distill-llama-8b"
 	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"

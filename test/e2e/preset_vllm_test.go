@@ -649,7 +649,7 @@ func createQWen2_7BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1b
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Qwen2 7B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-qwen2-7b-", rand.Intn(1000))
-		configMap := createCustomInferenceConfigMapForE2E(PresetQwen2_7BModel)
+		configMap := createCustomInferenceConfigMapForE2E(fmt.Sprintf("%s-%s", PresetQwen2_7BModel, uniqueID))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV72ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen2-7b-vllm"},

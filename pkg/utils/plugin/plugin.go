@@ -52,6 +52,10 @@ func (reg *ModelRegister) Register(r *Registration) {
 		reg.models = make(map[string]*Registration)
 	}
 
+	// check whether the model is already registered
+	if _, exists := reg.models[r.Name]; exists {
+		panic("model is already registered: " + r.Name)
+	}
 	reg.models[r.Name] = r
 }
 

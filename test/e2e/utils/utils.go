@@ -529,6 +529,10 @@ func GenerateE2EInferenceConfigMapManifest(name, namespace string) *corev1.Confi
 			"inference_config.yaml": `
 vllm:
   max-model-len: 1024
+  gpu-memory-utilization: 0.95
+  swap-space: 4
+  cpu-offload-gb: 10
+  tensor-parallel-size: 2
 `,
 		},
 	}

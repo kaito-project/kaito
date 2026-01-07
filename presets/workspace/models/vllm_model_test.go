@@ -25,14 +25,14 @@ import (
 func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 	tests := []struct {
 		name          string
-		model         model.VLLMModel
+		model         model.Metadata
 		expectedName  string
 		expectedDType string
 		checkParams   func(t *testing.T, params *model.PresetParam)
 	}{
 		{
 			name: "basic model with default dtype",
-			model: model.VLLMModel{
+			model: model.Metadata{
 				Name:                   "test-model",
 				Version:                "https://huggingface.co/test/model",
 				ModelFileSize:          "2Gi",
@@ -57,10 +57,10 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 		},
 		{
 			name: "model with custom dtype",
-			model: model.VLLMModel{
+			model: model.Metadata{
 				Name:                   "custom-dtype-model",
 				Version:                "https://huggingface.co/test/model",
-				DType:                  "float16",
+				ModelType:              "float16",
 				ModelFileSize:          "2Gi",
 				DiskStorageRequirement: "4Gi",
 			},
@@ -72,7 +72,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 		},
 		{
 			name: "model with tool call parser",
-			model: model.VLLMModel{
+			model: model.Metadata{
 				Name:           "tool-model",
 				Version:        "https://huggingface.co/test/model",
 				ToolCallParser: "hermes",
@@ -87,7 +87,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 		},
 		{
 			name: "model with chat template",
-			model: model.VLLMModel{
+			model: model.Metadata{
 				Name:          "chat-model",
 				Version:       "https://huggingface.co/test/model",
 				ChatTemplate:  "template.jinja",
@@ -101,7 +101,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 		},
 		{
 			name: "model with allow remote files",
-			model: model.VLLMModel{
+			model: model.Metadata{
 				Name:             "remote-model",
 				Version:          "https://huggingface.co/test/model",
 				AllowRemoteFiles: true,
@@ -115,7 +115,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 		},
 		{
 			name: "model with reasoning parser",
-			model: model.VLLMModel{
+			model: model.Metadata{
 				Name:            "reasoning-model",
 				Version:         "https://huggingface.co/test/model",
 				ReasoningParser: "qwq",
@@ -129,7 +129,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 		},
 		{
 			name: "model with download auth required",
-			model: model.VLLMModel{
+			model: model.Metadata{
 				Name:                 "auth-model",
 				Version:              "https://huggingface.co/test/model",
 				DownloadAuthRequired: true,
@@ -143,10 +143,10 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 		},
 		{
 			name: "model with all options",
-			model: model.VLLMModel{
+			model: model.Metadata{
 				Name:                   "full-model",
 				Version:                "https://huggingface.co/test/model",
-				DType:                  "float32",
+				ModelType:              "float32",
 				ToolCallParser:         "mistral",
 				ChatTemplate:           "custom.jinja",
 				AllowRemoteFiles:       true,

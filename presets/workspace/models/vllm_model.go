@@ -35,7 +35,7 @@ var (
 // considered the source of truth for the model metadata, and any
 // information in the YAML file should not be hardcoded in the codebase.
 type VLLMCatalog struct {
-	Models []model.VLLMModel `yaml:"models,omitempty"`
+	Models []model.Metadata `yaml:"models,omitempty"`
 }
 
 func init() {
@@ -54,7 +54,7 @@ func init() {
 }
 
 type vLLMCompatibleModel struct {
-	model model.VLLMModel
+	model model.Metadata
 }
 
 func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
@@ -70,8 +70,8 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	runParamsVLLM := map[string]string{
 		"trust-remote-code": "",
 	}
-	if m.model.DType != "" {
-		runParamsVLLM["dtype"] = m.model.DType
+	if m.model.ModelType != "" {
+		runParamsVLLM["dtype"] = m.model.ModelType
 	} else {
 		runParamsVLLM["dtype"] = "bfloat16"
 	}

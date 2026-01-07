@@ -101,6 +101,42 @@ type Metadata struct {
 	// Deprecated indicates if the model is deprecated.
 	// +optional
 	Deprecated bool `yaml:"deprecated,omitempty"`
+
+	// ModelFileSize is the size of the model file, example: 14Gi.
+	// only used for best_effort supported models
+	ModelFileSize string `yaml:"modelFileSize,omitempty"`
+
+	// DiskStorageRequirement is the disk storage requirement for the model, example: 90Gi.
+	// only used for best_effort supported models
+	DiskStorageRequirement string `yaml:"diskStorageRequirement,omitempty"`
+
+	// BytesPerToken is the number of bytes used to represent each token in the model.
+	// only used for best_effort supported models
+	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
+
+	// ModelTokenLimit is the maximum number of tokens (context window) supported by the model.
+	// only used for best_effort supported models
+	ModelTokenLimit int `yaml:"modelTokenLimit,omitempty"`
+
+	// ToolCallParser specifies the parser used for tool calls within the model.
+	// only used for best_effort supported models
+	// +optional
+	ToolCallParser string `yaml:"toolCallParser,omitempty"`
+
+	// ReasoningParser specifies the parser used for reasoning within the model.
+	// only used for best_effort supported models
+	// +optional
+	ReasoningParser string `yaml:"reasoningParser,omitempty"`
+
+	// ChatTemplate is the chat template file name used for chat models.
+	// only used for best_effort supported models
+	// +optional
+	ChatTemplate string `yaml:"chatTemplate,omitempty"`
+
+	// AllowRemoteFiles indicates whether the model allows loading remote files.
+	// only used for best_effort supported models
+	// +optional
+	AllowRemoteFiles bool `yaml:"allowRemoteFiles,omitempty"`
 }
 
 // Validate checks if the Metadata is valid.
@@ -174,66 +210,6 @@ type VLLMParam struct {
 	// Indicates if vllm supports LoRA (Low-Rank Adaptation) for this model.
 	// doc: https://docs.vllm.ai/en/latest/models/supported_models.html#text-generation-task-generate
 	DisallowLoRA bool
-}
-
-type VLLMModel struct {
-	// Name is the name of the model, which serves as a unique identifier.
-	// It is used to register the model information and retrieve it later.
-	Name string `yaml:"name"`
-
-	// DType is the data type used for model weights, default is bfloat16.
-	// +optional
-	DType string `yaml:"dtype,omitempty"`
-
-	// Version is the version of the model. It is a URL that points to the
-	// model's huggingface page, which contains the model's repository ID
-	// and revision ID, e.g. https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff.
-	Version string `yaml:"version"`
-
-	// DownloadAuthRequired indicates whether the model requires authentication to download.
-	// +optional
-	DownloadAuthRequired bool `yaml:"downloadAuthRequired,omitempty"`
-
-	// ModelFileSize is the size of the model file, example: 14Gi.
-	ModelFileSize string `yaml:"modelFileSize,omitempty"`
-
-	// DiskStorageRequirement is the disk storage requirement for the model, example: 90Gi.
-	DiskStorageRequirement string `yaml:"diskStorageRequirement,omitempty"`
-
-	// BytesPerToken is the number of bytes used to represent each token in the model.
-	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
-
-	// ModelTokenLimit is the maximum number of tokens (context window) supported by the model.
-	ModelTokenLimit int `yaml:"modelTokenLimit,omitempty"`
-
-	// ToolCallParser specifies the parser used for tool calls within the model.
-	// +optional
-	ToolCallParser string `yaml:"toolCallParser,omitempty"`
-
-	// ReasoningParser specifies the parser used for reasoning within the model.
-	// +optional
-	ReasoningParser string `yaml:"reasoningParser,omitempty"`
-
-	// ChatTemplate is the chat template file name used for chat models.
-	// +optional
-	ChatTemplate string `yaml:"chatTemplate,omitempty"`
-
-	// AllowRemoteFiles indicates whether the model allows loading remote files.
-	// +optional
-	AllowRemoteFiles bool `yaml:"allowRemoteFiles,omitempty"`
-}
-
-// Validate checks if the VLLMModel is valid.
-func (m *VLLMModel) Validate() error {
-	if m.Name == "" {
-		return fmt.Errorf("model name is required")
-	}
-	if m.Version == "" {
-		return fmt.Errorf("model version is required")
-	}
-
-	_, _, err := utils.ParseHuggingFaceModelVersion(m.Version)
-	return err
 }
 
 func (p *PresetParam) DeepCopy() *PresetParam {

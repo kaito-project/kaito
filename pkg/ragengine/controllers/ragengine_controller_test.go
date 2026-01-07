@@ -130,7 +130,7 @@ func TestApplyRAGEngineResource(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
 
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
-				// no get node query is needed here as we are not updating the node
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
 
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
 				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)

@@ -26,7 +26,7 @@ import (
 )
 
 func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisionNum string, imageName string,
-	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
+	imagePullSecretRefs []corev1.LocalObjectReference, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
 	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount) *appsv1.Deployment {
 
@@ -61,7 +61,7 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisio
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: lo.ToPtr(int32(replicas)),
+			Replicas: lo.ToPtr(int32(1)), // RAGEngine requires exactly 1 replica
 			Strategy: appsv1.DeploymentStrategy{
 				Type: appsv1.RollingUpdateDeploymentStrategyType,
 				RollingUpdate: &appsv1.RollingUpdateDeployment{

@@ -40,13 +40,12 @@ func TestGenerateRAGDeploymentManifest(t *testing.T) {
 
 		// Calling the function to generate the deployment manifest
 		obj := GenerateRAGDeploymentManifest(ragEngine, test.MockRAGEngineWithPresetHash,
-			"",                            // imageName
-			nil,                           // imagePullSecretRefs
-			*ragEngine.Spec.Compute.Count, // replicas
-			nil,                           // commands
-			nil,                           // containerPorts
-			nil,                           // livenessProbe
-			nil,                           // readinessProbe
+			"",  // imageName
+			nil, // imagePullSecretRefs
+			nil, // commands
+			nil, // containerPorts
+			nil, // livenessProbe
+			nil, // readinessProbe
 			v1.ResourceRequirements{},
 			nil, // tolerations
 			nil, // volumes

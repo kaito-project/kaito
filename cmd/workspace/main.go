@@ -53,7 +53,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
-	"github.com/kaito-project/kaito/pkg/workspace/controllers/garbagecollect"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
@@ -187,15 +186,6 @@ func main() {
 			klog.ErrorS(err, "unable to create controller", "controller", "InferenceSet")
 			exitWithErrorFunc()
 		}
-	}
-
-	pvGCReconciler := garbagecollect.NewPersistentVolumeGCReconciler(
-		kClient,
-		mgr.GetEventRecorderFor("KAITO-PersistentVolumeGC-controller"),
-	)
-	if err = pvGCReconciler.SetupWithManager(mgr); err != nil {
-		klog.ErrorS(err, "unable to create controller", "controller", "PersistentVolumeGC")
-		exitWithErrorFunc()
 	}
 
 	//+kubebuilder:scaffold:builder

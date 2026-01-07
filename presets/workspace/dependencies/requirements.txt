@@ -18,7 +18,7 @@ lmcache==0.3.10
 
 # For accessing Ray dashboard. ray[default] version should be consistent with the one in vllm/vllm-openai:<vllm-version>.
 # Check with `docker run --entrypoint "" vllm/vllm-openai:<vllm-version> pip freeze | grep ray`
-ray[default]==2.48.0
+ray[default]==2.52.1
 
 # Utility libraries
 datasets==2.19.1

@@ -3,8 +3,9 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.1.0
+    tag: 0.1.1
     # Tag history:
+    # 0.1.1 - bump ray to 2.52.1
     # 0.1.0 - bump vLLM to 0.12.0. remove the support for vllm v0
     # 0.0.9 - bump pip to 25.3
     # 0.0.8 - Fix multi-node-health-check issue

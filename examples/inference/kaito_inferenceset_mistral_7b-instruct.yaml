@@ -2,8 +2,13 @@ apiVersion: kaito.sh/v1alpha1
 kind: InferenceSet
 metadata:
   name: mistral-7b-instruct
+  annotations:
+    scaledobject.kaito.sh/auto-provision: "true"
+    scaledobject.kaito.sh/metricName: "vllm:num_requests_waiting"
+    scaledobject.kaito.sh/threshold: "10"
 spec:
   replicas: 1
+  nodeCountLimit: 5
   labelSelector:
     matchLabels:
       apps: mistral-7b-instruct

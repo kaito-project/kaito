@@ -1002,6 +1002,60 @@ var (
 			ReadyReplicas: 1,
 		},
 	}
+	MockStatefulSetUpdated = appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        "testWorkspace",
+			Namespace:   "kaito",
+			Annotations: map[string]string{v1beta1.WorkspaceRevisionAnnotation: "1"},
+		},
+		Spec: appsv1.StatefulSetSpec{
+			Replicas: &numRep,
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"app": "test-app",
+					},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:  "test-container",
+							Image: "nginx:latest",
+							Ports: []corev1.ContainerPort{
+								{
+									ContainerPort: 80,
+									Protocol:      corev1.ProtocolTCP,
+								},
+							},
+							Env: []corev1.EnvVar{
+								{
+									Name:  "ENV_VAR_NAME",
+									Value: "ENV_VAR_VALUE",
+								},
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "volume-name",
+									MountPath: "/mount/path",
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "volume-name",
+							VolumeSource: corev1.VolumeSource{
+								EmptyDir: &corev1.EmptyDirVolumeSource{},
+							},
+						},
+					},
+				},
+			},
+		},
+		Status: appsv1.StatefulSetStatus{
+			ReadyReplicas: 1,
+		},
+	}
 	MockDeploymentWithAnnotationsAndContainer1 = appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{},

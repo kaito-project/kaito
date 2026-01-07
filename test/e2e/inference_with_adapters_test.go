@@ -85,7 +85,7 @@ func validateInitContainers(workspaceObj *kaitov1beta1.Workspace, expectedInitCo
 			var err error
 			var initContainers []corev1.Container
 
-			dep := &appsv1.Deployment{
+			sts := &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      workspaceObj.Name,
 					Namespace: workspaceObj.Namespace,
@@ -94,8 +94,8 @@ func validateInitContainers(workspaceObj *kaitov1beta1.Workspace, expectedInitCo
 			err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: workspaceObj.Namespace,
 				Name:      workspaceObj.Name,
-			}, dep)
-			initContainers = dep.Spec.Template.Spec.InitContainers
+			}, sts)
+			initContainers = sts.Spec.Template.Spec.InitContainers
 
 			if err != nil {
 				GinkgoWriter.Printf("Error fetching resource: %v\n", err)
@@ -126,7 +126,7 @@ func validateImagePullSecrets(workspaceObj *kaitov1beta1.Workspace, expectedImag
 		Eventually(func() bool {
 			var err error
 
-			dep := &appsv1.Deployment{
+			sts := &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      workspaceObj.Name,
 					Namespace: workspaceObj.Namespace,
@@ -135,17 +135,17 @@ func validateImagePullSecrets(workspaceObj *kaitov1beta1.Workspace, expectedImag
 			err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: workspaceObj.Namespace,
 				Name:      workspaceObj.Name,
-			}, dep)
+			}, sts)
 
 			if err != nil {
 				GinkgoWriter.Printf("Error fetching resource: %v\n", err)
 				return false
 			}
-			if dep.Spec.Template.Spec.ImagePullSecrets == nil {
+			if sts.Spec.Template.Spec.ImagePullSecrets == nil {
 				return false
 			}
 
-			return utils.CompareSecrets(dep.Spec.Template.Spec.ImagePullSecrets, expectedImagePullSecrets)
+			return utils.CompareSecrets(sts.Spec.Template.Spec.ImagePullSecrets, expectedImagePullSecrets)
 		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for ImagePullSecrets to be ready")
 	})
 }
@@ -160,7 +160,7 @@ func validateAdapterAdded(workspaceObj *kaitov1beta1.Workspace, deploymentName s
 			}
 
 			namespace := workspaceObj.Namespace
-			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
+			podName, err := utils.GetPodNameForWorkspace(coreClient, namespace, deploymentName)
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
 				return false
@@ -198,7 +198,7 @@ func validateAdapterLoadedInVLLM(workspaceObj *kaitov1beta1.Workspace, adapterNa
 			}
 
 			namespace := workspaceObj.Namespace
-			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
+			podName, err := utils.GetPodNameForWorkspace(coreClient, namespace, deploymentName)
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
 				return false
@@ -253,7 +253,7 @@ var _ = Describe("Workspace Preset", func() {
 
 		validateAssociatedService(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 
@@ -283,7 +283,7 @@ var _ = Describe("Workspace Preset", func() {
 
 		validateAssociatedService(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 

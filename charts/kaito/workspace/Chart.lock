@@ -7,6 +7,6 @@ dependencies:
   version: 0.17.4
 - name: local-csi-driver
   repository: oci://localcsidriver.azurecr.io/acstor/charts
-  version: 0.2.8
-digest: sha256:9d29be5770586d0786025df2268b123c01c56e3815a5d27ff3d7c8b3282c5b27
-generated: "2025-12-06T20:21:56.045257+11:00"
+  version: 0.2.9
+digest: sha256:7f11d82e101c8c3abf4df4b623005d7e61f82c65b4b6920f7b72f18ba42a8c25
+generated: "2025-12-12T16:06:44.271279+11:00"

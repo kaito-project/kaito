@@ -71,7 +71,7 @@ func (*gemma3_4BInstruct) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    gemma3RunParams,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetGemma3_4BInstructModel,
 				ModelRunParams: gemma3RunParamsVLLM,
 			},
@@ -110,7 +110,7 @@ func (*gemma3_27BInstruct) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    gemma3RunParams,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetGemma3_27BInstructModel,
 				ModelRunParams: gemma3RunParamsVLLM,
 			},

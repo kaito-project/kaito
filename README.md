@@ -8,19 +8,20 @@
 
 | ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Retrieval Augmented Generation (RAG) support is live! - KAITO RagEngine uses LlamaIndex and FAISS, learn about it [here](https://kaito-project.github.io/kaito/docs/rag)! |
-| Latest Release: Sept 23th, 2025. KAITO v0.7.0                                                                                                                                                                                                  |
+| Mistral 3 models are supported in the latest [release](https://github.com/kaito-project/kaito/releases). Learn about the new models from [here](https://mistral.ai/news/mistral-3)! |
+| Latest Release: Dec 20th, 2025. KAITO v0.8.0                                                                                                                                                                                                  |
 | First Release: Nov 15th, 2023. KAITO v0.1.0.                                                                                                                                                                                                   |
 
 KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
 The target models are popular open-sourced large models such as [phi-4](https://huggingface.co/microsoft/phi-4) and [llama](https://huggingface.co/meta-llama).
 KAITO has the following key differentiations compared to most of the mainstream model deployment methodologies built on top of virtual machine infrastructures:
 
-- Manage large model files using container images. An OpenAI-compatible server is provided to perform inference calls.
+- Providing OpenAI-compatible server to perform inference calls.
 - Provide preset configurations to avoid adjusting workload parameters based on GPU hardware.
 - Provide support for popular open-sourced inference runtimes: [vLLM](https://github.com/vllm-project/vllm) and [transformers](https://github.com/huggingface/transformers).
 - Auto-provision GPU nodes based on model requirements.
-- Host large model images in the public Microsoft Container Registry (MCR) if the license allows.
+- Autoscale the inference workload based on the service monitoring metrics.
+- Leverage local NVMe as the primary storage to store model weight files.
 
 Using KAITO, the workflow of onboarding large AI inference models in Kubernetes is largely simplified.
 

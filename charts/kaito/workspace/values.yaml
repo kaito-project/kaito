@@ -5,7 +5,7 @@ replicaCount: 1
 image:
   repository: mcr.microsoft.com/aks/kaito/workspace
   pullPolicy: IfNotPresent
-  tag: 0.8.0-rc.0
+  tag: 0.8.0
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -20,6 +20,8 @@ featureGates:
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: false
+nvidiaDevicePlugin:
+  enabled: true
 localCSIDriver:
   useLocalCSIDriver: true
 webhook:
@@ -57,6 +59,13 @@ flux2:
   notificationController:
     create: false
 gpu-feature-discovery:
+  affinity:
+    nodeAffinity: null
+  nfd:
+    master:
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
   devicePlugin:
     enabled: false
   gfd:
@@ -65,16 +74,42 @@ local-csi-driver:
   image:
     driver:
       repository: mcr.microsoft.com/acstor/local-csi-driver
-      tag: v0.2.8
+      tag: v0.2.9
+      pullPolicy: Always
+    manager:
+      repository: mcr.microsoft.com/acstor/local-csi-manager
+      tag: v0.2.9
+      pullPolicy: Always
+    csiProvisioner:
+      pullPolicy: Always
+    csiResizer:
+      pullPolicy: Always
+    nodeDriverRegistrar:
+      pullPolicy: Always
   daemonset:
     podSelector:
       app: csi-local-node
   cleanup:
-    # TODO: switch to local csi driver builtin cleanup job
-    enabled: false
+    enabled: true
+    # LVM logical volume garbage collection configuration driven by PV annotation mismatches.
+    lvGarbageCollection:
+      # Enable event-driven LV garbage collection for PV node annotation mismatches
+      enabled: true
+    # LVM orphan cleanup configuration
+    lvmOrphanCleanup:
+      # Enable periodic orphaned LVM Logical Volume cleanup scanning
+      enabled: true
+      # Interval for scanning and cleaning up orphaned LVM volumes
+      interval: 5m
+    # PV cleanup controller configuration.
+    # This controller watches for Released PersistentVolumes and removes finalizers
+    # when nodes are unavailable, allowing PVs to be deleted.
+    pvCleanup:
+      # Enable the PV cleanup controller in the manager deployment
+      enabled: true
   webhook:
     enforceEphemeral:
-      enabled: true
+      enabled: false
     hyperconverged:
       enabled: false
   observability:

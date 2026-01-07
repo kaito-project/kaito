@@ -267,7 +267,7 @@ func ExtractModelVersion(configs map[string]interface{}) (map[string]string, err
 
 func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resourceCount int, instanceType string,
 	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName, imagePullSecret []string,
-	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1beta1.Workspace {
+	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec, modelAccessSecret, customConfigMapName string) *kaitov1beta1.Workspace {
 
 	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -307,6 +307,10 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 		workspaceInference.Adapters = adapters
 	}
 
+	if customConfigMapName != "" {
+		workspaceInference.Config = customConfigMapName
+	}
+
 	workspace.Inference = &workspaceInference
 
 	return workspace
@@ -314,9 +318,9 @@ func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resou
 
 func GenerateInferenceWorkspaceManifestWithVLLM(name, namespace, imageName string, resourceCount int, instanceType string,
 	labelSelector *metav1.LabelSelector, preferredNodes []string, presetName kaitov1beta1.ModelName, imagePullSecret []string,
-	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1beta1.Workspace {
+	podTemplate *corev1.PodTemplateSpec, adapters []kaitov1beta1.AdapterSpec, modelAccessSecret, customConfigMapName string) *kaitov1beta1.Workspace {
 	workspace := GenerateInferenceWorkspaceManifest(name, namespace, imageName, resourceCount, instanceType,
-		labelSelector, preferredNodes, presetName, imagePullSecret, podTemplate, adapters, modelAccessSecret)
+		labelSelector, preferredNodes, presetName, imagePullSecret, podTemplate, adapters, modelAccessSecret, customConfigMapName)
 
 	if workspace.Annotations == nil {
 		workspace.Annotations = make(map[string]string)
@@ -506,6 +510,27 @@ func GenerateE2ETuningConfigMapManifest(namespace string) *corev1.ConfigMap {
   DatasetConfig:
     shuffle_dataset: true
     train_test_split: 1`,
+		},
+	}
+}
+
+// GenerateE2EInferenceConfigMapManifest generates a ConfigMap manifest for E2E inference.
+func GenerateE2EInferenceConfigMapManifest(name, namespace string) *corev1.ConfigMap {
+	return &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "ConfigMap",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace, // Same as workspace namespace
+		},
+		Data: map[string]string{
+			"inference_config.yaml": `
+vllm:
+  max-model-len: 1024
+  gpu-memory-utilization: 0.7
+`,
 		},
 	}
 }

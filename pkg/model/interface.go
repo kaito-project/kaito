@@ -101,6 +101,47 @@ type Metadata struct {
 	// Deprecated indicates if the model is deprecated.
 	// +optional
 	Deprecated bool `yaml:"deprecated,omitempty"`
+
+	// DType specifies the data type used by the model (e.g., "bfloat16", "float16", "float32").
+	// This field is part of the shared Metadata struct and is primarily populated in YAML for best effort supported models.
+	// +optional
+	DType string `yaml:"dtype,omitempty"`
+
+	// ModelFileSize is the size of the model file, example: 14Gi.
+	// This field is part of the shared Metadata struct and is primarily populated in YAML for best effort supported models.
+	ModelFileSize string `yaml:"modelFileSize,omitempty"`
+
+	// DiskStorageRequirement is the disk storage requirement for the model, example: 90Gi.
+	// This field is part of the shared Metadata struct and is primarily populated in YAML for best effort supported models.
+	DiskStorageRequirement string `yaml:"diskStorageRequirement,omitempty"`
+
+	// BytesPerToken is the number of bytes used to represent each token in the model.
+	// This field is part of the shared Metadata struct and is primarily populated in YAML for best effort supported models.
+	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
+
+	// ModelTokenLimit is the maximum number of tokens (context window) supported by the model.
+	// This field is part of the shared Metadata struct and is primarily populated in YAML for best effort supported models.
+	ModelTokenLimit int `yaml:"modelTokenLimit,omitempty"`
+
+	// ToolCallParser specifies the parser used for tool calls within the model.
+	// This field is part of the shared Metadata struct and is primarily populated in YAML for best effort supported models.
+	// +optional
+	ToolCallParser string `yaml:"toolCallParser,omitempty"`
+
+	// ReasoningParser specifies the parser used for reasoning within the model.
+	// This field is part of the shared Metadata struct and is primarily populated in YAML for best effort supported models.
+	// +optional
+	ReasoningParser string `yaml:"reasoningParser,omitempty"`
+
+	// ChatTemplate is the chat template file name used for chat models.
+	// This field is part of the shared Metadata struct and is primarily populated in YAML for best effort supported models.
+	// +optional
+	ChatTemplate string `yaml:"chatTemplate,omitempty"`
+
+	// AllowRemoteFiles indicates whether the model allows loading remote files.
+	// This field is part of the shared Metadata struct and is primarily populated in YAML for best effort supported models.
+	// +optional
+	AllowRemoteFiles bool `yaml:"allowRemoteFiles,omitempty"`
 }
 
 // Validate checks if the Metadata is valid.

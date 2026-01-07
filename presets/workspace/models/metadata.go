@@ -23,6 +23,12 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
+const (
+	DefaultVLLMCommand              = "python3 /workspace/vllm/inference_api.py"
+	DefaultVLLMRayLeaderBaseCommand = "/workspace/vllm/multi-node-serving.sh leader"
+	DefaultVLLMRayWorkerBaseCommand = "/workspace/vllm/multi-node-serving.sh worker"
+)
+
 var (
 	//go:embed supported_models.yaml
 	supportedModelsYAML []byte

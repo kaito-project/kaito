@@ -73,7 +73,7 @@ func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetQwen2_5Coder7BInstructModel,
 				ModelRunParams: qwenRunParamsVLLM,
 			},
@@ -126,7 +126,7 @@ func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetQwen2_5Coder32BInstructModel,
 				ModelRunParams: qwenRunParamsVLLM,
 			},

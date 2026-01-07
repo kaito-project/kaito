@@ -23,10 +23,7 @@ const (
 	DefaultMachineRank  = "0"
 	DefaultGPUIds       = "all"
 
-	DefaultVLLMRayLeaderBaseCommand        = "/workspace/vllm/multi-node-serving.sh leader"
-	DefaultVLLMRayWorkerBaseCommand        = "/workspace/vllm/multi-node-serving.sh worker"
 	DefaultVLLMMultiNodeHealthCheckCommand = "python3 /workspace/vllm/multi-node-health-check.py"
-	DefaultVLLMCommand                     = "python3 /workspace/vllm/inference_api.py"
 	DefaultTransformersMainFile            = "/workspace/tfs/inference_api.py"
 )
 

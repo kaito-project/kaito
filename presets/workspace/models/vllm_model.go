@@ -70,8 +70,8 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	runParamsVLLM := map[string]string{
 		"trust-remote-code": "",
 	}
-	if m.model.ModelType != "" {
-		runParamsVLLM["dtype"] = m.model.ModelType
+	if m.model.DType != "" {
+		runParamsVLLM["dtype"] = m.model.DType
 	} else {
 		runParamsVLLM["dtype"] = "bfloat16"
 	}

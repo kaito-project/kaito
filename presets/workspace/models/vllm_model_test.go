@@ -60,7 +60,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 			model: model.Metadata{
 				Name:                   "custom-dtype-model",
 				Version:                "https://huggingface.co/test/model",
-				ModelType:              "float16",
+				DType:                  "float16",
 				ModelFileSize:          "2Gi",
 				DiskStorageRequirement: "4Gi",
 			},
@@ -146,7 +146,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 			model: model.Metadata{
 				Name:                   "full-model",
 				Version:                "https://huggingface.co/test/model",
-				ModelType:              "float32",
+				DType:                  "float32",
 				ToolCallParser:         "mistral",
 				ChatTemplate:           "custom.jinja",
 				AllowRemoteFiles:       true,

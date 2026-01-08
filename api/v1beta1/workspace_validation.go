@@ -521,7 +521,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 			errs = errs.Also(apis.ErrGeneric("instanceType is cannot be changed once set when node auto-provisioning is enabled", "instanceType"))
 		}
 	}
-	
+
 	newLabels, err0 := metav1.LabelSelectorAsMap(r.LabelSelector)
 	oldLabels, err1 := metav1.LabelSelectorAsMap(old.LabelSelector)
 	if err0 != nil || err1 != nil {

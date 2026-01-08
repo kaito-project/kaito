@@ -1563,7 +1563,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 		errField  string
 	}{
 		{
-			name:      "Neither Inference nor Tuning specified",
+			name: "Neither Inference nor Tuning specified",
 			workspace: &Workspace{
 				Resource: ResourceSpec{
 					InstanceType: "Standard_NC6s_v3",
@@ -2007,7 +2007,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP: true, // Upgrading to v0.8 with disableNAP=true
+			disableNAP: true,  // Upgrading to v0.8 with disableNAP=true
 			expectErrs: false, // Should NOT fail during UPDATE when clearing instanceType
 		},
 	}

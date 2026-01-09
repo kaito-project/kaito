@@ -17,6 +17,8 @@ import logging
 import math
 import os
 import re
+import requests
+import yaml
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -55,6 +57,26 @@ def get_config_attr(config: Any, attributes: list, default: Any = None) -> Any:
             return getattr(config, attr)
     return default
 
+def get_all_vllm_models() -> set[str]:
+    url = 'https://raw.githubusercontent.com/vllm-project/vllm/refs/tags/v0.12.0/docs/models/supported_models.md'
+    response = requests.get(url)
+    response.raise_for_status()  # Raise error if request failed
+
+    rows = response.text.splitlines()
+
+    filtered_models = set()
+    for row in rows:
+        if row.count('|') >= 3:
+            columns = [col.strip() for col in row.split('|')]
+            if len(columns) > 3:
+                third_col = columns[3]
+                matches = re.findall(r'`([^`]+)`', third_col)
+                for model in matches:
+                    parts = model.split('/')
+                    if len(parts) == 2:
+                        filtered_models.add(model)
+
+    return sorted(filtered_models)
 
 @dataclass
 class Metadata:
@@ -231,7 +253,7 @@ class PresetGenerator:
         # --- 2. Determine Architecture & Cache Size ---
         # consider the attn arch supported by vllm. (MHA, MQA, GQA, MLA)
         # ref: https://github.com/vllm-project/vllm/blob/v0.12.0/vllm/attention/layer.py#L161
-        attn_type = "Unknown"
+        attn_type = "GQA (Grouped-Query Attention)"
         elements_per_token = 0
 
         # CASE A: Multi-Latent Attention (MLA) - DeepSeek V2/V3
@@ -292,26 +314,71 @@ class PresetGenerator:
             data["vllm"] = data.pop("vllm")
         return yaml.dump(data, sort_keys=False, default_flow_style=False)
 
+@dataclass
+class Model:
+    name: str
+    version: str
+    modelFileSize: str
+    diskStorageRequirement: str
+    bytesPerToken: int
+    modelTokenLimit: int
+    #toolCallParser: str
+    #chatTemplate: Optional[str] = None  # Optional because not all models have it
+    #reasoningParser: str = ""
+
+@dataclass
+class ModelsConfig:
+    models: list[Model] = field(default_factory=list)
 
 def main():
     parser = argparse.ArgumentParser(description="Generate Kaito Preset YAML")
     parser.add_argument(
         "model_repo",
         help="Hugging Face model repository (e.g., microsoft/Phi-4-mini-instruct)",
+        default=None
     )
     parser.add_argument("--token", help="Hugging Face API token", default=None)
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+    parser.add_argument("--parse-vllm-models", action="store_true", help="Parse and output vLLM models config")
     args = parser.parse_args()
 
     # Configure logging
     log_level = logging.INFO if args.debug else logging.WARNING
     logging.basicConfig(level=log_level, format="[%(levelname)s] %(message)s")
 
+    if args.parse_vllm_models:
+        modelNames = get_all_vllm_models()
+        print("Total vLLM supported models:", len(modelNames))
+        models_config = ModelsConfig()
+        for name in modelNames:
+            print("begin to parse model: " + name)
+            generator = PresetGenerator(name, args.token)
+
+            try:
+                generator.generate()
+            except Exception as e:
+                print(f"Failed to parse model {name}: {e}")
+                continue
+
+            model = Model(
+                name=generator.param.name,
+                version="https://huggingface.co/" + name,
+                modelFileSize=str(generator.param.model_file_size_gb)+"Gi",
+                diskStorageRequirement=generator.param.disk_storage_requirement,
+                bytesPerToken=generator.param.bytes_per_token,
+                modelTokenLimit=generator.param.model_token_limit,
+            )
+            models_config.models.append(model)
+
+        data_dict = asdict(models_config)
+        with open('models_config.yaml', 'w') as f:
+            yaml.dump(data_dict, f, sort_keys=False)
+        return
+
     generator = PresetGenerator(args.model_repo, args.token)
     yaml_output = generator.generate()
     logging.info("--- Generated Preset YAML ---\n")
     print(yaml_output)
-
 
 if __name__ == "__main__":
     main()

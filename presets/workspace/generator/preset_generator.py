@@ -343,6 +343,7 @@ def main():
     parser.add_argument("--token", help="Hugging Face API token", default=None)
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     parser.add_argument("--parse-vllm-models", action="store_true", help="Parse and output vLLM models config")
+    parser.add_argument("--vllm-model-num", type=int, default=0, help="Number of vLLM models to parse (0 for all)")
     args = parser.parse_args()
 
     # Configure logging
@@ -352,6 +353,9 @@ def main():
     if args.parse_vllm_models:
         modelNames = get_all_vllm_models()
         print("Total vLLM supported models:", len(modelNames))
+        if args.vllm_model_num > 0:
+            modelNames = modelNames[: args.vllm_model_num]
+
         models_config = ModelsConfig()
         for name in modelNames:
             print("begin to parse model: " + name)

@@ -28,7 +28,8 @@ from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError
 
 SYSTEM_FILE_DISKSIZE_GIB = 50
 DEFAULT_MODEL_TOKEN_LIMIT = 2048
-
+DEFAULT_VLLM_VERSION = "v0.12.0"
+DEFAULT_MODEL_FILE_PATH = "./presets/workspace/models/supported_models_best_effort.yaml"
 
 def filter_list_by_regex(
     input_list: list[dict], allow_pattern: list[str]
@@ -58,7 +59,7 @@ def get_config_attr(config: Any, attributes: list, default: Any = None) -> Any:
     return default
 
 def get_all_vllm_models() -> set[str]:
-    url = 'https://raw.githubusercontent.com/vllm-project/vllm/refs/tags/v0.12.0/docs/models/supported_models.md'
+    url = f'https://raw.githubusercontent.com/vllm-project/vllm/refs/tags/{DEFAULT_VLLM_VERSION}/docs/models/supported_models.md'
     response = requests.get(url)
     response.raise_for_status()  # Raise error if request failed
 
@@ -190,6 +191,7 @@ class PresetGenerator:
             except Exception as e_auth:
                 logging.fatal(f"Failed to access model with token: {e_auth}")
                 return
+            logging.info(f"Successfully accessed model {self.model_repo} with provided token.")
         except Exception as e:
             logging.fatal(f"Error accessing model: {e}")
             return
@@ -318,6 +320,7 @@ class PresetGenerator:
 class Model:
     name: str
     version: str
+    downloadAuthRequired: bool
     modelFileSize: str
     diskStorageRequirement: str
     bytesPerToken: int
@@ -360,9 +363,14 @@ def main():
                 print(f"Failed to parse model {name}: {e}")
                 continue
 
+            if generator.param.bytes_per_token == 0:
+                print(f"Skipping model {name} due to zero bytes per token.")
+                continue
+
             model = Model(
                 name=generator.param.name,
                 version="https://huggingface.co/" + name,
+                downloadAuthRequired=generator.param.download_auth_required,
                 modelFileSize=str(generator.param.model_file_size_gb)+"Gi",
                 diskStorageRequirement=generator.param.disk_storage_requirement,
                 bytesPerToken=generator.param.bytes_per_token,
@@ -370,8 +378,9 @@ def main():
             )
             models_config.models.append(model)
 
+        print(f"begin to write {len(models_config.models)} models config to file: " + DEFAULT_MODEL_FILE_PATH)
         data_dict = asdict(models_config)
-        with open('models_config.yaml', 'w') as f:
+        with open(DEFAULT_MODEL_FILE_PATH, 'w') as f:
             yaml.dump(data_dict, f, sort_keys=False)
         return
 

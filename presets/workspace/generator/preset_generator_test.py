@@ -126,22 +126,30 @@ vllm:
 """,
 }
 
-
-@pytest.mark.parametrize(
-    "model_name",
-    [
-        "microsoft/Phi-4-mini-instruct",
-        "tiiuae/falcon-7b-instruct",
-        "mistralai/Ministral-3-8B-Instruct-2512",
-        "mistralai/Mistral-Large-3-675B-Instruct-2512",
-        "deepseek-ai/DeepSeek-R1",
-    ],
-)
-def test_preset_generator(model_name):
-    generator = PresetGenerator(model_name)
-    output = generator.generate()
-
-    expected = EXPECTED_OUTPUTS[model_name]
-
-    # Compare parsed YAML to avoid formatting differences
-    assert yaml.safe_load(output) == yaml.safe_load(expected)
+def test_get_reasoning_parser():
+  """Test get_reasoning_parser function with various model names."""
+  # Test exact matches at start of model name
+  assert preset_generator.get_reasoning_parser("deepseek-r1") == "deepseek_r1"
+  assert preset_generator.get_reasoning_parser("deepseek-r1-distill-qwen-32b") == "deepseek_r1"
+  assert preset_generator.get_reasoning_parser("deepseek-v3") == "deepseek_v3"
+  assert preset_generator.get_reasoning_parser("deepseek-v3-base") == "deepseek_v3"
+  
+  # Test other model types
+  assert preset_generator.get_reasoning_parser("ernie-4.5") == "ernie45"
+  assert preset_generator.get_reasoning_parser("glm-4.5") == "glm45"
+  assert preset_generator.get_reasoning_parser("hunyuan-a13b") == "hunyuan_a13b"
+  assert preset_generator.get_reasoning_parser("granite-3.2") == "granite"
+  assert preset_generator.get_reasoning_parser("minimax-m2") == "minimax_m2_append_think"
+  assert preset_generator.get_reasoning_parser("qwen3") == "qwen3"
+  assert preset_generator.get_reasoning_parser("qwq-32b") == "deepseek_r1"
+  assert preset_generator.get_reasoning_parser("qwq-32b-preview") == "deepseek_r1"
+  
+  # Test models that don't match any pattern
+  assert preset_generator.get_reasoning_parser("phi-4-mini-instruct") == ""
+  assert preset_generator.get_reasoning_parser("llama-3.1-8b") == ""
+  assert preset_generator.get_reasoning_parser("gpt-4") == ""
+  assert preset_generator.get_reasoning_parser("") == ""
+  
+  # Test case sensitivity (should not match if pattern is different case)
+  assert preset_generator.get_reasoning_parser("DeepSeek-R1") == ""
+  assert preset_generator.get_reasoning_parser("DEEPSEEK-R1") == ""

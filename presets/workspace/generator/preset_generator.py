@@ -31,6 +31,19 @@ DEFAULT_MODEL_TOKEN_LIMIT = 2048
 DEFAULT_VLLM_VERSION = "v0.12.0"
 DEFAULT_MODEL_FILE_PATH = "./presets/workspace/models/supported_models_best_effort.yaml"
 
+# source: https://github.com/vllm-project/vllm/blob/v0.12.0/docs/features/reasoning_outputs.md
+REASONING_PARSER_MAP = {
+    "deepseek-r1": "deepseek_r1",
+    "deepseek-v3": "deepseek_v3",
+    "ernie-4.5": "ernie45",
+    "glm-4.5": "glm45",
+    "hunyuan-a13b": "hunyuan_a13b",
+    "granite-3.2": "granite",
+    "minimax-m2": "minimax_m2_append_think",
+    "qwen3": "qwen3",
+    "qwq-32b": "deepseek_r1"
+}
+
 def filter_list_by_regex(
     input_list: list[dict], allow_pattern: list[str]
 ) -> list[dict]:
@@ -78,6 +91,12 @@ def get_all_vllm_models() -> set[str]:
                         filtered_models.add(model)
 
     return sorted(filtered_models)
+
+def get_reasoning_parser(model_name: str) -> str:
+    for key, value in REASONING_PARSER_MAP.items():
+        if model_name.startswith(key):
+            return value
+    return ""
 
 @dataclass
 class Metadata:
@@ -325,9 +344,9 @@ class Model:
     diskStorageRequirement: str
     bytesPerToken: int
     modelTokenLimit: int
+    reasoningParser: str
     #toolCallParser: str
     #chatTemplate: Optional[str] = None  # Optional because not all models have it
-    #reasoningParser: str = ""
 
 @dataclass
 class ModelsConfig:
@@ -352,7 +371,7 @@ def main():
 
     if args.parse_vllm_models:
         modelNames = get_all_vllm_models()
-        print("Total vLLM supported models:", len(modelNames))
+        print("Total supported vLLM models:", len(modelNames))
         if args.vllm_model_num > 0:
             modelNames = modelNames[: args.vllm_model_num]
 
@@ -379,6 +398,7 @@ def main():
                 diskStorageRequirement=generator.param.disk_storage_requirement,
                 bytesPerToken=generator.param.bytes_per_token,
                 modelTokenLimit=generator.param.model_token_limit,
+                reasoningParser=get_reasoning_parser(generator.param.name)
             )
             models_config.models.append(model)
 

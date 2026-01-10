@@ -153,3 +153,60 @@ def test_get_reasoning_parser():
   # Test case sensitivity (should not match if pattern is different case)
   assert preset_generator.get_reasoning_parser("DeepSeek-R1") == ""
   assert preset_generator.get_reasoning_parser("DEEPSEEK-R1") == ""
+
+def test_get_tool_call_parser():
+  """Test get_tool_call_parser function with various model names."""
+  # Test special case: deepseek-v3.1 should always return deepseek_v31
+  assert preset_generator.get_tool_call_parser("deepseek-v3.1") == "deepseek_v31"
+  assert preset_generator.get_tool_call_parser("deepseek-v3.1-base") == "deepseek_v31"
+
+  # Test other deepseek models
+  assert preset_generator.get_tool_call_parser("deepseek-r1") == "deepseek_v3"
+  assert preset_generator.get_tool_call_parser("deepseek-r1-distill") == "deepseek_v3"
+  assert preset_generator.get_tool_call_parser("deepseek-v3") == "deepseek_v3"
+  assert preset_generator.get_tool_call_parser("deepseek-v3-base") == "deepseek_v3"
+
+  # Test hermes models
+  assert preset_generator.get_tool_call_parser("hermes-2") == "hermes"
+  assert preset_generator.get_tool_call_parser("hermes-2-pro") == "hermes"
+  assert preset_generator.get_tool_call_parser("hermes-3") == "hermes"
+  assert preset_generator.get_tool_call_parser("hermes-3-llama") == "hermes"
+
+  # Test mistral models
+  assert preset_generator.get_tool_call_parser("mistral") == "mistral"
+  assert preset_generator.get_tool_call_parser("mistral-7b") == "mistral"
+
+  # Test llama models
+  assert preset_generator.get_tool_call_parser("meta-llama-3") == "llama3_json"
+  assert preset_generator.get_tool_call_parser("meta-llama-3.1-8b") == "llama3_json"
+  assert preset_generator.get_tool_call_parser("meta-llama-4") == "llama4_pythonic"
+  assert preset_generator.get_tool_call_parser("meta-llama-4-instruct") == "llama4_pythonic"
+
+  # Test granite models
+  assert preset_generator.get_tool_call_parser("granite-3") == "granite"
+  assert preset_generator.get_tool_call_parser("granite-3.1") == "granite"
+  assert preset_generator.get_tool_call_parser("granite-4") == "hermes"
+  assert preset_generator.get_tool_call_parser("granite-4-8b") == "hermes"
+
+  # Test other model types
+  assert preset_generator.get_tool_call_parser("internlm") == "internlm"
+  assert preset_generator.get_tool_call_parser("ai21-jamba") == "jamba"
+  assert preset_generator.get_tool_call_parser("qwq-32b") == "hermes"
+  assert preset_generator.get_tool_call_parser("qwen2.5") == "hermes"
+  assert preset_generator.get_tool_call_parser("minimax") == "minimax"
+  assert preset_generator.get_tool_call_parser("kimi_k2") == "kimi_k2"
+  assert preset_generator.get_tool_call_parser("hunyuan-a13b") == "hunyuan_a13b"
+  assert preset_generator.get_tool_call_parser("longcat") == "longcat"
+  assert preset_generator.get_tool_call_parser("glm-4") == "glm45"
+  assert preset_generator.get_tool_call_parser("qwen3") == "qwen3_xml"
+  assert preset_generator.get_tool_call_parser("olmo-3") == "olmo3"
+
+  # Test models that don't match any pattern
+  assert preset_generator.get_tool_call_parser("phi-4-mini-instruct") == ""
+  assert preset_generator.get_tool_call_parser("gpt-4") == ""
+  assert preset_generator.get_tool_call_parser("") == ""
+  assert preset_generator.get_tool_call_parser("random-model") == ""
+
+  # Test case sensitivity (should not match if pattern is different case)
+  assert preset_generator.get_tool_call_parser("DeepSeek-V3") == ""
+  assert preset_generator.get_tool_call_parser("MISTRAL") == ""

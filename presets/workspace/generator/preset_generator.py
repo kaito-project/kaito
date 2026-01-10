@@ -44,6 +44,31 @@ REASONING_PARSER_MAP = {
     "qwq-32b": "deepseek_r1"
 }
 
+# source: https://github.com/vllm-project/vllm/blob/v0.12.0/docs/features/tool_calling.md
+TOOL_CALL_PARSER_MAP = {
+    "hermes-2": "hermes",
+    "hermes-3": "hermes",
+    "mistral": "mistral",
+    "meta-llama-3": "llama3_json",
+    "meta-llama-4": "llama4_pythonic",
+    "granite-3": "granite",
+    "granite-4": "hermes",
+    "internlm": "internlm",
+    "ai21-jamba": "jamba",
+    "qwq-32b": "hermes",
+    "qwen2.5": "hermes",
+    "minimax": "minimax",
+    "deepseek-r1": "deepseek_v3",
+    "deepseek-v3": "deepseek_v3",
+    "deepseek-v3.1": "deepseek_v31",
+    "kimi_k2": "kimi_k2",
+    "hunyuan-a13b": "hunyuan_a13b",
+    "longcat": "longcat",
+    "glm-4": "glm45",
+    "qwen3": "qwen3_xml",
+    "olmo-3": "olmo3"
+}
+
 def filter_list_by_regex(
     input_list: list[dict], allow_pattern: list[str]
 ) -> list[dict]:
@@ -94,6 +119,14 @@ def get_all_vllm_models() -> set[str]:
 
 def get_reasoning_parser(model_name: str) -> str:
     for key, value in REASONING_PARSER_MAP.items():
+        if model_name.startswith(key):
+            return value
+    return ""
+
+def get_tool_call_parser(model_name: str) -> str:
+    for key, value in TOOL_CALL_PARSER_MAP.items():
+        if model_name.startswith("deepseek-v3.1"):
+            return "deepseek_v31" # this is the only special case we need to handle
         if model_name.startswith(key):
             return value
     return ""
@@ -345,7 +378,7 @@ class Model:
     bytesPerToken: int
     modelTokenLimit: int
     reasoningParser: str
-    #toolCallParser: str
+    toolCallParser: str
     #chatTemplate: Optional[str] = None  # Optional because not all models have it
 
 @dataclass
@@ -398,7 +431,8 @@ def main():
                 diskStorageRequirement=generator.param.disk_storage_requirement,
                 bytesPerToken=generator.param.bytes_per_token,
                 modelTokenLimit=generator.param.model_token_limit,
-                reasoningParser=get_reasoning_parser(generator.param.name)
+                reasoningParser=get_reasoning_parser(generator.param.name),
+                toolCallParser=get_tool_call_parser(generator.param.name)
             )
             models_config.models.append(model)
 

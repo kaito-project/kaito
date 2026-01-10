@@ -22,6 +22,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -854,6 +855,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 		name        string
 		newResource *ResourceSpec
 		oldResource *ResourceSpec
+		disableNAP  bool   // Whether to disable Node Auto-Provisioning
 		errContent  string // Content expected error to include, if any
 		expectErrs  bool
 	}{
@@ -868,17 +870,133 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 			errContent: "field is immutable",
 			expectErrs: true,
 		},
+		// NAP Enabled Cases
 		{
-			name: "Immutable InstanceType",
+			name: "NAP enabled - change instanceType (invalid)",
 			newResource: &ResourceSpec{
 				InstanceType: "new_type",
+				Count:        pointerToInt(1),
 			},
 			oldResource: &ResourceSpec{
 				InstanceType: "old_type",
+				Count:        pointerToInt(1),
 			},
-			errContent: "field is immutable",
+			disableNAP: false, // NAP enabled
+			errContent: "instanceType is cannot be changed once set when node auto-provisioning is enabled",
 			expectErrs: true,
 		},
+		{
+			name: "NAP enabled - clear instanceType (invalid)",
+			newResource: &ResourceSpec{
+				InstanceType: "", // Trying to clear instanceType
+				Count:        pointerToInt(1),
+			},
+			oldResource: &ResourceSpec{
+				InstanceType: "Standard_NC6s_v3",
+				Count:        pointerToInt(1),
+			},
+			disableNAP: false, // NAP enabled
+			errContent: "instanceType is required when node auto-provisioning is enabled",
+			expectErrs: true,
+		},
+		{
+			name: "NAP enabled - set instanceType initially (valid)",
+			newResource: &ResourceSpec{
+				InstanceType: "Standard_NC6s_v3", // Setting for first time
+				Count:        pointerToInt(1),
+			},
+			oldResource: &ResourceSpec{
+				InstanceType: "", // Was empty
+				Count:        pointerToInt(1),
+			},
+			disableNAP: false, // NAP enabled
+			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "NAP enabled - keep same instanceType (valid)",
+			newResource: &ResourceSpec{
+				InstanceType: "same_type",
+				Count:        pointerToInt(1),
+			},
+			oldResource: &ResourceSpec{
+				InstanceType: "same_type",
+				Count:        pointerToInt(1),
+			},
+			disableNAP: false, // NAP enabled
+			errContent: "",
+			expectErrs: false,
+		},
+		// NAP Disabled Cases
+		{
+			name: "NAP disabled - clear instanceType (valid upgrade path)",
+			newResource: &ResourceSpec{
+				InstanceType: "", // Clearing instanceType
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "v100"},
+				},
+			},
+			oldResource: &ResourceSpec{
+				InstanceType: "Standard_NC6s_v3", // Had instanceType from v0.7
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "v100"}, // Same labelSelector
+				},
+			},
+			disableNAP: true, // NAP disabled (BYO mode)
+			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "NAP disabled - keep instanceType set (invalid)",
+			newResource: &ResourceSpec{
+				InstanceType: "Standard_NC6s_v3", // Still has instanceType
+				Count:        pointerToInt(1),
+			},
+			oldResource: &ResourceSpec{
+				InstanceType: "Standard_NC6s_v3", // Had instanceType from v0.7
+				Count:        pointerToInt(1),
+			},
+			disableNAP: true, // NAP disabled (BYO mode)
+			errContent: "instanceType must be empty when node auto-provisioning is disabled",
+			expectErrs: true,
+		},
+		{
+			name: "NAP disabled - change to different instanceType (invalid)",
+			newResource: &ResourceSpec{
+				InstanceType: "new_type", // Changing instanceType
+				Count:        pointerToInt(1),
+			},
+			oldResource: &ResourceSpec{
+				InstanceType: "old_type",
+				Count:        pointerToInt(1),
+			},
+			disableNAP: true, // NAP disabled (BYO mode)
+			errContent: "instanceType must be empty when node auto-provisioning is disabled",
+			expectErrs: true,
+		},
+		{
+			name: "NAP disabled - instanceType already empty (valid)",
+			newResource: &ResourceSpec{
+				InstanceType: "",
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "v100"},
+				},
+			},
+			oldResource: &ResourceSpec{
+				InstanceType: "",
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "v100"},
+				},
+			},
+			disableNAP: true, // NAP disabled (BYO mode)
+			errContent: "",
+			expectErrs: false,
+		},
+		// LabelSelector immutability
 		{
 			name: "Immutable LabelSelector",
 			newResource: &ResourceSpec{
@@ -891,7 +1009,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 			expectErrs: true,
 		},
 		{
-			name: "Valid Update",
+			name: "Valid Update with all fields unchanged",
 			newResource: &ResourceSpec{
 				Count:         pointerToInt(5),
 				InstanceType:  "same_type",
@@ -902,6 +1020,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				InstanceType:  "same_type",
 				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"key": "value"}},
 			},
+			disableNAP: false, // NAP enabled
 			errContent: "",
 			expectErrs: false,
 		},
@@ -910,6 +1029,13 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 	// Run the tests
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			// Set or reset the feature gate if specified
+			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNAP
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+			}()
+
 			errs := tc.newResource.validateUpdate(tc.oldResource)
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
@@ -1437,16 +1563,25 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 		errField  string
 	}{
 		{
-			name:      "Neither Inference nor Tuning specified",
-			workspace: &Workspace{},
-			wantErr:   true,
-			errField:  "neither",
+			name: "Neither Inference nor Tuning specified",
+			workspace: &Workspace{
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NC6s_v3",
+					Count:        pointerToInt(1),
+				},
+			},
+			wantErr:  true,
+			errField: "neither",
 		},
 		{
 			name: "Both Inference and Tuning specified",
 			workspace: &Workspace{
 				Inference: &InferenceSpec{},
 				Tuning:    &TuningSpec{},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NC6s_v3",
+					Count:        pointerToInt(1),
+				},
 			},
 			wantErr:  true,
 			errField: "both",
@@ -1455,6 +1590,10 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 			name: "Only Inference specified",
 			workspace: &Workspace{
 				Inference: &InferenceSpec{},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NC6s_v3",
+					Count:        pointerToInt(1),
+				},
 			},
 			wantErr:  false,
 			errField: "",
@@ -1463,6 +1602,10 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 			name: "Only Tuning specified",
 			workspace: &Workspace{
 				Tuning: &TuningSpec{Input: &DataSource{}},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NC6s_v3",
+					Count:        pointerToInt(1),
+				},
 			},
 			wantErr:  false,
 			errField: "",
@@ -1734,10 +1877,25 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 }
 
 func TestWorkspaceValidateUpdate(t *testing.T) {
+	RegisterValidationTestModels()
+
+	// Set environment variables
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+
+	// Create fake client
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		defaultInferenceConfigMapManifest(),
+	).Build()
+	k8sclient.SetGlobalClient(client)
+
 	tests := []struct {
 		name         string
 		oldWorkspace *Workspace
 		newWorkspace *Workspace
+		disableNAP   bool // Whether to disable Node Auto-Provisioning
 		expectErrs   bool
 		errFields    []string // Fields we expect to have errors
 	}{
@@ -1780,18 +1938,95 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 		{
 			name: "No toggling",
 			oldWorkspace: &Workspace{
-				Tuning: &TuningSpec{Input: &DataSource{}},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "kaito",
+				},
+				Tuning: &TuningSpec{Input: &DataSource{}, Output: &DataDestination{Image: "test-image:latest", ImagePushSecret: "secret"}},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NC6s_v3",
+					Count:        pointerToInt(1),
+				},
 			},
 			newWorkspace: &Workspace{
-				Tuning: &TuningSpec{Input: &DataSource{}},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "kaito",
+				},
+				Tuning: &TuningSpec{Input: &DataSource{}, Output: &DataDestination{Image: "test-image:latest", ImagePushSecret: "secret"}},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NC6s_v3",
+					Count:        pointerToInt(1),
+				},
 			},
 			expectErrs: false,
+		},
+		{
+			name: "Upgrade scenario - v0.7 workspace with instanceType when disableNAP=true",
+			oldWorkspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "v07-workspace",
+					Namespace: "kaito",
+				},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NC6s_v3", // Created in v0.7 with instanceType
+					Count:        pointerToInt(1),
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"gpu": "nvidia",
+						},
+					},
+				},
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation-static"),
+						},
+					},
+				},
+			},
+			newWorkspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "v07-workspace",
+					Namespace: "kaito",
+				},
+				Resource: ResourceSpec{
+					InstanceType: "", // CLEARED when upgrading to v0.8 with disableNAP=true
+					Count:        pointerToInt(1),
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"gpu": "nvidia",
+						},
+					},
+				},
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation-static"),
+						},
+					},
+				},
+			},
+			disableNAP: true,  // Upgrading to v0.8 with disableNAP=true
+			expectErrs: false, // Should NOT fail during UPDATE when clearing instanceType
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			errs := tt.newWorkspace.validateUpdate(tt.oldWorkspace)
+			// Set or reset the feature gate if specified
+			if tt.disableNAP {
+				originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+				defer func() {
+					featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+				}()
+			}
+
+			// Call Validate with baseline to simulate UPDATE operation
+			ctx := context.Background()
+			ctx = apis.WithinUpdate(ctx, tt.oldWorkspace)
+			errs := tt.newWorkspace.Validate(ctx)
 			hasErrs := errs != nil
 
 			if hasErrs != tt.expectErrs {

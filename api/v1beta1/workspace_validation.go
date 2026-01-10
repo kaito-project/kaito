@@ -64,19 +64,6 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "name"))
 	}
 
-	// Check node auto-provisioning feature gate and validate instanceType accordingly
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// When NAP is disabled, instanceType must be empty (BYO scenario)
-		if w.Resource.InstanceType != "" {
-			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
-		}
-	} else {
-		// When NAP is enabled, instanceType must be specified for node provisioning
-		if w.Resource.InstanceType == "" {
-			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled"))
-		}
-	}
-
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
@@ -127,6 +114,21 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 	if w.Inference != nil && w.Tuning != nil {
 		errs = errs.Also(apis.ErrGeneric("Either Inference or Tuning must be specified, but not both", ""))
 	}
+
+	// Check node auto-provisioning feature gate and validate instanceType accordingly
+	// This validation only applies to CREATE operations, not UPDATE (since instanceType is immutable)
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		// When NAP is disabled, instanceType must be empty (BYO scenario)
+		if w.Resource.InstanceType != "" {
+			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "resource.instanceType"))
+		}
+	} else {
+		// When NAP is enabled, instanceType must be specified for node provisioning
+		if w.Resource.InstanceType == "" {
+			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "resource.instanceType"))
+		}
+	}
+
 	return errs
 }
 
@@ -216,6 +218,11 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 }
 
 func (r *TuningSpec) validateUpdate(old *TuningSpec) (errs *apis.FieldError) {
+	// If old is nil, this means Tuning is being toggled on, which should be caught by validateUpdate in Workspace
+	if old == nil {
+		return errs
+	}
+
 	if r.Input == nil {
 		errs = errs.Also(apis.ErrMissingField("Input"))
 	} else {
@@ -499,9 +506,22 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	if r.Count != nil && old.Count != nil && *r.Count != *old.Count {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "count"))
 	}
-	if r.InstanceType != old.InstanceType {
-		errs = errs.Also(apis.ErrGeneric("field is immutable", "instanceType"))
+
+	// Check node auto-provisioning feature gate and validate instanceType accordingly
+	// This validation only applies to CREATE operations, not UPDATE (since instanceType is immutable)
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		// When NAP is disabled, instanceType must be empty (BYO scenario)
+		if r.InstanceType != "" {
+			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
+		}
+	} else {
+		if r.InstanceType == "" {
+			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "instanceType"))
+		} else if old.InstanceType != "" && old.InstanceType != r.InstanceType {
+			errs = errs.Also(apis.ErrGeneric("instanceType is cannot be changed once set when node auto-provisioning is enabled", "instanceType"))
+		}
 	}
+
 	newLabels, err0 := metav1.LabelSelectorAsMap(r.LabelSelector)
 	oldLabels, err1 := metav1.LabelSelectorAsMap(old.LabelSelector)
 	if err0 != nil || err1 != nil {
@@ -575,6 +595,11 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 }
 
 func (i *InferenceSpec) validateUpdate(old *InferenceSpec) (errs *apis.FieldError) {
+	// If old is nil, this means Inference is being toggled on, which should be caught by validateUpdate in Workspace
+	if old == nil {
+		return errs
+	}
+
 	if !reflect.DeepEqual(i.Preset, old.Preset) {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "preset"))
 	}

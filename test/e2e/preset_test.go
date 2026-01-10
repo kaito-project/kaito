@@ -46,6 +46,8 @@ const (
 	PresetFalcon40BModel                = "falcon-40b"
 	PresetMistral7BInstructModel        = "mistral-7b-instruct"
 	PresetQwen2_5Coder7BModel           = "qwen2.5-coder-7b-instruct"
+	PresetQwen2_7BModel                 = "qwen2-7b"
+	PresetQwen3_Coder30BModel           = "qwen3-coder-30b-a3b-instruct"
 	PresetPhi3Mini128kModel             = "phi-3-mini-128k-instruct"
 	PresetDeepSeekR1DistillLlama8BModel = "deepseek-r1-distill-llama-8b"
 	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
@@ -100,7 +102,7 @@ func createCustomWorkspaceWithAdapter(numOfNode int, validAdapters []kaitov1beta
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "custom-preset-e2e-test-falcon"},
-			}, nil, PresetFalcon7BModel, nil, nil, validAdapters, "")
+			}, nil, PresetFalcon7BModel, nil, nil, validAdapters, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -145,7 +147,7 @@ func createFalconWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Work
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-falcon"},
-			}, nil, PresetFalcon7BModel, nil, nil, nil, "")
+			}, nil, PresetFalcon7BModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -159,7 +161,7 @@ func createMistralWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Wor
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-mistral"},
-			}, nil, PresetMistral7BInstructModel, nil, nil, nil, "")
+			}, nil, PresetMistral7BInstructModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -174,7 +176,7 @@ func createLlama3_1_8BInstructWorkspaceWithPresetPublicMode(numOfNode int) *kait
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
 			numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-1-8b"},
-			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name) // Llama 3.1-8B Instruct model requires a model access secret
+			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name, "") // Llama 3.1-8B Instruct model requires a model access secret
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -188,7 +190,7 @@ func createCustomWorkspaceWithPresetCustomMode(imageName string, numOfNode int) 
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
 			numOfNode, "Standard_D4s_v3", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "private-preset-e2e-test-custom"},
-			}, nil, "", nil, utils.GeneratePodTemplate(uniqueID, namespaceName, imageName, nil), nil, "")
+			}, nil, "", nil, utils.GeneratePodTemplate(uniqueID, namespaceName, imageName, nil), nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -202,7 +204,7 @@ func createPhi3WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Worksp
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
 			numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-3-mini-128k-instruct"},
-			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "")
+			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -216,7 +218,7 @@ func createGPTOss120BWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
 			numOfNode, "Standard_NC24ads_A100_v4", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-120b"},
-			}, nil, PresetGPT_OSS_120BModel, nil, nil, nil, "")
+			}, nil, PresetGPT_OSS_120BModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -231,7 +233,7 @@ func createGemma3_4BInstructWorkspaceWithPresetPublicMode(numOfNode int) *kaitov
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
 			numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-3-4b"},
-			}, nil, PresetGemma3_4BInstructModel, nil, nil, nil, modelSecret.Name)
+			}, nil, PresetGemma3_4BInstructModel, nil, nil, nil, modelSecret.Name, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -246,7 +248,7 @@ func createGemma3_27BInstructWorkspaceWithPresetPublicMode(numOfNode int) *kaito
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
 			numOfNode, "Standard_NC24ads_A100_v4", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-3-27b"},
-			}, nil, PresetGemma3_27BInstructModel, nil, nil, nil, modelSecret.Name)
+			}, nil, PresetGemma3_27BInstructModel, nil, nil, nil, modelSecret.Name, "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -513,46 +515,27 @@ func validateAssociatedService(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-// validateInferenceResource validates inference deployment
-func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedReplicas int32, isStatefulSet bool) {
+// validateInferenceResource validates inference StatefulSet
+func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedReplicas int32) {
 	By("Checking the inference resource", func() {
 		Eventually(func() bool {
-			var err error
-			var readyReplicas int32
-
-			if isStatefulSet {
-				sts := &appsv1.StatefulSet{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      workspaceObj.Name,
-						Namespace: workspaceObj.Namespace,
-					},
-				}
-				err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-					Namespace: workspaceObj.Namespace,
+			sts := &appsv1.StatefulSet{
+				ObjectMeta: metav1.ObjectMeta{
 					Name:      workspaceObj.Name,
-				}, sts)
-				readyReplicas = sts.Status.ReadyReplicas
-
-			} else {
-				dep := &appsv1.Deployment{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      workspaceObj.Name,
-						Namespace: workspaceObj.Namespace,
-					},
-				}
-				err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 					Namespace: workspaceObj.Namespace,
-					Name:      workspaceObj.Name,
-				}, dep)
-				readyReplicas = dep.Status.ReadyReplicas
+				},
 			}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, sts)
 
 			if err != nil {
 				GinkgoWriter.Printf("Error fetching resource: %v\n", err)
 				return false
 			}
 
-			if readyReplicas == expectedReplicas {
+			if sts.Status.ReadyReplicas == expectedReplicas {
 				return true
 			}
 
@@ -561,56 +544,30 @@ func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedRep
 	})
 }
 
-func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, expectedReplicas int32, isStatefulSet bool) {
+func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, expectedReplicas int32) {
 	By("Checking the InferenceSet replicas", func() {
 		Eventually(func() bool {
 			var totalReadyReplicas int32 = 0
 
-			if isStatefulSet {
-				stsList := &appsv1.StatefulSetList{}
-				err := utils.TestingCluster.KubeClient.List(ctx, stsList)
-				if err != nil {
-					GinkgoWriter.Printf("Error fetching statefulsets: %v\n", err)
-					return false
-				}
-
-				for _, sts := range stsList.Items {
-					if !strings.HasPrefix(sts.Name, inferenceSetObj.Name) {
-						continue
-					}
-					if strings.Contains(sts.Name, "-inferencepool-") {
-						continue
-					}
-					GinkgoWriter.Printf("StatefulSet %s has %d ready replicas\n", sts.Name, sts.Status.ReadyReplicas)
-					totalReadyReplicas += sts.Status.ReadyReplicas
-				}
-
-			} else {
-				depList := &appsv1.DeploymentList{}
-				err := utils.TestingCluster.KubeClient.List(ctx, depList)
-				if err != nil {
-					GinkgoWriter.Printf("Error fetching deployments: %v\n", err)
-					return false
-				}
-
-				for _, dep := range depList.Items {
-					if !strings.HasPrefix(dep.Name, inferenceSetObj.Name) {
-						continue
-					}
-					if strings.Contains(dep.Name, "-inferencepool-") {
-						continue
-					}
-
-					GinkgoWriter.Printf("Deployment %s has %d ready replicas\n", dep.Name, dep.Status.ReadyReplicas)
-					totalReadyReplicas += dep.Status.ReadyReplicas
-				}
+			stsList := &appsv1.StatefulSetList{}
+			err := utils.TestingCluster.KubeClient.List(ctx, stsList)
+			if err != nil {
+				GinkgoWriter.Printf("Error fetching statefulsets: %v\n", err)
+				return false
 			}
 
-			if totalReadyReplicas == expectedReplicas {
-				return true
+			for _, sts := range stsList.Items {
+				if !strings.HasPrefix(sts.Name, inferenceSetObj.Name) {
+					continue
+				}
+				if strings.Contains(sts.Name, "-inferencepool-") {
+					continue
+				}
+				GinkgoWriter.Printf("StatefulSet %s has %d ready replicas\n", sts.Name, sts.Status.ReadyReplicas)
+				totalReadyReplicas += sts.Status.ReadyReplicas
 			}
 
-			return false
+			return totalReadyReplicas == expectedReplicas
 		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for InferenceSet replicas to be ready")
 	})
 }
@@ -621,16 +578,16 @@ func validateRevision(workspaceObj *kaitov1beta1.Workspace, revisionStr string) 
 		Eventually(func() bool {
 			var isWorkloadAnnotationCorrect bool
 			if workspaceObj.Inference != nil {
-				dep := &appsv1.Deployment{}
+				sts := &appsv1.StatefulSet{}
 				err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 					Namespace: workspaceObj.Namespace,
 					Name:      workspaceObj.Name,
-				}, dep)
+				}, sts)
 				if err != nil {
 					GinkgoWriter.Printf("Error fetching resource: %v\n", err)
 					return false
 				}
-				isWorkloadAnnotationCorrect = dep.Annotations[WorkspaceRevisionAnnotation] == revisionStr
+				isWorkloadAnnotationCorrect = sts.Annotations[WorkspaceRevisionAnnotation] == revisionStr
 			} else if workspaceObj.Tuning != nil {
 				job := &batchv1.Job{}
 				err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -846,7 +803,7 @@ func validateModelsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 			}
 
 			namespace := workspaceObj.Namespace
-			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
+			podName, err := utils.GetPodNameForWorkspace(coreClient, namespace, deploymentName)
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
 				return false
@@ -889,7 +846,7 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 			}
 
 			namespace := workspaceObj.Namespace
-			podName, err := utils.GetPodNameForDeployment(coreClient, namespace, deploymentName)
+			podName, err := utils.GetPodNameForWorkspace(coreClient, namespace, deploymentName)
 			if err != nil {
 				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
 				return false
@@ -1232,7 +1189,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1252,7 +1209,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1272,7 +1229,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1290,12 +1247,12 @@ var _ = Describe("Workspace Preset", func() {
 
 		time.Sleep(30 * time.Second)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a Phi-3-mini-128k-instruct workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicMode(numOfNode)
 
@@ -1310,7 +1267,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1330,12 +1287,12 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a gemma-3-4b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a gemma-3-4b-instruct workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createGemma3_4BInstructWorkspaceWithPresetPublicMode(numOfNode)
 
@@ -1350,7 +1307,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})
@@ -1370,7 +1327,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode), false)
+		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
 	})

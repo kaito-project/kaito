@@ -50,11 +50,12 @@ func CreateResource(ctx context.Context, resource client.Object, kubeClient clie
 	}
 
 	// Create the resource.
-	return retry.OnError(retry.DefaultBackoff, func(err error) bool {
-		return true
+	err := retry.OnError(retry.DefaultBackoff, func(err error) bool {
+		return !errors.IsAlreadyExists(err)
 	}, func() error {
 		return kubeClient.Create(ctx, resource, &client.CreateOptions{})
 	})
+	return client.IgnoreAlreadyExists(err)
 }
 
 func GetResource(ctx context.Context, name, namespace string, kubeClient client.Client, resource client.Object) error {

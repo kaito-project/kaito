@@ -1,4 +1,4 @@
-name: ragengine-e2e-test
+name: RAGEngine E2E Tests
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}

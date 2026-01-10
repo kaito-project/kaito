@@ -74,7 +74,7 @@ func (*gpt_oss_20B) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    gptRunParams,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetGPT_OSS_20BModel,
 				ModelRunParams: gptRunParamsVLLM,
 			},
@@ -113,7 +113,7 @@ func (*gpt_oss_120B) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    gptRunParams,
 			},
 			VLLM: model.VLLMParam{
-				BaseCommand:    inference.DefaultVLLMCommand,
+				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetGPT_OSS_120BModel,
 				ModelRunParams: gptRunParamsVLLM,
 			},

@@ -144,7 +144,7 @@ var _ = Describe("RAGEngine", func() {
 
 		validateAssociatedService(workspaceObj.ObjectMeta)
 
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 
@@ -203,7 +203,7 @@ var _ = Describe("RAGEngine", func() {
 
 		validateAssociatedService(workspaceObj.ObjectMeta)
 
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 
@@ -266,7 +266,7 @@ var _ = Describe("RAGEngine", func() {
 
 		validateAssociatedService(workspaceObj.ObjectMeta)
 
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 
@@ -327,7 +327,7 @@ var _ = Describe("RAGEngine", func() {
 
 		validateWorkspaceResourceStatus(workspaceObj)
 		validateAssociatedService(workspaceObj.ObjectMeta)
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
 		validateWorkspaceReadiness(workspaceObj)
 
 		serviceName := workspaceObj.ObjectMeta.Name
@@ -387,7 +387,7 @@ func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1be
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfReplica, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "rag-e2e-test-phi-4-mini-instruct-vllm"},
-			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "")
+			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})

@@ -576,8 +576,10 @@ func createLocalEmbeddingKaitoVLLMRAGEngineWithStorage(baseURL, llmPath, pvcName
 				ContextWindowSize: 128000,
 			},
 			&kaitov1beta1.StorageSpec{
-				PersistentVolumeClaim: pvcName,
-				MountPath:             "/mnt/vector-db",
+				PersistentVolume: &kaitov1beta1.PersistentVolumeConfig{
+					PersistentVolumeClaim: pvcName,
+					MountPath:             "/mnt/vector-db",
+				},
 			},
 		)
 

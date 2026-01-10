@@ -108,8 +108,8 @@ func getEnv(key, defaultValue string) string {
 // configStorageVolume creates a volume and volume mount for vector database storage
 func configStorageVolume(storageSpec *v1beta1.StorageSpec) (corev1.Volume, corev1.VolumeMount) {
 	mountPath := "/mnt/data"
-	if storageSpec.MountPath != "" {
-		mountPath = storageSpec.MountPath
+	if storageSpec.PersistentVolume != nil && storageSpec.PersistentVolume.MountPath != "" {
+		mountPath = storageSpec.PersistentVolume.MountPath
 	}
 
 	volumeMount := corev1.VolumeMount{
@@ -118,13 +118,13 @@ func configStorageVolume(storageSpec *v1beta1.StorageSpec) (corev1.Volume, corev
 	}
 
 	var volume corev1.Volume
-	if storageSpec.PersistentVolumeClaim != "" {
+	if storageSpec.PersistentVolume != nil && storageSpec.PersistentVolume.PersistentVolumeClaim != "" {
 		// Use PVC for persistent storage
 		volume = corev1.Volume{
 			Name: "vector-db-storage",
 			VolumeSource: corev1.VolumeSource{
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-					ClaimName: storageSpec.PersistentVolumeClaim,
+					ClaimName: storageSpec.PersistentVolume.PersistentVolumeClaim,
 				},
 			},
 		}

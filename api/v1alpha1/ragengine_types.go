@@ -119,7 +119,7 @@ type RAGEngineStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ragengines,scope=Namespaced,categories=ragengine,shortName=rag
-// +kubebuilder:storageversion
+// +kubebuilder:deprecatedversion:warning="kaito.sh/v1alpha1 RAGEngine is deprecated; use kaito.sh/v1beta1 RAGEngine"
 // +kubebuilder:printcolumn:name="Instance",type="string",JSONPath=".spec.compute.instanceType",description=""
 // +kubebuilder:printcolumn:name="ResourceReady",type="string",JSONPath=".status.conditions[?(@.type==\"ResourceReady\")].status",description=""
 // +kubebuilder:printcolumn:name="ServiceReady",type="string",JSONPath=".status.conditions[?(@.type==\"ServiceReady\")].status",description=""

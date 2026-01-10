@@ -22,11 +22,11 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
-func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1alpha1.RAGEngine, revisionNum string, imageName string,
-	imagePullSecretRefs []corev1.LocalObjectReference, replicas int, commands []string, containerPorts []corev1.ContainerPort,
+func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisionNum string, imageName string,
+	imagePullSecretRefs []corev1.LocalObjectReference, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
 	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount) *appsv1.Deployment {
 
@@ -40,7 +40,7 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1alpha1.RAGEngine, revisi
 	}
 
 	selector := map[string]string{
-		kaitov1alpha1.LabelRAGEngineName: ragEngineObj.Name,
+		kaitov1beta1.LabelRAGEngineName: ragEngineObj.Name,
 	}
 	labelselector := &v1.LabelSelector{
 		MatchLabels: selector,
@@ -54,14 +54,14 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1alpha1.RAGEngine, revisi
 			Name:      ragEngineObj.Name,
 			Namespace: ragEngineObj.Namespace,
 			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(ragEngineObj, kaitov1alpha1.GroupVersion.WithKind("RAGEngine")),
+				*v1.NewControllerRef(ragEngineObj, kaitov1beta1.GroupVersion.WithKind("RAGEngine")),
 			},
 			Annotations: map[string]string{
-				kaitov1alpha1.RAGEngineRevisionAnnotation: revisionNum,
+				kaitov1beta1.RAGEngineRevisionAnnotation: revisionNum,
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: lo.ToPtr(int32(replicas)),
+			Replicas: lo.ToPtr(int32(1)), // RAGEngine requires exactly 1 replica
 			Strategy: appsv1.DeploymentStrategy{
 				Type: appsv1.RollingUpdateDeploymentStrategyType,
 				RollingUpdate: &appsv1.RollingUpdateDeployment{
@@ -136,7 +136,7 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1alpha1.RAGEngine, revisi
 	}
 }
 
-func RAGSetEnv(ragEngineObj *kaitov1alpha1.RAGEngine) []corev1.EnvVar {
+func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 	var envs []corev1.EnvVar
 
 	// Add Pod metadata as environment variables for lifecycle hooks
@@ -194,10 +194,10 @@ func RAGSetEnv(ragEngineObj *kaitov1alpha1.RAGEngine) []corev1.EnvVar {
 
 	// Set the vector database persist directory based on storage configuration
 	persistDir := "storage" // default in-memory/ephemeral storage
-	if ragEngineObj.Spec.Storage != nil {
+	if ragEngineObj.Spec.Storage != nil && ragEngineObj.Spec.Storage.PersistentVolume != nil {
 		mountPath := "/mnt/data"
-		if ragEngineObj.Spec.Storage.MountPath != "" {
-			mountPath = ragEngineObj.Spec.Storage.MountPath
+		if ragEngineObj.Spec.Storage.PersistentVolume.MountPath != "" {
+			mountPath = ragEngineObj.Spec.Storage.PersistentVolume.MountPath
 		}
 		// Append RAGEngine name to ensure unique directory per instance
 		persistDir = fmt.Sprintf("%s/%s", mountPath, ragEngineObj.Name)
@@ -238,9 +238,9 @@ func RAGSetEnv(ragEngineObj *kaitov1alpha1.RAGEngine) []corev1.EnvVar {
 	return envs
 }
 
-func GenerateRAGServiceManifest(ragObj *kaitov1alpha1.RAGEngine, serviceName string, serviceType corev1.ServiceType) *corev1.Service {
+func GenerateRAGServiceManifest(ragObj *kaitov1beta1.RAGEngine, serviceName string, serviceType corev1.ServiceType) *corev1.Service {
 	selector := map[string]string{
-		kaitov1alpha1.LabelRAGEngineName: ragObj.Name,
+		kaitov1beta1.LabelRAGEngineName: ragObj.Name,
 	}
 
 	servicePorts := []corev1.ServicePort{
@@ -257,7 +257,7 @@ func GenerateRAGServiceManifest(ragObj *kaitov1alpha1.RAGEngine, serviceName str
 			Name:      serviceName,
 			Namespace: ragObj.Namespace,
 			OwnerReferences: []v1.OwnerReference{
-				*v1.NewControllerRef(ragObj, kaitov1alpha1.GroupVersion.WithKind("RAGEngine")),
+				*v1.NewControllerRef(ragObj, kaitov1beta1.GroupVersion.WithKind("RAGEngine")),
 			},
 		},
 		Spec: corev1.ServiceSpec{

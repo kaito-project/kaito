@@ -210,3 +210,129 @@ def test_get_tool_call_parser():
   # Test case sensitivity (should not match if pattern is different case)
   assert preset_generator.get_tool_call_parser("DeepSeek-V3") == ""
   assert preset_generator.get_tool_call_parser("MISTRAL") == ""
+@pytest.fixture
+def mock_vllm_response():
+  """Mock response content from vLLM supported models documentation."""
+  return """
+# Supported Models
+
+| Architecture | Model Family | Example Models | ... | ... |
+|--------------|--------------|----------------|-----|-----|
+| `LlamaForCausalLM` | LLaMA | `meta-llama/Llama-2-7b-hf`, `meta-llama/Llama-3-8b`, etc. | .. | .. |
+| `QWenLMHeadModel` | Qwen | `Qwen/Qwen-7B`, `Qwen/Qwen-7B-Chat`, etc. | .. | .. |
+| `Qwen2ForCausalLM` | QwQ, Qwen2 | `Qwen/QwQ-32B-Preview`, `Qwen/Qwen2-7B-Instruct`, `Qwen/Qwen2-7B`, etc. | .. | .. |
+| `MistralForCausalLM` | Mistral | `mistralai/Mistral-7B-v0.1` | .. | .. |
+| `PhiForCausalLM` | Phi | `microsoft/phi-2` | .. | .. |
+
+Some text without proper format
+| Invalid | Row | NoModels | .. |
+
+| With Single Column Only |
+
+| `FalconForCausalLM` | Falcon | `tiiuae/falcon-7b`, `tiiuae/falcon-40b` | .. | .. |
+| `GPT2LMHeadModel` | GPT-2 | `gpt2`, `gpt2-medium` | .. | .. |
+| `DeepseekV2ForCausalLM` | DeepSeek-V2 | `deepseek-ai/DeepSeek-V2`, `deepseek-ai/DeepSeek-V2-Lite` | .. | .. |
+
+Models without owner format should be filtered:
+| `SomeModel` | Test | `standalone-model`, `owner/valid-model` | .. | .. |
+"""
+
+
+def test_get_all_vllm_models_basic(monkeypatch, mock_vllm_response):
+  """Test get_all_vllm_models returns correctly parsed and filtered models."""
+
+  class MockResponse:
+    def __init__(self, text):
+      self.text = text
+    def raise_for_status(self):
+      pass
+
+  def mock_get(url):
+    return MockResponse(mock_vllm_response)
+
+  monkeypatch.setattr(preset_generator.requests, "get", mock_get)
+
+  result = preset_generator.get_all_vllm_models()
+
+  # Should be sorted list
+  assert isinstance(result, list)
+
+  # Verify expected models are included
+  assert "meta-llama/Llama-2-7b-hf" in result
+  assert "meta-llama/Llama-3-8b" in result
+  assert "Qwen/Qwen-7B" in result
+  assert "Qwen/Qwen-7B-Chat" in result
+  assert "Qwen/QwQ-32B-Preview" in result
+  assert "Qwen/Qwen2-7B-Instruct" in result
+  assert "Qwen/Qwen2-7B" in result
+  assert "mistralai/Mistral-7B-v0.1" in result
+  assert "microsoft/phi-2" in result
+  assert "tiiuae/falcon-7b" in result
+  assert "tiiuae/falcon-40b" in result
+  assert "deepseek-ai/DeepSeek-V2" in result
+  assert "deepseek-ai/DeepSeek-V2-Lite" in result
+  assert "owner/valid-model" in result
+
+  # Models without owner/model format should be filtered out
+  assert "gpt2" not in result
+  assert "gpt2-medium" not in result
+  assert "standalone-model" not in result
+
+  # Verify it's sorted
+  assert result == sorted(result)
+
+def test_get_all_vllm_models_empty_response(monkeypatch):
+  """Test get_all_vllm_models with empty response."""
+
+  class MockResponse:
+    def __init__(self):
+      self.text = ""
+    def raise_for_status(self):
+      pass
+
+  def mock_get(url):
+    return MockResponse()
+
+  monkeypatch.setattr(preset_generator.requests, "get", mock_get)
+
+  result = preset_generator.get_all_vllm_models()
+  assert result == []
+
+
+def test_get_all_vllm_models_http_error(monkeypatch):
+  """Test get_all_vllm_models handles HTTP errors."""
+
+  def mock_get(url):
+    raise preset_generator.requests.exceptions.HTTPError("404 Not Found")
+
+  monkeypatch.setattr(preset_generator.requests, "get", mock_get)
+
+  with pytest.raises(preset_generator.requests.exceptions.HTTPError):
+    preset_generator.get_all_vllm_models()
+
+
+def test_get_all_vllm_models_no_duplicates(monkeypatch):
+  """Test that duplicate models are handled correctly."""
+
+  duplicate_response = """
+| `LlamaForCausalLM` | LLaMA | `meta-llama/Llama-2-7b-hf`, `meta-llama/Llama-2-7b-hf`, `owner/model` | .. | .. |
+| `QWenLMHeadModel` | Qwen | `owner/model`, `Qwen/Qwen-7B` | .. | .. |
+"""
+
+  class MockResponse:
+    def __init__(self, text):
+      self.text = text
+    def raise_for_status(self):
+      pass
+
+  def mock_get(url):
+    return MockResponse(duplicate_response)
+
+  monkeypatch.setattr(preset_generator.requests, "get", mock_get)
+
+  result = preset_generator.get_all_vllm_models()
+
+  # Each model should appear only once
+  assert result.count("meta-llama/Llama-2-7b-hf") == 1
+  assert result.count("owner/model") == 1
+  assert result.count("Qwen/Qwen-7B") == 1

@@ -96,6 +96,10 @@ def get_config_attr(config: Any, attributes: list, default: Any = None) -> Any:
             return getattr(config, attr)
     return default
 
+# get all supported vLLM models from the official vLLM repo
+# parsing the rows which have model names in the 3rd column, e.g.
+# | `QWenLMHeadModel` | Qwen | `Qwen/Qwen-7B`, `Qwen/Qwen-7B-Chat`, etc. | .. | .. |
+# | `Qwen2ForCausalLM` | QwQ, Qwen2 | `Qwen/QwQ-32B-Preview`, `Qwen/Qwen2-7B-Instruct`, `Qwen/Qwen2-7B`, etc. | .. | .. |
 def get_all_vllm_models() -> set[str]:
     url = f'https://raw.githubusercontent.com/vllm-project/vllm/refs/tags/{DEFAULT_VLLM_VERSION}/docs/models/supported_models.md'
     response = requests.get(url)
@@ -105,12 +109,15 @@ def get_all_vllm_models() -> set[str]:
 
     filtered_models = set()
     for row in rows:
+        # Look for rows with at least 4 columns (3 '|')
         if row.count('|') >= 3:
             columns = [col.strip() for col in row.split('|')]
             if len(columns) > 3:
+                # Extract model names from the 3rd column
                 third_col = columns[3]
                 matches = re.findall(r'`([^`]+)`', third_col)
                 for model in matches:
+                    # Filter to include only models with format "owner/model"
                     parts = model.split('/')
                     if len(parts) == 2:
                         filtered_models.add(model)
@@ -395,7 +402,7 @@ def main():
     parser.add_argument("--token", help="Hugging Face API token", default=None)
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     parser.add_argument("--parse-vllm-models", action="store_true", help="Parse and output vLLM models config")
-    parser.add_argument("--vllm-model-num", type=int, default=0, help="Number of vLLM models to parse (0 for all)")
+    parser.add_argument("--vllm-model-limit", type=int, default=0, help="Limit number of vLLM models to parse (0 for all)")
     args = parser.parse_args()
 
     # Configure logging
@@ -405,8 +412,8 @@ def main():
     if args.parse_vllm_models:
         modelNames = get_all_vllm_models()
         print("Total supported vLLM models:", len(modelNames))
-        if args.vllm_model_num > 0:
-            modelNames = modelNames[: args.vllm_model_num]
+        if args.vllm_model_limit > 0:
+            modelNames = modelNames[: args.vllm_model_limit]
 
         models_config = ModelsConfig()
         for name in modelNames:

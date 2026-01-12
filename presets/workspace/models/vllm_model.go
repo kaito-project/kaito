@@ -46,8 +46,9 @@ func init() {
 	for _, m := range vLLMCatalog.Models {
 		utilruntime.Must(m.Validate())
 		plugin.KaitoModelRegister.Register(&plugin.Registration{
-			Name:     m.Name,
-			Instance: &vLLMCompatibleModel{model: m},
+			Name:              m.Name,
+			Instance:          &vLLMCompatibleModel{model: m},
+			KeepExistingModel: true,
 		})
 		klog.InfoS("Registered VLLM model preset", "model", m.Name)
 	}

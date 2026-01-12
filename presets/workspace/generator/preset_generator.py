@@ -20,12 +20,53 @@ import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+import requests
 import yaml
 from huggingface_hub import HfFileSystem
 from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError
 
 SYSTEM_FILE_DISKSIZE_GIB = 50
 DEFAULT_MODEL_TOKEN_LIMIT = 2048
+DEFAULT_VLLM_VERSION = "v0.12.0"
+DEFAULT_MODEL_FILE_PATH = "./presets/workspace/models/supported_models_best_effort.yaml"
+
+# source: https://github.com/vllm-project/vllm/blob/v0.12.0/docs/features/reasoning_outputs.md
+REASONING_PARSER_MAP = {
+    "deepseek-r1": "deepseek_r1",
+    "deepseek-v3": "deepseek_v3",
+    "ernie-4.5": "ernie45",
+    "glm-4.5": "glm45",
+    "hunyuan-a13b": "hunyuan_a13b",
+    "granite-3.2": "granite",
+    "minimax-m2": "minimax_m2_append_think",
+    "qwen3": "qwen3",
+    "qwq-32b": "deepseek_r1",
+}
+
+# source: https://github.com/vllm-project/vllm/blob/v0.12.0/docs/features/tool_calling.md
+TOOL_CALL_PARSER_MAP = {
+    "hermes-2": "hermes",
+    "hermes-3": "hermes",
+    "mistral": "mistral",
+    "meta-llama-3": "llama3_json",
+    "meta-llama-4": "llama4_pythonic",
+    "granite-3": "granite",
+    "granite-4": "hermes",
+    "internlm": "internlm",
+    "ai21-jamba": "jamba",
+    "qwq-32b": "hermes",
+    "qwen2.5": "hermes",
+    "minimax": "minimax",
+    "deepseek-r1": "deepseek_v3",
+    "deepseek-v3": "deepseek_v3",
+    "deepseek-v3.1": "deepseek_v31",
+    "kimi_k2": "kimi_k2",
+    "hunyuan-a13b": "hunyuan_a13b",
+    "longcat": "longcat",
+    "glm-4": "glm45",
+    "qwen3": "qwen3_xml",
+    "olmo-3": "olmo3",
+}
 
 
 def filter_list_by_regex(
@@ -54,6 +95,51 @@ def get_config_attr(config: Any, attributes: list, default: Any = None) -> Any:
         elif hasattr(config, attr):
             return getattr(config, attr)
     return default
+
+
+# get all supported vLLM models from the official vLLM repo
+# parsing the rows which have model names in the 3rd column, e.g.
+# | `QWenLMHeadModel` | Qwen | `Qwen/Qwen-7B`, `Qwen/Qwen-7B-Chat`, etc. | .. | .. |
+# | `Qwen2ForCausalLM` | QwQ, Qwen2 | `Qwen/QwQ-32B-Preview`, `Qwen/Qwen2-7B-Instruct`, `Qwen/Qwen2-7B`, etc. | .. | .. |
+def get_all_vllm_models() -> list[str]:
+    url = f"https://raw.githubusercontent.com/vllm-project/vllm/refs/tags/{DEFAULT_VLLM_VERSION}/docs/models/supported_models.md"
+    response = requests.get(url)
+    response.raise_for_status()  # Raise error if request failed
+
+    rows = response.text.splitlines()
+
+    filtered_models = []
+    for row in rows:
+        # Look for rows with at least 4 columns (3 '|')
+        if row.count("|") >= 3:
+            columns = [col.strip() for col in row.split("|")]
+            if len(columns) > 3:
+                # Extract model names from the 3rd column
+                third_col = columns[3]
+                matches = re.findall(r"`([^`]+)`", third_col)
+                for model in matches:
+                    # Filter to include only models with format "owner/model"
+                    parts = model.split("/")
+                    if len(parts) == 2:
+                        filtered_models.add(model)
+
+    return sorted(filtered_models)
+
+
+def get_reasoning_parser(model_name: str) -> str:
+    for key, value in REASONING_PARSER_MAP.items():
+        if model_name.lower().startswith(key):
+            return value
+    return ""
+
+
+def get_tool_call_parser(model_name: str) -> str:
+    if model_name.lower().startswith("deepseek-v3.1"):
+        return "deepseek_v31"  # this is the only special case we need to handle
+    for key, value in TOOL_CALL_PARSER_MAP.items():
+        if model_name.lower().startswith(key):
+            return value
+    return ""
 
 
 @dataclass
@@ -168,6 +254,9 @@ class PresetGenerator:
             except Exception as e_auth:
                 logging.fatal(f"Failed to access model with token: {e_auth}")
                 return
+            logging.info(
+                f"Successfully accessed model {self.model_repo} with provided token."
+            )
         except Exception as e:
             logging.fatal(f"Error accessing model: {e}")
             return
@@ -231,7 +320,7 @@ class PresetGenerator:
         # --- 2. Determine Architecture & Cache Size ---
         # consider the attn arch supported by vllm. (MHA, MQA, GQA, MLA)
         # ref: https://github.com/vllm-project/vllm/blob/v0.12.0/vllm/attention/layer.py#L161
-        attn_type = "Unknown"
+        attn_type = "GQA (Grouped-Query Attention)"
         elements_per_token = 0
 
         # CASE A: Multi-Latent Attention (MLA) - DeepSeek V2/V3
@@ -293,19 +382,100 @@ class PresetGenerator:
         return yaml.dump(data, sort_keys=False, default_flow_style=False)
 
 
+@dataclass
+class Model:
+    name: str
+    version: str
+    downloadAuthRequired: bool
+    modelFileSize: str
+    diskStorageRequirement: str
+    bytesPerToken: int
+    modelTokenLimit: int
+    reasoningParser: str
+    toolCallParser: str
+    # chatTemplate: Optional[str] = None  # Optional because not all models have it
+
+
+@dataclass
+class ModelsConfig:
+    models: list[Model] = field(default_factory=list)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate Kaito Preset YAML")
     parser.add_argument(
         "model_repo",
+        nargs="?",
         help="Hugging Face model repository (e.g., microsoft/Phi-4-mini-instruct)",
     )
     parser.add_argument("--token", help="Hugging Face API token", default=None)
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+    parser.add_argument(
+        "--parse-vllm-models",
+        action="store_true",
+        help="Parse and output vLLM models config",
+    )
+    parser.add_argument(
+        "--vllm-model-limit",
+        type=int,
+        default=0,
+        help="Limit number of vLLM models to parse (0 for all)",
+    )
     args = parser.parse_args()
 
     # Configure logging
     log_level = logging.INFO if args.debug else logging.WARNING
     logging.basicConfig(level=log_level, format="[%(levelname)s] %(message)s")
+
+    if args.parse_vllm_models:
+        model_names = get_all_vllm_models()
+        logging.info("Total supported vLLM models: %d", len(model_names))
+        if args.vllm_model_limit > 0:
+            model_names = model_names[: args.vllm_model_limit]
+
+        models_config = ModelsConfig()
+        for name in model_names:
+            logging.info("begin to parse model: %s", name)
+            generator = PresetGenerator(name, args.token)
+
+            try:
+                generator.generate()
+            except Exception as e:
+                logging.error("Failed to parse model %s: %s", name, e)
+                continue
+
+            if generator.param.bytes_per_token == 0:
+                logging.info("Skipping model %s due to zero bytes per token.", name)
+                continue
+
+            model = Model(
+                name=generator.param.name,
+                version="https://huggingface.co/" + name,
+                downloadAuthRequired=generator.param.download_auth_required,
+                modelFileSize=str(generator.param.model_file_size_gb) + "Gi",
+                diskStorageRequirement=generator.param.disk_storage_requirement,
+                bytesPerToken=generator.param.bytes_per_token,
+                modelTokenLimit=generator.param.model_token_limit,
+                reasoningParser=get_reasoning_parser(generator.param.name),
+                toolCallParser=get_tool_call_parser(generator.param.name),
+            )
+            models_config.models.append(model)
+
+        logging.info(
+            "begin to write %d models config to file: %s",
+            len(models_config.models),
+            DEFAULT_MODEL_FILE_PATH,
+        )
+        data_dict = asdict(models_config)
+        with open(DEFAULT_MODEL_FILE_PATH, "w") as f:
+            yaml.dump(data_dict, f, sort_keys=False)
+        return
+
+    if args.model_repo is None or args.model_repo.strip() == "":
+        logging.fatal(
+            "Model repository is required. Please provide a valid Hugging Face model repository."
+        )
+        return
 
     generator = PresetGenerator(args.model_repo, args.token)
     yaml_output = generator.generate()

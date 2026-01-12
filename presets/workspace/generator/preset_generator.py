@@ -21,8 +21,6 @@ import requests
 import yaml
 from dataclasses import asdict, dataclass, field
 from typing import Any
-
-import yaml
 from huggingface_hub import HfFileSystem
 from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError
 
@@ -126,15 +124,15 @@ def get_all_vllm_models() -> set[str]:
 
 def get_reasoning_parser(model_name: str) -> str:
     for key, value in REASONING_PARSER_MAP.items():
-        if model_name.startswith(key):
+        if model_name.lower().startswith(key):
             return value
     return ""
 
 def get_tool_call_parser(model_name: str) -> str:
+    if model_name.lower().startswith("deepseek-v3.1"):
+        return "deepseek_v31" # this is the only special case we need to handle
     for key, value in TOOL_CALL_PARSER_MAP.items():
-        if model_name.startswith("deepseek-v3.1"):
-            return "deepseek_v31" # this is the only special case we need to handle
-        if model_name.startswith(key):
+        if model_name.lower().startswith(key):
             return value
     return ""
 
@@ -396,8 +394,8 @@ def main():
     parser = argparse.ArgumentParser(description="Generate Kaito Preset YAML")
     parser.add_argument(
         "model_repo",
-        help="Hugging Face model repository (e.g., microsoft/Phi-4-mini-instruct)",
-        default=None
+        nargs='?',
+        help="Hugging Face model repository (e.g., microsoft/Phi-4-mini-instruct)"
     )
     parser.add_argument("--token", help="Hugging Face API token", default=None)
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
@@ -411,23 +409,23 @@ def main():
 
     if args.parse_vllm_models:
         modelNames = get_all_vllm_models()
-        print("Total supported vLLM models:", len(modelNames))
+        logging.info("Total supported vLLM models: %d", len(modelNames))
         if args.vllm_model_limit > 0:
             modelNames = modelNames[: args.vllm_model_limit]
 
         models_config = ModelsConfig()
         for name in modelNames:
-            print("begin to parse model: " + name)
+            logging.info("begin to parse model: %s", name)
             generator = PresetGenerator(name, args.token)
 
             try:
                 generator.generate()
             except Exception as e:
-                print(f"Failed to parse model {name}: {e}")
+                logging.error("Failed to parse model %s: %s", name, e)
                 continue
 
             if generator.param.bytes_per_token == 0:
-                print(f"Skipping model {name} due to zero bytes per token.")
+                logging.info("Skipping model %s due to zero bytes per token.", name)
                 continue
 
             model = Model(
@@ -443,10 +441,14 @@ def main():
             )
             models_config.models.append(model)
 
-        print(f"begin to write {len(models_config.models)} models config to file: " + DEFAULT_MODEL_FILE_PATH)
+        logging.info("begin to write %d models config to file: %s", len(models_config.models), DEFAULT_MODEL_FILE_PATH)
         data_dict = asdict(models_config)
         with open(DEFAULT_MODEL_FILE_PATH, 'w') as f:
             yaml.dump(data_dict, f, sort_keys=False)
+        return
+
+    if args.model_repo is None or args.model_repo.strip() == "":
+        logging.fatal("Model repository is required. Please provide a valid Hugging Face model repository.")
         return
 
     generator = PresetGenerator(args.model_repo, args.token)

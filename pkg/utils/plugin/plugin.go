@@ -15,9 +15,9 @@ package plugin
 
 import (
 	"sync"
+	"k8s.io/klog/v2"
 
 	"github.com/kaito-project/kaito/pkg/model"
-	"k8s.io/klog/v2"
 )
 
 // Registration is a struct that holds the name and an instance of a struct

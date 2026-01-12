@@ -15,9 +15,9 @@ package plugin
 
 import (
 	"testing"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/stretchr/testify/assert"
 )
 
 // mockModel is a simple mock implementation of model.Model interface for testing

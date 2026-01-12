@@ -13,10 +13,8 @@
 
 import importlib.util
 import os
-import sys
-
 import pytest
-import yaml
+import sys
 
 # Load the module dynamically since it has a hyphen in the name
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -150,9 +148,9 @@ def test_get_reasoning_parser():
   assert preset_generator.get_reasoning_parser("gpt-4") == ""
   assert preset_generator.get_reasoning_parser("") == ""
   
-  # Test case sensitivity (should not match if pattern is different case)
-  assert preset_generator.get_reasoning_parser("DeepSeek-R1") == ""
-  assert preset_generator.get_reasoning_parser("DEEPSEEK-R1") == ""
+  # Test case insensitivity (should match regardless of case)
+  assert preset_generator.get_reasoning_parser("DeepSeek-R1") == "deepseek_r1"
+  assert preset_generator.get_reasoning_parser("DEEPSEEK-R1") == "deepseek_r1"
 
 def test_get_tool_call_parser():
   """Test get_tool_call_parser function with various model names."""
@@ -207,9 +205,10 @@ def test_get_tool_call_parser():
   assert preset_generator.get_tool_call_parser("") == ""
   assert preset_generator.get_tool_call_parser("random-model") == ""
 
-  # Test case sensitivity (should not match if pattern is different case)
-  assert preset_generator.get_tool_call_parser("DeepSeek-V3") == ""
-  assert preset_generator.get_tool_call_parser("MISTRAL") == ""
+  # Test case insensitivity (should match regardless of case)
+  assert preset_generator.get_tool_call_parser("DeepSeek-V3") == "deepseek_v3"
+  assert preset_generator.get_tool_call_parser("MISTRAL") == "mistral"
+
 @pytest.fixture
 def mock_vllm_response():
   """Mock response content from vLLM supported models documentation."""

@@ -13,8 +13,9 @@
 
 import importlib.util
 import os
-import pytest
 import sys
+
+import pytest
 
 # Load the module dynamically since it has a hyphen in the name
 current_dir = os.path.dirname(os.path.abspath(__file__))

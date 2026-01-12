@@ -14,8 +14,9 @@
 package plugin
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/kaito-project/kaito/pkg/model"
 )

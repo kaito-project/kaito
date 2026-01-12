@@ -98,14 +98,14 @@ def get_config_attr(config: Any, attributes: list, default: Any = None) -> Any:
 # parsing the rows which have model names in the 3rd column, e.g.
 # | `QWenLMHeadModel` | Qwen | `Qwen/Qwen-7B`, `Qwen/Qwen-7B-Chat`, etc. | .. | .. |
 # | `Qwen2ForCausalLM` | QwQ, Qwen2 | `Qwen/QwQ-32B-Preview`, `Qwen/Qwen2-7B-Instruct`, `Qwen/Qwen2-7B`, etc. | .. | .. |
-def get_all_vllm_models() -> set[str]:
+def get_all_vllm_models() -> list[str]:
     url = f'https://raw.githubusercontent.com/vllm-project/vllm/refs/tags/{DEFAULT_VLLM_VERSION}/docs/models/supported_models.md'
     response = requests.get(url)
     response.raise_for_status()  # Raise error if request failed
 
     rows = response.text.splitlines()
 
-    filtered_models = set()
+    filtered_models = []
     for row in rows:
         # Look for rows with at least 4 columns (3 '|')
         if row.count('|') >= 3:
@@ -130,7 +130,7 @@ def get_reasoning_parser(model_name: str) -> str:
 
 def get_tool_call_parser(model_name: str) -> str:
     if model_name.lower().startswith("deepseek-v3.1"):
-        return "deepseek_v31" # this is the only special case we need to handle
+        return "deepseek_v31"  # this is the only special case we need to handle
     for key, value in TOOL_CALL_PARSER_MAP.items():
         if model_name.lower().startswith(key):
             return value
@@ -408,13 +408,13 @@ def main():
     logging.basicConfig(level=log_level, format="[%(levelname)s] %(message)s")
 
     if args.parse_vllm_models:
-        modelNames = get_all_vllm_models()
-        logging.info("Total supported vLLM models: %d", len(modelNames))
+        model_names = get_all_vllm_models()
+        logging.info("Total supported vLLM models: %d", len(model_names))
         if args.vllm_model_limit > 0:
-            modelNames = modelNames[: args.vllm_model_limit]
+            model_names = model_names[: args.vllm_model_limit]
 
         models_config = ModelsConfig()
-        for name in modelNames:
+        for name in model_names:
             logging.info("begin to parse model: %s", name)
             generator = PresetGenerator(name, args.token)
 

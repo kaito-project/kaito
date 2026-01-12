@@ -14,8 +14,8 @@
 package plugin
 
 import (
-	"sync"
 	"k8s.io/klog/v2"
+	"sync"
 
 	"github.com/kaito-project/kaito/pkg/model"
 )

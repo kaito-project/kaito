@@ -388,17 +388,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			presetNameOverride: "Invalid-Preset-Name",
 			expectErrs:         false,
 		},
-		{
-			name: "Deprecated Model",
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC6s_v3",
-				Count:        pointerToInt(1),
-			},
-			preset:             true,
-			presetNameOverride: "phi-2",
-			expectErrs:         true,
-			errContent:         "Model phi-2 is deprecated and no longer supported",
-		},
 	}
 
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)

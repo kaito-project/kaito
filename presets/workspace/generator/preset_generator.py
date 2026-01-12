@@ -108,7 +108,7 @@ def get_all_vllm_models() -> list[str]:
 
     rows = response.text.splitlines()
 
-    filtered_models = []
+    filtered_models = set()
     for row in rows:
         # Look for rows with at least 4 columns (3 '|')
         if row.count("|") >= 3:
@@ -452,7 +452,7 @@ def main():
                 name=generator.param.name,
                 version="https://huggingface.co/" + name,
                 downloadAuthRequired=generator.param.download_auth_required,
-                modelFileSize=str(generator.param.model_file_size_gb) + "Gi",
+                modelFileSize=f"{generator.param.model_file_size_gb}Gi",
                 diskStorageRequirement=generator.param.disk_storage_requirement,
                 bytesPerToken=generator.param.bytes_per_token,
                 modelTokenLimit=generator.param.model_token_limit,

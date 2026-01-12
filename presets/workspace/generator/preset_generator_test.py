@@ -16,6 +16,7 @@ import os
 import sys
 
 import pytest
+import yaml
 
 # Load the module dynamically since it has a hyphen in the name
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -124,6 +125,26 @@ vllm:
   disallow_lora: false
 """,
 }
+
+
+@pytest.mark.parametrize(
+    "model_name",
+    [
+        "microsoft/Phi-4-mini-instruct",
+        "tiiuae/falcon-7b-instruct",
+        "mistralai/Ministral-3-8B-Instruct-2512",
+        "mistralai/Mistral-Large-3-675B-Instruct-2512",
+        "deepseek-ai/DeepSeek-R1",
+    ],
+)
+def test_preset_generator(model_name):
+    generator = PresetGenerator(model_name)
+    output = generator.generate()
+
+    expected = EXPECTED_OUTPUTS[model_name]
+
+    # Compare parsed YAML to avoid formatting differences
+    assert yaml.safe_load(output) == yaml.safe_load(expected)
 
 
 def test_get_reasoning_parser():

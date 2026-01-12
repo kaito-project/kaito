@@ -64,7 +64,8 @@ TOOL_CALL_PARSER_MAP = {
     "hunyuan-a13b": "hunyuan_a13b",
     "longcat": "longcat",
     "glm-4": "glm45",
-    "qwen3": "qwen3_xml",
+    "qwen3": "hermes",
+    "qwen3-coder": "qwen3_xml",
     "olmo-3": "olmo3",
 }
 
@@ -122,6 +123,8 @@ def get_all_vllm_models() -> list[str]:
                     parts = model.split("/")
                     if len(parts) == 2:
                         filtered_models.add(model)
+                    else:
+                        logging.info(f"Skipping invalid model name: {model}")
 
     return sorted(filtered_models)
 
@@ -135,7 +138,9 @@ def get_reasoning_parser(model_name: str) -> str:
 
 def get_tool_call_parser(model_name: str) -> str:
     if model_name.lower().startswith("deepseek-v3.1"):
-        return "deepseek_v31"  # this is the only special case we need to handle
+        return "deepseek_v31"  # this is the special case we need to handle
+    if model_name.lower().startswith("qwen3-coder"):
+        return "qwen3_xml"  # this is the special case we need to handle
     for key, value in TOOL_CALL_PARSER_MAP.items():
         if model_name.lower().startswith(key):
             return value

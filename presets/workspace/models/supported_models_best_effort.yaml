@@ -412,7 +412,7 @@ models:
   bytesPerToken: 98304
   modelTokenLimit: 40960
   reasoningParser: qwen3
-  toolCallParser: qwen3_xml
+  toolCallParser: hermes
 - name: qwen3-8b
   version: https://huggingface.co/Qwen/Qwen3-8B
   downloadAuthRequired: false
@@ -421,7 +421,7 @@ models:
   bytesPerToken: 147456
   modelTokenLimit: 40960
   reasoningParser: qwen3
-  toolCallParser: qwen3_xml
+  toolCallParser: hermes
 - name: qwen3-embedding-0.6b
   version: https://huggingface.co/Qwen/Qwen3-Embedding-0.6B
   downloadAuthRequired: false
@@ -430,7 +430,7 @@ models:
   bytesPerToken: 114688
   modelTokenLimit: 32768
   reasoningParser: qwen3
-  toolCallParser: qwen3_xml
+  toolCallParser: hermes
 - name: qwen3-next-80b-a3b-instruct
   version: https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct
   downloadAuthRequired: false
@@ -439,7 +439,7 @@ models:
   bytesPerToken: 98304
   modelTokenLimit: 262144
   reasoningParser: qwen3
-  toolCallParser: qwen3_xml
+  toolCallParser: hermes
 - name: qwen3-reranker-0.6b
   version: https://huggingface.co/Qwen/Qwen3-Reranker-0.6B
   downloadAuthRequired: false
@@ -448,7 +448,7 @@ models:
   bytesPerToken: 114688
   modelTokenLimit: 40960
   reasoningParser: qwen3
-  toolCallParser: qwen3_xml
+  toolCallParser: hermes
 - name: snowflake-arctic-base
   version: https://huggingface.co/Snowflake/snowflake-arctic-base
   downloadAuthRequired: false
@@ -1771,7 +1771,7 @@ models:
   bytesPerToken: 114688
   modelTokenLimit: 40960
   reasoningParser: qwen3
-  toolCallParser: qwen3_xml
+  toolCallParser: hermes
 - name: solar-pro-preview-instruct
   version: https://huggingface.co/upstage/solar-pro-preview-instruct
   downloadAuthRequired: false

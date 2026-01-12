@@ -228,7 +228,7 @@ def test_get_tool_call_parser():
     assert preset_generator.get_tool_call_parser("hunyuan-a13b") == "hunyuan_a13b"
     assert preset_generator.get_tool_call_parser("longcat") == "longcat"
     assert preset_generator.get_tool_call_parser("glm-4") == "glm45"
-    assert preset_generator.get_tool_call_parser("qwen3") == "qwen3_xml"
+    assert preset_generator.get_tool_call_parser("qwen3") == "hermes"
     assert preset_generator.get_tool_call_parser("olmo-3") == "olmo3"
 
     # Test models that don't match any pattern

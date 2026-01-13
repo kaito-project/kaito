@@ -33,12 +33,6 @@ type Registration struct {
 	// interface. It is used to retrieve the model's compute/storage requirements
 	// and runtime parameters.
 	Instance model.Model
-
-	// KeepExistingModel indicates whether to keep the existing model registration
-	// if a model with the same name already exists. If set to true, the existing
-	// model will not be overridden. If false, the new model will replace the
-	// existing one.
-	KeepExistingModel bool
 }
 
 type ModelRegister struct {
@@ -61,11 +55,8 @@ func (reg *ModelRegister) Register(r *Registration) {
 	}
 
 	if _, exists := reg.models[r.Name]; exists {
-		if r.KeepExistingModel {
-			klog.InfoS("model is already registered, skipping", "model", r.Name)
-			return
-		}
-		klog.InfoS("model is already registered, overriding", "model", r.Name)
+		klog.InfoS("model is already registered, skipping", "model", r.Name)
+		return
 	}
 
 	reg.models[r.Name] = r

@@ -15,6 +15,7 @@ package models
 
 import (
 	_ "embed"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -38,7 +39,7 @@ type VLLMCatalog struct {
 	Models []model.Metadata `yaml:"models,omitempty"`
 }
 
-func init() {
+func initVLLMCatalog() {
 	vLLMCatalog := VLLMCatalog{}
 	utilruntime.Must(yaml.Unmarshal(vLLMModelsYAML, &vLLMCatalog))
 
@@ -46,9 +47,8 @@ func init() {
 	for _, m := range vLLMCatalog.Models {
 		utilruntime.Must(m.Validate())
 		plugin.KaitoModelRegister.Register(&plugin.Registration{
-			Name:              m.Name,
-			Instance:          &vLLMCompatibleModel{model: m},
-			KeepExistingModel: true,
+			Name:     m.Name,
+			Instance: &vLLMCompatibleModel{model: m},
 		})
 		klog.InfoS("Registered VLLM model preset", "model", m.Name)
 	}
@@ -89,6 +89,13 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	}
 	if m.model.ReasoningParser != "" {
 		runParamsVLLM["reasoning-parser"] = m.model.ReasoningParser
+	}
+
+	// append model-specific VLLM run parameters for ministral-3 and mistral-large-3 models
+	if strings.HasPrefix(m.model.Name, "ministral-3") || strings.HasPrefix(m.model.Name, "mistral-large-3") {
+		runParamsVLLM["tokenizer_mode"] = "mistral"
+		runParamsVLLM["config_format"] = "mistral"
+		runParamsVLLM["load_format"] = "mistral"
 	}
 
 	presetParam := &model.PresetParam{

@@ -55,6 +55,8 @@ func init() {
 		utilruntime.Must(m.Validate())
 		supportedModels.Store(m.Name, &m)
 	}
+
+	initVLLMCatalog()
 }
 
 // MustGet retrieves the model metadata for the given model name or

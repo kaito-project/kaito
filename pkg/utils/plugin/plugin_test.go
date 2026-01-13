@@ -51,44 +51,19 @@ func TestModelRegister_Register(t *testing.T) {
 		})
 	})
 
-	t.Run("keep existing model when KeepExistingModel is true", func(t *testing.T) {
+	t.Run("skip registering duplicate model", func(t *testing.T) {
 		reg := &ModelRegister{}
-		firstModel := &mockModel{}
-		secondModel := &mockModel{}
-
-		reg.Register(&Registration{
+		r1 := &Registration{
 			Name:     "test-model",
-			Instance: firstModel,
-		})
-
-		reg.Register(&Registration{
-			Name:              "test-model",
-			Instance:          secondModel,
-			KeepExistingModel: true,
-		})
-
-		retrieved := reg.MustGet("test-model")
-		assert.Equal(t, firstModel, retrieved)
-	})
-
-	t.Run("override existing model when KeepExistingModel is false", func(t *testing.T) {
-		reg := &ModelRegister{}
-		firstModel := &mockModel{}
-		secondModel := &mockModel{}
-
-		reg.Register(&Registration{
+			Instance: &mockModel{},
+		}
+		r2 := &Registration{
 			Name:     "test-model",
-			Instance: firstModel,
-		})
-
-		reg.Register(&Registration{
-			Name:              "test-model",
-			Instance:          secondModel,
-			KeepExistingModel: false,
-		})
-
-		retrieved := reg.MustGet("test-model")
-		assert.Equal(t, secondModel, retrieved)
+			Instance: &mockModel{},
+		}
+		reg.Register(r1)
+		reg.Register(r2) // should skip without panic
+		assert.True(t, reg.Has("test-model"))
 	})
 }
 

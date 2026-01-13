@@ -173,6 +173,22 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 				assert.Equal(t, 8192, params.ModelTokenLimit)
 			},
 		},
+		{
+			name: "add special params for mistral model",
+			model: model.Metadata{
+				Name:                   "mistral-large-3-finetuned",
+				Version:                "https://huggingface.co/test/mistral-large-3-finetuned",
+				ModelFileSize:          "4Gi",
+				DiskStorageRequirement: "10Gi",
+			},
+			expectedName:  "mistral-large-3-finetuned",
+			expectedDType: "bfloat16",
+			checkParams: func(t *testing.T, params *model.PresetParam) {
+				assert.Equal(t, "mistral", params.RuntimeParam.VLLM.ModelRunParams["tokenizer_mode"])
+				assert.Equal(t, "mistral", params.RuntimeParam.VLLM.ModelRunParams["config_format"])
+				assert.Equal(t, "mistral", params.RuntimeParam.VLLM.ModelRunParams["load_format"])
+			},
+		},
 	}
 
 	for _, tt := range tests {

@@ -18,7 +18,7 @@ python3 preset_generator.py <model_repo> [--token=YOUR_HF_TOKEN] [--debug]
 **Example:**
 ```bash
 $ python3 preset_generator.py microsoft/Phi-4-mini-instruct
-attn_type: GQA (Grouped-Query Attention)
+attn_type: GQA
 name: phi-4-mini-instruct
 type: tfs
 version: 0.0.1

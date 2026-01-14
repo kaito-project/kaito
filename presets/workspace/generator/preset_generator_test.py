@@ -30,7 +30,7 @@ PresetGenerator = preset_generator.PresetGenerator
 
 EXPECTED_OUTPUTS = {
     # outdated, legacy model. model files in .bin .safetensors format
-    "tiiuae/falcon-7b-instruct": """attn_type: MQA (Multi-Query Attention)
+    "tiiuae/falcon-7b-instruct": """attn_type: MQA
 name: falcon-7b-instruct
 type: tfs
 version: 0.0.1
@@ -49,7 +49,7 @@ vllm:
   disallow_lora: false
 """,
     # modern standard model with GQA attention.
-    "microsoft/Phi-4-mini-instruct": """attn_type: GQA (Grouped-Query Attention)
+    "microsoft/Phi-4-mini-instruct": """attn_type: GQA
 name: phi-4-mini-instruct
 type: tfs
 version: 0.0.1
@@ -68,7 +68,7 @@ vllm:
   disallow_lora: false
 """,
     # modern standard model with MLA attention.
-    "deepseek-ai/DeepSeek-R1": """attn_type: MLA (Multi-Latent Attention)
+    "deepseek-ai/DeepSeek-R1": """attn_type: MLA
 name: deepseek-r1
 type: tfs
 version: 0.0.1
@@ -87,7 +87,7 @@ vllm:
   disallow_lora: false
 """,
     # model in mistral format with GQA attention.
-    "mistralai/Ministral-3-8B-Instruct-2512": """attn_type: GQA (Grouped-Query Attention)
+    "mistralai/Ministral-3-8B-Instruct-2512": """attn_type: GQA
 name: ministral-3-8b-instruct-2512
 type: tfs
 version: 0.0.1
@@ -106,7 +106,7 @@ vllm:
   disallow_lora: false
 """,
     # model in mistral format with MLA attention.
-    "mistralai/Mistral-Large-3-675B-Instruct-2512": """attn_type: MLA (Multi-Latent Attention)
+    "mistralai/Mistral-Large-3-675B-Instruct-2512": """attn_type: MLA
 name: mistral-large-3-675b-instruct-2512
 type: tfs
 version: 0.0.1

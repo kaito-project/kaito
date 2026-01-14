@@ -15,6 +15,7 @@ package generator
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -31,6 +32,12 @@ import (
 const (
 	SystemFileDiskSizeGiB  = 50
 	DefaultModelTokenLimit = 2048
+)
+
+var (
+	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
+	binRegex        = regexp.MustCompile(`.*\.bin`)
+	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
 )
 
 type Generator struct {
@@ -133,10 +140,6 @@ func (g *Generator) FetchModelMetadata() error {
 	// Filter files
 	var selectedFiles []FileInfo
 	var mistralFiles []FileInfo
-
-	safetensorRegex := regexp.MustCompile(`.*\.safetensors`)
-	binRegex := regexp.MustCompile(`.*\.bin`)
-	mistralRegex := regexp.MustCompile(`consolidated.*\.safetensors`)
 
 	for _, f := range files {
 		if mistralRegex.MatchString(f.Path) {
@@ -320,6 +323,9 @@ func (g *Generator) Generate() (*model.PresetParam, error) {
 
 // GeneratePreset is the global function to generate preset param
 func GeneratePreset(modelRepo, token string) (*model.PresetParam, error) {
+	if modelRepo == "" {
+		return nil, errors.New("model repo is required")
+	}
 	gen := NewGenerator(modelRepo, token)
 	return gen.Generate()
 }

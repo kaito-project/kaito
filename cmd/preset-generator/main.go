@@ -22,9 +22,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kaito-project/kaito/presets/workspace/generator"
-
 	"gopkg.in/yaml.v2"
+
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
 func main() {

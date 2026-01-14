@@ -147,7 +147,7 @@ func (g *Generator) FetchModelMetadata() error {
 		}
 	}
 
-	configFile := "config.json"
+	var configFile string
 
 	// Logic to detect model format
 	if len(mistralFiles) > 0 {

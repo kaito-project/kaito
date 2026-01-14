@@ -16,8 +16,9 @@ package generator
 import (
 	"testing"
 
-	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/kaito-project/kaito/pkg/model"
 )
 
 func TestGeneratePreset(t *testing.T) {

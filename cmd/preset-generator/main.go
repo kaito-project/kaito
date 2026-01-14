@@ -16,8 +16,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -28,23 +26,15 @@ import (
 )
 
 func main() {
-	debug := flag.Bool("debug", false, "Enable debug logging")
 	token := flag.String("token", "", "Hugging Face API token")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
-		fmt.Println("Usage: generator <model_repo>")
+		fmt.Println("Usage: preset-generator <model_repo>")
 		os.Exit(1)
 	}
 
 	modelRepo := flag.Arg(0)
-
-	// Configure logging based on debug flag
-	if !*debug {
-		log.SetOutput(io.Discard)
-	} else {
-		log.SetOutput(os.Stderr)
-	}
 
 	param, err := generator.GeneratePreset(modelRepo, *token)
 	if err != nil {
@@ -91,8 +81,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *debug {
-		log.Println("--- Generated Preset YAML ---")
-	}
 	fmt.Println(string(output))
 }

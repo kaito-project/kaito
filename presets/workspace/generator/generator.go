@@ -229,7 +229,7 @@ func (g *Generator) ParseModelMetadata() {
 		"seq_length",
 		"max_seq_len",
 		"max_sequence_length",
-	}, DEFAULT_MODEL_TOKEN_LIMIT)
+	}, DefaultModelTokenLimit)
 
 	g.Param.ModelTokenLimit = maxPos
 }
@@ -237,7 +237,7 @@ func (g *Generator) ParseModelMetadata() {
 func (g *Generator) calculateStorageSize() string {
 	szStr := strings.TrimSuffix(g.Param.ModelFileSize, "Gi")
 	sz, _ := strconv.ParseFloat(szStr, 64)
-	req := int(sz + SYSTEM_FILE_DISKSIZE_GIB)
+	req := int(sz + SystemFileDiskSizeGiB)
 	return fmt.Sprintf("%dGi", req)
 }
 

@@ -29,8 +29,8 @@ import (
 )
 
 const (
-	SYSTEM_FILE_DISKSIZE_GIB  = 50
-	DEFAULT_MODEL_TOKEN_LIMIT = 2048
+	SystemFileDiskSizeGiB  = 50
+	DefaultModelTokenLimit = 2048
 )
 
 type Generator struct {
@@ -189,7 +189,7 @@ func (g *Generator) FetchModelMetadata() error {
 	modelSizeGB := float64(totalBytes) / (1024 * 1024 * 1024)
 	g.Param.ModelFileSize = fmt.Sprintf("%.0fGi", math.Ceil(modelSizeGB))
 
-	g.Param.RuntimeParam.VLLM.ModelRunParams = make(map[string]string)
+	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
 	configURL := fmt.Sprintf("https://huggingface.co/%s/resolve/main/%s", g.ModelRepo, configFile)
 	configBody, err := g.fetchURL(configURL)

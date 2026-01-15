@@ -66,12 +66,12 @@ func NewGenerator(modelRepo, token string) *Generator {
 	}
 
 	// Initialize default PresetParam
-	gen.Param.Name = modelNameSafe
-	gen.Param.ModelType = "tfs"
-	gen.Param.Version = "0.0.1"
-	gen.Param.DownloadAtRuntime = true
-	gen.Param.DiskStorageRequirement = "50Gi"
-	gen.Param.ModelFileSize = "0Gi"
+	gen.Param.Metadata.Name = modelNameSafe
+	gen.Param.Metadata.ModelType = "tfs"
+	gen.Param.Metadata.Version = fmt.Sprintf("https://huggingface.co/%s", modelRepo)
+	gen.Param.Metadata.DownloadAtRuntime = true
+	gen.Param.Metadata.DiskStorageRequirement = "50Gi"
+	gen.Param.Metadata.ModelFileSize = "0Gi"
 
 	return gen
 }
@@ -295,7 +295,7 @@ func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 }
 
 func (g *Generator) FinalizeParams() {
-	g.Param.DiskStorageRequirement = g.calculateStorageSize()
+	g.Param.Metadata.DiskStorageRequirement = g.calculateStorageSize()
 
 	// VLLM Params
 	if g.Param.VLLM.ModelRunParams == nil {
@@ -307,7 +307,7 @@ func (g *Generator) FinalizeParams() {
 	g.Param.VLLM.ModelRunParams["tokenizer_mode"] = g.TokenizerMode
 
 	bpt, attnType := g.calculateKVCacheTokenSize()
-	g.Param.BytesPerToken = bpt
+	g.Param.Metadata.BytesPerToken = bpt
 	g.Param.AttnType = attnType
 }
 

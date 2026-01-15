@@ -57,6 +57,7 @@ func (m *vLLMCatalog) RegisterModel(hfModelRepoName string, param *model.PresetP
 }
 
 func (m *vLLMCatalog) GetModelByName(name string) model.Model {
+	name = strings.ToLower(name)
 	model := plugin.KaitoModelRegister.MustGet(name)
 	if model != nil {
 		return model

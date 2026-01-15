@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "kaito.fullname" . }}
+  name: {{ include "kaito.deploymentName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "kaito.labels" . | nindent 4 }}
@@ -10,6 +10,8 @@ spec:
   selector:
     matchLabels:
       {{- include "kaito.selectorLabels" . | nindent 6 }}
+  strategy:
+    {{- toYaml .Values.deploymentStrategy | nindent 4 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,12 +20,15 @@ spec:
       {{- end }}
       labels:
         {{- include "kaito.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podTemplateLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "kaito.fullname" . }}-sa
+      serviceAccountName: {{ include "kaito.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -36,9 +41,9 @@ spec:
             - --feature-gates={{ include "utils.joinKeyValuePairs" .Values.featureGates }}
           env:
             - name: CONFIG_LOGGING_NAME
-              value: "kaito-logging-config"
+              value: {{ include "kaito.loggingConfigMapName" . | quote }}
             - name: WEBHOOK_SERVICE
-              value: {{ include "kaito.fullname" . }}-svc
+              value: {{ include "kaito.serviceName" . | quote }}
             - name: WEBHOOK_PORT
               value: "{{ .Values.webhook.port }}"
             - name: SYSTEM_NAMESPACE
@@ -46,11 +51,11 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: PRESET_REGISTRY_NAME
-              value: {{ .Values.presetRegistryName }}
+              value: {{ .Values.presetRegistryName | quote }}
             - name: CLOUD_PROVIDER
-              value: {{ .Values.cloudProviderName }}
+              value: {{ .Values.cloudProviderName | quote }}
             - name: CLUSTER_NAME
-              value: {{ .Values.clusterName }}
+              value: {{ .Values.clusterName | quote }}
           ports:
             - name: http-metrics
               containerPort: 8080

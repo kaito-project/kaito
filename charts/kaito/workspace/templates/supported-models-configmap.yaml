@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: kaito-supported-models
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- toYaml .Values.commonLabels | nindent 4 }}
 data:
   SupportedModels: |
     models:

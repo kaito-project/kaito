@@ -34,6 +34,9 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "kaito.labels" -}}
+{{- if .Values.commonLabels }}
+{{- toYaml .Values.commonLabels }}
+{{- else }}
 helm.sh/chart: {{ include "kaito.chart" . }}
 app.kubernetes.io/created-by: {{ include "kaito.chart" . }}
 {{ include "kaito.selectorLabels" . }}
@@ -42,14 +45,129 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
+{{- end }}
 
 {{/*
 Selector labels
 */}}
 {{- define "kaito.selectorLabels" -}}
+{{- if .Values.selectorLabels }}
+{{- toYaml .Values.selectorLabels }}
+{{- else }}
 app.kubernetes.io/name: {{ include "kaito.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+{{- end }}
+
+{{/*
+ServiceAccount name
+*/}}
+{{- define "kaito.serviceAccountName" -}}
+{{- if .Values.serviceAccountName -}}
+{{- .Values.serviceAccountName -}}
+{{- else -}}
+{{- include "kaito.fullname" . }}-sa
+{{- end -}}
+{{- end -}}
+
+{{/*
+Service name
+*/}}
+{{- define "kaito.serviceName" -}}
+{{- if .Values.serviceName -}}
+{{- .Values.serviceName -}}
+{{- else -}}
+{{- include "kaito.fullname" . }}-svc
+{{- end -}}
+{{- end -}}
+
+{{/*
+Logging ConfigMap name
+*/}}
+{{- define "kaito.loggingConfigMapName" -}}
+{{- if .Values.loggingConfigMapName -}}
+{{- .Values.loggingConfigMapName -}}
+{{- else -}}
+kaito-logging-config
+{{- end -}}
+{{- end -}}
+
+{{/*
+ClusterRole name
+*/}}
+{{- define "kaito.clusterRoleName" -}}
+{{- if .Values.clusterRoleName -}}
+{{- .Values.clusterRoleName -}}
+{{- else -}}
+{{- include "kaito.fullname" . }}-clusterrole
+{{- end -}}
+{{- end -}}
+
+{{/*
+ClusterRoleBinding name
+*/}}
+{{- define "kaito.clusterRoleBindingName" -}}
+{{- if .Values.clusterRoleBindingName -}}
+{{- .Values.clusterRoleBindingName -}}
+{{- else -}}
+{{- include "kaito.fullname" . }}-rolebinding
+{{- end -}}
+{{- end -}}
+
+{{/*
+Role name
+*/}}
+{{- define "kaito.roleName" -}}
+{{- if .Values.roleName -}}
+{{- .Values.roleName -}}
+{{- else -}}
+{{- include "kaito.fullname" . }}-role
+{{- end -}}
+{{- end -}}
+
+{{/*
+RoleBinding name
+*/}}
+{{- define "kaito.roleBindingName" -}}
+{{- if .Values.roleBindingName -}}
+{{- .Values.roleBindingName -}}
+{{- else -}}
+{{- include "kaito.fullname" . }}-rolebinding
+{{- end -}}
+{{- end -}}
+
+{{/*
+Deployment name
+*/}}
+{{- define "kaito.deploymentName" -}}
+{{- if .Values.deploymentName -}}
+{{- .Values.deploymentName -}}
+{{- else -}}
+{{- include "kaito.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+InferenceSet ClusterRole name
+*/}}
+{{- define "kaito.inferenceSetClusterRoleName" -}}
+{{- if .Values.inferenceSetClusterRoleName -}}
+{{- .Values.inferenceSetClusterRoleName -}}
+{{- else -}}
+{{- include "kaito.fullname" . }}-inferenceset-clusterrole
+{{- end -}}
+{{- end -}}
+
+{{/*
+InferenceSet ClusterRoleBinding name
+*/}}
+{{- define "kaito.inferenceSetClusterRoleBindingName" -}}
+{{- if .Values.inferenceSetClusterRoleBindingName -}}
+{{- .Values.inferenceSetClusterRoleBindingName -}}
+{{- else -}}
+{{- include "kaito.fullname" . }}-inferenceset-rolebinding
+{{- end -}}
+{{- end -}}
 
 {{/*
 Utils function

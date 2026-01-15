@@ -1,7 +1,22 @@
 # Default values for KAITO.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+clusterRoleBindingName: ""
+clusterRoleName: ""
+deploymentName: ""
+inferenceSetClusterRoleBindingName: ""
+inferenceSetClusterRoleName: ""
+loggingConfigMapName: ""
+roleBindingName: ""
+roleName: ""
+serviceAccountName: ""
+serviceName: ""
+commonLabels: {}
+selectorLabels: {}
 replicaCount: 1
+deploymentStrategy:
+  rollingUpdate:
+    maxUnavailable: 1
 image:
   repository: mcr.microsoft.com/aks/kaito/workspace
   pullPolicy: IfNotPresent
@@ -9,9 +24,15 @@ image:
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
   runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+podTemplateLabels: {}
 securityContext:
   allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
   capabilities:
     drop:
       - "ALL"
@@ -22,6 +43,9 @@ featureGates:
   enableInferenceSetController: false
 nvidiaDevicePlugin:
   enabled: true
+  daemonsetName: "nvidia-device-plugin-daemonset"
+  image: "mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.17.0"
+  imagePullPolicy: "IfNotPresent"
 localCSIDriver:
   useLocalCSIDriver: true
 webhook:

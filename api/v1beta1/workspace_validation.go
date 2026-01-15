@@ -38,6 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -441,7 +442,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 
 	if presetName != "" && skuConfig != nil {
 		if napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled) {
-			modelPreset := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
+			modelPreset := models.KaitoVLLMModelRegister.GetModelByName(presetName) // InferenceSpec has been validated so the name is valid.
 			params := modelPreset.GetInferenceParameters()
 
 			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
@@ -553,7 +554,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 			// Need to return here. Otherwise, a panic will be hit when doing following checks.
 			return errs
 		}
-		modelPreset := plugin.KaitoModelRegister.MustGet(string(i.Preset.Name))
+		modelPreset := models.KaitoVLLMModelRegister.GetModelByName(string(i.Preset.Name))
 		params := modelPreset.GetInferenceParameters()
 		useAdapterStrength := false
 		for _, adapter := range i.Adapters {

@@ -29,8 +29,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 type NodeClaimManager struct {
@@ -181,7 +181,7 @@ func (c *NodeClaimManager) determineNodeOSDiskSize(wObj *kaitov1beta1.Workspace)
 	var nodeOSDiskSize string
 	if wObj.Inference != nil && wObj.Inference.Preset != nil && wObj.Inference.Preset.Name != "" {
 		presetName := string(wObj.Inference.Preset.Name)
-		nodeOSDiskSize = plugin.KaitoModelRegister.MustGet(presetName).
+		nodeOSDiskSize = models.KaitoVLLMModelRegister.GetModelByName(presetName).
 			GetInferenceParameters().DiskStorageRequirement
 	}
 	if nodeOSDiskSize == "" {

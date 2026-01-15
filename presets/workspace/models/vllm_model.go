@@ -15,6 +15,7 @@ package models
 
 import (
 	_ "embed"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -23,41 +24,76 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
 var (
 	//go:embed supported_models_best_effort.yaml
-	vLLMModelsYAML []byte
+	vLLMModelsYAML         []byte
+	KaitoVLLMModelRegister = vLLMCatalog{}
 )
 
-// VLLMCatalog is a struct that holds a list of supported models parsed
+// vLLMCatalog is a struct that holds a list of supported models parsed
 // from presets/workspace/models/supported_models_best_effort.yaml. The YAML file is
 // considered the source of truth for the model metadata, and any
 // information in the YAML file should not be hardcoded in the codebase.
-type VLLMCatalog struct {
+type vLLMCatalog struct {
 	Models []model.Metadata `yaml:"models,omitempty"`
 }
 
+func (m *vLLMCatalog) RegisterModel(hfModelRepoName string, param *model.PresetParam) model.Model {
+	if param == nil {
+		return nil
+	}
+
+	model := &VLLMCompatibleModel{model: param.Metadata}
+	r := &plugin.Registration{
+		Name:            param.Metadata.Name,
+		HFModelRepoName: hfModelRepoName,
+		Instance:        model,
+	}
+	plugin.KaitoModelRegister.Register(r)
+	return model
+}
+
+func (m *vLLMCatalog) GetModelByName(name string) model.Model {
+	model := plugin.KaitoModelRegister.MustGet(name)
+	if model != nil {
+		return model
+	}
+
+	// if name contains "/", get model data from HuggingFace
+	if strings.Contains(name, "/") {
+		klog.InfoS("Generating VLLM model preset for HuggingFace model", "model", name)
+		// todo: add hf_token support
+		param, err := generator.GeneratePreset(name, "")
+		if err != nil {
+			panic("could not generate preset for model: " + name + ", error: " + err.Error())
+		}
+		return m.RegisterModel(name, param)
+	}
+	panic("model is not registered: " + name)
+}
+
 func init() {
-	vLLMCatalog := VLLMCatalog{}
-	utilruntime.Must(yaml.Unmarshal(vLLMModelsYAML, &vLLMCatalog))
+	utilruntime.Must(yaml.Unmarshal(vLLMModelsYAML, &KaitoVLLMModelRegister))
 
 	// register all VLLM models
-	for _, m := range vLLMCatalog.Models {
+	for _, m := range KaitoVLLMModelRegister.Models {
 		utilruntime.Must(m.Validate())
 		plugin.KaitoModelRegister.Register(&plugin.Registration{
 			Name:     m.Name,
-			Instance: &vLLMCompatibleModel{model: m},
+			Instance: &VLLMCompatibleModel{model: m},
 		})
 		klog.InfoS("Registered VLLM model preset", "model", m.Name)
 	}
 }
 
-type vLLMCompatibleModel struct {
+type VLLMCompatibleModel struct {
 	model model.Metadata
 }
 
-func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
+func (m *VLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	metaData := &model.Metadata{
 		Name:                 m.model.Name,
 		ModelType:            "text-generation",
@@ -111,14 +147,14 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	return presetParam
 }
 
-func (*vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
+func (*VLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
 	return nil
 }
 
-func (*vLLMCompatibleModel) SupportDistributedInference() bool {
+func (*VLLMCompatibleModel) SupportDistributedInference() bool {
 	return true
 }
 
-func (*vLLMCompatibleModel) SupportTuning() bool {
+func (*VLLMCompatibleModel) SupportTuning() bool {
 	return false
 }

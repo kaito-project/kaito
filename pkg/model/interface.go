@@ -177,6 +177,10 @@ type PresetParam struct {
 	// run the presets/workspace/generator/preset_generator.py script
 	// with the model's Hugging Face repository ID as an argument.
 
+	// AttnType specifies the attention implementation (e.g., MHA, GQA, MLA).
+	// Calculated by the preset generator based on model config.
+	AttnType string `yaml:"attn_type,omitempty"`
+
 	RuntimeParam
 
 	// ReadinessTimeout defines the maximum duration for creating the workload.

@@ -236,7 +236,7 @@ class PresetGenerator:
 
         # CASE A: Multi-Latent Attention (MLA) - DeepSeek V2/V3
         if kv_lora_rank is not None:
-            attn_type = "MLA (Multi-Latent Attention)"
+            attn_type = "MLA"
             # MLA Cache = Compressed Latent Vector + Decoupled RoPE Key
             # DeepSeek V2/V3 caches a SINGLE latent vector + RoPE part per token (shared across heads)
             elements_per_token = kv_lora_rank + qk_rope_head_dim
@@ -250,9 +250,9 @@ class PresetGenerator:
             if attention_heads == kv_heads:
                 attn_type = "MHA (Multi-Head Attention)"
             elif kv_heads == 1:
-                attn_type = "MQA (Multi-Query Attention)"
+                attn_type = "MQA"
             else:
-                attn_type = "GQA (Grouped-Query Attention)"
+                attn_type = "GQA"
 
         # --- 3. Calculate Memory Usage ---
         # Total params per token (across all layers)

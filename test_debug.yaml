@@ -1,0 +1,18 @@
+attn_type: MHA
+name: gpt2
+type: tfs
+version: 0.0.1
+download_at_runtime: true
+download_auth_required: false
+disk_storage_requirement: 51Gi
+model_file_size_gb: 1
+bytes_per_token: 36864
+model_token_limit: 1024
+vllm:
+  model_name: gpt2
+  model_run_params:
+    load_format: auto
+    config_format: auto
+    tokenizer_mode: auto
+  disallow_lora: false
+

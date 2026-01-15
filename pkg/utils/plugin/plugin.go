@@ -14,6 +14,7 @@
 package plugin
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/kaito-project/kaito/pkg/model"
@@ -26,6 +27,11 @@ type Registration struct {
 	// Name is the name of the model. It is used as a key to register and
 	// retrieve the model metadata and instance.
 	Name string
+
+	// HFModelRepoName is the name of the model on HuggingFace. It is used to
+	// retrieve the model metadata and instance from HuggingFace.
+	// example: Qwen/Qwen2-7B
+	HFModelRepoName string
 
 	// Instance is the actual model instance that implements the model.Model
 	// interface. It is used to retrieve the model's compute/storage requirements
@@ -52,7 +58,11 @@ func (reg *ModelRegister) Register(r *Registration) {
 		reg.models = make(map[string]*Registration)
 	}
 
-	reg.models[r.Name] = r
+	if r.HFModelRepoName != "" {
+		reg.models[r.HFModelRepoName] = r
+	} else {
+		reg.models[r.Name] = r
+	}
 }
 
 func (reg *ModelRegister) MustGet(name string) model.Model {
@@ -60,7 +70,7 @@ func (reg *ModelRegister) MustGet(name string) model.Model {
 	defer reg.Unlock()
 	r, ok := reg.models[name]
 	if !ok {
-		panic("model is not registered")
+		return nil
 	}
 	return r.Instance
 }
@@ -83,5 +93,5 @@ func (reg *ModelRegister) Has(name string) bool {
 }
 
 func IsValidPreset(preset string) bool {
-	return KaitoModelRegister.Has(preset)
+	return KaitoModelRegister.Has(preset) || strings.Contains(preset, "/")
 }

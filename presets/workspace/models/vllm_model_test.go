@@ -177,7 +177,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &vLLMCompatibleModel{
+			m := &VLLMCompatibleModel{
 				model: tt.model,
 			}
 
@@ -191,17 +191,17 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 }
 
 func TestVLLMCompatibleModel_GetTuningParameters(t *testing.T) {
-	m := &vLLMCompatibleModel{}
+	m := &VLLMCompatibleModel{}
 	params := m.GetTuningParameters()
 	assert.Nil(t, params)
 }
 
 func TestVLLMCompatibleModel_SupportDistributedInference(t *testing.T) {
-	m := &vLLMCompatibleModel{}
+	m := &VLLMCompatibleModel{}
 	assert.True(t, m.SupportDistributedInference())
 }
 
 func TestVLLMCompatibleModel_SupportTuning(t *testing.T) {
-	m := &vLLMCompatibleModel{}
+	m := &VLLMCompatibleModel{}
 	assert.False(t, m.SupportTuning())
 }

@@ -641,24 +641,29 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("Workspace")
 
-	builder := ctrl.NewControllerManagedBy(mgr).
+	bldr := ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1beta1.Workspace{}).
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.ControllerRevision{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&appsv1.StatefulSet{}).
-		Owns(&batchv1.Job{}).
-		Watches(&karpenterv1.NodeClaim{},
+		Owns(&batchv1.Job{})
+
+	// Only watch NodeClaim resources if node auto-provisioning is enabled
+	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		bldr = bldr.Watches(&karpenterv1.NodeClaim{},
 			&nodeClaimEventHandler{
 				logger:         c.klogger,
 				expectations:   c.expectations,
 				enqueueHandler: enqueueWorkspaceForNodeClaim,
 			},
 			builder.WithPredicates(nodeclaim.NodeClaimPredicate),
-		).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
+		)
+	}
+
+	bldr = bldr.WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
 	go monitorWorkspaces(context.Background(), c.Client)
 
-	return builder.Complete(c)
+	return bldr.Complete(c)
 }

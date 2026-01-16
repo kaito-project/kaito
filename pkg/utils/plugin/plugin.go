@@ -28,11 +28,6 @@ type Registration struct {
 	// retrieve the model metadata and instance.
 	Name string
 
-	// HFModelRepoName is the name of the model on HuggingFace. It is used to
-	// retrieve the model metadata and instance from HuggingFace.
-	// example: Qwen/Qwen2-7B
-	HFModelRepoName string
-
 	// Instance is the actual model instance that implements the model.Model
 	// interface. It is used to retrieve the model's compute/storage requirements
 	// and runtime parameters.
@@ -58,11 +53,7 @@ func (reg *ModelRegister) Register(r *Registration) {
 		reg.models = make(map[string]*Registration)
 	}
 
-	if r.HFModelRepoName != "" {
-		reg.models[r.HFModelRepoName] = r
-	} else {
-		reg.models[r.Name] = r
-	}
+	reg.models[r.Name] = r
 }
 
 func (reg *ModelRegister) MustGet(name string) model.Model {

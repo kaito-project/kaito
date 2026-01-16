@@ -41,16 +41,15 @@ type vLLMCatalog struct {
 	Models []model.Metadata `yaml:"models,omitempty"`
 }
 
-func (m *vLLMCatalog) RegisterModel(hfModelRepoName string, param *model.PresetParam) model.Model {
+func (m *vLLMCatalog) RegisterModel(hfModelCardID string, param *model.PresetParam) model.Model {
 	if param == nil {
 		return nil
 	}
 
 	model := &VLLMCompatibleModel{model: param.Metadata}
 	r := &plugin.Registration{
-		Name:            param.Metadata.Name,
-		HFModelRepoName: hfModelRepoName,
-		Instance:        model,
+		Name:     hfModelCardID,
+		Instance: model,
 	}
 	plugin.KaitoModelRegister.Register(r)
 	return model

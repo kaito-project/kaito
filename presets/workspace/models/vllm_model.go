@@ -148,6 +148,18 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		runParamsVLLM["reasoning-parser"] = m.model.ReasoningParser
 	}
 
+	var arch string
+	if len(m.model.Architectures) > 0 {
+		arch = m.model.Architectures[0]
+	}
+
+	// append model-specific VLLM run parameters for ministral-3 and mistral-large-3 models
+	if arch == "MistralForCausalLM" || arch == "MistralLarge3ForCausalLM" {
+		runParamsVLLM["tokenizer_mode"] = "mistral"
+		runParamsVLLM["config_format"] = "mistral"
+		runParamsVLLM["load_format"] = "mistral"
+	}
+
 	presetParam := &model.PresetParam{
 		Metadata:                *metaData,
 		TotalSafeTensorFileSize: m.model.ModelFileSize,

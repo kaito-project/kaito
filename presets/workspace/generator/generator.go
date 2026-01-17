@@ -36,9 +36,22 @@ const (
 )
 
 var (
-	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
-	binRegex        = regexp.MustCompile(`.*\.bin`)
-	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
+	safetensorRegex    = regexp.MustCompile(`.*\.safetensors`)
+	binRegex           = regexp.MustCompile(`.*\.bin`)
+	mistralRegex       = regexp.MustCompile(`consolidated.*\.safetensors`)
+	reasoningParserMap = map[string]string{
+		"DeepseekV3ForCausalLM":   "deepseek_r1",
+		"Ernie4_5ForCausalLM":     "ernie45",
+		"Ernie4_5_MoeForCausalLM": "ernie45",
+		"Glm4MoeForCausalLM":      "glm45",
+		"HunYuanMoEV1ForCausalLM": "hunyuan_a13b",
+		"GraniteForCausalLM":      "granite",
+		"MiniMaxM2ForCausalLM":    "minimax_m2_append_think",
+		"Qwen3ForCausalLM":        "qwen3",
+		"Qwen3MoeForCausalLM":     "qwen3",
+		"Qwen3NextForCausalLM":    "qwen3",
+		"Qwen2ForCausalLM":        "deepseek_r1",
+	}
 )
 
 type Generator struct {
@@ -250,6 +263,13 @@ func (g *Generator) ParseModelMetadata() {
 		g.Param.Metadata.Architectures = []string{"MistralLarge3ForCausalLM"}
 	} else if strings.HasPrefix(g.Param.Metadata.Name, "ministral-3") {
 		g.Param.Metadata.Architectures = []string{"MistralForCausalLM"}
+	}
+
+	if len(g.Param.Metadata.Architectures) > 0 {
+		arch := g.Param.Metadata.Architectures[0]
+		if reasoningParser, ok := reasoningParserMap[arch]; ok {
+			g.Param.Metadata.ReasoningParser = reasoningParser
+		}
 	}
 }
 

@@ -137,6 +137,34 @@ func TestGeneratePreset(t *testing.T) {
 				DisallowLoRA: false,
 			},
 		},
+		{
+			modelRepo: "Qwen/Qwen3-8B",
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "qwen3-8b",
+					Architectures:          []string{"Qwen3ForCausalLM"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B"),
+					DownloadAtRuntime:      true,
+					DownloadAuthRequired:   false,
+					ModelFileSize:          "16Gi",
+					BytesPerToken:          16384,
+					ModelTokenLimit:        8192,
+					DiskStorageRequirement: "66Gi", // 16 + 50
+					ReasoningParser:        "qwen3",
+				},
+				AttnType: "GQA",
+			},
+			expectedVLLM: model.VLLMParam{
+				ModelName: "qwen3-8b",
+				ModelRunParams: map[string]string{
+					"load_format":    "auto",
+					"config_format":  "auto",
+					"tokenizer_mode": "auto",
+				},
+				DisallowLoRA: false,
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -155,6 +183,7 @@ func TestGeneratePreset(t *testing.T) {
 			assert.Equal(t, tc.expectedParam.ModelFileSize, param.ModelFileSize)
 			assert.Equal(t, tc.expectedParam.BytesPerToken, param.BytesPerToken)
 			assert.Equal(t, tc.expectedParam.ModelTokenLimit, param.ModelTokenLimit)
+			assert.Equal(t, tc.expectedParam.ReasoningParser, param.ReasoningParser)
 
 			// Struct fields
 			assert.Equal(t, tc.expectedParam.DiskStorageRequirement, param.DiskStorageRequirement)

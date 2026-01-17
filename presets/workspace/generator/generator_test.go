@@ -34,6 +34,7 @@ func TestGeneratePreset(t *testing.T) {
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{
 					Name:                   "phi-4-mini-instruct",
+					Architectures:          []string{"Phi3ForCausalLM"},
 					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
 					DownloadAtRuntime:      true,
@@ -60,6 +61,7 @@ func TestGeneratePreset(t *testing.T) {
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{
 					Name:                   "falcon-7b-instruct",
+					Architectures:          []string{"FalconForCausalLM"},
 					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "tiiuae/falcon-7b-instruct"),
 					DownloadAtRuntime:      true,
@@ -86,6 +88,7 @@ func TestGeneratePreset(t *testing.T) {
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{
 					Name:                   "ministral-3-8b-instruct-2512",
+					Architectures:          []string{"MistralForCausalLM"},
 					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
 					DownloadAtRuntime:      true,
@@ -112,6 +115,7 @@ func TestGeneratePreset(t *testing.T) {
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{
 					Name:                   "mistral-large-3-675b-instruct-2512",
+					Architectures:          []string{"MistralLarge3ForCausalLM"},
 					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-Large-3-675B-Instruct-2512"),
 					DownloadAtRuntime:      true,
@@ -143,6 +147,7 @@ func TestGeneratePreset(t *testing.T) {
 
 			// Metadata checks
 			assert.Equal(t, tc.expectedParam.Name, param.Name)
+			assert.Equal(t, tc.expectedParam.Architectures, param.Architectures)
 			assert.Equal(t, tc.expectedParam.ModelType, param.ModelType)
 			assert.Equal(t, tc.expectedParam.Version, param.Version)
 			assert.Equal(t, tc.expectedParam.DownloadAtRuntime, param.DownloadAtRuntime)

@@ -102,6 +102,9 @@ type Metadata struct {
 	// +optional
 	Deprecated bool `yaml:"deprecated,omitempty"`
 
+	// Architectures specifies the supported architectures for the model
+	Architectures []string `yaml:"architectures,omitempty"`
+
 	// DType specifies the data type used by the model (e.g., "bfloat16", "float16", "float32").
 	// This field is part of the shared Metadata struct and is primarily populated in YAML for best effort supported models.
 	// +optional

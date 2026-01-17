@@ -236,6 +236,21 @@ func (g *Generator) ParseModelMetadata() {
 	}, DefaultModelTokenLimit)
 
 	g.Param.Metadata.ModelTokenLimit = maxPos
+
+	g.Param.Architectures = []string{}
+	if arch, ok := g.ModelConfig["architectures"].([]interface{}); ok {
+		for _, a := range arch {
+			if archStr, ok := a.(string); ok {
+				g.Param.Architectures = append(g.Param.Architectures, archStr)
+			}
+		}
+	}
+
+	if strings.HasPrefix(g.Param.Metadata.Name, "mistral-large-3") {
+		g.Param.Metadata.Architectures = []string{"MistralLarge3ForCausalLM"}
+	} else if strings.HasPrefix(g.Param.Metadata.Name, "ministral-3") {
+		g.Param.Metadata.Architectures = []string{"MistralForCausalLM"}
+	}
 }
 
 func (g *Generator) calculateStorageSize() string {

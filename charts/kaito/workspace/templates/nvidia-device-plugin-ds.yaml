@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: nvidia-device-plugin-daemonset
+  name: {{ .Values.nvidiaDevicePlugin.daemonsetName | quote }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "kaito.labels" . | nindent 4 }}
@@ -49,7 +49,8 @@ spec:
           effect: "NoSchedule"
       priorityClassName: "system-node-critical"
       containers:
-        - image: mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.17.0
+        - image: {{ .Values.nvidiaDevicePlugin.image | quote }}
+          imagePullPolicy: {{ .Values.nvidiaDevicePlugin.imagePullPolicy | quote }}
           name: nvidia-device-plugin-ctr
           env:
             - name: FAIL_ON_INIT_ERROR

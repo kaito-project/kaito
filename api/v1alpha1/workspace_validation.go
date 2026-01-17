@@ -33,7 +33,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/presets/workspace/models"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -338,7 +337,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	// Check if instancetype exists in our SKUs map for the particular cloud provider
 	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig != nil {
 		if presetName != "" {
-			model := models.KaitoVLLMModelRegister.GetModelByName(presetName) // InferenceSpec has been validated so the name is valid.
+			model := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
 			params := model.GetInferenceParameters()
 
 			machineCount := *r.Count

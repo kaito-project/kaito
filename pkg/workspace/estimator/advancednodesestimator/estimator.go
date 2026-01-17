@@ -52,7 +52,8 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 	}
 
 	presetName := string(workspace.Inference.Preset.Name)
-	model := models.KaitoVLLMModelRegister.GetModelByName(presetName)
+	secretName := workspace.Inference.Preset.PresetOptions.ModelAccessSecret
+	model := models.KaitoVLLMModelRegister.GetModelByName(ctx, presetName, secretName, workspace.Namespace, client)
 
 	var gpuConfig *sku.GPUConfig
 	var err error

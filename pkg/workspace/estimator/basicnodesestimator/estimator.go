@@ -51,7 +51,8 @@ func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaito
 	}
 
 	presetName := string(wObj.Inference.Preset.Name)
-	model := models.KaitoVLLMModelRegister.GetModelByName(presetName)
+	secretName := wObj.Inference.Preset.PresetOptions.ModelAccessSecret
+	model := models.KaitoVLLMModelRegister.GetModelByName(ctx, presetName, secretName, wObj.Namespace, client)
 
 	// Import featuregates and consts for NAP check
 	var gpuConfig *sku.GPUConfig

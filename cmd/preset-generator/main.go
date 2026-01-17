@@ -73,6 +73,7 @@ func main() {
 		{Key: "model_file_size_gb", Value: szVal},
 		{Key: "bytes_per_token", Value: param.Metadata.BytesPerToken},
 		{Key: "model_token_limit", Value: param.Metadata.ModelTokenLimit},
+		{Key: "reasoning_parser", Value: param.Metadata.ReasoningParser},
 		{Key: "vllm", Value: vllmSection},
 	}
 

@@ -11,21 +11,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type StorageSpec struct {
+type PersistentVolumeConfig struct {
 	// PersistentVolumeClaim specifies the PVC to use for persisting vector database data.
-	// If not specified, an emptyDir will be used (data will be lost on pod restart).
-	// +optional
-	PersistentVolumeClaim string `json:"persistentVolumeClaim,omitempty"`
+	PersistentVolumeClaim string `json:"persistentVolumeClaim"`
 	// MountPath specifies where the volume should be mounted in the container.
 	// Defaults to /mnt/data if not specified.
 	// +optional
 	MountPath string `json:"mountPath,omitempty"`
+}
+
+type StorageSpec struct {
+	// PersistentVolume specifies PVC-based persistent storage configuration.
+	// If not specified, an emptyDir will be used (data will be lost on pod restart).
+	// +optional
+	PersistentVolume *PersistentVolumeConfig `json:"persistentVolume,omitempty"`
 }
 
 type RemoteEmbeddingSpec struct {
@@ -96,14 +101,6 @@ type RAGEngineSpec struct {
 	// or using a embedding model running locally.
 	Embedding        *EmbeddingSpec        `json:"embedding"`
 	InferenceService *InferenceServiceSpec `json:"inferenceService"`
-	// QueryServiceName is the name of the service which exposes the endpoint for accepting user queries to the
-	// inference service. If not specified, a default service name will be created by the RAG engine.
-	// +optional
-	QueryServiceName string `json:"queryServiceName,omitempty"`
-	// IndexServiceName is the name of the service which exposes the endpoint for user to input the index data
-	// to generate embeddings. If not specified, a default service name will be created by the RAG engine.
-	// +optional
-	IndexServiceName string `json:"indexServiceName,omitempty"`
 }
 
 // RAGEngineStatus defines the observed state of RAGEngine
@@ -119,7 +116,7 @@ type RAGEngineStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ragengines,scope=Namespaced,categories=ragengine,shortName=rag
-// +kubebuilder:deprecatedversion:warning="kaito.sh/v1alpha1 RAGEngine is deprecated; use kaito.sh/v1beta1 RAGEngine"
+// +kubebuilder:storageversion
 // +kubebuilder:printcolumn:name="Instance",type="string",JSONPath=".spec.compute.instanceType",description=""
 // +kubebuilder:printcolumn:name="ResourceReady",type="string",JSONPath=".status.conditions[?(@.type==\"ResourceReady\")].status",description=""
 // +kubebuilder:printcolumn:name="ServiceReady",type="string",JSONPath=".status.conditions[?(@.type==\"ServiceReady\")].status",description=""
@@ -144,3 +141,6 @@ type RAGEngineList struct {
 func init() {
 	SchemeBuilder.Register(&RAGEngine{}, &RAGEngineList{})
 }
+
+// Hub marks this type as a conversion hub.
+func (*RAGEngine) Hub() {}

@@ -23,7 +23,6 @@ import (
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -46,6 +45,9 @@ type vLLMCatalog struct {
 	Models []model.Metadata `yaml:"models,omitempty"`
 }
 
+// RegisterModel registers a HuggingFace model with the given ID and parameters
+// into the model registry and returns the registered model. If param is nil,
+// it returns nil and does not register a model.
 func (m *vLLMCatalog) RegisterModel(hfModelCardID string, param *model.PresetParam) model.Model {
 	if param == nil {
 		return nil
@@ -60,6 +62,18 @@ func (m *vLLMCatalog) RegisterModel(hfModelCardID string, param *model.PresetPar
 	return model
 }
 
+// GetModelByName returns a vLLM-compatible model for the given modelName.
+// It first looks up an existing registration in the KaitoModelRegister. If the
+// model is not already registered and modelName contains a "/", it attempts to
+// generate a preset for the corresponding HuggingFace model by optionally
+// retrieving an access token from the Kubernetes Secret identified by
+// secretName and secretNamespace using kubeClient and ctx.
+//
+// The returned model.Model represents the registered or newly generated model.
+// If preset generation fails, or if the modelName does not correspond to a
+// registered or generatable model, this method panics instead of returning an
+// error. Callers should ensure that modelName is valid and be aware of this
+// panic behavior when integrating this method.
 func (m *vLLMCatalog) GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) model.Model {
 	modelName = strings.ToLower(modelName)
 	model := plugin.KaitoModelRegister.MustGet(modelName)
@@ -167,6 +181,11 @@ func (*vLLMCompatibleModel) SupportTuning() bool {
 	return false
 }
 
+// GetHFTokenFromSecret retrieves the HuggingFace token from a Kubernetes secret.
+// If secretName is empty, it returns an empty string without error.
+// If secretNamespace is empty, it defaults to "default".
+// An error is returned if kubeClient is nil, the secret cannot be retrieved,
+// or the HF_TOKEN key is not present in the secret data.
 func GetHFTokenFromSecret(ctx context.Context, kubeClient client.Client, secretName, secretNamespace string) (string, error) {
 	if secretName == "" {
 		return "", nil
@@ -181,13 +200,7 @@ func GetHFTokenFromSecret(ctx context.Context, kubeClient client.Client, secretN
 	}
 
 	secret := corev1.Secret{}
-	err := retry.OnError(retry.DefaultBackoff, func(err error) bool {
-		return true
-	}, func() error {
-		return kubeClient.Get(ctx, client.ObjectKey{Name: secretName, Namespace: secretNamespace}, &secret, &client.GetOptions{})
-	})
-
-	if err != nil {
+	if err := kubeClient.Get(ctx, client.ObjectKey{Name: secretName, Namespace: secretNamespace}, &secret); err != nil {
 		return "", fmt.Errorf("failed to get secret: %s in namespace: %s, error: %w", secretName, secretNamespace, err)
 	}
 

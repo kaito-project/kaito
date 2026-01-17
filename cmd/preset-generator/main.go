@@ -64,6 +64,7 @@ func main() {
 	out := yaml.MapSlice{
 		{Key: "attn_type", Value: param.AttnType},
 		{Key: "name", Value: param.Metadata.Name},
+		{Key: "architectures", Value: param.Metadata.Architectures},
 		{Key: "type", Value: param.Metadata.ModelType},
 		{Key: "version", Value: param.Metadata.Version},
 		{Key: "download_at_runtime", Value: param.Metadata.DownloadAtRuntime},

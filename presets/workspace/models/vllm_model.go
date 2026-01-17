@@ -51,7 +51,7 @@ func (m *vLLMCatalog) RegisterModel(hfModelCardID string, param *model.PresetPar
 		return nil
 	}
 
-	model := &VLLMCompatibleModel{model: param.Metadata}
+	model := &vLLMCompatibleModel{model: param.Metadata}
 	r := &plugin.Registration{
 		Name:     hfModelCardID,
 		Instance: model,
@@ -91,17 +91,17 @@ func init() {
 		utilruntime.Must(m.Validate())
 		plugin.KaitoModelRegister.Register(&plugin.Registration{
 			Name:     m.Name,
-			Instance: &VLLMCompatibleModel{model: m},
+			Instance: &vLLMCompatibleModel{model: m},
 		})
 		klog.InfoS("Registered VLLM model preset", "model", m.Name)
 	}
 }
 
-type VLLMCompatibleModel struct {
+type vLLMCompatibleModel struct {
 	model model.Metadata
 }
 
-func (m *VLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
+func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	metaData := &model.Metadata{
 		Name:                 m.model.Name,
 		ModelType:            "text-generation",
@@ -155,15 +155,15 @@ func (m *VLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	return presetParam
 }
 
-func (*VLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
+func (*vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
 	return nil
 }
 
-func (*VLLMCompatibleModel) SupportDistributedInference() bool {
+func (*vLLMCompatibleModel) SupportDistributedInference() bool {
 	return true
 }
 
-func (*VLLMCompatibleModel) SupportTuning() bool {
+func (*vLLMCompatibleModel) SupportTuning() bool {
 	return false
 }
 

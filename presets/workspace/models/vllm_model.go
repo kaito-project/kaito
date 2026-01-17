@@ -14,13 +14,18 @@
 package models
 
 import (
+	"context"
 	_ "embed"
+	"fmt"
 	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
+	corev1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
@@ -55,24 +60,27 @@ func (m *vLLMCatalog) RegisterModel(hfModelCardID string, param *model.PresetPar
 	return model
 }
 
-func (m *vLLMCatalog) GetModelByName(name string) model.Model {
-	name = strings.ToLower(name)
-	model := plugin.KaitoModelRegister.MustGet(name)
+func (m *vLLMCatalog) GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) model.Model {
+	modelName = strings.ToLower(modelName)
+	model := plugin.KaitoModelRegister.MustGet(modelName)
 	if model != nil {
 		return model
 	}
 
 	// if name contains "/", get model data from HuggingFace
-	if strings.Contains(name, "/") {
-		klog.InfoS("Generating VLLM model preset for HuggingFace model", "model", name)
-		// todo: add hf_token support
-		param, err := generator.GeneratePreset(name, "")
+	if strings.Contains(modelName, "/") {
+		klog.InfoS("Generating VLLM model preset for HuggingFace model", "model", modelName, "secretName", secretName, "secretNamespace", secretNamespace)
+		token, err := GetHFTokenFromSecret(ctx, kubeClient, secretName, secretNamespace)
 		if err != nil {
-			panic("could not generate preset for model: " + name + ", error: " + err.Error())
+			klog.ErrorS(err, "Failed to get HF token from secret", "secretName", secretName, "secretNamespace", secretNamespace)
 		}
-		return m.RegisterModel(name, param)
+		param, err := generator.GeneratePreset(modelName, token)
+		if err != nil {
+			panic("could not generate preset for model: " + modelName + ", error: " + err.Error())
+		}
+		return m.RegisterModel(modelName, param)
 	}
-	panic("model is not registered: " + name)
+	panic("model is not registered: " + modelName)
 }
 
 func init() {
@@ -157,4 +165,36 @@ func (*VLLMCompatibleModel) SupportDistributedInference() bool {
 
 func (*VLLMCompatibleModel) SupportTuning() bool {
 	return false
+}
+
+func GetHFTokenFromSecret(ctx context.Context, kubeClient client.Client, secretName, secretNamespace string) (string, error) {
+	if secretName == "" {
+		return "", nil
+	}
+
+	if kubeClient == nil {
+		return "", fmt.Errorf("kubeClient is nil")
+	}
+
+	if secretNamespace == "" {
+		secretNamespace = "default"
+	}
+
+	secret := corev1.Secret{}
+	err := retry.OnError(retry.DefaultBackoff, func(err error) bool {
+		return true
+	}, func() error {
+		return kubeClient.Get(ctx, client.ObjectKey{Name: secretName, Namespace: secretNamespace}, &secret, &client.GetOptions{})
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("failed to get secret: %s in namespace: %s, error: %w", secretName, secretNamespace, err)
+	}
+
+	tokenBytes, ok := secret.Data["HF_TOKEN"]
+	if !ok {
+		return "", fmt.Errorf("HF_TOKEN not found in secret: %s in namespace: %s", secretName, secretNamespace)
+	}
+
+	return string(tokenBytes), nil
 }

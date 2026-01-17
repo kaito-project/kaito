@@ -48,6 +48,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
@@ -426,7 +427,7 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta
 	func() {
 		if wObj.Tuning.Preset != nil {
 			presetName := string(wObj.Tuning.Preset.Name)
-			model := models.KaitoVLLMModelRegister.GetModelByName(presetName)
+			model := plugin.KaitoModelRegister.MustGet(presetName)
 
 			tuningParam := model.GetTuningParameters()
 			existingObj := &batchv1.Job{}
@@ -526,7 +527,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 			}
 		} else if wObj.Inference != nil && wObj.Inference.Preset != nil {
 			presetName := string(wObj.Inference.Preset.Name)
-			model := models.KaitoVLLMModelRegister.GetModelByName(presetName)
+			model := models.KaitoVLLMModelRegister.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
 			inferenceParam := model.GetInferenceParameters()
 			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 

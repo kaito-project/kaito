@@ -165,6 +165,62 @@ func TestGeneratePreset(t *testing.T) {
 				DisallowLoRA: false,
 			},
 		},
+		{
+			modelRepo: "deepseek-ai/DeepSeek-V3.1",
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "deepseek-v3.1",
+					Architectures:          []string{"DeepseekV3ForCausalLM"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3.1"),
+					DownloadAtRuntime:      true,
+					DownloadAuthRequired:   false,
+					ModelFileSize:          "642Gi",
+					BytesPerToken:          131072,
+					ModelTokenLimit:        131072,
+					DiskStorageRequirement: "692Gi", // 642 + 50
+					ReasoningParser:        "deepseek_v31",
+				},
+				AttnType: "MLA",
+			},
+			expectedVLLM: model.VLLMParam{
+				ModelName: "deepseek-v3.1",
+				ModelRunParams: map[string]string{
+					"load_format":    "auto",
+					"config_format":  "auto",
+					"tokenizer_mode": "auto",
+				},
+				DisallowLoRA: false,
+			},
+		},
+		{
+			modelRepo: "deepseek-ai/DeepSeek-V3",
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "deepseek-v3",
+					Architectures:          []string{"DeepseekV3ForCausalLM"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3"),
+					DownloadAtRuntime:      true,
+					DownloadAuthRequired:   false,
+					ModelFileSize:          "642Gi",
+					BytesPerToken:          131072,
+					ModelTokenLimit:        131072,
+					DiskStorageRequirement: "692Gi", // 642 + 50
+					ReasoningParser:        "deepseek_v3",
+				},
+				AttnType: "MLA",
+			},
+			expectedVLLM: model.VLLMParam{
+				ModelName: "deepseek-v3",
+				ModelRunParams: map[string]string{
+					"load_format":    "auto",
+					"config_format":  "auto",
+					"tokenizer_mode": "auto",
+				},
+				DisallowLoRA: false,
+			},
+		},
 	}
 
 	for _, tc := range cases {

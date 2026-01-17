@@ -36,21 +36,45 @@ const (
 )
 
 var (
-	safetensorRegex    = regexp.MustCompile(`.*\.safetensors`)
-	binRegex           = regexp.MustCompile(`.*\.bin`)
-	mistralRegex       = regexp.MustCompile(`consolidated.*\.safetensors`)
+	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
+	binRegex        = regexp.MustCompile(`.*\.bin`)
+	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
+	// source: https://github.com/vllm-project/vllm/blob/v0.12.0/docs/features/reasoning_outputs.md
 	reasoningParserMap = map[string]string{
-		"DeepseekV3ForCausalLM":   "deepseek_r1",
-		"Ernie4_5ForCausalLM":     "ernie45",
-		"Ernie4_5_MoeForCausalLM": "ernie45",
-		"Glm4MoeForCausalLM":      "glm45",
-		"HunYuanMoEV1ForCausalLM": "hunyuan_a13b",
-		"GraniteForCausalLM":      "granite",
-		"MiniMaxM2ForCausalLM":    "minimax_m2_append_think",
-		"Qwen3ForCausalLM":        "qwen3",
-		"Qwen3MoeForCausalLM":     "qwen3",
-		"Qwen3NextForCausalLM":    "qwen3",
-		"Qwen2ForCausalLM":        "deepseek_r1",
+		"deepseek-r1":  "deepseek_r1",
+		"deepseek-v3":  "deepseek_v3",
+		"ernie-4.5":    "ernie45",
+		"glm-4.5":      "glm45",
+		"hunyuan-a13b": "hunyuan_a13b",
+		"granite-3.2":  "granite",
+		"minimax-m2":   "minimax_m2_append_think",
+		"qwen3":        "qwen3",
+		"qwq-32b":      "deepseek_r1",
+	}
+	// source: https://github.com/vllm-project/vllm/blob/v0.12.0/docs/features/tool_calling.md
+	toolCallParserMap = map[string]string{
+		"hermes-2":      "hermes",
+		"hermes-3":      "hermes",
+		"mistral":       "mistral",
+		"meta-llama-3":  "llama3_json",
+		"meta-llama-4":  "llama4_pythonic",
+		"granite-3":     "granite",
+		"granite-4":     "hermes",
+		"internlm":      "internlm",
+		"ai21-jamba":    "jamba",
+		"qwq-32b":       "hermes",
+		"qwen2.5":       "hermes",
+		"minimax":       "minimax",
+		"deepseek-r1":   "deepseek_v3",
+		"deepseek-v3":   "deepseek_v3",
+		"deepseek-v3.1": "deepseek_v31",
+		"kimi_k2":       "kimi_k2",
+		"hunyuan-a13b":  "hunyuan_a13b",
+		"longcat":       "longcat",
+		"glm-4":         "glm45",
+		"qwen3":         "hermes",
+		"qwen3-coder":   "qwen3_xml",
+		"olmo-3":        "olmo3",
 	}
 )
 
@@ -265,11 +289,28 @@ func (g *Generator) ParseModelMetadata() {
 		g.Param.Metadata.Architectures = []string{"MistralForCausalLM"}
 	}
 
-	if len(g.Param.Metadata.Architectures) > 0 {
-		arch := g.Param.Metadata.Architectures[0]
-		if reasoningParser, ok := reasoningParserMap[arch]; ok {
-			g.Param.Metadata.ReasoningParser = reasoningParser
+	// set reasoning parser based on model name prefix
+	for prefix, parser := range reasoningParserMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.Metadata.ReasoningParser = parser
+			break
 		}
+	}
+
+	// set tool call parser based on model name prefix
+	for prefix, parser := range toolCallParserMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.Metadata.ToolCallParser = parser
+			break
+		}
+	}
+
+	if strings.HasPrefix(g.Param.Metadata.Name, "deepseek-v3.1") {
+		g.Param.Metadata.ReasoningParser = "deepseek_v31"
+	}
+
+	if strings.HasPrefix(g.Param.Metadata.Name, "qwen3-coder") {
+		g.Param.Metadata.ReasoningParser = "qwen3_xml"
 	}
 }
 

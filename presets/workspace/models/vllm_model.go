@@ -20,9 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -32,15 +30,10 @@ import (
 )
 
 var (
-	//go:embed supported_models_best_effort.yaml
-	vLLMModelsYAML         []byte
 	KaitoVLLMModelRegister = vLLMCatalog{}
 )
 
-// vLLMCatalog is a struct that holds a list of supported models parsed
-// from presets/workspace/models/supported_models_best_effort.yaml. The YAML file is
-// considered the source of truth for the model metadata, and any
-// information in the YAML file should not be hardcoded in the codebase.
+// vLLMCatalog is a struct that holds a list of supported Huggingface models for the vLLM runtime.
 type vLLMCatalog struct {
 	Models []model.Metadata `yaml:"models,omitempty"`
 }
@@ -95,20 +88,6 @@ func (m *vLLMCatalog) GetModelByName(ctx context.Context, modelName, secretName,
 		return m.RegisterModel(modelName, param)
 	}
 	panic("model is not registered: " + modelName)
-}
-
-func init() {
-	utilruntime.Must(yaml.Unmarshal(vLLMModelsYAML, &KaitoVLLMModelRegister))
-
-	// register all VLLM models
-	for _, m := range KaitoVLLMModelRegister.Models {
-		utilruntime.Must(m.Validate())
-		plugin.KaitoModelRegister.Register(&plugin.Registration{
-			Name:     m.Name,
-			Instance: &vLLMCompatibleModel{model: m},
-		})
-		klog.InfoS("Registered VLLM model preset", "model", m.Name)
-	}
 }
 
 type vLLMCompatibleModel struct {

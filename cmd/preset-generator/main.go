@@ -63,15 +63,15 @@ func main() {
 	// Construct the top-level MapSlice
 	out := yaml.MapSlice{
 		{Key: "attn_type", Value: param.AttnType},
-		{Key: "name", Value: param.Name},
-		{Key: "type", Value: param.ModelType},
-		{Key: "version", Value: param.Version},
-		{Key: "download_at_runtime", Value: param.DownloadAtRuntime},
-		{Key: "download_auth_required", Value: param.DownloadAuthRequired},
-		{Key: "disk_storage_requirement", Value: param.DiskStorageRequirement},
+		{Key: "name", Value: param.Metadata.Name},
+		{Key: "type", Value: param.Metadata.ModelType},
+		{Key: "version", Value: param.Metadata.Version},
+		{Key: "download_at_runtime", Value: param.Metadata.DownloadAtRuntime},
+		{Key: "download_auth_required", Value: param.Metadata.DownloadAuthRequired},
+		{Key: "disk_storage_requirement", Value: param.Metadata.DiskStorageRequirement},
 		{Key: "model_file_size_gb", Value: szVal},
-		{Key: "bytes_per_token", Value: param.BytesPerToken},
-		{Key: "model_token_limit", Value: param.ModelTokenLimit},
+		{Key: "bytes_per_token", Value: param.Metadata.BytesPerToken},
+		{Key: "model_token_limit", Value: param.Metadata.ModelTokenLimit},
 		{Key: "vllm", Value: vllmSection},
 	}
 

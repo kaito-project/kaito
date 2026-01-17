@@ -32,6 +32,7 @@ import (
 const (
 	SystemFileDiskSizeGiB  = 50
 	DefaultModelTokenLimit = 2048
+	HuggingFaceWebsite     = "https://huggingface.co"
 )
 
 var (
@@ -68,7 +69,7 @@ func NewGenerator(modelRepo, token string) *Generator {
 	// Initialize default PresetParam
 	gen.Param.Metadata.Name = modelNameSafe
 	gen.Param.Metadata.ModelType = "tfs"
-	gen.Param.Metadata.Version = fmt.Sprintf("https://huggingface.co/%s", modelRepo)
+	gen.Param.Metadata.Version = fmt.Sprintf("%s/%s", HuggingFaceWebsite, modelRepo)
 	gen.Param.Metadata.DownloadAtRuntime = true
 	gen.Param.Metadata.DiskStorageRequirement = "50Gi"
 	gen.Param.Metadata.ModelFileSize = "0Gi"
@@ -105,7 +106,7 @@ func (g *Generator) fetchURL(url string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 401 || resp.StatusCode == 403 {
-		g.Param.DownloadAuthRequired = true
+		g.Param.Metadata.DownloadAuthRequired = true
 		if auth == "" {
 			return nil, fmt.Errorf("authentication required for accessing %s", url)
 		}
@@ -126,7 +127,7 @@ type FileInfo struct {
 
 func (g *Generator) FetchModelMetadata() error {
 	// List files using HF API
-	url := fmt.Sprintf("https://huggingface.co/api/models/%s/tree/main?recursive=true", g.ModelRepo)
+	url := fmt.Sprintf("%s/api/models/%s/tree/main?recursive=true", HuggingFaceWebsite, g.ModelRepo)
 	body, err := g.fetchURL(url)
 	if err != nil {
 		return fmt.Errorf("error listing files: %v", err)
@@ -190,11 +191,11 @@ func (g *Generator) FetchModelMetadata() error {
 	}
 
 	modelSizeGB := float64(totalBytes) / (1024 * 1024 * 1024)
-	g.Param.ModelFileSize = fmt.Sprintf("%.0fGi", math.Ceil(modelSizeGB))
+	g.Param.Metadata.ModelFileSize = fmt.Sprintf("%.0fGi", math.Ceil(modelSizeGB))
 
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
-	configURL := fmt.Sprintf("https://huggingface.co/%s/resolve/main/%s", g.ModelRepo, configFile)
+	configURL := fmt.Sprintf("%s/%s/resolve/main/%s", HuggingFaceWebsite, g.ModelRepo, configFile)
 	configBody, err := g.fetchURL(configURL)
 	if err != nil {
 		return fmt.Errorf("error fetching config: %v", err)
@@ -234,11 +235,11 @@ func (g *Generator) ParseModelMetadata() {
 		"max_sequence_length",
 	}, DefaultModelTokenLimit)
 
-	g.Param.ModelTokenLimit = maxPos
+	g.Param.Metadata.ModelTokenLimit = maxPos
 }
 
 func (g *Generator) calculateStorageSize() string {
-	szStr := strings.TrimSuffix(g.Param.ModelFileSize, "Gi")
+	szStr := strings.TrimSuffix(g.Param.Metadata.ModelFileSize, "Gi")
 	sz, _ := strconv.ParseFloat(szStr, 64)
 	req := int(sz + SystemFileDiskSizeGiB)
 	return fmt.Sprintf("%dGi", req)

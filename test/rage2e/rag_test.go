@@ -499,7 +499,7 @@ func GenerateLocalEmbeddingRAGEngineManifestWithStorage(name, namespace, instanc
 	}
 }
 
-func GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(name, namespace, preferredNodes, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1beta1.InferenceServiceSpec) *kaitov1beta1.RAGEngine {
+func GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(name, namespace, instanceType, preferredNodes, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1beta1.InferenceServiceSpec) *kaitov1beta1.RAGEngine {
 	return &kaitov1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -507,6 +507,7 @@ func GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(name, namespace, 
 		},
 		Spec: &kaitov1beta1.RAGEngineSpec{
 			Compute: &kaitov1beta1.ResourceSpec{
+				InstanceType:   instanceType,
 				PreferredNodes: []string{preferredNodes},
 				LabelSelector:  labelSelector,
 			},
@@ -576,8 +577,10 @@ func createLocalEmbeddingKaitoVLLMRAGEngineWithStorage(baseURL, llmPath, pvcName
 				ContextWindowSize: 128000,
 			},
 			&kaitov1beta1.StorageSpec{
-				PersistentVolumeClaim: pvcName,
-				MountPath:             "/mnt/vector-db",
+				PersistentVolume: &kaitov1beta1.PersistentVolumeConfig{
+					PersistentVolumeClaim: pvcName,
+					MountPath:             "/mnt/vector-db",
+				},
 			},
 		)
 
@@ -591,7 +594,7 @@ func createLocalPreferredNodesRAGEngine(baseURL, preferredNode string) *kaitov1b
 	serviceURL := fmt.Sprintf("http://%s/v1/completions", baseURL)
 	By("Creating RAG with localembedding and kaito vllm inference", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
-		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(uniqueID, namespaceName, preferredNode, "BAAI/bge-small-en-v1.5",
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(uniqueID, namespaceName, "Standard_D8_v3", preferredNode, "BAAI/bge-small-en-v1.5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},

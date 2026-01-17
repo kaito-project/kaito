@@ -389,9 +389,12 @@ func (c *RAGEngineReconciler) applyRAGEngineResource(ctx context.Context, ragEng
 	}
 
 	// Ensure all gpu plugins are running successfully.
-	knownGPUConfig, err := utils.GetGPUConfigBySKU(ragEngineObj.Spec.Compute.InstanceType)
+	instanceType := ragEngineObj.Spec.Compute.InstanceType
+	knownGPUConfig, err := utils.GetGPUConfigBySKU(instanceType)
+	// If GetGPUConfigBySKU returns error, skip GPU plugin installation (e.g., CPU-only instances)
 	if err != nil {
-		return err
+		klog.InfoS("Skipping GPU plugin installation, no GPU config found", "ragengine", klog.KObj(ragEngineObj), "instanceType", instanceType)
+		knownGPUConfig = nil
 	}
 
 	if knownGPUConfig != nil {

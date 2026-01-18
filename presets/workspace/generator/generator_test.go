@@ -124,6 +124,7 @@ func TestGeneratePreset(t *testing.T) {
 					BytesPerToken:          70272,
 					ModelTokenLimit:        294912,
 					DiskStorageRequirement: "685Gi", // 635 + 50
+					ToolCallParser:         "mistral",
 				},
 				AttnType: "MLA",
 			},
@@ -133,6 +134,34 @@ func TestGeneratePreset(t *testing.T) {
 					"load_format":    "mistral",
 					"config_format":  "mistral",
 					"tokenizer_mode": "mistral",
+				},
+				DisallowLoRA: false,
+			},
+		},
+		{
+			modelRepo: "Qwen/Qwen2-7B",
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "qwen2-7b",
+					Architectures:          []string{"Qwen2ForCausalLM"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen2-7B"),
+					DownloadAtRuntime:      true,
+					DownloadAuthRequired:   false,
+					ModelFileSize:          "15Gi",
+					BytesPerToken:          57344,
+					ModelTokenLimit:        131072,
+					DiskStorageRequirement: "65Gi", // 15 + 50
+					ReasoningParser:        "",
+				},
+				AttnType: "GQA",
+			},
+			expectedVLLM: model.VLLMParam{
+				ModelName: "qwen2-7b",
+				ModelRunParams: map[string]string{
+					"load_format":    "auto",
+					"config_format":  "auto",
+					"tokenizer_mode": "auto",
 				},
 				DisallowLoRA: false,
 			},
@@ -148,10 +177,11 @@ func TestGeneratePreset(t *testing.T) {
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "16Gi",
-					BytesPerToken:          16384,
-					ModelTokenLimit:        8192,
+					BytesPerToken:          147456,
+					ModelTokenLimit:        40960,
 					DiskStorageRequirement: "66Gi", // 16 + 50
 					ReasoningParser:        "qwen3",
+					ToolCallParser:         "hermes",
 				},
 				AttnType: "GQA",
 			},
@@ -176,10 +206,11 @@ func TestGeneratePreset(t *testing.T) {
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "642Gi",
-					BytesPerToken:          131072,
-					ModelTokenLimit:        131072,
+					BytesPerToken:          70272,
+					ModelTokenLimit:        163840,
 					DiskStorageRequirement: "692Gi", // 642 + 50
-					ReasoningParser:        "deepseek_v31",
+					ReasoningParser:        "deepseek_v3",
+					ToolCallParser:         "deepseek_v31",
 				},
 				AttnType: "MLA",
 			},
@@ -204,10 +235,11 @@ func TestGeneratePreset(t *testing.T) {
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "642Gi",
-					BytesPerToken:          131072,
-					ModelTokenLimit:        131072,
+					BytesPerToken:          70272,
+					ModelTokenLimit:        163840,
 					DiskStorageRequirement: "692Gi", // 642 + 50
 					ReasoningParser:        "deepseek_v3",
+					ToolCallParser:         "deepseek_v3",
 				},
 				AttnType: "MLA",
 			},
@@ -236,13 +268,14 @@ func TestGeneratePreset(t *testing.T) {
 			assert.Equal(t, tc.expectedParam.Version, param.Version)
 			assert.Equal(t, tc.expectedParam.DownloadAtRuntime, param.DownloadAtRuntime)
 			assert.Equal(t, tc.expectedParam.DownloadAuthRequired, param.DownloadAuthRequired)
-			assert.Equal(t, tc.expectedParam.ModelFileSize, param.ModelFileSize)
-			assert.Equal(t, tc.expectedParam.BytesPerToken, param.BytesPerToken)
-			assert.Equal(t, tc.expectedParam.ModelTokenLimit, param.ModelTokenLimit)
-			assert.Equal(t, tc.expectedParam.ReasoningParser, param.ReasoningParser)
+			assert.Equal(t, tc.expectedParam.Metadata.ModelFileSize, param.Metadata.ModelFileSize)
+			assert.Equal(t, tc.expectedParam.Metadata.BytesPerToken, param.Metadata.BytesPerToken)
+			assert.Equal(t, tc.expectedParam.Metadata.ModelTokenLimit, param.Metadata.ModelTokenLimit)
+			assert.Equal(t, tc.expectedParam.Metadata.ReasoningParser, param.Metadata.ReasoningParser)
+			assert.Equal(t, tc.expectedParam.Metadata.ToolCallParser, param.Metadata.ToolCallParser)
 
 			// Struct fields
-			assert.Equal(t, tc.expectedParam.DiskStorageRequirement, param.DiskStorageRequirement)
+			assert.Equal(t, tc.expectedParam.Metadata.DiskStorageRequirement, param.Metadata.DiskStorageRequirement)
 			assert.Equal(t, tc.expectedParam.AttnType, param.AttnType)
 
 			// VLLM checks

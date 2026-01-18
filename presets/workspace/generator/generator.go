@@ -274,19 +274,22 @@ func (g *Generator) ParseModelMetadata() {
 
 	g.Param.Metadata.ModelTokenLimit = maxPos
 
-	g.Param.Architectures = []string{}
+	g.Param.Metadata.Architectures = []string{}
 	if arch, ok := g.ModelConfig["architectures"].([]interface{}); ok {
 		for _, a := range arch {
 			if archStr, ok := a.(string); ok {
-				g.Param.Architectures = append(g.Param.Architectures, archStr)
+				g.Param.Metadata.Architectures = append(g.Param.Metadata.Architectures, archStr)
 			}
 		}
 	}
 
-	if strings.HasPrefix(g.Param.Metadata.Name, "mistral-large-3") {
-		g.Param.Metadata.Architectures = []string{"MistralLarge3ForCausalLM"}
-	} else if strings.HasPrefix(g.Param.Metadata.Name, "ministral-3") {
-		g.Param.Metadata.Architectures = []string{"MistralForCausalLM"}
+	// Override architectures for specific model families only when none were parsed
+	if len(g.Param.Metadata.Architectures) == 0 {
+		if strings.HasPrefix(g.Param.Metadata.Name, "mistral-large-3") {
+			g.Param.Metadata.Architectures = []string{"MistralLarge3ForCausalLM"}
+		} else if strings.HasPrefix(g.Param.Metadata.Name, "ministral-3") {
+			g.Param.Metadata.Architectures = []string{"MistralForCausalLM"}
+		}
 	}
 
 	// set reasoning parser based on model name prefix
@@ -306,11 +309,11 @@ func (g *Generator) ParseModelMetadata() {
 	}
 
 	if strings.HasPrefix(g.Param.Metadata.Name, "deepseek-v3.1") {
-		g.Param.Metadata.ReasoningParser = "deepseek_v31"
+		g.Param.Metadata.ToolCallParser = "deepseek_v31"
 	}
 
 	if strings.HasPrefix(g.Param.Metadata.Name, "qwen3-coder") {
-		g.Param.Metadata.ReasoningParser = "qwen3_xml"
+		g.Param.Metadata.ToolCallParser = "qwen3_xml"
 	}
 }
 

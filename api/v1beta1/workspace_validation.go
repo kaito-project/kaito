@@ -81,7 +81,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			runtime := GetWorkspaceRuntimeName(w)
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 			errs = errs.Also(
-				w.Resource.validateCreateWithInference(w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
+				w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
 				w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 				w.validateInferenceConfig(ctx),
 			)
@@ -326,7 +326,7 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	return errs
 }
 
-func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName, wsNamespace string) (errs *apis.FieldError) {
+func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName, wsNamespace string) (errs *apis.FieldError) {
 	var presetName, secretName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))

@@ -14,12 +14,15 @@
 package models
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
@@ -204,4 +207,177 @@ func TestVLLMCompatibleModel_SupportDistributedInference(t *testing.T) {
 func TestVLLMCompatibleModel_SupportTuning(t *testing.T) {
 	m := &vLLMCompatibleModel{}
 	assert.False(t, m.SupportTuning())
+}
+
+func TestRegisterModel(t *testing.T) {
+	tests := []struct {
+		name           string
+		hfModelCardID  string
+		param          *model.PresetParam
+		expectedResult bool
+	}{
+		{
+			name:           "nil param returns nil",
+			hfModelCardID:  "test/model",
+			param:          nil,
+			expectedResult: false,
+		},
+		{
+			name:          "valid param registers model",
+			hfModelCardID: "test/valid-model",
+			param: &model.PresetParam{
+				Metadata: model.Metadata{
+					Name:    "valid-model",
+					Version: "https://huggingface.co/test/valid-model",
+				},
+			},
+			expectedResult: true,
+		},
+		{
+			name:          "model with full metadata",
+			hfModelCardID: "org/full-model",
+			param: &model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                 "full-model",
+					Version:              "https://huggingface.co/org/full-model",
+					DType:                "bfloat16",
+					DownloadAuthRequired: true,
+				},
+				TotalSafeTensorFileSize: "4Gi",
+				DiskStorageRequirement:  "8Gi",
+			},
+			expectedResult: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := registerModel(tt.hfModelCardID, tt.param)
+
+			if tt.expectedResult {
+				assert.NotNil(t, result)
+				// Verify the model was registered
+				registered := plugin.KaitoModelRegister.MustGet(tt.hfModelCardID)
+				assert.NotNil(t, registered)
+				assert.Equal(t, result, registered)
+			} else {
+				assert.Nil(t, result)
+			}
+		})
+	}
+}
+
+func TestGetModelByName(t *testing.T) {
+	tests := []struct {
+		name            string
+		modelName       string
+		secretName      string
+		secretNamespace string
+		setupFunc       func()
+		expectPanic     bool
+		panicContains   string
+		validateResult  func(t *testing.T, result model.Model)
+	}{
+		{
+			name:      "returns registered model",
+			modelName: "pre-registered-model",
+			setupFunc: func() {
+				// Pre-register a model
+				param := &model.PresetParam{
+					Metadata: model.Metadata{
+						Name:    "pre-registered-model",
+						Version: "https://huggingface.co/test/pre-registered-model",
+					},
+				}
+				registerModel("pre-registered-model", param)
+			},
+			expectPanic: false,
+			validateResult: func(t *testing.T, result model.Model) {
+				assert.NotNil(t, result)
+			},
+		},
+		{
+			name:      "returns registered model with uppercase conversion",
+			modelName: "PRE-REGISTERED-UPPER",
+			setupFunc: func() {
+				param := &model.PresetParam{
+					Metadata: model.Metadata{
+						Name:    "pre-registered-upper",
+						Version: "https://huggingface.co/test/pre-registered-upper",
+					},
+				}
+				registerModel("pre-registered-upper", param)
+			},
+			expectPanic: false,
+			validateResult: func(t *testing.T, result model.Model) {
+				assert.NotNil(t, result)
+			},
+		},
+		{
+			name:          "panics for unregistered model without slash",
+			modelName:     "unregistered-model-no-slash",
+			setupFunc:     func() {},
+			expectPanic:   true,
+			panicContains: "model is not registered: unregistered-model-no-slash",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupFunc()
+
+			if tt.expectPanic {
+				assert.PanicsWithValue(t, tt.panicContains, func() {
+					GetModelByName(context.Background(), tt.modelName, tt.secretName, tt.secretNamespace, nil)
+				})
+			} else {
+				result := GetModelByName(context.Background(), tt.modelName, tt.secretName, tt.secretNamespace, nil)
+				if tt.validateResult != nil {
+					tt.validateResult(t, result)
+				}
+			}
+		})
+	}
+}
+
+func TestGetHFTokenFromSecret(t *testing.T) {
+	tests := []struct {
+		name            string
+		secretName      string
+		secretNamespace string
+		kubeClient      client.Client
+		setupFunc       func() client.Client
+		expectedToken   string
+		expectedError   string
+	}{
+		{
+			name:            "empty secret name returns empty string",
+			secretName:      "",
+			secretNamespace: "default",
+			kubeClient:      nil,
+			expectedToken:   "",
+			expectedError:   "",
+		},
+		{
+			name:            "nil kubeClient returns error",
+			secretName:      "my-secret",
+			secretNamespace: "default",
+			kubeClient:      nil,
+			expectedToken:   "",
+			expectedError:   "kubeClient is nil",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			token, err := GetHFTokenFromSecret(context.Background(), tt.kubeClient, tt.secretName, tt.secretNamespace)
+			if tt.expectedError != "" {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError)
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.expectedToken, token)
+		})
+	}
 }

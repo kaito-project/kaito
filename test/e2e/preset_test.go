@@ -1444,6 +1444,6 @@ func validateInferenceConfig(workspaceObj *kaitov1beta1.Workspace) {
 
 // getModelName: extract the model name from the preset name, e.g., "meta-llama/Llama-3-8B-Instruct" -> "llama-3-8b-instruct"
 func getModelName(presetName string) string {
-	nameParts := strings.Split(presetName, "/")
+	nameParts := strings.Split(strings.ToLower(presetName), "/")
 	return strings.ToLower(nameParts[len(nameParts)-1])
 }

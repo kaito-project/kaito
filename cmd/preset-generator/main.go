@@ -43,7 +43,7 @@ func main() {
 	}
 
 	// Use yaml.MapSlice to force exact ordering to match Python output
-	szStr := strings.TrimSuffix(param.ModelFileSize, "Gi")
+	szStr := strings.TrimSuffix(param.Metadata.ModelFileSize, "Gi")
 	szVal, _ := strconv.ParseFloat(szStr, 64)
 
 	// Construct MapSlice for VLLM params
@@ -74,6 +74,7 @@ func main() {
 		{Key: "bytes_per_token", Value: param.Metadata.BytesPerToken},
 		{Key: "model_token_limit", Value: param.Metadata.ModelTokenLimit},
 		{Key: "reasoning_parser", Value: param.Metadata.ReasoningParser},
+		{Key: "tool_call_parser", Value: param.Metadata.ToolCallParser},
 		{Key: "vllm", Value: vllmSection},
 	}
 

@@ -785,11 +785,7 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 
 func validateModelsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 	deploymentName := workspaceObj.Name
-
-	// Extract the model name from the preset name, e.g., "meta-llama/Llama-3-8B-Instruct" -> "llama-3-8b-instruct"
-	nameParts := strings.Split(string(workspaceObj.Inference.Preset.Name), "/")
-	modelName := strings.ToLower(nameParts[len(nameParts)-1])
-	expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
+	expectedModelID := fmt.Sprintf(`"id":"%s"`, getModelName(string(workspaceObj.Inference.Preset.Name)))
 
 	execOption := corev1.PodExecOptions{
 		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X GET http://%s.%s.svc.cluster.local:80/v1/models | grep -e '%s'`, workspaceObj.Name, workspaceObj.Namespace, expectedModelID)},
@@ -833,9 +829,11 @@ func validateModelsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 
 func validateCompletionsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 	deploymentName := workspaceObj.Name
+	modelName := getModelName(string(workspaceObj.Inference.Preset.Name))
+
 	expectedCompletion := `"object":"text_completion"`
 	execOption := corev1.PodExecOptions{
-		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X POST -H "Content-Type: application/json" -d '{"model":"%s","prompt":"What is Kubernetes?","max_tokens":7,"temperature":0}' http://%s.%s.svc.cluster.local:80/v1/completions | grep -e '%s'`, workspaceObj.Inference.Preset.Name, workspaceObj.Name, workspaceObj.Namespace, expectedCompletion)},
+		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X POST -H "Content-Type: application/json" -d '{"model":"%s","prompt":"What is Kubernetes?","max_tokens":7,"temperature":0}' http://%s.%s.svc.cluster.local:80/v1/completions | grep -e '%s'`, modelName, workspaceObj.Name, workspaceObj.Namespace, expectedCompletion)},
 		Container: deploymentName,
 		Stdout:    true,
 		Stderr:    true,
@@ -1442,4 +1440,10 @@ func validateInferenceConfig(workspaceObj *kaitov1beta1.Workspace) {
 			return len(configMap.Data) > 0
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for inference config to be ready")
 	})
+}
+
+// getModelName: extract the model name from the preset name, e.g., "meta-llama/Llama-3-8B-Instruct" -> "llama-3-8b-instruct"
+func getModelName(presetName string) string {
+	nameParts := strings.Split(presetName, "/")
+	return strings.ToLower(nameParts[len(nameParts)-1])
 }

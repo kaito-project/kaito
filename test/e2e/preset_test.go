@@ -785,8 +785,12 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 
 func validateModelsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 	deploymentName := workspaceObj.Name
-	modelName := workspaceObj.Inference.Preset.Name
+
+	// Extract the model name from the preset name, e.g., "meta-llama/Llama-3-8B-Instruct" -> "llama-3-8b-instruct"
+	nameParts := strings.Split(string(workspaceObj.Inference.Preset.Name), "/")
+	modelName := strings.ToLower(nameParts[len(nameParts)-1])
 	expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
+
 	execOption := corev1.PodExecOptions{
 		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X GET http://%s.%s.svc.cluster.local:80/v1/models | grep -e '%s'`, workspaceObj.Name, workspaceObj.Namespace, expectedModelID)},
 		Container: deploymentName,

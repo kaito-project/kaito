@@ -42,6 +42,7 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 		Name:     hfModelCardID,
 		Instance: model,
 	}
+	klog.InfoS("Registering VLLM-compatible model", "model", hfModelCardID, "metadata", param.Metadata)
 	plugin.KaitoModelRegister.Register(r)
 	return model
 }
@@ -76,7 +77,15 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 		if err != nil {
 			panic("could not generate preset for model: " + modelName + ", error: " + err.Error())
 		}
-		return registerModel(modelName, param)
+		// check whether the model is in the supported model architectures list
+		for _, arch := range param.Metadata.Architectures {
+			for _, supportedArch := range vLLMModelArchList {
+				if arch == supportedArch {
+					return registerModel(modelName, param)
+				}
+			}
+		}
+		panic("model architecture not supported by VLLM: " + modelName + " architecture: " + strings.Join(param.Metadata.Architectures, ", "))
 	}
 	panic("model is not registered: " + modelName)
 }

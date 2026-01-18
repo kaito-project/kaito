@@ -77,12 +77,10 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 		if err != nil {
 			panic("could not generate preset for model: " + modelName + ", error: " + err.Error())
 		}
-		// check whether the model is in the supported model architectures list
+		// check whether the model is in the supported model architecture list
 		for _, arch := range param.Metadata.Architectures {
-			for _, supportedArch := range vLLMModelArchList {
-				if arch == supportedArch {
-					return registerModel(modelName, param)
-				}
+			if _, ok := vLLMModelArchMap[arch]; ok {
+				return registerModel(modelName, param)
 			}
 		}
 		panic("model architecture not supported by VLLM: " + modelName + " architecture: " + strings.Join(param.Metadata.Architectures, ", "))

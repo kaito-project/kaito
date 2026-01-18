@@ -182,7 +182,7 @@ func (c *NodeClaimManager) determineNodeOSDiskSize(ctx context.Context, wObj *ka
 	if wObj.Inference != nil && wObj.Inference.Preset != nil && wObj.Inference.Preset.Name != "" {
 		presetName := string(wObj.Inference.Preset.Name)
 		secretName := wObj.Inference.Preset.PresetOptions.ModelAccessSecret
-		nodeOSDiskSize = models.KaitoVLLMModelRegister.GetModelByName(ctx, presetName, secretName, wObj.Namespace, c.Client).
+		nodeOSDiskSize = models.GetModelByName(ctx, presetName, secretName, wObj.Namespace, c.Client).
 			GetInferenceParameters().DiskStorageRequirement
 	}
 	if nodeOSDiskSize == "" {

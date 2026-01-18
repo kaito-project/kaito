@@ -29,19 +29,10 @@ import (
 	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
-var (
-	KaitoVLLMModelRegister = vLLMCatalog{}
-)
-
-// vLLMCatalog is a struct that holds a list of supported Huggingface models for the vLLM runtime.
-type vLLMCatalog struct {
-	Models []model.Metadata `yaml:"models,omitempty"`
-}
-
-// RegisterModel registers a HuggingFace model with the given ID and parameters
+// registerModel registers a HuggingFace model with the given ID and parameters
 // into the model registry and returns the registered model. If param is nil,
 // it returns nil and does not register a model.
-func (m *vLLMCatalog) RegisterModel(hfModelCardID string, param *model.PresetParam) model.Model {
+func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 	if param == nil {
 		return nil
 	}
@@ -67,7 +58,7 @@ func (m *vLLMCatalog) RegisterModel(hfModelCardID string, param *model.PresetPar
 // registered or generatable model, this method panics instead of returning an
 // error. Callers should ensure that modelName is valid and be aware of this
 // panic behavior when integrating this method.
-func (m *vLLMCatalog) GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) model.Model {
+func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) model.Model {
 	modelName = strings.ToLower(modelName)
 	model := plugin.KaitoModelRegister.MustGet(modelName)
 	if model != nil {
@@ -85,7 +76,7 @@ func (m *vLLMCatalog) GetModelByName(ctx context.Context, modelName, secretName,
 		if err != nil {
 			panic("could not generate preset for model: " + modelName + ", error: " + err.Error())
 		}
-		return m.RegisterModel(modelName, param)
+		return registerModel(modelName, param)
 	}
 	panic("model is not registered: " + modelName)
 }

@@ -95,6 +95,18 @@ rag_indexes_update_document_requests_total = Counter(
     labelnames=[STATUS_LABEL],
 )
 
+# Indexes search API metrics
+rag_indexes_search_latency = Histogram(
+    "rag_indexes_search_latency_seconds",
+    "Time to call post '/search' API in seconds",
+    labelnames=[STATUS_LABEL],
+)
+rag_indexes_search_requests_total = Counter(
+    "rag_indexes_search_requests_total",
+    "Count of successful/failed calling post '/search' requests",
+    labelnames=[STATUS_LABEL],
+)
+
 # Indexes document API metrics
 rag_indexes_delete_document_latency = Histogram(
     "rag_indexes_delete_document_latency_seconds",

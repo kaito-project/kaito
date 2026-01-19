@@ -28,6 +28,8 @@ from models import (
     HealthStatus,
     IndexRequest,
     ListDocumentsResponse,
+    RetrievalRequest,
+    RetrievalResponse,
     UpdateDocumentRequest,
     UpdateDocumentResponse,
 )
@@ -65,6 +67,8 @@ from ragengine.metrics.prometheus_metrics import (
     rag_indexes_document_requests_total,
     rag_indexes_latency,
     rag_indexes_requests_total,
+    rag_indexes_search_latency,
+    rag_indexes_search_requests_total,
     rag_indexes_update_document_latency,
     rag_indexes_update_document_requests_total,
     rag_load_latency,
@@ -88,6 +92,7 @@ async def track_requests(request: Request, call_next):
         "/indexes",
         "/persist",
         "/load",
+        "/search",
         "/v1/chat/completions",
     ]
 
@@ -294,6 +299,13 @@ async def chat_completions(request: dict):
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
     try:
+        # Check if InferenceService is configured via environment variable
+        if not os.getenv("LLM_INFERENCE_URL"):
+            raise HTTPException(
+                status_code=503,
+                detail="InferenceService not configured. This RAGEngine instance only supports document retrieval via /search API. To use chat completions, configure an InferenceService in the RAGEngine spec."
+            )
+        
         response = await rag_ops.chat_completion(request)
         status = STATUS_SUCCESS
         return response
@@ -650,6 +662,76 @@ async def load_index(
         # Record metrics once in finally block
         rag_load_requests_total.labels(status=status).inc()
         rag_load_latency.labels(status=status).observe(time.perf_counter() - start_time)
+
+
+@app.post(
+    "/retrieval",
+    operation_id="retrieval_index",
+    tags=["Index"],
+    response_model=RetrievalResponse,
+    summary="Retrieve Relevant Documents",
+    description="""
+    Retrieve relevant documents from an index based on messages. 
+    This endpoint performs semantic retrieval and returns matching documents without LLM generation.
+
+    ## Request Example:
+    ```json
+    POST /retrieval
+    {
+      "index_name": "test_index",
+      "query": "What is retrieval-augmented generation?",
+      "context_token_ratio": 0.5
+    }
+    ```
+
+    ## Response Example:
+    ```json
+    {
+      "query": "What is retrieval-augmented generation?",
+      "results": [
+        {
+          "doc_id": "abc123",
+          "node_id": "node_456",
+          "text": "Retrieval-augmented generation (RAG) is a technique...",
+          "score": 0.85,
+          "metadata": {"category": "technical", "author": "John Doe"}
+        }
+      ],
+      "count": 5
+    }
+    ```
+    """,
+)
+async def retrieval_index(request: RetrievalRequest):
+    """
+    Retrieve relevant documents from the specified index.
+    
+    This performs pure document retrieval based on semantic similarity,
+    without involving LLM generation.
+    """
+    start_time = time.perf_counter()
+    status = STATUS_FAILURE  # Default status
+
+    try:
+        result = await rag_ops.retrieval(
+            index_name=request.index_name,
+            query=request.query,
+            context_token_ratio=request.context_token_ratio,
+            max_tokens=request.max_tokens,
+            metadata_filter=request.metadata_filter,
+        )
+        status = STATUS_SUCCESS
+        return RetrievalResponse(**result)
+    except HTTPException as http_exc:
+        raise http_exc
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Retrieval failed: {str(e)}")
+    finally:
+        # Record metrics once in finally block
+        rag_indexes_search_requests_total.labels(status=status).inc()
+        rag_indexes_search_latency.labels(status=status).observe(
+            time.perf_counter() - start_time
+        )
 
 
 @app.delete(

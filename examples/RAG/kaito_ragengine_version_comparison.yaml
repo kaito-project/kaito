@@ -1,0 +1,58 @@
+---
+# ===============================
+# 1️⃣ StorageClass - Azure Disk CSI Driver
+# ===============================
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: azuredisk-csi-premium
+provisioner: disk.csi.azure.com
+parameters:
+  skuName: Premium_LRS  # Options: Standard_LRS, StandardSSD_LRS, Premium_LRS
+  kind: Managed
+  cachingMode: ReadOnly  # Options: None, ReadOnly, ReadWrite
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer  # Better for node affinity
+allowVolumeExpansion: true
+
+---
+# ===============================
+# 2️⃣ PersistentVolumeClaim - Vector Database Storage
+# ===============================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ragengine-vector-db-disk-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce  # ⚠️ Azure Disk only supports single pod
+  storageClassName: azuredisk-csi-premium
+  resources:
+    requests:
+      storage: 50Gi  # Larger size for Premium SSD
+---
+# v1beta1 - New nested structure (recommended)
+apiVersion: kaito.sh/v1beta1
+kind: RAGEngine
+metadata:
+  name: ragengine-v1beta1
+  namespace: default
+spec:
+  compute:
+    instanceType: "Standard_NV36ads_A10_v5"
+    labelSelector:
+      matchLabels:
+        apps: ragengine-example
+  # v1beta1 uses nested storage structure
+  storage:
+    persistentVolume:
+      persistentVolumeClaim: ragengine-vector-db-disk-pvc
+      mountPath: /mnt/vector-db
+  embedding:
+    local:
+      modelID: "BAAI/bge-small-en-v1.5"
+  inferenceService:
+    url: "http://enhqe7d4fnfxatg8.fz73.alb.azure.com/v1/chat/completions"
+    accessSecret: deepseek-key 
+    contextWindowSize: 20000

@@ -52,11 +52,13 @@ func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaito
 
 	presetName := string(wObj.Inference.Preset.Name)
 	secretName := wObj.Inference.Preset.PresetOptions.ModelAccessSecret
-	model := models.GetModelByName(ctx, presetName, secretName, wObj.Namespace, client)
+	model, err := models.GetModelByName(ctx, presetName, secretName, wObj.Namespace, client)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get model by name: %w", err)
+	}
 
 	// Import featuregates and consts for NAP check
 	var gpuConfig *sku.GPUConfig
-	var err error
 
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// NAP is disabled (BYO scenario) - instanceType is optional

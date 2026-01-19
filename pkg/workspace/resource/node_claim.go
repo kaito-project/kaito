@@ -182,8 +182,13 @@ func (c *NodeClaimManager) determineNodeOSDiskSize(ctx context.Context, wObj *ka
 	if wObj.Inference != nil && wObj.Inference.Preset != nil && wObj.Inference.Preset.Name != "" {
 		presetName := string(wObj.Inference.Preset.Name)
 		secretName := wObj.Inference.Preset.PresetOptions.ModelAccessSecret
-		nodeOSDiskSize = models.GetModelByName(ctx, presetName, secretName, wObj.Namespace, c.Client).
-			GetInferenceParameters().DiskStorageRequirement
+
+		model, err := models.GetModelByName(ctx, presetName, secretName, wObj.Namespace, c.Client)
+		if err == nil {
+			nodeOSDiskSize = model.GetInferenceParameters().DiskStorageRequirement
+		} else {
+			klog.ErrorS(err, "failed to get model by name when determining Node OS disk size", "model", presetName, "workspace", klog.KObj(wObj))
+		}
 	}
 	if nodeOSDiskSize == "" {
 		nodeOSDiskSize = "1024Gi" // The default OS size is used

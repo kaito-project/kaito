@@ -56,14 +56,13 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 //
 // The returned model.Model represents the registered or newly generated model.
 // If preset generation fails, or if the modelName does not correspond to a
-// registered or generatable model, this method panics instead of returning an
-// error. Callers should ensure that modelName is valid and be aware of this
-// panic behavior when integrating this method.
-func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) model.Model {
+// registered or generatable model, this method returns an error instead of panicking.
+// Callers should ensure that modelName is valid and handle the error accordingly.
+func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
 	model := plugin.KaitoModelRegister.MustGet(modelName)
 	if model != nil {
-		return model
+		return model, nil
 	}
 
 	// if name contains "/", get model data from HuggingFace
@@ -75,17 +74,17 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 		}
 		param, err := generator.GeneratePreset(modelName, token)
 		if err != nil {
-			panic("could not generate preset for model: " + modelName + ", error: " + err.Error())
+			return nil, err
 		}
 		// check whether the model is in the supported model architecture list
 		for _, arch := range param.Metadata.Architectures {
 			if _, ok := vLLMModelArchMap[arch]; ok {
-				return registerModel(modelName, param)
+				return registerModel(modelName, param), nil
 			}
 		}
-		panic("model architecture not supported by VLLM: " + modelName + " architecture: " + strings.Join(param.Metadata.Architectures, ", "))
+		return nil, fmt.Errorf("model architecture not supported by VLLM: %s architecture: %s", modelName, strings.Join(param.Metadata.Architectures, ", "))
 	}
-	panic("model is not registered: " + modelName)
+	return nil, fmt.Errorf("model is not registered: %s", modelName)
 }
 
 type vLLMCompatibleModel struct {
@@ -131,7 +130,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	}
 
 	// append model-specific VLLM run parameters for ministral-3 and mistral-large-3 models
-	if arch == "MistralForCausalLM" || arch == "MistralLarge3ForCausalLM" {
+	if arch == "Mistral3ForConditionalGeneration" || arch == "MistralLarge3ForCausalLM" {
 		runParamsVLLM["tokenizer_mode"] = "mistral"
 		runParamsVLLM["config_format"] = "mistral"
 		runParamsVLLM["load_format"] = "mistral"

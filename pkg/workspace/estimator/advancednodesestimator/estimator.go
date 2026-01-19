@@ -53,10 +53,12 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 
 	presetName := string(workspace.Inference.Preset.Name)
 	secretName := workspace.Inference.Preset.PresetOptions.ModelAccessSecret
-	model := models.GetModelByName(ctx, presetName, secretName, workspace.Namespace, client)
+	model, err := models.GetModelByName(ctx, presetName, secretName, workspace.Namespace, client)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get model by name: %w", err)
+	}
 
 	var gpuConfig *sku.GPUConfig
-	var err error
 
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		if readyNodes, err := resources.GetReadyNodes(ctx, client, workspace); err != nil {

@@ -893,7 +893,7 @@ func TestDetermineNodeOSDiskSize(t *testing.T) {
 			expectations := utils.NewControllerExpectations()
 			manager := NewNodeClaimManager(mockClient, mockRecorder, expectations)
 
-			diskSize := manager.determineNodeOSDiskSize(tt.workspace)
+			diskSize := manager.determineNodeOSDiskSize(context.Background(), tt.workspace)
 
 			// When no preset is specified, we expect the default
 			assert.Equal(t, tt.expectedDiskSize, diskSize)

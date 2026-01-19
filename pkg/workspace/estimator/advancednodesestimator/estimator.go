@@ -27,8 +27,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 // AdvancedNodesEstimator estimates node count based on SKU memory and model memory requirement
@@ -52,7 +52,8 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 	}
 
 	presetName := string(workspace.Inference.Preset.Name)
-	model := plugin.KaitoModelRegister.MustGet(presetName)
+	secretName := workspace.Inference.Preset.PresetOptions.ModelAccessSecret
+	model := models.GetModelByName(ctx, presetName, secretName, workspace.Namespace, client)
 
 	var gpuConfig *sku.GPUConfig
 	var err error

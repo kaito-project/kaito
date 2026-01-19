@@ -14,43 +14,78 @@
 package models
 
 import (
+	"context"
 	_ "embed"
+	"fmt"
+	"strings"
 	"time"
 
-	"gopkg.in/yaml.v2"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
-var (
-	//go:embed supported_models_best_effort.yaml
-	vLLMModelsYAML []byte
-)
+// registerModel registers a HuggingFace model with the given ID and parameters
+// into the model registry and returns the registered model. If param is nil,
+// it returns nil and does not register a model.
+func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
+	if param == nil {
+		return nil
+	}
 
-// VLLMCatalog is a struct that holds a list of supported models parsed
-// from presets/workspace/models/supported_models_best_effort.yaml. The YAML file is
-// considered the source of truth for the model metadata, and any
-// information in the YAML file should not be hardcoded in the codebase.
-type VLLMCatalog struct {
-	Models []model.Metadata `yaml:"models,omitempty"`
+	model := &vLLMCompatibleModel{model: param.Metadata}
+	r := &plugin.Registration{
+		Name:     hfModelCardID,
+		Instance: model,
+	}
+	klog.InfoS("Registering VLLM-compatible model", "model", hfModelCardID, "metadata", param.Metadata)
+	plugin.KaitoModelRegister.Register(r)
+	return model
 }
 
-func init() {
-	vLLMCatalog := VLLMCatalog{}
-	utilruntime.Must(yaml.Unmarshal(vLLMModelsYAML, &vLLMCatalog))
-
-	// register all VLLM models
-	for _, m := range vLLMCatalog.Models {
-		utilruntime.Must(m.Validate())
-		plugin.KaitoModelRegister.Register(&plugin.Registration{
-			Name:     m.Name,
-			Instance: &vLLMCompatibleModel{model: m},
-		})
-		klog.InfoS("Registered VLLM model preset", "model", m.Name)
+// GetModelByName returns a vLLM-compatible model for the given modelName.
+// It first looks up an existing registration in the KaitoModelRegister. If the
+// model is not already registered and modelName contains a "/", it attempts to
+// generate a preset for the corresponding HuggingFace model by optionally
+// retrieving an access token from the Kubernetes Secret identified by
+// secretName and secretNamespace using kubeClient and ctx.
+//
+// The returned model.Model represents the registered or newly generated model.
+// If preset generation fails, or if the modelName does not correspond to a
+// registered or generatable model, this method panics instead of returning an
+// error. Callers should ensure that modelName is valid and be aware of this
+// panic behavior when integrating this method.
+func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) model.Model {
+	modelName = strings.ToLower(modelName)
+	model := plugin.KaitoModelRegister.MustGet(modelName)
+	if model != nil {
+		return model
 	}
+
+	// if name contains "/", get model data from HuggingFace
+	if strings.Contains(modelName, "/") {
+		klog.InfoS("Generating VLLM model preset for HuggingFace model", "model", modelName, "secretName", secretName, "secretNamespace", secretNamespace)
+		token, err := GetHFTokenFromSecret(ctx, kubeClient, secretName, secretNamespace)
+		if err != nil {
+			klog.ErrorS(err, "Failed to get HF token from secret", "secretName", secretName, "secretNamespace", secretNamespace)
+		}
+		param, err := generator.GeneratePreset(modelName, token)
+		if err != nil {
+			panic("could not generate preset for model: " + modelName + ", error: " + err.Error())
+		}
+		// check whether the model is in the supported model architecture list
+		for _, arch := range param.Metadata.Architectures {
+			if _, ok := vLLMModelArchMap[arch]; ok {
+				return registerModel(modelName, param)
+			}
+		}
+		panic("model architecture not supported by VLLM: " + modelName + " architecture: " + strings.Join(param.Metadata.Architectures, ", "))
+	}
+	panic("model is not registered: " + modelName)
 }
 
 type vLLMCompatibleModel struct {
@@ -90,6 +125,18 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		runParamsVLLM["reasoning-parser"] = m.model.ReasoningParser
 	}
 
+	var arch string
+	if len(m.model.Architectures) > 0 {
+		arch = m.model.Architectures[0]
+	}
+
+	// append model-specific VLLM run parameters for ministral-3 and mistral-large-3 models
+	if arch == "MistralForCausalLM" || arch == "MistralLarge3ForCausalLM" {
+		runParamsVLLM["tokenizer_mode"] = "mistral"
+		runParamsVLLM["config_format"] = "mistral"
+		runParamsVLLM["load_format"] = "mistral"
+	}
+
 	presetParam := &model.PresetParam{
 		Metadata:                *metaData,
 		TotalSafeTensorFileSize: m.model.ModelFileSize,
@@ -121,4 +168,35 @@ func (*vLLMCompatibleModel) SupportDistributedInference() bool {
 
 func (*vLLMCompatibleModel) SupportTuning() bool {
 	return false
+}
+
+// GetHFTokenFromSecret retrieves the HuggingFace token from a Kubernetes secret.
+// If secretName is empty, it returns an empty string without error.
+// If secretNamespace is empty, it defaults to "default".
+// An error is returned if kubeClient is nil, the secret cannot be retrieved,
+// or the HF_TOKEN key is not present in the secret data.
+func GetHFTokenFromSecret(ctx context.Context, kubeClient client.Client, secretName, secretNamespace string) (string, error) {
+	if secretName == "" {
+		return "", nil
+	}
+
+	if kubeClient == nil {
+		return "", fmt.Errorf("kubeClient is nil")
+	}
+
+	if secretNamespace == "" {
+		secretNamespace = "default"
+	}
+
+	secret := corev1.Secret{}
+	if err := kubeClient.Get(ctx, client.ObjectKey{Name: secretName, Namespace: secretNamespace}, &secret); err != nil {
+		return "", fmt.Errorf("failed to get secret: %s in namespace: %s, error: %w", secretName, secretNamespace, err)
+	}
+
+	tokenBytes, ok := secret.Data["HF_TOKEN"]
+	if !ok {
+		return "", fmt.Errorf("HF_TOKEN not found in secret: %s in namespace: %s", secretName, secretNamespace)
+	}
+
+	return string(tokenBytes), nil
 }

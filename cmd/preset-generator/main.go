@@ -43,7 +43,7 @@ func main() {
 	}
 
 	// Use yaml.MapSlice to force exact ordering to match Python output
-	szStr := strings.TrimSuffix(param.ModelFileSize, "Gi")
+	szStr := strings.TrimSuffix(param.Metadata.ModelFileSize, "Gi")
 	szVal, _ := strconv.ParseFloat(szStr, 64)
 
 	// Construct MapSlice for VLLM params
@@ -63,15 +63,18 @@ func main() {
 	// Construct the top-level MapSlice
 	out := yaml.MapSlice{
 		{Key: "attn_type", Value: param.AttnType},
-		{Key: "name", Value: param.Name},
-		{Key: "type", Value: param.ModelType},
-		{Key: "version", Value: param.Version},
-		{Key: "download_at_runtime", Value: param.DownloadAtRuntime},
-		{Key: "download_auth_required", Value: param.DownloadAuthRequired},
-		{Key: "disk_storage_requirement", Value: param.DiskStorageRequirement},
+		{Key: "name", Value: param.Metadata.Name},
+		{Key: "architectures", Value: param.Metadata.Architectures},
+		{Key: "type", Value: param.Metadata.ModelType},
+		{Key: "version", Value: param.Metadata.Version},
+		{Key: "download_at_runtime", Value: param.Metadata.DownloadAtRuntime},
+		{Key: "download_auth_required", Value: param.Metadata.DownloadAuthRequired},
+		{Key: "disk_storage_requirement", Value: param.Metadata.DiskStorageRequirement},
 		{Key: "model_file_size_gb", Value: szVal},
-		{Key: "bytes_per_token", Value: param.BytesPerToken},
-		{Key: "model_token_limit", Value: param.ModelTokenLimit},
+		{Key: "bytes_per_token", Value: param.Metadata.BytesPerToken},
+		{Key: "model_token_limit", Value: param.Metadata.ModelTokenLimit},
+		{Key: "reasoning_parser", Value: param.Metadata.ReasoningParser},
+		{Key: "tool_call_parser", Value: param.Metadata.ToolCallParser},
 		{Key: "vllm", Value: vllmSection},
 	}
 

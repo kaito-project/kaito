@@ -46,8 +46,8 @@ const (
 	PresetFalcon40BModel                = "falcon-40b"
 	PresetMistral7BInstructModel        = "mistral-7b-instruct"
 	PresetQwen2_5Coder7BModel           = "qwen2.5-coder-7b-instruct"
-	PresetQwen2_7BModel                 = "qwen2-7b"
-	PresetQwen3_Coder30BModel           = "qwen3-coder-30b-a3b-instruct"
+	PresetQwen2_7BModel                 = "Qwen/Qwen2-7B"
+	PresetQwen3_Coder30BModel           = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
 	PresetPhi3Mini128kModel             = "phi-3-mini-128k-instruct"
 	PresetDeepSeekR1DistillLlama8BModel = "deepseek-r1-distill-llama-8b"
 	PresetDeepSeekR1DistillQwen14BModel = "deepseek-r1-distill-qwen-14b"
@@ -785,8 +785,8 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 
 func validateModelsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 	deploymentName := workspaceObj.Name
-	modelName := workspaceObj.Inference.Preset.Name
-	expectedModelID := fmt.Sprintf(`"id":"%s"`, modelName)
+	expectedModelID := fmt.Sprintf(`"id":"%s"`, getModelName(string(workspaceObj.Inference.Preset.Name)))
+
 	execOption := corev1.PodExecOptions{
 		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X GET http://%s.%s.svc.cluster.local:80/v1/models | grep -e '%s'`, workspaceObj.Name, workspaceObj.Namespace, expectedModelID)},
 		Container: deploymentName,
@@ -829,9 +829,11 @@ func validateModelsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 
 func validateCompletionsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 	deploymentName := workspaceObj.Name
+	modelName := getModelName(string(workspaceObj.Inference.Preset.Name))
+
 	expectedCompletion := `"object":"text_completion"`
 	execOption := corev1.PodExecOptions{
-		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X POST -H "Content-Type: application/json" -d '{"model":"%s","prompt":"What is Kubernetes?","max_tokens":7,"temperature":0}' http://%s.%s.svc.cluster.local:80/v1/completions | grep -e '%s'`, workspaceObj.Inference.Preset.Name, workspaceObj.Name, workspaceObj.Namespace, expectedCompletion)},
+		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X POST -H "Content-Type: application/json" -d '{"model":"%s","prompt":"What is Kubernetes?","max_tokens":7,"temperature":0}' http://%s.%s.svc.cluster.local:80/v1/completions | grep -e '%s'`, modelName, workspaceObj.Name, workspaceObj.Namespace, expectedCompletion)},
 		Container: deploymentName,
 		Stdout:    true,
 		Stderr:    true,
@@ -1438,4 +1440,10 @@ func validateInferenceConfig(workspaceObj *kaitov1beta1.Workspace) {
 			return len(configMap.Data) > 0
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for inference config to be ready")
 	})
+}
+
+// getModelName: extract the model name from the preset name, e.g., "meta-llama/Llama-3-8B-Instruct" -> "llama-3-8b-instruct"
+func getModelName(presetName string) string {
+	nameParts := strings.Split(strings.ToLower(presetName), "/")
+	return strings.ToLower(nameParts[len(nameParts)-1])
 }

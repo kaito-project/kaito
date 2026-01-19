@@ -86,7 +86,7 @@ flux2:
     create: false
 gpu-feature-discovery:
   affinity:
-    nodeAffinity: null
+    nodeAffinity: {}
   nfd:
     master:
       tolerations:

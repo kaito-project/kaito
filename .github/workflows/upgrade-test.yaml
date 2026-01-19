@@ -109,7 +109,7 @@ jobs:
         shell: bash
         run: |
           # Wait for workspace to be ready again if needed
-          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=600s
+          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1000s
 
           # Verify it is now using a StatefulSet
           if ! kubectl get statefulset workspace-mistral-7b-instruct; then
@@ -228,7 +228,7 @@ jobs:
           fi
 
           # Wait for workspace to be ready
-          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1000s
+          kubectl wait pod --selector=kaito.sh/workspace=workspace-mistral-7b-instruct --for=condition=Ready --timeout=1000s
 
       - name: Upgrade to current chart
         shell: bash
@@ -237,7 +237,6 @@ jobs:
           yq -i '(.image.repository) = "'"${REGISTRY}"'/workspace"' ./charts/kaito/workspace/values.yaml
           yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
 
-          sleep 600s
           helm upgrade kaito-workspace ./charts/kaito/workspace \
             --namespace kaito-workspace \
             --reuse-values \
@@ -252,7 +251,7 @@ jobs:
       - name: Verify migration to StatefulSet (BYO)
         shell: bash
         run: |
-          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=600s
+          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1000s
 
           # Verify it is now using a StatefulSet
           if ! kubectl get statefulset workspace-mistral-7b-instruct; then

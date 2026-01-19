@@ -79,7 +79,6 @@ class VectorStoreManager:
             query=query,
             context_token_ratio=context_token_ratio,
             max_tokens=max_tokens,
-
             metadata_filter=metadata_filter,
         )
 

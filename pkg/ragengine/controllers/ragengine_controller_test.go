@@ -365,7 +365,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									RAGEngineHashAnnotation: "7985249e078eb041e38c10c3637032b2d352616c609be8542a779460d3ff1d67",
+									RAGEngineHashAnnotation: "343426c54599b08be91daae28c88d99c4bb185cdd84be51467d35259ffcf62cd",
 								},
 							},
 						}

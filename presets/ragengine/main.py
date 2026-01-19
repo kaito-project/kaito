@@ -303,9 +303,9 @@ async def chat_completions(request: dict):
         if not os.getenv("LLM_INFERENCE_URL"):
             raise HTTPException(
                 status_code=503,
-                detail="InferenceService not configured. This RAGEngine instance only supports document retrieval via /search API. To use chat completions, configure an InferenceService in the RAGEngine spec."
+                detail="InferenceService not configured. This RAGEngine instance only supports document retrieval via /search API. To use chat completions, configure an InferenceService in the RAGEngine spec.",
             )
-        
+
         response = await rag_ops.chat_completion(request)
         status = STATUS_SUCCESS
         return response
@@ -705,7 +705,7 @@ async def load_index(
 async def retrieval_index(request: RetrievalRequest):
     """
     Retrieve relevant documents from the specified index.
-    
+
     This performs pure document retrieval based on semantic similarity,
     without involving LLM generation.
     """

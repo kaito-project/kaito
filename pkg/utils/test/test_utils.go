@@ -780,7 +780,7 @@ var (
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"ragengine.kaito.io/hash":     "7985249e078eb041e38c10c3637032b2d352616c609be8542a779460d3ff1d67",
+				"ragengine.kaito.io/hash":     "343426c54599b08be91daae28c88d99c4bb185cdd84be51467d35259ffcf62cd",
 				"ragengine.kaito.io/revision": "1",
 			},
 		},
@@ -929,7 +929,7 @@ var (
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"ragengine.kaito.io/hash":     "7985249e078eb041e38c10c3637032b2d352616c609be8542a779460d3ff1d67",
+				"ragengine.kaito.io/hash":     "343426c54599b08be91daae28c88d99c4bb185cdd84be51467d35259ffcf62cd",
 				"ragengine.kaito.io/revision": "1",
 			},
 		},

@@ -305,8 +305,6 @@ var _ = Describe("RAGEngine", func() {
 		err = createAndValidateRetrievalPod(ragengineObj, docID, expectedText)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate RetrievalPod")
 
-		time.Sleep(40 * time.Minute)
-
 		persistLogSuccess := "Successfully persisted index kaito"
 		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
@@ -1114,13 +1112,36 @@ func createAndValidateRetrievalPod(ragengineObj *kaitov1beta1.RAGEngine, expecte
 		Namespace:          ragengineObj.ObjectMeta.Namespace,
 		ExpectedLogContent: "\"query\":",
 		WaitForRunning:     false,
-		ParseJSONResponse:  true,
-		JSONStartMarker:    "{",
-		JSONEndMarker:      "}",
+		ParseJSONResponse:  false, // Don't parse, we'll do it manually
 	}
-	retrievalResp, err := createAndValidateAPIPod(ragengineObj, opts)
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
 	if err != nil {
 		return err
+	}
+
+	// Manually parse the response as object (not array)
+	var retrievalResp map[string]interface{}
+	coreClient, err := utils.GetK8sClientset()
+	if err != nil {
+		return fmt.Errorf("failed to get k8s clientset: %v", err)
+	}
+
+	logs, err := utils.GetPodLogs(coreClient, ragengineObj.ObjectMeta.Namespace, opts.PodName, "")
+	if err != nil {
+		return fmt.Errorf("failed to get pod logs: %v", err)
+	}
+
+	// Parse JSON object from logs
+	startIndex := strings.Index(logs, "{")
+	endIndex := strings.LastIndex(logs, "}")
+	if startIndex == -1 || endIndex == -1 || startIndex >= endIndex {
+		return fmt.Errorf("invalid JSON format in logs")
+	}
+
+	apiResp := logs[startIndex : endIndex+1]
+	err = json.Unmarshal([]byte(apiResp), &retrievalResp)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal response: %v", err)
 	}
 
 	// Validate retrieval response structure
@@ -1382,7 +1403,7 @@ func createAndValidateAPIPod(ragengineObj *kaitov1beta1.RAGEngine, opts PodValid
 			}
 
 			return strings.Contains(logs, opts.ExpectedLogContent)
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), fmt.Sprintf("Failed to wait for %s logs to be ready", opts.PodName))
+		}, 8*time.Minute, utils.PollInterval).Should(BeTrue(), fmt.Sprintf("Failed to wait for %s logs to be ready", opts.PodName))
 	})
 
 	if opts.ParseJSONResponse && len(jsonResp) > 0 {

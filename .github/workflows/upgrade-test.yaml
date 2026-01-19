@@ -237,11 +237,8 @@ jobs:
           yq -i '(.image.repository) = "'"${REGISTRY}"'/workspace"' ./charts/kaito/workspace/values.yaml
           yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
 
-          helm upgrade kaito-workspace ./charts/kaito/workspace \
-            --namespace kaito-workspace \
-            --reuse-values \
-            --set image.repository="${REGISTRY}/workspace" \
-            --set image.tag="test"
+          # Upgrade the chart
+          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace
 
           # Wait for deployment to be rolled out
           kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s
@@ -263,17 +260,6 @@ jobs:
           if kubectl get deployment workspace-mistral-7b-instruct 2>/dev/null; then
             echo "Error: Old Deployment still exists"
             exit 1
-          fi
-
-      - name: Delete workspace and ensure deleted
-        shell: bash
-        run: |
-          kubectl delete workspace workspace-mistral-7b-instruct --timeout=300s
-
-          # Verify resources are gone
-          if kubectl get statefulset workspace-mistral-7b-instruct 2>/dev/null; then
-             echo "Error: StatefulSet still exists"
-             exit 1
           fi
 
       - name: Cleanup

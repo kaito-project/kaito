@@ -460,8 +460,19 @@ class Inference(CustomLLM):
     @property
     def metadata(self) -> LLMMetadata:
         """Get LLM metadata."""
+        if not LLM_INFERENCE_URL:
+            # If no LLM inference URL is configured, return default metadata
+            return LLMMetadata(
+                is_chat_model=False,
+                context_window=LLM_CONTEXT_WINDOW,
+            )
+        
         parsed_url = urlparse(LLM_INFERENCE_URL)
-        path = parsed_url.path.lower()
+        path = parsed_url.path
+        # Handle both str and bytes
+        if isinstance(path, bytes):
+            path = path.decode('utf-8')
+        path = path.lower()
         return LLMMetadata(
             is_chat_model="/chat/completions" in path,
             context_window=LLM_CONTEXT_WINDOW,

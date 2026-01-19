@@ -54,10 +54,10 @@ func (w *RAGEngine) Validate(ctx context.Context) (errs *apis.FieldError) {
 }
 
 func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
-	if w.Spec.InferenceService == nil {
-		errs = errs.Also(apis.ErrGeneric("InferenceService must be specified", ""))
+	// InferenceService is now optional - only validate if specified
+	if w.Spec.InferenceService != nil {
+		errs = errs.Also(w.Spec.InferenceService.validateCreate())
 	}
-	errs = errs.Also(w.Spec.InferenceService.validateCreate())
 	if w.Spec.Embedding == nil {
 		errs = errs.Also(apis.ErrGeneric("Embedding must be specified", ""))
 		return errs

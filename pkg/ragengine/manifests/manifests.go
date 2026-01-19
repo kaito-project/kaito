@@ -207,33 +207,37 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 		Value: persistDir,
 	}
 	envs = append(envs, persistDirEnv)
-	inferenceServiceURL := ragEngineObj.Spec.InferenceService.URL
-	inferenceServiceURLEnv := corev1.EnvVar{
-		Name:  "LLM_INFERENCE_URL",
-		Value: inferenceServiceURL,
-	}
-	envs = append(envs, inferenceServiceURLEnv)
 
-	if ragEngineObj.Spec.InferenceService.AccessSecret != "" {
-		accessSecretEnv := corev1.EnvVar{
-			Name: "LLM_ACCESS_SECRET",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: ragEngineObj.Spec.InferenceService.AccessSecret,
-					},
-					Key: "LLM_ACCESS_SECRET",
-				},
-			},
+	// InferenceService is optional - only add LLM-related env vars if specified
+	if ragEngineObj.Spec.InferenceService != nil {
+		inferenceServiceURL := ragEngineObj.Spec.InferenceService.URL
+		inferenceServiceURLEnv := corev1.EnvVar{
+			Name:  "LLM_INFERENCE_URL",
+			Value: inferenceServiceURL,
 		}
-		envs = append(envs, accessSecretEnv)
-	}
+		envs = append(envs, inferenceServiceURLEnv)
 
-	contextWindowEnv := corev1.EnvVar{
-		Name:  "LLM_CONTEXT_WINDOW",
-		Value: fmt.Sprintf("%d", ragEngineObj.Spec.InferenceService.ContextWindowSize),
+		if ragEngineObj.Spec.InferenceService.AccessSecret != "" {
+			accessSecretEnv := corev1.EnvVar{
+				Name: "LLM_ACCESS_SECRET",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: ragEngineObj.Spec.InferenceService.AccessSecret,
+						},
+						Key: "LLM_ACCESS_SECRET",
+					},
+				},
+			}
+			envs = append(envs, accessSecretEnv)
+		}
+
+		contextWindowEnv := corev1.EnvVar{
+			Name:  "LLM_CONTEXT_WINDOW",
+			Value: fmt.Sprintf("%d", ragEngineObj.Spec.InferenceService.ContextWindowSize),
+		}
+		envs = append(envs, contextWindowEnv)
 	}
-	envs = append(envs, contextWindowEnv)
 
 	return envs
 }

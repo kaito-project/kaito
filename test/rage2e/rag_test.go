@@ -301,6 +301,12 @@ var _ = Describe("RAGEngine", func() {
 		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
 
+		expectedText := indexDoc["text"].(string)
+		err = createAndValidateRetrievalPod(ragengineObj, docID, expectedText)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate RetrievalPod")
+
+		time.Sleep(40 * time.Minute)
+
 		persistLogSuccess := "Successfully persisted index kaito"
 		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
@@ -1092,6 +1098,119 @@ func createAndValidateDeleteIndexPod(ragengineObj *kaitov1beta1.RAGEngine) error
 	}
 	_, err := createAndValidateAPIPod(ragengineObj, opts)
 	return err
+}
+
+func createAndValidateRetrievalPod(ragengineObj *kaitov1beta1.RAGEngine, expectedDocID string, expectedText string) error {
+	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/retrieval \
+-H "Content-Type: application/json" \
+-d '{
+	"index_name": "kaito",
+	"query": "What is KAITO?",
+	"context_token_ratio": 0.5
+}'`
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("retrieval-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: "\"query\":",
+		WaitForRunning:     false,
+		ParseJSONResponse:  true,
+		JSONStartMarker:    "{",
+		JSONEndMarker:      "}",
+	}
+	retrievalResp, err := createAndValidateAPIPod(ragengineObj, opts)
+	if err != nil {
+		return err
+	}
+
+	// Validate retrieval response structure
+	if retrievalResp == nil {
+		return fmt.Errorf("retrieval response is nil")
+	}
+
+	// Verify required fields exist
+	query, ok := retrievalResp["query"].(string)
+	if !ok {
+		return fmt.Errorf("retrieval response missing 'query' field or not a string")
+	}
+	if query != "What is KAITO?" {
+		return fmt.Errorf("query mismatch: expected 'What is KAITO?', got '%s'", query)
+	}
+
+	if _, ok := retrievalResp["results"]; !ok {
+		return fmt.Errorf("retrieval response missing 'results' field")
+	}
+	if _, ok := retrievalResp["count"]; !ok {
+		return fmt.Errorf("retrieval response missing 'count' field")
+	}
+
+	// Verify results array
+	results, ok := retrievalResp["results"].([]interface{})
+	if !ok {
+		return fmt.Errorf("results field is not an array")
+	}
+	if len(results) == 0 {
+		return fmt.Errorf("results array is empty")
+	}
+
+	// Verify first result node structure
+	firstNode, ok := results[0].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("first result is not a valid node object")
+	}
+
+	// Verify node fields exist
+	docID, ok := firstNode["doc_id"].(string)
+	if !ok {
+		return fmt.Errorf("node missing 'doc_id' field or not a string")
+	}
+
+	nodeID, ok := firstNode["node_id"].(string)
+	if !ok {
+		return fmt.Errorf("node missing 'node_id' field or not a string")
+	}
+
+	// Verify doc_id and node_id are the same (as per implementation)
+	if docID != nodeID {
+		return fmt.Errorf("doc_id (%s) should match node_id (%s)", docID, nodeID)
+	}
+
+	text, ok := firstNode["text"].(string)
+	if !ok {
+		return fmt.Errorf("node missing 'text' field or not a string")
+	}
+
+	// Verify text content matches expected text
+	if text != expectedText {
+		return fmt.Errorf("text content mismatch:\nexpected: %s\ngot: %s", expectedText, text)
+	}
+
+	score, ok := firstNode["score"].(float64)
+	if !ok {
+		return fmt.Errorf("node missing 'score' field or not a number")
+	}
+
+	// Verify score is reasonable (between 0 and 1)
+	if score < 0 || score > 1 {
+		return fmt.Errorf("score out of range: %.3f (expected 0-1)", score)
+	}
+
+	// Verify count matches results length
+	count, ok := retrievalResp["count"].(float64)
+	if !ok {
+		return fmt.Errorf("count field is not a number")
+	}
+	if int(count) != len(results) {
+		return fmt.Errorf("count (%d) does not match results length (%d)", int(count), len(results))
+	}
+
+	GinkgoWriter.Printf("✓ Retrieval API test passed:\n")
+	GinkgoWriter.Printf("  - Query: %s\n", query)
+	GinkgoWriter.Printf("  - Doc ID: %s\n", docID)
+	GinkgoWriter.Printf("  - Text: %s\n", text)
+	GinkgoWriter.Printf("  - Score: %.3f\n", score)
+	GinkgoWriter.Printf("  - Count: %d\n", int(count))
+	return nil
 }
 
 func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1beta1.RAGEngine, expectedSearchQueries string, remote bool) error {

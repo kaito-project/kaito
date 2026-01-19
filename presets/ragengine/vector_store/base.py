@@ -28,6 +28,8 @@ from llama_index.core import Document as LlamaDocument
 from llama_index.core import StorageContext, VectorStoreIndex, load_index_from_storage
 from llama_index.core.base.llms.types import MessageRole
 from llama_index.core.chat_engine.types import ChatMode
+from llama_index.core.llms import ChatMessage as LlamaChatMessage
+from llama_index.core.llms import ChatResponse
 from llama_index.core.storage.docstore import SimpleDocumentStore
 from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
@@ -812,3 +814,143 @@ class BaseVectorStore(ABC):
         except Exception as e:
             logger.error(f"Failed to load index {index_name}. Error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
+
+    async def retrieval(
+        self,
+        index_name: str,
+        query: str,
+        context_token_ratio: float | None = None,
+        max_tokens: int | None = None,
+        metadata_filter: dict | None = None,
+    ):
+        """
+        Retrieve relevant documents based on a query string.
+        Uses the same chat_engine as chat_completion to ensure identical output.
+        """
+        if index_name not in self.index_map:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No such index: '{index_name}' exists.",
+            )
+
+        try:
+            # Direct query string, no message processing needed
+            user_prompt = query
+            chat_history = []
+            
+            if not user_prompt or user_prompt.strip() == "":
+                raise HTTPException(
+                    status_code=400,
+                    detail="Query string cannot be empty.",
+                )
+
+            prompt_len = self.llm.count_tokens(user_prompt)
+            if prompt_len > self.llm.metadata.context_window:
+                raise HTTPException(
+                    status_code=400, detail="Prompt length exceeds context window."
+                )
+
+            if max_tokens and max_tokens > self.llm.metadata.context_window - prompt_len:
+                max_tokens = self.llm.metadata.context_window - prompt_len
+
+            # Calculate top_k same as chat_completion
+            top_k = max(
+                100,
+                int(
+                    (self.llm.metadata.context_window - prompt_len)
+                    / RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION
+                ),
+            )
+            
+            # Create chat engine with same configuration as chat_completion
+            chat_engine = self.index_map[index_name].as_chat_engine(
+                llm=self.llm,
+                similarity_top_k=top_k,
+                chat_mode=ChatMode.CONTEXT,
+                node_postprocessors=[
+                    ContextSelectionProcessor(
+                        rag_context_token_fill_ratio=context_token_ratio or RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO,
+                        llm=self.llm,
+                        max_tokens=max_tokens,
+                        similarity_threshold=RAG_SIMILARITY_THRESHOLD,
+                    )
+                ],
+            )
+
+            # Create a custom LLM that captures the messages sent to it
+            captured_messages = []
+            captured_source_nodes = []
+            
+            class CaptureLLM:
+                """Mock LLM that captures messages without sending to actual LLM"""
+                def __init__(self, messages_list, nodes_list, original_llm):
+                    self.messages_list = messages_list
+                    self.nodes_list = nodes_list
+                    self._original_llm = original_llm
+                
+                def __getattr__(self, name):
+                    # Delegate all other attribute access to original LLM
+                    return getattr(self._original_llm, name)
+                
+                async def achat(self, messages, **kwargs):
+                    # Capture the messages
+                    logger.info(f"CaptureLLM.achat called with {len(messages)} messages")
+                    self.messages_list.clear()
+                    self.messages_list.extend(messages)
+                    # Return dummy response
+                    return ChatResponse(message=LlamaChatMessage(content=""))
+            
+            # Replace LLM temporarily
+            original_llm = chat_engine._llm
+            chat_engine._llm = CaptureLLM(captured_messages, captured_source_nodes, original_llm)
+            
+            # Call chat_engine to build the context and messages
+            if self.use_rwlock:
+                async with self.rwlock.reader_lock:
+                    result = await chat_engine.achat(user_prompt, chat_history=chat_history)
+            else:
+                result = await chat_engine.achat(user_prompt, chat_history=chat_history)
+            
+            # Restore original LLM
+            chat_engine._llm = original_llm
+            
+            logger.info(f"Captured {len(captured_messages)} messages from chat_engine")
+            
+            # Get source nodes from the result
+            source_nodes_list = result.source_nodes if hasattr(result, 'source_nodes') else []
+            
+            # Apply metadata filter if provided
+            if metadata_filter:
+                source_nodes_list = [
+                    node for node in source_nodes_list
+                    if all(
+                        (node.node.metadata or {}).get(k) == v
+                        for k, v in metadata_filter.items()
+                    )
+                ]
+            
+            # Convert source_nodes_list to serializable format
+            results = []
+            for node in source_nodes_list:
+                results.append({
+                    "doc_id": node.node.node_id,  # Use node_id as doc_id
+                    "node_id": node.node.node_id,
+                    "text": node.node.get_content(),
+                    "score": node.score if node.score is not None else 0.0,
+                    "metadata": node.node.metadata if node.node.metadata else None,
+                })
+            
+            # Return the original retrieved nodes
+            return {
+                "query": user_prompt,
+                "results": results,
+                "count": len(results),
+            }
+
+        except Exception as e:
+            import traceback
+            logger.error(f"Retrieval failed for index '{index_name}': {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise HTTPException(
+                status_code=500, detail=f"Retrieval failed: {str(e)}"
+            )

@@ -29,6 +29,42 @@ import (
 	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
+var (
+	// builtinVLLMModels is the mapping of built-in VLLM model names to their preset names
+	// make sure all key and values are in lower case
+	builtinVLLMModels = map[string]string{
+		"deepseek-ai/deepseek-r1-distill-llama-8b":     "deepseek-r1-distill-llama-8b",
+		"deepseek-ai/deepseek-r1-distill-qwen-14b":     "deepseek-r1-distill-qwen-14b",
+		"deepseek-ai/deepseek-r1-0528":                 "deepseek-r1-0528",
+		"deepseek-ai/deepseek-v3-0324":                 "deepseek-v3-0324",
+		"tiiuae/falcon-7b":                             "falcon-7b",
+		"tiiuae/falcon-7b-instruct":                    "falcon-7b-instruct",
+		"tiiuae/falcon-40b":                            "falcon-40b",
+		"tiiuae/falcon-40b-instruct":                   "falcon-40b-instruct",
+		"google/gemma-3-4b-it":                         "gemma-3-4b-instruct",
+		"google/gemma-3-27b-it":                        "gemma-3-27b-instruct",
+		"openai/gpt-oss-20b":                           "gpt-oss-20b",
+		"openai/gpt-oss-120b":                          "gpt-oss-120b",
+		"meta-llama/llama-3.1-8b-instruct":             "llama-3.1-8b-instruct",
+		"meta-llama/llama-3.3-70b-instruct":            "llama-3.3-70b-instruct",
+		"mistralai/mistral-7b-v0.3":                    "mistral-7b",
+		"mistralai/mistral-7b-instruct-v0.3":           "mistral-7b-instruct",
+		"mistralai/ministral-3-3b-instruct-2512":       "ministral-3-3b-instruct",
+		"mistralai/ministral-3-8b-instruct-2512":       "ministral-3-8b-instruct",
+		"mistralai/ministral-3-14b-instruct-2512":      "ministral-3-14b-instruct",
+		"mistralai/mistral-large-3-675b-instruct-2512": "mistral-large-3-675b-instruct",
+		"microsoft/phi-3-mini-4k-instruct":             "phi-3-mini-4k-instruct",
+		"microsoft/phi-3-mini-128k-instruct":           "phi-3-mini-128k-instruct",
+		"microsoft/phi-3-medium-4k-instruct":           "phi-3-medium-4k-instruct",
+		"microsoft/phi-3-medium-128k-instruct":         "phi-3-medium-128k-instruct",
+		"microsoft/phi-3.5-mini-instruct":              "phi-3.5-mini-instruct",
+		"microsoft/phi-4":                              "phi-4",
+		"microsoft/phi-4-mini-instruct":                "phi-4-mini-instruct",
+		"qwen/qwen2.5-coder-7b-instruct":               "qwen2.5-coder-7b-instruct",
+		"qwen/qwen2.5-coder-32b-instruct":              "qwen2.5-coder-32b-instruct",
+	}
+)
+
 // registerModel registers a HuggingFace model with the given ID and parameters
 // into the model registry and returns the registered model. If param is nil,
 // it returns nil and does not register a model.
@@ -67,6 +103,11 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 
 	// if name contains "/", get model data from HuggingFace
 	if strings.Contains(modelName, "/") {
+		if shortName, ok := builtinVLLMModels[modelName]; ok {
+			klog.InfoS("Using built-in VLLM model preset", "model", modelName, "shortName", shortName)
+			return plugin.KaitoModelRegister.MustGet(shortName), nil
+		}
+
 		klog.InfoS("Generating VLLM model preset for HuggingFace model", "model", modelName, "secretName", secretName, "secretNamespace", secretNamespace)
 		token, err := GetHFTokenFromSecret(ctx, kubeClient, secretName, secretNamespace)
 		if err != nil {

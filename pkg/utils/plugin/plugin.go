@@ -14,7 +14,6 @@
 package plugin
 
 import (
-	"strings"
 	"sync"
 
 	"github.com/kaito-project/kaito/pkg/model"
@@ -84,5 +83,5 @@ func (reg *ModelRegister) Has(name string) bool {
 }
 
 func IsValidPreset(preset string) bool {
-	return KaitoModelRegister.Has(preset) || strings.Contains(preset, "/")
+	return KaitoModelRegister.Has(preset)
 }

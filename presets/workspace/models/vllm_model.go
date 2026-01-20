@@ -103,15 +103,16 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 
 	// if name contains "/", get model data from HuggingFace
 	if strings.Contains(modelName, "/") {
-		if shortName, ok := builtinVLLMModels[modelName]; ok {
-			klog.InfoS("Using built-in VLLM model preset", "model", modelName, "shortName", shortName)
-			return plugin.KaitoModelRegister.MustGet(shortName), nil
+		if builtinModelName, ok := builtinVLLMModels[modelName]; ok {
+			klog.InfoS("Using built-in VLLM model preset", "model", modelName, "builtinModelName", builtinModelName)
+			return plugin.KaitoModelRegister.MustGet(builtinModelName), nil
 		}
 
 		klog.InfoS("Generating VLLM model preset for HuggingFace model", "model", modelName, "secretName", secretName, "secretNamespace", secretNamespace)
 		token, err := GetHFTokenFromSecret(ctx, kubeClient, secretName, secretNamespace)
 		if err != nil {
-			klog.ErrorS(err, "Failed to get HF token from secret", "secretName", secretName, "secretNamespace", secretNamespace)
+			// only log the error here since token may not be required for public models
+			klog.ErrorS(err, "failed to get huggingface token from secret", "secretName", secretName, "secretNamespace", secretNamespace)
 		}
 		param, err := generator.GeneratePreset(modelName, token)
 		if err != nil {

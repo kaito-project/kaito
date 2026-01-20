@@ -83,9 +83,9 @@ func (reg *ModelRegister) Has(name string) bool {
 	return ok
 }
 
-// IsValidPreset return true
-// 1. if the given preset name is registered in the KaitoModelRegister.
-// 2. if the given preset name is a valid huggingface model card ID, e.g. "Qwen/Qwen2.5-Coder-7B-Instruct"
+// IsValidPreset returns true if:
+// 1. the given preset name is registered in the KaitoModelRegister.
+// 2. the given preset name is a valid huggingface model card ID, e.g. "Qwen/Qwen2.5-Coder-7B-Instruct"
 func IsValidPreset(preset string) bool {
 	if KaitoModelRegister.Has(preset) {
 		return true

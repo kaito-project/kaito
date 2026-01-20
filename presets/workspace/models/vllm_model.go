@@ -118,11 +118,17 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 			return nil, err
 		}
 		// check whether the model is in the supported model architecture list
+		if len(param.Metadata.Architectures) == 0 {
+			klog.InfoS("Model architecture not specified, assuming supported by VLLM", "model", modelName)
+			return registerModel(modelName, param), nil
+		}
+
 		for _, arch := range param.Metadata.Architectures {
 			if _, ok := vLLMModelArchMap[arch]; ok {
 				return registerModel(modelName, param), nil
 			}
 		}
+
 		return nil, fmt.Errorf("model architecture not supported by VLLM: %s architecture: %s", modelName, strings.Join(param.Metadata.Architectures, ", "))
 	}
 	return nil, fmt.Errorf("model is not registered: %s", modelName)

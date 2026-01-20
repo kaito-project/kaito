@@ -15,6 +15,7 @@ package generator
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -284,5 +285,19 @@ func TestGeneratePreset(t *testing.T) {
 			assert.Equal(t, tc.expectedVLLM.DisallowLoRA, param.VLLM.DisallowLoRA)
 			assert.Equal(t, tc.expectedVLLM.ModelRunParams, param.VLLM.ModelRunParams)
 		})
+	}
+}
+
+// this test only makes sure that all keys in reasoningParserMap are lowercased
+func TestReasoningParserMap(t *testing.T) {
+	for key := range reasoningParserMap {
+		assert.Equal(t, key, strings.ToLower(key), "reasoningParserMap key is not lowercased: %s", key)
+	}
+}
+
+// this test only makes sure that all keys in toolCallParserMap are lowercased
+func TestToolCallParserMap(t *testing.T) {
+	for key := range toolCallParserMap {
+		assert.Equal(t, key, strings.ToLower(key), "toolCallParserMap key is not lowercased: %s", key)
 	}
 }

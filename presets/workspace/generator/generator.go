@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -299,13 +300,18 @@ func (g *Generator) ParseModelMetadata() {
 		}
 	}
 
-	// set tool call parser based on model name prefix
-	for prefix, parser := range toolCallParserMap {
+	// set ToolCallParser based on model name prefix
+	// sort the keys of toolCallParserMap in alphabetical order and then iterate
+	// this is to ensure that longer prefixes are matched last
+	prefixes := make([]string, 0, len(toolCallParserMap))
+	for prefix := range toolCallParserMap {
+		prefixes = append(prefixes, prefix)
+	}
+	sort.Strings(prefixes)
+
+	for _, prefix := range prefixes {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
-			// only override if longer parser name
-			if len(parser) > len(g.Param.Metadata.ToolCallParser) {
-				g.Param.Metadata.ToolCallParser = parser
-			}
+			g.Param.Metadata.ToolCallParser = toolCallParserMap[prefix]
 		}
 	}
 }

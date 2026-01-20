@@ -129,7 +129,7 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 			}
 		}
 
-		return nil, fmt.Errorf("model architecture not supported by VLLM: %s architecture: %s", modelName, strings.Join(param.Metadata.Architectures, ", "))
+		return nil, fmt.Errorf("unsupported model architecture for %s: %s", modelName, strings.Join(param.Metadata.Architectures, ", "))
 	}
 	return nil, fmt.Errorf("model is not registered: %s", modelName)
 }

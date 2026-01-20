@@ -265,6 +265,25 @@ jobs:
             exit 1
           fi
 
+      - name: Delete workspace and verify cleanup (BYO)
+        shell: bash
+        run: |
+          kubectl delete workspace workspace-mistral-7b-instruct --wait=false
+
+          # Wait for workspace to be deleted
+          end=$((SECONDS+1000))
+          while [ $SECONDS -lt $end ]; do
+            if ! kubectl get workspace workspace-mistral-7b-instruct &> /dev/null; then
+              echo "Workspace deleted successfully"
+              exit 0
+            fi
+            echo "Waiting for workspace deletion..."
+            sleep 10
+          done
+
+          echo "Timeout waiting for workspace deletion"
+          exit 1
+
       - name: Cleanup
         if: always()
         shell: bash

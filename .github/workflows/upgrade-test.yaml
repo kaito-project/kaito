@@ -233,12 +233,15 @@ jobs:
       - name: Upgrade to current chart
         shell: bash
         run: |
+          # Update CRD
+          kubectl apply -f ./charts/kaito/workspace/crds/
+
           # Update the Helm values with our built image
           yq -i '(.image.repository) = "'"${REGISTRY}"'/workspace"' ./charts/kaito/workspace/values.yaml
           yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
 
           # Upgrade the chart
-          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace
+          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set featureGates.disableNodeAutoProvisioning=true
 
           # Wait for deployment to be rolled out
           kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s

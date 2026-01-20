@@ -508,11 +508,18 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	}
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly
-	// This validation only applies to CREATE operations, not UPDATE (since instanceType is immutable)
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// When NAP is disabled, instanceType must be empty (BYO scenario)
-		if r.InstanceType != "" {
-			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
+		if old.InstanceType == "" {
+			if r.InstanceType != "" {
+				errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
+			}
+		} else {
+			// for backward compatibility, old.InstanceType is non-empty
+			// but update to empty is allowed.
+			if r.InstanceType != "" && old.InstanceType != r.InstanceType {
+				errs = errs.Also(apis.ErrInvalidValue("instanceType is cannot be changed once set", "instanceType"))
+			}
 		}
 	} else {
 		if r.InstanceType == "" {

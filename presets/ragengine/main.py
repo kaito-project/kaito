@@ -92,7 +92,7 @@ async def track_requests(request: Request, call_next):
         "/indexes",
         "/persist",
         "/load",
-        "/search",
+        "/retrieval",
         "/v1/chat/completions",
     ]
 

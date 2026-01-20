@@ -208,12 +208,18 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 	}
 	envs = append(envs, persistDirEnv)
 
-	// InferenceService is optional - only add LLM-related env vars if specified
-	if ragEngineObj.Spec.InferenceService != nil {
-		inferenceServiceURL := ragEngineObj.Spec.InferenceService.URL
+	// Always set LLM_CONTEXT_WINDOW since InferenceService is required
+	contextWindowEnv := corev1.EnvVar{
+		Name:  "LLM_CONTEXT_WINDOW",
+		Value: fmt.Sprintf("%d", ragEngineObj.Spec.InferenceService.ContextWindowSize),
+	}
+	envs = append(envs, contextWindowEnv)
+
+	// Only add LLM_INFERENCE_URL if URL is not empty (URL is optional)
+	if ragEngineObj.Spec.InferenceService.URL != "" {
 		inferenceServiceURLEnv := corev1.EnvVar{
 			Name:  "LLM_INFERENCE_URL",
-			Value: inferenceServiceURL,
+			Value: ragEngineObj.Spec.InferenceService.URL,
 		}
 		envs = append(envs, inferenceServiceURLEnv)
 
@@ -231,12 +237,6 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 			}
 			envs = append(envs, accessSecretEnv)
 		}
-
-		contextWindowEnv := corev1.EnvVar{
-			Name:  "LLM_CONTEXT_WINDOW",
-			Value: fmt.Sprintf("%d", ragEngineObj.Spec.InferenceService.ContextWindowSize),
-		}
-		envs = append(envs, contextWindowEnv)
 	}
 
 	return envs

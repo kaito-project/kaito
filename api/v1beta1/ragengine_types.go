@@ -69,8 +69,11 @@ type EmbeddingSpec struct {
 }
 
 type InferenceServiceSpec struct {
-	// URL points to a running inference service endpoint which accepts http(s) payload.
-	URL string `json:"url"`
+	// URL specifies the endpoint of the LLM inference service for generating responses.
+	// This field is optional - if not specified, the RAG engine operates in retrieval-only mode,
+	// supporting pure document search via the /retrieval API without LLM-based response generation.
+	// +optional
+	URL string `json:"url,omitempty"`
 	// AccessSecret is the name of the secret that contains the service access token.
 	// +optional
 	AccessSecret string `json:"accessSecret,omitempty"`
@@ -99,12 +102,8 @@ type RAGEngineSpec struct {
 	Storage *StorageSpec `json:"storage,omitempty"`
 	// Embedding specifies whether the RAG engine generates embedding vectors using a remote service
 	// or using a embedding model running locally.
-	Embedding *EmbeddingSpec `json:"embedding"`
-	// InferenceService specifies the LLM inference service for generating responses.
-	// This field is optional - if not specified, the RAG engine can still be used for
-	// pure document retrieval operations via the /search API without LLM generation.
-	// +optional
-	InferenceService *InferenceServiceSpec `json:"inferenceService,omitempty"`
+	Embedding        *EmbeddingSpec        `json:"embedding"`
+	InferenceService *InferenceServiceSpec `json:"inferenceService"`
 }
 
 // RAGEngineStatus defines the observed state of RAGEngine

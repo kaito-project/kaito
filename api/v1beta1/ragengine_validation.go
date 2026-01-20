@@ -54,10 +54,10 @@ func (w *RAGEngine) Validate(ctx context.Context) (errs *apis.FieldError) {
 }
 
 func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
-	// InferenceService is now optional - only validate if specified
-	if w.Spec.InferenceService != nil {
-		errs = errs.Also(w.Spec.InferenceService.validateCreate())
+	if w.Spec.InferenceService == nil {
+		errs = errs.Also(apis.ErrGeneric("InferenceService must be specified", ""))
 	}
+	errs = errs.Also(w.Spec.InferenceService.validateCreate())
 	if w.Spec.Embedding == nil {
 		errs = errs.Also(apis.ErrGeneric("Embedding must be specified", ""))
 		return errs
@@ -135,9 +135,12 @@ func (e *RemoteEmbeddingSpec) validateCreate() (errs *apis.FieldError) {
 }
 
 func (e *InferenceServiceSpec) validateCreate() (errs *apis.FieldError) {
-	_, err := url.ParseRequestURI(e.URL)
-	if err != nil {
-		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("URL input error: %v", err), "remote url"))
+	// Only validate URL if it's provided
+	if e.URL != "" {
+		_, err := url.ParseRequestURI(e.URL)
+		if err != nil {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("URL input error: %v", err), "remote url"))
+		}
 	}
 
 	if e.ContextWindowSize <= 0 {

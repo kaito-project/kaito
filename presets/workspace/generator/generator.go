@@ -82,7 +82,6 @@ type Generator struct {
 	ModelRepo string
 	Token     string
 	Param     model.PresetParam
-	Config    map[string]interface{}
 
 	// Analyzed params
 	LoadFormat    string
@@ -303,17 +302,11 @@ func (g *Generator) ParseModelMetadata() {
 	// set tool call parser based on model name prefix
 	for prefix, parser := range toolCallParserMap {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
-			g.Param.Metadata.ToolCallParser = parser
-			break
+			// only override if longer parser name
+			if len(parser) > len(g.Param.Metadata.ToolCallParser) {
+				g.Param.Metadata.ToolCallParser = parser
+			}
 		}
-	}
-
-	if strings.HasPrefix(g.Param.Metadata.Name, "deepseek-v3.1") {
-		g.Param.Metadata.ToolCallParser = "deepseek_v31"
-	}
-
-	if strings.HasPrefix(g.Param.Metadata.Name, "qwen3-coder") {
-		g.Param.Metadata.ToolCallParser = "qwen3_xml"
 	}
 }
 

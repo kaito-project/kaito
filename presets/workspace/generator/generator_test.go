@@ -88,7 +88,7 @@ func TestGeneratePreset(t *testing.T) {
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{
 					Name:                   "ministral-3-8b-instruct-2512",
-					Architectures:          []string{"MistralForCausalLM"},
+					Architectures:          []string{"Mistral3ForConditionalGeneration"},
 					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
 					DownloadAtRuntime:      true,
@@ -139,25 +139,26 @@ func TestGeneratePreset(t *testing.T) {
 			},
 		},
 		{
-			modelRepo: "Qwen/Qwen2-7B",
+			modelRepo: "Qwen/Qwen3-Coder-30B-A3B-Instruct",
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{
-					Name:                   "qwen2-7b",
-					Architectures:          []string{"Qwen2ForCausalLM"},
+					Name:                   "qwen3-coder-30b-a3b-instruct",
+					Architectures:          []string{"Qwen3MoeForCausalLM"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen2-7B"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-Coder-30B-A3B-Instruct"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
-					ModelFileSize:          "15Gi",
-					BytesPerToken:          57344,
-					ModelTokenLimit:        131072,
-					DiskStorageRequirement: "65Gi", // 15 + 50
-					ReasoningParser:        "",
+					ModelFileSize:          "57Gi",
+					BytesPerToken:          98304,
+					ModelTokenLimit:        262144,
+					DiskStorageRequirement: "107Gi", // 57 + 50
+					ReasoningParser:        "qwen3",
+					ToolCallParser:         "qwen3_xml",
 				},
 				AttnType: "GQA",
 			},
 			expectedVLLM: model.VLLMParam{
-				ModelName: "qwen2-7b",
+				ModelName: "qwen3-coder-30b-a3b-instruct",
 				ModelRunParams: map[string]string{
 					"load_format":    "auto",
 					"config_format":  "auto",

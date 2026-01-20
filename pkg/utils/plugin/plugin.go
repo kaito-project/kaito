@@ -14,6 +14,7 @@
 package plugin
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/kaito-project/kaito/pkg/model"
@@ -60,7 +61,7 @@ func (reg *ModelRegister) MustGet(name string) model.Model {
 	defer reg.Unlock()
 	r, ok := reg.models[name]
 	if !ok {
-		panic("model is not registered")
+		return nil
 	}
 	return r.Instance
 }
@@ -82,6 +83,19 @@ func (reg *ModelRegister) Has(name string) bool {
 	return ok
 }
 
+// IsValidPreset returns true if:
+// 1. the given preset name is registered in the KaitoModelRegister.
+// 2. the given preset name is a valid huggingface model card ID, e.g. "Qwen/Qwen2.5-Coder-7B-Instruct"
 func IsValidPreset(preset string) bool {
-	return KaitoModelRegister.Has(preset)
+	if KaitoModelRegister.Has(preset) {
+		return true
+	}
+	// if preset is like "a/b", consider it as a valid HF model ID
+	if strings.Contains(preset, "/") {
+		parts := strings.SplitN(preset, "/", 2)
+		if len(parts) == 2 && parts[0] != "" && parts[1] != "" {
+			return true
+		}
+	}
+	return false
 }

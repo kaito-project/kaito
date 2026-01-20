@@ -30,6 +30,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 // InferenceConfig represents the structure of the inference configuration
@@ -97,7 +98,10 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 			if w.Inference != nil && w.Inference.Preset != nil {
 				presetName := strings.ToLower(string(w.Inference.Preset.Name))
 				if plugin.IsValidPreset(presetName) {
-					modelPreset := plugin.KaitoModelRegister.MustGet(presetName)
+					modelPreset, err := models.GetModelByName(ctx, presetName, w.Inference.Preset.PresetOptions.ModelAccessSecret, w.Namespace, k8sclient.Client)
+					if err != nil {
+						return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")
+					}
 					params := modelPreset.GetInferenceParameters()
 					if params != nil && params.ModelTokenLimit > 0 { // Only validate when we have a positive limit
 						val, err := strconv.Atoi(strings.TrimSpace(rawMaxModelLen))

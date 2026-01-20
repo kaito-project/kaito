@@ -29,8 +29,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 type NodeClaimManager struct {
@@ -112,7 +112,7 @@ func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1
 
 	c.expectations.ExpectCreations(c.logger, workspaceKey, nodesToCreate)
 
-	nodeOSDiskSize := c.determineNodeOSDiskSize(wObj)
+	nodeOSDiskSize := c.determineNodeOSDiskSize(ctx, wObj)
 
 	for range nodesToCreate {
 		var nodeClaim *karpenterv1.NodeClaim
@@ -177,12 +177,18 @@ func (c *NodeClaimManager) EnsureNodeClaimsReady(ctx context.Context, wObj *kait
 }
 
 // determineNodeOSDiskSize returns the appropriate OS disk size for the workspace
-func (c *NodeClaimManager) determineNodeOSDiskSize(wObj *kaitov1beta1.Workspace) string {
+func (c *NodeClaimManager) determineNodeOSDiskSize(ctx context.Context, wObj *kaitov1beta1.Workspace) string {
 	var nodeOSDiskSize string
 	if wObj.Inference != nil && wObj.Inference.Preset != nil && wObj.Inference.Preset.Name != "" {
 		presetName := string(wObj.Inference.Preset.Name)
-		nodeOSDiskSize = plugin.KaitoModelRegister.MustGet(presetName).
-			GetInferenceParameters().DiskStorageRequirement
+		secretName := wObj.Inference.Preset.PresetOptions.ModelAccessSecret
+
+		model, err := models.GetModelByName(ctx, presetName, secretName, wObj.Namespace, c.Client)
+		if err == nil {
+			nodeOSDiskSize = model.GetInferenceParameters().DiskStorageRequirement
+		} else {
+			klog.ErrorS(err, "failed to get model by name when determining Node OS disk size", "model", presetName, "workspace", klog.KObj(wObj))
+		}
 	}
 	if nodeOSDiskSize == "" {
 		nodeOSDiskSize = "1024Gi" // The default OS size is used

@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -32,19 +33,56 @@ import (
 const (
 	SystemFileDiskSizeGiB  = 50
 	DefaultModelTokenLimit = 2048
+	HuggingFaceWebsite     = "https://huggingface.co"
 )
 
 var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
 	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
+	// source: https://github.com/vllm-project/vllm/blob/v0.12.0/docs/features/reasoning_outputs.md
+	reasoningParserMap = map[string]string{
+		"deepseek-r1":  "deepseek_r1",
+		"deepseek-v3":  "deepseek_v3",
+		"ernie-4.5":    "ernie45",
+		"glm-4.5":      "glm45",
+		"hunyuan-a13b": "hunyuan_a13b",
+		"granite-3.2":  "granite",
+		"minimax-m2":   "minimax_m2_append_think",
+		"qwen3":        "qwen3",
+		"qwq-32b":      "deepseek_r1",
+	}
+	// source: https://github.com/vllm-project/vllm/blob/v0.12.0/docs/features/tool_calling.md
+	toolCallParserMap = map[string]string{
+		"hermes-2":      "hermes",
+		"hermes-3":      "hermes",
+		"mistral":       "mistral",
+		"meta-llama-3":  "llama3_json",
+		"meta-llama-4":  "llama4_pythonic",
+		"granite-3":     "granite",
+		"granite-4":     "hermes",
+		"internlm":      "internlm",
+		"ai21-jamba":    "jamba",
+		"qwq-32b":       "hermes",
+		"qwen2.5":       "hermes",
+		"minimax":       "minimax",
+		"deepseek-r1":   "deepseek_v3",
+		"deepseek-v3":   "deepseek_v3",
+		"deepseek-v3.1": "deepseek_v31",
+		"kimi_k2":       "kimi_k2",
+		"hunyuan-a13b":  "hunyuan_a13b",
+		"longcat":       "longcat",
+		"glm-4":         "glm45",
+		"qwen3":         "hermes",
+		"qwen3-coder":   "qwen3_xml",
+		"olmo-3":        "olmo3",
+	}
 )
 
 type Generator struct {
 	ModelRepo string
 	Token     string
 	Param     model.PresetParam
-	Config    map[string]interface{}
 
 	// Analyzed params
 	LoadFormat    string
@@ -66,12 +104,12 @@ func NewGenerator(modelRepo, token string) *Generator {
 	}
 
 	// Initialize default PresetParam
-	gen.Param.Name = modelNameSafe
-	gen.Param.ModelType = "tfs"
-	gen.Param.Version = "0.0.1"
-	gen.Param.DownloadAtRuntime = true
-	gen.Param.DiskStorageRequirement = "50Gi"
-	gen.Param.ModelFileSize = "0Gi"
+	gen.Param.Metadata.Name = modelNameSafe
+	gen.Param.Metadata.ModelType = "tfs"
+	gen.Param.Metadata.Version = fmt.Sprintf("%s/%s", HuggingFaceWebsite, modelRepo)
+	gen.Param.Metadata.DownloadAtRuntime = true
+	gen.Param.Metadata.DiskStorageRequirement = "50Gi"
+	gen.Param.Metadata.ModelFileSize = "0Gi"
 
 	return gen
 }
@@ -105,7 +143,7 @@ func (g *Generator) fetchURL(url string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 401 || resp.StatusCode == 403 {
-		g.Param.DownloadAuthRequired = true
+		g.Param.Metadata.DownloadAuthRequired = true
 		if auth == "" {
 			return nil, fmt.Errorf("authentication required for accessing %s", url)
 		}
@@ -126,7 +164,7 @@ type FileInfo struct {
 
 func (g *Generator) FetchModelMetadata() error {
 	// List files using HF API
-	url := fmt.Sprintf("https://huggingface.co/api/models/%s/tree/main?recursive=true", g.ModelRepo)
+	url := fmt.Sprintf("%s/api/models/%s/tree/main?recursive=true", HuggingFaceWebsite, g.ModelRepo)
 	body, err := g.fetchURL(url)
 	if err != nil {
 		return fmt.Errorf("error listing files: %v", err)
@@ -190,11 +228,11 @@ func (g *Generator) FetchModelMetadata() error {
 	}
 
 	modelSizeGB := float64(totalBytes) / (1024 * 1024 * 1024)
-	g.Param.ModelFileSize = fmt.Sprintf("%.0fGi", math.Ceil(modelSizeGB))
+	g.Param.Metadata.ModelFileSize = fmt.Sprintf("%.0fGi", math.Ceil(modelSizeGB))
 
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
-	configURL := fmt.Sprintf("https://huggingface.co/%s/resolve/main/%s", g.ModelRepo, configFile)
+	configURL := fmt.Sprintf("%s/%s/resolve/main/%s", HuggingFaceWebsite, g.ModelRepo, configFile)
 	configBody, err := g.fetchURL(configURL)
 	if err != nil {
 		return fmt.Errorf("error fetching config: %v", err)
@@ -234,11 +272,52 @@ func (g *Generator) ParseModelMetadata() {
 		"max_sequence_length",
 	}, DefaultModelTokenLimit)
 
-	g.Param.ModelTokenLimit = maxPos
+	g.Param.Metadata.ModelTokenLimit = maxPos
+
+	g.Param.Metadata.Architectures = []string{}
+	if arch, ok := g.ModelConfig["architectures"].([]interface{}); ok {
+		for _, a := range arch {
+			if archStr, ok := a.(string); ok {
+				g.Param.Metadata.Architectures = append(g.Param.Metadata.Architectures, archStr)
+			}
+		}
+	}
+
+	// Override architectures for specific model families only when none were parsed
+	if len(g.Param.Metadata.Architectures) == 0 {
+		if strings.HasPrefix(g.Param.Metadata.Name, "mistral-large-3") {
+			g.Param.Metadata.Architectures = []string{"MistralLarge3ForCausalLM"}
+		} else if strings.HasPrefix(g.Param.Metadata.Name, "ministral-3") {
+			g.Param.Metadata.Architectures = []string{"Mistral3ForConditionalGeneration"}
+		}
+	}
+
+	// set reasoning parser based on model name prefix
+	for prefix, parser := range reasoningParserMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.Metadata.ReasoningParser = parser
+			break
+		}
+	}
+
+	// set ToolCallParser based on model name prefix
+	// sort the keys of toolCallParserMap in alphabetical order and then iterate
+	// this is to ensure that longer prefixes are matched last
+	prefixes := make([]string, 0, len(toolCallParserMap))
+	for prefix := range toolCallParserMap {
+		prefixes = append(prefixes, prefix)
+	}
+	sort.Strings(prefixes)
+
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.Metadata.ToolCallParser = toolCallParserMap[prefix]
+		}
+	}
 }
 
 func (g *Generator) calculateStorageSize() string {
-	szStr := strings.TrimSuffix(g.Param.ModelFileSize, "Gi")
+	szStr := strings.TrimSuffix(g.Param.Metadata.ModelFileSize, "Gi")
 	sz, _ := strconv.ParseFloat(szStr, 64)
 	req := int(sz + SystemFileDiskSizeGiB)
 	return fmt.Sprintf("%dGi", req)
@@ -295,7 +374,7 @@ func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 }
 
 func (g *Generator) FinalizeParams() {
-	g.Param.DiskStorageRequirement = g.calculateStorageSize()
+	g.Param.Metadata.DiskStorageRequirement = g.calculateStorageSize()
 
 	// VLLM Params
 	if g.Param.VLLM.ModelRunParams == nil {
@@ -307,7 +386,7 @@ func (g *Generator) FinalizeParams() {
 	g.Param.VLLM.ModelRunParams["tokenizer_mode"] = g.TokenizerMode
 
 	bpt, attnType := g.calculateKVCacheTokenSize()
-	g.Param.BytesPerToken = bpt
+	g.Param.Metadata.BytesPerToken = bpt
 	g.Param.AttnType = attnType
 }
 

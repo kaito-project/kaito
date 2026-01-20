@@ -57,6 +57,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -526,7 +527,12 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 			}
 		} else if wObj.Inference != nil && wObj.Inference.Preset != nil {
 			presetName := string(wObj.Inference.Preset.Name)
-			model := plugin.KaitoModelRegister.MustGet(presetName)
+			var model pkgmodel.Model
+			model, err = models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+			if err != nil {
+				klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
+				return
+			}
 			inferenceParam := model.GetInferenceParameters()
 			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 

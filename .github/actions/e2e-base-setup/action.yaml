@@ -52,7 +52,7 @@ runs:
     - name: Set e2e Resource and Cluster Name
       shell: bash
       run: |
-        ID="ri${{ github.run_id }}rn${{ github.run_number }}ra${{ github.run_attempt }}"
+        ID="ri${{ github.run_id }}rn${{ github.run_number }}ra${{ github.run_attempt }}$(head /dev/urandom | tr -dc a-z0-9 | head -c 4)"
 
         echo "VERSION=${ID}" >> $GITHUB_ENV
         echo "CLUSTER_NAME=kaito${ID}" >> $GITHUB_ENV

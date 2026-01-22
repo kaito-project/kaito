@@ -949,7 +949,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 			expectErrs: false,
 		},
 		{
-			name: "NAP disabled - keep instanceType set (invalid)",
+			name: "NAP disabled - keep instanceType set (backward compatibility)",
 			newResource: &ResourceSpec{
 				InstanceType: "Standard_NC6s_v3", // Still has instanceType
 				Count:        pointerToInt(1),
@@ -959,8 +959,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				Count:        pointerToInt(1),
 			},
 			disableNAP: true, // NAP disabled (BYO mode)
-			errContent: "instanceType must be empty when node auto-provisioning is disabled",
-			expectErrs: true,
+			expectErrs: false,
 		},
 		{
 			name: "NAP disabled - change to different instanceType (invalid)",
@@ -973,7 +972,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				Count:        pointerToInt(1),
 			},
 			disableNAP: true, // NAP disabled (BYO mode)
-			errContent: "instanceType must be empty when node auto-provisioning is disabled",
+			errContent: "instanceType is cannot be changed once set",
 			expectErrs: true,
 		},
 		{

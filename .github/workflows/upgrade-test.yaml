@@ -19,7 +19,7 @@ env:
 
 jobs:
   chart-upgrade-test:
-    runs-on: [ "self-hosted", "hostname:kaito-e2e-github-runner" ]
+    runs-on: ["self-hosted", "hostname:kaito-e2e-github-runner"]
     environment: e2e-test
     permissions:
       contents: read
@@ -56,7 +56,7 @@ jobs:
           helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
           helm repo update
           helm install kaito-workspace kaito/workspace --version ${{ env.OLD_CHART_VERSION }} --namespace kaito-workspace --create-namespace
-          
+
           # Wait for deployment to be available
           kubectl wait --for=condition=available deploy "kaito-workspace" -n kaito-workspace --timeout=300s
 
@@ -83,7 +83,7 @@ jobs:
         run: |
           # Wait for workspace to be ready
           kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1000s
-          
+
           # Verify it is using a Deployment
           if ! kubectl get deployment workspace-mistral-7b-instruct; then
             echo "Error: Deployment not found for workspace"
@@ -109,19 +109,180 @@ jobs:
         shell: bash
         run: |
           # Wait for workspace to be ready again if needed
-          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=600s
-          
+          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1000s
+
           # Verify it is now using a StatefulSet
           if ! kubectl get statefulset workspace-mistral-7b-instruct; then
             echo "Error: StatefulSet not found for workspace after upgrade"
             exit 1
           fi
-          
+
           # Verify Deployment is gone
           if kubectl get deployment workspace-mistral-7b-instruct 2>/dev/null; then
             echo "Error: Old Deployment still exists"
             exit 1
           fi
+
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          az group delete --name "${{ env.CLUSTER_NAME }}" --yes --no-wait || true
+
+  chart-upgrade-test-byo:
+    runs-on: ["self-hosted", "hostname:kaito-e2e-github-runner"]
+    environment: e2e-test
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run e2e-base-setup composite action
+        uses: ./.github/actions/e2e-base-setup
+        with:
+          git_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          skip_helm_install: true
+
+      - name: Build workspace controller
+        run: |
+          make docker-build-workspace
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMG_NAME: "workspace"
+          IMG_TAG: "test"
+          OUTPUT_TYPE: "type=registry"
+          ARCH: "amd64"
+
+      - name: Add Node Pool for BYO test
+        shell: bash
+        run: |
+          az aks nodepool add \
+            --resource-group "${{ env.CLUSTER_NAME }}" \
+            --cluster-name "${{ env.CLUSTER_NAME }}" \
+            --name "byonode" \
+            --node-vm-size "Standard_NV36ads_A10_v5" \
+            --node-count 1 \
+            --labels apps=byo
+
+          node_name=$(kubectl get nodes -l apps=byo -o jsonpath='{.items[0].metadata.name}')
+          echo "NODE_NAME=$node_name" >> $GITHUB_ENV
+      - name: Install old chart (${{ env.OLD_CHART_VERSION }}) with disabled auto-provisioning
+        shell: bash
+        run: |
+          helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+          helm repo update
+          helm install kaito-workspace kaito/workspace \
+            --version ${{ env.OLD_CHART_VERSION }} \
+            --namespace kaito-workspace \
+            --create-namespace \
+            --set featureGates.disableNodeAutoProvisioning=true
+
+          # Wait for deployment to be available
+          kubectl wait --for=condition=available deploy "kaito-workspace" -n kaito-workspace --timeout=300s
+
+      - name: Create mistral-7b-instruct workspace (BYO mode)
+        shell: bash
+        run: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: kaito.sh/v1beta1
+          kind: Workspace
+          metadata:
+            name: workspace-mistral-7b-instruct
+          resource:
+            instanceType: "Standard_NV36ads_A10_v5"
+            labelSelector:
+              matchLabels:
+                apps: byo
+            preferredNodes:
+              - "${{ env.NODE_NAME }}"
+          inference:
+            preset:
+              name: mistral-7b-instruct
+          EOF
+
+      - name: Wait for workspace readiness (old controller, BYO)
+        shell: bash
+        run: |
+          # Busy loop check if deployment is found
+          # It's because there is a bug in the workspace observation status. Check deployment status instead here.
+          end=$((SECONDS+1000))
+          while [ $SECONDS -lt $end ]; do
+            if kubectl get deployment workspace-mistral-7b-instruct &> /dev/null; then
+              break
+            fi
+            echo "Waiting for deployment..."
+            sleep 10
+          done
+
+          if [ $SECONDS -ge $end ]; then
+            echo "Timeout waiting for deployment"
+            exit 1
+          fi
+
+          # Wait for workspace to be ready
+          kubectl wait pod --selector=kaito.sh/workspace=workspace-mistral-7b-instruct --for=condition=Ready --timeout=1000s
+
+      - name: Upgrade to current chart
+        shell: bash
+        run: |
+          # Update CRD
+          kubectl apply -f ./charts/kaito/workspace/crds/
+
+          # Update the Helm values with our built image
+          yq -i '(.image.repository) = "'"${REGISTRY}"'/workspace"' ./charts/kaito/workspace/values.yaml
+          yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
+
+          # Upgrade the chart
+          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set featureGates.disableNodeAutoProvisioning=true
+
+          # Wait for deployment to be rolled out
+          kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+
+      - name: Verify migration to StatefulSet (BYO)
+        shell: bash
+        run: |
+          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1000s
+
+          # Verify it is now using a StatefulSet
+          if ! kubectl get statefulset workspace-mistral-7b-instruct; then
+            echo "Error: StatefulSet not found for workspace after upgrade"
+            exit 1
+          fi
+
+          # Verify Deployment is gone
+          if kubectl get deployment workspace-mistral-7b-instruct 2>/dev/null; then
+            echo "Error: Old Deployment still exists"
+            exit 1
+          fi
+
+      - name: Delete workspace and verify cleanup (BYO)
+        shell: bash
+        run: |
+          kubectl delete workspace workspace-mistral-7b-instruct --wait=false
+
+          # Wait for workspace to be deleted
+          end=$((SECONDS+1000))
+          while [ $SECONDS -lt $end ]; do
+            if ! kubectl get workspace workspace-mistral-7b-instruct &> /dev/null; then
+              echo "Workspace deleted successfully"
+              exit 0
+            fi
+            echo "Waiting for workspace deletion..."
+            sleep 10
+          done
+
+          echo "Timeout waiting for workspace deletion"
+          exit 1
 
       - name: Cleanup
         if: always()

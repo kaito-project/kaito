@@ -1,4 +1,4 @@
-# Workspace Status Phase Design
+# Workspace Status Field Proposal
 
 ## Background
 
@@ -8,75 +8,76 @@ Currently, the `Workspace` Custom Resource (CR) status relies heavily on a list 
 2.  **No High-Level Summary**: There is no single field that answers "Is my workspace working?" 
 3.  **CLI Output**: `kubectl get workspace` typically requires complex `JSONPath` or custom printers to show meaningful status, often resulting in multiple columns (`ResourceReady`, `InferenceReady`) instead of one status column.
 
-To address this, we propose adding a `Phase` field to the `WorkspaceStatus`. This field effectively aggregates the various conditions into a single, high-level finite state machine (FSM) enumeration, similar to how standard Kubernetes resources like `Pod` (Pending, Running, Succeeded, Failed) or `PersistentVolumeClaim` (Bound, Available) work.
+To address this, we propose adding a `Status` field to the `WorkspaceStatus`. This field effectively aggregates the various conditions into a single, high-level finite state machine (FSM) enumeration, similar to how standard Kubernetes resources like `Pod` (Pending, Running, Succeeded, Failed) or `PersistentVolumeClaim` (Bound, Available) work.
 
 ## Design Proposal
 
-We introduce a `Phase` field in `WorkspaceStatus` with the following definition:
+We propose adding a `Status` field to `WorkspaceStatus`.
+
+### Workspace API Change
 
 ```go
-type WorkspacePhase string
+// WorkspaceState indicates the high-level state of the workspace.
+// +kubebuilder:validation:Enum=Pending;Ready;NotReady;Running;Succeeded;Failed
+type WorkspaceState string
 
 const (
-    // WorkspacePhasePending means the workspace is waiting for resources (e.g. GPU NodeClaims) to be ready.
-    WorkspacePhasePending WorkspacePhase = "Pending"
-    
-    // WorkspacePhaseCreating means the resources are ready, and the workload (inference or tuning) is starting.
-    WorkspacePhaseCreating WorkspacePhase = "Creating"
-    
-    // WorkspacePhaseRunning means the inference service is ready and serving requests.
-    WorkspacePhaseRunning WorkspacePhase = "Running"
-    
-    // WorkspacePhaseSucceeded means the tuning job completed successfully.
-    // This state is primarily for Batch/Tuning workloads.
-    WorkspacePhaseSucceeded WorkspacePhase = "Succeeded"
-    
-    // WorkspacePhaseFailed means the workspace encountered a critical error.
-    // Examples: Resource provisioning failed permanently, or Pod CrashLoopBackOff.
-    WorkspacePhaseFailed WorkspacePhase = "Failed"
-    
-    // WorkspacePhaseTerminating means the workspace is being deleted.
-    WorkspacePhaseTerminating WorkspacePhase = "Terminating"
+    // Common State
+    WorkspaceStatePending WorkspaceState = "Pending"
+
+    // Inference States
+    WorkspaceStateReady    WorkspaceState = "Ready"
+    WorkspaceStateNotReady WorkspaceState = "NotReady"
+
+    // Fine-tuning States
+    WorkspaceStateRunning   WorkspaceState = "Running"
+    WorkspaceStateSucceeded WorkspaceState = "Succeeded"
+    WorkspaceStateFailed    WorkspaceState = "Failed"
 )
+
+type WorkspaceStatus struct {
+    // ... existing fields
+    
+    // Status represents the current high-level state of the workspace.
+    // +optional
+    Status WorkspaceState `json:"status,omitempty"`
+}
 ```
 
-### State Determination Logic
+### Inference Workspace Status Workflow
 
-The `Phase` is a calculated field derived from the `Conditions` and `DeletionTimestamp`.
+For inference workloads, the `Status` indicates whether the service is available.
 
-| Phase | Condition Logic | Description |
-| :--- | :--- | :--- |
-| **Terminating** | `metadata.deletionTimestamp != nil` | The resource is being deleted. |
-| **Failed** | `ResourceReady=False` (Reason: ProvisionFailed) <br> OR `InferenceReady=False` (Reason: CrashLoop/ErrImagePull) | Critical failure requiring intervention. |
-| **Pending** | `ResourceReady=False` (Reason: Pending/Provisioning) | Waiting for infrastructure (NodeClaims). |
-| **Creating** | `ResourceReady=True` AND <br> (`InferenceReady=False` OR `JobStarted=False`) | Infrastructure ready, workload starting (Pulling images, Init). |
-| **Running** | `ResourceReady=True` AND <br> (`InferenceReady=True` OR `JobStarted=True`) | **Inference**: Service is healthy. <br> **Tuning**: Job is currently running. |
-| **Succeeded** | `ResourceReady=True` AND `WorkspaceSucceeded=True` | **Tuning**: Job completed successfully. |
+*   **Pending**: The workspace is in the initialization phase (e.g., provisioning infrastructure, pulling images).
+    *   *Constraint*: Can only transition to `Ready`. If initialization fails, it remains `Pending`.
+    *   *Note*: Once the workspace leaves `Pending`, it **cannot** return to `Pending`.
+*   **Ready**: The workspace is fully operational and serving requests.
+*   **NotReady**: The workspace is currently unable to serve requests due to runtime issues (e.g., NodeClaim lost, OOM, crash).
+    *   *Transition*: Can transition back to `Ready` if the issue resolves (e.g., node auto-healing).
+    *   *Debugging*: When `Status` is `NotReady`, users should check `WorkspaceStatus.Conditions`. Any condition with `Status=False` serves as the root cause (e.g., `InferenceReady=False` due to `CrashLoopBackOff`).
 
-### Handling NodeClaim Failure (Regression Scenario)
 
-If a running Workspace (`Phase: Running`) loses its underlying NodeClaim:
-1. The controller detects NodeClaim loss.
-2. `ResourceReady` condition transitions to `False`.
-3. The Phase logic re-evaluates: Since `ResourceReady` is `False`, the Phase transitions back to **Pending**.
-4. The system attempts to provision a new NodeClaim.
-5. Once the new NodeClaim is ready (`ResourceReady=True`), Phase transitions to **Creating** (waiting for Pods).
-6. Finally, back to **Running**.
+![inference status workflow](../../website/static/img/workspace-inference-status-workflow.png)
 
-## State Diagram
+### Fine-tuning Workspace Status Workflow
 
-![state flow](../../website/static/img/workspace-status-phase-state.png)
+For fine-tuning workloads, the `Status` tracks the execution lifecycle of the job.
+
+*   **Pending**: The workspace is in the initialization phase.
+*   **Running**: The fine-tuning job is actively executing.
+*   **Succeeded**: The tuning job completed successfully. (Terminal State)
+*   **Failed**: The tuning job failed. (Terminal State)
+
+![fine-tuning status workflow](../../website/static/img/workspace-fine-tuning-status-workflow.png)
 
 ## Pros and Cons
 
 ### Pros
-*   **Improved User Experience**: Users can run `kubectl get workspace` and see `Running` or `Pending` immediately.
-*   **Standardization**: Aligns with Kubernetes native API patterns.
-*   **simplified Integration**: External tools (Dashboard, UI, CI/CD) can monitor a single field rather than parsing complex condition arrays.
-*   **Clear Lifecycle**: Explicitly distinguishes between "Waiting for Infra" (`Pending`) and "Waiting for App" (`Creating`), which helps in debugging.
-*   **Forward Compatibility / Encapsulation**: New internal requirements can introduce new `Conditions` without breaking the UI or external tools. As long as the controller correctly maps these new conditions to the existing `Phase` states, upstream observers remain unaffected.
+*   **Simplified User View**: Provides a single reliable field for checking availability (`Ready`) or job status.
+*   **Clear Separation**: Distinct states for Service availability (Ready/NotReady) vs Job lifecycle (Running/Succeeded).
+*   **Stable Initialization**: `Pending` implies "not established yet". Once established, we track availability via `Ready`/`NotReady`.
+*   **Forward Compatibility**: Future requirements can introduce new `Conditions` without needing UI updates. The UI only needs to check the `Status` field, as the workspace controller abstracts the complexity.
 
 ### Cons
-*   **Data Duplication**: The `Phase` is strictly derived from `Conditions`. If the update logic is buggy, `Phase` might contradict `Conditions`. 
-    *   *Mitigation*: Ensure `Phase` is always recalculated at the end of the reconciliation loop based on the latest Conditions.
-*   **Complexity in Definitions**: Defining exactly when to switch from `Pending` to `Failed` can be tricky (e.g., timeouts vs permanent errors).
+*   **"Pending" Trap**: Permanent provisioning failures manifest as infinite `Pending`.
+*   **NotReady Ambiguity**: Collapses various runtime failures into one state.

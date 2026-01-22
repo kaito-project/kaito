@@ -10,7 +10,6 @@ on:
       - main
     paths:
       - presets/workspace/models/supported_models.yaml
-      - presets/workspace/models/supported_models_best_effort.yaml
   workflow_dispatch:
 
 env:

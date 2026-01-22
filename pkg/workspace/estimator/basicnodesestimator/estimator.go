@@ -26,8 +26,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 // BasicNodesEstimator calculates node count based on SKU memory and model memory requirement
@@ -51,11 +51,14 @@ func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaito
 	}
 
 	presetName := string(wObj.Inference.Preset.Name)
-	model := plugin.KaitoModelRegister.MustGet(presetName)
+	secretName := wObj.Inference.Preset.PresetOptions.ModelAccessSecret
+	model, err := models.GetModelByName(ctx, presetName, secretName, wObj.Namespace, client)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get model by name: %w", err)
+	}
 
 	// Import featuregates and consts for NAP check
 	var gpuConfig *sku.GPUConfig
-	var err error
 
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// NAP is disabled (BYO scenario) - instanceType is optional

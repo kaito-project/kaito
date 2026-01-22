@@ -69,14 +69,11 @@ class NodeWithScore(BaseModel):
 class RetrievalRequest(BaseModel):
     index_name: str = Field(..., description="Name of the index to retrieve from")
     query: str = Field(..., description="User query string for retrieval")
-    context_token_ratio: float | None = Field(
-        default=None,
-        ge=0.2,
-        le=0.8,
-        description="Ratio of context window to fill with retrieved documents (0.2 to 0.8)",
-    )
-    max_tokens: int | None = Field(
-        default=None, description="Maximum tokens for context consideration"
+    max_node_count: int = Field(
+        default=5,
+        ge=1,
+        le=100,
+        description="Maximum number of documents to return (default: 5)",
     )
     metadata_filter: dict | None = Field(
         default=None, description="Optional metadata filter for retrieval results"

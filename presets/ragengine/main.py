@@ -680,7 +680,7 @@ async def load_index(
     {
       "index_name": "test_index",
       "query": "What is retrieval-augmented generation?",
-      "context_token_ratio": 0.5
+      "max_node_count": 5
     }
     ```
 
@@ -716,8 +716,7 @@ async def retrieval_index(request: RetrievalRequest):
         result = await rag_ops.retrieval(
             index_name=request.index_name,
             query=request.query,
-            context_token_ratio=request.context_token_ratio,
-            max_tokens=request.max_tokens,
+            max_node_count=request.max_node_count,
             metadata_filter=request.metadata_filter,
         )
         status = STATUS_SUCCESS

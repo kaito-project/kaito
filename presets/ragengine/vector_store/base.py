@@ -819,13 +819,12 @@ class BaseVectorStore(ABC):
         self,
         index_name: str,
         query: str,
-        context_token_ratio: float | None = None,
-        max_tokens: int | None = None,
+        max_node_count: int = 5,
         metadata_filter: dict | None = None,
     ):
         """
         Retrieve relevant documents based on a query string.
-        Uses the same chat_engine as chat_completion to ensure identical output.
+        Uses a mock LLM to capture document retrieval without actual LLM inference.
         """
         if index_name not in self.index_map:
             raise HTTPException(
@@ -844,41 +843,14 @@ class BaseVectorStore(ABC):
                     detail="Query string cannot be empty.",
                 )
 
-            prompt_len = self.llm.count_tokens(user_prompt)
-            if prompt_len > self.llm.metadata.context_window:
-                raise HTTPException(
-                    status_code=400, detail="Prompt length exceeds context window."
-                )
+            # Use max_node_count directly as top_k
+            top_k = max_node_count
 
-            if (
-                max_tokens
-                and max_tokens > self.llm.metadata.context_window - prompt_len
-            ):
-                max_tokens = self.llm.metadata.context_window - prompt_len
-
-            # Calculate top_k same as chat_completion
-            top_k = max(
-                100,
-                int(
-                    (self.llm.metadata.context_window - prompt_len)
-                    / RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION
-                ),
-            )
-
-            # Create chat engine with same configuration as chat_completion
+            # Create chat engine with similarity search
             chat_engine = self.index_map[index_name].as_chat_engine(
                 llm=self.llm,
                 similarity_top_k=top_k,
                 chat_mode=ChatMode.CONTEXT,
-                node_postprocessors=[
-                    ContextSelectionProcessor(
-                        rag_context_token_fill_ratio=context_token_ratio
-                        or RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO,
-                        llm=self.llm,
-                        max_tokens=max_tokens,
-                        similarity_threshold=RAG_SIMILARITY_THRESHOLD,
-                    )
-                ],
             )
 
             # Create a custom LLM that captures the messages sent to it

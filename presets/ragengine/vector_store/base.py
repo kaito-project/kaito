@@ -28,8 +28,6 @@ from llama_index.core import Document as LlamaDocument
 from llama_index.core import StorageContext, VectorStoreIndex, load_index_from_storage
 from llama_index.core.base.llms.types import MessageRole
 from llama_index.core.chat_engine.types import ChatMode
-from llama_index.core.llms import ChatMessage as LlamaChatMessage
-from llama_index.core.llms import ChatResponse
 from llama_index.core.storage.docstore import SimpleDocumentStore
 from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams

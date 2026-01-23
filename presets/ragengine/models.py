@@ -18,6 +18,8 @@ from openai.types.chat import (
 )
 from pydantic import BaseModel, Field
 
+from ragengine.config import RAG_MAX_TOP_K
+
 
 class Document(BaseModel):
     doc_id: str = Field(default="")
@@ -72,8 +74,8 @@ class RetrievalRequest(BaseModel):
     max_node_count: int = Field(
         default=5,
         ge=1,
-        le=100,
-        description="Maximum number of documents to return (default: 5)",
+        le=RAG_MAX_TOP_K,
+        description=f"Maximum number of documents to return (default: 5, max: {RAG_MAX_TOP_K})",
     )
     metadata_filter: dict | None = Field(
         default=None, description="Optional metadata filter for retrieval results"

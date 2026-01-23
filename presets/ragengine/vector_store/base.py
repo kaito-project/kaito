@@ -38,6 +38,7 @@ from pydantic import ValidationError
 from ragengine.config import (
     RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO,
     RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION,
+    RAG_MAX_TOP_K,
     RAG_SIMILARITY_THRESHOLD,
 )
 from ragengine.embedding.base import BaseEmbeddingModel
@@ -824,7 +825,7 @@ class BaseVectorStore(ABC):
     ):
         """
         Retrieve relevant documents based on a query string.
-        Uses a mock LLM to capture document retrieval without actual LLM inference.
+        Uses the same chat_engine as chat_completion to ensure identical output.
         """
         if index_name not in self.index_map:
             raise HTTPException(
@@ -843,8 +844,8 @@ class BaseVectorStore(ABC):
                     detail="Query string cannot be empty.",
                 )
 
-            # Use max_node_count directly as top_k
-            top_k = max_node_count
+            # Use max_node_count as top_k, but cap at RAG_MAX_TOP_K to prevent excessive resource usage
+            top_k = min(max_node_count, RAG_MAX_TOP_K)
 
             # Create chat engine with similarity search
             chat_engine = self.index_map[index_name].as_chat_engine(

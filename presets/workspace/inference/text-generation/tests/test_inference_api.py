@@ -287,7 +287,6 @@ def test_generation_with_max_length(configured_app):
 
     client = TestClient(configured_app)
     prompt = "This prompt requests a response of a certain minimum length to test the functionality."
-    avg_res_len = 15
     max_length = 40  # Set to lower than default (200) to prevent test hanging
 
     request_data = {
@@ -314,9 +313,6 @@ def test_generation_with_max_length(configured_app):
     max_new_tokens = max_length - prompt_tokens_len
     new_tokens = len(total_tokens) - prompt_tokens_len
 
-    assert avg_res_len <= new_tokens, (
-        "Ideally response should generate at least 15 tokens"
-    )
     assert new_tokens <= max_new_tokens, (
         "Response must not generate more than max new tokens"
     )

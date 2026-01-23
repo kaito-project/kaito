@@ -43,6 +43,7 @@ from ragengine.config import (
 )
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
+from ragengine.inference.retrieval_llm import RetrievalLLM
 from ragengine.models import (
     ChatCompletionResponse,
     Document,
@@ -847,43 +848,16 @@ class BaseVectorStore(ABC):
             # Use max_node_count as top_k, but cap at RAG_MAX_TOP_K to prevent excessive resource usage
             top_k = min(max_node_count, RAG_MAX_TOP_K)
 
-            # Create chat engine with similarity search
-            chat_engine = self.index_map[index_name].as_chat_engine(
-                llm=self.llm,
-                similarity_top_k=top_k,
-                chat_mode=ChatMode.CONTEXT,
-            )
-
             # Create a custom LLM that captures the messages sent to it
             captured_messages = []
             captured_source_nodes = []
 
-            class CaptureLLM:
-                """Mock LLM that captures messages without sending to actual LLM"""
-
-                def __init__(self, messages_list, nodes_list, original_llm):
-                    self.messages_list = messages_list
-                    self.nodes_list = nodes_list
-                    self._original_llm = original_llm
-
-                def __getattr__(self, name):
-                    # Delegate all other attribute access to original LLM
-                    return getattr(self._original_llm, name)
-
-                async def achat(self, messages, **kwargs):
-                    # Capture the messages
-                    logger.info(
-                        f"CaptureLLM.achat called with {len(messages)} messages"
-                    )
-                    self.messages_list.clear()
-                    self.messages_list.extend(messages)
-                    # Return dummy response
-                    return ChatResponse(message=LlamaChatMessage(content=""))
-
-            # Replace LLM temporarily
-            original_llm = chat_engine._llm
-            chat_engine._llm = CaptureLLM(
-                captured_messages, captured_source_nodes, original_llm
+            chat_engine = self.index_map[index_name].as_chat_engine(
+                llm=RetrievalLLM(
+                    captured_messages, captured_source_nodes, self.llm
+                ),
+                similarity_top_k=top_k,
+                chat_mode=ChatMode.CONTEXT,
             )
 
             # Call chat_engine to build the context and messages
@@ -894,9 +868,6 @@ class BaseVectorStore(ABC):
                     )
             else:
                 result = await chat_engine.achat(user_prompt, chat_history=chat_history)
-
-            # Restore original LLM
-            chat_engine._llm = original_llm
 
             logger.info(f"Captured {len(captured_messages)} messages from chat_engine")
 

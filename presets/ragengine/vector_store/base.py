@@ -854,7 +854,9 @@ class BaseVectorStore(ABC):
 
             chat_engine = self.index_map[index_name].as_chat_engine(
                 llm=RetrievalLLM(
-                    captured_messages, captured_source_nodes, self.llm
+                    messages_list=captured_messages,
+                    nodes_list=captured_source_nodes,
+                    original_llm=self.llm,
                 ),
                 similarity_top_k=top_k,
                 chat_mode=ChatMode.CONTEXT,

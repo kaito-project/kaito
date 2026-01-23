@@ -22,15 +22,15 @@ from ragengine.config import (
 # This is used to intercept calls for the /retrieval api
 class RetrievalLLM(CustomLLM):
 
-    messages_list: list[ChatMessage]
-    nodes_list: list[Any]
-    _original_llm: CustomLLM
+    messages_list: list[ChatMessage] = Field()
+    nodes_list: list[Any] = Field()
+    original_llm: CustomLLM = Field()
 
     def __init__(self, messages_list, nodes_list, original_llm):
-        super().__init__()
+        super().__init__(messages_list=messages_list, nodes_list=nodes_list, original_llm=original_llm)
         self.messages_list = messages_list
         self.nodes_list = nodes_list
-        self._original_llm = original_llm
+        self.original_llm = original_llm
 
     @llm_completion_callback()
     def stream_complete(self, prompt: str, **kwargs: Any) -> CompletionResponseGen:
@@ -40,13 +40,13 @@ class RetrievalLLM(CustomLLM):
     def complete(
         self, prompt: str, formatted: bool = False, **kwargs: Any
     ) -> CompletionResponse:
-        pass
+        return CompletionResponse(text="")
 
     @llm_completion_callback()
     async def acomplete(
         self, prompt: str, formatted: bool = False, **kwargs: Any
     ) -> CompletionResponse:
-        pass
+        return CompletionResponse(text="")
 
     @llm_chat_callback()
     def chat(

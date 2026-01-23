@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 replicaCount: 1
 image:
-  repository: kaitomcp.azurecr.io/ragengine
+  repository: mcr.microsoft.com/aks/kaito/ragengine
   pullPolicy: IfNotPresent
   tag: 0.8.0
 imagePullSecrets: []
@@ -32,7 +32,6 @@ tolerations: []
 affinity: {}
 # Values can be "azure" or "aws"
 cloudProviderName: "azure"
-presetRagRegistryName: "kaitomcp.azurecr.io"
+presetRagRegistryName: "mcr.microsoft.com/aks/kaito"
 presetRagImageName: "kaito-rag-service"
-presetRagImageTag: v0.0.1
-clusterName: kaito-mcp
+presetRagImageTag: 0.8.0

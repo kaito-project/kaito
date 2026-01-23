@@ -33,13 +33,16 @@ from ragengine.config import (
 # Custom LLM that is used to capture llm calls and return empty responses
 # This is used to intercept calls for the /retrieval api
 class RetrievalLLM(CustomLLM):
-
     messages_list: list[ChatMessage] = Field()
     nodes_list: list[Any] = Field()
     original_llm: CustomLLM = Field()
 
     def __init__(self, messages_list, nodes_list, original_llm):
-        super().__init__(messages_list=messages_list, nodes_list=nodes_list, original_llm=original_llm)
+        super().__init__(
+            messages_list=messages_list,
+            nodes_list=nodes_list,
+            original_llm=original_llm,
+        )
         self.messages_list = messages_list
         self.nodes_list = nodes_list
         self.original_llm = original_llm
@@ -88,4 +91,3 @@ class RetrievalLLM(CustomLLM):
             is_chat_model=False,
             context_window=LLM_CONTEXT_WINDOW,
         )
-    

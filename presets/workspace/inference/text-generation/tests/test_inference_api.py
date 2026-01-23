@@ -287,7 +287,6 @@ def test_generation_with_max_length(configured_app):
 
     client = TestClient(configured_app)
     prompt = "This prompt requests a response of a certain minimum length to test the functionality."
-    avg_res_len = 15
     max_length = 40  # Set to lower than default (200) to prevent test hanging
 
     request_data = {

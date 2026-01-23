@@ -38,6 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -80,8 +81,8 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			runtime := GetWorkspaceRuntimeName(w)
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 			errs = errs.Also(
-				w.Resource.validateCreateWithInference(w.Inference, bypassResourceChecks, runtime).ViaField("resource"),
-				w.Inference.validateCreate(ctx, runtime).ViaField("inference"),
+				w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
+				w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 				w.validateInferenceConfig(ctx),
 			)
 		}
@@ -325,10 +326,11 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	return errs
 }
 
-func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName) (errs *apis.FieldError) {
-	var presetName string
+func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName, wsNamespace string) (errs *apis.FieldError) {
+	var presetName, secretName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
+		secretName = inference.Preset.PresetOptions.ModelAccessSecret
 		// Since inference.Preset exists, we must validate preset name.
 		if !plugin.IsValidPreset(presetName) {
 			// If the preset is not valid, check if it is a deprecated model
@@ -441,7 +443,11 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 
 	if presetName != "" && skuConfig != nil {
 		if napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled) {
-			modelPreset := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
+			modelPreset, err := models.GetModelByName(context.TODO(), presetName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
+			if err != nil {
+				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
+				return errs
+			}
 			params := modelPreset.GetInferenceParameters()
 
 			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
@@ -508,11 +514,18 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	}
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly
-	// This validation only applies to CREATE operations, not UPDATE (since instanceType is immutable)
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// When NAP is disabled, instanceType must be empty (BYO scenario)
-		if r.InstanceType != "" {
-			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
+		if old.InstanceType == "" {
+			if r.InstanceType != "" {
+				errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
+			}
+		} else {
+			// for backward compatibility, old.InstanceType is non-empty
+			// but update to empty is allowed.
+			if r.InstanceType != "" && old.InstanceType != r.InstanceType {
+				errs = errs.Also(apis.ErrInvalidValue("instanceType is cannot be changed once set", "instanceType"))
+			}
 		}
 	} else {
 		if r.InstanceType == "" {
@@ -534,7 +547,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
-func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.RuntimeName) (errs *apis.FieldError) {
+func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.RuntimeName, wsNamespace string) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -553,7 +566,11 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 			// Need to return here. Otherwise, a panic will be hit when doing following checks.
 			return errs
 		}
-		modelPreset := plugin.KaitoModelRegister.MustGet(string(i.Preset.Name))
+		modelPreset, err := models.GetModelByName(ctx, string(i.Preset.Name), i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
+		if err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
+			return errs
+		}
 		params := modelPreset.GetInferenceParameters()
 		useAdapterStrength := false
 		for _, adapter := range i.Adapters {
@@ -562,7 +579,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 				break
 			}
 		}
-		err := params.Validate(model.RuntimeContext{
+		err = params.Validate(model.RuntimeContext{
 			RuntimeName: runtime,
 			RuntimeContextExtraArguments: model.RuntimeContextExtraArguments{
 				AdaptersEnabled:        len(i.Adapters) > 0,

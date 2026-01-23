@@ -14,43 +14,125 @@
 package models
 
 import (
+	"context"
 	_ "embed"
+	"fmt"
+	"strings"
 	"time"
 
-	"gopkg.in/yaml.v2"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
 var (
-	//go:embed supported_models_best_effort.yaml
-	vLLMModelsYAML []byte
+	// builtinVLLMModels is the mapping of built-in VLLM model names to their preset names
+	// make sure all key and values are in lower case
+	builtinVLLMModels = map[string]string{
+		"deepseek-ai/deepseek-r1-distill-llama-8b":     "deepseek-r1-distill-llama-8b",
+		"deepseek-ai/deepseek-r1-distill-qwen-14b":     "deepseek-r1-distill-qwen-14b",
+		"deepseek-ai/deepseek-r1-0528":                 "deepseek-r1-0528",
+		"deepseek-ai/deepseek-v3-0324":                 "deepseek-v3-0324",
+		"tiiuae/falcon-7b":                             "falcon-7b",
+		"tiiuae/falcon-7b-instruct":                    "falcon-7b-instruct",
+		"tiiuae/falcon-40b":                            "falcon-40b",
+		"tiiuae/falcon-40b-instruct":                   "falcon-40b-instruct",
+		"google/gemma-3-4b-it":                         "gemma-3-4b-instruct",
+		"google/gemma-3-27b-it":                        "gemma-3-27b-instruct",
+		"openai/gpt-oss-20b":                           "gpt-oss-20b",
+		"openai/gpt-oss-120b":                          "gpt-oss-120b",
+		"meta-llama/llama-3.1-8b-instruct":             "llama-3.1-8b-instruct",
+		"meta-llama/llama-3.3-70b-instruct":            "llama-3.3-70b-instruct",
+		"mistralai/mistral-7b-v0.3":                    "mistral-7b",
+		"mistralai/mistral-7b-instruct-v0.3":           "mistral-7b-instruct",
+		"mistralai/ministral-3-3b-instruct-2512":       "ministral-3-3b-instruct",
+		"mistralai/ministral-3-8b-instruct-2512":       "ministral-3-8b-instruct",
+		"mistralai/ministral-3-14b-instruct-2512":      "ministral-3-14b-instruct",
+		"mistralai/mistral-large-3-675b-instruct-2512": "mistral-large-3-675b-instruct",
+		"microsoft/phi-3-mini-4k-instruct":             "phi-3-mini-4k-instruct",
+		"microsoft/phi-3-mini-128k-instruct":           "phi-3-mini-128k-instruct",
+		"microsoft/phi-3-medium-4k-instruct":           "phi-3-medium-4k-instruct",
+		"microsoft/phi-3-medium-128k-instruct":         "phi-3-medium-128k-instruct",
+		"microsoft/phi-3.5-mini-instruct":              "phi-3.5-mini-instruct",
+		"microsoft/phi-4":                              "phi-4",
+		"microsoft/phi-4-mini-instruct":                "phi-4-mini-instruct",
+		"qwen/qwen2.5-coder-7b-instruct":               "qwen2.5-coder-7b-instruct",
+		"qwen/qwen2.5-coder-32b-instruct":              "qwen2.5-coder-32b-instruct",
+	}
 )
 
-// VLLMCatalog is a struct that holds a list of supported models parsed
-// from presets/workspace/models/supported_models_best_effort.yaml. The YAML file is
-// considered the source of truth for the model metadata, and any
-// information in the YAML file should not be hardcoded in the codebase.
-type VLLMCatalog struct {
-	Models []model.Metadata `yaml:"models,omitempty"`
+// registerModel registers a HuggingFace model with the given ID and parameters
+// into the model registry and returns the registered model. If param is nil,
+// it returns nil and does not register a model.
+func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
+	if param == nil {
+		return nil
+	}
+
+	model := &vLLMCompatibleModel{model: param.Metadata}
+	r := &plugin.Registration{
+		Name:     hfModelCardID,
+		Instance: model,
+	}
+	klog.InfoS("Registering VLLM-compatible model", "model", hfModelCardID, "metadata", param.Metadata)
+	plugin.KaitoModelRegister.Register(r)
+	return model
 }
 
-func init() {
-	vLLMCatalog := VLLMCatalog{}
-	utilruntime.Must(yaml.Unmarshal(vLLMModelsYAML, &vLLMCatalog))
-
-	// register all VLLM models
-	for _, m := range vLLMCatalog.Models {
-		utilruntime.Must(m.Validate())
-		plugin.KaitoModelRegister.Register(&plugin.Registration{
-			Name:     m.Name,
-			Instance: &vLLMCompatibleModel{model: m},
-		})
-		klog.InfoS("Registered VLLM model preset", "model", m.Name)
+// GetModelByName returns a vLLM-compatible model for the given modelName.
+// It first looks up an existing registration in the KaitoModelRegister. If the
+// model is not already registered and modelName contains a "/", it attempts to
+// generate a preset for the corresponding HuggingFace model by optionally
+// retrieving an access token from the Kubernetes Secret identified by
+// secretName and secretNamespace using kubeClient and ctx.
+//
+// The returned model.Model represents the registered or newly generated model.
+// If preset generation fails, or if the modelName does not correspond to a
+// registered or generatable model, this method returns an error instead of panicking.
+// Callers should ensure that modelName is valid and handle the error accordingly.
+func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
+	modelName = strings.ToLower(modelName)
+	model := plugin.KaitoModelRegister.MustGet(modelName)
+	if model != nil {
+		return model, nil
 	}
+
+	// if name contains "/", get model data from HuggingFace
+	if strings.Contains(modelName, "/") {
+		if builtinModelName, ok := builtinVLLMModels[modelName]; ok {
+			klog.InfoS("Using built-in VLLM model preset", "model", modelName, "builtinModelName", builtinModelName)
+			return plugin.KaitoModelRegister.MustGet(builtinModelName), nil
+		}
+
+		klog.InfoS("Generating VLLM model preset for HuggingFace model", "model", modelName, "secretName", secretName, "secretNamespace", secretNamespace)
+		token, err := GetHFTokenFromSecret(ctx, kubeClient, secretName, secretNamespace)
+		if err != nil {
+			// only log the error here since token may not be required for public models
+			klog.ErrorS(err, "failed to get huggingface token from secret", "secretName", secretName, "secretNamespace", secretNamespace)
+		}
+		param, err := generator.GeneratePreset(modelName, token)
+		if err != nil {
+			return nil, err
+		}
+		// check whether the model is in the supported model architecture list
+		if len(param.Metadata.Architectures) == 0 {
+			klog.InfoS("Model architecture not specified, assuming supported by VLLM", "model", modelName)
+			return registerModel(modelName, param), nil
+		}
+
+		for _, arch := range param.Metadata.Architectures {
+			if _, ok := vLLMModelArchMap[arch]; ok {
+				return registerModel(modelName, param), nil
+			}
+		}
+
+		return nil, fmt.Errorf("unsupported model architecture for %s: %s", modelName, strings.Join(param.Metadata.Architectures, ", "))
+	}
+	return nil, fmt.Errorf("model is not registered: %s", modelName)
 }
 
 type vLLMCompatibleModel struct {
@@ -121,4 +203,35 @@ func (*vLLMCompatibleModel) SupportDistributedInference() bool {
 
 func (*vLLMCompatibleModel) SupportTuning() bool {
 	return false
+}
+
+// GetHFTokenFromSecret retrieves the HuggingFace token from a Kubernetes secret.
+// If secretName is empty, it returns an empty string without error.
+// If secretNamespace is empty, it defaults to "default".
+// An error is returned if kubeClient is nil, the secret cannot be retrieved,
+// or the HF_TOKEN key is not present in the secret data.
+func GetHFTokenFromSecret(ctx context.Context, kubeClient client.Client, secretName, secretNamespace string) (string, error) {
+	if secretName == "" {
+		return "", nil
+	}
+
+	if kubeClient == nil {
+		return "", fmt.Errorf("kubeClient is nil")
+	}
+
+	if secretNamespace == "" {
+		secretNamespace = "default"
+	}
+
+	secret := corev1.Secret{}
+	if err := kubeClient.Get(ctx, client.ObjectKey{Name: secretName, Namespace: secretNamespace}, &secret); err != nil {
+		return "", fmt.Errorf("failed to get secret: %s in namespace: %s, error: %w", secretName, secretNamespace, err)
+	}
+
+	tokenBytes, ok := secret.Data["HF_TOKEN"]
+	if !ok {
+		return "", fmt.Errorf("HF_TOKEN not found in secret: %s in namespace: %s", secretName, secretNamespace)
+	}
+
+	return string(tokenBytes), nil
 }

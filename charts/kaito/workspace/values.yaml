@@ -82,9 +82,11 @@ flux2:
     create: false
   notificationController:
     create: false
+  policies:
+    create: false
 gpu-feature-discovery:
   affinity:
-    nodeAffinity: null
+    nodeAffinity: {}
   nfd:
     master:
       tolerations:

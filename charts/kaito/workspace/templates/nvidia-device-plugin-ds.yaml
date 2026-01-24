@@ -1,4 +1,4 @@
-{{- if .Values.nvidiaDevicePlugin.enabled }}
+{{- if and .Values.nvidiaDevicePlugin .Values.nvidiaDevicePlugin.enabled }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:

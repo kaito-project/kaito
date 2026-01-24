@@ -72,6 +72,11 @@ jobs:
     outputs:
       registry_repository: ${{ steps.get-registry.outputs.registry_repository }}
     steps:
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.19.4"
+
       - name: Install ORAS
         run: |
           VER='1.3.0'

@@ -176,11 +176,32 @@ type TuningSpec struct {
 	Output *DataDestination `json:"output"`
 }
 
+// WorkspaceState indicates the high-level state of the workspace.
+type WorkspaceState string
+
+const (
+	// Common State
+	WorkspaceStatePending WorkspaceState = "Pending"
+
+	// Inference States
+	WorkspaceStateReady    WorkspaceState = "Ready"
+	WorkspaceStateNotReady WorkspaceState = "NotReady"
+
+	// Fine-tuning States
+	WorkspaceStateRunning   WorkspaceState = "Running"
+	WorkspaceStateSucceeded WorkspaceState = "Succeeded"
+	WorkspaceStateFailed    WorkspaceState = "Failed"
+)
+
 // WorkspaceStatus defines the observed state of Workspace
 type WorkspaceStatus struct {
 	// WorkerNodes is the list of nodes chosen to run the workload based on the workspace resource requirement.
 	// +optional
 	WorkerNodes []string `json:"workerNodes,omitempty"`
+
+	// Status represents the current high-level state of the workspace.
+	// +optional
+	Status WorkspaceState `json:"status,omitempty"`
 
 	// Conditions report the current conditions of the workspace.
 	// +optional
@@ -197,10 +218,8 @@ type WorkspaceStatus struct {
 // +kubebuilder:resource:path=workspaces,scope=Namespaced,categories=workspace,shortName={wk,wks}
 // +kubebuilder:storageversion
 // +kubebuilder:printcolumn:name="Instance",type="string",JSONPath=".resource.instanceType",description=""
-// +kubebuilder:printcolumn:name="ResourceReady",type="string",JSONPath=".status.conditions[?(@.type==\"ResourceReady\")].status",description=""
-// +kubebuilder:printcolumn:name="InferenceReady",type="string",JSONPath=".status.conditions[?(@.type==\"InferenceReady\")].status",description=""
-// +kubebuilder:printcolumn:name="JobStarted",type="string",JSONPath=".status.conditions[?(@.type==\"JobStarted\")].status",description=""
-// +kubebuilder:printcolumn:name="WorkspaceSucceeded",type="string",JSONPath=".status.conditions[?(@.type==\"WorkspaceSucceeded\")].status",description=""
+// +kubebuilder:printcolumn:name="TargetNodeCount",type="integer",JSONPath=".status.targetNodeCount",description=""
+// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.status",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
 type Workspace struct {
 	metav1.TypeMeta   `json:",inline"`

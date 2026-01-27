@@ -407,17 +407,11 @@ spec:
     - jsonPath: .resource.instanceType
       name: Instance
       type: string
-    - jsonPath: .status.conditions[?(@.type=="ResourceReady")].status
-      name: ResourceReady
-      type: string
-    - jsonPath: .status.conditions[?(@.type=="InferenceReady")].status
-      name: InferenceReady
-      type: string
-    - jsonPath: .status.conditions[?(@.type=="JobStarted")].status
-      name: JobStarted
-      type: string
-    - jsonPath: .status.conditions[?(@.type=="WorkspaceSucceeded")].status
-      name: WorkspaceSucceeded
+    - jsonPath: .status.targetNodeCount
+      name: TargetNodeCount
+      type: integer
+    - jsonPath: .status.status
+      name: Status
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
@@ -691,6 +685,10 @@ spec:
                   - type
                   type: object
                 type: array
+              status:
+                description: Status represents the current high-level state of the
+                  workspace.
+                type: string
               targetNodeCount:
                 description: |-
                   TargetNodeCount is used for recording the desired number of gpu nodes that needed for the workspace.

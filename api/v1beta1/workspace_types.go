@@ -199,9 +199,9 @@ type WorkspaceStatus struct {
 	// +optional
 	WorkerNodes []string `json:"workerNodes,omitempty"`
 
-	// Status represents the current high-level state of the workspace.
+	// State represents the current high-level state of the workspace.
 	// +optional
-	Status WorkspaceState `json:"status,omitempty"`
+	State WorkspaceState `json:"state,omitempty"`
 
 	// Conditions report the current conditions of the workspace.
 	// +optional
@@ -218,8 +218,12 @@ type WorkspaceStatus struct {
 // +kubebuilder:resource:path=workspaces,scope=Namespaced,categories=workspace,shortName={wk,wks}
 // +kubebuilder:storageversion
 // +kubebuilder:printcolumn:name="Instance",type="string",JSONPath=".resource.instanceType",description=""
+// +kubebuilder:printcolumn:name="ResourceReady",type="string",JSONPath=".status.conditions[?(@.type==\"ResourceReady\")].status",description=""
+// +kubebuilder:printcolumn:name="InferenceReady",type="string",JSONPath=".status.conditions[?(@.type==\"InferenceReady\")].status",description=""
+// +kubebuilder:printcolumn:name="JobStarted",type="string",JSONPath=".status.conditions[?(@.type==\"JobStarted\")].status",description=""
+// +kubebuilder:printcolumn:name="WorkspaceSucceeded",type="string",JSONPath=".status.conditions[?(@.type==\"WorkspaceSucceeded\")].status",description=""
 // +kubebuilder:printcolumn:name="TargetNodeCount",type="integer",JSONPath=".status.targetNodeCount",description=""
-// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.status",description=""
+// +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.state",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
 type Workspace struct {
 	metav1.TypeMeta   `json:",inline"`

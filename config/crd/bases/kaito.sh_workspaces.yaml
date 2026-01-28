@@ -407,11 +407,23 @@ spec:
     - jsonPath: .resource.instanceType
       name: Instance
       type: string
+    - jsonPath: .status.conditions[?(@.type=="ResourceReady")].status
+      name: ResourceReady
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="InferenceReady")].status
+      name: InferenceReady
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="JobStarted")].status
+      name: JobStarted
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="WorkspaceSucceeded")].status
+      name: WorkspaceSucceeded
+      type: string
     - jsonPath: .status.targetNodeCount
       name: TargetNodeCount
       type: integer
-    - jsonPath: .status.status
-      name: Status
+    - jsonPath: .status.state
+      name: State
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
@@ -685,8 +697,8 @@ spec:
                   - type
                   type: object
                 type: array
-              status:
-                description: Status represents the current high-level state of the
+              state:
+                description: State represents the current high-level state of the
                   workspace.
                 type: string
               targetNodeCount:

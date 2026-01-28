@@ -20,6 +20,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Force CPU-only execution for testin
 # Force single-threaded for testing to prevent segfault while loading embedding model
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"  # Force MKL to use a single thread
+# Set LLM_INFERENCE_URL before importing ragengine modules
+os.environ["LLM_INFERENCE_URL"] = "http://localhost:5000/v1/chat/completions"
 
 import asyncio
 

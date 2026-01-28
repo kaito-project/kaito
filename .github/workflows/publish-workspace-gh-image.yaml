@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: 'tag to be created for this image (i.e. vxx.xx.xx)'
+        description: "tag to be created for this image (i.e. vxx.xx.xx)"
         required: true
 
 permissions:
@@ -12,8 +12,8 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: '1.24'
-  IMAGE_NAME: 'workspace'
+  GO_VERSION: "1.24"
+  IMAGE_NAME: "workspace"
   REGISTRY: ghcr.io
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
       - id: get-tag
         name: Get tag
         run: |
-            echo "tag=$(echo ${{ github.event.inputs.release_version }})" >> $GITHUB_OUTPUT
+          echo "tag=$(echo ${{ github.event.inputs.release_version }})" >> $GITHUB_OUTPUT
 
       - name: Harden Runner
         uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
@@ -53,8 +53,8 @@ jobs:
           else
             echo "create_tag=$(echo 'true' )" >> $GITHUB_OUTPUT
           fi
-      - name: 'Create tag'
-        if:  steps.check-tag.outputs.create_tag == 'true'
+      - name: "Create tag"
+        if: steps.check-tag.outputs.create_tag == 'true'
         uses: actions/github-script@v8
         with:
           script: |
@@ -67,7 +67,7 @@ jobs:
 
   build-scan-publish-gh-images:
     runs-on: ubuntu-latest
-    needs: [ check-tag ]
+    needs: [check-tag]
     environment: preset-env
     outputs:
       registry_repository: ${{ steps.get-registry.outputs.registry_repository }}
@@ -75,7 +75,7 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: 'v3.19.4'
+          version: "v3.19.4"
 
       - name: Install ORAS
         run: |
@@ -109,15 +109,37 @@ jobs:
 
       - name: Build image
         run: |
-          INDEX_REF="${REGISTRY}/${IMG_NAME}:${IMG_TAG}"
+          mkdir -p _out
 
-          make docker-build-workspace IMG_TAG="${IMG_TAG}-linux"
-          LINUX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-linux")"
+          # Use a local pseudo-registry name for the layout
+          LOCAL_REGISTRY="local"
+          # Target tag refs
+          LINUX_REF="${LOCAL_REGISTRY}/${IMG_NAME}:${IMG_TAG}-linux"
+          CHART_REF="${LOCAL_REGISTRY}/${IMG_NAME}:${IMG_TAG}-chart"
+          FINAL_REF="${LOCAL_REGISTRY}/${IMG_NAME}:${IMG_TAG}"
 
-          make helm-package-workspace IMG_TAG="${IMG_TAG}-chart"
-          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-chart")"
+          # 1. Build Container Image
+          make docker-build-workspace IMG_TAG="${IMG_TAG}-linux" REGISTRY="${LOCAL_REGISTRY}" OUTPUT_TYPE="type=oci,dest=./_out_image.tar"
+          tar -xf ./_out_image.tar -C ./_out
+          rm ./_out_image.tar
 
-          oras manifest index create "${INDEX_REF}" "${LINUX_DIG}" "${CHART_DIG}"
+          # 2. Package Helm Chart
+          cd ./charts/kaito/workspace
+
+          helm package .
+          CHART_FILE=$(ls workspace-*.tgz | head -n 1)
+          cd ../../..
+
+          # 3. Push Chart to Layout
+          oras push --oci-layout ./_out:${CHART_REF} \
+             ./charts/kaito/workspace/${CHART_FILE}:application/vnd.cncf.helm.chart.content.v1+tar+gzip
+
+          # 4. Create Index
+          oras manifest index create --oci-layout ./_out:${FINAL_REF} ${LINUX_REF} ${CHART_REF}
+
+          # 5. Push to Registry
+          TARGET_REF="${REGISTRY}/${IMG_NAME}:${IMG_TAG}"
+          oras cp --oci-layout ./_out:${FINAL_REF} ${TARGET_REF}
         env:
           VERSION: ${{ needs.check-tag.outputs.tag }}
           REGISTRY: ${{ steps.get-registry.outputs.registry_repository }}
@@ -128,18 +150,18 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ steps.get-registry.outputs.registry_repository }}/${{ env.IMAGE_NAME }}:${{ env.IMG_TAG }}
-          format: 'table'
-          exit-code: '1'
+          format: "table"
+          exit-code: "1"
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-          timeout: '5m0s'
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+          timeout: "5m0s"
         env:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
   run-e2e-gh-image:
-    needs: [ check-tag, build-scan-publish-gh-images ]
+    needs: [check-tag, build-scan-publish-gh-images]
     uses: ./.github/workflows/e2e-workflow.yaml
     with:
       git_sha: ${{ github.sha }}
@@ -150,9 +172,9 @@ jobs:
 
   publish-mcr-image:
     runs-on: ubuntu-latest
-    needs: [ check-tag, run-e2e-gh-image ]
+    needs: [check-tag, run-e2e-gh-image]
     steps:
-      - name: 'Dispatch release tag'
+      - name: "Dispatch release tag"
         uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

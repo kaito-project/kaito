@@ -12,7 +12,8 @@ RUN pip3 install --upgrade pip uv
 WORKDIR /workspace
 
 # Required for torch.compile
-RUN apt-get update -y && apt-get install --no-install-recommends curl gcc libc-dev perl -y && \
+RUN apt-get update -y && apt-get upgrade -y && \
+    apt-get install --no-install-recommends curl gcc libc-dev perl -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 FROM dependencies AS base

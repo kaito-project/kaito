@@ -4,7 +4,7 @@ metadata:
   name: {{ include "kaito.loggingConfigMapName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- toYaml .Values.commonLabels | nindent 4 }}
+    {{- include "utils.toYamlStrMap" .Values.commonLabels | nindent 4 }}
 data:
   loglevel.controller: {{ .Values.logging.level | quote }}
   loglevel.webhook: {{ .Values.logging.level | quote }}

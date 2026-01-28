@@ -170,7 +170,7 @@ InferenceSet ClusterRoleBinding name
 {{- end -}}
 
 {{/*
-Utils function
+joinKeyValuePairs function
 */}}
 {{- define "utils.joinKeyValuePairs" -}}
 {{- $pairs := list -}}
@@ -178,4 +178,16 @@ Utils function
 {{- $pairs = append $pairs (printf "%s=%t" $key $value) -}}
 {{- end -}}
 {{- join "," $pairs -}}
+{{- end -}}
+
+{{/*
+toYamlStrMap function
+*/}}
+{{- define "utils.toYamlStrMap" -}}
+{{- $anyMap := . -}}
+{{- $strMap := dict -}}
+{{- range $key, $val := $anyMap -}}
+{{- $_ := set $strMap $key (toString $val) -}}
+{{- end -}}
+{{- toYaml $strMap -}}
 {{- end -}}

@@ -111,11 +111,11 @@ jobs:
         run: |
           INDEX_REF="${REGISTRY}/${IMG_NAME}:${IMG_TAG}"
 
-          make docker-build-workspace IMG_TAG="${IMG_TAG}-linux"
-          LINUX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-linux")"
+          make docker-build-workspace IMG_TAG="${IMG_TAG}"
+          LINUX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
 
-          make helm-package-workspace IMG_TAG="${IMG_TAG}-chart"
-          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-chart")"
+          make helm-package-workspace IMG_TAG="${IMG_TAG}"
+          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
 
           oras manifest index create "${INDEX_REF}" "${LINUX_DIG}" "${CHART_DIG}"
         env:

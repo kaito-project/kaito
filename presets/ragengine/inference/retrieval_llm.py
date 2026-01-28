@@ -31,7 +31,7 @@ from ragengine.config import (
 
 
 # Custom LLM that is used to capture llm calls and return empty responses
-# This is used to intercept calls for the /retrieval api
+# This is used to intercept calls for the /retrieve api
 class RetrievalLLM(CustomLLM):
     messages_list: list[ChatMessage] = Field()
     nodes_list: list[Any] = Field()

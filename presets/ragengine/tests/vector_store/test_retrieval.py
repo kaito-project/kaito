@@ -18,12 +18,9 @@ Unit tests for the retrieval method.
 
 import os
 from tempfile import TemporaryDirectory
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
-from llama_index.core.base.llms.types import ChatMessage as LlamaChatMessage
-from llama_index.core.base.llms.types import MessageRole
-from llama_index.core.llms import ChatResponse
 
 from ragengine.config import LOCAL_EMBEDDING_MODEL_ID
 from ragengine.embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
@@ -44,23 +41,11 @@ def vector_store_with_docs(init_embed_manager):
 
 
 @pytest.fixture(autouse=True)
-def mock_llm_for_retrieval():
-    """Mock LLM methods to prevent HTTP calls during retrieval tests."""
-    with (
-        patch(
-            "ragengine.inference.inference.Inference.achat", new_callable=AsyncMock
-        ) as mock_achat,
-        patch(
-            "ragengine.inference.inference.Inference.apredict", new_callable=AsyncMock
-        ) as mock_apredict,
-        patch(
-            "ragengine.inference.inference.Inference._get_default_model_info"
-        ) as mock_model_info,
-    ):
-        mock_achat.return_value = ChatResponse(
-            message=LlamaChatMessage(role=MessageRole.ASSISTANT, content="")
-        )
-        mock_apredict.return_value = ""
+def mock_llm_model_info():
+    """Mock LLM model info to avoid initialization overhead."""
+    with patch(
+        "ragengine.inference.inference.Inference._get_default_model_info"
+    ) as mock_model_info:
         mock_model_info.return_value = ("mock-model", 4096)
         yield
 

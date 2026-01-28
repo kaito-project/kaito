@@ -320,7 +320,7 @@ class BaseVectorStore(ABC):
         )
 
         # Validate we have a user prompt. if not using tools/etc. we should have a user prompt
-        # as rag retrieval should only be run on user input.
+        # as rag retrieve should only be run on user input.
         if user_prompt == "":
             logger.error(
                 "There must be a user prompt since the latest assistant message."

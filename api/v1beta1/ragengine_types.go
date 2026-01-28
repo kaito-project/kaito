@@ -70,8 +70,8 @@ type EmbeddingSpec struct {
 
 type InferenceServiceSpec struct {
 	// URL specifies the endpoint of the LLM inference service for generating responses.
-	// This field is optional - if not specified, the RAG engine operates in retrieval-only mode,
-	// supporting pure document search via the /retrieval API without LLM-based response generation.
+	// This field is optional - if not specified, the RAG engine operates in retrieve-only mode,
+	// supporting pure document search via the /retrieve API without LLM-based response generation.
 	// +optional
 	URL string `json:"url,omitempty"`
 	// AccessSecret is the name of the secret that contains the service access token.

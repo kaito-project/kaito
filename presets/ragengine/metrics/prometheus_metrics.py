@@ -95,15 +95,15 @@ rag_indexes_update_document_requests_total = Counter(
     labelnames=[STATUS_LABEL],
 )
 
-# Indexes search API metrics
-rag_indexes_search_latency = Histogram(
-    "rag_indexes_search_latency_seconds",
-    "Time to call post '/search' API in seconds",
+# Indexes retrieve API metrics
+rag_indexes_retrieve_latency = Histogram(
+    "rag_indexes_retrieve_latency_seconds",
+    "Time to call post '/retrieve' API in seconds",
     labelnames=[STATUS_LABEL],
 )
-rag_indexes_search_requests_total = Counter(
-    "rag_indexes_search_requests_total",
-    "Count of successful/failed calling post '/search' requests",
+rag_indexes_retrieve_requests_total = Counter(
+    "rag_indexes_retrieve_requests_total",
+    "Count of successful/failed calling post '/retrieve' requests",
     labelnames=[STATUS_LABEL],
 )
 

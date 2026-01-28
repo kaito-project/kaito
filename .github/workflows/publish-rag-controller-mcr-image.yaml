@@ -60,13 +60,13 @@ jobs:
         run: |
           INDEX_REF="${REGISTRY}/${RAGENGINE_IMAGE_NAME}:${IMG_TAG}"
 
-          make docker-build-ragengine
-          IMAGE_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
+          make docker-build-ragengine IMG_TAG="${IMG_TAG}-linux"
+          LINUX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-linux")"
 
-          make helm-package-ragengine
-          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
+          make helm-package-ragengine IMG_TAG="${IMG_TAG}-chart"
+          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-chart")"
 
-          oras manifest index create "${INDEX_REF}" "${IMAGE_DIG}" "${CHART_DIG}"
+          oras manifest index create "${INDEX_REF}" "${LINUX_DIG}" "${CHART_DIG}"
         env:
           VERSION: ${{ github.event.client_payload.tag || github.event.inputs.tag }}
           REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito

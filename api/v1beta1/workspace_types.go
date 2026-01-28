@@ -174,6 +174,8 @@ type TuningSpec struct {
 	Input *DataSource `json:"input"`
 	// Output specified where to store the tuning output.
 	Output *DataDestination `json:"output"`
+	// TtlSecondsAfterFinished specifies the time to live for the tuning workspace after it has finished.
+	TtlSecondsAfterFinished *int64 `json:"ttlSecondsAfterFinished,omitempty"`
 }
 
 // WorkspaceState indicates the high-level state of the workspace.

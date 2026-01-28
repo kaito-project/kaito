@@ -13,17 +13,14 @@
 
 
 """
-Unit tests for the retrieval method.
+Unit tests for the retrieve method.
 """
 
 import os
 from tempfile import TemporaryDirectory
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
-from llama_index.core.base.llms.types import ChatMessage as LlamaChatMessage
-from llama_index.core.base.llms.types import MessageRole
-from llama_index.core.llms import ChatResponse
 
 from ragengine.config import LOCAL_EMBEDDING_MODEL_ID
 from ragengine.embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
@@ -44,30 +41,18 @@ def vector_store_with_docs(init_embed_manager):
 
 
 @pytest.fixture(autouse=True)
-def mock_llm_for_retrieval():
-    """Mock LLM methods to prevent HTTP calls during retrieval tests."""
-    with (
-        patch(
-            "ragengine.inference.inference.Inference.achat", new_callable=AsyncMock
-        ) as mock_achat,
-        patch(
-            "ragengine.inference.inference.Inference.apredict", new_callable=AsyncMock
-        ) as mock_apredict,
-        patch(
-            "ragengine.inference.inference.Inference._get_default_model_info"
-        ) as mock_model_info,
-    ):
-        mock_achat.return_value = ChatResponse(
-            message=LlamaChatMessage(role=MessageRole.ASSISTANT, content="")
-        )
-        mock_apredict.return_value = ""
+def mock_llm_model_info():
+    """Mock LLM model info to avoid initialization overhead."""
+    with patch(
+        "ragengine.inference.inference.Inference._get_default_model_info"
+    ) as mock_model_info:
         mock_model_info.return_value = ("mock-model", 4096)
         yield
 
 
 @pytest.mark.asyncio
-async def test_retrieval_basic(vector_store_with_docs):
-    """Test basic retrieval functionality."""
+async def test_retrieve_basic(vector_store_with_docs):
+    """Test basic retrieve functionality."""
     documents = [
         Document(
             text="Python is a programming language", metadata={"category": "tech"}
@@ -79,7 +64,7 @@ async def test_retrieval_basic(vector_store_with_docs):
     ]
     await vector_store_with_docs.index_documents("test_index", documents)
 
-    result = await vector_store_with_docs.retrieval(
+    result = await vector_store_with_docs.retrieve(
         index_name="test_index", query="What is Python?", max_node_count=3
     )
 
@@ -92,14 +77,14 @@ async def test_retrieval_basic(vector_store_with_docs):
 
 
 @pytest.mark.asyncio
-async def test_retrieval_max_node_count(vector_store_with_docs):
+async def test_retrieve_max_node_count(vector_store_with_docs):
     """Test that max_node_count parameter limits results."""
     documents = [
         Document(text=f"Document {i}", metadata={"index": i}) for i in range(10)
     ]
     await vector_store_with_docs.index_documents("test_index", documents)
 
-    result = await vector_store_with_docs.retrieval(
+    result = await vector_store_with_docs.retrieve(
         index_name="test_index", query="document", max_node_count=2
     )
 
@@ -107,14 +92,14 @@ async def test_retrieval_max_node_count(vector_store_with_docs):
 
 
 @pytest.mark.asyncio
-async def test_retrieval_default_max_node_count(vector_store_with_docs):
-    """Test retrieval with default max_node_count (5)."""
+async def test_retrieve_default_max_node_count(vector_store_with_docs):
+    """Test retrieve with default max_node_count (5)."""
     documents = [
         Document(text=f"Technology document {i}", metadata={}) for i in range(10)
     ]
     await vector_store_with_docs.index_documents("test_index", documents)
 
-    result = await vector_store_with_docs.retrieval(
+    result = await vector_store_with_docs.retrieve(
         index_name="test_index", query="technology"
     )
 
@@ -122,12 +107,12 @@ async def test_retrieval_default_max_node_count(vector_store_with_docs):
 
 
 @pytest.mark.asyncio
-async def test_retrieval_nonexistent_index(vector_store_with_docs):
-    """Test retrieval with a non-existent index."""
+async def test_retrieve_nonexistent_index(vector_store_with_docs):
+    """Test retrieve with a non-existent index."""
     from fastapi import HTTPException
 
     with pytest.raises(HTTPException) as exc_info:
-        await vector_store_with_docs.retrieval(
+        await vector_store_with_docs.retrieve(
             index_name="nonexistent_index", query="test query"
         )
 
@@ -135,14 +120,14 @@ async def test_retrieval_nonexistent_index(vector_store_with_docs):
 
 
 @pytest.mark.asyncio
-async def test_retrieval_result_structure(vector_store_with_docs):
-    """Test that retrieval results have the correct structure."""
+async def test_retrieve_result_structure(vector_store_with_docs):
+    """Test that retrieve results have the correct structure."""
     documents = [
         Document(text="Python is great", metadata={"lang": "python"}),
     ]
     await vector_store_with_docs.index_documents("test_index", documents)
 
-    result = await vector_store_with_docs.retrieval(
+    result = await vector_store_with_docs.retrieve(
         index_name="test_index", query="Python programming", max_node_count=3
     )
 

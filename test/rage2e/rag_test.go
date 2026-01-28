@@ -1099,7 +1099,7 @@ func createAndValidateDeleteIndexPod(ragengineObj *kaitov1beta1.RAGEngine) error
 }
 
 func createAndValidateRetrievalPod(ragengineObj *kaitov1beta1.RAGEngine, expectedDocID string, expectedText string) error {
-	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/retrieval \
+	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/retrieve \
 -H "Content-Type: application/json" \
 -d '{
 	"index_name": "kaito",

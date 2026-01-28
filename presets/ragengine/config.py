@@ -93,5 +93,5 @@ RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO = float(
 RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION = float(
     os.getenv("RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION", 500)
 )
-# Maximum top_k value for retrieval to prevent excessive memory usage and latency
+# Maximum top_k value for retrieve to prevent excessive memory usage and latency
 RAG_MAX_TOP_K = int(os.getenv("RAG_MAX_TOP_K", 300))

@@ -41,7 +41,7 @@ from ragengine.config import (
 )
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
-from ragengine.inference.retrieval_llm import RetrievalLLM
+from ragengine.inference.retrieve_llm import RetrieveLLM
 from ragengine.models import (
     ChatCompletionResponse,
     Document,
@@ -320,7 +320,7 @@ class BaseVectorStore(ABC):
         )
 
         # Validate we have a user prompt. if not using tools/etc. we should have a user prompt
-        # as rag retrieval should only be run on user input.
+        # as rag retrieve should only be run on user input.
         if user_prompt == "":
             logger.error(
                 "There must be a user prompt since the latest assistant message."
@@ -815,7 +815,7 @@ class BaseVectorStore(ABC):
             logger.error(f"Failed to load index {index_name}. Error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
-    async def retrieval(
+    async def retrieve(
         self,
         index_name: str,
         query: str,
@@ -851,7 +851,7 @@ class BaseVectorStore(ABC):
             captured_source_nodes = []
 
             chat_engine = self.index_map[index_name].as_chat_engine(
-                llm=RetrievalLLM(
+                llm=RetrieveLLM(
                     messages_list=captured_messages,
                     nodes_list=captured_source_nodes,
                     original_llm=self.llm,
@@ -910,6 +910,6 @@ class BaseVectorStore(ABC):
         except Exception as e:
             import traceback
 
-            logger.error(f"Retrieval failed for index '{index_name}': {str(e)}")
+            logger.error(f"Retrieve failed for index '{index_name}': {str(e)}")
             logger.error(f"Traceback: {traceback.format_exc()}")
-            raise HTTPException(status_code=500, detail=f"Retrieval failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Retrieve failed: {str(e)}")

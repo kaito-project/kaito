@@ -59,7 +59,7 @@ class DeleteDocumentResponse(BaseModel):
     not_found_doc_ids: list[str]
 
 
-# Define models for NodeWithScore (must be before RetrievalResponse)
+# Define models for NodeWithScore (must be before RetrieveResponse)
 class NodeWithScore(BaseModel):
     doc_id: str
     node_id: str
@@ -68,9 +68,9 @@ class NodeWithScore(BaseModel):
     metadata: dict | None = None
 
 
-class RetrievalRequest(BaseModel):
+class RetrieveRequest(BaseModel):
     index_name: str = Field(..., description="Name of the index to retrieve from")
-    query: str = Field(..., description="User query string for retrieval")
+    query: str = Field(..., description="User query string for retrieve")
     max_node_count: int = Field(
         default=5,
         ge=1,
@@ -78,12 +78,12 @@ class RetrievalRequest(BaseModel):
         description=f"Maximum number of documents to return (default: 5, max: {RAG_MAX_TOP_K})",
     )
     metadata_filter: dict | None = Field(
-        default=None, description="Optional metadata filter for retrieval results"
+        default=None, description="Optional metadata filter for retrieve results"
     )
 
 
-class RetrievalResponse(BaseModel):
-    query: str = Field(..., description="The query used for retrieval")
+class RetrieveResponse(BaseModel):
+    query: str = Field(..., description="The query used for retrieve")
     results: list[NodeWithScore] = Field(
         ..., description="List of retrieved documents with scores"
     )

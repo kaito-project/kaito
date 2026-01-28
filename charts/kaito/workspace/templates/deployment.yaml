@@ -16,12 +16,12 @@ spec:
     metadata:
       {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
+        {{- include "utils.toYamlStrMap" . | nindent 8 }}
       {{- end }}
       labels:
         {{- include "kaito.selectorLabels" . | nindent 8 }}
         {{- with .Values.podTemplateLabels }}
-        {{- toYaml . | nindent 8 }}
+        {{- include "utils.toYamlStrMap" . | nindent 8 }}
         {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}

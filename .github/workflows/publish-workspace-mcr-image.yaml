@@ -60,11 +60,37 @@ jobs:
         run: |
           INDEX_REF="${REGISTRY}/${IMG_NAME}:${IMG_TAG}"
 
-          make docker-build-workspace IMG_TAG="${IMG_TAG}-linux"
-          LINUX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-linux")"
+          make docker-build-workspace IMG_TAG="${IMG_TAG}"
+          LINUX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
 
-          make helm-package-workspace IMG_TAG="${IMG_TAG}-chart"
-          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-chart")"
+          while true
+          do
+            MCR_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "mcr.microsoft.com/aks/kaito/${IMG_NAME}:${IMG_TAG}")"
+
+            if [ "${MCR_DIG}" != "${LINUX_DIG}" ]
+            then
+              echo -e "Waiting for MCR tag to be ${LINUX_DIG}, currently it is ${MCR_DIG}."
+              sleep 5
+            else
+              break
+            fi
+          done
+
+          make helm-package-workspace IMG_TAG="${IMG_TAG}"
+          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
+
+          while true
+          do
+            MCR_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "mcr.microsoft.com/aks/kaito/${IMG_NAME}:${IMG_TAG}")"
+
+            if [ "${MCR_DIG}" != "${CHART_DIG}" ]
+            then
+              echo -e "Waiting for MCR tag to be ${CHART_DIG}, currently it is ${MCR_DIG}."
+              sleep 5
+            else
+              break
+            fi
+          done
 
           oras manifest index create "${INDEX_REF}" "${LINUX_DIG}" "${CHART_DIG}"
         env:

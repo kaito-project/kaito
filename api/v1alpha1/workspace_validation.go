@@ -37,9 +37,6 @@ import (
 )
 
 const (
-	N_SERIES_PREFIX = "Standard_N"
-	D_SERIES_PREFIX = "Standard_D"
-
 	DefaultLoraConfigMapTemplate   = "lora-params-template"
 	DefaultQloraConfigMapTemplate  = "qlora-params-template"
 	DefaultInferenceConfigTemplate = "inference-params-template"
@@ -386,10 +383,16 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 		}
 	} else {
 		provider := os.Getenv("CLOUD_PROVIDER")
-		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
-			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
+		// For Azure, allow N-series and D-series SKUs even if not in the GPU SKU list
+		// These series may include non-GPU VMs. Use case-insensitive matching.
+		if provider == consts.AzureCloudName {
+			instanceTypeUpper := strings.ToUpper(instanceType)
+			if strings.HasPrefix(instanceTypeUpper, "STANDARD_N") || strings.HasPrefix(instanceTypeUpper, "STANDARD_D") {
+				// Valid Azure N-series or D-series SKU
+				return errs
+			}
 		}
+		errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 	}
 
 	// Validate labelSelector

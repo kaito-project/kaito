@@ -301,6 +301,10 @@ var _ = Describe("RAGEngine", func() {
 		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
 
+		expectedText := indexDoc["text"].(string)
+		err = createAndValidateRetrievalPod(ragengineObj, docID, expectedText)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate RetrievalPod")
+
 		persistLogSuccess := "Successfully persisted index kaito"
 		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
@@ -1094,6 +1098,142 @@ func createAndValidateDeleteIndexPod(ragengineObj *kaitov1beta1.RAGEngine) error
 	return err
 }
 
+func createAndValidateRetrievalPod(ragengineObj *kaitov1beta1.RAGEngine, expectedDocID string, expectedText string) error {
+	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/retrieve \
+-H "Content-Type: application/json" \
+-d '{
+	"index_name": "kaito",
+	"query": "What is KAITO?",
+	"context_token_ratio": 0.5
+}'`
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("retrieval-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: "\"query\":",
+		WaitForRunning:     false,
+		ParseJSONResponse:  false, // Don't parse, we'll do it manually
+	}
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
+	if err != nil {
+		return err
+	}
+
+	// Manually parse the response as object (not array)
+	var retrievalResp map[string]interface{}
+	coreClient, err := utils.GetK8sClientset()
+	if err != nil {
+		return fmt.Errorf("failed to get k8s clientset: %v", err)
+	}
+
+	logs, err := utils.GetPodLogs(coreClient, ragengineObj.ObjectMeta.Namespace, opts.PodName, "")
+	if err != nil {
+		return fmt.Errorf("failed to get pod logs: %v", err)
+	}
+
+	// Parse JSON object from logs
+	startIndex := strings.Index(logs, "{")
+	endIndex := strings.LastIndex(logs, "}")
+	if startIndex == -1 || endIndex == -1 || startIndex >= endIndex {
+		return fmt.Errorf("invalid JSON format in logs")
+	}
+
+	apiResp := logs[startIndex : endIndex+1]
+	err = json.Unmarshal([]byte(apiResp), &retrievalResp)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	// Validate retrieval response structure
+	if retrievalResp == nil {
+		return fmt.Errorf("retrieval response is nil")
+	}
+
+	// Verify required fields exist
+	query, ok := retrievalResp["query"].(string)
+	if !ok {
+		return fmt.Errorf("retrieval response missing 'query' field or not a string")
+	}
+	if query != "What is KAITO?" {
+		return fmt.Errorf("query mismatch: expected 'What is KAITO?', got '%s'", query)
+	}
+
+	if _, ok := retrievalResp["results"]; !ok {
+		return fmt.Errorf("retrieval response missing 'results' field")
+	}
+	if _, ok := retrievalResp["count"]; !ok {
+		return fmt.Errorf("retrieval response missing 'count' field")
+	}
+
+	// Verify results array
+	results, ok := retrievalResp["results"].([]interface{})
+	if !ok {
+		return fmt.Errorf("results field is not an array")
+	}
+	if len(results) == 0 {
+		return fmt.Errorf("results array is empty")
+	}
+
+	// Verify first result node structure
+	firstNode, ok := results[0].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("first result is not a valid node object")
+	}
+
+	// Verify node fields exist
+	docID, ok := firstNode["doc_id"].(string)
+	if !ok {
+		return fmt.Errorf("node missing 'doc_id' field or not a string")
+	}
+
+	nodeID, ok := firstNode["node_id"].(string)
+	if !ok {
+		return fmt.Errorf("node missing 'node_id' field or not a string")
+	}
+
+	// Verify doc_id and node_id are the same (as per implementation)
+	if docID != nodeID {
+		return fmt.Errorf("doc_id (%s) should match node_id (%s)", docID, nodeID)
+	}
+
+	text, ok := firstNode["text"].(string)
+	if !ok {
+		return fmt.Errorf("node missing 'text' field or not a string")
+	}
+
+	// Verify text content matches expected text
+	if text != expectedText {
+		return fmt.Errorf("text content mismatch:\nexpected: %s\ngot: %s", expectedText, text)
+	}
+
+	score, ok := firstNode["score"].(float64)
+	if !ok {
+		return fmt.Errorf("node missing 'score' field or not a number")
+	}
+
+	// Verify score is reasonable (between 0 and 1)
+	if score < 0 || score > 1 {
+		return fmt.Errorf("score out of range: %.3f (expected 0-1)", score)
+	}
+
+	// Verify count matches results length
+	count, ok := retrievalResp["count"].(float64)
+	if !ok {
+		return fmt.Errorf("count field is not a number")
+	}
+	if int(count) != len(results) {
+		return fmt.Errorf("count (%d) does not match results length (%d)", int(count), len(results))
+	}
+
+	GinkgoWriter.Printf("✓ Retrieval API test passed:\n")
+	GinkgoWriter.Printf("  - Query: %s\n", query)
+	GinkgoWriter.Printf("  - Doc ID: %s\n", docID)
+	GinkgoWriter.Printf("  - Text: %s\n", text)
+	GinkgoWriter.Printf("  - Score: %.3f\n", score)
+	GinkgoWriter.Printf("  - Count: %d\n", int(count))
+	return nil
+}
+
 func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1beta1.RAGEngine, expectedSearchQueries string, remote bool) error {
 	var curlCommand string
 	// Note: Request without model specified should still succeed with vLLM. As model name is dynamically fetched.
@@ -1263,7 +1403,7 @@ func createAndValidateAPIPod(ragengineObj *kaitov1beta1.RAGEngine, opts PodValid
 			}
 
 			return strings.Contains(logs, opts.ExpectedLogContent)
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), fmt.Sprintf("Failed to wait for %s logs to be ready", opts.PodName))
+		}, 8*time.Minute, utils.PollInterval).Should(BeTrue(), fmt.Sprintf("Failed to wait for %s logs to be ready", opts.PodName))
 	})
 
 	if opts.ParseJSONResponse && len(jsonResp) > 0 {

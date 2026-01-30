@@ -18,6 +18,8 @@ from openai.types.chat import (
 )
 from pydantic import BaseModel, Field
 
+from ragengine.config import RAG_MAX_TOP_K
+
 
 class Document(BaseModel):
     doc_id: str = Field(default="")
@@ -57,13 +59,35 @@ class DeleteDocumentResponse(BaseModel):
     not_found_doc_ids: list[str]
 
 
-# Define models for NodeWithScore
+# Define models for NodeWithScore (must be before RetrieveResponse)
 class NodeWithScore(BaseModel):
     doc_id: str
     node_id: str
     text: str
     score: float
     metadata: dict | None = None
+
+
+class RetrieveRequest(BaseModel):
+    index_name: str = Field(..., description="Name of the index to retrieve from")
+    query: str = Field(..., description="User query string for retrieve")
+    max_node_count: int = Field(
+        default=5,
+        ge=1,
+        le=RAG_MAX_TOP_K,
+        description=f"Maximum number of documents to return (default: 5, max: {RAG_MAX_TOP_K})",
+    )
+    metadata_filter: dict | None = Field(
+        default=None, description="Optional metadata filter for retrieve results"
+    )
+
+
+class RetrieveResponse(BaseModel):
+    query: str = Field(..., description="The query used for retrieve")
+    results: list[NodeWithScore] = Field(
+        ..., description="List of retrieved documents with scores"
+    )
+    count: int = Field(..., description="Number of retrieved documents")
 
 
 class HealthStatus(BaseModel):

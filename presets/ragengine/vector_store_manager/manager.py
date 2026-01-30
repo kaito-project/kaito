@@ -65,6 +65,21 @@ class VectorStoreManager:
         """Delete an index."""
         return await self.vector_store.delete_index(index_name)
 
+    async def retrieve(
+        self,
+        index_name: str,
+        query: str,
+        max_node_count: int = 5,
+        metadata_filter: dict | None = None,
+    ):
+        """Retrieve relevant documents from the index."""
+        return await self.vector_store.retrieve(
+            index_name=index_name,
+            query=query,
+            max_node_count=max_node_count,
+            metadata_filter=metadata_filter,
+        )
+
     async def shutdown(self):
         """Shutdown the manager."""
         await self.vector_store.shutdown()

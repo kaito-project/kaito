@@ -61,9 +61,8 @@ LLM_RERANKER_TOP_N = int(
 """
 
 # LLM (Large Language Model) configuration
-LLM_INFERENCE_URL = os.getenv(
-    "LLM_INFERENCE_URL", "http://localhost:5000/v1/completions"
-)
+# LLM_INFERENCE_URL will be None if InferenceService is not configured in RAGEngine spec
+LLM_INFERENCE_URL = os.getenv("LLM_INFERENCE_URL")
 LLM_ACCESS_SECRET = os.getenv("LLM_ACCESS_SECRET", "default-access-secret")
 LLM_CONTEXT_WINDOW = int(
     os.getenv("LLM_CONTEXT_WINDOW", 64000)
@@ -94,3 +93,5 @@ RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO = float(
 RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION = float(
     os.getenv("RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION", 500)
 )
+# Maximum top_k value for retrieve to prevent excessive memory usage and latency
+RAG_MAX_TOP_K = int(os.getenv("RAG_MAX_TOP_K", 300))

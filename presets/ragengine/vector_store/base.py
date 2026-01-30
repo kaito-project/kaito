@@ -36,10 +36,12 @@ from pydantic import ValidationError
 from ragengine.config import (
     RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO,
     RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION,
+    RAG_MAX_TOP_K,
     RAG_SIMILARITY_THRESHOLD,
 )
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
+from ragengine.inference.retrieve_llm import RetrieveLLM
 from ragengine.models import (
     ChatCompletionResponse,
     Document,
@@ -318,7 +320,7 @@ class BaseVectorStore(ABC):
         )
 
         # Validate we have a user prompt. if not using tools/etc. we should have a user prompt
-        # as rag retrieval should only be run on user input.
+        # as rag retrieve should only be run on user input.
         if user_prompt == "":
             logger.error(
                 "There must be a user prompt since the latest assistant message."
@@ -812,3 +814,102 @@ class BaseVectorStore(ABC):
         except Exception as e:
             logger.error(f"Failed to load index {index_name}. Error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
+
+    async def retrieve(
+        self,
+        index_name: str,
+        query: str,
+        max_node_count: int = 5,
+        metadata_filter: dict | None = None,
+    ):
+        """
+        Retrieve relevant documents based on a query string.
+        Uses the same chat_engine as chat_completion to ensure identical output.
+        """
+        if index_name not in self.index_map:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No such index: '{index_name}' exists.",
+            )
+
+        try:
+            # Direct query string, no message processing needed
+            user_prompt = query
+            chat_history = []
+
+            if not user_prompt or user_prompt.strip() == "":
+                raise HTTPException(
+                    status_code=400,
+                    detail="Query string cannot be empty.",
+                )
+
+            # Use max_node_count as top_k, but cap at RAG_MAX_TOP_K to prevent excessive resource usage
+            top_k = min(max_node_count, RAG_MAX_TOP_K)
+
+            # Create a custom LLM that captures the messages sent to it
+            captured_messages = []
+            captured_source_nodes = []
+
+            chat_engine = self.index_map[index_name].as_chat_engine(
+                llm=RetrieveLLM(
+                    messages_list=captured_messages,
+                    nodes_list=captured_source_nodes,
+                    original_llm=self.llm,
+                ),
+                similarity_top_k=top_k,
+                chat_mode=ChatMode.CONTEXT,
+            )
+
+            # Call chat_engine to build the context and messages
+            if self.use_rwlock:
+                async with self.rwlock.reader_lock:
+                    result = await chat_engine.achat(
+                        user_prompt, chat_history=chat_history
+                    )
+            else:
+                result = await chat_engine.achat(user_prompt, chat_history=chat_history)
+
+            logger.info(f"Captured {len(captured_messages)} messages from chat_engine")
+
+            # Get source nodes from the result
+            source_nodes_list = (
+                result.source_nodes if hasattr(result, "source_nodes") else []
+            )
+
+            # Apply metadata filter if provided
+            if metadata_filter:
+                source_nodes_list = [
+                    node
+                    for node in source_nodes_list
+                    if all(
+                        (node.node.metadata or {}).get(k) == v
+                        for k, v in metadata_filter.items()
+                    )
+                ]
+
+            # Convert source_nodes_list to serializable format
+            results = []
+            for node in source_nodes_list:
+                results.append(
+                    {
+                        "doc_id": node.node.node_id,  # Use node_id as doc_id
+                        "node_id": node.node.node_id,
+                        "text": node.node.get_content(),
+                        "score": node.score if node.score is not None else 0.0,
+                        "metadata": node.node.metadata if node.node.metadata else None,
+                    }
+                )
+
+            # Return the original retrieved nodes
+            return {
+                "query": user_prompt,
+                "results": results,
+                "count": len(results),
+            }
+
+        except Exception as e:
+            import traceback
+
+            logger.error(f"Retrieve failed for index '{index_name}': {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=f"Retrieve failed: {str(e)}")

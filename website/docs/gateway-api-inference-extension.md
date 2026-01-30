@@ -63,23 +63,23 @@ In this quickstart example, we will use Istio as the Gateway API provider to han
 First, install Istio base and control plane components, setting flags that enable Gateway API Inference Extension support in the data plane and pilot:
 
 ```bash
-# Based on https://github.com/istio/istio/commit/2d5fc65b386ac3c3eff28aee4040dce37923b9b7
-TAG=1.28-alpha.2d5fc65b386ac3c3eff28aee4040dce37923b9b7
-HUB=gcr.io/istio-testing
-helm upgrade -i istio-base oci://$HUB/charts/base --version $TAG -n istio-system --create-namespace
-helm upgrade -i istiod oci://$HUB/charts/istiod \
-  --version $TAG \
-  -n istio-system \
+helm repo add istio https://istio-release.storage.googleapis.com/charts
+helm repo update
+helm upgrade -i istio-base istio/base \
+  --version 1.28.3 \
+  --namespace istio-system \
+  --create-namespace
+helm upgrade -i istiod istio/istiod \
+  --version 1.28.3 \
+  --namespace istio-system \
   --set pilot.env.ENABLE_GATEWAY_API_INFERENCE_EXTENSION="true" \
-  --set tag=$TAG \
-  --set hub=$HUB \
   --wait
 ```
 
 Then, deploy Gateway API CRDs and create the Gateway resource that will handle incoming requests and integrate with GWIE per the example configuration:
 
 ```bash
-kubectl apply -k https://github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.3.0
+kubectl apply -k "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.4.1"
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/gateway.yaml
 ```
 
@@ -295,7 +295,7 @@ Install the Body-Based Routing (BBR) Helm chart. BBR automatically extracts mode
 
 ```bash
 helm upgrade --install body-based-router oci://registry.k8s.io/gateway-api-inference-extension/charts/body-based-routing \
-  --version v1.0.0 \
+  --version v1.3.0 \
   --set provider.name=istio \
   --wait
 ```

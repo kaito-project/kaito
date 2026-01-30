@@ -4,6 +4,13 @@ metadata:
   name: inference-gateway
 spec:
   gatewayClassName: istio
+  # NOTE: Uncomment the following section allow incoming traffic from Azure external load balancers.
+  #       See: https://istio.io/latest/docs/setup/platform-setup/azure/ for more details.
+  # infrastructure:
+  #   annotations:
+  #     service.beta.kubernetes.io/port_80_health-probe_protocol: tcp
+  #     service.beta.kubernetes.io/port_443_health-probe_protocol: tcp
+  #     service.beta.kubernetes.io/port_15021_health-probe_protocol: tcp
   listeners:
   - name: http
     port: 80

@@ -16,7 +16,6 @@ sentencepiece==0.2.0
 jinja2>=3.1.0
 starlette>=0.49.1
 lmcache==0.3.10
-opencv-python-headless>=4.10.0.84
 
 # For accessing Ray dashboard. ray[default] version should be consistent with the one in vllm/vllm-openai:<vllm-version>.
 # Check with `docker run --entrypoint "" vllm/vllm-openai:<vllm-version> pip freeze | grep ray`

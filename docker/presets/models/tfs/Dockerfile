@@ -13,9 +13,14 @@ WORKDIR /workspace
 
 # Required for torch.compile
 RUN apt-get update -y && \
-    apt-get install --no-install-recommends -y \
-        curl gcc libc-dev perl \
-        libglib2.0-0 libgomp1 libgl1 && \
+    if dpkg -s libssl3t64 >/dev/null 2>&1; then \
+        apt-get install --only-upgrade -y openssl libssl3t64 openssl-provider-legacy; \
+    elif dpkg -s libssl3 >/dev/null 2>&1; then \
+        apt-get install --only-upgrade -y openssl libssl3; \
+    else \
+        apt-get install --only-upgrade -y openssl; \
+    fi && \
+    apt-get install --no-install-recommends curl gcc libc-dev perl -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 FROM dependencies AS base
@@ -24,9 +29,6 @@ COPY presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     uv pip install --system -q -r /workspace/requirements.txt
-
-# Fail fast if opencv can't load due to missing shared libraries.
-RUN python3 -c "import cv2; print('opencv', cv2.__version__)"
 
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \

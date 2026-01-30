@@ -2,7 +2,32 @@
 title: Presets
 ---
 
-The current supported model families with preset configurations are listed below.
+:::info What's NEW!
+
+**Best-effort huggingface vLLM model support**
+
+Starting from KAITO v0.9.0, generic Hugging Face models are supported on a best-effort basis. By specifying a Hugging Face model card ID as `inference.preset.name` in the KAITO workspace or InferenceSet configuration, you can run any Hugging Face inference model on KAITO. In this process, KAITO retrieves the model metadata from the Hugging Face website and generates model preset configurations by analyzing this data. During the creation of vLLM inference workloads, KAITO downloads the model weights directly from the Hugging Face site. Below is an example illustrating how to create a Hugging Face inference workload using the model card ID `Qwen/Qwen2-7B` from https://huggingface.co/Qwen/Qwen2-7B:
+
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: qwen2-7b
+resource:
+  instanceType: Standard_NC24ads_A100_v4
+  labelSelector:
+    matchLabels:
+      apps: qwen2-7b
+inference:
+  preset:
+    name: Qwen/Qwen2-7B
+```
+
+For certain Hugging Face models that require a Hugging Face token ID, you can specify it in `inference.preset.presetOptions.modelAccessSecret`.
+
+:::
+
+The current supported built-in model families with preset configurations are listed below.
 
 | Model Family                                | Compatible KAITO Versions |
 |---------------------------------------------|---------------------------|
@@ -16,9 +41,10 @@ The current supported model families with preset configurations are listed below
 | [phi-4](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/phi4)            | v0.4.5+                   |
 | [qwen](https://github.com/kaito-project/kaito/tree/main/presets/workspace/models/qwen)             | v0.4.1+                   |
 
+
 ## Validation
 
-Each preset model has its own hardware requirements in terms of GPU count and GPU memory defined in the respective `model.go` file. KAITO controller performs a validation check of whether the specified SKU and node count are sufficient to run the model or not. In case the provided SKU is not in the known list, the controller bypasses the validation check which means users need to ensure the model can run with the provided SKU.
+Each preset built-in model has its own hardware requirements in terms of GPU count and GPU memory defined in the respective `model.go` file. KAITO controller performs a validation check of whether the specified SKU and node count are sufficient to run the model or not. In case the provided SKU is not in the known list, the controller bypasses the validation check which means users need to ensure the model can run with the provided SKU.
 
 ## Distributed inference
 

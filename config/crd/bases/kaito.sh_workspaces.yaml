@@ -419,6 +419,12 @@ spec:
     - jsonPath: .status.conditions[?(@.type=="WorkspaceSucceeded")].status
       name: WorkspaceSucceeded
       type: string
+    - jsonPath: .status.targetNodeCount
+      name: TargetNodeCount
+      type: integer
+    - jsonPath: .status.state
+      name: State
+      type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date
@@ -691,6 +697,10 @@ spec:
                   - type
                   type: object
                 type: array
+              state:
+                description: State represents the current high-level state of the
+                  workspace.
+                type: string
               targetNodeCount:
                 description: |-
                   TargetNodeCount is used for recording the desired number of gpu nodes that needed for the workspace.

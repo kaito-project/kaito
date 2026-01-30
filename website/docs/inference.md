@@ -27,6 +27,27 @@ inference:
     name: "falcon-7b"
 ```
 
+:::info
+
+Starting from KAITO v0.9.0, generic Hugging Face models are supported on a best-effort basis. By specifying a Hugging Face model card ID as `inference.preset.name` in the KAITO workspace, you can run any Hugging Face model with a model architecture supported by vLLM on KAITO. Below is an example illustrating how to create a Hugging Face inference workload using the model card ID `Qwen/Qwen3-0.6B` from https://huggingface.co/Qwen/Qwen3-0.6B:
+
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: qwen3-06b
+resource:
+  instanceType: Standard_NC24ads_A100_v4
+  labelSelector:
+    matchLabels:
+      apps: qwen3-06b
+inference:
+  preset:
+    name: Qwen/Qwen3-0.6B
+```
+
+:::
+
 If a user runs KAITO in an on-premise Kubernetes cluster where GPU SKUs are unavailable, the GPU nodes can be pre-configured. The user should ensure that the corresponding vendor-specific GPU plugin is installed successfully in every prepared node, i.e. the node status should report a non-zero GPU resource in the allocatable field. For example:
 
 ```

@@ -29,7 +29,7 @@ inference:
 
 :::info
 
-Starting from KAITO v0.9.0, generic Hugging Face models are supported on a best-effort basis. By specifying a Hugging Face model card ID as `inference.preset.name` in the KAITO workspace, you can run any Hugging Face inference model on KAITO. Below is an example illustrating how to create a Hugging Face inference workload using the model card ID `Qwen/Qwen2-7B` from https://huggingface.co/Qwen/Qwen2-7B:
+Starting from KAITO v0.9.0, generic Hugging Face models are supported on a best-effort basis. By specifying a Hugging Face model card ID as `inference.preset.name` in the KAITO workspace, you can run any Hugging Face model with a model architecture supported by vLLM on KAITO. Below is an example illustrating how to create a Hugging Face inference workload using the model card ID `Qwen/Qwen2-7B` from https://huggingface.co/Qwen/Qwen2-7B:
 
 ```yaml
 apiVersion: kaito.sh/v1beta1

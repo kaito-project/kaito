@@ -4,9 +4,15 @@ title: Presets
 
 :::info What's NEW!
 
-**Best-effort huggingface vLLM model support**
+**Best-effort Hugging Face vLLM model support**
 
 Starting from KAITO v0.9.0, generic Hugging Face models are supported on a best-effort basis. By specifying a Hugging Face model card ID as `inference.preset.name` in the KAITO workspace or InferenceSet configuration, you can run any Hugging Face inference model on KAITO. In this process, KAITO retrieves the model metadata from the Hugging Face website and generates model preset configurations by analyzing this data. During the creation of vLLM inference workloads, KAITO downloads the model weights directly from the Hugging Face site. Below is an example illustrating how to create a Hugging Face inference workload using the model card ID `Qwen/Qwen2-7B` from https://huggingface.co/Qwen/Qwen2-7B:
+
+:::tip
+
+For certain Hugging Face models that require authentication, configure `inference.preset.presetOptions.modelAccessSecret` to reference a Secret containing a Hugging Face access token under the `HF_TOKEN` key.
+
+:::
 
 ```yaml
 apiVersion: kaito.sh/v1beta1
@@ -22,8 +28,6 @@ inference:
   preset:
     name: Qwen/Qwen2-7B
 ```
-
-For certain Hugging Face models that require a Hugging Face token ID, you can specify it in `inference.preset.presetOptions.modelAccessSecret`.
 
 :::
 

@@ -190,7 +190,7 @@ func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1b
 
 	// Check if selected nodes are ready in both NAP and BYO scenarios.
 	ready, err := c.nodeResourceManager.EnsureNodesReady(ctx, wObj, matchingNodes, existingNodeClaims)
-	if err != nil || !ready {
+	if err != nil {
 		return &reconcile.Result{}, err
 	} else if !ready {
 		// The node resource changes can not trigger workspace controller reconcile, so we need to requeue reconcile when don't proceed because of node resource not ready.

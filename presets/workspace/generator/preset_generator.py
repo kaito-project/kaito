@@ -136,12 +136,13 @@ class PresetGenerator:
             self.load_format = "mistral"
             self.config_format = "mistral"
             self.tokenizer_mode = "mistral"
-            config_file = "params.json"
+            config_files = ["params.json", "config.json"]
             selected_files = mistral_files
         elif safetensors:
-            config_file = "config.json"
+            config_files = ["config.json"]
             selected_files = safetensors
         else:
+            config_files = []
             selected_files = []
 
         if not selected_files:
@@ -152,26 +153,41 @@ class PresetGenerator:
         self.param.model_file_size_gb = math.ceil(total_bytes / (1024**3))
 
         logging.info("Fetching config for compute params...")
-        config_path = f"{self.model_repo}/{config_file}"
-        try:
-            # Try without token first
-            with HfFileSystem().open(config_path, "r") as f:
-                self.config = json.load(f)
-        except (GatedRepoError, PermissionError) as e:
-            logging.info(f"Unauthorized with no token. Token is required. {e}")
-            self.param.download_auth_required = True
-
-            # Try again with token
-            try:
-                with self.fs.open(config_path, "r") as f:
-                    self.config = json.load(f)
-            except Exception as e_auth:
-                logging.fatal(f"Failed to access model with token: {e_auth}")
+        if config_files:
+            self.config = self._load_config(config_files)
+            if self.config is None:
                 return
-        except Exception as e:
-            logging.fatal(f"Error accessing model: {e}")
+        else:
+            logging.fatal("No config file candidates found.")
             return
         logging.info(f"Model Config is {self.config}")
+
+    def _load_config(self, config_files: list[str]) -> dict | None:
+        for config_file in config_files:
+            config_path = f"{self.model_repo}/{config_file}"
+            try:
+                # Try without token first
+                with HfFileSystem().open(config_path, "r") as f:
+                    return json.load(f)
+            except FileNotFoundError:
+                continue
+            except (GatedRepoError, PermissionError) as e:
+                logging.info(f"Unauthorized with no token. Token is required. {e}")
+                self.param.download_auth_required = True
+                try:
+                    with self.fs.open(config_path, "r") as f:
+                        return json.load(f)
+                except FileNotFoundError:
+                    continue
+                except Exception as e_auth:
+                    logging.fatal(f"Failed to access model with token: {e_auth}")
+                    return None
+            except Exception as e:
+                logging.fatal(f"Error accessing model: {e}")
+                return None
+
+        logging.fatal(f"No config file found. Tried: {', '.join(config_files)}")
+        return None
 
     def parse_model_metadata(self):
         # Max context window

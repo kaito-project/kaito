@@ -200,8 +200,9 @@ func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1b
 	// we can go forward to workload reconciliation before ConditionTypeResourceStatus is set to true
 	resourceCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus))
 	if resourceCondition == nil || resourceCondition.Status != metav1.ConditionTrue {
-		return &reconcile.Result{}, nil
+		return &reconcile.Result{RequeueAfter: 2 * time.Second}, nil
 	}
+	klog.InfoS("resources for workspace are ready", "workspace", klog.KObj(wObj))
 
 	return nil, nil
 }

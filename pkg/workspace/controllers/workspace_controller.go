@@ -28,6 +28,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -185,20 +186,25 @@ func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1b
 			// Not enough ready nodeclaims, requeue and wait for next reconcile.
 			return &reconcile.Result{}, nil
 		}
-
-		// check node plugins ready
-		if ready, err := c.nodeResourceManager.CheckIfNodePluginsReady(ctx, wObj, existingNodeClaims); err != nil {
-			return &reconcile.Result{}, err
-		} else if !ready {
-			// The node resource changes can not trigger workspace controller reconcile, so we need to requeue reconcile when don't proceed because of node resource not ready.
-			return &reconcile.Result{RequeueAfter: 2 * time.Second}, nil
-		}
 	}
 
 	// Check if selected nodes are ready in both NAP and BYO scenarios.
-	_, err = c.nodeResourceManager.EnsureNodesReady(ctx, wObj, matchingNodes, existingNodeClaims)
+	ready, err := c.nodeResourceManager.EnsureNodesReady(ctx, wObj, matchingNodes, existingNodeClaims)
+	if err != nil {
+		return &reconcile.Result{}, err
+	} else if !ready {
+		// The node resource changes can not trigger workspace controller reconcile, so we need to requeue reconcile when don't proceed because of node resource not ready.
+		return &reconcile.Result{RequeueAfter: 2 * time.Second}, nil
+	}
 
-	return nil, err
+	// we can go forward to workload reconciliation before ConditionTypeResourceStatus is set to true
+	resourceCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus))
+	if resourceCondition == nil || resourceCondition.Status != metav1.ConditionTrue {
+		return &reconcile.Result{RequeueAfter: 2 * time.Second}, nil
+	}
+	klog.InfoS("resources for workspace are ready", "workspace", klog.KObj(wObj))
+
+	return nil, nil
 }
 
 func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {

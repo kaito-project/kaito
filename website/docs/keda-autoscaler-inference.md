@@ -6,7 +6,7 @@ title: KEDA Auto-Scaler for inference workloads
 
 ## Introduction
 
-LLM inference service is a basic and widely used feature in KAITO. As the number of waiting inference requests increases, scale more inference instances to prevent blocking. Conversely, reduce inference instances when requests decline to improve GPU resource utilization. Kubernetes Event Driven Autoscaling (KEDA) is well-suited for inference pod autoscaling. It enables event-driven, fine-grained scaling based on external metrics and triggers. KEDA supports a wide range of event sources (like custom metrics), allowing pods to scale precisely in response to workload demand. This flexibility and extensibility make KEDA ideal for dynamic, cloud-native applications that require responsive and efficient autoscaling.
+LLM inference service is a basic and widely used feature in KAITO. As the number of waiting inference requests increases, you should scale more inference instances to prevent blocking. Conversely, reduce inference instances when requests decline to improve GPU resource utilization. Kubernetes Event Driven Autoscaling (KEDA) is well-suited for inference pod autoscaling. It enables event-driven, fine-grained scaling based on external metrics and triggers. KEDA supports a wide range of event sources (like custom metrics), allowing pods to scale precisely in response to workload demand. This flexibility and extensibility make KEDA ideal for dynamic, cloud-native applications that require responsive and efficient autoscaling.
 
 To enable intelligent autoscaling for KAITO inference workloads using service monitoring metrics, utilize the following components and features:
 
@@ -24,7 +24,7 @@ The following diagram shows how KEDA KAITO Scaler integrates KAITO InferenceSet 
 
 ## Getting started
 
-### install KEDA
+### Install KEDA
 > The following example demonstrates how to install KEDA 2.x using Helm chart. For instructions on installing KEDA through other methods, refer to the [KEDA deployment documentation](https://github.com/kedacore/keda#deploying-keda).
 
 ```bash
@@ -132,7 +132,7 @@ EOF
 #### Install KEDA KAITO Scaler
 
 :::tip
-This component is required only when using metric-based KEDA scaler, ensure that KEDA KAITO Scaler is installed within the same namespace as KEDA.
+This component is required only when using metric-based KEDA scaler. Ensure that KEDA KAITO Scaler is installed within the same namespace as KEDA.
 :::
 
 ```bash
@@ -143,25 +143,21 @@ helm upgrade --install keda-kaito-scaler -n $KEDA_NAMESPACE keda-kaito-scaler/ke
 After a few seconds, the `keda-kaito-scaler` deployment starts.
 
 ```bash
-# kubectl get deployment keda-kaito-scaler -n kube-system
+# kubectl get deployment keda-kaito-scaler -n $KEDA_NAMESPACE
 NAME                READY   UP-TO-DATE   AVAILABLE   AGE
 keda-kaito-scaler   1/1     1            1           28h
 ```
 
-The `keda-kaito-scaler` provides a simplified configuration interface for scaling vLLM inference workloads, it directly scrapes metrics from inference pods, eliminating the need for a separate monitoring stack.
+The `keda-kaito-scaler` provides a simplified configuration interface for scaling vLLM inference workloads. It directly scrapes metrics from inference pods, eliminating the need for a separate monitoring stack.
 
 #### Example: Create a KAITO InferenceSet with annotations for running inference workloads
 
 - The following example creates an InferenceSet for the phi-4-mini model, using annotations with the prefix `scaledobject.kaito.sh/` to supply parameter inputs for the KEDA KAITO scaler.
 
-  - `scaledobject.kaito.sh/auto-provision`
-    - required, when set to `true`, the KEDA KAITO scaler automatically provisions a ScaledObject based on the `InferenceSet` object
-  - `scaledobject.kaito.sh/max-replicas`
-    - required, maximum number of replicas for the target InferenceSet
-  - `scaledobject.kaito.sh/metricName`
-    - optional, specifies the metric name collected from the vLLM pod, which is used for monitoring and triggering the scaling operation, default is `vllm:num_requests_waiting`, find all vllm metrics in [vLLM Production Metrics](https://docs.vllm.ai/en/stable/usage/metrics/#general-metrics)
-  - `scaledobject.kaito.sh/threshold`
-    - required, specifies the threshold for the monitored metric that triggers the scaling operation
+  - `scaledobject.kaito.sh/auto-provision` (required): When set to `true`, the KEDA KAITO scaler automatically provisions a ScaledObject based on the `InferenceSet` object.
+  - `scaledobject.kaito.sh/max-replicas` (required): Maximum number of replicas for the target InferenceSet.
+  - `scaledobject.kaito.sh/metricName` (optional): Specifies the metric name collected from the vLLM pod, which is used for monitoring and triggering the scaling operation. The default is `vllm:num_requests_waiting`. For all vLLM metrics, see [vLLM Production Metrics](https://docs.vllm.ai/en/stable/usage/metrics/#general-metrics).
+  - `scaledobject.kaito.sh/threshold` (required): Specifies the threshold for the monitored metric that triggers the scaling operation.
 
 ```bash
 cat <<EOF | kubectl apply -f -

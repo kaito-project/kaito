@@ -64,10 +64,11 @@ jobs:
           make docker-build-ragengine
           INDEX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
 
-          make helm-package-ragengine
-          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
-
-          oras manifest index update "${ARTF_REPO}@${INDEX_DIG}" --add "${CHART_DIG}" --tag "${IMG_TAG}"
+          # TODO(pedrotorres): remove REGISTRY override and uncomment all lines once sync problem is solved
+          make helm-package-ragengine REGISTRY="${REGISTRY}/helm"
+          # CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
+          #
+          # oras manifest index update "${ARTF_REPO}@${INDEX_DIG}" --add "${CHART_DIG}" --tag "${IMG_TAG}"
         env:
           VERSION: ${{ github.event.client_payload.tag || github.event.inputs.tag }}
           REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito

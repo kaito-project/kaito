@@ -369,19 +369,6 @@ func main() {}"""
         )
         assert result["updated_documents"][0].doc_id == ids[0]
 
-        # Check preexisting unchanged document case
-        result = await vector_store_manager.update_documents(
-            "test_index",
-            [
-                Document(
-                    doc_id=ids[0],
-                    text="Updated Fifth document",
-                    metadata={"type": "text"},
-                )
-            ],
-        )
-        assert result["unchanged_documents"][0].doc_id == ids[0]
-
         assert await vector_store_manager.document_exists(
             "test_index",
             Document(text="Updated Fifth document", metadata={"type": "text"}),
@@ -648,7 +635,46 @@ func main() {}"""
         assert result.documents[0].metadata["branch"] == "new_branch"
 
     @pytest.mark.asyncio
-    async def test_persist_and_load_as_seperate_index(self, vector_store_manager):
+    @respx.mock
+    @patch("requests.get")
+    async def test_persist_and_load_as_seperate_index(self, mock_get, vector_store_manager, monkeypatch):
+        import ragengine.config
+        import ragengine.inference.inference
+
+        monkeypatch.setattr(
+            ragengine.config,
+            "LLM_INFERENCE_URL",
+            "http://localhost:5000/v1/chat/completions",
+        )
+        monkeypatch.setattr(
+            ragengine.inference.inference,
+            "LLM_INFERENCE_URL",
+            "http://localhost:5000/v1/chat/completions",
+        )
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "data": [{"id": "mock-model", "max_model_len": 2048}]
+        }
+
+        mock_response = {
+            "id": "chatcmpl-test123",
+            "object": "chat.completion",
+            "model": "mock-model",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "This is a helpful response about the test document.",
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
+        }
+        respx.post("http://localhost:5000/v1/chat/completions").mock(
+            return_value=httpx.Response(200, json=mock_response)
+        )
+
         index_name, second_index_name = "test_index", "second_test_index"
         # Create multiple documents
         documents = [

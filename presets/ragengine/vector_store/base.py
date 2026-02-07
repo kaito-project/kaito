@@ -25,9 +25,16 @@ from typing import Any
 import aiorwlock
 from fastapi import HTTPException
 from llama_index.core import Document as LlamaDocument
-from llama_index.core import StorageContext, VectorStoreIndex, load_index_from_storage
+from llama_index.core import (
+    Settings,
+    SimpleKeywordTableIndex,
+    StorageContext,
+    VectorStoreIndex,
+    load_index_from_storage,
+)
 from llama_index.core.base.llms.types import MessageRole
 from llama_index.core.chat_engine.types import ChatMode
+from llama_index.core.node_parser import SimpleNodeParser
 from llama_index.core.storage.docstore import SimpleDocumentStore
 from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
@@ -51,6 +58,7 @@ from ragengine.models import (
 from ragengine.vector_store.node_processors.contex_selection_node_processor import (
     ContextSelectionProcessor,
 )
+from ragengine.vector_store.retriever.hybrid_retriever import HybridRetriever
 from ragengine.vector_store.transformers.custom_transformer import CustomTransformer
 
 # Configure logging
@@ -64,10 +72,12 @@ class BaseVectorStore(ABC):
         self.llm = Inference()
         self.embed_model = embed_model
         self.index_map = {}
+        self.keyword_index_map = {}
         # Use a reader/writer lock only if needed
         self.use_rwlock = use_rwlock
         self.rwlock = aiorwlock.RWLock() if self.use_rwlock else None
         self.custom_transformer = CustomTransformer()
+        self.node_parser = SimpleNodeParser()
 
     @staticmethod
     def generate_doc_id(text: str) -> str:
@@ -141,30 +151,46 @@ class BaseVectorStore(ABC):
             llama_docs.append(llama_doc)
             indexed_doc_ids[idx] = doc_id
 
+        nodes = await self.node_parser.aget_nodes_from_documents(llama_docs)
+        nodes = await self.custom_transformer.acall(nodes=nodes)
         if llama_docs:
             if self.use_rwlock:
                 async with self.rwlock.writer_lock:
-                    index = await asyncio.to_thread(
-                        VectorStoreIndex.from_documents,
-                        llama_docs,
+                    index = VectorStoreIndex(
+                        nodes=nodes,
                         storage_context=storage_context,
                         embed_model=self.embed_model,
                         use_async=True,
+                        transformations=[self.custom_transformer]
+                    )
+                    self.index_map[index_name] = index
+                    keyword_index = SimpleKeywordTableIndex(
+                        nodes=nodes,
+                        storage_context=storage_context,
+                        llm=self.llm,
                         transformations=[self.custom_transformer],
                     )
-                    index.set_index_id(index_name)
-                    self.index_map[index_name] = index
+                    self.keyword_index_map[index_name] = keyword_index
+                    index.set_index_id("vector")
+                    keyword_index.set_index_id("keyword")
             else:
-                index = await asyncio.to_thread(
-                    VectorStoreIndex.from_documents,
-                    llama_docs,
+                index = VectorStoreIndex(
+                    nodes=nodes,
                     storage_context=storage_context,
                     embed_model=self.embed_model,
                     use_async=True,
+                    transformations=[self.custom_transformer]
+                )
+                self.index_map[index_name] = index
+                keyword_index = SimpleKeywordTableIndex(
+                    nodes=nodes,
+                    storage_context=storage_context,
+                    llm=self.llm,
                     transformations=[self.custom_transformer],
                 )
-                index.set_index_id(index_name)
-                self.index_map[index_name] = index
+                self.keyword_index_map[index_name] = keyword_index
+                index.set_index_id("vector")
+                keyword_index.set_index_id("keyword")
         return indexed_doc_ids
 
     async def chat_completion(self, request: dict) -> ChatCompletionResponse:
@@ -484,6 +510,7 @@ class BaseVectorStore(ABC):
 
         if self.use_rwlock:
             async with self.rwlock.writer_lock:
+
                 retrieved_doc = await self.index_map[
                     index_name
                 ].docstore.aget_ref_doc_info(doc_id)
@@ -493,10 +520,28 @@ class BaseVectorStore(ABC):
                     )
                     return
                 # Proceed with insertion only if the document is absent
-                await asyncio.to_thread(self.index_map[index_name].insert, llama_doc)
+                nodes = await self.node_parser.aget_nodes_from_documents([llama_doc])
+                nodes = await self.custom_transformer.acall(nodes)
+                storage_context = self.index_map[index_name]._storage_context
+                storage_context.docstore.add_documents(nodes)
+                await asyncio.to_thread(self.index_map[index_name].insert_nodes, nodes)
+                await asyncio.to_thread(self.keyword_index_map[index_name].insert_nodes, nodes)
         else:
-            await asyncio.to_thread(self.index_map[index_name].insert, llama_doc)
-
+            retrieved_doc = await self.index_map[
+                index_name
+            ].docstore.aget_ref_doc_info(doc_id)
+            if retrieved_doc:
+                logger.info(
+                    f"Document {doc_id} already exists in index {index_name} (double-check). Skipping insertion."
+                )
+                return
+            # Proceed with insertion only if the document is absent
+            nodes = await self.node_parser.aget_nodes_from_documents([llama_doc])
+            nodes = await self.custom_transformer.acall(nodes)
+            storage_context = self.index_map[index_name]._storage_context
+            storage_context.docstore.add_documents(nodes)
+            await asyncio.to_thread(self.index_map[index_name].insert_nodes, nodes)
+            await asyncio.to_thread(self.keyword_index_map[index_name].insert_nodes, nodes)
     def list_indexes(self) -> list[str]:
         return list(self.index_map)
 
@@ -521,7 +566,13 @@ class BaseVectorStore(ABC):
                     await asyncio.gather(
                         *(
                             self.index_map[index_name].adelete_ref_doc(
-                                doc_id, delete_from_docstore=True
+                            doc_id, delete_from_docstore=True
+                            )
+                            for doc_id in doc_ids
+                        ),
+                        *(
+                            self.keyword_index_map[index_name].adelete_ref_doc(
+                                doc_id,
                             )
                             for doc_id in doc_ids
                         ),
@@ -531,7 +582,13 @@ class BaseVectorStore(ABC):
                 await asyncio.gather(
                     *(
                         self.index_map[index_name].adelete_ref_doc(
-                            doc_id, delete_from_docstore=True
+                        doc_id, delete_from_docstore=True
+                        )
+                        for doc_id in doc_ids
+                    ),
+                    *(
+                        self.keyword_index_map[index_name].adelete_ref_doc(
+                            doc_id,
                         )
                         for doc_id in doc_ids
                     ),
@@ -559,36 +616,58 @@ class BaseVectorStore(ABC):
         for document in documents:
             if document.doc_id in self.index_map[index_name].ref_doc_info:
                 found_docs.append(document)
-                llama_docs.append(
-                    LlamaDocument(
-                        id_=document.doc_id,
-                        text=document.text,
-                        metadata=document.metadata,
-                        excluded_llm_metadata_keys=[key for key in document.metadata],
-                    )
-                )
             else:
                 not_found_docs.append(document)
+        
+        llama_docs = [
+            LlamaDocument(
+                id_=doc.doc_id,
+                text=doc.text,
+                metadata=doc.metadata,
+                excluded_llm_metadata_keys=list(doc.metadata.keys()),
+            )
+            for doc in found_docs
+        ]
+        print(f"Updating {len(found_docs)} documents in index {index_name}.")
+
+        # Create nodes ONCE
+        nodes = await self.node_parser.aget_nodes_from_documents(llama_docs)
+        nodes = await self.custom_transformer.acall(nodes)
+        
+        if not found_docs:
+            return {
+                "updated_documents": [],
+                "unchanged_documents": [],
+                "not_found_documents": not_found_docs,
+            }
 
         try:
             if self.use_rwlock:
                 async with self.rwlock.writer_lock:
-                    refreshed_docs = self.index_map[index_name].refresh_ref_docs(
-                        llama_docs
-                    )
-            else:
-                refreshed_docs = self.index_map[index_name].refresh_ref_docs(llama_docs)
+                    print(f"Deleting {len(found_docs)} documents from index {index_name}.")
 
-            updated_docs = []
-            unchanged_docs = []
-            for doc, was_updated in zip(found_docs, refreshed_docs):
-                if was_updated:
-                    updated_docs.append(doc)
-                else:
-                    unchanged_docs.append(doc)
+                    for doc in found_docs:
+                        await self.index_map[index_name].adelete_ref_doc(doc.doc_id, delete_from_docstore=True)
+                        await self.keyword_index_map[index_name].adelete_ref_doc(doc.doc_id)
+                    
+                    self.index_map[index_name]._storage_context.docstore.add_documents(nodes)
+
+                    await asyncio.to_thread(self.index_map[index_name].insert_nodes, nodes)
+                    await asyncio.to_thread(self.keyword_index_map[index_name].insert_nodes, nodes)
+            else:
+                print(f"Deleting {len(found_docs)} documents from index {index_name}.")
+                for doc in found_docs:
+                    await self.index_map[index_name].adelete_ref_doc(doc.doc_id, delete_from_docstore=True)
+                    await self.keyword_index_map[index_name].adelete_ref_doc(doc.doc_id)
+                
+                self.index_map[index_name]._storage_context.docstore.add_documents(nodes)
+
+                await asyncio.to_thread(self.index_map[index_name].insert_nodes, nodes)
+                await asyncio.to_thread(self.keyword_index_map[index_name].insert_nodes, nodes)
+
             return {
-                "updated_documents": updated_docs,
-                "unchanged_documents": unchanged_docs,
+                "updated_documents": found_docs,
+                "unchanged_documents": [],
                 "not_found_documents": not_found_docs,
             }
         except NotImplementedError as e:
@@ -803,13 +882,25 @@ class BaseVectorStore(ABC):
             )
             # Load the index using the workspace's embedding model, assuming all indices
             # were created using the same embedding model currently in use.
-            loaded_index = await asyncio.to_thread(
+            loaded_vector_index = await asyncio.to_thread(
                 load_index_from_storage,
                 storage_context,
+                index_id="vector",
                 embed_model=self.embed_model,
                 show_progress=True,
+                llm=self.llm,
             )
-            self.index_map[index_name] = loaded_index
+            self.index_map[index_name] = loaded_vector_index
+
+            loaded_keyword_index = await asyncio.to_thread(
+                load_index_from_storage,
+                storage_context,
+                index_id="keyword",
+                embed_model=self.embed_model,
+                show_progress=True,
+                llm=self.llm,
+            )
+            self.keyword_index_map[index_name] = loaded_keyword_index
             logger.info(f"Successfully loaded index {index_name}.")
         except Exception as e:
             logger.error(f"Failed to load index {index_name}. Error: {str(e)}")
@@ -833,50 +924,25 @@ class BaseVectorStore(ABC):
             )
 
         try:
-            # Direct query string, no message processing needed
-            user_prompt = query
-            chat_history = []
+            vector_store_index = self.index_map[index_name]
+            keyword_index = self.keyword_index_map[index_name]
 
-            if not user_prompt or user_prompt.strip() == "":
-                raise HTTPException(
-                    status_code=400,
-                    detail="Query string cannot be empty.",
-                )
-
-            # Use max_node_count as top_k, but cap at RAG_MAX_TOP_K to prevent excessive resource usage
-            top_k = min(max_node_count, RAG_MAX_TOP_K)
-
-            # Create a custom LLM that captures the messages sent to it
-            captured_messages = []
-            captured_source_nodes = []
-
-            chat_engine = self.index_map[index_name].as_chat_engine(
-                llm=RetrieveLLM(
-                    messages_list=captured_messages,
-                    nodes_list=captured_source_nodes,
-                    original_llm=self.llm,
+            hybrid_retriever = HybridRetriever(
+                vector_retriever=vector_store_index.as_retriever(
+                    similarity_top_k=max_node_count
                 ),
-                similarity_top_k=top_k,
-                chat_mode=ChatMode.CONTEXT,
+                keyword_retriever=keyword_index.as_retriever(
+                    similarity_top_k=max_node_count
+                ),
             )
 
             # Call chat_engine to build the context and messages
             if self.use_rwlock:
                 async with self.rwlock.reader_lock:
-                    result = await chat_engine.achat(
-                        user_prompt, chat_history=chat_history
-                    )
+                    source_nodes_list = await hybrid_retriever.aretrieve(query)
             else:
-                result = await chat_engine.achat(user_prompt, chat_history=chat_history)
+                source_nodes_list = await hybrid_retriever.aretrieve(query)
 
-            logger.info(f"Captured {len(captured_messages)} messages from chat_engine")
-
-            # Get source nodes from the result
-            source_nodes_list = (
-                result.source_nodes if hasattr(result, "source_nodes") else []
-            )
-
-            # Apply metadata filter if provided
             if metadata_filter:
                 source_nodes_list = [
                     node
@@ -886,13 +952,13 @@ class BaseVectorStore(ABC):
                         for k, v in metadata_filter.items()
                     )
                 ]
-
+            
             # Convert source_nodes_list to serializable format
             results = []
             for node in source_nodes_list:
                 results.append(
                     {
-                        "doc_id": node.node.node_id,  # Use node_id as doc_id
+                        "doc_id": node.node.ref_doc_id,  # Use ref_doc_id as doc_id
                         "node_id": node.node.node_id,
                         "text": node.node.get_content(),
                         "score": node.score if node.score is not None else 0.0,
@@ -902,7 +968,7 @@ class BaseVectorStore(ABC):
 
             # Return the original retrieved nodes
             return {
-                "query": user_prompt,
+                "query": query,
                 "results": results,
                 "count": len(results),
             }

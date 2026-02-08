@@ -28,7 +28,6 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -141,13 +140,21 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 	return nil
 }
 
-func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (*reconcile.Result, error) {
+func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
 	defer func() {
-		if err := c.nodeResourceManager.SetResourceReadyConditionByStatus(ctx, wObj); err != nil {
-			klog.ErrorS(err, "failed to update resource status", "workspace", klog.KObj(wObj))
+		resourceReady, checkErr := c.nodeResourceManager.CheckResourceReady(ctx, wObj)
+		if checkErr != nil {
+			klog.ErrorS(checkErr, "failed to update resource status", "workspace", klog.KObj(wObj))
+			if err == nil {
+				err = checkErr
+				result = &reconcile.Result{}
+			}
+			return
+		}
+		if !resourceReady && err == nil && result == nil {
+			result = &reconcile.Result{RequeueAfter: 2 * time.Second}
 		}
 	}()
-
 	nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
 	if err != nil {
 		return &reconcile.Result{}, err
@@ -196,13 +203,6 @@ func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1b
 		// The node resource changes can not trigger workspace controller reconcile, so we need to requeue reconcile when don't proceed because of node resource not ready.
 		return &reconcile.Result{RequeueAfter: 2 * time.Second}, nil
 	}
-
-	// we can go forward to workload reconciliation before ConditionTypeResourceStatus is set to true
-	resourceCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus))
-	if resourceCondition == nil || resourceCondition.Status != metav1.ConditionTrue {
-		return &reconcile.Result{RequeueAfter: 2 * time.Second}, nil
-	}
-	klog.InfoS("resources for workspace are ready", "workspace", klog.KObj(wObj))
 
 	return nil, nil
 }

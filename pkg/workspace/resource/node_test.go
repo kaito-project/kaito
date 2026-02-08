@@ -743,7 +743,8 @@ func TestSetNodesReadyCondition_SetsToTrue(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-1",
 						Labels: map[string]string{
-							"workload": "test",
+							"workload":                     "test",
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -756,7 +757,8 @@ func TestSetNodesReadyCondition_SetsToTrue(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-2",
 						Labels: map[string]string{
-							"workload": "test",
+							"workload":                     "test",
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -850,7 +852,8 @@ func TestEnsureNodesReady(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-1",
 						Labels: map[string]string{
-							"workload": "test",
+							"workload":                     "test",
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -863,7 +866,8 @@ func TestEnsureNodesReady(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-2",
 						Labels: map[string]string{
-							"workload": "test",
+							"workload":                     "test",
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -898,43 +902,37 @@ func TestEnsureNodesReady(t *testing.T) {
 					TargetNodeCount: 3,
 				},
 			},
+			nodes: []*corev1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-1",
+						Labels: map[string]string{
+							"workload":                     "test",
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+						},
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-2",
+						Labels: map[string]string{
+							"workload":                     "test",
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{Type: corev1.NodeReady, Status: corev1.ConditionFalse},
+						},
+					},
+				},
+			},
 			setup: func(mockClient *test.MockClient) {
-				// Only 1 ready node, but target is 3
-				nodes := []corev1.Node{
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "node-1",
-							Labels: map[string]string{
-								"workload": "test",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{
-								{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
-							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "node-2",
-							Labels: map[string]string{
-								"workload": "test",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{
-								{Type: corev1.NodeReady, Status: corev1.ConditionFalse},
-							},
-						},
-					},
-				}
-
-				nodeList := &corev1.NodeList{Items: nodes}
-				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-					nl := args.Get(1).(*corev1.NodeList)
-					*nl = *nodeList
-				}).Return(nil)
-
 				// Mock status update calls
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
@@ -958,44 +956,38 @@ func TestEnsureNodesReady(t *testing.T) {
 					TargetNodeCount: 2,
 				},
 			},
+			nodes: []*corev1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-1",
+						Labels: map[string]string{
+							"workload":                     "test",
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+						},
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+						},
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-2",
+						Labels: map[string]string{
+							"workload":                     "test",
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+						},
+						DeletionTimestamp: &metav1.Time{}, // Being deleted
+					},
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+						},
+					},
+				},
+			},
 			setup: func(mockClient *test.MockClient) {
-				now := metav1.Now()
-				nodes := []corev1.Node{
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "node-1",
-							Labels: map[string]string{
-								"workload": "test",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{
-								{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
-							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "node-2",
-							Labels: map[string]string{
-								"workload": "test",
-							},
-							DeletionTimestamp: &now, // Being deleted
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{
-								{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
-							},
-						},
-					},
-				}
-
-				nodeList := &corev1.NodeList{Items: nodes}
-				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-					nl := args.Get(1).(*corev1.NodeList)
-					*nl = *nodeList
-				}).Return(nil)
-
 				// Mock status update calls
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
@@ -1062,29 +1054,23 @@ func TestEnsureNodesReady(t *testing.T) {
 					TargetNodeCount: 1,
 				},
 			},
-			setup: func(mockClient *test.MockClient) {
-				nodes := []corev1.Node{
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "node-1",
-							Labels: map[string]string{
-								"workload": "test",
-							},
-						},
-						Status: corev1.NodeStatus{
-							Conditions: []corev1.NodeCondition{
-								{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
-							},
+			nodes: []*corev1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-1",
+						Labels: map[string]string{
+							"workload":                     "test",
+							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
 						},
 					},
-				}
-
-				nodeList := &corev1.NodeList{Items: nodes}
-				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-					nl := args.Get(1).(*corev1.NodeList)
-					*nl = *nodeList
-				}).Return(nil)
-
+					Status: corev1.NodeStatus{
+						Conditions: []corev1.NodeCondition{
+							{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+						},
+					},
+				},
+			},
+			setup: func(mockClient *test.MockClient) {
 				// Mock status update calls - fail the condition update
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("status update failed")).Once()
@@ -1095,7 +1081,7 @@ func TestEnsureNodesReady(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name: "NAP enabled - Should succeed but log warning when node missing instance type label",
+			name: "NAP enabled - Should return false when node missing instance type label",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
@@ -1133,11 +1119,11 @@ func TestEnsureNodesReady(t *testing.T) {
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 			},
 			disableNodeAutoProvisioning: false, // NAP enabled
-			expectedReady:               true,  // Current behavior: succeeds despite warning
+			expectedReady:               false,
 			expectedError:               false,
 		},
 		{
-			name: "NAP enabled - Should succeed but log warning when node has mismatched instance type label",
+			name: "NAP enabled - Should return false when node has mismatched instance type label",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
@@ -1175,7 +1161,7 @@ func TestEnsureNodesReady(t *testing.T) {
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 			},
 			disableNodeAutoProvisioning: false, // NAP enabled
-			expectedReady:               true,  // Current behavior: succeeds despite warning
+			expectedReady:               false,
 			expectedError:               false,
 		},
 		{
@@ -1454,202 +1440,15 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 	}
 }
 
-func TestPropagateOwnedConditions(t *testing.T) {
-	tests := []struct {
-		name              string
-		workspace         *kaitov1beta1.Workspace
-		condition         kaitov1beta1.ConditionType
-		conditionTypes    []kaitov1beta1.ConditionType
-		setup             func(*test.MockClient)
-		expectedError     bool
-		expectedCondition metav1.ConditionStatus
-	}{
-		{
-			name: "Should set condition to false when first owned condition is false",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Status: kaitov1beta1.WorkspaceStatus{
-					Conditions: []metav1.Condition{
-						{
-							Type:    string(kaitov1beta1.ConditionTypeNodeClaimStatus),
-							Status:  metav1.ConditionFalse,
-							Reason:  "NodeClaimNotReady",
-							Message: "Not enough NodeClaims are ready",
-						},
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodeStatus),
-							Status: metav1.ConditionTrue,
-						},
-					},
-				},
-			},
-			condition: kaitov1beta1.ConditionTypeResourceStatus,
-			conditionTypes: []kaitov1beta1.ConditionType{
-				kaitov1beta1.ConditionTypeNodeClaimStatus,
-				kaitov1beta1.ConditionTypeNodeStatus,
-			},
-			setup: func(mockClient *test.MockClient) {
-				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe().Maybe()
-				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe().Maybe()
-			},
-			expectedError:     false,
-			expectedCondition: metav1.ConditionFalse,
-		},
-		{
-			name: "Should not update condition when all owned conditions are true",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Status: kaitov1beta1.WorkspaceStatus{
-					Conditions: []metav1.Condition{
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodeClaimStatus),
-							Status: metav1.ConditionTrue,
-						},
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodeStatus),
-							Status: metav1.ConditionTrue,
-						},
-					},
-				},
-			},
-			condition: kaitov1beta1.ConditionTypeResourceStatus,
-			conditionTypes: []kaitov1beta1.ConditionType{
-				kaitov1beta1.ConditionTypeNodeClaimStatus,
-				kaitov1beta1.ConditionTypeNodeStatus,
-			},
-			setup:         func(mockClient *test.MockClient) {},
-			expectedError: false,
-		},
-		{
-			name: "Should handle missing owned conditions gracefully",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Status: kaitov1beta1.WorkspaceStatus{
-					Conditions: []metav1.Condition{
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodeStatus),
-							Status: metav1.ConditionTrue,
-						},
-					},
-				},
-			},
-			condition: kaitov1beta1.ConditionTypeResourceStatus,
-			conditionTypes: []kaitov1beta1.ConditionType{
-				kaitov1beta1.ConditionTypeNodeClaimStatus, // Missing
-				kaitov1beta1.ConditionTypeNodeStatus,
-			},
-			setup:         func(mockClient *test.MockClient) {},
-			expectedError: false,
-		},
-		{
-			name: "Should return error when status update fails",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Status: kaitov1beta1.WorkspaceStatus{
-					Conditions: []metav1.Condition{
-						{
-							Type:    string(kaitov1beta1.ConditionTypeNodeClaimStatus),
-							Status:  metav1.ConditionFalse,
-							Reason:  "NodeClaimNotReady",
-							Message: "Not enough NodeClaims are ready",
-						},
-					},
-				},
-			},
-			condition: kaitov1beta1.ConditionTypeResourceStatus,
-			conditionTypes: []kaitov1beta1.ConditionType{
-				kaitov1beta1.ConditionTypeNodeClaimStatus,
-			},
-			setup: func(mockClient *test.MockClient) {
-				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
-				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("status update failed"))
-			},
-			expectedError: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockClient := test.NewClient()
-			tt.setup(mockClient)
-
-			manager := NewNodeManager(mockClient)
-			_, err := manager.VerifyOwnedConditions(context.Background(), tt.workspace, tt.condition, tt.conditionTypes)
-
-			if tt.expectedError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
-func TestSetResourceReadyCondition_SetsToTrue(t *testing.T) {
-	tests := []struct {
-		name          string
-		workspace     *kaitov1beta1.Workspace
-		setup         func(*test.MockClient)
-		expectedError bool
-	}{
-		{
-			name: "Should set ResourceReady condition to true when all owned conditions are true",
-			workspace: &kaitov1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Status: kaitov1beta1.WorkspaceStatus{
-					Conditions: []metav1.Condition{
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodeClaimStatus),
-							Status: metav1.ConditionTrue,
-						},
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodeStatus),
-							Status: metav1.ConditionTrue,
-						},
-					},
-				},
-			},
-			setup: func(mockClient *test.MockClient) {
-				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
-
-				// Mock status update - verify ResourceReady condition is set to True
-				mockClient.StatusMock.On("Update", mock.Anything, mock.MatchedBy(func(ws *kaitov1beta1.Workspace) bool {
-					// Find the ResourceStatus condition and verify it's set to True
-					for _, condition := range ws.Status.Conditions {
-						if condition.Type == string(kaitov1beta1.ConditionTypeResourceStatus) {
-							return condition.Status == metav1.ConditionTrue && condition.Reason == "workspaceResourceStatusSuccess"
-						}
-					}
-					return false
-				}), mock.Anything).Return(nil)
-			},
-			expectedError: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockClient := test.NewClient()
-			tt.setup(mockClient)
-
-			manager := NewNodeManager(mockClient)
-			err := manager.SetResourceReadyConditionByStatus(context.Background(), tt.workspace)
-
-			if tt.expectedError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
 func TestSetResourceReadyCondition(t *testing.T) {
 	tests := []struct {
-		name          string
-		workspace     *kaitov1beta1.Workspace
-		setup         func(*test.MockClient)
-		expectedError bool
+		name                        string
+		workspace                   *kaitov1beta1.Workspace
+		setup                       func(*test.MockClient)
+		disableNodeAutoProvisioning bool
+		expectedReady               bool
+		expectedError               bool
+		expectStatusUpdate          bool
 	}{
 		{
 			name: "Should set resource condition to true when all owned conditions are true",
@@ -1672,7 +1471,10 @@ func TestSetResourceReadyCondition(t *testing.T) {
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe().Maybe()
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe().Maybe()
 			},
-			expectedError: false,
+			disableNodeAutoProvisioning: false,
+			expectedReady:               true,
+			expectedError:               false,
+			expectStatusUpdate:          true,
 		},
 		{
 			name: "Should set resource condition to false when NodeClaim condition is false",
@@ -1697,7 +1499,10 @@ func TestSetResourceReadyCondition(t *testing.T) {
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe().Maybe()
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe().Maybe()
 			},
-			expectedError: false,
+			disableNodeAutoProvisioning: false,
+			expectedReady:               false,
+			expectedError:               false,
+			expectStatusUpdate:          true,
 		},
 		{
 			name: "Should set resource condition to false when Node condition is false",
@@ -1722,18 +1527,17 @@ func TestSetResourceReadyCondition(t *testing.T) {
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe().Maybe()
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe().Maybe()
 			},
-			expectedError: false,
+			disableNodeAutoProvisioning: false,
+			expectedReady:               false,
+			expectedError:               false,
+			expectStatusUpdate:          true,
 		},
 		{
-			name: "Should set resource condition to false when NodePlugin condition is false",
+			name: "Should set resource condition to false when NodeClaim condition is missing",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Status: kaitov1beta1.WorkspaceStatus{
 					Conditions: []metav1.Condition{
-						{
-							Type:   string(kaitov1beta1.ConditionTypeNodeClaimStatus),
-							Status: metav1.ConditionTrue,
-						},
 						{
 							Type:   string(kaitov1beta1.ConditionTypeNodeStatus),
 							Status: metav1.ConditionTrue,
@@ -1745,10 +1549,29 @@ func TestSetResourceReadyCondition(t *testing.T) {
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe().Maybe()
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe().Maybe()
 			},
-			expectedError: false,
+			disableNodeAutoProvisioning: false,
+			expectedReady:               true,
+			expectedError:               false,
+			expectStatusUpdate:          true,
 		},
 		{
-			name: "Should return error when propagateOwnedConditions fails",
+			name: "Should skip update when both conditions are missing",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Status: kaitov1beta1.WorkspaceStatus{
+					Conditions: []metav1.Condition{},
+				},
+			},
+			setup: func(mockClient *test.MockClient) {
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
+			},
+			disableNodeAutoProvisioning: false,
+			expectedReady:               false,
+			expectedError:               false,
+			expectStatusUpdate:          false,
+		},
+		{
+			name: "Should return error when setting false status update fails",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Status: kaitov1beta1.WorkspaceStatus{
@@ -1766,10 +1589,13 @@ func TestSetResourceReadyCondition(t *testing.T) {
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("status update failed"))
 			},
-			expectedError: true,
+			disableNodeAutoProvisioning: false,
+			expectedReady:               false,
+			expectedError:               true,
+			expectStatusUpdate:          true,
 		},
 		{
-			name: "Should return error when final status update fails",
+			name: "Should return error when setting true status update fails",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Status: kaitov1beta1.WorkspaceStatus{
@@ -1789,22 +1615,60 @@ func TestSetResourceReadyCondition(t *testing.T) {
 				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
 				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("final status update failed"))
 			},
-			expectedError: true,
+			disableNodeAutoProvisioning: false,
+			expectedReady:               false,
+			expectedError:               true,
+			expectStatusUpdate:          true,
+		},
+		{
+			name: "NAP disabled - Should set resource condition to true when Node condition is true and NodeClaim is ignored",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
+				Status: kaitov1beta1.WorkspaceStatus{
+					Conditions: []metav1.Condition{
+						{
+							Type:   string(kaitov1beta1.ConditionTypeNodeStatus),
+							Status: metav1.ConditionTrue,
+						},
+					},
+				},
+			},
+			setup: func(mockClient *test.MockClient) {
+				mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
+				mockClient.StatusMock.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+			},
+			disableNodeAutoProvisioning: true,
+			expectedReady:               true,
+			expectedError:               false,
+			expectStatusUpdate:          true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tt.disableNodeAutoProvisioning
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+			}()
+
 			mockClient := test.NewClient()
 			tt.setup(mockClient)
 
 			manager := NewNodeManager(mockClient)
-			err := manager.SetResourceReadyConditionByStatus(context.Background(), tt.workspace)
+			ready, err := manager.CheckResourceReady(context.Background(), tt.workspace)
 
+			assert.Equal(t, tt.expectedReady, ready)
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
+			}
+
+			if tt.expectStatusUpdate {
+				mockClient.StatusMock.AssertCalled(t, "Update", mock.Anything, mock.Anything, mock.Anything)
+			} else {
+				mockClient.StatusMock.AssertNotCalled(t, "Update", mock.Anything, mock.Anything, mock.Anything)
 			}
 		})
 	}

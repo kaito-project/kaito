@@ -144,24 +144,14 @@ func (c *NodeManager) EnsureNodesReady(ctx context.Context, wObj *kaitov1beta1.W
 
 	for _, node := range matchingNodes {
 		if resources.NodeIsReadyAndNotDeleting(node) {
-			readyCount++
-		}
-
-		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-			// If NAP is enabled, ensure the nodes have the instance type label set correctly and that it matches the workspace instance type.
-			instanceType, ok := node.Labels[corev1.LabelInstanceTypeStable]
-			var message string
-			if !ok {
-				message = fmt.Sprintf("Node %s is missing required instance type label", node.Name)
-			} else if instanceType != wObj.Resource.InstanceType {
-				message = fmt.Sprintf("Node %s instance type label %s does not match workspace instance type %s", node.Name, instanceType, wObj.Resource.InstanceType)
-			}
-
-			if message != "" {
-				if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeStatus, metav1.ConditionFalse,
-					"NodeNotReady", message); updateErr != nil {
-					return false, fmt.Errorf("failed to update Node status condition(NodeNotReady): %w", updateErr)
+			if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+				// If NAP is enabled, ensure the nodes have the instance type label set correctly and that it matches the workspace instance type.
+				instanceType, ok := node.Labels[corev1.LabelInstanceTypeStable]
+				if ok && instanceType == wObj.Resource.InstanceType {
+					readyCount++
 				}
+			} else {
+				readyCount++
 			}
 		}
 	}
@@ -206,45 +196,53 @@ func (c *NodeManager) EnsureNodesReady(ctx context.Context, wObj *kaitov1beta1.W
 	}
 }
 
-// VerifyOwnedConditions checks the owned conditions, and if any one is false, it sets the condition to false with the reason and message of the first false condition found.
-func (c *NodeManager) VerifyOwnedConditions(ctx context.Context, wObj *kaitov1beta1.Workspace, condition kaitov1beta1.ConditionType, conditionTypes []kaitov1beta1.ConditionType) (bool, error) {
-	for _, cType := range conditionTypes {
-		ownedCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(cType))
-		if ownedCondition == nil {
-			continue // Condition not found, skip to the next one
-		} else if ownedCondition.Status != metav1.ConditionTrue {
-			// Set the owned condition to false with the reason and message of the first false condition found.
-			if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, condition, metav1.ConditionFalse, ownedCondition.Reason, ownedCondition.Message); err != nil {
-				klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-				return false, err
-			}
-			return false, nil
-		}
+// CheckResourceReady updates the resource ready condition based on owned conditions and returns whether it's true.
+func (c *NodeManager) CheckResourceReady(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, error) {
+	considerNodeClaim := !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+
+	nodeClaimCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(kaitov1beta1.ConditionTypeNodeClaimStatus))
+	nodeCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(kaitov1beta1.ConditionTypeNodeStatus))
+
+	if !considerNodeClaim {
+		nodeClaimCondition = nil
 	}
 
-	return true, nil
-}
+	nodeClaimExists := nodeClaimCondition != nil
+	nodeExists := nodeCondition != nil
 
-// SetResourceReadyConditionByStatus updates the status of the resource ready condition based on the statuses of owned conditions.
-func (c *NodeManager) SetResourceReadyConditionByStatus(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
-	ownedConditions := []kaitov1beta1.ConditionType{
-		kaitov1beta1.ConditionTypeNodeClaimStatus,
-		kaitov1beta1.ConditionTypeNodeStatus,
+	// If both conditions don't exist, skip setting the resource condition.
+	if !nodeClaimExists && !nodeExists {
+		return false, nil
 	}
 
-	// If any owned condition is false, set the resource condition to false and return.
-	if conditionTrue, err := c.VerifyOwnedConditions(ctx, wObj, kaitov1beta1.ConditionTypeResourceStatus, ownedConditions); err != nil {
-		return err
-	} else if conditionTrue {
-		// All owned conditions are true, set the resource condition to true.
+	// Only when all considered conditions exist and are true, set the resource condition to true.
+	if nodeExists && nodeCondition.Status == metav1.ConditionTrue && (!nodeClaimExists || nodeClaimCondition.Status == metav1.ConditionTrue) {
 		if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue,
 			"workspaceResourceStatusSuccess", "workspace resource is ready"); err != nil {
 			klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return err
+			return false, err
 		}
+		return true, nil
 	}
 
-	return nil
+	// Otherwise set the resource condition to false.
+	reason := "workspaceResourceStatusNotReady"
+	message := "node claim or node status condition not ready"
+	if nodeClaimExists && nodeClaimCondition.Status != metav1.ConditionTrue {
+		reason = nodeClaimCondition.Reason
+		message = nodeClaimCondition.Message
+	} else if nodeExists && nodeCondition.Status != metav1.ConditionTrue {
+		reason = nodeCondition.Reason
+		message = nodeCondition.Message
+	}
+
+	if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
+		reason, message); err != nil {
+		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
+		return false, err
+	}
+
+	return false, nil
 }
 
 // UpdateWorkerNodesInStatus updates the worker nodes list in workspace status.

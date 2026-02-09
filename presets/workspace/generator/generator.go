@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	SystemFileDiskSizeGiB  = 50
+	SystemFileDiskSizeGiB  = 60
 	DefaultModelTokenLimit = 2048
 	HuggingFaceWebsite     = "https://huggingface.co"
 )
@@ -152,7 +152,7 @@ func NewGenerator(modelRepo, token string) *Generator {
 	gen.Param.Metadata.ModelType = "tfs"
 	gen.Param.Metadata.Version = fmt.Sprintf("%s/%s", HuggingFaceWebsite, modelRepo)
 	gen.Param.Metadata.DownloadAtRuntime = true
-	gen.Param.Metadata.DiskStorageRequirement = "50Gi"
+	gen.Param.Metadata.DiskStorageRequirement = fmt.Sprintf("%dGi", SystemFileDiskSizeGiB)
 	gen.Param.Metadata.ModelFileSize = "0Gi"
 
 	return gen

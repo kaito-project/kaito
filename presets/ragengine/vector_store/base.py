@@ -28,7 +28,15 @@ from llama_index.core import Document as LlamaDocument
 from llama_index.core import StorageContext, VectorStoreIndex, load_index_from_storage
 from llama_index.core.base.llms.types import MessageRole
 from llama_index.core.chat_engine.types import ChatMode
+from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.storage.docstore import SimpleDocumentStore
+from llama_index.core.vector_stores.types import (
+    FilterCondition,
+    FilterOperator,
+    MetadataFilter,
+    MetadataFilters,
+)
+from llama_index.retrievers.bm25 import BM25Retriever
 from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
 from pydantic import ValidationError
@@ -845,54 +853,42 @@ class BaseVectorStore(ABC):
 
             # Use max_node_count as top_k, but cap at RAG_MAX_TOP_K to prevent excessive resource usage
             top_k = min(max_node_count, RAG_MAX_TOP_K)
+            metadata_filters = MetadataFilters(
+                filters=[
+                    MetadataFilter(
+                        key=key,
+                        value=value,
+                        operator=FilterOperator.EQ,
+                    ) for key, value in (metadata_filter or {}).items()
+                ],
+                condition=FilterCondition.AND,
+            )
 
-            # Create a custom LLM that captures the messages sent to it
-            captured_messages = []
-            captured_source_nodes = []
-
-            chat_engine = self.index_map[index_name].as_chat_engine(
-                llm=RetrieveLLM(
-                    messages_list=captured_messages,
-                    nodes_list=captured_source_nodes,
-                    original_llm=self.llm,
-                ),
-                similarity_top_k=top_k,
-                chat_mode=ChatMode.CONTEXT,
+            retriever = QueryFusionRetriever(
+                [
+                    self.index_map[index_name].as_retriever(similarity_top_k=top_k),
+                    BM25Retriever.from_defaults(
+                        docstore=self.index_map[index_name].docstore, similarity_top_k=top_k, filters=metadata_filters
+                    ),
+                ],
+                llm=self.llm,
+                num_queries=1,
+                use_async=True,
             )
 
             # Call chat_engine to build the context and messages
             if self.use_rwlock:
                 async with self.rwlock.reader_lock:
-                    result = await chat_engine.achat(
-                        user_prompt, chat_history=chat_history
-                    )
+                    source_nodes_list = await retriever.aretrieve(user_prompt)
             else:
-                result = await chat_engine.achat(user_prompt, chat_history=chat_history)
-
-            logger.info(f"Captured {len(captured_messages)} messages from chat_engine")
-
-            # Get source nodes from the result
-            source_nodes_list = (
-                result.source_nodes if hasattr(result, "source_nodes") else []
-            )
-
-            # Apply metadata filter if provided
-            if metadata_filter:
-                source_nodes_list = [
-                    node
-                    for node in source_nodes_list
-                    if all(
-                        (node.node.metadata or {}).get(k) == v
-                        for k, v in metadata_filter.items()
-                    )
-                ]
+                source_nodes_list = await retriever.aretrieve(user_prompt)
 
             # Convert source_nodes_list to serializable format
             results = []
             for node in source_nodes_list:
                 results.append(
                     {
-                        "doc_id": node.node.node_id,  # Use node_id as doc_id
+                        "doc_id": node.node.ref_doc_id,  # Use ref_doc_id as doc_id
                         "node_id": node.node.node_id,
                         "text": node.node.get_content(),
                         "score": node.score if node.score is not None else 0.0,

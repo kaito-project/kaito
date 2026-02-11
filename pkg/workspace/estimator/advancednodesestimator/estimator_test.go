@@ -446,6 +446,146 @@ func TestAdvancedNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 	}
 }
 
+func TestAdvancedNodesEstimator_EstimateNodeCount_MIG(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	ctx := context.Background()
+	calculator := &AdvancedNodesEstimator{}
+
+	tests := []struct {
+		name          string
+		workspace     *kaitov1beta1.Workspace
+		expectedCount int32
+		expectedError bool
+		errorContains string
+	}{
+		{
+			name: "MIG: model fits in MIG slice - returns 1 node",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-mig-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					MIG: &kaitov1beta1.MIGSpec{
+						Profile: "1g.10gb",
+						Count:   ptr.To(1),
+					},
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-mig-small-model", // 4Gi fits in 10gb slice
+						},
+					},
+				},
+			},
+			expectedCount: 1,
+			expectedError: false,
+		},
+		{
+			name: "MIG: model fits with multiple MIG slices - still returns 1 node",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-mig-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					MIG: &kaitov1beta1.MIGSpec{
+						Profile: "1g.10gb",
+						Count:   ptr.To(3),
+					},
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-mig-small-model",
+						},
+					},
+				},
+			},
+			expectedCount: 1,
+			expectedError: false,
+		},
+		{
+			name: "MIG: model too large for MIG slice - returns error",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-mig-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					MIG: &kaitov1beta1.MIGSpec{
+						Profile: "1g.5gb",
+						Count:   ptr.To(1),
+					},
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-model", // 8Gi does not fit in 5gb slice
+						},
+					},
+				},
+			},
+			expectedCount: 0,
+			expectedError: true,
+			errorContains: "MIG profile",
+		},
+		{
+			name: "MIG: nil count defaults to 1 - model fits",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-mig-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					MIG: &kaitov1beta1.MIGSpec{
+						Profile: "1g.10gb",
+						Count:   nil,
+					},
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-mig-small-model",
+						},
+					},
+				},
+			},
+			expectedCount: 1,
+			expectedError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Enable MIG and BYO feature gates
+			origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+			origBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origBYO
+			}()
+
+			count, err := calculator.EstimateNodeCount(ctx, tt.workspace, nil)
+
+			if tt.expectedError {
+				require.Error(t, err)
+				if tt.errorContains != "" {
+					assert.Contains(t, err.Error(), tt.errorContains)
+				}
+				assert.Equal(t, tt.expectedCount, count)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedCount, count)
+			}
+		})
+	}
+}
+
 func TestAdvancedNodesEstimator_EstimateNodeCount_Falcon7B(t *testing.T) {
 	// Set the cloud provider environment variable for SKU lookup
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)

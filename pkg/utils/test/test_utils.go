@@ -373,6 +373,33 @@ var (
 	}
 )
 
+// MockWorkspaceWithMIGPresetVLLM is a workspace with MIG spec for testing MIG inference.
+var MockWorkspaceWithMIGPresetVLLM = &v1beta1.Workspace{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:      "testMIGWorkspace",
+		Namespace: "kaito",
+	},
+	Resource: v1beta1.ResourceSpec{
+		Count: &gpuNodeCount,
+		MIG: &v1beta1.MIGSpec{
+			Profile: "1g.10gb",
+			Count:   lo.ToPtr(1),
+		},
+		LabelSelector: &metav1.LabelSelector{
+			MatchLabels: map[string]string{
+				"apps": "mig-enabled",
+			},
+		},
+	},
+	Inference: &v1beta1.InferenceSpec{
+		Preset: &v1beta1.PresetSpec{
+			PresetMeta: v1beta1.PresetMeta{
+				Name: "test-mig-small-model",
+			},
+		},
+	},
+}
+
 var MockWorkspaceWithPresetHash = "89ae127050ec264a5ce84db48ef7226574cdf1299e6bd27fe90b927e34cc8adb"
 
 var (

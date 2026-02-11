@@ -255,6 +255,26 @@ func createGemma3_27BInstructWorkspaceWithPresetPublicMode(numOfNode int) *kaito
 	return workspaceObj
 }
 
+func createMIGWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with MIG partition for phi-4-mini", func() {
+		uniqueID := fmt.Sprint("preset-mig-phi4-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
+			numOfNode, "", &metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "mig-e2e-test"},
+			}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")
+
+		// Set MIG spec for BYO node scheduling
+		workspaceObj.Resource.MIG = &kaitov1beta1.MIGSpec{
+			Profile: "1g.10gb",
+			Count:   lo.ToPtr(1),
+		}
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
 func createCustomTuningConfigMapForE2E() *corev1.ConfigMap {
 	configMap := utils.GenerateE2ETuningConfigMapManifest(namespaceName)
 
@@ -1410,6 +1430,26 @@ var _ = Describe("Workspace Preset", func() {
 		validateTuningJobInputOutput(workspaceObj, "", "", intputVolume2, outputVolume2)
 
 		validateRevision(workspaceObj, "2")
+	})
+
+	// MIG-specific E2E test - only runs when MIG-capable GPU nodes are available
+	It("should create a phi-4-mini workspace on MIG partition successfully", utils.GinkgoLabelMIGRequired, func() {
+		numOfNode := 1
+		workspaceObj := createMIGWorkspaceWithPresetPublicMode(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
 	})
 
 })

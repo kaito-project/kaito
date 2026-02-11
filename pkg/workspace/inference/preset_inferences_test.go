@@ -29,6 +29,7 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	model "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -1101,6 +1102,94 @@ func TestSetModelDownloadInfo(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestGeneratePresetInference_MIGPodSpec(t *testing.T) {
+	test.RegisterTestModel()
+
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
+
+	// Enable MIG and BYO feature gates
+	origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+	origBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origBYO
+	}()
+
+	workspace := test.MockWorkspaceWithMIGPresetVLLM.DeepCopy()
+	workspace.Annotations = map[string]string{
+		v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameVLLM),
+	}
+	nodeCount := 1
+	workspace.Resource.Count = &nodeCount
+	workspace.Status.WorkerNodes = []string{"mig-node-1"}
+
+	// Estimate node count for MIG
+	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
+	count, err := estimator.EstimateNodeCount(t.Context(), workspace, nil)
+	if err != nil {
+		t.Fatalf("failed to estimate node count: %v", err)
+	}
+	workspace.Status.TargetNodeCount = int32(count)
+
+	mockClient := test.NewClient()
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      workspace.Name,
+			Namespace: workspace.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			ClusterIP: "10.0.0.1",
+		},
+	}
+	mockClient.CreateOrUpdateObjectInMap(svc)
+
+	migModel := plugin.KaitoModelRegister.MustGet("test-mig-small-model")
+	createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, migModel, mockClient)
+	if err != nil {
+		t.Fatalf("GeneratePresetInference failed: %v", err)
+	}
+
+	statefulset := createdObject.(*appsv1.StatefulSet)
+	container := statefulset.Spec.Template.Spec.Containers[0]
+
+	// Verify MIG resource name is used instead of nvidia.com/gpu
+	migResourceName := corev1.ResourceName("nvidia.com/mig-1g.10gb")
+	if qty, ok := container.Resources.Requests[migResourceName]; !ok {
+		t.Errorf("expected MIG resource %s in requests, got: %v", migResourceName, container.Resources.Requests)
+	} else if qty.Value() != 1 {
+		t.Errorf("expected MIG resource quantity 1, got %d", qty.Value())
+	}
+	if qty, ok := container.Resources.Limits[migResourceName]; !ok {
+		t.Errorf("expected MIG resource %s in limits, got: %v", migResourceName, container.Resources.Limits)
+	} else if qty.Value() != 1 {
+		t.Errorf("expected MIG resource limit quantity 1, got %d", qty.Value())
+	}
+
+	// Verify standard nvidia.com/gpu is NOT present
+	stdGPU := corev1.ResourceName("nvidia.com/gpu")
+	if _, ok := container.Resources.Requests[stdGPU]; ok {
+		t.Errorf("expected nvidia.com/gpu to NOT be in requests for MIG workspace")
+	}
+
+	// Verify MIG toleration is present
+	foundMIGToleration := false
+	for _, tol := range statefulset.Spec.Template.Spec.Tolerations {
+		if tol.Key == "nvidia.com/mig-1g.10gb" && tol.Effect == corev1.TaintEffectNoSchedule && tol.Operator == corev1.TolerationOpExists {
+			foundMIGToleration = true
+			break
+		}
+	}
+	if !foundMIGToleration {
+		t.Errorf("expected MIG toleration for nvidia.com/mig-1g.10gb, got: %v", statefulset.Spec.Template.Spec.Tolerations)
 	}
 }
 

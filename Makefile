@@ -170,7 +170,7 @@ inference-api-e2e: ## Run inference API e2e tests with pytest.
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
-GINKGO_LABEL ?= !A100Required
+GINKGO_LABEL ?= !A100Required && !MIGRequired
 GINKGO_NODES ?= 2
 GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 120m

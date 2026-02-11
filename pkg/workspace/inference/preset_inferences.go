@@ -35,6 +35,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
@@ -179,6 +180,15 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 }
 
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
+	// MIG path: build GPU config from MIG spec
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && ctx.Workspace.Resource.MIG != nil {
+		migCount := 1
+		if ctx.Workspace.Resource.MIG.Count != nil {
+			migCount = *ctx.Workspace.Resource.MIG.Count
+		}
+		return utils.GetMIGGPUConfig(ctx.Workspace.Resource.MIG.Profile, migCount)
+	}
+
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
 		// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
@@ -323,12 +333,17 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		}
 
 		// resource requirements
+		gpuResourceName := corev1.ResourceName(resources.CapacityNvidiaGPU)
+		gpuCount := int64(gpuConfig.GPUCount)
+		if gpuConfig.IsMIG {
+			gpuResourceName = corev1.ResourceName(mig.MIGResourceName(gpuConfig.MIGProfile))
+		}
 		resourceReq := corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
+				gpuResourceName: *resource.NewQuantity(gpuCount, resource.DecimalSI),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
+				gpuResourceName: *resource.NewQuantity(gpuCount, resource.DecimalSI),
 			},
 		}
 
@@ -396,6 +411,14 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			},
 		}
 		spec.Tolerations = tolerations
+		// Add MIG-specific toleration
+		if gpuConfig.IsMIG {
+			spec.Tolerations = append(spec.Tolerations, corev1.Toleration{
+				Effect:   corev1.TaintEffectNoSchedule,
+				Operator: corev1.TolerationOpExists,
+				Key:      mig.MIGResourceName(gpuConfig.MIGProfile),
+			})
+		}
 		spec.Volumes = volumes
 
 		return nil

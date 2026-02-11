@@ -97,6 +97,15 @@ func CheckNvidiaPlugin(ctx context.Context, nodeObj *corev1.Node) bool {
 	return false
 }
 
+// CheckMIGPlugin checks if a node has the specified MIG resource available.
+func CheckMIGPlugin(ctx context.Context, nodeObj *corev1.Node, migResourceName string) bool {
+	capacity := nodeObj.Status.Capacity
+	if capacity != nil && !capacity.Name(corev1.ResourceName(migResourceName), "").IsZero() {
+		return true
+	}
+	return false
+}
+
 func ExtractObjFields(obj client.Object) (instanceType, namespace, name string, labelSelector *metav1.LabelSelector,
 	nameLabel, namespaceLabel string, err error) {
 	switch o := obj.(type) {

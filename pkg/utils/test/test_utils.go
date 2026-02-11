@@ -1336,3 +1336,8 @@ func NotFoundError() error {
 func IsAlreadyExistsError() error {
 	return &apierrors.StatusError{ErrStatus: metav1.Status{Reason: metav1.StatusReasonAlreadyExists}}
 }
+
+// Ptr returns a pointer to the given value.
+func Ptr[T any](v T) *T {
+	return &v
+}

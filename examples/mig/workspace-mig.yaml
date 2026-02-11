@@ -1,0 +1,15 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: phi-4-mini-mig
+spec:
+  resource:
+    labelSelector:
+      matchLabels:
+        apps: mig-enabled-node
+    mig:
+      profile: "1g.10gb"
+      count: 1
+  inference:
+    preset:
+      name: "phi-4-mini"

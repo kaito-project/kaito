@@ -479,6 +479,7 @@ func TestGetGPUConfig(t *testing.T) {
 		model                       string
 		callMocks                   func(c *test.MockClient)
 		disableNodeAutoProvisioning bool
+		enableMIG                   bool
 		expectedConfig              *sku.GPUConfig
 		expectedErr                 string
 	}{
@@ -593,6 +594,31 @@ func TestGetGPUConfig(t *testing.T) {
 			expectedConfig:              nil,
 			expectedErr:                 "invalid value: Unsupported SKU 'unknown-instance-type' for cloud provider: sku",
 		},
+		"MIG path - get config from MIG spec": {
+			workspace: &v1beta1.Workspace{
+				Resource: v1beta1.ResourceSpec{
+					InstanceType:  "",
+					LabelSelector: &metav1.LabelSelector{},
+					MIG: &v1beta1.MIGSpec{
+						Profile: "1g.10gb",
+						Count:   test.Ptr(1),
+					},
+				},
+			},
+			model: "test-mig-small-model",
+			callMocks: func(c *test.MockClient) {
+			},
+			disableNodeAutoProvisioning: true,
+			enableMIG:                   true,
+			expectedConfig: &sku.GPUConfig{
+				SKU:        "unknown",
+				GPUCount:   1,
+				GPUMemGiB:  10,
+				IsMIG:      true,
+				MIGProfile: "1g.10gb",
+			},
+			expectedErr: "",
+		},
 	}
 
 	for k, tc := range testcases {
@@ -602,6 +628,14 @@ func TestGetGPUConfig(t *testing.T) {
 			defer func() {
 				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
 			}()
+
+			if tc.enableMIG {
+				originalMIGGate := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+				featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+				defer func() {
+					featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = originalMIGGate
+				}()
+			}
 
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
@@ -658,6 +692,14 @@ func TestGetGPUConfig(t *testing.T) {
 			// Check NVMeDiskEnabled if expected
 			if tc.expectedConfig.NVMeDiskEnabled && !config.NVMeDiskEnabled {
 				t.Errorf("Expected NVMeDiskEnabled to be true, got false")
+			}
+
+			// Check MIG fields
+			if config.IsMIG != tc.expectedConfig.IsMIG {
+				t.Errorf("Expected IsMIG %v, got %v", tc.expectedConfig.IsMIG, config.IsMIG)
+			}
+			if tc.expectedConfig.MIGProfile != "" && config.MIGProfile != tc.expectedConfig.MIGProfile {
+				t.Errorf("Expected MIGProfile %s, got %s", tc.expectedConfig.MIGProfile, config.MIGProfile)
 			}
 		})
 	}

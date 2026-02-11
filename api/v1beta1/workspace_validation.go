@@ -37,6 +37,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
@@ -365,6 +366,59 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		return errs
 	}
 
+	// MIG validation
+	if r.MIG != nil {
+		if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
+			errs = errs.Also(apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "mig"))
+			return errs
+		}
+		if err := mig.ValidateMIGProfile(r.MIG.Profile); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(err.Error(), "mig.profile"))
+			return errs
+		}
+		if r.MIG.Count != nil && *r.MIG.Count <= 0 {
+			errs = errs.Also(apis.ErrInvalidValue("MIG count must be greater than 0", "mig.count"))
+			return errs
+		}
+		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+			errs = errs.Also(apis.ErrGeneric("MIG is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "mig"))
+			return errs
+		}
+		// Check if the model fits in the MIG partition
+		if presetName != "" {
+			modelPreset, err := models.GetModelByName(ctx, presetName, secretName, wsNamespace, k8sclient.Client)
+			if err == nil {
+				params := modelPreset.GetInferenceParameters()
+				_, memGB, parseErr := mig.ParseMIGProfile(r.MIG.Profile)
+				if parseErr == nil && params != nil {
+					modelMem := resource.MustParse(params.TotalSafeTensorFileSize)
+					migMem := resource.NewQuantity(int64(memGB)*consts.GiBToBytes, resource.BinarySI)
+					if migMem.Cmp(modelMem) < 0 {
+						if bypassResourceChecks {
+							klog.Warningf("Bypassing MIG resource check: model %s requires %s but MIG profile %s only provides %dGB",
+								presetName, modelMem.String(), r.MIG.Profile, memGB)
+						} else {
+							errs = errs.Also(apis.ErrInvalidValue(
+								fmt.Sprintf("Model %s requires %s but MIG profile %s only provides %dGB",
+									presetName, modelMem.String(), r.MIG.Profile, memGB),
+								"mig.profile"))
+						}
+					}
+					if params.DisableTensorParallelism == false && params.GPUCountRequirement != "1" {
+						if !bypassResourceChecks {
+							errs = errs.Also(apis.ErrInvalidValue(
+								fmt.Sprintf("Model %s requires %s GPUs with tensor parallelism, which is not supported on MIG partitions",
+									presetName, params.GPUCountRequirement),
+								"mig"))
+						}
+					}
+				}
+			}
+		}
+		// MIG workloads skip the standard GPU checks below since they use different resource types
+		return errs
+	}
+
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 
 	if napDisabled {
@@ -511,6 +565,11 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	// We disable changing node count for now.
 	if r.Count != nil && old.Count != nil && *r.Count != *old.Count {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "count"))
+	}
+
+	// MIG is immutable once set
+	if !reflect.DeepEqual(r.MIG, old.MIG) {
+		errs = errs.Also(apis.ErrGeneric("field is immutable", "mig"))
 	}
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly

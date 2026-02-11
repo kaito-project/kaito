@@ -304,6 +304,39 @@ func (*testQwen25Coder32BModel) SupportTuning() bool {
 	return false
 }
 
+// testMIGSmallModel represents a small model that fits in a MIG partition.
+type testMIGSmallModel struct {
+	baseTestModel
+}
+
+func (*testMIGSmallModel) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Name: "test-mig-small-model",
+			Tag:  "1.0.0",
+		},
+		GPUCountRequirement:     "1",
+		DiskStorageRequirement:  "30Gi",
+		TotalSafeTensorFileSize: "4Gi",
+		BytesPerToken:           4096,
+		RuntimeParam: model.RuntimeParam{
+			DisableTensorParallelism: true,
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+func (*testMIGSmallModel) SupportDistributedInference() bool {
+	return false
+}
+
 func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-model",
@@ -343,5 +376,10 @@ func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-qwen2.5-coder-32b-instruct",
 		Instance: &testQwen25Coder32BModel{},
+	})
+
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-mig-small-model",
+		Instance: &testMIGSmallModel{},
 	})
 }

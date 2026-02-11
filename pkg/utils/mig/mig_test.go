@@ -40,10 +40,8 @@ func TestParseMIGProfile(t *testing.T) {
 		// B200 / Blackwell
 		{"valid 1g.23gb (B200)", "1g.23gb", 1, 23, false},
 		{"valid 7g.180gb (B200)", "7g.180gb", 7, 180, false},
-		// +me media extension
-		{"valid 1g.10gb+me", "1g.10gb+me", 1, 10, false},
-		{"valid 1g.5gb+me", "1g.5gb+me", 1, 5, false},
-		{"valid 1g.16.5gb+me", "1g.16.5gb+me", 1, 16, false},
+		// +me media extension rejected (not a distinct K8s resource)
+		{"reject +me suffix", "1g.10gb+me", 0, 0, true},
 		// Invalid cases
 		{"empty string", "", 0, 0, true},
 		{"invalid format", "invalid", 0, 0, true},
@@ -107,9 +105,7 @@ func TestValidateMIGProfile(t *testing.T) {
 		{"valid known profile 4g.24gb", "4g.24gb", false},
 		{"valid known H200 profile 1g.16.5gb", "1g.16.5gb", false},
 		{"valid known B200 profile 1g.23gb", "1g.23gb", false},
-		{"valid +me profile 1g.10gb+me", "1g.10gb+me", false},
-		{"valid +me profile 1g.5gb+me", "1g.5gb+me", false},
-		{"invalid +me on unsupported profile", "7g.80gb+me", true},
+		{"reject +me profile", "1g.10gb+me", true},
 		{"valid format but unknown profile", "5g.50gb", true},
 		{"invalid format", "bad", true},
 		{"empty", "", true},

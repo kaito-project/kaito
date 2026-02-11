@@ -392,15 +392,19 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 				_, memGB, parseErr := mig.ParseMIGProfile(r.MIG.Profile)
 				if parseErr == nil && params != nil {
 					modelMem := resource.MustParse(params.TotalSafeTensorFileSize)
-					migMem := resource.NewQuantity(int64(memGB)*consts.GiBToBytes, resource.BinarySI)
-					if migMem.Cmp(modelMem) < 0 {
+					// Apply same overhead factors as the estimator:
+					// - Model size * 1.02 (KV cache and runtime overhead)
+					// - MIG memory * 0.84 (vLLM default gpu-memory-utilization)
+					requiredBytes := int64(float64(modelMem.Value()) * 1.02)
+					availableBytes := int64(float64(int64(memGB)*consts.GiBToBytes) * 0.84)
+					if requiredBytes > availableBytes {
 						if bypassResourceChecks {
-							klog.Warningf("Bypassing MIG resource check: model %s requires %s but MIG profile %s only provides %dGB",
-								presetName, modelMem.String(), r.MIG.Profile, memGB)
+							klog.Warningf("Bypassing MIG resource check: model %s requires %s but MIG profile %s only provides %dGB (%.1fGB available after overhead)",
+								presetName, modelMem.String(), r.MIG.Profile, memGB, float64(availableBytes)/float64(consts.GiBToBytes))
 						} else {
 							errs = errs.Also(apis.ErrInvalidValue(
-								fmt.Sprintf("Model %s requires %s but MIG profile %s only provides %dGB",
-									presetName, modelMem.String(), r.MIG.Profile, memGB),
+								fmt.Sprintf("Model %s requires %s but MIG profile %s only provides %dGB (%.1fGB available after overhead)",
+									presetName, modelMem.String(), r.MIG.Profile, memGB, float64(availableBytes)/float64(consts.GiBToBytes)),
 								"mig.profile"))
 						}
 					}

@@ -19,7 +19,6 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
-	"strings"
 )
 
 const (
@@ -28,13 +27,17 @@ const (
 )
 
 // migProfileRegex matches valid MIG profile strings like "1g.5gb", "3g.40gb", "7g.80gb",
-// and decimal memory values like "1g.16.5gb". Also supports +me media extension suffix.
-var migProfileRegex = regexp.MustCompile(`^(\d+)g\.([\d.]+)gb(\+me)?$`)
+// and decimal memory values like "1g.16.5gb".
+var migProfileRegex = regexp.MustCompile(`^(\d+)g\.([\d.]+)gb$`)
 
 // knownProfiles is the set of valid MIG profiles across supported GPU models.
 // Uses the "mixed strategy" naming convention (nvidia.com/mig-<profile>).
 // With "single strategy", all MIG devices appear as nvidia.com/gpu instead.
 // KAITO uses mixed strategy because users need to specify which partition size they want.
+//
+// Note: +me (media extension) profiles are intentionally excluded because the NVIDIA
+// k8s-device-plugin does not expose them as separate resources — both standard and +me
+// instances appear under the same resource name (e.g., nvidia.com/mig-1g.10gb).
 var knownProfiles = map[string]bool{
 	// A30 (24GB)
 	"1g.6gb":  true,
@@ -65,25 +68,12 @@ var knownProfiles = map[string]bool{
 	"7g.180gb": true,
 }
 
-// knownMEProfiles is the set of profiles that support the +me (media extension) suffix.
-var knownMEProfiles = map[string]bool{
-	"1g.5gb":    true,
-	"1g.6gb":    true,
-	"1g.10gb":   true,
-	"1g.20gb":   true,
-	"1g.16.5gb": true,
-	"1g.23gb":   true,
-	"2g.12gb":   true,
-}
-
-// ParseMIGProfile parses a MIG profile string (e.g., "1g.10gb", "1g.16.5gb+me") and returns
+// ParseMIGProfile parses a MIG profile string (e.g., "1g.10gb", "1g.16.5gb") and returns
 // the number of compute slices and the memory in GB (floored to int for fractional values).
 func ParseMIGProfile(profile string) (computeSlices int, memoryGB int, err error) {
-	// Strip +me suffix for parsing
-	cleanProfile := strings.TrimSuffix(profile, "+me")
-	matches := migProfileRegex.FindStringSubmatch(cleanProfile)
+	matches := migProfileRegex.FindStringSubmatch(profile)
 	if matches == nil {
-		return 0, 0, fmt.Errorf("invalid MIG profile format %q: expected format like '1g.10gb' or '1g.16.5gb'", profile)
+		return 0, 0, fmt.Errorf("invalid MIG profile format %q: expected format like '1g.10gb'", profile)
 	}
 	computeSlices, _ = strconv.Atoi(matches[1])
 	memFloat, parseErr := strconv.ParseFloat(matches[2], 64)
@@ -112,17 +102,6 @@ func ValidateMIGProfile(profile string) error {
 	_, _, err := ParseMIGProfile(profile)
 	if err != nil {
 		return err
-	}
-	// Check +me suffix separately
-	if strings.HasSuffix(profile, "+me") {
-		baseProfile := strings.TrimSuffix(profile, "+me")
-		if !knownMEProfiles[baseProfile] {
-			return fmt.Errorf("unknown MIG profile %q: media extension (+me) is not supported for this profile", profile)
-		}
-		if !knownProfiles[baseProfile] {
-			return fmt.Errorf("unknown MIG profile %q: must be one of %v", profile, KnownMIGProfiles())
-		}
-		return nil
 	}
 	if !knownProfiles[profile] {
 		return fmt.Errorf("unknown MIG profile %q: must be one of %v", profile, KnownMIGProfiles())

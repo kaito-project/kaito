@@ -33,6 +33,7 @@ import logging
 import os
 import signal
 import sys
+import threading
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -299,9 +300,17 @@ serve_args = ServeArguments(
 serve_command = ServeCommand(serve_args)
 # Inject the pre-loaded model (with adapters already merged) so the serve
 # engine uses it directly instead of downloading/loading its own copy.
-serve_command.loaded_models[model_key] = TimedModel(
+timed_model = TimedModel(
     model, timeout_seconds=_MODEL_TIMEOUT_SECONDS, processor=tokenizer
 )
+# Replace the auto-started timer with a daemon variant so it doesn't block
+# process shutdown (the original timer is non-daemon and starts in __init__).
+timed_model._timer.cancel()
+_daemon_timer = threading.Timer(_MODEL_TIMEOUT_SECONDS, timed_model.timeout_reached)
+_daemon_timer.daemon = True
+_daemon_timer.start()
+timed_model._timer = _daemon_timer
+serve_command.loaded_models[model_key] = timed_model
 
 # ---------------------------------------------------------------------------
 # FastAPI app with OpenAI-compatible + KAITO-specific endpoints

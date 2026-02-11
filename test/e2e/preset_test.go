@@ -872,6 +872,51 @@ func validateCompletionsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
+func validateChatCompletionsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
+	deploymentName := workspaceObj.Name
+	modelName := getModelName(string(workspaceObj.Inference.Preset.Name))
+
+	expectedCompletion := `"object":"chat.completion.chunk"`
+	execOption := corev1.PodExecOptions{
+		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X POST -H "Content-Type: application/json" -d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' http://%s.%s.svc.cluster.local:80/v1/chat/completions | grep -e '%s'`, modelName, workspaceObj.Name, workspaceObj.Namespace, expectedCompletion)},
+		Container: deploymentName,
+		Stdout:    true,
+		Stderr:    true,
+	}
+
+	By("Validating the /v1/chat/completions endpoint", func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+
+			namespace := workspaceObj.Namespace
+			podName, err := utils.GetPodNameForWorkspace(coreClient, namespace, deploymentName)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
+				return false
+			}
+
+			k8sConfig, err := utils.GetK8sConfig()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
+				return false
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
+			_, err = utils.ExecSync(ctx, k8sConfig, coreClient, namespace, podName, execOption)
+			if err != nil {
+				GinkgoWriter.Printf("validate command fails: %v\n", err)
+				return false
+			}
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for /v1/chat/completions endpoint to be ready")
+	})
+}
+
 func cleanupResources(workspaceObj *kaitov1beta1.Workspace) {
 	By("Cleaning up resources", func() {
 		if !CurrentSpecReport().Failed() {
@@ -1234,6 +1279,8 @@ var _ = Describe("Workspace Preset", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
 	It("should create a custom template workspace successfully", utils.GinkgoLabelFastCheck, func() {
@@ -1312,6 +1359,8 @@ var _ = Describe("Workspace Preset", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
 	It("should create a gemma-3-27b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {

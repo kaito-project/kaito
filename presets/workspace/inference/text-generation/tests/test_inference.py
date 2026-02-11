@@ -16,6 +16,7 @@
 import importlib
 import json
 import sys
+import uuid
 from pathlib import Path
 from unittest.mock import patch
 
@@ -29,6 +30,7 @@ sys.path.append(parent_dir)
 
 
 @pytest.fixture(
+    scope="module",
     params=[
         {
             "pipeline": "text-generation",
@@ -62,7 +64,28 @@ def configured_app(request):
     app.test_config = request.param
     yield app
 
+    # Cancel the TimedModel timer to prevent leaked threads blocking exit
+    for timed_model in inference.serve_command.loaded_models.values():
+        timed_model._timer.cancel()
     sys.argv = original_argv
+
+
+def _make_sse_chunk(role="assistant", content="Hello", finish_reason=None):
+    """Build a single SSE chunk string matching the transformers serve format."""
+    chunk = {
+        "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
+        "object": "chat.completion.chunk",
+        "created": 1700000000,
+        "model": "HuggingFaceTB/SmolLM2-135M-Instruct",
+        "choices": [
+            {
+                "index": 0,
+                "delta": {"role": role, "content": content},
+                "finish_reason": finish_reason,
+            }
+        ],
+    }
+    return f"data: {json.dumps(chunk)}\n\n"
 
 
 # ---------------------------------------------------------------------------
@@ -72,6 +95,8 @@ def configured_app(request):
 
 def test_chat_completions(configured_app):
     """POST /v1/chat/completions returns an OpenAI-format SSE-streamed response."""
+    fake_sse = iter([_make_sse_chunk(content="Hi"), "data: [DONE]\n\n"])
+
     client = TestClient(configured_app)
     request_data = {
         "model": configured_app.test_config["model_path"],
@@ -79,7 +104,11 @@ def test_chat_completions(configured_app):
         "max_tokens": 10,
         "temperature": 0.0,
     }
-    response = client.post("/v1/chat/completions", json=request_data)
+    with (
+        patch("inference.serve_command.validate_chat_completion_request"),
+        patch("inference.serve_command.generate_chat_completion", return_value=fake_sse),
+    ):
+        response = client.post("/v1/chat/completions", json=request_data)
     assert response.status_code == 200
 
     # The response is SSE-streamed; collect all data lines
@@ -97,6 +126,8 @@ def test_chat_completions(configured_app):
 
 def test_chat_completions_multi_turn(configured_app):
     """POST /v1/chat/completions works with multi-turn conversations."""
+    fake_sse = iter([_make_sse_chunk(content="Sure!"), "data: [DONE]\n\n"])
+
     client = TestClient(configured_app)
     messages = [
         {"role": "user", "content": "What is your favourite condiment?"},
@@ -112,7 +143,11 @@ def test_chat_completions_multi_turn(configured_app):
         "max_tokens": 20,
         "temperature": 0.0,
     }
-    response = client.post("/v1/chat/completions", json=request_data)
+    with (
+        patch("inference.serve_command.validate_chat_completion_request"),
+        patch("inference.serve_command.generate_chat_completion", return_value=fake_sse),
+    ):
+        response = client.post("/v1/chat/completions", json=request_data)
     assert response.status_code == 200
 
     # Verify we got at least one content chunk

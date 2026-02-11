@@ -1238,6 +1238,38 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 			errContent: "",
 			expectErrs: false,
 		},
+		{
+			name: "Immutable MIG - add MIG to non-MIG workspace",
+			newResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           &MIGSpec{Profile: "1g.10gb", Count: pointerToInt(1)},
+			},
+			oldResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           nil,
+			},
+			disableNAP: true,
+			errContent: "field is immutable",
+			expectErrs: true,
+		},
+		{
+			name: "Immutable MIG - remove MIG from workspace",
+			newResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           nil,
+			},
+			oldResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           &MIGSpec{Profile: "1g.10gb", Count: pointerToInt(1)},
+			},
+			disableNAP: true,
+			errContent: "field is immutable",
+			expectErrs: true,
+		},
 	}
 
 	// Run the tests

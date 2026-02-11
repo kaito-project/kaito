@@ -620,6 +620,31 @@ func TestGetGPUConfig(t *testing.T) {
 			},
 			expectedErr: "",
 		},
+		"MIG path - count > 1 multiplies GPU count and memory": {
+			workspace: &v1beta1.Workspace{
+				Resource: v1beta1.ResourceSpec{
+					InstanceType:  "",
+					LabelSelector: &metav1.LabelSelector{},
+					MIG: &v1beta1.MIGSpec{
+						Profile: "1g.10gb",
+						Count:   test.Ptr(3),
+					},
+				},
+			},
+			model: "test-mig-small-model",
+			callMocks: func(c *test.MockClient) {
+			},
+			disableNodeAutoProvisioning: true,
+			enableMIG:                   true,
+			expectedConfig: &sku.GPUConfig{
+				SKU:        "unknown",
+				GPUCount:   3,
+				GPUMemGiB:  30,
+				IsMIG:      true,
+				MIGProfile: "1g.10gb",
+			},
+			expectedErr: "",
+		},
 	}
 
 	for k, tc := range testcases {
@@ -1126,6 +1151,7 @@ func TestGeneratePresetInference_MIGPodSpec(t *testing.T) {
 		v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameVLLM),
 	}
 	nodeCount := 1
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
 	workspace.Resource.Count = &nodeCount
 	workspace.Status.WorkerNodes = []string{"mig-node-1"}
 

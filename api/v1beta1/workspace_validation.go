@@ -404,7 +404,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 								"mig.profile"))
 						}
 					}
-					if params.DisableTensorParallelism == false && params.GPUCountRequirement != "1" {
+					if !params.DisableTensorParallelism && params.GPUCountRequirement != "1" {
 						if !bypassResourceChecks {
 							errs = errs.Also(apis.ErrInvalidValue(
 								fmt.Sprintf("Model %s requires %s GPUs with tensor parallelism, which is not supported on MIG partitions",

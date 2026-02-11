@@ -19,11 +19,11 @@ import (
 
 func TestParseMIGProfile(t *testing.T) {
 	tests := []struct {
-		name           string
-		profile        string
-		wantSlices     int
-		wantMemory     int
-		wantErr        bool
+		name       string
+		profile    string
+		wantSlices int
+		wantMemory int
+		wantErr    bool
 	}{
 		{"valid 1g.5gb", "1g.5gb", 1, 5, false},
 		{"valid 1g.10gb", "1g.10gb", 1, 10, false},
@@ -33,6 +33,18 @@ func TestParseMIGProfile(t *testing.T) {
 		{"valid 7g.80gb", "7g.80gb", 7, 80, false},
 		{"valid 1g.6gb", "1g.6gb", 1, 6, false},
 		{"valid 2g.12gb", "2g.12gb", 2, 12, false},
+		// H200 decimal memory
+		{"valid 1g.16.5gb (H200)", "1g.16.5gb", 1, 16, false}, // floored to 16
+		{"valid 2g.33gb (H200)", "2g.33gb", 2, 33, false},
+		{"valid 7g.141gb (H200)", "7g.141gb", 7, 141, false},
+		// B200 / Blackwell
+		{"valid 1g.23gb (B200)", "1g.23gb", 1, 23, false},
+		{"valid 7g.180gb (B200)", "7g.180gb", 7, 180, false},
+		// +me media extension
+		{"valid 1g.10gb+me", "1g.10gb+me", 1, 10, false},
+		{"valid 1g.5gb+me", "1g.5gb+me", 1, 5, false},
+		{"valid 1g.16.5gb+me", "1g.16.5gb+me", 1, 16, false},
+		// Invalid cases
 		{"empty string", "", 0, 0, true},
 		{"invalid format", "invalid", 0, 0, true},
 		{"missing memory", "1g", 0, 0, true},
@@ -93,6 +105,11 @@ func TestValidateMIGProfile(t *testing.T) {
 		{"valid known profile 1g.10gb", "1g.10gb", false},
 		{"valid known profile 7g.80gb", "7g.80gb", false},
 		{"valid known profile 4g.24gb", "4g.24gb", false},
+		{"valid known H200 profile 1g.16.5gb", "1g.16.5gb", false},
+		{"valid known B200 profile 1g.23gb", "1g.23gb", false},
+		{"valid +me profile 1g.10gb+me", "1g.10gb+me", false},
+		{"valid +me profile 1g.5gb+me", "1g.5gb+me", false},
+		{"invalid +me on unsupported profile", "7g.80gb+me", true},
 		{"valid format but unknown profile", "5g.50gb", true},
 		{"invalid format", "bad", true},
 		{"empty", "", true},
@@ -113,10 +130,20 @@ func TestKnownMIGProfiles(t *testing.T) {
 	if len(profiles) == 0 {
 		t.Error("KnownMIGProfiles() returned empty slice")
 	}
+	expectedCount := len(knownProfiles)
+	if len(profiles) != expectedCount {
+		t.Errorf("KnownMIGProfiles() returned %d profiles, expected %d", len(profiles), expectedCount)
+	}
 	// Verify all returned profiles are valid
 	for _, p := range profiles {
 		if err := ValidateMIGProfile(p); err != nil {
 			t.Errorf("KnownMIGProfiles() contains invalid profile %q: %v", p, err)
+		}
+	}
+	// Verify sorted
+	for i := 1; i < len(profiles); i++ {
+		if profiles[i-1] > profiles[i] {
+			t.Errorf("KnownMIGProfiles() not sorted: %q > %q", profiles[i-1], profiles[i])
 		}
 	}
 }

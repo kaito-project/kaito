@@ -13,6 +13,7 @@
 
 
 import faiss
+from llama_index.core import StorageContext
 from llama_index.vector_stores.faiss import FaissMapVectorStore
 
 from ragengine.embedding.base import BaseEmbeddingModel
@@ -25,6 +26,19 @@ class FaissVectorStoreHandler(BaseVectorStore):
     def __init__(self, embed_model: BaseEmbeddingModel):
         super().__init__(embed_model, use_rwlock=True)
         self.dimension = self.embed_model.get_embedding_dimension()
+
+    def _create_storage_context_for_load(
+        self, index_name: str, path: str
+    ) -> StorageContext:
+        """FAISS-specific loading with binary format fallback."""
+        try:
+            return StorageContext.from_defaults(persist_dir=path)
+        except UnicodeDecodeError:
+            # Failed to load in default JSON format, trying FAISS binary format
+            faiss_vs = FaissMapVectorStore.from_persist_dir(persist_dir=path)
+            return StorageContext.from_defaults(
+                persist_dir=path, vector_store=faiss_vs
+            )
 
     async def _create_new_index(
         self, index_name: str, documents: list[Document]

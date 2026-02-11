@@ -269,6 +269,7 @@ func TestGeneratePreset(t *testing.T) {
 					BytesPerToken:          147456,
 					ModelTokenLimit:        40960,
 					DiskStorageRequirement: "81Gi", // 31 + 50
+					ReasoningParser:        "qwen3",
 					ToolCallParser:         "hermes",
 				},
 				AttnType: "GQA",
@@ -316,16 +317,16 @@ func TestGeneratePreset(t *testing.T) {
 	}
 }
 
-// this test only makes sure that all keys in reasoningParserMap are lowercased
+// this test only makes sure that all keys in reasoningParserModeNamePrefixMap are lowercased
 func TestReasoningParserMap(t *testing.T) {
-	for key := range reasoningParserMap {
-		assert.Equal(t, key, strings.ToLower(key), "reasoningParserMap key is not lowercased: %s", key)
+	for key := range reasoningParserModeNamePrefixMap {
+		assert.Equal(t, key, strings.ToLower(key), "reasoningParserModeNamePrefixMap key is not lowercased: %s", key)
 	}
 }
 
-// this test only makes sure that all keys in toolCallParserMap are lowercased
+// this test only makes sure that all keys in toolCallParserModeNamePrefixMap are lowercased
 func TestToolCallParserMap(t *testing.T) {
 	for key := range toolCallParserModeNamePrefixMap {
-		assert.Equal(t, key, strings.ToLower(key), "toolCallParserMap key is not lowercased: %s", key)
+		assert.Equal(t, key, strings.ToLower(key), "toolCallParserModeNamePrefixMap key is not lowercased: %s", key)
 	}
 }

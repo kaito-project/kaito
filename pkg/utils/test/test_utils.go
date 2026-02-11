@@ -487,7 +487,7 @@ var (
 	}
 )
 
-var MockRAGEngineWithPresetHash = "14485768c1b67a529a71e3c87d9f2e6c1ed747534dea07e268e93475a5e21e"
+var MockRAGEngineWithPresetHash = "bad6d4c733b4775b3c6124c18edff607eadaf6cc2db0efac3584544a490770cc"
 
 var (
 	MockWorkspaceWithDeleteOldCR = v1beta1.Workspace{
@@ -549,7 +549,7 @@ var (
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"workspace.kaito.io/hash":     "14485768c1b67a529a71e3c87d9f2e6c1ed747534dea07e268e93475a5e21e",
+				"workspace.kaito.io/hash":     "bad6d4c733b4775b3c6124c18edff607eadaf6cc2db0efac3584544a490770cc",
 				"workspace.kaito.io/revision": "1",
 			},
 		},

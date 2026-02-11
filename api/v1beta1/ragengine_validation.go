@@ -135,9 +135,12 @@ func (e *RemoteEmbeddingSpec) validateCreate() (errs *apis.FieldError) {
 }
 
 func (e *InferenceServiceSpec) validateCreate() (errs *apis.FieldError) {
-	_, err := url.ParseRequestURI(e.URL)
-	if err != nil {
-		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("URL input error: %v", err), "remote url"))
+	// Only validate URL if it's provided
+	if e.URL != "" {
+		_, err := url.ParseRequestURI(e.URL)
+		if err != nil {
+			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("URL input error: %v", err), "remote url"))
+		}
 	}
 
 	if e.ContextWindowSize <= 0 {

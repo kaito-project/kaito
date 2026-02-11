@@ -498,12 +498,13 @@ spec:
                       Must match the token limit of the LLM backend being used (e.g., 8096, 16384, 32768 tokens).
                     type: integer
                   url:
-                    description: URL points to a running inference service endpoint
-                      which accepts http(s) payload.
+                    description: |-
+                      URL specifies the endpoint of the LLM inference service for generating responses.
+                      This field is optional - if not specified, the RAG engine operates in retrieve-only mode,
+                      supporting pure document search via the /retrieve API without LLM-based response generation.
                     type: string
                 required:
                 - contextWindowSize
-                - url
                 type: object
               storage:
                 description: |-

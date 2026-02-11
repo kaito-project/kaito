@@ -529,3 +529,92 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 		})
 	}
 }
+
+func TestGetMIGGPUConfig(t *testing.T) {
+	tests := []struct {
+		name        string
+		profile     string
+		count       int
+		wantErr     bool
+		errContains string
+		wantConfig  *sku.GPUConfig
+	}{
+		{
+			name:    "valid profile 1g.10gb with count 1",
+			profile: "1g.10gb",
+			count:   1,
+			wantConfig: &sku.GPUConfig{
+				SKU:        "unknown",
+				GPUCount:   1,
+				GPUMemGiB:  10,
+				IsMIG:      true,
+				MIGProfile: "1g.10gb",
+			},
+		},
+		{
+			name:    "valid profile 3g.40gb with count 2",
+			profile: "3g.40gb",
+			count:   2,
+			wantConfig: &sku.GPUConfig{
+				SKU:        "unknown",
+				GPUCount:   2,
+				GPUMemGiB:  80,
+				IsMIG:      true,
+				MIGProfile: "3g.40gb",
+			},
+		},
+		{
+			name:    "count 0 defaults to 1",
+			profile: "1g.10gb",
+			count:   0,
+			wantConfig: &sku.GPUConfig{
+				SKU:        "unknown",
+				GPUCount:   1,
+				GPUMemGiB:  10,
+				IsMIG:      true,
+				MIGProfile: "1g.10gb",
+			},
+		},
+		{
+			name:    "negative count defaults to 1",
+			profile: "1g.10gb",
+			count:   -5,
+			wantConfig: &sku.GPUConfig{
+				SKU:        "unknown",
+				GPUCount:   1,
+				GPUMemGiB:  10,
+				IsMIG:      true,
+				MIGProfile: "1g.10gb",
+			},
+		},
+		{
+			name:        "invalid profile format",
+			profile:     "invalid",
+			count:       1,
+			wantErr:     true,
+			errContains: "invalid MIG profile",
+		},
+		{
+			name:        "empty profile",
+			profile:     "",
+			count:       1,
+			wantErr:     true,
+			errContains: "invalid MIG profile",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config, err := GetMIGGPUConfig(tt.profile, tt.count)
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.errContains != "" {
+					assert.Contains(t, err.Error(), tt.errContains)
+				}
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tt.wantConfig, config)
+		})
+	}
+}

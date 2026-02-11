@@ -155,6 +155,28 @@ func (*testModelSmallA10) SupportTuning() bool {
 	return false
 }
 
+// Represents a model requiring multiple GPUs (tensor parallelism), incompatible with MIG
+type testModelMultiGPU struct{}
+
+func (*testModelMultiGPU) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		GPUCountRequirement:     "4",
+		TotalSafeTensorFileSize: "4Gi",
+		RuntimeParam: model.RuntimeParam{
+			DisableTensorParallelism: false,
+		},
+	}
+}
+func (*testModelMultiGPU) GetTuningParameters() *model.PresetParam {
+	return nil
+}
+func (*testModelMultiGPU) SupportDistributedInference() bool {
+	return false
+}
+func (*testModelMultiGPU) SupportTuning() bool {
+	return false
+}
+
 func RegisterValidationTestModels() {
 	var test testModel
 	var testStatic testModelStatic
@@ -180,6 +202,11 @@ func RegisterValidationTestModels() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-small-a10",
 		Instance: &testSmallA10,
+	})
+	var testMultiGPU testModelMultiGPU
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-mig-multi-gpu-model",
+		Instance: &testMultiGPU,
 	})
 }
 
@@ -864,6 +891,46 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			errContent:         "MIG is only supported with BYO nodes",
 			useFeatureGate:     false, // NAP NOT disabled
 			enableMIGGate:      true,  // MIG gate enabled
+		},
+		{
+			name: "Invalid MIG - count is zero",
+			resourceSpec: &ResourceSpec{
+				Count: pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "mig"},
+				},
+				MIG: &MIGSpec{
+					Profile: "1g.10gb",
+					Count:   pointerToInt(0),
+				},
+			},
+			preset:             true,
+			presetNameOverride: "test-small-a10",
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         true,
+			errContent:         "MIG count must be greater than 0",
+			useFeatureGate:     true,
+			enableMIGGate:      true,
+		},
+		{
+			name: "Invalid MIG - model requires tensor parallelism",
+			resourceSpec: &ResourceSpec{
+				Count: pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "mig"},
+				},
+				MIG: &MIGSpec{
+					Profile: "7g.80gb",
+					Count:   pointerToInt(1),
+				},
+			},
+			preset:             true,
+			presetNameOverride: "test-mig-multi-gpu-model",
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         true,
+			errContent:         "requires 4 GPUs with tensor parallelism",
+			useFeatureGate:     true,
+			enableMIGGate:      true,
 		},
 	}
 

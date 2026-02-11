@@ -16,6 +16,7 @@ package mig
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 )
 
@@ -28,6 +29,7 @@ const (
 var migProfileRegex = regexp.MustCompile(`^(\d+)g\.(\d+)gb$`)
 
 // knownProfiles is the set of valid MIG profiles across supported GPU models.
+// Uses the "mixed strategy" naming convention (nvidia.com/mig-<profile>).
 var knownProfiles = map[string]bool{
 	// A30 (24GB)
 	"1g.6gb":  true,
@@ -41,6 +43,7 @@ var knownProfiles = map[string]bool{
 	"7g.40gb": true,
 	// A100 (80GB) / H100 (80GB)
 	"1g.10gb": true,
+	"1g.20gb": true,
 	"2g.20gb": true,
 	"3g.40gb": true,
 	"4g.40gb": true,
@@ -90,5 +93,6 @@ func KnownMIGProfiles() []string {
 	for p := range knownProfiles {
 		profiles = append(profiles, p)
 	}
+	sort.Strings(profiles)
 	return profiles
 }

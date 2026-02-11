@@ -337,6 +337,40 @@ func (*testMIGSmallModel) SupportDistributedInference() bool {
 	return false
 }
 
+// testMIGMultiGPUModel represents a model requiring multiple GPUs (tensor parallelism),
+// which should be rejected for MIG workloads.
+type testMIGMultiGPUModel struct {
+	baseTestModel
+}
+
+func (*testMIGMultiGPUModel) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata: model.Metadata{
+			Name: "test-mig-multi-gpu-model",
+			Tag:  "1.0.0",
+		},
+		GPUCountRequirement:     "4",
+		DiskStorageRequirement:  "100Gi",
+		TotalSafeTensorFileSize: "4Gi",
+		BytesPerToken:           4096,
+		RuntimeParam: model.RuntimeParam{
+			DisableTensorParallelism: false,
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: emptyParams,
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+			},
+		},
+		ReadinessTimeout: time.Duration(30) * time.Minute,
+	}
+}
+func (*testMIGMultiGPUModel) SupportDistributedInference() bool {
+	return false
+}
+
 func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-model",
@@ -381,5 +415,10 @@ func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-mig-small-model",
 		Instance: &testMIGSmallModel{},
+	})
+
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-mig-multi-gpu-model",
+		Instance: &testMIGMultiGPUModel{},
 	})
 }

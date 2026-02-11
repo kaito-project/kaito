@@ -32,6 +32,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
+    presets/workspace/inference/${MODEL_TYPE}/inference.py \
     presets/workspace/tuning/${MODEL_TYPE}/cli.py \
     presets/workspace/tuning/${MODEL_TYPE}/fine_tuning.py \
     presets/workspace/tuning/${MODEL_TYPE}/parser.py \

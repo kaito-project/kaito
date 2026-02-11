@@ -25,6 +25,7 @@ const (
 
 	DefaultVLLMMultiNodeHealthCheckCommand = "python3 /workspace/vllm/multi-node-health-check.py"
 	DefaultTransformersMainFile            = "/workspace/tfs/inference_api.py"
+	DefaultTransformersServeMainFile       = "/workspace/tfs/inference.py"
 )
 
 var (

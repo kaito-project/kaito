@@ -41,7 +41,7 @@ func (*baseTestModel) GetInferenceParameters() *model.PresetParam {
 			},
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       "accelerate launch",
-				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				InferenceMainFile: "/workspace/tfs/inference.py",
 				AccelerateParams:  emptyParams,
 			},
 		},
@@ -90,7 +90,7 @@ func (*testDistributedModel) GetInferenceParameters() *model.PresetParam {
 			},
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       "accelerate launch",
-				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				InferenceMainFile: "/workspace/tfs/inference.py",
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -122,7 +122,7 @@ func (*testNoTensorParallelModel) GetInferenceParameters() *model.PresetParam {
 			},
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       "accelerate launch",
-				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				InferenceMainFile: "/workspace/tfs/inference.py",
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -162,7 +162,7 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 			},
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       "accelerate launch",
-				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				InferenceMainFile: "/workspace/tfs/inference.py",
 				AccelerateParams:  emptyParams,
 				ModelRunParams:    emptyParams,
 			},
@@ -197,7 +197,7 @@ func (*testModelDownloadA100) GetInferenceParameters() *model.PresetParam {
 			},
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       "accelerate launch",
-				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				InferenceMainFile: "/workspace/tfs/inference.py",
 				AccelerateParams:  emptyParams,
 				ModelRunParams:    emptyParams,
 			},
@@ -223,7 +223,7 @@ func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
 			},
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       "accelerate launch",
-				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				InferenceMainFile: "/workspace/tfs/inference.py",
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -256,7 +256,7 @@ func (*testFalcon7BModel) GetInferenceParameters() *model.PresetParam {
 			},
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       "accelerate launch",
-				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				InferenceMainFile: "/workspace/tfs/inference.py",
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -289,7 +289,7 @@ func (*testQwen25Coder32BModel) GetInferenceParameters() *model.PresetParam {
 			},
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:       "accelerate launch",
-				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				InferenceMainFile: "/workspace/tfs/inference.py",
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

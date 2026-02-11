@@ -130,7 +130,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py",
+			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference.py",
 			hasAdapters: false,
 		},
 
@@ -143,7 +143,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
-			expectedCmd:        "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py",
+			expectedCmd:        "/bin/sh -c accelerate launch /workspace/tfs/inference.py",
 			hasAdapters:        true,
 			expectedVolume:     "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{{
@@ -247,7 +247,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
+			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference.py --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{

@@ -34,7 +34,7 @@ release:
   prerelease: auto
   header: |
     ## {{.Tag}} - {{ time "2006-01-02" }}
-  make_latest: true
+  make_latest: "{{ not .Prerelease }}"
 changelog:
   groups:
     - title: Breaking Changes 💥

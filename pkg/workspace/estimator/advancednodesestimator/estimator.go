@@ -27,8 +27,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 // AdvancedNodesEstimator estimates node count based on SKU memory and model memory requirement
@@ -52,10 +52,13 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 	}
 
 	presetName := string(workspace.Inference.Preset.Name)
-	model := plugin.KaitoModelRegister.MustGet(presetName)
+	secretName := workspace.Inference.Preset.PresetOptions.ModelAccessSecret
+	model, err := models.GetModelByName(ctx, presetName, secretName, workspace.Namespace, client)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get model by name: %w", err)
+	}
 
 	var gpuConfig *sku.GPUConfig
-	var err error
 
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		if readyNodes, err := resources.GetReadyNodes(ctx, client, workspace); err != nil {
@@ -143,6 +146,9 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		// Calculate minimum nodes: we need minGPUs GPU groups
 		// If each node has gpuConfig.GPUCount GPUs, we need ceil(minGPUs / gpuConfig.GPUCount) nodes
 		nodeCountPerReplica = (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
+
+		klog.Infof("totalGPUMemoryRequired(%s), requiredMemoryBytes(%d), totalGPUMemoryPerGPUBytes(%d), availableGPUMemoryPerGPUBytes(%d), overhead(%.0f), availableMemoryPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
+			totalGPUMemoryRequired.String(), requiredMemoryBytes, totalGPUMemoryPerGPUBytes, availableGPUMemoryPerGPUBytes, overhead, availableMemoryPerGPU, minGPUs, nodeCountPerReplica, workspace.Name)
 
 		// Special case for models with disabled tensor parallelism: they cannot be distributed across multiple nodes
 		if nodeCountPerReplica > 1 && model.GetInferenceParameters().DisableTensorParallelism {

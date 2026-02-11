@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "kaito.fullname" . }}-role
+  name: {{ include "kaito.roleName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "kaito.labels" . | nindent 4 }}
@@ -20,3 +20,6 @@ rules:
     resources: ["secrets"]
     verbs: ["update"]
     resourceNames: ["workspace-webhook-cert"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "watch", "create"]

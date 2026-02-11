@@ -38,6 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -64,19 +65,6 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "name"))
 	}
 
-	// Check node auto-provisioning feature gate and validate instanceType accordingly
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// When NAP is disabled, instanceType must be empty (BYO scenario)
-		if w.Resource.InstanceType != "" {
-			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
-		}
-	} else {
-		// When NAP is enabled, instanceType must be specified for node provisioning
-		if w.Resource.InstanceType == "" {
-			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled"))
-		}
-	}
-
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
@@ -93,8 +81,8 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			runtime := GetWorkspaceRuntimeName(w)
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 			errs = errs.Also(
-				w.Resource.validateCreateWithInference(w.Inference, bypassResourceChecks, runtime).ViaField("resource"),
-				w.Inference.validateCreate(ctx, runtime).ViaField("inference"),
+				w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
+				w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 				w.validateInferenceConfig(ctx),
 			)
 		}
@@ -127,6 +115,21 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 	if w.Inference != nil && w.Tuning != nil {
 		errs = errs.Also(apis.ErrGeneric("Either Inference or Tuning must be specified, but not both", ""))
 	}
+
+	// Check node auto-provisioning feature gate and validate instanceType accordingly
+	// This validation only applies to CREATE operations, not UPDATE (since instanceType is immutable)
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		// When NAP is disabled, instanceType must be empty (BYO scenario)
+		if w.Resource.InstanceType != "" {
+			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "resource.instanceType"))
+		}
+	} else {
+		// When NAP is enabled, instanceType must be specified for node provisioning
+		if w.Resource.InstanceType == "" {
+			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "resource.instanceType"))
+		}
+	}
+
 	return errs
 }
 
@@ -216,6 +219,11 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 }
 
 func (r *TuningSpec) validateUpdate(old *TuningSpec) (errs *apis.FieldError) {
+	// If old is nil, this means Tuning is being toggled on, which should be caught by validateUpdate in Workspace
+	if old == nil {
+		return errs
+	}
+
 	if r.Input == nil {
 		errs = errs.Also(apis.ErrMissingField("Input"))
 	} else {
@@ -318,10 +326,11 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	return errs
 }
 
-func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName) (errs *apis.FieldError) {
-	var presetName string
+func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName, wsNamespace string) (errs *apis.FieldError) {
+	var presetName, secretName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
+		secretName = inference.Preset.PresetOptions.ModelAccessSecret
 		// Since inference.Preset exists, we must validate preset name.
 		if !plugin.IsValidPreset(presetName) {
 			// If the preset is not valid, check if it is a deprecated model
@@ -434,7 +443,11 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 
 	if presetName != "" && skuConfig != nil {
 		if napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled) {
-			modelPreset := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
+			modelPreset, err := models.GetModelByName(context.TODO(), presetName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
+			if err != nil {
+				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
+				return errs
+			}
 			params := modelPreset.GetInferenceParameters()
 
 			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
@@ -499,9 +512,29 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	if r.Count != nil && old.Count != nil && *r.Count != *old.Count {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "count"))
 	}
-	if r.InstanceType != old.InstanceType {
-		errs = errs.Also(apis.ErrGeneric("field is immutable", "instanceType"))
+
+	// Check node auto-provisioning feature gate and validate instanceType accordingly
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		// When NAP is disabled, instanceType must be empty (BYO scenario)
+		if old.InstanceType == "" {
+			if r.InstanceType != "" {
+				errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
+			}
+		} else {
+			// for backward compatibility, old.InstanceType is non-empty
+			// but update to empty is allowed.
+			if r.InstanceType != "" && old.InstanceType != r.InstanceType {
+				errs = errs.Also(apis.ErrInvalidValue("instanceType is cannot be changed once set", "instanceType"))
+			}
+		}
+	} else {
+		if r.InstanceType == "" {
+			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "instanceType"))
+		} else if old.InstanceType != "" && old.InstanceType != r.InstanceType {
+			errs = errs.Also(apis.ErrGeneric("instanceType is cannot be changed once set when node auto-provisioning is enabled", "instanceType"))
+		}
 	}
+
 	newLabels, err0 := metav1.LabelSelectorAsMap(r.LabelSelector)
 	oldLabels, err1 := metav1.LabelSelectorAsMap(old.LabelSelector)
 	if err0 != nil || err1 != nil {
@@ -514,7 +547,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
-func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.RuntimeName) (errs *apis.FieldError) {
+func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.RuntimeName, wsNamespace string) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -533,7 +566,11 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 			// Need to return here. Otherwise, a panic will be hit when doing following checks.
 			return errs
 		}
-		modelPreset := plugin.KaitoModelRegister.MustGet(string(i.Preset.Name))
+		modelPreset, err := models.GetModelByName(ctx, string(i.Preset.Name), i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
+		if err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
+			return errs
+		}
 		params := modelPreset.GetInferenceParameters()
 		useAdapterStrength := false
 		for _, adapter := range i.Adapters {
@@ -542,7 +579,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 				break
 			}
 		}
-		err := params.Validate(model.RuntimeContext{
+		err = params.Validate(model.RuntimeContext{
 			RuntimeName: runtime,
 			RuntimeContextExtraArguments: model.RuntimeContextExtraArguments{
 				AdaptersEnabled:        len(i.Adapters) > 0,
@@ -575,6 +612,11 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 }
 
 func (i *InferenceSpec) validateUpdate(old *InferenceSpec) (errs *apis.FieldError) {
+	// If old is nil, this means Inference is being toggled on, which should be caught by validateUpdate in Workspace
+	if old == nil {
+		return errs
+	}
+
 	if !reflect.DeepEqual(i.Preset, old.Preset) {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "preset"))
 	}

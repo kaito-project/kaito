@@ -56,41 +56,14 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 	base.Namespace = "kaito"
 
 	tests := []struct {
-		name          string
-		workspace     *kaitov1alpha1.InferenceSet
-		isStatefulSet bool
-		expected      map[string]any
+		name      string
+		workspace *kaitov1alpha1.InferenceSet
+		expected  map[string]any
 	}{
+
 		{
-			name:          "deployment inference pool helm values",
-			workspace:     base.DeepCopy(),
-			isStatefulSet: false,
-			expected: map[string]any{
-				"inferenceExtension": map[string]any{
-					"image": map[string]any{
-						"hub":        consts.GatewayAPIInferenceExtensionImageRepository,
-						"tag":        consts.InferencePoolChartVersion,
-						"pullPolicy": string(corev1.PullIfNotPresent),
-					},
-				},
-				"inferencePool": map[string]any{
-					"targetPorts": []any{
-						map[string]any{
-							"number": float64(consts.PortInferenceServer),
-						},
-					},
-					"modelServers": map[string]any{
-						"matchLabels": map[string]any{
-							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
-						},
-					},
-				},
-			},
-		},
-		{
-			name:          "statefulset inference pool helm values",
-			workspace:     base.DeepCopy(),
-			isStatefulSet: true,
+			name:      "statefulset inference pool helm values",
+			workspace: base.DeepCopy(),
 			expected: map[string]any{
 				"inferenceExtension": map[string]any{
 					"image": map[string]any{
@@ -118,7 +91,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace, tc.isStatefulSet)
+			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace)
 			assert.NoError(t, err)
 			assert.NotNil(t, helmRelease)
 

@@ -1,0 +1,2 @@
+huggingface-hub>=0.34.0,<1.0
+PyYAML

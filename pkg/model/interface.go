@@ -36,9 +36,6 @@ type Model interface {
 	GetTuningParameters() *PresetParam
 
 	// SupportDistributedInference checks if the model supports distributed inference.
-	// If true, the inference workload will use 'StatefulSet' instead of 'Deployment'
-	// as the workload type. See https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250325-distributed-inference.md
-	// for more details.
 	SupportDistributedInference() bool
 
 	// SupportTuning checks if the model supports tuning.
@@ -104,6 +101,56 @@ type Metadata struct {
 	// Deprecated indicates if the model is deprecated.
 	// +optional
 	Deprecated bool `yaml:"deprecated,omitempty"`
+
+	// Architectures specifies the supported architectures for the model
+	// This field is only for best effort supported vLLM models.
+	// +optional
+	Architectures []string `yaml:"architectures,omitempty"`
+
+	// DType specifies the data type used by the model (e.g., "bfloat16", "float16", "float32").
+	// This field is only for best effort supported vLLM models.
+	// +optional
+	DType string `yaml:"dtype,omitempty"`
+
+	// ModelFileSize is the size of the model file, example: 14Gi.
+	// This field is only for best effort supported vLLM models.
+	// +optional
+	ModelFileSize string `yaml:"modelFileSize,omitempty"`
+
+	// DiskStorageRequirement is the disk storage requirement for the model, example: 90Gi.
+	// This field is only for best effort supported vLLM models.
+	// +optional
+	DiskStorageRequirement string `yaml:"diskStorageRequirement,omitempty"`
+
+	// BytesPerToken is the number of bytes used to represent each token in the model.
+	// This field is only for best effort supported vLLM models.
+	// +optional
+	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
+
+	// ModelTokenLimit is the maximum number of tokens (context window) supported by the model.
+	// This field is only for best effort supported vLLM models.
+	// +optional
+	ModelTokenLimit int `yaml:"modelTokenLimit,omitempty"`
+
+	// ToolCallParser specifies the parser used for tool calls within the model.
+	// This field is only for best effort supported vLLM models.
+	// +optional
+	ToolCallParser string `yaml:"toolCallParser,omitempty"`
+
+	// ReasoningParser specifies the parser used for reasoning within the model.
+	// This field is only for best effort supported vLLM models.
+	// +optional
+	ReasoningParser string `yaml:"reasoningParser,omitempty"`
+
+	// ChatTemplate is the chat template file name used for chat models.
+	// This field is only for best effort supported vLLM models.
+	// +optional
+	ChatTemplate string `yaml:"chatTemplate,omitempty"`
+
+	// AllowRemoteFiles indicates whether the model allows loading remote files.
+	// This field is only for best effort supported vLLM models.
+	// +optional
+	AllowRemoteFiles bool `yaml:"allowRemoteFiles,omitempty"`
 }
 
 // Validate checks if the Metadata is valid.
@@ -136,8 +183,12 @@ type PresetParam struct {
 	ModelTokenLimit               int            // Maximum number of tokens (context window) supported by the model. Maps to 'max_position_embeddings' in the model's Hugging Face config.json.
 
 	// To determine TotalSafeTensorFileSize and BytesPerToken values for a new model,
-	// run the sku-calculation/calculate_model_weight_and_bytes_per_token.py script
+	// run the presets/workspace/generator/preset_generator.py script
 	// with the model's Hugging Face repository ID as an argument.
+
+	// AttnType specifies the attention implementation (e.g., MHA, GQA, MLA).
+	// Calculated by the preset generator based on model config.
+	AttnType string `yaml:"attn_type,omitempty"`
 
 	RuntimeParam
 

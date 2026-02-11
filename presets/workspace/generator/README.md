@@ -5,26 +5,43 @@ This directory contains tools and documentation for calculating GPU SKU requirem
 ## Files
 
 - **`model-sku-calculation.md`**: Comprehensive guide for calculating SKU requirements, VRAM consumption, and maximum token lengths based on model configurations
-- **`calculate_model_weight_and_bytes_per_token.py`**: Python utility for analyzing Hugging Face models and calculating memory requirements
+- **`preset_generator.py`**: Python utility for generating Kaito model preset configurations by analyzing Hugging Face models
 
 ## Usage
 
-### Model Analysis Tool
+### Preset Generator Tool
 
 ```bash
-python3 calculate_model_weight_and_bytes_per_token.py <model_repo> [--token=YOUR_HF_TOKEN]
+python3 preset_generator.py <model_repo> [--token=YOUR_HF_TOKEN] [--debug]
 ```
 
 **Example:**
 ```bash
-python3 calculate_model_weight_and_bytes_per_token.py deepseek-ai/deepseek-r1-0528
-python3 calculate_model_weight_and_bytes_per_token.py meta-llama/Llama-3.3-70B-Instruct --token=hf_your_token_here
+$ python3 preset_generator.py microsoft/Phi-4-mini-instruct
+attn_type: GQA
+name: phi-4-mini-instruct
+type: tfs
+version: 0.0.1
+download_at_runtime: true
+download_auth_required: false
+disk_storage_requirement: 58Gi
+model_file_size_gb: 8
+bytes_per_token: 131072
+model_token_limit: 131072
+vllm:
+  model_name: phi-4-mini-instruct
+  model_run_params:
+    load_format: auto
+    config_format: auto
+    tokenizer_mode: auto
+  disallow_lora: false
 ```
 
 **Output:**
-- Model weight size in GB and GiB
-- Bytes per token calculation for KV-Cache estimation
-- Configuration analysis from the model's config.json
+- A YAML configuration block for the Kaito preset, including:
+  - Storage requirements
+  - Compute parameters (bytes per token, model token limit)
+  - VLLM parameters
 
 ### Documentation
 
@@ -37,7 +54,7 @@ See [`model-sku-calculation.md`](./model-sku-calculation.md) for:
 ## Prerequisites
 
 - Python 3.x
-- `requests` library: `pip install requests`
+- Install dependencies: `pip install -r requirements.txt`
 - Optional: Hugging Face token for private models
 
 ## Integration

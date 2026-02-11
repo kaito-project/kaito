@@ -12,7 +12,15 @@ RUN pip3 install --upgrade pip uv
 WORKDIR /workspace
 
 # Required for torch.compile
-RUN apt-get update -y && apt-get install --no-install-recommends curl gcc libc-dev perl -y && \
+RUN apt-get update -y && \
+    if dpkg -s libssl3t64 >/dev/null 2>&1; then \
+        apt-get install --only-upgrade --no-install-recommends -y openssl libssl3t64 openssl-provider-legacy; \
+    elif dpkg -s libssl3 >/dev/null 2>&1; then \
+        apt-get install --only-upgrade --no-install-recommends -y openssl libssl3; \
+    else \
+        apt-get install --only-upgrade --no-install-recommends -y openssl; \
+    fi && \
+    apt-get install --no-install-recommends -y curl gcc libc-dev perl libglib2.0-0 libgl1 libsm6 libxext6 libxrender1 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 FROM dependencies AS base

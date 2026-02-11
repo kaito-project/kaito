@@ -48,11 +48,9 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/inferenceset"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
-	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
@@ -348,17 +346,8 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 		return nil
 	}
 
-	model := plugin.KaitoModelRegister.MustGet(string(iObj.Spec.Template.Inference.Preset.Name))
-
-	// Dry-run the inference workload generation to determine if it will be a StatefulSet or not.
-	workloadObj, err := inference.GeneratePresetInference(ctx, &wsList.Items[0], "", model, c.Client)
-	if err != nil {
-		return fmt.Errorf("failed to generate preset inference workload for Gateway API Inference Extension: %w", err)
-	}
-	_, isStatefulSet := workloadObj.(*appsv1.StatefulSet)
-
 	ociRepository := manifests.GenerateInferencePoolOCIRepository(iObj)
-	helmRelease, err := manifests.GenerateInferencePoolHelmRelease(iObj, isStatefulSet)
+	helmRelease, err := manifests.GenerateInferencePoolHelmRelease(iObj)
 	if err != nil {
 		return err
 	}

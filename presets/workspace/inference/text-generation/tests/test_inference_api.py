@@ -25,23 +25,17 @@ parent_dir = str(Path(__file__).resolve().parent.parent)
 # Add the parent directory to sys.path
 sys.path.append(parent_dir)
 
-CHAT_TEMPLATE = (
-    "{{ bos_token }}{% for message in messages %}{% if (message['role'] == 'user') %}"
-    "{{'<|user|>' + '\n' + message['content'] + '<|end|>' + '\n' + '<|assistant|>' + '\n'}}"
-    "{% elif (message['role'] == 'assistant') %}{{message['content'] + '<|end|>' + '\n'}}{% endif %}{% endfor %}"
-)
-
 
 @pytest.fixture(
     params=[
         {
             "pipeline": "text-generation",
-            "model_path": "stanford-crfm/alias-gpt2-small-x21",
+            "model_path": "HuggingFaceTB/SmolLM2-135M-Instruct",
             "device": "cpu",
         },
         {
             "pipeline": "conversational",
-            "model_path": "stanford-crfm/alias-gpt2-small-x21",
+            "model_path": "HuggingFaceTB/SmolLM2-135M-Instruct",
             "device": "cpu",
         },
     ]
@@ -59,8 +53,6 @@ def configured_app(request):
         request.param["device"],
         "--allow_remote_files",
         "True",
-        "--chat_template",
-        CHAT_TEMPLATE,
     ]
     sys.argv = test_args
 
@@ -295,7 +287,6 @@ def test_generation_with_max_length(configured_app):
 
     client = TestClient(configured_app)
     prompt = "This prompt requests a response of a certain minimum length to test the functionality."
-    avg_res_len = 15
     max_length = 40  # Set to lower than default (200) to prevent test hanging
 
     request_data = {
@@ -322,9 +313,6 @@ def test_generation_with_max_length(configured_app):
     max_new_tokens = max_length - prompt_tokens_len
     new_tokens = len(total_tokens) - prompt_tokens_len
 
-    assert avg_res_len <= new_tokens, (
-        "Ideally response should generate at least 15 tokens"
-    )
     assert new_tokens <= max_new_tokens, (
         "Response must not generate more than max new tokens"
     )

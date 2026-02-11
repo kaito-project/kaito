@@ -1,15 +1,22 @@
 apiVersion: kaito.sh/v1alpha1
 kind: InferenceSet
 metadata:
+  annotations:
+    scaledobject.kaito.sh/auto-provision: "true"
+    scaledobject.kaito.sh/metricName: "vllm:num_requests_waiting"
+    scaledobject.kaito.sh/threshold: "10"
   name: phi-4-mini
+  namespace: default
 spec:
   replicas: 1
+  nodeCountLimit: 5
   labelSelector:
     matchLabels:
       apps: phi-4-mini
   template:
-    resource:
-      instanceType: "Standard_NC24ads_A100_v4"
     inference:
       preset:
+        accessMode: public
         name: phi-4-mini-instruct
+    resource:
+      instanceType: Standard_NC24ads_A100_v4

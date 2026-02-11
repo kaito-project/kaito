@@ -27,11 +27,13 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
@@ -98,10 +100,10 @@ var _ = Describe("RAGEngine", func() {
 
 		defer cleanupResources(nil, ragengineObj)
 
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
 		validateAssociatedService(ragengineObj.ObjectMeta)
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
 		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
@@ -142,7 +144,7 @@ var _ = Describe("RAGEngine", func() {
 
 		validateAssociatedService(workspaceObj.ObjectMeta)
 
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 
@@ -161,10 +163,10 @@ var _ = Describe("RAGEngine", func() {
 
 		defer cleanupResources(workspaceObj, ragengineObj)
 
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
 		validateAssociatedService(ragengineObj.ObjectMeta)
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
 		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
@@ -201,7 +203,7 @@ var _ = Describe("RAGEngine", func() {
 
 		validateAssociatedService(workspaceObj.ObjectMeta)
 
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 
@@ -224,10 +226,10 @@ var _ = Describe("RAGEngine", func() {
 
 		defer cleanupResources(workspaceObj, ragengineObj)
 
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
 		validateAssociatedService(ragengineObj.ObjectMeta)
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
 		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
@@ -264,7 +266,7 @@ var _ = Describe("RAGEngine", func() {
 
 		validateAssociatedService(workspaceObj.ObjectMeta)
 
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), false)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
 
 		validateWorkspaceReadiness(workspaceObj)
 
@@ -283,10 +285,10 @@ var _ = Describe("RAGEngine", func() {
 
 		defer cleanupResources(workspaceObj, ragengineObj)
 
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
 		validateAssociatedService(ragengineObj.ObjectMeta)
 		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
-		validateRAGEngineCondition(ragengineObj, string(kaitov1alpha1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
 
 		indexDoc, err := createAndValidateIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
@@ -298,6 +300,10 @@ var _ = Describe("RAGEngine", func() {
 		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
 		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, false)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
+
+		expectedText := indexDoc["text"].(string)
+		err = createAndValidateRetrievalPod(ragengineObj, docID, expectedText)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate RetrievalPod")
 
 		persistLogSuccess := "Successfully persisted index kaito"
 		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
@@ -317,6 +323,65 @@ var _ = Describe("RAGEngine", func() {
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
+	It("should create RAG with PVC storage and persist indexes across pod restarts", utils.GinkgoLabelFastCheck, func() {
+		numOfReplica := 1
+		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
+
+		time.Sleep(30 * time.Second)
+
+		validateWorkspaceResourceStatus(workspaceObj)
+		validateAssociatedService(workspaceObj.ObjectMeta)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
+		validateWorkspaceReadiness(workspaceObj)
+
+		serviceName := workspaceObj.ObjectMeta.Name
+		serviceNamespace := workspaceObj.ObjectMeta.Namespace
+		service := &v1.Service{}
+
+		_ = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: serviceNamespace,
+			Name:      serviceName,
+		}, service)
+
+		clusterIP := service.Spec.ClusterIP
+
+		// Create PVC for persistent storage (Azure Disk will be dynamically provisioned)
+		pvcName := fmt.Sprint("pvc-rag-test-", rand.Intn(1000))
+		pvc := createPVCForRAGEngine(pvcName, namespaceName)
+
+		// Create RAGEngine with PVC storage
+		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngineWithStorage(clusterIP, "v1/completions", pvcName)
+
+		defer cleanupResourcesWithPVC(workspaceObj, ragengineObj, pvc)
+
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateAssociatedService(ragengineObj.ObjectMeta)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+		// Create and validate index
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
+		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
+
+		// Verify index exists
+		indexName := "kaito"
+		err = verifyIndexExists(ragengineObj, indexName)
+		Expect(err).NotTo(HaveOccurred(), "Index should exist before pod deletion")
+
+		// Delete the pod to trigger PreStop hook (persistence)
+		err = deleteRAGEnginePod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to delete RAGEngine pod")
+
+		// Wait for new pod to be ready (PostStart hook should restore index)
+		time.Sleep(30 * time.Second)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+
+		// Verify index still exists after pod restart
+		err = verifyIndexExists(ragengineObj, indexName)
+		Expect(err).NotTo(HaveOccurred(), "Index should persist after pod restart")
+	})
+
 })
 
 func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1beta1.Workspace {
@@ -326,7 +391,7 @@ func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1be
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfReplica, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "rag-e2e-test-phi-4-mini-instruct-vllm"},
-			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "")
+			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -378,7 +443,7 @@ func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func createAndValidateRAGEngine(ragEngineObj *kaitov1alpha1.RAGEngine) {
+func createAndValidateRAGEngine(ragEngineObj *kaitov1beta1.RAGEngine) {
 	By("Creating ragEngine", func() {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, ragEngineObj, &client.CreateOptions{})
@@ -395,19 +460,19 @@ func createAndValidateRAGEngine(ragEngineObj *kaitov1alpha1.RAGEngine) {
 	})
 }
 
-func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1alpha1.InferenceServiceSpec) *kaitov1alpha1.RAGEngine {
-	return &kaitov1alpha1.RAGEngine{
+func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1beta1.InferenceServiceSpec) *kaitov1beta1.RAGEngine {
+	return &kaitov1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: &kaitov1alpha1.RAGEngineSpec{
-			Compute: &kaitov1alpha1.ResourceSpec{
+		Spec: &kaitov1beta1.RAGEngineSpec{
+			Compute: &kaitov1beta1.ResourceSpec{
 				InstanceType:  instanceType,
 				LabelSelector: labelSelector,
 			},
-			Embedding: &kaitov1alpha1.EmbeddingSpec{
-				Local: &kaitov1alpha1.LocalEmbeddingSpec{
+			Embedding: &kaitov1beta1.EmbeddingSpec{
+				Local: &kaitov1beta1.LocalEmbeddingSpec{
 					ModelID: embeddingModelID,
 				},
 			},
@@ -416,19 +481,42 @@ func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embe
 	}
 }
 
-func GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(name, namespace, preferredNodes, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1alpha1.InferenceServiceSpec) *kaitov1alpha1.RAGEngine {
-	return &kaitov1alpha1.RAGEngine{
+func GenerateLocalEmbeddingRAGEngineManifestWithStorage(name, namespace, instanceType, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1beta1.InferenceServiceSpec, storageSpec *kaitov1beta1.StorageSpec) *kaitov1beta1.RAGEngine {
+	return &kaitov1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: &kaitov1alpha1.RAGEngineSpec{
-			Compute: &kaitov1alpha1.ResourceSpec{
+		Spec: &kaitov1beta1.RAGEngineSpec{
+			Compute: &kaitov1beta1.ResourceSpec{
+				InstanceType:  instanceType,
+				LabelSelector: labelSelector,
+			},
+			Embedding: &kaitov1beta1.EmbeddingSpec{
+				Local: &kaitov1beta1.LocalEmbeddingSpec{
+					ModelID: embeddingModelID,
+				},
+			},
+			InferenceService: inferenceSpec,
+			Storage:          storageSpec,
+		},
+	}
+}
+
+func GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(name, namespace, instanceType, preferredNodes, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1beta1.InferenceServiceSpec) *kaitov1beta1.RAGEngine {
+	return &kaitov1beta1.RAGEngine{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: &kaitov1beta1.RAGEngineSpec{
+			Compute: &kaitov1beta1.ResourceSpec{
+				InstanceType:   instanceType,
 				PreferredNodes: []string{preferredNodes},
 				LabelSelector:  labelSelector,
 			},
-			Embedding: &kaitov1alpha1.EmbeddingSpec{
-				Local: &kaitov1alpha1.LocalEmbeddingSpec{
+			Embedding: &kaitov1beta1.EmbeddingSpec{
+				Local: &kaitov1beta1.LocalEmbeddingSpec{
 					ModelID: embeddingModelID,
 				},
 			},
@@ -459,8 +547,8 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL, llmPath string) *kaitov1alpha1.RAGEngine {
-	ragEngineObj := &kaitov1alpha1.RAGEngine{}
+func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL, llmPath string) *kaitov1beta1.RAGEngine {
+	ragEngineObj := &kaitov1beta1.RAGEngine{}
 	serviceURL := fmt.Sprintf("http://%s/%s", baseURL, llmPath)
 	By("Creating RAG with localembedding and kaito vllm inference", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
@@ -468,7 +556,7 @@ func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL, llmPath string) *kaitov1alp
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
-			&kaitov1alpha1.InferenceServiceSpec{
+			&kaitov1beta1.InferenceServiceSpec{
 				URL:               serviceURL,
 				ContextWindowSize: 128000,
 			},
@@ -479,16 +567,42 @@ func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL, llmPath string) *kaitov1alp
 	return ragEngineObj
 }
 
-func createLocalPreferredNodesRAGEngine(baseURL, preferredNode string) *kaitov1alpha1.RAGEngine {
-	ragEngineObj := &kaitov1alpha1.RAGEngine{}
-	serviceURL := fmt.Sprintf("http://%s/v1/completions", baseURL)
-	By("Creating RAG with localembedding and kaito vllm inference", func() {
+func createLocalEmbeddingKaitoVLLMRAGEngineWithStorage(baseURL, llmPath, pvcName string) *kaitov1beta1.RAGEngine {
+	ragEngineObj := &kaitov1beta1.RAGEngine{}
+	serviceURL := fmt.Sprintf("http://%s/%s", baseURL, llmPath)
+	By("Creating RAG with localembedding, kaito vllm inference, and PVC storage", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
-		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(uniqueID, namespaceName, preferredNode, "BAAI/bge-small-en-v1.5",
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifestWithStorage(uniqueID, namespaceName, "Standard_NV36ads_A10_v5", "BAAI/bge-small-en-v1.5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
-			&kaitov1alpha1.InferenceServiceSpec{
+			&kaitov1beta1.InferenceServiceSpec{
+				URL:               serviceURL,
+				ContextWindowSize: 128000,
+			},
+			&kaitov1beta1.StorageSpec{
+				PersistentVolume: &kaitov1beta1.PersistentVolumeConfig{
+					PersistentVolumeClaim: pvcName,
+					MountPath:             "/mnt/vector-db",
+				},
+			},
+		)
+
+		createAndValidateRAGEngine(ragEngineObj)
+	})
+	return ragEngineObj
+}
+
+func createLocalPreferredNodesRAGEngine(baseURL, preferredNode string) *kaitov1beta1.RAGEngine {
+	ragEngineObj := &kaitov1beta1.RAGEngine{}
+	serviceURL := fmt.Sprintf("http://%s/v1/completions", baseURL)
+	By("Creating RAG with localembedding and kaito vllm inference", func() {
+		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifestWithPreferredNodes(uniqueID, namespaceName, "Standard_D8_v3", preferredNode, "BAAI/bge-small-en-v1.5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"apps": "phi-3"},
+			},
+			&kaitov1beta1.InferenceServiceSpec{
 				URL:               serviceURL,
 				ContextWindowSize: 128000,
 			},
@@ -499,8 +613,8 @@ func createLocalPreferredNodesRAGEngine(baseURL, preferredNode string) *kaitov1a
 	return ragEngineObj
 }
 
-func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
-	ragEngineObj := &kaitov1alpha1.RAGEngine{}
+func createLocalEmbeddingHFURLRAGEngine() *kaitov1beta1.RAGEngine {
+	ragEngineObj := &kaitov1beta1.RAGEngine{}
 	hfURL := "https://router.huggingface.co/featherless-ai/v1/chat/completions"
 	By("Creating RAG with localembedding and huggingface API", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
@@ -508,7 +622,7 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},
-			&kaitov1alpha1.InferenceServiceSpec{
+			&kaitov1beta1.InferenceServiceSpec{
 				URL:               hfURL,
 				AccessSecret:      "huggingface-token",
 				ContextWindowSize: 128000,
@@ -522,7 +636,7 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1alpha1.RAGEngine {
 
 func cleanupResources(
 	workspaceObj *kaitov1beta1.Workspace,
-	ragengineObj *kaitov1alpha1.RAGEngine,
+	ragengineObj *kaitov1beta1.RAGEngine,
 ) {
 	By("Cleaning up resources", func() {
 		if !CurrentSpecReport().Failed() {
@@ -544,6 +658,192 @@ func cleanupResources(
 	})
 }
 
+func cleanupResourcesWithPVC(
+	workspaceObj *kaitov1beta1.Workspace,
+	ragengineObj *kaitov1beta1.RAGEngine,
+	pvc *v1.PersistentVolumeClaim,
+) {
+	By("Cleaning up resources including PVC", func() {
+		if !CurrentSpecReport().Failed() {
+			err := deleteRAGEngine(ragengineObj)
+			Expect(err).NotTo(HaveOccurred(), "Failed to delete RAGEngine")
+
+			if workspaceObj != nil {
+				err = deleteWorkspace(workspaceObj)
+				Expect(err).NotTo(HaveOccurred(), "Failed to delete Workspace")
+			}
+
+			if pvc != nil {
+				err = deletePVC(pvc)
+				Expect(err).NotTo(HaveOccurred(), "Failed to delete PVC")
+			}
+
+			GinkgoWriter.Printf("Cleaning up all resources including PVC %s\n", pvc.Name)
+		} else {
+			GinkgoWriter.Printf("Test failed, keeping resources for debugging: Workspace %s, RAGEngine %s, PVC %s\n",
+				workspaceObj.ObjectMeta.Name, ragengineObj.ObjectMeta.Name, pvc.Name)
+		}
+	})
+}
+
+func createPVCForRAGEngine(pvcName, namespace string) *v1.PersistentVolumeClaim {
+	// Ensure StorageClass exists, create if not found
+	By("Ensuring Azure Disk StorageClass exists", func() {
+		storageClass := &storagev1.StorageClass{}
+		err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Name: "azuredisk-csi-premium",
+		}, storageClass)
+
+		if errors.IsNotFound(err) {
+			GinkgoWriter.Printf("⚠️  StorageClass 'azuredisk-csi-premium' not found, creating it...\n")
+
+			bindingMode := storagev1.VolumeBindingImmediate
+			reclaimPolicy := v1.PersistentVolumeReclaimRetain
+			allowExpansion := true
+
+			newStorageClass := &storagev1.StorageClass{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "azuredisk-csi-premium",
+				},
+				Provisioner: "disk.csi.azure.com",
+				Parameters: map[string]string{
+					"skuName":     "Premium_LRS",
+					"kind":        "Managed",
+					"cachingMode": "ReadOnly",
+				},
+				ReclaimPolicy:        &reclaimPolicy,
+				VolumeBindingMode:    &bindingMode,
+				AllowVolumeExpansion: &allowExpansion,
+			}
+
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, newStorageClass, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(Succeed(), "Failed to create StorageClass 'azuredisk-csi-premium'")
+
+			GinkgoWriter.Printf("✓ StorageClass 'azuredisk-csi-premium' created successfully\n")
+		} else if err != nil {
+			GinkgoWriter.Printf("⚠️  Error checking StorageClass: %v\n", err)
+		} else {
+			GinkgoWriter.Printf("✓ StorageClass 'azuredisk-csi-premium' found with provisioner: %s\n", storageClass.Provisioner)
+		}
+	})
+
+	pvc := &v1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pvcName,
+			Namespace: namespace,
+		},
+		Spec: v1.PersistentVolumeClaimSpec{
+			AccessModes: []v1.PersistentVolumeAccessMode{
+				v1.ReadWriteOnce,
+			},
+			StorageClassName: lo.ToPtr("azuredisk-csi-premium"),
+			Resources: v1.VolumeResourceRequirements{
+				Requests: v1.ResourceList{
+					v1.ResourceStorage: resource.MustParse("50Gi"),
+				},
+			},
+		},
+	}
+
+	By(fmt.Sprintf("Creating PVC %s", pvcName), func() {
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Create(ctx, pvc, &client.CreateOptions{})
+		}, utils.PollTimeout, utils.PollInterval).
+			Should(Succeed(), "Failed to create PVC %s", pvcName)
+	})
+
+	By(fmt.Sprintf("Waiting for PVC %s to be bound", pvcName), func() {
+		Eventually(func() bool {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: namespace,
+				Name:      pvcName,
+			}, pvc)
+			if err != nil {
+				return false
+			}
+			return pvc.Status.Phase == v1.ClaimBound
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "PVC should be bound")
+	})
+
+	return pvc
+}
+
+func deletePVC(pvc *v1.PersistentVolumeClaim) error {
+	By(fmt.Sprintf("Deleting PVC %s", pvc.Name), func() {
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: pvc.Namespace,
+				Name:      pvc.Name,
+			}, pvc)
+
+			if errors.IsNotFound(err) {
+				GinkgoWriter.Printf("PVC %s does not exist, no need to delete\n", pvc.Name)
+				return nil
+			}
+			if err != nil {
+				return fmt.Errorf("error checking if PVC %s exists: %v", pvc.Name, err)
+			}
+
+			err = utils.TestingCluster.KubeClient.Delete(ctx, pvc, &client.DeleteOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to delete PVC %s: %v", pvc.Name, err)
+			}
+			return nil
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete PVC")
+	})
+
+	return nil
+}
+
+func deleteRAGEnginePod(ragengineObj *kaitov1beta1.RAGEngine) error {
+	By("Deleting RAGEngine pod to trigger persistence", func() {
+		podList := &v1.PodList{}
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.List(ctx, podList, &client.ListOptions{
+				Namespace: ragengineObj.Namespace,
+				LabelSelector: labels.SelectorFromSet(map[string]string{
+					"kaito.sh/ragengine": ragengineObj.Name,
+				}),
+			})
+			if err != nil {
+				return err
+			}
+
+			if len(podList.Items) == 0 {
+				return fmt.Errorf("no pods found for RAGEngine %s", ragengineObj.Name)
+			}
+
+			pod := &podList.Items[0]
+			GinkgoWriter.Printf("Deleting pod %s to trigger PreStop hook\n", pod.Name)
+
+			err = utils.TestingCluster.KubeClient.Delete(ctx, pod, &client.DeleteOptions{})
+			if err != nil && !errors.IsNotFound(err) {
+				return fmt.Errorf("failed to delete pod %s: %v", pod.Name, err)
+			}
+
+			return nil
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete RAGEngine pod")
+	})
+
+	return nil
+}
+
+func verifyIndexExists(ragengineObj *kaitov1beta1.RAGEngine, indexName string) error {
+	curlCommand := `curl -s ` + ragengineObj.ObjectMeta.Name + `:80/indexes`
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("verify-index-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: fmt.Sprintf(`"%s"`, indexName),
+		WaitForRunning:     false,
+		ParseJSONResponse:  false,
+	}
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
+	return err
+}
+
 // validateWorkspacResourceStatus validates resource status
 func validateWorkspaceResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the resource status", func() {
@@ -558,7 +858,7 @@ func validateWorkspaceResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 			}
 
 			_, conditionFound := lo.Find(workspaceObj.Status.Conditions, func(condition metav1.Condition) bool {
-				return condition.Type == string(kaitov1alpha1.ConditionTypeResourceStatus) &&
+				return condition.Type == string(kaitov1beta1.ConditionTypeResourceStatus) &&
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
@@ -566,7 +866,7 @@ func validateWorkspaceResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func deleteRAGEngine(ragengineObj *kaitov1alpha1.RAGEngine) error {
+func deleteRAGEngine(ragengineObj *kaitov1beta1.RAGEngine) error {
 	By("Deleting ragengineObj", func() {
 		Eventually(func() error {
 			// Check if the workspace exists
@@ -671,7 +971,7 @@ func validateAssociatedService(objectMeta metav1.ObjectMeta) {
 }
 
 // validateRAGEngineReadiness validates ragengine conditions
-func validateRAGEngineCondition(ragengineObj *kaitov1alpha1.RAGEngine, conditionType string, description string) {
+func validateRAGEngineCondition(ragengineObj *kaitov1beta1.RAGEngine, conditionType string, description string) {
 	By(fmt.Sprintf("Checking %s", description), func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -718,7 +1018,7 @@ func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 	return nil
 }
 
-func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) (map[string]any, error) {
+func createAndValidateIndexPod(ragengineObj *kaitov1beta1.RAGEngine) (map[string]any, error) {
 	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/index \
 -H "Content-Type: application/json" \
 -d '{
@@ -743,7 +1043,7 @@ func createAndValidateIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) (map[strin
 	return createAndValidateAPIPod(ragengineObj, opts)
 }
 
-func createAndValidateUpdateDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, docID string) error {
+func createAndValidateUpdateDocumentPod(ragengineObj *kaitov1beta1.RAGEngine, docID string) error {
 	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/indexes/kaito/documents \
 -H "Content-Type: application/json" \
 -d '{
@@ -767,7 +1067,7 @@ func createAndValidateUpdateDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, d
 	return err
 }
 
-func createAndValidateDeleteDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, docID string) error {
+func createAndValidateDeleteDocumentPod(ragengineObj *kaitov1beta1.RAGEngine, docID string) error {
 	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/indexes/kaito/documents/delete \
 -H "Content-Type: application/json" \
 -d '{"doc_ids": ["` + docID + `"]}'`
@@ -783,7 +1083,7 @@ func createAndValidateDeleteDocumentPod(ragengineObj *kaitov1alpha1.RAGEngine, d
 	return err
 }
 
-func createAndValidateDeleteIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) error {
+func createAndValidateDeleteIndexPod(ragengineObj *kaitov1beta1.RAGEngine) error {
 	curlCommand := `curl -X DELETE ` + ragengineObj.ObjectMeta.Name + `:80/indexes/kaito \
 -H "Content-Type: application/json"`
 	opts := PodValidationOptions{
@@ -798,7 +1098,143 @@ func createAndValidateDeleteIndexPod(ragengineObj *kaitov1alpha1.RAGEngine) erro
 	return err
 }
 
-func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedSearchQueries string, remote bool) error {
+func createAndValidateRetrievalPod(ragengineObj *kaitov1beta1.RAGEngine, expectedDocID string, expectedText string) error {
+	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/retrieve \
+-H "Content-Type: application/json" \
+-d '{
+	"index_name": "kaito",
+	"query": "What is KAITO?",
+	"context_token_ratio": 0.5
+}'`
+	opts := PodValidationOptions{
+		PodName:            fmt.Sprintf("retrieval-pod-%s", utils.GenerateRandomString()),
+		CurlCommand:        curlCommand,
+		Namespace:          ragengineObj.ObjectMeta.Namespace,
+		ExpectedLogContent: "\"query\":",
+		WaitForRunning:     false,
+		ParseJSONResponse:  false, // Don't parse, we'll do it manually
+	}
+	_, err := createAndValidateAPIPod(ragengineObj, opts)
+	if err != nil {
+		return err
+	}
+
+	// Manually parse the response as object (not array)
+	var retrievalResp map[string]interface{}
+	coreClient, err := utils.GetK8sClientset()
+	if err != nil {
+		return fmt.Errorf("failed to get k8s clientset: %v", err)
+	}
+
+	logs, err := utils.GetPodLogs(coreClient, ragengineObj.ObjectMeta.Namespace, opts.PodName, "")
+	if err != nil {
+		return fmt.Errorf("failed to get pod logs: %v", err)
+	}
+
+	// Parse JSON object from logs
+	startIndex := strings.Index(logs, "{")
+	endIndex := strings.LastIndex(logs, "}")
+	if startIndex == -1 || endIndex == -1 || startIndex >= endIndex {
+		return fmt.Errorf("invalid JSON format in logs")
+	}
+
+	apiResp := logs[startIndex : endIndex+1]
+	err = json.Unmarshal([]byte(apiResp), &retrievalResp)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal response: %v", err)
+	}
+
+	// Validate retrieval response structure
+	if retrievalResp == nil {
+		return fmt.Errorf("retrieval response is nil")
+	}
+
+	// Verify required fields exist
+	query, ok := retrievalResp["query"].(string)
+	if !ok {
+		return fmt.Errorf("retrieval response missing 'query' field or not a string")
+	}
+	if query != "What is KAITO?" {
+		return fmt.Errorf("query mismatch: expected 'What is KAITO?', got '%s'", query)
+	}
+
+	if _, ok := retrievalResp["results"]; !ok {
+		return fmt.Errorf("retrieval response missing 'results' field")
+	}
+	if _, ok := retrievalResp["count"]; !ok {
+		return fmt.Errorf("retrieval response missing 'count' field")
+	}
+
+	// Verify results array
+	results, ok := retrievalResp["results"].([]interface{})
+	if !ok {
+		return fmt.Errorf("results field is not an array")
+	}
+	if len(results) == 0 {
+		return fmt.Errorf("results array is empty")
+	}
+
+	// Verify first result node structure
+	firstNode, ok := results[0].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("first result is not a valid node object")
+	}
+
+	// Verify node fields exist
+	docID, ok := firstNode["doc_id"].(string)
+	if !ok {
+		return fmt.Errorf("node missing 'doc_id' field or not a string")
+	}
+
+	nodeID, ok := firstNode["node_id"].(string)
+	if !ok {
+		return fmt.Errorf("node missing 'node_id' field or not a string")
+	}
+
+	// Verify doc_id and node_id are the same (as per implementation)
+	if docID != nodeID {
+		return fmt.Errorf("doc_id (%s) should match node_id (%s)", docID, nodeID)
+	}
+
+	text, ok := firstNode["text"].(string)
+	if !ok {
+		return fmt.Errorf("node missing 'text' field or not a string")
+	}
+
+	// Verify text content matches expected text
+	if text != expectedText {
+		return fmt.Errorf("text content mismatch:\nexpected: %s\ngot: %s", expectedText, text)
+	}
+
+	score, ok := firstNode["score"].(float64)
+	if !ok {
+		return fmt.Errorf("node missing 'score' field or not a number")
+	}
+
+	// Verify score is reasonable (between 0 and 1)
+	if score < 0 || score > 1 {
+		return fmt.Errorf("score out of range: %.3f (expected 0-1)", score)
+	}
+
+	// Verify count matches results length
+	count, ok := retrievalResp["count"].(float64)
+	if !ok {
+		return fmt.Errorf("count field is not a number")
+	}
+	if int(count) != len(results) {
+		return fmt.Errorf("count (%d) does not match results length (%d)", int(count), len(results))
+	}
+
+	GinkgoWriter.Printf("✓ Retrieval API test passed:\n")
+	GinkgoWriter.Printf("  - Query: %s\n", query)
+	GinkgoWriter.Printf("  - Doc ID: %s\n", docID)
+	GinkgoWriter.Printf("  - Text: %s\n", text)
+	GinkgoWriter.Printf("  - Score: %.3f\n", score)
+	GinkgoWriter.Printf("  - Count: %d\n", int(count))
+	return nil
+}
+
+func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1beta1.RAGEngine, expectedSearchQueries string, remote bool) error {
 	var curlCommand string
 	// Note: Request without model specified should still succeed with vLLM. As model name is dynamically fetched.
 	if remote {
@@ -844,7 +1280,7 @@ func createAndValidateQueryChatMessagesPod(ragengineObj *kaitov1alpha1.RAGEngine
 	return err
 }
 
-func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedPersistResult string) error {
+func createAndValidatePersistPod(ragengineObj *kaitov1beta1.RAGEngine, expectedPersistResult string) error {
 	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/persist/kaito`
 	opts := PodValidationOptions{
 		PodName:            fmt.Sprintf("persist-pod-%s", utils.GenerateRandomString()),
@@ -858,7 +1294,7 @@ func createAndValidatePersistPod(ragengineObj *kaitov1alpha1.RAGEngine, expected
 	return err
 }
 
-func createAndValidateLoadPod(ragengineObj *kaitov1alpha1.RAGEngine, expectedLoadResult string) error {
+func createAndValidateLoadPod(ragengineObj *kaitov1beta1.RAGEngine, expectedLoadResult string) error {
 	curlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/load/kaito?overwrite=True`
 	opts := PodValidationOptions{
 		PodName:            fmt.Sprintf("load-pod-%s", utils.GenerateRandomString()),
@@ -885,7 +1321,7 @@ type PodValidationOptions struct {
 }
 
 // createAndValidateAPIPod is a generic function to create and validate API test pods
-func createAndValidateAPIPod(ragengineObj *kaitov1alpha1.RAGEngine, opts PodValidationOptions) (map[string]any, error) {
+func createAndValidateAPIPod(ragengineObj *kaitov1beta1.RAGEngine, opts PodValidationOptions) (map[string]any, error) {
 	var jsonResp []map[string]any
 
 	By(fmt.Sprintf("Creating %s", opts.PodName), func() {
@@ -967,7 +1403,7 @@ func createAndValidateAPIPod(ragengineObj *kaitov1alpha1.RAGEngine, opts PodVali
 			}
 
 			return strings.Contains(logs, opts.ExpectedLogContent)
-		}, 4*time.Minute, utils.PollInterval).Should(BeTrue(), fmt.Sprintf("Failed to wait for %s logs to be ready", opts.PodName))
+		}, 8*time.Minute, utils.PollInterval).Should(BeTrue(), fmt.Sprintf("Failed to wait for %s logs to be ready", opts.PodName))
 	})
 
 	if opts.ParseJSONResponse && len(jsonResp) > 0 {

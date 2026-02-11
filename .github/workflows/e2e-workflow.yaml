@@ -23,7 +23,7 @@ on:
         default: "swedencentral"
       k8s_version:
         type: string
-        default: "1.31.10"
+        default: "1.32.9"
       pull_request_number:
         type: string
 

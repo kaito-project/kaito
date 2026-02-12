@@ -26,8 +26,7 @@ const (
 	MIGResourcePrefix = "nvidia.com/mig-"
 )
 
-// migProfileRegex matches valid MIG profile strings like "1g.5gb", "3g.40gb", "7g.80gb",
-// and decimal memory values like "1g.16.5gb".
+// migProfileRegex matches valid MIG profile strings like "1g.5gb", "3g.40gb", "7g.80gb".
 var migProfileRegex = regexp.MustCompile(`^(\d+)g\.([\d.]+)gb$`)
 
 // knownProfiles is the set of valid MIG profiles across supported GPU models.
@@ -43,7 +42,7 @@ var knownProfiles = map[string]bool{
 	"1g.6gb":  true,
 	"2g.12gb": true,
 	"4g.24gb": true,
-	// A100 (40GB)
+	// A100 (40GB) — 1g.10gb also valid on A100-40GB since R525 drivers
 	"1g.5gb":  true,
 	"2g.10gb": true,
 	"3g.20gb": true,
@@ -56,19 +55,34 @@ var knownProfiles = map[string]bool{
 	"3g.40gb": true,
 	"4g.40gb": true,
 	"7g.80gb": true,
+	// H100 (94GB)
+	"1g.12gb": true,
+	"1g.24gb": true,
+	"2g.24gb": true,
+	"3g.47gb": true,
+	"4g.47gb": true,
+	"7g.94gb": true,
+	// H100 (96GB on GH200)
+	"3g.48gb": true,
+	"4g.48gb": true,
+	"7g.96gb": true,
 	// H200 (141GB HBM3e)
-	"1g.16.5gb": true,
-	"2g.33gb":   true,
-	"4g.66gb":   true,
-	"7g.141gb":  true,
-	// B200 / Blackwell (180-192GB HBM3e)
+	"1g.18gb":  true,
+	"1g.35gb":  true,
+	"2g.35gb":  true,
+	"3g.71gb":  true,
+	"4g.71gb":  true,
+	"7g.141gb": true,
+	// B200 / Blackwell (180GB HBM3e)
 	"1g.23gb":  true,
-	"2g.46gb":  true,
-	"4g.92gb":  true,
+	"1g.45gb":  true,
+	"2g.45gb":  true,
+	"3g.90gb":  true,
+	"4g.90gb":  true,
 	"7g.180gb": true,
 }
 
-// ParseMIGProfile parses a MIG profile string (e.g., "1g.10gb", "1g.16.5gb") and returns
+// ParseMIGProfile parses a MIG profile string (e.g., "1g.10gb", "7g.141gb") and returns
 // the number of compute slices and the memory in GB (floored to int for fractional values).
 func ParseMIGProfile(profile string) (computeSlices int, memoryGB int, err error) {
 	matches := migProfileRegex.FindStringSubmatch(profile)

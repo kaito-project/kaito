@@ -324,6 +324,9 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	if *r.Count > 1 {
 		errs = errs.Also(apis.ErrInvalidValue("Tuning does not currently support multinode configurations. Please set the node count to 1. Future support with DeepSpeed will allow this.", "count"))
 	}
+	if r.MIG != nil {
+		errs = errs.Also(apis.ErrInvalidValue("MIG is not supported for tuning workloads", "mig"))
+	}
 	return errs
 }
 

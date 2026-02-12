@@ -33,13 +33,21 @@ func TestParseMIGProfile(t *testing.T) {
 		{"valid 7g.80gb", "7g.80gb", 7, 80, false},
 		{"valid 1g.6gb", "1g.6gb", 1, 6, false},
 		{"valid 2g.12gb", "2g.12gb", 2, 12, false},
-		// H200 decimal memory
-		{"valid 1g.16.5gb (H200)", "1g.16.5gb", 1, 16, false}, // floored to 16
-		{"valid 2g.33gb (H200)", "2g.33gb", 2, 33, false},
+		// H100 (94GB)
+		{"valid 1g.12gb (H100-94GB)", "1g.12gb", 1, 12, false},
+		{"valid 7g.94gb (H100-94GB)", "7g.94gb", 7, 94, false},
+		// H200 (141GB)
+		{"valid 1g.18gb (H200)", "1g.18gb", 1, 18, false},
+		{"valid 2g.35gb (H200)", "2g.35gb", 2, 35, false},
+		{"valid 3g.71gb (H200)", "3g.71gb", 3, 71, false},
 		{"valid 7g.141gb (H200)", "7g.141gb", 7, 141, false},
 		// B200 / Blackwell
 		{"valid 1g.23gb (B200)", "1g.23gb", 1, 23, false},
+		{"valid 2g.45gb (B200)", "2g.45gb", 2, 45, false},
+		{"valid 3g.90gb (B200)", "3g.90gb", 3, 90, false},
 		{"valid 7g.180gb (B200)", "7g.180gb", 7, 180, false},
+		// Decimal memory parsing (hypothetical future profile)
+		{"decimal memory floors correctly", "1g.16.5gb", 1, 16, false},
 		// +me media extension rejected (not a distinct K8s resource)
 		{"reject +me suffix", "1g.10gb+me", 0, 0, true},
 		// Invalid cases
@@ -103,7 +111,8 @@ func TestValidateMIGProfile(t *testing.T) {
 		{"valid known profile 1g.10gb", "1g.10gb", false},
 		{"valid known profile 7g.80gb", "7g.80gb", false},
 		{"valid known profile 4g.24gb", "4g.24gb", false},
-		{"valid known H200 profile 1g.16.5gb", "1g.16.5gb", false},
+		{"valid known H200 profile 1g.18gb", "1g.18gb", false},
+		{"valid known H100-94GB profile 1g.12gb", "1g.12gb", false},
 		{"valid known B200 profile 1g.23gb", "1g.23gb", false},
 		{"reject +me profile", "1g.10gb+me", true},
 		{"valid format but unknown profile", "5g.50gb", true},

@@ -355,7 +355,7 @@ func (g *Generator) ParseModelMetadata() {
 	}
 
 	// set ToolCallParser based on model name prefix
-	// sort the keys of toolCallParserModeNamePrefixMap in alphabetical decreasing order and then iterate
+	// sort the keys of toolCallParserModeNamePrefixMap in reverse alphabetical order and then iterate
 	// this is to ensure that longer (more specific) prefixes are matched first
 	prefixes := make([]string, 0, len(toolCallParserModeNamePrefixMap))
 	for prefix := range toolCallParserModeNamePrefixMap {

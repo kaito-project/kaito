@@ -93,7 +93,7 @@ var (
 func UpdateStatusConditionIfNotMatch(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace, cType kaitov1beta1.ConditionType,
 	cStatus metav1.ConditionStatus, cReason, cMessage string) error {
 	if curCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(cType)); curCondition != nil {
-		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage {
+		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage && curCondition.ObservedGeneration == wObj.GetGeneration() {
 			// Nothing to change
 			return nil
 		}

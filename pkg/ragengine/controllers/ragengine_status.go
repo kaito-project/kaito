@@ -33,7 +33,7 @@ import (
 func (c *RAGEngineReconciler) updateRAGEngineStatus(ctx context.Context, name *client.ObjectKey, condition *metav1.Condition, workerNodes []string) error {
 	return retry.OnError(retry.DefaultRetry,
 		func(err error) bool {
-			return apierrors.IsServiceUnavailable(err) || apierrors.IsServerTimeout(err) || apierrors.IsTooManyRequests(err)
+			return apierrors.IsServiceUnavailable(err) || apierrors.IsServerTimeout(err) || apierrors.IsTooManyRequests(err) || apierrors.IsConflict(err)
 		},
 		func() error {
 			// Read the latest version to avoid update conflict.
@@ -57,7 +57,7 @@ func (c *RAGEngineReconciler) updateRAGEngineStatus(ctx context.Context, name *c
 func (c *RAGEngineReconciler) updateStatusConditionIfNotMatch(ctx context.Context, ragObj *kaitov1beta1.RAGEngine, cType kaitov1beta1.ConditionType,
 	cStatus metav1.ConditionStatus, cReason, cMessage string) error {
 	if curCondition := meta.FindStatusCondition(ragObj.Status.Conditions, string(cType)); curCondition != nil {
-		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage {
+		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage && curCondition.ObservedGeneration == ragObj.GetGeneration() {
 			// Nothing to change
 			return nil
 		}

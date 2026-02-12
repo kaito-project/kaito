@@ -255,6 +255,35 @@ func TestGeneratePreset(t *testing.T) {
 				DisallowLoRA: false,
 			},
 		},
+		{
+			modelRepo: "nvidia/Nemotron-Orchestrator-8B",
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "nemotron-orchestrator-8b",
+					Architectures:          []string{"Qwen3ForCausalLM"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "nvidia/Nemotron-Orchestrator-8B"),
+					DownloadAtRuntime:      true,
+					DownloadAuthRequired:   false,
+					ModelFileSize:          "31Gi",
+					BytesPerToken:          147456,
+					ModelTokenLimit:        40960,
+					DiskStorageRequirement: "81Gi", // 31 + 50
+					ReasoningParser:        "qwen3",
+					ToolCallParser:         "hermes",
+				},
+				AttnType: "GQA",
+			},
+			expectedVLLM: model.VLLMParam{
+				ModelName: "nemotron-orchestrator-8b",
+				ModelRunParams: map[string]string{
+					"load_format":    "auto",
+					"config_format":  "auto",
+					"tokenizer_mode": "auto",
+				},
+				DisallowLoRA: false,
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -288,16 +317,16 @@ func TestGeneratePreset(t *testing.T) {
 	}
 }
 
-// this test only makes sure that all keys in reasoningParserMap are lowercased
+// this test only makes sure that all keys in reasoningParserModeNamePrefixMap are lowercased
 func TestReasoningParserMap(t *testing.T) {
-	for key := range reasoningParserMap {
-		assert.Equal(t, key, strings.ToLower(key), "reasoningParserMap key is not lowercased: %s", key)
+	for key := range reasoningParserModeNamePrefixMap {
+		assert.Equal(t, key, strings.ToLower(key), "reasoningParserModeNamePrefixMap key is not lowercased: %s", key)
 	}
 }
 
-// this test only makes sure that all keys in toolCallParserMap are lowercased
+// this test only makes sure that all keys in toolCallParserModeNamePrefixMap are lowercased
 func TestToolCallParserMap(t *testing.T) {
-	for key := range toolCallParserMap {
-		assert.Equal(t, key, strings.ToLower(key), "toolCallParserMap key is not lowercased: %s", key)
+	for key := range toolCallParserModeNamePrefixMap {
+		assert.Equal(t, key, strings.ToLower(key), "toolCallParserModeNamePrefixMap key is not lowercased: %s", key)
 	}
 }

@@ -3,13 +3,15 @@ kind: ConfigMap
 metadata:
   name: kaito-supported-models
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "utils.toYamlStrMap" .Values.commonLabels | nindent 4 }}
 data:
   SupportedModels: |
     models:
       - name: base
         type: text-generation
         runtime: tfs
-        tag: 0.1.1
+        tag: 0.1.2
       - name: llama-3.1-8b-instruct
         type: text-generation
         version: https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/commit/0e9e39f249a16976918f6564b8830bc894c89659

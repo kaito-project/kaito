@@ -9,7 +9,7 @@ webhooks:
     admissionReviewVersions: ["v1"]
     clientConfig:
       service:
-        name: {{ include "kaito.fullname" . }}-svc
+        name: {{ include "kaito.serviceName" . }}
         namespace: {{ .Release.Namespace }}
         port: {{ .Values.webhook.port }}
     failurePolicy: Fail
@@ -38,7 +38,7 @@ webhooks:
     admissionReviewVersions: ["v1"]
     clientConfig:
       service:
-        name: {{ include "kaito.fullname" . }}-svc
+        name: {{ include "kaito.serviceName" . }}
         namespace: {{ .Release.Namespace }}
         port: {{ .Values.webhook.port }}
     failurePolicy: Fail

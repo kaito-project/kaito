@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "kaito.fullname" . }}-clusterrole
+  name: {{ include "kaito.clusterRoleName" . }}
   labels:
     {{- include "kaito.labels" . | nindent 4 }}
 rules:
@@ -78,3 +78,6 @@ rules:
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["create", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]

@@ -19,7 +19,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
@@ -40,13 +40,12 @@ func TestGenerateRAGDeploymentManifest(t *testing.T) {
 
 		// Calling the function to generate the deployment manifest
 		obj := GenerateRAGDeploymentManifest(ragEngine, test.MockRAGEngineWithPresetHash,
-			"",                            // imageName
-			nil,                           // imagePullSecretRefs
-			*ragEngine.Spec.Compute.Count, // replicas
-			nil,                           // commands
-			nil,                           // containerPorts
-			nil,                           // livenessProbe
-			nil,                           // readinessProbe
+			"",  // imageName
+			nil, // imagePullSecretRefs
+			nil, // commands
+			nil, // containerPorts
+			nil, // livenessProbe
+			nil, // readinessProbe
 			v1.ResourceRequirements{},
 			nil, // tolerations
 			nil, // volumes
@@ -55,7 +54,7 @@ func TestGenerateRAGDeploymentManifest(t *testing.T) {
 
 		// Expected label selector for the deployment
 		appSelector := map[string]string{
-			kaitov1alpha1.LabelRAGEngineName: ragEngine.Name,
+			kaitov1beta1.LabelRAGEngineName: ragEngine.Name,
 		}
 
 		// Check if the deployment's selector is correct
@@ -83,8 +82,8 @@ func TestGenerateRAGDeploymentManifest(t *testing.T) {
 			t.Errorf("Expected 1 owner reference, got %d", len(obj.OwnerReferences))
 		}
 		ownerRef := obj.OwnerReferences[0]
-		if ownerRef.APIVersion != kaitov1alpha1.GroupVersion.String() {
-			t.Errorf("Expected owner reference APIVersion %s, got %s", kaitov1alpha1.GroupVersion.String(), ownerRef.APIVersion)
+		if ownerRef.APIVersion != kaitov1beta1.GroupVersion.String() {
+			t.Errorf("Expected owner reference APIVersion %s, got %s", kaitov1beta1.GroupVersion.String(), ownerRef.APIVersion)
 		}
 		if ownerRef.Kind != "RAGEngine" {
 			t.Errorf("Expected owner reference Kind %s, got %s", "RAGEngine", ownerRef.Kind)
@@ -179,7 +178,7 @@ func TestGenerateRAGServiceManifest(t *testing.T) {
 
 		// Verify selector
 		expectedSelector := map[string]string{
-			kaitov1alpha1.LabelRAGEngineName: ragEngine.Name,
+			kaitov1beta1.LabelRAGEngineName: ragEngine.Name,
 		}
 		if !reflect.DeepEqual(service.Spec.Selector, expectedSelector) {
 			t.Errorf("Expected selector %v, got %v", expectedSelector, service.Spec.Selector)
@@ -200,8 +199,8 @@ func TestGenerateRAGServiceManifest(t *testing.T) {
 			t.Errorf("Expected 1 owner reference, got %d", len(service.OwnerReferences))
 		}
 		ownerRef := service.OwnerReferences[0]
-		if ownerRef.APIVersion != kaitov1alpha1.GroupVersion.String() {
-			t.Errorf("Expected owner reference APIVersion %s, got %s", kaitov1alpha1.GroupVersion.String(), ownerRef.APIVersion)
+		if ownerRef.APIVersion != kaitov1beta1.GroupVersion.String() {
+			t.Errorf("Expected owner reference APIVersion %s, got %s", kaitov1beta1.GroupVersion.String(), ownerRef.APIVersion)
 		}
 		if ownerRef.Kind != "RAGEngine" {
 			t.Errorf("Expected owner reference Kind %s, got %s", "RAGEngine", ownerRef.Kind)

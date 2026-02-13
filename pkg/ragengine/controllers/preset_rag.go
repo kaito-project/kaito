@@ -23,9 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
-	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
@@ -106,10 +105,10 @@ func getEnv(key, defaultValue string) string {
 }
 
 // configStorageVolume creates a volume and volume mount for vector database storage
-func configStorageVolume(storageSpec *v1alpha1.StorageSpec) (corev1.Volume, corev1.VolumeMount) {
+func configStorageVolume(storageSpec *v1beta1.StorageSpec) (corev1.Volume, corev1.VolumeMount) {
 	mountPath := "/mnt/data"
-	if storageSpec.MountPath != "" {
-		mountPath = storageSpec.MountPath
+	if storageSpec.PersistentVolume != nil && storageSpec.PersistentVolume.MountPath != "" {
+		mountPath = storageSpec.PersistentVolume.MountPath
 	}
 
 	volumeMount := corev1.VolumeMount{
@@ -118,13 +117,13 @@ func configStorageVolume(storageSpec *v1alpha1.StorageSpec) (corev1.Volume, core
 	}
 
 	var volume corev1.Volume
-	if storageSpec.PersistentVolumeClaim != "" {
+	if storageSpec.PersistentVolume != nil && storageSpec.PersistentVolume.PersistentVolumeClaim != "" {
 		// Use PVC for persistent storage
 		volume = corev1.Volume{
 			Name: "vector-db-storage",
 			VolumeSource: corev1.VolumeSource{
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-					ClaimName: storageSpec.PersistentVolumeClaim,
+					ClaimName: storageSpec.PersistentVolume.PersistentVolumeClaim,
 				},
 			},
 		}
@@ -141,7 +140,7 @@ func configStorageVolume(storageSpec *v1alpha1.StorageSpec) (corev1.Volume, core
 	return volume, volumeMount
 }
 
-func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
+func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
 
@@ -159,23 +158,21 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 	var resourceReq corev1.ResourceRequirements
 
 	if ragEngineObj.Spec.Embedding.Local != nil {
-		var gpuConfig *sku.GPUConfig
-		var err error
-		gpuConfig, err = utils.GetGPUConfigBySKU(ragEngineObj.Spec.Compute.InstanceType)
-		if err != nil {
-			return nil, err
-		}
-		skuNumGPUs := gpuConfig.GPUCount
+		instanceType := ragEngineObj.Spec.Compute.InstanceType
+		gpuConfig, err := utils.GetGPUConfigBySKU(instanceType)
+		// If GetGPUConfigBySKU returns error, skip GPU resource allocation (e.g., CPU-only instances)
+		if err == nil && gpuConfig != nil {
+			skuNumGPUs := gpuConfig.GPUCount
 
-		resourceReq = corev1.ResourceRequirements{
-			Requests: corev1.ResourceList{
-				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
-			},
-			Limits: corev1.ResourceList{
-				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
-			},
+			resourceReq = corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+				},
+				Limits: corev1.ResourceList{
+					corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+				},
+			}
 		}
-
 	}
 	commands := utils.ShellCmd("python3 main.py")
 
@@ -183,7 +180,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1alpha1.RAGEngine, revi
 
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
 
-	depObj := manifests.GenerateRAGDeploymentManifest(ragEngineObj, revisionNum, image, imagePullSecretRefs, *ragEngineObj.Spec.Compute.Count, commands,
+	depObj := manifests.GenerateRAGDeploymentManifest(ragEngineObj, revisionNum, image, imagePullSecretRefs, commands,
 		containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts)
 
 	err := resources.CreateResource(ctx, depObj, kubeClient)

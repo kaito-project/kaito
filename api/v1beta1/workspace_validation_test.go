@@ -831,7 +831,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				totalSafeTensorFileSize = tc.totalSafeTensorFileSize
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
-				errs := tc.resourceSpec.validateCreateWithInference(&spec, false, tc.runtime)
+				errs := tc.resourceSpec.validateCreateWithInference(context.TODO(), &spec, false, tc.runtime, "")
 				hasErrs := errs != nil
 				if hasErrs != tc.expectErrs {
 					t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -949,7 +949,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 			expectErrs: false,
 		},
 		{
-			name: "NAP disabled - keep instanceType set (invalid)",
+			name: "NAP disabled - keep instanceType set (backward compatibility)",
 			newResource: &ResourceSpec{
 				InstanceType: "Standard_NC6s_v3", // Still has instanceType
 				Count:        pointerToInt(1),
@@ -959,8 +959,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				Count:        pointerToInt(1),
 			},
 			disableNAP: true, // NAP disabled (BYO mode)
-			errContent: "instanceType must be empty when node auto-provisioning is disabled",
-			expectErrs: true,
+			expectErrs: false,
 		},
 		{
 			name: "NAP disabled - change to different instanceType (invalid)",
@@ -973,7 +972,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				Count:        pointerToInt(1),
 			},
 			disableNAP: true, // NAP disabled (BYO mode)
-			errContent: "instanceType must be empty when node auto-provisioning is disabled",
+			errContent: "instanceType is cannot be changed once set",
 			expectErrs: true,
 		},
 		{
@@ -1336,7 +1335,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			if tc.runtimeName != "" {
 				runtime = tc.runtimeName
 			}
-			errs := tc.inferenceSpec.validateCreate(ctx, runtime)
+			errs := tc.inferenceSpec.validateCreate(ctx, runtime, "")
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)

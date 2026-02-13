@@ -671,7 +671,7 @@ func createQWen2_7BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1b
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Qwen2 7B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-qwen2-7b-", rand.Intn(1000))
-		configMap := createCustomInferenceConfigMapForE2E(fmt.Sprintf("%s-%s", PresetQwen2_7BModel, uniqueID))
+		configMap := createCustomInferenceConfigMapForE2E(fmt.Sprintf("%s-%s", "preset-qwen2-7b", uniqueID))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV72ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen2-7b-vllm"},
@@ -686,7 +686,7 @@ func createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kai
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with Qwen3 Coder 30B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-qwen3-coder-30b-", rand.Intn(1000))
-		configMap := createCustomInferenceConfigMapForE2E(fmt.Sprintf("%s-%s", PresetQwen3_Coder30BModel, uniqueID))
+		configMap := createCustomInferenceConfigMapForE2E(fmt.Sprintf("%s-%s", "preset-qwen3-coder-30b", uniqueID))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV72ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-coder-30b-vllm"},

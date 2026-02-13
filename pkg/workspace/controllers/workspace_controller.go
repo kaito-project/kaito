@@ -57,6 +57,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -526,7 +527,12 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 			}
 		} else if wObj.Inference != nil && wObj.Inference.Preset != nil {
 			presetName := string(wObj.Inference.Preset.Name)
-			model := plugin.KaitoModelRegister.MustGet(presetName)
+			var model pkgmodel.Model
+			model, err = models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+			if err != nil {
+				klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
+				return
+			}
 			inferenceParam := model.GetInferenceParameters()
 			revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 
@@ -641,24 +647,29 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("Workspace")
 
-	builder := ctrl.NewControllerManagedBy(mgr).
+	bldr := ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1beta1.Workspace{}).
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.ControllerRevision{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&appsv1.StatefulSet{}).
-		Owns(&batchv1.Job{}).
-		Watches(&karpenterv1.NodeClaim{},
+		Owns(&batchv1.Job{})
+
+	// Only watch NodeClaim resources if node auto-provisioning is enabled
+	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		bldr = bldr.Watches(&karpenterv1.NodeClaim{},
 			&nodeClaimEventHandler{
 				logger:         c.klogger,
 				expectations:   c.expectations,
 				enqueueHandler: enqueueWorkspaceForNodeClaim,
 			},
 			builder.WithPredicates(nodeclaim.NodeClaimPredicate),
-		).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
+		)
+	}
+
+	bldr = bldr.WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
 	go monitorWorkspaces(context.Background(), c.Client)
 
-	return builder.Complete(c)
+	return bldr.Complete(c)
 }

@@ -22,7 +22,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -103,7 +103,7 @@ func TestGPUConfigLogic(t *testing.T) {
 	testcases := map[string]struct {
 		nodeCount        int
 		callMocks        func(c *test.MockClient)
-		ragEngine        *v1alpha1.RAGEngine
+		ragEngine        *v1beta1.RAGEngine
 		expectedGPUReq   int64
 		expectedLimitReq int64
 	}{

@@ -372,11 +372,18 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			}
 		}
 
+		skuNumGPUs := gpuConfig.GPUCount
+		// MIG slices are hardware-isolated, so tensor parallelism should remain disabled (size=1)
+		// even when requesting multiple MIG instances in a single pod.
+		if gpuConfig.IsMIG {
+			skuNumGPUs = 1
+		}
+
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
 			ConfigVolume:         &cmVolumeMount,
-			SKUNumGPUs:           gpuConfig.GPUCount,
+			SKUNumGPUs:           skuNumGPUs,
 			NumNodes:             numNodes,
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
 			DistributedInference: ctx.Model.SupportDistributedInference(),

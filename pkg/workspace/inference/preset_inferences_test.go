@@ -1219,6 +1219,75 @@ func TestGeneratePresetInference_MIGPodSpec(t *testing.T) {
 	}
 }
 
+func TestGeneratePresetInference_MIGCountGreaterThanOneForcesTensorParallelSizeOne(t *testing.T) {
+	test.RegisterTestModel()
+
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
+
+	origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+	origBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origBYO
+	}()
+
+	workspace := test.MockWorkspaceWithMIGPresetVLLM.DeepCopy()
+	workspace.Inference.Preset.Name = "test-model"
+	workspace.Resource.MIG.Count = lo.ToPtr(2)
+	workspace.Annotations = map[string]string{
+		v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameVLLM),
+	}
+	nodeCount := 1
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
+	workspace.Resource.Count = &nodeCount
+	workspace.Status.WorkerNodes = []string{"mig-node-1"}
+
+	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
+	count, err := estimator.EstimateNodeCount(t.Context(), workspace, nil)
+	if err != nil {
+		t.Fatalf("failed to estimate node count: %v", err)
+	}
+	workspace.Status.TargetNodeCount = int32(count)
+
+	mockClient := test.NewClient()
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+	mockClient.CreateOrUpdateObjectInMap(&corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      workspace.Name,
+			Namespace: workspace.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			ClusterIP: "10.0.0.1",
+		},
+	})
+
+	m := plugin.KaitoModelRegister.MustGet("test-model")
+	createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, m, mockClient)
+	if err != nil {
+		t.Fatalf("GeneratePresetInference failed: %v", err)
+	}
+
+	statefulset := createdObject.(*appsv1.StatefulSet)
+	container := statefulset.Spec.Template.Spec.Containers[0]
+
+	migResourceName := corev1.ResourceName("nvidia.com/mig-1g.10gb")
+	if qty, ok := container.Resources.Requests[migResourceName]; !ok {
+		t.Fatalf("expected MIG resource %s in requests", migResourceName)
+	} else if qty.Value() != 2 {
+		t.Fatalf("expected MIG resource quantity 2, got %d", qty.Value())
+	}
+
+	workloadCmd := strings.Join(container.Command, " ")
+	params := toParameterMap(strings.Split(workloadCmd, "--")[1:])
+	if got := params["tensor-parallel-size"]; got != "1" {
+		t.Fatalf("expected tensor-parallel-size=1 for MIG workspace, got %q (cmd: %s)", got, workloadCmd)
+	}
+}
+
 func toParameterMap(in []string) map[string]string {
 	ret := make(map[string]string)
 	for _, eachToken := range in {

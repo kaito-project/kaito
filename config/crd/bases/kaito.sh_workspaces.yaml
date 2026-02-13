@@ -811,6 +811,11 @@ spec:
                 required:
                 - name
                 type: object
+              ttlSecondsAfterFinished:
+                description: TtlSecondsAfterFinished specifies the time to live for
+                  the tuning workspace after it has finished.
+                format: int64
+                type: integer
             required:
             - input
             - output

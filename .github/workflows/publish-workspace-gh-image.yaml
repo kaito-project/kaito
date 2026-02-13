@@ -109,15 +109,16 @@ jobs:
 
       - name: Build image
         run: |
-          INDEX_REF="${REGISTRY}/${IMG_NAME}:${IMG_TAG}"
+          ARTF_REPO="${REGISTRY}/${IMG_NAME}"
+          INDEX_REF="${ARTF_REPO}:${IMG_TAG}"
 
-          make docker-build-workspace IMG_TAG="${IMG_TAG}-linux"
-          LINUX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-linux")"
+          make docker-build-workspace
+          INDEX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
 
-          make helm-package-workspace IMG_TAG="${IMG_TAG}-chart"
-          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-chart")"
+          make helm-package-workspace
+          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
 
-          oras manifest index create "${INDEX_REF}" "${LINUX_DIG}" "${CHART_DIG}"
+          oras manifest index update "${ARTF_REPO}@${INDEX_DIG}" --add "${CHART_DIG}" --tag "${IMG_TAG}"
         env:
           VERSION: ${{ needs.check-tag.outputs.tag }}
           REGISTRY: ${{ steps.get-registry.outputs.registry_repository }}

@@ -58,15 +58,17 @@ jobs:
       - name: 'Build and Publish to MCR'
         id: Publish
         run: |
-          INDEX_REF="${REGISTRY}/${IMG_NAME}:${IMG_TAG}"
+          ARTF_REPO="${REGISTRY}/${IMG_NAME}"
+          INDEX_REF="${ARTF_REPO}:${IMG_TAG}"
 
-          make docker-build-workspace IMG_TAG="${IMG_TAG}-linux"
-          LINUX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-linux")"
+          make docker-build-workspace
+          INDEX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
 
-          make helm-package-workspace IMG_TAG="${IMG_TAG}-chart"
-          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-chart")"
-
-          oras manifest index create "${INDEX_REF}" "${LINUX_DIG}" "${CHART_DIG}"
+          # TODO(pedrotorres): remove REGISTRY override and uncomment all lines once sync problem is solved
+          make helm-package-workspace REGISTRY="${REGISTRY}/helm"
+          # CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
+          #
+          # oras manifest index update "${ARTF_REPO}@${INDEX_DIG}" --add "${CHART_DIG}" --tag "${IMG_TAG}"
         env:
           VERSION: ${{ github.event.client_payload.tag || github.event.inputs.tag }}
           REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito

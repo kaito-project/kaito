@@ -143,3 +143,54 @@ async def test_retrieve_result_structure(vector_store_with_docs):
         assert "text" in first_result
         assert "score" in first_result
         assert "metadata" in first_result
+
+
+@pytest.mark.asyncio
+async def test_retrieve_with_metadata_filter(vector_store_with_docs):
+    """Test retrieve with metadata filtering."""
+    documents = [
+        Document(text=f"Tech document {i}", metadata={"category": "tech", "index": i})
+        for i in range(10)
+    ]
+    await vector_store_with_docs.index_documents("test_index", documents)
+
+    result = await vector_store_with_docs.retrieve(
+        index_name="test_index",
+        query="document",
+        max_node_count=3,
+        metadata_filter={"category": "tech"},
+    )
+
+    assert result["count"] <= 3
+    # All returned results should have category="tech"
+    for node in result["results"]:
+        assert node["metadata"]["category"] == "tech"
+
+
+@pytest.mark.asyncio
+async def test_retrieve_with_few_documents(vector_store_with_docs):
+    """Test retrieve with fewer documents than candidate_multiplier would request."""
+    # Only 3 documents, but default candidate_multiplier is 3.0
+    # With max_node_count=5, it would try to retrieve 15 candidates
+    documents = [
+        Document(text="Python programming language", metadata={"lang": "python"}),
+        Document(text="JavaScript web development", metadata={"lang": "javascript"}),
+        Document(text="Go concurrent programming", metadata={"lang": "go"}),
+    ]
+    await vector_store_with_docs.index_documents("test_small_index", documents)
+
+    # Should not fail even though 5 * 3 = 15 > 3 documents
+    result = await vector_store_with_docs.retrieve(
+        index_name="test_small_index",
+        query="programming",
+        max_node_count=5,
+    )
+
+    assert result is not None
+    assert "query" in result
+    assert "results" in result
+    assert "count" in result
+    # Should return all 3 documents since that's all we have
+    assert result["count"] <= 3
+    assert len(result["results"]) <= 3
+

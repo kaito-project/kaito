@@ -911,14 +911,14 @@ class BaseVectorStore(ABC):
                 async with self.rwlock.reader_lock:
                     retriever = HybridRetriever(
                         vector_retriever=self.index_map[index_name].as_retriever(similarity_top_k=top_k),
-                        bm25_retriever=self.bm25_retriever_map[index_name],
+                        keyword_retriever=self.bm25_retriever_map[index_name],
                         max_results=top_k,
                     )
                     source_nodes_list = await retriever.aretrieve(user_prompt)
             else:
                 retriever = HybridRetriever(
                     vector_retriever=self.index_map[index_name].as_retriever(similarity_top_k=top_k),
-                    bm25_retriever=self.bm25_retriever_map[index_name],
+                    keyword_retriever=self.bm25_retriever_map[index_name],
                     max_results=top_k,
                 )
                 source_nodes_list = await retriever.aretrieve(user_prompt)

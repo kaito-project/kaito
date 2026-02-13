@@ -63,9 +63,9 @@ class ExtLoraConfig(LoraConfig):
         default=True, metadata={"help": "Enable initialization of LoRA weights"}
     )
     target_modules: list[str] | None = field(
-        default_factory=lambda: DEFAULT_TARGET_MODULES
-        if DEFAULT_TARGET_MODULES
-        else None,
+        default_factory=lambda: (
+            DEFAULT_TARGET_MODULES if DEFAULT_TARGET_MODULES else None
+        ),
         metadata={"help": "List of module names to replace with LoRA."},
     )
     layers_to_transform: list[int] | None = field(

@@ -138,7 +138,7 @@ async def test_document_update_success(mock_get, async_client, monkeypatch):
         response.json()["not_found_documents"][0]["doc_id"]
         == not_existing_doc["doc_id"]
     )
-    assert response.json()["unchanged_documents"][0]["text"] == doc1["text"]
+    assert response.json()["unchanged_documents"] == []
 
     # Test chat completion request
     chat_request = {

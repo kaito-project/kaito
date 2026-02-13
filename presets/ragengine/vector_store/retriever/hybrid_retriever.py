@@ -67,14 +67,24 @@ class HybridRetriever(BaseRetriever):
         
         Returns nodes sorted by weighted combination of vector and keyword scores.
         """
+        # Get the actual number of documents available in the corpus
+        available_docs = 0
+        if hasattr(self._keyword_retriever, 'corpus') and self._keyword_retriever.corpus:
+            available_docs = len(self._keyword_retriever.corpus)
+        elif hasattr(self._keyword_retriever, 'bm25') and self._keyword_retriever.bm25 and hasattr(self._keyword_retriever.bm25, 'scores') and hasattr(self._keyword_retriever.bm25.scores, 'get'):
+                available_docs = self._keyword_retriever.bm25.scores.get('num_docs', 0)
+        
+        # Cap candidate_pool_size to available documents to prevent retrieval errors
+        effective_candidate_pool_size = min(self._candidate_pool_size, available_docs) if available_docs > 0 else self._candidate_pool_size
+        
         # Retrieve candidate pools (more than final max_results)
         # Temporarily adjust retriever top_k values
         original_vector_top_k = getattr(self._vector_retriever, 'similarity_top_k', self._max_results)
         original_keyword_top_k = getattr(self._keyword_retriever, 'similarity_top_k', self._max_results)
         
         try:
-            self._vector_retriever.similarity_top_k = self._candidate_pool_size
-            self._keyword_retriever.similarity_top_k = self._candidate_pool_size
+            self._vector_retriever.similarity_top_k = effective_candidate_pool_size
+            self._keyword_retriever.similarity_top_k = effective_candidate_pool_size
             
             vector_nodes = self._vector_retriever.retrieve(query_bundle)
             keyword_nodes = self._keyword_retriever.retrieve(query_bundle)

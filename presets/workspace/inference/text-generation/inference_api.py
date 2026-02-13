@@ -201,7 +201,7 @@ def load_chat_template(chat_template: str | None) -> str | None:
         resolved_chat_template = Path(chat_template).read_text()
 
     logger.info("Chat template loaded successfully")
-    logger.debug(f"Chat template: {resolved_chat_template}")
+    logger.debug("Chat template: %s", resolved_chat_template)
     return resolved_chat_template
 
 
@@ -217,7 +217,7 @@ args.process_additional_args(additional_args)
 
 model_args = asdict(args)
 model_args["local_files_only"] = not model_args.pop("allow_remote_files")
-model_pipeline = model_args.pop("pipeline")
+model_args.pop("pipeline")  # Only used for validation in __post_init__
 combination_type = model_args.pop("combination_type")
 
 resolved_chat_template = load_chat_template(model_args.pop("chat_template"))
@@ -244,7 +244,10 @@ else:
             weights.append(float(os.getenv(adapter_name, "1.0")))
 
         first_adapter = valid_adapters_list.pop(0)
-        model = PeftModel.from_pretrained(base_model, first_adapter)
+        first_adapter_name = os.path.basename(first_adapter)
+        model = PeftModel.from_pretrained(
+            base_model, first_adapter, adapter_name=first_adapter_name
+        )
         logger.info(f"First adapter loaded: {first_adapter}")
 
         for adapter_path in valid_adapters_list:
@@ -252,7 +255,7 @@ else:
             model.load_adapter(adapter_path, adapter_name=adapter_name)
             logger.info(f"Loaded adapter: {adapter_path}")
 
-        adapter_names = [os.path.basename(first_adapter)] + [
+        adapter_names = [first_adapter_name] + [
             os.path.basename(p) for p in valid_adapters_list
         ]
         model.add_weighted_adapter(
@@ -286,7 +289,7 @@ logger.info("Model: %s", model)
 # ---------------------------------------------------------------------------
 
 model_name = args.pretrained_model_name_or_path
-model_key = f"{model_name}@main"
+model_key = f"{model_name}@{args.revision}"
 
 serve_args = ServeArguments(
     host="0.0.0.0",

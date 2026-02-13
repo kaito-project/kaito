@@ -186,11 +186,41 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 	}
 	envs = append(envs, embeddingTypeEnv)
 
-	stoageEnv := corev1.EnvVar{
-		Name:  "VECTOR_DB_TYPE",
-		Value: "faiss", // TODO: get storage done
+	// Determine vector DB type from CRD spec or default to "faiss"
+	vectorDBType := "faiss"
+	if ragEngineObj.Spec.Storage != nil && ragEngineObj.Spec.Storage.VectorDB != nil {
+		if ragEngineObj.Spec.Storage.VectorDB.Type != "" {
+			vectorDBType = ragEngineObj.Spec.Storage.VectorDB.Type
+		}
 	}
-	envs = append(envs, stoageEnv)
+	storageEnv := corev1.EnvVar{
+		Name:  "VECTOR_DB_TYPE",
+		Value: vectorDBType,
+	}
+	envs = append(envs, storageEnv)
+
+	// Inject vector DB connection info if configured
+	if ragEngineObj.Spec.Storage != nil && ragEngineObj.Spec.Storage.VectorDB != nil {
+		if ragEngineObj.Spec.Storage.VectorDB.URL != "" {
+			envs = append(envs, corev1.EnvVar{
+				Name:  "VECTOR_DB_URL",
+				Value: ragEngineObj.Spec.Storage.VectorDB.URL,
+			})
+		}
+		if ragEngineObj.Spec.Storage.VectorDB.AccessSecret != "" {
+			envs = append(envs, corev1.EnvVar{
+				Name: "VECTOR_DB_ACCESS_SECRET",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: ragEngineObj.Spec.Storage.VectorDB.AccessSecret,
+						},
+						Key: "VECTOR_DB_ACCESS_SECRET",
+					},
+				},
+			})
+		}
+	}
 
 	// Set the vector database persist directory based on storage configuration
 	persistDir := "storage" // default in-memory/ephemeral storage

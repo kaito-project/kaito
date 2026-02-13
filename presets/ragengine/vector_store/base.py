@@ -29,7 +29,6 @@ from llama_index.core import StorageContext, VectorStoreIndex, load_index_from_s
 from llama_index.core.base.llms.types import MessageRole
 from llama_index.core.chat_engine.types import ChatMode
 from llama_index.core.storage.docstore import SimpleDocumentStore
-from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
 from pydantic import ValidationError
 
@@ -775,6 +774,16 @@ class BaseVectorStore(ABC):
         else:
             await self._load_internal(index_name, path, overwrite)
 
+    def _create_storage_context_for_load(
+        self, index_name: str, path: str
+    ) -> StorageContext:
+        """Create a StorageContext for loading a persisted index.
+
+        Override in subclasses for store-specific loading logic
+        (e.g., FAISS binary fallback, Qdrant collection reconnect).
+        """
+        return StorageContext.from_defaults(persist_dir=path)
+
     async def _load_internal(self, index_name: str, path: str, overwrite: bool):
         """Common logic for loading an index."""
         try:
@@ -787,15 +796,13 @@ class BaseVectorStore(ABC):
             logger.info(f"Loading index {index_name} from {path}.")
 
             try:
-                storage_context = StorageContext.from_defaults(persist_dir=path)
-            except UnicodeDecodeError:
-                # Failed to load the index in the default json format, trying faissdb
-                faiss_vs = FaissMapVectorStore.from_persist_dir(persist_dir=path)
-                storage_context = StorageContext.from_defaults(
-                    persist_dir=path, vector_store=faiss_vs
+                storage_context = self._create_storage_context_for_load(
+                    index_name, path
                 )
             except Exception as e:
-                logger.error(f"Failed to load index '{index_name}'. Error: {str(e)}")
+                logger.error(
+                    f"Failed to create storage context for index '{index_name}'. Error: {str(e)}"
+                )
                 raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
             logger.info(

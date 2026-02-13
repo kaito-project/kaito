@@ -578,26 +578,74 @@ async def test_retrieve_success(async_client):
     request_data = {
         "index_name": index_name,
         "documents": [
-            {"text": "Python is a programming language", "metadata": {"category": "tech"}},
-            {"text": "JavaScript is used for web development", "metadata": {"category": "tech"}},
-            {"text": "Java is an object-oriented language", "metadata": {"category": "tech"}},
-            {"text": "C++ is a systems programming language", "metadata": {"category": "tech"}},
+            {
+                "text": "Python is a programming language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "JavaScript is used for web development",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Java is an object-oriented language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "C++ is a systems programming language",
+                "metadata": {"category": "tech"},
+            },
             {"text": "Ruby is a dynamic language", "metadata": {"category": "tech"}},
             {"text": "Go is a compiled language", "metadata": {"category": "tech"}},
-            {"text": "Rust is a memory-safe language", "metadata": {"category": "tech"}},
-            {"text": "Swift is used for iOS development", "metadata": {"category": "tech"}},
-            {"text": "Kotlin is used for Android development", "metadata": {"category": "tech"}},
-            {"text": "TypeScript is JavaScript with types", "metadata": {"category": "tech"}},
+            {
+                "text": "Rust is a memory-safe language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Swift is used for iOS development",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Kotlin is used for Android development",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "TypeScript is JavaScript with types",
+                "metadata": {"category": "tech"},
+            },
             {"text": "PHP is a server-side language", "metadata": {"category": "tech"}},
-            {"text": "Scala is a functional language", "metadata": {"category": "tech"}},
-            {"text": "Haskell is a pure functional language", "metadata": {"category": "tech"}},
-            {"text": "Erlang is used for distributed systems", "metadata": {"category": "tech"}},
-            {"text": "Elixir is built on the Erlang VM", "metadata": {"category": "tech"}},
+            {
+                "text": "Scala is a functional language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Haskell is a pure functional language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Erlang is used for distributed systems",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Elixir is built on the Erlang VM",
+                "metadata": {"category": "tech"},
+            },
             {"text": "Clojure is a Lisp dialect", "metadata": {"category": "tech"}},
-            {"text": "F# is a functional-first language", "metadata": {"category": "tech"}},
-            {"text": "OCaml is a functional language", "metadata": {"category": "tech"}},
-            {"text": "Dart is used for Flutter development", "metadata": {"category": "tech"}},
-            {"text": "Lua is a lightweight scripting language", "metadata": {"category": "tech"}},
+            {
+                "text": "F# is a functional-first language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "OCaml is a functional language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Dart is used for Flutter development",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Lua is a lightweight scripting language",
+                "metadata": {"category": "tech"},
+            },
         ],
     }
 
@@ -690,7 +738,10 @@ async def test_retrieve_with_metadata_filter(async_client):
             for i in range(15)
         ]
         + [
-            {"text": f"Science document {i}", "metadata": {"category": "science", "index": i}}
+            {
+                "text": f"Science document {i}",
+                "metadata": {"category": "science", "index": i},
+            }
             for i in range(15)
         ],
     }
@@ -739,7 +790,8 @@ async def test_retrieve_empty_query(async_client):
         "index_name": index_name,
         "documents": [
             {"text": "Test document", "metadata": {}},
-        ] * 15,
+        ]
+        * 15,
     }
 
     response = await async_client.post("/index", json=request_data)

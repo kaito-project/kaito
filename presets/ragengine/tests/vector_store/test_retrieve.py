@@ -193,4 +193,3 @@ async def test_retrieve_with_few_documents(vector_store_with_docs):
     # Should return all 3 documents since that's all we have
     assert result["count"] <= 3
     assert len(result["results"]) <= 3
-

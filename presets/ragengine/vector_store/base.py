@@ -107,7 +107,7 @@ class BaseVectorStore(ABC):
         # Check which documents already exist (with reader lock)
         doc_ids = [self.generate_doc_id(doc.text) for doc in documents]
         existing_docs = {}
-        
+
         if self.use_rwlock:
             async with self.rwlock.reader_lock:
                 for doc_id in doc_ids:
@@ -874,24 +874,32 @@ class BaseVectorStore(ABC):
                         key=key,
                         value=value,
                         operator=FilterOperator.EQ,
-                    ) for key, value in (metadata_filter or {}).items()
+                    )
+                    for key, value in (metadata_filter or {}).items()
                 ],
                 condition=FilterCondition.AND,
             )
-            
+
             # Check if BM25 retriever needs update outside of any lock
-            needs_update = index_name not in self.bm25_retriever_map or self.needs_bm25_update_map.get(index_name, False)
-            
+            needs_update = (
+                index_name not in self.bm25_retriever_map
+                or self.needs_bm25_update_map.get(index_name, False)
+            )
+
             if needs_update:
-                logger.info(f"Creating/updating BM25 retriever for index '{index_name}' with metadata filter: {metadata_filter}")
+                logger.info(
+                    f"Creating/updating BM25 retriever for index '{index_name}' with metadata filter: {metadata_filter}"
+                )
                 start_time = time.time()
                 # Create BM25 retriever with writer lock (but not nested inside reader lock)
                 if self.use_rwlock:
                     async with self.rwlock.writer_lock:
-                        self.bm25_retriever_map[index_name] = BM25Retriever.from_defaults(
-                            docstore=self.index_map[index_name].docstore,
-                            similarity_top_k=min(max_node_count, RAG_MAX_TOP_K),
-                            filters=metadata_filters,
+                        self.bm25_retriever_map[index_name] = (
+                            BM25Retriever.from_defaults(
+                                docstore=self.index_map[index_name].docstore,
+                                similarity_top_k=min(max_node_count, RAG_MAX_TOP_K),
+                                filters=metadata_filters,
+                            )
                         )
                         self.needs_bm25_update_map[index_name] = False
                 else:
@@ -902,27 +910,35 @@ class BaseVectorStore(ABC):
                     )
                     self.needs_bm25_update_map[index_name] = False
                 elapsed_time = time.time() - start_time
-                logger.info(f"BM25 retriever creation/update for index '{index_name}' took {elapsed_time:.3f} seconds")
+                logger.info(
+                    f"BM25 retriever creation/update for index '{index_name}' took {elapsed_time:.3f} seconds"
+                )
 
             # Now perform retrieval with reader lock
             retrieve_start_time = time.time()
             if self.use_rwlock:
                 async with self.rwlock.reader_lock:
                     retriever = HybridRetriever(
-                        vector_retriever=self.index_map[index_name].as_retriever(similarity_top_k=top_k),
+                        vector_retriever=self.index_map[index_name].as_retriever(
+                            similarity_top_k=top_k
+                        ),
                         keyword_retriever=self.bm25_retriever_map[index_name],
                         max_results=top_k,
                     )
                     source_nodes_list = await retriever.aretrieve(user_prompt)
             else:
                 retriever = HybridRetriever(
-                    vector_retriever=self.index_map[index_name].as_retriever(similarity_top_k=top_k),
+                    vector_retriever=self.index_map[index_name].as_retriever(
+                        similarity_top_k=top_k
+                    ),
                     keyword_retriever=self.bm25_retriever_map[index_name],
                     max_results=top_k,
                 )
                 source_nodes_list = await retriever.aretrieve(user_prompt)
             retrieve_elapsed_time = time.time() - retrieve_start_time
-            logger.info(f"Retrieval for index '{index_name}' completed in {retrieve_elapsed_time:.3f} seconds, found {len(source_nodes_list)} nodes")
+            logger.info(
+                f"Retrieval for index '{index_name}' completed in {retrieve_elapsed_time:.3f} seconds, found {len(source_nodes_list)} nodes"
+            )
 
             # Convert source_nodes_list to serializable format
             results = []

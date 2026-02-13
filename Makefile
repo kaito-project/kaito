@@ -235,6 +235,16 @@ create-aks-cluster-for-karpenter: ## Create an AKS cluster with MSI, Cillium, OI
     --enable-managed-identity --enable-oidc-issuer --enable-workload-identity -o none
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
 
+.PHONY: create-rag-nodepool
+create-rag-nodepool: ## Create a nodepool for RAG workloads.
+	az aks nodepool add \
+	--resource-group $(AZURE_RESOURCE_GROUP) \
+	--cluster-name $(AZURE_CLUSTER_NAME) \
+	--name ragpool \
+	-s Standard_D8_v3 \
+	-c 1 \
+	--labels apps=phi-3
+
 ## --------------------------------------
 ## AWS Setup
 ## --------------------------------------

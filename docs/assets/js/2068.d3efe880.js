@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkkaito_website=globalThis.webpackChunkkaito_website||[]).push([[2068],{32068(e,a,i){i.d(a,{createInfoServices:()=>s.v});var s=i(41366);i(58198)}}]);

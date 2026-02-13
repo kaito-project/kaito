@@ -791,4 +791,4 @@ if __name__ == "__main__":
     # llama_index.core.set_global_handler("arize_phoenix")
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=5000, loop="asyncio")
+    uvicorn.run(app, host="0.0.0.0", port=2760, loop="asyncio")

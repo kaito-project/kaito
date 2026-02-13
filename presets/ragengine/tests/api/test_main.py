@@ -567,3 +567,243 @@ async def test_delete_index(async_client):
         )
         == 1
     )
+
+
+@pytest.mark.asyncio
+async def test_retrieve_success(async_client):
+    """Test successful retrieval of documents from an index."""
+    index_name = "test_retrieve_index"
+
+    # Create index with documents (need 20+ docs to support hybrid retriever's 3x multiplier)
+    request_data = {
+        "index_name": index_name,
+        "documents": [
+            {
+                "text": "Python is a programming language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "JavaScript is used for web development",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Java is an object-oriented language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "C++ is a systems programming language",
+                "metadata": {"category": "tech"},
+            },
+            {"text": "Ruby is a dynamic language", "metadata": {"category": "tech"}},
+            {"text": "Go is a compiled language", "metadata": {"category": "tech"}},
+            {
+                "text": "Rust is a memory-safe language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Swift is used for iOS development",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Kotlin is used for Android development",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "TypeScript is JavaScript with types",
+                "metadata": {"category": "tech"},
+            },
+            {"text": "PHP is a server-side language", "metadata": {"category": "tech"}},
+            {
+                "text": "Scala is a functional language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Haskell is a pure functional language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Erlang is used for distributed systems",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Elixir is built on the Erlang VM",
+                "metadata": {"category": "tech"},
+            },
+            {"text": "Clojure is a Lisp dialect", "metadata": {"category": "tech"}},
+            {
+                "text": "F# is a functional-first language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "OCaml is a functional language",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Dart is used for Flutter development",
+                "metadata": {"category": "tech"},
+            },
+            {
+                "text": "Lua is a lightweight scripting language",
+                "metadata": {"category": "tech"},
+            },
+        ],
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+
+    # Test retrieve with default parameters
+    retrieve_request = {
+        "index_name": index_name,
+        "query": "What is Python?",
+    }
+
+    response = await async_client.post("/retrieve", json=retrieve_request)
+    assert response.status_code == 200
+    response_data = response.json()
+
+    # Verify response structure
+    assert "query" in response_data
+    assert "results" in response_data
+    assert "count" in response_data
+    assert response_data["query"] == "What is Python?"
+    assert response_data["count"] <= 5  # Default max_node_count is 5
+    assert len(response_data["results"]) == response_data["count"]
+
+    # Verify result structure
+    if response_data["count"] > 0:
+        first_result = response_data["results"][0]
+        assert "doc_id" in first_result
+        assert "node_id" in first_result
+        assert "text" in first_result
+        assert "score" in first_result
+        assert "metadata" in first_result
+
+    # Verify metrics
+    response = await async_client.get("/metrics")
+    assert response.status_code == 200
+    assert (
+        len(
+            re.findall(
+                r'rag_indexes_retrieve_requests_total{status="success"} ([1-9]\d*).0',
+                response.text,
+            )
+        )
+        == 1
+    )
+
+
+@pytest.mark.asyncio
+async def test_retrieve_with_custom_max_node_count(async_client):
+    """Test retrieve with custom max_node_count parameter."""
+    index_name = "test_retrieve_max_count_index"
+
+    # Create index with documents
+    request_data = {
+        "index_name": index_name,
+        "documents": [
+            {"text": f"Document {i} about technology", "metadata": {"index": i}}
+            for i in range(30)
+        ],
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+
+    # Test retrieve with custom max_node_count
+    retrieve_request = {
+        "index_name": index_name,
+        "query": "technology",
+        "max_node_count": 3,
+    }
+
+    response = await async_client.post("/retrieve", json=retrieve_request)
+    assert response.status_code == 200
+    response_data = response.json()
+
+    assert response_data["count"] <= 3
+    assert len(response_data["results"]) <= 3
+
+
+@pytest.mark.asyncio
+async def test_retrieve_with_metadata_filter(async_client):
+    """Test retrieve with metadata filtering."""
+    index_name = "test_retrieve_filter_index"
+
+    # Create index with documents with different categories
+    request_data = {
+        "index_name": index_name,
+        "documents": [
+            {"text": f"Tech document {i}", "metadata": {"category": "tech", "index": i}}
+            for i in range(15)
+        ]
+        + [
+            {
+                "text": f"Science document {i}",
+                "metadata": {"category": "science", "index": i},
+            }
+            for i in range(15)
+        ],
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+
+    # Test retrieve with metadata filter
+    retrieve_request = {
+        "index_name": index_name,
+        "query": "document",
+        "max_node_count": 5,
+        "metadata_filter": {"category": "tech"},
+    }
+
+    response = await async_client.post("/retrieve", json=retrieve_request)
+    assert response.status_code == 200
+    response_data = response.json()
+
+    assert response_data["count"] <= 5
+    # Verify all results have the correct category
+    for result in response_data["results"]:
+        assert result["metadata"]["category"] == "tech"
+
+
+@pytest.mark.asyncio
+async def test_retrieve_nonexistent_index(async_client):
+    """Test retrieve from non-existent index."""
+    retrieve_request = {
+        "index_name": "nonexistent_index",
+        "query": "test query",
+    }
+
+    response = await async_client.post("/retrieve", json=retrieve_request)
+    assert response.status_code == 404
+    assert "No such index" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_retrieve_empty_query(async_client):
+    """Test retrieve with empty query string."""
+    index_name = "test_empty_query_index"
+
+    # Create a simple index
+    request_data = {
+        "index_name": index_name,
+        "documents": [
+            {"text": "Test document", "metadata": {}},
+        ]
+        * 15,
+    }
+
+    response = await async_client.post("/index", json=request_data)
+    assert response.status_code == 200
+
+    # Test retrieve with empty query
+    retrieve_request = {
+        "index_name": index_name,
+        "query": "",
+    }
+
+    response = await async_client.post("/retrieve", json=retrieve_request)
+    # The base exception handler wraps HTTPException as 500
+    assert response.status_code == 500
+    assert "empty" in response.json()["detail"].lower()

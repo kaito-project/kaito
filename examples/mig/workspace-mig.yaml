@@ -1,3 +1,9 @@
+# Prerequisites:
+# 1. Operator feature gates: --feature-gates=enableMIG=true,disableNodeAutoProvisioning=true
+# 2. NVIDIA device plugin configured with mig.strategy=mixed
+#    (GPU Operator Helm: --set mig.strategy=mixed)
+# 3. MIG partitions created on node (e.g., nvidia-smi mig -cgi 19 -C)
+# 4. Node labeled for targeting: kubectl label node <node> kaito.sh/mig-enabled=true
 apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
@@ -6,7 +12,7 @@ spec:
   resource:
     labelSelector:
       matchLabels:
-        apps: mig-enabled-node
+        kaito.sh/mig-enabled: "true"
     mig:
       profile: "1g.10gb"
       count: 1

@@ -6,8 +6,8 @@ toolchain go1.24
 
 require (
 	github.com/Azure/karpenter-provider-azure v1.6.3
-	github.com/aws/karpenter-provider-aws v1.6.3
-	github.com/awslabs/operatorpkg v0.0.0-20250624064700-e9977193119b
+	github.com/aws/karpenter-provider-aws v1.8.2
+	github.com/awslabs/operatorpkg v0.0.0-20250909182303-e8e550b6f339
 	github.com/distribution/reference v0.6.0
 	github.com/fluxcd/helm-controller/api v1.3.0
 	github.com/fluxcd/source-controller/api v1.6.0
@@ -19,26 +19,26 @@ require (
 	github.com/stretchr/testify v1.11.1
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible
-	k8s.io/api v0.34.1
-	k8s.io/apiextensions-apiserver v0.34.1
-	k8s.io/apimachinery v0.34.1
-	k8s.io/client-go v0.34.1
-	k8s.io/component-base v0.34.1
+	k8s.io/api v0.35.0-alpha.0
+	k8s.io/apiextensions-apiserver v0.35.0-alpha.0
+	k8s.io/apimachinery v0.35.0-alpha.0
+	k8s.io/client-go v0.35.0-alpha.0
+	k8s.io/component-base v0.35.0-alpha.0
 	k8s.io/component-helpers v0.34.1
 	k8s.io/klog/v2 v2.130.1
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
 	knative.dev/pkg v0.0.0-20240910170930-fdbc0b5adde7
 	sigs.k8s.io/controller-runtime v0.22.3
 	sigs.k8s.io/gateway-api-inference-extension v1.0.1
-	sigs.k8s.io/karpenter v1.6.2
+	sigs.k8s.io/karpenter v1.8.0
 )
 
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.7.1-0.20200907061046-05415f1de66d // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.231.0 // indirect
-	github.com/aws/smithy-go v1.22.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.251.2 // indirect
+	github.com/aws/smithy-go v1.23.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
@@ -102,8 +102,8 @@ require (
 	github.com/prometheus/procfs v0.16.1 // indirect
 	github.com/prometheus/statsd_exporter v0.24.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
-	github.com/spf13/cobra v1.9.1 // indirect
-	github.com/spf13/pflag v1.0.6 // indirect
+	github.com/spf13/cobra v1.10.1 // indirect
+	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opencensus.io v0.24.0 // indirect
@@ -112,15 +112,15 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/term v0.34.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
-	golang.org/x/time v0.12.0 // indirect
-	golang.org/x/tools v0.36.0 // indirect
-	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/term v0.35.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
+	golang.org/x/time v0.13.0 // indirect
+	golang.org/x/tools v0.37.0 // indirect
+	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	google.golang.org/api v0.183.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect

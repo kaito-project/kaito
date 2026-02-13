@@ -58,6 +58,7 @@ from ragengine.models import (
 from ragengine.vector_store.node_processors.contex_selection_node_processor import (
     ContextSelectionProcessor,
 )
+from ragengine.vector_store.retriever.hybrid_retriever import HybridRetriever
 from ragengine.vector_store.transformers.custom_transformer import CustomTransformer
 
 # Configure logging
@@ -71,6 +72,8 @@ class BaseVectorStore(ABC):
         self.llm = Inference()
         self.embed_model = embed_model
         self.index_map = {}
+        self.bm25_retriever_map = {}
+        self.needs_bm25_update_map = {}
         # Use a reader/writer lock only if needed
         self.use_rwlock = use_rwlock
         self.rwlock = aiorwlock.RWLock() if self.use_rwlock else None
@@ -102,29 +105,39 @@ class BaseVectorStore(ABC):
         )
         indexed_docs = [None] * len(documents)
 
-        async def handle_document(doc_index: int, doc: Document):
-            doc_id = self.generate_doc_id(doc.text)
-            if self.use_rwlock:
-                async with self.rwlock.reader_lock:
-                    retrieved_doc = await self.index_map[
+        # Check which documents already exist (with reader lock)
+        doc_ids = [self.generate_doc_id(doc.text) for doc in documents]
+        existing_docs = {}
+        
+        if self.use_rwlock:
+            async with self.rwlock.reader_lock:
+                for doc_id in doc_ids:
+                    existing_docs[doc_id] = await self.index_map[
                         index_name
                     ].docstore.aget_ref_doc_info(doc_id)
-            else:
-                retrieved_doc = await self.index_map[
+        else:
+            for doc_id in doc_ids:
+                existing_docs[doc_id] = await self.index_map[
                     index_name
                 ].docstore.aget_ref_doc_info(doc_id)
-            if not retrieved_doc:
-                await self.add_document_to_index(index_name, doc, doc_id)
+
+        # Now add documents that don't exist (with writer lock if needed)
+        docs_to_add = []
+        for idx, (doc, doc_id) in enumerate(zip(documents, doc_ids)):
+            if not existing_docs.get(doc_id):
+                docs_to_add.append((idx, doc, doc_id))
             else:
                 logger.info(
                     f"Document {doc_id} already exists in index {index_name}. Skipping."
                 )
-            indexed_docs[doc_index] = doc_id
+            indexed_docs[idx] = doc_id
 
-        # Gather all coroutines for processing documents
-        await asyncio.gather(
-            *(handle_document(idx, doc) for idx, doc in enumerate(documents))
-        )
+        # Add all new documents in batch
+        if docs_to_add:
+            self.needs_bm25_update_map[index_name] = True
+            for idx, doc, doc_id in docs_to_add:
+                await self.add_document_to_index(index_name, doc, doc_id)
+
         return indexed_docs
 
     @abstractmethod
@@ -491,6 +504,7 @@ class BaseVectorStore(ABC):
 
         if self.use_rwlock:
             async with self.rwlock.writer_lock:
+                # Double-check document doesn't exist before inserting
                 retrieved_doc = await self.index_map[
                     index_name
                 ].docstore.aget_ref_doc_info(doc_id)
@@ -534,6 +548,7 @@ class BaseVectorStore(ABC):
                         ),
                         return_exceptions=True,
                     )
+                    self.needs_bm25_update_map[index_name] = True
             else:
                 await asyncio.gather(
                     *(
@@ -544,6 +559,7 @@ class BaseVectorStore(ABC):
                     ),
                     return_exceptions=True,
                 )
+                self.needs_bm25_update_map[index_name] = True
 
             return {"deleted_doc_ids": found_docs, "not_found_doc_ids": not_found_docs}
         except NotImplementedError as e:
@@ -583,8 +599,10 @@ class BaseVectorStore(ABC):
                     refreshed_docs = self.index_map[index_name].refresh_ref_docs(
                         llama_docs
                     )
+                    self.needs_bm25_update_map[index_name] = True
             else:
                 refreshed_docs = self.index_map[index_name].refresh_ref_docs(llama_docs)
+                self.needs_bm25_update_map[index_name] = True
 
             updated_docs = []
             unchanged_docs = []
@@ -842,7 +860,6 @@ class BaseVectorStore(ABC):
         try:
             # Direct query string, no message processing needed
             user_prompt = query
-            chat_history = []
 
             if not user_prompt or user_prompt.strip() == "":
                 raise HTTPException(
@@ -862,25 +879,51 @@ class BaseVectorStore(ABC):
                 ],
                 condition=FilterCondition.AND,
             )
+            
+            # Check if BM25 retriever needs update outside of any lock
+            needs_update = index_name not in self.bm25_retriever_map or self.needs_bm25_update_map.get(index_name, False)
+            
+            if needs_update:
+                logger.info(f"Creating/updating BM25 retriever for index '{index_name}' with metadata filter: {metadata_filter}")
+                start_time = time.time()
+                # Create BM25 retriever with writer lock (but not nested inside reader lock)
+                if self.use_rwlock:
+                    async with self.rwlock.writer_lock:
+                        self.bm25_retriever_map[index_name] = BM25Retriever.from_defaults(
+                            docstore=self.index_map[index_name].docstore,
+                            similarity_top_k=min(max_node_count, RAG_MAX_TOP_K),
+                            filters=metadata_filters,
+                        )
+                        self.needs_bm25_update_map[index_name] = False
+                else:
+                    self.bm25_retriever_map[index_name] = BM25Retriever.from_defaults(
+                        docstore=self.index_map[index_name].docstore,
+                        similarity_top_k=min(max_node_count, RAG_MAX_TOP_K),
+                        filters=metadata_filters,
+                    )
+                    self.needs_bm25_update_map[index_name] = False
+                elapsed_time = time.time() - start_time
+                logger.info(f"BM25 retriever creation/update for index '{index_name}' took {elapsed_time:.3f} seconds")
 
-            retriever = QueryFusionRetriever(
-                [
-                    self.index_map[index_name].as_retriever(similarity_top_k=top_k),
-                    BM25Retriever.from_defaults(
-                        docstore=self.index_map[index_name].docstore, similarity_top_k=top_k, filters=metadata_filters
-                    ),
-                ],
-                llm=self.llm,
-                num_queries=1,
-                use_async=True,
-            )
-
-            # Call chat_engine to build the context and messages
+            # Now perform retrieval with reader lock
+            retrieve_start_time = time.time()
             if self.use_rwlock:
                 async with self.rwlock.reader_lock:
+                    retriever = HybridRetriever(
+                        vector_retriever=self.index_map[index_name].as_retriever(similarity_top_k=top_k),
+                        bm25_retriever=self.bm25_retriever_map[index_name],
+                        max_results=top_k,
+                    )
                     source_nodes_list = await retriever.aretrieve(user_prompt)
             else:
+                retriever = HybridRetriever(
+                    vector_retriever=self.index_map[index_name].as_retriever(similarity_top_k=top_k),
+                    bm25_retriever=self.bm25_retriever_map[index_name],
+                    max_results=top_k,
+                )
                 source_nodes_list = await retriever.aretrieve(user_prompt)
+            retrieve_elapsed_time = time.time() - retrieve_start_time
+            logger.info(f"Retrieval for index '{index_name}' completed in {retrieve_elapsed_time:.3f} seconds, found {len(source_nodes_list)} nodes")
 
             # Convert source_nodes_list to serializable format
             results = []

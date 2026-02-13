@@ -11,29 +11,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+KAITO inference server wrapping the HuggingFace ``transformers serve``
+OpenAI-compatible engine.
+
+The model (with any LoRA adapters merged) is loaded by KAITO and injected
+into a ``ServeCommand`` instance so the serve engine uses it directly
+without downloading or loading its own copy.
+
+Endpoints exposed:
+    POST /v1/chat/completions  – OpenAI-compatible chat completions (SSE)
+    GET  /v1/models            – list the served model
+    GET  /health               – liveness / readiness probe
+    GET  /metrics              – GPU / CPU utilisation
+"""
+
 import codecs
+import datetime
 import logging
 import os
 import signal
 import sys
+import threading
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Any
 
 import GPUtil
 import psutil
 import torch
-import transformers
 import uvicorn
-from fastapi import Body, FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse, StreamingResponse
 from peft import PeftModel
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    GenerationConfig,
     HfArgumentParser,
 )
+from transformers.commands.serving import ServeArguments, ServeCommand, TimedModel
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -45,6 +62,14 @@ logging.basicConfig(
 )
 
 ADAPTERS_DIR = "/mnt/adapter"
+# Large timeout so the TimedModel never auto-deletes the model;
+# KAITO manages model lifecycle externally via pod lifecycle.
+_MODEL_TIMEOUT_SECONDS = 315360000  # ~10 years
+
+
+# ---------------------------------------------------------------------------
+# Model configuration
+# ---------------------------------------------------------------------------
 
 
 @dataclass
@@ -160,377 +185,182 @@ class ModelConfig:
             raise ValueError(f"Unsupported pipeline: {self.pipeline}")
 
 
+# ---------------------------------------------------------------------------
+# Chat template helper
+# ---------------------------------------------------------------------------
+
+
 def load_chat_template(chat_template: str | None) -> str | None:
-    logger.info(chat_template)
+    """Load a chat template from a file path or inline string."""
     if chat_template is None:
         return None
 
-    JINJA_CHARS = "{}\n"
-    if any(c in chat_template for c in JINJA_CHARS):
+    if "{" in chat_template or "\n" in chat_template:
         resolved_chat_template = codecs.decode(chat_template, "unicode_escape")
     else:
         resolved_chat_template = Path(chat_template).read_text()
 
     logger.info("Chat template loaded successfully")
-    logger.info("Chat template:\n%s", resolved_chat_template)
+    logger.debug("Chat template: %s", resolved_chat_template)
     return resolved_chat_template
 
+
+# ---------------------------------------------------------------------------
+# Model & adapter loading
+# ---------------------------------------------------------------------------
 
 parser = HfArgumentParser(ModelConfig)
 args, additional_args = parser.parse_args_into_dataclasses(
     return_remaining_strings=True
 )
-
 args.process_additional_args(additional_args)
 
 model_args = asdict(args)
 model_args["local_files_only"] = not model_args.pop("allow_remote_files")
-model_pipeline = model_args.pop("pipeline")
+model_args.pop("pipeline")  # Only used for validation in __post_init__
 combination_type = model_args.pop("combination_type")
 
-app = FastAPI()
-resovled_chat_template = load_chat_template(model_args.pop("chat_template"))
+resolved_chat_template = load_chat_template(model_args.pop("chat_template"))
 tokenizer = AutoTokenizer.from_pretrained(**model_args)
-if resovled_chat_template is not None:
-    tokenizer.chat_template = resovled_chat_template
+if resolved_chat_template is not None:
+    tokenizer.chat_template = resolved_chat_template
 base_model = AutoModelForCausalLM.from_pretrained(**model_args)
 
 if not os.path.exists(ADAPTERS_DIR):
+    logger.info("No adapters directory found, skipping adapter loading")
     model = base_model
 else:
     valid_adapters_list = [
-        os.path.join(ADAPTERS_DIR, adapter)
-        for adapter in os.listdir(ADAPTERS_DIR)
-        if os.path.isfile(os.path.join(ADAPTERS_DIR, adapter, "adapter_config.json"))
+        os.path.join(ADAPTERS_DIR, d)
+        for d in os.listdir(ADAPTERS_DIR)
+        if os.path.isdir(os.path.join(ADAPTERS_DIR, d))
+        and os.path.isfile(os.path.join(ADAPTERS_DIR, d, "adapter_config.json"))
     ]
 
-    if valid_adapters_list:
-        adapter_names, weights = [], []
+    if len(valid_adapters_list) > 0:
+        weights = []
         for adapter_path in valid_adapters_list:
             adapter_name = os.path.basename(adapter_path)
-            adapter_names.append(adapter_name)
             weights.append(float(os.getenv(adapter_name, "1.0")))
 
+        first_adapter = valid_adapters_list.pop(0)
+        first_adapter_name = os.path.basename(first_adapter)
         model = PeftModel.from_pretrained(
-            base_model, valid_adapters_list[0], adapter_name=adapter_names[0]
+            base_model, first_adapter, adapter_name=first_adapter_name
         )
-        for i in range(1, len(valid_adapters_list)):
-            model.load_adapter(valid_adapters_list[i], adapter_name=adapter_names[i])
+        logger.info(f"First adapter loaded: {first_adapter}")
 
+        for adapter_path in valid_adapters_list:
+            adapter_name = os.path.basename(adapter_path)
+            model.load_adapter(adapter_path, adapter_name=adapter_name)
+            logger.info(f"Loaded adapter: {adapter_path}")
+
+        adapter_names = [first_adapter_name] + [
+            os.path.basename(p) for p in valid_adapters_list
+        ]
         model.add_weighted_adapter(
-            adapters=adapter_names,
-            weights=weights,
-            adapter_name="combined_adapter",
+            adapter_names,
+            weights,
             combination_type=combination_type,
+            adapter_name="combined_adapter",
         )
-
         model.set_adapter("combined_adapter")
 
-        # To avoid any potential future operations that use non-combined adapters
-        for adapter in adapter_names:
-            model.delete_adapter(adapter)
+        # Clean up individual adapters
+        for name in adapter_names:
+            model.delete_adapter(name)
 
-        active_adapters = model.active_adapters
-        if len(active_adapters) != 1 or active_adapters[0] != "combined_adapter":
-            raise ValueError("Adapters not merged correctly")
-        logger.info("Adapter added: %s", ", ".join(sorted(adapter_names)))
+        # Verify only combined adapter is active
+        active = model.active_adapters
+        assert active == ["combined_adapter"], (
+            f"Expected ['combined_adapter'], got {active}"
+        )
+
+        logger.info("All adapters merged into 'combined_adapter'")
     else:
-        logger.warning("Did not find any valid adapters mounted, using base model")
+        logger.info("No valid adapters found, using base model")
         model = base_model
 
 logger.info("Model loaded successfully")
 logger.info("Model: %s", model)
 
-pipeline_kwargs = {
-    "trust_remote_code": args.trust_remote_code,
-    "device_map": args.device_map,
-}
+# ---------------------------------------------------------------------------
+# Set up transformers serve engine with pre-loaded model
+# ---------------------------------------------------------------------------
 
-if args.torch_dtype:
-    pipeline_kwargs["torch_dtype"] = args.torch_dtype
+model_name = args.pretrained_model_name_or_path
+model_key = f"{model_name}@{args.revision}"
 
-pipeline = transformers.pipeline(
-    task="text-generation", model=model, tokenizer=tokenizer, **pipeline_kwargs
+serve_args = ServeArguments(
+    host="0.0.0.0",
+    port=5000,
+    force_model=model_name,
+    model_timeout=_MODEL_TIMEOUT_SECONDS,
+    device="auto",
 )
+serve_command = ServeCommand(serve_args)
+# Inject the pre-loaded model (with adapters already merged) so the serve
+# engine uses it directly instead of downloading/loading its own copy.
+timed_model = TimedModel(
+    model, timeout_seconds=_MODEL_TIMEOUT_SECONDS, processor=tokenizer
+)
+# Replace the auto-started timer with a daemon variant so it doesn't block
+# process shutdown (the original timer is non-daemon and starts in __init__).
+timed_model._timer.cancel()
+_daemon_timer = threading.Timer(_MODEL_TIMEOUT_SECONDS, timed_model.timeout_reached)
+_daemon_timer.daemon = True
+_daemon_timer.start()
+timed_model._timer = _daemon_timer
+serve_command.loaded_models[model_key] = timed_model
 
-try:
-    # Attempt to load the generation configuration
-    default_generate_config = GenerationConfig.from_pretrained(
-        args.pretrained_model_name_or_path, local_files_only=args.local_files_only
-    ).to_dict()
-except Exception:
-    default_generate_config = {}
+# ---------------------------------------------------------------------------
+# FastAPI app with OpenAI-compatible + KAITO-specific endpoints
+# ---------------------------------------------------------------------------
 
-
-class HomeResponse(BaseModel):
-    message: str = Field(..., example="Server is running")
-
-
-@app.get("/", response_model=HomeResponse, summary="Home Endpoint")
-def home():
-    """
-    A simple endpoint that indicates the server is running.
-    No parameters are required. Returns a message indicating the server status.
-    """
-    return {"message": "Server is running"}
-
-
-class HealthStatus(BaseModel):
-    status: str = Field(..., example="Healthy")
+app = FastAPI()
 
 
-@app.get(
-    "/health",
-    response_model=HealthStatus,
-    summary="Health Check Endpoint",
-    responses={
-        200: {
-            "description": "Successful Response",
-            "content": {"application/json": {"example": {"status": "Healthy"}}},
-        },
-        500: {
-            "description": "Error Response",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "model_uninitialized": {
-                            "summary": "Model not initialized",
-                            "value": {"detail": "Model not initialized"},
-                        },
-                        "pipeline_uninitialized": {
-                            "summary": "Pipeline not initialized",
-                            "value": {"detail": "Pipeline not initialized"},
-                        },
-                    }
+@app.post("/v1/chat/completions")
+def chat_completion(body: dict):
+    """OpenAI-compatible chat completions endpoint (SSE streamed)."""
+    serve_command.validate_chat_completion_request(request=body)
+    output = serve_command.generate_chat_completion(body)
+    return StreamingResponse(output, media_type="text/event-stream")
+
+
+@app.get("/v1/models")
+def list_models():
+    """List the served model in OpenAI-compatible format."""
+    return JSONResponse(
+        {
+            "object": "list",
+            "data": [
+                {
+                    "id": model_name,
+                    "object": "model",
+                    "created": int(datetime.datetime.now().timestamp()),
+                    "owned_by": "kaito",
                 }
-            },
-        },
-    },
-)
+            ],
+        }
+    )
+
+
+@app.get("/health")
 def health_check():
-    if not model:
-        logger.error("Model not initialized")
+    """Health check used by Kubernetes liveness/readiness probes."""
+    if model_key not in serve_command.loaded_models:
+        logger.error("Model not loaded in serve engine")
         raise HTTPException(status_code=500, detail="Model not initialized")
-    if not pipeline:
-        logger.error("Pipeline not initialized")
-        raise HTTPException(status_code=500, detail="Pipeline not initialized")
+    if serve_command.loaded_models[model_key].is_deleted():
+        logger.error("Model was deleted from serve engine")
+        raise HTTPException(status_code=500, detail="Model not initialized")
     return {"status": "Healthy"}
 
 
-class GenerateKwargs(BaseModel):
-    max_length: int = 200  # Length of input prompt+max_new_tokens
-    min_length: int = 0
-    do_sample: bool = True
-    early_stopping: bool = False
-    num_beams: int = 1
-    temperature: float = 1.0
-    top_k: int = 10
-    top_p: float = 1
-    typical_p: float = 1
-    repetition_penalty: float = 1
-    pad_token_id: int | None = tokenizer.pad_token_id
-    eos_token_id: int | None = tokenizer.eos_token_id
-
-    class Config:
-        extra = "allow"  # Allows for additional fields not explicitly defined
-        json_schema_extra = {
-            "example": {
-                "max_length": 200,
-                "temperature": 0.7,
-                "top_p": 0.9,
-                "additional_param": "Example value",
-            }
-        }
-
-
-class Message(BaseModel):
-    role: str
-    content: str
-
-
-class UnifiedRequestModel(BaseModel):
-    # Fields for text generation
-    prompt: str | None = Field(
-        None,
-        description="Prompt for text generation. Required for text-generation pipeline. Do not use with 'messages'.",
-    )
-    return_full_text: bool | None = Field(
-        True, description="Return full text if True, else only added text"
-    )
-    clean_up_tokenization_spaces: bool | None = Field(
-        False, description="Clean up extra spaces in text output"
-    )
-    prefix: str | None = Field(None, description="Prefix added to prompt")
-    handle_long_generation: str | None = Field(
-        None, description="Strategy to handle long generation"
-    )
-    generate_kwargs: GenerateKwargs | None = Field(
-        default_factory=GenerateKwargs,
-        description="Additional kwargs for generate method",
-    )
-
-    # Field for conversational model
-    messages: list[Message] | None = Field(
-        None,
-        description="Messages for conversational model. Required for conversational pipeline. Do not use with 'prompt'.",
-    )
-
-    def messages_to_dict_list(self):
-        return (
-            [message.model_dump() for message in self.messages] if self.messages else []
-        )
-
-
-class ErrorResponse(BaseModel):
-    detail: str
-
-
-@app.post(
-    "/chat",
-    summary="Chat Endpoint",
-    responses={
-        200: {
-            "description": "Successful Response",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "text_generation": {
-                            "summary": "Text Generation Response",
-                            "value": {"Result": "Generated text based on the prompt."},
-                        },
-                        "conversation": {
-                            "summary": "Conversation Response",
-                            "value": {
-                                "Result": "Response to the last message in the conversation."
-                            },
-                        },
-                    }
-                }
-            },
-        },
-        400: {
-            "model": ErrorResponse,
-            "description": "Validation Error",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "missing_prompt": {
-                            "summary": "Missing Prompt",
-                            "value": {
-                                "detail": "Text generation parameter prompt required"
-                            },
-                        },
-                        "missing_messages": {
-                            "summary": "Missing Messages",
-                            "value": {
-                                "detail": "Conversational parameter messages required"
-                            },
-                        },
-                    }
-                }
-            },
-        },
-        500: {"model": ErrorResponse, "description": "Internal Server Error"},
-    },
-)
-def generate_text(
-    request_model: Annotated[
-        UnifiedRequestModel,
-        Body(
-            openapi_examples={
-                "text_generation_example": {
-                    "summary": "Text Generation Example",
-                    "description": "An example of a text generation request.",
-                    "value": {
-                        "prompt": "Tell me a joke",
-                        "return_full_text": True,
-                        "clean_up_tokenization_spaces": False,
-                        "prefix": None,
-                        "handle_long_generation": None,
-                        "generate_kwargs": GenerateKwargs().model_dump(),
-                    },
-                },
-                "conversation_example": {
-                    "summary": "Conversation Example",
-                    "description": "An example of a conversational request.",
-                    "value": {
-                        "messages": [
-                            {
-                                "role": "user",
-                                "content": "What is your favourite condiment?",
-                            },
-                            {
-                                "role": "assistant",
-                                "content": "Well, im quite partial to a good squeeze of fresh lemon juice. It adds just the right amount of zesty flavour to whatever im cooking up in the kitchen!",
-                            },
-                            {
-                                "role": "user",
-                                "content": "Do you have mayonnaise recipes?",
-                            },
-                        ],
-                        "return_full_text": True,
-                        "clean_up_tokenization_spaces": False,
-                        "prefix": None,
-                        "handle_long_generation": None,
-                        "generate_kwargs": GenerateKwargs().model_dump(),
-                    },
-                },
-            },
-        ),
-    ],
-):
-    """
-    Processes chat requests, generating text based on the specified pipeline (text generation or conversational).
-    Validates required parameters based on the pipeline and returns the generated text.
-    """
-    user_generate_kwargs = (
-        request_model.generate_kwargs.model_dump()
-        if request_model.generate_kwargs
-        else {}
-    )
-    generate_kwargs = {**default_generate_config, **user_generate_kwargs}
-
-    if args.pipeline == "text-generation":
-        if not request_model.prompt:
-            logger.error("Text generation parameter prompt required")
-            raise HTTPException(
-                status_code=400, detail="Text generation parameter prompt required"
-            )
-        sequences = pipeline(
-            request_model.prompt,
-            # return_tensors=request_model.return_tensors,
-            # return_text=request_model.return_text,
-            return_full_text=request_model.return_full_text,
-            clean_up_tokenization_spaces=request_model.clean_up_tokenization_spaces,
-            prefix=request_model.prefix,
-            handle_long_generation=request_model.handle_long_generation,
-            **generate_kwargs,
-        )
-
-        result = ""
-        for seq in sequences:
-            logger.debug(f"Result: {seq['generated_text']}")
-            result += seq["generated_text"]
-
-        return {"Result": result}
-
-    elif args.pipeline == "conversational":
-        if not request_model.messages:
-            logger.error("Conversational parameter messages required")
-            raise HTTPException(
-                status_code=400, detail="Conversational parameter messages required"
-            )
-
-        response = pipeline(
-            request_model.messages_to_dict_list(),
-            clean_up_tokenization_spaces=request_model.clean_up_tokenization_spaces,
-            **generate_kwargs,
-        )
-        return {"Result": str(response[-1])}
-
-    else:
-        logger.error("Invalid pipeline type")
-        raise HTTPException(status_code=400, detail="Invalid pipeline type")
+# ---------------------------------------------------------------------------
+# Metrics endpoint
+# ---------------------------------------------------------------------------
 
 
 class MemoryInfo(BaseModel):
@@ -551,6 +381,10 @@ class GPUInfo(BaseModel):
     load: str
     temperature: str
     memory: MemoryInfo
+
+
+class ErrorResponse(BaseModel):
+    detail: str
 
 
 class MetricsResponse(BaseModel):
@@ -650,6 +484,11 @@ def get_metrics():
     except Exception as e:
         logger.error(f"Error fetching metrics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
+# Entrypoint
+# ---------------------------------------------------------------------------
 
 
 def shutdown_handler(sig, frame):

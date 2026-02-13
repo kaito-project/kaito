@@ -11,14 +11,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Tests for the OpenAI-compatible inference server (inference_api.py)."""
+
 import importlib
+import json
 import sys
+import uuid
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
-from transformers import AutoTokenizer
 
 # Get the parent directory of the current file
 parent_dir = str(Path(__file__).resolve().parent.parent)
@@ -27,18 +30,14 @@ sys.path.append(parent_dir)
 
 
 @pytest.fixture(
+    scope="module",
     params=[
         {
             "pipeline": "text-generation",
             "model_path": "HuggingFaceTB/SmolLM2-135M-Instruct",
             "device": "cpu",
         },
-        {
-            "pipeline": "conversational",
-            "model_path": "HuggingFaceTB/SmolLM2-135M-Instruct",
-            "device": "cpu",
-        },
-    ]
+    ],
 )
 def configured_app(request):
     original_argv = sys.argv.copy()
@@ -65,12 +64,73 @@ def configured_app(request):
     app.test_config = request.param
     yield app
 
+    # Cancel the TimedModel timer to prevent leaked threads blocking exit
+    for timed_model in inference_api.serve_command.loaded_models.values():
+        timed_model._timer.cancel()
     sys.argv = original_argv
 
 
-def test_conversational(configured_app):
-    if configured_app.test_config["pipeline"] != "conversational":
-        pytest.skip("Skipping non-conversational tests")
+def _make_sse_chunk(role="assistant", content="Hello", finish_reason=None):
+    """Build a single SSE chunk string matching the transformers serve format."""
+    chunk = {
+        "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
+        "object": "chat.completion.chunk",
+        "created": 1700000000,
+        "model": "HuggingFaceTB/SmolLM2-135M-Instruct",
+        "choices": [
+            {
+                "index": 0,
+                "delta": {"role": role, "content": content},
+                "finish_reason": finish_reason,
+            }
+        ],
+    }
+    return f"data: {json.dumps(chunk)}\n\n"
+
+
+# ---------------------------------------------------------------------------
+# /v1/chat/completions
+# ---------------------------------------------------------------------------
+
+
+def test_chat_completions(configured_app):
+    """POST /v1/chat/completions returns an OpenAI-format SSE-streamed response."""
+    fake_sse = iter([_make_sse_chunk(content="Hi"), "data: [DONE]\n\n"])
+
+    client = TestClient(configured_app)
+    request_data = {
+        "model": configured_app.test_config["model_path"],
+        "messages": [{"role": "user", "content": "Say hello in one word."}],
+        "max_tokens": 10,
+        "temperature": 0.0,
+    }
+    with (
+        patch("inference_api.serve_command.validate_chat_completion_request"),
+        patch(
+            "inference_api.serve_command.generate_chat_completion",
+            return_value=fake_sse,
+        ),
+    ):
+        response = client.post("/v1/chat/completions", json=request_data)
+    assert response.status_code == 200
+
+    # The response is SSE-streamed; collect all data lines
+    chunks = []
+    for line in response.text.splitlines():
+        if line.startswith("data: ") and line.strip() != "data: [DONE]":
+            chunks.append(json.loads(line[len("data: ") :]))
+
+    assert len(chunks) > 0, "Expected at least one SSE chunk"
+    first_chunk = chunks[0]
+    assert first_chunk["object"] == "chat.completion.chunk"
+    assert "choices" in first_chunk
+    assert first_chunk["choices"][0]["delta"]["role"] == "assistant"
+
+
+def test_chat_completions_multi_turn(configured_app):
+    """POST /v1/chat/completions works with multi-turn conversations."""
+    fake_sse = iter([_make_sse_chunk(content="Sure!"), "data: [DONE]\n\n"])
+
     client = TestClient(configured_app)
     messages = [
         {"role": "user", "content": "What is your favourite condiment?"},
@@ -81,77 +141,55 @@ def test_conversational(configured_app):
         {"role": "user", "content": "Do you have mayonnaise recipes?"},
     ]
     request_data = {
+        "model": configured_app.test_config["model_path"],
         "messages": messages,
-        "generate_kwargs": {"max_new_tokens": 20, "do_sample": True},
+        "max_tokens": 20,
+        "temperature": 0.0,
     }
-    response = client.post("/chat", json=request_data)
+    with (
+        patch("inference_api.serve_command.validate_chat_completion_request"),
+        patch(
+            "inference_api.serve_command.generate_chat_completion",
+            return_value=fake_sse,
+        ),
+    ):
+        response = client.post("/v1/chat/completions", json=request_data)
+    assert response.status_code == 200
 
+    # Verify we got at least one content chunk
+    content_pieces = []
+    for line in response.text.splitlines():
+        if line.startswith("data: ") and line.strip() != "data: [DONE]":
+            chunk = json.loads(line[len("data: ") :])
+            delta = chunk["choices"][0].get("delta", {})
+            if "content" in delta and delta["content"]:
+                content_pieces.append(delta["content"])
+
+    assert len(content_pieces) > 0, "Expected generated content in the response"
+
+
+# ---------------------------------------------------------------------------
+# /v1/models
+# ---------------------------------------------------------------------------
+
+
+def test_list_models(configured_app):
+    """GET /v1/models returns a list containing the served model."""
+    client = TestClient(configured_app)
+    response = client.get("/v1/models")
     assert response.status_code == 200
     data = response.json()
-    assert "Result" in data
-    assert len(data["Result"]) > 0  # Check if the conversation result is not empty
+    assert data["object"] == "list"
+    assert len(data["data"]) >= 1
+    assert data["data"][0]["object"] == "model"
+    # The model id should match the configured model name
+    model_path = configured_app.test_config["model_path"]
+    assert model_path in data["data"][0]["id"]
 
 
-def test_missing_messages_for_conversation(configured_app):
-    if configured_app.test_config["pipeline"] != "conversational":
-        pytest.skip("Skipping non-conversational tests")
-    client = TestClient(configured_app)
-    request_data = {
-        # "messages" is missing for conversational pipeline
-    }
-    response = client.post("/chat", json=request_data)
-    assert (
-        response.status_code == 400
-    )  # Expecting a Bad Request response due to missing messages
-    assert "Conversational parameter messages required" in response.json().get(
-        "detail", ""
-    )
-
-
-def test_text_generation(configured_app):
-    if configured_app.test_config["pipeline"] != "text-generation":
-        pytest.skip("Skipping non-text-generation tests")
-    client = TestClient(configured_app)
-    request_data = {
-        "prompt": "Hello, world!",
-        "return_full_text": True,
-        "clean_up_tokenization_spaces": False,
-        "generate_kwargs": {
-            "max_length": 50,
-            "min_length": 10,
-        },  # Example generate_kwargs
-    }
-    response = client.post("/chat", json=request_data)
-    assert response.status_code == 200
-    data = response.json()
-    assert "Result" in data
-    assert len(data["Result"]) > 0  # Check if the result text is not empty
-
-
-def test_missing_prompt(configured_app):
-    if configured_app.test_config["pipeline"] != "text-generation":
-        pytest.skip("Skipping non-text-generation tests")
-    client = TestClient(configured_app)
-    request_data = {
-        # "prompt" is missing
-        "return_full_text": True,
-        "clean_up_tokenization_spaces": False,
-        "generate_kwargs": {"max_length": 50},
-    }
-    response = client.post("/chat", json=request_data)
-    assert (
-        response.status_code == 400
-    )  # Expecting a Bad Request response due to missing prompt
-    assert "Text generation parameter prompt required" in response.json().get(
-        "detail", ""
-    )
-
-
-def test_read_main(configured_app):
-    client = TestClient(configured_app)
-    response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"message": "Server is running"}
+# ---------------------------------------------------------------------------
+# /health
+# ---------------------------------------------------------------------------
 
 
 def test_health_check(configured_app):
@@ -159,6 +197,11 @@ def test_health_check(configured_app):
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "Healthy"}
+
+
+# ---------------------------------------------------------------------------
+# /metrics
+# ---------------------------------------------------------------------------
 
 
 def test_get_metrics(configured_app):
@@ -238,130 +281,3 @@ def test_get_metrics_no_gpus(configured_app):
         assert data["cpu_info"]["total_cores"] == 8
         assert data["cpu_info"]["memory"]["used"] == "4.00 GB"
         assert data["cpu_info"]["memory"]["total"] == "16.00 GB"
-
-
-def test_default_generation_params(configured_app):
-    if configured_app.test_config["pipeline"] != "text-generation":
-        pytest.skip("Skipping non-text-generation tests")
-
-    client = TestClient(configured_app)
-
-    request_data = {
-        "prompt": "Test default params",
-        "return_full_text": True,
-        "clean_up_tokenization_spaces": False,
-        # Note: generate_kwargs is not provided, so defaults should be used
-    }
-
-    with patch("inference_api.pipeline") as mock_pipeline:
-        mock_pipeline.return_value = [
-            {"generated_text": "Mocked response"}
-        ]  # Mock the response of the pipeline function
-
-        response = client.post("/chat", json=request_data)
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "Result" in data
-        assert data["Result"] == "Mocked response", (
-            "The response content doesn't match the expected mock response"
-        )
-
-        # Check the default args
-        _, kwargs = mock_pipeline.call_args
-        assert kwargs["max_length"] == 200
-        assert kwargs["min_length"] == 0
-        assert kwargs["do_sample"] is True
-        assert kwargs["temperature"] == 1.0
-        assert kwargs["top_k"] == 10
-        assert kwargs["top_p"] == 1
-        assert kwargs["typical_p"] == 1
-        assert kwargs["repetition_penalty"] == 1
-        assert kwargs["num_beams"] == 1
-        assert kwargs["early_stopping"] is False
-
-
-def test_generation_with_max_length(configured_app):
-    if configured_app.test_config["pipeline"] != "text-generation":
-        pytest.skip("Skipping non-text-generation tests")
-
-    client = TestClient(configured_app)
-    prompt = "This prompt requests a response of a certain minimum length to test the functionality."
-    max_length = 40  # Set to lower than default (200) to prevent test hanging
-
-    request_data = {
-        "prompt": prompt,
-        "return_full_text": True,
-        "clean_up_tokenization_spaces": False,
-        "generate_kwargs": {"max_length": max_length, "max_new_tokens": None},
-    }
-
-    response = client.post("/chat", json=request_data)
-
-    assert response.status_code == 200
-    data = response.json()
-    print("Response: ", data["Result"])
-    assert "Result" in data, "The response should contain a 'Result' key"
-
-    tokenizer = AutoTokenizer.from_pretrained(configured_app.test_config["model_path"])
-    prompt_tokens = tokenizer.tokenize(prompt)
-    total_tokens = tokenizer.tokenize(
-        data["Result"]
-    )  # data["Result"] includes the input prompt
-
-    prompt_tokens_len = len(prompt_tokens)
-    max_new_tokens = max_length - prompt_tokens_len
-    new_tokens = len(total_tokens) - prompt_tokens_len
-
-    assert new_tokens <= max_new_tokens, (
-        "Response must not generate more than max new tokens"
-    )
-    assert len(total_tokens) <= max_length, (
-        "Total # of tokens has to be less than or equal to max_length"
-    )
-
-
-def test_generation_with_min_length(configured_app):
-    if configured_app.test_config["pipeline"] != "text-generation":
-        pytest.skip("Skipping non-text-generation tests")
-
-    client = TestClient(configured_app)
-    prompt = "This prompt requests a response of a certain minimum length to test the functionality."
-    min_length = 30
-    max_length = 40
-
-    request_data = {
-        "prompt": prompt,
-        "return_full_text": True,
-        "clean_up_tokenization_spaces": False,
-        "generate_kwargs": {
-            "min_length": min_length,
-            "max_length": max_length,
-            "max_new_tokens": None,
-        },
-    }
-
-    response = client.post("/chat", json=request_data)
-
-    assert response.status_code == 200
-    data = response.json()
-    assert "Result" in data, "The response should contain a 'Result' key"
-
-    tokenizer = AutoTokenizer.from_pretrained(configured_app.test_config["model_path"])
-    prompt_tokens = tokenizer.tokenize(prompt)
-    total_tokens = tokenizer.tokenize(
-        data["Result"]
-    )  # data["Result"] includes the input prompt
-
-    prompt_tokens_len = len(prompt_tokens)
-
-    min_new_tokens = min_length - prompt_tokens_len
-    max_new_tokens = max_length - prompt_tokens_len
-    new_tokens = len(total_tokens) - prompt_tokens_len
-
-    assert min_new_tokens <= new_tokens <= max_new_tokens, (
-        "Response should generate at least min_new_tokens and at most max_new_tokens new tokens"
-    )
-    assert len(total_tokens) <= max_length, (
-        "Total # of tokens has to be less than or equal to max_length"
-    )

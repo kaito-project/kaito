@@ -966,7 +966,18 @@ func TestSyncWorkspaceStatus(t *testing.T) {
 		"inference pending during initialization": {
 			workspace:           test.MockWorkspaceDistributedModel.DeepCopy(),
 			statefulSetNotFound: true,
+			reconcileErr:        fmt.Errorf("temporary apiserver unavailable"),
 			expectedState:       v1beta1.WorkspaceStatePending,
+		},
+		"inference terminal reconcile error does not change state": {
+			workspace:                test.MockWorkspaceDistributedModel.DeepCopy(),
+			statefulSetNotFound:      true,
+			reconcileErr:             apierrors.NewBadRequest("invalid inference spec"),
+			expectedState:            v1beta1.WorkspaceStatePending,
+			verifyInferenceCondition: true,
+			expectedInferenceStatus:  v1.ConditionFalse,
+			verifySucceededCondition: true,
+			expectedSucceededStatus:  v1.ConditionFalse,
 		},
 		"inference not ready after established": {
 			workspace: func() *v1beta1.Workspace {

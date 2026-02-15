@@ -16,12 +16,8 @@ package resource
 import (
 	"context"
 	"fmt"
-	"reflect"
-	"sort"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
@@ -31,7 +27,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
-	"github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
 type NodeManager struct {
@@ -45,24 +40,13 @@ func NewNodeManager(c client.Client) *NodeManager {
 }
 
 // CheckIfNodePluginsReady is used for ensuring node label(accelerator:nvidia) and GPU capacity on all auto-provisioned nodes for the workspace.
-// It also updates the Node status condition accordingly.
 func (c *NodeManager) CheckIfNodePluginsReady(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
 	// ensure Nvidia device plugins are ready for the workspace when instance type is known.
 	knownGPUConfig, _ := utils.GetGPUConfigBySKU(wObj.Resource.InstanceType)
 	if knownGPUConfig != nil {
 		if areReady, err := c.checkNodePlugin(ctx, wObj, existingNodeClaims); err != nil {
-			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeStatus, metav1.ConditionFalse,
-				"NodePluginsNotReady", err.Error()); updateErr != nil {
-				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-				return false, updateErr
-			}
 			return false, err
 		} else if !areReady {
-			if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeStatus, metav1.ConditionFalse,
-				"NodePluginsNotReady", "waiting all node plugins to be ready"); updateErr != nil {
-				klog.ErrorS(updateErr, "failed to update workspace status", "workspace", klog.KObj(wObj))
-				return false, updateErr
-			}
 			return false, nil
 		}
 	}
@@ -137,8 +121,8 @@ func (c *NodeManager) getReadyNodesFromNodeClaims(ctx context.Context, wObj *kai
 	return nodes, nil
 }
 
-// EnsureNodesReady is used for checking the number of ready nodes meet the target node count. Updates the status condition accordingly.
-func (c *NodeManager) EnsureNodesReady(ctx context.Context, wObj *kaitov1beta1.Workspace, matchingNodes []*corev1.Node, nodeClaims []*karpenterv1.NodeClaim) (ready bool, retErr error) {
+// EnsureNodesReady is used for checking the number of ready nodes meet the target node count.
+func (c *NodeManager) EnsureNodesReady(ctx context.Context, wObj *kaitov1beta1.Workspace, matchingNodes []*corev1.Node, nodeClaims []*karpenterv1.NodeClaim) (bool, error) {
 	targetNodeCount := int(wObj.Status.TargetNodeCount)
 	readyCount := 0
 
@@ -156,14 +140,6 @@ func (c *NodeManager) EnsureNodesReady(ctx context.Context, wObj *kaitov1beta1.W
 		}
 	}
 
-	defer func() {
-		// Update the list of nodes, but don't block setting the condition on it.
-		if err := c.UpdateWorkerNodesInStatus(ctx, wObj, matchingNodes); err != nil {
-			klog.Error("failed to update worker nodes in workspace status", "workspace", klog.KObj(wObj), "error", err)
-			retErr = err
-		}
-	}()
-
 	if readyCount >= targetNodeCount { // Enough nodes are ready.
 		// If NAP is enabled, ensure node plugins are ready.
 		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
@@ -176,91 +152,10 @@ func (c *NodeManager) EnsureNodesReady(ctx context.Context, wObj *kaitov1beta1.W
 			}
 		}
 
-		// Enough Nodes are ready, mark condition as true.
-		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeStatus, metav1.ConditionTrue,
-			"NodesReady", fmt.Sprintf("Enough Nodes are ready (TargetNodes: %d, CurrentReadyNodes: %d, SelectedNodes: %d)", targetNodeCount, readyCount, len(matchingNodes))); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update Node status condition NodesReady to true", "workspace", klog.KObj(wObj))
-			return false, fmt.Errorf("failed to update Node status condition(NodesReady): %w", updateErr)
-		}
 		return true, nil
 	} else {
 		klog.InfoS("Not enough Nodes are ready for workspace", "workspace", client.ObjectKeyFromObject(wObj).String(),
 			"targetNodes", targetNodeCount, "currentReadyNodes", readyCount)
-		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeStatus, metav1.ConditionFalse,
-			"NodeNotReady", fmt.Sprintf("Not enough Nodes are ready (TargetNodes: %d, CurrentReadyNodes: %d, SelectedNodes: %d)", targetNodeCount, readyCount, len(matchingNodes))); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update Node status condition NodesReady to false", "workspace", klog.KObj(wObj))
-			return false, fmt.Errorf("failed to update Node status condition(NodeNotReady): %w", updateErr)
-		}
-
 		return false, nil
 	}
-}
-
-// CheckResourceReady updates the resource ready condition based on owned conditions and returns whether it's true.
-func (c *NodeManager) CheckResourceReady(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, error) {
-	considerNodeClaim := !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-
-	nodeClaimCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(kaitov1beta1.ConditionTypeNodeClaimStatus))
-	nodeCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(kaitov1beta1.ConditionTypeNodeStatus))
-
-	if !considerNodeClaim {
-		nodeClaimCondition = nil
-	}
-
-	nodeClaimExists := nodeClaimCondition != nil
-	nodeExists := nodeCondition != nil
-
-	// If both conditions don't exist, skip setting the resource condition.
-	if !nodeClaimExists && !nodeExists {
-		return false, nil
-	}
-
-	// Only when all considered conditions exist and are true, set the resource condition to true.
-	if nodeExists && nodeCondition.Status == metav1.ConditionTrue && (!nodeClaimExists || nodeClaimCondition.Status == metav1.ConditionTrue) {
-		if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue,
-			"workspaceResourceStatusSuccess", "workspace resource is ready"); err != nil {
-			klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-			return false, err
-		}
-		return true, nil
-	}
-
-	// Otherwise set the resource condition to false.
-	reason := "workspaceResourceStatusNotReady"
-	message := "node claim or node status condition not ready"
-	if nodeClaimExists && nodeClaimCondition.Status != metav1.ConditionTrue {
-		reason = nodeClaimCondition.Reason
-		message = nodeClaimCondition.Message
-	} else if nodeExists && nodeCondition.Status != metav1.ConditionTrue {
-		reason = nodeCondition.Reason
-		message = nodeCondition.Message
-	}
-
-	if err := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionFalse,
-		reason, message); err != nil {
-		klog.ErrorS(err, "failed to update workspace status", "workspace", klog.KObj(wObj))
-		return false, err
-	}
-
-	return false, nil
-}
-
-// UpdateWorkerNodesInStatus updates the worker nodes list in workspace status.
-func (c *NodeManager) UpdateWorkerNodesInStatus(ctx context.Context, wObj *kaitov1beta1.Workspace, readyNodes []*corev1.Node) error {
-	nodeNames := make([]string, 0, len(readyNodes))
-	for _, node := range readyNodes {
-		nodeNames = append(nodeNames, node.Name)
-	}
-	sort.Strings(nodeNames)
-
-	if !reflect.DeepEqual(wObj.Status.WorkerNodes, nodeNames) {
-		if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
-			status.WorkerNodes = nodeNames
-			return nil
-		}); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

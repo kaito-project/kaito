@@ -15,7 +15,6 @@ package e2e
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"math/rand"
 	"os"
@@ -30,8 +29,6 @@ import (
 
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
-
-var skipGPUProvisionerCheck = flag.Bool("skip-gpu-provisioner-check", false, "Skip checking for GPU provisioner pod in e2e tests")
 
 var (
 	ctx                 = context.Background()
@@ -64,27 +61,6 @@ var _ = BeforeSuite(func() {
 			}, karpenterDeployment, &client.GetOptions{})
 		}, utils.PollTimeout, utils.PollInterval).
 			Should(Succeed(), "Failed to wait for	karpenter deployment")
-	}
-
-	if !*skipGPUProvisionerCheck &&
-		nodeProvisionerName == "gpuprovisioner" {
-		gpuName := os.Getenv("GPU_PROVISIONER_NAME")
-		gpuNamespace := os.Getenv("GPU_PROVISIONER_NAMESPACE")
-		//check gpu-provisioner deployment is up and running
-		gpuProvisionerDeployment := &v1.Deployment{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      gpuName,
-				Namespace: gpuNamespace,
-			},
-		}
-
-		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-				Namespace: gpuProvisionerDeployment.Namespace,
-				Name:      gpuProvisionerDeployment.Name,
-			}, gpuProvisionerDeployment, &client.GetOptions{})
-		}, utils.PollTimeout, utils.PollInterval).
-			Should(Succeed(), fmt.Sprintf("Failed to wait for %s deployment", gpuName))
 	}
 
 	//check kaito-workspace deployment is up and running

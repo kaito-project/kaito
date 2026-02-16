@@ -49,11 +49,6 @@ const (
 	ErrorInstanceTypesUnavailable = "all requested instance types were unavailable during launch"
 	NodeClassName                 = "default"
 
-	// machine related consts
-	ProvisionerName           = "default"
-	LabelGPUProvisionerCustom = "kaito.sh/machine-type"
-	LabelProvisionerName      = "karpenter.sh/provisioner-name"
-
 	// azure gpu sku prefix
 	GpuSkuPrefix = "Standard_N"
 

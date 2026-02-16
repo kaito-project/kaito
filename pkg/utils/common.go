@@ -255,19 +255,14 @@ func SelectNodes(qualified []*corev1.Node, preferred []string, previous []string
 			} else if !iPrevious && jPrevious {
 				return false
 			} else { // either all are previous, or none is previous
-				var iCreatedByGPUProvisioner, jCreatedByGPUProvisioner bool
-				_, iCreatedByGPUProvisioner = qualified[i].Labels[consts.LabelGPUProvisionerCustom]
-				_, jCreatedByGPUProvisioner = qualified[j].Labels[consts.LabelGPUProvisionerCustom]
-				// Choose node created by gpu-provisioner and karpenter since it is more likely to be empty to use.
+				// Choose node created by karpenter since it is more likely to be empty to use.
 				var iCreatedByKarpenter, jCreatedByKarpenter bool
 				_, iCreatedByKarpenter = qualified[i].Labels[consts.LabelNodePool]
 				_, jCreatedByKarpenter = qualified[j].Labels[consts.LabelNodePool]
 
-				if (iCreatedByGPUProvisioner && !jCreatedByGPUProvisioner) ||
-					(iCreatedByKarpenter && !jCreatedByKarpenter) {
+				if iCreatedByKarpenter && !jCreatedByKarpenter {
 					return true
-				} else if (!iCreatedByGPUProvisioner && jCreatedByGPUProvisioner) ||
-					(!iCreatedByKarpenter && jCreatedByKarpenter) {
+				} else if !iCreatedByKarpenter && jCreatedByKarpenter {
 					return false
 				} else {
 					return qualified[i].Name < qualified[j].Name

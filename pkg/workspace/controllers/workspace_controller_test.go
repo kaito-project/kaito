@@ -164,7 +164,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 			expected:  []string{"node3"},
 		},
 
-		"three qualified nodes, one is created by gpu-provisioner, need one": {
+		"three qualified nodes, one is created by karpenter, need one": {
 			qualified: []*corev1.Node{
 				{
 					ObjectMeta: v1.ObjectMeta{
@@ -180,7 +180,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "node3",
 						Labels: map[string]string{
-							consts.LabelGPUProvisionerCustom: consts.GPUString,
+							consts.LabelNodePool: consts.KaitoNodePoolName,
 						},
 					},
 				},
@@ -190,7 +190,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 			count:     1,
 			expected:  []string{"node3"},
 		},
-		"three qualified nodes, one is created by gpu-provisioner, one is preferred, one is previous, need two": {
+		"three qualified nodes, one is created by karpenter, one is preferred, one is previous, need two": {
 			qualified: []*corev1.Node{
 				{
 					ObjectMeta: v1.ObjectMeta{
@@ -206,7 +206,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "node3",
 						Labels: map[string]string{
-							consts.LabelGPUProvisionerCustom: consts.GPUString,
+							consts.LabelNodePool: consts.KaitoNodePoolName,
 						},
 					},
 				},
@@ -216,7 +216,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 			count:     2,
 			expected:  []string{"node1", "node2"},
 		},
-		"three qualified nodes, one is created by gpu-provisioner, one is preferred, one is previous, need three": {
+		"three qualified nodes, one is created by karpenter, one is preferred, one is previous, need three": {
 			qualified: []*corev1.Node{
 				{
 					ObjectMeta: v1.ObjectMeta{
@@ -232,7 +232,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "node3",
 						Labels: map[string]string{
-							consts.LabelGPUProvisionerCustom: consts.GPUString,
+							consts.LabelNodePool: consts.KaitoNodePoolName,
 						},
 					},
 				},
@@ -242,7 +242,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 			count:     3,
 			expected:  []string{"node1", "node2", "node3"},
 		},
-		"three qualified nodes, one is created by gpu-provisioner (machine), the other created by karpenter (nodeClaim), one is preferred, need two": {
+		"three qualified nodes, two created by karpenter, one is preferred, need two": {
 			qualified: []*corev1.Node{
 				{
 					ObjectMeta: v1.ObjectMeta{
@@ -261,7 +261,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "node3",
 						Labels: map[string]string{
-							consts.LabelGPUProvisionerCustom: consts.GPUString,
+							consts.LabelNodePool: consts.KaitoNodePoolName,
 						},
 					},
 				},
@@ -269,7 +269,7 @@ func TestSelectWorkspaceNodes(t *testing.T) {
 			preferred: []string{"node1"},
 			previous:  []string{},
 			count:     2,
-			expected:  []string{"node1", "node3"},
+			expected:  []string{"node1", "node2"},
 		},
 		"three qualified nodes, one is created by  by karpenter (nodeClaim), two is preferred, need two": {
 			qualified: []*corev1.Node{

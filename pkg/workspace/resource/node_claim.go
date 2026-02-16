@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
@@ -29,7 +28,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -104,12 +102,6 @@ func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1
 		return nil
 	}
 
-	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-		"CreatingUpNodeClaims", fmt.Sprintf("Creating up %d additional NodeClaims", nodesToCreate)); updateErr != nil {
-		klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", workspaceKey)
-		return fmt.Errorf("failed to update NodeClaim status condition: %w", updateErr)
-	}
-
 	c.expectations.ExpectCreations(c.logger, workspaceKey, nodesToCreate)
 
 	nodeOSDiskSize := c.determineNodeOSDiskSize(ctx, wObj)
@@ -156,22 +148,10 @@ func (c *NodeClaimManager) EnsureNodeClaimsReady(ctx context.Context, wObj *kait
 		"totalExistingNodeClaims", len(existingNodeClaims))
 
 	if readyCount >= targetNodeClaimCount {
-		// Enough NodeClaims are ready - update status condition to indicate success
-		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
-			"NodeClaimsReady", fmt.Sprintf("Enough NodeClaims are ready (TargetNodeClaims: %d, CurrentReadyNodeClaims: %d)", targetNodeClaimCount, readyCount)); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update NodeClaim status condition NodeClaimsReady to true", "workspace", klog.KObj(wObj))
-			return false, fmt.Errorf("failed to update NodeClaim status condition(NodeClaimsReady): %w", updateErr)
-		}
 		return true, nil
 	} else {
 		klog.InfoS("Ready nodeClaims for workspace are not enough currently", "workspace", client.ObjectKeyFromObject(wObj).String(),
 			"targetNodeClaims", targetNodeClaimCount, "currentReadyNodeClaims", readyCount)
-		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-			"NodeClaimNotReady", fmt.Sprintf("Ready NodeClaims are not enough (TargetNodeClaims: %d, CurrentReadyNodeClaims: %d)", targetNodeClaimCount, readyCount)); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update NodeClaim status condition NodeClaimsReady to false", "workspace", klog.KObj(wObj))
-			return false, fmt.Errorf("failed to update NodeClaim status condition(NodeClaimNotReady): %w", updateErr)
-		}
-
 		return false, nil
 	}
 }

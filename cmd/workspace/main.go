@@ -19,9 +19,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
-	"time"
 
 	//+kubebuilder:scaffold:imports
 	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
@@ -33,12 +31,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
-	"knative.dev/pkg/injection/sharedmain"
-	"knative.dev/pkg/webhook"
 	ctrl "sigs.k8s.io/controller-runtime"
 	runtimecache "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
@@ -46,25 +41,19 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	kservecontroller "github.com/kaito-project/kaito/pkg/controller"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/version"
-	"github.com/kaito-project/kaito/pkg/workspace/controllers"
-	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
-)
-
-const (
-	WebhookServiceName = "WEBHOOK_SERVICE"
-	WebhookServicePort = "WEBHOOK_PORT"
 )
 
 var (
 	scheme = runtime.NewScheme()
 
-	workspaceController = fmt.Sprintf("kaito-workspace/%s", version.Version)
+	controllerUserAgent = fmt.Sprintf("kaito-kserve/%s", version.Version)
 
 	exitWithErrorFunc = func() {
 		klog.Flush()
@@ -89,7 +78,6 @@ func init() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
-	var enableWebhook bool
 	var probeAddr string
 	var featureGates string
 	var kubeClientQPS int = 30
@@ -102,8 +90,6 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flag.BoolVar(&enableWebhook, "webhook", true,
-		"Enable webhook for controller manager. Default is true.")
 	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
@@ -126,9 +112,10 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	ctx := withShutdownSignal(context.Background())
+	_ = ctx // used for signal handling
 
 	cfg := ctrl.GetConfigOrDie()
-	cfg.UserAgent = workspaceController
+	cfg.UserAgent = controllerUserAgent
 	setRestConfig(cfg, kubeClientQPS, kubeClientBurst)
 
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
@@ -139,17 +126,6 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "ef60f9b0.io",
-		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
-		// when the Manager ends. This requires the binary to immediately end when the
-		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
-		// speeds up voluntary leader transitions as the new leader don't have to wait
-		// LeaseDuration time first.
-		//
-		// In the default scaffold provided, the program ends immediately after
-		// the manager stops, so would be fine to enable this option. However,
-		// if you are doing or is intended to do any operation such as perform cleanups
-		// after the manager stops then its usage might be unsafe.
-		// LeaderElectionReleaseOnCancel: true,
 		Cache: runtimecache.Options{
 			DefaultTransform: runtimecache.TransformStripManagedFields(),
 		},
@@ -160,25 +136,26 @@ func main() {
 	}
 
 	k8sclient.SetGlobalClient(mgr.GetClient())
-	kClient := k8sclient.GetGlobalClient()
 
-	workspaceReconciler := controllers.NewWorkspaceReconciler(
-		kClient,
-		mgr.GetScheme(),
-		log.Log.WithName("controllers").WithName("Workspace"),
-		mgr.GetEventRecorderFor("KAITO-Workspace-controller"),
-	)
-
-	if err = workspaceReconciler.SetupWithManager(mgr); err != nil {
-		klog.ErrorS(err, "unable to create controller", "controller", "Workspace")
+	// KServe InferenceService controller — watches ISVCs annotated with kaito.sh/model-preset,
+	// creates Karpenter NodePools for GPU provisioning, and patches the ISVC with container spec.
+	kserveReconciler := &kservecontroller.Reconciler{
+		Client:          mgr.GetClient(),
+		Scheme:          mgr.GetScheme(),
+		DefaultProvider: "aks",
+	}
+	if err = kserveReconciler.SetupWithManager(mgr); err != nil {
+		klog.ErrorS(err, "unable to create controller", "controller", "KServeInferenceService")
 		exitWithErrorFunc()
 	}
 
+	// InferenceSet controller (feature-gated)
 	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+		kClient := k8sclient.GetGlobalClient()
 		inferenceSetReconciler := inferenceset.NewInferenceSetReconciler(
 			kClient,
 			mgr.GetScheme(),
-			log.Log.WithName("controllers").WithName("InferenceSet"),
+			ctrl.Log.WithName("controllers").WithName("InferenceSet"),
 			mgr.GetEventRecorderFor("KAITO-InferenceSet-controller"),
 		)
 
@@ -197,26 +174,6 @@ func main() {
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		klog.ErrorS(err, "unable to set up ready check")
 		exitWithErrorFunc()
-	}
-
-	if enableWebhook {
-		klog.InfoS("starting webhook reconcilers")
-		p, err := strconv.Atoi(os.Getenv(WebhookServicePort))
-		if err != nil {
-			klog.ErrorS(err, "unable to parse the webhook port number")
-			exitWithErrorFunc()
-		}
-		ctx := webhook.WithOptions(ctx, webhook.Options{
-			ServiceName: os.Getenv(WebhookServiceName),
-			Port:        p,
-			SecretName:  "workspace-webhook-cert",
-		})
-		ctx = sharedmain.WithHealthProbesDisabled(ctx)
-		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewControllerWebhooks()...)
-
-		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
-		time.Sleep(2 * time.Second)
 	}
 
 	klog.InfoS("starting manager")

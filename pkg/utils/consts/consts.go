@@ -16,8 +16,6 @@ package consts
 import "time"
 
 const (
-	// WorkspaceFinalizer is used to make sure that workspace controller handles garbage collection.
-	WorkspaceFinalizer = "workspace.finalizer.kaito.sh"
 	// InferenceSetFinalizer is used to make sure that inferenceset controller handles garbage collection.
 	InferenceSetFinalizer = "inferenceset.finalizer.kaito.sh"
 	// RAGEngineFinalizer is used to make sure that ragengine controller handles garbage collection.

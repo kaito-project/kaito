@@ -11,17 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package main — model preset side-effect imports are no longer needed.
+// The KServe controller uses pkg/presets.Registry instead of the old
+// per-model init() registration pattern.
 package main
-
-import (
-	_ "github.com/kaito-project/kaito/presets/workspace/models"
-	_ "github.com/kaito-project/kaito/presets/workspace/models/deepseek"
-	_ "github.com/kaito-project/kaito/presets/workspace/models/falcon"
-	_ "github.com/kaito-project/kaito/presets/workspace/models/gemma3"
-	_ "github.com/kaito-project/kaito/presets/workspace/models/gpt"
-	_ "github.com/kaito-project/kaito/presets/workspace/models/llama3"
-	_ "github.com/kaito-project/kaito/presets/workspace/models/mistral"
-	_ "github.com/kaito-project/kaito/presets/workspace/models/phi3"
-	_ "github.com/kaito-project/kaito/presets/workspace/models/phi4"
-	_ "github.com/kaito-project/kaito/presets/workspace/models/qwen"
-)

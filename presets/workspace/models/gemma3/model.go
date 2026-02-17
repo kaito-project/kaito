@@ -58,7 +58,7 @@ type gemma3_4BInstruct struct{}
 func (*gemma3_4BInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                metadata.MustGet(PresetGemma3_4BInstructModel),
-		DiskStorageRequirement:  "60Gi",
+		DiskStorageRequirement:  "90Gi",
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "8.6Gi",
 		BytesPerToken:           348160,

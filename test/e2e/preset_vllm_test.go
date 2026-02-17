@@ -39,17 +39,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		loadModelVersions()
 	})
 
-	AfterEach(func() {
-		if CurrentSpecReport().Failed() {
-			utils.PrintPodLogsOnFailure(namespaceName, "")     // The Preset Pod
-			utils.PrintPodLogsOnFailure("kaito-workspace", "") // The KAITO Workspace Pod
-			if !*skipGPUProvisionerCheck {
-				utils.PrintPodLogsOnFailure("gpu-provisioner", "") // The gpu-provisioner Pod
-			}
-			Fail("Fail threshold reached")
-		}
-	})
-
 	It("should create a deepseek-distilled-llama-8b workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)

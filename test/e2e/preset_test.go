@@ -1165,17 +1165,6 @@ var _ = Describe("Workspace Preset", func() {
 		loadModelVersions()
 	})
 
-	ReportAfterSuite("Print pod logs on failure", func(report Report) {
-		if report.SuiteSucceeded {
-			return
-		}
-		utils.PrintPodLogsOnFailure(namespaceName, "")
-		utils.PrintPodLogsOnFailure("kaito-workspace", "app.kubernetes.io/name=workspace")
-		if !*skipGPUProvisionerCheck {
-			utils.PrintPodLogsOnFailure("gpu-provisioner", "")
-		}
-	})
-
 	It("should create a mistral workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createMistralWorkspaceWithPresetPublicMode(numOfNode)

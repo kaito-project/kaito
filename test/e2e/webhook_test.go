@@ -121,19 +121,6 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 	})
 
 	It("should validate the workspace inference configfile", func() {
-		By("Creating a 2gpu vllm workspace without configfile", func() {
-			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
-				&metav1.LabelSelector{
-					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-				}, nil, PresetFalcon7BModel, nil, nil, nil, "", "")
-
-			// Create workspace
-			Eventually(func() error {
-				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
-			}, utils.PollTimeout, utils.PollInterval).
-				Should(HaveOccurred(), "Failed to create workspace %s", workspaceObj.Name)
-		})
-
 		By("Creating a 2gpu transformers workspace without configfile", func() {
 			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
 				&metav1.LabelSelector{

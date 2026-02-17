@@ -39,14 +39,14 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		loadModelVersions()
 	})
 
-	AfterEach(func() {
-		if CurrentSpecReport().Failed() {
-			utils.PrintPodLogsOnFailure(namespaceName, "")     // The Preset Pod
-			utils.PrintPodLogsOnFailure("kaito-workspace", "app.kubernetes.io/name=workspace") // The KAITO Workspace Pod
-			if !*skipGPUProvisionerCheck {
-				utils.PrintPodLogsOnFailure("gpu-provisioner", "") // The gpu-provisioner Pod
-			}
-			Fail("Fail threshold reached")
+	ReportAfterSuite("Print pod logs on failure", func(report Report) {
+		if report.SuiteSucceeded {
+			return
+		}
+		utils.PrintPodLogsOnFailure(namespaceName, "")
+		utils.PrintPodLogsOnFailure("kaito-workspace", "app.kubernetes.io/name=workspace")
+		if !*skipGPUProvisionerCheck {
+			utils.PrintPodLogsOnFailure("gpu-provisioner", "")
 		}
 	})
 

@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	SystemFileDiskSizeGiB  = 50
+	SystemFileDiskSizeGiB  = 80
 	DefaultModelTokenLimit = 2048
 	HuggingFaceWebsite     = "https://huggingface.co"
 )

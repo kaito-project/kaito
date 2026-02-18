@@ -2,8 +2,6 @@ module github.com/kaito-project/kaito
 
 go 1.24.11
 
-toolchain go1.24
-
 require (
 	github.com/Azure/karpenter-provider-azure v1.6.3
 	github.com/aws/karpenter-provider-aws v1.6.3
@@ -24,7 +22,6 @@ require (
 	k8s.io/apimachinery v0.34.1
 	k8s.io/client-go v0.34.1
 	k8s.io/component-base v0.34.1
-	k8s.io/component-helpers v0.34.1
 	k8s.io/klog/v2 v2.130.1
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
 	knative.dev/pkg v0.0.0-20240910170930-fdbc0b5adde7

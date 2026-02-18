@@ -169,6 +169,31 @@ def test_chat_completions_multi_turn(configured_app):
 
 
 # ---------------------------------------------------------------------------
+# /v1/responses
+# ---------------------------------------------------------------------------
+
+
+def test_responses(configured_app):
+    """POST /v1/responses returns an SSE-streamed response."""
+    fake_sse = iter(["data: {}\n\n", "data: [DONE]\n\n"])
+
+    client = TestClient(configured_app)
+    request_data = {
+        "model": configured_app.test_config["model_path"],
+        "input": "Hello",
+    }
+    with (
+        patch("inference_api.serve_command.validate_response_request"),
+        patch(
+            "inference_api.serve_command.generate_response",
+            return_value=fake_sse,
+        ),
+    ):
+        response = client.post("/v1/responses", json=request_data)
+    assert response.status_code == 200
+
+
+# ---------------------------------------------------------------------------
 # /v1/models
 # ---------------------------------------------------------------------------
 

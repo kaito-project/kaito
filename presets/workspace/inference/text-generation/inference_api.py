@@ -21,6 +21,7 @@ without downloading or loading its own copy.
 
 Endpoints exposed:
     POST /v1/chat/completions  – OpenAI-compatible chat completions (SSE)
+    POST /v1/responses          – OpenAI Responses API (SSE)
     GET  /v1/models            – list the served model
     GET  /health               – liveness / readiness probe
     GET  /metrics              – GPU / CPU utilisation
@@ -325,6 +326,14 @@ def chat_completion(body: dict):
     """OpenAI-compatible chat completions endpoint (SSE streamed)."""
     serve_command.validate_chat_completion_request(request=body)
     output = serve_command.generate_chat_completion(body)
+    return StreamingResponse(output, media_type="text/event-stream")
+
+
+@app.post("/v1/responses")
+def responses(body: dict):
+    """OpenAI Responses API endpoint (SSE streamed)."""
+    serve_command.validate_response_request(request=body)
+    output = serve_command.generate_response(body)
     return StreamingResponse(output, media_type="text/event-stream")
 
 

@@ -49,6 +49,8 @@ func TestInferenceSet_SetDefaults(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: InferenceSetSpec{
+					// Replicas omitted - represented as 0 (zero value for int)
+					// This simulates what happens when the field is not present in YAML/JSON
 					Replicas: 0,
 				},
 			},

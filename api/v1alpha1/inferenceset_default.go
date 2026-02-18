@@ -19,4 +19,8 @@ import (
 
 // SetDefaults for the InferenceSet
 func (w *InferenceSet) SetDefaults(_ context.Context) {
+	// Default replicas to 1 if not set
+	if w.Spec.Replicas == 0 {
+		w.Spec.Replicas = 1
+	}
 }

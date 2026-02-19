@@ -69,6 +69,7 @@ func (*gemma3_4BInstruct) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    gemma3RunParams,
+				ModelName:         PresetGemma3_4BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -108,6 +109,7 @@ func (*gemma3_27BInstruct) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    gemma3RunParams,
+				ModelName:         PresetGemma3_27BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,

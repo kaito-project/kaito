@@ -75,6 +75,7 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phi4RunParams,
+				ModelName:         PresetPhi4Model,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -96,6 +97,7 @@ func (*phi4Model) GetTuningParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetPhiTuning,
+				ModelName:   PresetPhi4Model,
 			},
 		},
 	}
@@ -124,6 +126,7 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phi4RunParams,
+				ModelName:         PresetPhi4MiniInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -145,6 +148,7 @@ func (*phi4MiniInstruct) GetTuningParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetPhiTuning,
+				ModelName:   PresetPhi4MiniInstructModel,
 			},
 		},
 	}

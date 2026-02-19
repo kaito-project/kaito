@@ -142,6 +142,12 @@ class ModelConfig:
             "help": "The file path to the chat template, or the template in single-line form for the specified model"
         },
     )
+    served_model_name: str | None = field(
+        default=None,
+        metadata={
+            "help": "The model name used in the OpenAI serving API. If not set, defaults to pretrained_model_name_or_path."
+        },
+    )
 
     # Method to process additional arguments
     def process_additional_args(self, addt_args: list[str]):
@@ -220,6 +226,7 @@ model_args = asdict(args)
 model_args["local_files_only"] = not model_args.pop("allow_remote_files")
 model_args.pop("pipeline")  # Only used for validation in __post_init__
 combination_type = model_args.pop("combination_type")
+served_model_name = model_args.pop("served_model_name")
 
 resolved_chat_template = load_chat_template(model_args.pop("chat_template"))
 tokenizer = AutoTokenizer.from_pretrained(**model_args)
@@ -289,7 +296,7 @@ logger.info("Model: %s", model)
 # Set up transformers serve engine with pre-loaded model
 # ---------------------------------------------------------------------------
 
-model_name = args.pretrained_model_name_or_path
+model_name = served_model_name or args.pretrained_model_name_or_path
 model_key = f"{model_name}@{args.revision}"
 
 serve_args = ServeArguments(

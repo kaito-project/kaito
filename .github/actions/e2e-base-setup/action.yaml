@@ -31,6 +31,10 @@ inputs:
     description: "Skip Helm installation of KAITO charts"
     required: false
     default: "false"
+  create_rag_nodepool:
+    description: "Whether to create a dedicated nodepool for RAG workloads."
+    required: false
+    default: "false"
 
 outputs:
   cluster_name:
@@ -214,6 +218,15 @@ runs:
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_LOCATION: ${{ inputs.region }}
         AKS_K8S_VERSION: ${{ inputs.k8s_version }}
+
+    - name: create RAG nodepool
+      if: ${{ inputs.create_rag_nodepool == 'true' }}
+      shell: bash
+      run: |
+        make create-rag-nodepool
+      env:
+        AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+        AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
 
     - name: Create Identities and Permissions for ${{ inputs.node_provisioner }}
       shell: bash

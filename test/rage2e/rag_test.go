@@ -134,6 +134,48 @@ var _ = Describe("RAGEngine", func() {
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
+	It("should create CPU RAG with localembedding and huggingface API successfully", func() {
+		numOfReplica := 1
+
+		createAndValidateSecret()
+		ragengineObj := createLocalEmbeddingHFURLCPURAGEngine()
+
+		defer cleanupResources(nil, ragengineObj)
+
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateAssociatedService(ragengineObj.ObjectMeta)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
+		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
+		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
+		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
+		docID := indexDoc["doc_id"].(string)
+
+		searchQuerySuccess := "Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster"
+		err = createAndValidateQueryChatMessagesPod(ragengineObj, searchQuerySuccess, true)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate QueryChatMessagesPod")
+
+		persistLogSuccess := "Successfully persisted index kaito"
+		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
+
+		loadLogSuccess := "Successfully loaded index kaito"
+		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
+
+		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
+
+		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
+
+		err = createAndValidateDeleteIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
+	})
+
 	It("should create RAG with localembedding and kaito VLLM workspace successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplica := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
@@ -619,6 +661,27 @@ func createLocalEmbeddingHFURLRAGEngine() *kaitov1beta1.RAGEngine {
 	By("Creating RAG with localembedding and huggingface API", func() {
 		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
 		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_NV36ads_A10_v5", "BAAI/bge-small-en-v1.5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"apps": "phi-3"},
+			},
+			&kaitov1beta1.InferenceServiceSpec{
+				URL:               hfURL,
+				AccessSecret:      "huggingface-token",
+				ContextWindowSize: 128000,
+			},
+		)
+
+		createAndValidateRAGEngine(ragEngineObj)
+	})
+	return ragEngineObj
+}
+
+func createLocalEmbeddingHFURLCPURAGEngine() *kaitov1beta1.RAGEngine {
+	ragEngineObj := &kaitov1beta1.RAGEngine{}
+	hfURL := "https://router.huggingface.co/featherless-ai/v1/chat/completions"
+	By("Creating CPU RAG with localembedding and huggingface API", func() {
+		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifest(uniqueID, namespaceName, "Standard_D8_v3", "BAAI/bge-small-en-v1.5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"apps": "phi-3"},
 			},

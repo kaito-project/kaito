@@ -1157,53 +1157,75 @@ func TestApplyTuningWorkspaceStatus(t *testing.T) {
 	})
 }
 
-func TestSetWorkspaceCondition_NoChangeKeepsLastTransitionTime(t *testing.T) {
+func TestSetWorkspaceCondition(t *testing.T) {
 	originalTime := v1.NewTime(time.Unix(1700000000, 0))
-	status := &v1beta1.WorkspaceStatus{
-		Conditions: []v1.Condition{
-			{
-				Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
-				Status:             v1.ConditionTrue,
-				Reason:             "workspaceSucceeded",
-				Message:            "workspace succeeds",
-				ObservedGeneration: 1,
-				LastTransitionTime: originalTime,
-			},
+
+	testCases := []struct {
+		name                              string
+		generation                        int64
+		reason                            string
+		message                           string
+		expectedMessage                   string
+		expectedGeneration                int64
+		expectLastTransitionTimeUnchanged bool
+	}{
+		{
+			name:                              "no change keeps LastTransitionTime",
+			generation:                        1,
+			reason:                            "workspaceSucceeded",
+			message:                           "workspace succeeds",
+			expectedMessage:                   "workspace succeeds",
+			expectedGeneration:                1,
+			expectLastTransitionTimeUnchanged: true,
+		},
+		{
+			name:                              "message change updates LastTransitionTime",
+			generation:                        2,
+			reason:                            "workspaceSucceeded",
+			message:                           "workspace succeeds (updated)",
+			expectedMessage:                   "workspace succeeds (updated)",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: false,
+		},
+		{
+			name:                              "generation change updates LastTransitionTime",
+			generation:                        2,
+			reason:                            "workspaceSucceeded",
+			message:                           "workspace succeeds",
+			expectedMessage:                   "workspace succeeds",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: false,
 		},
 	}
 
-	setWorkspaceCondition(status, 2, buildReconcileErrMessageAppender(nil),
-		v1beta1.WorkspaceConditionTypeSucceeded, v1.ConditionTrue, "workspaceSucceeded", "workspace succeeds")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			status := &v1beta1.WorkspaceStatus{
+				Conditions: []v1.Condition{
+					{
+						Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+						Status:             v1.ConditionTrue,
+						Reason:             "workspaceSucceeded",
+						Message:            "workspace succeeds",
+						ObservedGeneration: 1,
+						LastTransitionTime: originalTime,
+					},
+				},
+			}
 
-	condition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
-	if assert.NotNil(t, condition) {
-		assert.True(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should stay unchanged")
-		assert.Equal(t, int64(1), condition.ObservedGeneration, "ObservedGeneration should stay unchanged when condition is unchanged")
-	}
-}
+			setWorkspaceCondition(status, tc.generation, buildReconcileErrMessageAppender(nil),
+				v1beta1.WorkspaceConditionTypeSucceeded, v1.ConditionTrue, tc.reason, tc.message)
 
-func TestSetWorkspaceCondition_ChangeUpdatesLastTransitionTime(t *testing.T) {
-	originalTime := v1.NewTime(time.Unix(1700000000, 0))
-	status := &v1beta1.WorkspaceStatus{
-		Conditions: []v1.Condition{
-			{
-				Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
-				Status:             v1.ConditionTrue,
-				Reason:             "workspaceSucceeded",
-				Message:            "workspace succeeds",
-				ObservedGeneration: 1,
-				LastTransitionTime: originalTime,
-			},
-		},
-	}
-
-	setWorkspaceCondition(status, 2, buildReconcileErrMessageAppender(nil),
-		v1beta1.WorkspaceConditionTypeSucceeded, v1.ConditionTrue, "workspaceSucceeded", "workspace succeeds (updated)")
-
-	condition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
-	if assert.NotNil(t, condition) {
-		assert.False(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should be updated when condition changes")
-		assert.Equal(t, int64(2), condition.ObservedGeneration, "ObservedGeneration should be updated when condition changes")
-		assert.Equal(t, "workspace succeeds (updated)", condition.Message)
+			condition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+			if assert.NotNil(t, condition) {
+				if tc.expectLastTransitionTimeUnchanged {
+					assert.True(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should stay unchanged")
+				} else {
+					assert.False(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should be updated")
+				}
+				assert.Equal(t, tc.expectedGeneration, condition.ObservedGeneration)
+				assert.Equal(t, tc.expectedMessage, condition.Message)
+			}
+		})
 	}
 }

@@ -757,6 +757,7 @@ func setWorkspaceCondition(status *kaitov1beta1.WorkspaceStatus, generation int6
 	if existingCondition != nil &&
 		existingCondition.Status == conditionStatus &&
 		existingCondition.Reason == reason &&
+		existingCondition.ObservedGeneration == generation &&
 		existingCondition.Message == newMessage {
 		return
 	}

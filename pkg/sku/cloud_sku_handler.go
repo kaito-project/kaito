@@ -14,6 +14,8 @@
 package sku
 
 import (
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -25,7 +27,7 @@ type CloudSKUHandler interface {
 type GPUConfig struct {
 	SKU             string
 	GPUCount        int
-	GPUMemGiB       int
+	GPUMemGiB       resource.Quantity
 	GPUModel        string
 	NVMeDiskEnabled bool
 }

@@ -21,6 +21,7 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -1097,5 +1098,112 @@ func TestSyncWorkspaceStatus(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestBuildReconcileErrMessageAppender(t *testing.T) {
+	noErrAppender := buildReconcileErrMessageAppender(nil)
+	assert.Equal(t, "workspace is ready", noErrAppender("workspace is ready"))
+
+	withErrAppender := buildReconcileErrMessageAppender(errors.New("boom"))
+	assert.Equal(t, "workspace is ready (last reconcile error: boom)", withErrAppender("workspace is ready"))
+}
+
+func TestApplyInferenceWorkspaceStatus(t *testing.T) {
+	t.Run("ready when inference and resource are ready", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		applyInferenceWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue)
+
+		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
+		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		assert.NotNil(t, inferenceCondition)
+		assert.Equal(t, v1.ConditionTrue, inferenceCondition.Status)
+
+		succeededCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+		assert.NotNil(t, succeededCondition)
+		assert.Equal(t, v1.ConditionTrue, succeededCondition.Status)
+	})
+
+	t.Run("not ready after established", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateReady}
+		applyInferenceWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue)
+
+		assert.Equal(t, v1beta1.WorkspaceStateNotReady, status.State)
+		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		assert.NotNil(t, inferenceCondition)
+		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
+	})
+}
+
+func TestApplyTuningWorkspaceStatus(t *testing.T) {
+	t.Run("failed tuning sets failed state", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateRunning}
+		applyTuningWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), &tuningStatusSnapshot{failed: true})
+
+		assert.Equal(t, v1beta1.WorkspaceStateFailed, status.State)
+		tuningCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeTuningJobStatus))
+		assert.NotNil(t, tuningCondition)
+		assert.Equal(t, v1.ConditionFalse, tuningCondition.Status)
+	})
+
+	t.Run("running tuning sets running state", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		applyTuningWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), &tuningStatusSnapshot{started: true, active: 1})
+
+		assert.Equal(t, v1beta1.WorkspaceStateRunning, status.State)
+		tuningCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeTuningJobStatus))
+		assert.NotNil(t, tuningCondition)
+		assert.Equal(t, v1.ConditionTrue, tuningCondition.Status)
+	})
+}
+
+func TestSetWorkspaceCondition_NoChangeKeepsLastTransitionTime(t *testing.T) {
+	originalTime := v1.NewTime(time.Unix(1700000000, 0))
+	status := &v1beta1.WorkspaceStatus{
+		Conditions: []v1.Condition{
+			{
+				Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+				Status:             v1.ConditionTrue,
+				Reason:             "workspaceSucceeded",
+				Message:            "workspace succeeds",
+				ObservedGeneration: 1,
+				LastTransitionTime: originalTime,
+			},
+		},
+	}
+
+	setWorkspaceCondition(status, 2, buildReconcileErrMessageAppender(nil),
+		v1beta1.WorkspaceConditionTypeSucceeded, v1.ConditionTrue, "workspaceSucceeded", "workspace succeeds")
+
+	condition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+	if assert.NotNil(t, condition) {
+		assert.True(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should stay unchanged")
+		assert.Equal(t, int64(1), condition.ObservedGeneration, "ObservedGeneration should stay unchanged when condition is unchanged")
+	}
+}
+
+func TestSetWorkspaceCondition_ChangeUpdatesLastTransitionTime(t *testing.T) {
+	originalTime := v1.NewTime(time.Unix(1700000000, 0))
+	status := &v1beta1.WorkspaceStatus{
+		Conditions: []v1.Condition{
+			{
+				Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+				Status:             v1.ConditionTrue,
+				Reason:             "workspaceSucceeded",
+				Message:            "workspace succeeds",
+				ObservedGeneration: 1,
+				LastTransitionTime: originalTime,
+			},
+		},
+	}
+
+	setWorkspaceCondition(status, 2, buildReconcileErrMessageAppender(nil),
+		v1beta1.WorkspaceConditionTypeSucceeded, v1.ConditionTrue, "workspaceSucceeded", "workspace succeeds (updated)")
+
+	condition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+	if assert.NotNil(t, condition) {
+		assert.False(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should be updated when condition changes")
+		assert.Equal(t, int64(2), condition.ObservedGeneration, "ObservedGeneration should be updated when condition changes")
+		assert.Equal(t, "workspace succeeds (updated)", condition.Message)
 	}
 }

@@ -306,3 +306,69 @@ def test_get_metrics_no_gpus(configured_app):
         assert data["cpu_info"]["total_cores"] == 8
         assert data["cpu_info"]["memory"]["used"] == "4.00 GB"
         assert data["cpu_info"]["memory"]["total"] == "16.00 GB"
+
+
+# ---------------------------------------------------------------------------
+# served_model_name (e2e-aligned test)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def local_model_app(tmp_path_factory):
+    """Load model to a local path and start the server with --served_model_name,
+    simulating the e2e flow where weights are pre-downloaded."""
+    from huggingface_hub import snapshot_download
+
+    local_dir = str(tmp_path_factory.mktemp("weights"))
+    snapshot_download("HuggingFaceTB/SmolLM2-135M-Instruct", local_dir=local_dir)
+
+    original_argv = sys.argv.copy()
+    sys.argv = [
+        "program_name",
+        "--pipeline", "text-generation",
+        "--pretrained_model_name_or_path", local_dir,
+        "--served_model_name", "smollm2",
+        "--device_map", "cpu",
+    ]
+
+    import inference_api
+
+    importlib.reload(inference_api)
+    from inference_api import app
+
+    app.test_config = {"model_path": local_dir, "served_name": "smollm2"}
+    yield app
+
+    for timed_model in inference_api.serve_command.loaded_models.values():
+        timed_model._timer.cancel()
+    sys.argv = original_argv
+
+
+def test_served_model_name_in_models_endpoint(local_model_app):
+    """GET /v1/models returns the served_model_name, not the local path."""
+    client = TestClient(local_model_app)
+    response = client.get("/v1/models")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["data"][0]["id"] == "smollm2"
+
+
+def test_served_model_name_in_chat_completions(local_model_app):
+    """POST /v1/chat/completions works with the served model name."""
+    fake_sse = iter([_make_sse_chunk(content="Hi"), "data: [DONE]\n\n"])
+
+    client = TestClient(local_model_app)
+    request_data = {
+        "model": "smollm2",
+        "messages": [{"role": "user", "content": "Hi"}],
+        "max_tokens": 5,
+    }
+    with (
+        patch("inference_api.serve_command.validate_chat_completion_request"),
+        patch(
+            "inference_api.serve_command.generate_chat_completion",
+            return_value=fake_sse,
+        ),
+    ):
+        response = client.post("/v1/chat/completions", json=request_data)
+    assert response.status_code == 200

@@ -878,7 +878,7 @@ func validateChatCompletionsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 
 	expectedCompletion := `"object":"chat.completion`
 	execOption := corev1.PodExecOptions{
-		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s -X POST -H "Content-Type: application/json" -d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' http://%s.%s.svc.cluster.local:80/v1/chat/completions | grep -e '%s'`, modelName, workspaceObj.Name, workspaceObj.Namespace, expectedCompletion)},
+		Command:   []string{"bash", "-c", fmt.Sprintf(`apt-get update && apt-get install curl -y; curl -s --max-time 30 -X POST -H "Content-Type: application/json" -d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' http://%s.%s.svc.cluster.local:80/v1/chat/completions | grep -e '%s'`, modelName, workspaceObj.Name, workspaceObj.Namespace, expectedCompletion)},
 		Container: deploymentName,
 		Stdout:    true,
 		Stderr:    true,

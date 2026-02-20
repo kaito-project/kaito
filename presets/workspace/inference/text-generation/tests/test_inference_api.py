@@ -325,10 +325,14 @@ def local_model_app(tmp_path_factory):
     original_argv = sys.argv.copy()
     sys.argv = [
         "program_name",
-        "--pipeline", "text-generation",
-        "--pretrained_model_name_or_path", local_dir,
-        "--served_model_name", "smollm2",
-        "--device_map", "cpu",
+        "--pipeline",
+        "text-generation",
+        "--pretrained_model_name_or_path",
+        local_dir,
+        "--served_model_name",
+        "smollm2",
+        "--device_map",
+        "cpu",
     ]
 
     import inference_api

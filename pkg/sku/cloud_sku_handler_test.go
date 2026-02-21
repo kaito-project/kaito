@@ -81,9 +81,9 @@ func TestGPUConfigMemoryIsQuantity(t *testing.T) {
 		expectedMemGiB string
 	}{
 		{
-			name:           "Azure Standard_NC6s_v3",
+			name:           "Azure Standard_NC4as_T4_v3",
 			handler:        NewAzureSKUHandler(),
-			sku:            "Standard_NC6s_v3",
+			sku:            "Standard_NC4as_T4_v3",
 			expectedMemGiB: "16Gi",
 		},
 		{

@@ -29,7 +29,7 @@ func TestAzureSKUHandler(t *testing.T) {
 	}
 
 	// Test GetGPUConfigs with a SKU that is supported
-	sku := "Standard_NC6s_v3"
+	sku := "Standard_NC4as_T4_v3"
 	gpuConfig1 := handler.GetGPUConfigBySKU(sku)
 	if gpuConfig1 == nil {
 		t.Fatalf("Supported SKU missing from GPUConfigs")

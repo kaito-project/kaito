@@ -124,13 +124,53 @@ jobs:
         uses: azure/CLI@v2.2.0
         with:
           inlineScript: |
-            az aks nodepool add \
-              --resource-group "${{ env.CLUSTER_NAME }}" \
-              --cluster-name "${{ env.CLUSTER_NAME }}" \
-              --name ragpool \
-              -s Standard_D8_v3 \
-              -c 1 \
-              --labels apps=phi-3
+            set -euo pipefail
+
+            RG="${{ env.CLUSTER_NAME }}"
+            CLUSTER="${{ env.CLUSTER_NAME }}"
+            MAX_RETRIES=12
+            SLEEP_SECONDS=30
+
+            for attempt in $(seq 1 ${MAX_RETRIES}); do
+              state=$(az aks show --resource-group "${RG}" --name "${CLUSTER}" --query provisioningState -o tsv || echo "Unknown")
+              echo "AKS provisioningState: ${state} (attempt ${attempt}/${MAX_RETRIES})"
+
+              if [ "${state}" != "Succeeded" ]; then
+                echo "Cluster operation still in progress. Waiting ${SLEEP_SECONDS}s before retrying..."
+                sleep ${SLEEP_SECONDS}
+                continue
+              fi
+
+              set +e
+              output=$(az aks nodepool add \
+                --resource-group "${RG}" \
+                --cluster-name "${CLUSTER}" \
+                --name ragpool \
+                -s Standard_D8_v3 \
+                -c 1 \
+                --labels apps=phi-3 2>&1)
+              status=$?
+              set -e
+
+              if [ ${status} -eq 0 ]; then
+                echo "${output}"
+                echo "ragpool node pool created successfully."
+                exit 0
+              fi
+
+              echo "${output}"
+              if echo "${output}" | grep -q "OperationNotAllowed"; then
+                echo "Detected in-progress AKS operation. Retrying in ${SLEEP_SECONDS}s..."
+                sleep ${SLEEP_SECONDS}
+                continue
+              fi
+
+              echo "Node pool creation failed with a non-retryable error."
+              exit ${status}
+            done
+
+            echo "Timed out waiting to create ragpool after ${MAX_RETRIES} attempts."
+            exit 1
         env:
           AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}

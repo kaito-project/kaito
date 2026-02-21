@@ -75,39 +75,39 @@ func TestAwsSKUHandler(t *testing.T) {
 
 func TestGPUConfigMemoryIsQuantity(t *testing.T) {
 	tests := []struct {
-		name          string
-		handler       CloudSKUHandler
-		sku           string
+		name           string
+		handler        CloudSKUHandler
+		sku            string
 		expectedMemGiB string
 	}{
 		{
-			name:          "Azure Standard_NC6s_v3",
-			handler:       NewAzureSKUHandler(),
-			sku:           "Standard_NC6s_v3",
+			name:           "Azure Standard_NC6s_v3",
+			handler:        NewAzureSKUHandler(),
+			sku:            "Standard_NC6s_v3",
 			expectedMemGiB: "16Gi",
 		},
 		{
-			name:          "Azure Standard_NC24ads_A100_v4",
-			handler:       NewAzureSKUHandler(),
-			sku:           "Standard_NC24ads_A100_v4",
+			name:           "Azure Standard_NC24ads_A100_v4",
+			handler:        NewAzureSKUHandler(),
+			sku:            "Standard_NC24ads_A100_v4",
 			expectedMemGiB: "80Gi",
 		},
 		{
-			name:          "AWS p2.xlarge",
-			handler:       NewAwsSKUHandler(),
-			sku:           "p2.xlarge",
+			name:           "AWS p2.xlarge",
+			handler:        NewAwsSKUHandler(),
+			sku:            "p2.xlarge",
 			expectedMemGiB: "12Gi",
 		},
 		{
-			name:          "AWS p5.48xlarge",
-			handler:       NewAwsSKUHandler(),
-			sku:           "p5.48xlarge",
+			name:           "AWS p5.48xlarge",
+			handler:        NewAwsSKUHandler(),
+			sku:            "p5.48xlarge",
 			expectedMemGiB: "640Gi",
 		},
 		{
-			name:          "Arc Standard_NK6",
-			handler:       NewArcSKUHandler(),
-			sku:           "Standard_NK6",
+			name:           "Arc Standard_NK6",
+			handler:        NewArcSKUHandler(),
+			sku:            "Standard_NK6",
 			expectedMemGiB: "8Gi",
 		},
 	}

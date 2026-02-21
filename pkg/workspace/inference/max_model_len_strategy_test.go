@@ -72,7 +72,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 			},
 			gpu: &sku.GPUConfig{
 				GPUMemGiB: resource.MustParse("24Gi"), // A10 has 24GB memory
-				GPUCount:  1,  // Standard_NV36ads_A10_v5 has 1 GPU
+				GPUCount:  1,                          // Standard_NV36ads_A10_v5 has 1 GPU
 			},
 			numRequiredNodes: 1,
 			expected:         21248,
@@ -90,7 +90,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 			},
 			gpu: &sku.GPUConfig{
 				GPUMemGiB: resource.MustParse("48Gi"), // Standard_NV72ads_A10_v5 has 48GB memory
-				GPUCount:  2,  // Standard_NV72ads_A10_v5 has 2 GPUs
+				GPUCount:  2,                          // Standard_NV72ads_A10_v5 has 2 GPUs
 			},
 			numRequiredNodes: 1,
 			expected:         41728,
@@ -108,7 +108,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 			},
 			gpu: &sku.GPUConfig{
 				GPUMemGiB: resource.MustParse("80Gi"), // A100 has 80GB memory
-				GPUCount:  1,  // Standard_NC24ads_A100_v4 has 1 GPU
+				GPUCount:  1,                          // Standard_NC24ads_A100_v4 has 1 GPU
 			},
 			numRequiredNodes: 1,
 			expected:         131072, // Clamped to ModelTokenLimit (original calculation: 192456)
@@ -126,7 +126,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 			},
 			gpu: &sku.GPUConfig{
 				GPUMemGiB: resource.MustParse("80Gi"), // A100 has 80GB memory
-				GPUCount:  1,  // Standard_NC24ads_A100_v4 has 1 GPU per node
+				GPUCount:  1,                          // Standard_NC24ads_A100_v4 has 1 GPU per node
 			},
 			numRequiredNodes: 3,
 			expected:         22016,

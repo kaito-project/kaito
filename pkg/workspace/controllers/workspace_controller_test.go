@@ -1163,6 +1163,7 @@ func TestSetWorkspaceCondition(t *testing.T) {
 	testCases := []struct {
 		name                              string
 		generation                        int64
+		conditionStatus                   v1.ConditionStatus
 		reason                            string
 		message                           string
 		expectedMessage                   string
@@ -1172,6 +1173,7 @@ func TestSetWorkspaceCondition(t *testing.T) {
 		{
 			name:                              "no change keeps LastTransitionTime",
 			generation:                        1,
+			conditionStatus:                   v1.ConditionTrue,
 			reason:                            "workspaceSucceeded",
 			message:                           "workspace succeeds",
 			expectedMessage:                   "workspace succeeds",
@@ -1179,20 +1181,32 @@ func TestSetWorkspaceCondition(t *testing.T) {
 			expectLastTransitionTimeUnchanged: true,
 		},
 		{
-			name:                              "message change updates LastTransitionTime",
+			name:                              "message change keeps LastTransitionTime",
 			generation:                        2,
+			conditionStatus:                   v1.ConditionTrue,
 			reason:                            "workspaceSucceeded",
 			message:                           "workspace succeeds (updated)",
 			expectedMessage:                   "workspace succeeds (updated)",
 			expectedGeneration:                2,
-			expectLastTransitionTimeUnchanged: false,
+			expectLastTransitionTimeUnchanged: true,
 		},
 		{
-			name:                              "generation change updates LastTransitionTime",
+			name:                              "generation change keeps LastTransitionTime",
 			generation:                        2,
+			conditionStatus:                   v1.ConditionTrue,
 			reason:                            "workspaceSucceeded",
 			message:                           "workspace succeeds",
 			expectedMessage:                   "workspace succeeds",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: true,
+		},
+		{
+			name:                              "status change updates LastTransitionTime",
+			generation:                        2,
+			conditionStatus:                   v1.ConditionFalse,
+			reason:                            "workspacePending",
+			message:                           "workspace is pending",
+			expectedMessage:                   "workspace is pending",
 			expectedGeneration:                2,
 			expectLastTransitionTimeUnchanged: false,
 		},
@@ -1214,7 +1228,7 @@ func TestSetWorkspaceCondition(t *testing.T) {
 			}
 
 			setWorkspaceCondition(status, tc.generation, buildReconcileErrMessageAppender(nil),
-				v1beta1.WorkspaceConditionTypeSucceeded, v1.ConditionTrue, tc.reason, tc.message)
+				v1beta1.WorkspaceConditionTypeSucceeded, tc.conditionStatus, tc.reason, tc.message)
 
 			condition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
 			if assert.NotNil(t, condition) {

@@ -751,28 +751,12 @@ func buildReconcileErrMessageAppender(reconcileErr error) func(message string) s
 
 func setWorkspaceCondition(status *kaitov1beta1.WorkspaceStatus, generation int64, appendMessage func(string) string,
 	conditionType kaitov1beta1.ConditionType, conditionStatus metav1.ConditionStatus, reason, message string) {
-	conditionTypeStr := string(conditionType)
-	newMessage := appendMessage(message)
-	existingCondition := meta.FindStatusCondition(status.Conditions, conditionTypeStr)
-	if existingCondition != nil &&
-		existingCondition.Status == conditionStatus &&
-		existingCondition.Reason == reason &&
-		existingCondition.ObservedGeneration == generation &&
-		existingCondition.Message == newMessage {
-		return
-	}
-
-	if existingCondition != nil {
-		meta.RemoveStatusCondition(&status.Conditions, conditionTypeStr)
-	}
-
 	meta.SetStatusCondition(&status.Conditions, metav1.Condition{
-		Type:               conditionTypeStr,
+		Type:               string(conditionType),
 		Status:             conditionStatus,
 		Reason:             reason,
-		Message:            newMessage,
+		Message:            appendMessage(message),
 		ObservedGeneration: generation,
-		LastTransitionTime: metav1.Now(),
 	})
 }
 

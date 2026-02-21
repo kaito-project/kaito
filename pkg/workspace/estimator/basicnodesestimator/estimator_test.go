@@ -182,7 +182,7 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					Count:        ptr.To(1),          // User requests 1 node
+					Count:        ptr.To(1),              // User requests 1 node
 					InstanceType: "Standard_NC4as_T4_v3", // Smaller GPU memory
 				},
 				Inference: &kaitov1beta1.InferenceSpec{
@@ -268,7 +268,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_GPUMemoryCalculation(t *testing.T
 				Namespace: "default",
 			},
 			Resource: kaitov1beta1.ResourceSpec{
-				Count:        ptr.To(10),         // User requests many nodes
+				Count:        ptr.To(10),             // User requests many nodes
 				InstanceType: "Standard_NC4as_T4_v3", // Smaller GPU memory instance
 			},
 			Inference: &kaitov1beta1.InferenceSpec{
@@ -556,7 +556,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 				Namespace: "default",
 			},
 			Resource: kaitov1beta1.ResourceSpec{
-				Count:        ptr.To(10),         // User wants many nodes
+				Count:        ptr.To(10),             // User wants many nodes
 				InstanceType: "Standard_NC4as_T4_v3", // Small GPU instance
 			},
 			Inference: &kaitov1beta1.InferenceSpec{
@@ -591,7 +591,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 				Namespace: "default",
 			},
 			Resource: kaitov1beta1.ResourceSpec{
-				Count:        ptr.To(1),          // User wants fewer nodes
+				Count:        ptr.To(1),              // User wants fewer nodes
 				InstanceType: "Standard_NC4as_T4_v3", // Small GPU instance
 			},
 			Inference: &kaitov1beta1.InferenceSpec{

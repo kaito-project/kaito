@@ -181,7 +181,7 @@ func TestAdvancedNodesEstimator_EstimateNodeCount(t *testing.T) {
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					Count:        ptr.To(1),          // User requests 1 node
+					Count:        ptr.To(1),              // User requests 1 node
 					InstanceType: "Standard_NC4as_T4_v3", // Smaller GPU memory
 				},
 				Inference: &kaitov1beta1.InferenceSpec{

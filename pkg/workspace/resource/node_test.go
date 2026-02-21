@@ -60,7 +60,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3", // GPU instance type
+					InstanceType:  "Standard_NC4as_T4_v3", // GPU instance type
 					LabelSelector: &metav1.LabelSelector{},
 				},
 				Status: kaitov1beta1.WorkspaceStatus{
@@ -84,7 +84,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
 						},
 					},
@@ -147,7 +147,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3", // GPU instance type
+					InstanceType:  "Standard_NC4as_T4_v3", // GPU instance type
 					LabelSelector: &metav1.LabelSelector{},
 				},
 				Status: kaitov1beta1.WorkspaceStatus{
@@ -187,7 +187,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3", // GPU instance type
+					InstanceType:  "Standard_NC4as_T4_v3", // GPU instance type
 					LabelSelector: &metav1.LabelSelector{},
 				},
 				Status: kaitov1beta1.WorkspaceStatus{
@@ -211,7 +211,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
 						},
 					},
@@ -310,7 +310,7 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3", // GPU instance type
+					InstanceType:  "Standard_NC4as_T4_v3", // GPU instance type
 					LabelSelector: &metav1.LabelSelector{},
 				},
 				Status: kaitov1beta1.WorkspaceStatus{
@@ -334,7 +334,7 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
 						},
 					},
@@ -367,7 +367,7 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3", // GPU instance type
+					InstanceType:  "Standard_NC4as_T4_v3", // GPU instance type
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -427,7 +427,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType:  "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -454,7 +454,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType:  "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -472,7 +472,7 @@ func TestCheckNodePlugin(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -501,7 +501,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType:  "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -519,7 +519,7 @@ func TestCheckNodePlugin(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
 						},
 					},
@@ -555,7 +555,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType:  "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -600,7 +600,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType:  "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -618,7 +618,7 @@ func TestCheckNodePlugin(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
 						},
 					},
@@ -645,7 +645,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType:  "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -663,7 +663,7 @@ func TestCheckNodePlugin(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -727,7 +727,7 @@ func TestSetNodesReadyCondition_SetsToTrue(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -834,7 +834,7 @@ func TestEnsureNodesReady(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -887,7 +887,7 @@ func TestEnsureNodesReady(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -947,7 +947,7 @@ func TestEnsureNodesReady(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -1008,7 +1008,7 @@ func TestEnsureNodesReady(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -1051,7 +1051,7 @@ func TestEnsureNodesReady(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -1099,7 +1099,7 @@ func TestEnsureNodesReady(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -1141,7 +1141,7 @@ func TestEnsureNodesReady(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -1158,7 +1158,7 @@ func TestEnsureNodesReady(t *testing.T) {
 						Name: "node-1",
 						Labels: map[string]string{
 							"workload":                     "test",
-							corev1.LabelInstanceTypeStable: "Standard_NC6s_v3", // Wrong instance type - logged but doesn't fail
+							corev1.LabelInstanceTypeStable: "Standard_NC8as_T4_v3", // Different instance type - logged but doesn't fail
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -1183,7 +1183,7 @@ func TestEnsureNodesReady(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -1200,7 +1200,7 @@ func TestEnsureNodesReady(t *testing.T) {
 						Name: "node-1",
 						Labels: map[string]string{
 							"workload":                     "test",
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3", // Correct instance type
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3", // Correct instance type
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -1225,7 +1225,7 @@ func TestEnsureNodesReady(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"workload": "test",
@@ -1313,7 +1313,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType:  "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -1336,7 +1336,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType:  "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -1360,7 +1360,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType:  "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -1398,7 +1398,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC12s_v3",
+					InstanceType:  "Standard_NC4as_T4_v3",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -1416,7 +1416,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 						},
 					},
 					Status: corev1.NodeStatus{

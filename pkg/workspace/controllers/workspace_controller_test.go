@@ -587,7 +587,7 @@ func TestSyncControllerRevision(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									WorkspaceHashAnnotation: "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
+									WorkspaceHashAnnotation: "7ecd8e1b6ebc187b70fc18389f367e6d782e3b7e917e39bfadfc99cfb5ecb872",
 								},
 							},
 							Revision: 1,

@@ -743,7 +743,7 @@ func TestSetNodesReadyCondition_SetsToTrue(t *testing.T) {
 						Name: "node-1",
 						Labels: map[string]string{
 							"workload":                     "test",
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -757,7 +757,7 @@ func TestSetNodesReadyCondition_SetsToTrue(t *testing.T) {
 						Name: "node-2",
 						Labels: map[string]string{
 							"workload":                     "test",
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -852,7 +852,7 @@ func TestEnsureNodesReady(t *testing.T) {
 						Name: "node-1",
 						Labels: map[string]string{
 							"workload":                     "test",
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -866,7 +866,7 @@ func TestEnsureNodesReady(t *testing.T) {
 						Name: "node-2",
 						Labels: map[string]string{
 							"workload":                     "test",
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -1032,7 +1032,7 @@ func TestEnsureNodesReady(t *testing.T) {
 			expectedError:               false,
 		},
 		{
-			name: "Should return error when status update fails",
+			name: "Should return true when node has correct instance type label (NAP enabled)",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
@@ -1053,7 +1053,7 @@ func TestEnsureNodesReady(t *testing.T) {
 						Name: "node-1",
 						Labels: map[string]string{
 							"workload":                     "test",
-							corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -1063,6 +1063,7 @@ func TestEnsureNodesReady(t *testing.T) {
 					},
 				},
 			},
+			nodeClaims:    []*karpenterv1.NodeClaim{},
 			setup:         func(mockClient *test.MockClient) {},
 			expectedReady: true,
 			expectedError: false,

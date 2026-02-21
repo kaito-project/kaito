@@ -15,10 +15,6 @@ package sku
 
 func NewAzureSKUHandler() CloudSKUHandler {
 	supportedSKUs := []GPUConfig{
-		{SKU: "Standard_NC6s_v3", GPUCount: 1, GPUMemGiB: 16, GPUModel: "NVIDIA V100"},
-		{SKU: "Standard_NC12s_v3", GPUCount: 2, GPUMemGiB: 32, GPUModel: "NVIDIA V100"},
-		{SKU: "Standard_NC24s_v3", GPUCount: 4, GPUMemGiB: 64, GPUModel: "NVIDIA V100"},
-		{SKU: "Standard_NC24rs_v3", GPUCount: 4, GPUMemGiB: 64, GPUModel: "NVIDIA V100"},
 		{SKU: "Standard_NC4as_T4_v3", GPUCount: 1, GPUMemGiB: 16, GPUModel: "NVIDIA T4"},
 		{SKU: "Standard_NC8as_T4_v3", GPUCount: 1, GPUMemGiB: 16, GPUModel: "NVIDIA T4"},
 		{SKU: "Standard_NC16as_T4_v3", GPUCount: 1, GPUMemGiB: 16, GPUModel: "NVIDIA T4"},
@@ -41,9 +37,6 @@ func NewAzureSKUHandler() CloudSKUHandler {
 		{SKU: "Standard_ND96isr_H200_v5", GPUCount: 8, GPUMemGiB: 1128, GPUModel: "NVIDIA H200", NVMeDiskEnabled: true},
 		{SKU: "Standard_NG32ads_V620_v1", GPUCount: 1, GPUMemGiB: 32, GPUModel: "AMD Radeon PRO V620"},
 		{SKU: "Standard_NG32adms_V620_v1", GPUCount: 1, GPUMemGiB: 32, GPUModel: "AMD Radeon PRO V620"},
-		{SKU: "Standard_NV6", GPUCount: 1, GPUMemGiB: 8, GPUModel: "NVIDIA M60"},
-		{SKU: "Standard_NV12", GPUCount: 2, GPUMemGiB: 16, GPUModel: "NVIDIA M60"},
-		{SKU: "Standard_NV24", GPUCount: 4, GPUMemGiB: 32, GPUModel: "NVIDIA M60"},
 		{SKU: "Standard_NV12s_v3", GPUCount: 1, GPUMemGiB: 8, GPUModel: "NVIDIA M60"},
 		{SKU: "Standard_NV24s_v3", GPUCount: 2, GPUMemGiB: 16, GPUModel: "NVIDIA M60"},
 		{SKU: "Standard_NV48s_v3", GPUCount: 4, GPUMemGiB: 32, GPUModel: "NVIDIA M60"},

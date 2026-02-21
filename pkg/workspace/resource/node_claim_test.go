@@ -307,21 +307,8 @@ func setupWorkspaceStatusMock(mockClient *test.MockClient, workspace *kaitov1bet
 
 func TestCreateNodeClaims(t *testing.T) {
 	// Helper function to setup common mocks
-	setupBaseMocks := func(mockClient *test.MockClient, workspace *kaitov1beta1.Workspace, statusUpdateError error) {
-		// Mock Get call for status update
-		mockClient.On("Get", mock.IsType(context.Background()), mock.IsType(client.ObjectKey{}), mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1beta1.Workspace)
-			*ws = *workspace
-		}).Return(nil)
-
-		// Mock status update - the Status() method returns a StatusMock, so we need to mock that
-		// Use Maybe() to handle potential multiple calls
-		mockClient.On("Status").Return(&mockClient.StatusMock).Maybe()
-		if statusUpdateError != nil {
-			mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(statusUpdateError).Maybe()
-		} else {
-			mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil).Maybe()
-		}
+	setupBaseMocks := func(mockClient *test.MockClient) {
+		_ = mockClient
 	}
 
 	// Define test cases in a table-driven approach
@@ -344,12 +331,7 @@ func TestCreateNodeClaims(t *testing.T) {
 			},
 			nodesToCreate: 1,
 			setupMocks: func(mockClient *test.MockClient) {
-				setupBaseMocks(mockClient, &kaitov1beta1.Workspace{
-					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-					Resource: kaitov1beta1.ResourceSpec{
-						LabelSelector: &metav1.LabelSelector{},
-					},
-				}, nil)
+				setupBaseMocks(mockClient)
 
 				// Mock NodeClaim creation
 				mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
@@ -368,12 +350,7 @@ func TestCreateNodeClaims(t *testing.T) {
 			},
 			nodesToCreate: 3,
 			setupMocks: func(mockClient *test.MockClient) {
-				setupBaseMocks(mockClient, &kaitov1beta1.Workspace{
-					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-					Resource: kaitov1beta1.ResourceSpec{
-						LabelSelector: &metav1.LabelSelector{},
-					},
-				}, nil)
+				setupBaseMocks(mockClient)
 
 				// Mock NodeClaim creation (3 times)
 				mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil).Times(3)
@@ -395,13 +372,7 @@ func TestCreateNodeClaims(t *testing.T) {
 			},
 			nodesToCreate: 1,
 			setupMocks: func(mockClient *test.MockClient) {
-				setupBaseMocks(mockClient, &kaitov1beta1.Workspace{
-					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-					Resource: kaitov1beta1.ResourceSpec{
-						LabelSelector: &metav1.LabelSelector{},
-					},
-					Inference: &kaitov1beta1.InferenceSpec{},
-				}, nil)
+				setupBaseMocks(mockClient)
 
 				// Mock NodeClaim creation
 				mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
@@ -420,15 +391,11 @@ func TestCreateNodeClaims(t *testing.T) {
 			},
 			nodesToCreate: 1,
 			setupMocks: func(mockClient *test.MockClient) {
-				setupBaseMocks(mockClient, &kaitov1beta1.Workspace{
-					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-					Resource: kaitov1beta1.ResourceSpec{
-						LabelSelector: &metav1.LabelSelector{},
-					},
-				}, errors.New("status update failed"))
+				setupBaseMocks(mockClient)
+				mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
 			},
-			expectedError:  "failed to update NodeClaim status condition",
-			expectedEvents: []string{},
+			expectedError:  "",
+			expectedEvents: []string{"NodeClaimCreated"},
 			presetWithDisk: false,
 		},
 		{
@@ -441,12 +408,7 @@ func TestCreateNodeClaims(t *testing.T) {
 			},
 			nodesToCreate: 2,
 			setupMocks: func(mockClient *test.MockClient) {
-				setupBaseMocks(mockClient, &kaitov1beta1.Workspace{
-					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-					Resource: kaitov1beta1.ResourceSpec{
-						LabelSelector: &metav1.LabelSelector{},
-					},
-				}, nil)
+				setupBaseMocks(mockClient)
 
 				// Mock NodeClaim creation - first succeeds, second fails
 				mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil).Once()
@@ -773,14 +735,14 @@ func TestAreNodeClaimsReady(t *testing.T) {
 				createNodeClaim("nodeclaim-1", true, false),
 			},
 			setupMocks: func(mockClient *test.MockClient) {
-				// Mock workspace Get and Status update calls with error
+				// Status updates are no longer performed in EnsureNodeClaimsReady.
 				setupWorkspaceStatusMock(mockClient, &kaitov1beta1.Workspace{
 					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 					Status:     kaitov1beta1.WorkspaceStatus{TargetNodeCount: 1},
 				}, errors.New("status update failed"))
 			},
-			expectedReady: false,
-			expectedError: "failed to update NodeClaim status condition(NodeClaimsReady)",
+			expectedReady: true,
+			expectedError: "",
 		},
 		{
 			name: "status update fails when not ready - should return error",
@@ -794,14 +756,14 @@ func TestAreNodeClaimsReady(t *testing.T) {
 				createNodeClaim("nodeclaim-1", true, false),
 			},
 			setupMocks: func(mockClient *test.MockClient) {
-				// Mock workspace Get and Status update calls with error
+				// Status updates are no longer performed in EnsureNodeClaimsReady.
 				setupWorkspaceStatusMock(mockClient, &kaitov1beta1.Workspace{
 					ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 					Status:     kaitov1beta1.WorkspaceStatus{TargetNodeCount: 2},
 				}, errors.New("status update failed"))
 			},
 			expectedReady: false,
-			expectedError: "failed to update NodeClaim status condition(NodeClaimNotReady)",
+			expectedError: "",
 		},
 	}
 

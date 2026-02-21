@@ -1162,72 +1162,147 @@ func TestSetWorkspaceCondition(t *testing.T) {
 
 	testCases := []struct {
 		name                              string
+		initialConditions                 []v1.Condition
 		generation                        int64
 		conditionStatus                   v1.ConditionStatus
 		reason                            string
 		message                           string
 		expectedMessage                   string
+		expectedReason                    string
 		expectedGeneration                int64
 		expectLastTransitionTimeUnchanged bool
 	}{
 		{
-			name:                              "no change keeps LastTransitionTime",
+			name: "no change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
 			generation:                        1,
 			conditionStatus:                   v1.ConditionTrue,
 			reason:                            "workspaceSucceeded",
 			message:                           "workspace succeeds",
 			expectedMessage:                   "workspace succeeds",
+			expectedReason:                    "workspaceSucceeded",
 			expectedGeneration:                1,
 			expectLastTransitionTimeUnchanged: true,
 		},
 		{
-			name:                              "message change keeps LastTransitionTime",
+			name: "message change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
 			generation:                        2,
 			conditionStatus:                   v1.ConditionTrue,
 			reason:                            "workspaceSucceeded",
 			message:                           "workspace succeeds (updated)",
 			expectedMessage:                   "workspace succeeds (updated)",
+			expectedReason:                    "workspaceSucceeded",
 			expectedGeneration:                2,
 			expectLastTransitionTimeUnchanged: true,
 		},
 		{
-			name:                              "generation change keeps LastTransitionTime",
+			name: "generation change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
 			generation:                        2,
 			conditionStatus:                   v1.ConditionTrue,
 			reason:                            "workspaceSucceeded",
 			message:                           "workspace succeeds",
 			expectedMessage:                   "workspace succeeds",
+			expectedReason:                    "workspaceSucceeded",
 			expectedGeneration:                2,
 			expectLastTransitionTimeUnchanged: true,
 		},
 		{
-			name:                              "status change updates LastTransitionTime",
+			name: "reason change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
+			generation:                        2,
+			conditionStatus:                   v1.ConditionTrue,
+			reason:                            "workspaceUpdated",
+			message:                           "workspace succeeds",
+			expectedMessage:                   "workspace succeeds",
+			expectedReason:                    "workspaceUpdated",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: true,
+		},
+		{
+			name: "status change updates LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
 			generation:                        2,
 			conditionStatus:                   v1.ConditionFalse,
 			reason:                            "workspacePending",
 			message:                           "workspace is pending",
 			expectedMessage:                   "workspace is pending",
+			expectedReason:                    "workspacePending",
 			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: false,
+		},
+		{
+			name:                              "new condition sets LastTransitionTime",
+			initialConditions:                 []v1.Condition{},
+			generation:                        3,
+			conditionStatus:                   v1.ConditionFalse,
+			reason:                            "workspacePending",
+			message:                           "workspace is waiting",
+			expectedMessage:                   "workspace is waiting (last reconcile error: transient error)",
+			expectedReason:                    "workspacePending",
+			expectedGeneration:                3,
 			expectLastTransitionTimeUnchanged: false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			status := &v1beta1.WorkspaceStatus{
-				Conditions: []v1.Condition{
-					{
-						Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
-						Status:             v1.ConditionTrue,
-						Reason:             "workspaceSucceeded",
-						Message:            "workspace succeeds",
-						ObservedGeneration: 1,
-						LastTransitionTime: originalTime,
-					},
-				},
+			appendMessage := buildReconcileErrMessageAppender(nil)
+			if tc.name == "new condition sets LastTransitionTime" {
+				appendMessage = buildReconcileErrMessageAppender(errors.New("transient error"))
 			}
 
-			setWorkspaceCondition(status, tc.generation, buildReconcileErrMessageAppender(nil),
+			status := &v1beta1.WorkspaceStatus{
+				Conditions: tc.initialConditions,
+			}
+
+			setWorkspaceCondition(status, tc.generation, appendMessage,
 				v1beta1.WorkspaceConditionTypeSucceeded, tc.conditionStatus, tc.reason, tc.message)
 
 			condition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
@@ -1235,9 +1310,13 @@ func TestSetWorkspaceCondition(t *testing.T) {
 				if tc.expectLastTransitionTimeUnchanged {
 					assert.True(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should stay unchanged")
 				} else {
-					assert.False(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should be updated")
+					assert.False(t, condition.LastTransitionTime.IsZero(), "LastTransitionTime should be initialized/updated")
+					if len(tc.initialConditions) > 0 {
+						assert.False(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should be updated")
+					}
 				}
 				assert.Equal(t, tc.expectedGeneration, condition.ObservedGeneration)
+				assert.Equal(t, tc.expectedReason, condition.Reason)
 				assert.Equal(t, tc.expectedMessage, condition.Message)
 			}
 		})

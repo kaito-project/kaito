@@ -579,17 +579,16 @@ func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wOb
 		nodeClaimRequired:         !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning],
 		nodeConditionStatus:       metav1.ConditionFalse,
 		nodeConditionReason:       "NodeNotReady",
-		nodeConditionMessage:      fmt.Sprintf("Not enough Nodes are ready (TargetNodes: %d, CurrentReadyNodes: %d, SelectedNodes: %d)", targetNodeCount, 0, 0),
+		nodeConditionMessage:      "Not enough Nodes are ready",
 		nodeClaimConditionStatus:  metav1.ConditionFalse,
 		nodeClaimConditionReason:  "NodeClaimNotReady",
-		nodeClaimConditionMessage: "Ready NodeClaims are not enough (TargetNodeClaims: 0, CurrentReadyNodeClaims: 0)",
+		nodeClaimConditionMessage: "Ready NodeClaims are not enough",
 		resourceConditionStatus:   metav1.ConditionFalse,
 		resourceConditionReason:   "workspaceResourceStatusNotReady",
 		resourceConditionMessage:  "node claim or node status condition not ready",
 	}
 
 	nodeReadyCount := 0
-	matchingNodes := []*corev1.Node{}
 	readyNodes := []*corev1.Node{}
 
 	var matchLabels client.MatchingLabels
@@ -603,7 +602,6 @@ func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wOb
 	}
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
-		matchingNodes = append(matchingNodes, node)
 		snapshot.workerNodeNames = append(snapshot.workerNodeNames, node.Name)
 		if resources.NodeIsReadyAndNotDeleting(node) {
 			readyNodes = append(readyNodes, node)
@@ -639,18 +637,18 @@ func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wOb
 		if readyNodeClaimCount >= targetNodeClaimCount {
 			snapshot.nodeClaimConditionStatus = metav1.ConditionTrue
 			snapshot.nodeClaimConditionReason = "NodeClaimsReady"
-			snapshot.nodeClaimConditionMessage = fmt.Sprintf("Enough NodeClaims are ready (TargetNodeClaims: %d, CurrentReadyNodeClaims: %d)", targetNodeClaimCount, readyNodeClaimCount)
+			snapshot.nodeClaimConditionMessage = "Enough NodeClaims are ready"
 		} else {
 			snapshot.nodeClaimConditionStatus = metav1.ConditionFalse
 			snapshot.nodeClaimConditionReason = "NodeClaimNotReady"
-			snapshot.nodeClaimConditionMessage = fmt.Sprintf("Ready NodeClaims are not enough (TargetNodeClaims: %d, CurrentReadyNodeClaims: %d)", targetNodeClaimCount, readyNodeClaimCount)
+			snapshot.nodeClaimConditionMessage = "Ready NodeClaims are not enough"
 		}
 	}
 
 	if nodeReadyCount >= targetNodeCount {
 		snapshot.nodeConditionStatus = metav1.ConditionTrue
 		snapshot.nodeConditionReason = "NodesReady"
-		snapshot.nodeConditionMessage = fmt.Sprintf("Enough Nodes are ready (TargetNodes: %d, CurrentReadyNodes: %d, SelectedNodes: %d)", targetNodeCount, nodeReadyCount, len(matchingNodes))
+		snapshot.nodeConditionMessage = "Enough Nodes are ready"
 		if snapshot.nodeClaimRequired {
 			pluginReady, pluginErr := c.nodeResourceManager.CheckIfNodePluginsReady(ctx, wObj, snapshot.existingNodeClaims)
 			if pluginErr != nil {
@@ -666,7 +664,7 @@ func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wOb
 	} else {
 		snapshot.nodeConditionStatus = metav1.ConditionFalse
 		snapshot.nodeConditionReason = "NodeNotReady"
-		snapshot.nodeConditionMessage = fmt.Sprintf("Not enough Nodes are ready (TargetNodes: %d, CurrentReadyNodes: %d, SelectedNodes: %d)", targetNodeCount, nodeReadyCount, len(matchingNodes))
+		snapshot.nodeConditionMessage = "Not enough Nodes are ready"
 	}
 
 	if snapshot.nodeConditionStatus == metav1.ConditionTrue && (!snapshot.nodeClaimRequired || snapshot.nodeClaimConditionStatus == metav1.ConditionTrue) {
@@ -784,7 +782,7 @@ func applyTuningWorkspaceStatus(status *kaitov1beta1.WorkspaceStatus, generation
 		status.State = kaitov1beta1.WorkspaceStateSucceeded
 	} else if snapshot.started {
 		setWorkspaceCondition(status, generation, appendMessage,
-			kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", fmt.Sprintf("workspace has not completed, tuning job has %d active pod, %d ready pod", snapshot.active, snapshot.ready))
+			kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", "workspace has not completed yet, tuning job is running")
 		status.State = kaitov1beta1.WorkspaceStateRunning
 	} else {
 		setWorkspaceCondition(status, generation, appendMessage,

@@ -119,13 +119,13 @@ func TestGPUConfigMemoryIsQuantity(t *testing.T) {
 				t.Fatalf("SKU %s not found", tt.sku)
 			}
 			expected := resource.MustParse(tt.expectedMemGiB)
-			if config.GPUMemGiB.Cmp(expected) != 0 {
-				t.Errorf("GPUMemGiB mismatch for %s: expected %s, got %s",
-					tt.sku, expected.String(), config.GPUMemGiB.String())
+			if config.GPUMem.Cmp(expected) != 0 {
+				t.Errorf("GPUMem mismatch for %s: expected %s, got %s",
+					tt.sku, expected.String(), config.GPUMem.String())
 			}
 			// Verify the value is positive (non-zero)
-			if config.GPUMemGiB.IsZero() {
-				t.Errorf("GPUMemGiB should not be zero for SKU %s", tt.sku)
+			if config.GPUMem.IsZero() {
+				t.Errorf("GPUMem should not be zero for SKU %s", tt.sku)
 			}
 		})
 	}

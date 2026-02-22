@@ -35,7 +35,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 			name:   "nil preset",
 			preset: nil,
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: resource.MustParse("24Gi"),
+				GPUMem: resource.MustParse("24Gi"),
 				GPUCount:  2,
 			},
 			numRequiredNodes: 1,
@@ -53,7 +53,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 				TotalSafeTensorFileSize: "7.5Gi",
 			},
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: resource.MustParse("24Gi"),
+				GPUMem: resource.MustParse("24Gi"),
 				GPUCount:  2,
 			},
 			numRequiredNodes: 1,
@@ -71,7 +71,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 				TotalSafeTensorFileSize: "14.96Gi", // From actual model config
 			},
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: resource.MustParse("24Gi"), // A10 has 24GB memory
+				GPUMem: resource.MustParse("24Gi"), // A10 has 24GB memory
 				GPUCount:  1,                          // Standard_NV36ads_A10_v5 has 1 GPU
 			},
 			numRequiredNodes: 1,
@@ -89,7 +89,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 				TotalSafeTensorFileSize: "27.51Gi", // From actual model config
 			},
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: resource.MustParse("48Gi"), // Standard_NV72ads_A10_v5 has 48GB memory
+				GPUMem: resource.MustParse("48Gi"), // Standard_NV72ads_A10_v5 has 48GB memory
 				GPUCount:  2,                          // Standard_NV72ads_A10_v5 has 2 GPUs
 			},
 			numRequiredNodes: 1,
@@ -107,7 +107,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 				TotalSafeTensorFileSize: "27.51Gi", // From actual model config
 			},
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: resource.MustParse("80Gi"), // A100 has 80GB memory
+				GPUMem: resource.MustParse("80Gi"), // A100 has 80GB memory
 				GPUCount:  1,                          // Standard_NC24ads_A100_v4 has 1 GPU
 			},
 			numRequiredNodes: 1,
@@ -125,7 +125,7 @@ func TestComputeMaxModelLen(t *testing.T) {
 				TotalSafeTensorFileSize: "131.42Gi", // From actual model config
 			},
 			gpu: &sku.GPUConfig{
-				GPUMemGiB: resource.MustParse("80Gi"), // A100 has 80GB memory
+				GPUMem: resource.MustParse("80Gi"), // A100 has 80GB memory
 				GPUCount:  1,                          // Standard_NC24ads_A100_v4 has 1 GPU per node
 			},
 			numRequiredNodes: 3,

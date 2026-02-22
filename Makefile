@@ -116,6 +116,7 @@ SHELL = /usr/bin/env bash -o pipefail
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole, and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	cp config/crd/bases/kaito.sh_workspaces.yaml charts/kaito/workspace/crds/
+	cp config/crd/bases/kaito.sh_inferencesets.yaml charts/kaito/workspace/crds/
 	cp config/crd/bases/kaito.sh_ragengines.yaml charts/kaito/ragengine/crds/
 
 .PHONY: generate

@@ -15,6 +15,8 @@ package sku
 
 import (
 	"testing"
+
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 func TestAzureSKUHandler(t *testing.T) {
@@ -68,5 +70,63 @@ func TestAwsSKUHandler(t *testing.T) {
 	gpuConfig2 := handler.GetGPUConfigBySKU(sku)
 	if gpuConfig2 != nil {
 		t.Errorf("Unsupported SKU found in GPUConfigs")
+	}
+}
+
+func TestGPUConfigMemoryIsQuantity(t *testing.T) {
+	tests := []struct {
+		name           string
+		handler        CloudSKUHandler
+		sku            string
+		expectedMemGiB string
+	}{
+		{
+			name:           "Azure Standard_NC4as_T4_v3",
+			handler:        NewAzureSKUHandler(),
+			sku:            "Standard_NC4as_T4_v3",
+			expectedMemGiB: "16Gi",
+		},
+		{
+			name:           "Azure Standard_NC24ads_A100_v4",
+			handler:        NewAzureSKUHandler(),
+			sku:            "Standard_NC24ads_A100_v4",
+			expectedMemGiB: "80Gi",
+		},
+		{
+			name:           "AWS p2.xlarge",
+			handler:        NewAwsSKUHandler(),
+			sku:            "p2.xlarge",
+			expectedMemGiB: "12Gi",
+		},
+		{
+			name:           "AWS p5.48xlarge",
+			handler:        NewAwsSKUHandler(),
+			sku:            "p5.48xlarge",
+			expectedMemGiB: "640Gi",
+		},
+		{
+			name:           "Arc Standard_NK6",
+			handler:        NewArcSKUHandler(),
+			sku:            "Standard_NK6",
+			expectedMemGiB: "8Gi",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := tt.handler.GetGPUConfigBySKU(tt.sku)
+			if config == nil {
+				t.Fatalf("SKU %s not found", tt.sku)
+			}
+			expected := resource.MustParse(tt.expectedMemGiB)
+			if config.GPUMem.Cmp(expected) != 0 {
+				t.Errorf("GPUMem mismatch for %s: expected %s, got %s",
+					tt.sku, expected.String(), config.GPUMem.String())
+			}
+			// Verify the value is positive (non-zero)
+			if config.GPUMem.IsZero() {
+				t.Errorf("GPUMem should not be zero for SKU %s", tt.sku)
+			}
+		})
 	}
 }

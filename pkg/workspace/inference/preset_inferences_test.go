@@ -25,6 +25,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -498,7 +499,7 @@ func TestGetGPUConfig(t *testing.T) {
 			expectedConfig: &sku.GPUConfig{
 				SKU:             "Standard_NC24ads_A100_v4",
 				GPUCount:        1,
-				GPUMemGiB:       80,
+				GPUMem:          resource.MustParse("80Gi"),
 				GPUModel:        "NVIDIA A100",
 				NVMeDiskEnabled: true,
 			},
@@ -651,8 +652,8 @@ func TestGetGPUConfig(t *testing.T) {
 			}
 
 			// Check GPUMemGB if expected
-			if tc.expectedConfig.GPUMemGiB > 0 && config.GPUMemGiB != tc.expectedConfig.GPUMemGiB {
-				t.Errorf("Expected GPUMemGB %d, got %d", tc.expectedConfig.GPUMemGiB, config.GPUMemGiB)
+			if !tc.expectedConfig.GPUMem.IsZero() && tc.expectedConfig.GPUMem.Cmp(config.GPUMem) != 0 {
+				t.Errorf("Expected GPUMemGB %s, got %s", tc.expectedConfig.GPUMem.String(), config.GPUMem.String())
 			}
 
 			// Check NVMeDiskEnabled if expected

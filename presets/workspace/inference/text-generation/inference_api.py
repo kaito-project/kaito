@@ -297,7 +297,9 @@ logger.info("Model: %s", model)
 # ---------------------------------------------------------------------------
 
 model_name = served_model_name or args.pretrained_model_name_or_path
-model_key = f"{model_name}@{args.revision}"
+# process_model_name appends "@main" when there's no "@" in the name,
+# so the key must match that convention for load_model_and_processor lookups.
+model_key = f"{model_name}@main"
 
 serve_args = ServeArguments(
     host="0.0.0.0",

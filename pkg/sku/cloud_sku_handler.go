@@ -27,7 +27,7 @@ type CloudSKUHandler interface {
 type GPUConfig struct {
 	SKU             string
 	GPUCount        int
-	GPUMem       resource.Quantity
+	GPUMem          resource.Quantity
 	GPUModel        string
 	NVMeDiskEnabled bool
 }

@@ -215,10 +215,10 @@ func GetGPUConfigFromNodeLabels(node *corev1.Node) (*sku.GPUConfig, error) {
 	gpuMemGiB := int64((float64(gpuMemoryMiB) / 1024) + 0.5)
 
 	return &sku.GPUConfig{
-		SKU:       "unknown", // SKU is not available from node labels
-		GPUCount:  gpuCount,
-		GPUModel:  gpuProduct,
-		GPUMem: *resource.NewQuantity(gpuMemGiB*consts.GiBToBytes, resource.BinarySI),
+		SKU:      "unknown", // SKU is not available from node labels
+		GPUCount: gpuCount,
+		GPUModel: gpuProduct,
+		GPUMem:   *resource.NewQuantity(gpuMemGiB*consts.GiBToBytes, resource.BinarySI),
 	}, nil
 }
 

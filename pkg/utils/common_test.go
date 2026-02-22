@@ -439,10 +439,10 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 			},
 			wantErr: false,
 			expected: &sku.GPUConfig{
-				SKU:       "unknown",
-				GPUCount:  2,
-				GPUModel:  "Tesla-V100-SXM2-32GB",
-				GPUMem: resource.MustParse("32Gi"),
+				SKU:      "unknown",
+				GPUCount: 2,
+				GPUModel: "Tesla-V100-SXM2-32GB",
+				GPUMem:   resource.MustParse("32Gi"),
 			},
 		},
 		{

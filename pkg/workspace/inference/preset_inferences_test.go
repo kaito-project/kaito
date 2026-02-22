@@ -499,7 +499,7 @@ func TestGetGPUConfig(t *testing.T) {
 			expectedConfig: &sku.GPUConfig{
 				SKU:             "Standard_NC24ads_A100_v4",
 				GPUCount:        1,
-				GPUMem:       resource.MustParse("80Gi"),
+				GPUMem:          resource.MustParse("80Gi"),
 				GPUModel:        "NVIDIA A100",
 				NVMeDiskEnabled: true,
 			},

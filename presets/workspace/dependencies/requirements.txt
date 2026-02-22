@@ -33,10 +33,9 @@ trl
 nvidia-ml-py3
 
 # Required by specific vLLM models
-decord
-fla-core
-mistral-common[soundfile]
-num2words
-tensorflow
-timm
-torch-c-dlpack-ext
+decord==0.6.0
+fla-core==0.4.1
+mistral-common[soundfile]==0.13.1
+num2words==0.5.14
+timm==1.0.24
+torch-c-dlpack-ext==0.1.5

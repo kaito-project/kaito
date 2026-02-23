@@ -23,8 +23,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
-// valid tool parser values:
-// deepseek_v3,deepseek_v31,ernie45,glm45,granite,granite-20b-fc,hermes,hunyuan_a13b,internlm,jamba,kimi_k2,llama3_json,llama4_json,llama4_pythonic,longcat,minimax,minimax_m2,mistral,olmo3,openai,phi4_mini_json,pythonic,qwen3_coder,qwen3_xml,seed_oss,step3,xlam
 var validToolParserValues = []string{
 	"deepseek_v3",
 	"deepseek_v31",
@@ -356,7 +354,7 @@ func TestReasoningParserMap(t *testing.T) {
 	}
 }
 
-// this test only makes sure that all keys in toolCallParserModeNamePrefixMap are lowercased
+// this test only makes sure that all keys in toolCallParserModeNamePrefixMap are lowercased and also validates that ToolCallParser map values are in validToolParserValues
 func TestToolCallParserMap(t *testing.T) {
 	for key, value := range toolCallParserModeNamePrefixMap {
 		assert.Equal(t, key, strings.ToLower(key), "toolCallParserModeNamePrefixMap key is not lowercased: %s", key)

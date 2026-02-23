@@ -296,15 +296,16 @@ logger.info("Model: %s", model)
 # Set up transformers serve engine with pre-loaded model
 # ---------------------------------------------------------------------------
 
-model_name = served_model_name or args.pretrained_model_name_or_path
-# process_model_name appends "@main" when there's no "@" in the name,
-# so the key must match that convention for load_model_and_processor lookups.
-model_key = f"{model_name}@main"
+# The internal model ID used by ServeCommand for model lookup/loading.
+_internal_model_id = args.pretrained_model_name_or_path
+# The user-facing model name returned by /v1/models and accepted in requests.
+_served_model_name = served_model_name or _internal_model_id
+model_key = f"{_internal_model_id}@{args.revision}"
 
 serve_args = ServeArguments(
     host="0.0.0.0",
     port=5000,
-    force_model=model_name,
+    force_model=_internal_model_id,
     model_timeout=_MODEL_TIMEOUT_SECONDS,
     device="auto",
 )
@@ -330,9 +331,18 @@ serve_command.loaded_models[model_key] = timed_model
 app = FastAPI()
 
 
+def _resolve_model_name(body: dict) -> dict:
+    """If the request uses the served model name, swap it to the internal
+    model ID so ServeCommand can find the pre-loaded model."""
+    if body.get("model") == _served_model_name:
+        body = {**body, "model": _internal_model_id}
+    return body
+
+
 @app.post("/v1/chat/completions")
 def chat_completion(body: dict):
     """OpenAI-compatible chat completions endpoint (SSE streamed)."""
+    body = _resolve_model_name(body)
     serve_command.validate_chat_completion_request(request=body)
     output = serve_command.generate_chat_completion(body)
     return StreamingResponse(output, media_type="text/event-stream")
@@ -341,6 +351,7 @@ def chat_completion(body: dict):
 @app.post("/v1/responses")
 def responses(body: dict):
     """OpenAI Responses API endpoint (SSE streamed)."""
+    body = _resolve_model_name(body)
     serve_command.validate_response_request(request=body)
     output = serve_command.generate_response(body)
     return StreamingResponse(output, media_type="text/event-stream")
@@ -354,7 +365,7 @@ def list_models():
             "object": "list",
             "data": [
                 {
-                    "id": model_name,
+                    "id": _served_model_name,
                     "object": "model",
                     "created": int(datetime.datetime.now().timestamp()),
                     "owned_by": "kaito",

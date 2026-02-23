@@ -107,7 +107,9 @@ spec:
                   If not specified, there is no limit on the number of GPU nodes that can be created.
                 type: integer
               replicas:
+                default: 1
                 description: Replicas is the desired number of workspaces to be created.
+                minimum: 1
                 type: integer
               template:
                 description: Template is the template used to create the InferenceSet.

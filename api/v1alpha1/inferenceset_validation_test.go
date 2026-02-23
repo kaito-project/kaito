@@ -48,6 +48,51 @@ func TestInferenceSet_SupportedVerbs(t *testing.T) {
 	}
 }
 
+func TestInferenceSet_SetDefaults(t *testing.T) {
+	tests := []struct {
+		name            string
+		inferenceset    *InferenceSet
+		expectedReplica int
+	}{
+		{
+			name: "replicas should default to 1 when not set",
+			inferenceset: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-inferenceset",
+					Namespace: "default",
+				},
+				Spec: InferenceSetSpec{
+					// Replicas omitted - represented as 0 (zero value for int)
+					// This simulates what happens when the field is not present in YAML/JSON
+					Replicas: 0,
+				},
+			},
+			expectedReplica: 1,
+		},
+		{
+			name: "replicas should not change when already set",
+			inferenceset: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-inferenceset",
+					Namespace: "default",
+				},
+				Spec: InferenceSetSpec{
+					Replicas: 3,
+				},
+			},
+			expectedReplica: 3,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			tt.inferenceset.SetDefaults(ctx)
+			assert.Equal(t, tt.expectedReplica, tt.inferenceset.Spec.Replicas)
+		})
+	}
+}
+
 func TestInferenceSet_Validate(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -63,6 +108,9 @@ func TestInferenceSet_Validate(t *testing.T) {
 					Name:      "valid-name",
 					Namespace: "default",
 				},
+				Spec: InferenceSetSpec{
+					Replicas: 1,
+				},
 			},
 			oldIS:   nil,
 			wantErr: false,
@@ -73,6 +121,9 @@ func TestInferenceSet_Validate(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "Invalid-Name",
 					Namespace: "default",
+				},
+				Spec: InferenceSetSpec{
+					Replicas: 1,
 				},
 			},
 			oldIS:    nil,
@@ -86,6 +137,9 @@ func TestInferenceSet_Validate(t *testing.T) {
 					Name:      "this-is-a-very-long-name-that-exceeds-the-maximum-allowed-length-for-dns",
 					Namespace: "default",
 				},
+				Spec: InferenceSetSpec{
+					Replicas: 1,
+				},
 			},
 			oldIS:    nil,
 			wantErr:  true,
@@ -97,6 +151,9 @@ func TestInferenceSet_Validate(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "invalid_name",
 					Namespace: "default",
+				},
+				Spec: InferenceSetSpec{
+					Replicas: 1,
 				},
 			},
 			oldIS:    nil,
@@ -110,14 +167,50 @@ func TestInferenceSet_Validate(t *testing.T) {
 					Name:      "valid-name",
 					Namespace: "default",
 				},
+				Spec: InferenceSetSpec{
+					Replicas: 1,
+				},
 			},
 			oldIS: &InferenceSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "valid-name",
 					Namespace: "default",
 				},
+				Spec: InferenceSetSpec{
+					Replicas: 1,
+				},
 			},
 			wantErr: false,
+		},
+		{
+			name: "invalid replicas value less than 1",
+			inferencSet: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "valid-name",
+					Namespace: "default",
+				},
+				Spec: InferenceSetSpec{
+					Replicas: 0,
+				},
+			},
+			oldIS:    nil,
+			wantErr:  true,
+			errField: "replicas",
+		},
+		{
+			name: "invalid replicas negative value",
+			inferencSet: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "valid-name",
+					Namespace: "default",
+				},
+				Spec: InferenceSetSpec{
+					Replicas: -1,
+				},
+			},
+			oldIS:    nil,
+			wantErr:  true,
+			errField: "replicas",
 		},
 	}
 
@@ -138,9 +231,55 @@ func TestInferenceSet_Validate(t *testing.T) {
 }
 
 func TestInferenceSet_validateCreate(t *testing.T) {
-	is := &InferenceSet{}
-	err := is.validateCreate()
-	assert.Nil(t, err)
+	tests := []struct {
+		name     string
+		is       *InferenceSet
+		wantErr  bool
+		errField string
+	}{
+		{
+			name: "valid replicas value",
+			is: &InferenceSet{
+				Spec: InferenceSetSpec{
+					Replicas: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid replicas value 0",
+			is: &InferenceSet{
+				Spec: InferenceSetSpec{
+					Replicas: 0,
+				},
+			},
+			wantErr:  true,
+			errField: "replicas",
+		},
+		{
+			name: "valid replicas value greater than 1",
+			is: &InferenceSet{
+				Spec: InferenceSetSpec{
+					Replicas: 5,
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.is.validateCreate()
+			if tt.wantErr {
+				assert.NotNil(t, err)
+				if tt.errField != "" {
+					assert.Contains(t, err.Error(), tt.errField)
+				}
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
 
 func TestInferenceSet_validateUpdate(t *testing.T) {

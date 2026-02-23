@@ -27,6 +27,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // InferenceConfig represents the structure of the inference configuration
@@ -94,10 +95,10 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 		return apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType")
 	}
 	if skuConfig := skuHandler.GetGPUConfigBySKU(w.Resource.InstanceType); skuConfig != nil {
-		// Check if this is a multi-GPU instance with less than 20GB per GPU
-		gpuMemPerGPU := skuConfig.GPUMemGiB / skuConfig.GPUCount
-		// For multi-GPU instances with less than 20GB per GPU, max-model-len is required
-		if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20 {
+		// Check if this is a multi-GPU instance with less than 20GiB per GPU
+		gpuMemPerGPU := skuConfig.GPUMem.Value() / int64(skuConfig.GPUCount)
+		// For multi-GPU instances with less than 20GiB per GPU, max-model-len is required
+		if skuConfig.GPUCount > 1 && gpuMemPerGPU < 20*consts.GiBToBytes {
 			modelLenRequired = true
 		}
 	}

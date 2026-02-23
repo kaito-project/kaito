@@ -21,19 +21,23 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -399,20 +403,38 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			workspace:     *test.MockWorkspaceDistributedModel,
 			expectedError: errors.New("Failed to get resource"),
 		},
-		"Create preset inference because inference workload did not exist": {
+		"Inference workload exists but not ready": {
 			callMocks: func(c *test.MockClient) {
+				numRep := int32(1)
+				relevantMap := c.CreateMapWithType(&appsv1.StatefulSet{})
+				relevantMap[client.ObjectKey{Namespace: "kaito", Name: "testWorkspace"}] = &appsv1.StatefulSet{
+					ObjectMeta: v1.ObjectMeta{
+						Name:      "testWorkspace",
+						Namespace: "kaito",
+						Annotations: map[string]string{
+							v1beta1.WorkspaceRevisionAnnotation: "1",
+						},
+					},
+					Spec: appsv1.StatefulSetSpec{
+						Replicas: &numRep,
+						Template: corev1.PodTemplateSpec{
+							Spec: corev1.PodSpec{
+								Containers: []corev1.Container{{
+									Name:  "inference-container",
+									Image: "inference-image:latest",
+								}},
+							},
+						},
+					},
+					Status: appsv1.StatefulSetStatus{
+						ReadyReplicas: 0,
+					},
+				}
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(test.NotFoundError())
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(test.NotFoundError()).Times(4)
-				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-					ssObj := &appsv1.StatefulSet{}
-					key := client.ObjectKey{Namespace: "kaito", Name: "testWorkspace"}
-					c.GetObjectFromMap(ssObj, key)
-					ssObj.Status.ReadyReplicas = 1
-					c.CreateOrUpdateObjectInMap(ssObj)
-				})
-				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
+				c.On("Update", mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil)
 
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 
@@ -587,7 +609,7 @@ func TestSyncControllerRevision(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									WorkspaceHashAnnotation: "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
+									WorkspaceHashAnnotation: "7ecd8e1b6ebc187b70fc18389f367e6d782e3b7e917e39bfadfc99cfb5ecb872",
 								},
 							},
 							Revision: 1,
@@ -899,6 +921,404 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 
 			mockClient.AssertExpectations(t)
 			mockEst.AssertExpectations(t)
+		})
+	}
+}
+
+func TestSyncWorkspaceStatus(t *testing.T) {
+	originalDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalDisableNAP
+	})
+
+	testcases := map[string]struct {
+		workspace                *v1beta1.Workspace
+		statefulSet              *appsv1.StatefulSet
+		statefulSetNotFound      bool
+		job                      *batchv1.Job
+		jobNotFound              bool
+		reconcileErr             error
+		expectedState            v1beta1.WorkspaceState
+		verifyInferenceCondition bool
+		expectedInferenceStatus  v1.ConditionStatus
+		verifyTuningCondition    bool
+		expectedTuningStatus     v1.ConditionStatus
+		verifySucceededCondition bool
+		expectedSucceededStatus  v1.ConditionStatus
+		verifyDeletingCondition  bool
+		expectedDeletingStatus   v1.ConditionStatus
+	}{
+		"inference ready": {
+			workspace: test.MockWorkspaceDistributedModel.DeepCopy(),
+			statefulSet: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: test.MockWorkspaceDistributedModel.Name, Namespace: test.MockWorkspaceDistributedModel.Namespace},
+				Spec: appsv1.StatefulSetSpec{
+					Replicas: func() *int32 { c := int32(1); return &c }(),
+				},
+				Status: appsv1.StatefulSetStatus{ReadyReplicas: 1},
+			},
+			expectedState:            v1beta1.WorkspaceStateReady,
+			verifyInferenceCondition: true,
+			expectedInferenceStatus:  v1.ConditionTrue,
+			verifySucceededCondition: true,
+			expectedSucceededStatus:  v1.ConditionTrue,
+		},
+		"inference pending during initialization": {
+			workspace:           test.MockWorkspaceDistributedModel.DeepCopy(),
+			statefulSetNotFound: true,
+			reconcileErr:        fmt.Errorf("temporary apiserver unavailable"),
+			expectedState:       v1beta1.WorkspaceStatePending,
+		},
+		"inference terminal reconcile error does not change state": {
+			workspace:                test.MockWorkspaceDistributedModel.DeepCopy(),
+			statefulSetNotFound:      true,
+			reconcileErr:             apierrors.NewBadRequest("invalid inference spec"),
+			expectedState:            v1beta1.WorkspaceStatePending,
+			verifyInferenceCondition: true,
+			expectedInferenceStatus:  v1.ConditionFalse,
+			verifySucceededCondition: true,
+			expectedSucceededStatus:  v1.ConditionFalse,
+		},
+		"inference not ready after established": {
+			workspace: func() *v1beta1.Workspace {
+				ws := test.MockWorkspaceDistributedModel.DeepCopy()
+				ws.Status.State = v1beta1.WorkspaceStateReady
+				return ws
+			}(),
+			statefulSetNotFound: true,
+			expectedState:       v1beta1.WorkspaceStateNotReady,
+		},
+		"tuning running": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "test-tuning-workspace", Namespace: "kaito"},
+				Tuning: &v1beta1.TuningSpec{
+					Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "falcon-7b"}},
+				},
+			},
+			job: &batchv1.Job{
+				ObjectMeta: v1.ObjectMeta{Name: "test-tuning-workspace", Namespace: "kaito"},
+				Status:     batchv1.JobStatus{Active: 1},
+			},
+			expectedState:            v1beta1.WorkspaceStateRunning,
+			verifyTuningCondition:    true,
+			expectedTuningStatus:     v1.ConditionTrue,
+			verifySucceededCondition: true,
+			expectedSucceededStatus:  v1.ConditionFalse,
+		},
+		"tuning pending before start": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "test-tuning-workspace-pending", Namespace: "kaito"},
+				Tuning: &v1beta1.TuningSpec{
+					Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "falcon-7b"}},
+				},
+			},
+			jobNotFound:           true,
+			expectedState:         v1beta1.WorkspaceStatePending,
+			verifyTuningCondition: true,
+			expectedTuningStatus:  v1.ConditionFalse,
+		},
+		"deleting does not change state": {
+			workspace: func() *v1beta1.Workspace {
+				ws := test.MockWorkspaceDistributedModel.DeepCopy()
+				now := v1.Now()
+				ws.DeletionTimestamp = &now
+				ws.Status.State = v1beta1.WorkspaceStateReady
+				return ws
+			}(),
+			statefulSetNotFound:     true,
+			expectedState:           v1beta1.WorkspaceStateReady,
+			verifyDeletingCondition: true,
+			expectedDeletingStatus:  v1.ConditionTrue,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			mockClient := test.NewClient()
+			ws := tc.workspace.DeepCopy()
+			mockClient.CreateOrUpdateObjectInMap(ws)
+			if tc.statefulSet != nil {
+				mockClient.CreateOrUpdateObjectInMap(tc.statefulSet.DeepCopy())
+			}
+			if tc.job != nil {
+				mockClient.CreateOrUpdateObjectInMap(tc.job.DeepCopy())
+			}
+
+			mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil).Twice()
+			mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil).Once()
+
+			if ws.Inference != nil {
+				if tc.statefulSetNotFound {
+					mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).
+						Return(apierrors.NewNotFound(appsv1.Resource("StatefulSet"), ws.Name)).Once()
+				} else {
+					mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).Return(nil).Once()
+				}
+			}
+
+			if ws.Tuning != nil {
+				if tc.jobNotFound {
+					mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&batchv1.Job{}), mock.Anything).
+						Return(apierrors.NewNotFound(batchv1.Resource("Job"), ws.Name)).Once()
+				} else {
+					mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&batchv1.Job{}), mock.Anything).Return(nil).Once()
+				}
+			}
+
+			var synced *v1beta1.Workspace
+			mockClient.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Run(func(args mock.Arguments) {
+				synced = args.Get(1).(*v1beta1.Workspace).DeepCopy()
+			}).Return(nil).Once()
+
+			reconciler := &WorkspaceReconciler{Client: mockClient}
+			err := reconciler.syncWorkspaceStatus(context.Background(), types.NamespacedName{Name: ws.Name, Namespace: ws.Namespace}, tc.reconcileErr)
+			assert.NoError(t, err)
+			if assert.NotNil(t, synced) {
+				assert.Equal(t, tc.expectedState, synced.Status.State)
+				if tc.verifyInferenceCondition {
+					inferenceCondition := meta.FindStatusCondition(synced.Status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+					assert.NotNil(t, inferenceCondition)
+					assert.Equal(t, tc.expectedInferenceStatus, inferenceCondition.Status)
+				}
+				if tc.verifyTuningCondition {
+					tuningCondition := meta.FindStatusCondition(synced.Status.Conditions, string(v1beta1.WorkspaceConditionTypeTuningJobStatus))
+					assert.NotNil(t, tuningCondition)
+					assert.Equal(t, tc.expectedTuningStatus, tuningCondition.Status)
+				}
+				if tc.verifySucceededCondition {
+					succeededCondition := meta.FindStatusCondition(synced.Status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+					assert.NotNil(t, succeededCondition)
+					assert.Equal(t, tc.expectedSucceededStatus, succeededCondition.Status)
+				}
+				if tc.verifyDeletingCondition {
+					deletingCondition := meta.FindStatusCondition(synced.Status.Conditions, string(v1beta1.WorkspaceConditionTypeDeleting))
+					assert.NotNil(t, deletingCondition)
+					assert.Equal(t, tc.expectedDeletingStatus, deletingCondition.Status)
+				}
+			}
+		})
+	}
+}
+
+func TestBuildReconcileErrMessageAppender(t *testing.T) {
+	noErrAppender := buildReconcileErrMessageAppender(nil)
+	assert.Equal(t, "workspace is ready", noErrAppender("workspace is ready"))
+
+	withErrAppender := buildReconcileErrMessageAppender(errors.New("boom"))
+	assert.Equal(t, "workspace is ready (last reconcile error: boom)", withErrAppender("workspace is ready"))
+}
+
+func TestApplyInferenceWorkspaceStatus(t *testing.T) {
+	t.Run("ready when inference and resource are ready", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		applyInferenceWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue)
+
+		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
+		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		assert.NotNil(t, inferenceCondition)
+		assert.Equal(t, v1.ConditionTrue, inferenceCondition.Status)
+
+		succeededCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+		assert.NotNil(t, succeededCondition)
+		assert.Equal(t, v1.ConditionTrue, succeededCondition.Status)
+	})
+
+	t.Run("not ready after established", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateReady}
+		applyInferenceWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue)
+
+		assert.Equal(t, v1beta1.WorkspaceStateNotReady, status.State)
+		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		assert.NotNil(t, inferenceCondition)
+		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
+	})
+}
+
+func TestApplyTuningWorkspaceStatus(t *testing.T) {
+	t.Run("failed tuning sets failed state", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateRunning}
+		applyTuningWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), &tuningStatusSnapshot{failed: true})
+
+		assert.Equal(t, v1beta1.WorkspaceStateFailed, status.State)
+		tuningCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeTuningJobStatus))
+		assert.NotNil(t, tuningCondition)
+		assert.Equal(t, v1.ConditionFalse, tuningCondition.Status)
+	})
+
+	t.Run("running tuning sets running state", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		applyTuningWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), &tuningStatusSnapshot{started: true, active: 1})
+
+		assert.Equal(t, v1beta1.WorkspaceStateRunning, status.State)
+		tuningCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeTuningJobStatus))
+		assert.NotNil(t, tuningCondition)
+		assert.Equal(t, v1.ConditionTrue, tuningCondition.Status)
+	})
+}
+
+func TestSetWorkspaceCondition(t *testing.T) {
+	originalTime := v1.NewTime(time.Unix(1700000000, 0))
+
+	testCases := []struct {
+		name                              string
+		initialConditions                 []v1.Condition
+		generation                        int64
+		conditionStatus                   v1.ConditionStatus
+		reason                            string
+		message                           string
+		expectedMessage                   string
+		expectedReason                    string
+		expectedGeneration                int64
+		expectLastTransitionTimeUnchanged bool
+	}{
+		{
+			name: "no change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
+			generation:                        1,
+			conditionStatus:                   v1.ConditionTrue,
+			reason:                            "workspaceSucceeded",
+			message:                           "workspace succeeds",
+			expectedMessage:                   "workspace succeeds",
+			expectedReason:                    "workspaceSucceeded",
+			expectedGeneration:                1,
+			expectLastTransitionTimeUnchanged: true,
+		},
+		{
+			name: "message change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
+			generation:                        2,
+			conditionStatus:                   v1.ConditionTrue,
+			reason:                            "workspaceSucceeded",
+			message:                           "workspace succeeds (updated)",
+			expectedMessage:                   "workspace succeeds (updated)",
+			expectedReason:                    "workspaceSucceeded",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: true,
+		},
+		{
+			name: "generation change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
+			generation:                        2,
+			conditionStatus:                   v1.ConditionTrue,
+			reason:                            "workspaceSucceeded",
+			message:                           "workspace succeeds",
+			expectedMessage:                   "workspace succeeds",
+			expectedReason:                    "workspaceSucceeded",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: true,
+		},
+		{
+			name: "reason change keeps LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
+			generation:                        2,
+			conditionStatus:                   v1.ConditionTrue,
+			reason:                            "workspaceUpdated",
+			message:                           "workspace succeeds",
+			expectedMessage:                   "workspace succeeds",
+			expectedReason:                    "workspaceUpdated",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: true,
+		},
+		{
+			name: "status change updates LastTransitionTime",
+			initialConditions: []v1.Condition{
+				{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "workspaceSucceeded",
+					Message:            "workspace succeeds",
+					ObservedGeneration: 1,
+					LastTransitionTime: originalTime,
+				},
+			},
+			generation:                        2,
+			conditionStatus:                   v1.ConditionFalse,
+			reason:                            "workspacePending",
+			message:                           "workspace is pending",
+			expectedMessage:                   "workspace is pending",
+			expectedReason:                    "workspacePending",
+			expectedGeneration:                2,
+			expectLastTransitionTimeUnchanged: false,
+		},
+		{
+			name:                              "new condition sets LastTransitionTime",
+			initialConditions:                 []v1.Condition{},
+			generation:                        3,
+			conditionStatus:                   v1.ConditionFalse,
+			reason:                            "workspacePending",
+			message:                           "workspace is waiting",
+			expectedMessage:                   "workspace is waiting (last reconcile error: transient error)",
+			expectedReason:                    "workspacePending",
+			expectedGeneration:                3,
+			expectLastTransitionTimeUnchanged: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			appendMessage := buildReconcileErrMessageAppender(nil)
+			if tc.name == "new condition sets LastTransitionTime" {
+				appendMessage = buildReconcileErrMessageAppender(errors.New("transient error"))
+			}
+
+			status := &v1beta1.WorkspaceStatus{
+				Conditions: tc.initialConditions,
+			}
+
+			setWorkspaceCondition(status, tc.generation, appendMessage,
+				v1beta1.WorkspaceConditionTypeSucceeded, tc.conditionStatus, tc.reason, tc.message)
+
+			condition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+			if assert.NotNil(t, condition) {
+				if tc.expectLastTransitionTimeUnchanged {
+					assert.True(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should stay unchanged")
+				} else {
+					assert.False(t, condition.LastTransitionTime.IsZero(), "LastTransitionTime should be initialized/updated")
+					if len(tc.initialConditions) > 0 {
+						assert.False(t, condition.LastTransitionTime.Equal(&originalTime), "LastTransitionTime should be updated")
+					}
+				}
+				assert.Equal(t, tc.expectedGeneration, condition.ObservedGeneration)
+				assert.Equal(t, tc.expectedReason, condition.Reason)
+				assert.Equal(t, tc.expectedMessage, condition.Message)
+			}
 		})
 	}
 }

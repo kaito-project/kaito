@@ -129,9 +129,11 @@ runs:
       shell: bash
 
     - name: Login to GitHub Container Registry
-      run: |
-        echo "${{ inputs.ghcr_token }}" | docker login ghcr.io -u ${{ inputs.ghcr_username }} --password-stdin
-      shell: bash
+      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Check if Image exists in target registries
       id: check_test_image
@@ -143,12 +145,6 @@ runs:
 
         # Check ACR (use original logic - always build for now)
         echo "IMAGE_EXISTS=false" >> $GITHUB_OUTPUT
-        
-        # Optional: Check GHCR existence (currently disabled to ensure builds)
-        # if docker buildx imagetools inspect ghcr.io/$GHCR_USERNAME/$IMAGE_NAME:$TAG > /dev/null 2>&1; then
-        #   echo "Image ghcr.io/$GHCR_USERNAME/$IMAGE_NAME:$TAG exists in GHCR."
-        #   echo "IMAGE_EXISTS=true" >> $GITHUB_OUTPUT
-        # fi
       shell: bash
 
     - name: Build model image
@@ -181,7 +177,6 @@ runs:
           "$MODEL_TAG" \
           "$HF_TOKEN"
         
-        # Then push to GHCR (new)
         docker/presets/models/tfs/build_oci_artifact.sh \
           "$MODEL_VERSION_URL" \
           "$GHCR_USERNAME/$IMAGE_NAME" \
@@ -215,9 +210,11 @@ runs:
         # Build and push to both registries
         docker buildx build \
           --builder img-builder \
+          --platform linux/amd64,linux/arm64 \
           --build-arg VERSION=$MODEL_TAG \
           --build-arg MODEL_TYPE=$MODEL_TYPE \
-          --output type=image,name=$ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG,push=true,compression=zstd \
-          --output type=image,name=ghcr.io/$GHCR_USERNAME/$IMAGE_NAME:$MODEL_TAG,push=true,compression=zstd \
+          -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG \
+          -t ghcr.io/$GHCR_USERNAME/$IMAGE_NAME:$MODEL_TAG \
+          -o type=image,push=true,compression=zstd \
           -f ./docker/presets/models/tfs/Dockerfile .
       shell: bash

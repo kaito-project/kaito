@@ -3,8 +3,9 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.2.1
+    tag: 0.2.2
     # Tag history:
+    # 0.2.2 - bump vllm to 0.14.1
     # 0.2.1 - fix adapter loading logs
     # 0.2.0 - switch transformers runtime to OpenAI-compatible serve engine (transformers[serving])
     # 0.1.2 - fix unknown severity vulnerability in kaito-base image

@@ -139,7 +139,6 @@ runs:
       id: check_test_image
       run: |
         ACR_NAME=${{ inputs.acr_name }}
-        GHCR_USERNAME=${{ inputs.ghcr_username }}
         IMAGE_NAME=${{ inputs.image_name }}
         TAG=${{ inputs.image_tag }}
 
@@ -210,7 +209,6 @@ runs:
         # Build and push to both registries
         docker buildx build \
           --builder img-builder \
-          --platform linux/amd64,linux/arm64 \
           --build-arg VERSION=$MODEL_TAG \
           --build-arg MODEL_TYPE=$MODEL_TYPE \
           -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG \

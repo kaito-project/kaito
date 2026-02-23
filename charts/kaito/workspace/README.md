@@ -31,7 +31,8 @@ helm install workspace ./charts/kaito/workspace  \
 | resources.requests.memory                | string | `"64Mi"`                                |                                                               |
 | securityContext.allowPrivilegeEscalation | bool   | `false`                                 |                                                               |
 | securityContext.capabilities.drop[0]     | string | `"ALL"`                                 |                                                               |
+| enableAzureLinuxNode                     | bool   | `false`                                 | Enable AzureLinux default NodeClaim image-family annotation.  |
 | tolerations                              | list   | `[]`                                    |                                                               |
 | webhook.port                             | int    | `9443`                                  |                                                               |
 | cloudProviderName                        | string | `"azure"`                               | Karpenter cloud provider name. Values can be "azure" or "aws" |
-| nvidiaDevicePlugin.enabled               | bool   | `true`                                  | Enable deployment of NVIDIA device plugin DaemonSet. Set to false if your cluster already has the NVIDIA device plugin installed (e.g., via GPU Operator). |
+| nvidiaDevicePlugin.enabled               | bool   | `true`                                  | Enable NVIDIA device plugin DaemonSet deployment.             |

@@ -439,6 +439,31 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateModelsEndpoint(workspaceObj)
 		validateCompletionsEndpoint(workspaceObj)
 	})
+
+	It("should create a phi4 workspace with vllm on azure linux successfully", utils.GinkgoLabelA100Required, func() {
+		numOfNode := 1
+		workspaceObj := createPhi4WorkspaceWithVLLMOnAzureLinux(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+
+		validateNodeOSImage(workspaceObj, []string{"Azure", "Linux"})
+
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateCompletionsEndpoint(workspaceObj)
+	})
 })
 
 func createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
@@ -492,6 +517,23 @@ func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi4-adapter-vllm"},
 			}, nil, PresetPhi4MiniModel, nil, nil, validAdapters, "", "")
 
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createPhi4WorkspaceWithVLLMOnAzureLinux(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with phi4 mini preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-phi4-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi4-adapter-vllm"},
+			}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")
+		if workspaceObj.Annotations == nil {
+			workspaceObj.Annotations = make(map[string]string)
+		}
+		workspaceObj.Annotations[kaitov1beta1.AnnotationNodeImageFamily] = "AzureLinux"
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj

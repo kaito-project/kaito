@@ -39,6 +39,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - --feature-gates={{ include "utils.joinKeyValuePairs" .Values.featureGates }}
+            - --enable-azure-linux-node={{ .Values.enableAzureLinuxNode }}
           env:
             - name: CONFIG_LOGGING_NAME
               value: {{ include "kaito.loggingConfigMapName" . | quote }}

@@ -41,7 +41,7 @@ featureGates:
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: false
-enableAzureLinuxNode: false
+defaultNodeImageFamily: ""
 nvidiaDevicePlugin:
   enabled: true
   daemonsetName: "nvidia-device-plugin-daemonset"

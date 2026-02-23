@@ -117,7 +117,7 @@ var (
 )
 
 type ManifestOptions struct {
-	EnableAzureLinuxNode bool
+	DefaultNodeImageFamily string
 }
 
 // GenerateNodeClaimManifest generates a nodeClaim object from the given workspace or RAGEngine.
@@ -151,8 +151,8 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		karpenterv1.DoNotDisruptAnnotationKey: "true", // To prevent Karpenter from scaling down.
 	}
 
-	if options.EnableAzureLinuxNode {
-		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = "AzureLinux"
+	if options.DefaultNodeImageFamily != "" {
+		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = options.DefaultNodeImageFamily
 	}
 
 	if nodeImageFamily, ok := obj.GetAnnotations()[kaitov1beta1.AnnotationNodeImageFamily]; ok && nodeImageFamily != "" {

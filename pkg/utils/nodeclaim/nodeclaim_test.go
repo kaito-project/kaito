@@ -184,11 +184,11 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 			expectImageFamilyPresent: false,
 		},
 		{
-			name:                     "azure linux enabled via startup parameter",
+			name:                     "azure default node image family is set via startup parameter",
 			cloudProvider:            consts.AzureCloudName,
 			workspace:                test.MockWorkspaceWithPreset.DeepCopy(),
 			useOptions:               true,
-			options:                  ManifestOptions{EnableAzureLinuxNode: true},
+			options:                  ManifestOptions{DefaultNodeImageFamily: "AzureLinux"},
 			expectedNodeClassKind:    "KaitoNodeClass",
 			expectedNodeClassGroup:   "kaito.sh",
 			expectedImageFamily:      "AzureLinux",
@@ -203,14 +203,14 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 				return w
 			}(),
 			useOptions:               true,
-			options:                  ManifestOptions{EnableAzureLinuxNode: true},
+			options:                  ManifestOptions{DefaultNodeImageFamily: "AzureLinux"},
 			expectedNodeClassKind:    "KaitoNodeClass",
 			expectedNodeClassGroup:   "kaito.sh",
 			expectedImageFamily:      "CustomLinux",
 			expectImageFamilyPresent: true,
 		},
 		{
-			name:          "workspace annotation works when startup parameter disabled",
+			name:          "workspace annotation works when startup parameter is empty",
 			cloudProvider: consts.AzureCloudName,
 			workspace: func() *kaitov1beta1.Workspace {
 				w := test.MockWorkspaceWithPreset.DeepCopy()
@@ -218,18 +218,18 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 				return w
 			}(),
 			useOptions:               true,
-			options:                  ManifestOptions{EnableAzureLinuxNode: false},
+			options:                  ManifestOptions{DefaultNodeImageFamily: ""},
 			expectedNodeClassKind:    "KaitoNodeClass",
 			expectedNodeClassGroup:   "kaito.sh",
 			expectedImageFamily:      "CustomLinux",
 			expectImageFamilyPresent: true,
 		},
 		{
-			name:                     "image family absent when startup parameter disabled and workspace annotation missing",
+			name:                     "image family absent when startup parameter is empty and workspace annotation missing",
 			cloudProvider:            consts.AzureCloudName,
 			workspace:                test.MockWorkspaceWithPreset.DeepCopy(),
 			useOptions:               true,
-			options:                  ManifestOptions{EnableAzureLinuxNode: false},
+			options:                  ManifestOptions{DefaultNodeImageFamily: ""},
 			expectedNodeClassKind:    "KaitoNodeClass",
 			expectedNodeClassGroup:   "kaito.sh",
 			expectImageFamilyPresent: false,
@@ -250,7 +250,7 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
 
 			workspace := tc.workspace.DeepCopy()
-			if tc.name == "image family absent when startup parameter disabled and workspace annotation missing" {
+			if tc.name == "image family absent when startup parameter is empty and workspace annotation missing" {
 				workspace.Annotations = nil
 			}
 

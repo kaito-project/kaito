@@ -92,7 +92,7 @@ func main() {
 	var enableWebhook bool
 	var probeAddr string
 	var featureGates string
-	var enableAzureLinuxNode bool
+	var defaultNodeImageFamily string
 	var kubeClientQPS int = 30
 	var kubeClientBurst int = 50
 	var printVersionAndExit bool
@@ -106,7 +106,7 @@ func main() {
 	flag.BoolVar(&enableWebhook, "webhook", true,
 		"Enable webhook for controller manager. Default is true.")
 	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false.")
-	flag.BoolVar(&enableAzureLinuxNode, "enable-azure-linux-node", false, "Enable AzureLinux node image family annotation on generated NodeClaims. Default is false.")
+	flag.StringVar(&defaultNodeImageFamily, "default-node-image-family", "", "Default node image family annotation for generated NodeClaims. Empty means unset.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
 		Development: true,
@@ -170,7 +170,7 @@ func main() {
 		log.Log.WithName("controllers").WithName("Workspace"),
 		mgr.GetEventRecorderFor("KAITO-Workspace-controller"),
 	)
-	workspaceReconciler.SetEnableAzureLinuxNode(enableAzureLinuxNode)
+	workspaceReconciler.SetDefaultNodeImageFamily(defaultNodeImageFamily)
 
 	if err = workspaceReconciler.SetupWithManager(mgr); err != nil {
 		klog.ErrorS(err, "unable to create controller", "controller", "Workspace")

@@ -31,7 +31,7 @@ helm install workspace ./charts/kaito/workspace  \
 | resources.requests.memory                | string | `"64Mi"`                                |                                                               |
 | securityContext.allowPrivilegeEscalation | bool   | `false`                                 |                                                               |
 | securityContext.capabilities.drop[0]     | string | `"ALL"`                                 |                                                               |
-| enableAzureLinuxNode                     | bool   | `false`                                 | Enable AzureLinux default NodeClaim image-family annotation.  |
+| defaultNodeImageFamily                   | string | `""`                                    | Default NodeClaim image-family annotation value.              |
 | tolerations                              | list   | `[]`                                    |                                                               |
 | webhook.port                             | int    | `9443`                                  |                                                               |
 | cloudProviderName                        | string | `"azure"`                               | Karpenter cloud provider name. Values can be "azure" or "aws" |

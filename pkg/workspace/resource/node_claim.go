@@ -33,10 +33,10 @@ import (
 
 type NodeClaimManager struct {
 	client.Client
-	recorder             record.EventRecorder
-	expectations         *utils.ControllerExpectations
-	logger               klog.Logger
-	enableAzureLinuxNode bool
+	recorder               record.EventRecorder
+	expectations           *utils.ControllerExpectations
+	logger                 klog.Logger
+	defaultNodeImageFamily string
 }
 
 func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expectations *utils.ControllerExpectations) *NodeClaimManager {
@@ -48,8 +48,8 @@ func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expecta
 	}
 }
 
-func (c *NodeClaimManager) SetEnableAzureLinuxNode(enable bool) {
-	c.enableAzureLinuxNode = enable
+func (c *NodeClaimManager) SetDefaultNodeImageFamily(defaultNodeImageFamily string) {
+	c.defaultNodeImageFamily = defaultNodeImageFamily
 }
 
 // GetNumNodeClaimsNeeded calculates how many NodeClaims are needed to meet the target node count for the workspace.
@@ -116,7 +116,7 @@ func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1
 
 		err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 			nodeClaim = nodeclaim.GenerateNodeClaimManifestWithOptions(nodeOSDiskSize, wObj, nodeclaim.ManifestOptions{
-				EnableAzureLinuxNode: c.enableAzureLinuxNode,
+				DefaultNodeImageFamily: c.defaultNodeImageFamily,
 			})
 			return c.Client.Create(ctx, nodeClaim)
 		})

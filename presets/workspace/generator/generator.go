@@ -89,11 +89,9 @@ var (
 		"hunyuan-a13b":  "hunyuan_a13b",
 		"longcat":       "longcat",
 		"glm-4":         "glm45",
-		"glm-4.7":       "glm47",
 		"qwen3":         "hermes",
 		"qwen3-coder":   "qwen3_xml",
 		"olmo-3":        "olmo3",
-		"gigachat3":     "gigachat3",
 	}
 
 	// key is model architecture name, value is ToolCallParser mode name
@@ -117,7 +115,6 @@ var (
 		"HunYuanMoEV1ForCausalLM":        "hunyuan_a13b",
 		"LongcatFlashForCausalLM":        "longcat",
 		"Glm4MoeForCausalLM":             "glm45",
-		"Gemma3ForCausalLM":              "functiongemma",
 		"Olmo3ForCausalLM":               "olmo3",
 		"SeedOssForCausalLM":             "seed_oss",
 	}

@@ -1,0 +1,484 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "KAITO Transformers Inference API",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/v1/chat/completions": {
+            "post": {
+                "summary": "Chat Completions",
+                "description": "OpenAI-compatible chat completions endpoint. Returns server-sent events (SSE).",
+                "operationId": "chat_completion_v1_chat_completions_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChatCompletionRequest"
+                            },
+                            "example": {
+                                "model": "my-model",
+                                "messages": [
+                                    {
+                                        "role": "system",
+                                        "content": "You are a helpful assistant."
+                                    },
+                                    {
+                                        "role": "user",
+                                        "content": "Hello!"
+                                    }
+                                ],
+                                "max_tokens": 256,
+                                "temperature": 0.7,
+                                "stream": true
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Server-sent event stream of chat completion chunks",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/responses": {
+            "post": {
+                "summary": "Responses",
+                "description": "OpenAI Responses API endpoint. Returns server-sent events (SSE).",
+                "operationId": "responses_v1_responses_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ResponseRequest"
+                            },
+                            "example": {
+                                "model": "my-model",
+                                "input": "Tell me a joke."
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Server-sent event stream",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/models": {
+            "get": {
+                "summary": "List Models",
+                "description": "List the served model in OpenAI-compatible format.",
+                "operationId": "list_models_v1_models_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModelListResponse"
+                                },
+                                "example": {
+                                    "object": "list",
+                                    "data": [
+                                        {
+                                            "id": "my-model",
+                                            "object": "model",
+                                            "created": 1700000000,
+                                            "owned_by": "kaito"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "summary": "Health Check",
+                "description": "Health check used by Kubernetes liveness/readiness probes.",
+                "operationId": "health_check_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "Healthy"
+                                        }
+                                    },
+                                    "required": [
+                                        "status"
+                                    ]
+                                },
+                                "example": {
+                                    "status": "Healthy"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "model_uninitialized": {
+                                        "summary": "Model not initialized",
+                                        "value": {
+                                            "detail": "Model not initialized"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/metrics": {
+            "get": {
+                "summary": "Metrics Endpoint",
+                "description": "Provides system metrics, including GPU details if available, or CPU and memory usage otherwise.\nUseful for monitoring the resource utilization of the server running the ML models.",
+                "operationId": "get_metrics_metrics_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MetricsResponse"
+                                },
+                                "examples": {
+                                    "gpu_metrics": {
+                                        "summary": "Example when GPUs are available",
+                                        "value": {
+                                            "gpu_info": [
+                                                {
+                                                    "id": "GPU-1234",
+                                                    "name": "GeForce GTX 950",
+                                                    "load": "25.00%",
+                                                    "temperature": "55 C",
+                                                    "memory": {
+                                                        "used": "1.00 GB",
+                                                        "total": "2.00 GB"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "cpu_metrics": {
+                                        "summary": "Example when only CPU is available",
+                                        "value": {
+                                            "cpu_info": {
+                                                "load_percentage": 20,
+                                                "physical_cores": 4,
+                                                "total_cores": 8,
+                                                "memory": {
+                                                    "used": "4.00 GB",
+                                                    "total": "16.00 GB"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ChatCompletionRequest": {
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "title": "Model",
+                        "description": "ID of the model to use."
+                    },
+                    "messages": {
+                        "type": "array",
+                        "title": "Messages",
+                        "description": "A list of messages comprising the conversation.",
+                        "items": {
+                            "$ref": "#/components/schemas/ChatMessage"
+                        }
+                    },
+                    "max_tokens": {
+                        "type": "integer",
+                        "title": "Max Tokens",
+                        "description": "Maximum number of tokens to generate."
+                    },
+                    "temperature": {
+                        "type": "number",
+                        "title": "Temperature",
+                        "description": "Sampling temperature."
+                    },
+                    "stream": {
+                        "type": "boolean",
+                        "title": "Stream",
+                        "description": "Whether to stream the response via SSE."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "model",
+                    "messages"
+                ],
+                "title": "ChatCompletionRequest"
+            },
+            "ChatMessage": {
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "title": "Role",
+                        "description": "The role of the message author (e.g. system, user, assistant)."
+                    },
+                    "content": {
+                        "type": "string",
+                        "title": "Content",
+                        "description": "The content of the message."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "role",
+                    "content"
+                ],
+                "title": "ChatMessage"
+            },
+            "ResponseRequest": {
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "title": "Model",
+                        "description": "ID of the model to use."
+                    },
+                    "input": {
+                        "title": "Input",
+                        "description": "The input text or array of input items.",
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "array",
+                                "items": {}
+                            }
+                        ]
+                    },
+                    "max_output_tokens": {
+                        "type": "integer",
+                        "title": "Max Output Tokens",
+                        "description": "Maximum number of output tokens to generate."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "model",
+                    "input"
+                ],
+                "title": "ResponseRequest"
+            },
+            "ModelListResponse": {
+                "properties": {
+                    "object": {
+                        "type": "string",
+                        "title": "Object",
+                        "enum": [
+                            "list"
+                        ]
+                    },
+                    "data": {
+                        "type": "array",
+                        "title": "Data",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelObject"
+                        }
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "object",
+                    "data"
+                ],
+                "title": "ModelListResponse"
+            },
+            "ModelObject": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "object": {
+                        "type": "string",
+                        "title": "Object",
+                        "enum": [
+                            "model"
+                        ]
+                    },
+                    "created": {
+                        "type": "integer",
+                        "title": "Created"
+                    },
+                    "owned_by": {
+                        "type": "string",
+                        "title": "Owned By"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "object",
+                    "created",
+                    "owned_by"
+                ],
+                "title": "ModelObject"
+            },
+            "CPUInfo": {
+                "properties": {
+                    "load_percentage": {
+                        "type": "number",
+                        "title": "Load Percentage"
+                    },
+                    "physical_cores": {
+                        "type": "integer",
+                        "title": "Physical Cores"
+                    },
+                    "total_cores": {
+                        "type": "integer",
+                        "title": "Total Cores"
+                    },
+                    "memory": {
+                        "$ref": "#/components/schemas/MemoryInfo"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "load_percentage",
+                    "physical_cores",
+                    "total_cores",
+                    "memory"
+                ],
+                "title": "CPUInfo"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "detail": {
+                        "type": "string",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "detail"
+                ],
+                "title": "ErrorResponse"
+            },
+            "GPUInfo": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "load": {
+                        "type": "string",
+                        "title": "Load"
+                    },
+                    "temperature": {
+                        "type": "string",
+                        "title": "Temperature"
+                    },
+                    "memory": {
+                        "$ref": "#/components/schemas/MemoryInfo"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "load",
+                    "temperature",
+                    "memory"
+                ],
+                "title": "GPUInfo"
+            },
+            "MemoryInfo": {
+                "properties": {
+                    "used": {
+                        "type": "string",
+                        "title": "Used"
+                    },
+                    "total": {
+                        "type": "string",
+                        "title": "Total"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "used",
+                    "total"
+                ],
+                "title": "MemoryInfo"
+            },
+            "MetricsResponse": {
+                "properties": {
+                    "gpu_info": {
+                        "items": {
+                            "$ref": "#/components/schemas/GPUInfo"
+                        },
+                        "type": "array",
+                        "title": "Gpu Info"
+                    },
+                    "cpu_info": {
+                        "$ref": "#/components/schemas/CPUInfo"
+                    }
+                },
+                "type": "object",
+                "title": "MetricsResponse"
+            }
+        }
+    }
+}

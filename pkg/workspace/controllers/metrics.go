@@ -34,10 +34,19 @@ var (
 		},
 		[]string{"phase"},
 	)
+
+	workspacePresetCount = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "kaito_workspace_preset_count",
+			Help: "Number of Workspaces using each preset model, by preset name",
+		},
+		[]string{"preset_name"},
+	)
 )
 
 func init() {
 	metrics.Registry.MustRegister(workspacePhaseCount)
+	metrics.Registry.MustRegister(workspacePresetCount)
 }
 
 func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
@@ -54,6 +63,7 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 			if err := k8sClient.List(ctx, &wsList); err != nil {
 				klog.Errorf("failed to list all workspaces: %v", err)
 				workspacePhaseCount.Reset()
+				workspacePresetCount.Reset()
 				continue
 			}
 
@@ -63,6 +73,7 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 				"pending":   0,
 				"deleting":  0,
 			}
+			presetCounts := map[string]float64{}
 
 			for _, ws := range wsList.Items {
 				phase := DetermineWorkspacePhase(&ws)
@@ -70,13 +81,30 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 					phaseCounts[phase] = 0
 				}
 				phaseCounts[phase]++
+
+				if name := getWorkspacePresetName(&ws); name != "" {
+					presetCounts[name]++
+				}
 			}
 
 			for phase, count := range phaseCounts {
 				workspacePhaseCount.WithLabelValues(phase).Set(count)
 			}
+
+			// Reset before re-setting so to remove stale keys
+			workspacePresetCount.Reset()
+			for preset, count := range presetCounts {
+				workspacePresetCount.WithLabelValues(preset).Set(count)
+			}
 		}
 	}
+}
+
+func getWorkspacePresetName(ws *kaitov1beta1.Workspace) string {
+	if ws.Inference != nil && ws.Inference.Preset != nil {
+		return string(ws.Inference.Preset.Name)
+	}
+	return ""
 }
 
 func DetermineWorkspacePhase(ws *kaitov1beta1.Workspace) string {

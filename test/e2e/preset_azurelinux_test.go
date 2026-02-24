@@ -34,7 +34,7 @@ var _ = Describe("Workspace Preset AzureLinux", utils.GinkgoLabelAzureLinux, fun
 		loadModelVersions()
 	})
 
-	It("should create a phi4 workspace with vllm on azure linux successfully", utils.GinkgoLabelA100Required, func() {
+	It("should create a phi4 workspace with vllm on azure linux successfully", func() {
 		numOfNode := 1
 		workspaceObj := createPhi4WorkspaceWithVLLMOnAzureLinux(numOfNode)
 

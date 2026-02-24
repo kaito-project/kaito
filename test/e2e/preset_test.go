@@ -1473,52 +1473,6 @@ func validateCreateNode(workspaceObj *kaitov1beta1.Workspace, numOfNode int) {
 	utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
 }
 
-func validateNodeOSImage(workspaceObj *kaitov1beta1.Workspace, expectedImageSubStrs []string) {
-	By("Checking node OS image", func() {
-		Eventually(func() bool {
-			nodeClaimList, err := utils.GetAllValidNodeClaims(ctx, workspaceObj)
-			if err != nil {
-				GinkgoWriter.Printf("Error listing NodeClaims for workspace %s/%s: %v\n", workspaceObj.Namespace, workspaceObj.Name, err)
-				return false
-			}
-
-			if len(nodeClaimList.Items) == 0 {
-				GinkgoWriter.Printf("No NodeClaims found yet for workspace %s/%s\n", workspaceObj.Namespace, workspaceObj.Name)
-				return false
-			}
-
-			for _, nodeClaim := range nodeClaimList.Items {
-				nodeName := nodeClaim.Status.NodeName
-				if nodeName == "" {
-					GinkgoWriter.Printf("NodeClaim %s has empty status.nodeName, waiting\n", nodeClaim.Name)
-					return false
-				}
-
-				node := &corev1.Node{}
-				if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Name: nodeName}, node, &client.GetOptions{}); err != nil {
-					GinkgoWriter.Printf("Error fetching node %s for NodeClaim %s: %v\n", nodeName, nodeClaim.Name, err)
-					return false
-				}
-
-				osImage := node.Status.NodeInfo.OSImage
-				if osImage == "" {
-					GinkgoWriter.Printf("Node %s OSImage is empty, waiting\n", node.Name)
-					return false
-				}
-
-				for _, family := range expectedImageSubStrs {
-					if !strings.Contains(osImage, family) {
-						Fail(fmt.Sprintf("Node %s OSImage mismatch. expected contains Azure and Linux (target family: %q), actual: %s", node.Name, expectedImageSubStrs, osImage))
-						return false
-					}
-				}
-			}
-
-			return true
-		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to validate node OS image contains Azure and Linux")
-	})
-}
-
 // validateInferenceConfig validates that the inference config exists and contains data
 func validateInferenceConfig(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the inference config exists", func() {

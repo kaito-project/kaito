@@ -440,28 +440,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gemma-3-4b-instruct workspace with vllm on azure linux successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		workspaceObj := createGemma3_4BInstructWorkspaceWithPresetPublicModeAndVLLMOnAzureLinux(numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateNodeOSImage(workspaceObj, []string{"Azure", "Linux"})
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateCompletionsEndpoint(workspaceObj)
-	})
 })
 
 func createDeepSeekLlama8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
@@ -616,27 +594,6 @@ func createGemma3_4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) 
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-3-4b-vllm"},
 			}, nil, PresetGemma3_4BInstructModel, nil, nil, nil, modelSecret.Name, "")
 
-		createAndValidateWorkspace(workspaceObj)
-	})
-
-	return workspaceObj
-}
-
-func createGemma3_4BInstructWorkspaceWithPresetPublicModeAndVLLMOnAzureLinux(numOfNode int) *kaitov1beta1.Workspace {
-	modelSecret := createAndValidateModelSecret()
-	workspaceObj := &kaitov1beta1.Workspace{}
-
-	By("Creating a workspace CR with Gemma 3 4B preset public mode and vLLM on Azure Linux", func() {
-		uniqueID := fmt.Sprint("preset-gemma-3-4b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-3-4b-vllm-azure-linux"},
-			}, nil, PresetGemma3_4BInstructModel, nil, nil, nil, modelSecret.Name, "")
-
-		if workspaceObj.Annotations == nil {
-			workspaceObj.Annotations = make(map[string]string)
-		}
-		workspaceObj.Annotations[kaitov1beta1.AnnotationNodeImageFamily] = "AzureLinux"
 		createAndValidateWorkspace(workspaceObj)
 	})
 

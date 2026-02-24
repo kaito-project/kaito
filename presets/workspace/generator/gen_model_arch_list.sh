@@ -38,6 +38,7 @@ models=$(echo "$line" | tr -d "'" | tr ',' '\n' | sed '/^\s*$/d' | sed 's/^[ \t]
 # sort the models and remove duplicates
 models=$(echo "$models" | sort -u)
 
+# Overwrite the Go file with the new map content
 cat > "$output_file" <<EOF
 $(cat "$header_file")
 
@@ -46,10 +47,9 @@ package models
 var vLLMModelArchMap = map[string]bool{
 EOF
 
-# Overwrite the Go file with the new map content
 {
   while IFS= read -r model; do
-    echo -e "\t\"$model\": true,"
+    printf '\t"%s": true,\n' "$model"
   done <<< "$models"
   echo "}"
 } >> "$output_file"

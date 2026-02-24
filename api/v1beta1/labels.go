@@ -52,6 +52,9 @@ const (
 
 	// AnnotationBypassResourceChecks allows bypassing resource requirement checks like GPU memory.
 	AnnotationBypassResourceChecks = KAITOPrefix + "bypass-resource-checks"
+
+	// AnnotationNodeImageFamily specifies node image family used by generated NodeClaim.
+	AnnotationNodeImageFamily = KAITOPrefix + "node-image-family"
 )
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.

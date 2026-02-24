@@ -19,6 +19,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/mock"
@@ -467,6 +468,51 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 				if !reflect.DeepEqual(actualProbe.HTTPGet, tc.expectedProbe.HTTPGet) {
 					t.Errorf("HTTPGet mismatch: expected %+v, got %+v", tc.expectedProbe.HTTPGet, actualProbe.HTTPGet)
 				}
+			}
+		})
+	}
+}
+
+func TestBuildStartupProbe(t *testing.T) {
+	testcases := map[string]struct {
+		timeout           time.Duration
+		expectedThreshold int32
+		expectedPeriod    int32
+	}{
+		"30 minutes maps to 180 failures at 10s period": {
+			timeout:           30 * time.Minute,
+			expectedThreshold: 180,
+			expectedPeriod:    10,
+		},
+		"45 minutes maps to 270 failures at 10s period": {
+			timeout:           45 * time.Minute,
+			expectedThreshold: 270,
+			expectedPeriod:    10,
+		},
+		"non-divisible timeout rounds up to cover full budget": {
+			timeout:           30*time.Minute + 5*time.Second, // 1865s / 10 = 186.5 → ceil = 187
+			expectedThreshold: 181,
+			expectedPeriod:    10,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			probe := buildStartupProbe(tc.timeout)
+			if probe == nil {
+				t.Fatal("expected non-nil probe")
+			}
+			if probe.FailureThreshold != tc.expectedThreshold {
+				t.Errorf("FailureThreshold: expected %d, got %d", tc.expectedThreshold, probe.FailureThreshold)
+			}
+			if probe.PeriodSeconds != tc.expectedPeriod {
+				t.Errorf("PeriodSeconds: expected %d, got %d", tc.expectedPeriod, probe.PeriodSeconds)
+			}
+			if probe.InitialDelaySeconds != 0 {
+				t.Errorf("InitialDelaySeconds: expected 0, got %d", probe.InitialDelaySeconds)
+			}
+			if probe.HTTPGet == nil {
+				t.Error("expected HTTPGet probe handler")
 			}
 		})
 	}

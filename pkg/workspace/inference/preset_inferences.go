@@ -16,7 +16,9 @@ package inference
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
+	"time"
 
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -69,6 +71,21 @@ var (
 		},
 		InitialDelaySeconds: 30,
 		PeriodSeconds:       10,
+	}
+
+	// defaultLivenessProbeAfterStartup is used when a startup probe is present.
+	// initialDelaySeconds is 0 because the startup probe ensures that the model
+	// is up.
+	defaultLivenessProbeAfterStartup = &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Port: intstr.FromInt32(consts.PortInferenceServer),
+				Path: ProbePath,
+			},
+		},
+		InitialDelaySeconds: 0,
+		PeriodSeconds:       10,
+		FailureThreshold:    3,
 	}
 
 	tolerations = []corev1.Toleration{
@@ -272,6 +289,23 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	return probe
 }
 
+func buildStartupProbe(timeout time.Duration) *corev1.Probe {
+	const periodSeconds = 10
+	// ceil(timeout / period) ensures the full timeout window is covered.
+	failureThreshold := int32(math.Ceil(timeout.Seconds() / periodSeconds))
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Port: intstr.FromInt32(consts.PortInferenceServer),
+				Path: ProbePath,
+			},
+		},
+		InitialDelaySeconds: 0,
+		PeriodSeconds:       periodSeconds,
+		FailureThreshold:    failureThreshold,
+	}
+}
+
 func GetBaseImageName() string {
 	presetObj := metadata.MustGet("base")
 	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
@@ -383,6 +417,14 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			},
 		}
 		spec.ImagePullSecrets = GetInferenceImageInfo(ctx.Ctx, ctx.Workspace)
+
+		var startupProbe *corev1.Probe
+		livenessProbe := defaultLivenessProbe
+		if readinessTimeout := ctx.Model.GetInferenceParameters().ReadinessTimeout; readinessTimeout > 0 {
+			startupProbe = buildStartupProbe(readinessTimeout)
+			livenessProbe = defaultLivenessProbeAfterStartup
+		}
+
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
@@ -390,7 +432,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 				Command:        commands,
 				Resources:      resourceReq,
 				Ports:          containerPorts,
-				LivenessProbe:  defaultLivenessProbe,
+				StartupProbe:   startupProbe,
+				LivenessProbe:  livenessProbe,
 				ReadinessProbe: defaultReadinessProbe,
 				VolumeMounts:   volumeMounts,
 			},

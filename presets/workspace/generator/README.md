@@ -1,11 +1,12 @@
-# SKU Calculation Tools
+# Tools and documentation
 
-This directory contains tools and documentation for calculating GPU SKU requirements and model deployment specifications.
+This directory contains tools and documentation for calculating GPU SKU requirements and model deployment specifications, generating model architecture list supported by specific vLLM version.
 
 ## Files
 
 - **`model-sku-calculation.md`**: Comprehensive guide for calculating SKU requirements, VRAM consumption, and maximum token lengths based on model configurations
 - **`preset_generator.py`**: Python utility for generating Kaito model preset configurations by analyzing Hugging Face models
+- **`gen_model_arch_list.sh`**: Bash script for generating model architecture list supported by specific vLLM version.
 
 ## Usage
 
@@ -50,6 +51,17 @@ See [`model-sku-calculation.md`](./model-sku-calculation.md) for:
 - Node count estimation methods  
 - Maximum token length calculations
 - GPU memory optimization strategies
+
+### Generate supported vLLM model architecture list
+
+ - Run a vLLM inference workload in KAITO that is not supported by current vLLM version (e.g. `Alibaba-NLP/gte-multilingual-reranker-base`), and then get the supported model architecture list from the error message of inference pod logs
+ - Save the model architecture list as a file, e.g. `model_arch_v0.14.1.txt`
+   > Note: the file format is like `'AfmoeForCausalLM', 'ApertusForCausalLM', 'AquilaModel'` ...
+ - Run following command to update the `vLLMModelArchMap` in `presets/workspace/models/vllm_model_arch_list.go`
+   ```sh
+   presets/workspace/generator/gen_model_arch_list.sh model_arch_v0.14.1.txt
+   ```
+   Then you will get the updated vLLM model architecture list supported by current vLLM version.
 
 ## Prerequisites
 

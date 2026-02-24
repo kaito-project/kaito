@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (c) KAITO authors.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,8 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""List all LLM model architectures supported by vLLM.
-"""
+#!/usr/bin/env python3
+
+"""List all LLM model architectures supported by vLLM."""
+
 
 def list_from_installed():
     """Use the live ModelRegistry (requires vllm to be installed)."""
@@ -23,6 +23,7 @@ def list_from_installed():
     archs = sorted(ModelRegistry.get_supported_archs())
     for arch in archs:
         print(arch)
+
 
 if __name__ == "__main__":
     list_from_installed()

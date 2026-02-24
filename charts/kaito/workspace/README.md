@@ -31,7 +31,7 @@ helm install workspace ./charts/kaito/workspace  \
 | resources.requests.memory                | string | `"64Mi"`                                |                                                               |
 | securityContext.allowPrivilegeEscalation | bool   | `false`                                 |                                                               |
 | securityContext.capabilities.drop[0]     | string | `"ALL"`                                 |                                                               |
-| defaultNodeImageFamily                   | string | `""`                                    | Default NodeClaim image-family annotation value.              |
+| defaultNodeImageFamily                   | string | `""`                                    | Default NodeClaim image-family annotation value. Supported values: `azurelinux`, `ubuntu`, `ubuntu2204`. Empty means unset, and the image family is decided by the node provisioner itself. |
 | tolerations                              | list   | `[]`                                    |                                                               |
 | webhook.port                             | int    | `9443`                                  |                                                               |
 | cloudProviderName                        | string | `"azure"`                               | Karpenter cloud provider name. Values can be "azure" or "aws" |

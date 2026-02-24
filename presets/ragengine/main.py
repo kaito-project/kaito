@@ -37,7 +37,6 @@ from models import (
 # Import Prometheus client for metrics collection
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.responses import Response
-from vector_store.faiss_store import FaissVectorStoreHandler
 from vector_store_manager.manager import VectorStoreManager
 
 from ragengine.config import (
@@ -46,6 +45,9 @@ from ragengine.config import (
     LOCAL_EMBEDDING_MODEL_ID,
     REMOTE_EMBEDDING_ACCESS_SECRET,
     REMOTE_EMBEDDING_URL,
+    VECTOR_DB_ACCESS_SECRET,
+    VECTOR_DB_TYPE,
+    VECTOR_DB_URL,
 )
 from ragengine.metrics.prometheus_metrics import (
     MODE_LOCAL,
@@ -129,9 +131,24 @@ elif EMBEDDING_SOURCE_TYPE.lower() == MODE_REMOTE:
 else:
     raise ValueError("Invalid Embedding Type Specified (Must be Local or Remote)")
 
-# Initialize vector store
-# TODO: Dynamically set VectorStore from EnvVars (which ultimately comes from CRD StorageSpec)
-vector_store_handler = FaissVectorStoreHandler(embedding_manager)
+# Initialize vector store based on configured backend (VECTOR_DB_TYPE from CRD)
+if VECTOR_DB_TYPE.lower() == "faiss":
+    from vector_store.faiss_store import FaissVectorStoreHandler
+
+    vector_store_handler = FaissVectorStoreHandler(embedding_manager)
+elif VECTOR_DB_TYPE.lower() == "qdrant":
+    from vector_store.qdrant_store import QdrantVectorStoreHandler
+
+    vector_store_handler = QdrantVectorStoreHandler(
+        embedding_manager,
+        vector_db_url=VECTOR_DB_URL,
+        vector_db_access_secret=VECTOR_DB_ACCESS_SECRET,
+    )
+else:
+    raise ValueError(
+        f"Unsupported VECTOR_DB_TYPE: '{VECTOR_DB_TYPE}'. "
+        "Supported values: 'faiss', 'qdrant'"
+    )
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)

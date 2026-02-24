@@ -15,18 +15,28 @@
 
 set -euo pipefail
 
-VLLM_VERSION="v0.12.0"
-url="https://raw.githubusercontent.com/vllm-project/vllm/refs/tags/$VLLM_VERSION/docs/models/supported_models.md"
 header_file="hack/boilerplate.go.txt"
 output_file="presets/workspace/models/vllm_model_arch_list.go"
 
-models=$(curl -s "$url" | awk -F'|' 'NF > 4 {
-  col = $2
-  gsub(/`| /, "", col)
-  if (col ~ /^[a-zA-Z0-9]+$/) {
-    print col
-  }
-}'| sort | uniq | grep -v rchitecture)
+if [[ "$#" -gt 0 ]]; then
+  model_arch_file="$1"
+else
+  echo "Usage: $0 <model-arch-file>"
+  exit 1
+fi
+
+if [[ ! -f "$model_arch_file" ]]; then
+  echo "Error: Model architecture file '$model_arch_file' not found."
+  exit 1
+fi
+
+line=$(cat "$model_arch_file")
+
+# Remove single quotes and spaces, then replace commas with newlines
+models=$(echo "$line" | tr -d "'" | tr ',' '\n' | sed '/^\s*$/d' | sed 's/^[ \t]*//;s/[ \t]*$//')
+
+# sort the models and remove duplicates
+models=$(echo "$models" | sort -u)
 
 cat > "$output_file" <<EOF
 $(cat "$header_file")
@@ -36,13 +46,13 @@ package models
 var vLLMModelArchMap = map[string]bool{
 EOF
 
-while IFS= read -r model; do
-  echo "    \"$model\": true," >> "$output_file"
-done <<< "$models"
-
-cat >> "$output_file" <<EOF
-}
-EOF
+# Overwrite the Go file with the new map content
+{
+  while IFS= read -r model; do
+    echo -e "\t\"$model\": true,"
+  done <<< "$models"
+  echo "}"
+} >> "$output_file"
 
 gofmt -s -w "$output_file"
 

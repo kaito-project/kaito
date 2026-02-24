@@ -26,6 +26,10 @@ on:
         default: "1.32.9"
       pull_request_number:
         type: string
+      ginkgo_label:
+        type: string
+        required: false
+        default: ""
 
 jobs:
   e2e-tests:
@@ -131,8 +135,13 @@ jobs:
       - name: Run full e2e test
         if: ${{ inputs.isRelease || env.BUILD_KAITO_BASE_IMAGE == 'true' }}
         run: |
+          LABEL_FILTER="${{ inputs.ginkgo_label }}"
+          if [ -z "$LABEL_FILTER" ]; then
+            LABEL_FILTER="!AzureLinux"
+          fi
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
+          GINKGO_LABEL="$LABEL_FILTER" \
           HF_TOKEN=$HF_TOKEN \
           make kaito-workspace-e2e-test
         env:
@@ -143,9 +152,13 @@ jobs:
       - name: Run fast e2e test
         if: ${{ !inputs.isRelease && env.BUILD_KAITO_BASE_IMAGE != 'true' }}
         run: |
+          LABEL_FILTER="${{ inputs.ginkgo_label }}"
+          if [ -z "$LABEL_FILTER" ]; then
+            LABEL_FILTER="FastCheck && !AzureLinux"
+          fi
           AI_MODELS_REGISTRY=$E2E_ACR_AMRT_USERNAME.azurecr.io \
           AI_MODELS_REGISTRY_SECRET=$E2E_AMRT_SECRET_NAME \
-          GINKGO_LABEL=FastCheck \
+          GINKGO_LABEL="$LABEL_FILTER" \
           HF_TOKEN=$HF_TOKEN \
           make kaito-workspace-e2e-test
         env:

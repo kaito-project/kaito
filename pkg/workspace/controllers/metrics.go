@@ -101,7 +101,7 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 }
 
 func getWorkspacePresetName(ws *kaitov1beta1.Workspace) string {
-	if ws.Inference != nil && ws.Inference.Preset != nil {
+	if ws != nil && ws.Inference != nil && ws.Inference.Preset != nil {
 		return string(ws.Inference.Preset.Name)
 	}
 	return ""

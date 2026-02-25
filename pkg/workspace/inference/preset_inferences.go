@@ -412,7 +412,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 
 		// Use the model's ReadinessTimeout if specified; otherwise fall back to the
 		// default. containerStatuses[].started is reliable for downstream.
-		readinessTimeout := ctx.Model.GetInferenceParameters().ReadinessTimeout
+		readinessTimeout := inferenceParam.ReadinessTimeout
 		if readinessTimeout <= 0 {
 			readinessTimeout = defaultStartupProbeTimeout
 		}

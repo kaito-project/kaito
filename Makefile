@@ -127,6 +127,10 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 compare-model-configs: ## Compare supported_models.yaml with ConfigMap template (ignoring comments).
 	@./hack/compare_model_configs.sh
 
+.PHONY: generate-vllm-arch-list
+generate-vllm-arch-list: ## Regenerate vllm_model_arch_list.go from the kaito-base Docker image.
+	@./hack/generate_vllm_arch_list.sh
+
 ## --------------------------------------
 ## Unit Tests
 ## --------------------------------------

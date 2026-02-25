@@ -6,7 +6,6 @@ This directory contains tools and documentation for calculating GPU SKU requirem
 
 - **`model-sku-calculation.md`**: Comprehensive guide for calculating SKU requirements, VRAM consumption, and maximum token lengths based on model configurations
 - **`preset_generator.py`**: Python utility for generating Kaito model preset configurations by analyzing Hugging Face models
-- **`gen_model_arch_list.sh`**: Bash script for generating model architecture list supported by specific vLLM version.
 
 ## Usage
 
@@ -54,14 +53,32 @@ See [`model-sku-calculation.md`](./model-sku-calculation.md) for:
 
 ### Generate supported vLLM model architecture list
 
- - Run a vLLM inference workload in KAITO that is not supported by current vLLM version (e.g. `Alibaba-NLP/gte-multilingual-reranker-base`), and then get the supported model architecture list from the error message of inference pod logs
- - Save the model architecture list as a file, e.g. `model_arch_v0.14.1.txt`
-   > Note: the file format is like `'AfmoeForCausalLM', 'ApertusForCausalLM', 'AquilaModel'` ...
- - Run following command to update the `vLLMModelArchMap` in `presets/workspace/models/vllm_model_arch_list.go`
+The supported architecture list is stored as a plain-text file
+(`presets/workspace/models/vllm_model_arch_list.txt`, one name per line) and
+embedded at compile time into the Go binary via `//go:embed`.
+
+To regenerate it, run:
+
+```sh
+make generate-vllm-arch-list
+```
+
+This invokes `hack/generate_vllm_arch_list.sh`, which:
+
+1. Reads the `base` image tag from `presets/workspace/models/supported_models.yaml`
+2. Runs `list_supported_llm_archs.py` inside the corresponding `kaito-base` Docker image:
    ```sh
-   presets/workspace/generator/gen_model_arch_list.sh model_arch_v0.14.1.txt
+   docker run --rm --entrypoint python3 \
+     mcr.microsoft.com/aks/kaito/kaito-base:<tag> \
+     /workspace/vllm/list_supported_llm_archs.py
    ```
-   Then you will get the updated vLLM model architecture list supported by current vLLM version.
+3. Writes the output directly to `presets/workspace/models/vllm_model_arch_list.txt`
+
+**Prerequisites:** `yq` and `docker` must be available in `PATH`.
+
+> The base image tag is kept in sync with the `base` entry in
+> `supported_models.yaml`, so bumping that tag and re-running the target is
+> all that is needed when upgrading vLLM.
 
 ## Prerequisites
 

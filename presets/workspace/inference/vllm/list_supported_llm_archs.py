@@ -15,6 +15,14 @@
 
 """List all LLM model architectures supported by vLLM."""
 
+import logging
+import os
+
+# Silence all loggers before any vllm import
+logging.disable(logging.CRITICAL)
+os.environ.setdefault("VLLM_LOGGING_LEVEL", "ERROR")
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
 def list_from_installed():
     """Use the live ModelRegistry (requires vllm to be installed)."""

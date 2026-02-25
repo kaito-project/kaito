@@ -13,7 +13,10 @@
 
 package consts
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 const (
 	// WorkspaceFinalizer is used to make sure that workspace controller handles garbage collection.
@@ -76,8 +79,21 @@ const (
 	ConditionReady = "Ready"
 
 	WorkspaceCreatedByInferenceSetLabel = "inferenceset.kaito.sh/created-by"
+
+	NodeImageFamilyUbuntu     = "ubuntu"
+	NodeImageFamilyAzureLinux = "azurelinux"
 )
 
 var (
 	LocalNVMeStorageClass = "kaito-local-nvme-disk"
 )
+
+func NormalizeSupportedNodeImageFamily(value string) (string, bool) {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	switch normalized {
+	case NodeImageFamilyUbuntu, NodeImageFamilyAzureLinux:
+		return normalized, true
+	default:
+		return "", false
+	}
+}

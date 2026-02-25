@@ -182,7 +182,7 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 			expectedNodeClassKind:    "KaitoNodeClass",
 			expectedNodeClassGroup:   "kaito.sh",
 			expectedImageFamily:      "ubuntu",
-			expectImageFamilyPresent: false,
+			expectImageFamilyPresent: true,
 		},
 		{
 			name:                     "azure default node image family is set via startup parameter",
@@ -226,17 +226,6 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 			expectImageFamilyPresent: true,
 		},
 		{
-			name:                     "ubuntu2204 is accepted via startup parameter",
-			cloudProvider:            consts.AzureCloudName,
-			workspace:                test.MockWorkspaceWithPreset.DeepCopy(),
-			useOptions:               true,
-			options:                  ManifestOptions{DefaultNodeImageFamily: "Ubuntu2204"},
-			expectedNodeClassKind:    "KaitoNodeClass",
-			expectedNodeClassGroup:   "kaito.sh",
-			expectedImageFamily:      "ubuntu2204",
-			expectImageFamilyPresent: true,
-		},
-		{
 			name:          "unsupported startup parameter and unsupported workspace annotation are both ignored",
 			cloudProvider: consts.AzureCloudName,
 			workspace: func() *kaitov1beta1.Workspace {
@@ -251,14 +240,15 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 			expectImageFamilyPresent: false,
 		},
 		{
-			name:                     "image family absent when startup parameter is empty and workspace annotation missing",
+			name:                     "image family defaults to ubuntu when startup parameter is empty and workspace annotation missing",
 			cloudProvider:            consts.AzureCloudName,
 			workspace:                test.MockWorkspaceWithPreset.DeepCopy(),
 			useOptions:               true,
 			options:                  ManifestOptions{DefaultNodeImageFamily: ""},
 			expectedNodeClassKind:    "KaitoNodeClass",
 			expectedNodeClassGroup:   "kaito.sh",
-			expectImageFamilyPresent: false,
+			expectedImageFamily:      "ubuntu",
+			expectImageFamilyPresent: true,
 		},
 		{
 			name:                     "aws default manifest",
@@ -267,7 +257,8 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 			useOptions:               false,
 			expectedNodeClassKind:    "EC2NodeClass",
 			expectedNodeClassGroup:   "karpenter.k8s.aws",
-			expectImageFamilyPresent: false,
+			expectedImageFamily:      "ubuntu",
+			expectImageFamilyPresent: true,
 		},
 	}
 
@@ -276,7 +267,7 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
 
 			workspace := tc.workspace.DeepCopy()
-			if tc.name == "image family absent when startup parameter is empty and workspace annotation missing" {
+			if tc.name == "image family defaults to ubuntu when startup parameter is empty and workspace annotation missing" {
 				workspace.Annotations = nil
 			}
 

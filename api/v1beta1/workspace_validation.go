@@ -130,7 +130,32 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 		}
 	}
 
+	errmsgs := w.validateNodeImageFamilyAnnotation()
+	if errmsgs != nil {
+		errs = errs.Also(errmsgs)
+	}
+
 	return errs
+}
+
+func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) {
+	if w.GetAnnotations() == nil {
+		return nil
+	}
+
+	nodeImageFamily, exists := w.GetAnnotations()[AnnotationNodeImageFamily]
+	if !exists {
+		return nil
+	}
+
+	if _, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("unsupported node image family %q, supported values are azurelinux, ubuntu", nodeImageFamily),
+			fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeImageFamily),
+		)
+	}
+
+	return nil
 }
 
 func (w *Workspace) validateUpdate(old *Workspace) (errs *apis.FieldError) {

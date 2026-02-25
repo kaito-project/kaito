@@ -120,22 +120,6 @@ type ManifestOptions struct {
 	DefaultNodeImageFamily string
 }
 
-const (
-	nodeImageFamilyUbuntu     = "ubuntu"
-	nodeImageFamilyUbuntu2204 = "ubuntu2204"
-	nodeImageFamilyAzureLinux = "azurelinux"
-)
-
-func normalizeNodeImageFamily(value string) (string, bool) {
-	normalized := strings.ToLower(strings.TrimSpace(value))
-	switch normalized {
-	case nodeImageFamilyUbuntu, nodeImageFamilyUbuntu2204, nodeImageFamilyAzureLinux:
-		return normalized, true
-	default:
-		return "", false
-	}
-}
-
 // GenerateNodeClaimManifest generates a nodeClaim object from the given workspace or RAGEngine.
 func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *karpenterv1.NodeClaim {
 	return GenerateNodeClaimManifestWithOptions(storageRequirement, obj, ManifestOptions{})
@@ -167,12 +151,14 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		karpenterv1.DoNotDisruptAnnotationKey: "true", // To prevent Karpenter from scaling down.
 	}
 
-	if defaultNodeImageFamily, ok := normalizeNodeImageFamily(options.DefaultNodeImageFamily); ok {
+	if options.DefaultNodeImageFamily == "" {
+		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = consts.NodeImageFamilyUbuntu
+	} else if defaultNodeImageFamily, ok := consts.NormalizeSupportedNodeImageFamily(options.DefaultNodeImageFamily); ok {
 		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = defaultNodeImageFamily
 	}
 
 	if nodeImageFamily, ok := obj.GetAnnotations()[kaitov1beta1.AnnotationNodeImageFamily]; ok {
-		if normalizedNodeImageFamily, valid := normalizeNodeImageFamily(nodeImageFamily); valid {
+		if normalizedNodeImageFamily, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); valid {
 			nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = normalizedNodeImageFamily
 		}
 	}

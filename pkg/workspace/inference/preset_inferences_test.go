@@ -490,7 +490,7 @@ func TestBuildStartupProbe(t *testing.T) {
 			expectedPeriod:    10,
 		},
 		"non-divisible timeout rounds up to cover full budget": {
-			timeout:           30*time.Minute + 5*time.Second, // 1865s / 10 = 186.5 → ceil = 187
+			timeout:           30*time.Minute + 5*time.Second,
 			expectedThreshold: 181,
 			expectedPeriod:    10,
 		},

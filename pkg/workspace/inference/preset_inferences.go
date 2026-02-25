@@ -44,23 +44,16 @@ import (
 
 const (
 	ProbePath = "/health"
+
+	// defaultStartupProbeTimeout is the startup probe timeout for models that do not
+	// specify ReadinessTimeout. 30 minutes covers all current models.
+	defaultStartupProbeTimeout = 30 * time.Minute
 )
 
 var (
 	containerPorts = []corev1.ContainerPort{{
 		ContainerPort: int32(consts.PortInferenceServer),
 	}}
-
-	defaultLivenessProbe = &corev1.Probe{
-		ProbeHandler: corev1.ProbeHandler{
-			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt32(consts.PortInferenceServer),
-				Path: ProbePath,
-			},
-		},
-		InitialDelaySeconds: 600, // 10 minutes
-		PeriodSeconds:       10,
-	}
 
 	defaultReadinessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
@@ -73,10 +66,9 @@ var (
 		PeriodSeconds:       10,
 	}
 
-	// defaultLivenessProbeAfterStartup is used when a startup probe is present.
-	// initialDelaySeconds is 0 because the startup probe ensures that the model
-	// is up.
-	defaultLivenessProbeAfterStartup = &corev1.Probe{
+	// defaultLivenessProbe has no initial delay because the startup probe ensures
+	// the model is up before liveness evaluation begins.
+	defaultLivenessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Port: intstr.FromInt32(consts.PortInferenceServer),
@@ -418,11 +410,11 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		}
 		spec.ImagePullSecrets = GetInferenceImageInfo(ctx.Ctx, ctx.Workspace)
 
-		var startupProbe *corev1.Probe
-		livenessProbe := defaultLivenessProbe
-		if readinessTimeout := ctx.Model.GetInferenceParameters().ReadinessTimeout; readinessTimeout > 0 {
-			startupProbe = buildStartupProbe(readinessTimeout)
-			livenessProbe = defaultLivenessProbeAfterStartup
+		// Use the model's ReadinessTimeout if specified; otherwise fall back to the
+		// default. containerStatuses[].started is reliable for downstream.
+		readinessTimeout := ctx.Model.GetInferenceParameters().ReadinessTimeout
+		if readinessTimeout <= 0 {
+			readinessTimeout = defaultStartupProbeTimeout
 		}
 
 		spec.Containers = []corev1.Container{
@@ -432,8 +424,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 				Command:        commands,
 				Resources:      resourceReq,
 				Ports:          containerPorts,
-				StartupProbe:   startupProbe,
-				LivenessProbe:  livenessProbe,
+				StartupProbe:   buildStartupProbe(readinessTimeout),
+				LivenessProbe:  defaultLivenessProbe,
 				ReadinessProbe: defaultReadinessProbe,
 				VolumeMounts:   volumeMounts,
 			},

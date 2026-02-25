@@ -39,6 +39,11 @@ if ! command -v yq &>/dev/null; then
     exit 1
 fi
 
+if ! command -v docker &>/dev/null; then
+    echo "ERROR: 'docker' is required but not found in PATH" >&2
+    exit 1
+fi
+
 BASE_TAG=$(yq '.models[] | select(.name == "base") | .tag' "${SUPPORTED_MODELS_YAML}")
 if [[ -z "${BASE_TAG}" ]]; then
     echo "ERROR: could not find 'base' model tag in ${SUPPORTED_MODELS_YAML}" >&2

@@ -128,7 +128,7 @@ compare-model-configs: ## Compare supported_models.yaml with ConfigMap template 
 	@./hack/compare_model_configs.sh
 
 .PHONY: generate-vllm-arch-list
-generate-vllm-arch-list: ## Regenerate vllm_model_arch_list.go from the kaito-base Docker image.
+generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_list.txt.
 	@./hack/generate_vllm_arch_list.sh
 
 ## --------------------------------------

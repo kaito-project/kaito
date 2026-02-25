@@ -20,11 +20,11 @@ into a ``ServeCommand`` instance so the serve engine uses it directly
 without downloading or loading its own copy.
 
 Endpoints exposed:
-    POST /v1/chat/completions  – OpenAI-compatible chat completions (SSE)
-    POST /v1/responses          – OpenAI Responses API (SSE)
-    GET  /v1/models            – list the served model
-    GET  /health               – liveness / readiness probe
-    GET  /metrics              – GPU / CPU utilisation
+    POST /v1/chat/completions  - OpenAI-compatible chat completions (SSE)
+    POST /v1/responses         - OpenAI Responses API (SSE)
+    GET  /v1/models            - list the served model
+    GET  /health               - liveness / readiness probe
+    GET  /metrics              - GPU / CPU utilisation
 """
 
 import codecs
@@ -256,12 +256,12 @@ else:
         model = PeftModel.from_pretrained(
             base_model, first_adapter, adapter_name=first_adapter_name
         )
-        logger.info(f"First adapter loaded: {first_adapter}")
+        logger.info(f"Adapter added: {first_adapter_name}")
 
         for adapter_path in valid_adapters_list:
             adapter_name = os.path.basename(adapter_path)
             model.load_adapter(adapter_path, adapter_name=adapter_name)
-            logger.info(f"Loaded adapter: {adapter_path}")
+            logger.info(f"Adapter added: {adapter_name}")
 
         adapter_names = [first_adapter_name] + [
             os.path.basename(p) for p in valid_adapters_list

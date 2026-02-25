@@ -55,17 +55,6 @@ var (
 		ContainerPort: int32(consts.PortInferenceServer),
 	}}
 
-	defaultReadinessProbe = &corev1.Probe{
-		ProbeHandler: corev1.ProbeHandler{
-			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt32(consts.PortInferenceServer),
-				Path: ProbePath,
-			},
-		},
-		InitialDelaySeconds: 30,
-		PeriodSeconds:       10,
-	}
-
 	// defaultLivenessProbe has no initial delay because the startup probe ensures
 	// the model is up before liveness evaluation begins.
 	defaultLivenessProbe = &corev1.Probe{
@@ -78,6 +67,17 @@ var (
 		InitialDelaySeconds: 0,
 		PeriodSeconds:       10,
 		FailureThreshold:    3,
+	}
+
+	defaultReadinessProbe = &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Port: intstr.FromInt32(consts.PortInferenceServer),
+				Path: ProbePath,
+			},
+		},
+		InitialDelaySeconds: 30,
+		PeriodSeconds:       10,
 	}
 
 	tolerations = []corev1.Toleration{

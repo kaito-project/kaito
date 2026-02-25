@@ -1609,6 +1609,23 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 			wantErr:  false,
 			errField: "",
 		},
+		{
+			name: "Unsupported node image family annotation",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						AnnotationNodeImageFamily: "CustomLinux",
+					},
+				},
+				Inference: &InferenceSpec{},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NC4as_T4_v3",
+					Count:        pointerToInt(1),
+				},
+			},
+			wantErr:  true,
+			errField: AnnotationNodeImageFamily,
+		},
 	}
 
 	for _, tt := range tests {

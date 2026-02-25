@@ -97,6 +97,10 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 	}
 }
 
+func (c *WorkspaceReconciler) SetDefaultNodeImageFamily(defaultNodeImageFamily string) {
+	c.nodeClaimManager.SetDefaultNodeImageFamily(defaultNodeImageFamily)
+}
+
 func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (result reconcile.Result, err error) {
 	workspaceObj := &kaitov1beta1.Workspace{}
 	if err = c.Client.Get(ctx, req.NamespacedName, workspaceObj); err != nil {

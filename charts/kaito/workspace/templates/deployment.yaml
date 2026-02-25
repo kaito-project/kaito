@@ -39,6 +39,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - --feature-gates={{ include "utils.joinKeyValuePairs" .Values.featureGates }}
+            - --default-node-image-family={{ .Values.defaultNodeImageFamily }}
           env:
             - name: CONFIG_LOGGING_NAME
               value: {{ include "kaito.loggingConfigMapName" . | quote }}

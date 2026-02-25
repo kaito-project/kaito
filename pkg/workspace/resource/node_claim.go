@@ -33,9 +33,10 @@ import (
 
 type NodeClaimManager struct {
 	client.Client
-	recorder     record.EventRecorder
-	expectations *utils.ControllerExpectations
-	logger       klog.Logger
+	recorder               record.EventRecorder
+	expectations           *utils.ControllerExpectations
+	logger                 klog.Logger
+	defaultNodeImageFamily string
 }
 
 func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expectations *utils.ControllerExpectations) *NodeClaimManager {
@@ -45,6 +46,10 @@ func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expecta
 		expectations: expectations,
 		logger:       klog.NewKlogr().WithName("NodeClaim"),
 	}
+}
+
+func (c *NodeClaimManager) SetDefaultNodeImageFamily(defaultNodeImageFamily string) {
+	c.defaultNodeImageFamily = defaultNodeImageFamily
 }
 
 // GetNumNodeClaimsNeeded calculates how many NodeClaims are needed to meet the target node count for the workspace.
@@ -110,7 +115,9 @@ func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1
 		var nodeClaim *karpenterv1.NodeClaim
 
 		err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-			nodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, wObj)
+			nodeClaim = nodeclaim.GenerateNodeClaimManifestWithOptions(nodeOSDiskSize, wObj, nodeclaim.ManifestOptions{
+				DefaultNodeImageFamily: c.defaultNodeImageFamily,
+			})
 			return c.Client.Create(ctx, nodeClaim)
 		})
 

@@ -403,6 +403,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 		initialDelaySeconds int32
 		periodSeconds       int32
 		timeoutSeconds      int32
+		failureThreshold    int32
 		expectedProbe       *corev1.Probe
 	}{
 		"Liveness": {
@@ -416,6 +417,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 			initialDelaySeconds: 30,
 			periodSeconds:       5,
 			timeoutSeconds:      5,
+			failureThreshold:    1,
 			expectedProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					Exec: &corev1.ExecAction{
@@ -440,6 +442,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 			initialDelaySeconds: 30,
 			periodSeconds:       5,
 			timeoutSeconds:      5,
+			failureThreshold:    1,
 			expectedProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					Exec: &corev1.ExecAction{
@@ -456,7 +459,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds)
+			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds, tc.failureThreshold)
 			if actualProbe.Exec != nil && tc.expectedProbe.Exec != nil {
 				expected := toParameterMap(tc.expectedProbe.Exec.Command)
 				actual := toParameterMap(actualProbe.Exec.Command)
@@ -468,6 +471,56 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 				if !reflect.DeepEqual(actualProbe.HTTPGet, tc.expectedProbe.HTTPGet) {
 					t.Errorf("HTTPGet mismatch: expected %+v, got %+v", tc.expectedProbe.HTTPGet, actualProbe.HTTPGet)
 				}
+			}
+		})
+	}
+}
+
+func TestBuildDistributedStartupProbe(t *testing.T) {
+	testcases := map[string]struct {
+		timeout           time.Duration
+		workspace         *v1beta1.Workspace
+		expectedThreshold int32
+		expectedPeriod    int32
+	}{
+		"30 minutes maps to 180 failures at 10s period": {
+			timeout: 30 * time.Minute,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-ws", Namespace: "test-ns"},
+			},
+			expectedThreshold: 180,
+			expectedPeriod:    10,
+		},
+		"45 minutes maps to 270 failures at 10s period": {
+			timeout: 45 * time.Minute,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-ws", Namespace: "test-ns"},
+			},
+			expectedThreshold: 270,
+			expectedPeriod:    10,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			probe := buildDistributedStartupProbe(tc.timeout, tc.workspace)
+			if probe == nil {
+				t.Fatal("expected non-nil probe")
+			}
+			if probe.FailureThreshold != tc.expectedThreshold {
+				t.Errorf("FailureThreshold: expected %d, got %d", tc.expectedThreshold, probe.FailureThreshold)
+			}
+			if probe.PeriodSeconds != tc.expectedPeriod {
+				t.Errorf("PeriodSeconds: expected %d, got %d", tc.expectedPeriod, probe.PeriodSeconds)
+			}
+			if probe.InitialDelaySeconds != 0 {
+				t.Errorf("InitialDelaySeconds: expected 0, got %d", probe.InitialDelaySeconds)
+			}
+			if probe.Exec == nil {
+				t.Error("expected Exec probe handler, got nil")
+			}
+			if probe.HTTPGet != nil {
+				t.Error("expected no HTTPGet probe handler for distributed startup probe")
 			}
 		})
 	}

@@ -23,9 +23,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestParseHuggingFaceModelVersion(t *testing.T) {
@@ -530,3 +532,259 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 		})
 	}
 }
+
+func TestContains(t *testing.T) {
+	tests := []struct {
+		name     string
+		slice    []string
+		element  string
+		expected bool
+	}{
+		{"element present", []string{"a", "b", "c"}, "b", true},
+		{"element absent", []string{"a", "b", "c"}, "d", false},
+		{"empty slice", []string{}, "a", false},
+		{"nil slice", nil, "a", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, Contains(tt.slice, tt.element))
+		})
+	}
+}
+
+func TestSearchMap(t *testing.T) {
+	tests := []struct {
+		name       string
+		m          map[string]interface{}
+		key        string
+		wantValue  interface{}
+		wantExists bool
+	}{
+		{"key exists", map[string]interface{}{"foo": "bar"}, "foo", "bar", true},
+		{"key missing", map[string]interface{}{"foo": "bar"}, "missing", nil, false},
+		{"empty map", map[string]interface{}{}, "key", nil, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			val, exists := SearchMap(tt.m, tt.key)
+			assert.Equal(t, tt.wantExists, exists)
+			if tt.wantExists {
+				assert.Equal(t, tt.wantValue, val)
+			}
+		})
+	}
+}
+
+func TestSearchRawExtension(t *testing.T) {
+	tests := []struct {
+		name      string
+		raw       k8sruntime.RawExtension
+		key       string
+		wantValue interface{}
+		wantFound bool
+		wantErr   bool
+	}{
+		{
+			name:      "key found",
+			raw:       k8sruntime.RawExtension{Raw: []byte(`{"model": "llama2"}`)},
+			key:       "model",
+			wantValue: "llama2",
+			wantFound: true,
+		},
+		{
+			name:      "key not found",
+			raw:       k8sruntime.RawExtension{Raw: []byte(`{"model": "llama2"}`)},
+			key:       "version",
+			wantFound: false,
+		},
+		{
+			name:    "invalid yaml",
+			raw:     k8sruntime.RawExtension{Raw: []byte(`{invalid`)},
+			key:     "model",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			val, found, err := SearchRawExtension(tt.raw, tt.key)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantFound, found)
+			if tt.wantFound {
+				assert.Equal(t, tt.wantValue, val)
+			}
+		})
+	}
+}
+
+func TestMergeConfigMaps(t *testing.T) {
+	tests := []struct {
+		name     string
+		base     map[string]string
+		override map[string]string
+		want     map[string]string
+	}{
+		{
+			name:     "override value wins",
+			base:     map[string]string{"a": "1", "b": "2"},
+			override: map[string]string{"b": "99", "c": "3"},
+			want:     map[string]string{"a": "1", "b": "99", "c": "3"},
+		},
+		{
+			name:     "empty override",
+			base:     map[string]string{"a": "1"},
+			override: map[string]string{},
+			want:     map[string]string{"a": "1"},
+		},
+		{
+			name:     "empty base",
+			base:     map[string]string{},
+			override: map[string]string{"x": "y"},
+			want:     map[string]string{"x": "y"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, MergeConfigMaps(tt.base, tt.override))
+		})
+	}
+}
+
+func TestShellCmd(t *testing.T) {
+	cmd := ShellCmd("echo hello")
+	assert.Equal(t, []string{"/bin/sh", "-c", "echo hello"}, cmd)
+}
+
+func TestExtractAndValidateRepoName(t *testing.T) {
+	tests := []struct {
+		name    string
+		image   string
+		wantErr bool
+	}{
+		{"lowercase repo", "registry.io/org/mymodel:v1", false},
+		{"uppercase repo", "registry.io/org/MyModel:v1", true},
+		{"no tag lowercase", "registry.io/org/mymodel", false},
+		{"mixed case in org", "registry.io/Org/mymodel:v1", false}, // only repo name checked
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ExtractAndValidateRepoName(tt.image)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestSelectNodes(t *testing.T) {
+	makeNode := func(name string, labels map[string]string) *corev1.Node {
+		return &corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: name, Labels: labels}}
+	}
+
+	t.Run("preferred node ranked first", func(t *testing.T) {
+		nodes := []*corev1.Node{
+			makeNode("node-c", nil),
+			makeNode("node-b", nil),
+			makeNode("node-a", nil),
+		}
+		result := SelectNodes(nodes, []string{"node-b"}, nil, 3)
+		assert.Equal(t, "node-b", result[0].Name)
+	})
+
+	t.Run("count limits results", func(t *testing.T) {
+		nodes := []*corev1.Node{
+			makeNode("node-1", nil),
+			makeNode("node-2", nil),
+			makeNode("node-3", nil),
+		}
+		result := SelectNodes(nodes, nil, nil, 2)
+		assert.Len(t, result, 2)
+	})
+
+	t.Run("returns all when count exceeds available", func(t *testing.T) {
+		nodes := []*corev1.Node{makeNode("node-1", nil)}
+		result := SelectNodes(nodes, nil, nil, 5)
+		assert.Len(t, result, 1)
+	})
+
+	t.Run("previous node ranked above provisioner node", func(t *testing.T) {
+		nodes := []*corev1.Node{
+			makeNode("node-prov", map[string]string{consts.LabelGPUProvisionerCustom: "gpu"}),
+			makeNode("node-prev", nil),
+		}
+		result := SelectNodes(nodes, nil, []string{"node-prev"}, 2)
+		assert.Equal(t, "node-prev", result[0].Name)
+	})
+
+	t.Run("karpenter node ranked above plain node", func(t *testing.T) {
+		nodes := []*corev1.Node{
+			makeNode("plain", nil),
+			makeNode("karpenter", map[string]string{consts.LabelNodePool: "default"}),
+		}
+		result := SelectNodes(nodes, nil, nil, 2)
+		assert.Equal(t, "karpenter", result[0].Name)
+	})
+
+	t.Run("alphabetical fallback for equal priority", func(t *testing.T) {
+		nodes := []*corev1.Node{
+			makeNode("node-z", nil),
+			makeNode("node-a", nil),
+		}
+		result := SelectNodes(nodes, nil, nil, 2)
+		assert.Equal(t, "node-a", result[0].Name)
+	})
+}
+
+func TestDedupVolumeMounts(t *testing.T) {
+	mounts := []corev1.VolumeMount{
+		{Name: "vol1", MountPath: "/mnt/1"},
+		{Name: "vol2", MountPath: "/mnt/2"},
+		{Name: "vol1", MountPath: "/mnt/1-dup"},
+		{Name: "vol3", MountPath: "/mnt/3"},
+	}
+	result := DedupVolumeMounts(mounts)
+	assert.Len(t, result, 3)
+	// First occurrence of vol1 is kept
+	assert.Equal(t, "/mnt/1", result[0].MountPath)
+	names := []string{result[0].Name, result[1].Name, result[2].Name}
+	assert.Equal(t, []string{"vol1", "vol2", "vol3"}, names)
+}
+
+func TestGetReleaseNamespace(t *testing.T) {
+	t.Run("reads from env var", func(t *testing.T) {
+		t.Setenv(consts.DefaultReleaseNamespaceEnvVar, "my-namespace")
+		ns, err := GetReleaseNamespace()
+		assert.NoError(t, err)
+		assert.Equal(t, "my-namespace", ns)
+	})
+}
+
+func TestGetSKUHandler(t *testing.T) {
+	t.Run("azure provider returns handler", func(t *testing.T) {
+		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+		h, err := GetSKUHandler()
+		assert.NoError(t, err)
+		assert.NotNil(t, h)
+	})
+
+	t.Run("unknown provider returns error", func(t *testing.T) {
+		t.Setenv("CLOUD_PROVIDER", "unknown-cloud")
+		_, err := GetSKUHandler()
+		assert.Error(t, err)
+	})
+
+	t.Run("empty provider returns error", func(t *testing.T) {
+		t.Setenv("CLOUD_PROVIDER", "")
+		_, err := GetSKUHandler()
+		assert.Error(t, err)
+	})
+}
+
+var _ = appsv1.Deployment{}
+var _ = resource.Quantity{}
+var _ client.Object = nil

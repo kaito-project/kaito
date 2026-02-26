@@ -1,0 +1,11 @@
+# Default values for workspace-crds.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+include:
+  ec2nodeclasses.karpenter.k8s.aws: true
+  inferenceobjectives.inference.networking.x-k8s.io: true
+  inferencepools.inference.networking.k8s.io: true
+  inferencesets.kaito.sh: true
+  nodeclaims.karpenter.sh: true
+  workspaces.kaito.sh: true

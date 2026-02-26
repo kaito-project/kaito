@@ -1,4 +1,4 @@
----
+{{- if (index .Values.include "inferencesets.kaito.sh") -}}
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -335,3 +335,4 @@ spec:
         specReplicasPath: .spec.replicas
         statusReplicasPath: .status.replicas
       status: {}
+{{- end }}

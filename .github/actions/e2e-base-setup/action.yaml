@@ -163,26 +163,26 @@ runs:
       if: ${{ inputs.build_kaito_base_image == 'true' }}
       run: |
         echo "Extracting supported vLLM architectures from newly built base image..."
-        ACTUAL=$(docker run --rm \
+        EXPECTED=$(docker run --rm \
           --entrypoint python3 \
           "$REGISTRY/kaito-base:$VERSION" \
           /workspace/vllm/list_supported_llm_archs.py)
 
-        if [ -z "$ACTUAL" ]; then
+        if [ -z "$EXPECTED" ]; then
           echo "ERROR: Docker command produced no output from list_supported_llm_archs.py" >&2
           exit 1
         fi
 
-        EXPECTED=$(cat presets/workspace/models/vllm_model_arch_list.txt)
+        ACTUAL=$(cat presets/workspace/models/vllm_model_arch_list.txt)
 
         if [ "$ACTUAL" != "$EXPECTED" ]; then
           echo "ERROR: presets/workspace/models/vllm_model_arch_list.txt is out of date." >&2
           echo "Please regenerate it by running: make generate-vllm-arch-list" >&2
           echo "" >&2
-          echo "--- expected (committed file) ---" >&2
-          echo "$EXPECTED" >&2
-          echo "--- actual (from image) ---" >&2
+          echo "--- actual (committed file) ---" >&2
           echo "$ACTUAL" >&2
+          echo "--- expected (from image) ---" >&2
+          echo "$EXPECTED" >&2
           exit 1
         fi
 

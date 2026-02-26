@@ -294,10 +294,6 @@ func buildStartupProbe(timeout time.Duration) *corev1.Probe {
 	}
 }
 
-// buildDistributedStartupProbe builds a startup probe for distributed inference. It checks
-// vLLM readiness (--vllm-port) since that implies both Ray cluster formation and model load
-// are complete. The failure threshold covers the full model loading window, unlike the
-// liveness/readiness probes which use FailureThreshold=1 for fast failure detection post-startup.
 func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace) *corev1.Probe {
 	const periodSeconds = int32(10)
 	const timeoutSeconds = int32(1)

@@ -158,6 +158,36 @@ runs:
           --output type=image,name=$REGISTRY/kaito-base:$VERSION,push=true,compression=zstd \
           -f ./docker/presets/models/tfs/Dockerfile .
 
+    - name: Verify vLLM arch list is up-to-date
+      shell: bash
+      if: ${{ inputs.build_kaito_base_image == 'true' }}
+      run: |
+        echo "Extracting supported vLLM architectures from newly built base image..."
+        ACTUAL=$(docker run --rm \
+          --entrypoint python3 \
+          "$REGISTRY/kaito-base:$VERSION" \
+          /workspace/vllm/list_supported_llm_archs.py)
+
+        if [ -z "$ACTUAL" ]; then
+          echo "ERROR: Docker command produced no output from list_supported_llm_archs.py" >&2
+          exit 1
+        fi
+
+        EXPECTED=$(cat presets/workspace/models/vllm_model_arch_list.txt)
+
+        if [ "$ACTUAL" != "$EXPECTED" ]; then
+          echo "ERROR: presets/workspace/models/vllm_model_arch_list.txt is out of date." >&2
+          echo "Please regenerate it by running: make generate-vllm-arch-list" >&2
+          echo "" >&2
+          echo "--- expected (committed file) ---" >&2
+          echo "$EXPECTED" >&2
+          echo "--- actual (from image) ---" >&2
+          echo "$ACTUAL" >&2
+          exit 1
+        fi
+
+        echo "vllm_model_arch_list.txt is up to date."
+
     - name: Build preset images
       shell: bash
       run: |

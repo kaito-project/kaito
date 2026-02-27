@@ -41,10 +41,6 @@ type nodePluginReadinessCache struct {
 	err     error
 }
 
-func WithNodePluginReadinessCache(ctx context.Context) context.Context {
-	return context.WithValue(ctx, nodePluginReadinessCacheKey{}, &nodePluginReadinessCache{})
-}
-
 func getNodePluginReadinessCache(ctx context.Context) *nodePluginReadinessCache {
 	cache, _ := ctx.Value(nodePluginReadinessCacheKey{}).(*nodePluginReadinessCache)
 	return cache
@@ -54,6 +50,11 @@ func NewNodeManager(c client.Client) *NodeManager {
 	return &NodeManager{
 		Client: c,
 	}
+}
+
+// PrepareContext injects a per-reconcile nodePluginReadiness cache into ctx to share results across all callers within the same reconcile cycle.
+func (c *NodeManager) PrepareContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, nodePluginReadinessCacheKey{}, &nodePluginReadinessCache{})
 }
 
 // CheckIfNodePluginsReady is used for ensuring node label(accelerator:nvidia) and GPU capacity on all auto-provisioned nodes for the workspace.

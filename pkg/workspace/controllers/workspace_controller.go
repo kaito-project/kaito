@@ -103,7 +103,7 @@ func (c *WorkspaceReconciler) SetDefaultNodeImageFamily(defaultNodeImageFamily s
 }
 
 func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (result reconcile.Result, err error) {
-	ctx = resource.WithNodePluginReadinessCache(ctx)
+	ctx = c.nodeResourceManager.PrepareContext(ctx)
 
 	workspaceObj := &kaitov1beta1.Workspace{}
 	if err = c.Client.Get(ctx, req.NamespacedName, workspaceObj); err != nil {
@@ -858,9 +858,11 @@ func (c *WorkspaceReconciler) updateWorkspaceStatusIfChanged(ctx context.Context
 				return nil
 			}
 
-			klog.InfoS("Workspace status changed",
-				"workspace", key.String(),
-				"changes", formatWorkspaceStatusChanges(originalStatus, wObj.Status))
+			if klog.V(4).Enabled() {
+				klog.InfoS("Workspace status changed",
+					"workspace", key.String(),
+					"changes", formatWorkspaceStatusChanges(originalStatus, wObj.Status))
+			}
 
 			return c.Status().Update(ctx, wObj)
 		})

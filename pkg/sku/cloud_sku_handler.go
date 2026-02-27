@@ -14,6 +14,8 @@
 package sku
 
 import (
+	"fmt"
+
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -30,6 +32,11 @@ type GPUConfig struct {
 	GPUMem          resource.Quantity
 	GPUModel        string
 	NVMeDiskEnabled bool
+}
+
+func (cfg *GPUConfig) String() string {
+	return fmt.Sprintf("SKU: %s, GPUCount: %d, GPUMem: %s, GPUModel: %s, NVMeDiskEnabled: %t",
+		cfg.SKU, cfg.GPUCount, cfg.GPUMem.String(), cfg.GPUModel, cfg.NVMeDiskEnabled)
 }
 
 func GetCloudSKUHandler(cloud string) CloudSKUHandler {

@@ -115,11 +115,14 @@ func TestConfigResultsVolume(t *testing.T) {
 
 	t.Run("non-nil output volume is used", func(t *testing.T) {
 		hostPath := "/host/path"
-		vol, _ := ConfigResultsVolume("/results", &corev1.VolumeSource{
+		vol, mount := ConfigResultsVolume("/results", &corev1.VolumeSource{
 			HostPath: &corev1.HostPathVolumeSource{Path: hostPath},
 		})
 		if vol.VolumeSource.HostPath == nil || vol.VolumeSource.HostPath.Path != hostPath {
 			t.Errorf("expected HostPath volume source with path %q", hostPath)
+		}
+		if mount.MountPath != "/results" {
+			t.Errorf("expected mount path '/results', got %q", mount.MountPath)
 		}
 	})
 }
@@ -227,11 +230,14 @@ func TestConfigDataVolume(t *testing.T) {
 
 	t.Run("custom volume source is used", func(t *testing.T) {
 		hostPath := "/data"
-		vol, _ := ConfigDataVolume(&corev1.VolumeSource{
+		vol, mount := ConfigDataVolume(&corev1.VolumeSource{
 			HostPath: &corev1.HostPathVolumeSource{Path: hostPath},
 		})
 		if vol.VolumeSource.HostPath == nil || vol.VolumeSource.HostPath.Path != hostPath {
 			t.Errorf("expected HostPath volume with path %q", hostPath)
+		}
+		if mount.MountPath != DefaultDataVolumePath {
+			t.Errorf("expected mount path %q, got %q", DefaultDataVolumePath, mount.MountPath)
 		}
 	})
 }

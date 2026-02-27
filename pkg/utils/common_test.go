@@ -693,6 +693,7 @@ func TestSelectNodes(t *testing.T) {
 			makeNode("node-a", nil),
 		}
 		result := SelectNodes(nodes, []string{"node-b"}, nil, 3)
+		assert.Len(t, result, 3)
 		assert.Equal(t, "node-b", result[0].Name)
 	})
 
@@ -718,6 +719,7 @@ func TestSelectNodes(t *testing.T) {
 			makeNode("node-prev", nil),
 		}
 		result := SelectNodes(nodes, nil, []string{"node-prev"}, 2)
+		assert.Len(t, result, 2)
 		assert.Equal(t, "node-prev", result[0].Name)
 	})
 
@@ -727,6 +729,7 @@ func TestSelectNodes(t *testing.T) {
 			makeNode("karpenter", map[string]string{consts.LabelNodePool: "default"}),
 		}
 		result := SelectNodes(nodes, nil, nil, 2)
+		assert.Len(t, result, 2)
 		assert.Equal(t, "karpenter", result[0].Name)
 	})
 
@@ -736,6 +739,7 @@ func TestSelectNodes(t *testing.T) {
 			makeNode("node-a", nil),
 		}
 		result := SelectNodes(nodes, nil, nil, 2)
+		assert.Len(t, result, 2)
 		assert.Equal(t, "node-a", result[0].Name)
 	})
 }

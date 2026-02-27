@@ -26,11 +26,33 @@ type PersistentVolumeConfig struct {
 	MountPath string `json:"mountPath,omitempty"`
 }
 
+// VectorDBConfig specifies the vector database backend configuration.
+type VectorDBConfig struct {
+	// Type specifies the vector database backend to use.
+	// Supported values: "faiss" (default, in-process), "qdrant" (client-server).
+	// +kubebuilder:default="faiss"
+	// +optional
+	Type string `json:"type,omitempty"`
+	// URL specifies the connection URL for client-server vector databases (e.g., qdrant).
+	// Required when Type is "qdrant". Example: "http://qdrant-svc:6333"
+	// If not specified for qdrant, an in-memory instance will be used (data lost on restart).
+	// +optional
+	URL string `json:"url,omitempty"`
+	// AccessSecret is the name of the Kubernetes Secret that contains the vector database
+	// access credentials. The secret must contain a key named "VECTOR_DB_ACCESS_SECRET".
+	// +optional
+	AccessSecret string `json:"accessSecret,omitempty"`
+}
+
 type StorageSpec struct {
 	// PersistentVolume specifies PVC-based persistent storage configuration.
 	// If not specified, an emptyDir will be used (data will be lost on pod restart).
 	// +optional
 	PersistentVolume *PersistentVolumeConfig `json:"persistentVolume,omitempty"`
+	// VectorDB specifies the vector database backend configuration.
+	// If not specified, defaults to FAISS (in-process vector store).
+	// +optional
+	VectorDB *VectorDBConfig `json:"vectorDB,omitempty"`
 }
 
 type RemoteEmbeddingSpec struct {

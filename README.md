@@ -8,9 +8,9 @@
 
 | ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mistral 3 models are supported in the latest [release](https://github.com/kaito-project/kaito/releases). Learn about the new models from [here](https://mistral.ai/news/mistral-3)! |
-| Latest Release: Dec 20th, 2025. KAITO v0.8.0                                                                                                                                                                                                  |
-| First Release: Nov 15th, 2023. KAITO v0.1.0.                                                                                                                                                                                                   |
+| ALL vLLM supported modeled can be run in KAITO now, check the latest [release](https://github.com/kaito-project/kaito/releases). |
+| Latest Release: Feb 26th, 2026. KAITO v0.9.0. |
+| First Release: Nov 15th, 2023. KAITO v0.1.0. |
 
 KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
 The target models are popular open-sourced large models such as [phi-4](https://huggingface.co/microsoft/phi-4) and [llama](https://huggingface.co/meta-llama).
@@ -22,6 +22,7 @@ KAITO has the following key differentiations compared to most of the mainstream 
 - Auto-provision GPU nodes based on model requirements.
 - Autoscale the inference workload based on the service monitoring metrics.
 - Leverage local NVMe as the primary storage to store model weight files.
+- Support Gateway API Inference Extension.
 
 Using KAITO, the workflow of onboarding large AI inference models in Kubernetes is largely simplified.
 

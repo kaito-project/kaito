@@ -81,6 +81,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
+				ModelName:         "falcon-7b",
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -108,6 +109,7 @@ func (*falcon7b) GetTuningParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:      baseCommandPresetFalconTuning,
 				AccelerateParams: tuning.DefaultAccelerateParams,
+				ModelName:        PresetFalcon7BModel,
 				// ModelRunPrams:    falconRunTuningParams, // TODO
 			},
 		},
@@ -141,6 +143,7 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
+				ModelName:         PresetFalcon7BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -186,6 +189,7 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
+				ModelName:         PresetFalcon40BModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -208,6 +212,7 @@ func (*falcon40b) GetTuningParameters() *model.PresetParam {
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand:      baseCommandPresetFalconTuning,
 				AccelerateParams: tuning.DefaultAccelerateParams,
+				ModelName:        PresetFalcon40BModel,
 				// ModelRunPrams:    falconRunTuningParams, // TODO
 			},
 		},
@@ -239,6 +244,7 @@ func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    falconRunParams,
+				ModelName:         PresetFalcon40BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,

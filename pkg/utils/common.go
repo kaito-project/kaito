@@ -26,6 +26,7 @@ import (
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -211,13 +212,13 @@ func GetGPUConfigFromNodeLabels(node *corev1.Node) (*sku.GPUConfig, error) {
 		return nil, fmt.Errorf("invalid nvidia.com/gpu.memory value on node %s: %s", node.Name, gpuMemoryStr)
 	}
 
-	gpuMemGiB := int((float64(gpuMemoryMiB) / 1024) + 0.5)
+	gpuMemGiB := int64((float64(gpuMemoryMiB) / 1024) + 0.5)
 
 	return &sku.GPUConfig{
-		SKU:       "unknown", // SKU is not available from node labels
-		GPUCount:  gpuCount,
-		GPUModel:  gpuProduct,
-		GPUMemGiB: gpuMemGiB,
+		SKU:      "unknown", // SKU is not available from node labels
+		GPUCount: gpuCount,
+		GPUModel: gpuProduct,
+		GPUMem:   *resource.NewQuantity(gpuMemGiB*consts.GiBToBytes, resource.BinarySI),
 	}, nil
 }
 

@@ -435,7 +435,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 	// since only the leader pod is capable of serving traffic.
 	matchLabels[appsv1.PodIndexLabel] = "0"
 
-	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.0.0/config/charts/inferencepool/values.yaml
+	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.3.1/config/charts/inferencepool/values.yaml
 	helmValues := map[string]any{
 		"inferenceExtension": map[string]any{
 			"image": map[string]string{

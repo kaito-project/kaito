@@ -32,7 +32,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC12s_v3",
+						InstanceType: "Standard_NC4as_T4_v3",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding: &EmbeddingSpec{
@@ -51,7 +51,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC12s_v3",
+						InstanceType: "Standard_NC4as_T4_v3",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 				},
@@ -64,7 +64,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC12s_v3",
+						InstanceType: "Standard_NC4as_T4_v3",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding:        &EmbeddingSpec{},
@@ -78,7 +78,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC12s_v3",
+						InstanceType: "Standard_NC4as_T4_v3",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding: &EmbeddingSpec{
@@ -95,7 +95,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC12s_v3",
+						InstanceType: "Standard_NC4as_T4_v3",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding: &EmbeddingSpec{
@@ -110,7 +110,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC12s_v3",
+						InstanceType: "Standard_NC4as_T4_v3",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 0},
 					Embedding: &EmbeddingSpec{

@@ -44,7 +44,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -66,7 +66,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        lo.ToPtr(2), // 2 nodes = distributed model
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -88,7 +88,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -111,7 +111,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -142,10 +142,10 @@ var (
 		Spec: &v1beta1.RAGEngineSpec{
 			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
-						corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+						corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 					},
 				},
 				PreferredNodes: []string{"node1"},
@@ -165,7 +165,7 @@ var (
 		Spec: &v1beta1.RAGEngineSpec{
 			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"ragengine.kaito.io/name": "testRAGEngine",
@@ -189,7 +189,7 @@ var (
 		Spec: &v1beta1.RAGEngineSpec{
 			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"apps": "test",
@@ -212,7 +212,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -238,7 +238,7 @@ var (
 		Spec: v1alpha1.InferenceSetSpec{
 			Template: v1alpha1.InferenceSetTemplate{
 				Resource: v1alpha1.InferenceSetResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
 					Preset: &v1beta1.PresetSpec{
@@ -257,7 +257,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -280,7 +280,7 @@ var (
 		Spec: v1alpha1.InferenceSetSpec{
 			Template: v1alpha1.InferenceSetTemplate{
 				Resource: v1alpha1.InferenceSetResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
 					Preset: &v1beta1.PresetSpec{
@@ -300,7 +300,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -353,7 +353,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -385,7 +385,7 @@ var (
 		Spec: &v1beta1.RAGEngineSpec{
 			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"ragengine.kaito.io/name": "testRAGEngine",
@@ -440,7 +440,7 @@ var (
 		Spec: &v1beta1.RAGEngineSpec{
 			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"ragengine.kaito.io/name": "testRAGEngine",
@@ -467,7 +467,7 @@ var (
 		Spec: &v1beta1.RAGEngineSpec{
 			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"ragengine.kaito.io/name": "testRAGEngine",
@@ -501,7 +501,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"workspace.kaito.io/name": "testWorkspace",
@@ -529,7 +529,7 @@ var (
 		Spec: v1alpha1.InferenceSetSpec{
 			Template: v1alpha1.InferenceSetTemplate{
 				Resource: v1alpha1.InferenceSetResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
 					Preset: &v1beta1.PresetSpec{
@@ -556,7 +556,7 @@ var (
 		Spec: &v1beta1.RAGEngineSpec{
 			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"ragengine.kaito.io/name": "testRAGEngine",
@@ -583,7 +583,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"workspace.kaito.io/name": "testWorkspace",
@@ -610,7 +610,7 @@ var (
 		Spec: v1alpha1.InferenceSetSpec{
 			Template: v1alpha1.InferenceSetTemplate{
 				Resource: v1alpha1.InferenceSetResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
 					Preset: &v1beta1.PresetSpec{
@@ -636,7 +636,7 @@ var (
 		Spec: &v1beta1.RAGEngineSpec{
 			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"ragengine.kaito.io/name": "testRAGEngine",
@@ -657,7 +657,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"workspace.kaito.io/name": "testWorkspace",
@@ -684,7 +684,7 @@ var (
 		Spec: v1alpha1.InferenceSetSpec{
 			Template: v1alpha1.InferenceSetTemplate{
 				Resource: v1alpha1.InferenceSetResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
 					Preset: &v1beta1.PresetSpec{
@@ -710,7 +710,7 @@ var (
 		Spec: &v1beta1.RAGEngineSpec{
 			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"ragengine.kaito.io/name": "testRAGEngine",
@@ -726,13 +726,13 @@ var (
 			Name:      "testWorkspace",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"workspace.kaito.io/hash":     "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
+				"workspace.kaito.io/hash":     "7ecd8e1b6ebc187b70fc18389f367e6d782e3b7e917e39bfadfc99cfb5ecb872",
 				"workspace.kaito.io/revision": "1",
 			},
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"workspace.kaito.io/name": "testWorkspace",
@@ -753,14 +753,14 @@ var (
 			Name:      "testInferenceSet",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"inferenceset.kaito.sh/hash":     "be5369aea1bec8fc674d900b229888f4b17739e647ca53509953bf2f1f2c0121",
+				"inferenceset.kaito.sh/hash":     "d79964ce6f0ca4ea65ab2b4f277970a667c628961d609e86cb2ccbcae154dbba",
 				"inferenceset.kaito.sh/revision": "1",
 			},
 		},
 		Spec: v1alpha1.InferenceSetSpec{
 			Template: v1alpha1.InferenceSetTemplate{
 				Resource: v1alpha1.InferenceSetResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
 					Preset: &v1beta1.PresetSpec{
@@ -780,14 +780,14 @@ var (
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"ragengine.kaito.io/hash":     "7985249e078eb041e38c10c3637032b2d352616c609be8542a779460d3ff1d67",
+				"ragengine.kaito.io/hash":     "a0e0caff25969ecdfa6e3f827bab323d9edb3ad48fa2eaf6992899c982133951",
 				"ragengine.kaito.io/revision": "1",
 			},
 		},
 		Spec: &v1beta1.RAGEngineSpec{
 			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"ragengine.kaito.io/name": "testRAGEngine",
@@ -809,7 +809,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"workspace.kaito.io/name": "testWorkspace",
@@ -837,7 +837,7 @@ var (
 		Spec: v1alpha1.InferenceSetSpec{
 			Template: v1alpha1.InferenceSetTemplate{
 				Resource: v1alpha1.InferenceSetResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
 					Preset: &v1beta1.PresetSpec{
@@ -863,7 +863,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"workspace.kaito.io/name": "testWorkspace",
@@ -900,7 +900,7 @@ var (
 		Spec: v1alpha1.InferenceSetSpec{
 			Template: v1alpha1.InferenceSetTemplate{
 				Resource: v1alpha1.InferenceSetResourceSpec{
-					InstanceType: "Standard_NC12s_v3",
+					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
 					Preset: &v1beta1.PresetSpec{
@@ -929,14 +929,14 @@ var (
 			Name:      "testRAGEngine",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"ragengine.kaito.io/hash":     "7985249e078eb041e38c10c3637032b2d352616c609be8542a779460d3ff1d67",
+				"ragengine.kaito.io/hash":     "a0e0caff25969ecdfa6e3f827bab323d9edb3ad48fa2eaf6992899c982133951",
 				"ragengine.kaito.io/revision": "1",
 			},
 		},
 		Spec: &v1beta1.RAGEngineSpec{
 			Compute: &v1beta1.ResourceSpec{
 				Count:        &gpuNodeCount,
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"ragengine.kaito.io/name": "testRAGEngine",
@@ -1155,7 +1155,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC12s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -1183,7 +1183,7 @@ var (
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "node1",
 				Labels: map[string]string{
-					corev1.LabelInstanceTypeStable: "Standard_NC12s_v3",
+					corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
 					LabelKeyNvidia:                 LabelValueNvidia,
 				},
 			},
@@ -1246,7 +1246,7 @@ var (
 					NodeSelectorRequirement: corev1.NodeSelectorRequirement{
 						Key:      corev1.LabelInstanceTypeStable,
 						Operator: corev1.NodeSelectorOpIn,
-						Values:   []string{"Standard_NC12s_v3"},
+						Values:   []string{"Standard_NC4as_T4_v3"},
 					},
 					MinValues: lo.ToPtr(1),
 				},

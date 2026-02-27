@@ -107,6 +107,7 @@ func (*llama8b) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    deepseekLlama8bRunParams,
+				ModelName:         PresetDeepSeekR1DistillLlama8BModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -145,6 +146,7 @@ func (*qwen14b) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    deepseekQwen14bRunParams,
+				ModelName:         PresetDeepSeekR1DistillQwen14BModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -185,6 +187,7 @@ func (*deepseekR1) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    deepseekR1RunParams,
+				ModelName:         PresetDeepSeekR1Model,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:          metadata.DefaultVLLMCommand,
@@ -227,6 +230,7 @@ func (*deepseekV3) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    deepseekV3RunParams,
+				ModelName:         PresetDeepSeekR1Model,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:          metadata.DefaultVLLMCommand,

@@ -20,6 +20,7 @@ env:
 permissions:
   id-token: write
   contents: read
+  packages: write
 
 jobs:
   determine-models:
@@ -183,6 +184,8 @@ jobs:
           acr_name: ${{ secrets.PROD_1ES_ACR_USERNAME }}
           acr_username: ${{ secrets.PROD_1ES_ACR_USERNAME }}
           acr_password: ${{ secrets.PROD_1ES_ACR_PASSWORD }}
+          ghcr_username: ${{ github.actor }}
+          ghcr_token: ${{ secrets.GITHUB_TOKEN }}
           model_name: ${{ matrix.model.name }}
           model_type: ${{ matrix.model.type }}
           model_version: ${{ matrix.model.version }}

@@ -72,6 +72,7 @@ func (*gpt_oss_20B) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    gptRunParams,
+				ModelName:         PresetGPT_OSS_20BModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -111,6 +112,7 @@ func (*gpt_oss_120B) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    gptRunParams,
+				ModelName:         PresetGPT_OSS_120BModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,

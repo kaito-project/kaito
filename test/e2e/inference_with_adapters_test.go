@@ -228,17 +228,6 @@ var _ = Describe("Workspace Preset", func() {
 		loadModelVersions()
 	})
 
-	AfterEach(func() {
-		if CurrentSpecReport().Failed() {
-			utils.PrintPodLogsOnFailure(namespaceName, "")     // The Preset Pod
-			utils.PrintPodLogsOnFailure("kaito-workspace", "") // The KAITO Workspace Pod
-			if !*skipGPUProvisionerCheck {
-				utils.PrintPodLogsOnFailure("gpu-provisioner", "") // The gpu-provisioner Pod
-			}
-			Fail("Fail threshold reached")
-		}
-	})
-
 	It("should create a falcon workspace with adapter, and update the workspace with another adapter", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createCustomWorkspaceWithAdapter(numOfNode, testAdapters1)

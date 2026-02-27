@@ -2,8 +2,8 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.8.0
-GPU_PROVISIONER_VERSION ?= 0.3.8
+VERSION ?= v0.9.0
+GPU_PROVISIONER_VERSION ?= 0.4.1
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
@@ -116,6 +116,7 @@ SHELL = /usr/bin/env bash -o pipefail
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole, and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	cp config/crd/bases/kaito.sh_workspaces.yaml charts/kaito/workspace/crds/
+	cp config/crd/bases/kaito.sh_inferencesets.yaml charts/kaito/workspace/crds/
 	cp config/crd/bases/kaito.sh_ragengines.yaml charts/kaito/ragengine/crds/
 
 .PHONY: generate
@@ -125,6 +126,10 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 .PHONY: compare-model-configs
 compare-model-configs: ## Compare supported_models.yaml with ConfigMap template (ignoring comments).
 	@./hack/compare_model_configs.sh
+
+.PHONY: generate-vllm-arch-list
+generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_list.txt.
+	@./hack/generate_vllm_arch_list.sh
 
 ## --------------------------------------
 ## Unit Tests
@@ -170,7 +175,7 @@ inference-api-e2e: ## Run inference API e2e tests with pytest.
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
-GINKGO_LABEL ?= !A100Required
+GINKGO_LABEL ?= !A100Required && !AzureLinux
 GINKGO_NODES ?= 2
 GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 120m
@@ -622,7 +627,7 @@ release-manifest: ## Update manifest and Helm charts for release.
 	@sed -i '' -e 's/^VERSION ?= .*/VERSION ?= ${VERSION}/' ./Makefile
 	@sed -i '' -e "1,20s/version: .*/version: ${IMG_TAG}/" ./charts/kaito/workspace/Chart.yaml
 	@sed -i '' -e "s/appVersion: .*/appVersion: ${IMG_TAG}/" ./charts/kaito/workspace/Chart.yaml
-	@sed -i '' -e "1,20s/  tag: .*/  tag: ${IMG_TAG}/" ./charts/kaito/workspace/values.yaml
+	@sed -i '' -e "1,30s/  tag: .*/  tag: ${IMG_TAG}/" ./charts/kaito/workspace/values.yaml
 	@sed -i '' -e 's/IMG_TAG=.*/IMG_TAG=${IMG_TAG}/' ./charts/kaito/workspace/README.md
 	@sed -i '' -e "s/version: .*/version: ${IMG_TAG}/" ./charts/kaito/ragengine/Chart.yaml
 	@sed -i '' -e "s/appVersion: .*/appVersion: ${IMG_TAG}/" ./charts/kaito/ragengine/Chart.yaml

@@ -5,7 +5,7 @@
 ```bash
 export REGISTRY=mcr.microsoft.com/aks/kaito
 export IMG_NAME=workspace
-export IMG_TAG=0.8.0
+export IMG_TAG=0.9.0
 helm install workspace ./charts/kaito/workspace  \
 --set image.repository=${REGISTRY}/${IMG_NAME} --set image.tag=${IMG_TAG} \
 --namespace kaito-workspace --create-namespace
@@ -31,6 +31,7 @@ helm install workspace ./charts/kaito/workspace  \
 | resources.requests.memory                | string | `"64Mi"`                                |                                                               |
 | securityContext.allowPrivilegeEscalation | bool   | `false`                                 |                                                               |
 | securityContext.capabilities.drop[0]     | string | `"ALL"`                                 |                                                               |
+| defaultNodeImageFamily                   | string | `""`                                    | Default NodeClaim image-family annotation value. Supported values: `azurelinux`, `ubuntu`. Empty means `ubuntu`. Unsupported values cause workspace controller startup failure. |
 | tolerations                              | list   | `[]`                                    |                                                               |
 | webhook.port                             | int    | `9443`                                  |                                                               |
 | cloudProviderName                        | string | `"azure"`                               | Karpenter cloud provider name. Values can be "azure" or "aws" |

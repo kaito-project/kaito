@@ -332,14 +332,15 @@ func TestEnsureService(t *testing.T) {
 	}{
 		"Existing service is found for workspace": {
 			callMocks: func(c *test.MockClient) {
-				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testWorkspace" }), mock.Anything).Return(apierrors.NewAlreadyExists(corev1.Resource("services"), "testWorkspace"))
-				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testWorkspace-headless" }), mock.Anything).Return(apierrors.NewAlreadyExists(corev1.Resource("services"), "testWorkspace-headless"))
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testWorkspace", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testWorkspace-headless", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 			},
 			expectedError: nil,
 			workspace:     test.MockWorkspaceDistributedModel,
 		},
 		"Service creation fails": {
 			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testWorkspace", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(test.NotFoundError())
 				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testWorkspace" }), mock.Anything).Return(errors.New("cannot create service"))
 			},
 			expectedError: errors.New("cannot create service"),
@@ -347,7 +348,9 @@ func TestEnsureService(t *testing.T) {
 		},
 		"Successfully creates a new service": {
 			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testWorkspace", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(test.NotFoundError())
 				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testWorkspace" }), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testWorkspace-headless", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(test.NotFoundError())
 				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testWorkspace-headless" }), mock.Anything).Return(nil)
 			},
 			expectedError: nil,
@@ -355,7 +358,9 @@ func TestEnsureService(t *testing.T) {
 		},
 		"Successfully creates a new service for a custom model": {
 			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testCustomWorkspace", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(test.NotFoundError())
 				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testCustomWorkspace" }), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), types.NamespacedName{Name: "testCustomWorkspace-headless", Namespace: "kaito"}, mock.IsType(&corev1.Service{}), mock.Anything).Return(test.NotFoundError())
 				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(s *corev1.Service) bool { return s.Name == "testCustomWorkspace-headless" }), mock.Anything).Return(nil)
 			},
 			expectedError: nil,
@@ -949,6 +954,46 @@ func TestSyncWorkspaceStatus(t *testing.T) {
 		verifyDeletingCondition  bool
 		expectedDeletingStatus   v1.ConditionStatus
 	}{
+		"inference pending with pre-existing conditions": {
+			// Tests that syncWorkspaceStatus correctly handles a workspace that already has
+			// conditions in its status (a common case in steady-state operation).
+			// The pre-existing conditions include all four conditions that modifyFn will set,
+			// ensuring no slice re-allocation occurs during the update path.
+			// See TestShallowCopyBug for the unit-level regression test of the deep copy fix.
+			workspace: func() *v1beta1.Workspace {
+				ws := test.MockWorkspaceDistributedModel.DeepCopy()
+				ws.Status.State = v1beta1.WorkspaceStatePending
+				ws.Status.Conditions = []v1.Condition{
+					{
+						Type:   string(v1beta1.ConditionTypeNodeStatus),
+						Status: v1.ConditionFalse,
+						Reason: "NodeNotReady",
+					},
+					{
+						Type:   string(v1beta1.ConditionTypeResourceStatus),
+						Status: v1.ConditionFalse,
+						Reason: "workspaceResourceStatusNotReady",
+					},
+					{
+						Type:   string(v1beta1.WorkspaceConditionTypeInferenceStatus),
+						Status: v1.ConditionFalse,
+						Reason: "WorkspaceInferenceStatusPending",
+					},
+					{
+						Type:   string(v1beta1.WorkspaceConditionTypeSucceeded),
+						Status: v1.ConditionFalse,
+						Reason: "workspacePending",
+					},
+				}
+				return ws
+			}(),
+			statefulSetNotFound:      true,
+			expectedState:            v1beta1.WorkspaceStatePending,
+			verifyInferenceCondition: true,
+			expectedInferenceStatus:  v1.ConditionFalse,
+			verifySucceededCondition: true,
+			expectedSucceededStatus:  v1.ConditionFalse,
+		},
 		"inference ready": {
 			workspace: test.MockWorkspaceDistributedModel.DeepCopy(),
 			statefulSet: &appsv1.StatefulSet{

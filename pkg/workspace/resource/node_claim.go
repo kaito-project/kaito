@@ -84,16 +84,13 @@ func (c *NodeClaimManager) CheckNodeClaims(ctx context.Context, wObj *kaitov1bet
 		nodeClaims = append(nodeClaims, &ncList.Items[i])
 	}
 
-	klog.InfoS("Existing NodeClaims fetched", "count", len(nodeClaims), "workspace", klog.KObj(wObj))
-
 	// Calculate the total number of NodeClaims needed.
 	numNodeClaimsNeeded := c.GetNumNodeClaimsNeeded(ctx, wObj, readyNodes)
-	klog.InfoS("NodeClaims needed calculation", "needed", numNodeClaimsNeeded, "workspace", klog.KObj(wObj))
 
 	// Then, the number of NodeClaims to create is the difference between the total number needed and number of existing NodeClaims.
 	numNodeClaimsToCreate := max(0, numNodeClaimsNeeded-len(nodeClaims))
 
-	klog.InfoS("Number of NodeClaims to create", "count", numNodeClaimsToCreate)
+	klog.InfoS("NodeClaim calculation", "workspace", klog.KObj(wObj), "existing", len(nodeClaims), "needed", numNodeClaimsNeeded, "toCreate", numNodeClaimsToCreate)
 
 	return numNodeClaimsToCreate, nodeClaims, nil
 }
@@ -102,11 +99,11 @@ func (c *NodeClaimManager) CheckNodeClaims(ctx context.Context, wObj *kaitov1bet
 // this function will be invoked before creating workloads for workspace in order to ensure nodes.
 func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, nodesToCreate int) error {
 	workspaceKey := client.ObjectKeyFromObject(wObj).String()
-	klog.InfoS("Creating additional NodeClaims", "workspace", workspaceKey, "toCreate", nodesToCreate)
 	if nodesToCreate <= 0 {
 		return nil
 	}
 
+	klog.InfoS("Creating additional NodeClaims", "workspace", workspaceKey, "toCreate", nodesToCreate)
 	c.expectations.ExpectCreations(c.logger, workspaceKey, nodesToCreate)
 
 	nodeOSDiskSize := c.determineNodeOSDiskSize(ctx, wObj)

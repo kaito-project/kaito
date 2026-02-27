@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -102,6 +103,8 @@ func (c *WorkspaceReconciler) SetDefaultNodeImageFamily(defaultNodeImageFamily s
 }
 
 func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (result reconcile.Result, err error) {
+	ctx = resource.WithNodePluginReadinessCache(ctx)
+
 	workspaceObj := &kaitov1beta1.Workspace{}
 	if err = c.Client.Get(ctx, req.NamespacedName, workspaceObj); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -178,7 +181,7 @@ func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1b
 		var numNodeClaimsToCreate int
 		var err error
 		numNodeClaimsToCreate, existingNodeClaims, err = c.nodeClaimManager.CheckNodeClaims(ctx, wObj, readyNodes)
-		klog.Info("NodeClaims to create", "count", numNodeClaimsToCreate, "workspace", klog.KObj(wObj))
+		klog.InfoS("NodeClaims to create", "count", numNodeClaimsToCreate, "workspace", klog.KObj(wObj))
 		if err != nil {
 			return &reconcile.Result{}, err
 		}
@@ -365,14 +368,24 @@ func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1be
 	}
 
 	serviceObj := manifests.GenerateServiceManifest(wObj, serviceType)
-	if err := resources.CreateResource(ctx, serviceObj, c.Client); err != nil {
-		return err
+	if err := resources.GetResource(ctx, serviceObj.Name, serviceObj.Namespace, c.Client, &corev1.Service{}); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+		if err := resources.CreateResource(ctx, serviceObj, c.Client); err != nil {
+			return err
+		}
 	}
 
 	// headless service for worker pod to discover the leader pod
 	headlessService := manifests.GenerateHeadlessServiceManifest(wObj)
-	if err := resources.CreateResource(ctx, headlessService, c.Client); err != nil {
-		return err
+	if err := resources.GetResource(ctx, headlessService.Name, headlessService.Namespace, c.Client, &corev1.Service{}); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+		if err := resources.CreateResource(ctx, headlessService, c.Client); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -834,7 +847,7 @@ func (c *WorkspaceReconciler) updateWorkspaceStatusIfChanged(ctx context.Context
 				return err
 			}
 
-			originalStatus := wObj.Status
+			originalStatus := *wObj.Status.DeepCopy()
 			if modifyFn != nil {
 				if err := modifyFn(&wObj.Status); err != nil {
 					return err
@@ -845,8 +858,76 @@ func (c *WorkspaceReconciler) updateWorkspaceStatusIfChanged(ctx context.Context
 				return nil
 			}
 
+			klog.InfoS("Workspace status changed",
+				"workspace", key.String(),
+				"changes", formatWorkspaceStatusChanges(originalStatus, wObj.Status))
+
 			return c.Status().Update(ctx, wObj)
 		})
+}
+
+func formatWorkspaceStatusChanges(oldStatus, newStatus kaitov1beta1.WorkspaceStatus) string {
+	changes := make([]string, 0)
+
+	if !apiequality.Semantic.DeepEqual(oldStatus.WorkerNodes, newStatus.WorkerNodes) {
+		changes = append(changes, fmt.Sprintf("workerNodes: %v -> %v", oldStatus.WorkerNodes, newStatus.WorkerNodes))
+	}
+
+	if oldStatus.State != newStatus.State {
+		changes = append(changes, fmt.Sprintf("state: %q -> %q", oldStatus.State, newStatus.State))
+	}
+
+	oldConditionByType := make(map[string]metav1.Condition, len(oldStatus.Conditions))
+	newConditionByType := make(map[string]metav1.Condition, len(newStatus.Conditions))
+	conditionTypes := make([]string, 0, len(oldStatus.Conditions)+len(newStatus.Conditions))
+
+	for i := range oldStatus.Conditions {
+		condition := oldStatus.Conditions[i]
+		oldConditionByType[condition.Type] = condition
+		conditionTypes = append(conditionTypes, condition.Type)
+	}
+
+	for i := range newStatus.Conditions {
+		condition := newStatus.Conditions[i]
+		newConditionByType[condition.Type] = condition
+		if _, exists := oldConditionByType[condition.Type]; !exists {
+			conditionTypes = append(conditionTypes, condition.Type)
+		}
+	}
+
+	sort.Strings(conditionTypes)
+	seenType := make(map[string]struct{}, len(conditionTypes))
+	for _, conditionType := range conditionTypes {
+		if _, seen := seenType[conditionType]; seen {
+			continue
+		}
+		seenType[conditionType] = struct{}{}
+
+		oldCondition, oldExists := oldConditionByType[conditionType]
+		newCondition, newExists := newConditionByType[conditionType]
+
+		switch {
+		case !oldExists && newExists:
+			changes = append(changes, fmt.Sprintf("condition[%s]: added(status=%s, reason=%s, message=%q)",
+				conditionType, newCondition.Status, newCondition.Reason, newCondition.Message))
+		case oldExists && !newExists:
+			changes = append(changes, fmt.Sprintf("condition[%s]: removed(status=%s, reason=%s, message=%q)",
+				conditionType, oldCondition.Status, oldCondition.Reason, oldCondition.Message))
+		case oldExists && newExists && !apiequality.Semantic.DeepEqual(oldCondition, newCondition):
+			changes = append(changes, fmt.Sprintf("condition[%s]: status=%s->%s, reason=%s->%s, message=%q->%q, observedGeneration=%d->%d",
+				conditionType,
+				oldCondition.Status, newCondition.Status,
+				oldCondition.Reason, newCondition.Reason,
+				oldCondition.Message, newCondition.Message,
+				oldCondition.ObservedGeneration, newCondition.ObservedGeneration))
+		}
+	}
+
+	if len(changes) == 0 {
+		return "status changed"
+	}
+
+	return strings.Join(changes, "; ")
 }
 
 // UpdateWorkspaceTargetNodeCount is used for updating the targetNodeCount in workspace status when it is 0.

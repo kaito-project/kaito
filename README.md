@@ -79,12 +79,12 @@ inference:
 $ kubectl apply -f examples/inference/kaito_workspace_phi_3.5-instruct.yaml
 ```
 
-The workspace status can be tracked by running the following command. When the WORKSPACESUCCEEDED column becomes `True`, the model has been deployed successfully.
+The workspace status can be tracked by running the following command. When the STATE column becomes `Ready`, the model has been deployed successfully.
 
 ```sh
 $ kubectl get workspace workspace-phi-3-5-mini
-NAME                     INSTANCE                   RESOURCEREADY   INFERENCEREADY   JOBSTARTED   WORKSPACESUCCEEDED   AGE
-workspace-phi-3-5-mini   Standard_NC24ads_A100_v4   True            True                          True                 4h15m
+NAME                     INSTANCE                   RESOURCEREADY   INFERENCEREADY   JOBSTARTED   WORKSPACESUCCEEDED   TARGETNODECOUNT   STATE   AGE
+workspace-phi-3-5-mini   Standard_NC24ads_A100_v4   True            True                          True                 1                 Ready   24m
 ```
 
 Next, one can find the inference service's cluster ip and use a temporal `curl` pod to test the service endpoint in the cluster.

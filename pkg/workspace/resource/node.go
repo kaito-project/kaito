@@ -33,6 +33,23 @@ type NodeManager struct {
 	client.Client
 }
 
+type nodePluginReadinessCacheKey struct{}
+
+type nodePluginReadinessCache struct {
+	checked bool
+	ready   bool
+	err     error
+}
+
+func WithNodePluginReadinessCache(ctx context.Context) context.Context {
+	return context.WithValue(ctx, nodePluginReadinessCacheKey{}, &nodePluginReadinessCache{})
+}
+
+func getNodePluginReadinessCache(ctx context.Context) *nodePluginReadinessCache {
+	cache, _ := ctx.Value(nodePluginReadinessCacheKey{}).(*nodePluginReadinessCache)
+	return cache
+}
+
 func NewNodeManager(c client.Client) *NodeManager {
 	return &NodeManager{
 		Client: c,
@@ -41,17 +58,28 @@ func NewNodeManager(c client.Client) *NodeManager {
 
 // CheckIfNodePluginsReady is used for ensuring node label(accelerator:nvidia) and GPU capacity on all auto-provisioned nodes for the workspace.
 func (c *NodeManager) CheckIfNodePluginsReady(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
+	if cache := getNodePluginReadinessCache(ctx); cache != nil && cache.checked {
+		return cache.ready, cache.err
+	}
+
+	ready := true
+	var err error
+
 	// ensure Nvidia device plugins are ready for the workspace when instance type is known.
 	knownGPUConfig, _ := utils.GetGPUConfigBySKU(wObj.Resource.InstanceType)
 	if knownGPUConfig != nil {
-		if areReady, err := c.checkNodePlugin(ctx, wObj, existingNodeClaims); err != nil {
-			return false, err
-		} else if !areReady {
-			return false, nil
+		if ready, err = c.checkNodePlugin(ctx, wObj, existingNodeClaims); err != nil {
+			ready = false
 		}
 	}
 
-	return true, nil
+	if cache := getNodePluginReadinessCache(ctx); cache != nil {
+		cache.checked = true
+		cache.ready = ready
+		cache.err = err
+	}
+
+	return ready, err
 }
 
 // checkNodePlugin ensures that NVIDIA device plugins are ready on all nodes for the workspace

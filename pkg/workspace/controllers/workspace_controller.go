@@ -103,8 +103,6 @@ func (c *WorkspaceReconciler) SetDefaultNodeImageFamily(defaultNodeImageFamily s
 }
 
 func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (result reconcile.Result, err error) {
-	ctx = c.nodeResourceManager.PrepareContext(ctx)
-
 	workspaceObj := &kaitov1beta1.Workspace{}
 	if err = c.Client.Get(ctx, req.NamespacedName, workspaceObj); err != nil {
 		if apierrors.IsNotFound(err) {

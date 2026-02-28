@@ -69,15 +69,19 @@ func TestGenerateDeploymentManifest(t *testing.T) {
 
 		// MaxSurge=1: allow one extra pod during update so new pod starts
 		// before old pod is terminated
-		assert.Equal(t, intstr.Int, ru.MaxSurge.Type)
-		assert.Equal(t, int32(1), ru.MaxSurge.IntVal,
-			"MaxSurge should be 1 to allow a new pod to start before the old one is terminated")
+		if assert.NotNil(t, ru.MaxSurge, "MaxSurge should be set") {
+			assert.Equal(t, intstr.Int, ru.MaxSurge.Type)
+			assert.Equal(t, int32(1), ru.MaxSurge.IntVal,
+				"MaxSurge should be 1 to allow a new pod to start before the old one is terminated")
+		}
 
 		// MaxUnavailable=0: never take down the existing pod until the new
 		// one is ready, preventing downtime
-		assert.Equal(t, intstr.Int, ru.MaxUnavailable.Type)
-		assert.Equal(t, int32(0), ru.MaxUnavailable.IntVal,
-			"MaxUnavailable should be 0 to prevent downtime during rolling updates")
+		if assert.NotNil(t, ru.MaxUnavailable, "MaxUnavailable should be set") {
+			assert.Equal(t, intstr.Int, ru.MaxUnavailable.Type)
+			assert.Equal(t, int32(0), ru.MaxUnavailable.IntVal,
+				"MaxUnavailable should be 0 to prevent downtime during rolling updates")
+		}
 	}
 
 	// Verify selector labels

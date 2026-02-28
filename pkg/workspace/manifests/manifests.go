@@ -242,13 +242,16 @@ func GenerateDeploymentManifest(revisionNum string, replicas int) func(*generato
 				RollingUpdate: &appsv1.RollingUpdateDeployment{
 					MaxSurge: &intstr.IntOrString{
 						Type:   intstr.Int,
-						IntVal: 0,
+						IntVal: 1,
 					},
 					MaxUnavailable: &intstr.IntOrString{
 						Type:   intstr.Int,
-						IntVal: 1,
+						IntVal: 0,
 					},
-				}, // Configuration for rolling updates: allows no extra pods during the update and permits at most one unavailable pod at a time。
+				}, // Configuration for rolling updates: allows one extra pod during
+				// the update while keeping all existing pods available, ensuring
+				// zero-downtime deployments. The new pod must become ready before
+				// the old pod is terminated. (Fixes #1132)
 			},
 			Selector: labelselector,
 			Template: corev1.PodTemplateSpec{

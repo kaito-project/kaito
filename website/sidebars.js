@@ -45,6 +45,7 @@ const sidebars = {
                 'multi-node-inference',
                 'keda-autoscaler-inference',
                 'tuning',
+                'lora-adapters',
                 {
                     type: 'category',
                     label: 'Retrieval-Augmented Generation (RAG)',

@@ -36,6 +36,7 @@ KAITO supports LoRA adapters in two ways:
 - `kubectl` configured for your cluster
 - A container registry (e.g., Azure Container Registry) for storing adapter images
 - (For fine-tuning) A training dataset accessible via URL or PersistentVolumeClaim
+- (Optional, for curl examples) [`jq`](https://stedolan.github.io/jq/) installed for JSON parsing on the command line
 
 ---
 
@@ -167,7 +168,35 @@ When the workspace `STATE` becomes `Ready` and `JOBSTARTED` / `WORKSPACESUCCEEDE
 
 ## Step 2: Deploy Inference with Adapters
 
-Once you have an adapter image (from fine-tuning or a pre-built image), attach it to a base model workspace:
+Once you have an adapter image (from fine-tuning or a pre-built image), attach it to a base model workspace.
+
+> **Runtime note:** The `strength` field and multiple adapter support require the **Transformers** runtime. If your cluster uses the **vLLM** runtime (default when the vLLM feature gate is enabled), vLLM will reject Workspaces that set `strength`. To use adapter strength, add the annotation `kaito.sh/runtime: transformers` to your Workspace metadata. If using vLLM, omit the `strength` field entirely.
+
+**Example with Transformers runtime (supports `strength`):**
+
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-phi-3-adapter
+  annotations:
+    kaito.sh/runtime: transformers
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: phi-3-adapter
+inference:
+  preset:
+    name: phi-3-mini-128k-instruct
+  adapters:
+    - source:
+        name: "my-lora-adapter"
+        image: "<YOUR_ACR>.azurecr.io/phi-3-adapter:0.0.1"
+      strength: "1.0"
+```
+
+**Example with vLLM runtime (omit `strength`):**
 
 ```yaml
 apiVersion: kaito.sh/v1beta1
@@ -186,7 +215,6 @@ inference:
     - source:
         name: "my-lora-adapter"
         image: "<YOUR_ACR>.azurecr.io/phi-3-adapter:0.0.1"
-      strength: "1.0"
 ```
 
 ```sh
@@ -199,7 +227,7 @@ Key fields:
 |-------|-------------|
 | `adapters[].source.name` | A unique name for the adapter |
 | `adapters[].source.image` | Container image containing the adapter weights |
-| `adapters[].strength` | Adapter influence (0.0 = disabled, 1.0 = full strength) |
+| `adapters[].strength` | Adapter influence (0.0–1.0). **Transformers runtime only** — omit for vLLM |
 
 ---
 
@@ -210,11 +238,11 @@ Key fields:
 export CLUSTERIP=$(kubectl get svc workspace-phi-3-adapter -o jsonpath="{.spec.clusterIPs[0]}")
 
 # List available models
-kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- \
+kubectl run -it --rm --restart=Never curl --image=curlimages/curl:8.7.1 -- \
   curl -s http://$CLUSTERIP/v1/models | jq
 
 # Send an inference request
-kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- \
+kubectl run -it --rm --restart=Never curl --image=curlimages/curl:8.7.1 -- \
   curl -X POST http://$CLUSTERIP/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
@@ -229,9 +257,22 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- \
 
 ## Using Multiple Adapters
 
-You can attach multiple LoRA adapters to the same base model. Use the `strength` field to control each adapter's influence:
+You can attach multiple LoRA adapters to the same base model. Use the `strength` field to control each adapter's influence.
+
+> **Important:** Multiple adapters with `strength` require the **Transformers** runtime. Add `metadata.annotations: { kaito.sh/runtime: transformers }` to your Workspace. If using vLLM, omit the `strength` field.
 
 ```yaml
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-falcon-multi-adapter
+  annotations:
+    kaito.sh/runtime: transformers
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: falcon-7b-adapter
 inference:
   preset:
     name: "falcon-7b"
@@ -259,6 +300,16 @@ LoRA adapters can be used with any KAITO preset model that supports adapter inje
 ### Adapter Image Format
 
 The adapter container image should contain the LoRA weight files (typically `adapter_model.safetensors` and `adapter_config.json`) produced by PEFT/Hugging Face training. When using KAITO's built-in tuning (Step 1), this image is created automatically.
+
+### Runtime Compatibility
+
+| Feature | Transformers | vLLM |
+|---------|-------------|------|
+| Basic adapter loading | ✅ | ✅ |
+| `strength` field | ✅ | ❌ Rejected |
+| Multiple adapters | ✅ | Limited |
+
+To select the Transformers runtime, add `kaito.sh/runtime: transformers` to your Workspace annotations.
 
 ### Fine-Tuning Methods
 
@@ -297,6 +348,16 @@ Failed to pull image "<YOUR_ACR>.azurecr.io/adapter:0.0.1": unauthorized
 
 **Fix:** Ensure your cluster has an `imagePullSecret` configured for your container registry, or that the node's managed identity has `AcrPull` permissions.
 
+### Workspace validation fails with `strength` field
+
+```
+admission webhook rejected: strength is not supported with vLLM runtime
+```
+
+**Fix:** Either:
+- Add `metadata.annotations: { kaito.sh/runtime: transformers }` to use the Transformers runtime, or
+- Remove the `strength` field from all adapter entries to use vLLM
+
 ### Out of memory during fine-tuning
 
 ```
@@ -313,7 +374,7 @@ CUDA out of memory
 
 If the model responds as if no adapter is attached:
 - Verify the adapter image contains valid PEFT weight files
-- Check `strength` is not set to `"0.0"`
+- Check `strength` is not set to `"0.0"` (Transformers runtime only)
 - Inspect pod logs: `kubectl logs -l apps=<your-label>`
 
 ### Tuning job not completing

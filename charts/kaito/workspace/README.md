@@ -36,18 +36,24 @@ helm install workspace ./charts/kaito/workspace  \
 | webhook.port                             | int    | `9443`                                  |                                                               |
 | cloudProviderName                        | string | `"azure"`                               | Karpenter cloud provider name. Values can be "azure" or "aws" |
 | nvidiaDevicePlugin.enabled               | bool   | `true`                                  | Enable deployment of NVIDIA device plugin DaemonSet. Set to false if your cluster already has the NVIDIA device plugin installed (e.g., via GPU Operator). |
-| gpu-feature-discovery.nfd.enabled        | bool   | `true`                                  | Enable Node Feature Discovery (NFD) deployment. Set to `false` if NFD is already installed (e.g., via the NVIDIA GPU Operator) to avoid CRD conflicts. |
-| gpu-feature-discovery.gfd.enabled        | bool   | `true`                                  | Enable GPU Feature Discovery (GFD). Set to `false` if GFD is already installed (e.g., via the NVIDIA GPU Operator). |
+| featureGates.disableNodeAutoProvisioning | bool   | `false`                                 | When `true`, disables Node Auto-Provisioning (NAP) and installs the `gpu-feature-discovery` subchart as a standalone replacement. Leave `false` (default) if using NAP. |
+| gpu-feature-discovery.nfd.enabled        | bool   | `true`                                  | Enable Node Feature Discovery (NFD) deployment within the GFD subchart. Set to `false` if NFD is already installed (e.g., via the NVIDIA GPU Operator) to avoid CRD conflicts. Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
+| gpu-feature-discovery.gfd.enabled        | bool   | `true`                                  | Enable GPU Feature Discovery (GFD) within the GFD subchart. Set to `false` if GFD is already installed (e.g., via the NVIDIA GPU Operator). Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
 
 ## NVIDIA GPU Operator Coexistence
 
 If your cluster already has the [NVIDIA GPU Operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/index.html) installed, it provides its own Node Feature Discovery (NFD) and GPU Feature Discovery (GFD) components. Installing KAITO's bundled copies will cause **CRD and resource conflicts**.
 
-To avoid these conflicts, disable the overlapping components when installing KAITO:
+### How the GFD subchart is controlled
+
+The `gpu-feature-discovery` subchart is **only installed** when `featureGates.disableNodeAutoProvisioning=true`. By default, this value is `false`, so the GFD subchart is not deployed and no NFD/GFD conflicts will occur.
+
+If you have disabled Node Auto-Provisioning (NAP) and the GFD subchart is being installed, you can selectively disable its NFD and GFD components to avoid conflicts with the GPU Operator:
 
 ```bash
 helm install workspace ./charts/kaito/workspace \
   --namespace kaito-workspace --create-namespace \
+  --set featureGates.disableNodeAutoProvisioning=true \
   --set gpu-feature-discovery.nfd.enabled=false \
   --set gpu-feature-discovery.gfd.enabled=false
 ```
@@ -57,17 +63,10 @@ If you also want to skip the bundled NVIDIA device plugin (because the GPU Opera
 ```bash
 helm install workspace ./charts/kaito/workspace \
   --namespace kaito-workspace --create-namespace \
+  --set featureGates.disableNodeAutoProvisioning=true \
   --set gpu-feature-discovery.nfd.enabled=false \
   --set gpu-feature-discovery.gfd.enabled=false \
   --set nvidiaDevicePlugin.enabled=false
 ```
 
-Alternatively, if you don't need GPU auto-provisioning at all, you can disable the entire `gpu-feature-discovery` subchart:
-
-```bash
-helm install workspace ./charts/kaito/workspace \
-  --namespace kaito-workspace --create-namespace \
-  --set featureGates.disableNodeAutoProvisioning=true
-```
-
-> **Note:** The `featureGates.disableNodeAutoProvisioning` flag controls whether the `gpu-feature-discovery` subchart is installed. When set to `true`, no GFD or NFD components are deployed by KAITO.
+> **Note:** If you are using the default configuration (`featureGates.disableNodeAutoProvisioning=false`), the `gpu-feature-discovery` subchart is not installed at all, and no NFD/GFD overrides are needed.

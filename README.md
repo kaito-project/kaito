@@ -130,7 +130,7 @@ The detailed usage for KAITO supported models can be found in [**HERE**](https:/
 
 > Note: Currently the controller does **NOT** handle automatic model upgrade. It only creates inference workloads based on the preset configurations if the workloads do not exist.
 
-The number of the supported models in KAITO is growing! Please check [this](https://kaito-project.github.io/kaito/docs/preset-onboarding) document to see how to add a new supported model. Refer to [tuning document](https://kaito-project.github.io/kaito/docs/tuning), [inference document](https://kaito-project.github.io/kaito/docs/inference) , [RAGEngine document](https://kaito-project.github.io/kaito/docs/rag) and [FAQ](https://kaito-project.github.io/kaito/docs/faq) for more information.
+The number of the supported models in KAITO is growing! Please check [this](https://kaito-project.github.io/kaito/docs/preset-onboarding) document to see how to add a new supported model. Refer to [tuning document](https://kaito-project.github.io/kaito/docs/tuning), [inference document](https://kaito-project.github.io/kaito/docs/inference) , [RAGEngine document](https://kaito-project.github.io/kaito/docs/rag), [LoRA adapters guide](docs/lora-adapters.md), and [FAQ](https://kaito-project.github.io/kaito/docs/faq) for more information.
 
 ## Contributing
 

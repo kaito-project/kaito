@@ -25,7 +25,7 @@ LoRA adapters allow you to customize a pre-trained model's behavior without modi
 
 KAITO supports LoRA adapters in two ways:
 
-1. **Fine-tuning** — Use a `Workspace` with `tuning.method: qlora` to produce adapter weights
+1. **Fine-tuning** — Use a `Workspace` with `tuning.method: qlora` (or `lora`) to produce adapter weights
 2. **Inference** — Use `inference.adapters[]` to attach one or more pre-built adapter images to a base model
 
 ---
@@ -41,7 +41,9 @@ KAITO supports LoRA adapters in two ways:
 
 ## Step 1: Fine-Tune a Model with QLoRA
 
-KAITO supports QLoRA (Quantized LoRA) fine-tuning through the `Workspace` CRD. The tuning job trains adapter weights and pushes them as a container image to your registry.
+KAITO supports QLoRA (Quantized LoRA) and standard LoRA fine-tuning through the `Workspace` CRD. The tuning job trains adapter weights and pushes them as a container image to your registry.
+
+> **Note on GPU instance types:** The examples below use different instance types to illustrate flexibility. `Standard_NC24ads_A100_v4` (A100 GPU, 80 GB VRAM) is recommended for most fine-tuning and inference workloads. Smaller instances like `Standard_NC6s_v3` (V100 GPU, 16 GB VRAM) can work for PVC-based tuning with smaller models and QLoRA quantization, but may not have enough memory for larger models or full LoRA. Choose your instance type based on the model size and whether you are using quantization.
 
 ### 1a. Create a Tuning Configuration (Optional)
 
@@ -127,7 +129,7 @@ kind: Workspace
 metadata:
   name: workspace-tuning-phi-3
 resource:
-  instanceType: "Standard_NC6s_v3"
+  instanceType: "Standard_NC6s_v3"  # Smaller GPU may suffice with QLoRA quantization
   labelSelector:
     matchLabels:
       app: tuning-phi-3
@@ -260,9 +262,21 @@ The adapter container image should contain the LoRA weight files (typically `ada
 
 ### Fine-Tuning Methods
 
-| Method | Description |
-|--------|-------------|
-| `qlora` | QLoRA — 4-bit quantized base model + LoRA adapters (recommended, lower memory) |
+| Method | Description | GPU Memory |
+|--------|-------------|------------|
+| `qlora` | QLoRA — 4-bit quantized base model + LoRA adapters (recommended) | Lower — fits on smaller GPUs |
+| `lora` | Standard LoRA — full-precision base model + LoRA adapters | Higher — requires more VRAM |
+
+> **Recommendation:** Use `qlora` unless you have a specific reason to use full-precision LoRA, as it significantly reduces GPU memory requirements with minimal quality loss.
+
+### GPU Instance Type Guidelines
+
+| Instance Type | GPU | VRAM | Recommended For |
+|--------------|-----|------|-----------------|
+| `Standard_NC24ads_A100_v4` | A100 | 80 GB | Most fine-tuning and inference workloads |
+| `Standard_NC6s_v3` | V100 | 16 GB | QLoRA tuning with smaller models (< 7B params) |
+
+> Choose your instance type based on the model size and quantization method. Larger models and full LoRA require more VRAM.
 
 ### Tuning Output Options
 
@@ -292,7 +306,8 @@ CUDA out of memory
 **Fix:** Try:
 - Use a GPU instance with more VRAM (e.g., `Standard_NC24ads_A100_v4`)
 - Reduce `per_device_train_batch_size` in your ConfigMap
-- Ensure `load_in_4bit: true` is set in `QuantizationConfig`
+- Ensure `load_in_4bit: true` is set in `QuantizationConfig` (use `qlora` method)
+- Switch from `lora` to `qlora` method to reduce memory requirements
 
 ### Adapter not loading during inference
 

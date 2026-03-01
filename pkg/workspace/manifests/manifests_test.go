@@ -23,71 +23,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
-
-func TestGenerateDeploymentManifest(t *testing.T) {
-	workspace := test.MockWorkspaceWithPreset.DeepCopy()
-	workspace.Name = "test-deploy"
-	workspace.Namespace = "kaito"
-
-	revisionNum := "1"
-	replicas := 1
-
-	genFunc := GenerateDeploymentManifest(revisionNum, replicas)
-
-	ctx := &generator.WorkspaceGeneratorContext{
-		Workspace: workspace,
-	}
-	d := &appsv1.Deployment{}
-	err := genFunc(ctx, d)
-	assert.NoError(t, err)
-
-	// Verify basic metadata
-	assert.Equal(t, workspace.Name, d.Name)
-	assert.Equal(t, workspace.Namespace, d.Namespace)
-	assert.Equal(t, revisionNum, d.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation])
-
-	// Verify owner reference
-	assert.Len(t, d.OwnerReferences, 1)
-	assert.Equal(t, "Workspace", d.OwnerReferences[0].Kind)
-
-	// Verify replicas
-	assert.Equal(t, int32(replicas), *d.Spec.Replicas)
-
-	// Verify RollingUpdate strategy for zero-downtime deployments (#1132)
-	assert.Equal(t, appsv1.RollingUpdateDeploymentStrategyType, d.Spec.Strategy.Type)
-	if assert.NotNil(t, d.Spec.Strategy.RollingUpdate, "RollingUpdate strategy should be set") {
-		ru := d.Spec.Strategy.RollingUpdate
-
-		// MaxSurge=1: allow one extra pod during update so new pod starts
-		// before old pod is terminated
-		if assert.NotNil(t, ru.MaxSurge, "MaxSurge should be set") {
-			assert.Equal(t, intstr.Int, ru.MaxSurge.Type)
-			assert.Equal(t, int32(1), ru.MaxSurge.IntVal,
-				"MaxSurge should be 1 to allow a new pod to start before the old one is terminated")
-		}
-
-		// MaxUnavailable=0: never take down the existing pod until the new
-		// one is ready, preventing downtime
-		if assert.NotNil(t, ru.MaxUnavailable, "MaxUnavailable should be set") {
-			assert.Equal(t, intstr.Int, ru.MaxUnavailable.Type)
-			assert.Equal(t, int32(0), ru.MaxUnavailable.IntVal,
-				"MaxUnavailable should be 0 to prevent downtime during rolling updates")
-		}
-	}
-
-	// Verify selector labels
-	assert.Equal(t, workspace.Name, d.Spec.Selector.MatchLabels[kaitov1beta1.LabelWorkspaceName])
-	assert.Equal(t, workspace.Name, d.Spec.Template.Labels[kaitov1beta1.LabelWorkspaceName])
-}
 
 func TestGenerateInferencePoolOCIRepository(t *testing.T) {
 	workspace := test.MockInferenceSetWithPreset

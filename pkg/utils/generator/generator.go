@@ -38,7 +38,7 @@ type GeneratorContext interface {
 }
 
 type ManifestType interface {
-	appsv1.StatefulSet | appsv1.Deployment | batchv1.Job | corev1.PodSpec
+	appsv1.StatefulSet | batchv1.Job | corev1.PodSpec
 }
 
 type TypedManifestModifier[C GeneratorContext, T ManifestType] func(ctx *C, obj *T) error

@@ -225,6 +225,11 @@ rag_hybrid_retrieve_latency = Histogram(
     buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
 )
 
+rag_hybrid_retrieve_latency_avg = Gauge(
+    "rag_hybrid_retrieve_latency_avg_seconds",
+    "Running average latency of hybrid retrieve calls (sum / count)",
+)
+
 rag_hybrid_top_score = Histogram(
     "rag_hybrid_top_score",
     "Highest (best) fused score among results per hybrid retrieve call",
@@ -283,5 +288,11 @@ rag_hybrid_dense_only_count = Histogram(
 rag_hybrid_sparse_only_count = Histogram(
     "rag_hybrid_sparse_only_count",
     "Number of final result nodes that came from sparse (BM25) search only",
+    buckets=(0, 1, 2, 3, 5, 10, 20, 50),
+)
+
+rag_hybrid_filtered_count = Histogram(
+    "rag_hybrid_filtered_count",
+    "Number of result nodes dropped per retrieve call due to score below threshold",
     buckets=(0, 1, 2, 3, 5, 10, 20, 50),
 )

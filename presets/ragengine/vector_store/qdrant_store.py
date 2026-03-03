@@ -21,7 +21,7 @@ from llama_index.vector_stores.qdrant import QdrantVectorStore
 from qdrant_client import AsyncQdrantClient, QdrantClient
 from qdrant_client.http import models as rest
 
-from ragengine.config import RAG_MAX_TOP_K
+from ragengine.config import RAG_HYBRID_SCORE_THRESHOLD, RAG_MAX_TOP_K
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.models import Document
 
@@ -59,6 +59,10 @@ class QdrantVectorStoreHandler(BaseVectorStore):
 
     # Over-fetch factor for prefetch candidates (multiplied by top_k)
     PREFETCH_MULTIPLIER = 3
+
+    # Running counters for latency average (avoid accessing Histogram internals)
+    _latency_sum: float = 0.0
+    _latency_count: int = 0
 
     def __init__(
         self,
@@ -584,6 +588,24 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                     "metadata": node.node.metadata if node.node.metadata else None,
                 })
 
+            # ── Score threshold filtering ──
+            filtered_count = 0
+            if RAG_HYBRID_SCORE_THRESHOLD > 0:
+                before_len = len(results)
+                results = [r for r in results if r["score"] >= RAG_HYBRID_SCORE_THRESHOLD]
+                scores = [r["score"] for r in results]
+                filtered_count = before_len - len(results)
+                if filtered_count > 0:
+                    # Recount source breakdown after filtering
+                    overlap_count = sum(1 for r in results if r["source"] == "both")
+                    dense_only_count = sum(1 for r in results if r["source"] == "dense_only")
+                    sparse_only_count = sum(1 for r in results if r["source"] == "sparse_only")
+                    logger.info(
+                        f"Score threshold={RAG_HYBRID_SCORE_THRESHOLD}: "
+                        f"filtered out {filtered_count} low-score nodes, "
+                        f"{len(results)} remaining"
+                    )
+
             logger.info(
                 f"Source breakdown: both={overlap_count}, "
                 f"dense_only={dense_only_count}, sparse_only={sparse_only_count}"
@@ -599,10 +621,12 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                     rag_hybrid_median_score,
                     rag_hybrid_overlap_count,
                     rag_hybrid_retrieve_latency,
+                    rag_hybrid_retrieve_latency_avg,
                     rag_hybrid_score_spread,
                     rag_hybrid_search_mode_total,
                     rag_hybrid_sparse_candidates,
                     rag_hybrid_sparse_only_count,
+                    rag_hybrid_filtered_count,
                     rag_hybrid_sparse_top_k,
                     rag_hybrid_top_k_requested,
                     rag_hybrid_top_score,
@@ -612,6 +636,12 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                 # Mode & latency
                 rag_hybrid_search_mode_total.labels(search_mode="hybrid").inc()
                 rag_hybrid_retrieve_latency.observe(elapsed)
+                # Update running average
+                self.__class__._latency_sum += elapsed
+                self.__class__._latency_count += 1
+                rag_hybrid_retrieve_latency_avg.set(
+                    self.__class__._latency_sum / self.__class__._latency_count
+                )
                 # Request params
                 rag_hybrid_top_k_requested.observe(top_k)
                 rag_hybrid_sparse_top_k.observe(sparse_top_k)
@@ -623,6 +653,7 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                 rag_hybrid_overlap_count.observe(overlap_count)
                 rag_hybrid_dense_only_count.observe(dense_only_count)
                 rag_hybrid_sparse_only_count.observe(sparse_only_count)
+                rag_hybrid_filtered_count.observe(filtered_count)
                 # Score metrics
                 if scores:
                     rag_lowest_source_score.observe(min(scores))
@@ -633,8 +664,8 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                         rag_hybrid_median_score.observe(statistics.median(scores))
                     else:
                         rag_hybrid_median_score.observe(scores[0])
-            except Exception:
-                pass  # Metrics should never break retrieval
+            except Exception as metrics_err:
+                logger.warning(f"Metrics recording failed: {metrics_err}")  # Metrics should never break retrieval
 
             return {
                 "query": query,

@@ -30,9 +30,16 @@ jobs:
             This pull request has been automatically marked as stale because it has not had
             activity in the last 90 days. It will be closed in 14 days if no further
             activity occurs. Thank you for your contributions.
+          close-issue-message: >
+            This issue has been automatically closed due to inactivity.
+            Please reopen if this is still relevant.
+          close-pr-message: >
+            This pull request has been automatically closed due to inactivity.
+            Please reopen if this is still relevant.
           days-before-stale: 90
           days-before-close: 14
           stale-issue-label: 'stale'
           stale-pr-label: 'stale'
           exempt-issue-labels: 'enhancement,help wanted,good first issue,security'
           exempt-pr-labels: 'enhancement,help wanted,good first issue,security'
+          exempt-draft-pr: true

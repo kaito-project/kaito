@@ -77,14 +77,6 @@ func Contains(s []string, e string) bool {
 	return false
 }
 
-// SearchMap performs a search for a key in a map[string]interface{}.
-func SearchMap(m map[string]interface{}, key string) (value interface{}, exists bool) {
-	if val, ok := m[key]; ok {
-		return val, true
-	}
-	return nil, false
-}
-
 // SearchRawExtension performs a search for a key within a runtime.RawExtension.
 func SearchRawExtension(raw runtime.RawExtension, key string) (interface{}, bool, error) {
 	var data map[string]interface{}
@@ -98,20 +90,6 @@ func SearchRawExtension(raw runtime.RawExtension, key string) (interface{}, bool
 	}
 
 	return result, true, nil
-}
-
-func MergeConfigMaps(baseMap, overrideMap map[string]string) map[string]string {
-	merged := make(map[string]string)
-	for k, v := range baseMap {
-		merged[k] = v
-	}
-
-	// Override with values from overrideMap
-	for k, v := range overrideMap {
-		merged[k] = v
-	}
-
-	return merged
 }
 
 func BuildCmdStr(baseCommand string, runParams ...map[string]string) string {
@@ -329,21 +307,6 @@ func ParseHuggingFaceModelVersion(version string) (repoId string, revision strin
 func GetRayLeaderHost(meta metav1.ObjectMeta) string {
 	return fmt.Sprintf("%s-0.%s-headless.%s.svc.cluster.local",
 		meta.Name, meta.Name, meta.Namespace)
-}
-
-// DedupVolumeMounts removes duplicate volume mounts by only keeping the first occurrence of each name
-func DedupVolumeMounts(mounts []corev1.VolumeMount) []corev1.VolumeMount {
-	seen := make(map[string]bool)
-	var result []corev1.VolumeMount
-
-	for _, mount := range mounts {
-		if !seen[mount.Name] {
-			seen[mount.Name] = true
-			result = append(result, mount)
-		}
-	}
-
-	return result
 }
 
 // InferencePoolName returns the name of the inference pool for the given workspace.

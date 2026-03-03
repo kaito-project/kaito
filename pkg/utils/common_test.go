@@ -552,29 +552,6 @@ func TestContains(t *testing.T) {
 	}
 }
 
-func TestSearchMap(t *testing.T) {
-	tests := []struct {
-		name       string
-		m          map[string]interface{}
-		key        string
-		wantValue  interface{}
-		wantExists bool
-	}{
-		{"key exists", map[string]interface{}{"foo": "bar"}, "foo", "bar", true},
-		{"key missing", map[string]interface{}{"foo": "bar"}, "missing", nil, false},
-		{"empty map", map[string]interface{}{}, "key", nil, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			val, exists := SearchMap(tt.m, tt.key)
-			assert.Equal(t, tt.wantExists, exists)
-			if tt.wantExists {
-				assert.Equal(t, tt.wantValue, val)
-			}
-		})
-	}
-}
-
 func TestSearchRawExtension(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -616,39 +593,6 @@ func TestSearchRawExtension(t *testing.T) {
 			if tt.wantFound {
 				assert.Equal(t, tt.wantValue, val)
 			}
-		})
-	}
-}
-
-func TestMergeConfigMaps(t *testing.T) {
-	tests := []struct {
-		name     string
-		base     map[string]string
-		override map[string]string
-		want     map[string]string
-	}{
-		{
-			name:     "override value wins",
-			base:     map[string]string{"a": "1", "b": "2"},
-			override: map[string]string{"b": "99", "c": "3"},
-			want:     map[string]string{"a": "1", "b": "99", "c": "3"},
-		},
-		{
-			name:     "empty override",
-			base:     map[string]string{"a": "1"},
-			override: map[string]string{},
-			want:     map[string]string{"a": "1"},
-		},
-		{
-			name:     "empty base",
-			base:     map[string]string{},
-			override: map[string]string{"x": "y"},
-			want:     map[string]string{"x": "y"},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, MergeConfigMaps(tt.base, tt.override))
 		})
 	}
 }
@@ -742,21 +686,6 @@ func TestSelectNodes(t *testing.T) {
 		assert.Len(t, result, 2)
 		assert.Equal(t, "node-a", result[0].Name)
 	})
-}
-
-func TestDedupVolumeMounts(t *testing.T) {
-	mounts := []corev1.VolumeMount{
-		{Name: "vol1", MountPath: "/mnt/1"},
-		{Name: "vol2", MountPath: "/mnt/2"},
-		{Name: "vol1", MountPath: "/mnt/1-dup"},
-		{Name: "vol3", MountPath: "/mnt/3"},
-	}
-	result := DedupVolumeMounts(mounts)
-	assert.Len(t, result, 3)
-	// First occurrence of vol1 is kept
-	assert.Equal(t, "/mnt/1", result[0].MountPath)
-	names := []string{result[0].Name, result[1].Name, result[2].Name}
-	assert.Equal(t, []string{"vol1", "vol2", "vol3"}, names)
 }
 
 func TestGetReleaseNamespace(t *testing.T) {

@@ -1,0 +1,53 @@
+name: Dead Code Check
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore: ["docs/**", "**.md", "**.mdx", "**.png", "**.jpg"]
+  pull_request:
+    branches:
+      - main
+    paths-ignore: ["docs/**", "**.md", "**.mdx", "**.png", "**.jpg"]
+
+env:
+  GO_VERSION: '1.24'
+
+permissions:
+  contents: read
+
+jobs:
+  deadcode:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+          disable-sudo: true
+          disable-telemetry: true
+
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@8e57b58e57be52ac95949151e2777ffda8501267 # v5.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install deadcode
+        run: go install golang.org/x/tools/cmd/deadcode@latest
+
+      - name: Run deadcode
+        run: |
+          output=$(deadcode -test ./... 2>&1)
+          if [ -n "$output" ]; then
+            echo "Dead code detected:"
+            echo "$output"
+            exit 1
+          fi
+          echo "No dead code found."

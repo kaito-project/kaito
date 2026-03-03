@@ -74,14 +74,15 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 
 		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalSafeTensorFileSize)
 		requiredMemoryBytes := int64(float64(totalGPUMemoryRequired.Value()) * 1.02)
-		// Per-slice memory (GPUMemGiB is sliceMemory * count, GPUCount is the MIG count)
-		perSliceMemBytes := int64(gpuConfig.GPUMemGiB) * consts.GiBToBytes / int64(gpuConfig.GPUCount)
+		// Per-slice memory (GPUMem is total across all slices, GPUCount is the MIG count)
+		perSliceMemBytes := gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount)
 		availablePerSlice := int64(float64(perSliceMemBytes) * 0.84)
 
 		if requiredMemoryBytes > availablePerSlice {
-			return 0, fmt.Errorf("model requires %s but MIG profile %s only provides %dGB (%.1fGB available after vLLM overhead)",
+			perSliceGiB := float64(perSliceMemBytes) / float64(consts.GiBToBytes)
+			return 0, fmt.Errorf("model requires %s but MIG profile %s only provides %.0fGB (%.1fGB available after vLLM overhead)",
 				totalGPUMemoryRequired.String(), workspace.Resource.MIG.Profile,
-				gpuConfig.GPUMemGiB/gpuConfig.GPUCount, float64(availablePerSlice)/float64(consts.GiBToBytes))
+				perSliceGiB, float64(availablePerSlice)/float64(consts.GiBToBytes))
 		}
 
 		klog.Infof("[AdvancedEstimator] MIG mode: workspace=%s profile=%s, nodeCount=1", workspace.Name, workspace.Resource.MIG.Profile)

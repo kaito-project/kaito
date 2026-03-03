@@ -235,7 +235,7 @@ func GetMIGGPUConfig(migProfile string, migCount int) (*sku.GPUConfig, error) {
 	return &sku.GPUConfig{
 		SKU:        "unknown",
 		GPUCount:   migCount,
-		GPUMemGiB:  memGB * migCount,
+		GPUMem:     resource.MustParse(fmt.Sprintf("%dGi", memGB*migCount)),
 		IsMIG:      true,
 		MIGProfile: migProfile,
 	}, nil

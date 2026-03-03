@@ -714,7 +714,7 @@ func TestGetGPUConfig(t *testing.T) {
 			expectedConfig: &sku.GPUConfig{
 				SKU:        "unknown",
 				GPUCount:   1,
-				GPUMemGiB:  10,
+				GPUMem:     resource.MustParse("10Gi"),
 				IsMIG:      true,
 				MIGProfile: "1g.10gb",
 			},
@@ -739,7 +739,7 @@ func TestGetGPUConfig(t *testing.T) {
 			expectedConfig: &sku.GPUConfig{
 				SKU:        "unknown",
 				GPUCount:   3,
-				GPUMemGiB:  30,
+				GPUMem:     resource.MustParse("30Gi"),
 				IsMIG:      true,
 				MIGProfile: "1g.10gb",
 			},

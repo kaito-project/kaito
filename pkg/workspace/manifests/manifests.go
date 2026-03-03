@@ -209,65 +209,6 @@ func SetJobPodSpec(podSpec *corev1.PodSpec) func(*generator.WorkspaceGeneratorCo
 	}
 }
 
-func GenerateDeploymentManifest(revisionNum string, replicas int) func(*generator.WorkspaceGeneratorContext, *appsv1.Deployment) error {
-	return func(ctx *generator.WorkspaceGeneratorContext, d *appsv1.Deployment) error {
-		selector := map[string]string{
-			kaitov1beta1.LabelWorkspaceName: ctx.Workspace.Name,
-		}
-		// if workspaceObj.Labels contains "inferenceset.kaito.sh/created-by", add it to selector for VPA/HPA purpose
-		if ctx.Workspace.Labels != nil {
-			if createdBy, exists := ctx.Workspace.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; exists {
-				klog.Infof("Adding label %s=%s to deployment selector", consts.WorkspaceCreatedByInferenceSetLabel, createdBy)
-				selector[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
-			}
-		}
-		labelselector := &metav1.LabelSelector{
-			MatchLabels: selector,
-		}
-
-		d.ObjectMeta = metav1.ObjectMeta{
-			Name:      ctx.Workspace.Name,
-			Namespace: ctx.Workspace.Namespace,
-			OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(ctx.Workspace, kaitov1beta1.GroupVersion.WithKind("Workspace")),
-			},
-			Annotations: map[string]string{
-				kaitov1beta1.WorkspaceRevisionAnnotation: revisionNum,
-			},
-		}
-		d.Spec = appsv1.DeploymentSpec{
-			Replicas: lo.ToPtr(int32(replicas)),
-			Strategy: appsv1.DeploymentStrategy{
-				Type: appsv1.RollingUpdateDeploymentStrategyType,
-				RollingUpdate: &appsv1.RollingUpdateDeployment{
-					MaxSurge: &intstr.IntOrString{
-						Type:   intstr.Int,
-						IntVal: 0,
-					},
-					MaxUnavailable: &intstr.IntOrString{
-						Type:   intstr.Int,
-						IntVal: 1,
-					},
-				}, // Configuration for rolling updates: allows no extra pods during the update and permits at most one unavailable pod at a time。
-			},
-			Selector: labelselector,
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: selector,
-				},
-			},
-		}
-		return nil
-	}
-}
-
-func SetDeploymentPodSpec(podSpec *corev1.PodSpec) func(*generator.WorkspaceGeneratorContext, *appsv1.Deployment) error {
-	return func(ctx *generator.WorkspaceGeneratorContext, d *appsv1.Deployment) error {
-		d.Spec.Template.Spec = *podSpec
-		return nil
-	}
-}
-
 func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, volumeMounts []corev1.VolumeMount) ([]corev1.Container, []corev1.EnvVar, []corev1.Volume) {
 	size := len(wObj.Inference.Adapters)
 
@@ -329,7 +270,7 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 	// if workspaceObj.Labels contains "inferenceset.kaito.sh/created-by", add it to selector for VPA/HPA purpose
 	if workspaceObj.Labels != nil {
 		if createdBy, exists := workspaceObj.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; exists {
-			klog.Infof("Adding label %s=%s to deployment selector", consts.WorkspaceCreatedByInferenceSetLabel, createdBy)
+			klog.Infof("Adding label %s=%s to statefulset selector", consts.WorkspaceCreatedByInferenceSetLabel, createdBy)
 			templateCopy.ObjectMeta.Labels[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
 			labelselector.MatchLabels[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
 		}
@@ -435,7 +376,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 	// since only the leader pod is capable of serving traffic.
 	matchLabels[appsv1.PodIndexLabel] = "0"
 
-	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.0.0/config/charts/inferencepool/values.yaml
+	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.3.1/config/charts/inferencepool/values.yaml
 	helmValues := map[string]any{
 		"inferenceExtension": map[string]any{
 			"image": map[string]string{

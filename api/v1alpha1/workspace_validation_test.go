@@ -274,7 +274,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Valid Resource - SKU Capacity == Model Requirement",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC12s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				Count:        pointerToInt(1),
 			},
 			modelGPUCount:           "1",
@@ -288,7 +288,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Insufficient total GPU memory",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV6",
+				InstanceType: "Standard_NV12s_v3",
 				Count:        pointerToInt(1),
 			},
 			modelGPUCount:           "1",
@@ -360,7 +360,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Tuning validation with single node",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC6s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				Count:        pointerToInt(1),
 			},
 			errContent:     "",
@@ -370,7 +370,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Tuning validation with multinode",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC6s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				Count:        pointerToInt(2),
 			},
 			errContent:     "Tuning does not currently support multinode configurations",
@@ -380,7 +380,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Invalid Preset Name",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC6s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				Count:        pointerToInt(2),
 			},
 			errContent:         "",
@@ -391,7 +391,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Deprecated Model",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC6s_v3",
+				InstanceType: "Standard_NC4as_T4_v3",
 				Count:        pointerToInt(1),
 			},
 			preset:             true,
@@ -1062,6 +1062,19 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 			wantErr:  false,
 			errField: "",
 		},
+		{
+			name: "Unsupported node image family annotation",
+			workspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						AnnotationNodeImageFamily: "CustomLinux",
+					},
+				},
+				Inference: &InferenceSpec{},
+			},
+			wantErr:  true,
+			errField: AnnotationNodeImageFamily,
+		},
 	}
 
 	for _, tt := range tests {
@@ -1098,7 +1111,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 			Namespace: "kaito",
 		},
 		Resource: ResourceSpec{
-			InstanceType: "Standard_NC6s_v3",
+			InstanceType: "Standard_NC4as_T4_v3",
 			Count:        pointerToInt(1),
 		},
 		Inference: &InferenceSpec{
@@ -1816,7 +1829,7 @@ other_field: value
 					Config: "valid-config-with-max-model-len",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1838,7 +1851,7 @@ other_field: value
 					Config: "invalid-config-without-max-model-len",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1860,7 +1873,7 @@ other_field: value
 					Config: "invalid-config-empty-vllm",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1882,7 +1895,7 @@ other_field: value
 					Config: "invalid-config-no-vllm",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV12", // 2 GPUs with 8GB each (16GB total)
+					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1904,7 +1917,7 @@ other_field: value
 					Config: "invalid-config-without-max-model-len",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV6", // 1 GPU with 8GB
+					InstanceType: "Standard_NV12s_v3", // 1 GPU with 8GB
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1948,7 +1961,7 @@ other_field: value
 					Config: "invalid-config-without-max-model-len",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC6s_v3", // 1 GPUs with 16GB
+					InstanceType: "Standard_NC4as_T4_v3", // 1 GPUs with 16GB
 					Count:        pointerToInt(2),
 				},
 			},
@@ -1970,7 +1983,7 @@ other_field: value
 					Config: "valid-config-with-max-model-len",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC6s_v3", // 1 GPUs with 16GB
+					InstanceType: "Standard_NC4as_T4_v3", // 1 GPUs with 16GB
 					Count:        pointerToInt(2),
 				},
 			},

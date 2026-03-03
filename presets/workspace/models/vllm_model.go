@@ -125,7 +125,7 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 		}
 
 		for _, arch := range param.Metadata.Architectures {
-			if _, ok := vLLMModelArchMap[arch]; ok {
+			if vLLMModelArchSet.Has(arch) {
 				return registerModel(modelName, param), nil
 			}
 		}

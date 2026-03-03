@@ -92,6 +92,7 @@ func main() {
 	var enableWebhook bool
 	var probeAddr string
 	var featureGates string
+	var defaultNodeImageFamily string
 	var kubeClientQPS int = 30
 	var kubeClientBurst int = 50
 	var printVersionAndExit bool
@@ -105,6 +106,7 @@ func main() {
 	flag.BoolVar(&enableWebhook, "webhook", true,
 		"Enable webhook for controller manager. Default is true.")
 	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false,enableMIG=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false,enableMIG=false.")
+	flag.StringVar(&defaultNodeImageFamily, "default-node-image-family", "", "Default node image family annotation for generated NodeClaims. Supported values: azurelinux, ubuntu. Empty means ubuntu. Unsupported values cause startup failure.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
 		Development: true,
@@ -121,6 +123,17 @@ func main() {
 	if err := featuregates.ParseAndValidateFeatureGates(featureGates); err != nil {
 		klog.ErrorS(err, "unable to set `feature-gates` flag")
 		exitWithErrorFunc()
+	}
+
+	if defaultNodeImageFamily == "" {
+		defaultNodeImageFamily = consts.NodeImageFamilyUbuntu
+	} else {
+		normalizedNodeImageFamily, valid := consts.NormalizeSupportedNodeImageFamily(defaultNodeImageFamily)
+		if !valid {
+			klog.ErrorS(fmt.Errorf("unsupported node image family %q", defaultNodeImageFamily), "unable to set `default-node-image-family` flag")
+			exitWithErrorFunc()
+		}
+		defaultNodeImageFamily = normalizedNodeImageFamily
 	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
@@ -168,6 +181,7 @@ func main() {
 		log.Log.WithName("controllers").WithName("Workspace"),
 		mgr.GetEventRecorderFor("KAITO-Workspace-controller"),
 	)
+	workspaceReconciler.SetDefaultNodeImageFamily(defaultNodeImageFamily)
 
 	if err = workspaceReconciler.SetupWithManager(mgr); err != nil {
 		klog.ErrorS(err, "unable to create controller", "controller", "Workspace")

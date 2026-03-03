@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
@@ -29,15 +28,15 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 type NodeClaimManager struct {
 	client.Client
-	recorder     record.EventRecorder
-	expectations *utils.ControllerExpectations
-	logger       klog.Logger
+	recorder               record.EventRecorder
+	expectations           *utils.ControllerExpectations
+	logger                 klog.Logger
+	defaultNodeImageFamily string
 }
 
 func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expectations *utils.ControllerExpectations) *NodeClaimManager {
@@ -47,6 +46,10 @@ func NewNodeClaimManager(c client.Client, recorder record.EventRecorder, expecta
 		expectations: expectations,
 		logger:       klog.NewKlogr().WithName("NodeClaim"),
 	}
+}
+
+func (c *NodeClaimManager) SetDefaultNodeImageFamily(defaultNodeImageFamily string) {
+	c.defaultNodeImageFamily = defaultNodeImageFamily
 }
 
 // GetNumNodeClaimsNeeded calculates how many NodeClaims are needed to meet the target node count for the workspace.
@@ -81,16 +84,13 @@ func (c *NodeClaimManager) CheckNodeClaims(ctx context.Context, wObj *kaitov1bet
 		nodeClaims = append(nodeClaims, &ncList.Items[i])
 	}
 
-	klog.InfoS("Existing NodeClaims fetched", "count", len(nodeClaims), "workspace", klog.KObj(wObj))
-
 	// Calculate the total number of NodeClaims needed.
 	numNodeClaimsNeeded := c.GetNumNodeClaimsNeeded(ctx, wObj, readyNodes)
-	klog.InfoS("NodeClaims needed calculation", "needed", numNodeClaimsNeeded, "workspace", klog.KObj(wObj))
 
 	// Then, the number of NodeClaims to create is the difference between the total number needed and number of existing NodeClaims.
 	numNodeClaimsToCreate := max(0, numNodeClaimsNeeded-len(nodeClaims))
 
-	klog.InfoS("Number of NodeClaims to create", "count", numNodeClaimsToCreate)
+	klog.InfoS("NodeClaim calculation", "workspace", klog.KObj(wObj), "existing", len(nodeClaims), "needed", numNodeClaimsNeeded, "toCreate", numNodeClaimsToCreate)
 
 	return numNodeClaimsToCreate, nodeClaims, nil
 }
@@ -99,17 +99,11 @@ func (c *NodeClaimManager) CheckNodeClaims(ctx context.Context, wObj *kaitov1bet
 // this function will be invoked before creating workloads for workspace in order to ensure nodes.
 func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1beta1.Workspace, nodesToCreate int) error {
 	workspaceKey := client.ObjectKeyFromObject(wObj).String()
-	klog.InfoS("Creating additional NodeClaims", "workspace", workspaceKey, "toCreate", nodesToCreate)
 	if nodesToCreate <= 0 {
 		return nil
 	}
 
-	if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-		"CreatingUpNodeClaims", fmt.Sprintf("Creating up %d additional NodeClaims", nodesToCreate)); updateErr != nil {
-		klog.ErrorS(updateErr, "failed to update NodeClaim status condition", "workspace", workspaceKey)
-		return fmt.Errorf("failed to update NodeClaim status condition: %w", updateErr)
-	}
-
+	klog.InfoS("Creating additional NodeClaims", "workspace", workspaceKey, "toCreate", nodesToCreate)
 	c.expectations.ExpectCreations(c.logger, workspaceKey, nodesToCreate)
 
 	nodeOSDiskSize := c.determineNodeOSDiskSize(ctx, wObj)
@@ -118,7 +112,9 @@ func (c *NodeClaimManager) CreateUpNodeClaims(ctx context.Context, wObj *kaitov1
 		var nodeClaim *karpenterv1.NodeClaim
 
 		err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-			nodeClaim = nodeclaim.GenerateNodeClaimManifest(nodeOSDiskSize, wObj)
+			nodeClaim = nodeclaim.GenerateNodeClaimManifestWithOptions(nodeOSDiskSize, wObj, nodeclaim.ManifestOptions{
+				DefaultNodeImageFamily: c.defaultNodeImageFamily,
+			})
 			return c.Client.Create(ctx, nodeClaim)
 		})
 
@@ -156,22 +152,10 @@ func (c *NodeClaimManager) EnsureNodeClaimsReady(ctx context.Context, wObj *kait
 		"totalExistingNodeClaims", len(existingNodeClaims))
 
 	if readyCount >= targetNodeClaimCount {
-		// Enough NodeClaims are ready - update status condition to indicate success
-		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionTrue,
-			"NodeClaimsReady", fmt.Sprintf("Enough NodeClaims are ready (TargetNodeClaims: %d, CurrentReadyNodeClaims: %d)", targetNodeClaimCount, readyCount)); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update NodeClaim status condition NodeClaimsReady to true", "workspace", klog.KObj(wObj))
-			return false, fmt.Errorf("failed to update NodeClaim status condition(NodeClaimsReady): %w", updateErr)
-		}
 		return true, nil
 	} else {
 		klog.InfoS("Ready nodeClaims for workspace are not enough currently", "workspace", client.ObjectKeyFromObject(wObj).String(),
 			"targetNodeClaims", targetNodeClaimCount, "currentReadyNodeClaims", readyCount)
-		if updateErr := workspace.UpdateStatusConditionIfNotMatch(ctx, c.Client, wObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,
-			"NodeClaimNotReady", fmt.Sprintf("Ready NodeClaims are not enough (TargetNodeClaims: %d, CurrentReadyNodeClaims: %d)", targetNodeClaimCount, readyCount)); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update NodeClaim status condition NodeClaimsReady to false", "workspace", klog.KObj(wObj))
-			return false, fmt.Errorf("failed to update NodeClaim status condition(NodeClaimNotReady): %w", updateErr)
-		}
-
 		return false, nil
 	}
 }

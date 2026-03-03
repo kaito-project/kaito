@@ -14,6 +14,10 @@
 package sku
 
 import (
+	"fmt"
+
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -25,13 +29,18 @@ type CloudSKUHandler interface {
 type GPUConfig struct {
 	SKU             string
 	GPUCount        int
-	GPUMemGiB       int
+	GPUMem          resource.Quantity
 	GPUModel        string
 	NVMeDiskEnabled bool
 	// IsMIG indicates that this config represents a MIG partition rather than full GPUs.
 	IsMIG bool
 	// MIGProfile is the MIG partition profile (e.g., "1g.10gb"). Empty when IsMIG is false.
 	MIGProfile string
+}
+
+func (cfg *GPUConfig) String() string {
+	return fmt.Sprintf("SKU: %s, GPUCount: %d, GPUMem: %s, GPUModel: %s, NVMeDiskEnabled: %t",
+		cfg.SKU, cfg.GPUCount, cfg.GPUMem.String(), cfg.GPUModel, cfg.NVMeDiskEnabled)
 }
 
 func GetCloudSKUHandler(cloud string) CloudSKUHandler {

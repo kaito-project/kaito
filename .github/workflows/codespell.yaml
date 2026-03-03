@@ -8,7 +8,7 @@ jobs:
     name: Check for spelling errors
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - uses: codespell-project/actions-codespell@8d1a4b1bd974b8082be0842c2e7e57c8bf6b9b63
         with:
           check_filenames: true

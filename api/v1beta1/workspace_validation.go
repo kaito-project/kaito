@@ -131,7 +131,32 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 		}
 	}
 
+	errmsgs := w.validateNodeImageFamilyAnnotation()
+	if errmsgs != nil {
+		errs = errs.Also(errmsgs)
+	}
+
 	return errs
+}
+
+func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) {
+	if w.GetAnnotations() == nil {
+		return nil
+	}
+
+	nodeImageFamily, exists := w.GetAnnotations()[AnnotationNodeImageFamily]
+	if !exists {
+		return nil
+	}
+
+	if _, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("unsupported node image family %q, supported values are azurelinux, ubuntu", nodeImageFamily),
+			fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeImageFamily),
+		)
+	}
+
+	return nil
 }
 
 func (w *Workspace) validateUpdate(old *Workspace) (errs *apis.FieldError) {
@@ -472,8 +497,8 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU count: node %s has %d GPUs, but previous node has %d GPUs", node.Name, gpuConfig.GPUCount, skuConfig.GPUCount)))
 						return errs
 					}
-					if gpuConfig.GPUMemGiB != skuConfig.GPUMemGiB {
-						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %d GB memory, but previous node has %d GB memory", node.Name, gpuConfig.GPUMemGiB, skuConfig.GPUMemGiB)))
+					if !gpuConfig.GPUMem.Equal(skuConfig.GPUMem) {
+						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %s memory, but previous node has %s memory", node.Name, gpuConfig.GPUMem.String(), skuConfig.GPUMem.String())))
 						return errs
 					}
 				}
@@ -514,7 +539,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			params := modelPreset.GetInferenceParameters()
 
 			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
-			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
+			machineTotalGPUMem := resource.NewQuantity(int64(machineCount)*skuConfig.GPUMem.Value(), resource.BinarySI) // Total GPU memory
 
 			modelGPUCount := resource.MustParse(params.GPUCountRequirement)
 			modelTotalGPUMemory := resource.MustParse(params.TotalSafeTensorFileSize)
@@ -559,7 +584,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			// If the model preset supports distributed inference, and a single machine has insufficient GPU memory to run the model,
 			// then we need to make sure the Workspace is not using the Huggingface Transformers runtime since it no longer supports
 			// multi-node distributed inference.
-			totalGPUMemoryPerMachine := resource.NewQuantity(int64(skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI)
+			totalGPUMemoryPerMachine := resource.NewQuantity(skuConfig.GPUMem.Value(), resource.BinarySI)
 			distributedInferenceRequired := modelTotalGPUMemory.Cmp(*totalGPUMemoryPerMachine) > 0
 			if modelPreset.SupportDistributedInference() && distributedInferenceRequired && runtime == model.RuntimeNameHuggingfaceTransformers {
 				errs = errs.Also(apis.ErrGeneric("Multi-node distributed inference is not supported with Huggingface Transformers runtime"))

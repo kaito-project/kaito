@@ -4,9 +4,15 @@ on:
   push:
     tags:
       # Trigger on new minor version tags (e.g., v0.6.0, v0.7.0, v1.0.0) and release candidates (e.g., v0.6.0-rc.0)
-      # This regex matches tags like v0.6.0, v1.0.0, v0.6.0-rc.0 but excludes patch releases like v0.6.1, v0.6.2
-      - 'v[0-9]+.[0-9]+.0'
-      - 'v[0-9]+.[0-9]+.0-rc.[0-9]+'
+      # This pattern matches tags like v0.6.0, v1.0.0, v0.6.0-rc.0 but excludes patch releases like v0.6.1, v0.6.2
+      - 'v[0-9]*.[0-9]*.0'
+      - 'v[0-9]*.[0-9]*.0-rc.[0-9]*'
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Version tag to create docs for (e.g., v0.9.0)'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -27,14 +33,15 @@ jobs:
           egress-policy: audit
 
       - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag=v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # tag=v6.0.1
         with:
           fetch-depth: 0
           # Check out the main branch to create versioned docs from the latest content
           ref: main
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 20.x
 
@@ -56,8 +63,12 @@ jobs:
       - name: Extract version from tag
         id: get-version
         run: |
-          # Extract version from tag (e.g., v0.6.0 -> v0.6.x or v0.6.0-rc.0)
-          VERSION_TAG=${GITHUB_REF#refs/tags/}
+          # Extract version from tag or workflow_dispatch input
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION_TAG="${{ inputs.version_tag }}"
+          else
+            VERSION_TAG=${GITHUB_REF#refs/tags/}
+          fi
           echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_OUTPUT
           
           # Check if this is a release candidate version

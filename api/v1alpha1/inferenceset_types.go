@@ -38,7 +38,9 @@ type InferenceSetSpec struct {
 	// Template is the template used to create the InferenceSet.
 	Template InferenceSetTemplate `json:"template"`
 	// Replicas is the desired number of workspaces to be created.
-	// +required
+	// +optional
+	// +kubebuilder:default:=1
+	// +kubebuilder:validation:Minimum=1
 	Replicas int `json:"replicas,omitempty"`
 	// NodeCountLimit is the maximum number of GPU nodes that can be created for the InferenceSet.
 	// If not specified, there is no limit on the number of GPU nodes that can be created.

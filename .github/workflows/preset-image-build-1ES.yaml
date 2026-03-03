@@ -20,6 +20,7 @@ env:
 permissions:
   id-token: write
   contents: read
+  packages: write
 
 jobs:
   determine-models:
@@ -30,7 +31,7 @@ jobs:
       is_matrix_empty: ${{ steps.check_matrix_empty.outputs.is_empty }}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           submodules: true
           fetch-depth: 0
@@ -73,7 +74,7 @@ jobs:
       max-parallel: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           submodules: true
           fetch-depth: 0
@@ -183,6 +184,8 @@ jobs:
           acr_name: ${{ secrets.PROD_1ES_ACR_USERNAME }}
           acr_username: ${{ secrets.PROD_1ES_ACR_USERNAME }}
           acr_password: ${{ secrets.PROD_1ES_ACR_PASSWORD }}
+          ghcr_username: ${{ github.actor }}
+          ghcr_token: ${{ secrets.GITHUB_TOKEN }}
           model_name: ${{ matrix.model.name }}
           model_type: ${{ matrix.model.type }}
           model_version: ${{ matrix.model.version }}

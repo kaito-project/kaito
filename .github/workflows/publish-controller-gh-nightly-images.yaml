@@ -1,0 +1,106 @@
+name: Publish nightly controller GH images
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        description: 'Git ref to build from (branch, tag, or SHA)'
+        required: false
+        default: 'main'
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+concurrency:
+  group: nightly-ghcr-images
+  cancel-in-progress: true
+
+jobs:
+  build-scan-publish-gh-nightly-images:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: workspace
+            make_target: docker-build-workspace
+            image_name_var: IMG_NAME
+          - image_name: ragengine
+            make_target: docker-build-ragengine
+            image_name_var: RAGENGINE_IMAGE_NAME
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+          disable-sudo: true
+          disable-telemetry: true
+
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.git_ref || 'main' }}
+
+      - id: get-registry
+        name: Compute registry repository
+        run: |
+          echo "registry_repository=$(echo "${{ env.REGISTRY }}/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - id: get-image-tag
+        name: Compute nightly image tag
+        run: |
+          short_sha="$(git rev-parse --short=12 HEAD)"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          echo "img_tag=nightly-$short_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Login to ${{ steps.get-registry.outputs.registry_repository }}
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.image_name }}:${{ steps.get-image-tag.outputs.img_tag }}
+        run: |
+          make "${{ matrix.make_target }}" \
+            REGISTRY="${REGISTRY}" \
+            IMG_TAG="${IMG_TAG}" \
+            "${{ matrix.image_name_var }}=${{ matrix.image_name }}"
+        env:
+          REGISTRY: ${{ steps.get-registry.outputs.registry_repository }}
+          IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
+
+      - name: Scan ${{ matrix.image_name }}:${{ steps.get-image-tag.outputs.img_tag }}
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518 # 0.34.1
+        with:
+          version: 'v0.69.2'
+          image-ref: ${{ steps.get-registry.outputs.registry_repository }}/${{ matrix.image_name }}:${{ steps.get-image-tag.outputs.img_tag }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          timeout: '5m0s'
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update ${{ matrix.image_name }}:nightly-latest
+        run: |
+          # Promote alias only after the scan step succeeds.
+          image_ref="${REGISTRY}/${IMAGE_NAME}"
+          docker buildx imagetools create \
+            --tag "${image_ref}:nightly-latest" \
+            "${image_ref}:${IMG_TAG}"
+        env:
+          REGISTRY: ${{ steps.get-registry.outputs.registry_repository }}
+          IMAGE_NAME: ${{ matrix.image_name }}
+          IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}

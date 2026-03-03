@@ -102,3 +102,6 @@ RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION = float(
 )
 # Maximum top_k value for retrieve to prevent excessive memory usage and latency
 RAG_MAX_TOP_K = int(os.getenv("RAG_MAX_TOP_K", 300))
+# Minimum fused score for hybrid retrieve results (RSF range 0-1).
+# Nodes scoring below this are dropped. Set to 0 to disable.
+RAG_HYBRID_SCORE_THRESHOLD = float(os.getenv("RAG_HYBRID_SCORE_THRESHOLD", 0.2))

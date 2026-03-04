@@ -31,6 +31,38 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --wait
 ```
 
+### Using Nightly Builds (Optional)
+
+KAITO publishes nightly controller images to the GitHub Container Registry (GHCR). These images are built daily from the `main` branch and can be used for testing the latest features before a release.
+
+:::caution
+Nightly builds are **not recommended for production use**. They are built from the latest `main` branch and may contain untested or incomplete features.
+:::
+
+Each nightly image is tagged with:
+
+- **`nightly-latest`** — always points to the most recent successful nightly build
+- **`nightly-<sha>`** — pinned to a specific commit (12-character short SHA)
+
+To install the workspace controller using the latest nightly image:
+
+```bash
+export CLUSTER_NAME=kaito
+
+helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+helm repo update
+helm upgrade --install kaito-workspace kaito/workspace \
+  --namespace kaito-workspace \
+  --create-namespace \
+  --set clusterName="$CLUSTER_NAME" \
+  --set image.repository=ghcr.io/kaito-project/kaito/workspace \
+  --set image.tag=nightly-latest \
+  --set image.pullPolicy=Always \
+  --wait
+```
+
+For nightly RAG engine controller images, see the [RAG installation guide](rag#using-nightly-builds-optional).
+
 ### Verify KAITO Installation
 
 Check that the KAITO workspace controller is running:
@@ -149,6 +181,7 @@ The following cloud providers support auto-provisioning GPU nodes in addition to
 
 - [Azure (AKS)](azure.md#setup-auto-provisioning) - Set up GPU auto-provisioning with Azure GPU Provisioner
 - [AWS (EKS)](aws.md#setup-auto-provisioning) - Set up GPU auto-provisioning with Karpenter
+
 
 ## Next Steps
 

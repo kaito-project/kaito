@@ -475,42 +475,19 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			}
 			params := modelPreset.GetInferenceParameters()
 
-			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
 			machineTotalGPUMem := resource.NewQuantity(int64(machineCount)*skuConfig.GPUMem.Value(), resource.BinarySI) // Total GPU memory
-
-			// GPU count check: only run if GPUCountRequirement is specified
-			if params.GPUCountRequirement == "" {
-				klog.Warningf("Skipping GPU count validation for preset %s: GPUCountRequirement not specified", presetName)
-			} else {
-				modelGPUCount, err := resource.ParseQuantity(params.GPUCountRequirement)
-				if err != nil {
-					klog.Warningf("Skipping GPU count validation for preset %s: failed to parse GPUCountRequirement %q: %v", presetName, params.GPUCountRequirement, err)
-				} else if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
-					if bypassResourceChecks {
-						klog.Warningf("Bypassing resource check: Insufficient number of GPUs detected but continuing due to bypass flag. Instance type %s provides %s, but preset %s requires at least %d",
-							instanceType, machineTotalNumGPUs.String(), presetName, modelGPUCount.Value())
-					} else {
-						errs = errs.Also(apis.ErrInvalidValue(
-							fmt.Sprintf(
-								"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
-								instanceType,
-								machineTotalNumGPUs.String(),
-								presetName,
-								modelGPUCount.Value(),
-							),
-							"instanceType",
-						))
-					}
-				}
-			}
 
 			// GPU memory check and distributed inference runtime check: only run if TotalSafeTensorFileSize is specified
 			if params.TotalSafeTensorFileSize == "" {
-				klog.Warningf("Skipping GPU memory validation for preset %s: TotalSafeTensorFileSize not specified", presetName)
+				klog.V(4).Infof("Skipping GPU memory validation for preset %s: TotalSafeTensorFileSize not specified", presetName)
 			} else {
 				modelTotalGPUMemory, err := resource.ParseQuantity(params.TotalSafeTensorFileSize)
 				if err != nil {
-					klog.Warningf("Skipping GPU memory validation for preset %s: failed to parse TotalSafeTensorFileSize %q: %v", presetName, params.TotalSafeTensorFileSize, err)
+					klog.Warningf("Failed to parse TotalSafeTensorFileSize %q for preset %s: %v", params.TotalSafeTensorFileSize, presetName, err)
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf("invalid TotalSafeTensorFileSize %q for preset %s: %v", params.TotalSafeTensorFileSize, presetName, err),
+						"TotalSafeTensorFileSize",
+					))
 				} else {
 					if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
 						if bypassResourceChecks {

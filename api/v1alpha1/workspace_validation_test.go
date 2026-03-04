@@ -301,7 +301,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		},
 
 		{
-			name: "Insufficient number of GPUs",
+			name: "GPU count not validated (removed after mem estimator)",
 			resourceSpec: &ResourceSpec{
 				InstanceType: "Standard_NC24ads_A100_v4",
 				Count:        pointerToInt(1),
@@ -310,8 +310,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			modelPerGPUMemory:       "15Gi",
 			totalSafeTensorFileSize: "30Gi",
 			preset:                  true,
-			errContent:              "Insufficient number of GPUs",
-			expectErrs:              true,
+			expectErrs:              false,
 			validateTuning:          false,
 		},
 
@@ -398,6 +397,48 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			presetNameOverride: "phi-2",
 			expectErrs:         true,
 			errContent:         "Model phi-2 is deprecated and no longer supported",
+		},
+		{
+			name: "Empty TotalSafeTensorFileSize skips GPU memory validation",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC4as_T4_v3",
+				Count:        pointerToInt(1),
+			},
+			modelGPUCount:           "1",
+			modelPerGPUMemory:       "0",
+			totalSafeTensorFileSize: "",
+			preset:                  true,
+			errContent:              "",
+			expectErrs:              false,
+			validateTuning:          false,
+		},
+		{
+			name: "Malformed TotalSafeTensorFileSize returns validation error",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC4as_T4_v3",
+				Count:        pointerToInt(1),
+			},
+			modelGPUCount:           "1",
+			modelPerGPUMemory:       "0",
+			totalSafeTensorFileSize: "not-a-quantity",
+			preset:                  true,
+			errContent:              "invalid TotalSafeTensorFileSize",
+			expectErrs:              true,
+			validateTuning:          false,
+		},
+		{
+			name: "Valid TotalSafeTensorFileSize with sufficient memory passes",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC4as_T4_v3",
+				Count:        pointerToInt(1),
+			},
+			modelGPUCount:           "1",
+			modelPerGPUMemory:       "16Gi",
+			totalSafeTensorFileSize: "1Gi",
+			preset:                  true,
+			errContent:              "",
+			expectErrs:              false,
+			validateTuning:          false,
 		},
 	}
 

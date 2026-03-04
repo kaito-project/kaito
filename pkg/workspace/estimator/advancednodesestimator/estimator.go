@@ -60,6 +60,35 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 
 	var gpuConfig *sku.GPUConfig
 
+	// MIG path: when MIG is configured, the model must fit in a single MIG slice.
+	// No tensor parallelism or multi-node distribution is possible with MIG.
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && workspace.Resource.MIG != nil {
+		migCount := 1
+		if workspace.Resource.MIG.Count != nil {
+			migCount = *workspace.Resource.MIG.Count
+		}
+		gpuConfig, err = utils.GetMIGGPUConfig(workspace.Resource.MIG.Profile, migCount)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get MIG GPU config: %w", err)
+		}
+
+		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalSafeTensorFileSize)
+		requiredMemoryBytes := int64(float64(totalGPUMemoryRequired.Value()) * 1.02)
+		// Per-slice memory (GPUMem is total across all slices, GPUCount is the MIG count)
+		perSliceMemBytes := gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount)
+		availablePerSlice := int64(float64(perSliceMemBytes) * 0.84)
+
+		if requiredMemoryBytes > availablePerSlice {
+			perSliceGiB := float64(perSliceMemBytes) / float64(consts.GiBToBytes)
+			return 0, fmt.Errorf("model requires %s but MIG profile %s only provides %.0fGB (%.1fGB available after vLLM overhead)",
+				totalGPUMemoryRequired.String(), workspace.Resource.MIG.Profile,
+				perSliceGiB, float64(availablePerSlice)/float64(consts.GiBToBytes))
+		}
+
+		klog.Infof("[AdvancedEstimator] MIG mode: workspace=%s profile=%s, nodeCount=1", workspace.Name, workspace.Resource.MIG.Profile)
+		return 1, nil
+	}
+
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		if readyNodes, err := resources.GetReadyNodes(ctx, client, workspace); err != nil {
 			return 0, fmt.Errorf("failed to list ready nodes: %w", err)

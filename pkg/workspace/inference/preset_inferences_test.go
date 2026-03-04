@@ -31,6 +31,7 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	model "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -579,6 +580,7 @@ func TestGetGPUConfig(t *testing.T) {
 		model                       string
 		callMocks                   func(c *test.MockClient)
 		disableNodeAutoProvisioning bool
+		enableMIG                   bool
 		expectedConfig              *sku.GPUConfig
 		expectedErr                 string
 	}{
@@ -693,6 +695,56 @@ func TestGetGPUConfig(t *testing.T) {
 			expectedConfig:              nil,
 			expectedErr:                 "invalid value: Unsupported SKU 'unknown-instance-type' for cloud provider: sku",
 		},
+		"MIG path - get config from MIG spec": {
+			workspace: &v1beta1.Workspace{
+				Resource: v1beta1.ResourceSpec{
+					InstanceType:  "",
+					LabelSelector: &metav1.LabelSelector{},
+					MIG: &v1beta1.MIGSpec{
+						Profile: "1g.10gb",
+						Count:   test.Ptr(1),
+					},
+				},
+			},
+			model: "test-mig-small-model",
+			callMocks: func(c *test.MockClient) {
+			},
+			disableNodeAutoProvisioning: true,
+			enableMIG:                   true,
+			expectedConfig: &sku.GPUConfig{
+				SKU:        "unknown",
+				GPUCount:   1,
+				GPUMem:     resource.MustParse("10Gi"),
+				IsMIG:      true,
+				MIGProfile: "1g.10gb",
+			},
+			expectedErr: "",
+		},
+		"MIG path - count > 1 multiplies GPU count and memory": {
+			workspace: &v1beta1.Workspace{
+				Resource: v1beta1.ResourceSpec{
+					InstanceType:  "",
+					LabelSelector: &metav1.LabelSelector{},
+					MIG: &v1beta1.MIGSpec{
+						Profile: "1g.10gb",
+						Count:   test.Ptr(3),
+					},
+				},
+			},
+			model: "test-mig-small-model",
+			callMocks: func(c *test.MockClient) {
+			},
+			disableNodeAutoProvisioning: true,
+			enableMIG:                   true,
+			expectedConfig: &sku.GPUConfig{
+				SKU:        "unknown",
+				GPUCount:   3,
+				GPUMem:     resource.MustParse("30Gi"),
+				IsMIG:      true,
+				MIGProfile: "1g.10gb",
+			},
+			expectedErr: "",
+		},
 	}
 
 	for k, tc := range testcases {
@@ -702,6 +754,14 @@ func TestGetGPUConfig(t *testing.T) {
 			defer func() {
 				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
 			}()
+
+			if tc.enableMIG {
+				originalMIGGate := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+				featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+				defer func() {
+					featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = originalMIGGate
+				}()
+			}
 
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
@@ -758,6 +818,14 @@ func TestGetGPUConfig(t *testing.T) {
 			// Check NVMeDiskEnabled if expected
 			if tc.expectedConfig.NVMeDiskEnabled && !config.NVMeDiskEnabled {
 				t.Errorf("Expected NVMeDiskEnabled to be true, got false")
+			}
+
+			// Check MIG fields
+			if config.IsMIG != tc.expectedConfig.IsMIG {
+				t.Errorf("Expected IsMIG %v, got %v", tc.expectedConfig.IsMIG, config.IsMIG)
+			}
+			if tc.expectedConfig.MIGProfile != "" && config.MIGProfile != tc.expectedConfig.MIGProfile {
+				t.Errorf("Expected MIGProfile %s, got %s", tc.expectedConfig.MIGProfile, config.MIGProfile)
 			}
 		})
 	}
@@ -1159,6 +1227,164 @@ func TestSetModelDownloadInfo(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestGeneratePresetInference_MIGPodSpec(t *testing.T) {
+	test.RegisterTestModel()
+
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
+
+	// Enable MIG and BYO feature gates
+	origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+	origBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origBYO
+	}()
+
+	workspace := test.MockWorkspaceWithMIGPresetVLLM.DeepCopy()
+	workspace.Annotations = map[string]string{
+		v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameVLLM),
+	}
+	nodeCount := 1
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
+	workspace.Resource.Count = &nodeCount
+	workspace.Status.WorkerNodes = []string{"mig-node-1"}
+
+	// Estimate node count for MIG
+	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
+	count, err := estimator.EstimateNodeCount(t.Context(), workspace, nil)
+	if err != nil {
+		t.Fatalf("failed to estimate node count: %v", err)
+	}
+	workspace.Status.TargetNodeCount = int32(count)
+
+	mockClient := test.NewClient()
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      workspace.Name,
+			Namespace: workspace.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			ClusterIP: "10.0.0.1",
+		},
+	}
+	mockClient.CreateOrUpdateObjectInMap(svc)
+
+	migModel := plugin.KaitoModelRegister.MustGet("test-mig-small-model")
+	createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, migModel, mockClient)
+	if err != nil {
+		t.Fatalf("GeneratePresetInference failed: %v", err)
+	}
+
+	statefulset := createdObject.(*appsv1.StatefulSet)
+	container := statefulset.Spec.Template.Spec.Containers[0]
+
+	// Verify MIG resource name is used instead of nvidia.com/gpu
+	migResourceName := corev1.ResourceName("nvidia.com/mig-1g.10gb")
+	if qty, ok := container.Resources.Requests[migResourceName]; !ok {
+		t.Errorf("expected MIG resource %s in requests, got: %v", migResourceName, container.Resources.Requests)
+	} else if qty.Value() != 1 {
+		t.Errorf("expected MIG resource quantity 1, got %d", qty.Value())
+	}
+	if qty, ok := container.Resources.Limits[migResourceName]; !ok {
+		t.Errorf("expected MIG resource %s in limits, got: %v", migResourceName, container.Resources.Limits)
+	} else if qty.Value() != 1 {
+		t.Errorf("expected MIG resource limit quantity 1, got %d", qty.Value())
+	}
+
+	// Verify standard nvidia.com/gpu is NOT present
+	stdGPU := corev1.ResourceName("nvidia.com/gpu")
+	if _, ok := container.Resources.Requests[stdGPU]; ok {
+		t.Errorf("expected nvidia.com/gpu to NOT be in requests for MIG workspace")
+	}
+
+	// Verify MIG toleration is present
+	foundMIGToleration := false
+	for _, tol := range statefulset.Spec.Template.Spec.Tolerations {
+		if tol.Key == "nvidia.com/mig-1g.10gb" && tol.Effect == corev1.TaintEffectNoSchedule && tol.Operator == corev1.TolerationOpExists {
+			foundMIGToleration = true
+			break
+		}
+	}
+	if !foundMIGToleration {
+		t.Errorf("expected MIG toleration for nvidia.com/mig-1g.10gb, got: %v", statefulset.Spec.Template.Spec.Tolerations)
+	}
+}
+
+func TestGeneratePresetInference_MIGCountGreaterThanOneForcesTensorParallelSizeOne(t *testing.T) {
+	test.RegisterTestModel()
+
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
+
+	origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+	origBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origBYO
+	}()
+
+	workspace := test.MockWorkspaceWithMIGPresetVLLM.DeepCopy()
+	workspace.Inference.Preset.Name = "test-model"
+	workspace.Resource.MIG.Count = lo.ToPtr(2)
+	workspace.Annotations = map[string]string{
+		v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameVLLM),
+	}
+	nodeCount := 1
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
+	workspace.Resource.Count = &nodeCount
+	workspace.Status.WorkerNodes = []string{"mig-node-1"}
+
+	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
+	count, err := estimator.EstimateNodeCount(t.Context(), workspace, nil)
+	if err != nil {
+		t.Fatalf("failed to estimate node count: %v", err)
+	}
+	workspace.Status.TargetNodeCount = int32(count)
+
+	mockClient := test.NewClient()
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+	mockClient.CreateOrUpdateObjectInMap(&corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      workspace.Name,
+			Namespace: workspace.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			ClusterIP: "10.0.0.1",
+		},
+	})
+
+	m := plugin.KaitoModelRegister.MustGet("test-model")
+	createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, m, mockClient)
+	if err != nil {
+		t.Fatalf("GeneratePresetInference failed: %v", err)
+	}
+
+	statefulset := createdObject.(*appsv1.StatefulSet)
+	container := statefulset.Spec.Template.Spec.Containers[0]
+
+	migResourceName := corev1.ResourceName("nvidia.com/mig-1g.10gb")
+	if qty, ok := container.Resources.Requests[migResourceName]; !ok {
+		t.Fatalf("expected MIG resource %s in requests", migResourceName)
+	} else if qty.Value() != 2 {
+		t.Fatalf("expected MIG resource quantity 2, got %d", qty.Value())
+	}
+
+	workloadCmd := strings.Join(container.Command, " ")
+	params := toParameterMap(strings.Split(workloadCmd, "--")[1:])
+	if got := params["tensor-parallel-size"]; got != "1" {
+		t.Fatalf("expected tensor-parallel-size=1 for MIG workspace, got %q (cmd: %s)", got, workloadCmd)
 	}
 }
 

@@ -38,6 +38,7 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/mig"
 )
 
 const (
@@ -219,6 +220,24 @@ func GetGPUConfigFromNodeLabels(node *corev1.Node) (*sku.GPUConfig, error) {
 		GPUCount: gpuCount,
 		GPUModel: gpuProduct,
 		GPUMem:   *resource.NewQuantity(gpuMemGiB*consts.GiBToBytes, resource.BinarySI),
+	}, nil
+}
+
+// GetMIGGPUConfig builds a GPUConfig from a MIG profile string and count.
+func GetMIGGPUConfig(migProfile string, migCount int) (*sku.GPUConfig, error) {
+	_, memGB, err := mig.ParseMIGProfile(migProfile)
+	if err != nil {
+		return nil, fmt.Errorf("invalid MIG profile: %w", err)
+	}
+	if migCount <= 0 {
+		migCount = 1
+	}
+	return &sku.GPUConfig{
+		SKU:        "unknown",
+		GPUCount:   migCount,
+		GPUMem:     resource.MustParse(fmt.Sprintf("%dGi", memGB*migCount)),
+		IsMIG:      true,
+		MIGProfile: migProfile,
 	}, nil
 }
 

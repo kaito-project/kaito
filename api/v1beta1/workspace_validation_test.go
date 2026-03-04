@@ -155,6 +155,28 @@ func (*testModelSmallA10) SupportTuning() bool {
 	return false
 }
 
+// Represents a model requiring multiple GPUs (tensor parallelism), incompatible with MIG
+type testModelMultiGPU struct{}
+
+func (*testModelMultiGPU) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		GPUCountRequirement:     "4",
+		TotalSafeTensorFileSize: "4Gi",
+		RuntimeParam: model.RuntimeParam{
+			DisableTensorParallelism: false,
+		},
+	}
+}
+func (*testModelMultiGPU) GetTuningParameters() *model.PresetParam {
+	return nil
+}
+func (*testModelMultiGPU) SupportDistributedInference() bool {
+	return false
+}
+func (*testModelMultiGPU) SupportTuning() bool {
+	return false
+}
+
 func RegisterValidationTestModels() {
 	var test testModel
 	var testStatic testModelStatic
@@ -180,6 +202,11 @@ func RegisterValidationTestModels() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-small-a10",
 		Instance: &testSmallA10,
+	})
+	var testMultiGPU testModelMultiGPU
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-mig-multi-gpu-model",
+		Instance: &testMultiGPU,
 	})
 }
 
@@ -310,6 +337,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		validateTuning          bool      // To indicate if we are testing tuning validation
 		testNodes               []v1.Node // Test nodes for BYO scenarios
 		useFeatureGate          bool      // Whether to enable BYO feature gate
+		enableMIGGate           bool      // Whether to enable MIG feature gate
 	}{
 		{
 			name: "Valid Resource",
@@ -759,6 +787,151 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			expectErrs:         true,
 			errContent:         "Model phi-2 is deprecated and no longer supported",
 		},
+		// MIG Tests
+		{
+			name: "Valid MIG - small model fits in 1g.10gb partition",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "",
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "mig"},
+				},
+				MIG: &MIGSpec{
+					Profile: "1g.10gb",
+					Count:   pointerToInt(1),
+				},
+			},
+			preset:             true,
+			presetNameOverride: "test-small-a10", // 7Gi model
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         false,
+			useFeatureGate:     true,
+			enableMIGGate:      true,
+		},
+		{
+			name: "Invalid MIG - feature gate not enabled",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "",
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "mig"},
+				},
+				MIG: &MIGSpec{
+					Profile: "1g.10gb",
+					Count:   pointerToInt(1),
+				},
+			},
+			preset:             true,
+			presetNameOverride: "test-small-a10",
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         true,
+			errContent:         "MIG support is not enabled",
+			useFeatureGate:     true,
+			enableMIGGate:      false, // MIG gate NOT enabled
+		},
+		{
+			name: "Invalid MIG - invalid profile",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "",
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "mig"},
+				},
+				MIG: &MIGSpec{
+					Profile: "invalid-profile",
+					Count:   pointerToInt(1),
+				},
+			},
+			preset:             true,
+			presetNameOverride: "test-small-a10",
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         true,
+			errContent:         "invalid MIG profile",
+			useFeatureGate:     true,
+			enableMIGGate:      true,
+		},
+		{
+			name: "Invalid MIG - model too large for partition",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "",
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "mig"},
+				},
+				MIG: &MIGSpec{
+					Profile: "1g.5gb",
+					Count:   pointerToInt(1),
+				},
+			},
+			preset:             true,
+			presetNameOverride: "test-validation-static", // 16Gi model
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         true,
+			errContent:         "MIG profile 1g.5gb only provides 5GB",
+			useFeatureGate:     true,
+			enableMIGGate:      true,
+		},
+		{
+			name: "Invalid MIG - NAP not disabled",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC24ads_A100_v4",
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "mig"},
+				},
+				MIG: &MIGSpec{
+					Profile: "1g.10gb",
+					Count:   pointerToInt(1),
+				},
+			},
+			preset:             true,
+			presetNameOverride: "test-small-a10",
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         true,
+			errContent:         "MIG is only supported with BYO nodes",
+			useFeatureGate:     false, // NAP NOT disabled
+			enableMIGGate:      true,  // MIG gate enabled
+		},
+		{
+			name: "Invalid MIG - count is zero",
+			resourceSpec: &ResourceSpec{
+				Count: pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "mig"},
+				},
+				MIG: &MIGSpec{
+					Profile: "1g.10gb",
+					Count:   pointerToInt(0),
+				},
+			},
+			preset:             true,
+			presetNameOverride: "test-small-a10",
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         true,
+			errContent:         "MIG count must be greater than 0",
+			useFeatureGate:     true,
+			enableMIGGate:      true,
+		},
+		{
+			name: "Invalid MIG - model requires tensor parallelism",
+			resourceSpec: &ResourceSpec{
+				Count: pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"gpu": "mig"},
+				},
+				MIG: &MIGSpec{
+					Profile: "7g.80gb",
+					Count:   pointerToInt(1),
+				},
+			},
+			preset:             true,
+			presetNameOverride: "test-mig-multi-gpu-model",
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         true,
+			errContent:         "requires 4 GPUs with tensor parallelism",
+			useFeatureGate:     true,
+			enableMIGGate:      true,
+		},
 	}
 
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -772,6 +945,15 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 				defer func() {
 					featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+				}()
+			}
+
+			// Enable MIG feature gate if requested
+			if tc.enableMIGGate {
+				originalMIGGate := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+				featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+				defer func() {
+					featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = originalMIGGate
 				}()
 			}
 
@@ -1022,6 +1204,71 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 			disableNAP: false, // NAP enabled
 			errContent: "",
 			expectErrs: false,
+		},
+		// MIG immutability tests
+		{
+			name: "Immutable MIG - change profile",
+			newResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           &MIGSpec{Profile: "2g.20gb", Count: pointerToInt(1)},
+			},
+			oldResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           &MIGSpec{Profile: "1g.10gb", Count: pointerToInt(1)},
+			},
+			disableNAP: true,
+			errContent: "field is immutable",
+			expectErrs: true,
+		},
+		{
+			name: "Valid Update - MIG unchanged",
+			newResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           &MIGSpec{Profile: "1g.10gb", Count: pointerToInt(1)},
+			},
+			oldResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           &MIGSpec{Profile: "1g.10gb", Count: pointerToInt(1)},
+			},
+			disableNAP: true,
+			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "Immutable MIG - add MIG to non-MIG workspace",
+			newResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           &MIGSpec{Profile: "1g.10gb", Count: pointerToInt(1)},
+			},
+			oldResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           nil,
+			},
+			disableNAP: true,
+			errContent: "field is immutable",
+			expectErrs: true,
+		},
+		{
+			name: "Immutable MIG - remove MIG from workspace",
+			newResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           nil,
+			},
+			oldResource: &ResourceSpec{
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"gpu": "mig"}},
+				MIG:           &MIGSpec{Profile: "1g.10gb", Count: pointerToInt(1)},
+			},
+			disableNAP: true,
+			errContent: "field is immutable",
+			expectErrs: true,
 		},
 	}
 

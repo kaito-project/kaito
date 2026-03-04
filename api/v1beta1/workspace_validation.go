@@ -37,6 +37,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
@@ -348,6 +349,9 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	if *r.Count > 1 {
 		errs = errs.Also(apis.ErrInvalidValue("Tuning does not currently support multinode configurations. Please set the node count to 1. Future support with DeepSpeed will allow this.", "count"))
 	}
+	if r.MIG != nil {
+		errs = errs.Also(apis.ErrInvalidValue("MIG is not supported for tuning workloads", "mig"))
+	}
 	return errs
 }
 
@@ -387,6 +391,65 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 	// Validate labelSelector
 	if _, err := metav1.LabelSelectorAsMap(r.LabelSelector); err != nil {
 		errs = errs.Also(apis.ErrInvalidValue(err.Error(), "labelSelector"))
+		return errs
+	}
+
+	// MIG validation
+	if r.MIG != nil {
+		if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
+			errs = errs.Also(apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "mig"))
+			return errs
+		}
+		if err := mig.ValidateMIGProfile(r.MIG.Profile); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(err.Error(), "mig.profile"))
+			return errs
+		}
+		if r.MIG.Count != nil && *r.MIG.Count <= 0 {
+			errs = errs.Also(apis.ErrInvalidValue("MIG count must be greater than 0", "mig.count"))
+			return errs
+		}
+		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+			errs = errs.Also(apis.ErrGeneric("MIG is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "mig"))
+			return errs
+		}
+		// Check if the model fits in the MIG partition
+		if presetName != "" {
+			modelPreset, err := models.GetModelByName(ctx, presetName, secretName, wsNamespace, k8sclient.Client)
+			if err != nil {
+				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
+				return errs
+			}
+			params := modelPreset.GetInferenceParameters()
+			_, memGB, parseErr := mig.ParseMIGProfile(r.MIG.Profile)
+			if parseErr == nil && params != nil {
+				modelMem := resource.MustParse(params.TotalSafeTensorFileSize)
+				// Apply same overhead factors as the estimator:
+				// - Model size * 1.02 (KV cache and runtime overhead)
+				// - MIG memory * 0.84 (vLLM default gpu-memory-utilization)
+				requiredBytes := int64(float64(modelMem.Value()) * 1.02)
+				availableBytes := int64(float64(int64(memGB)*consts.GiBToBytes) * 0.84)
+				if requiredBytes > availableBytes {
+					if bypassResourceChecks {
+						klog.Warningf("Bypassing MIG resource check: model %s requires %s but MIG profile %s only provides %dGB (%.1fGB available after overhead)",
+							presetName, modelMem.String(), r.MIG.Profile, memGB, float64(availableBytes)/float64(consts.GiBToBytes))
+					} else {
+						errs = errs.Also(apis.ErrInvalidValue(
+							fmt.Sprintf("Model %s requires %s but MIG profile %s only provides %dGB (%.1fGB available after overhead)",
+								presetName, modelMem.String(), r.MIG.Profile, memGB, float64(availableBytes)/float64(consts.GiBToBytes)),
+							"mig.profile"))
+					}
+				}
+				if !params.DisableTensorParallelism && params.GPUCountRequirement != "1" {
+					if !bypassResourceChecks {
+						errs = errs.Also(apis.ErrInvalidValue(
+							fmt.Sprintf("Model %s requires %s GPUs with tensor parallelism, which is not supported on MIG partitions",
+								presetName, params.GPUCountRequirement),
+							"mig"))
+					}
+				}
+			}
+		}
+		// MIG workloads skip the standard GPU checks below since they use different resource types
 		return errs
 	}
 
@@ -536,6 +599,11 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	// We disable changing node count for now.
 	if r.Count != nil && old.Count != nil && *r.Count != *old.Count {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "count"))
+	}
+
+	// MIG is immutable once set
+	if !reflect.DeepEqual(r.MIG, old.MIG) {
+		errs = errs.Also(apis.ErrGeneric("field is immutable", "mig"))
 	}
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly

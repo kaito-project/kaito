@@ -32,6 +32,10 @@ type GPUConfig struct {
 	GPUMem          resource.Quantity
 	GPUModel        string
 	NVMeDiskEnabled bool
+	// IsMIG indicates that this config represents a MIG partition rather than full GPUs.
+	IsMIG bool
+	// MIGProfile is the MIG partition profile (e.g., "1g.10gb"). Empty when IsMIG is false.
+	MIGProfile string
 }
 
 func (cfg *GPUConfig) String() string {

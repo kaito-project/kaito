@@ -44,63 +44,9 @@ KAITO supports LoRA adapters in two ways:
 
 ## Step 1: Fine-Tune a Model with QLoRA
 
-KAITO supports QLoRA (Quantized LoRA) and standard LoRA fine-tuning through the `Workspace` CRD. The tuning job trains adapter weights and pushes them as a container image to your registry.
+KAITO supports QLoRA (Quantized LoRA) and standard LoRA fine-tuning through the `Workspace` CRD. The tuning job trains adapter weights and pushes them as a container image to your registry. For full details on fine-tuning configuration (custom hyperparameters, ConfigMaps, etc.), see the [Tuning Guide](https://kaito-project.github.io/kaito/docs/tuning).
 
-> **Note on GPU instance types:** The examples below use different instance types to illustrate flexibility. `Standard_NC24ads_A100_v4` (A100 GPU, 80 GB VRAM) is recommended for most fine-tuning and inference workloads. Smaller instances like `Standard_NC6s_v3` (V100 GPU, 16 GB VRAM) can work for PVC-based tuning with smaller models and QLoRA quantization, but may not have enough memory for larger models or full LoRA. Choose your instance type based on the model size and whether you are using quantization.
-
-### 1a. Create a Tuning Configuration (Optional)
-
-For advanced control over hyperparameters, create a `ConfigMap`:
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: my-lora-config
-data:
-  training_config.yaml: |
-    training_config:
-      ModelConfig:
-        torch_dtype: "bfloat16"
-        local_files_only: true
-        device_map: "auto"
-
-      QuantizationConfig:
-        load_in_4bit: true
-        bnb_4bit_quant_type: "nf4"
-        bnb_4bit_compute_dtype: "bfloat16"
-        bnb_4bit_use_double_quant: true
-
-      LoraConfig:
-        r: 8                    # Low-rank dimension
-        lora_alpha: 8           # Scaling factor
-        lora_dropout: 0.0
-        target_modules:         # Layers to apply adapters to
-          - "q_proj"
-          - "k_proj"
-          - "v_proj"
-          - "o_proj"
-
-      TrainingArguments:
-        output_dir: "/mnt/results"
-        save_strategy: "epoch"
-        per_device_train_batch_size: 2
-
-      DataCollator:
-        mlm: true
-
-      DatasetConfig:
-        shuffle_dataset: true
-        train_test_split: 1
-```
-
-```sh
-kubectl apply -f my-lora-config.yaml
-```
-
-### 1b. Create the Tuning Workspace
-
-**Option A: Training data from a URL**
+### Create the Tuning Workspace
 
 ```yaml
 apiVersion: kaito.sh/v1beta1
@@ -124,37 +70,11 @@ tuning:
     imagePushSecret: <YOUR_ACR_SECRET>
 ```
 
-**Option B: Training data from a PersistentVolumeClaim**
-
-```yaml
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  name: workspace-tuning-phi-3
-resource:
-  instanceType: "Standard_NC6s_v3"  # Smaller GPU may suffice with QLoRA quantization
-  labelSelector:
-    matchLabels:
-      app: tuning-phi-3
-tuning:
-  preset:
-    name: phi-3-mini-128k-instruct
-  method: qlora
-  input:
-    volumeSource:
-      persistentVolumeClaim:
-        claimName: pvc-training-data
-  output:
-    volumeSource:
-      persistentVolumeClaim:
-        claimName: pvc-adapter-output
-```
-
 ```sh
 kubectl apply -f workspace-tuning.yaml
 ```
 
-### 1c. Monitor the Tuning Job
+### Monitor the Tuning Job
 
 ```sh
 # Check workspace status
@@ -164,7 +84,7 @@ kubectl get workspace workspace-tuning-phi-3
 kubectl logs -l app=tuning-phi-3 -f
 ```
 
-When the workspace `STATE` becomes `Ready` and `JOBSTARTED` / `WORKSPACESUCCEEDED` are `True`, the adapter weights have been saved to the configured output destination.
+When the workspace `STATE` becomes `Succeeded`, the adapter weights have been saved to the configured output destination.
 
 ---
 
@@ -327,7 +247,7 @@ To select the Transformers runtime, add `kaito.sh/runtime: transformers` to your
 | Instance Type | GPU | VRAM | Recommended For |
 |--------------|-----|------|------------------|
 | `Standard_NC24ads_A100_v4` | A100 | 80 GB | Most fine-tuning and inference workloads |
-| `Standard_NC6s_v3` | V100 | 16 GB | QLoRA tuning with smaller models (< 7B params) |
+| `Standard_NV36ads_A10_v5` | A10 | 24 GB | QLoRA tuning with smaller models (< 7B params) |
 
 > Choose your instance type based on the model size and quantization method. Larger models and full LoRA require more VRAM.
 

@@ -16,6 +16,30 @@ helm upgrade --install kaito-ragengine kaito/ragengine \
   --create-namespace
 ```
 
+### Using Nightly Builds (Optional)
+
+To install the RAG engine controller using the latest nightly image from GHCR:
+
+:::caution
+Nightly builds are **not recommended for production use**. They are built from the latest `main` branch and may contain untested or incomplete features.
+:::
+
+```bash
+helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+helm repo update
+helm upgrade --install kaito-ragengine kaito/ragengine \
+  --namespace kaito-ragengine \
+  --create-namespace \
+  --set image.repository=ghcr.io/kaito-project/kaito/ragengine \
+  --set image.tag=nightly-latest \
+  --set image.pullPolicy=Always
+```
+
+The nightly image is tagged with:
+
+- **`nightly-latest`** — always points to the most recent successful nightly build
+- **`nightly-<sha>`** — pinned to a specific commit (12-character short SHA)
+
 ## Verify installation
 You can run the following commands to verify the installation of the controllers were successful.
 

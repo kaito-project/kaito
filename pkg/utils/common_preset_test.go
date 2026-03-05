@@ -16,6 +16,8 @@ package utils
 import (
 	"os"
 	"testing"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 func TestGetPresetImageName(t *testing.T) {
@@ -94,5 +96,161 @@ func TestGetPresetImageName(t *testing.T) {
 				t.Errorf("GetPresetImageName() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestConfigResultsVolume(t *testing.T) {
+	t.Run("nil output volume uses EmptyDir", func(t *testing.T) {
+		vol, mount := ConfigResultsVolume("/results", nil)
+		if vol.Name != "results-volume" {
+			t.Errorf("expected volume name 'results-volume', got %q", vol.Name)
+		}
+		if vol.VolumeSource.EmptyDir == nil {
+			t.Error("expected EmptyDir volume source")
+		}
+		if mount.MountPath != "/results" {
+			t.Errorf("expected mount path '/results', got %q", mount.MountPath)
+		}
+	})
+
+	t.Run("non-nil output volume is used", func(t *testing.T) {
+		hostPath := "/host/path"
+		vol, mount := ConfigResultsVolume("/results", &corev1.VolumeSource{
+			HostPath: &corev1.HostPathVolumeSource{Path: hostPath},
+		})
+		if vol.VolumeSource.HostPath == nil || vol.VolumeSource.HostPath.Path != hostPath {
+			t.Errorf("expected HostPath volume source with path %q", hostPath)
+		}
+		if mount.MountPath != "/results" {
+			t.Errorf("expected mount path '/results', got %q", mount.MountPath)
+		}
+	})
+}
+
+func TestFindResultsVolumeMount(t *testing.T) {
+	t.Run("found in first container", func(t *testing.T) {
+		spec := &corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					VolumeMounts: []corev1.VolumeMount{
+						{Name: "other-volume", MountPath: "/other"},
+						{Name: "results-volume", MountPath: "/results"},
+					},
+				},
+			},
+		}
+		mount := FindResultsVolumeMount(spec)
+		if mount == nil {
+			t.Fatal("expected to find results-volume mount")
+		}
+		if mount.MountPath != "/results" {
+			t.Errorf("expected mount path '/results', got %q", mount.MountPath)
+		}
+	})
+
+	t.Run("not found returns nil", func(t *testing.T) {
+		spec := &corev1.PodSpec{
+			Containers: []corev1.Container{
+				{VolumeMounts: []corev1.VolumeMount{{Name: "other-vol", MountPath: "/x"}}},
+			},
+		}
+		if got := FindResultsVolumeMount(spec); got != nil {
+			t.Errorf("expected nil, got %+v", got)
+		}
+	})
+}
+
+func TestConfigImagePullSecretVolume(t *testing.T) {
+	secrets := []string{"secret-a", "secret-b"}
+	vol, mount := ConfigImagePullSecretVolume("suffix", secrets)
+
+	if vol.Name != "docker-config-suffix" {
+		t.Errorf("unexpected volume name %q", vol.Name)
+	}
+	if vol.VolumeSource.Projected == nil {
+		t.Fatal("expected Projected volume source")
+	}
+	if len(vol.VolumeSource.Projected.Sources) != 2 {
+		t.Errorf("expected 2 projected sources, got %d", len(vol.VolumeSource.Projected.Sources))
+	}
+	if mount.MountPath != "/root/.docker/config.d/suffix" {
+		t.Errorf("unexpected mount path %q", mount.MountPath)
+	}
+}
+
+func TestConfigImagePushSecretVolume(t *testing.T) {
+	vol, mount := ConfigImagePushSecretVolume("my-secret")
+	if vol.Name != "docker-config" {
+		t.Errorf("unexpected volume name %q", vol.Name)
+	}
+	if vol.VolumeSource.Projected == nil {
+		t.Fatal("expected Projected volume source")
+	}
+	if mount.MountPath != "/root/.docker" {
+		t.Errorf("unexpected mount path %q", mount.MountPath)
+	}
+}
+
+func TestConfigSHMVolume(t *testing.T) {
+	vol, mount := ConfigSHMVolume()
+	if vol.Name != "dshm" {
+		t.Errorf("unexpected volume name %q", vol.Name)
+	}
+	if vol.VolumeSource.EmptyDir == nil || vol.VolumeSource.EmptyDir.Medium != "Memory" {
+		t.Error("expected EmptyDir with Memory medium")
+	}
+	if mount.MountPath != DefaultVolumeMountPath {
+		t.Errorf("unexpected mount path %q", mount.MountPath)
+	}
+}
+
+func TestConfigCMVolume(t *testing.T) {
+	vol, mount := ConfigCMVolume("my-configmap")
+	if vol.VolumeSource.ConfigMap == nil {
+		t.Fatal("expected ConfigMap volume source")
+	}
+	if vol.VolumeSource.ConfigMap.Name != "my-configmap" {
+		t.Errorf("unexpected configmap name %q", vol.VolumeSource.ConfigMap.Name)
+	}
+	if mount.MountPath != DefaultConfigMapMountPath {
+		t.Errorf("unexpected mount path %q", mount.MountPath)
+	}
+}
+
+func TestConfigDataVolume(t *testing.T) {
+	t.Run("nil input uses EmptyDir", func(t *testing.T) {
+		vol, mount := ConfigDataVolume(nil)
+		if vol.VolumeSource.EmptyDir == nil {
+			t.Error("expected EmptyDir volume source")
+		}
+		if mount.MountPath != DefaultDataVolumePath {
+			t.Errorf("unexpected mount path %q", mount.MountPath)
+		}
+	})
+
+	t.Run("custom volume source is used", func(t *testing.T) {
+		hostPath := "/data"
+		vol, mount := ConfigDataVolume(&corev1.VolumeSource{
+			HostPath: &corev1.HostPathVolumeSource{Path: hostPath},
+		})
+		if vol.VolumeSource.HostPath == nil || vol.VolumeSource.HostPath.Path != hostPath {
+			t.Errorf("expected HostPath volume with path %q", hostPath)
+		}
+		if mount.MountPath != DefaultDataVolumePath {
+			t.Errorf("expected mount path %q, got %q", DefaultDataVolumePath, mount.MountPath)
+		}
+	})
+}
+
+func TestConfigAdapterVolume(t *testing.T) {
+	vol, mount := ConfigAdapterVolume()
+	if vol.Name != "adapter-volume" {
+		t.Errorf("unexpected volume name %q", vol.Name)
+	}
+	if vol.VolumeSource.EmptyDir == nil {
+		t.Error("expected EmptyDir volume source")
+	}
+	if mount.MountPath != DefaultAdapterVolumePath {
+		t.Errorf("unexpected mount path %q", mount.MountPath)
 	}
 }

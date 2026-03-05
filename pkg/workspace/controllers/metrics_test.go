@@ -22,6 +22,49 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
+func TestGetWorkspacePresetName(t *testing.T) {
+	tests := []struct {
+		name     string
+		ws       *kaitov1beta1.Workspace
+		expected string
+	}{
+		{
+			name: "workspace with preset returns preset name",
+			ws: &kaitov1beta1.Workspace{
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "phi-4",
+						},
+					},
+				},
+			},
+			expected: "phi-4",
+		},
+		{
+			name: "workspace with custom template returns empty string",
+			ws: &kaitov1beta1.Workspace{
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: nil,
+				},
+			},
+			expected: "",
+		},
+		{
+			name:     "workspace with empty inference spec returns empty string",
+			ws:       &kaitov1beta1.Workspace{},
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := getWorkspacePresetName(tt.ws)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestDetermineWorkspacePhase(t *testing.T) {
 	tests := []struct {
 		name     string

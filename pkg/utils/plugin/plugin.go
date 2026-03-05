@@ -66,16 +66,6 @@ func (reg *ModelRegister) MustGet(name string) model.Model {
 	return r.Instance
 }
 
-func (reg *ModelRegister) ListModelNames() []string {
-	reg.Lock()
-	defer reg.Unlock()
-	n := []string{}
-	for k := range reg.models {
-		n = append(n, k)
-	}
-	return n
-}
-
 func (reg *ModelRegister) Has(name string) bool {
 	reg.Lock()
 	defer reg.Unlock()

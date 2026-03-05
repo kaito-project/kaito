@@ -89,6 +89,9 @@ gpu-feature-discovery:
   affinity:
     nodeAffinity: {}
   nfd:
+    # Set to false if Node Feature Discovery is already installed on the cluster
+    # (e.g., via the NVIDIA GPU Operator). This avoids CRD and resource conflicts.
+    enabled: true
     master:
       tolerations:
       - key: CriticalAddonsOnly

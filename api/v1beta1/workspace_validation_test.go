@@ -759,6 +759,51 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			expectErrs:         true,
 			errContent:         "Model phi-2 is deprecated and no longer supported",
 		},
+		{
+			name: "Empty TotalSafeTensorFileSize skips GPU memory validation",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC4as_T4_v3",
+				Count:        pointerToInt(1),
+			},
+			modelGPUCount:           "1",
+			modelPerGPUMemory:       "0",
+			totalSafeTensorFileSize: "",
+			preset:                  true,
+			runtime:                 model.RuntimeNameHuggingfaceTransformers,
+			errContent:              "",
+			expectErrs:              false,
+			validateTuning:          false,
+		},
+		{
+			name: "Malformed TotalSafeTensorFileSize returns validation error",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC4as_T4_v3",
+				Count:        pointerToInt(1),
+			},
+			modelGPUCount:           "1",
+			modelPerGPUMemory:       "0",
+			totalSafeTensorFileSize: "not-a-quantity",
+			preset:                  true,
+			runtime:                 model.RuntimeNameHuggingfaceTransformers,
+			errContent:              "invalid TotalSafeTensorFileSize",
+			expectErrs:              true,
+			validateTuning:          false,
+		},
+		{
+			name: "Valid TotalSafeTensorFileSize with sufficient memory passes",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "Standard_NC4as_T4_v3",
+				Count:        pointerToInt(1),
+			},
+			modelGPUCount:           "1",
+			modelPerGPUMemory:       "16Gi",
+			totalSafeTensorFileSize: "1Gi",
+			preset:                  true,
+			runtime:                 model.RuntimeNameHuggingfaceTransformers,
+			errContent:              "",
+			expectErrs:              false,
+			validateTuning:          false,
+		},
 	}
 
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)

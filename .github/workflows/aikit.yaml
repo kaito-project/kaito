@@ -62,7 +62,7 @@ jobs:
       - name: Build workspace controller
         run: |
           # Use the docker-build-workspace target with local configuration
-          make docker-build-workspace
+          make docker-build-workspace ARCH=amd64
 
           # Load into kind cluster
           kind load docker-image local/workspace:test --name kaito
@@ -71,7 +71,6 @@ jobs:
           IMG_NAME: "workspace"
           IMG_TAG: "test"
           OUTPUT_TYPE: "type=docker"
-          ARCH: "amd64"
 
       - name: Deploy KAITO workspace controller
         run: |

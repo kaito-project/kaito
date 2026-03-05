@@ -16,7 +16,9 @@ package inference
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
+	"time"
 
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -42,6 +44,10 @@ import (
 
 const (
 	ProbePath = "/health"
+
+	// defaultStartupProbeTimeout is the startup probe timeout for models that do not
+	// specify ReadinessTimeout. 30 minutes covers all current models.
+	defaultStartupProbeTimeout = 30 * time.Minute
 )
 
 var (
@@ -49,6 +55,8 @@ var (
 		ContainerPort: int32(consts.PortInferenceServer),
 	}}
 
+	// defaultLivenessProbe has no initial delay because the startup probe ensures
+	// the model is up before liveness evaluation begins.
 	defaultLivenessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
@@ -56,8 +64,9 @@ var (
 				Path: ProbePath,
 			},
 		},
-		InitialDelaySeconds: 600, // 10 minutes
+		InitialDelaySeconds: 0,
 		PeriodSeconds:       10,
+		FailureThreshold:    3,
 	}
 
 	defaultReadinessProbe = &corev1.Probe{
@@ -232,7 +241,7 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 }
 
 // getDistributedInferenceProbe returns a container probe configuration for the distributed inference workload.
-func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds int32) *corev1.Probe {
+func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32) *corev1.Probe {
 	args := map[string]string{
 		"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
 	}
@@ -259,17 +268,37 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 		InitialDelaySeconds: initialDelaySeconds,
 		PeriodSeconds:       periodSeconds,
 		TimeoutSeconds:      timeoutSeconds,
-
-		// lowering the failure threshold from 3 (default) to 1 and setting the
-		// termination grace period to 1 second to ensure that the pod is terminated
-		// immediately if the health check fails to minimize downtime.
-		FailureThreshold: 1,
+		FailureThreshold:    failureThreshold,
 	}
 	if probeType == probeTypeLiveness {
 		probe.TerminationGracePeriodSeconds = lo.ToPtr(int64(1))
 	}
 
 	return probe
+}
+
+func buildStartupProbe(timeout time.Duration) *corev1.Probe {
+	const periodSeconds = 10
+	// ceil(timeout / period) ensures the full timeout window is covered.
+	failureThreshold := int32(math.Ceil(timeout.Seconds() / periodSeconds))
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Port: intstr.FromInt32(consts.PortInferenceServer),
+				Path: ProbePath,
+			},
+		},
+		InitialDelaySeconds: 0,
+		PeriodSeconds:       periodSeconds,
+		FailureThreshold:    failureThreshold,
+	}
+}
+
+func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace) *corev1.Probe {
+	const periodSeconds = int32(10)
+	const timeoutSeconds = int32(1)
+	failureThreshold := int32(math.Ceil(timeout.Seconds() / float64(periodSeconds)))
+	return getDistributedInferenceProbe(probeTypeReadiness, wObj, 0, periodSeconds, timeoutSeconds, failureThreshold)
 }
 
 func GetBaseImageName() string {
@@ -383,6 +412,14 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			},
 		}
 		spec.ImagePullSecrets = GetInferenceImageInfo(ctx.Ctx, ctx.Workspace)
+
+		// Use the model's ReadinessTimeout if specified; otherwise fall back to the
+		// default. containerStatuses[].started is reliable for downstream.
+		readinessTimeout := inferenceParam.ReadinessTimeout
+		if readinessTimeout <= 0 {
+			readinessTimeout = defaultStartupProbeTimeout
+		}
+
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
@@ -390,6 +427,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 				Command:        commands,
 				Resources:      resourceReq,
 				Ports:          containerPorts,
+				StartupProbe:   buildStartupProbe(readinessTimeout),
 				LivenessProbe:  defaultLivenessProbe,
 				ReadinessProbe: defaultReadinessProbe,
 				VolumeMounts:   volumeMounts,
@@ -455,9 +493,15 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 }
 
 func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	readinessTimeout := ctx.Model.GetInferenceParameters().ReadinessTimeout
+	if readinessTimeout <= 0 {
+		readinessTimeout = defaultStartupProbeTimeout
+	}
+
 	// 60 seconds initial delay for liveness probe to allow workers to join the cluster
-	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5)
-	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1)
+	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5, 1)
+	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1)
+	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace)
 	envVar := corev1.EnvVar{
 		Name: "POD_INDEX",
 		ValueFrom: &corev1.EnvVarSource{
@@ -468,6 +512,7 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 	}
 	for i := range spec.Containers {
 		if spec.Containers[i].Name == ctx.Workspace.Name {
+			spec.Containers[i].StartupProbe = startupProbe
 			spec.Containers[i].LivenessProbe = livenessProbe
 			spec.Containers[i].ReadinessProbe = readinessProbe
 			spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)

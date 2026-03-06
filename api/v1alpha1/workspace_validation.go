@@ -108,7 +108,33 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 	if w.Inference != nil && w.Tuning != nil {
 		errs = errs.Also(apis.ErrGeneric("Either Inference or Tuning must be specified, but not both", ""))
 	}
+
+	errmsgs := w.validateNodeImageFamilyAnnotation()
+	if errmsgs != nil {
+		errs = errs.Also(errmsgs)
+	}
+
 	return errs
+}
+
+func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) {
+	if w.GetAnnotations() == nil {
+		return nil
+	}
+
+	nodeImageFamily, exists := w.GetAnnotations()[AnnotationNodeImageFamily]
+	if !exists {
+		return nil
+	}
+
+	if _, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("unsupported node image family %q, supported values are azurelinux, ubuntu", nodeImageFamily),
+			fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeImageFamily),
+		)
+	}
+
+	return nil
 }
 
 func (w *Workspace) validateUpdate(old *Workspace) (errs *apis.FieldError) {
@@ -341,46 +367,34 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 			params := model.GetInferenceParameters()
 
 			machineCount := *r.Count
-			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
-			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
+			machineTotalGPUMem := resource.NewQuantity(int64(machineCount)*skuConfig.GPUMem.Value(), resource.BinarySI) // Total GPU memory
 
-			modelGPUCount := resource.MustParse(params.GPUCountRequirement)
-			modelTotalGPUMemory := resource.MustParse(params.TotalSafeTensorFileSize)
-
-			// Separate the checks for specific error messages
-			if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
-				if bypassResourceChecks {
-					klog.Warningf("Bypassing resource check: Insufficient number of GPUs detected but continuing due to bypass flag. Instance type %s provides %s, but preset %s requires at least %d",
-						instanceType, machineTotalNumGPUs.String(), presetName, modelGPUCount.Value())
-				} else {
+			if params.TotalSafeTensorFileSize == "" {
+				klog.V(4).Infof("Skipping GPU memory validation for preset %s: TotalSafeTensorFileSize not specified", presetName)
+			} else {
+				modelTotalGPUMemory, err := resource.ParseQuantity(params.TotalSafeTensorFileSize)
+				if err != nil {
+					klog.Warningf("Failed to parse TotalSafeTensorFileSize %q for preset %s: %v", params.TotalSafeTensorFileSize, presetName, err)
 					errs = errs.Also(apis.ErrInvalidValue(
-						fmt.Sprintf(
-							"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
-							instanceType,
-							machineTotalNumGPUs.String(),
-							presetName,
-							modelGPUCount.Value(),
-						),
-						"instanceType",
+						fmt.Sprintf("invalid TotalSafeTensorFileSize %q for preset %s: %v", params.TotalSafeTensorFileSize, presetName, err),
+						"TotalSafeTensorFileSize",
 					))
-				}
-			}
-
-			if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
-				if bypassResourceChecks {
-					klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
-						instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
-				} else {
-					errs = errs.Also(apis.ErrInvalidValue(
-						fmt.Sprintf(
-							"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
-							instanceType,
-							machineTotalGPUMem.String(),
-							presetName,
-							modelTotalGPUMemory.String(),
-						),
-						"instanceType",
-					))
+				} else if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
+					if bypassResourceChecks {
+						klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
+							instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
+					} else {
+						errs = errs.Also(apis.ErrInvalidValue(
+							fmt.Sprintf(
+								"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
+								instanceType,
+								machineTotalGPUMem.String(),
+								presetName,
+								modelTotalGPUMemory.String(),
+							),
+							"instanceType",
+						))
+					}
 				}
 			}
 		}

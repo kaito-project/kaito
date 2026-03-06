@@ -75,6 +75,7 @@ func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    llamaRunParams,
+				ModelName:         PresetLlama3_1_8BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:          llama3VLLMCommand,
@@ -120,6 +121,7 @@ func (*llama3_3_70Binstruct) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    llamaRunParams,
+				ModelName:         PresetLlama3_3_70BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:          llama3VLLMCommand,

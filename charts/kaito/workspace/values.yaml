@@ -20,7 +20,7 @@ deploymentStrategy:
 image:
   repository: mcr.microsoft.com/aks/kaito/workspace
   pullPolicy: IfNotPresent
-  tag: 0.8.0
+  tag: 0.9.0
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -41,6 +41,7 @@ featureGates:
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: false
+defaultNodeImageFamily: ""
 nvidiaDevicePlugin:
   enabled: true
   daemonsetName: "nvidia-device-plugin-daemonset"
@@ -88,6 +89,9 @@ gpu-feature-discovery:
   affinity:
     nodeAffinity: {}
   nfd:
+    # Set to false if Node Feature Discovery is already installed on the cluster
+    # (e.g., via the NVIDIA GPU Operator). This avoids CRD and resource conflicts.
+    enabled: true
     master:
       tolerations:
       - key: CriticalAddonsOnly

@@ -30,7 +30,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Install kind
         run: |
@@ -62,7 +62,7 @@ jobs:
       - name: Build workspace controller
         run: |
           # Use the docker-build-workspace target with local configuration
-          make docker-build-workspace
+          make docker-build-workspace ARCH=amd64
 
           # Load into kind cluster
           kind load docker-image local/workspace:test --name kaito
@@ -71,7 +71,6 @@ jobs:
           IMG_NAME: "workspace"
           IMG_TAG: "test"
           OUTPUT_TYPE: "type=docker"
-          ARCH: "amd64"
 
       - name: Deploy KAITO workspace controller
         run: |

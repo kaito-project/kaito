@@ -211,6 +211,8 @@ type HuggingfaceTransformersParam struct {
 	AccelerateParams  map[string]string // Parameters for configuring the accelerate command.
 	InferenceMainFile string            // The main file for inference.
 	ModelRunParams    map[string]string // Parameters for running the model training/inference.
+	// The model name used in the OpenAI serving API.
+	ModelName string
 }
 
 type VLLMParam struct {
@@ -302,6 +304,9 @@ func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
 }
 
 func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
+	if p.Transformers.ModelName != "" {
+		p.Transformers.ModelRunParams["served_model_name"] = p.Transformers.ModelName
+	}
 	if p.DownloadAtRuntime {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
 		p.Transformers.ModelRunParams["pretrained_model_name_or_path"] = repoId

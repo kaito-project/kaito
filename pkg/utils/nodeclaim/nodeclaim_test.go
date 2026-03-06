@@ -163,43 +163,143 @@ func TestWaitForPendingNodeClaims(t *testing.T) {
 }
 
 func TestGenerateNodeClaimManifest(t *testing.T) {
-	t.Run("Should generate a nodeClaim object from the given workspace when cloud provider set to azure", func(t *testing.T) {
-		mockWorkspace := test.MockWorkspaceWithPreset
-		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	testCases := []struct {
+		name                     string
+		cloudProvider            string
+		workspace                *kaitov1beta1.Workspace
+		useOptions               bool
+		options                  ManifestOptions
+		expectedNodeClassKind    string
+		expectedNodeClassGroup   string
+		expectedImageFamily      string
+		expectImageFamilyPresent bool
+	}{
+		{
+			name:                     "azure default manifest",
+			cloudProvider:            consts.AzureCloudName,
+			workspace:                test.MockWorkspaceWithPreset,
+			useOptions:               false,
+			expectedNodeClassKind:    "KaitoNodeClass",
+			expectedNodeClassGroup:   "kaito.sh",
+			expectedImageFamily:      "ubuntu",
+			expectImageFamilyPresent: true,
+		},
+		{
+			name:                     "azure default node image family is set via startup parameter",
+			cloudProvider:            consts.AzureCloudName,
+			workspace:                test.MockWorkspaceWithPreset.DeepCopy(),
+			useOptions:               true,
+			options:                  ManifestOptions{DefaultNodeImageFamily: "AzureLinux"},
+			expectedNodeClassKind:    "KaitoNodeClass",
+			expectedNodeClassGroup:   "kaito.sh",
+			expectedImageFamily:      "azurelinux",
+			expectImageFamilyPresent: true,
+		},
+		{
+			name:          "workspace annotation overrides startup parameter when annotation is supported",
+			cloudProvider: consts.AzureCloudName,
+			workspace: func() *kaitov1beta1.Workspace {
+				w := test.MockWorkspaceWithPreset.DeepCopy()
+				w.Annotations = map[string]string{kaitov1beta1.AnnotationNodeImageFamily: "Ubuntu"}
+				return w
+			}(),
+			useOptions:               true,
+			options:                  ManifestOptions{DefaultNodeImageFamily: "AzureLinux"},
+			expectedNodeClassKind:    "KaitoNodeClass",
+			expectedNodeClassGroup:   "kaito.sh",
+			expectedImageFamily:      "ubuntu",
+			expectImageFamilyPresent: true,
+		},
+		{
+			name:          "unsupported workspace annotation is ignored when startup parameter is supported",
+			cloudProvider: consts.AzureCloudName,
+			workspace: func() *kaitov1beta1.Workspace {
+				w := test.MockWorkspaceWithPreset.DeepCopy()
+				w.Annotations = map[string]string{kaitov1beta1.AnnotationNodeImageFamily: "CustomLinux"}
+				return w
+			}(),
+			useOptions:               true,
+			options:                  ManifestOptions{DefaultNodeImageFamily: "AzureLinux"},
+			expectedNodeClassKind:    "KaitoNodeClass",
+			expectedNodeClassGroup:   "kaito.sh",
+			expectedImageFamily:      "azurelinux",
+			expectImageFamilyPresent: true,
+		},
+		{
+			name:          "unsupported startup parameter and unsupported workspace annotation are both ignored",
+			cloudProvider: consts.AzureCloudName,
+			workspace: func() *kaitov1beta1.Workspace {
+				w := test.MockWorkspaceWithPreset.DeepCopy()
+				w.Annotations = map[string]string{kaitov1beta1.AnnotationNodeImageFamily: "CustomLinux"}
+				return w
+			}(),
+			useOptions:               true,
+			options:                  ManifestOptions{DefaultNodeImageFamily: "CustomLinux"},
+			expectedNodeClassKind:    "KaitoNodeClass",
+			expectedNodeClassGroup:   "kaito.sh",
+			expectImageFamilyPresent: false,
+		},
+		{
+			name:                     "image family defaults to ubuntu when startup parameter is empty and workspace annotation missing",
+			cloudProvider:            consts.AzureCloudName,
+			workspace:                test.MockWorkspaceWithPreset.DeepCopy(),
+			useOptions:               true,
+			options:                  ManifestOptions{DefaultNodeImageFamily: ""},
+			expectedNodeClassKind:    "KaitoNodeClass",
+			expectedNodeClassGroup:   "kaito.sh",
+			expectedImageFamily:      "ubuntu",
+			expectImageFamilyPresent: true,
+		},
+		{
+			name:                     "aws default manifest",
+			cloudProvider:            consts.AWSCloudName,
+			workspace:                test.MockWorkspaceWithPreset,
+			useOptions:               false,
+			expectedNodeClassKind:    "EC2NodeClass",
+			expectedNodeClassGroup:   "karpenter.k8s.aws",
+			expectedImageFamily:      "ubuntu",
+			expectImageFamilyPresent: true,
+		},
+	}
 
-		nodeClaim := GenerateNodeClaimManifest("0", mockWorkspace)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
 
-		assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
-		assert.Equal(t, nodeClaim.Namespace, mockWorkspace.Namespace, "NodeClaim must have same namespace as workspace")
-		assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceName], mockWorkspace.Name, "label must have same workspace name as workspace")
-		assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceNamespace], mockWorkspace.Namespace, "label must have same workspace namespace as workspace")
-		assert.Equal(t, nodeClaim.Labels[consts.LabelNodePool], consts.KaitoNodePoolName, "label must have same labels as workspace label selector")
-		assert.Equal(t, nodeClaim.Annotations[karpenterv1.DoNotDisruptAnnotationKey], "true", "label must have do not disrupt annotation")
-		assert.Equal(t, len(nodeClaim.Spec.Requirements), 4, " NodeClaim must have 4 NodeSelector Requirements")
-		assert.Equal(t, nodeClaim.Spec.Requirements[1].NodeSelectorRequirement.Values[0], mockWorkspace.Resource.InstanceType, "NodeClaim must have same instance type as workspace")
-		assert.Equal(t, nodeClaim.Spec.Requirements[2].NodeSelectorRequirement.Key, corev1.LabelOSStable, "NodeClaim must have OS label")
-		assert.Check(t, nodeClaim.Spec.NodeClassRef != nil, "NodeClaim must have NodeClassRef")
-		assert.Equal(t, nodeClaim.Spec.NodeClassRef.Kind, "KaitoNodeClass", "NodeClaim must have 'KaitoNodeClass' kind")
-		assert.Equal(t, nodeClaim.Spec.NodeClassRef.Group, "kaito.sh", "NodeClaim must have 'kaito.sh' group")
-	})
+			workspace := tc.workspace.DeepCopy()
+			if tc.name == "image family defaults to ubuntu when startup parameter is empty and workspace annotation missing" {
+				workspace.Annotations = nil
+			}
 
-	t.Run("Should generate a nodeClaim object from the given workspace when cloud provider set to aws", func(t *testing.T) {
-		mockWorkspace := test.MockWorkspaceWithPreset
-		t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
+			var nodeClaim *karpenterv1.NodeClaim
+			if tc.useOptions {
+				nodeClaim = GenerateNodeClaimManifestWithOptions("0", workspace, tc.options)
+			} else {
+				nodeClaim = GenerateNodeClaimManifest("0", workspace)
+			}
 
-		nodeClaim := GenerateNodeClaimManifest("0", mockWorkspace)
+			assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
+			assert.Equal(t, nodeClaim.Namespace, workspace.Namespace, "NodeClaim must have same namespace as workspace")
+			assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceName], workspace.Name, "label must have same workspace name as workspace")
+			assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceNamespace], workspace.Namespace, "label must have same workspace namespace as workspace")
+			assert.Equal(t, nodeClaim.Labels[consts.LabelNodePool], consts.KaitoNodePoolName, "label must have same labels as workspace label selector")
+			assert.Equal(t, nodeClaim.Annotations[karpenterv1.DoNotDisruptAnnotationKey], "true", "label must have do not disrupt annotation")
+			assert.Equal(t, len(nodeClaim.Spec.Requirements), 4, " NodeClaim must have 4 NodeSelector Requirements")
+			assert.Equal(t, nodeClaim.Spec.Requirements[1].NodeSelectorRequirement.Values[0], workspace.Resource.InstanceType, "NodeClaim must have same instance type as workspace")
+			assert.Equal(t, nodeClaim.Spec.Requirements[2].NodeSelectorRequirement.Key, corev1.LabelOSStable, "NodeClaim must have OS label")
+			assert.Check(t, nodeClaim.Spec.NodeClassRef != nil, "NodeClaim must have NodeClassRef")
+			assert.Equal(t, nodeClaim.Spec.NodeClassRef.Kind, tc.expectedNodeClassKind, "NodeClaim must have expected nodeclass kind")
+			assert.Equal(t, nodeClaim.Spec.NodeClassRef.Group, tc.expectedNodeClassGroup, "NodeClaim must have expected nodeclass group")
 
-		assert.Check(t, nodeClaim != nil, "NodeClaim must not be nil")
-		assert.Equal(t, nodeClaim.Namespace, mockWorkspace.Namespace, "NodeClaim must have same namespace as workspace")
-		assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceName], mockWorkspace.Name, "label must have same workspace name as workspace")
-		assert.Equal(t, nodeClaim.Labels[kaitov1beta1.LabelWorkspaceNamespace], mockWorkspace.Namespace, "label must have same workspace namespace as workspace")
-		assert.Equal(t, nodeClaim.Labels[consts.LabelNodePool], consts.KaitoNodePoolName, "label must have same labels as workspace label selector")
-		assert.Equal(t, nodeClaim.Annotations[karpenterv1.DoNotDisruptAnnotationKey], "true", "label must have do not disrupt annotation")
-		assert.Equal(t, len(nodeClaim.Spec.Requirements), 4, " NodeClaim must have 4 NodeSelector Requirements")
-		assert.Check(t, nodeClaim.Spec.NodeClassRef != nil, "NodeClaim must have NodeClassRef")
-		assert.Equal(t, nodeClaim.Spec.NodeClassRef.Kind, "EC2NodeClass", "NodeClaim must have 'EC2NodeClass' kind")
-		assert.Equal(t, nodeClaim.Spec.NodeClassRef.Group, "karpenter.k8s.aws", "NodeClaim must have 'karpenter.k8s.aws' group")
-	})
+			imageFamily, found := nodeClaim.Annotations[kaitov1beta1.AnnotationNodeImageFamily]
+			if tc.expectImageFamilyPresent {
+				assert.Check(t, found, "NodeClaim should contain node image family annotation")
+				assert.Equal(t, imageFamily, tc.expectedImageFamily, "NodeClaim image family annotation mismatch")
+			} else {
+				assert.Check(t, !found, "NodeClaim should not contain node image family annotation")
+			}
+		})
+	}
 }
 
 func TestGenerateAKSNodeClassManifest(t *testing.T) {

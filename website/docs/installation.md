@@ -31,6 +31,38 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --wait
 ```
 
+### Using Nightly Builds (Optional)
+
+KAITO publishes nightly controller images to the GitHub Container Registry (GHCR). These images are built daily from the `main` branch and can be used for testing the latest features before a release.
+
+:::caution
+Nightly builds are **not recommended for production use**. They are built from the latest `main` branch and may contain untested or incomplete features.
+:::
+
+Each nightly image is tagged with:
+
+- **`nightly-latest`** — always points to the most recent successful nightly build
+- **`nightly-<sha>`** — pinned to a specific commit (12-character short SHA)
+
+To install the workspace controller using the latest nightly image:
+
+```bash
+export CLUSTER_NAME=kaito
+
+helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+helm repo update
+helm upgrade --install kaito-workspace kaito/workspace \
+  --namespace kaito-workspace \
+  --create-namespace \
+  --set clusterName="$CLUSTER_NAME" \
+  --set image.repository=ghcr.io/kaito-project/kaito/workspace \
+  --set image.tag=nightly-latest \
+  --set image.pullPolicy=Always \
+  --wait
+```
+
+For nightly RAG engine controller images, see the [RAG installation guide](rag#using-nightly-builds-optional).
+
 ### Verify KAITO Installation
 
 Check that the KAITO workspace controller is running:
@@ -41,6 +73,55 @@ kubectl describe deploy kaito-workspace -n kaito-workspace
 ```
 
 You should see the workspace controller pod in a `Running` state.
+
+## Configure Node Image Family (Optional)
+
+KAITO supports configuring the node image family for generated `NodeClaim` resources.
+
+:::note Version requirement
+Node Image Family is supported in KAITO **v0.9.0 and later**.
+:::
+
+- Supported values: `ubuntu`, `azurelinux`
+- Controller startup parameter: `--default-node-image-family`
+- Helm chart value: `defaultNodeImageFamily` (mapped to `--default-node-image-family`)
+- Workspace annotation: `metadata.annotations["kaito.sh/node-image-family"]`
+
+### Controller startup parameter
+
+You can set the controller-level default with Helm:
+
+```bash
+helm upgrade --install kaito-workspace kaito/workspace \
+  --namespace kaito-workspace \
+  --create-namespace \
+  --set clusterName="$CLUSTER_NAME" \
+  --set defaultNodeImageFamily=azurelinux \
+  --wait
+```
+
+Notes:
+
+- If startup parameter `--default-node-image-family` is empty, KAITO uses `ubuntu`.
+- If startup parameter `--default-node-image-family` is not one of `ubuntu` or `azurelinux`, the workspace controller fails to start.
+
+### Per-workspace override via annotation
+
+You can override the controller default on a specific `Workspace`:
+
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-phi-4-mini
+  annotations:
+    kaito.sh/node-image-family: azurelinux
+```
+
+Notes:
+
+- `kaito.sh/node-image-family` has higher priority than `--default-node-image-family`.
+- If the annotation value is unsupported, Workspace creation is rejected by validation webhook.
 
 ## Setup GPU Nodes
 
@@ -100,6 +181,7 @@ The following cloud providers support auto-provisioning GPU nodes in addition to
 
 - [Azure (AKS)](azure.md#setup-auto-provisioning) - Set up GPU auto-provisioning with Azure GPU Provisioner
 - [AWS (EKS)](aws.md#setup-auto-provisioning) - Set up GPU auto-provisioning with Karpenter
+
 
 ## Next Steps
 

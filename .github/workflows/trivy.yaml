@@ -28,21 +28,20 @@ jobs:
             build_flags: "--target dependencies"
 
     steps:
-
       - name: Checkout code
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Build image from Dockerfile
         run: |
           export REGISTRY=${{ matrix.registry }}
           export IMG_TAG=latest
           export OUTPUT_TYPE="type=docker"
-          export ARCH="amd64"
-          make ${{ matrix.target }} BUILD_FLAGS="${{ matrix.build_flags }}"
+          make ${{ matrix.target }} ARCH=amd64 BUILD_FLAGS="${{ matrix.build_flags }}"
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
+          version: "v0.69.2"
           image-ref: ${{ matrix.image }}
           format: "table"
           exit-code: "1"

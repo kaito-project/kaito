@@ -8,9 +8,9 @@
 
 | ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mistral 3 models are supported in the latest [release](https://github.com/kaito-project/kaito/releases). Learn about the new models from [here](https://mistral.ai/news/mistral-3)! |
-| Latest Release: Dec 20th, 2025. KAITO v0.8.0                                                                                                                                                                                                  |
-| First Release: Nov 15th, 2023. KAITO v0.1.0.                                                                                                                                                                                                   |
+| ALL vLLM supported modeled can be run in KAITO now, check the latest [release](https://github.com/kaito-project/kaito/releases). |
+| Latest Release: Feb 26th, 2026. KAITO v0.9.0. |
+| First Release: Nov 15th, 2023. KAITO v0.1.0. |
 
 KAITO is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster.
 The target models are popular open-sourced large models such as [phi-4](https://huggingface.co/microsoft/phi-4) and [llama](https://huggingface.co/meta-llama).
@@ -22,6 +22,7 @@ KAITO has the following key differentiations compared to most of the mainstream 
 - Auto-provision GPU nodes based on model requirements.
 - Autoscale the inference workload based on the service monitoring metrics.
 - Leverage local NVMe as the primary storage to store model weight files.
+- Support Gateway API Inference Extension.
 
 Using KAITO, the workflow of onboarding large AI inference models in Kubernetes is largely simplified.
 
@@ -79,12 +80,12 @@ inference:
 $ kubectl apply -f examples/inference/kaito_workspace_phi_3.5-instruct.yaml
 ```
 
-The workspace status can be tracked by running the following command. When the WORKSPACESUCCEEDED column becomes `True`, the model has been deployed successfully.
+The workspace status can be tracked by running the following command. When the STATE column becomes `Ready`, the model has been deployed successfully.
 
 ```sh
 $ kubectl get workspace workspace-phi-3-5-mini
-NAME                     INSTANCE                   RESOURCEREADY   INFERENCEREADY   JOBSTARTED   WORKSPACESUCCEEDED   AGE
-workspace-phi-3-5-mini   Standard_NC24ads_A100_v4   True            True                          True                 4h15m
+NAME                     INSTANCE                   RESOURCEREADY   INFERENCEREADY   JOBSTARTED   WORKSPACESUCCEEDED   TARGETNODECOUNT   STATE   AGE
+workspace-phi-3-5-mini   Standard_NC24ads_A100_v4   True            True                          True                 1                 Ready   24m
 ```
 
 Next, one can find the inference service's cluster ip and use a temporal `curl` pod to test the service endpoint in the cluster.
@@ -130,7 +131,7 @@ The detailed usage for KAITO supported models can be found in [**HERE**](https:/
 
 > Note: Currently the controller does **NOT** handle automatic model upgrade. It only creates inference workloads based on the preset configurations if the workloads do not exist.
 
-The number of the supported models in KAITO is growing! Please check [this](https://kaito-project.github.io/kaito/docs/preset-onboarding) document to see how to add a new supported model. Refer to [tuning document](https://kaito-project.github.io/kaito/docs/tuning), [inference document](https://kaito-project.github.io/kaito/docs/inference) , [RAGEngine document](https://kaito-project.github.io/kaito/docs/rag) and [FAQ](https://kaito-project.github.io/kaito/docs/faq) for more information.
+The number of the supported models in KAITO is growing! Please check [this](https://kaito-project.github.io/kaito/docs/preset-onboarding) document to see how to add a new supported model. Refer to [tuning document](https://kaito-project.github.io/kaito/docs/tuning), [inference document](https://kaito-project.github.io/kaito/docs/inference) , [RAGEngine document](https://kaito-project.github.io/kaito/docs/rag), [LoRA adapters guide](https://kaito-project.github.io/kaito/docs/lora-adapters), and [FAQ](https://kaito-project.github.io/kaito/docs/faq) for more information.
 
 ## Contributing
 

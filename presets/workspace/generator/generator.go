@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	SystemFileDiskSizeGiB  = 50
+	SystemFileDiskSizeGiB  = 80
 	DefaultModelTokenLimit = 2048
 	HuggingFaceWebsite     = "https://huggingface.co"
 )
@@ -40,20 +40,37 @@ var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
 	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
-	// source: https://github.com/vllm-project/vllm/blob/v0.12.0/docs/features/reasoning_outputs.md
-	reasoningParserMap = map[string]string{
+	// source: https://github.com/vllm-project/vllm/blob/main/docs/features/reasoning_outputs.md
+	reasoningParserModeNamePrefixMap = map[string]string{
 		"deepseek-r1":  "deepseek_r1",
 		"deepseek-v3":  "deepseek_v3",
 		"ernie-4.5":    "ernie45",
 		"glm-4.5":      "glm45",
+		"holo2":        "holo2",
 		"hunyuan-a13b": "hunyuan_a13b",
 		"granite-3.2":  "granite",
 		"minimax-m2":   "minimax_m2_append_think",
 		"qwen3":        "qwen3",
 		"qwq-32b":      "deepseek_r1",
 	}
-	// source: https://github.com/vllm-project/vllm/blob/v0.12.0/docs/features/tool_calling.md
-	toolCallParserMap = map[string]string{
+	reasoningParserArchMap = map[string]string{
+		"DeepseekV3ForCausalLM":                  "deepseek_v3",
+		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
+		"Ernie4_5_MoeForCausalLM":                "ernie45",
+		"Glm4MoeForCausalLM":                     "glm45",
+		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
+		"GraniteForCausalLM":                     "granite",
+		"MiniMaxM2ForCausalLM":                   "minimax_m2_append_think",
+		"Qwen3ForCausalLM":                       "qwen3",
+		"Qwen3MoeForCausalLM":                    "qwen3",
+		"GptOssForCausalLM":                      "openai_gptoss",
+		"Step3TextForCausalLM":                   "step3",
+		"Step3VLForConditionalGeneration":        "step3",
+	}
+
+	// source: https://github.com/vllm-project/vllm/blob/main/docs/features/tool_calling.md
+	// key is model name prefix, value is ToolCallParser mode name
+	toolCallParserModeNamePrefixMap = map[string]string{
 		"hermes-2":      "hermes",
 		"hermes-3":      "hermes",
 		"mistral":       "mistral",
@@ -63,19 +80,56 @@ var (
 		"granite-4":     "hermes",
 		"internlm":      "internlm",
 		"ai21-jamba":    "jamba",
+		"llama-xlama":   "xlam",
+		"xlam":          "xlam",
 		"qwq-32b":       "hermes",
 		"qwen2.5":       "hermes",
 		"minimax":       "minimax",
 		"deepseek-r1":   "deepseek_v3",
 		"deepseek-v3":   "deepseek_v3",
 		"deepseek-v3.1": "deepseek_v31",
+		"deepseek-v3.2": "deepseek_v32",
 		"kimi_k2":       "kimi_k2",
 		"hunyuan-a13b":  "hunyuan_a13b",
 		"longcat":       "longcat",
 		"glm-4":         "glm45",
+		"glm-4.7":       "glm47",
 		"qwen3":         "hermes",
 		"qwen3-coder":   "qwen3_xml",
 		"olmo-3":        "olmo3",
+		"gigachat3":     "gigachat3",
+		"ernie-4.5":     "ernie45",
+	}
+
+	// key is model architecture name, value is ToolCallParser mode name
+	toolCallParserArchMap = map[string]string{
+		"MistralForCausalLM":                     "mistral",
+		"MistralLarge3ForCausalLM":               "mistral",
+		"LlamaForCausalLM":                       "llama3_json",
+		"Llama4ForConditionalGeneration":         "llama4_pythonic",
+		"GraniteForCausalLM":                     "granite",
+		"GraniteMoeForCausalLM":                  "granite",
+		"GraniteMoeHybridForCausalLM":            "hermes",
+		"GPTBigCodeForCausalLM":                  "granite-20b-fc",
+		"InternLM2ForCausalLM":                   "internlm",
+		"JambaForCausalLM":                       "jamba",
+		"Qwen2ForCausalLM":                       "hermes",
+		"Qwen3ForCausalLM":                       "hermes",
+		"Qwen3MoeForCausalLM":                    "qwen3_xml",
+		"MiniMaxM1ForCausalLM":                   "minimax",
+		"MiniMaxM2ForCausalLM":                   "minimax_m2",
+		"DeepseekV3ForCausalLM":                  "deepseek_v3",
+		"DeepseekV32ForCausalLM":                 "deepseek_v32",
+		"GptOssForCausalLM":                      "openai",
+		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
+		"LongcatFlashForCausalLM":                "longcat",
+		"Glm4MoeForCausalLM":                     "glm45",
+		"Gemma3ForCausalLM":                      "functiongemma",
+		"Olmo3ForCausalLM":                       "olmo3",
+		"SeedOssForCausalLM":                     "seed_oss",
+		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
+		"Ernie4_5_MoeForCausalLM":                "ernie45",
+		"Step3TextForCausalLM":                   "step3",
 	}
 )
 
@@ -108,7 +162,7 @@ func NewGenerator(modelRepo, token string) *Generator {
 	gen.Param.Metadata.ModelType = "tfs"
 	gen.Param.Metadata.Version = fmt.Sprintf("%s/%s", HuggingFaceWebsite, modelRepo)
 	gen.Param.Metadata.DownloadAtRuntime = true
-	gen.Param.Metadata.DiskStorageRequirement = "50Gi"
+	gen.Param.Metadata.DiskStorageRequirement = fmt.Sprintf("%dGi", SystemFileDiskSizeGiB)
 	gen.Param.Metadata.ModelFileSize = "0Gi"
 
 	return gen
@@ -293,25 +347,46 @@ func (g *Generator) ParseModelMetadata() {
 	}
 
 	// set reasoning parser based on model name prefix
-	for prefix, parser := range reasoningParserMap {
+	for prefix, parser := range reasoningParserModeNamePrefixMap {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
 			g.Param.Metadata.ReasoningParser = parser
 			break
 		}
 	}
 
+	// set reasoning parser based on model architecture if not set by name prefix
+	if g.Param.Metadata.ReasoningParser == "" {
+		for _, arch := range g.Param.Metadata.Architectures {
+			if parser, ok := reasoningParserArchMap[arch]; ok {
+				g.Param.Metadata.ReasoningParser = parser
+				break
+			}
+		}
+	}
+
 	// set ToolCallParser based on model name prefix
-	// sort the keys of toolCallParserMap in alphabetical order and then iterate
-	// this is to ensure that longer prefixes are matched last
-	prefixes := make([]string, 0, len(toolCallParserMap))
-	for prefix := range toolCallParserMap {
+	// sort the keys of toolCallParserModeNamePrefixMap in reverse alphabetical order and then iterate
+	// this is to ensure that longer (more specific) prefixes are matched first
+	prefixes := make([]string, 0, len(toolCallParserModeNamePrefixMap))
+	for prefix := range toolCallParserModeNamePrefixMap {
 		prefixes = append(prefixes, prefix)
 	}
-	sort.Strings(prefixes)
+	sort.Sort(sort.Reverse(sort.StringSlice(prefixes)))
 
 	for _, prefix := range prefixes {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
-			g.Param.Metadata.ToolCallParser = toolCallParserMap[prefix]
+			g.Param.Metadata.ToolCallParser = toolCallParserModeNamePrefixMap[prefix]
+			break
+		}
+	}
+
+	// set ToolCallParser based on model architecture if not set by name prefix
+	if g.Param.Metadata.ToolCallParser == "" {
+		for _, arch := range g.Param.Metadata.Architectures {
+			if parser, ok := toolCallParserArchMap[arch]; ok {
+				g.Param.Metadata.ToolCallParser = parser
+				break
+			}
 		}
 	}
 }

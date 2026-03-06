@@ -1,22 +1,111 @@
 {
     "openapi": "3.1.0",
     "info": {
-        "title": "FastAPI",
-        "version": "0.1.0"
+        "title": "KAITO Transformers Inference API",
+        "version": "1.0.0"
     },
     "paths": {
-        "/": {
+        "/v1/chat/completions": {
+            "post": {
+                "summary": "Chat Completions",
+                "description": "OpenAI-compatible chat completions endpoint. Returns server-sent events (SSE).",
+                "operationId": "chat_completion_v1_chat_completions_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChatCompletionRequest"
+                            },
+                            "example": {
+                                "model": "my-model",
+                                "messages": [
+                                    {
+                                        "role": "system",
+                                        "content": "You are a helpful assistant."
+                                    },
+                                    {
+                                        "role": "user",
+                                        "content": "Hello!"
+                                    }
+                                ],
+                                "max_tokens": 256,
+                                "temperature": 0.7,
+                                "stream": true
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Server-sent event stream of chat completion chunks",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/responses": {
+            "post": {
+                "summary": "Responses",
+                "description": "OpenAI Responses API endpoint. Returns server-sent events (SSE).",
+                "operationId": "responses_v1_responses_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ResponseRequest"
+                            },
+                            "example": {
+                                "model": "my-model",
+                                "input": "Tell me a joke."
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Server-sent event stream",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/models": {
             "get": {
-                "summary": "Home Endpoint",
-                "description": "A simple endpoint that indicates the server is running.\nNo parameters are required. Returns a message indicating the server status.",
-                "operationId": "home__get",
+                "summary": "List Models",
+                "description": "List the served model in OpenAI-compatible format.",
+                "operationId": "list_models_v1_models_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/HomeResponse"
+                                    "$ref": "#/components/schemas/ModelListResponse"
+                                },
+                                "example": {
+                                    "object": "list",
+                                    "data": [
+                                        {
+                                            "id": "my-model",
+                                            "object": "model",
+                                            "created": 1700000000,
+                                            "owned_by": "kaito"
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -26,15 +115,25 @@
         },
         "/health": {
             "get": {
-                "summary": "Health Check Endpoint",
-                "operationId": "health_check_healthz_get",
+                "summary": "Health Check",
+                "description": "Health check used by Kubernetes liveness/readiness probes.",
+                "operationId": "health_check_health_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/HealthStatus"
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "Healthy"
+                                        }
+                                    },
+                                    "required": [
+                                        "status"
+                                    ]
                                 },
                                 "example": {
                                     "status": "Healthy"
@@ -46,163 +145,16 @@
                         "description": "Error Response",
                         "content": {
                             "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
                                 "examples": {
                                     "model_uninitialized": {
                                         "summary": "Model not initialized",
                                         "value": {
                                             "detail": "Model not initialized"
                                         }
-                                    },
-                                    "pipeline_uninitialized": {
-                                        "summary": "Pipeline not initialized",
-                                        "value": {
-                                            "detail": "Pipeline not initialized"
-                                        }
                                     }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/chat": {
-            "post": {
-                "summary": "Chat Endpoint",
-                "description": "Processes chat requests, generating text based on the specified pipeline (text generation or conversational).\nValidates required parameters based on the pipeline and returns the generated text.",
-                "operationId": "generate_text_chat_post",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/UnifiedRequestModel"
-                            },
-                            "examples": {
-                                "text_generation_example": {
-                                    "summary": "Text Generation Example",
-                                    "description": "An example of a text generation request.",
-                                    "value": {
-                                        "prompt": "Tell me a joke",
-                                        "return_full_text": true,
-                                        "clean_up_tokenization_spaces": false,
-                                        "generate_kwargs": {
-                                            "max_length": 200,
-                                            "min_length": 0,
-                                            "do_sample": true,
-                                            "early_stopping": false,
-                                            "num_beams": 1,
-                                            "temperature": 1,
-                                            "top_k": 10,
-                                            "top_p": 1,
-                                            "typical_p": 1,
-                                            "repetition_penalty": 1,
-                                            "eos_token_id": 11
-                                        }
-                                    }
-                                },
-                                "conversation_example": {
-                                    "summary": "Conversation Example",
-                                    "description": "An example of a conversational request.",
-                                    "value": {
-                                        "messages": [
-                                            {
-                                                "role": "user",
-                                                "content": "What is your favourite condiment?"
-                                            },
-                                            {
-                                                "role": "assistant",
-                                                "content": "Well, im quite partial to a good squeeze of fresh lemon juice. It adds just the right amount of zesty flavour to whatever im cooking up in the kitchen!"
-                                            },
-                                            {
-                                                "role": "user",
-                                                "content": "Do you have mayonnaise recipes?"
-                                            }
-                                        ],
-                                        "return_full_text": true,
-                                        "clean_up_tokenization_spaces": false,
-                                        "generate_kwargs": {
-                                            "max_length": 200,
-                                            "min_length": 0,
-                                            "do_sample": true,
-                                            "early_stopping": false,
-                                            "num_beams": 1,
-                                            "temperature": 1,
-                                            "top_k": 10,
-                                            "top_p": 1,
-                                            "typical_p": 1,
-                                            "repetition_penalty": 1,
-                                            "eos_token_id": 11
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {},
-                                "examples": {
-                                    "text_generation": {
-                                        "summary": "Text Generation Response",
-                                        "value": {
-                                            "Result": "Generated text based on the prompt."
-                                        }
-                                    },
-                                    "conversation": {
-                                        "summary": "Conversation Response",
-                                        "value": {
-                                            "Result": "Response to the last message in the conversation."
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                },
-                                "examples": {
-                                    "missing_prompt": {
-                                        "summary": "Missing Prompt",
-                                        "value": {
-                                            "detail": "Text generation parameter prompt required"
-                                        }
-                                    },
-                                    "missing_messages": {
-                                        "summary": "Missing Messages",
-                                        "value": {
-                                            "detail": "Conversational parameter messages required"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -275,6 +227,152 @@
     },
     "components": {
         "schemas": {
+            "ChatCompletionRequest": {
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "title": "Model",
+                        "description": "ID of the model to use."
+                    },
+                    "messages": {
+                        "type": "array",
+                        "title": "Messages",
+                        "description": "A list of messages comprising the conversation.",
+                        "items": {
+                            "$ref": "#/components/schemas/ChatMessage"
+                        }
+                    },
+                    "max_tokens": {
+                        "type": "integer",
+                        "title": "Max Tokens",
+                        "description": "Maximum number of tokens to generate."
+                    },
+                    "temperature": {
+                        "type": "number",
+                        "title": "Temperature",
+                        "description": "Sampling temperature."
+                    },
+                    "stream": {
+                        "type": "boolean",
+                        "title": "Stream",
+                        "description": "Whether to stream the response via SSE."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "model",
+                    "messages"
+                ],
+                "title": "ChatCompletionRequest"
+            },
+            "ChatMessage": {
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "title": "Role",
+                        "description": "The role of the message author (e.g. system, user, assistant)."
+                    },
+                    "content": {
+                        "type": "string",
+                        "title": "Content",
+                        "description": "The content of the message."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "role",
+                    "content"
+                ],
+                "title": "ChatMessage"
+            },
+            "ResponseRequest": {
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "title": "Model",
+                        "description": "ID of the model to use."
+                    },
+                    "input": {
+                        "title": "Input",
+                        "description": "The input text or array of input items.",
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "array",
+                                "items": {}
+                            }
+                        ]
+                    },
+                    "max_output_tokens": {
+                        "type": "integer",
+                        "title": "Max Output Tokens",
+                        "description": "Maximum number of output tokens to generate."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "model",
+                    "input"
+                ],
+                "title": "ResponseRequest"
+            },
+            "ModelListResponse": {
+                "properties": {
+                    "object": {
+                        "type": "string",
+                        "title": "Object",
+                        "enum": [
+                            "list"
+                        ]
+                    },
+                    "data": {
+                        "type": "array",
+                        "title": "Data",
+                        "items": {
+                            "$ref": "#/components/schemas/ModelObject"
+                        }
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "object",
+                    "data"
+                ],
+                "title": "ModelListResponse"
+            },
+            "ModelObject": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "object": {
+                        "type": "string",
+                        "title": "Object",
+                        "enum": [
+                            "model"
+                        ]
+                    },
+                    "created": {
+                        "type": "integer",
+                        "title": "Created"
+                    },
+                    "owned_by": {
+                        "type": "string",
+                        "title": "Owned By"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "object",
+                    "created",
+                    "owned_by"
+                ],
+                "title": "ModelObject"
+            },
             "CPUInfo": {
                 "properties": {
                     "load_percentage": {
@@ -347,118 +445,6 @@
                 ],
                 "title": "GPUInfo"
             },
-            "GenerateKwargs": {
-                "properties": {
-                    "max_length": {
-                        "type": "integer",
-                        "title": "Max Length",
-                        "default": 200
-                    },
-                    "min_length": {
-                        "type": "integer",
-                        "title": "Min Length",
-                        "default": 0
-                    },
-                    "do_sample": {
-                        "type": "boolean",
-                        "title": "Do Sample",
-                        "default": true
-                    },
-                    "early_stopping": {
-                        "type": "boolean",
-                        "title": "Early Stopping",
-                        "default": false
-                    },
-                    "num_beams": {
-                        "type": "integer",
-                        "title": "Num Beams",
-                        "default": 1
-                    },
-                    "temperature": {
-                        "type": "number",
-                        "title": "Temperature",
-                        "default": 1
-                    },
-                    "top_k": {
-                        "type": "integer",
-                        "title": "Top K",
-                        "default": 10
-                    },
-                    "top_p": {
-                        "type": "number",
-                        "title": "Top P",
-                        "default": 1
-                    },
-                    "typical_p": {
-                        "type": "number",
-                        "title": "Typical P",
-                        "default": 1
-                    },
-                    "repetition_penalty": {
-                        "type": "number",
-                        "title": "Repetition Penalty",
-                        "default": 1
-                    },
-                    "pad_token_id": {
-                        "type": "integer",
-                        "title": "Pad Token Id"
-                    },
-                    "eos_token_id": {
-                        "type": "integer",
-                        "title": "Eos Token Id",
-                        "default": 11
-                    }
-                },
-                "type": "object",
-                "title": "GenerateKwargs",
-                "example": {
-                    "max_length": 200,
-                    "temperature": 0.7,
-                    "top_p": 0.9,
-                    "additional_param": "Example value"
-                }
-            },
-            "HTTPValidationError": {
-                "properties": {
-                    "detail": {
-                        "items": {
-                            "$ref": "#/components/schemas/ValidationError"
-                        },
-                        "type": "array",
-                        "title": "Detail"
-                    }
-                },
-                "type": "object",
-                "title": "HTTPValidationError"
-            },
-            "HealthStatus": {
-                "properties": {
-                    "status": {
-                        "type": "string",
-                        "title": "Status",
-                        "example": "Healthy"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "status"
-                ],
-                "title": "HealthStatus"
-            },
-            "HomeResponse": {
-                "properties": {
-                    "message": {
-                        "type": "string",
-                        "title": "Message",
-                        "example": "Server is running"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "message"
-                ],
-                "title": "HomeResponse"
-            },
             "MemoryInfo": {
                 "properties": {
                     "used": {
@@ -477,24 +463,6 @@
                 ],
                 "title": "MemoryInfo"
             },
-            "Message": {
-                "properties": {
-                    "role": {
-                        "type": "string",
-                        "title": "Role"
-                    },
-                    "content": {
-                        "type": "string",
-                        "title": "Content"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "role",
-                    "content"
-                ],
-                "title": "Message"
-            },
             "MetricsResponse": {
                 "properties": {
                     "gpu_info": {
@@ -510,89 +478,6 @@
                 },
                 "type": "object",
                 "title": "MetricsResponse"
-            },
-            "UnifiedRequestModel": {
-                "properties": {
-                    "prompt": {
-                        "type": "string",
-                        "title": "Prompt",
-                        "description": "Prompt for text generation. Required for text-generation pipeline. Do not use with 'messages'."
-                    },
-                    "return_full_text": {
-                        "type": "boolean",
-                        "title": "Return Full Text",
-                        "description": "Return full text if True, else only added text",
-                        "default": true
-                    },
-                    "clean_up_tokenization_spaces": {
-                        "type": "boolean",
-                        "title": "Clean Up Tokenization Spaces",
-                        "description": "Clean up extra spaces in text output",
-                        "default": false
-                    },
-                    "prefix": {
-                        "type": "string",
-                        "title": "Prefix",
-                        "description": "Prefix added to prompt"
-                    },
-                    "handle_long_generation": {
-                        "type": "string",
-                        "title": "Handle Long Generation",
-                        "description": "Strategy to handle long generation"
-                    },
-                    "generate_kwargs": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/GenerateKwargs"
-                            }
-                        ],
-                        "title": "Generate Kwargs",
-                        "description": "Additional kwargs for generate method"
-                    },
-                    "messages": {
-                        "items": {
-                            "$ref": "#/components/schemas/Message"
-                        },
-                        "type": "array",
-                        "title": "Messages",
-                        "description": "Messages for conversational model. Required for conversational pipeline. Do not use with 'prompt'."
-                    }
-                },
-                "type": "object",
-                "title": "UnifiedRequestModel"
-            },
-            "ValidationError": {
-                "properties": {
-                    "loc": {
-                        "items": {
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "integer"
-                                }
-                            ]
-                        },
-                        "type": "array",
-                        "title": "Location"
-                    },
-                    "msg": {
-                        "type": "string",
-                        "title": "Message"
-                    },
-                    "type": {
-                        "type": "string",
-                        "title": "Error Type"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "loc",
-                    "msg",
-                    "type"
-                ],
-                "title": "ValidationError"
             }
         }
     }

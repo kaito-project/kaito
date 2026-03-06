@@ -18,11 +18,9 @@ import (
 	"reflect"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/util/retry"
-	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -88,30 +86,6 @@ var (
 		},
 	}
 )
-
-// UpdateStatusConditionIfNotMatch updates the workspace status condition if it doesn't match the current values
-func UpdateStatusConditionIfNotMatch(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace, cType kaitov1beta1.ConditionType,
-	cStatus metav1.ConditionStatus, cReason, cMessage string) error {
-	if curCondition := meta.FindStatusCondition(wObj.Status.Conditions, string(cType)); curCondition != nil {
-		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage {
-			// Nothing to change
-			return nil
-		}
-	}
-	klog.InfoS("updateStatusCondition", "workspace", klog.KObj(wObj), "conditionType", cType, "status", cStatus, "reason", cReason, "message", cMessage)
-	condition := metav1.Condition{
-		Type:               string(cType),
-		Status:             cStatus,
-		Reason:             cReason,
-		ObservedGeneration: wObj.GetGeneration(),
-		Message:            cMessage,
-		LastTransitionTime: metav1.Now(),
-	}
-	return UpdateWorkspaceStatus(ctx, c, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
-		meta.SetStatusCondition(&status.Conditions, condition)
-		return nil
-	})
-}
 
 // UpdateWorkspaceStatus updates the workspace status with the provided condition
 func UpdateWorkspaceStatus(ctx context.Context, c client.Client, name *client.ObjectKey, modifyFn func(*kaitov1beta1.WorkspaceStatus) error) error {

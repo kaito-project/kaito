@@ -22,8 +22,6 @@ from qdrant_client import AsyncQdrantClient, QdrantClient
 from qdrant_client.http import models as rest
 
 from ragengine.config import (
-    RAG_DENSE_SCORE_THRESHOLD,
-    RAG_HYBRID_SCORE_THRESHOLD,
     RAG_MAX_TOP_K,
 )
 from ragengine.embedding.base import BaseEmbeddingModel
@@ -728,46 +726,6 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                     }
                 )
 
-            # ── Score threshold filtering ──
-            # 1) Dense score filter: drop dense_only/both nodes with low cosine sim
-            #    sparse_only nodes are kept (they matched on keywords).
-            # 2) RSF fused score filter: drop anything below the fused threshold.
-            filtered_count = 0
-            before_len = len(results)
-
-            if RAG_DENSE_SCORE_THRESHOLD > 0:
-
-                def _passes_dense_filter(r):
-                    if r["source"] == "sparse_only":
-                        return True  # no dense score to check
-                    ds = r.get("dense_score")
-                    return ds is not None and ds >= RAG_DENSE_SCORE_THRESHOLD
-
-                results = [r for r in results if _passes_dense_filter(r)]
-
-            if RAG_HYBRID_SCORE_THRESHOLD > 0:
-                results = [
-                    r for r in results if r["score"] >= RAG_HYBRID_SCORE_THRESHOLD
-                ]
-
-            filtered_count = before_len - len(results)
-            scores = [r["score"] for r in results]
-            if filtered_count > 0:
-                # Recount source breakdown after filtering
-                overlap_count = sum(1 for r in results if r["source"] == "both")
-                dense_only_count = sum(
-                    1 for r in results if r["source"] == "dense_only"
-                )
-                sparse_only_count = sum(
-                    1 for r in results if r["source"] == "sparse_only"
-                )
-                logger.info(
-                    f"Score filtering: dense_threshold={RAG_DENSE_SCORE_THRESHOLD}, "
-                    f"fused_threshold={RAG_HYBRID_SCORE_THRESHOLD}: "
-                    f"filtered out {filtered_count} low-score nodes, "
-                    f"{len(results)} remaining"
-                )
-
             logger.info(
                 f"Source breakdown: both={overlap_count}, "
                 f"dense_only={dense_only_count}, sparse_only={sparse_only_count}"
@@ -781,7 +739,6 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                     rag_avg_source_score,
                     rag_hybrid_dense_candidates,
                     rag_hybrid_dense_only_count,
-                    rag_hybrid_filtered_count,
                     rag_hybrid_median_score,
                     rag_hybrid_overlap_count,
                     rag_hybrid_retrieve_latency,
@@ -817,7 +774,6 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                 rag_hybrid_overlap_count.observe(overlap_count)
                 rag_hybrid_dense_only_count.observe(dense_only_count)
                 rag_hybrid_sparse_only_count.observe(sparse_only_count)
-                rag_hybrid_filtered_count.observe(filtered_count)
                 # Score metrics
                 if scores:
                     rag_lowest_source_score.observe(min(scores))

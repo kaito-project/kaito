@@ -70,6 +70,12 @@ class BaseVectorStore(ABC):
     # Qdrant with enable_hybrid=True sets this to True.
     _native_hybrid_search: bool = False
 
+    # Limit concurrent GPU-bound document insertions to prevent CUDA OOM.
+    # Each insert triggers dense + sparse (SPLADE) embedding on GPU;
+    # too many concurrent inserts exhaust GPU memory.
+    _insert_semaphore: asyncio.Semaphore = None
+    _max_concurrent_inserts: int = 2
+
     def __init__(self, embed_model: BaseEmbeddingModel, use_rwlock: bool = False):
         super().__init__()
         self.llm = Inference()
@@ -79,6 +85,7 @@ class BaseVectorStore(ABC):
         self.use_rwlock = use_rwlock
         self.rwlock = aiorwlock.RWLock() if self.use_rwlock else None
         self.custom_transformer = CustomTransformer()
+        self._insert_semaphore = asyncio.Semaphore(self._max_concurrent_inserts)
 
     @staticmethod
     def generate_doc_id(text: str) -> str:
@@ -118,7 +125,8 @@ class BaseVectorStore(ABC):
                     index_name
                 ].docstore.aget_ref_doc_info(doc_id)
             if not retrieved_doc:
-                await self.add_document_to_index(index_name, doc, doc_id)
+                async with self._insert_semaphore:
+                    await self.add_document_to_index(index_name, doc, doc_id)
             else:
                 logger.info(
                     f"Document {doc_id} already exists in index {index_name}. Skipping."

@@ -21,7 +21,7 @@ from llama_index.vector_stores.qdrant import QdrantVectorStore
 from qdrant_client import AsyncQdrantClient, QdrantClient
 from qdrant_client.http import models as rest
 
-from ragengine.config import RAG_HYBRID_SCORE_THRESHOLD, RAG_MAX_TOP_K
+from ragengine.config import RAG_DENSE_SCORE_THRESHOLD, RAG_HYBRID_SCORE_THRESHOLD, RAG_MAX_TOP_K
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.models import Document
 
@@ -53,6 +53,11 @@ class QdrantVectorStoreHandler(BaseVectorStore):
     """
 
     _native_hybrid_search: bool = True
+
+    # Qdrant async client is bound to the main event loop; using use_async=True
+    # inside asyncio.to_thread causes "Event loop is closed" because LlamaIndex
+    # calls asyncio.run() in the worker thread with a different event loop.
+    _use_async_indexing: bool = False
 
     # Sparse model used by fastembed for BM25 tokenization.
     FASTEMBED_SPARSE_MODEL = "Qdrant/bm25"
@@ -435,10 +440,19 @@ class QdrantVectorStoreHandler(BaseVectorStore):
         self._ensure_docstore(index_name)
         return await super().update_documents(index_name, documents)
 
-    async def list_documents_in_index(self, index_name: str, **kwargs):
+    async def list_documents_in_index(
+        self,
+        index_name: str,
+        limit: int,
+        offset: int,
+        max_text_length: int | None = None,
+        metadata_filter: dict | None = None,
+    ):
         """Ensure docstore is ready before listing (docstore iteration needs it)."""
         self._ensure_docstore(index_name)
-        return await super().list_documents_in_index(index_name, **kwargs)
+        return await super().list_documents_in_index(
+            index_name, limit, offset, max_text_length, metadata_filter
+        )
 
     async def document_exists(
         self, index_name: str, doc: Document, doc_id: str
@@ -589,22 +603,36 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                 })
 
             # ── Score threshold filtering ──
+            # 1) Dense score filter: drop dense_only/both nodes with low cosine sim
+            #    sparse_only nodes are kept (they matched on keywords).
+            # 2) RSF fused score filter: drop anything below the fused threshold.
             filtered_count = 0
+            before_len = len(results)
+
+            if RAG_DENSE_SCORE_THRESHOLD > 0:
+                def _passes_dense_filter(r):
+                    if r["source"] == "sparse_only":
+                        return True  # no dense score to check
+                    ds = r.get("dense_score")
+                    return ds is not None and ds >= RAG_DENSE_SCORE_THRESHOLD
+                results = [r for r in results if _passes_dense_filter(r)]
+
             if RAG_HYBRID_SCORE_THRESHOLD > 0:
-                before_len = len(results)
                 results = [r for r in results if r["score"] >= RAG_HYBRID_SCORE_THRESHOLD]
-                scores = [r["score"] for r in results]
-                filtered_count = before_len - len(results)
-                if filtered_count > 0:
-                    # Recount source breakdown after filtering
-                    overlap_count = sum(1 for r in results if r["source"] == "both")
-                    dense_only_count = sum(1 for r in results if r["source"] == "dense_only")
-                    sparse_only_count = sum(1 for r in results if r["source"] == "sparse_only")
-                    logger.info(
-                        f"Score threshold={RAG_HYBRID_SCORE_THRESHOLD}: "
-                        f"filtered out {filtered_count} low-score nodes, "
-                        f"{len(results)} remaining"
-                    )
+
+            filtered_count = before_len - len(results)
+            scores = [r["score"] for r in results]
+            if filtered_count > 0:
+                # Recount source breakdown after filtering
+                overlap_count = sum(1 for r in results if r["source"] == "both")
+                dense_only_count = sum(1 for r in results if r["source"] == "dense_only")
+                sparse_only_count = sum(1 for r in results if r["source"] == "sparse_only")
+                logger.info(
+                    f"Score filtering: dense_threshold={RAG_DENSE_SCORE_THRESHOLD}, "
+                    f"fused_threshold={RAG_HYBRID_SCORE_THRESHOLD}: "
+                    f"filtered out {filtered_count} low-score nodes, "
+                    f"{len(results)} remaining"
+                )
 
             logger.info(
                 f"Source breakdown: both={overlap_count}, "

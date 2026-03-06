@@ -21,7 +21,6 @@ Default weights: vector=0.7, text=0.3 (normalized to sum to 1.0).
 """
 
 import logging
-from typing import List, Optional
 
 from llama_index.core import QueryBundle, VectorStoreIndex
 from llama_index.core.retrievers import BaseRetriever
@@ -43,8 +42,8 @@ logger = logging.getLogger(__name__)
 
 
 def _build_metadata_filters(
-    metadata_filter: Optional[dict],
-) -> Optional[MetadataFilters]:
+    metadata_filter: dict | None,
+) -> MetadataFilters | None:
     """Convert a flat {key: value} dict to LlamaIndex MetadataFilters."""
     if not metadata_filter:
         return None
@@ -77,7 +76,7 @@ class HybridRetriever(BaseRetriever):
         candidate_multiplier: float = 3.0,
         vector_weight: float = 0.7,
         text_weight: float = 0.3,
-        metadata_filter: Optional[dict] = None,
+        metadata_filter: dict | None = None,
     ) -> None:
         """
         Args:
@@ -101,7 +100,7 @@ class HybridRetriever(BaseRetriever):
 
         super().__init__()
 
-    def _build_bm25_retriever(self, top_k: int) -> Optional["BM25Retriever"]:
+    def _build_bm25_retriever(self, top_k: int) -> "BM25Retriever | None":
         """Build a fresh BM25Retriever from the current index docstore.
 
         Returns None if:
@@ -129,9 +128,9 @@ class HybridRetriever(BaseRetriever):
 
     def _fuse(
         self,
-        vector_nodes: List[NodeWithScore],
-        keyword_nodes: List[NodeWithScore],
-    ) -> List[NodeWithScore]:
+        vector_nodes: list[NodeWithScore],
+        keyword_nodes: list[NodeWithScore],
+    ) -> list[NodeWithScore]:
         """Fuse vector and keyword results using weighted scoring."""
         # Collect vector scores by node_id
         vector_scores = {
@@ -165,7 +164,7 @@ class HybridRetriever(BaseRetriever):
         scored.sort(key=lambda x: x.score if x.score is not None else 0.0, reverse=True)
         return scored[: self._max_results]
 
-    def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
+    def _retrieve(self, query_bundle: QueryBundle) -> list[NodeWithScore]:
         """Synchronous hybrid retrieval (falls back to vector-only if BM25 unavailable)."""
         pool_size = self._candidate_pool_size
 
@@ -201,7 +200,7 @@ class HybridRetriever(BaseRetriever):
 
         return self._fuse(vector_nodes, keyword_nodes)
 
-    async def _aretrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
+    async def _aretrieve(self, query_bundle: QueryBundle) -> list[NodeWithScore]:
         """Async hybrid retrieval (falls back to vector-only if BM25 unavailable)."""
         pool_size = self._candidate_pool_size
 

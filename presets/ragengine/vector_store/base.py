@@ -40,7 +40,6 @@ from ragengine.config import (
 )
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
-from ragengine.inference.retrieve_llm import RetrieveLLM
 from ragengine.models import (
     ChatCompletionResponse,
     Document,

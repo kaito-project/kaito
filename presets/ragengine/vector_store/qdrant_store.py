@@ -21,7 +21,11 @@ from llama_index.vector_stores.qdrant import QdrantVectorStore
 from qdrant_client import AsyncQdrantClient, QdrantClient
 from qdrant_client.http import models as rest
 
-from ragengine.config import RAG_DENSE_SCORE_THRESHOLD, RAG_HYBRID_SCORE_THRESHOLD, RAG_MAX_TOP_K
+from ragengine.config import (
+    RAG_DENSE_SCORE_THRESHOLD,
+    RAG_HYBRID_SCORE_THRESHOLD,
+    RAG_MAX_TOP_K,
+)
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.models import Document
 
@@ -95,9 +99,12 @@ class QdrantVectorStoreHandler(BaseVectorStore):
             # Restore index_map from existing Qdrant collections
             self._restore_indexes_from_qdrant()
         else:
-            # In-memory mode for testing and development
+            # In-memory mode for testing and development.
+            # NOTE: Only sync client is created — async + sync ":memory:" clients
+            # have independent storage that is NOT synced, causing "collection
+            # not found" errors when data written via sync is queried via async.
             self.client = QdrantClient(":memory:")
-            self.aclient = AsyncQdrantClient(location=":memory:")
+            self.aclient = None
             logger.info(
                 "Using in-memory Qdrant (data will not persist across restarts)"
             )
@@ -274,7 +281,7 @@ class QdrantVectorStoreHandler(BaseVectorStore):
 
         Returns the number of unique documents restored.
         """
-        from llama_index.core.schema import TextNode, RelatedNodeInfo, NodeRelationship
+        from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
         docstore = index.docstore
         seen_ref_doc_ids = set()
@@ -642,10 +649,12 @@ class QdrantVectorStoreHandler(BaseVectorStore):
             # Record all hybrid search metrics in one block
             try:
                 import statistics
+
                 from ragengine.metrics.prometheus_metrics import (
                     rag_avg_source_score,
                     rag_hybrid_dense_candidates,
                     rag_hybrid_dense_only_count,
+                    rag_hybrid_filtered_count,
                     rag_hybrid_median_score,
                     rag_hybrid_overlap_count,
                     rag_hybrid_retrieve_latency,
@@ -654,7 +663,6 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                     rag_hybrid_search_mode_total,
                     rag_hybrid_sparse_candidates,
                     rag_hybrid_sparse_only_count,
-                    rag_hybrid_filtered_count,
                     rag_hybrid_sparse_top_k,
                     rag_hybrid_top_k_requested,
                     rag_hybrid_top_score,

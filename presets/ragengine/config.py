@@ -105,3 +105,7 @@ RAG_MAX_TOP_K = int(os.getenv("RAG_MAX_TOP_K", 300))
 # Minimum fused score for hybrid retrieve results (RSF range 0-1).
 # Nodes scoring below this are dropped. Set to 0 to disable.
 RAG_HYBRID_SCORE_THRESHOLD = float(os.getenv("RAG_HYBRID_SCORE_THRESHOLD", 0.2))
+# Minimum dense (cosine similarity) score for nodes found via dense search.
+# Applied to 'dense_only' and 'both' nodes; 'sparse_only' nodes are kept.
+# Cosine similarity range 0-1, higher = more similar. Set to 0 to disable.
+RAG_DENSE_SCORE_THRESHOLD = float(os.getenv("RAG_DENSE_SCORE_THRESHOLD", 0.6))

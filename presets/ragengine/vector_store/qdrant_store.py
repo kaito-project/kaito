@@ -100,11 +100,11 @@ class QdrantVectorStoreHandler(BaseVectorStore):
             self._restore_indexes_from_qdrant()
         else:
             # In-memory mode for testing and development.
-            # NOTE: Only sync client is created — async + sync ":memory:" clients
-            # have independent storage that is NOT synced, causing "collection
-            # not found" errors when data written via sync is queried via async.
+            # Sync and async ":memory:" clients have independent storage,
+            # so we share the internal collections dict to keep them in sync.
             self.client = QdrantClient(":memory:")
-            self.aclient = None
+            self.aclient = AsyncQdrantClient(location=":memory:")
+            self.aclient._client.collections = self.client._client.collections
             logger.info(
                 "Using in-memory Qdrant (data will not persist across restarts)"
             )
@@ -216,9 +216,7 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                     self._restore_single_index(coll_name)
                     logger.info(f"✓ Restored index '{coll_name}' from Qdrant.")
                 except Exception as e:
-                    logger.error(
-                        f"✗ Failed to restore index '{coll_name}': {e}"
-                    )
+                    logger.error(f"✗ Failed to restore index '{coll_name}': {e}")
         except Exception as e:
             logger.error(f"Failed to discover Qdrant collections: {e}")
 
@@ -258,15 +256,12 @@ class QdrantVectorStoreHandler(BaseVectorStore):
         if index_name not in self.index_map:
             return
 
-        logger.info(
-            f"Lazy docstore rebuild triggered for '{index_name}'..."
-        )
+        logger.info(f"Lazy docstore rebuild triggered for '{index_name}'...")
         index = self.index_map[index_name]
         doc_count = self._rebuild_docstore_from_qdrant(index_name, index)
         self._docstore_ready.add(index_name)
         logger.info(
-            f"Docstore for '{index_name}' rebuilt with "
-            f"{doc_count} document(s)."
+            f"Docstore for '{index_name}' rebuilt with {doc_count} document(s)."
         )
 
     def _rebuild_docstore_from_qdrant(
@@ -354,7 +349,10 @@ class QdrantVectorStoreHandler(BaseVectorStore):
         """Create a new Qdrant collection and index documents into it."""
         vector_store = self._build_vector_store(index_name)
         result = await self._create_index_common(index_name, documents, vector_store)
-        # New index has a fully populated docstore from from_documents()
+        # Qdrant stores text in the vector store, leaving the LlamaIndex docstore
+        # empty after from_documents(). Rebuild it from Qdrant payloads so that
+        # document management ops (list, delete, update, exists) work correctly.
+        self._rebuild_docstore_from_qdrant(index_name, self.index_map[index_name])
         self._docstore_ready.add(index_name)
         return result
 
@@ -390,9 +388,7 @@ class QdrantVectorStoreHandler(BaseVectorStore):
         the docstore and index_store are loaded from the persist directory.
         """
         vector_store = self._build_vector_store(index_name)
-        return StorageContext.from_defaults(
-            persist_dir=path, vector_store=vector_store
-        )
+        return StorageContext.from_defaults(persist_dir=path, vector_store=vector_store)
 
     def list_indexes(self) -> list[str]:
         """List indexes — in server mode, also include Qdrant collections
@@ -417,18 +413,24 @@ class QdrantVectorStoreHandler(BaseVectorStore):
             self.client.delete_collection(index_name)
             logger.info(f"Deleted Qdrant collection '{index_name}'.")
         except Exception as e:
-            logger.warning(
-                f"Failed to delete Qdrant collection '{index_name}': {e}"
-            )
+            logger.warning(f"Failed to delete Qdrant collection '{index_name}': {e}")
 
     # ── Lazy docstore: override write ops that need docstore ──────────
 
     async def _append_documents_to_index(
         self, index_name: str, documents: list[Document]
     ) -> list[str]:
-        """Ensure docstore is ready before appending (dedup check needs it)."""
+        """Ensure docstore is ready before appending, then re-sync after.
+
+        insert() adds vectors to Qdrant but does NOT update the LlamaIndex
+        docstore, so we must rebuild after appending.
+        """
         self._ensure_docstore(index_name)
-        return await super()._append_documents_to_index(index_name, documents)
+        result = await super()._append_documents_to_index(index_name, documents)
+        # Re-sync: insert() went to Qdrant but not docstore
+        self._docstore_ready.discard(index_name)
+        self._ensure_docstore(index_name)
+        return result
 
     async def add_document_to_index(
         self, index_name: str, document: Document, doc_id: str
@@ -438,14 +440,119 @@ class QdrantVectorStoreHandler(BaseVectorStore):
         return await super().add_document_to_index(index_name, document, doc_id)
 
     async def delete_documents(self, index_name: str, doc_ids: list[str]):
-        """Ensure docstore is ready before deleting (ref_doc_info lookup needs it)."""
+        """Delete documents using docstore lookup (ref_doc_info not available for Qdrant).
+
+        Qdrant's VectorStoreIndex.ref_doc_info throws NotImplementedError because
+        it stores text in the vector store. We use docstore.get_ref_doc_info()
+        instead, which works after _ensure_docstore() rebuilds from Qdrant payloads.
+
+        Note: adelete_ref_doc may not reliably delete from the docstore (observed
+        in LlamaIndex when vector store stores text). We explicitly call
+        docstore.delete_ref_doc as a safety net.
+        """
+        from fastapi import HTTPException
+
         self._ensure_docstore(index_name)
-        return await super().delete_documents(index_name, doc_ids)
+
+        if index_name not in self.index_map:
+            raise HTTPException(
+                status_code=404, detail=f"No such index: '{index_name}' exists."
+            )
+
+        not_found_docs = []
+        found_docs = []
+        docstore = self.index_map[index_name].docstore
+        for doc_id in doc_ids:
+            ref_info = docstore.get_ref_doc_info(doc_id)
+            if ref_info:
+                found_docs.append(doc_id)
+            else:
+                not_found_docs.append(doc_id)
+
+        try:
+            for doc_id in found_docs:
+                try:
+                    await self.index_map[index_name].adelete_ref_doc(
+                        doc_id, delete_from_docstore=True
+                    )
+                except Exception as e:
+                    logger.warning(f"Vector store delete failed for doc {doc_id}: {e}")
+                # Always ensure docstore cleanup — adelete_ref_doc may not
+                # reliably delete from docstore for Qdrant vector stores.
+                import contextlib
+
+                with contextlib.suppress(Exception):
+                    docstore.delete_ref_doc(doc_id, raise_error=False)
+
+            return {"deleted_doc_ids": found_docs, "not_found_doc_ids": not_found_docs}
+        except NotImplementedError as e:
+            logger.error(f"Delete operation is not implemented for index {index_name}.")
+            raise HTTPException(status_code=501, detail=f"Delete failed: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error deleting documents from index {index_name}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Delete failed: {str(e)}")
 
     async def update_documents(self, index_name: str, documents: list[Document]):
-        """Ensure docstore is ready before updating (ref_doc_info lookup needs it)."""
+        """Update documents using docstore lookup (ref_doc_info not available for Qdrant).
+
+        Uses docstore.get_ref_doc_info() to check document existence, then delegates
+        to VectorStoreIndex.refresh_ref_docs() which also uses the docstore internally.
+        """
+        from fastapi import HTTPException
+        from llama_index.core import Document as LlamaDocument
+
         self._ensure_docstore(index_name)
-        return await super().update_documents(index_name, documents)
+
+        if index_name not in self.index_map:
+            raise HTTPException(
+                status_code=404, detail=f"No such index: '{index_name}' exists."
+            )
+
+        not_found_docs = []
+        found_docs = []
+        llama_docs = []
+        docstore = self.index_map[index_name].docstore
+        for document in documents:
+            ref_info = docstore.get_ref_doc_info(document.doc_id)
+            if ref_info:
+                found_docs.append(document)
+                llama_docs.append(
+                    LlamaDocument(
+                        id_=document.doc_id,
+                        text=document.text,
+                        metadata=document.metadata,
+                        excluded_llm_metadata_keys=[key for key in document.metadata],
+                    )
+                )
+            else:
+                not_found_docs.append(document)
+
+        try:
+            refreshed_docs = self.index_map[index_name].refresh_ref_docs(llama_docs)
+
+            updated_docs = []
+            unchanged_docs = []
+            for doc, was_updated in zip(found_docs, refreshed_docs):
+                if was_updated:
+                    updated_docs.append(doc)
+                else:
+                    unchanged_docs.append(doc)
+
+            # Re-sync docstore after update (refresh_ref_docs inserts into Qdrant)
+            self._docstore_ready.discard(index_name)
+            self._ensure_docstore(index_name)
+
+            return {
+                "updated_documents": updated_docs,
+                "unchanged_documents": unchanged_docs,
+                "not_found_documents": not_found_docs,
+            }
+        except NotImplementedError as e:
+            logger.error(f"Update operation is not implemented for index {index_name}.")
+            raise HTTPException(status_code=501, detail=f"Update failed: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error updating documents in index {index_name}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Update failed: {str(e)}")
 
     async def list_documents_in_index(
         self,
@@ -464,9 +571,13 @@ class QdrantVectorStoreHandler(BaseVectorStore):
     async def document_exists(
         self, index_name: str, doc: Document, doc_id: str
     ) -> bool:
-        """Ensure docstore is ready before checking existence."""
+        """Check document existence via docstore (ref_doc_info not available for Qdrant)."""
         self._ensure_docstore(index_name)
-        return await super().document_exists(index_name, doc, doc_id)
+        if index_name not in self.index_map:
+            logger.warning(f"No such index: '{index_name}' exists in vector store.")
+            return False
+        ref_info = self.index_map[index_name].docstore.get_ref_doc_info(doc_id)
+        return ref_info is not None
 
     async def shutdown(self):
         """Shutdown handler, closes the Qdrant client connection."""
@@ -519,6 +630,7 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                     MetadataFilter,
                     MetadataFilters,
                 )
+
                 filters = MetadataFilters(
                     filters=[
                         MetadataFilter(key=k, value=v)
@@ -563,10 +675,14 @@ class QdrantVectorStoreHandler(BaseVectorStore):
             dense_scores = {}  # node_id -> dense score
             sparse_scores = {}  # node_id -> sparse (BM25) score
             if _captured_dense and _captured_dense.ids:
-                for nid, score in zip(_captured_dense.ids, _captured_dense.similarities):
+                for nid, score in zip(
+                    _captured_dense.ids, _captured_dense.similarities
+                ):
                     dense_scores[nid] = score
             if _captured_sparse and _captured_sparse.ids:
-                for nid, score in zip(_captured_sparse.ids, _captured_sparse.similarities):
+                for nid, score in zip(
+                    _captured_sparse.ids, _captured_sparse.similarities
+                ):
                     sparse_scores[nid] = score
 
             logger.info(
@@ -598,16 +714,19 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                 else:
                     source = "sparse_only"
                     sparse_only_count += 1
-                results.append({
-                    "doc_id": getattr(node.node, "ref_doc_id", None) or node.node.node_id,
-                    "node_id": nid,
-                    "text": node.node.get_content(),
-                    "score": score,
-                    "dense_score": dense_scores.get(nid),
-                    "sparse_score": sparse_scores.get(nid),
-                    "source": source,
-                    "metadata": node.node.metadata if node.node.metadata else None,
-                })
+                results.append(
+                    {
+                        "doc_id": getattr(node.node, "ref_doc_id", None)
+                        or node.node.node_id,
+                        "node_id": nid,
+                        "text": node.node.get_content(),
+                        "score": score,
+                        "dense_score": dense_scores.get(nid),
+                        "sparse_score": sparse_scores.get(nid),
+                        "source": source,
+                        "metadata": node.node.metadata if node.node.metadata else None,
+                    }
+                )
 
             # ── Score threshold filtering ──
             # 1) Dense score filter: drop dense_only/both nodes with low cosine sim
@@ -617,23 +736,31 @@ class QdrantVectorStoreHandler(BaseVectorStore):
             before_len = len(results)
 
             if RAG_DENSE_SCORE_THRESHOLD > 0:
+
                 def _passes_dense_filter(r):
                     if r["source"] == "sparse_only":
                         return True  # no dense score to check
                     ds = r.get("dense_score")
                     return ds is not None and ds >= RAG_DENSE_SCORE_THRESHOLD
+
                 results = [r for r in results if _passes_dense_filter(r)]
 
             if RAG_HYBRID_SCORE_THRESHOLD > 0:
-                results = [r for r in results if r["score"] >= RAG_HYBRID_SCORE_THRESHOLD]
+                results = [
+                    r for r in results if r["score"] >= RAG_HYBRID_SCORE_THRESHOLD
+                ]
 
             filtered_count = before_len - len(results)
             scores = [r["score"] for r in results]
             if filtered_count > 0:
                 # Recount source breakdown after filtering
                 overlap_count = sum(1 for r in results if r["source"] == "both")
-                dense_only_count = sum(1 for r in results if r["source"] == "dense_only")
-                sparse_only_count = sum(1 for r in results if r["source"] == "sparse_only")
+                dense_only_count = sum(
+                    1 for r in results if r["source"] == "dense_only"
+                )
+                sparse_only_count = sum(
+                    1 for r in results if r["source"] == "sparse_only"
+                )
                 logger.info(
                     f"Score filtering: dense_threshold={RAG_DENSE_SCORE_THRESHOLD}, "
                     f"fused_threshold={RAG_HYBRID_SCORE_THRESHOLD}: "
@@ -669,6 +796,7 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                     rag_lowest_source_score,
                     rag_retrieve_result_count,
                 )
+
                 # Mode & latency
                 rag_hybrid_search_mode_total.labels(search_mode="hybrid").inc()
                 rag_hybrid_retrieve_latency.observe(elapsed)
@@ -701,7 +829,9 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                     else:
                         rag_hybrid_median_score.observe(scores[0])
             except Exception as metrics_err:
-                logger.warning(f"Metrics recording failed: {metrics_err}")  # Metrics should never break retrieval
+                logger.warning(
+                    f"Metrics recording failed: {metrics_err}"
+                )  # Metrics should never break retrieval
 
             return {
                 "query": query,
@@ -713,8 +843,7 @@ class QdrantVectorStoreHandler(BaseVectorStore):
             raise
         except Exception as e:
             import traceback
+
             logger.error(f"Retrieve failed for index '{index_name}': {str(e)}")
             logger.error(f"Traceback: {traceback.format_exc()}")
-            raise HTTPException(
-                status_code=500, detail=f"Retrieve failed: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Retrieve failed: {str(e)}")

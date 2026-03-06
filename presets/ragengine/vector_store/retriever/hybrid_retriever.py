@@ -34,6 +34,7 @@ from llama_index.core.vector_stores.types import (
 
 try:
     from llama_index.retrievers.bm25 import BM25Retriever
+
     HAS_BM25 = True
 except ImportError:
     HAS_BM25 = False
@@ -123,7 +124,9 @@ class HybridRetriever(BaseRetriever):
                 similarity_top_k=top_k,
             )
         except Exception as e:
-            logger.warning(f"Failed to build BM25 retriever: {e}. Falling back to vector-only.")
+            logger.warning(
+                f"Failed to build BM25 retriever: {e}. Falling back to vector-only."
+            )
             return None
 
     def _fuse(
@@ -139,9 +142,7 @@ class HybridRetriever(BaseRetriever):
         }
 
         # BM25 results: convert position rank to score = 1/(1+rank)
-        keyword_ranks = {
-            n.node.node_id: idx for idx, n in enumerate(keyword_nodes)
-        }
+        keyword_ranks = {n.node.node_id: idx for idx, n in enumerate(keyword_nodes)}
 
         # Build node lookup (vector nodes take precedence for identical IDs)
         node_lookup = {}
@@ -191,7 +192,8 @@ class HybridRetriever(BaseRetriever):
         # Apply metadata filter to keyword results (BM25 doesn't support native filtering)
         if self._metadata_filter:
             keyword_nodes = [
-                n for n in keyword_nodes
+                n
+                for n in keyword_nodes
                 if all(
                     (n.node.metadata or {}).get(k) == v
                     for k, v in self._metadata_filter.items()
@@ -224,7 +226,8 @@ class HybridRetriever(BaseRetriever):
 
         if self._metadata_filter:
             keyword_nodes = [
-                n for n in keyword_nodes
+                n
+                for n in keyword_nodes
                 if all(
                     (n.node.metadata or {}).get(k) == v
                     for k, v in self._metadata_filter.items()

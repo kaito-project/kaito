@@ -902,7 +902,8 @@ class BaseVectorStore(ABC):
                 scores.append(score)
                 results.append(
                     {
-                        "doc_id": getattr(node.node, "ref_doc_id", None) or node.node.node_id,
+                        "doc_id": getattr(node.node, "ref_doc_id", None)
+                        or node.node.node_id,
                         "node_id": node.node.node_id,
                         "text": node.node.get_content(),
                         "score": score,
@@ -917,6 +918,7 @@ class BaseVectorStore(ABC):
                     rag_lowest_source_score,
                     rag_retrieve_result_count,
                 )
+
                 rag_retrieve_result_count.observe(len(results))
                 if scores:
                     rag_lowest_source_score.observe(min(scores))

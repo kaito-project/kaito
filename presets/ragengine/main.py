@@ -150,6 +150,7 @@ elif VECTOR_DB_TYPE.lower() == "qdrant":
     )
 elif VECTOR_DB_TYPE.lower() == "milvus":
     import nest_asyncio
+
     nest_asyncio.apply()
     from vector_store.milvus_store import MilvusVectorStoreHandler
 
@@ -174,6 +175,7 @@ _metrics_task = None
 async def _collect_vector_store_metrics():
     """Periodically update Qdrant/Milvus collection and point count gauges."""
     import asyncio
+
     while True:
         try:
             if hasattr(vector_store_handler, "client"):
@@ -187,9 +189,7 @@ async def _collect_vector_store_metrics():
                     )
             else:
                 # FAISS / other — just use index_map size
-                rag_vector_store_collections.set(
-                    len(vector_store_handler.index_map)
-                )
+                rag_vector_store_collections.set(len(vector_store_handler.index_map))
         except Exception:
             pass  # Metrics collection should never crash the server
         await asyncio.sleep(30)
@@ -198,6 +198,7 @@ async def _collect_vector_store_metrics():
 @app.on_event("startup")
 async def _start_metrics_collector():
     import asyncio
+
     global _metrics_task
     _metrics_task = asyncio.create_task(_collect_vector_store_metrics())
 
@@ -519,7 +520,9 @@ async def list_documents_in_index(
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
-        logger.error("List documents failed for '%s'", decoded_index_name, exc_info=True)
+        logger.error(
+            "List documents failed for '%s'", decoded_index_name, exc_info=True
+        )
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block

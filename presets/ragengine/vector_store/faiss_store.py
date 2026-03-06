@@ -36,9 +36,7 @@ class FaissVectorStoreHandler(BaseVectorStore):
         except UnicodeDecodeError:
             # Failed to load in default JSON format, trying FAISS binary format
             faiss_vs = FaissMapVectorStore.from_persist_dir(persist_dir=path)
-            return StorageContext.from_defaults(
-                persist_dir=path, vector_store=faiss_vs
-            )
+            return StorageContext.from_defaults(persist_dir=path, vector_store=faiss_vs)
 
     async def _create_new_index(
         self, index_name: str, documents: list[Document]

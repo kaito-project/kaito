@@ -29,7 +29,6 @@ from llama_index.core import StorageContext, VectorStoreIndex, load_index_from_s
 from llama_index.core.base.llms.types import MessageRole
 from llama_index.core.chat_engine.types import ChatMode
 from llama_index.core.storage.docstore import SimpleDocumentStore
-from llama_index.vector_stores.faiss import FaissMapVectorStore
 from openai.types.chat import ChatCompletionContentPartTextParam, CompletionCreateParams
 from pydantic import ValidationError
 
@@ -41,7 +40,6 @@ from ragengine.config import (
 )
 from ragengine.embedding.base import BaseEmbeddingModel
 from ragengine.inference.inference import Inference
-from ragengine.inference.retrieve_llm import RetrieveLLM
 from ragengine.models import (
     ChatCompletionResponse,
     Document,
@@ -51,6 +49,7 @@ from ragengine.models import (
 from ragengine.vector_store.node_processors.contex_selection_node_processor import (
     ContextSelectionProcessor,
 )
+from ragengine.vector_store.retriever.hybrid_retriever import HybridRetriever
 from ragengine.vector_store.transformers.custom_transformer import CustomTransformer
 
 # Configure logging
@@ -59,6 +58,23 @@ logger = logging.getLogger(__name__)
 
 
 class BaseVectorStore(ABC):
+    # Whether to use async indexing in VectorStoreIndex.from_documents.
+    # Subclasses can override this to False if their backend has issues with
+    # nested event loops (e.g. Milvus sync client inside FastAPI async).
+    _use_async_indexing: bool = True
+
+    # Whether the backend supports native hybrid search (dense + sparse).
+    # If True, retrieve() uses the index's built-in retriever (which handles
+    # hybrid fusion server-side) instead of the Python-side HybridRetriever.
+    # Qdrant with enable_hybrid=True sets this to True.
+    _native_hybrid_search: bool = False
+
+    # Limit concurrent GPU-bound document insertions to prevent CUDA OOM.
+    # Each insert triggers dense + sparse (SPLADE) embedding on GPU;
+    # too many concurrent inserts exhaust GPU memory.
+    _insert_semaphore: asyncio.Semaphore = None
+    _max_concurrent_inserts: int = 2
+
     def __init__(self, embed_model: BaseEmbeddingModel, use_rwlock: bool = False):
         super().__init__()
         self.llm = Inference()
@@ -68,6 +84,7 @@ class BaseVectorStore(ABC):
         self.use_rwlock = use_rwlock
         self.rwlock = aiorwlock.RWLock() if self.use_rwlock else None
         self.custom_transformer = CustomTransformer()
+        self._insert_semaphore = asyncio.Semaphore(self._max_concurrent_inserts)
 
     @staticmethod
     def generate_doc_id(text: str) -> str:
@@ -107,7 +124,8 @@ class BaseVectorStore(ABC):
                     index_name
                 ].docstore.aget_ref_doc_info(doc_id)
             if not retrieved_doc:
-                await self.add_document_to_index(index_name, doc, doc_id)
+                async with self._insert_semaphore:
+                    await self.add_document_to_index(index_name, doc, doc_id)
             else:
                 logger.info(
                     f"Document {doc_id} already exists in index {index_name}. Skipping."
@@ -149,7 +167,7 @@ class BaseVectorStore(ABC):
                         llama_docs,
                         storage_context=storage_context,
                         embed_model=self.embed_model,
-                        use_async=True,
+                        use_async=self._use_async_indexing,
                         transformations=[self.custom_transformer],
                     )
                     index.set_index_id(index_name)
@@ -160,7 +178,7 @@ class BaseVectorStore(ABC):
                     llama_docs,
                     storage_context=storage_context,
                     embed_model=self.embed_model,
-                    use_async=True,
+                    use_async=self._use_async_indexing,
                     transformations=[self.custom_transformer],
                 )
                 index.set_index_id(index_name)
@@ -775,6 +793,16 @@ class BaseVectorStore(ABC):
         else:
             await self._load_internal(index_name, path, overwrite)
 
+    def _create_storage_context_for_load(
+        self, index_name: str, path: str
+    ) -> StorageContext:
+        """Create a StorageContext for loading a persisted index.
+
+        Override in subclasses for store-specific loading logic
+        (e.g., FAISS binary fallback, Qdrant collection reconnect).
+        """
+        return StorageContext.from_defaults(persist_dir=path)
+
     async def _load_internal(self, index_name: str, path: str, overwrite: bool):
         """Common logic for loading an index."""
         try:
@@ -787,15 +815,13 @@ class BaseVectorStore(ABC):
             logger.info(f"Loading index {index_name} from {path}.")
 
             try:
-                storage_context = StorageContext.from_defaults(persist_dir=path)
-            except UnicodeDecodeError:
-                # Failed to load the index in the default json format, trying faissdb
-                faiss_vs = FaissMapVectorStore.from_persist_dir(persist_dir=path)
-                storage_context = StorageContext.from_defaults(
-                    persist_dir=path, vector_store=faiss_vs
+                storage_context = self._create_storage_context_for_load(
+                    index_name, path
                 )
             except Exception as e:
-                logger.error(f"Failed to load index '{index_name}'. Error: {str(e)}")
+                logger.error(
+                    f"Failed to create storage context for index '{index_name}'. Error: {str(e)}"
+                )
                 raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
 
             logger.info(
@@ -822,9 +848,11 @@ class BaseVectorStore(ABC):
         max_node_count: int = 5,
         metadata_filter: dict | None = None,
     ):
-        """
-        Retrieve relevant documents based on a query string.
-        Uses the same chat_engine as chat_completion to ensure identical output.
+        """Retrieve relevant documents using hybrid search (vector + BM25).
+
+        Combines semantic similarity (vector) with keyword matching (BM25)
+        using weighted score fusion for better retrieval quality.
+        Default weights: vector=0.7, BM25=0.3.
         """
         if index_name not in self.index_map:
             raise HTTPException(
@@ -833,9 +861,7 @@ class BaseVectorStore(ABC):
             )
 
         try:
-            # Direct query string, no message processing needed
             user_prompt = query
-            chat_history = []
 
             if not user_prompt or user_prompt.strip() == "":
                 raise HTTPException(
@@ -843,70 +869,71 @@ class BaseVectorStore(ABC):
                     detail="Query string cannot be empty.",
                 )
 
-            # Use max_node_count as top_k, but cap at RAG_MAX_TOP_K to prevent excessive resource usage
             top_k = min(max_node_count, RAG_MAX_TOP_K)
 
-            # Create a custom LLM that captures the messages sent to it
-            captured_messages = []
-            captured_source_nodes = []
-
-            chat_engine = self.index_map[index_name].as_chat_engine(
-                llm=RetrieveLLM(
-                    messages_list=captured_messages,
-                    nodes_list=captured_source_nodes,
-                    original_llm=self.llm,
-                ),
-                similarity_top_k=top_k,
-                chat_mode=ChatMode.CONTEXT,
+            # Subclasses with _native_hybrid_search=True should override
+            # retrieve() entirely (e.g., QdrantVectorStoreHandler uses the
+            # Qdrant Query API with prefetch + RRF). This base implementation
+            # uses the Python-side HybridRetriever as fallback.
+            retriever = HybridRetriever(
+                index=self.index_map[index_name],
+                max_results=top_k,
+                metadata_filter=metadata_filter,
             )
 
-            # Call chat_engine to build the context and messages
+            start_time = time.time()
             if self.use_rwlock:
                 async with self.rwlock.reader_lock:
-                    result = await chat_engine.achat(
-                        user_prompt, chat_history=chat_history
-                    )
+                    source_nodes_list = await retriever.aretrieve(user_prompt)
             else:
-                result = await chat_engine.achat(user_prompt, chat_history=chat_history)
+                source_nodes_list = await retriever.aretrieve(user_prompt)
 
-            logger.info(f"Captured {len(captured_messages)} messages from chat_engine")
-
-            # Get source nodes from the result
-            source_nodes_list = (
-                result.source_nodes if hasattr(result, "source_nodes") else []
+            elapsed = time.time() - start_time
+            logger.info(
+                f"Hybrid retrieve for '{index_name}' completed in {elapsed:.3f}s, "
+                f"returned {len(source_nodes_list)} nodes"
             )
 
-            # Apply metadata filter if provided
-            if metadata_filter:
-                source_nodes_list = [
-                    node
-                    for node in source_nodes_list
-                    if all(
-                        (node.node.metadata or {}).get(k) == v
-                        for k, v in metadata_filter.items()
-                    )
-                ]
-
-            # Convert source_nodes_list to serializable format
+            # Convert to serializable format
             results = []
+            scores = []
             for node in source_nodes_list:
+                score = node.score if node.score is not None else 0.0
+                scores.append(score)
                 results.append(
                     {
-                        "doc_id": node.node.node_id,  # Use node_id as doc_id
+                        "doc_id": getattr(node.node, "ref_doc_id", None)
+                        or node.node.node_id,
                         "node_id": node.node.node_id,
                         "text": node.node.get_content(),
-                        "score": node.score if node.score is not None else 0.0,
+                        "score": score,
                         "metadata": node.node.metadata if node.node.metadata else None,
                     }
                 )
 
-            # Return the original retrieved nodes
+            # Record source score metrics
+            try:
+                from ragengine.metrics.prometheus_metrics import (
+                    rag_avg_source_score,
+                    rag_lowest_source_score,
+                    rag_retrieve_result_count,
+                )
+
+                rag_retrieve_result_count.observe(len(results))
+                if scores:
+                    rag_lowest_source_score.observe(min(scores))
+                    rag_avg_source_score.observe(sum(scores) / len(scores))
+            except Exception:
+                pass  # Metrics should never break retrieval
+
             return {
                 "query": user_prompt,
                 "results": results,
                 "count": len(results),
             }
 
+        except HTTPException:
+            raise
         except Exception as e:
             import traceback
 

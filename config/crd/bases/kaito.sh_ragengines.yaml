@@ -529,6 +529,29 @@ spec:
                     required:
                     - persistentVolumeClaim
                     type: object
+                  vectorDB:
+                    description: |-
+                      VectorDB specifies the vector database backend configuration.
+                      If not specified, defaults to FAISS (in-process vector store).
+                    properties:
+                      accessSecret:
+                        description: |-
+                          AccessSecret is the name of the Kubernetes Secret that contains the vector database
+                          access credentials. The secret must contain a key named "VECTOR_DB_ACCESS_SECRET".
+                        type: string
+                      type:
+                        default: faiss
+                        description: |-
+                          Type specifies the vector database backend to use.
+                          Supported values: "faiss" (default, in-process), "qdrant" (client-server).
+                        type: string
+                      url:
+                        description: |-
+                          URL specifies the connection URL for client-server vector databases (e.g., qdrant).
+                          Required when Type is "qdrant". Example: "http://qdrant-svc:6333"
+                          If not specified for qdrant, an in-memory instance will be used (data lost on restart).
+                        type: string
+                    type: object
                 type: object
             required:
             - embedding

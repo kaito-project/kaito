@@ -172,6 +172,30 @@ num_requests_running = Gauge(
     "num_requests_running", "Number of requests currently being processed"
 )
 
+# Vector store metrics (Qdrant / backend-specific)
+rag_vector_store_collections = Gauge(
+    "rag_vector_store_collections_total",
+    "Number of collections/indexes in the vector store backend",
+)
+rag_vector_store_points = Gauge(
+    "rag_vector_store_points_total",
+    "Number of points (vectors) stored per collection",
+    labelnames=["collection"],
+)
+rag_vector_store_operation_latency = Histogram(
+    "rag_vector_store_operation_latency_seconds",
+    "Latency of vector store backend operations (insert, query, delete)",
+    labelnames=["operation", STATUS_LABEL],
+    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
+)
+
+# Retrieve result count
+rag_retrieve_result_count = Histogram(
+    "rag_retrieve_result_count",
+    "Number of document chunks returned per retrieve call",
+    buckets=(0, 1, 2, 3, 5, 10, 20, 50, 100, 200, 300),
+)
+
 # RAG source score metrics
 rag_lowest_source_score = Histogram(
     "rag_lowest_source_score",
@@ -183,4 +207,92 @@ rag_avg_source_score = Histogram(
     "rag_avg_source_score",
     "Average score of all retrieved source documents in RAG queries",
     buckets=(0.1, 0.2, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0),
+)
+
+# ── Hybrid Search (BM25) Metrics ────────────────────────────────────
+
+SEARCH_MODE_LABEL = "search_mode"  # "hybrid" or "dense_only"
+
+rag_hybrid_search_mode_total = Counter(
+    "rag_hybrid_search_mode_total",
+    "Number of retrieve calls by search mode",
+    labelnames=[SEARCH_MODE_LABEL],
+)
+
+rag_hybrid_retrieve_latency = Histogram(
+    "rag_hybrid_retrieve_latency_seconds",
+    "End-to-end latency of hybrid retrieve (dense+sparse encode, query, fusion)",
+    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
+)
+
+rag_hybrid_retrieve_latency_avg = Gauge(
+    "rag_hybrid_retrieve_latency_avg_seconds",
+    "Running average latency of hybrid retrieve calls (sum / count)",
+)
+
+rag_hybrid_top_score = Histogram(
+    "rag_hybrid_top_score",
+    "Highest (best) fused score among results per hybrid retrieve call",
+    buckets=(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1.0),
+)
+
+rag_hybrid_median_score = Histogram(
+    "rag_hybrid_median_score",
+    "Median fused score of results per hybrid retrieve call",
+    buckets=(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1.0),
+)
+
+rag_hybrid_score_spread = Histogram(
+    "rag_hybrid_score_spread",
+    "Score spread (max - min) per hybrid retrieve call, lower = more consistent results",
+    buckets=(0.0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0),
+)
+
+rag_hybrid_top_k_requested = Histogram(
+    "rag_hybrid_top_k_requested",
+    "The top_k value requested per hybrid retrieve call",
+    buckets=(1, 2, 3, 5, 10, 20, 50, 100),
+)
+
+rag_hybrid_sparse_top_k = Histogram(
+    "rag_hybrid_sparse_top_k",
+    "The sparse_top_k (prefetch) value used per hybrid retrieve call",
+    buckets=(3, 6, 9, 15, 30, 60, 150, 300),
+)
+
+# Dense vs Sparse contribution breakdown (captured from fusion intercept, no extra queries)
+rag_hybrid_dense_candidates = Histogram(
+    "rag_hybrid_dense_candidates",
+    "Number of dense (vector) candidate nodes returned before fusion",
+    buckets=(0, 1, 2, 3, 5, 10, 20, 50, 100),
+)
+
+rag_hybrid_sparse_candidates = Histogram(
+    "rag_hybrid_sparse_candidates",
+    "Number of sparse (BM25) candidate nodes returned before fusion",
+    buckets=(0, 1, 2, 3, 5, 10, 20, 50, 100),
+)
+
+rag_hybrid_overlap_count = Histogram(
+    "rag_hybrid_overlap_count",
+    "Number of final result nodes that appear in BOTH dense and sparse results",
+    buckets=(0, 1, 2, 3, 5, 10, 20, 50),
+)
+
+rag_hybrid_dense_only_count = Histogram(
+    "rag_hybrid_dense_only_count",
+    "Number of final result nodes that came from dense (vector) search only",
+    buckets=(0, 1, 2, 3, 5, 10, 20, 50),
+)
+
+rag_hybrid_sparse_only_count = Histogram(
+    "rag_hybrid_sparse_only_count",
+    "Number of final result nodes that came from sparse (BM25) search only",
+    buckets=(0, 1, 2, 3, 5, 10, 20, 50),
+)
+
+rag_hybrid_filtered_count = Histogram(
+    "rag_hybrid_filtered_count",
+    "Number of result nodes dropped per retrieve call due to score below threshold",
+    buckets=(0, 1, 2, 3, 5, 10, 20, 50),
 )

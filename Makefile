@@ -118,6 +118,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole, and Cus
 	cp config/crd/bases/kaito.sh_workspaces.yaml charts/kaito/workspace/crds/
 	cp config/crd/bases/kaito.sh_inferencesets.yaml charts/kaito/workspace/crds/
 	cp config/crd/bases/kaito.sh_ragengines.yaml charts/kaito/ragengine/crds/
+	cp config/crd/bases/kaito.sh_autoindexers.yaml charts/kaito/autoindexer/crds/
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.

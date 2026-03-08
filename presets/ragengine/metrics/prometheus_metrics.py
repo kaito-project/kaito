@@ -172,16 +172,7 @@ num_requests_running = Gauge(
     "num_requests_running", "Number of requests currently being processed"
 )
 
-# Vector store metrics (Qdrant / backend-specific)
-rag_vector_store_collections = Gauge(
-    "rag_vector_store_collections_total",
-    "Number of collections/indexes in the vector store backend",
-)
-rag_vector_store_points = Gauge(
-    "rag_vector_store_points_total",
-    "Number of points (vectors) stored per collection",
-    labelnames=["collection"],
-)
+# Vector store operation latency (used by base.py and qdrant_store.py)
 rag_vector_store_operation_latency = Histogram(
     "rag_vector_store_operation_latency_seconds",
     "Latency of vector store backend operations (insert, query, delete)",
@@ -291,8 +282,3 @@ rag_hybrid_sparse_only_count = Histogram(
     buckets=(0, 1, 2, 3, 5, 10, 20, 50),
 )
 
-rag_hybrid_filtered_count = Histogram(
-    "rag_hybrid_filtered_count",
-    "Number of result nodes dropped per retrieve call due to score below threshold",
-    buckets=(0, 1, 2, 3, 5, 10, 20, 50),
-)

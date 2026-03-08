@@ -27,17 +27,15 @@ type PersistentVolumeConfig struct {
 }
 
 // VectorDBConfig specifies the vector database backend configuration.
+// The Engine must be a LlamaIndex-supported vector store backend.
 type VectorDBConfig struct {
-	// Type specifies the vector database backend to use.
-	// Supported values: "faiss" (default, in-process), "qdrant" (client-server).
-	// +kubebuilder:default="faiss"
-	// +optional
-	Type string `json:"type,omitempty"`
-	// URL specifies the connection URL for client-server vector databases (e.g., qdrant).
-	// Required when Type is "qdrant". Example: "http://qdrant-svc:6333"
-	// If not specified for qdrant, an in-memory instance will be used (data lost on restart).
-	// +optional
-	URL string `json:"url,omitempty"`
+	// Engine specifies the vector database backend engine to use.
+	// Must be a LlamaIndex-supported vector store backend.
+	// Supported values: "qdrant" (client-server with native hybrid search).
+	Engine string `json:"engine"`
+	// URL specifies the connection URL for the vector database.
+	// Example: "http://qdrant-svc:6333"
+	URL string `json:"url"`
 	// AccessSecret is the name of the Kubernetes Secret that contains the vector database
 	// access credentials. The secret must contain a key named "VECTOR_DB_ACCESS_SECRET".
 	// +optional
@@ -49,8 +47,8 @@ type StorageSpec struct {
 	// If not specified, an emptyDir will be used (data will be lost on pod restart).
 	// +optional
 	PersistentVolume *PersistentVolumeConfig `json:"persistentVolume,omitempty"`
-	// VectorDB specifies the vector database backend configuration.
-	// If not specified, defaults to FAISS (in-process vector store).
+	// VectorDB specifies an external vector database backend configuration.
+	// If not specified, the default in-process FAISS vector store is used.
 	// +optional
 	VectorDB *VectorDBConfig `json:"vectorDB,omitempty"`
 }

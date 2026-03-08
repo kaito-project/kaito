@@ -78,8 +78,6 @@ from ragengine.metrics.prometheus_metrics import (
     rag_load_requests_total,
     rag_persist_latency,
     rag_persist_requests_total,
-    rag_vector_store_collections,
-    rag_vector_store_points,
 )
 
 # Import Prometheus client for metrics collection
@@ -148,59 +146,14 @@ elif VECTOR_DB_TYPE.lower() == "qdrant":
         vector_db_url=VECTOR_DB_URL,
         vector_db_access_secret=VECTOR_DB_ACCESS_SECRET,
     )
-elif VECTOR_DB_TYPE.lower() == "milvus":
-    import nest_asyncio
-
-    nest_asyncio.apply()
-    from vector_store.milvus_store import MilvusVectorStoreHandler
-
-    vector_store_handler = MilvusVectorStoreHandler(
-        embedding_manager,
-        vector_db_url=VECTOR_DB_URL,
-        vector_db_access_secret=VECTOR_DB_ACCESS_SECRET,
-    )
 else:
     raise ValueError(
         f"Unsupported VECTOR_DB_TYPE: '{VECTOR_DB_TYPE}'. "
-        "Supported values: 'faiss', 'qdrant', 'milvus'"
+        "Supported values: 'faiss', 'qdrant'"
     )
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
-
-# Background task: periodically collect vector store backend metrics
-_metrics_task = None
-
-
-async def _collect_vector_store_metrics():
-    """Periodically update Qdrant/Milvus collection and point count gauges."""
-    import asyncio
-
-    while True:
-        try:
-            if hasattr(vector_store_handler, "client"):
-                # Qdrant backend
-                collections = vector_store_handler.client.get_collections().collections
-                rag_vector_store_collections.set(len(collections))
-                for coll in collections:
-                    info = vector_store_handler.client.get_collection(coll.name)
-                    rag_vector_store_points.labels(collection=coll.name).set(
-                        info.points_count or 0
-                    )
-            else:
-                # FAISS / other — just use index_map size
-                rag_vector_store_collections.set(len(vector_store_handler.index_map))
-        except Exception:
-            pass  # Metrics collection should never crash the server
-        await asyncio.sleep(30)
-
-
-@app.on_event("startup")
-async def _start_metrics_collector():
-    import asyncio
-
-    global _metrics_task
-    _metrics_task = asyncio.create_task(_collect_vector_store_metrics())
 
 
 @app.get("/metrics", operation_id="get_metrics", tags=["Monitoring"])

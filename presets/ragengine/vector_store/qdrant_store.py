@@ -345,14 +345,33 @@ class QdrantVectorStoreHandler(BaseVectorStore):
         self, index_name: str, documents: list[Document]
     ) -> list[str]:
         """Create a new Qdrant collection and index documents into it."""
-        vector_store = self._build_vector_store(index_name)
-        result = await self._create_index_common(index_name, documents, vector_store)
-        # Qdrant stores text in the vector store, leaving the LlamaIndex docstore
-        # empty after from_documents(). Rebuild it from Qdrant payloads so that
-        # document management ops (list, delete, update, exists) work correctly.
-        self._rebuild_docstore_from_qdrant(index_name, self.index_map[index_name])
-        self._docstore_ready.add(index_name)
-        return result
+        op_start = time.time()
+        op_status = "success"
+        try:
+            vector_store = self._build_vector_store(index_name)
+            result = await self._create_index_common(
+                index_name, documents, vector_store
+            )
+            # Qdrant stores text in the vector store, leaving the LlamaIndex docstore
+            # empty after from_documents(). Rebuild it from Qdrant payloads so that
+            # document management ops (list, delete, update, exists) work correctly.
+            self._rebuild_docstore_from_qdrant(index_name, self.index_map[index_name])
+            self._docstore_ready.add(index_name)
+            return result
+        except Exception:
+            op_status = "error"
+            raise
+        finally:
+            try:
+                from ragengine.metrics.prometheus_metrics import (
+                    rag_vector_store_operation_latency,
+                )
+
+                rag_vector_store_operation_latency.labels(
+                    operation="create_index", status=op_status
+                ).observe(time.time() - op_start)
+            except Exception:
+                pass
 
     async def persist(self, index_name: str, path: str):
         """No-op for Qdrant server mode — data is persisted in Qdrant itself."""
@@ -403,15 +422,34 @@ class QdrantVectorStoreHandler(BaseVectorStore):
 
     async def delete_index(self, index_name: str):
         """Delete the index from memory and the corresponding Qdrant collection."""
-        # Remove from index_map (via parent)
-        await super().delete_index(index_name)
-        self._docstore_ready.discard(index_name)
-        # Also delete the Qdrant collection
+        op_start = time.time()
+        op_status = "success"
         try:
-            self.client.delete_collection(index_name)
-            logger.info(f"Deleted Qdrant collection '{index_name}'.")
-        except Exception as e:
-            logger.warning(f"Failed to delete Qdrant collection '{index_name}': {e}")
+            # Remove from index_map (via parent)
+            await super().delete_index(index_name)
+            self._docstore_ready.discard(index_name)
+            # Also delete the Qdrant collection
+            try:
+                self.client.delete_collection(index_name)
+                logger.info(f"Deleted Qdrant collection '{index_name}'.")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to delete Qdrant collection '{index_name}': {e}"
+                )
+        except Exception:
+            op_status = "error"
+            raise
+        finally:
+            try:
+                from ragengine.metrics.prometheus_metrics import (
+                    rag_vector_store_operation_latency,
+                )
+
+                rag_vector_store_operation_latency.labels(
+                    operation="delete_index", status=op_status
+                ).observe(time.time() - op_start)
+            except Exception:
+                pass
 
     # ── Lazy docstore: override write ops that need docstore ──────────
 
@@ -752,11 +790,15 @@ class QdrantVectorStoreHandler(BaseVectorStore):
                     rag_hybrid_top_score,
                     rag_lowest_source_score,
                     rag_retrieve_result_count,
+                    rag_vector_store_operation_latency,
                 )
 
                 # Mode & latency
                 rag_hybrid_search_mode_total.labels(search_mode="hybrid").inc()
                 rag_hybrid_retrieve_latency.observe(elapsed)
+                rag_vector_store_operation_latency.labels(
+                    operation="query", status="success"
+                ).observe(elapsed)
                 # Update running average
                 self.__class__._latency_sum += elapsed
                 self.__class__._latency_count += 1

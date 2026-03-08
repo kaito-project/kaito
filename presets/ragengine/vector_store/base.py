@@ -60,7 +60,7 @@ logger = logging.getLogger(__name__)
 class BaseVectorStore(ABC):
     # Whether to use async indexing in VectorStoreIndex.from_documents.
     # Subclasses can override this to False if their backend has issues with
-    # nested event loops (e.g. Milvus sync client inside FastAPI async).
+    # nested event loops (e.g. a sync client inside FastAPI async).
     _use_async_indexing: bool = True
 
     # Whether the backend supports native hybrid search (dense + sparse).
@@ -500,20 +500,39 @@ class BaseVectorStore(ABC):
             excluded_llm_metadata_keys=[key for key in document.metadata],
         )
 
-        if self.use_rwlock:
-            async with self.rwlock.writer_lock:
-                retrieved_doc = await self.index_map[
-                    index_name
-                ].docstore.aget_ref_doc_info(doc_id)
-                if retrieved_doc:
-                    logger.info(
-                        f"Document {doc_id} already exists in index {index_name} (double-check). Skipping insertion."
+        op_start = time.time()
+        op_status = "success"
+        try:
+            if self.use_rwlock:
+                async with self.rwlock.writer_lock:
+                    retrieved_doc = await self.index_map[
+                        index_name
+                    ].docstore.aget_ref_doc_info(doc_id)
+                    if retrieved_doc:
+                        logger.info(
+                            f"Document {doc_id} already exists in index {index_name} (double-check). Skipping insertion."
+                        )
+                        return
+                    # Proceed with insertion only if the document is absent
+                    await asyncio.to_thread(
+                        self.index_map[index_name].insert, llama_doc
                     )
-                    return
-                # Proceed with insertion only if the document is absent
+            else:
                 await asyncio.to_thread(self.index_map[index_name].insert, llama_doc)
-        else:
-            await asyncio.to_thread(self.index_map[index_name].insert, llama_doc)
+        except Exception:
+            op_status = "error"
+            raise
+        finally:
+            try:
+                from ragengine.metrics.prometheus_metrics import (
+                    rag_vector_store_operation_latency,
+                )
+
+                rag_vector_store_operation_latency.labels(
+                    operation="insert", status=op_status
+                ).observe(time.time() - op_start)
+            except Exception:
+                pass
 
     def list_indexes(self) -> list[str]:
         return list(self.index_map)
@@ -533,6 +552,8 @@ class BaseVectorStore(ABC):
             else:
                 not_found_docs.append(doc_id)
 
+        op_start = time.time()
+        op_status = "success"
         try:
             if self.use_rwlock:
                 async with self.rwlock.writer_lock:
@@ -558,11 +579,24 @@ class BaseVectorStore(ABC):
 
             return {"deleted_doc_ids": found_docs, "not_found_doc_ids": not_found_docs}
         except NotImplementedError as e:
+            op_status = "error"
             logger.error(f"Delete operation is not implemented for index {index_name}.")
             raise HTTPException(status_code=501, detail=f"Loading failed: {str(e)}")
         except Exception as e:
+            op_status = "error"
             logger.error(f"Error deleting documents from index {index_name}: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
+        finally:
+            try:
+                from ragengine.metrics.prometheus_metrics import (
+                    rag_vector_store_operation_latency,
+                )
+
+                rag_vector_store_operation_latency.labels(
+                    operation="delete", status=op_status
+                ).observe(time.time() - op_start)
+            except Exception:
+                pass
 
     async def update_documents(self, index_name: str, documents: list[Document]):
         """Common logic for updating a document."""
@@ -917,9 +951,13 @@ class BaseVectorStore(ABC):
                     rag_avg_source_score,
                     rag_lowest_source_score,
                     rag_retrieve_result_count,
+                    rag_vector_store_operation_latency,
                 )
 
                 rag_retrieve_result_count.observe(len(results))
+                rag_vector_store_operation_latency.labels(
+                    operation="query", status="success"
+                ).observe(elapsed)
                 if scores:
                     rag_lowest_source_score.observe(min(scores))
                     rag_avg_source_score.observe(sum(scores) / len(scores))

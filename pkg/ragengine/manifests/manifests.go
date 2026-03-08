@@ -189,8 +189,8 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 	// Determine vector DB type from CRD spec or default to "faiss"
 	vectorDBType := "faiss"
 	if ragEngineObj.Spec.Storage != nil && ragEngineObj.Spec.Storage.VectorDB != nil {
-		if ragEngineObj.Spec.Storage.VectorDB.Type != "" {
-			vectorDBType = ragEngineObj.Spec.Storage.VectorDB.Type
+		if ragEngineObj.Spec.Storage.VectorDB.Engine != "" {
+			vectorDBType = ragEngineObj.Spec.Storage.VectorDB.Engine
 		}
 	}
 	storageEnv := corev1.EnvVar{
@@ -201,12 +201,10 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 
 	// Inject vector DB connection info if configured
 	if ragEngineObj.Spec.Storage != nil && ragEngineObj.Spec.Storage.VectorDB != nil {
-		if ragEngineObj.Spec.Storage.VectorDB.URL != "" {
-			envs = append(envs, corev1.EnvVar{
-				Name:  "VECTOR_DB_URL",
-				Value: ragEngineObj.Spec.Storage.VectorDB.URL,
-			})
-		}
+		envs = append(envs, corev1.EnvVar{
+			Name:  "VECTOR_DB_URL",
+			Value: ragEngineObj.Spec.Storage.VectorDB.URL,
+		})
 		if ragEngineObj.Spec.Storage.VectorDB.AccessSecret != "" {
 			envs = append(envs, corev1.EnvVar{
 				Name: "VECTOR_DB_ACCESS_SECRET",

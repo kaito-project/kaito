@@ -532,25 +532,26 @@ spec:
                   vectorDB:
                     description: |-
                       VectorDB specifies the vector database backend configuration.
-                      If not specified, defaults to FAISS (in-process vector store).
+                      If not specified, the default in-process FAISS vector store is used.
                     properties:
                       accessSecret:
                         description: |-
                           AccessSecret is the name of the Kubernetes Secret that contains the vector database
                           access credentials. The secret must contain a key named "VECTOR_DB_ACCESS_SECRET".
                         type: string
-                      type:
-                        default: faiss
+                      engine:
                         description: |-
-                          Type specifies the vector database backend to use.
-                          Supported values: "faiss" (default, in-process), "qdrant" (client-server).
+                          Engine specifies the vector database backend to use.
+                          Must be a LlamaIndex-supported vector store backend (e.g. "faiss", "qdrant").
                         type: string
                       url:
                         description: |-
-                          URL specifies the connection URL for client-server vector databases (e.g., qdrant).
-                          Required when Type is "qdrant". Example: "http://qdrant-svc:6333"
-                          If not specified for qdrant, an in-memory instance will be used (data lost on restart).
+                          URL specifies the connection URL for the vector database backend.
+                          Example: "http://qdrant-svc:6333"
                         type: string
+                    required:
+                    - engine
+                    - url
                     type: object
                 type: object
             required:

@@ -13,7 +13,8 @@ helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
 helm repo update
 helm upgrade --install kaito-ragengine kaito/ragengine \
   --namespace kaito-ragengine \
-  --create-namespace
+  --create-namespace \
+  --take-ownership
 ```
 
 ### Using Nightly Builds (Optional)
@@ -32,7 +33,8 @@ helm upgrade --install kaito-ragengine kaito/ragengine \
   --create-namespace \
   --set image.repository=ghcr.io/kaito-project/kaito/ragengine \
   --set image.tag=nightly-latest \
-  --set image.pullPolicy=Always
+  --set image.pullPolicy=Always \
+  --take-ownership
 ```
 
 The nightly image is tagged with:

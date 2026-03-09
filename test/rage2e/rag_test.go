@@ -1190,10 +1190,11 @@ func createAndValidateRetrievalPod(ragengineObj *kaitov1beta1.RAGEngine, expecte
 	if !ok {
 		return fmt.Errorf("node missing 'node_id' field or not a string")
 	}
+	_ = nodeID // node_id is a chunk-level UUID, different from doc_id
 
-	// Verify doc_id and node_id are the same (as per implementation)
-	if docID != nodeID {
-		return fmt.Errorf("doc_id (%s) should match node_id (%s)", docID, nodeID)
+	// Verify doc_id matches the expected document ID from indexing
+	if docID != expectedDocID {
+		return fmt.Errorf("doc_id (%s) should match expectedDocID (%s)", docID, expectedDocID)
 	}
 
 	text, ok := firstNode["text"].(string)

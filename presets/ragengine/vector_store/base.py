@@ -905,15 +905,21 @@ class BaseVectorStore(ABC):
 
             top_k = min(max_node_count, RAG_MAX_TOP_K)
 
-            # Subclasses with _native_hybrid_search=True should override
-            # retrieve() entirely (e.g., QdrantVectorStoreHandler uses the
-            # Qdrant Query API with prefetch + RRF). This base implementation
-            # uses the Python-side HybridRetriever as fallback.
-            retriever = HybridRetriever(
-                index=self.index_map[index_name],
-                max_results=top_k,
-                metadata_filter=metadata_filter,
-            )
+            # Subclasses with _native_hybrid_search=True use the vector
+            # store's built-in hybrid mode (e.g., Qdrant dense+sparse with
+            # relative_score_fusion). Otherwise fall back to the Python-side
+            # HybridRetriever (vector + BM25 from docstore).
+            if self._native_hybrid_search:
+                retriever = self.index_map[index_name].as_retriever(
+                    similarity_top_k=top_k,
+                    vector_store_query_mode="hybrid",
+                )
+            else:
+                retriever = HybridRetriever(
+                    index=self.index_map[index_name],
+                    max_results=top_k,
+                    metadata_filter=metadata_filter,
+                )
 
             start_time = time.time()
             if self.use_rwlock:

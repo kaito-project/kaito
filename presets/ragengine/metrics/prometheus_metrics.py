@@ -281,4 +281,3 @@ rag_hybrid_sparse_only_count = Histogram(
     "Number of final result nodes that came from sparse (BM25) search only",
     buckets=(0, 1, 2, 3, 5, 10, 20, 50),
 )
-

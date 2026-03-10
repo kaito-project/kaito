@@ -68,7 +68,7 @@ runs:
       shell: bash
       run: sudo rm -rf ~/go/pkg/mod
 
-    - name: Set up Go 1.24
+    - name: Set up Go 1.25
       uses: actions/setup-go@v5.2.0
       with:
         go-version: "1.25"

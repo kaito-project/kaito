@@ -6,7 +6,7 @@ ARG VERSION
 # https://docs.ray.io/en/latest/cluster/usage-stats.html
 ENV RAY_USAGE_STATS_ENABLED="1"
 
-RUN pip3 install --upgrade pip && pip3 install "uv>=0.5.20"
+RUN pip3 install --upgrade pip uv
 
 # Set the working directory
 WORKDIR /workspace

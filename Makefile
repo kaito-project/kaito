@@ -301,7 +301,7 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 	fi
 
 .PHONY: docker-build-workspace
-docker-build-workspace: ARCH = amd64,arm64
+docker-build-workspace: ARCH = amd64,linux/arm64
 docker-build-workspace: docker-buildx ## Build Docker image for workspace.
 	docker buildx build \
 		--file ./docker/workspace/Dockerfile \

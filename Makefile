@@ -275,7 +275,7 @@ create-eks-cluster: ## Create an EKS cluster.
 BUILDX_BUILDER_NAME ?= img-builder
 OUTPUT_TYPE ?= type=registry
 QEMU_VERSION ?= 7.2.0-1
-ARCH ?= amd64
+ARCH ?= amd64,arm64
 BUILDKIT_VERSION ?= v0.18.1
 
 RAGENGINE_IMAGE_NAME ?= ragengine
@@ -301,7 +301,6 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 	fi
 
 .PHONY: docker-build-workspace
-docker-build-workspace: ARCH = amd64,arm64
 docker-build-workspace: docker-buildx ## Build Docker image for workspace.
 	docker buildx build \
 		--file ./docker/workspace/Dockerfile \

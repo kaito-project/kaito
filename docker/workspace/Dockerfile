@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/oss/go/microsoft/golang:1.24 AS dependencies
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/oss/go/microsoft/golang:1.25 AS dependencies
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -33,7 +33,7 @@ COPY presets/ presets/
 # by leaving it empty we can ensure that the container and binary shipped on it will have the same platform.
 RUN --mount=type=cache,target=${GOCACHE} \
     --mount=type=cache,id=kaito-controller,sharing=locked,target=/go/pkg/mod \
-    CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} GO111MODULE=on \
+    CGO_ENABLED=1 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} GO111MODULE=on \
     go build -ldflags "-X 'github.com/kaito-project/kaito/pkg/version.Version=${VERSION}' -X 'github.com/kaito-project/kaito/pkg/version.BuildDate=${BUILD_DATE}'" -a -o manager cmd/workspace/*.go
 
 # Use distroless as minimal base image to package the manager binary

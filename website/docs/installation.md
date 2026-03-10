@@ -28,7 +28,8 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --namespace kaito-workspace \
   --create-namespace \
   --set clusterName="$CLUSTER_NAME" \
-  --wait
+  --wait \
+  --take-ownership
 ```
 
 ### Verify KAITO Installation
@@ -65,7 +66,8 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --create-namespace \
   --set clusterName="$CLUSTER_NAME" \
   --set defaultNodeImageFamily=azurelinux \
-  --wait
+  --wait \
+  --take-ownership
 ```
 
 Notes:
@@ -120,7 +122,8 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --create-namespace \
   --set clusterName="$CLUSTER_NAME" \
   --set featureGates.disableNodeAutoProvisioning=true \
-  --wait
+  --wait \
+  --take-ownership
 ```
 
 Create your GPU nodes and label them for quick access. In these docs, we will use the label `accelerator=nvidia` but any label can work.

@@ -98,7 +98,7 @@ jobs:
           yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
 
           # Upgrade the chart
-          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace
+          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --take-ownership
 
           # Wait for deployment to be rolled out
           kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s
@@ -280,7 +280,7 @@ jobs:
           yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
 
           # Upgrade the chart
-          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set featureGates.disableNodeAutoProvisioning=true
+          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set featureGates.disableNodeAutoProvisioning=true --take-ownership
 
           # Wait for deployment to be rolled out
           kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s

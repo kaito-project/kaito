@@ -1,0 +1,10 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: ministral-3-3b-instruct-inferencepool-epp
+spec:
+  host: ministral-3-3b-instruct-inferencepool-epp
+  trafficPolicy:
+    tls:
+      mode: SIMPLE
+      insecureSkipVerify: true

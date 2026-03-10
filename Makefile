@@ -275,7 +275,7 @@ create-eks-cluster: ## Create an EKS cluster.
 BUILDX_BUILDER_NAME ?= img-builder
 OUTPUT_TYPE ?= type=registry
 QEMU_VERSION ?= 7.2.0-1
-ARCH ?= amd64,arm64
+ARCH ?= amd64,linux/arm64
 BUILDKIT_VERSION ?= v0.18.1
 
 RAGENGINE_IMAGE_NAME ?= ragengine

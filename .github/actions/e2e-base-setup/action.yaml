@@ -43,7 +43,7 @@ outputs:
     description: "Registry value"
 
 env:
-  GO_VERSION: "1.24"
+  GO_VERSION: "1.25"
 
 runs:
   using: "composite"
@@ -71,7 +71,7 @@ runs:
     - name: Set up Go 1.24
       uses: actions/setup-go@v5.2.0
       with:
-        go-version: "1.24"
+        go-version: "1.25"
 
     - name: Install Azure CLI latest
       shell: bash

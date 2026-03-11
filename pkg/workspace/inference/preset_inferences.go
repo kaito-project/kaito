@@ -301,6 +301,48 @@ func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace
 	return getDistributedInferenceProbe(probeTypeReadiness, wObj, 0, periodSeconds, timeoutSeconds, failureThreshold)
 }
 
+// buildBenchmarkReadinessProbe returns an readiness probe that passes only
+// after /tmp/kaito_benchmark_done is written by benchmark_entrypoint.sh.
+func buildBenchmarkReadinessProbe() *corev1.Probe {
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			Exec: &corev1.ExecAction{
+				Command: []string{"test", "-f", "/tmp/kaito_benchmark_done"},
+			},
+		},
+		InitialDelaySeconds: 0,
+		PeriodSeconds:       10,
+		FailureThreshold:    1,
+	}
+}
+
+// buildDistributedBenchmarkReadinessProbe returns a readiness probe for the distributed
+// inference path.
+func buildDistributedBenchmarkReadinessProbe(wObj *v1beta1.Workspace) *corev1.Probe {
+	workerCmd := utils.BuildCmdStr(
+		fmt.Sprintf("%s readiness", DefaultVLLMMultiNodeHealthCheckCommand),
+		map[string]string{
+			"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
+			"vllm-port":      strconv.FormatInt(int64(consts.PortInferenceServer), 10),
+		},
+	)
+	cmd := fmt.Sprintf(
+		`if [ "$POD_INDEX" = "0" ]; then test -f /tmp/kaito_benchmark_done; else %s; fi`,
+		workerCmd,
+	)
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			Exec: &corev1.ExecAction{
+				Command: utils.ShellCmd(cmd),
+			},
+		},
+		InitialDelaySeconds: 0,
+		PeriodSeconds:       10,
+		TimeoutSeconds:      1,
+		FailureThreshold:    1,
+	}
+}
+
 func GetBaseImageName() string {
 	presetObj := metadata.MustGet("base")
 	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
@@ -420,16 +462,42 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
+		// When benchmarking is enabled, replace the readiness probe with a sentinel-file exec probe.
+		finalCommands := commands
+		readinessProbe := defaultReadinessProbe
+		var benchmarkEnvVars []corev1.EnvVar
+		if ctx.Workspace.Annotations[v1beta1.AnnotationRunBenchmark] == "true" {
+			finalCommands = append([]string{"/bin/bash", "/workspace/vllm/benchmark_entrypoint.sh"}, commands...)
+			readinessProbe = buildBenchmarkReadinessProbe()
+
+			// Inject GPU/model dimensions so benchmark_entrypoint.sh can compute the
+			// saturation concurrency at runtime.
+			if gpuConfig != nil && inferenceParam.TotalSafeTensorFileSize != "" && inferenceParam.BytesPerToken > 0 {
+				// availableVRAMGiB = (totalVRAM - modelWeights) × 0.9 safety factor.
+				// The bash script completes the rate formula using BENCHMARK_INPUT_LEN,
+				totalVRAMGiB := gpuConfig.GPUMem.AsApproximateFloat64() / math.Pow(2, 30) * float64(numNodes)
+				if weightQty, parseErr := resource.ParseQuantity(inferenceParam.TotalSafeTensorFileSize); parseErr == nil {
+					modelWeightGiB := weightQty.AsApproximateFloat64() / math.Pow(2, 30)
+					availableVRAMGiB := (totalVRAMGiB - modelWeightGiB) * 0.9
+					benchmarkEnvVars = []corev1.EnvVar{
+						{Name: "AVAILABLE_VRAM_GIB", Value: fmt.Sprintf("%.4f", availableVRAMGiB)},
+						{Name: "KAITO_BYTES_PER_TOKEN", Value: strconv.Itoa(inferenceParam.BytesPerToken)},
+					}
+				}
+			}
+		}
+
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
 				Image:          GetBaseImageName(),
-				Command:        commands,
+				Command:        finalCommands,
+				Env:            benchmarkEnvVars,
 				Resources:      resourceReq,
 				Ports:          containerPorts,
 				StartupProbe:   buildStartupProbe(readinessTimeout),
 				LivenessProbe:  defaultLivenessProbe,
-				ReadinessProbe: defaultReadinessProbe,
+				ReadinessProbe: readinessProbe,
 				VolumeMounts:   volumeMounts,
 			},
 		}
@@ -500,7 +568,12 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 
 	// 60 seconds initial delay for liveness probe to allow workers to join the cluster
 	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5, 1)
-	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1)
+	var readinessProbe *corev1.Probe
+	if ctx.Workspace.Annotations[v1beta1.AnnotationRunBenchmark] == "true" {
+		readinessProbe = buildDistributedBenchmarkReadinessProbe(ctx.Workspace)
+	} else {
+		readinessProbe = getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1)
+	}
 	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace)
 	envVar := corev1.EnvVar{
 		Name: "POD_INDEX",

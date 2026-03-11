@@ -55,6 +55,11 @@ const (
 
 	// AnnotationNodeImageFamily specifies node image family used by generated NodeClaim.
 	AnnotationNodeImageFamily = KAITOPrefix + "node-image-family"
+
+	// AnnotationRunBenchmark enables the post-load throughput benchmark stage.
+	// When set to "true" on a Workspace, the inference container runs a guidellm
+	// benchmark after the model loads before marking the container as ready.
+	AnnotationRunBenchmark = KAITOPrefix + "run-benchmark"
 )
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.

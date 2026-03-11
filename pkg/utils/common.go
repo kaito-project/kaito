@@ -184,13 +184,13 @@ func GetGPUConfigFromNodeLabels(node *corev1.Node) (*sku.GPUConfig, error) {
 		return nil, fmt.Errorf("invalid nvidia.com/gpu.count value on node %s: %s", node.Name, gpuCountStr)
 	}
 
-	// Parse GPU memory (nvidia.com/gpu.memory is in MiB, convert to GB)
+	// Parse GPU memory (nvidia.com/gpu.memory is per-GPU memory in MiB).
 	gpuMemoryMiB, err := strconv.Atoi(gpuMemoryStr)
 	if err != nil {
 		return nil, fmt.Errorf("invalid nvidia.com/gpu.memory value on node %s: %s", node.Name, gpuMemoryStr)
 	}
 
-	gpuMemGiB := int64((float64(gpuMemoryMiB) / 1024) + 0.5)
+	gpuMemGiB := int64((float64(gpuMemoryMiB)/1024)+0.5) * int64(gpuCount)
 
 	return &sku.GPUConfig{
 		SKU:      "unknown", // SKU is not available from node labels

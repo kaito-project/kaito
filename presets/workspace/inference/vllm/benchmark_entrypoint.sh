@@ -209,14 +209,11 @@ fi
 _t_bench_end=$(date +%s)
 _log "benchmark_done elapsed=$(( _t_bench_end - _t_bench_start ))s"
 
-# Wait for all in-flight benchmark requests to drain, with a 5-minute timeout.
+# Wait for all in-flight benchmark requests to drain.
+# No timeout — the model must not become Ready while requests are still running,
+# as that would signal to the controller that the benchmark result is final.
 _log "drain_start"
-_drain_deadline=$(( $(date +%s) + 300 ))
 until [ "$(_read_counter vllm:num_requests_running)" -eq 0 ] 2>/dev/null; do
-    if [ "$(date +%s)" -ge "${_drain_deadline}" ]; then
-        _log "drain_timeout exceeded 300s — proceeding anyway"
-        break
-    fi
     sleep 2
 done
 _t_drain_end=$(date +%s)

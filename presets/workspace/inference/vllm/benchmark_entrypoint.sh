@@ -159,9 +159,6 @@ _run_benchmark() {
     # HTML report template. Without this, guidellm crashes post-benchmark with httpx
     # HTTPStatusError on a 301 redirect from blog.vllm.ai. We don't use guidellm's HTML
     # output — our TPM comes from vLLM's Prometheus counters — so a stub file is fine.
-    # NOTE: prefix is GUIDELLM__ (double underscore); env_prefix="GUIDELLM__" in settings.py.
-    # NOTE: cannot use /dev/null — guidellm's load_text checks Path.is_file() which is
-    # False for character devices. A real regular file (even empty) is required.
     local _gl_stub
     _gl_stub=$(mktemp /tmp/guidellm-stub.XXXXXX.html)
     echo '<html></html>' > "${_gl_stub}"

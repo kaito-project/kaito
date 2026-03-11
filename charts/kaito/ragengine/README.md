@@ -9,7 +9,8 @@ helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
 helm repo update
 helm upgrade --install kaito/ragengine \
   --namespace kaito-ragengine \
-  --create-namespace
+  --create-namespace \
+  --take-ownership
 ```
 
 ## Prerequisites

@@ -28,7 +28,8 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --namespace kaito-workspace \
   --create-namespace \
   --set clusterName="$CLUSTER_NAME" \
-  --wait
+  --wait \
+  --take-ownership
 ```
 
 ### Using Nightly Builds (Optional)
@@ -58,7 +59,8 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --set image.repository=ghcr.io/kaito-project/kaito/workspace \
   --set image.tag=nightly-latest \
   --set image.pullPolicy=Always \
-  --wait
+  --wait \
+  --take-ownership
 ```
 
 For nightly RAG engine controller images, see the [RAG installation guide](rag#using-nightly-builds-optional).
@@ -97,7 +99,8 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --create-namespace \
   --set clusterName="$CLUSTER_NAME" \
   --set defaultNodeImageFamily=azurelinux \
-  --wait
+  --wait \
+  --take-ownership
 ```
 
 Notes:
@@ -152,7 +155,8 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --create-namespace \
   --set clusterName="$CLUSTER_NAME" \
   --set featureGates.disableNodeAutoProvisioning=true \
-  --wait
+  --wait \
+  --take-ownership
 ```
 
 Create your GPU nodes and label them for quick access. In these docs, we will use the label `accelerator=nvidia` but any label can work.

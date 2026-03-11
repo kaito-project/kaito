@@ -26,11 +26,31 @@ type PersistentVolumeConfig struct {
 	MountPath string `json:"mountPath,omitempty"`
 }
 
+// VectorDBConfig specifies the vector database backend configuration.
+// The Engine must be a LlamaIndex-supported vector store backend.
+type VectorDBConfig struct {
+	// Engine specifies the vector database backend engine to use.
+	// Must be a LlamaIndex-supported vector store backend.
+	// Supported values: "qdrant" (client-server with native hybrid search).
+	Engine string `json:"engine"`
+	// URL specifies the connection URL for the vector database.
+	// Example: "http://qdrant-svc:6333"
+	URL string `json:"url"`
+	// AccessSecret is the name of the Kubernetes Secret that contains the vector database
+	// access credentials. The secret must contain a key named "VECTOR_DB_ACCESS_SECRET".
+	// +optional
+	AccessSecret string `json:"accessSecret,omitempty"`
+}
+
 type StorageSpec struct {
 	// PersistentVolume specifies PVC-based persistent storage configuration.
 	// If not specified, an emptyDir will be used (data will be lost on pod restart).
 	// +optional
 	PersistentVolume *PersistentVolumeConfig `json:"persistentVolume,omitempty"`
+	// VectorDB specifies an external vector database backend configuration.
+	// If not specified, the default in-process FAISS vector store is used.
+	// +optional
+	VectorDB *VectorDBConfig `json:"vectorDB,omitempty"`
 }
 
 type RemoteEmbeddingSpec struct {

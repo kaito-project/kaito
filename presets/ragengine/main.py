@@ -13,6 +13,7 @@
 
 
 import json
+import logging
 import os
 import time
 from urllib.parse import unquote
@@ -37,7 +38,6 @@ from models import (
 # Import Prometheus client for metrics collection
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.responses import Response
-from vector_store.faiss_store import FaissVectorStoreHandler
 from vector_store_manager.manager import VectorStoreManager
 
 from ragengine.config import (
@@ -46,6 +46,9 @@ from ragengine.config import (
     LOCAL_EMBEDDING_MODEL_ID,
     REMOTE_EMBEDDING_ACCESS_SECRET,
     REMOTE_EMBEDDING_URL,
+    VECTOR_DB_ACCESS_SECRET,
+    VECTOR_DB_TYPE,
+    VECTOR_DB_URL,
 )
 from ragengine.metrics.prometheus_metrics import (
     MODE_LOCAL,
@@ -79,6 +82,7 @@ from ragengine.metrics.prometheus_metrics import (
 
 # Import Prometheus client for metrics collection
 
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="KAITO RAG Engine",
@@ -129,9 +133,24 @@ elif EMBEDDING_SOURCE_TYPE.lower() == MODE_REMOTE:
 else:
     raise ValueError("Invalid Embedding Type Specified (Must be Local or Remote)")
 
-# Initialize vector store
-# TODO: Dynamically set VectorStore from EnvVars (which ultimately comes from CRD StorageSpec)
-vector_store_handler = FaissVectorStoreHandler(embedding_manager)
+# Initialize vector store based on configured backend (VECTOR_DB_TYPE from CRD)
+if VECTOR_DB_TYPE.lower() == "faiss":
+    from vector_store.faiss_store import FaissVectorStoreHandler
+
+    vector_store_handler = FaissVectorStoreHandler(embedding_manager)
+elif VECTOR_DB_TYPE.lower() == "qdrant":
+    from vector_store.qdrant_store import QdrantVectorStoreHandler
+
+    vector_store_handler = QdrantVectorStoreHandler(
+        embedding_manager,
+        vector_db_url=VECTOR_DB_URL,
+        vector_db_access_secret=VECTOR_DB_ACCESS_SECRET,
+    )
+else:
+    raise ValueError(
+        f"Unsupported VECTOR_DB_TYPE: '{VECTOR_DB_TYPE}'. "
+        "Supported values: 'faiss', 'qdrant'"
+    )
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
@@ -148,6 +167,7 @@ async def metrics():
         return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     except Exception as e:
+        logger.error("Failed to generate metrics", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -184,6 +204,7 @@ def health_check():
         return HealthStatus(status="Healthy")
 
     except Exception as e:
+        logger.error("Health check failed", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -235,6 +256,7 @@ async def index_documents(request: IndexRequest):
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
+        logger.error("Index failed for '%s'", request.index_name, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block
@@ -351,6 +373,7 @@ def list_indexes():
         status = STATUS_SUCCESS
         return result
     except Exception as e:
+        logger.error("List indexes failed", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block
@@ -450,6 +473,9 @@ async def list_documents_in_index(
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
+        logger.error(
+            "List documents failed for '%s'", decoded_index_name, exc_info=True
+        )
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block
@@ -500,6 +526,7 @@ async def update_documents_in_index(
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
+        logger.error("Update documents failed for '%s'", index_name, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block
@@ -549,6 +576,7 @@ async def delete_documents_in_index(
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
+        logger.error("Delete documents failed for '%s'", index_name, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Record metrics once in finally block
@@ -604,6 +632,7 @@ async def persist_index(
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
+        logger.error("Persist failed for '%s'", index_name, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Persistence failed: {str(e)}")
     finally:
         # Record metrics once in finally block
@@ -657,6 +686,7 @@ async def load_index(
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
+        logger.error("Load failed for '%s'", index_name, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Loading failed: {str(e)}")
     finally:
         # Record metrics once in finally block
@@ -724,6 +754,7 @@ async def retrieve_from_index(request: RetrieveRequest):
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
+        logger.error("Retrieve failed for '%s'", request.index_name, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Retrieve failed: {str(e)}")
     finally:
         # Record metrics once in finally block
@@ -770,6 +801,7 @@ async def delete_index(index_name: str):
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
+        logger.error("Delete index failed for '%s'", index_name, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Deletion failed: {str(e)}")
     finally:
         # Record metrics once in finally block

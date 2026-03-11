@@ -47,7 +47,8 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --create-namespace \
   --set clusterName="$CLUSTER_NAME" \
   --set featureGates.enableInferenceSetController=true \
-  --wait
+  --wait \
+  --take-ownership
 ```
 
 ## Example Scenarios

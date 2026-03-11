@@ -435,7 +435,7 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 					Labels: map[string]string{
 						"nvidia.com/gpu.product": "Tesla-V100-SXM2-32GB",
 						"nvidia.com/gpu.count":   "2",
-						"nvidia.com/gpu.memory":  "32768", // 32GB in MiB
+						"nvidia.com/gpu.memory":  "32768", // 32GiB per GPU in MiB
 					},
 				},
 			},
@@ -444,7 +444,7 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 				SKU:      "unknown",
 				GPUCount: 2,
 				GPUModel: "Tesla-V100-SXM2-32GB",
-				GPUMem:   resource.MustParse("32Gi"),
+				GPUMem:   resource.MustParse("64Gi"), // total node VRAM = 2 × 32Gi
 			},
 		},
 		{

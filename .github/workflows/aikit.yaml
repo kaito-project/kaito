@@ -13,7 +13,7 @@ on:
       - main
 
 env:
-  KIND_VERSION: "0.29.0"
+  KIND_VERSION: "0.31.0"
   KUBECTL_VERSION: "1.33.0"
   AIKIT_IMAGE: ${{ github.event.inputs.aikit_image || 'ghcr.io/kaito-project/aikit/llama3.2:1b' }}
   KAITO_NAMESPACE: "kaito-system"

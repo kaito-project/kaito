@@ -17,9 +17,9 @@ All tests run without a GPU, network, vLLM process, or guidellm installation.
 External calls (urllib, subprocess, open) are patched via unittest.mock.
 """
 
+import json
 import sys
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -131,63 +131,69 @@ def test_compute_rate_minimum_one(monkeypatch):
 # ── _run_guidellm ─────────────────────────────────────────────────────────────
 
 
+def _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn):
+    """Build a sys.modules patch dict that injects mock guidellm packages."""
+    bench_mod = MagicMock()
+    bench_mod.BenchmarkGenerativeTextArgs = mock_args_cls
+    entrypoints_mod = MagicMock()
+    entrypoints_mod.benchmark_generative_text = mock_benchmark_fn
+    return {
+        "guidellm": MagicMock(),
+        "guidellm.benchmark": bench_mod,
+        "guidellm.benchmark.entrypoints": entrypoints_mod,
+    }
+
+
 def test_run_guidellm_success():
-    proc = SimpleNamespace(returncode=0)
+    mock_args_cls = MagicMock()
+    mock_benchmark_fn = MagicMock()
     with (
-        patch("subprocess.run", return_value=proc) as mock_run,
-        patch("os.path.isfile", return_value=False),
-        patch("os.access", return_value=False),
+        patch("asyncio.run") as mock_run,
+        patch.dict(
+            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
+        ),
     ):
         result = bm._run_guidellm("openai/phi-4", 256)
     assert result is True
     mock_run.assert_called_once()
-    cmd = mock_run.call_args[0][0]
-    assert cmd[0] == "guidellm"  # fell back to PATH
-
-
-def test_run_guidellm_uses_venv_binary():
-    proc = SimpleNamespace(returncode=0)
-    with (
-        patch("subprocess.run", return_value=proc) as mock_run,
-        patch("os.path.isfile", return_value=True),
-        patch("os.access", return_value=True),
-    ):
-        bm._run_guidellm("", 256)
-    cmd = mock_run.call_args[0][0]
-    assert cmd[0] == "/opt/guidellm-venv/bin/guidellm"
 
 
 def test_run_guidellm_includes_processor():
-    proc = SimpleNamespace(returncode=0)
+    mock_args_cls = MagicMock()
+    mock_benchmark_fn = MagicMock()
     with (
-        patch("subprocess.run", return_value=proc) as mock_run,
-        patch("os.path.isfile", return_value=False),
-        patch("os.access", return_value=False),
+        patch("asyncio.run"),
+        patch.dict(
+            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
+        ),
     ):
         bm._run_guidellm("mymodel/name", 128)
-    cmd = mock_run.call_args[0][0]
-    assert "--processor" in cmd
-    assert "mymodel/name" in cmd
+    _, kwargs = mock_args_cls.call_args
+    assert kwargs.get("processor") == "mymodel/name"
 
 
 def test_run_guidellm_omits_processor_when_empty():
-    proc = SimpleNamespace(returncode=0)
+    mock_args_cls = MagicMock()
+    mock_benchmark_fn = MagicMock()
     with (
-        patch("subprocess.run", return_value=proc) as mock_run,
-        patch("os.path.isfile", return_value=False),
-        patch("os.access", return_value=False),
+        patch("asyncio.run"),
+        patch.dict(
+            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
+        ),
     ):
         bm._run_guidellm("", 128)
-    cmd = mock_run.call_args[0][0]
-    assert "--processor" not in cmd
+    _, kwargs = mock_args_cls.call_args
+    assert kwargs.get("processor") is None
 
 
 def test_run_guidellm_failure():
-    proc = SimpleNamespace(returncode=1)
+    mock_args_cls = MagicMock()
+    mock_benchmark_fn = MagicMock()
     with (
-        patch("subprocess.run", return_value=proc),
-        patch("os.path.isfile", return_value=False),
-        patch("os.access", return_value=False),
+        patch("asyncio.run", side_effect=RuntimeError("mock error")),
+        patch.dict(
+            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
+        ),
         patch.object(bm, "_log") as mock_log,
     ):
         result = bm._run_guidellm("", 128)
@@ -196,25 +202,23 @@ def test_run_guidellm_failure():
     assert "guidellm_failed" in mock_log.call_args[0][0]
 
 
-def test_run_guidellm_sets_stub_env_var():
-    """GUIDELLM__REPORT_GENERATION__SOURCE must point to the stub file."""
-    captured_env = {}
-
-    def fake_run(cmd, env, **kwargs):
-        captured_env.update(env)
-        return SimpleNamespace(returncode=0)
-
+def test_run_guidellm_import_error():
+    """If guidellm is not importable, _run_guidellm returns False and logs."""
     with (
-        patch("subprocess.run", side_effect=fake_run),
-        patch("os.path.isfile", return_value=False),
-        patch("os.access", return_value=False),
+        patch.dict(
+            sys.modules,
+            {
+                "guidellm": None,
+                "guidellm.benchmark": None,
+                "guidellm.benchmark.entrypoints": None,
+            },
+        ),
+        patch.object(bm, "_log") as mock_log,
     ):
-        bm._run_guidellm("", 32)
-
-    assert "GUIDELLM__REPORT_GENERATION__SOURCE" in captured_env
-    stub = captured_env["GUIDELLM__REPORT_GENERATION__SOURCE"]
-    # The stub file must have been cleaned up
-    assert not Path(stub).exists()
+        result = bm._run_guidellm("", 32)
+    assert result is False
+    mock_log.assert_called_once()
+    assert "guidellm_import_failed" in mock_log.call_args[0][0]
 
 
 # ── _run_benchmark ───────────────────────────────────────────────────────────
@@ -303,6 +307,20 @@ def test_drain_polls_until_zero():
     mock_sleep.assert_called_with(2)
 
 
+def test_drain_timeout():
+    """_drain raises TimeoutError once the deadline is passed."""
+    # monotonic() returns: initial call (deadline set), then past-deadline on second call
+    mono_values = [0.0, 301.0]
+    with (
+        patch.object(bm, "_read_counter", return_value=1),
+        patch.object(bm, "_log"),
+        patch("time.sleep"),
+        patch("time.monotonic", side_effect=mono_values),
+        pytest.raises(TimeoutError, match="_drain timed out after 300"),
+    ):
+        bm._drain(timeout=300.0)
+
+
 # ── main ─────────────────────────────────────────────────────────────────────
 
 
@@ -349,7 +367,8 @@ def test_main_benchmark_success_exits_0(monkeypatch):
     assert exc_info.value.code == 0
     result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
     assert len(result_lines) == 1
-    assert "vllm_total_tpm=12345.67" in result_lines[0]
+    payload = result_lines[0].split("KAITO_BENCHMARK_RESULT ", 1)[1]
+    assert json.loads(payload)["vllm_total_tpm"] == 12345.67
 
 
 def test_main_benchmark_failure_still_exits_0(monkeypatch):
@@ -373,7 +392,8 @@ def test_main_benchmark_failure_still_exits_0(monkeypatch):
     assert exc_info.value.code == 0
     result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
     assert len(result_lines) == 1
-    assert "vllm_total_tpm=-1" in result_lines[0]
+    payload = result_lines[0].split("KAITO_BENCHMARK_RESULT ", 1)[1]
+    assert json.loads(payload)["vllm_total_tpm"] == -1.0
 
 
 def test_main_exactly_one_result_line_on_success(monkeypatch):

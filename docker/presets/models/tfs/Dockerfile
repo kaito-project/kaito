@@ -48,8 +48,8 @@ COPY presets/workspace/inference/vllm/inference_api.py \
 
 # Guidellm runs in an isolated venv so it can use transformers>=5.0.0 (required
 # for Mistral tekken tokenizers and future models) without conflicting with
-# vLLM's transformers<5 requirement.  benchmark_entrypoint.py invokes
-# /opt/guidellm-venv/bin/guidellm directly.
+# vLLM's transformers<5 requirement.  benchmark_entrypoint.py injects
+# /opt/guidellm-venv/lib/python*/site-packages into sys.path at runtime.
 RUN uv venv /opt/guidellm-venv --system-site-packages && \
     uv pip install --python /opt/guidellm-venv/bin/python \
         "guidellm==0.5.3" \

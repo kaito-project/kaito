@@ -31,16 +31,23 @@ through /proc/1/fd/1 (PID 1 = vLLM's stdout, which IS captured).  Falls back to 
 own sys.stdout if /proc/1/fd/1 is not accessible.
 """
 
-import contextlib
+import asyncio
+import glob
 import os
 import random
-import subprocess
 import sys
-import tempfile
 import time
-import urllib.error
 import urllib.request
 from pathlib import Path
+
+# Inject guidellm's isolated venv into sys.path before any huggingface_hub
+# import so that guidellm's newer huggingface_hub (which exports is_offline_mode
+# and other symbols) is loaded instead of the older system-installed version.
+_sp = glob.glob("/opt/guidellm-venv/lib/python*/site-packages")
+if _sp and _sp[0] not in sys.path:
+    sys.path.insert(0, _sp[0])
+
+from huggingface_hub import scan_cache_dir  # noqa: E402
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 BENCHMARK_DURATION = 60
@@ -139,32 +146,26 @@ def _resolve_processor() -> str:
 
     Case 1 — Baked-in model: tokenizer at ``/workspace/weights`` root
               (``config.json`` present directly under weights).
-    Case 2 — Standard DAR:   tokenizer in an HF snapshot subdir
-              (``config.json`` under ``*/snapshots/*/``).
-    Case 3 — No local tokenizer: derive HF repo ID from cache dir name
-              (``models--openai--gpt-oss-120b``  →  ``openai/gpt-oss-120b``).
-    Case 4 — Nothing found: return ``""`` and let guidellm auto-detect from
+    Case 2 — DAR / HF cache: use ``scan_cache_dir`` to read the repo_id
+              directly from the cache metadata (handles both snapshot and
+              ``models--org--name`` layouts).
+    Case 3 — Nothing found: return ``""`` and let guidellm auto-detect from
               ``/v1/models`` (may fail for unknown models).
     """
     weights = Path("/workspace/weights")
 
-    # Case 1: baked-in weights
+    # Case 1: baked-in weights (tokenizer lives at the weights root)
     if (weights / "config.json").exists():
         return str(weights)
 
-    # Case 2: standard DAR — config.json inside a snapshots subdir
-    snaps = list(weights.glob("*/snapshots/*/config.json"))
-    if snaps:
-        return str(snaps[0].parent)
-
-    # Case 3: HF cache dir  (models--org--name → org/name)
-    cache_dirs = [
-        d for d in weights.iterdir() if d.is_dir() and d.name.startswith("models--")
-    ]
-    if cache_dirs:
-        parts = cache_dirs[0].name[len("models--") :].split("--", 1)
-        if len(parts) == 2:
-            return f"{parts[0]}/{parts[1]}"
+    # Case 2: DAR or HF cache — ask huggingface_hub for the repo_id
+    try:
+        cache_info = scan_cache_dir(cache_dir=str(weights))
+        repos = sorted(cache_info.repos, key=lambda r: r.repo_id)
+        if repos:
+            return repos[0].repo_id
+    except Exception:
+        pass
 
     return ""
 
@@ -173,71 +174,46 @@ def _resolve_processor() -> str:
 
 
 def _run_guidellm(processor: str, rate: int) -> bool:
-    """Run guidellm as the load generator.
+    """Run guidellm via its Python API as the load generator.
 
-    --profile throughput drives max concurrency up to ``--rate`` (saturating the model).
-    --data-num-workers 0 prevents subprocess workers that can fail in containers.
+    Uses ``benchmark_generative_text`` directly rather than a subprocess so there
+    is no process-spawn overhead and no need for the HTML-stub workaround.
+    ``outputs=[]`` suppresses all report file generation.
 
-    GUIDELLM__REPORT_GENERATION__SOURCE overrides the URL guidellm uses to fetch its
-    HTML report template.  Without this, guidellm crashes post-benchmark with an httpx
-    HTTPStatusError on a 301 redirect from blog.vllm.ai.  We don't use guidellm's HTML
-    output — our TPM comes from vLLM's Prometheus counters — so a stub file is fine.
+    guidellm lives in an isolated venv at ``/opt/guidellm-venv``.  Its
+    site-packages are injected into ``sys.path`` at module load time (before the
+    ``huggingface_hub`` import) so every import in this process uses the venv's
+    versions.
 
-    Returns True on success, False on guidellm non-zero exit.
+    Returns True on success, False if guidellm raises.
     """
-    guidellm_bin = "/opt/guidellm-venv/bin/guidellm"
-    if not os.path.isfile(guidellm_bin) or not os.access(guidellm_bin, os.X_OK):
-        guidellm_bin = "guidellm"
+    try:
+        from guidellm.benchmark import BenchmarkGenerativeTextArgs
+        from guidellm.benchmark.entrypoints import benchmark_generative_text
+    except ImportError as exc:
+        _log(f"guidellm_import_failed: {exc}")
+        return False
 
-    # guidellm's load_text() checks Path.is_file() which returns False for character
-    # devices (/dev/null).  A real regular file is required.
-    with tempfile.NamedTemporaryFile(
-        suffix=".html", prefix="guidellm-stub-", mode="w", delete=False
-    ) as f:
-        f.write("<html></html>")
-        stub_path = f.name
+    args = BenchmarkGenerativeTextArgs(
+        target=VLLM_BASE_URL,
+        data=[
+            f"prompt_tokens={BENCHMARK_INPUT_LEN},output_tokens={BENCHMARK_OUTPUT_LEN}"
+        ],
+        profile="throughput",
+        rate=[float(rate)],
+        max_seconds=BENCHMARK_DURATION,
+        processor=processor or None,
+        data_num_workers=0,
+        random_seed=random.randint(0, 2**31 - 1),
+        outputs=[],
+    )
 
     try:
-        cmd = [
-            guidellm_bin,
-            "benchmark",
-            "run",
-            "--target",
-            VLLM_BASE_URL,
-            "--profile",
-            "throughput",
-            "--rate",
-            str(rate),
-            "--max-seconds",
-            str(BENCHMARK_DURATION),
-            "--data",
-            f"prompt_tokens={BENCHMARK_INPUT_LEN},output_tokens={BENCHMARK_OUTPUT_LEN}",
-            # data-num-workers=0 prevents guidellm from spawning subprocesses that can fail in container environments
-            "--data-num-workers",
-            "0",
-            "--random-seed",
-            str(random.randint(0, 2**31 - 1)),
-            "--disable-console",
-        ]
-        if processor:
-            cmd += ["--processor", processor]
-
-        env = os.environ.copy()
-        env["GUIDELLM__REPORT_GENERATION__SOURCE"] = stub_path
-
-        result = subprocess.run(
-            cmd,
-            env=env,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        if result.returncode != 0:
-            _log(f"guidellm_failed rc={result.returncode}")
-            return False
+        asyncio.run(benchmark_generative_text(args=args))
         return True
-    finally:
-        with contextlib.suppress(OSError):
-            os.unlink(stub_path)
+    except Exception as exc:
+        _log(f"guidellm_failed: {exc}")
+        return False
 
 
 # ── Core benchmark sequence ───────────────────────────────────────────────────
@@ -283,16 +259,19 @@ def _run_benchmark() -> float:
     return round((delta_gen + (t1_prompt - t0_prompt)) * 60.0 / elapsed, 2)
 
 
-def _drain() -> None:
+def _drain(timeout: float = 300.0) -> None:
     """Spin until vllm:num_requests_running reaches zero.
 
-    No timeout — the model must not become Ready while requests are still running,
-    as that would compete with real traffic.
+    Raises ``TimeoutError`` after *timeout* seconds so the pod can still
+    become Ready rather than hanging forever if vLLM gets stuck.
     """
     _log("drain_start")
+    deadline = time.monotonic() + timeout
     while True:
         if _read_counter("vllm:num_requests_running") == 0:
             break
+        if time.monotonic() >= deadline:
+            raise TimeoutError(f"_drain timed out after {timeout}s")
         time.sleep(2)
 
 
@@ -331,7 +310,7 @@ def main() -> None:
     except Exception as exc:
         _log(f"benchmark_failed error={exc}")
 
-    _write_to_pid1(f"KAITO_BENCHMARK_RESULT vllm_total_tpm={tpm}\n", fd=1)
+    _write_to_pid1(f'KAITO_BENCHMARK_RESULT {{"vllm_total_tpm":{tpm}}}\n', fd=1)
     sys.exit(0)
 
 

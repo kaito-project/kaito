@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright (c) KAITO authors.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +31,7 @@ through /proc/1/fd/1 (PID 1 = vLLM's stdout, which IS captured).  Falls back to 
 own sys.stdout if /proc/1/fd/1 is not accessible.
 """
 
+import contextlib
 import os
 import random
 import subprocess
@@ -236,10 +236,8 @@ def _run_guidellm(processor: str, rate: int) -> bool:
             return False
         return True
     finally:
-        try:
+        with contextlib.suppress(OSError):
             os.unlink(stub_path)
-        except OSError:
-            pass
 
 
 # ── Core benchmark sequence ───────────────────────────────────────────────────

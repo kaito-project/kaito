@@ -29,7 +29,7 @@ import pytest
 _SCRIPT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_SCRIPT_DIR))
 
-import benchmark_entrypoint as bm  # noqa: E402
+import benchmark_entrypoint as bm  # noqa: E402, I001
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -187,7 +187,6 @@ def test_run_guidellm_failure():
 
 def test_run_guidellm_sets_stub_env_var():
     """GUIDELLM__REPORT_GENERATION__SOURCE must point to the stub file."""
-    proc = SimpleNamespace(returncode=0)
     captured_env = {}
 
     def fake_run(cmd, env, **kwargs):
@@ -209,10 +208,6 @@ def test_run_guidellm_sets_stub_env_var():
 
 
 def test_run_benchmark_success(monkeypatch):
-    counter_values = {
-        "vllm:generation_tokens_total": 0,
-        "vllm:prompt_tokens_total": 0,
-    }
     call_count = [0]
 
     def read_counter(metric):
@@ -250,9 +245,8 @@ def test_run_benchmark_no_generation():
         bm, "_log"
     ), patch(
         "time.time", side_effect=[0.0, 60.0]
-    ):
-        with pytest.raises(RuntimeError, match="no_generation"):
-            bm._run_benchmark()
+    ), pytest.raises(RuntimeError, match="no_generation"):
+        bm._run_benchmark()
 
 
 def test_run_benchmark_guidellm_fails():
@@ -260,9 +254,8 @@ def test_run_benchmark_guidellm_fails():
         bm, "_resolve_processor", return_value=""
     ), patch.object(bm, "_compute_rate", return_value=128), patch.object(
         bm, "_run_guidellm", return_value=False
-    ), patch.object(bm, "_log"), patch("time.time", return_value=0.0):
-        with pytest.raises(RuntimeError, match="guidellm"):
-            bm._run_benchmark()
+    ), patch.object(bm, "_log"), patch("time.time", return_value=0.0), pytest.raises(RuntimeError, match="guidellm"):
+        bm._run_benchmark()
 
 
 # ── _drain ───────────────────────────────────────────────────────────────────
@@ -329,7 +322,7 @@ def test_main_benchmark_success_exits_0(monkeypatch):
         bm.main()
 
     assert exc_info.value.code == 0
-    result_lines = [l for l in written if "KAITO_BENCHMARK_RESULT" in l]
+    result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
     assert len(result_lines) == 1
     assert "vllm_total_tpm=12345.67" in result_lines[0]
 
@@ -354,7 +347,7 @@ def test_main_benchmark_failure_still_exits_0(monkeypatch):
         bm.main()
 
     assert exc_info.value.code == 0
-    result_lines = [l for l in written if "KAITO_BENCHMARK_RESULT" in l]
+    result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
     assert len(result_lines) == 1
     assert "vllm_total_tpm=-1" in result_lines[0]
 
@@ -375,7 +368,7 @@ def test_main_exactly_one_result_line_on_success(monkeypatch):
     ):
         bm.main()
 
-    result_lines = [l for l in written if "KAITO_BENCHMARK_RESULT" in l]
+    result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
     assert len(result_lines) == 1
 
 

@@ -133,9 +133,11 @@ def test_compute_rate_minimum_one(monkeypatch):
 
 def test_run_guidellm_success():
     proc = SimpleNamespace(returncode=0)
-    with patch("subprocess.run", return_value=proc) as mock_run, patch(
-        "os.path.isfile", return_value=False
-    ), patch("os.access", return_value=False):
+    with (
+        patch("subprocess.run", return_value=proc) as mock_run,
+        patch("os.path.isfile", return_value=False),
+        patch("os.access", return_value=False),
+    ):
         result = bm._run_guidellm("openai/phi-4", 256)
     assert result is True
     mock_run.assert_called_once()
@@ -145,9 +147,11 @@ def test_run_guidellm_success():
 
 def test_run_guidellm_uses_venv_binary():
     proc = SimpleNamespace(returncode=0)
-    with patch("subprocess.run", return_value=proc) as mock_run, patch(
-        "os.path.isfile", return_value=True
-    ), patch("os.access", return_value=True):
+    with (
+        patch("subprocess.run", return_value=proc) as mock_run,
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+    ):
         bm._run_guidellm("", 256)
     cmd = mock_run.call_args[0][0]
     assert cmd[0] == "/opt/guidellm-venv/bin/guidellm"
@@ -155,9 +159,11 @@ def test_run_guidellm_uses_venv_binary():
 
 def test_run_guidellm_includes_processor():
     proc = SimpleNamespace(returncode=0)
-    with patch("subprocess.run", return_value=proc) as mock_run, patch(
-        "os.path.isfile", return_value=False
-    ), patch("os.access", return_value=False):
+    with (
+        patch("subprocess.run", return_value=proc) as mock_run,
+        patch("os.path.isfile", return_value=False),
+        patch("os.access", return_value=False),
+    ):
         bm._run_guidellm("mymodel/name", 128)
     cmd = mock_run.call_args[0][0]
     assert "--processor" in cmd
@@ -166,9 +172,11 @@ def test_run_guidellm_includes_processor():
 
 def test_run_guidellm_omits_processor_when_empty():
     proc = SimpleNamespace(returncode=0)
-    with patch("subprocess.run", return_value=proc) as mock_run, patch(
-        "os.path.isfile", return_value=False
-    ), patch("os.access", return_value=False):
+    with (
+        patch("subprocess.run", return_value=proc) as mock_run,
+        patch("os.path.isfile", return_value=False),
+        patch("os.access", return_value=False),
+    ):
         bm._run_guidellm("", 128)
     cmd = mock_run.call_args[0][0]
     assert "--processor" not in cmd
@@ -176,9 +184,12 @@ def test_run_guidellm_omits_processor_when_empty():
 
 def test_run_guidellm_failure():
     proc = SimpleNamespace(returncode=1)
-    with patch("subprocess.run", return_value=proc), patch(
-        "os.path.isfile", return_value=False
-    ), patch("os.access", return_value=False), patch.object(bm, "_log") as mock_log:
+    with (
+        patch("subprocess.run", return_value=proc),
+        patch("os.path.isfile", return_value=False),
+        patch("os.access", return_value=False),
+        patch.object(bm, "_log") as mock_log,
+    ):
         result = bm._run_guidellm("", 128)
     assert result is False
     mock_log.assert_called_once()
@@ -193,9 +204,11 @@ def test_run_guidellm_sets_stub_env_var():
         captured_env.update(env)
         return SimpleNamespace(returncode=0)
 
-    with patch("subprocess.run", side_effect=fake_run), patch(
-        "os.path.isfile", return_value=False
-    ), patch("os.access", return_value=False):
+    with (
+        patch("subprocess.run", side_effect=fake_run),
+        patch("os.path.isfile", return_value=False),
+        patch("os.access", return_value=False),
+    ):
         bm._run_guidellm("", 32)
 
     assert "GUIDELLM__REPORT_GENERATION__SOURCE" in captured_env
@@ -221,14 +234,16 @@ def test_run_benchmark_success(monkeypatch):
             return 24576
         return 0
 
-    with patch.object(bm, "_read_counter", side_effect=read_counter), patch.object(
-        bm, "_resolve_processor", return_value="mymodel"
-    ), patch.object(bm, "_compute_rate", return_value=128), patch.object(
-        bm, "_run_guidellm", return_value=True
-    ), patch.object(
-        bm, "_log"
-    ), patch(
-        "time.time", side_effect=[0.0, 60.0]  # t0, t1 → 60 s elapsed
+    with (
+        patch.object(bm, "_read_counter", side_effect=read_counter),
+        patch.object(bm, "_resolve_processor", return_value="mymodel"),
+        patch.object(bm, "_compute_rate", return_value=128),
+        patch.object(bm, "_run_guidellm", return_value=True),
+        patch.object(bm, "_log"),
+        patch(
+            "time.time",
+            side_effect=[0.0, 60.0],  # t0, t1 → 60 s elapsed
+        ),
     ):
         tpm = bm._run_benchmark()
 
@@ -237,24 +252,28 @@ def test_run_benchmark_success(monkeypatch):
 
 
 def test_run_benchmark_no_generation():
-    with patch.object(bm, "_read_counter", return_value=0), patch.object(
-        bm, "_resolve_processor", return_value=""
-    ), patch.object(bm, "_compute_rate", return_value=128), patch.object(
-        bm, "_run_guidellm", return_value=True
-    ), patch.object(
-        bm, "_log"
-    ), patch(
-        "time.time", side_effect=[0.0, 60.0]
-    ), pytest.raises(RuntimeError, match="no_generation"):
+    with (
+        patch.object(bm, "_read_counter", return_value=0),
+        patch.object(bm, "_resolve_processor", return_value=""),
+        patch.object(bm, "_compute_rate", return_value=128),
+        patch.object(bm, "_run_guidellm", return_value=True),
+        patch.object(bm, "_log"),
+        patch("time.time", side_effect=[0.0, 60.0]),
+        pytest.raises(RuntimeError, match="no_generation"),
+    ):
         bm._run_benchmark()
 
 
 def test_run_benchmark_guidellm_fails():
-    with patch.object(bm, "_read_counter", return_value=0), patch.object(
-        bm, "_resolve_processor", return_value=""
-    ), patch.object(bm, "_compute_rate", return_value=128), patch.object(
-        bm, "_run_guidellm", return_value=False
-    ), patch.object(bm, "_log"), patch("time.time", return_value=0.0), pytest.raises(RuntimeError, match="guidellm"):
+    with (
+        patch.object(bm, "_read_counter", return_value=0),
+        patch.object(bm, "_resolve_processor", return_value=""),
+        patch.object(bm, "_compute_rate", return_value=128),
+        patch.object(bm, "_run_guidellm", return_value=False),
+        patch.object(bm, "_log"),
+        patch("time.time", return_value=0.0),
+        pytest.raises(RuntimeError, match="guidellm"),
+    ):
         bm._run_benchmark()
 
 
@@ -262,9 +281,11 @@ def test_run_benchmark_guidellm_fails():
 
 
 def test_drain_already_zero():
-    with patch.object(bm, "_read_counter", return_value=0), patch.object(
-        bm, "_log"
-    ), patch("time.sleep") as mock_sleep:
+    with (
+        patch.object(bm, "_read_counter", return_value=0),
+        patch.object(bm, "_log"),
+        patch("time.sleep") as mock_sleep,
+    ):
         bm._drain()
     mock_sleep.assert_not_called()
 
@@ -272,9 +293,11 @@ def test_drain_already_zero():
 def test_drain_polls_until_zero():
     # Returns 3, 3, 0 on successive calls
     counter_calls = [3, 3, 0]
-    with patch.object(
-        bm, "_read_counter", side_effect=counter_calls
-    ), patch.object(bm, "_log"), patch("time.sleep") as mock_sleep:
+    with (
+        patch.object(bm, "_read_counter", side_effect=counter_calls),
+        patch.object(bm, "_log"),
+        patch("time.sleep") as mock_sleep,
+    ):
         bm._drain()
     assert mock_sleep.call_count == 2
     mock_sleep.assert_called_with(2)
@@ -286,9 +309,10 @@ def test_drain_polls_until_zero():
 def test_main_worker_skips_benchmark(monkeypatch):
     """Workers (POD_INDEX != 0) exit 0 immediately without any HTTP."""
     monkeypatch.setenv("POD_INDEX", "1")
-    with patch("urllib.request.urlopen") as mock_url, pytest.raises(
-        SystemExit
-    ) as exc_info:
+    with (
+        patch("urllib.request.urlopen") as mock_url,
+        pytest.raises(SystemExit) as exc_info,
+    ):
         bm.main()
     assert exc_info.value.code == 0
     mock_url.assert_not_called()
@@ -296,9 +320,10 @@ def test_main_worker_skips_benchmark(monkeypatch):
 
 def test_main_health_fails_exits_1(monkeypatch):
     monkeypatch.delenv("POD_INDEX", raising=False)
-    with patch.object(bm, "_health_check", return_value=False), pytest.raises(
-        SystemExit
-    ) as exc_info:
+    with (
+        patch.object(bm, "_health_check", return_value=False),
+        pytest.raises(SystemExit) as exc_info,
+    ):
         bm.main()
     assert exc_info.value.code == 1
 
@@ -310,15 +335,15 @@ def test_main_benchmark_success_exits_0(monkeypatch):
     def fake_write(line, fd=1):
         written.append(line)
 
-    with patch.object(bm, "_health_check", return_value=True), patch.object(
-        bm, "_run_benchmark", return_value=12345.67
-    ), patch.object(bm, "_drain"), patch.object(bm, "_log"), patch.object(
-        bm, "_write_to_pid1", side_effect=fake_write
-    ), patch(
-        "time.time", return_value=0.0
-    ), pytest.raises(
-        SystemExit
-    ) as exc_info:
+    with (
+        patch.object(bm, "_health_check", return_value=True),
+        patch.object(bm, "_run_benchmark", return_value=12345.67),
+        patch.object(bm, "_drain"),
+        patch.object(bm, "_log"),
+        patch.object(bm, "_write_to_pid1", side_effect=fake_write),
+        patch("time.time", return_value=0.0),
+        pytest.raises(SystemExit) as exc_info,
+    ):
         bm.main()
 
     assert exc_info.value.code == 0
@@ -335,15 +360,14 @@ def test_main_benchmark_failure_still_exits_0(monkeypatch):
     def fake_write(line, fd=1):
         written.append(line)
 
-    with patch.object(bm, "_health_check", return_value=True), patch.object(
-        bm, "_run_benchmark", side_effect=RuntimeError("guidellm failed")
-    ), patch.object(bm, "_log"), patch.object(
-        bm, "_write_to_pid1", side_effect=fake_write
-    ), patch(
-        "time.time", return_value=0.0
-    ), pytest.raises(
-        SystemExit
-    ) as exc_info:
+    with (
+        patch.object(bm, "_health_check", return_value=True),
+        patch.object(bm, "_run_benchmark", side_effect=RuntimeError("guidellm failed")),
+        patch.object(bm, "_log"),
+        patch.object(bm, "_write_to_pid1", side_effect=fake_write),
+        patch("time.time", return_value=0.0),
+        pytest.raises(SystemExit) as exc_info,
+    ):
         bm.main()
 
     assert exc_info.value.code == 0
@@ -357,14 +381,16 @@ def test_main_exactly_one_result_line_on_success(monkeypatch):
     monkeypatch.delenv("POD_INDEX", raising=False)
     written = []
 
-    with patch.object(bm, "_health_check", return_value=True), patch.object(
-        bm, "_run_benchmark", return_value=999.0
-    ), patch.object(bm, "_drain"), patch.object(bm, "_log"), patch.object(
-        bm, "_write_to_pid1", side_effect=lambda line, fd=1: written.append(line)
-    ), patch(
-        "time.time", return_value=0.0
-    ), pytest.raises(
-        SystemExit
+    with (
+        patch.object(bm, "_health_check", return_value=True),
+        patch.object(bm, "_run_benchmark", return_value=999.0),
+        patch.object(bm, "_drain"),
+        patch.object(bm, "_log"),
+        patch.object(
+            bm, "_write_to_pid1", side_effect=lambda line, fd=1: written.append(line)
+        ),
+        patch("time.time", return_value=0.0),
+        pytest.raises(SystemExit),
     ):
         bm.main()
 
@@ -376,14 +402,14 @@ def test_main_drain_called_only_on_success(monkeypatch):
     """_drain should only be called when _run_benchmark succeeds."""
     monkeypatch.delenv("POD_INDEX", raising=False)
 
-    with patch.object(bm, "_health_check", return_value=True), patch.object(
-        bm, "_run_benchmark", side_effect=RuntimeError("fail")
-    ), patch.object(bm, "_drain") as mock_drain, patch.object(bm, "_log"), patch.object(
-        bm, "_write_to_pid1"
-    ), patch(
-        "time.time", return_value=0.0
-    ), pytest.raises(
-        SystemExit
+    with (
+        patch.object(bm, "_health_check", return_value=True),
+        patch.object(bm, "_run_benchmark", side_effect=RuntimeError("fail")),
+        patch.object(bm, "_drain") as mock_drain,
+        patch.object(bm, "_log"),
+        patch.object(bm, "_write_to_pid1"),
+        patch("time.time", return_value=0.0),
+        pytest.raises(SystemExit),
     ):
         bm.main()
 

@@ -60,6 +60,11 @@ const (
 	// When set to "true" on a Workspace, the inference container runs a guidellm
 	// benchmark after the model loads before marking the container as ready.
 	AnnotationRunBenchmark = KAITOPrefix + "run-benchmark"
+
+	// AnnotationBenchmarkRate overrides the auto-computed guidellm concurrency rate.
+	// Value must be a positive integer string (e.g. "64"). When absent or invalid,
+	// KAITO computes the rate from available VRAM and per-token KV-cache size.
+	AnnotationBenchmarkRate = KAITOPrefix + "benchmark-rate"
 )
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.

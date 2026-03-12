@@ -43,14 +43,12 @@ COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
 COPY presets/workspace/inference/vllm/inference_api.py \
     presets/workspace/inference/vllm/multi-node-health-check.py \
     presets/workspace/inference/vllm/list_supported_llm_archs.py \
-    presets/workspace/inference/vllm/benchmark_entrypoint.sh \
+    presets/workspace/inference/vllm/benchmark_entrypoint.py \
     /workspace/vllm/
-
-RUN chmod +x /workspace/vllm/benchmark_entrypoint.sh
 
 # Guidellm runs in an isolated venv so it can use transformers>=5.0.0 (required
 # for Mistral tekken tokenizers and future models) without conflicting with
-# vLLM's transformers<5 requirement.  benchmark_entrypoint.sh calls
+# vLLM's transformers<5 requirement.  benchmark_entrypoint.py invokes
 # /opt/guidellm-venv/bin/guidellm directly.
 RUN uv venv /opt/guidellm-venv --system-site-packages && \
     uv pip install --python /opt/guidellm-venv/bin/python \

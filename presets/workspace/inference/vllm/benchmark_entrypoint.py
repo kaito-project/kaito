@@ -133,9 +133,13 @@ def _compute_max_concurrency() -> int:
     try:
         concurrency = int(val)
     except ValueError:
-        raise RuntimeError(f"invalid BENCHMARK_MAX_CONCURRENCY={val!r}: must be a positive integer")
+        raise RuntimeError(
+            f"invalid BENCHMARK_MAX_CONCURRENCY={val!r}: must be a positive integer"
+        )
     if concurrency <= 0:
-        raise RuntimeError(f"invalid BENCHMARK_MAX_CONCURRENCY={val!r}: must be a positive integer")
+        raise RuntimeError(
+            f"invalid BENCHMARK_MAX_CONCURRENCY={val!r}: must be a positive integer"
+        )
     return concurrency
 
 
@@ -235,7 +239,9 @@ def _run_benchmark() -> float:
     _log(f"processor_resolved PROCESSOR={processor or '<auto>'}")
 
     max_concurrency = _compute_max_concurrency()
-    _log(f"max_concurrency_set BENCHMARK_MAX_CONCURRENCY={max_concurrency} INPUT_LEN={BENCHMARK_INPUT_LEN}")
+    _log(
+        f"max_concurrency_set BENCHMARK_MAX_CONCURRENCY={max_concurrency} INPUT_LEN={BENCHMARK_INPUT_LEN}"
+    )
 
     if not _run_guidellm(processor, max_concurrency):
         raise RuntimeError("guidellm exited non-zero")

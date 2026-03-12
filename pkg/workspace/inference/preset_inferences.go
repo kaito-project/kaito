@@ -309,45 +309,38 @@ func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace
 // and drain phase, then exits 0 — which marks the startup probe as passed and
 // activates the readiness probe.
 //
-// timeoutSeconds is set to 300 to prevent kubelet killing the process mid-benchmark.
-func buildBenchmarkStartupProbe(timeout time.Duration) *corev1.Probe {
-	const periodSeconds = 10
-	// ceil(timeout / period) ensures the full model-load window is covered.
-	failureThreshold := int32(math.Ceil(timeout.Seconds() / periodSeconds))
-	return &corev1.Probe{
-		ProbeHandler: corev1.ProbeHandler{
-			Exec: &corev1.ExecAction{
-				Command: []string{"python3", "/workspace/vllm/benchmark_entrypoint.py"},
-			},
-		},
-		PeriodSeconds:    periodSeconds,
-		TimeoutSeconds:   600,
-		FailureThreshold: failureThreshold,
-	}
-}
-
-// buildDistributedBenchmarkStartupProbe returns an exec startup probe for the
-// distributed inference path.  A shell conditional routes the leader (POD_INDEX=0)
-// to benchmark_entrypoint.py and workers to the standard multi-node health check.
-func buildDistributedBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace) *corev1.Probe {
+// When wObj is non-nil the probe is built for distributed inference: a shell
+// conditional routes the leader (POD_INDEX=0) to benchmark_entrypoint.py and
+// workers to the standard multi-node health check.
+//
+// timeoutSeconds is set to 600 to prevent kubelet killing the process mid-benchmark.
+func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace) *corev1.Probe {
 	const periodSeconds = int32(10)
 	const timeoutSeconds = int32(600) // covers benchmark duration + drain + buffer
 	failureThreshold := int32(math.Ceil(timeout.Seconds() / float64(periodSeconds)))
-	workerCmd := utils.BuildCmdStr(
-		fmt.Sprintf("%s readiness", DefaultVLLMMultiNodeHealthCheckCommand),
-		map[string]string{
-			"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
-			"vllm-port":      strconv.FormatInt(int64(consts.PortInferenceServer), 10),
-		},
-	)
-	cmd := fmt.Sprintf(
-		`if [ "$POD_INDEX" = "0" ]; then python3 /workspace/vllm/benchmark_entrypoint.py; else %s; fi`,
-		workerCmd,
-	)
+
+	var command []string
+	if wObj == nil {
+		command = []string{"python3", "/workspace/vllm/benchmark_entrypoint.py"}
+	} else {
+		workerCmd := utils.BuildCmdStr(
+			fmt.Sprintf("%s readiness", DefaultVLLMMultiNodeHealthCheckCommand),
+			map[string]string{
+				"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
+				"vllm-port":      strconv.FormatInt(int64(consts.PortInferenceServer), 10),
+			},
+		)
+		cmd := fmt.Sprintf(
+			`if [ "$POD_INDEX" = "0" ]; then python3 /workspace/vllm/benchmark_entrypoint.py; else %s; fi`,
+			workerCmd,
+		)
+		command = utils.ShellCmd(cmd)
+	}
+
 	return &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			Exec: &corev1.ExecAction{
-				Command: utils.ShellCmd(cmd),
+				Command: command,
 			},
 		},
 		PeriodSeconds:    periodSeconds,
@@ -484,40 +477,40 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		if ctx.Workspace.Annotations[v1beta1.AnnotationRunBenchmark] == "true" {
 			// vLLM is PID 1 — the benchmark runs from the exec startup probe instead.
 			// The readiness probe stays as defaultReadinessProbe (no sentinel file needed).
-			startupProbe = buildBenchmarkStartupProbe(readinessTimeout)
+			startupProbe = buildBenchmarkStartupProbe(readinessTimeout, nil)
 
-			// Determine BENCHMARK_RATE: user annotation takes precedence; fall back to
-			// computing from available VRAM and per-token KV-cache size.
-			var rate int
-			if rateStr := ctx.Workspace.Annotations[v1beta1.AnnotationBenchmarkRate]; rateStr != "" {
-				if v, err := strconv.Atoi(rateStr); err == nil && v > 0 {
-					rate = v
-					klog.Infof("benchmark rate overridden by annotation: %d", rate)
-				} else {
-					klog.Warningf("ignoring invalid %s annotation value %q (must be a positive integer); falling back to computed rate", v1beta1.AnnotationBenchmarkRate, rateStr)
-				}
-			}
-			if rate == 0 && gpuConfig != nil && inferenceParam.TotalSafeTensorFileSize != "" && inferenceParam.BytesPerToken > 0 {
-				// Compute saturation concurrency
-				// availableVRAMGiB = (totalVRAM - modelWeights) × 0.9 safety factor for overhead.
-				// kv_per_req = BENCHMARK_INPUT_LEN × bytesPerToken / 1 GiB
-				// rate       = ceil(availableVRAMGiB / kv_per_req), minimum 1.
+			// Max concurrency controls the number of concurrent requests sent during the benchmark.
+			// The goal is to saturate the GPU so the result reflects peak throughput rather
+			// than a load level that happens to be idle. We estimate how many simultaneous
+			// requests fit in available VRAM given the per-request KV-cache footprint at the
+			// benchmark input length. The 0.9 factor is to leave some buffer for overhead.
+			//
+			// If max concurrency is too low the GPU is underutilized and the reported TPM will be
+			// understated. If it is too high the scheduler queues requests — latency increases
+			// and the drain phase takes much longer and may timeout. However, this will
+			// not affect the reported TPM since the benchmark measures the time spent processing requests.
+			var maxConcurrency int
+			if gpuConfig != nil && inferenceParam.TotalSafeTensorFileSize != "" && inferenceParam.BytesPerToken > 0 {
 				const benchmarkInputLen = 2048
 				totalVRAMGiB := gpuConfig.GPUMem.AsApproximateFloat64() / math.Pow(2, 30) * float64(numNodes)
 				if weightQty, parseErr := resource.ParseQuantity(inferenceParam.TotalSafeTensorFileSize); parseErr == nil {
 					modelWeightGiB := weightQty.AsApproximateFloat64() / math.Pow(2, 30)
 					availableVRAMGiB := (totalVRAMGiB - modelWeightGiB) * 0.9
 					kvPerReqGiB := float64(benchmarkInputLen) * float64(inferenceParam.BytesPerToken) / math.Pow(1024, 3)
-					rate = int(math.Ceil(availableVRAMGiB / kvPerReqGiB))
-					if rate < 1 {
-						rate = 1
+					maxConcurrency = int(math.Ceil(availableVRAMGiB / kvPerReqGiB))
+					if maxConcurrency < 1 {
+						maxConcurrency = 1
 					}
 				}
 			}
-			if rate > 0 {
-				benchmarkEnvVars = []corev1.EnvVar{
-					{Name: "BENCHMARK_RATE", Value: strconv.Itoa(rate)},
-				}
+			// Fall back to 256 when VRAM/weight metadata is unavailable (unknown SKU or
+			// model without TotalSafeTensorFileSize).
+			const defaultBenchmarkMaxConcurrency = 256
+			if maxConcurrency == 0 {
+				maxConcurrency = defaultBenchmarkMaxConcurrency
+			}
+			benchmarkEnvVars = []corev1.EnvVar{
+				{Name: "BENCHMARK_MAX_CONCURRENCY", Value: strconv.Itoa(maxConcurrency)},
 			}
 		}
 
@@ -605,7 +598,7 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1)
 	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace)
 	if ctx.Workspace.Annotations[v1beta1.AnnotationRunBenchmark] == "true" {
-		startupProbe = buildDistributedBenchmarkStartupProbe(readinessTimeout, ctx.Workspace)
+		startupProbe = buildBenchmarkStartupProbe(readinessTimeout, ctx.Workspace)
 	}
 	envVar := corev1.EnvVar{
 		Name: "POD_INDEX",

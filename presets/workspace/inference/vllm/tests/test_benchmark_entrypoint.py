@@ -105,27 +105,30 @@ def test_read_counter_network_error():
         assert bm._read_counter("vllm:generation_tokens_total") == 0
 
 
-# ── _compute_rate ─────────────────────────────────────────────────────────────
+# ── _compute_max_concurrency ──────────────────────────────────────────────────
 
 
-def test_compute_rate_with_env(monkeypatch):
-    monkeypatch.setenv("BENCHMARK_RATE", "256")
-    assert bm._compute_rate() == 256
+def test_compute_max_concurrency_with_env(monkeypatch):
+    monkeypatch.setenv("BENCHMARK_MAX_CONCURRENCY", "256")
+    assert bm._compute_max_concurrency() == 256
 
 
-def test_compute_rate_fallback_no_env(monkeypatch):
-    monkeypatch.delenv("BENCHMARK_RATE", raising=False)
-    assert bm._compute_rate() == 512
+def test_compute_max_concurrency_missing_env_raises(monkeypatch):
+    monkeypatch.delenv("BENCHMARK_MAX_CONCURRENCY", raising=False)
+    with pytest.raises(RuntimeError, match="invalid BENCHMARK_MAX_CONCURRENCY"):
+        bm._compute_max_concurrency()
 
 
-def test_compute_rate_fallback_invalid_env(monkeypatch):
-    monkeypatch.setenv("BENCHMARK_RATE", "notanumber")
-    assert bm._compute_rate() == 512
+def test_compute_max_concurrency_invalid_env_raises(monkeypatch):
+    monkeypatch.setenv("BENCHMARK_MAX_CONCURRENCY", "notanumber")
+    with pytest.raises(RuntimeError, match="invalid BENCHMARK_MAX_CONCURRENCY"):
+        bm._compute_max_concurrency()
 
 
-def test_compute_rate_minimum_one(monkeypatch):
-    monkeypatch.setenv("BENCHMARK_RATE", "0")
-    assert bm._compute_rate() >= 1
+def test_compute_max_concurrency_zero_raises(monkeypatch):
+    monkeypatch.setenv("BENCHMARK_MAX_CONCURRENCY", "0")
+    with pytest.raises(RuntimeError, match="invalid BENCHMARK_MAX_CONCURRENCY"):
+        bm._compute_max_concurrency()
 
 
 # ── _run_guidellm ─────────────────────────────────────────────────────────────
@@ -241,7 +244,7 @@ def test_run_benchmark_success(monkeypatch):
     with (
         patch.object(bm, "_read_counter", side_effect=read_counter),
         patch.object(bm, "_resolve_processor", return_value="mymodel"),
-        patch.object(bm, "_compute_rate", return_value=128),
+        patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=True),
         patch.object(bm, "_log"),
         patch(
@@ -259,7 +262,7 @@ def test_run_benchmark_no_generation():
     with (
         patch.object(bm, "_read_counter", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
-        patch.object(bm, "_compute_rate", return_value=128),
+        patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=True),
         patch.object(bm, "_log"),
         patch("time.time", side_effect=[0.0, 60.0]),
@@ -272,7 +275,7 @@ def test_run_benchmark_guidellm_fails():
     with (
         patch.object(bm, "_read_counter", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
-        patch.object(bm, "_compute_rate", return_value=128),
+        patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=False),
         patch.object(bm, "_log"),
         patch("time.time", return_value=0.0),
@@ -371,8 +374,8 @@ def test_main_benchmark_success_exits_0(monkeypatch):
     assert json.loads(payload)["vllm_total_tpm"] == 12345.67
 
 
-def test_main_benchmark_failure_still_exits_0(monkeypatch):
-    """If the benchmark raises, result is -1 but exit code is still 0."""
+def test_main_benchmark_failure_exits_1(monkeypatch):
+    """If the benchmark raises, result line is -1 and the probe exits 1 (fail-close)."""
     monkeypatch.delenv("POD_INDEX", raising=False)
     written = []
 
@@ -389,7 +392,11 @@ def test_main_benchmark_failure_still_exits_0(monkeypatch):
     ):
         bm.main()
 
-    assert exc_info.value.code == 0
+    assert exc_info.value.code == 1
+    result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
+    assert len(result_lines) == 1
+    payload = result_lines[0].split("KAITO_BENCHMARK_RESULT ", 1)[1]
+    assert json.loads(payload)["vllm_total_tpm"] == -1.0
     result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
     assert len(result_lines) == 1
     payload = result_lines[0].split("KAITO_BENCHMARK_RESULT ", 1)[1]

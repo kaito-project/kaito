@@ -22,8 +22,9 @@ Called by kubelet as the container's StartupProbe exec command on every probe ti
     print KAITO_BENCHMARK_RESULT  →  exit 0
     (startup probe passes; readiness probe activates; pod becomes Ready)
 
-Always exits 0 once /health passes, even on benchmark failure (result value is -1).
-This guarantees the pod eventually becomes Ready and the controller can parse the result.
+Exits 0 on success (benchmark completed, result emitted).
+Exits 1 on benchmark failure (result emitted with tpm=-1, then probe fails so kubelet retries).
+This gives the user a clear failure signal while still writing a parseable result line.
 
 stdout/stderr from exec probe processes are NOT captured by kubectl logs (they go to
 kubelet's own pipe).  To make diagnostic logs and the result line visible, we write
@@ -34,7 +35,6 @@ own sys.stdout if /proc/1/fd/1 is not accessible.
 import asyncio
 import glob
 import os
-import random
 import sys
 import time
 import urllib.request
@@ -123,22 +123,20 @@ def _read_counter(metric: str) -> int:
 # ── Benchmark configuration ───────────────────────────────────────────────────
 
 
-def _compute_rate() -> int:
+def _compute_max_concurrency() -> int:
     """Return the pre-computed saturation concurrency injected by the controller.
 
-    The controller calculates:
-        kv_per_req = BENCHMARK_INPUT_LEN * bytesPerToken / 1 GiB
-        rate       = ceil(availableVRAMGiB / kv_per_req)
-
-    Falls back to 512 if the env var is absent (unknown SKU / model).
+    The controller always sets BENCHMARK_MAX_CONCURRENCY (defaulting to 256 when
+    the model or SKU metadata is unavailable). Values <= 0 are rejected.
     """
-    val = os.environ.get("BENCHMARK_RATE", "")
-    if not val:
-        return 512
+    val = os.environ.get("BENCHMARK_MAX_CONCURRENCY", "")
     try:
-        return max(1, int(val))
+        concurrency = int(val)
     except ValueError:
-        return 512
+        raise RuntimeError(f"invalid BENCHMARK_MAX_CONCURRENCY={val!r}: must be a positive integer")
+    if concurrency <= 0:
+        raise RuntimeError(f"invalid BENCHMARK_MAX_CONCURRENCY={val!r}: must be a positive integer")
+    return concurrency
 
 
 def _resolve_processor() -> str:
@@ -163,6 +161,9 @@ def _resolve_processor() -> str:
         cache_info = scan_cache_dir(cache_dir=str(weights))
         repos = sorted(cache_info.repos, key=lambda r: r.repo_id)
         if repos:
+            # repo_id is the HuggingFace model identifier (e.g. "microsoft/Phi-3-mini-4k-instruct"),
+            # not a local path. guidellm/vLLM accept it as the --processor value and resolve the
+            # tokenizer from the HF Hub (or local cache if HF_HUB_OFFLINE is set).
             return repos[0].repo_id
     except Exception:
         pass
@@ -173,7 +174,7 @@ def _resolve_processor() -> str:
 # ── guidellm runner ───────────────────────────────────────────────────────────
 
 
-def _run_guidellm(processor: str, rate: int) -> bool:
+def _run_guidellm(processor: str, max_concurrency: int) -> bool:
     """Run guidellm via its Python API as the load generator.
 
     Uses ``benchmark_generative_text`` directly rather than a subprocess so there
@@ -200,11 +201,11 @@ def _run_guidellm(processor: str, rate: int) -> bool:
             f"prompt_tokens={BENCHMARK_INPUT_LEN},output_tokens={BENCHMARK_OUTPUT_LEN}"
         ],
         profile="throughput",
-        rate=[float(rate)],
+        rate=[float(max_concurrency)],
         max_seconds=BENCHMARK_DURATION,
         processor=processor or None,
         data_num_workers=0,
-        random_seed=random.randint(0, 2**31 - 1),
+        random_seed=int(time.time()),
         outputs=[],
     )
 
@@ -233,10 +234,10 @@ def _run_benchmark() -> float:
     processor = _resolve_processor()
     _log(f"processor_resolved PROCESSOR={processor or '<auto>'}")
 
-    rate = _compute_rate()
-    _log(f"rate_set BENCHMARK_RATE={rate} INPUT_LEN={BENCHMARK_INPUT_LEN}")
+    max_concurrency = _compute_max_concurrency()
+    _log(f"max_concurrency_set BENCHMARK_MAX_CONCURRENCY={max_concurrency} INPUT_LEN={BENCHMARK_INPUT_LEN}")
 
-    if not _run_guidellm(processor, rate):
+    if not _run_guidellm(processor, max_concurrency):
         raise RuntimeError("guidellm exited non-zero")
 
     t1_epoch = time.time()
@@ -288,8 +289,8 @@ def main() -> None:
     if not _health_check():
         sys.exit(1)
 
-    # /health passed.  Commit to exit 0 from here on so the startup probe eventually
-    # passes and the readiness probe can activate regardless of benchmark outcome.
+    # /health passed — model is loaded.  Run the benchmark; fail the probe on error
+    # so kubelet retries and the user gets a clear failure signal.
     t_bench_start = time.time()
     _log(
         f"benchmark_start DURATION={BENCHMARK_DURATION}s "
@@ -297,6 +298,7 @@ def main() -> None:
     )
 
     tpm: float = -1.0
+    failed = False
     try:
         tpm = _run_benchmark()
         t_bench_end = time.time()
@@ -309,9 +311,14 @@ def main() -> None:
         )
     except Exception as exc:
         _log(f"benchmark_failed error={exc}")
+        tpm = -1.0
+        failed = True
 
+    # Always emit the result line so the controller has a parseable record even on failure.
+    # In case _write_to_pid1 is not working, controller should treat missing
+    # KAITO_BENCHMARK_RESULT as a failure (equivalent to -1).
     _write_to_pid1(f'KAITO_BENCHMARK_RESULT {{"vllm_total_tpm":{tpm}}}\n', fd=1)
-    sys.exit(0)
+    sys.exit(1 if failed else 0)
 
 
 if __name__ == "__main__":

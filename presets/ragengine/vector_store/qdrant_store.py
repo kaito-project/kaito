@@ -16,19 +16,34 @@
 Ref: https://developers.llamaindex.ai/python/framework/integrations/vector_stores/qdrantindexdemo/
 """
 
+import json
 import logging
 import time
+from typing import Any
 
 from fastapi import HTTPException
+from llama_index.core import Document as LlamaDocument
 from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 from qdrant_client import AsyncQdrantClient, QdrantClient
+from qdrant_client.http.models import (
+    FieldCondition,
+    Filter,
+    FilterSelector,
+    MatchValue,
+)
 
 from ragengine.config import RAG_MAX_TOP_K
 from ragengine.embedding.base import BaseEmbeddingModel
-from ragengine.models import Document
+from ragengine.models import (
+    Document,
+    ListDocumentsResponse,
+)
 
 from .base import BaseVectorStore
+
+# Qdrant payload key used by LlamaIndex to store the parent document ID.
+QDRANT_DOC_ID_KEY = "doc_id"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -239,3 +254,315 @@ class QdrantVectorStoreHandler(BaseVectorStore):
             logger.error(f"Retrieve failed for index '{index_name}': {e}")
             logger.error(f"Traceback: {traceback.format_exc()}")
             raise HTTPException(status_code=500, detail=f"Retrieve failed: {e}")
+
+    # ------------------------------------------------------------------
+    # Qdrant-native overrides: bypass empty docstore after restore.
+    #
+    # After a pod restart, _restore_indexes_from_qdrant() rebuilds the
+    # index_map via VectorStoreIndex.from_vector_store(), which creates
+    # an *empty* docstore.  All base-class methods that read docstore or
+    # ref_doc_info would return nothing.  The overrides below go directly
+    # to Qdrant via self.aclient so they work regardless of docstore state.
+    # ------------------------------------------------------------------
+
+    def _get_collection_name(self, index_name: str) -> str:
+        """Return the Qdrant collection name for the given index."""
+        vs = self.index_map[index_name]
+        return vs.vector_store.collection_name
+
+    @staticmethod
+    def _build_metadata_filter(
+        metadata_filter: dict[str, Any] | None,
+    ) -> Filter | None:
+        """Build a Qdrant Filter from a simple {key: value} metadata dict."""
+        if not metadata_filter:
+            return None
+        return Filter(
+            must=[
+                FieldCondition(key=k, match=MatchValue(value=v))
+                for k, v in metadata_filter.items()
+            ]
+        )
+
+    @staticmethod
+    def _record_to_doc_dict(
+        record, max_text_length: int | None = None
+    ) -> dict[str, Any]:
+        """Convert a Qdrant scroll Record to the dict format expected by
+        ListDocumentsResponse."""
+        payload = record.payload or {}
+        # LlamaIndex stores text inside _node_content JSON blob as well as
+        # a top-level 'text' key (when stores_text=True on the vector store).
+        text = payload.get("text", "")
+        if not text:
+            try:
+                nc = json.loads(payload.get("_node_content", "{}"))
+                text = nc.get("text", "")
+            except (json.JSONDecodeError, TypeError):
+                text = ""
+
+        is_truncated = bool(max_text_length and len(text) > max_text_length)
+        truncated = text[:max_text_length] if is_truncated else text
+
+        # Extract user metadata — everything except LlamaIndex internal keys.
+        _internal_keys = {
+            "_node_content",
+            "_node_type",
+            "doc_id",
+            "document_id",
+            "ref_doc_id",
+            "text",
+        }
+        metadata = {k: v for k, v in payload.items() if k not in _internal_keys}
+
+        # Compute hash by reconstructing a LlamaDocument from text + metadata.
+        # This matches the hash that LlamaIndex stores in the docstore.
+        try:
+            hash_value = LlamaDocument(text=text, metadata=metadata).hash
+        except Exception:
+            hash_value = None
+
+        return {
+            "doc_id": payload.get(QDRANT_DOC_ID_KEY, str(record.id)),
+            "text": truncated,
+            "hash_value": hash_value,
+            "metadata": metadata,
+            "is_truncated": is_truncated,
+        }
+
+    # --- list ---
+
+    async def _list_documents_in_index(
+        self,
+        index_name: str,
+        limit: int,
+        offset: int,
+        max_text_length: int | None = None,
+        metadata_filter: dict[str, Any] | None = None,
+    ) -> ListDocumentsResponse:
+        """List documents directly from Qdrant via scroll, bypassing docstore."""
+        vector_store_index = self.index_map.get(index_name)
+        if not vector_store_index:
+            raise HTTPException(
+                status_code=404, detail=f"No such index: '{index_name}' exists."
+            )
+
+        collection = self._get_collection_name(index_name)
+        qdrant_filter = self._build_metadata_filter(metadata_filter)
+
+        # Get total count (with filter if applicable).
+        count_result = await self.aclient.count(
+            collection_name=collection,
+            count_filter=qdrant_filter,
+            exact=True,
+        )
+        total_count = count_result.count
+
+        # Scroll with offset/limit.  Qdrant scroll offset is a point ID,
+        # not a numeric offset, so we need to skip `offset` records.
+        # For simplicity we fetch offset+limit and slice in Python.
+        records, _next = await self.aclient.scroll(
+            collection_name=collection,
+            limit=offset + limit,
+            scroll_filter=qdrant_filter,
+            with_payload=True,
+            with_vectors=False,
+        )
+        page = records[offset:]
+
+        docs = [self._record_to_doc_dict(r, max_text_length) for r in page]
+        return ListDocumentsResponse(
+            documents=docs, count=len(docs), total_items=total_count
+        )
+
+    # --- document_exists ---
+
+    async def document_exists(
+        self, index_name: str, doc: Document, doc_id: str
+    ) -> bool:
+        """Check whether a doc_id exists in Qdrant (bypasses empty docstore)."""
+        if index_name not in self.index_map:
+            logger.warning(f"No such index: '{index_name}' exists in vector store.")
+            return False
+
+        collection = self._get_collection_name(index_name)
+        count_result = await self.aclient.count(
+            collection_name=collection,
+            count_filter=Filter(
+                must=[
+                    FieldCondition(
+                        key=QDRANT_DOC_ID_KEY, match=MatchValue(value=doc_id)
+                    )
+                ]
+            ),
+            exact=True,
+        )
+        return count_result.count > 0
+
+    # --- delete ---
+
+    async def delete_documents(self, index_name: str, doc_ids: list[str]):
+        """Delete documents directly from Qdrant by doc_id payload filter."""
+        if index_name not in self.index_map:
+            raise HTTPException(
+                status_code=404, detail=f"No such index: '{index_name}' exists."
+            )
+
+        collection = self._get_collection_name(index_name)
+
+        # Determine which doc_ids actually exist.
+        found, not_found = [], []
+        for doc_id in doc_ids:
+            cnt = await self.aclient.count(
+                collection_name=collection,
+                count_filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key=QDRANT_DOC_ID_KEY, match=MatchValue(value=doc_id)
+                        )
+                    ]
+                ),
+                exact=True,
+            )
+            if cnt.count > 0:
+                found.append(doc_id)
+            else:
+                not_found.append(doc_id)
+
+        op_start = time.time()
+        op_status = "success"
+        try:
+            for doc_id in found:
+                await self.aclient.delete(
+                    collection_name=collection,
+                    points_selector=FilterSelector(
+                        filter=Filter(
+                            must=[
+                                FieldCondition(
+                                    key=QDRANT_DOC_ID_KEY,
+                                    match=MatchValue(value=doc_id),
+                                )
+                            ]
+                        )
+                    ),
+                )
+            return {"deleted_doc_ids": found, "not_found_doc_ids": not_found}
+        except Exception as e:
+            op_status = "error"
+            logger.error(f"Error deleting documents from Qdrant: {e}")
+            raise HTTPException(status_code=500, detail=f"Delete failed: {e}")
+        finally:
+            try:
+                from ragengine.metrics.prometheus_metrics import (
+                    rag_vector_store_operation_latency,
+                )
+
+                rag_vector_store_operation_latency.labels(
+                    operation="delete", status=op_status
+                ).observe(time.time() - op_start)
+            except Exception:
+                pass
+
+    # --- update ---
+
+    async def update_documents(self, index_name: str, documents: list[Document]):
+        """Update documents in Qdrant: delete old points then re-insert."""
+        if index_name not in self.index_map:
+            raise HTTPException(
+                status_code=404, detail=f"No such index: '{index_name}' exists."
+            )
+
+        collection = self._get_collection_name(index_name)
+
+        found_docs: list[Document] = []
+        not_found_docs: list[Document] = []
+        for doc in documents:
+            cnt = await self.aclient.count(
+                collection_name=collection,
+                count_filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key=QDRANT_DOC_ID_KEY,
+                            match=MatchValue(value=doc.doc_id),
+                        )
+                    ]
+                ),
+                exact=True,
+            )
+            if cnt.count > 0:
+                found_docs.append(doc)
+            else:
+                not_found_docs.append(doc)
+
+        updated_docs: list[Document] = []
+        unchanged_docs: list[Document] = []
+
+        try:
+            for doc in found_docs:
+                # Delete old points for this doc_id, then re-insert.
+                await self.aclient.delete(
+                    collection_name=collection,
+                    points_selector=FilterSelector(
+                        filter=Filter(
+                            must=[
+                                FieldCondition(
+                                    key=QDRANT_DOC_ID_KEY,
+                                    match=MatchValue(value=doc.doc_id),
+                                )
+                            ]
+                        )
+                    ),
+                )
+                # Insert via VectorStoreIndex so embeddings are computed.
+                await self.add_document_to_index(index_name, doc, doc.doc_id)
+                updated_docs.append(doc)
+        except Exception as e:
+            logger.error(f"Error updating documents in Qdrant: {e}")
+            raise HTTPException(status_code=500, detail=f"Update failed: {e}")
+
+        return {
+            "updated_documents": updated_docs,
+            "unchanged_documents": unchanged_docs,
+            "not_found_documents": not_found_docs,
+        }
+
+    # --- append (dedup check via Qdrant instead of docstore) ---
+
+    async def _append_documents_to_index(
+        self, index_name: str, documents: list[Document]
+    ) -> list[str]:
+        """Append documents, checking for duplicates via Qdrant count instead
+        of docstore (which is empty after restore).
+
+        Inserts are sequential to avoid race conditions in Qdrant's in-memory
+        client (used in tests) and to keep the vector index consistent.
+        """
+        logger.info(
+            f"Index {index_name} already exists. "
+            f"Appending {len(documents)} documents to existing index."
+        )
+        collection = self._get_collection_name(index_name)
+        indexed_docs: list[str | None] = [None] * len(documents)
+
+        for idx, doc in enumerate(documents):
+            doc_id = self.generate_doc_id(doc.text)
+            cnt = await self.aclient.count(
+                collection_name=collection,
+                count_filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key=QDRANT_DOC_ID_KEY, match=MatchValue(value=doc_id)
+                        )
+                    ]
+                ),
+                exact=True,
+            )
+            if cnt.count == 0:
+                await self.add_document_to_index(index_name, doc, doc_id)
+            else:
+                logger.info(
+                    f"Document {doc_id} already exists in index {index_name}. Skipping."
+                )
+            indexed_docs[idx] = doc_id
+
+        return indexed_docs

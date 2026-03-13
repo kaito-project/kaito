@@ -18,10 +18,16 @@ import os
 import time
 from urllib.parse import unquote
 
-from embedding.huggingface_local_embedding import LocalHuggingFaceEmbedding
-from embedding.remote_embedding import RemoteEmbeddingModel
-from fastapi import FastAPI, HTTPException, Query, Request
-from models import (
+import nest_asyncio
+
+nest_asyncio.apply()  # Allow nested event loops (LlamaIndex sync internals inside FastAPI async)
+
+from embedding.huggingface_local_embedding import (  # noqa: E402
+    LocalHuggingFaceEmbedding,
+)
+from embedding.remote_embedding import RemoteEmbeddingModel  # noqa: E402
+from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
+from models import (  # noqa: E402
     ChatCompletionResponse,
     DeleteDocumentRequest,
     DeleteDocumentResponse,
@@ -36,11 +42,11 @@ from models import (
 )
 
 # Import Prometheus client for metrics collection
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from starlette.responses import Response
-from vector_store_manager.manager import VectorStoreManager
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: E402
+from starlette.responses import Response  # noqa: E402
+from vector_store_manager.manager import VectorStoreManager  # noqa: E402
 
-from ragengine.config import (
+from ragengine.config import (  # noqa: E402
     DEFAULT_VECTOR_DB_PERSIST_DIR,
     EMBEDDING_SOURCE_TYPE,
     LOCAL_EMBEDDING_MODEL_ID,
@@ -50,7 +56,7 @@ from ragengine.config import (
     VECTOR_DB_TYPE,
     VECTOR_DB_URL,
 )
-from ragengine.metrics.prometheus_metrics import (
+from ragengine.metrics.prometheus_metrics import (  # noqa: E402
     MODE_LOCAL,
     MODE_REMOTE,
     STATUS_FAILURE,

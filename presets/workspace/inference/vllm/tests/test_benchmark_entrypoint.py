@@ -410,7 +410,7 @@ def test_main_benchmark_success_exits_0(monkeypatch):
     result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
     assert len(result_lines) == 1
     payload = result_lines[0].split("KAITO_BENCHMARK_RESULT ", 1)[1]
-    data = json.loads(payload[payload.index("{"):])
+    data = json.loads(payload[payload.index("{") :])
     assert data["vllm_total_tpm"] == 12345.67
     assert data["ttft_avg_ms"] == 42.12
     assert data["tpot_avg_ms"] == 3.46
@@ -437,7 +437,7 @@ def test_main_benchmark_failure_exits_1(monkeypatch):
     result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
     assert len(result_lines) == 1
     payload = result_lines[0].split("KAITO_BENCHMARK_RESULT ", 1)[1]
-    data = json.loads(payload[payload.index("{"):])
+    data = json.loads(payload[payload.index("{") :])
     assert data["vllm_total_tpm"] == -1.0
     assert data["ttft_avg_ms"] == -1.0
     assert data["tpot_avg_ms"] == -1.0

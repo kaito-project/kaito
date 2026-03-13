@@ -150,14 +150,15 @@ def _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn):
 def test_run_guidellm_success():
     mock_args_cls = MagicMock()
     mock_benchmark_fn = MagicMock()
+    mock_report = MagicMock(name="report")
     with (
-        patch("asyncio.run") as mock_run,
+        patch("asyncio.run", return_value=(mock_report, {})) as mock_run,
         patch.dict(
             sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
         ),
     ):
         result = bm._run_guidellm("openai/phi-4", 256)
-    assert result is True
+    assert result is mock_report
     mock_run.assert_called_once()
 
 
@@ -165,7 +166,7 @@ def test_run_guidellm_includes_processor():
     mock_args_cls = MagicMock()
     mock_benchmark_fn = MagicMock()
     with (
-        patch("asyncio.run"),
+        patch("asyncio.run", return_value=(MagicMock(), {})),
         patch.dict(
             sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
         ),
@@ -179,7 +180,7 @@ def test_run_guidellm_omits_processor_when_empty():
     mock_args_cls = MagicMock()
     mock_benchmark_fn = MagicMock()
     with (
-        patch("asyncio.run"),
+        patch("asyncio.run", return_value=(MagicMock(), {})),
         patch.dict(
             sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
         ),
@@ -200,7 +201,7 @@ def test_run_guidellm_failure():
         patch.object(bm, "_log") as mock_log,
     ):
         result = bm._run_guidellm("", 128)
-    assert result is False
+    assert result is None
     mock_log.assert_called_once()
     assert "guidellm_failed" in mock_log.call_args[0][0]
 
@@ -219,9 +220,44 @@ def test_run_guidellm_import_error():
         patch.object(bm, "_log") as mock_log,
     ):
         result = bm._run_guidellm("", 32)
-    assert result is False
+    assert result is None
     mock_log.assert_called_once()
     assert "guidellm_import_failed" in mock_log.call_args[0][0]
+
+
+# ── _extract_guidellm_metrics ────────────────────────────────────────────────
+
+
+def _mock_report(ttft_mean=42.123, tpot_mean=3.456):
+    """Build a mock guidellm report with the given TTFT/TPOT mean values."""
+    report = MagicMock()
+    report.benchmarks = [MagicMock()]
+    metrics = report.benchmarks[0].metrics
+    metrics.time_to_first_token_ms.total.mean = ttft_mean
+    metrics.time_per_output_token_ms.total.mean = tpot_mean
+    return report
+
+
+def test_extract_guidellm_metrics_success():
+    report = _mock_report(ttft_mean=42.123, tpot_mean=3.456)
+    ttft, tpot = bm._extract_guidellm_metrics(report)
+    assert ttft == 42.12
+    assert tpot == 3.46
+
+
+def test_extract_guidellm_metrics_empty_benchmarks():
+    report = MagicMock()
+    report.benchmarks = []
+    with pytest.raises(RuntimeError, match="failed to extract TTFT/TPOT"):
+        bm._extract_guidellm_metrics(report)
+
+
+def test_extract_guidellm_metrics_none_total():
+    report = MagicMock()
+    report.benchmarks = [MagicMock()]
+    report.benchmarks[0].metrics.time_to_first_token_ms.total = None
+    with pytest.raises(RuntimeError, match="failed to extract TTFT/TPOT"):
+        bm._extract_guidellm_metrics(report)
 
 
 # ── _run_benchmark ───────────────────────────────────────────────────────────
@@ -241,29 +277,33 @@ def test_run_benchmark_success(monkeypatch):
             return 24576
         return 0
 
+    mock_report = _mock_report(ttft_mean=42.123, tpot_mean=3.456)
     with (
         patch.object(bm, "_read_counter", side_effect=read_counter),
         patch.object(bm, "_resolve_processor", return_value="mymodel"),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
-        patch.object(bm, "_run_guidellm", return_value=True),
+        patch.object(bm, "_run_guidellm", return_value=mock_report),
         patch.object(bm, "_log"),
         patch(
             "time.time",
             side_effect=[0.0, 60.0],  # t0, t1 → 60 s elapsed
         ),
     ):
-        tpm = bm._run_benchmark()
+        tpm, ttft, tpot = bm._run_benchmark()
 
     # (6000 + 24576) * 60 / 60 = 30576.0
     assert tpm == pytest.approx(30576.0)
+    assert ttft == 42.12
+    assert tpot == 3.46
 
 
 def test_run_benchmark_no_generation():
+    mock_report = _mock_report()
     with (
         patch.object(bm, "_read_counter", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
-        patch.object(bm, "_run_guidellm", return_value=True),
+        patch.object(bm, "_run_guidellm", return_value=mock_report),
         patch.object(bm, "_log"),
         patch("time.time", side_effect=[0.0, 60.0]),
         pytest.raises(RuntimeError, match="no_generation"),
@@ -276,7 +316,7 @@ def test_run_benchmark_guidellm_fails():
         patch.object(bm, "_read_counter", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
-        patch.object(bm, "_run_guidellm", return_value=False),
+        patch.object(bm, "_run_guidellm", return_value=None),
         patch.object(bm, "_log"),
         patch("time.time", return_value=0.0),
         pytest.raises(RuntimeError, match="guidellm"),
@@ -358,9 +398,8 @@ def test_main_benchmark_success_exits_0(monkeypatch):
 
     with (
         patch.object(bm, "_health_check", return_value=True),
-        patch.object(bm, "_run_benchmark", return_value=12345.67),
+        patch.object(bm, "_run_benchmark", return_value=(12345.67, 42.12, 3.46)),
         patch.object(bm, "_drain"),
-        patch.object(bm, "_log"),
         patch.object(bm, "_write_to_pid1", side_effect=fake_write),
         patch("time.time", return_value=0.0),
         pytest.raises(SystemExit) as exc_info,
@@ -371,7 +410,10 @@ def test_main_benchmark_success_exits_0(monkeypatch):
     result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
     assert len(result_lines) == 1
     payload = result_lines[0].split("KAITO_BENCHMARK_RESULT ", 1)[1]
-    assert json.loads(payload)["vllm_total_tpm"] == 12345.67
+    data = json.loads(payload[payload.index("{"):])
+    assert data["vllm_total_tpm"] == 12345.67
+    assert data["ttft_avg_ms"] == 42.12
+    assert data["tpot_avg_ms"] == 3.46
 
 
 def test_main_benchmark_failure_exits_1(monkeypatch):
@@ -385,7 +427,6 @@ def test_main_benchmark_failure_exits_1(monkeypatch):
     with (
         patch.object(bm, "_health_check", return_value=True),
         patch.object(bm, "_run_benchmark", side_effect=RuntimeError("guidellm failed")),
-        patch.object(bm, "_log"),
         patch.object(bm, "_write_to_pid1", side_effect=fake_write),
         patch("time.time", return_value=0.0),
         pytest.raises(SystemExit) as exc_info,
@@ -396,11 +437,10 @@ def test_main_benchmark_failure_exits_1(monkeypatch):
     result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
     assert len(result_lines) == 1
     payload = result_lines[0].split("KAITO_BENCHMARK_RESULT ", 1)[1]
-    assert json.loads(payload)["vllm_total_tpm"] == -1.0
-    result_lines = [line for line in written if "KAITO_BENCHMARK_RESULT" in line]
-    assert len(result_lines) == 1
-    payload = result_lines[0].split("KAITO_BENCHMARK_RESULT ", 1)[1]
-    assert json.loads(payload)["vllm_total_tpm"] == -1.0
+    data = json.loads(payload[payload.index("{"):])
+    assert data["vllm_total_tpm"] == -1.0
+    assert data["ttft_avg_ms"] == -1.0
+    assert data["tpot_avg_ms"] == -1.0
 
 
 def test_main_exactly_one_result_line_on_success(monkeypatch):
@@ -410,9 +450,8 @@ def test_main_exactly_one_result_line_on_success(monkeypatch):
 
     with (
         patch.object(bm, "_health_check", return_value=True),
-        patch.object(bm, "_run_benchmark", return_value=999.0),
+        patch.object(bm, "_run_benchmark", return_value=(999.0, 10.0, 2.0)),
         patch.object(bm, "_drain"),
-        patch.object(bm, "_log"),
         patch.object(
             bm, "_write_to_pid1", side_effect=lambda line, fd=1: written.append(line)
         ),
@@ -433,7 +472,6 @@ def test_main_drain_called_only_on_success(monkeypatch):
         patch.object(bm, "_health_check", return_value=True),
         patch.object(bm, "_run_benchmark", side_effect=RuntimeError("fail")),
         patch.object(bm, "_drain") as mock_drain,
-        patch.object(bm, "_log"),
         patch.object(bm, "_write_to_pid1"),
         patch("time.time", return_value=0.0),
         pytest.raises(SystemExit),

@@ -164,8 +164,12 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// For multi-node distributed inference with vLLM, we need StatefulSet to ensure pods are
 	// created with individual identities (their ordinal indexes) -
 	// https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-identity
-	if shouldUseDistributedInference(gctx, numNodes) {
+	distributed := shouldUseDistributedInference(gctx, numNodes)
+	if distributed {
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
+	}
+	if v1beta1.IsRunBenchmarkEnabled(workspaceObj) {
+		podOpts = append(podOpts, SetBenchmarkConfig(gpuConfig, numNodes, distributed))
 	}
 
 	ssOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]{
@@ -314,13 +318,13 @@ func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace
 // workers to the standard multi-node health check.
 //
 // timeoutSeconds is set to 600 to prevent kubelet killing the process mid-benchmark.
-func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace) *corev1.Probe {
+func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, distributed bool) *corev1.Probe {
 	const periodSeconds = int32(10)
 	const timeoutSeconds = int32(600) // covers benchmark duration + drain + buffer
 	failureThreshold := int32(math.Ceil(timeout.Seconds() / float64(periodSeconds)))
 
 	var command []string
-	if wObj == nil {
+	if !distributed {
 		command = []string{"python3", "/workspace/vllm/benchmark_entrypoint.py"}
 	} else {
 		workerCmd := utils.BuildCmdStr(
@@ -468,63 +472,16 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
-		// When benchmarking is enabled, run the benchmark from the exec startup probe.
-		// vLLM remains PID 1; benchmark_entrypoint.py is called on each kubelet probe tick.
-		finalCommands := commands
-		readinessProbe := defaultReadinessProbe
-		startupProbe := buildStartupProbe(readinessTimeout)
-		var benchmarkEnvVars []corev1.EnvVar
-		if ctx.Workspace.Annotations[v1beta1.AnnotationRunBenchmark] == "true" {
-			// vLLM is PID 1 — the benchmark runs from the exec startup probe instead.
-			// The readiness probe stays as defaultReadinessProbe (no sentinel file needed).
-			startupProbe = buildBenchmarkStartupProbe(readinessTimeout, nil)
-
-			// Max concurrency controls the number of concurrent requests sent during the benchmark.
-			// The goal is to saturate the GPU so the result reflects peak throughput rather
-			// than a load level that happens to be idle. We estimate how many simultaneous
-			// requests fit in available VRAM given the per-request KV-cache footprint at the
-			// benchmark input length. The 0.9 factor is to leave some buffer for overhead.
-			//
-			// If max concurrency is too low the GPU is underutilized and the reported TPM will be
-			// understated. If it is too high the scheduler queues requests — latency increases
-			// and the drain phase takes much longer and may timeout. However, this will
-			// not affect the reported TPM since the benchmark measures the time spent processing requests.
-			var maxConcurrency int
-			if gpuConfig != nil && inferenceParam.TotalSafeTensorFileSize != "" && inferenceParam.BytesPerToken > 0 {
-				const benchmarkInputLen = 2048
-				totalVRAMGiB := gpuConfig.GPUMem.AsApproximateFloat64() / math.Pow(2, 30) * float64(numNodes)
-				if weightQty, parseErr := resource.ParseQuantity(inferenceParam.TotalSafeTensorFileSize); parseErr == nil {
-					modelWeightGiB := weightQty.AsApproximateFloat64() / math.Pow(2, 30)
-					availableVRAMGiB := (totalVRAMGiB - modelWeightGiB) * 0.9
-					kvPerReqGiB := float64(benchmarkInputLen) * float64(inferenceParam.BytesPerToken) / math.Pow(1024, 3)
-					maxConcurrency = int(math.Ceil(availableVRAMGiB / kvPerReqGiB))
-					if maxConcurrency < 1 {
-						maxConcurrency = 1
-					}
-				}
-			}
-			// Fall back to 256 when VRAM/weight metadata is unavailable (unknown SKU or
-			// model without TotalSafeTensorFileSize).
-			const defaultBenchmarkMaxConcurrency = 256
-			if maxConcurrency == 0 {
-				maxConcurrency = defaultBenchmarkMaxConcurrency
-			}
-			benchmarkEnvVars = []corev1.EnvVar{
-				{Name: "BENCHMARK_MAX_CONCURRENCY", Value: strconv.Itoa(maxConcurrency)},
-			}
-		}
-
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
 				Image:          GetBaseImageName(),
-				Command:        finalCommands,
-				Env:            benchmarkEnvVars,
+				Command:        commands,
 				Resources:      resourceReq,
 				Ports:          containerPorts,
-				StartupProbe:   startupProbe,
+				StartupProbe:   buildStartupProbe(readinessTimeout),
 				LivenessProbe:  defaultLivenessProbe,
-				ReadinessProbe: readinessProbe,
+				ReadinessProbe: defaultReadinessProbe,
 				VolumeMounts:   volumeMounts,
 			},
 		}
@@ -587,6 +544,63 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 	return nil
 }
 
+// SetBenchmarkConfig overrides the startup probe to run the benchmark entrypoint
+// and injects the BENCHMARK_MAX_CONCURRENCY env var. It must be appended after
+// GenerateInferencePodSpec (and SetDistributedInferenceProbe when distributed)
+// so the container already exists.
+func SetBenchmarkConfig(gpuConfig *sku.GPUConfig, numNodes int, distributed bool) generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec] {
+	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+		inferenceParam := ctx.Model.GetInferenceParameters()
+		readinessTimeout := inferenceParam.ReadinessTimeout
+		if readinessTimeout <= 0 {
+			readinessTimeout = defaultStartupProbeTimeout
+		}
+
+		var wObj *v1beta1.Workspace
+		if distributed {
+			wObj = ctx.Workspace
+		}
+		startupProbe := buildBenchmarkStartupProbe(readinessTimeout, wObj, distributed)
+
+		// Max concurrency controls the number of concurrent requests sent during the benchmark.
+		// The goal is to saturate the GPU so the result reflects peak throughput rather
+		// than a load level that happens to be idle. We estimate how many simultaneous
+		// requests fit in available VRAM given the per-request KV-cache footprint at the
+		// benchmark input length. The 0.9 factor is to leave some buffer for overhead.
+		var maxConcurrency int
+		if gpuConfig != nil && inferenceParam.TotalSafeTensorFileSize != "" && inferenceParam.BytesPerToken > 0 {
+			const benchmarkInputLen = 2048
+			totalVRAMGiB := gpuConfig.GPUMem.AsApproximateFloat64() / math.Pow(2, 30) * float64(numNodes)
+			if weightQty, parseErr := resource.ParseQuantity(inferenceParam.TotalSafeTensorFileSize); parseErr == nil {
+				modelWeightGiB := weightQty.AsApproximateFloat64() / math.Pow(2, 30)
+				availableVRAMGiB := (totalVRAMGiB - modelWeightGiB) * 0.9
+				kvPerReqGiB := float64(benchmarkInputLen) * float64(inferenceParam.BytesPerToken) / math.Pow(1024, 3)
+				maxConcurrency = int(math.Ceil(availableVRAMGiB / kvPerReqGiB))
+				if maxConcurrency < 1 {
+					maxConcurrency = 1
+				}
+			}
+		}
+		const defaultBenchmarkMaxConcurrency = 256
+		if maxConcurrency == 0 {
+			maxConcurrency = defaultBenchmarkMaxConcurrency
+		}
+
+		benchmarkEnvVars := []corev1.EnvVar{
+			{Name: "BENCHMARK_MAX_CONCURRENCY", Value: strconv.Itoa(maxConcurrency)},
+		}
+
+		for i := range spec.Containers {
+			if spec.Containers[i].Name == ctx.Workspace.Name {
+				spec.Containers[i].StartupProbe = startupProbe
+				spec.Containers[i].Env = append(spec.Containers[i].Env, benchmarkEnvVars...)
+				break
+			}
+		}
+		return nil
+	}
+}
+
 func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	readinessTimeout := ctx.Model.GetInferenceParameters().ReadinessTimeout
 	if readinessTimeout <= 0 {
@@ -597,9 +611,6 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5, 1)
 	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1)
 	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace)
-	if ctx.Workspace.Annotations[v1beta1.AnnotationRunBenchmark] == "true" {
-		startupProbe = buildBenchmarkStartupProbe(readinessTimeout, ctx.Workspace)
-	}
 	envVar := corev1.EnvVar{
 		Name: "POD_INDEX",
 		ValueFrom: &corev1.EnvVarSource{

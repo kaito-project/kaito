@@ -83,3 +83,9 @@ func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {
 
 	return runtime
 }
+
+// IsRunBenchmarkEnabled reports whether the workspace has the benchmark
+// annotation set to "true".
+func IsRunBenchmarkEnabled(ws *Workspace) bool {
+	return ws.Annotations[AnnotationRunBenchmark] == "true"
+}

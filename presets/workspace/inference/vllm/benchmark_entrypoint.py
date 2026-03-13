@@ -65,24 +65,18 @@ def _write_to_pid1(line: str, fd: int = 1) -> None:
     This makes output visible in ``kubectl logs`` even though this script runs
     as an exec probe child process whose own stdio is captured by kubelet, not
     by the container log driver.
+
+    Raises ``OSError`` on failure (no fallback — the probe's own stdio is not
+    captured by the container log driver so a fallback write would be invisible).
     """
-    try:
-        with open(f"/proc/1/fd/{fd}", "a") as fh:
-            fh.write(line)
-            fh.flush()
-    except OSError:
-        # Fallback: write to our own fd (useful in tests / bare-metal runs).
-        if fd == 1:
-            sys.stdout.write(line)
-            sys.stdout.flush()
-        else:
-            sys.stderr.write(line)
-            sys.stderr.flush()
+    with open(f"/proc/1/fd/{fd}", "a") as fh:
+        fh.write(line)
+        fh.flush()
 
 
-def _log(msg: str) -> None:
+def _log(msg: str, tag: str = "KAITO_BENCHMARK") -> None:
     ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    _write_to_pid1(f"KAITO_BENCHMARK {ts} {msg}\n", fd=1)
+    _write_to_pid1(f"{tag} {ts} {msg}\n", fd=1)
 
 
 # ── vLLM helpers ─────────────────────────────────────────────────────────────
@@ -178,7 +172,7 @@ def _resolve_processor() -> str:
 # ── guidellm runner ───────────────────────────────────────────────────────────
 
 
-def _run_guidellm(processor: str, max_concurrency: int) -> bool:
+def _run_guidellm(processor: str, max_concurrency: int):
     """Run guidellm via its Python API as the load generator.
 
     Uses ``benchmark_generative_text`` directly rather than a subprocess so there
@@ -190,14 +184,14 @@ def _run_guidellm(processor: str, max_concurrency: int) -> bool:
     ``huggingface_hub`` import) so every import in this process uses the venv's
     versions.
 
-    Returns True on success, False if guidellm raises.
+    Returns the ``GenerativeBenchmarksReport`` on success, ``None`` on failure.
     """
     try:
         from guidellm.benchmark import BenchmarkGenerativeTextArgs
         from guidellm.benchmark.entrypoints import benchmark_generative_text
     except ImportError as exc:
         _log(f"guidellm_import_failed: {exc}")
-        return False
+        return None
 
     args = BenchmarkGenerativeTextArgs(
         target=VLLM_BASE_URL,
@@ -214,22 +208,50 @@ def _run_guidellm(processor: str, max_concurrency: int) -> bool:
     )
 
     try:
-        asyncio.run(benchmark_generative_text(args=args))
-        return True
+        report, _outputs = asyncio.run(benchmark_generative_text(args=args))
+        return report
     except Exception as exc:
         _log(f"guidellm_failed: {exc}")
-        return False
+        return None
+
+
+def _extract_guidellm_metrics(report) -> tuple:
+    """Extract TTFT and TPOT averages from a guidellm report.
+
+    Uses the ``.total`` distribution bucket which includes both successful and
+    incomplete requests, ensuring metrics are available even when requests are
+    cancelled before completion (guidellm streams tokens, so per-token timestamps
+    exist for partial responses too).
+
+    Returns ``(ttft_avg_ms, tpot_avg_ms)``.  Raises ``RuntimeError`` if the
+    report structure is empty or the fields are unavailable so the caller can
+    fail the benchmark cleanly.
+    """
+    try:
+        metrics = report.benchmarks[0].metrics
+        ttft = metrics.time_to_first_token_ms.total.mean
+        tpot = metrics.time_per_output_token_ms.total.mean
+        return (round(ttft, 2), round(tpot, 2))
+    except (IndexError, AttributeError, TypeError) as exc:
+        raise RuntimeError(
+            f"failed to extract TTFT/TPOT from guidellm report: {exc}"
+        ) from exc
 
 
 # ── Core benchmark sequence ───────────────────────────────────────────────────
 
 
-def _run_benchmark() -> float:
+def _run_benchmark() -> tuple:
     """Run the full benchmark sequence.
 
     Snapshots vLLM Prometheus counters before and after the guidellm load run, then
-    computes total TPM from the delta.  Raises ``RuntimeError`` on any failure so the
-    caller can log it and fall back to the -1 result.
+    computes total TPM from the delta.  Extracts TTFT and TPOT averages from the
+    guidellm report (using the ``total`` bucket which includes both successful and
+    incomplete requests).
+
+    Returns ``(tpm, ttft_avg_ms, tpot_avg_ms)``.
+    Raises ``RuntimeError`` on any failure so the caller can log it and fall back
+    to the sentinel result.
     """
     t0_gen = _read_counter("vllm:generation_tokens_total")
     t0_prompt = _read_counter("vllm:prompt_tokens_total")
@@ -243,8 +265,11 @@ def _run_benchmark() -> float:
         f"max_concurrency_set BENCHMARK_MAX_CONCURRENCY={max_concurrency} INPUT_LEN={BENCHMARK_INPUT_LEN}"
     )
 
-    if not _run_guidellm(processor, max_concurrency):
+    report = _run_guidellm(processor, max_concurrency)
+    if report is None:
         raise RuntimeError("guidellm exited non-zero")
+
+    ttft_ms, tpot_ms = _extract_guidellm_metrics(report)
 
     t1_epoch = time.time()
     t1_gen = _read_counter("vllm:generation_tokens_total")
@@ -263,7 +288,8 @@ def _run_benchmark() -> float:
         f"benchmark_window elapsed_sec={elapsed:.1f} "
         f"delta_gen={delta_gen} delta_prompt={t1_prompt - t0_prompt}"
     )
-    return round((delta_gen + (t1_prompt - t0_prompt)) * 60.0 / elapsed, 2)
+    tpm = round((delta_gen + (t1_prompt - t0_prompt)) * 60.0 / elapsed, 2)
+    return tpm, ttft_ms, tpot_ms
 
 
 def _drain(timeout: float = 300.0) -> None:
@@ -304,9 +330,11 @@ def main() -> None:
     )
 
     tpm: float = -1.0
+    ttft_ms: float = -1.0
+    tpot_ms: float = -1.0
     failed = False
     try:
-        tpm = _run_benchmark()
+        tpm, ttft_ms, tpot_ms = _run_benchmark()
         t_bench_end = time.time()
         _log(f"benchmark_done elapsed={t_bench_end - t_bench_start:.1f}s")
         _drain()
@@ -318,12 +346,19 @@ def main() -> None:
     except Exception as exc:
         _log(f"benchmark_failed error={exc}")
         tpm = -1.0
+        ttft_ms = -1.0
+        tpot_ms = -1.0
         failed = True
 
     # Always emit the result line so the controller has a parseable record even on failure.
-    # In case _write_to_pid1 is not working, controller should treat missing
-    # KAITO_BENCHMARK_RESULT as a failure (equivalent to -1).
-    _write_to_pid1(f'KAITO_BENCHMARK_RESULT {{"vllm_total_tpm":{tpm}}}\n', fd=1)
+    try:
+        _log(
+            f'{{"vllm_total_tpm":{tpm},"ttft_avg_ms":{ttft_ms},"tpot_avg_ms":{tpot_ms}}}',
+            tag="KAITO_BENCHMARK_RESULT",
+        )
+    except Exception:
+        # If logging fail, not much we can do - fail the probe
+        sys.exit(1)
     sys.exit(1 if failed else 0)
 
 

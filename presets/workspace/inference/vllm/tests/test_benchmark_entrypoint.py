@@ -65,6 +65,19 @@ def test_health_check_exception():
         assert bm._health_check() is False
 
 
+# ── _log ──────────────────────────────────────────────────────────────────────
+
+
+def test_log_exits_1_on_write_failure():
+    """If _write_to_pid1 raises, _log calls sys.exit(1) instead of propagating."""
+    with (
+        patch.object(bm, "_write_to_pid1", side_effect=OSError("no /proc/1/fd/1")),
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        bm._log("some message")
+    assert exc_info.value.code == 1
+
+
 # ── _read_counter ─────────────────────────────────────────────────────────────
 
 _METRICS_BODY = b"""\

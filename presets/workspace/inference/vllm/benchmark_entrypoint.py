@@ -65,9 +65,6 @@ def _write_to_pid1(line: str, fd: int = 1) -> None:
     This makes output visible in ``kubectl logs`` even though this script runs
     as an exec probe child process whose own stdio is captured by kubelet, not
     by the container log driver.
-
-    Raises ``OSError`` on failure (no fallback — the probe's own stdio is not
-    captured by the container log driver so a fallback write would be invisible).
     """
     with open(f"/proc/1/fd/{fd}", "a") as fh:
         fh.write(line)
@@ -75,8 +72,16 @@ def _write_to_pid1(line: str, fd: int = 1) -> None:
 
 
 def _log(msg: str, tag: str = "KAITO_BENCHMARK") -> None:
+    """Format and emit a log line through PID 1's stdout.
+
+    If the write fails (e.g. ``/proc/1/fd/1`` is inaccessible), the script exits
+    immediately with code 1.
+    """
     ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    _write_to_pid1(f"{tag} {ts} {msg}\n", fd=1)
+    try:
+        _write_to_pid1(f"{tag} {ts} {msg}\n", fd=1)
+    except Exception:
+        sys.exit(1)
 
 
 # ── vLLM helpers ─────────────────────────────────────────────────────────────
@@ -351,14 +356,10 @@ def main() -> None:
         failed = True
 
     # Always emit the result line so the controller has a parseable record even on failure.
-    try:
-        _log(
-            f'{{"vllm_total_tpm":{tpm},"ttft_avg_ms":{ttft_ms},"tpot_avg_ms":{tpot_ms}}}',
-            tag="KAITO_BENCHMARK_RESULT",
-        )
-    except Exception:
-        # If logging fail, not much we can do - fail the probe
-        sys.exit(1)
+    _log(
+        f'{{"vllm_total_tpm":{tpm},"ttft_avg_ms":{ttft_ms},"tpot_avg_ms":{tpot_ms}}}',
+        tag="KAITO_BENCHMARK_RESULT",
+    )
     sys.exit(1 if failed else 0)
 
 

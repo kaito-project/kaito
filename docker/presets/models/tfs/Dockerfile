@@ -2,7 +2,7 @@ FROM python:3.12-slim AS dependencies
 
 ARG MODEL_TYPE
 ARG VERSION
-ARG UV_VERSION=0.10.9
+ARG UV_VERSION=0.10.10
 
 # https://docs.ray.io/en/latest/cluster/usage-stats.html
 ENV RAY_USAGE_STATS_ENABLED="1"

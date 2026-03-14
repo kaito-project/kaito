@@ -2,11 +2,13 @@ FROM python:3.12-slim AS dependencies
 
 ARG MODEL_TYPE
 ARG VERSION
+ARG UV_VERSION=0.10.9
 
 # https://docs.ray.io/en/latest/cluster/usage-stats.html
 ENV RAY_USAGE_STATS_ENABLED="1"
 
-RUN pip3 install --upgrade pip uv
+RUN pip3 install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir "uv==${UV_VERSION}"
 
 # Set the working directory
 WORKDIR /workspace

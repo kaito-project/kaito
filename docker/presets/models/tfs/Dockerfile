@@ -14,7 +14,7 @@ RUN pip3 install --no-cache-dir --upgrade pip && \
 WORKDIR /workspace
 
 # Required for torch.compile
-RUN apt-get update -y && \
+RUN apt-get update -y && apt upgrade -y && \
     if dpkg -s libssl3t64 >/dev/null 2>&1; then \
         apt-get install --only-upgrade --no-install-recommends -y openssl libssl3t64 openssl-provider-legacy; \
     elif dpkg -s libssl3 >/dev/null 2>&1; then \

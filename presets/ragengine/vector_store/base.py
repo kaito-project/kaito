@@ -69,9 +69,6 @@ class BaseVectorStore(ABC):
     # Qdrant with enable_hybrid=True sets this to True.
     _native_hybrid_search: bool = False
 
-    _insert_semaphore: asyncio.Semaphore | None = None
-    _max_concurrent_inserts: int | None = None
-
     def __init__(self, embed_model: BaseEmbeddingModel, use_rwlock: bool = False):
         super().__init__()
         self.llm = Inference()

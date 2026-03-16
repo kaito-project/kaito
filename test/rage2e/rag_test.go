@@ -378,6 +378,9 @@ var _ = Describe("RAGEngine", func() {
 		// Delete index
 		err = createAndValidateDeleteIndexPod(ragengineObj)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
+
+		// Sleep 30 minutes to allow manual inspection of logs
+		time.Sleep(30 * time.Minute)
 	})
 
 	It("should create RAG with PVC storage and persist indexes across pod restarts", utils.GinkgoLabelFastCheck, func() {

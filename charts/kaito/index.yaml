@@ -38,9 +38,9 @@ entries:
   ragengine:
   - apiVersion: v2
     appVersion: 0.9.2
-    created: "2026-03-16T11:38:44.921926522Z"
+    created: "2026-03-16T11:50:03.726469384Z"
     description: A Helm chart to install AI Toolchain Operator RAGEngine
-    digest: 7677f32a945e627099d5535c0ac12d87ce76b343bd8dce56af8e6b3050fef88c
+    digest: 72f31c919366cafa828fa50405b2d57ac93fa154f169b5d10ed76a7fd6fa6b3d
     home: https://github.com/kaito-project/kaito
     maintainers:
     - email: vrgf2003@gmail.com
@@ -1051,4 +1051,4 @@ entries:
     urls:
     - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.1.0.tgz
     version: 0.1.0
-generated: "2026-03-16T11:38:44.921213837Z"
+generated: "2026-03-16T11:50:03.725364198Z"

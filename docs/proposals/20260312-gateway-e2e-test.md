@@ -52,11 +52,69 @@ Related issues: the inference-aware routing layer proposal [20250715-inference-a
 
 ## Proposal
 
-The test plan is organized into two sequential parts. Part 1 builds the environment; Part 2 runs test cases against it.
+### High-Level Overview
 
-### Part 1: Test Environment Setup
+The test plan is organized into two sequential parts: **environment setup** (Part 1) and **test case execution** (Part 2). The overall test architecture is shown below.
 
-#### 1.1 Kubernetes Cluster, KAITO, and GPU Node Mocker
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         E2E Test Architecture                                │
+│                                                                              │
+│  ┌──────────┐   POST /v1/chat   ┌───────────┐   ext_proc   ┌─────────────┐  │
+│  │  E2E     │ ────────────────► │  Istio    │ ────────────► │    BBR      │  │
+│  │  Test    │                   │  Gateway  │               │ (extracts   │  │
+│  └──────────┘                   └─────┬─────┘               │  model name)│  │
+│                                       │                     └──────┬──────┘  │
+│                              HTTPRoute│matching                    │injects   │
+│                              X-Gateway│-Model-Name                │X-Gateway-│
+│                                       ▼                           │Model-Name│
+│                              ┌─────────────────┐  ◄──────────────┘          │
+│                              │  InferencePool  │                              │
+│                              │  (per model)    │  ext_proc                    │
+│                              └────────┬────────┘ ────────► EPP               │
+│                                       │                    (selects pod,      │
+│                                       │                     injects           │
+│                                       │                     X-Gateway-        │
+│                                       │                     Destination-      │
+│                                       │                     Endpoint)         │
+│                                       │ routes to pod IP                      │
+│                                       ▼                                       │
+│                              ┌─────────────────┐                              │
+│                              │  Shadow Pod      │  ← real pod IP (AKS CNI)    │
+│                              │  (LLM Mocker)    │                              │
+│                              │  /v1/chat/compl. │                              │
+│                              │  /metrics        │                              │
+│                              │  _debug headers  │                              │
+│                              └─────────────────┘                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key design decisions:**
+
+| Concern | Decision | Rationale |
+|---|---|---|
+| **Cluster** | AKS (non-GPU SKU) | Real AKS CNI networking, real LB, matches production topology. No GPU quota needed. |
+| **GPU node provisioning** | GPU Node Mocker (replaces `gpu-provisioner`) | Intercepts `NodeClaim`, creates a fake `Node` and keeps it `Ready` via Lease heartbeat, without launching a real VM. |
+| **Inference pod** | Shadow Pod on real AKS node | The pending pod (on the fake node, created by KAITO from the standard preset) has its `status.podIP` patched to the shadow pod's real CNI IP. The preset image never runs. Gateway/EPP route to the real IP and hit the LLM Mocker. |
+| **LLM simulation** | LLM Mocker HTTP server (`kaito/llm-mocker`) | Exposes `/v1/chat/completions` and `/metrics`. Echoes BBR/EPP-injected headers in the response body so tests can assert routing correctness without log scraping. |
+| **KAITO conditions** | Fake Node → `ResourceReady=True`; Shadow Pod patch → `InferenceReady=True` | KAITO's two readiness conditions are satisfied through the two-phase mocker design. |
+
+**End-to-end flow for a single inference request:**
+
+1. E2E test sends `POST /v1/chat/completions` with `{"model": "falcon-7b-instruct", ...}` to the Gateway external IP.
+2. **BBR** reads the request body, extracts `model`, injects `X-Gateway-Model-Name: falcon-7b-instruct`.
+3. **HTTPRoute** matches the header and forwards to `falcon-7b-instruct-inferencepool`.
+4. **EPP** selects an inference pod (by KV-cache score), injects `X-Gateway-Destination-Endpoint: <shadow-pod-IP>:5000`.
+5. Envoy forwards the request to the shadow pod IP. The **LLM Mocker** responds with an OpenAI-compatible JSON body that includes `_debug.gateway_model_name` and `_debug.destination_endpoint`.
+6. The E2E test asserts on these `_debug` fields to verify correct routing.
+
+---
+
+### Detailed Specification
+
+#### Part 1: Test Environment Setup
+
+##### 1.1 Kubernetes Cluster, KAITO, and GPU Node Mocker
 
 **AKS Cluster**
 
@@ -214,7 +272,7 @@ All pods must reach `Running` state and all AKS nodes must reach `Ready` state b
 
 ---
 
-#### 1.2 Gateway API Inference Extension Components
+##### 1.2 Gateway API Inference Extension Components
 
 **Istio**
 
@@ -283,76 +341,38 @@ All components must be `Running` and `Ready` before proceeding.
 
 ---
 
-#### 1.3 Model Resource Deployment
+##### 1.3 Model Resource Deployment
 
 **InferenceSet Resources**
 
-Deploy the following two `InferenceSet` resources. In the E2E environment the GPU node mocker fulfills the `NodeClaim` requests and schedules pods on the new Kind worker nodes. Because the nodes have no GPU, the `InferenceSpec.template` field is used instead of `InferenceSpec.preset` — this bypasses KAITO's preset image lookup and directly specifies the LLM mocker container with the model name passed as a CLI argument.
+Deploy the following two `InferenceSet` resources using their standard `preset` configurations (i.e., the existing YAML files under `examples/inference/`). No custom container spec is needed: KAITO creates the inference pods normally using the preset image, but the pods are assigned to fake nodes and therefore stay `Pending` indefinitely. The GPU node mocker's Phase 2 then patches each pending pod's `status.podIP` to the corresponding shadow pod's real CNI IP, making KAITO treat them as `Running/Ready`. The preset image itself **never executes** — all actual inference traffic is served by the shadow pod running the LLM Mocker.
 
-| Model | Replicas | LLM mocker arg |
+| Model | File | Replicas |
 |---|---|---|
-| `falcon-7b-instruct` | 2 | `--model-name=falcon-7b-instruct` |
-| `ministral-3-3b-instruct` | 1 | `--model-name=ministral-3-3b-instruct` |
-
-The `InferenceSet` YAML for `falcon-7b-instruct` (the `ministral-3-3b-instruct` one follows the same pattern with `replicas: 1`):
-
-```yaml
-apiVersion: kaito.sh/v1alpha1
-kind: InferenceSet
-metadata:
-  name: falcon-7b-instruct
-  annotations:
-    scaledobject.kaito.sh/auto-provision: "true"
-    scaledobject.kaito.sh/metricName: "vllm:num_requests_waiting"
-    scaledobject.kaito.sh/threshold: "10"
-spec:
-  replicas: 2
-  nodeCountLimit: 3
-  labelSelector:
-    matchLabels:
-      apps: falcon-7b-instruct
-  template:
-    resource:
-      instanceType: "Standard_NV36ads_A10_v5"
-    inference:
-      # Use template (not preset) so the LLM mocker image is used instead of the
-      # real vLLM preset image, which cannot run on GPU-less Kind worker nodes.
-      template:
-        spec:
-          containers:
-          - name: llm-mocker
-            image: kaito/llm-mocker:latest
-            args:
-            - --model-name=falcon-7b-instruct
-            ports:
-            - containerPort: 5000
-              name: http
-            - containerPort: 5001
-              name: metrics
-            readinessProbe:
-              httpGet:
-                path: /health
-                port: 5000
-              initialDelaySeconds: 5
-              periodSeconds: 5
-```
+| `falcon-7b-instruct` | `examples/inference/kaito_inferenceset_falcon_7b-instruct.yaml` | 2 |
+| `ministral-3-3b-instruct` | `examples/inference/kaito_inferenceset_ministral_3_3b-instruct.yaml` | 1 |
 
 ```bash
 kubectl apply -f examples/inference/kaito_inferenceset_falcon_7b-instruct.yaml
 kubectl apply -f examples/inference/kaito_inferenceset_ministral_3_3b-instruct.yaml
 ```
 
-The resulting cluster topology:
+The resulting logical topology (fake nodes host the pending pods; shadow pods on real AKS nodes serve actual traffic):
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  InferencePool: falcon-7b-instruct-inferencepool          │
-│    ├── inference-pod-falcon-7b-instruct-0 (node-1)       │
-│    └── inference-pod-falcon-7b-instruct-1 (node-2)       │
-│                                                           │
-│  InferencePool: ministral-3-3b-instruct-inferencepool     │
-│    └── inference-pod-ministral-3-3b-instruct-0 (node-3)  │
-└──────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│  InferencePool: falcon-7b-instruct-inferencepool                     │
+│    ├── falcon-7b-instruct-pod-0  (fake-node-0, IP=shadow-pod-0-IP)   │
+│    └── falcon-7b-instruct-pod-1  (fake-node-1, IP=shadow-pod-1-IP)   │
+│                                                                      │
+│  InferencePool: ministral-3-3b-instruct-inferencepool                │
+│    └── ministral-3-3b-instruct-pod-0 (fake-node-2, IP=shadow-pod-2-IP)│
+│                                                                      │
+│  Shadow Pods (on real AKS nodes, running LLM Mocker):                │
+│    shadow-pod-0  10.244.x.x  ← falcon pod-0 traffic lands here      │
+│    shadow-pod-1  10.244.x.x  ← falcon pod-1 traffic lands here      │
+│    shadow-pod-2  10.244.x.x  ← ministral pod-0 traffic lands here   │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
 **HTTPRoute and DestinationRule Resources**
@@ -452,11 +472,11 @@ Only after all checks pass should Part 2 test cases be executed.
 
 ---
 
-### Part 2: Test Cases
+#### Part 2: Test Cases
 
 > **Note**: The detailed test case specifications will be defined in a follow-up iteration of this proposal. The categories below outline the planned coverage.
 
-#### 2.1 Inference-Aware Routing
+##### 2.1 Inference-Aware Routing
 
 Verify that requests containing a valid model name in the JSON body are correctly routed to the corresponding `InferencePool`.
 
@@ -471,7 +491,7 @@ Verify that requests containing a valid model name in the JSON body are correctl
 - `response._debug.destination_endpoint` is non-empty and matches an IP of a pod belonging to the expected `InferencePool` — confirms EPP selected a pod and injected `X-Gateway-Destination-Endpoint`.
 - HTTP status is `200`.
 
-#### 2.2 Prefix Cache Affinity — Multi-Turn Conversation with Tool Calls
+##### 2.2 Prefix Cache Affinity — Multi-Turn Conversation with Tool Calls
 
 EPP implements prefix-cache-aware pod selection: when a follow-up request shares a long common prefix with a previous request (e.g., same system prompt, same conversation history, same tool definitions), EPP should prefer the pod that already has that prefix cached in its KV-cache, minimizing recomputation and latency.
 
@@ -523,21 +543,21 @@ EPP implements prefix-cache-aware pod selection: when a follow-up request shares
 - The LLM mocker returns a `tool_calls` turn for turn 1 (because `tools` was present), enabling the test to construct a valid turn-2 message with `role: tool`.
 - If the pinned pod is deleted mid-conversation, EPP falls back to another pod with no error returned to the client (the `destination_endpoint` changes to a new pod IP).
 
-#### 2.3 Load Distribution Across Multiple Replicas
+##### 2.3 Load Distribution Across Multiple Replicas
 
 With 2 `falcon-7b-instruct` replicas, issue multiple concurrent **independent** requests (distinct messages, no shared prefix) and verify that:
 
 - `response._debug.destination_endpoint` varies across responses — both pods receive traffic.
 - No single pod's endpoint appears in 100% of responses under normal conditions.
 
-#### 2.4 Unknown Model Error Handling
+##### 2.4 Unknown Model Error Handling
 
 Request with an unrecognized model name (e.g., `"model": "unknown-model"`) must return a well-formed error response:
 
 - HTTP status `404`.
 - Response body conforms to the OpenAI error schema: `{"error": {"message": "...", "type": "invalid_request_error", "code": "model_not_found"}}`.
 
-#### 2.5 InferenceSet Scaling
+##### 2.5 InferenceSet Scaling
 
 Scale the `falcon-7b-instruct` `InferenceSet` from 2 to 3 replicas and verify:
 

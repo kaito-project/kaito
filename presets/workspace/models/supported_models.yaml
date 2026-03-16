@@ -3,8 +3,10 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.2.2
+    tag: 0.2.4
     # Tag history:
+    # 0.2.4 - fix CVEs in kaito-base image
+    # 0.2.3 - add benchmark exec startup probe support
     # 0.2.2 - bump vllm to 0.14.1
     # 0.2.1 - fix adapter loading logs
     # 0.2.0 - switch transformers runtime to OpenAI-compatible serve engine (transformers[serving])

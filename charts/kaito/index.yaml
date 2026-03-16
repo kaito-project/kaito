@@ -287,6 +287,48 @@ entries:
           url: https://github.com/kaito-project/kaito/tree/main/examples
       artifacthub.io/prerelease: "false"
     apiVersion: v2
+    appVersion: 0.9.2
+    created: "2026-03-16T11:14:33.894540726Z"
+    dependencies:
+    - condition: featureGates.gatewayAPIInferenceExtension
+      name: flux2
+      repository: https://fluxcd-community.github.io/helm-charts
+      version: 2.16.3
+    - condition: featureGates.disableNodeAutoProvisioning
+      name: gpu-feature-discovery
+      repository: https://nvidia.github.io/k8s-device-plugin
+      version: 0.17.4
+    - condition: localCSIDriver.useLocalCSIDriver
+      name: local-csi-driver
+      repository: oci://localcsidriver.azurecr.io/acstor/charts
+      version: 0.2.9
+    description: A Helm chart to install AI Toolchain Operator Workspace
+    digest: 90a107072553a6df9726755f55bbefac16230cdad090d8b610311db4c1d84e5e
+    home: https://github.com/kaito-project/kaito
+    maintainers:
+    - email: vrgf2003@gmail.com
+      name: Fei-Guo
+    - email: zhuangqhc@gmail.com
+      name: zhuangqh
+    - email: chwong719@gmail.com
+      name: chewong
+    name: workspace
+    sources:
+    - https://github.com/kaito-project/kaito
+    type: application
+    urls:
+    - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.9.2.tgz
+    version: 0.9.2
+  - annotations:
+      artifacthub.io/category: ai-machine-learning
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Documentation
+          url: https://kaito-project.github.io/kaito/docs/
+        - name: Examples
+          url: https://github.com/kaito-project/kaito/tree/main/examples
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
     appVersion: 0.9.1
     created: "2026-03-10T20:41:57.860913188Z"
     dependencies:
@@ -989,4 +1031,4 @@ entries:
     urls:
     - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.1.0.tgz
     version: 0.1.0
-generated: "2026-03-10T21:09:33.844636517Z"
+generated: "2026-03-16T11:14:33.88678868Z"

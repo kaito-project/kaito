@@ -21,7 +21,7 @@ This proposal describes the end-to-end (E2E) test plan for validating KAITO's in
 
 The test plan is divided into two parts:
 
-- **Part 1**: Build the complete test environment, including a Kind cluster, KAITO components, GPU node mocker, Istio Gateway, BBR, and model inference instances.
+- **Part 1**: Build the complete test environment, including an AKS cluster, KAITO components, GPU node mocker, Istio Gateway, BBR, and model inference instances.
 - **Part 2**: Execute test cases against the deployed environment to validate correct end-to-end behavior.
 
 ## Motivation
@@ -31,13 +31,13 @@ GWIE integration is a key capability for making KAITO clusters conformant with t
 - Validates the full request lifecycle: client → Gateway → BBR (model name extraction) → EPP (pod selection) → inference pod → response.
 - Exercises multi-model routing (multiple `InferenceSet` / `InferencePool` instances co-existing on the same Gateway).
 - Confirms that KAITO-managed `InferencePool` resources report the expected Kubernetes conditions (e.g., `Accepted=True`).
-- Can run in CI without real GPU hardware by using a lightweight GPU-node mocker instead of an actual GPU provisioner.
+- Can run without real GPU hardware by using a lightweight GPU-node mocker instead of an actual GPU provisioner, while still running on a real AKS cluster to exercise the full network stack.
 
 Related issues: the inference-aware routing layer proposal [20250715-inference-aware-routing-layer.md](20250715-inference-aware-routing-layer.md) covers the feature design; this proposal covers its E2E validation.
 
 ### Goals
 
-- Define a fully automated, reproducible test environment that can run in CI using Kind (no real GPU nodes required).
+- Define a fully automated, reproducible test environment using AKS (no real GPU nodes required).
 - Validate that KAITO's `InferenceSet` controller correctly creates `InferencePool` resources and that the `Accepted` condition becomes `True`.
 - Validate that the Gateway correctly routes requests to the intended model backend via BBR + EPP.
 - Validate correct handling of unknown-model requests (e.g., proper 4xx error response).
@@ -45,7 +45,7 @@ Related issues: the inference-aware routing layer proposal [20250715-inference-a
 
 ### Non-Goals/Future Work
 
-- Testing with real GPU hardware or cloud-provider GPU nodes (that is covered by the existing cloud E2E pipeline).
+- Testing with real GPU hardware (the GPU node mocker handles GPU-less validation; real GPU testing is covered by the existing cloud E2E pipeline).
 - Performance or load testing of the inference models themselves.
 - Testing Gateway implementations other than Istio (e.g., kgateway) — that can be added later.
 - Performance or stress testing of the EPP prefix-cache scoring algorithm itself.
@@ -58,23 +58,29 @@ The test plan is organized into two sequential parts. Part 1 builds the environm
 
 #### 1.1 Kubernetes Cluster, KAITO, and GPU Node Mocker
 
-**Kind Cluster**
+**AKS Cluster**
 
-Create a Kind cluster with 2 initial worker nodes. These nodes are used for system add-ons (KAITO controllers, Istio, BBR, etc.) and do not need GPU labels. The cluster must support enough resources for all add-on pods.
+Create an AKS cluster with 2 worker nodes. These nodes host system add-ons (KAITO controllers, Istio, BBR, GPU node mocker, shadow pods, etc.) and do not require GPU SKUs.
 
-```yaml
-# kind-cluster.yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-- role: worker
-- role: worker
+```bash
+az group create --name kaito-gwie-e2e --location eastus
+
+az aks create \
+  --resource-group kaito-gwie-e2e \
+  --name kaito-gwie-e2e \
+  --node-count 2 \
+  --node-vm-size Standard_D4s_v3 \
+  --enable-managed-identity \
+  --generate-ssh-keys
+
+az aks get-credentials \
+  --resource-group kaito-gwie-e2e \
+  --name kaito-gwie-e2e
 ```
 
 **KAITO Workspace Component**
 
-Install KAITO workspace controller at version **v0.9.1** with the following feature gates enabled:
+Install KAITO workspace controller manually at version **v0.9.1** with the following feature gates enabled. The `gpu-provisioner` is **not** installed — its role (responding to `NodeClaim` resources) is taken over entirely by the GPU node mocker described below.
 
 | Feature Gate | Value | Purpose |
 |---|---|---|
@@ -92,37 +98,69 @@ helm install kaito kaito/workspace \
 
 **GPU Node Mocker**
 
-The GPU node mocker is a new test-only component that eliminates the need for real GPU hardware in E2E tests. It watches `NodeClaim` resources (produced by the KAITO workspace controller when it needs to provision GPU nodes) and, instead of calling a cloud provider API, directly adds a new Kind worker node to the cluster with the required labels and taints.
+The GPU node mocker is a new test-only component deployed inside the AKS cluster. It replaces `gpu-provisioner` by intercepting `NodeClaim` resources and simulating successful GPU node provisioning — without launching any real VM or GPU node.
+
+The mocker uses a **two-phase** design to make both `ResourceReady` and `InferenceReady` conditions on the KAITO `Workspace`/`InferenceSet` reach `True`:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Kind Cluster                          │
-│                                                          │
-│  ┌─────────────────┐      NodeClaim      ┌────────────┐ │
-│  │  KAITO Workspace│ ──────────────────► │  GPU Node  │ │
-│  │  Controller     │                     │  Mocker    │ │
-│  └─────────────────┘                     └─────┬──────┘ │
-│                                                │        │
-│                                  kind node add │        │
-│                                                ▼        │
-│                                   ┌────────────────────┐│
-│                                   │ New Kind Worker     ││
-│                                   │ labels:             ││
-│                                   │  kaito.sh/workspace ││
-│                                   │    : <name>         ││
-│                                   └────────────────────┘│
-└─────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│                          AKS Cluster                                    │
+│                                                                        │
+│  ┌──────────────────┐  NodeClaim  ┌──────────────────────────────────┐ │
+│  │  KAITO Workspace │ ──────────► │         GPU Node Mocker          │ │
+│  │  Controller      │             │                                  │ │
+│  └──────────────────┘             │  Phase 1: Fake Node              │ │
+│          │                        │  • Create Node resource          │ │
+│          │                        │  • Add workspace labels          │ │
+│          │                        │  • Goroutine: renew Lease /10 s  │ │
+│          │  create pod            │    → Node stays Ready            │ │
+│          ▼                        └────────────────┬─────────────────┘ │
+│  ┌───────────────────┐                             │                   │
+│  │   Pending Pod     │ ◄── Phase 2: detect ────────┘                   │
+│  │  (on fake node)   │     Pending pod                                 │
+│  └───────────────────┘                                                 │
+│          │                        ┌──────────────────────────────────┐ │
+│          │                        │         Shadow Pod               │ │
+│          │                        │  • Scheduled on real AKS node    │ │
+│          │                        │  • Runs LLM Mocker container     │ │
+│          │    patch podIP=        │  • Gets real CNI IP from AKS     │ │
+│          └──── shadow pod IP ─────┤  • Exposes /v1/chat/completions  │ │
+│               patch status=Ready  │    and /metrics                  │ │
+│                                   └──────────────────────────────────┘ │
+│                                                                        │
+│  Gateway ──► routes to patched pod IP ──► hits Shadow Pod (LLM Mocker) │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
-Key behaviors of the GPU node mocker:
+**Phase 1 — Fake Node (makes `ResourceReady=True`)**
 
-- **Trigger**: Watches `NodeClaim` resources in all namespaces. When a new `NodeClaim` appears, the mocker creates a Kind worker node and updates the `NodeClaim` status to simulate successful provisioning.
-- **Labels**: The newly created Kind worker node carries the label `kaito.sh/workspace: <workspace-name>` derived from the `NodeClaim`'s owner reference or annotations, so that the KAITO workspace controller can select it.
-- **No real GPU**: The node has no GPU device plugin. Test inference pods run the **LLM Mocker** image (described below) instead of a real vLLM process.
+When the mocker detects a new `NodeClaim`:
+
+1. Creates a `Node` resource with a non-cloud-parseable `spec.providerID` (e.g. `fake://<node-name>`) so the Azure Cloud Controller Manager skips deletion (CCM calls `InstanceExistsByProviderID`, receives a parse error, and skips the node rather than deleting it).
+2. Adds the label `node.kubernetes.io/exclude-from-external-load-balancers: "true"` to avoid CCM LB reconciliation errors.
+3. Patches the node's `status.conditions` to `Ready=True` and sets `status.allocatable` / `status.capacity`.
+4. Creates a `Lease` in `kube-node-lease` for this node.
+5. Starts a background goroutine that renews the `Lease.spec.renewTime` every 10 seconds, keeping the node-lifecycle-controller from marking the node `Unknown`.
+6. Adds the workspace-specific label (`kaito.sh/workspace: <name>`) and any other labels required by the `InferenceSet`'s `labelSelector`, so the KAITO workspace controller flips `ResourceReady=True`.
+
+**Phase 2 — Shadow Pod (makes `InferenceReady=True`)**
+
+When KAITO creates a pod and binds it (`spec.nodeName`) to the fake node, the pod stays `Pending` indefinitely — there is no kubelet. The mocker:
+
+1. Detects the `Pending` pod assigned to the fake node.
+2. Creates a **shadow pod** on a real AKS worker node. The shadow pod runs the LLM Mocker container (see below) and is assigned a real CNI IP by AKS.
+3. Waits for the shadow pod to reach `Running` and records its `status.podIP`.
+4. Patches the original pending pod's `status` via `--subresource=status`:
+   - `status.phase = Running`
+   - `status.podIP` / `status.podIPs` = shadow pod's IP
+   - `status.conditions[Ready] = True`
+   - `status.containerStatuses[*].ready = true`
+
+From KAITO's perspective the pending pod is now `Running/Ready`, so `InferenceReady` flips to `True`. From the Gateway/EPP's perspective, the pod IP it receives is the shadow pod's real IP — meaning inference traffic is actually served by the LLM Mocker.
 
 **LLM Mocker**
 
-The LLM mocker is a new lightweight HTTP server image (`kaito/llm-mocker`) that simulates a vLLM-compatible OpenAI inference endpoint. It is used in place of a real LLM on the Kind worker nodes, making the E2E tests self-contained and GPU-free.
+The LLM mocker is a new lightweight HTTP server image (`kaito/llm-mocker`) that simulates a vLLM-compatible OpenAI inference endpoint. It runs inside **shadow pods** on real AKS worker nodes (scheduled by the GPU node mocker in Phase 2), making the E2E tests GPU-free while still exercising real AKS networking and the full Gateway → EPP routing path.
 
 Key features:
 
@@ -168,11 +206,11 @@ kubectl -n kaito-system get pods -l app=kaito-workspace
 # GPU node mocker is running
 kubectl -n kaito-system get pods -l app=gpunode-mocker
 
-# Kind cluster has the base worker nodes
+# AKS cluster nodes are ready
 kubectl get nodes
 ```
 
-All pods must reach `Running` state and all nodes must reach `Ready` state before proceeding.
+All pods must reach `Running` state and all AKS nodes must reach `Ready` state before proceeding.
 
 ---
 
@@ -510,24 +548,34 @@ Scale the `falcon-7b-instruct` `InferenceSet` from 2 to 3 replicas and verify:
 
 ## Alternatives
 
-### Using a Real Cloud Cluster for E2E Tests
+### Using a Kind Cluster Instead of AKS
 
-The simplest alternative is to run E2E tests against a real AKS or other cloud cluster with actual GPU nodes, relying on the existing `gpu-provisioner`. This approach provides the highest fidelity but introduces:
+A Kind cluster would avoid cloud costs entirely, but introduces its own problems:
 
-- **Cost**: GPU node provisioning is expensive and slow (10–20 minutes per node).
-- **Flakiness**: Cloud-provider quota limits and network issues can cause test failures unrelated to the code under test.
-- **CI constraints**: Requires cloud credentials and is unsuitable for open PR checks from external contributors.
+- **Azure CCM**: Kind has no Azure Cloud Controller Manager, so the fake node providerID trick is unnecessary — however this also means the test does not exercise real AKS CNI networking, load balancer integration, or node conditions as seen in production.
+- **Network fidelity**: Kind uses `kindnet` rather than Azure CNI. Shadow pod IPs are in a different CIDR and routing may differ from real deployments.
+- **Istio support**: Istio's Gateway pod requires LoadBalancer service support; Kind requires `MetalLB` or similar, adding complexity.
 
-The GPU node mocker approach proposed here decouples test correctness (routing, scheduling, condition reporting) from cloud infrastructure, making the tests fast, cheap, and safe to run on every PR.
+AKS is preferred because it provides a realistic network environment that matches production KAITO deployments with minimal extra setup.
+
+### Using Real GPU Nodes
+
+Running the full GWIE E2E against real GPU nodes provides the highest fidelity (real vLLM metrics, real KV-cache prefix scoring) but introduces:
+
+- **Cost**: GPU node provisioning is expensive (10–20 min per node, $$$).
+- **Quota limits**: Cloud GPU quota can cause flakiness unrelated to code changes.
+- **CI unsuitability**: Impractical for open PR checks from external contributors.
+
+The GPU node mocker + shadow pod approach decouples Gateway/routing correctness from GPU availability, making tests fast and cost-effective.
 
 ### Using Existing `preset_test.go` Infrastructure
 
-The existing `test/e2e/preset_test.go` tests validate Workspace-based inference against real cloud nodes. We could extend this file with GWIE-specific cases. However:
+The existing `test/e2e/preset_test.go` tests validate Workspace-based inference against real cloud GPU nodes. We could extend this file with GWIE-specific cases. However:
 
-- Those tests are gated behind cloud credentials.
+- Those tests require GPU nodes and real vLLM.
 - GWIE routing behavior (BBR, EPP, `InferencePool`) requires a Gateway, which is not part of the existing test infrastructure.
 
-A dedicated test file (e.g., `test/e2e/gateway_inference_test.go`) with its own environment setup is preferred to keep concerns separated and avoid polluting the existing workspace E2E flow.
+A dedicated test file (e.g., `test/e2e/gateway_inference_test.go`) with its own environment setup is preferred to keep concerns separated.
 
 ## Implementation History
 

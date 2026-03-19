@@ -13,7 +13,7 @@ fastembed>=0.4.0
 
 fastapi==0.115.9
 faiss-cpu==1.11.0
-llama-index-vector-stores-faiss==0.5.3
+llama-index-vector-stores-faiss==0.6.0
 llama-index-vector-stores-qdrant==0.9.1
 qdrant-client==1.16.2
 llama-index-vector-stores-chroma==0.5.5

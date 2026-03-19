@@ -3,8 +3,9 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.2.4
+    tag: 0.2.5
     # Tag history:
+    # 0.2.5 - remove uv after installation to fix CVEs in uv package
     # 0.2.4 - fix CVEs in kaito-base image
     # 0.2.3 - add benchmark exec startup probe support
     # 0.2.2 - bump vllm to 0.14.1

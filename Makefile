@@ -298,6 +298,8 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 		docker run --rm --privileged mcr.microsoft.com/mirror/docker/multiarch/qemu-user-static:$(QEMU_VERSION) --reset -p yes; \
 		docker buildx create --name $(BUILDX_BUILDER_NAME) --driver-opt image=mcr.microsoft.com/oss/v2/moby/buildkit:$(BUILDKIT_VERSION) --use; \
 		docker buildx inspect $(BUILDX_BUILDER_NAME) --bootstrap; \
+	else \
+		docker buildx use $(BUILDX_BUILDER_NAME); \
 	fi
 
 .PHONY: docker-build-workspace

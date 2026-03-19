@@ -133,7 +133,7 @@ runs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ inputs.ghcr_token }}
 
     - name: Check if Image exists in target registries
       id: check_test_image

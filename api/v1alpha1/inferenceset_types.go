@@ -57,6 +57,14 @@ type InferenceSetSpec struct {
 	UpdateStrategy appsv1.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty"`
 }
 
+// WorkspaceProfile holds aggregated performance characteristics across all workspace replicas.
+type WorkspaceProfile struct {
+	// TokensPerMinute is the total throughput (prompt + generated tokens per minute) summed
+	// across all ready replicas, captured by the post-load benchmark.
+	// +optional
+	TokensPerMinute string `json:"tokensPerMinute,omitempty"`
+}
+
 // InferenceSetStatus defines the observed state of InferenceSet
 type InferenceSetStatus struct {
 	// Replicas is the total number of workspaces created by the InferenceSet.
@@ -69,6 +77,9 @@ type InferenceSetStatus struct {
 	// Conditions report the current conditions of the InferenceSet.
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	// WorkspaceProfile holds aggregated performance characteristics across all workspace replicas.
+	// +optional
+	WorkspaceProfile *WorkspaceProfile `json:"workspaceProfile,omitempty"`
 }
 
 // InferenceSet is the Schema for the InferenceSet API

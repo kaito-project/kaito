@@ -193,6 +193,13 @@ const (
 	WorkspaceStateFailed    WorkspaceState = "Failed"
 )
 
+// BenchmarkResult holds the metrics captured by the post-load inference benchmark.
+type BenchmarkResult struct {
+	// TokensPerMinute is the total throughput in tokens per minute (input/prompt + output/generated
+	// tokens combined), aggregated across the benchmark run.
+	TokensPerMinute string `json:"tokensPerMinute"`
+}
+
 // WorkspaceStatus defines the observed state of Workspace
 type WorkspaceStatus struct {
 	// WorkerNodes is the list of nodes chosen to run the workload based on the workspace resource requirement.
@@ -210,6 +217,11 @@ type WorkspaceStatus struct {
 	// TargetNodeCount is used for recording the desired number of gpu nodes that needed for the workspace.
 	// This field remains immutable after being set by NodesEstimator.
 	TargetNodeCount int32 `json:"targetNodeCount,omitempty"`
+
+	// BenchmarkResult holds the metrics from the post-load inference benchmark.
+	// Only populated when the kaito.sh/run-benchmark annotation is "true".
+	// +optional
+	BenchmarkResult *BenchmarkResult `json:"benchmarkResult,omitempty"`
 }
 
 // Workspace is the Schema for the workspaces API

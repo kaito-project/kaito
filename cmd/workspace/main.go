@@ -54,6 +54,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
+	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -175,11 +176,18 @@ func main() {
 	k8sclient.SetGlobalClient(mgr.GetClient())
 	kClient := k8sclient.GetGlobalClient()
 
+	kubeClient, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		klog.ErrorS(err, "unable to create kubernetes client")
+		exitWithErrorFunc()
+	}
+
 	workspaceReconciler := controllers.NewWorkspaceReconciler(
 		kClient,
 		mgr.GetScheme(),
 		log.Log.WithName("controllers").WithName("Workspace"),
 		mgr.GetEventRecorderFor("KAITO-Workspace-controller"),
+		kubeClient,
 	)
 	workspaceReconciler.SetDefaultNodeImageFamily(defaultNodeImageFamily)
 

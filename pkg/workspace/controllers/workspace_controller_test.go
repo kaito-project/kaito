@@ -1157,7 +1157,7 @@ func TestBuildReconcileErrMessageAppender(t *testing.T) {
 func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 	t.Run("ready when inference and resource are ready", func(t *testing.T) {
 		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
-		applyInferenceWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue)
+		applyInferenceWorkspaceStatus(context.Background(), nil, status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue)
 
 		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
 		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
@@ -1171,12 +1171,68 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 
 	t.Run("not ready after established", func(t *testing.T) {
 		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateReady}
-		applyInferenceWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue)
+		applyInferenceWorkspaceStatus(context.Background(), nil, status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue)
 
 		assert.Equal(t, v1beta1.WorkspaceStateNotReady, status.State)
 		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
 		assert.NotNil(t, inferenceCondition)
 		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
+	})
+
+	t.Run("not-ready path clears benchmark condition and result when annotation is set", func(t *testing.T) {
+		wObj := &v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{
+				Annotations: map[string]string{v1beta1.AnnotationRunBenchmark: "true"},
+			},
+		}
+		// Pre-populate status as if a previous reconcile completed the benchmark.
+		status := &v1beta1.WorkspaceStatus{
+			State:           v1beta1.WorkspaceStateReady,
+			BenchmarkResult: &v1beta1.BenchmarkResult{TokensPerMinute: "12345"},
+			Conditions: []v1.Condition{
+				{
+					Type:   string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
+					Status: v1.ConditionTrue,
+					Reason: "BenchmarkCompleted",
+				},
+			},
+		}
+
+		// kubeClient is nil — applyBenchmarkStatus must not be called on the not-ready path.
+		applyInferenceWorkspaceStatus(context.Background(), nil, status, wObj, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue)
+
+		assert.Nil(t, status.BenchmarkResult, "BenchmarkResult should be cleared on not-ready")
+		benchmarkCond := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+		assert.Nil(t, benchmarkCond, "BenchmarkCompleted condition should be removed on not-ready")
+	})
+
+	t.Run("benchmark guard skips StreamLogs when BenchmarkCompleted is already True", func(t *testing.T) {
+		wObj := &v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{
+				Name:        "ws",
+				Namespace:   "default",
+				Annotations: map[string]string{v1beta1.AnnotationRunBenchmark: "true"},
+			},
+		}
+		status := &v1beta1.WorkspaceStatus{
+			State:           v1beta1.WorkspaceStateReady,
+			BenchmarkResult: &v1beta1.BenchmarkResult{TokensPerMinute: "12345"},
+			Conditions: []v1.Condition{
+				{
+					Type:   string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
+					Status: v1.ConditionTrue,
+					Reason: "BenchmarkCompleted",
+				},
+			},
+		}
+
+		// Pass nil kubeClient: if the guard fails and StreamLogs is attempted, this will panic.
+		applyBenchmarkStatus(context.Background(), nil, status, wObj, 1, buildReconcileErrMessageAppender(nil))
+
+		// Result and condition must be unchanged — the guard must have fired.
+		assert.Equal(t, "12345", status.BenchmarkResult.TokensPerMinute)
+		benchmarkCond := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+		assert.Equal(t, v1.ConditionTrue, benchmarkCond.Status)
 	})
 }
 

@@ -441,7 +441,7 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			workspaces: []v1beta1.Workspace{
 				makeWorkspace("ws-0", "100000"),
 			},
-			inferenceset:        makeInferenceSet(1, false),
+			inferenceset: makeInferenceSet(1, false),
 			// TPM is aggregated regardless, but not written to status without the annotation.
 			// We verify only that the annotation gate works, not the aggregation itself.
 			expectedTPM:         "100000",

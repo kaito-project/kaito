@@ -29,6 +29,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
@@ -54,7 +55,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
-	"k8s.io/client-go/kubernetes"
 )
 
 const (

@@ -165,6 +165,57 @@ jobs:
           EOF
           kubectl wait --for=condition=available deploy/qdrant -n qdrant --timeout=300s
 
+      - name: Deploy Milvus vector database for E2E tests
+        shell: bash
+        run: |
+          kubectl create namespace milvus || true
+          cat <<'EOF' | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: milvus
+            namespace: milvus
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: milvus
+            template:
+              metadata:
+                labels:
+                  app: milvus
+              spec:
+                containers:
+                - name: milvus
+                  image: milvusdb/milvus:v2.4.17
+                  command: ["milvus", "run", "standalone"]
+                  ports:
+                  - containerPort: 19530
+                  - containerPort: 9091
+                  env:
+                  - name: ETCD_USE_EMBED
+                    value: "true"
+                  - name: COMMON_STORAGETYPE
+                    value: "local"
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: milvus
+            namespace: milvus
+          spec:
+            selector:
+              app: milvus
+            ports:
+            - name: grpc
+              port: 19530
+              targetPort: 19530
+            - name: http
+              port: 9091
+              targetPort: 9091
+          EOF
+          kubectl wait --for=condition=available deploy/milvus -n milvus --timeout=300s
+
       - name: Create node pool for RAG workloads
         uses: azure/CLI@v2.2.0
         with:

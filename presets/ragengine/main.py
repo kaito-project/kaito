@@ -151,10 +151,18 @@ elif VECTOR_DB_TYPE.lower() == "qdrant":
         vector_db_url=VECTOR_DB_URL,
         vector_db_access_secret=VECTOR_DB_ACCESS_SECRET,
     )
+elif VECTOR_DB_TYPE.lower() == "milvus":
+    from vector_store.milvus_store import MilvusVectorStoreHandler
+
+    vector_store_handler = MilvusVectorStoreHandler(
+        embedding_manager,
+        vector_db_url=VECTOR_DB_URL,
+        vector_db_access_secret=VECTOR_DB_ACCESS_SECRET,
+    )
 else:
     raise ValueError(
         f"Unsupported VECTOR_DB_TYPE: '{VECTOR_DB_TYPE}'. "
-        "Supported values: 'faiss', 'qdrant'"
+        "Supported values: 'faiss', 'qdrant', 'milvus'"
     )
 
 # Initialize RAG operations

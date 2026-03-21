@@ -589,11 +589,11 @@ This section surveys the Endpoint Picker (EPP) / inference routing implementatio
 | **KV-cache aware routing** | ✅ Built-in `prefix-cache-scorer` estimates overlap from scheduling history; pluggable framework supports custom scorers | ✅ Advanced; adds `precise-prefix-cache-scorer` with real-time KV-cache tracking via event subscriptions from vLLM, speculative indexing, and `NoHitLRUScorer` for cold requests | ✅ Advanced; Dynamo EPP embeds Dynamo's Rust-based Router library (linked as a static library via CGo) which runs the model's tokenizer inline for token-aware block hash computation; subscribes to real-time per-worker KV-cache events via NATS/ZMQ event plane and builds a KVIndexer (RadixTree) for prefix-overlap scoring; configurable `overlap_score_weight` and `router_temperature` for balancing cache reuse vs load distribution | ✅ Prefix-aware load balancing (PrefixHash / CHWBL); published paper showing dramatic TTFT improvements at scale | ✅ KV-cache aware routing as a pluggable load-balancing strategy; claims model-load-aware and KV-cache aware strategies | 🚧 WIP; roadmap includes prefix-aware routing; currently supports round-robin and session-ID-based routing only |
 | **Envoy ext_proc support** | ✅ Core mechanism; EPP runs as an Envoy ext_proc filter that intercepts requests and injects endpoint selection headers | ✅ Same as GAIE; inherits ext_proc integration from upstream EPP | ✅ Same as GAIE; Dynamo EPP inherits ext_proc integration from upstream EPP | ❌ Does not use ext_proc; built-in Go proxy handles routing directly without Envoy | ❌ Does not use ext_proc; Kthena router is a standalone HTTP reverse-proxy that routes requests directly to inference backends | ❌ Does not use ext_proc; Python-based router acts as a standalone HTTP proxy |
 | **Extended from GAIE EPP** | — (is the upstream) | ✅ Directly extends GAIE EPP with custom scheduler plugins (filters, scorers, scrapers); imports `pkg/epp` from GAIE as a Go dependency | ✅ Directly extends GAIE EPP with a custom scorer plugin; imports `pkg/epp` from GAIE as a Go dependency | ❌ Independent implementation; no GAIE dependency | ❌ Independent implementation; Kthena router is its own component that optionally consumes GAIE CRDs but does not extend the GAIE EPP codebase | ❌ Independent implementation; Python-based router with no GAIE dependency |
-| **External dependencies** | Requires an ext-proc-capable Gateway (Envoy Gateway, Istio, GKE Gateway, kgateway) and optionally BBR for body-based routing | Same as GAIE (ext-proc gateway + optional BBR); additionally depends on `llm-d-kv-cache` library for precise prefix cache scoring and vLLM KV event publishing; P/D mode additionally requires `llm-d-routing-sidecar` on decode worker pods for prefill/decode orchestration | Same as GAIE (ext-proc gateway + optional BBR); additionally requires Dynamo FrontEnd sidecar on each worker pod (running `--router-mode direct`) to translate `x-worker-instance-id` headers into actual worker routing, and NATS/ZMQ event plane for the scorer plugin to subscribe to per-worker KV-cache events | Minimal; zero external dependencies (no Istio, Knative, Prometheus adapter); self-contained operator + proxy | Moderate; depends on Volcano scheduler for gang scheduling and topology-aware placement; router is self-contained but benefits from Volcano integration | Minimal; depends only on Kubernetes API for service discovery; optional Prometheus + Grafana for monitoring |
+| **External dependencies** | Requires an ext-proc-capable Gateway (Envoy Gateway, Istio, Azure App Routing) and optionally BBR for body-based routing | Same as GAIE (ext-proc gateway + optional BBR); additionally depends on `llm-d-kv-cache` library for precise prefix cache scoring and vLLM KV event publishing; P/D mode additionally requires `llm-d-routing-sidecar` on decode worker pods for prefill/decode orchestration | Same as GAIE (ext-proc gateway + optional BBR); additionally requires Dynamo FrontEnd sidecar on each worker pod (running `--router-mode direct`) to translate `x-worker-instance-id` headers into actual worker routing, and NATS/ZMQ event plane for the scorer plugin to subscribe to per-worker KV-cache events | Minimal; zero external dependencies (no Istio, Knative, Prometheus adapter); self-contained operator + proxy | Moderate; depends on Volcano scheduler for gang scheduling and topology-aware placement; router is self-contained but benefits from Volcano integration | Minimal; depends only on Kubernetes API for service discovery; optional Prometheus + Grafana for monitoring |
 | **Production readiness** | ✅ GA (v1.3.1); used in production by multiple organizations; 148+ contributors, 600+ stars | ✅ Production-ready (v0.6.0); used as the inference scheduler for the llm-d platform; 63+ contributors | ✅ Production-ready (v1.0.1); backed by NVIDIA with production deployments at scale (Baseten, Moonshot AI, Mistral AI, etc.); 6.3k+ stars | ✅ Production-ready (v0.23.1); adopted by Google Cloud, Lambda, Vultr, Telescope, Arcee, Seeweb; 1.2k+ stars | 🚧 Early stage (v0.3.0); active development with 265+ stars; routing features under iteration; Gateway API integration partially in draft PRs | ✅ Production-ready (v0.1.10); backed by vLLM project; 2.2k+ stars; used in production deployments on multiple clouds |
 | **Disaggregated Prefill/Decode (P/D)** | 🚧 Roadmap item; architecture supports it but no built-in P/D profiles | ✅ First-class support; EPP uses `PdProfileHandler`, `PrefillFilter`, `DecodeFilter` to select separate prefill and decode pods; requires a routing sidecar (`llm-d-routing-sidecar`) on each **decode** worker pod — the sidecar reads `x-prefiller-host-port` header injected by EPP, forwards prefill to the selected prefill pod, then runs decode locally; prefill pods do not need a sidecar | 🚧 Dynamo EPP itself does not add P/D scheduling profiles; disaggregated P/D is handled by Dynamo's native Router outside the GAIE EPP path | ❌ Not supported | ✅ Supports xPyD disaggregated prefill/decode patterns with PD-group-aware routing | 🚧 Proposal stage; disaggregated prefill routing proposed but not yet shipped |
 | **Multi-model routing** | ✅ Multiple `InferencePool`/`InferenceModel` per Gateway with HTTPRoute header-based matching | ✅ Multiple `InferencePool` instances supported; each EPP handles one pool | ✅ Same as GAIE; multiple `InferencePool` instances supported via standard HTTPRoute header-based matching | ✅ Built-in multi-model proxy; routes by model name in request | ✅ ModelRoute CRDs and HTTPRoute header-based matching for multi-model routing | ✅ Routes to different model backends by model name |
-| **Gateway implementation support** | Envoy Gateway, Istio, GKE Gateway, kgateway | Same as GAIE | Same as GAIE | N/A (self-contained proxy, no external gateway required) | Any Gateway API-compatible gateway; router also works standalone behind any API gateway | N/A (self-contained router, no external gateway required) |
+| **Gateway implementation support** | Envoy Gateway, Istio, Azure App Routing | Same as GAIE | Same as GAIE | N/A (self-contained proxy, no external gateway required) | Any Gateway API-compatible gateway; router also works standalone behind any API gateway | N/A (self-contained router, no external gateway required) |
 | **Scheduling extensibility** | ✅ Pluggable framework with ProfileHandler, Filters, Scorers, Pickers; configuration via `SchedulerConfig` profiles | ✅ Highly extensible; inherits GAIE plugin framework and adds custom filter/scorer types (ByLabel, SessionAffinity, ActiveRequestScorer) | ✅ Inherits GAIE plugin framework; adds a Dynamo-specific scorer plugin for KV-cache-aware scoring | Limited; PrefixHash is the primary algorithm; no pluggable scorer framework | Pluggable load-balancing algorithms; supports custom strategies; architecture designed for extensibility | Limited; round-robin and session-ID are the only built-in algorithms; prefix-aware is WIP |
 | **Implementation language** | Go | Go | Go (EPP plugin); depends on Dynamo Router in Rust for KV-cache state | Go | Go (router) + Python (utilities) | Python |
 
@@ -601,15 +601,124 @@ This section surveys the Endpoint Picker (EPP) / inference routing implementatio
 
 **1. Gateway API Inference Extension (GAIE) — upstream reference EPP**
 
-GAIE is the Kubernetes-native standard for inference-aware routing. It defines the `InferencePool` and `InferenceModel` CRDs and provides the reference EPP implementation. The EPP operates as an Envoy `ext_proc` filter, selecting backend pods via a pluggable scheduling framework (ProfileHandler → Filter → Scorer → Picker). The built-in `prefix-cache-scorer` estimates KV-cache overlap from scheduling history — it hashes raw prompt text without tokenization and tracks assignments in a local LRU per server. GAIE is GA (v1.3.1), supports multiple Gateway implementations (Envoy Gateway, Istio, GKE Gateway, kgateway), and has the broadest ecosystem support with 148+ contributors and 600+ stars.
+GAIE is the Kubernetes-native standard for inference-aware routing. It defines the `InferencePool` and `InferenceModel` CRDs and provides the reference EPP implementation. The EPP operates as an Envoy `ext_proc` filter, selecting backend pods via a pluggable scheduling framework (ProfileHandler → Filter → Scorer → Picker). The built-in `prefix-cache-scorer` estimates KV-cache overlap from scheduling history — it hashes raw prompt text without tokenization and tracks assignments in a local LRU per server. GAIE is GA (v1.3.1), supports multiple Gateway implementations (Envoy Gateway, Istio, Azure App Routing), and has the broadest ecosystem support with 148+ contributors and 600+ stars.
 
 **2. llm-d Inference Scheduler — GAIE-extended with advanced KV-cache scoring and P/D**
 
 llm-d directly extends the GAIE EPP codebase (imports `pkg/epp` as a Go module dependency) and adds advanced scheduling plugins. Its `precise-prefix-cache-scorer` subscribes to real-time KV-cache events from vLLM via `llm-d-kv-cache`, uses a HuggingFace tokenizer to compute accurate block hashes, and tracks actual per-pod KV block states — a significant upgrade over GAIE's estimation-based approach. llm-d also supports speculative indexing and `NoHitLRUScorer` for cold-request distribution. For disaggregated P/D, `PdProfileHandler` selects separate prefill and decode pods via label-based filtering (`PrefillFilter`, `DecodeFilter`), with a routing sidecar (`llm-d-routing-sidecar`) required on each decode worker pod to orchestrate the prefill→decode handoff via `x-prefiller-host-port` headers. Prefill pods do not need a sidecar.
 
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                    llm-d Inference Scheduler Architecture                          │
+│                                                                                   │
+│  ┌──────────┐  POST /v1/chat  ┌───────────┐  ext_proc  ┌───────────────────────┐ │
+│  │  Client  │ ──────────────► │  Gateway   │ ─────────► │        BBR            │ │
+│  └──────────┘                 │ (Envoy)    │            │  (extracts model,     │ │
+│                               └─────┬──────┘            │   injects X-Gateway-  │ │
+│                                     │                   │   Model-Name)         │ │
+│                            HTTPRoute│matching           └───────────────────────┘ │
+│                                     ▼                                             │
+│                            ┌─────────────────┐  ext_proc  ┌────────────────────┐ │
+│                            │  InferencePool  │ ──────────► │  llm-d EPP         │ │
+│                            └────────┬────────┘             │  (extends GAIE)    │ │
+│                                     │                      │                    │ │
+│                                     │                      │  Plugins:          │ │
+│                                     │                      │  • PrefillFilter   │ │
+│                                     │                      │  • DecodeFilter    │ │
+│                                     │                      │  • PrecisePrefix   │ │
+│                                     │                      │    CacheScorer     │ │
+│                                     │                      │  • PdProfileHandler│ │
+│                                     │                      │  • NoHitLRUScorer  │ │
+│  ┌──────────────────────────────┐   │                      └──────┬─────────────┘ │
+│  │       llm-d-kv-cache         │   │                             │               │
+│  │  (KV event subscription      │◄──┼─ KV events from vLLM ──────┘               │
+│  │   + tokenizer + block hash)  │   │                                             │
+│  └──────────────────────────────┘   │                                             │
+│                                     │  Sets headers:                              │
+│                                     │  • X-Gateway-Destination-Endpoint (pod IP)  │
+│                                     │  • x-prefiller-host-port (P/D mode)         │
+│                                     ▼                                             │
+│        ┌──────────────────────────────────────────────────────┐                   │
+│        │            Decode Worker Pod                          │                   │
+│        │  ┌─────────────────────────┐  ┌───────────────────┐  │                   │
+│        │  │  llm-d-routing-sidecar  │  │    vLLM Engine     │  │                   │
+│        │  │  (reads x-prefiller-    │─►│    (decode)        │  │                   │
+│        │  │   host-port header,     │  │                    │  │                   │
+│        │  │   orchestrates P/D)     │  │  publishes KV      │  │                   │
+│        │  └────────┬────────────────┘  │  events to EPP     │  │                   │
+│        │           │ forwards prefill  └───────────────────┘  │                   │
+│        └───────────┼──────────────────────────────────────────┘                   │
+│                    ▼                                                               │
+│        ┌──────────────────────────────────────────────────────┐                   │
+│        │            Prefill Worker Pod                         │                   │
+│        │  ┌───────────────────┐                                │                   │
+│        │  │    vLLM Engine     │  (no sidecar needed)          │                   │
+│        │  │    (prefill)       │                                │                   │
+│        │  │  publishes KV      │                                │                   │
+│        │  │  events to EPP     │                                │                   │
+│        │  └───────────────────┘                                │                   │
+│        └──────────────────────────────────────────────────────┘                   │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
 **3. NVIDIA Dynamo EPP — GAIE-extended with token-aware Rust-based KV-cache scoring**
 
 Dynamo's EPP component directly extends the GAIE EPP codebase (imports `pkg/epp` as a Go module dependency) and embeds Dynamo's Rust-based Router library (linked as a static library via CGo) for token-aware KV-cache scoring. Unlike the standard GAIE EPP which sets `X-Gateway-Destination-Endpoint` to a pod IP directly, Dynamo's EPP scorer selects workers by `worker-instance-id` and injects `x-worker-instance-id` / `x-prefill-instance-id` custom headers. Each worker pod must run a Dynamo FrontEnd sidecar (`--router-mode direct`) that reads these headers and forwards the request to the correct worker. The EPP subscribes to per-worker KV-cache events via NATS/ZMQ event plane and builds a KVIndexer (RadixTree) for prefix-overlap scoring, with configurable `overlap_score_weight` and `router_temperature`. Disaggregated P/D scheduling is not handled within the EPP itself — that capability lives in Dynamo's native Router path.
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                    NVIDIA Dynamo EPP Architecture                                  │
+│                                                                                   │
+│  ┌──────────┐  POST /v1/chat  ┌───────────┐  ext_proc  ┌───────────────────────┐ │
+│  │  Client  │ ──────────────► │  Gateway   │ ─────────► │        BBR            │ │
+│  └──────────┘                 │ (Envoy)    │            │  (extracts model,     │ │
+│                               └─────┬──────┘            │   injects X-Gateway-  │ │
+│                                     │                   │   Model-Name)         │ │
+│                            HTTPRoute│matching           └───────────────────────┘ │
+│                                     ▼                                             │
+│                            ┌─────────────────┐  ext_proc  ┌────────────────────┐ │
+│                            │  InferencePool  │ ──────────► │  Dynamo EPP        │ │
+│                            └────────┬────────┘             │  (extends GAIE)    │ │
+│                                     │                      │                    │ │
+│                                     │                      │  Embeds:           │ │
+│                                     │                      │  • Dynamo Router   │ │
+│                                     │                      │    (Rust, via CGo) │ │
+│                                     │                      │  • KVIndexer       │ │
+│                                     │                      │    (RadixTree)     │ │
+│                                     │                      │  • Tokenizer       │ │
+│                                     │                      │    (inline)        │ │
+│  ┌──────────────────────────────┐   │                      └──────┬─────────────┘ │
+│  │    NATS / ZMQ Event Plane    │   │                             │               │
+│  │  (KV-cache event transport)  │◄──┼─ KV events from workers ───┘               │
+│  └──────────────────────────────┘   │                                             │
+│                                     │  Sets headers:                              │
+│                                     │  • X-Gateway-Destination-Endpoint (pod IP)  │
+│                                     │  • x-worker-instance-id (worker selection)  │
+│                                     │  • x-prefill-instance-id (P/D mode)         │
+│                                     ▼                                             │
+│        ┌──────────────────────────────────────────────────────┐                   │
+│        │              Worker Pod (decode or aggregated)        │                   │
+│        │  ┌─────────────────────────┐  ┌───────────────────┐  │                   │
+│        │  │  Dynamo FrontEnd        │  │  vLLM/SGLang/     │  │                   │
+│        │  │  Sidecar                │─►│  TRT-LLM Engine   │  │                   │
+│        │  │  (--router-mode direct) │  │                    │  │                   │
+│        │  │                         │  │  publishes KV      │  │                   │
+│        │  │  reads x-worker-        │  │  events via        │  │                   │
+│        │  │  instance-id header,    │  │  NATS/ZMQ          │  │                   │
+│        │  │  forwards to worker     │  │                    │  │                   │
+│        │  └─────────────────────────┘  └───────────────────┘  │                   │
+│        └──────────────────────────────────────────────────────┘                   │
+│                                                                                   │
+│        ┌──────────────────────────────────────────────────────┐                   │
+│        │              Worker Pod (prefill, P/D mode)           │                   │
+│        │  ┌─────────────────────────┐  ┌───────────────────┐  │                   │
+│        │  │  Dynamo FrontEnd        │  │  vLLM/SGLang/     │  │                   │
+│        │  │  Sidecar                │─►│  TRT-LLM Engine   │  │                   │
+│        │  │  (--router-mode direct) │  │  (prefill)        │  │                   │
+│        │  └─────────────────────────┘  └───────────────────┘  │                   │
+│        └──────────────────────────────────────────────────────┘                   │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
 
 **4. KubeAI — self-contained operator with prefix-aware proxy**
 

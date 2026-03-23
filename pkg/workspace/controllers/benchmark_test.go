@@ -20,11 +20,10 @@ import (
 	"strings"
 	"testing"
 
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 // --------------------------------------------------------------------------

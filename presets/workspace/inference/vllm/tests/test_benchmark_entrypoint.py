@@ -302,13 +302,13 @@ def test_run_benchmark_success(monkeypatch):
             side_effect=[0.0, 60.0],  # t0, t1 → 60 s elapsed
         ),
     ):
-        tpm, ttft, tpot = bm._run_benchmark()
+        tpm, ttft, tpot, max_concurrency = bm._run_benchmark()
 
     # (6000 + 24576) * 60 / 60 = 30576.0
     assert tpm == pytest.approx(30576.0)
     assert ttft == 42.12
     assert tpot == 3.46
-
+    assert max_concurrency == 128
 
 def test_run_benchmark_no_generation():
     mock_report = _mock_report()
@@ -411,7 +411,7 @@ def test_main_benchmark_success_exits_0(monkeypatch):
 
     with (
         patch.object(bm, "_health_check", return_value=True),
-        patch.object(bm, "_run_benchmark", return_value=(12345.67, 42.12, 3.46)),
+        patch.object(bm, "_run_benchmark", return_value=(12345.67, 42.12, 3.46, 256)),
         patch.object(bm, "_drain"),
         patch.object(bm, "_write_to_pid1", side_effect=fake_write),
         patch("time.time", return_value=0.0),
@@ -463,7 +463,7 @@ def test_main_exactly_one_result_line_on_success(monkeypatch):
 
     with (
         patch.object(bm, "_health_check", return_value=True),
-        patch.object(bm, "_run_benchmark", return_value=(999.0, 10.0, 2.0)),
+        patch.object(bm, "_run_benchmark", return_value=(999.0, 10.0, 2.0, 128)),
         patch.object(bm, "_drain"),
         patch.object(
             bm, "_write_to_pid1", side_effect=lambda line, fd=1: written.append(line)

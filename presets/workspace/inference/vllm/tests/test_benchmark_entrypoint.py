@@ -310,6 +310,7 @@ def test_run_benchmark_success(monkeypatch):
     assert tpot == 3.46
     assert max_concurrency == 128
 
+
 def test_run_benchmark_no_generation():
     mock_report = _mock_report()
     with (

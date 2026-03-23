@@ -35,6 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	kubefake "k8s.io/client-go/kubernetes/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -1234,8 +1235,9 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 			},
 		}
 
-		// Pass nil kubeClient: if the guard fails and StreamLogs is attempted, this will panic.
-		applyBenchmarkStatus(context.Background(), nil, status, wObj, 1, buildReconcileErrMessageAppender(nil))
+		// Pass a non-nil fake client: the BenchmarkCompleted=True guard must fire before
+		// any log streaming is attempted, so the fake client will never be called.
+		applyBenchmarkStatus(context.Background(), kubefake.NewSimpleClientset(), status, wObj, 1, buildReconcileErrMessageAppender(nil))
 
 		// Result and condition must be unchanged — the guard must have fired.
 		m, ok := status.BenchmarkResult.Metrics[BenchmarkMetricPeakTPM]

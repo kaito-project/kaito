@@ -175,10 +175,12 @@ func TestReconcileBenchmarkResult(t *testing.T) {
 }
 
 // --------------------------------------------------------------------------
-// TestApplyBenchmarkStatus — verifies status field and condition are set.
+// TestReconcileBenchmarkResultWithStatus — verifies status field assignment
+// and error propagation via reconcileBenchmarkResult (applyBenchmarkStatus
+// condition-setting is covered by workspace_controller_test.go).
 // --------------------------------------------------------------------------
 
-func TestApplyBenchmarkStatus(t *testing.T) {
+func TestReconcileBenchmarkResultWithStatus(t *testing.T) {
 	wObj := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-workspace",

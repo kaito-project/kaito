@@ -308,23 +308,34 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		status.ReadyReplicas = readyReplicas
 		// set selector for HPA/VPA
 		status.Selector = fmt.Sprintf("%s=%s", consts.WorkspaceCreatedByInferenceSetLabel, iObj.Name)
-		if hasBenchmarkTPMResult {
-			if status.WorkspaceProfile == nil {
-				status.WorkspaceProfile = &kaitov1alpha1.WorkspaceProfile{}
-			}
-			if status.WorkspaceProfile.Metrics == nil {
-				status.WorkspaceProfile.Metrics = make(map[string]kaitov1alpha1.WorkspaceMetric)
-			}
-			status.WorkspaceProfile.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM] = kaitov1alpha1.WorkspaceMetric{
-				Desc:                  controllers.BenchmarkDesc,
-				Value:                 strconv.FormatFloat(totalTPM, 'f', -1, 64),
-				Unit:                  controllers.BenchmarkMetricUnit,
-				BenchmarkedWorkspaces: int32(benchmarkedReplicas),
+		if kaitov1alpha1.IsRunBenchmarkEnabled(iObj) {
+			if hasBenchmarkTPMResult {
+				if status.WorkspaceProfile == nil {
+					status.WorkspaceProfile = &kaitov1alpha1.WorkspaceProfile{}
+				}
+				if status.WorkspaceProfile.Metrics == nil {
+					status.WorkspaceProfile.Metrics = make(map[string]kaitov1alpha1.WorkspaceMetric)
+				}
+				status.WorkspaceProfile.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM] = kaitov1alpha1.WorkspaceMetric{
+					Desc:                  controllers.BenchmarkDesc,
+					Value:                 strconv.FormatFloat(totalTPM, 'f', -1, 64),
+					Unit:                  controllers.BenchmarkMetricUnit,
+					BenchmarkedWorkspaces: int32(benchmarkedReplicas),
+				}
+			} else {
+				// No ready replica has a TPM result — clear the TPM key so the profile
+				// doesn't reflect a previous generation of workspaces.
+				// Other metric keys are left intact to be cleared by their own logic.
+				if status.WorkspaceProfile != nil {
+					delete(status.WorkspaceProfile.Metrics, controllers.BenchmarkMetricAggregatedPeakTPM)
+					if len(status.WorkspaceProfile.Metrics) == 0 {
+						status.WorkspaceProfile = nil
+					}
+				}
 			}
 		} else {
-			// No ready replica has a TPM result — clear the TPM key so the profile
-			// doesn't reflect a previous generation of workspaces.
-			// Other metric keys are left intact to be cleared by their own logic.
+			// Feature flag is off — clear any TPM value that may have been written
+			// when the flag was previously enabled (e.g. annotation removed).
 			if status.WorkspaceProfile != nil {
 				delete(status.WorkspaceProfile.Metrics, controllers.BenchmarkMetricAggregatedPeakTPM)
 				if len(status.WorkspaceProfile.Metrics) == 0 {

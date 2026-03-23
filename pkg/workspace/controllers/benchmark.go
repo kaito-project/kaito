@@ -86,11 +86,17 @@ type benchmarkConfigPayload struct {
 // Multiple result lines may be present if the startup probe failed and retried.
 // We always take the last occurrence, which is guaranteed to be the successful one
 // (exit 0 stops further probe ticks).
+// maxScanTokenSize is the per-line buffer limit for pod log scanners.
+// vLLM can emit long tracebacks; 1 MiB comfortably covers any realistic line
+// without risking OOM (we tail at most benchmarkLogTailLines lines anyway).
+const maxScanTokenSize = 1 << 20 // 1 MiB
+
 func parseBenchmarkResult(logs string) (*kaitov1beta1.BenchmarkResult, error) {
 	var lastResultPayload string
 	var lastConfigPayload string
 
 	scanner := bufio.NewScanner(strings.NewReader(logs))
+	scanner.Buffer(make([]byte, 4096), maxScanTokenSize)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if p := extractTagPayload(line, benchmarkResultTag); p != "" {
@@ -186,6 +192,7 @@ func reconcileBenchmarkResult(ctx context.Context, wObj *kaitov1beta1.Workspace,
 
 	var sb strings.Builder
 	scanner := bufio.NewScanner(stream)
+	scanner.Buffer(make([]byte, 4096), maxScanTokenSize)
 	for scanner.Scan() {
 		sb.WriteString(scanner.Text())
 		sb.WriteByte('\n')

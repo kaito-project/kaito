@@ -860,6 +860,12 @@ func applyInferenceWorkspaceStatus(ctx context.Context, kubeClient kubernetes.In
 // clears the condition on any pod restart or rolling update, so this guard only works in
 // steady state when the pod is stable and the result is already recorded.
 func applyBenchmarkStatus(ctx context.Context, kubeClient kubernetes.Interface, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, generation int64, appendMessage func(string) string) bool {
+	if kubeClient == nil {
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted, metav1.ConditionFalse,
+			"BenchmarkClientUnavailable", "kubernetes client is not initialized; cannot read benchmark pod logs")
+		return false
+	}
 	// Skip once the benchmark is done. Safe because the not-ready path clears BenchmarkCompleted
 	// whenever inference goes down, so we won't get into a stale state.
 	if c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted)); c != nil && c.Status == metav1.ConditionTrue {

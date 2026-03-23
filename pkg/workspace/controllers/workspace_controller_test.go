@@ -23,12 +23,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/test"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator/basicnodesestimator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
@@ -42,6 +36,13 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/basicnodesestimator"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {

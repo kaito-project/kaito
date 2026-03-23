@@ -27,18 +27,6 @@ import (
 	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	// to ensure that exec-entrypoint and run can make use of them.
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/inferenceset"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
-	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/version"
-	"github.com/kaito-project/kaito/pkg/workspace/controllers"
-	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -54,6 +42,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/inferenceset"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
+	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/version"
+	"github.com/kaito-project/kaito/pkg/workspace/controllers"
+	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
 const (

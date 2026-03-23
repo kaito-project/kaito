@@ -123,7 +123,7 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 
 func collectPVCMetrics(ctx context.Context, k8sClient client.Client) {
 	var pvcList corev1.PersistentVolumeClaimList
-	if err := k8sClient.List(ctx, &pvcList); err != nil {
+	if err := k8sClient.List(ctx, &pvcList, client.HasLabels{kaitov1beta1.LabelWorkspaceName}); err != nil {
 		klog.Errorf("failed to list PVCs for volume metrics: %v", err)
 		workspacePVCAllocatedBytes.Reset()
 		workspacePVCCount.Reset()
@@ -137,10 +137,7 @@ func collectPVCMetrics(ctx context.Context, k8sClient client.Client) {
 
 	for i := range pvcList.Items {
 		pvc := &pvcList.Items[i]
-		wsName, ok := pvc.Labels[kaitov1beta1.LabelWorkspaceName]
-		if !ok || wsName == "" {
-			continue // Not a KAITO-managed PVC
-		}
+		wsName := pvc.Labels[kaitov1beta1.LabelWorkspaceName]
 		wsNamespace := pvc.Namespace
 
 		if pvcCounts[wsNamespace] == nil {

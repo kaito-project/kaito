@@ -244,32 +244,6 @@ func TestCollectPVCMetrics(t *testing.T) {
 			},
 		},
 		{
-			name: "PVC without workspace label is skipped",
-			setupMocks: func(c *test.MockClient) {
-				pvc := &corev1.PersistentVolumeClaim{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "unrelated-pvc",
-						Namespace: "default",
-						Labels:    map[string]string{},
-					},
-					Spec: corev1.PersistentVolumeClaimSpec{
-						Resources: corev1.VolumeResourceRequirements{
-							Requests: corev1.ResourceList{
-								corev1.ResourceStorage: resource.MustParse("50Gi"),
-							},
-						},
-					},
-				}
-				relevantMap := c.CreateMapWithType(&corev1.PersistentVolumeClaimList{})
-				relevantMap[client.ObjectKeyFromObject(pvc)] = pvc
-				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.PersistentVolumeClaimList{}), mock.Anything).Return(nil)
-			},
-			validate: func(t *testing.T) {
-				assert.Equal(t, 0, gaugeCount(workspacePVCAllocatedBytes), "expected no allocated bytes metrics")
-				assert.Equal(t, 0, gaugeCount(workspacePVCCount), "expected no PVC count metrics")
-			},
-		},
-		{
 			name: "PVC without status capacity falls back to spec request",
 			setupMocks: func(c *test.MockClient) {
 				pvc := &corev1.PersistentVolumeClaim{

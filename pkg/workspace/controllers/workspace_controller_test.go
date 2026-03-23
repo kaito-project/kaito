@@ -1187,8 +1187,12 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		}
 		// Pre-populate status as if a previous reconcile completed the benchmark.
 		status := &v1beta1.WorkspaceStatus{
-			State:           v1beta1.WorkspaceStateReady,
-			BenchmarkResult: &v1beta1.BenchmarkResult{TokensPerMinute: "12345"},
+			State: v1beta1.WorkspaceStateReady,
+			BenchmarkResult: &v1beta1.BenchmarkResult{
+				Metrics: map[string]v1beta1.BenchmarkMetric{
+					BenchmarkMetricPeakTPM: {Value: "12345"},
+				},
+			},
 			Conditions: []v1.Condition{
 				{
 					Type:   string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
@@ -1215,8 +1219,12 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 			},
 		}
 		status := &v1beta1.WorkspaceStatus{
-			State:           v1beta1.WorkspaceStateReady,
-			BenchmarkResult: &v1beta1.BenchmarkResult{TokensPerMinute: "12345"},
+			State: v1beta1.WorkspaceStateReady,
+			BenchmarkResult: &v1beta1.BenchmarkResult{
+				Metrics: map[string]v1beta1.BenchmarkMetric{
+					BenchmarkMetricPeakTPM: {Value: "12345"},
+				},
+			},
 			Conditions: []v1.Condition{
 				{
 					Type:   string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
@@ -1230,7 +1238,9 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		applyBenchmarkStatus(context.Background(), nil, status, wObj, 1, buildReconcileErrMessageAppender(nil))
 
 		// Result and condition must be unchanged — the guard must have fired.
-		assert.Equal(t, "12345", status.BenchmarkResult.TokensPerMinute)
+		m, ok := status.BenchmarkResult.Metrics[BenchmarkMetricPeakTPM]
+		assert.True(t, ok)
+		assert.Equal(t, "12345", m.Value)
 		benchmarkCond := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted))
 		assert.Equal(t, v1.ConditionTrue, benchmarkCond.Status)
 	})

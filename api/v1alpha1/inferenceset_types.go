@@ -57,12 +57,26 @@ type InferenceSetSpec struct {
 	UpdateStrategy appsv1.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty"`
 }
 
-// WorkspaceProfile holds aggregated performance characteristics across all workspace replicas.
-type WorkspaceProfile struct {
-	// TokensPerMinute is the total throughput (prompt + generated tokens per minute) summed
-	// across all ready replicas, captured by the post-load benchmark.
+// WorkspaceMetric holds an aggregated benchmark measurement across workspace replicas.
+type WorkspaceMetric struct {
+	// Desc describes the benchmark type and load pattern, e.g. "stress/high-concurrency".
+	Desc string `json:"desc"`
+	// Value is the aggregated metric value, formatted as a string.
+	Value string `json:"value"`
+	// Unit is the unit of the metric value (e.g. "tokens/min").
 	// +optional
-	TokensPerMinute string `json:"tokensPerMinute,omitempty"`
+	Unit string `json:"unit,omitempty"`
+	// BenchmarkedWorkspaces is the number of workspace replicas that contributed to this aggregate.
+	// +optional
+	BenchmarkedWorkspaces int32 `json:"benchmarkedWorkspaces,omitempty"`
+}
+
+// WorkspaceProfile holds aggregated performance characteristics across all workspace replicas,
+// keyed by metric name (e.g. "aggregatedPeakTokensPerMinute").
+type WorkspaceProfile struct {
+	// Metrics is a map of metric name to WorkspaceMetric.
+	// +optional
+	Metrics map[string]WorkspaceMetric `json:"metrics,omitempty"`
 }
 
 // InferenceSetStatus defines the observed state of InferenceSet

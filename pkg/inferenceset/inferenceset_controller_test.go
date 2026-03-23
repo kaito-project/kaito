@@ -38,6 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
@@ -378,7 +379,11 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			},
 		}
 		if tpm != "" {
-			ws.Status.BenchmarkResult = &v1beta1.BenchmarkResult{TokensPerMinute: tpm}
+			ws.Status.BenchmarkResult = &v1beta1.BenchmarkResult{
+				Metrics: map[string]v1beta1.BenchmarkMetric{
+					controllers.BenchmarkMetricPeakTPM: {Value: tpm},
+				},
+			}
 		}
 		return ws
 	}

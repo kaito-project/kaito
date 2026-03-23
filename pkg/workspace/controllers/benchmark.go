@@ -33,6 +33,9 @@ const (
 	// benchmarkResultTag is the log line tag emitted by benchmark_entrypoint.py.
 	benchmarkResultTag = "KAITO_BENCHMARK_RESULT"
 
+	// benchmarkConfigTag is the log line tag for the benchmark config JSON.
+	benchmarkConfigTag = "KAITO_BENCHMARK_CONFIG"
+
 	// benchmarkPodIndexSuffix is appended to the StatefulSet name to get the leader pod name.
 	// The benchmark always runs on POD_INDEX=0.
 	benchmarkPodIndexSuffix = "-0"
@@ -40,62 +43,117 @@ const (
 	// benchmarkLogTailLines limits how many lines we read from the tail of the pod log.
 	// The result line is always near the end of the startup sequence.
 	benchmarkLogTailLines = int64(500)
+
+	// BenchmarkDesc is the combined type/scenario descriptor for the current stress-test workload.
+	// Exported so the InferenceSet controller can set the same value on WorkspaceMetric.
+	BenchmarkDesc = "stress/high-concurrency"
+
+	// BenchmarkMetricPeakTPM is the metric key for peak tokens per minute on a workspace.
+	BenchmarkMetricPeakTPM = "peakTokensPerMinute"
+
+	// BenchmarkMetricAggregatedPeakTPM is the metric key for aggregated peak tokens per minute on an InferenceSet.
+	BenchmarkMetricAggregatedPeakTPM = "aggregatedPeakTokensPerMinute"
+
+	// BenchmarkMetricUnit is the unit for TPM metrics.
+	BenchmarkMetricUnit = "tokens/min"
 )
 
 // benchmarkResultPayload mirrors the JSON emitted by benchmark_entrypoint.py.
 type benchmarkResultPayload struct {
 	VLLMTotalTPM float64 `json:"vllm_total_tpm"`
 	// TTFTAvgMs (time-to-first-token, ms) and TPOTAvgMs (time-per-output-token, ms) are parsed
-	// from the benchmark output but not yet surfaced in BenchmarkResult. Reserved for future use
+	// from the benchmark output but not yet surfaced in BenchmarkResult. Reserved for future use.
 	TTFTAvgMs float64 `json:"ttft_avg_ms"`
 	TPOTAvgMs float64 `json:"tpot_avg_ms"`
 }
 
-// parseBenchmarkResult scans pod log lines for the last KAITO_BENCHMARK_RESULT entry
-// and returns the parsed metrics.
+// benchmarkConfigPayload mirrors the KAITO_BENCHMARK_CONFIG JSON emitted by benchmark_entrypoint.py.
+type benchmarkConfigPayload struct {
+	DurationSec    int32 `json:"duration_sec"`
+	InputTokens    int32 `json:"input_tokens"`
+	OutputTokens   int32 `json:"output_tokens"`
+	MaxConcurrency int32 `json:"max_concurrency"`
+}
+
+// parseBenchmarkResult scans pod log lines for the KAITO_BENCHMARK_CONFIG and
+// KAITO_BENCHMARK_RESULT entries, returning the parsed metrics.
 //
-// Log line format (emitted by benchmark_entrypoint.py):
+// Log line formats (emitted by benchmark_entrypoint.py):
 //
+//	KAITO_BENCHMARK_CONFIG <RFC3339-timestamp> <JSON-payload>
 //	KAITO_BENCHMARK_RESULT <RFC3339-timestamp> <JSON-payload>
 //
 // Multiple result lines may be present if the startup probe failed and retried.
 // We always take the last occurrence, which is guaranteed to be the successful one
 // (exit 0 stops further probe ticks).
 func parseBenchmarkResult(logs string) (*kaitov1beta1.BenchmarkResult, error) {
-	var lastPayload string
+	var lastResultPayload string
+	var lastConfigPayload string
 
 	scanner := bufio.NewScanner(strings.NewReader(logs))
 	for scanner.Scan() {
 		line := scanner.Text()
-		idx := strings.Index(line, benchmarkResultTag)
-		if idx == -1 {
-			continue
+		if p := extractTagPayload(line, benchmarkResultTag); p != "" {
+			lastResultPayload = p
+		} else if p := extractTagPayload(line, benchmarkConfigTag); p != "" {
+			lastConfigPayload = p
 		}
-		// Everything after the tag: "<timestamp> <json>"
-		rest := strings.TrimSpace(line[idx+len(benchmarkResultTag):])
-		// Skip the timestamp token (first word after tag).
-		spaceIdx := strings.Index(rest, " ")
-		if spaceIdx == -1 {
-			continue
-		}
-		lastPayload = strings.TrimSpace(rest[spaceIdx+1:])
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, fmt.Errorf("scanning pod logs: %w", err)
 	}
 
-	if lastPayload == "" {
+	if lastResultPayload == "" {
 		return nil, fmt.Errorf("no %s line found in pod logs", benchmarkResultTag)
 	}
 
 	var payload benchmarkResultPayload
-	if err := json.Unmarshal([]byte(lastPayload), &payload); err != nil {
-		return nil, fmt.Errorf("parsing benchmark result JSON %q: %w", lastPayload, err)
+	if err := json.Unmarshal([]byte(lastResultPayload), &payload); err != nil {
+		return nil, fmt.Errorf("parsing benchmark result JSON %q: %w", lastResultPayload, err)
+	}
+	// The Python script emits -1.0 for all metrics on failure. Treat any non-positive
+	// TPM as a failed run so it doesn't pollute aggregation or set BenchmarkCompleted=True.
+	if payload.VLLMTotalTPM <= 0 {
+		return nil, fmt.Errorf("benchmark failed: TPM value %v indicates a failed or incomplete run", payload.VLLMTotalTPM)
 	}
 
-	return &kaitov1beta1.BenchmarkResult{
-		TokensPerMinute: strconv.FormatFloat(payload.VLLMTotalTPM, 'f', -1, 64),
-	}, nil
+	result := &kaitov1beta1.BenchmarkResult{
+		Metrics: map[string]kaitov1beta1.BenchmarkMetric{},
+	}
+
+	metric := kaitov1beta1.BenchmarkMetric{
+		Desc:  BenchmarkDesc,
+		Value: strconv.FormatFloat(payload.VLLMTotalTPM, 'f', -1, 64),
+		Unit:  BenchmarkMetricUnit,
+	}
+	if lastConfigPayload != "" {
+		var cfgPayload benchmarkConfigPayload
+		if err := json.Unmarshal([]byte(lastConfigPayload), &cfgPayload); err == nil {
+			metric.Config = &kaitov1beta1.BenchmarkConfig{
+				DurationSec:    cfgPayload.DurationSec,
+				InputTokens:    cfgPayload.InputTokens,
+				OutputTokens:   cfgPayload.OutputTokens,
+				MaxConcurrency: cfgPayload.MaxConcurrency,
+			}
+		}
+	}
+	result.Metrics[BenchmarkMetricPeakTPM] = metric
+	return result, nil
+}
+
+// extractTagPayload finds a known tag in line and returns the JSON payload after
+// the timestamp token, or "" if the tag is not present or the line is malformed.
+func extractTagPayload(line, tag string) string {
+	idx := strings.Index(line, tag)
+	if idx == -1 {
+		return ""
+	}
+	rest := strings.TrimSpace(line[idx+len(tag):])
+	spaceIdx := strings.Index(rest, " ")
+	if spaceIdx == -1 {
+		return ""
+	}
+	return strings.TrimSpace(rest[spaceIdx+1:])
 }
 
 type podLogStreamer interface {
@@ -142,7 +200,7 @@ func reconcileBenchmarkResult(ctx context.Context, wObj *kaitov1beta1.Workspace,
 	}
 
 	klog.InfoS("benchmark result parsed", "workspace", klog.KObj(wObj),
-		"tokensPerMinute", result.TokensPerMinute)
+		"peakTokensPerMinute", result.Metrics[BenchmarkMetricPeakTPM].Value)
 
 	return result, nil
 }

@@ -33,9 +33,10 @@ import (
 
 func TestParseBenchmarkResult(t *testing.T) {
 	tests := map[string]struct {
-		logs      string
-		expectErr bool
-		expectTPM string
+		logs         string
+		expectErr    bool
+		expectTPM    string
+		expectConfig *kaitov1beta1.BenchmarkConfig
 	}{
 		"single result line": {
 			logs:      "some startup log\nKAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n",
@@ -67,9 +68,29 @@ func TestParseBenchmarkResult(t *testing.T) {
 			logs:      "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":1000000,\"ttft_avg_ms\":50,\"tpot_avg_ms\":10}\n",
 			expectTPM: "1000000",
 		},
-		"zero tpm": {
+		"zero tpm treated as failure": {
 			logs:      "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":0,\"ttft_avg_ms\":0,\"tpot_avg_ms\":0}\n",
-			expectTPM: "0",
+			expectErr: true,
+		},
+		"negative tpm treated as failure": {
+			logs:      "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":-1,\"ttft_avg_ms\":-1,\"tpot_avg_ms\":-1}\n",
+			expectErr: true,
+		},
+		"config parsed from KAITO_BENCHMARK_CONFIG line": {
+			logs: "KAITO_BENCHMARK_CONFIG 2026-01-01T00:00:00Z {\"duration_sec\":60,\"input_tokens\":2048,\"output_tokens\":256,\"max_concurrency\":523}\n" +
+				"KAITO_BENCHMARK_RESULT 2026-01-01T00:00:02Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n",
+			expectTPM: "12345.67",
+			expectConfig: &kaitov1beta1.BenchmarkConfig{
+				DurationSec:    60,
+				InputTokens:    2048,
+				OutputTokens:   256,
+				MaxConcurrency: 523,
+			},
+		},
+		"config absent when KAITO_BENCHMARK_CONFIG not logged": {
+			logs:         "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":500,\"ttft_avg_ms\":0,\"tpot_avg_ms\":0}\n",
+			expectTPM:    "500",
+			expectConfig: nil,
 		},
 	}
 
@@ -83,13 +104,17 @@ func TestParseBenchmarkResult(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.Equal(t, tc.expectTPM, result.TokensPerMinute)
+
+			m, ok := result.Metrics[BenchmarkMetricPeakTPM]
+			require.True(t, ok, "expected %q key in Metrics map", BenchmarkMetricPeakTPM)
+			assert.Equal(t, tc.expectTPM, m.Value)
+			assert.Equal(t, BenchmarkDesc, m.Desc)
+			assert.Equal(t, BenchmarkMetricUnit, m.Unit)
+			assert.Equal(t, tc.expectConfig, m.Config)
 		})
 	}
 }
 
-// --------------------------------------------------------------------------
-// stubLogStreamer implements podLogStreamer for tests.
 // --------------------------------------------------------------------------
 
 type stubLogStreamer struct {
@@ -142,7 +167,9 @@ func TestReconcileBenchmarkResult(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.Equal(t, tc.expectTPM, result.TokensPerMinute)
+			m, ok := result.Metrics[BenchmarkMetricPeakTPM]
+			require.True(t, ok)
+			assert.Equal(t, tc.expectTPM, m.Value)
 		})
 	}
 }
@@ -170,7 +197,9 @@ func TestApplyBenchmarkStatus(t *testing.T) {
 		status := &kaitov1beta1.WorkspaceStatus{}
 		status.BenchmarkResult = result
 		require.NotNil(t, status.BenchmarkResult)
-		assert.Equal(t, "12345.67", status.BenchmarkResult.TokensPerMinute)
+		m, ok := status.BenchmarkResult.Metrics[BenchmarkMetricPeakTPM]
+		require.True(t, ok)
+		assert.Equal(t, "12345.67", m.Value)
 	})
 
 	t.Run("sets BenchmarkCompleted=False when stream fails", func(t *testing.T) {
@@ -185,11 +214,17 @@ func TestApplyBenchmarkStatus(t *testing.T) {
 		streamer := &stubLogStreamer{content: "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":99999,\"ttft_avg_ms\":10,\"tpot_avg_ms\":5}\n"}
 
 		status := &kaitov1beta1.WorkspaceStatus{
-			BenchmarkResult: &kaitov1beta1.BenchmarkResult{TokensPerMinute: "old-value"},
+			BenchmarkResult: &kaitov1beta1.BenchmarkResult{
+				Metrics: map[string]kaitov1beta1.BenchmarkMetric{
+					BenchmarkMetricPeakTPM: {Value: "old-value"},
+				},
+			},
 		}
 		result, err := reconcileBenchmarkResult(context.Background(), wObj, streamer)
 		require.NoError(t, err)
 		status.BenchmarkResult = result
-		assert.Equal(t, "99999", status.BenchmarkResult.TokensPerMinute)
+		m, ok := status.BenchmarkResult.Metrics[BenchmarkMetricPeakTPM]
+		require.True(t, ok)
+		assert.Equal(t, "99999", m.Value)
 	})
 }

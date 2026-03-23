@@ -181,13 +181,13 @@ func main() {
 		klog.ErrorS(err, "unable to create kubernetes client")
 		exitWithErrorFunc()
 	}
+	k8sclient.SetGlobalKubeClient(kubeClient)
 
 	workspaceReconciler := controllers.NewWorkspaceReconciler(
 		kClient,
 		mgr.GetScheme(),
 		log.Log.WithName("controllers").WithName("Workspace"),
 		mgr.GetEventRecorderFor("KAITO-Workspace-controller"),
-		kubeClient,
 	)
 	workspaceReconciler.SetDefaultNodeImageFamily(defaultNodeImageFamily)
 

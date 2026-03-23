@@ -49,6 +49,7 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -82,11 +83,9 @@ type WorkspaceReconciler struct {
 	Estimator           estimator.NodesEstimator
 	nodeClaimManager    *resource.NodeClaimManager
 	nodeResourceManager *resource.NodeManager
-	// KubeClient is used for pod log access (kubernetes.Interface, not controller-runtime client).
-	KubeClient kubernetes.Interface
 }
 
-func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder, kubeClient kubernetes.Interface) *WorkspaceReconciler {
+func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder) *WorkspaceReconciler {
 	expectations := utils.NewControllerExpectations()
 	return &WorkspaceReconciler{
 		Client:              client,
@@ -98,7 +97,6 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 		Estimator:           &advancednodesestimator.AdvancedNodesEstimator{},
 		nodeClaimManager:    resource.NewNodeClaimManager(client, Recorder, expectations),
 		nodeResourceManager: resource.NewNodeManager(client),
-		KubeClient:          kubeClient,
 	}
 }
 
@@ -567,7 +565,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		}
 
 		if wObj.Inference != nil {
-			applyInferenceWorkspaceStatus(ctx, c.KubeClient, status, wObj, appendReconcileErrMessage, inferenceReady, nodeSnapshot.resourceConditionStatus)
+			applyInferenceWorkspaceStatus(ctx, k8sclient.GetGlobalKubeClient(), status, wObj, appendReconcileErrMessage, inferenceReady, nodeSnapshot.resourceConditionStatus)
 			return nil
 		}
 
@@ -821,7 +819,14 @@ func applyInferenceWorkspaceStatus(ctx context.Context, kubeClient kubernetes.In
 			kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue, "WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully")
 
 		if kaitov1beta1.IsRunBenchmarkEnabled(wObj) {
-			applyBenchmarkStatus(ctx, kubeClient, status, wObj, generation, appendMessage)
+			if !applyBenchmarkStatus(ctx, kubeClient, status, wObj, generation, appendMessage) {
+				// Benchmark not yet available; hold the workspace in a non-Ready state
+				// so the caller re-reconciles until the result is recorded.
+				setWorkspaceCondition(status, generation, appendMessage,
+					kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", "waiting for benchmark result")
+				status.State = kaitov1beta1.WorkspaceStatePending
+				return
+			}
 		}
 
 		setWorkspaceCondition(status, generation, appendMessage,
@@ -849,29 +854,35 @@ func applyInferenceWorkspaceStatus(ctx context.Context, kubeClient kubernetes.In
 
 // applyBenchmarkStatus reads and parses the benchmark result from pod logs on every reconcile,
 // then sets the BenchmarkCompleted condition on the workspace status.
+// Returns true when the benchmark result was successfully recorded (or was already recorded),
+// false when the result is not yet available or parsing failed.
 // Skips the log read when BenchmarkCompleted is already True — the not-ready path explicitly
 // clears the condition on any pod restart or rolling update, so this guard only works in
 // steady state when the pod is stable and the result is already recorded.
-func applyBenchmarkStatus(ctx context.Context, kubeClient kubernetes.Interface, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, generation int64, appendMessage func(string) string) {
+func applyBenchmarkStatus(ctx context.Context, kubeClient kubernetes.Interface, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, generation int64, appendMessage func(string) string) bool {
 	// Skip once the benchmark is done. Safe because the not-ready path clears BenchmarkCompleted
 	// whenever inference goes down, so we won't get into a stale state.
 	if c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted)); c != nil && c.Status == metav1.ConditionTrue {
-		return
+		return true
 	}
 
 	result, err := reconcileBenchmarkResult(ctx, wObj, &kubeClientStreamer{kubeClient: kubeClient})
 	if err != nil {
-		klog.ErrorS(err, "failed to read benchmark result", "workspace", klog.KObj(wObj))
+		// Log at verbose level only — this fires on every reconcile until the
+		// benchmark pod emits its result line, so ErrorS would flood the logs.
+		// The BenchmarkCompleted condition carries the reason for visibility.
+		klog.V(4).InfoS("benchmark result not yet available", "workspace", klog.KObj(wObj), "err", err)
 		setWorkspaceCondition(status, generation, appendMessage,
 			kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted, metav1.ConditionFalse,
 			"BenchmarkResultUnavailable", err.Error())
-		return
+		return false
 	}
 
 	status.BenchmarkResult = result
 	setWorkspaceCondition(status, generation, appendMessage,
 		kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
 		"BenchmarkCompleted", "benchmark result has been recorded")
+	return true
 }
 
 func (c *WorkspaceReconciler) updateWorkspaceStatusIfChanged(ctx context.Context, key types.NamespacedName, modifyFn func(*kaitov1beta1.WorkspaceStatus) error) error {

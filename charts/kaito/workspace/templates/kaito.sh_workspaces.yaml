@@ -619,13 +619,59 @@ spec:
                   BenchmarkResult holds the metrics from the post-load inference benchmark.
                   Only populated when the kaito.sh/run-benchmark annotation is "true".
                 properties:
-                  tokensPerMinute:
-                    description: |-
-                      TokensPerMinute is the total throughput in tokens per minute (input/prompt + output/generated
-                      tokens combined), aggregated across the benchmark run.
-                    type: string
-                required:
-                - tokensPerMinute
+                  metrics:
+                    additionalProperties:
+                      description: BenchmarkMetric holds a single benchmark measurement
+                        along with its description and config.
+                      properties:
+                        config:
+                          description: Config holds the benchmark parameters used
+                            to produce this metric.
+                          properties:
+                            durationSec:
+                              description: DurationSec is the benchmark duration in
+                                seconds.
+                              format: int32
+                              type: integer
+                            inputTokens:
+                              description: InputTokens is the number of prompt tokens
+                                per request.
+                              format: int32
+                              type: integer
+                            maxConcurrency:
+                              description: MaxConcurrency is the maximum number of
+                                concurrent requests used during the run.
+                              format: int32
+                              type: integer
+                            outputTokens:
+                              description: OutputTokens is the number of generated
+                                tokens per request.
+                              format: int32
+                              type: integer
+                          required:
+                          - durationSec
+                          - inputTokens
+                          - maxConcurrency
+                          - outputTokens
+                          type: object
+                        desc:
+                          description: Desc describes the benchmark type and load
+                            pattern, e.g. "stress/high-concurrency".
+                          type: string
+                        unit:
+                          description: Unit is the unit of the metric value (e.g.
+                            "tokens/min").
+                          type: string
+                        value:
+                          description: Value is the measured metric value, formatted
+                            as a string.
+                          type: string
+                      required:
+                      - desc
+                      - value
+                      type: object
+                    description: Metrics is a map of metric name to BenchmarkMetric.
+                    type: object
                 type: object
               conditions:
                 description: Conditions report the current conditions of the workspace.

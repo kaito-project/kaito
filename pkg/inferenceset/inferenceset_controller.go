@@ -170,19 +170,21 @@ func (c *InferenceSetReconciler) garbageCollectInferenceSet(ctx context.Context,
 }
 
 // aggregateBenchmarkResults scans workspaces and returns:
-//   - totalTPM: sum of TokensPerMinute across all succeeded workspaces that have a valid result
+//   - totalTPM: sum of peakTokensPerMinute across all succeeded workspaces that have a valid result
 //   - readyReplicas: count of succeeded workspaces
 //   - benchmarkedReplicas: count of those workspaces
-//   - hasBenchmarkResult: true if at least one workspace contributed a TPM value
-func aggregateBenchmarkResults(workspaces []kaitov1beta1.Workspace) (totalTPM float64, readyReplicas, benchmarkedReplicas int, hasBenchmarkResult bool) {
+//   - hasBenchmarkTPMResult: true if at least one workspace contributed a TPM value
+func aggregateBenchmarkResults(workspaces []kaitov1beta1.Workspace) (totalTPM float64, readyReplicas, benchmarkedReplicas int, hasBenchmarkTPMResult bool) {
 	for _, ws := range workspaces {
 		if controllers.DetermineWorkspacePhase(&ws) == "succeeded" {
 			readyReplicas++
 			if ws.Status.BenchmarkResult != nil {
-				if v, err := strconv.ParseFloat(ws.Status.BenchmarkResult.TokensPerMinute, 64); err == nil {
-					totalTPM += v
-					hasBenchmarkResult = true
-					benchmarkedReplicas++
+				if m, ok := ws.Status.BenchmarkResult.Metrics[controllers.BenchmarkMetricPeakTPM]; ok {
+					if v, err := strconv.ParseFloat(m.Value, 64); err == nil && v > 0 {
+						totalTPM += v
+						hasBenchmarkTPMResult = true
+						benchmarkedReplicas++
+					}
 				}
 			}
 		}
@@ -298,7 +300,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	}
 
 	// check whether all the workspaces are ready
-	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkResult := aggregateBenchmarkResults(wsList.Items)
+	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(wsList.Items)
 
 	// update the replicas in the status
 	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1alpha1.InferenceSetStatus) error {
@@ -306,15 +308,29 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		status.ReadyReplicas = readyReplicas
 		// set selector for HPA/VPA
 		status.Selector = fmt.Sprintf("%s=%s", consts.WorkspaceCreatedByInferenceSetLabel, iObj.Name)
-		if hasBenchmarkResult {
+		if hasBenchmarkTPMResult {
 			if status.WorkspaceProfile == nil {
 				status.WorkspaceProfile = &kaitov1alpha1.WorkspaceProfile{}
 			}
-			status.WorkspaceProfile.TokensPerMinute = strconv.FormatFloat(totalTPM, 'f', -1, 64)
+			if status.WorkspaceProfile.Metrics == nil {
+				status.WorkspaceProfile.Metrics = make(map[string]kaitov1alpha1.WorkspaceMetric)
+			}
+			status.WorkspaceProfile.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM] = kaitov1alpha1.WorkspaceMetric{
+				Desc:                  controllers.BenchmarkDesc,
+				Value:                 strconv.FormatFloat(totalTPM, 'f', -1, 64),
+				Unit:                  controllers.BenchmarkMetricUnit,
+				BenchmarkedWorkspaces: int32(benchmarkedReplicas),
+			}
 		} else {
-			// No ready replica has a benchmark result — clear any stale value so the
-			// profile doesn't reflect a previous generation of workspaces.
-			status.WorkspaceProfile = nil
+			// No ready replica has a TPM result — clear the TPM key so the profile
+			// doesn't reflect a previous generation of workspaces.
+			// Other metric keys are left intact to be cleared by their own logic.
+			if status.WorkspaceProfile != nil {
+				delete(status.WorkspaceProfile.Metrics, controllers.BenchmarkMetricAggregatedPeakTPM)
+				if len(status.WorkspaceProfile.Metrics) == 0 {
+					status.WorkspaceProfile = nil
+				}
+			}
 		}
 		return nil
 	}); err != nil {

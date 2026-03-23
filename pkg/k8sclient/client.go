@@ -14,6 +14,7 @@
 package k8sclient
 
 import (
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -25,4 +26,14 @@ func SetGlobalClient(c client.Client) {
 
 func GetGlobalClient() client.Client {
 	return Client
+}
+
+var KubeClient kubernetes.Interface
+
+func SetGlobalKubeClient(c kubernetes.Interface) {
+	KubeClient = c
+}
+
+func GetGlobalKubeClient() kubernetes.Interface {
+	return KubeClient
 }

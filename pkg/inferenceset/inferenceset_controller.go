@@ -317,9 +317,9 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 					status.Performance.Metrics = make(map[string]kaitov1alpha1.Metric)
 				}
 				status.Performance.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM] = kaitov1alpha1.Metric{
-					Desc:  controllers.BenchmarkDesc,
-					Value: strconv.FormatFloat(totalTPM, 'f', -1, 64),
-					Unit:  controllers.BenchmarkMetricUnit,
+					Description: controllers.BenchmarkDesc,
+					Value:       strconv.FormatFloat(totalTPM, 'f', -1, 64),
+					Unit:        controllers.BenchmarkMetricUnit,
 				}
 			} else {
 				// No ready replica has a TPM result — clear the TPM key so the profile

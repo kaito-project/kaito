@@ -687,9 +687,9 @@ spec:
                           description: Config holds the benchmark parameters used
                             to produce this metric as free-form key/value pairs.
                           type: object
-                        desc:
-                          description: Desc describes the benchmark type and load
-                            pattern, e.g. "stress/high-concurrency".
+                        description:
+                          description: Description describes the benchmark type and
+                            load pattern, e.g. "stress/high-concurrency".
                           type: string
                         unit:
                           description: Unit is the unit of the metric value (e.g.
@@ -700,7 +700,7 @@ spec:
                             as a string.
                           type: string
                       required:
-                      - desc
+                      - description
                       - value
                       type: object
                     description: Metrics is a map of metric name to Metric.

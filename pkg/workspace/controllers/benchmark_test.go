@@ -98,7 +98,7 @@ func TestParseBenchmarkResult(t *testing.T) {
 			m, ok := result.Metrics[BenchmarkMetricPeakTPM]
 			require.True(t, ok, "expected %q key in Metrics map", BenchmarkMetricPeakTPM)
 			assert.Equal(t, tc.expectTPM, m.Value)
-			assert.Equal(t, BenchmarkDesc, m.Desc)
+			assert.Equal(t, BenchmarkDesc, m.Description)
 			assert.Equal(t, BenchmarkMetricUnit, m.Unit)
 			assert.Equal(t, tc.expectConfig, m.Config)
 		})

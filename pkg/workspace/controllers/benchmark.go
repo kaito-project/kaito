@@ -135,9 +135,9 @@ func parseBenchmarkResult(r io.Reader) (*kaitov1beta1.Performance, error) {
 	}
 
 	metric := kaitov1beta1.Metric{
-		Desc:  BenchmarkDesc,
-		Value: strconv.FormatFloat(payload.VLLMTotalTPM, 'f', -1, 64),
-		Unit:  BenchmarkMetricUnit,
+		Description: BenchmarkDesc,
+		Value:       strconv.FormatFloat(payload.VLLMTotalTPM, 'f', -1, 64),
+		Unit:        BenchmarkMetricUnit,
 	}
 	if lastConfigPayload != "" {
 		var cfgPayload benchmarkConfigPayload

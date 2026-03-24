@@ -195,8 +195,8 @@ const (
 
 // Metric holds a single benchmark measurement along with its description and config.
 type Metric struct {
-	// Desc describes the benchmark type and load pattern, e.g. "stress/high-concurrency".
-	Desc string `json:"desc"`
+	// Description describes the benchmark type and load pattern, e.g. "stress/high-concurrency".
+	Description string `json:"description"`
 	// Value is the measured metric value, formatted as a string.
 	Value string `json:"value"`
 	// Unit is the unit of the metric value (e.g. "tokens/min").

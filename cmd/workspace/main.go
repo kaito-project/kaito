@@ -179,7 +179,7 @@ func main() {
 		klog.ErrorS(err, "unable to create kubernetes client")
 		exitWithErrorFunc()
 	}
-	k8sclient.SetGlobalKubeClient(kubeClient)
+	k8sclient.SetGlobalClientGoClient(kubeClient)
 
 	workspaceReconciler := controllers.NewWorkspaceReconciler(
 		kClient,

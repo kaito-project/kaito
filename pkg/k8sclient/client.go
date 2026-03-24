@@ -28,12 +28,12 @@ func GetGlobalClient() client.Client {
 	return Client
 }
 
-var KubeClient kubernetes.Interface
+var ClientGoClient kubernetes.Interface
 
-func SetGlobalKubeClient(c kubernetes.Interface) {
-	KubeClient = c
+func SetGlobalClientGoClient(c kubernetes.Interface) {
+	ClientGoClient = c
 }
 
-func GetGlobalKubeClient() kubernetes.Interface {
-	return KubeClient
+func GetGlobalClientGoClient() kubernetes.Interface {
+	return ClientGoClient
 }

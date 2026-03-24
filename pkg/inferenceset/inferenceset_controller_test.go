@@ -379,8 +379,8 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			},
 		}
 		if tpm != "" {
-			ws.Status.BenchmarkResult = &v1beta1.BenchmarkResult{
-				Metrics: map[string]v1beta1.BenchmarkMetric{
+			ws.Status.Performance = &v1beta1.Performance{
+				Metrics: map[string]v1beta1.Metric{
 					controllers.BenchmarkMetricPeakTPM: {Value: tpm},
 				},
 			}

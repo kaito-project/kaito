@@ -193,20 +193,8 @@ const (
 	WorkspaceStateFailed    WorkspaceState = "Failed"
 )
 
-// BenchmarkConfig holds the parameters used for the benchmark run.
-type BenchmarkConfig struct {
-	// DurationSec is the benchmark duration in seconds.
-	DurationSec int32 `json:"durationSec"`
-	// InputTokens is the number of prompt tokens per request.
-	InputTokens int32 `json:"inputTokens"`
-	// OutputTokens is the number of generated tokens per request.
-	OutputTokens int32 `json:"outputTokens"`
-	// MaxConcurrency is the maximum number of concurrent requests used during the run.
-	MaxConcurrency int32 `json:"maxConcurrency"`
-}
-
-// BenchmarkMetric holds a single benchmark measurement along with its description and config.
-type BenchmarkMetric struct {
+// Metric holds a single benchmark measurement along with its description and config.
+type Metric struct {
 	// Desc describes the benchmark type and load pattern, e.g. "stress/high-concurrency".
 	Desc string `json:"desc"`
 	// Value is the measured metric value, formatted as a string.
@@ -214,17 +202,17 @@ type BenchmarkMetric struct {
 	// Unit is the unit of the metric value (e.g. "tokens/min").
 	// +optional
 	Unit string `json:"unit,omitempty"`
-	// Config holds the benchmark parameters used to produce this metric.
+	// Config holds the benchmark parameters used to produce this metric as free-form key/value pairs.
 	// +optional
-	Config *BenchmarkConfig `json:"config,omitempty"`
+	Config map[string]string `json:"config,omitempty"`
 }
 
-// BenchmarkResult holds the metrics captured by the post-load inference benchmark,
+// Performance holds the metrics captured by the post-load inference benchmark,
 // keyed by metric name (e.g. "peakTokensPerMinute").
-type BenchmarkResult struct {
-	// Metrics is a map of metric name to BenchmarkMetric.
+type Performance struct {
+	// Metrics is a map of metric name to Metric.
 	// +optional
-	Metrics map[string]BenchmarkMetric `json:"metrics,omitempty"`
+	Metrics map[string]Metric `json:"metrics,omitempty"`
 }
 
 // WorkspaceStatus defines the observed state of Workspace
@@ -245,10 +233,10 @@ type WorkspaceStatus struct {
 	// This field remains immutable after being set by NodesEstimator.
 	TargetNodeCount int32 `json:"targetNodeCount,omitempty"`
 
-	// BenchmarkResult holds the metrics from the post-load inference benchmark.
+	// Performance holds the metrics from the post-load inference benchmark.
 	// Only populated when the kaito.sh/run-benchmark annotation is "true".
 	// +optional
-	BenchmarkResult *BenchmarkResult `json:"benchmarkResult,omitempty"`
+	Performance *Performance `json:"performance,omitempty"`
 }
 
 // Workspace is the Schema for the workspaces API

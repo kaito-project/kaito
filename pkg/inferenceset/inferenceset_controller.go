@@ -178,8 +178,8 @@ func aggregateBenchmarkResults(workspaces []kaitov1beta1.Workspace) (totalTPM fl
 	for _, ws := range workspaces {
 		if controllers.DetermineWorkspacePhase(&ws) == "succeeded" {
 			readyReplicas++
-			if ws.Status.BenchmarkResult != nil {
-				if m, ok := ws.Status.BenchmarkResult.Metrics[controllers.BenchmarkMetricPeakTPM]; ok {
+			if ws.Status.Performance != nil {
+				if m, ok := ws.Status.Performance.Metrics[controllers.BenchmarkMetricPeakTPM]; ok {
 					if v, err := strconv.ParseFloat(m.Value, 64); err == nil && v > 0 {
 						totalTPM += v
 						hasBenchmarkTPMResult = true
@@ -310,36 +310,35 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		status.Selector = fmt.Sprintf("%s=%s", consts.WorkspaceCreatedByInferenceSetLabel, iObj.Name)
 		if kaitov1alpha1.IsRunBenchmarkEnabled(iObj) {
 			if hasBenchmarkTPMResult {
-				if status.WorkspaceProfile == nil {
-					status.WorkspaceProfile = &kaitov1alpha1.WorkspaceProfile{}
+				if status.Performance == nil {
+					status.Performance = &kaitov1alpha1.Performance{}
 				}
-				if status.WorkspaceProfile.Metrics == nil {
-					status.WorkspaceProfile.Metrics = make(map[string]kaitov1alpha1.WorkspaceMetric)
+				if status.Performance.Metrics == nil {
+					status.Performance.Metrics = make(map[string]kaitov1alpha1.Metric)
 				}
-				status.WorkspaceProfile.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM] = kaitov1alpha1.WorkspaceMetric{
-					Desc:                  controllers.BenchmarkDesc,
-					Value:                 strconv.FormatFloat(totalTPM, 'f', -1, 64),
-					Unit:                  controllers.BenchmarkMetricUnit,
-					BenchmarkedWorkspaces: int32(benchmarkedReplicas),
+				status.Performance.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM] = kaitov1alpha1.Metric{
+					Desc:  controllers.BenchmarkDesc,
+					Value: strconv.FormatFloat(totalTPM, 'f', -1, 64),
+					Unit:  controllers.BenchmarkMetricUnit,
 				}
 			} else {
 				// No ready replica has a TPM result — clear the TPM key so the profile
 				// doesn't reflect a previous generation of workspaces.
 				// Other metric keys are left intact to be cleared by their own logic.
-				if status.WorkspaceProfile != nil {
-					delete(status.WorkspaceProfile.Metrics, controllers.BenchmarkMetricAggregatedPeakTPM)
-					if len(status.WorkspaceProfile.Metrics) == 0 {
-						status.WorkspaceProfile = nil
+				if status.Performance != nil {
+					delete(status.Performance.Metrics, controllers.BenchmarkMetricAggregatedPeakTPM)
+					if len(status.Performance.Metrics) == 0 {
+						status.Performance = nil
 					}
 				}
 			}
 		} else {
 			// Feature flag is off — clear any TPM value that may have been written
 			// when the flag was previously enabled (e.g. annotation removed).
-			if status.WorkspaceProfile != nil {
-				delete(status.WorkspaceProfile.Metrics, controllers.BenchmarkMetricAggregatedPeakTPM)
-				if len(status.WorkspaceProfile.Metrics) == 0 {
-					status.WorkspaceProfile = nil
+			if status.Performance != nil {
+				delete(status.Performance.Metrics, controllers.BenchmarkMetricAggregatedPeakTPM)
+				if len(status.Performance.Metrics) == 0 {
+					status.Performance = nil
 				}
 			}
 		}

@@ -23,10 +23,10 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 )
 
 const (
@@ -62,7 +62,7 @@ const (
 type benchmarkResultPayload struct {
 	VLLMTotalTPM float64 `json:"vllm_total_tpm"`
 	// TTFTAvgMs (time-to-first-token, ms) and TPOTAvgMs (time-per-output-token, ms) are parsed
-	// from the benchmark output but not yet surfaced in BenchmarkResult. Reserved for future use.
+	// from the benchmark output but not yet surfaced in Performance. Reserved for future use.
 	TTFTAvgMs float64 `json:"ttft_avg_ms"`
 	TPOTAvgMs float64 `json:"tpot_avg_ms"`
 }
@@ -75,6 +75,16 @@ type benchmarkConfigPayload struct {
 	MaxConcurrency int32 `json:"max_concurrency"`
 }
 
+// maxScanTokenSize is the per-line buffer limit for pod log scanners.
+// vLLM can emit long tracebacks; 1 MiB comfortably covers any realistic line
+// without risking OOM (we tail at most benchmarkLogTailLines lines anyway).
+const maxScanTokenSize = 1 << 20 // 1 MiB
+
+// maxLogReadBytes caps total bytes read from the pod log stream.
+// 500 lines × 1 MiB/line is the theoretical ceiling; in practice log lines
+// are a few hundred bytes each, so 32 MiB is a generous but safe bound.
+const maxLogReadBytes = 32 << 20 // 32 MiB
+
 // parseBenchmarkResult scans pod log lines for the KAITO_BENCHMARK_CONFIG and
 // KAITO_BENCHMARK_RESULT entries, returning the parsed metrics.
 //
@@ -86,16 +96,13 @@ type benchmarkConfigPayload struct {
 // Multiple result lines may be present if the startup probe failed and retried.
 // We always take the last occurrence, which is guaranteed to be the successful one
 // (exit 0 stops further probe ticks).
-// maxScanTokenSize is the per-line buffer limit for pod log scanners.
-// vLLM can emit long tracebacks; 1 MiB comfortably covers any realistic line
-// without risking OOM (we tail at most benchmarkLogTailLines lines anyway).
-const maxScanTokenSize = 1 << 20 // 1 MiB
-
-func parseBenchmarkResult(logs string) (*kaitov1beta1.BenchmarkResult, error) {
+//
+// r is read incrementally; the caller is responsible for closing it.
+func parseBenchmarkResult(r io.Reader) (*kaitov1beta1.Performance, error) {
 	var lastResultPayload string
 	var lastConfigPayload string
 
-	scanner := bufio.NewScanner(strings.NewReader(logs))
+	scanner := bufio.NewScanner(r)
 	scanner.Buffer(make([]byte, 4096), maxScanTokenSize)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -123,11 +130,11 @@ func parseBenchmarkResult(logs string) (*kaitov1beta1.BenchmarkResult, error) {
 		return nil, fmt.Errorf("benchmark failed: TPM value %v indicates a failed or incomplete run", payload.VLLMTotalTPM)
 	}
 
-	result := &kaitov1beta1.BenchmarkResult{
-		Metrics: map[string]kaitov1beta1.BenchmarkMetric{},
+	result := &kaitov1beta1.Performance{
+		Metrics: map[string]kaitov1beta1.Metric{},
 	}
 
-	metric := kaitov1beta1.BenchmarkMetric{
+	metric := kaitov1beta1.Metric{
 		Desc:  BenchmarkDesc,
 		Value: strconv.FormatFloat(payload.VLLMTotalTPM, 'f', -1, 64),
 		Unit:  BenchmarkMetricUnit,
@@ -135,11 +142,11 @@ func parseBenchmarkResult(logs string) (*kaitov1beta1.BenchmarkResult, error) {
 	if lastConfigPayload != "" {
 		var cfgPayload benchmarkConfigPayload
 		if err := json.Unmarshal([]byte(lastConfigPayload), &cfgPayload); err == nil {
-			metric.Config = &kaitov1beta1.BenchmarkConfig{
-				DurationSec:    cfgPayload.DurationSec,
-				InputTokens:    cfgPayload.InputTokens,
-				OutputTokens:   cfgPayload.OutputTokens,
-				MaxConcurrency: cfgPayload.MaxConcurrency,
+			metric.Config = map[string]string{
+				"durationSec":    strconv.Itoa(int(cfgPayload.DurationSec)),
+				"inputTokens":    strconv.Itoa(int(cfgPayload.InputTokens)),
+				"outputTokens":   strconv.Itoa(int(cfgPayload.OutputTokens)),
+				"maxConcurrency": strconv.Itoa(int(cfgPayload.MaxConcurrency)),
 			}
 		}
 	}
@@ -162,46 +169,23 @@ func extractTagPayload(line, tag string) string {
 	return strings.TrimSpace(rest[spaceIdx+1:])
 }
 
-type podLogStreamer interface {
-	StreamLogs(ctx context.Context, namespace, podName string) (io.ReadCloser, error)
-}
-
-type kubeClientStreamer struct {
-	kubeClient kubernetes.Interface
-}
-
-func (s *kubeClientStreamer) StreamLogs(ctx context.Context, namespace, podName string) (io.ReadCloser, error) {
-	tailLines := benchmarkLogTailLines
-	req := s.kubeClient.CoreV1().Pods(namespace).GetLogs(podName, &corev1.PodLogOptions{
-		TailLines: &tailLines,
-	})
-	return req.Stream(ctx)
-}
-
 // reconcileBenchmarkResult reads the leader pod's logs (POD_INDEX=0) and parses
 // the last KAITO_BENCHMARK_RESULT line. It is called only when the workspace
 // inference is ready and the benchmark annotation is set.
-func reconcileBenchmarkResult(ctx context.Context, wObj *kaitov1beta1.Workspace, streamer podLogStreamer) (*kaitov1beta1.BenchmarkResult, error) {
+func reconcileBenchmarkResult(ctx context.Context, wObj *kaitov1beta1.Workspace) (*kaitov1beta1.Performance, error) {
 	podName := wObj.Name + benchmarkPodIndexSuffix
 
-	stream, err := streamer.StreamLogs(ctx, wObj.Namespace, podName)
+	tailLines := benchmarkLogTailLines
+	req := k8sclient.GetGlobalClientGoClient().CoreV1().Pods(wObj.Namespace).GetLogs(podName, &corev1.PodLogOptions{
+		TailLines: &tailLines,
+	})
+	stream, err := req.Stream(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("streaming logs for pod %s/%s: %w", wObj.Namespace, podName, err)
 	}
 	defer stream.Close()
 
-	var sb strings.Builder
-	scanner := bufio.NewScanner(stream)
-	scanner.Buffer(make([]byte, 4096), maxScanTokenSize)
-	for scanner.Scan() {
-		sb.WriteString(scanner.Text())
-		sb.WriteByte('\n')
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("reading log stream for pod %s/%s: %w", wObj.Namespace, podName, err)
-	}
-
-	result, err := parseBenchmarkResult(sb.String())
+	result, err := parseBenchmarkResult(io.LimitReader(stream, maxLogReadBytes))
 	if err != nil {
 		return nil, fmt.Errorf("pod %s/%s: %w", wObj.Namespace, podName, err)
 	}

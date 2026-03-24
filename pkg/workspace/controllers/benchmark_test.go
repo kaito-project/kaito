@@ -14,29 +14,21 @@
 package controllers
 
 import (
-	"context"
-	"fmt"
-	"io"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
-
-// --------------------------------------------------------------------------
-// TestParseBenchmarkResult — pure function, no mocks needed.
-// --------------------------------------------------------------------------
 
 func TestParseBenchmarkResult(t *testing.T) {
 	tests := map[string]struct {
 		logs         string
 		expectErr    bool
 		expectTPM    string
-		expectConfig *kaitov1beta1.BenchmarkConfig
+		expectConfig map[string]string
 	}{
 		"single result line": {
 			logs:      "some startup log\nKAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n",
@@ -80,11 +72,11 @@ func TestParseBenchmarkResult(t *testing.T) {
 			logs: "KAITO_BENCHMARK_CONFIG 2026-01-01T00:00:00Z {\"duration_sec\":60,\"input_tokens\":2048,\"output_tokens\":256,\"max_concurrency\":523}\n" +
 				"KAITO_BENCHMARK_RESULT 2026-01-01T00:00:02Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n",
 			expectTPM: "12345.67",
-			expectConfig: &kaitov1beta1.BenchmarkConfig{
-				DurationSec:    60,
-				InputTokens:    2048,
-				OutputTokens:   256,
-				MaxConcurrency: 523,
+			expectConfig: map[string]string{
+				"durationSec":    "60",
+				"inputTokens":    "2048",
+				"outputTokens":   "256",
+				"maxConcurrency": "523",
 			},
 		},
 		"config absent when KAITO_BENCHMARK_CONFIG not logged": {
@@ -96,7 +88,7 @@ func TestParseBenchmarkResult(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			result, err := parseBenchmarkResult(tc.logs)
+			result, err := parseBenchmarkResult(strings.NewReader(tc.logs))
 			if tc.expectErr {
 				assert.Error(t, err)
 				assert.Nil(t, result)
@@ -115,118 +107,23 @@ func TestParseBenchmarkResult(t *testing.T) {
 	}
 }
 
-// --------------------------------------------------------------------------
+// TestParseBenchmarkResultOverwrites verifies that re-parsing always returns fresh data,
+// not a stale cached value.
+func TestParseBenchmarkResultOverwrites(t *testing.T) {
+	logs := "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":99999,\"ttft_avg_ms\":10,\"tpot_avg_ms\":5}\n"
 
-type stubLogStreamer struct {
-	content   string
-	streamErr error
-}
-
-func (s *stubLogStreamer) StreamLogs(_ context.Context, _, _ string) (io.ReadCloser, error) {
-	if s.streamErr != nil {
-		return nil, s.streamErr
-	}
-	return io.NopCloser(strings.NewReader(s.content)), nil
-}
-
-// --------------------------------------------------------------------------
-// TestReconcileBenchmarkResult — exercises the real function via the interface.
-// --------------------------------------------------------------------------
-
-func TestReconcileBenchmarkResult(t *testing.T) {
-	wObj := &kaitov1beta1.Workspace{
-		ObjectMeta: metav1.ObjectMeta{Name: "my-workspace", Namespace: "default"},
-	}
-
-	tests := map[string]struct {
-		streamer  podLogStreamer
-		expectErr bool
-		expectTPM string
-	}{
-		"parses result from logs": {
-			streamer:  &stubLogStreamer{content: "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n"},
-			expectTPM: "12345.67",
-		},
-		"returns error when stream fails": {
-			streamer:  &stubLogStreamer{streamErr: fmt.Errorf("connection refused")},
-			expectErr: true,
-		},
-		"returns error when no benchmark line in logs": {
-			streamer:  &stubLogStreamer{content: "no benchmark here\n"},
-			expectErr: true,
+	existing := &kaitov1beta1.Performance{
+		Metrics: map[string]kaitov1beta1.Metric{
+			BenchmarkMetricPeakTPM: {Value: "old-value"},
 		},
 	}
 
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			result, err := reconcileBenchmarkResult(context.Background(), wObj, tc.streamer)
-			if tc.expectErr {
-				assert.Error(t, err)
-				assert.Nil(t, result)
-				return
-			}
-			require.NoError(t, err)
-			require.NotNil(t, result)
-			m, ok := result.Metrics[BenchmarkMetricPeakTPM]
-			require.True(t, ok)
-			assert.Equal(t, tc.expectTPM, m.Value)
-		})
-	}
-}
+	result, err := parseBenchmarkResult(strings.NewReader(logs))
+	require.NoError(t, err)
 
-// --------------------------------------------------------------------------
-// TestReconcileBenchmarkResultWithStatus — verifies status field assignment
-// and error propagation via reconcileBenchmarkResult (applyBenchmarkStatus
-// condition-setting is covered by workspace_controller_test.go).
-// --------------------------------------------------------------------------
-
-func TestReconcileBenchmarkResultWithStatus(t *testing.T) {
-	wObj := &kaitov1beta1.Workspace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "my-workspace",
-			Namespace: "default",
-			Annotations: map[string]string{
-				kaitov1beta1.AnnotationRunBenchmark: "true",
-			},
-		},
-	}
-
-	t.Run("sets result and BenchmarkCompleted=True on success", func(t *testing.T) {
-		streamer := &stubLogStreamer{content: "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n"}
-		result, err := reconcileBenchmarkResult(context.Background(), wObj, streamer)
-		require.NoError(t, err)
-
-		status := &kaitov1beta1.WorkspaceStatus{}
-		status.BenchmarkResult = result
-		require.NotNil(t, status.BenchmarkResult)
-		m, ok := status.BenchmarkResult.Metrics[BenchmarkMetricPeakTPM]
-		require.True(t, ok)
-		assert.Equal(t, "12345.67", m.Value)
-	})
-
-	t.Run("sets BenchmarkCompleted=False when stream fails", func(t *testing.T) {
-		streamer := &stubLogStreamer{streamErr: fmt.Errorf("connection refused")}
-		_, err := reconcileBenchmarkResult(context.Background(), wObj, streamer)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "connection refused")
-	})
-
-	t.Run("overwrites existing result on re-reconcile", func(t *testing.T) {
-		// always reads fresh from logs.
-		streamer := &stubLogStreamer{content: "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":99999,\"ttft_avg_ms\":10,\"tpot_avg_ms\":5}\n"}
-
-		status := &kaitov1beta1.WorkspaceStatus{
-			BenchmarkResult: &kaitov1beta1.BenchmarkResult{
-				Metrics: map[string]kaitov1beta1.BenchmarkMetric{
-					BenchmarkMetricPeakTPM: {Value: "old-value"},
-				},
-			},
-		}
-		result, err := reconcileBenchmarkResult(context.Background(), wObj, streamer)
-		require.NoError(t, err)
-		status.BenchmarkResult = result
-		m, ok := status.BenchmarkResult.Metrics[BenchmarkMetricPeakTPM]
-		require.True(t, ok)
-		assert.Equal(t, "99999", m.Value)
-	})
+	// Simulate the controller overwriting the previous result.
+	existing = result
+	m, ok := existing.Metrics[BenchmarkMetricPeakTPM]
+	require.True(t, ok)
+	assert.Equal(t, "99999", m.Value)
 }

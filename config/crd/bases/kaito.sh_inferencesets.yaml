@@ -297,33 +297,15 @@ spec:
                   - type
                   type: object
                 type: array
-              readyReplicas:
-                description: ReadyReplicas is the number of workspaces that are in
-                  ready state.
-                type: integer
-              replicas:
-                description: Replicas is the total number of workspaces created by
-                  the InferenceSet.
-                type: integer
-              selector:
-                description: |-
-                  Selector is used to select the pods that provide metrics for making scaling action decisions.
-                  This field must be set when HPA and VPA is used for scaling.
-                type: string
-              workspaceProfile:
-                description: WorkspaceProfile holds aggregated performance characteristics
+              performance:
+                description: Performance holds aggregated performance characteristics
                   across all workspace replicas.
                 properties:
                   metrics:
                     additionalProperties:
-                      description: WorkspaceMetric holds an aggregated benchmark measurement
+                      description: Metric holds an aggregated benchmark measurement
                         across workspace replicas.
                       properties:
-                        benchmarkedWorkspaces:
-                          description: BenchmarkedWorkspaces is the number of workspace
-                            replicas that contributed to this aggregate.
-                          format: int32
-                          type: integer
                         desc:
                           description: Desc describes the benchmark type and load
                             pattern, e.g. "stress/high-concurrency".
@@ -340,9 +322,22 @@ spec:
                       - desc
                       - value
                       type: object
-                    description: Metrics is a map of metric name to WorkspaceMetric.
+                    description: Metrics is a map of metric name to Metric.
                     type: object
                 type: object
+              readyReplicas:
+                description: ReadyReplicas is the number of workspaces that are in
+                  ready state.
+                type: integer
+              replicas:
+                description: Replicas is the total number of workspaces created by
+                  the InferenceSet.
+                type: integer
+              selector:
+                description: |-
+                  Selector is used to select the pods that provide metrics for making scaling action decisions.
+                  This field must be set when HPA and VPA is used for scaling.
+                type: string
             type: object
         required:
         - spec

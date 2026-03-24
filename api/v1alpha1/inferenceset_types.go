@@ -57,8 +57,8 @@ type InferenceSetSpec struct {
 	UpdateStrategy appsv1.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty"`
 }
 
-// WorkspaceMetric holds an aggregated benchmark measurement across workspace replicas.
-type WorkspaceMetric struct {
+// Metric holds an aggregated benchmark measurement across workspace replicas.
+type Metric struct {
 	// Desc describes the benchmark type and load pattern, e.g. "stress/high-concurrency".
 	Desc string `json:"desc"`
 	// Value is the aggregated metric value, formatted as a string.
@@ -66,17 +66,14 @@ type WorkspaceMetric struct {
 	// Unit is the unit of the metric value (e.g. "tokens/min").
 	// +optional
 	Unit string `json:"unit,omitempty"`
-	// BenchmarkedWorkspaces is the number of workspace replicas that contributed to this aggregate.
-	// +optional
-	BenchmarkedWorkspaces int32 `json:"benchmarkedWorkspaces,omitempty"`
 }
 
-// WorkspaceProfile holds aggregated performance characteristics across all workspace replicas,
+// Performance holds aggregated performance characteristics across all workspace replicas,
 // keyed by metric name (e.g. "aggregatedPeakTokensPerMinute").
-type WorkspaceProfile struct {
-	// Metrics is a map of metric name to WorkspaceMetric.
+type Performance struct {
+	// Metrics is a map of metric name to Metric.
 	// +optional
-	Metrics map[string]WorkspaceMetric `json:"metrics,omitempty"`
+	Metrics map[string]Metric `json:"metrics,omitempty"`
 }
 
 // InferenceSetStatus defines the observed state of InferenceSet
@@ -91,9 +88,9 @@ type InferenceSetStatus struct {
 	// Conditions report the current conditions of the InferenceSet.
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
-	// WorkspaceProfile holds aggregated performance characteristics across all workspace replicas.
+	// Performance holds aggregated performance characteristics across all workspace replicas.
 	// +optional
-	WorkspaceProfile *WorkspaceProfile `json:"workspaceProfile,omitempty"`
+	Performance *Performance `json:"performance,omitempty"`
 }
 
 // InferenceSet is the Schema for the InferenceSet API

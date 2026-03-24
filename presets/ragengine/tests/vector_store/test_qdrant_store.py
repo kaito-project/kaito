@@ -84,38 +84,28 @@ class TestQdrantVectorStore(BaseVectorStoreTest):
         return None
 
     # ── Skip tests that rely on ref_doc_info or docstore ────────
-    # Qdrant stores_text=True → ref_doc_info raises NotImplementedError,
-    # and docstore is empty (text lives in Qdrant, not LlamaIndex docstore).
+    # Now that Qdrant overrides bypass docstore (go directly to Qdrant),
+    # most tests can run. Only skip those that are truly incompatible.
 
-    @pytest.mark.skip(reason="Qdrant stores_text=True: ref_doc_info not supported")
-    async def test_add_document(self, vector_store_manager):
-        pass
-
-    @pytest.mark.skip(reason="Qdrant stores_text=True: ref_doc_info not supported")
-    async def test_add_code_documents_with_code_splitting(self, vector_store_manager):
-        pass
-
-    @pytest.mark.skip(reason="Qdrant stores_text=True: ref_doc_info not supported")
+    # test_update_document: base test expects "unchanged" detection via
+    # refresh_ref_docs; our Qdrant override always deletes+reinserts.
+    # We provide a Qdrant-specific override below.
+    @pytest.mark.skip(
+        reason="Qdrant update always re-inserts; see test_update_document_qdrant"
+    )
     async def test_update_document(self, mock_get, vector_store_manager):
         pass
 
-    @pytest.mark.skip(reason="Qdrant stores_text=True: ref_doc_info not supported")
-    async def test_delete_document(self, mock_get, vector_store_manager):
-        pass
-
-    @pytest.mark.skip(reason="Qdrant stores_text=True: docstore empty")
-    async def test_list_documents_in_index(self, vector_store_manager):
-        pass
-
-    @pytest.mark.skip(reason="Qdrant stores_text=True: docstore empty")
-    async def test_list_documents_with_filter_index(self, vector_store_manager):
-        pass
-
-    @pytest.mark.skip(reason="Qdrant stores_text=True: docstore empty")
+    # test_add_document_on_existing_index: base test asserts doc_id order
+    # from list matches insertion order; Qdrant scroll returns by point ID.
+    # We provide a Qdrant-specific override below.
+    @pytest.mark.skip(
+        reason="Qdrant scroll order differs from insertion order; see test_add_document_on_existing_index_qdrant"
+    )
     async def test_add_document_on_existing_index(self, vector_store_manager):
         pass
 
-    @pytest.mark.skip(reason="Qdrant stores_text=True: docstore empty")
+    @pytest.mark.skip(reason="Qdrant persists to its own server, not filesystem")
     async def test_persist_and_load_as_seperate_index(self, vector_store_manager):
         pass
 
@@ -325,3 +315,75 @@ class TestQdrantVectorStore(BaseVectorStoreTest):
             assert json_request["messages"][0]["role"] == "system"
             assert json_request["messages"][1]["role"] == "user"
             assert json_request["messages"][1]["content"] == "What is pasta made of?"
+
+    # ── Qdrant-specific tests for overrides ─────────────────────
+
+    @pytest.mark.asyncio
+    @respx.mock
+    @patch("requests.get")
+    async def test_update_document_qdrant(
+        self, mock_get, vector_store_manager, monkeypatch
+    ):
+        """Qdrant update: delete-then-reinsert. No 'unchanged' detection."""
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "data": [{"id": "mock-model", "max_model_len": 2048}]
+        }
+
+        documents = [Document(text="Fifth document", metadata={"type": "text"})]
+        ids = await vector_store_manager.index_documents("test_index", documents)
+
+        # Update with new text
+        result = await vector_store_manager.update_documents(
+            "test_index",
+            [
+                Document(
+                    doc_id=ids[0],
+                    text="Updated Fifth document",
+                    metadata={"type": "text"},
+                )
+            ],
+        )
+        assert result["updated_documents"][0].doc_id == ids[0]
+
+        # Verify the old doc is gone and new content exists
+        assert await vector_store_manager.document_exists(
+            "test_index",
+            Document(text="Updated Fifth document", metadata={"type": "text"}),
+            ids[0],
+        )
+
+        # Not-found case
+        result = await vector_store_manager.update_documents(
+            "test_index",
+            [
+                Document(
+                    doc_id="baddocid",
+                    text="Some text",
+                    metadata={"type": "text"},
+                )
+            ],
+        )
+        assert result["not_found_documents"][0].doc_id == "baddocid"
+
+    @pytest.mark.asyncio
+    async def test_add_document_on_existing_index_qdrant(self, vector_store_manager):
+        """Qdrant-specific: verify doc count and doc_id set (not order)."""
+        await vector_store_manager.index_documents(
+            "test_add_index",
+            [Document(text="Initial Doc", metadata={"type": "text"})],
+        )
+
+        documents = [
+            Document(text=f"Document {i}", metadata={"type": "text"}) for i in range(10)
+        ]
+        ids = await vector_store_manager.index_documents("test_add_index", documents)
+
+        resp = await vector_store_manager.list_documents_in_index(
+            "test_add_index", limit=100, offset=0
+        )
+        assert resp.total_items == 11
+
+        # Verify all doc_ids from the second batch are present (order-independent).
+        resp_doc_ids = {doc.doc_id for doc in resp.documents}
+        assert all(doc_id in resp_doc_ids for doc_id in ids)

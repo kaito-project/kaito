@@ -120,6 +120,51 @@ jobs:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           RAGENGINE_SERVICE_IMG_TAG: ${{ env.VERSION }}
 
+      - name: Deploy Qdrant vector database for E2E tests
+        shell: bash
+        run: |
+          kubectl create namespace qdrant || true
+          cat <<'EOF' | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: qdrant
+            namespace: qdrant
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: qdrant
+            template:
+              metadata:
+                labels:
+                  app: qdrant
+              spec:
+                containers:
+                - name: qdrant
+                  image: qdrant/qdrant:v1.15.2
+                  ports:
+                  - containerPort: 6333
+                  - containerPort: 6334
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: qdrant
+            namespace: qdrant
+          spec:
+            selector:
+              app: qdrant
+            ports:
+            - name: http
+              port: 6333
+              targetPort: 6333
+            - name: grpc
+              port: 6334
+              targetPort: 6334
+          EOF
+          kubectl wait --for=condition=available deploy/qdrant -n qdrant --timeout=300s
+
       - name: Create node pool for RAG workloads
         uses: azure/CLI@v2.2.0
         with:

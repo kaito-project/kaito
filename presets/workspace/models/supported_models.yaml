@@ -5,7 +5,8 @@ models:
     runtime: tfs
     tag: 0.2.5
     # Tag history:
-    # 0.2.5 - update benchmark_entrypoint.py: re-emit config before result, add max_concurrency output
+    # 0.2.6 - update benchmark_entrypoint.py: re-emit config before result, add max_concurrency output
+    # 0.2.5 - remove uv after installation to fix CVEs in uv package
     # 0.2.4 - fix CVEs in kaito-base image
     # 0.2.3 - add benchmark exec startup probe support
     # 0.2.2 - bump vllm to 0.14.1

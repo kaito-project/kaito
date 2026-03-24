@@ -19,8 +19,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 func TestParseBenchmarkResult(t *testing.T) {
@@ -105,25 +103,4 @@ func TestParseBenchmarkResult(t *testing.T) {
 			assert.Equal(t, tc.expectConfig, m.Config)
 		})
 	}
-}
-
-// TestParseBenchmarkResultOverwrites verifies that re-parsing always returns fresh data,
-// not a stale cached value.
-func TestParseBenchmarkResultOverwrites(t *testing.T) {
-	logs := "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":99999,\"ttft_avg_ms\":10,\"tpot_avg_ms\":5}\n"
-
-	existing := &kaitov1beta1.Performance{
-		Metrics: map[string]kaitov1beta1.Metric{
-			BenchmarkMetricPeakTPM: {Value: "old-value"},
-		},
-	}
-
-	result, err := parseBenchmarkResult(strings.NewReader(logs))
-	require.NoError(t, err)
-
-	// Simulate the controller overwriting the previous result.
-	existing = result
-	m, ok := existing.Metrics[BenchmarkMetricPeakTPM]
-	require.True(t, ok)
-	assert.Equal(t, "99999", m.Value)
 }

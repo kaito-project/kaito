@@ -56,7 +56,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator/advancednodesestimator"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
@@ -92,7 +92,7 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 		klogger:             klog.NewKlogr().WithName("WorkspaceController"),
 		Recorder:            Recorder,
 		expectations:        expectations,
-		Estimator:           &advancednodesestimator.AdvancedNodesEstimator{},
+		Estimator:           &nodesestimator.NodesEstimator{},
 		nodeClaimManager:    resource.NewNodeClaimManager(client, Recorder, expectations),
 		nodeResourceManager: resource.NewNodeManager(client),
 	}

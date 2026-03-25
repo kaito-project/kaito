@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package advancednodesestimator
+package nodesestimator
 
 import (
 	"context"
@@ -31,16 +31,16 @@ import (
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
-// AdvancedNodesEstimator estimates node count based on SKU memory and model memory requirement
-type AdvancedNodesEstimator struct {
+// NodesEstimator estimates node count based on SKU memory and model memory requirement
+type NodesEstimator struct {
 	// no fields needed
 }
 
-func (c *AdvancedNodesEstimator) Name() string {
-	return "advanced"
+func (c *NodesEstimator) Name() string {
+	return "node-estimator"
 }
 
-func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspace *kaitov1beta1.Workspace, client client.Client) (int32, error) {
+func (c *NodesEstimator) EstimateNodeCount(ctx context.Context, workspace *kaitov1beta1.Workspace, client client.Client) (int32, error) {
 	// If inference is not configured, default to resource count or 1
 	if workspace.Inference == nil || workspace.Inference.Preset == nil || workspace.Inference.Preset.Name == "" {
 		//nolint:staticcheck //SA1019: deprecate Resource.Count field
@@ -100,19 +100,19 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		configMap := &corev1.ConfigMap{}
 		err := resources.GetResource(ctx, configMapName, workspace.Namespace, client, configMap)
 		if err != nil {
-			klog.Warningf("[AdvancedEstimator] Failed to get ConfigMap %s: %v, using default maxModelLen=%d", configMapName, err, maxModelLen)
+			klog.Warningf("[NodeEstimator] Failed to get ConfigMap %s: %v, using default maxModelLen=%d", configMapName, err, maxModelLen)
 		} else {
 			// Parse the ConfigMap content for max-model-len
 			if configData, exists := configMap.Data["inference_config.yaml"]; exists {
 				if userMaxModelLen, found := utils.ParseExplicitMaxModelLen(configData); found {
 					maxModelLen = userMaxModelLen
-					klog.Infof("[AdvancedEstimator] workspace=%s using user explicit max-model-len=%d from ConfigMap %s", workspace.Name, maxModelLen, configMapName)
+					klog.Infof("[NodeEstimator] workspace=%s using user explicit max-model-len=%d from ConfigMap %s", workspace.Name, maxModelLen, configMapName)
 				}
 			}
 		}
 	}
 
-	klog.Infof("[AdvancedEstimator] workspace=%s maxModelLen=%d", workspace.Name, maxModelLen)
+	klog.Infof("[NodeEstimator] workspace=%s maxModelLen=%d", workspace.Name, maxModelLen)
 
 	// If GPU memory information is available, calculate the optimal node count
 	if !gpuConfig.GPUMem.IsZero() && gpuConfig.GPUCount > 0 {
@@ -136,7 +136,7 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		}
 
 		if float64(availableGPUMemoryPerGPUBytes) <= overhead {
-			return 0, fmt.Errorf("GPU memory %d bytes is too small, needs at least %.1f GB overhead (base: 2.3GB + Advanced KV Cache: %.1f GB)",
+			return 0, fmt.Errorf("GPU memory %d bytes is too small, needs at least %.1f GB overhead (base: 2.3GB + KV Cache: %.1f GB)",
 				totalGPUMemoryPerGPUBytes, overhead/float64(consts.GiBToBytes), kvCache/float64(consts.GiBToBytes))
 		}
 
@@ -160,6 +160,6 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, workspac
 		}
 	}
 
-	klog.Infof("[AdvancedEstimator] Final result: nodeCountPerReplica=%d for workspace %s", nodeCountPerReplica, workspace.Name)
+	klog.Infof("[NodeEstimator] Final result: nodeCountPerReplica=%d for workspace %s", nodeCountPerReplica, workspace.Name)
 	return int32(nodeCountPerReplica), nil
 }

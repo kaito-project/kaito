@@ -28,6 +28,10 @@ type InferenceSetResourceSpec struct {
 
 // InferenceSetTemplate defines the template for creating InferenceSet instances.
 type InferenceSetTemplate struct {
+	// Metadata contains the labels and annotations that will be propagated to each
+	// Workspace created by the InferenceSet controller.
+	// +optional
+	Metadata metav1.ObjectMeta `json:"metadata,omitempty"`
 	// +optional
 	Resource  InferenceSetResourceSpec   `json:"resource"`
 	Inference kaitov1beta1.InferenceSpec `json:"inference"`

@@ -214,6 +214,11 @@ spec:
                           be specified and vice versa.
                         x-kubernetes-preserve-unknown-fields: true
                     type: object
+                  metadata:
+                    description: |-
+                      Metadata contains the labels and annotations that will be propagated to each
+                      Workspace created by the InferenceSet controller.
+                    type: object
                   resource:
                     properties:
                       instanceType:

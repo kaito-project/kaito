@@ -272,15 +272,24 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			workspaceObj := &kaitov1beta1.Workspace{}
 			workspaceObj.GenerateName = iObj.Name + "-"
 			workspaceObj.Namespace = iObj.Namespace
-			workspaceObj.Labels = map[string]string{
-				consts.WorkspaceCreatedByInferenceSetLabel: iObj.Name,
+
+			// Clone labels from the template metadata, then ensure the
+			// InferenceSet ownership label is always present.
+			workspaceObj.Labels = make(map[string]string)
+			for k, v := range iObj.Spec.Template.Metadata.Labels {
+				workspaceObj.Labels[k] = v
+			}
+			workspaceObj.Labels[consts.WorkspaceCreatedByInferenceSetLabel] = iObj.Name
+
+			// Clone annotations from the template metadata.
+			workspaceObj.Annotations = make(map[string]string)
+			for k, v := range iObj.Spec.Template.Metadata.Annotations {
+				workspaceObj.Annotations[k] = v
 			}
 			// Propagate the run-benchmark annotation so each workspace runs the
 			// post-load benchmark and the InferenceSet can aggregate the TPM results.
 			if kaitov1alpha1.IsRunBenchmarkEnabled(iObj) {
-				workspaceObj.Annotations = map[string]string{
-					kaitov1beta1.AnnotationRunBenchmark: "true",
-				}
+				workspaceObj.Annotations[kaitov1beta1.AnnotationRunBenchmark] = "true"
 			}
 			workspaceObj.OwnerReferences = []metav1.OwnerReference{
 				*metav1.NewControllerRef(iObj, kaitov1alpha1.GroupVersion.WithKind("InferenceSet")),

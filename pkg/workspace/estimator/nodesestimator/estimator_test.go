@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package basicnodesestimator
+package nodesestimator
 
 import (
 	"context"
@@ -38,25 +38,24 @@ func init() {
 	test.RegisterTestModel()
 }
 
-func TestBasicNodesEstimator_Name(t *testing.T) {
-	estimator := &BasicNodesEstimator{}
-	assert.Equal(t, "basic", estimator.Name())
+func TestNodeEstimator_Name(t *testing.T) {
+	calculator := &NodeEstimator{}
+	assert.Equal(t, "default", calculator.Name())
 }
 
-func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
+func TestNodeEstimator_EstimateNodeCount(t *testing.T) {
 	// Set the cloud provider environment variable for SKU lookup
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	ctx := context.Background()
-	estimator := &BasicNodesEstimator{}
+	calculator := &NodeEstimator{}
 
 	tests := []struct {
-		name                        string
-		workspace                   *kaitov1beta1.Workspace
-		disableNodeAutoProvisioning bool
-		expectedCount               int32
-		expectedError               bool
-		errorContains               string
+		name          string
+		workspace     *kaitov1beta1.Workspace
+		expectedCount int32
+		expectedError bool
+		errorContains string
 	}{
 		{
 			name: "Should return resource count when inference is nil",
@@ -131,7 +130,7 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "Should return error for invalid instance type (NAP enabled by default)",
+			name: "Should return error for invalid instance type when NAP enabled",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -154,7 +153,7 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 			errorContains: "failed to get GPU config for instance type Invalid_Instance_Type",
 		},
 		{
-			name: "Should optimize node count with valid instance type (NAP enabled by default)",
+			name: "Should optimize node count with valid instance type when NAP enabled",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -162,17 +161,17 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 				},
 				Resource: kaitov1beta1.ResourceSpec{
 					Count:        ptr.To(4),                  // User requests 4 nodes
-					InstanceType: "Standard_NC96ads_A100_v4", // Large instance type with plenty of GPU memory
+					InstanceType: "Standard_NC96ads_A100_v4", // Has large GPU memory (80GB per GPU)
 				},
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{
 						PresetMeta: kaitov1beta1.PresetMeta{
-							Name: "test-model", // 8Gi requirement (small model)
+							Name: "test-model", // 8Gi requirement, easily fits in single A100
 						},
 					},
 				},
 			},
-			expectedCount: 1, // Should optimize to 1 node since A100 has enough memory for 8Gi model
+			expectedCount: 1, // Should optimize to 1 node despite user requesting 4
 			expectedError: false,
 		},
 		{
@@ -216,7 +215,7 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 					},
 				},
 			},
-			expectedCount: 0, // With new logic: when resource count is nil (nodeCountPerReplica=0), minimumNodes cannot be < 0, so nodeCountPerReplica stays 0
+			expectedCount: 1, // Default to 1 when count is nil, sufficient for test-model
 			expectedError: false,
 		},
 	}
@@ -232,7 +231,7 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 
 			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, nil)
 			require.NoError(t, reqErr)
-			count, err := estimator.EstimateNodeCount(ctx, req, nil)
+			count, err := calculator.EstimateNodeCount(ctx, req, nil)
 
 			if tt.expectedError {
 				require.Error(t, err)
@@ -248,59 +247,12 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 	}
 }
 
-func TestBasicNodesEstimator_EstimateNodeCount_GPUMemoryCalculation(t *testing.T) {
+func TestNodeEstimator_EstimateNodeCount_BYO(t *testing.T) {
 	// Set the cloud provider environment variable for SKU lookup
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	ctx := context.Background()
-	estimator := &BasicNodesEstimator{}
-
-	// Test case for detailed GPU memory calculation verification
-	t.Run("Should calculate correct minimum nodes based on GPU memory requirements", func(t *testing.T) {
-		// Ensure NAP is enabled for this test
-		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
-		defer func() {
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
-		}()
-
-		// Use a model that requires significant GPU memory (64Gi)
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-workspace",
-				Namespace: "default",
-			},
-			Resource: kaitov1beta1.ResourceSpec{
-				Count:        ptr.To(10),             // User requests many nodes
-				InstanceType: "Standard_NC4as_T4_v3", // Smaller GPU memory instance
-			},
-			Inference: &kaitov1beta1.InferenceSpec{
-				Preset: &kaitov1beta1.PresetSpec{
-					PresetMeta: kaitov1beta1.PresetMeta{
-						Name: "test-distributed-model", // This model requires 64Gi
-					},
-				},
-			},
-		}
-
-		req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
-		require.NoError(t, reqErr)
-		count, err := estimator.EstimateNodeCount(ctx, req, nil)
-		require.NoError(t, err)
-
-		// The estimator should calculate optimal node count based on GPU memory
-		// and return fewer nodes than requested if possible
-		assert.True(t, count > 0, "Node count should be positive")
-		assert.True(t, count <= 10, "Node count should not exceed user request")
-	})
-}
-
-func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
-	// Set the cloud provider environment variable for SKU lookup
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
-	ctx := context.Background()
-	estimator := &BasicNodesEstimator{}
+	calculator := &NodeEstimator{}
 
 	tests := []struct {
 		name          string
@@ -318,8 +270,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					Count:        ptr.To(1),
-					InstanceType: "Standard_NC4as_T4_v3", // Instance type is optional for BYO
+					InstanceType: "Invalid_Instance_Type", // Instance type is optional for BYO
 				},
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{
@@ -349,7 +300,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					Count: ptr.To(1),
+					// No InstanceType - should get config from existing nodes
 				},
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{
@@ -375,7 +326,6 @@ func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					Count: ptr.To(2),
 					// No InstanceType specified - should get config from existing nodes
 				},
 				Inference: &kaitov1beta1.InferenceSpec{
@@ -417,7 +367,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 					*nl = *nodeList
 				}).Return(nil)
 			},
-			expectedCount: 1, // Should optimize from 2 to 1 node based on A100 memory
+			expectedCount: 1, // Should work with BYO node configuration
 			expectedError: false,
 		},
 		{
@@ -427,9 +377,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 					Name:      "test-workspace",
 					Namespace: "default",
 				},
-				Resource: kaitov1beta1.ResourceSpec{
-					Count: ptr.To(1),
-				},
+				Resource: kaitov1beta1.ResourceSpec{},
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{
 						PresetMeta: kaitov1beta1.PresetMeta{
@@ -470,14 +418,14 @@ func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Enable BYO mode (NAP disabled)
+			// Save original feature gate value and enable BYO mode
 			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 			defer func() {
 				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
 			}()
 
-			// Create a mock client
+			// Create a mock client for BYO scenarios
 			mockClient := test.NewClient()
 			if tt.setupMocks != nil {
 				tt.setupMocks(mockClient)
@@ -485,7 +433,7 @@ func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 
 			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, mockClient)
 			require.NoError(t, reqErr)
-			count, err := estimator.EstimateNodeCount(ctx, req, mockClient)
+			count, err := calculator.EstimateNodeCount(ctx, req, mockClient)
 
 			if tt.expectedError {
 				require.Error(t, err)
@@ -503,124 +451,176 @@ func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 	}
 }
 
-func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
+func TestNodeEstimator_EstimateNodeCount_Falcon7B(t *testing.T) {
 	// Set the cloud provider environment variable for SKU lookup
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	ctx := context.Background()
-	estimator := &BasicNodesEstimator{}
+	calculator := &NodeEstimator{}
 
-	t.Run("Should handle case when nodeCountPerReplica is zero", func(t *testing.T) {
-		// Ensure NAP is enabled for this test
-		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
-		defer func() {
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
-		}()
-
-		// This test covers the new logic where the condition is:
-		// if minimumNodes < nodeCountPerReplica { nodeCountPerReplica = minimumNodes }
-		// When nodeCountPerReplica is 0, minimumNodes will not be less than 0,
-		// so nodeCountPerReplica remains unchanged and the function returns it
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-workspace",
-				Namespace: "default",
-			},
-			Resource: kaitov1beta1.ResourceSpec{
-				Count:        ptr.To(1),
-				InstanceType: "Standard_NC96ads_A100_v4", // Large GPU memory instance
-			},
-			Inference: &kaitov1beta1.InferenceSpec{
-				Preset: &kaitov1beta1.PresetSpec{
-					PresetMeta: kaitov1beta1.PresetMeta{
-						Name: "test-model", // Small model that fits in one GPU
+	tests := []struct {
+		name          string
+		workspace     *kaitov1beta1.Workspace
+		expectedCount int32
+		expectedError bool
+		errorContains string
+	}{
+		{
+			name: "Should optimize falcon-7b with A10 GPU - single node sufficient",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-falcon-7b-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count:        ptr.To(3),                 // User requests 3 nodes
+					InstanceType: "Standard_NV36ads_A10_v5", // A10 GPU with 24GB memory
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-falcon-7b", // 13.44Gi requirement, tensor parallelism disabled
+						},
 					},
 				},
 			},
-		}
-
-		req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
-		require.NoError(t, reqErr)
-		count, err := estimator.EstimateNodeCount(ctx, req, nil)
-		require.NoError(t, err)
-
-		// With the new logic, when minimumNodes < nodeCountPerReplica,
-		// nodeCountPerReplica gets updated to minimumNodes value
-		assert.True(t, count > 0, "Node count should be positive")
-	})
-
-	t.Run("Should return minimum nodes when it's smaller than nodeCountPerReplica", func(t *testing.T) {
-		// Ensure NAP is enabled for this test
-		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
-		defer func() {
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
-		}()
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-workspace",
-				Namespace: "default",
-			},
-			Resource: kaitov1beta1.ResourceSpec{
-				Count:        ptr.To(10),             // User wants many nodes
-				InstanceType: "Standard_NC4as_T4_v3", // Small GPU instance
-			},
-			Inference: &kaitov1beta1.InferenceSpec{
-				Preset: &kaitov1beta1.PresetSpec{
-					PresetMeta: kaitov1beta1.PresetMeta{
-						Name: "test-model", // Model that can run efficiently on fewer nodes
+			expectedCount: 1, // Should optimize to 1 node (13.44Gi fits easily in 24GB A10 GPU)
+			expectedError: false,
+		},
+		{
+			name: "Should respect user choice for falcon-7b when user requests 1 node",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-falcon-7b-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count:        ptr.To(1),                 // User requests 1 node (already optimal)
+					InstanceType: "Standard_NV36ads_A10_v5", // A10 GPU with 24GB memory
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-falcon-7b", // 13.44Gi requirement
+						},
 					},
 				},
 			},
-		}
-
-		req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
-		require.NoError(t, reqErr)
-		count, err := estimator.EstimateNodeCount(ctx, req, nil)
-		require.NoError(t, err)
-
-		// The function should update nodeCountPerReplica to minimumNodes when minimumNodes < nodeCountPerReplica,
-		// optimizing for GPU utilization
-		assert.True(t, count > 0, "Node count should be positive")
-		assert.True(t, count <= 10, "Node count should not exceed resource count")
-	})
-
-	t.Run("Should return nodeCountPerReplica when minimumNodes is higher", func(t *testing.T) {
-		// Ensure NAP is enabled for this test
-		originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
-		defer func() {
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
-		}()
-
-		workspace := &kaitov1beta1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-workspace",
-				Namespace: "default",
-			},
-			Resource: kaitov1beta1.ResourceSpec{
-				Count:        ptr.To(1),              // User wants fewer nodes
-				InstanceType: "Standard_NC4as_T4_v3", // Small GPU instance
-			},
-			Inference: &kaitov1beta1.InferenceSpec{
-				Preset: &kaitov1beta1.PresetSpec{
-					PresetMeta: kaitov1beta1.PresetMeta{
-						Name: "test-distributed-model", // Large model requiring multiple nodes
+			expectedCount: 1, // Should keep user's choice since it's already optimal
+			expectedError: false,
+		},
+		{
+			name: "Should optimize falcon-7b with A100 GPU - single node more than sufficient",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-falcon-7b-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count:        ptr.To(4),                  // User requests 4 nodes
+					InstanceType: "Standard_NC24ads_A100_v4", // A100 GPU with 80GB memory
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-falcon-7b", // 13.44Gi requirement, easily fits in 80GB A100
+						},
 					},
 				},
 			},
-		}
+			expectedCount: 1, // Should optimize to 1 node (13.44Gi is tiny compared to 80GB A100 GPU)
+			expectedError: false,
+		},
+	}
 
-		req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
-		require.NoError(t, reqErr)
-		count, err := estimator.EstimateNodeCount(ctx, req, nil)
-		require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Ensure NAP is enabled for these tests
+			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+			}()
 
-		// When a model requires more nodes than the minimum calculation suggests,
-		// it should return the user-requested count or calculated requirement
-		assert.True(t, count > 0, "Node count should be positive")
-	})
+			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, nil)
+			require.NoError(t, reqErr)
+			count, err := calculator.EstimateNodeCount(ctx, req, nil)
+
+			if tt.expectedError {
+				require.Error(t, err)
+				if tt.errorContains != "" {
+					assert.Contains(t, err.Error(), tt.errorContains)
+				}
+				assert.Equal(t, tt.expectedCount, count)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedCount, count)
+			}
+		})
+	}
+}
+
+func TestNodeEstimator_EstimateNodeCount_Qwen25Coder32B(t *testing.T) {
+	// Set the cloud provider environment variable for SKU lookup
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	ctx := context.Background()
+	calculator := &NodeEstimator{}
+
+	tests := []struct {
+		name          string
+		workspace     *kaitov1beta1.Workspace
+		expectedCount int32
+		expectedError bool
+		errorContains string
+	}{
+		{
+			name: "Should optimize qwen2.5-coder-32b with A100 GPU - single node sufficient",
+			workspace: &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-qwen25-coder-32b-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					Count:        ptr.To(3),                  // User requests 3 nodes
+					InstanceType: "Standard_NC24ads_A100_v4", // A100 GPU with 80GB memory
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-qwen2.5-coder-32b-instruct", // 62.5Gi requirement, supports tensor parallelism
+						},
+					},
+				},
+			},
+			expectedCount: 1, // Should optimize to 1 node (62.5Gi fits in 80GB A100 GPU with 0.84 utilization)
+			expectedError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Ensure NAP is enabled for these tests
+			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+			}()
+
+			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, nil)
+			require.NoError(t, reqErr)
+			count, err := calculator.EstimateNodeCount(ctx, req, nil)
+
+			if tt.expectedError {
+				require.Error(t, err)
+				if tt.errorContains != "" {
+					assert.Contains(t, err.Error(), tt.errorContains)
+				}
+				assert.Equal(t, tt.expectedCount, count)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedCount, count)
+			}
+		})
+	}
 }

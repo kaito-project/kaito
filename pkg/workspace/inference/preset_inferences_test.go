@@ -940,6 +940,79 @@ func TestSetAdapterPuller(t *testing.T) {
 			expectedEnvVars: []string{"adapter-1"},
 			expectError:     false,
 		},
+		"single volume adapter": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Adapters: []v1beta1.AdapterSpec{
+						{
+							Source: &v1beta1.DataSource{
+								Name: "adapter-1",
+								Volume: &corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "test-pvc",
+									},
+								},
+							},
+							Strength: &ValidStrength,
+						},
+					},
+				},
+			},
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-container",
+					},
+				},
+			},
+			expectedVolumes: []string{"adapter-volume-adapter-1"},
+			expectedEnvVars: []string{"adapter-1"},
+			expectError:     false,
+		},
+		"mixed image and volume adapters": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Adapters: []v1beta1.AdapterSpec{
+						{
+							Source: &v1beta1.DataSource{
+								Name:  "adapter-img",
+								Image: "test-registry/adapter:v1",
+							},
+							Strength: &ValidStrength,
+						},
+						{
+							Source: &v1beta1.DataSource{
+								Name: "adapter-vol",
+								Volume: &corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "test-pvc",
+									},
+								},
+							},
+							Strength: &ValidStrength,
+						},
+					},
+				},
+			},
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-container",
+					},
+				},
+			},
+			expectedVolumes: []string{"adapter-volume", "adapter-volume-adapter-vol"},
+			expectedEnvVars: []string{"adapter-img", "adapter-vol"},
+			expectError:     false,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -967,21 +1040,23 @@ func TestSetAdapterPuller(t *testing.T) {
 				t.Errorf("volumes mismatch: expected %v, got %v", tc.expectedVolumes, actualVolumes)
 			}
 
-			// Check volume mounts on containers
+			// Check volume mounts on containers (only adapter volumes, not docker-config secret volumes)
 			if len(tc.expectedVolumes) > 0 {
 				for _, container := range tc.spec.Containers {
-					foundAdapterMount := false
-					for _, mount := range container.VolumeMounts {
-						if mount.Name == "adapter-volume" {
-							foundAdapterMount = true
-							if mount.MountPath != "/mnt/adapter" {
-								t.Errorf("unexpected mount path for adapter volume: %s", mount.MountPath)
-							}
-							break
+					for _, expectedVol := range tc.expectedVolumes {
+						if !strings.HasPrefix(expectedVol, "adapter-volume") {
+							continue // docker-config volumes are only mounted on init containers
 						}
-					}
-					if !foundAdapterMount {
-						t.Errorf("adapter volume mount not found in container %s", container.Name)
+						foundMount := false
+						for _, mount := range container.VolumeMounts {
+							if mount.Name == expectedVol {
+								foundMount = true
+								break
+							}
+						}
+						if !foundMount {
+							t.Errorf("volume mount %s not found in container %s", expectedVol, container.Name)
+						}
 					}
 				}
 			}
@@ -1010,10 +1085,25 @@ func TestSetAdapterPuller(t *testing.T) {
 				}
 			}
 
-			// Check init containers
-			if len(tc.workspace.Inference.Adapters) > 0 {
+			// Check init containers: only image-based adapters should produce pullers
+			hasImageAdapters := false
+			for _, adapter := range tc.workspace.Inference.Adapters {
+				if adapter.Source != nil && adapter.Source.Image != "" {
+					hasImageAdapters = true
+					break
+				}
+			}
+			if hasImageAdapters {
 				if len(tc.spec.InitContainers) == 0 {
-					t.Errorf("expected init containers for adapter pulling but found none")
+					t.Errorf("expected init containers for image-based adapter pulling but found none")
+				}
+			}
+
+			// Check that volume-based adapters do NOT produce init containers
+			hasOnlyVolumeAdapters := len(tc.workspace.Inference.Adapters) > 0 && !hasImageAdapters
+			if hasOnlyVolumeAdapters {
+				if len(tc.spec.InitContainers) != 0 {
+					t.Errorf("expected no init containers for volume-only adapters but found %d", len(tc.spec.InitContainers))
 				}
 			}
 		})

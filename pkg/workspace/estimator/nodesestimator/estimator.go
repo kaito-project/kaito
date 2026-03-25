@@ -36,7 +36,7 @@ type NodeEstimator struct {
 }
 
 func (c *NodeEstimator) Name() string {
-	return "default"
+	return "node-estimator"
 }
 
 func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.NodeEstimateRequest, cl client.Client) (int32, error) {

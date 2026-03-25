@@ -40,7 +40,7 @@ func init() {
 
 func TestNodeEstimator_Name(t *testing.T) {
 	calculator := &NodeEstimator{}
-	assert.Equal(t, "default", calculator.Name())
+	assert.Equal(t, "node-estimator", calculator.Name())
 }
 
 func TestNodeEstimator_EstimateNodeCount(t *testing.T) {

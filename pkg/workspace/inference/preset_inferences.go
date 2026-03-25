@@ -449,6 +449,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			MaxModelLen:          maxModelLen,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
 				AdaptersEnabled: len(ctx.Workspace.Inference.Adapters) > 0,
+				PerformanceMode: v1beta1.GetPerformanceMode(ctx.Workspace),
 			},
 		})
 

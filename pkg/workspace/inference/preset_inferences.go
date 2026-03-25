@@ -81,18 +81,24 @@ var (
 	}
 
 	tolerations = []corev1.Toleration{
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Operator: corev1.TolerationOpExists,
-			Key:      resources.CapacityNvidiaGPU,
-		},
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Value:    consts.GPUString,
-			Key:      consts.SKUString,
-			Operator: corev1.TolerationOpEqual,
-		},
-	}
+    {
+        Effect:   corev1.TaintEffectNoSchedule,
+        Operator: corev1.TolerationOpExists,
+        Key:      resources.CapacityNvidiaGPU,
+    },
+    {
+        Effect:   corev1.TaintEffectNoSchedule,
+        Value:    consts.GPUString,
+        Key:      consts.SKUString,
+        Operator: corev1.TolerationOpEqual,
+    },
+    {
+        Effect:   corev1.TaintEffectNoSchedule,
+        Key:      consts.SpotInstanceKey,
+        Operator: corev1.TolerationOpEqual,
+        Value:    consts.SpotInstanceValue,
+    },
+}
 )
 
 func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace) []corev1.LocalObjectReference {

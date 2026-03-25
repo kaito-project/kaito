@@ -511,7 +511,7 @@ func GenerateE2EInferenceConfigMapManifest(name, namespace string) *corev1.Confi
 		Data: map[string]string{
 			"inference_config.yaml": `
 vllm:
-  max-model-len: 1024
+  max-model-len: 2048
   gpu-memory-utilization: 0.7
 `,
 		},

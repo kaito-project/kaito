@@ -84,8 +84,8 @@ const (
 
 	NodeImageFamilyUbuntu     = "ubuntu"
 	NodeImageFamilyAzureLinux = "azurelinux"
-	SpotInstanceKey   = "kubernetes.azure.com/scalesetpriority"
-    SpotInstanceValue = "spot"
+	SpotInstanceKey           = "kubernetes.azure.com/scalesetpriority"
+	SpotInstanceValue         = "spot"
 )
 
 var (

@@ -17,7 +17,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"path/filepath"
+	"path"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
@@ -54,26 +54,33 @@ var (
 	// Come up with valid liveness and readiness probes for fine-tuning
 	// TODO: livenessProbe = &corev1.Probe{}
 	// TODO: readinessProbe = &corev1.Probe{}
-
-	tolerations = []corev1.Toleration{
-    {
-        Effect:   corev1.TaintEffectNoSchedule,
-        Operator: corev1.TolerationOpEqual,
-        Key:      consts.GPUString,
-    },
-    {
-        Effect: corev1.TaintEffectNoSchedule,
-        Value:  consts.GPUString,
-        Key:    consts.SKUString,
-    },
-    {
-        Effect:   corev1.TaintEffectNoSchedule,
-        Key:      consts.SpotInstanceKey,
-        Operator: corev1.TolerationOpEqual,
-        Value:    consts.SpotInstanceValue,
-    },
-	}
 )
+
+func defaultTolerations() []corev1.Toleration {
+	tolerations := []corev1.Toleration{
+		{
+			Effect:   corev1.TaintEffectNoSchedule,
+			Operator: corev1.TolerationOpEqual,
+			Key:      consts.GPUString,
+		},
+		{
+			Effect: corev1.TaintEffectNoSchedule,
+			Value:  consts.GPUString,
+			Key:    consts.SKUString,
+		},
+	}
+
+	if utils.IsAzureCloudProvider() {
+		tolerations = append(tolerations, corev1.Toleration{
+			Effect:   corev1.TaintEffectNoSchedule,
+			Key:      consts.SpotInstanceKey,
+			Operator: corev1.TolerationOpEqual,
+			Value:    consts.SpotInstanceValue,
+		})
+	}
+
+	return tolerations
+}
 
 func GetTuningImageInfo() string {
 	presetObj := metadata.MustGet("base")
@@ -87,9 +94,9 @@ func PrepareOutputDir(outputDir string) (string, error) {
 	}
 	cleanPath := outputDir
 	if !strings.HasPrefix(cleanPath, DefaultBaseDir) {
-		cleanPath = filepath.Join(DefaultBaseDir, outputDir)
+		cleanPath = path.Join(DefaultBaseDir, outputDir)
 	}
-	cleanPath = filepath.Clean(cleanPath)
+	cleanPath = path.Clean(cleanPath)
 	if cleanPath == DefaultBaseDir || !strings.HasPrefix(cleanPath, DefaultBaseDir) {
 		klog.InfoS("Invalid output_dir specified: '%s', must be a directory. Using default output_dir: %s", outputDir, DefaultOutputVolumePath)
 		return DefaultOutputVolumePath, fmt.Errorf("invalid output_dir specified: '%s', must be a directory", outputDir)
@@ -224,7 +231,7 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGenerat
 			SKUNumGPUs: skuNumGPUs,
 		})
 
-		spec.Tolerations = tolerations
+		spec.Tolerations = defaultTolerations()
 		spec.InitContainers = append(spec.InitContainers, initContainers...)
 		spec.Containers = []corev1.Container{
 			{

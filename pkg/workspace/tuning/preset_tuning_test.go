@@ -28,6 +28,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
@@ -636,6 +637,39 @@ func TestGenerateBasicTuningPodSpec_NodeAffinity(t *testing.T) {
 		assert.Equal(t, corev1.NodeSelectorOpIn, req.Operator)
 		assert.Len(t, req.Values, 1)
 		assert.Equal(t, expectedLabels[req.Key], req.Values[0])
+	}
+}
+
+func TestDefaultTolerations(t *testing.T) {
+	testcases := map[string]struct {
+		cloudProvider string
+		expectSpot    bool
+	}{
+		"azure includes spot toleration": {
+			cloudProvider: consts.AzureCloudName,
+			expectSpot:    true,
+		},
+		"aws excludes spot toleration": {
+			cloudProvider: consts.AWSCloudName,
+			expectSpot:    false,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
+
+			actual := defaultTolerations()
+			hasSpot := false
+			for _, toleration := range actual {
+				if toleration.Key == consts.SpotInstanceKey && toleration.Value == consts.SpotInstanceValue {
+					hasSpot = true
+					break
+				}
+			}
+
+			assert.Equal(t, tc.expectSpot, hasSpot)
+		})
 	}
 }
 

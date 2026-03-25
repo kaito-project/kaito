@@ -47,12 +47,12 @@ spec:
           operator: "Equal"
           value: "gpu"
           effect: "NoSchedule"
-       
+        {{- if and (eq .Values.cloudProviderName "azure") .Values.spotInstance.enabled }}
         - key: kubernetes.azure.com/scalesetpriority
           operator: Equal
           value: spot
           effect: NoSchedule
-       
+        {{- end }}
       priorityClassName: "system-node-critical"
       containers:
         - image: {{ .Values.nvidiaDevicePlugin.image | quote }}

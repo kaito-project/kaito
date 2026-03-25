@@ -563,7 +563,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		}
 
 		if wObj.Inference != nil {
-			applyInferenceWorkspaceStatus(status, wObj.GetGeneration(), appendReconcileErrMessage, inferenceReady, nodeSnapshot.resourceConditionStatus)
+			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, nodeSnapshot.resourceConditionStatus)
 			return nil
 		}
 
@@ -806,14 +806,25 @@ func applyTuningWorkspaceStatus(status *kaitov1beta1.WorkspaceStatus, generation
 	}
 }
 
-func applyInferenceWorkspaceStatus(status *kaitov1beta1.WorkspaceStatus, generation int64, appendMessage func(string) string,
+func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, appendMessage func(string) string,
 	inferenceReady bool, resourceConditionStatus metav1.ConditionStatus) {
+	generation := wObj.GetGeneration()
 	resourceReady := resourceConditionStatus == metav1.ConditionTrue
 	isInferenceEstablished := status.State == kaitov1beta1.WorkspaceStateReady || status.State == kaitov1beta1.WorkspaceStateNotReady
 
 	if inferenceReady && resourceReady {
 		setWorkspaceCondition(status, generation, appendMessage,
 			kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue, "WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully")
+
+		if kaitov1beta1.IsRunBenchmarkEnabled(wObj) {
+			if err := applyBenchmarkStatus(ctx, status, wObj, generation, appendMessage); err != nil {
+				setWorkspaceCondition(status, generation, appendMessage,
+					kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "BenchmarkFailed", err.Error())
+				status.State = kaitov1beta1.WorkspaceStateNotReady
+				return
+			}
+		}
+
 		setWorkspaceCondition(status, generation, appendMessage,
 			kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue, "workspaceSucceeded", "workspace succeeds")
 		status.State = kaitov1beta1.WorkspaceStateReady
@@ -824,11 +835,46 @@ func applyInferenceWorkspaceStatus(status *kaitov1beta1.WorkspaceStatus, generat
 		kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse, "WorkspaceInferenceStatusPending", "Inference workload is not ready")
 	setWorkspaceCondition(status, generation, appendMessage,
 		kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", "workspace is waiting for inference workload readiness")
+	// Clear benchmark state so applyBenchmarkStatus re-runs once inference recovers.
+	// This ensures a pod restart or rolling update doesn't leave stale results.
+	if kaitov1beta1.IsRunBenchmarkEnabled(wObj) {
+		meta.RemoveStatusCondition(&status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+		status.Performance = nil
+	}
 	if isInferenceEstablished {
 		status.State = kaitov1beta1.WorkspaceStateNotReady
 	} else {
 		status.State = kaitov1beta1.WorkspaceStatePending
 	}
+}
+
+// applyBenchmarkStatus reads and parses the benchmark result from pod logs,
+// then sets the BenchmarkCompleted condition on the workspace status.
+// Returns nil on success (or when already recorded), non-nil on terminal failure.
+// Skips the log read when BenchmarkCompleted is already True — the not-ready path
+// clears the condition on any pod restart or rolling update.
+func applyBenchmarkStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, generation int64, appendMessage func(string) string) error {
+	// Skip once the benchmark is done. Safe because the not-ready path clears BenchmarkCompleted
+	// whenever inference goes down, so we won't get into a stale state.
+	if c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted)); c != nil && c.Status == metav1.ConditionTrue {
+		return nil
+	}
+
+	result, err := reconcileBenchmarkResult(ctx, wObj)
+	// These errors are terminal
+	if err != nil {
+		klog.ErrorS(err, "benchmark failed", "workspace", klog.KObj(wObj))
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted, metav1.ConditionFalse,
+			"BenchmarkFailed", err.Error())
+		return err
+	}
+
+	status.Performance = result
+	setWorkspaceCondition(status, generation, appendMessage,
+		kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
+		"BenchmarkCompleted", "benchmark result has been recorded")
+	return nil
 }
 
 func (c *WorkspaceReconciler) updateWorkspaceStatusIfChanged(ctx context.Context, key types.NamespacedName, modifyFn func(*kaitov1beta1.WorkspaceStatus) error) error {

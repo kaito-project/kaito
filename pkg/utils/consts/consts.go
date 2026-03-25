@@ -38,6 +38,8 @@ const (
 	NvidiaGPUProduct              = "nvidia.com/gpu.product"
 	NvidiaGPUCount                = "nvidia.com/gpu.count"
 	NvidiaGPUMemory               = "nvidia.com/gpu.memory"
+	NvidiaCUDAComputeCapMajor     = "nvidia.com/cuda.compute.major"
+	NvidiaCUDAComputeCapMinor     = "nvidia.com/cuda.compute.minor"
 
 	// Feature flags
 	FeatureFlagVLLM                         = "vLLM"

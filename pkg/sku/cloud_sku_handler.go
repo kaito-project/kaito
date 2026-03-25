@@ -27,16 +27,22 @@ type CloudSKUHandler interface {
 }
 
 type GPUConfig struct {
-	SKU             string
-	GPUCount        int
-	GPUMem          resource.Quantity
-	GPUModel        string
-	NVMeDiskEnabled bool
+	SKU                   string
+	GPUCount              int
+	GPUMem                resource.Quantity
+	GPUModel              string
+	NVMeDiskEnabled       bool
+	CUDAComputeCapability float64 // CUDA compute capability version (e.g., 7.5 for Turing, 8.0 for Ampere)
 }
 
 func (cfg *GPUConfig) String() string {
-	return fmt.Sprintf("SKU: %s, GPUCount: %d, GPUMem: %s, GPUModel: %s, NVMeDiskEnabled: %t",
-		cfg.SKU, cfg.GPUCount, cfg.GPUMem.String(), cfg.GPUModel, cfg.NVMeDiskEnabled)
+	return fmt.Sprintf("SKU: %s, GPUCount: %d, GPUMem: %s, GPUModel: %s, NVMeDiskEnabled: %t, CUDAComputeCapability: %.1f",
+		cfg.SKU, cfg.GPUCount, cfg.GPUMem.String(), cfg.GPUModel, cfg.NVMeDiskEnabled, cfg.CUDAComputeCapability)
+}
+
+// SupportsBFloat16 returns true if the GPU supports bfloat16 (requires CUDA compute capability >= 8.0).
+func (cfg *GPUConfig) SupportsBFloat16() bool {
+	return cfg.CUDAComputeCapability >= 8.0
 }
 
 func GetCloudSKUHandler(cloud string) CloudSKUHandler {

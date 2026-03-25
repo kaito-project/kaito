@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.15.0
+    controller-gen.kubebuilder.io/version: v0.20.1
   name: ragengines.kaito.sh
 spec:
   group: kaito.sh
@@ -190,14 +190,11 @@ spec:
                       This value is critical for accurately managing how much of the original query and supporting documents
                       (retrieved via RAG) can be included in the prompt without exceeding the model's input limit.
 
-
                       It is used to determine how much space is available for retrieved documents after accounting for the query,
                       system prompts, formatting tokens, and any other fixed prompt components.
 
-
                       Setting this value correctly is essential for ensuring that the RAG system does not truncate important
                       context or exceed model limits, which can lead to degraded response quality or inference errors.
-
 
                       Must match the token limit of the LLM backend being used (e.g., 8096, 16384, 32768 tokens).
                     type: integer
@@ -240,16 +237,8 @@ spec:
             properties:
               conditions:
                 items:
-                  description: "Condition contains details for one aspect of the current
-                    state of this API Resource.\n---\nThis struct is intended for
-                    direct use as an array at the field path .status.conditions.  For
-                    example,\n\n\n\ttype FooStatus struct{\n\t    // Represents the
-                    observations of a foo's current state.\n\t    // Known .status.conditions.type
-                    are: \"Available\", \"Progressing\", and \"Degraded\"\n\t    //
-                    +patchMergeKey=type\n\t    // +patchStrategy=merge\n\t    // +listType=map\n\t
-                    \   // +listMapKey=type\n\t    Conditions []metav1.Condition `json:\"conditions,omitempty\"
-                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`\n\n\n\t
-                    \   // other fields\n\t}"
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
                   properties:
                     lastTransitionTime:
                       description: |-
@@ -290,12 +279,7 @@ spec:
                       - Unknown
                       type: string
                     type:
-                      description: |-
-                        type of condition in CamelCase or in foo.example.com/CamelCase.
-                        ---
-                        Many .condition.type values are consistent across resources like Available, but because arbitrary conditions can be
-                        useful (see .node.status.conditions), the ability to deconflict is important.
-                        The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
                       maxLength: 316
                       pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
                       type: string
@@ -486,14 +470,11 @@ spec:
                       This value is critical for accurately managing how much of the original query and supporting documents
                       (retrieved via RAG) can be included in the prompt without exceeding the model's input limit.
 
-
                       It is used to determine how much space is available for retrieved documents after accounting for the query,
                       system prompts, formatting tokens, and any other fixed prompt components.
 
-
                       Setting this value correctly is essential for ensuring that the RAG system does not truncate important
                       context or exceed model limits, which can lead to degraded response quality or inference errors.
-
 
                       Must match the token limit of the LLM backend being used (e.g., 8096, 16384, 32768 tokens).
                     type: integer
@@ -531,7 +512,7 @@ spec:
                     type: object
                   vectorDB:
                     description: |-
-                      VectorDB specifies the vector database backend configuration.
+                      VectorDB specifies an external vector database backend configuration.
                       If not specified, the default in-process FAISS vector store is used.
                     properties:
                       accessSecret:
@@ -541,12 +522,13 @@ spec:
                         type: string
                       engine:
                         description: |-
-                          Engine specifies the vector database backend to use.
-                          Must be a LlamaIndex-supported vector store backend (e.g. "faiss", "qdrant").
+                          Engine specifies the vector database backend engine to use.
+                          Must be a LlamaIndex-supported vector store backend.
+                          Supported values: "qdrant" (client-server with native hybrid search).
                         type: string
                       url:
                         description: |-
-                          URL specifies the connection URL for the vector database backend.
+                          URL specifies the connection URL for the vector database.
                           Example: "http://qdrant-svc:6333"
                         type: string
                     required:
@@ -563,16 +545,8 @@ spec:
             properties:
               conditions:
                 items:
-                  description: "Condition contains details for one aspect of the current
-                    state of this API Resource.\n---\nThis struct is intended for
-                    direct use as an array at the field path .status.conditions.  For
-                    example,\n\n\n\ttype FooStatus struct{\n\t    // Represents the
-                    observations of a foo's current state.\n\t    // Known .status.conditions.type
-                    are: \"Available\", \"Progressing\", and \"Degraded\"\n\t    //
-                    +patchMergeKey=type\n\t    // +patchStrategy=merge\n\t    // +listType=map\n\t
-                    \   // +listMapKey=type\n\t    Conditions []metav1.Condition `json:\"conditions,omitempty\"
-                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`\n\n\n\t
-                    \   // other fields\n\t}"
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
                   properties:
                     lastTransitionTime:
                       description: |-
@@ -613,12 +587,7 @@ spec:
                       - Unknown
                       type: string
                     type:
-                      description: |-
-                        type of condition in CamelCase or in foo.example.com/CamelCase.
-                        ---
-                        Many .condition.type values are consistent across resources like Available, but because arbitrary conditions can be
-                        useful (see .node.status.conditions), the ability to deconflict is important.
-                        The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
                       maxLength: 316
                       pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
                       type: string

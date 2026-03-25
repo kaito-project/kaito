@@ -69,6 +69,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
+		errs = errs.Also(w.validateAnnotations())
 		if w.Inference != nil {
 			// Check if the bypass resource checks annotation is set
 			bypassResourceChecks := false
@@ -103,6 +104,25 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		}
 		if w.Tuning != nil {
 			errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
+		}
+	}
+	return errs
+}
+
+func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
+	annotations := w.GetAnnotations()
+	if annotations == nil {
+		return nil
+	}
+	if v, ok := annotations[AnnotationPerformanceMode]; ok {
+		switch v {
+		case PerformanceModeBalanced, PerformanceModeInteractivity, PerformanceModeThroughput:
+			// valid
+		default:
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("%q is not a valid performance mode; choose one of: balanced, interactivity, throughput", v),
+				fmt.Sprintf("metadata.annotations[%s]", AnnotationPerformanceMode),
+			))
 		}
 	}
 	return errs

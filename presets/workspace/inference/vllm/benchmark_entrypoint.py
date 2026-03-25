@@ -267,7 +267,9 @@ def _run_benchmark() -> tuple:
 
     max_concurrency = _compute_max_concurrency()
     _log(
-        f"max_concurrency_set BENCHMARK_MAX_CONCURRENCY={max_concurrency} INPUT_LEN={BENCHMARK_INPUT_LEN}"
+        f'{{"duration_sec":{BENCHMARK_DURATION},"input_tokens":{BENCHMARK_INPUT_LEN},'
+        f'"output_tokens":{BENCHMARK_OUTPUT_LEN},"max_concurrency":{max_concurrency}}}',
+        tag="KAITO_BENCHMARK_CONFIG",
     )
 
     report = _run_guidellm(processor, max_concurrency)
@@ -294,7 +296,7 @@ def _run_benchmark() -> tuple:
         f"delta_gen={delta_gen} delta_prompt={t1_prompt - t0_prompt}"
     )
     tpm = round((delta_gen + (t1_prompt - t0_prompt)) * 60.0 / elapsed, 2)
-    return tpm, ttft_ms, tpot_ms
+    return tpm, ttft_ms, tpot_ms, max_concurrency
 
 
 def _drain(timeout: float = 300.0) -> None:
@@ -329,17 +331,14 @@ def main() -> None:
     # /health passed — model is loaded.  Run the benchmark; fail the probe on error
     # so kubelet retries and the user gets a clear failure signal.
     t_bench_start = time.time()
-    _log(
-        f"benchmark_start DURATION={BENCHMARK_DURATION}s "
-        f"INPUT_LEN={BENCHMARK_INPUT_LEN} OUTPUT_LEN={BENCHMARK_OUTPUT_LEN}"
-    )
 
     tpm: float = -1.0
     ttft_ms: float = -1.0
     tpot_ms: float = -1.0
+    max_concurrency: int = 0
     failed = False
     try:
-        tpm, ttft_ms, tpot_ms = _run_benchmark()
+        tpm, ttft_ms, tpot_ms, max_concurrency = _run_benchmark()
         t_bench_end = time.time()
         _log(f"benchmark_done elapsed={t_bench_end - t_bench_start:.1f}s")
         _drain()
@@ -354,6 +353,15 @@ def main() -> None:
         ttft_ms = -1.0
         tpot_ms = -1.0
         failed = True
+
+    # Re-emit config immediately before the result so both lines land in the same
+    # tail-log window read by the controller.
+    if max_concurrency > 0:
+        _log(
+            f'{{"duration_sec":{BENCHMARK_DURATION},"input_tokens":{BENCHMARK_INPUT_LEN},'
+            f'"output_tokens":{BENCHMARK_OUTPUT_LEN},"max_concurrency":{max_concurrency}}}',
+            tag="KAITO_BENCHMARK_CONFIG",
+        )
 
     # Always emit the result line so the controller has a parseable record even on failure.
     _log(

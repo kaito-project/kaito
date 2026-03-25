@@ -212,7 +212,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC4as_T4_v3",
+			InstanceType: "Standard_NC24ads_A100_v4",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -238,7 +238,7 @@ var (
 		Spec: v1alpha1.InferenceSetSpec{
 			Template: v1alpha1.InferenceSetTemplate{
 				Resource: v1alpha1.InferenceSetResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NC24ads_A100_v4",
 				},
 				Inference: v1beta1.InferenceSpec{
 					Preset: &v1beta1.PresetSpec{
@@ -257,7 +257,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC4as_T4_v3",
+			InstanceType: "Standard_NC24ads_A100_v4",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -280,7 +280,7 @@ var (
 		Spec: v1alpha1.InferenceSetSpec{
 			Template: v1alpha1.InferenceSetTemplate{
 				Resource: v1alpha1.InferenceSetResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NC24ads_A100_v4",
 				},
 				Inference: v1beta1.InferenceSpec{
 					Preset: &v1beta1.PresetSpec{
@@ -343,6 +343,28 @@ var (
 			},
 		},
 	}
+	MockWorkspaceWithPresetVLLMFloat16 = &v1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testWorkspace",
+			Namespace: "kaito",
+		},
+		Resource: v1beta1.ResourceSpec{
+			Count:        &gpuNodeCount,
+			InstanceType: "Standard_NC4as_T4_v3",
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"apps": "test",
+				},
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
+					Name: "test-model",
+				},
+			},
+		},
+	}
 	MockWorkspaceWithPresetDownloadTransformers = &v1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testWorkspace",
@@ -353,7 +375,7 @@ var (
 		},
 		Resource: v1beta1.ResourceSpec{
 			Count:        &gpuNodeCount,
-			InstanceType: "Standard_NC4as_T4_v3",
+			InstanceType: "Standard_NC24ads_A100_v4",
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "test",
@@ -1246,7 +1268,7 @@ var (
 					NodeSelectorRequirement: corev1.NodeSelectorRequirement{
 						Key:      corev1.LabelInstanceTypeStable,
 						Operator: corev1.NodeSelectorOpIn,
-						Values:   []string{"Standard_NC4as_T4_v3"},
+						Values:   []string{"Standard_NC24ads_A100_v4"},
 					},
 					MinValues: lo.ToPtr(1),
 				},

@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -42,11 +43,29 @@ var (
 		},
 		[]string{"preset_name"},
 	)
+
+	workspacePVCAllocatedBytes = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "kaito_workspace_pvc_allocated_bytes",
+			Help: "Allocated (requested) PVC storage in bytes per PVC associated with a workspace",
+		},
+		[]string{"workspace_name", "workspace_namespace", "pvc_name"},
+	)
+
+	workspacePVCCount = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "kaito_workspace_pvc_count",
+			Help: "Number of PVCs associated with each workspace",
+		},
+		[]string{"workspace_name", "workspace_namespace"},
+	)
 )
 
 func init() {
 	metrics.Registry.MustRegister(workspacePhaseCount)
 	metrics.Registry.MustRegister(workspacePresetCount)
+	metrics.Registry.MustRegister(workspacePVCAllocatedBytes)
+	metrics.Registry.MustRegister(workspacePVCCount)
 }
 
 func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
@@ -96,6 +115,50 @@ func monitorWorkspaces(ctx context.Context, k8sClient client.Client) {
 			for preset, count := range presetCounts {
 				workspacePresetCount.WithLabelValues(preset).Set(count)
 			}
+
+			collectPVCMetrics(ctx, k8sClient)
+		}
+	}
+}
+
+func collectPVCMetrics(ctx context.Context, k8sClient client.Client) {
+	var pvcList corev1.PersistentVolumeClaimList
+	if err := k8sClient.List(ctx, &pvcList, client.HasLabels{kaitov1beta1.LabelWorkspaceName}); err != nil {
+		klog.Errorf("failed to list PVCs for volume metrics: %v", err)
+		workspacePVCAllocatedBytes.Reset()
+		workspacePVCCount.Reset()
+		return
+	}
+
+	workspacePVCAllocatedBytes.Reset()
+	workspacePVCCount.Reset()
+
+	pvcCounts := map[string]map[string]float64{} // namespace -> workspace name -> count
+
+	for i := range pvcList.Items {
+		pvc := &pvcList.Items[i]
+		wsName := pvc.Labels[kaitov1beta1.LabelWorkspaceName]
+		wsNamespace := pvc.Namespace
+
+		if pvcCounts[wsNamespace] == nil {
+			pvcCounts[wsNamespace] = map[string]float64{}
+		}
+		pvcCounts[wsNamespace][wsName]++
+
+		// Prefer actual allocated capacity from status; fall back to spec request
+		var storageBytes float64
+		if allocated, exists := pvc.Status.Capacity[corev1.ResourceStorage]; exists {
+			storageBytes = float64(allocated.Value())
+		} else if requested, exists := pvc.Spec.Resources.Requests[corev1.ResourceStorage]; exists {
+			storageBytes = float64(requested.Value())
+		}
+
+		workspacePVCAllocatedBytes.WithLabelValues(wsName, wsNamespace, pvc.Name).Set(storageBytes)
+	}
+
+	for ns, workspaces := range pvcCounts {
+		for wsName, count := range workspaces {
+			workspacePVCCount.WithLabelValues(wsName, ns).Set(count)
 		}
 	}
 }

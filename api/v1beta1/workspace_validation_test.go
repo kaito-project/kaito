@@ -1759,6 +1759,81 @@ func TestWorkspaceValidateName(t *testing.T) {
 	}
 }
 
+func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
+	RegisterValidationTestModels()
+
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		defaultInferenceConfigMapManifest(),
+	).Build()
+	k8sclient.SetGlobalClient(client)
+
+	baseWorkspace := &Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-workspace",
+			Namespace: "kaito",
+		},
+		Resource: ResourceSpec{
+			InstanceType: "Standard_NC4as_T4_v3",
+			Count:        pointerToInt(1),
+		},
+		Inference: &InferenceSpec{
+			Preset: &PresetSpec{
+				PresetMeta: PresetMeta{
+					Name: ModelName("test-validation-static"),
+				},
+			},
+		},
+	}
+
+	tests := []struct {
+		name        string
+		annotations map[string]string
+		wantErr     bool
+	}{
+		{
+			name:        "no annotation is valid",
+			annotations: nil,
+			wantErr:     false,
+		},
+		{
+			name:        "balanced is valid",
+			annotations: map[string]string{AnnotationPerformanceMode: "balanced"},
+			wantErr:     false,
+		},
+		{
+			name:        "interactivity is valid",
+			annotations: map[string]string{AnnotationPerformanceMode: "interactivity"},
+			wantErr:     false,
+		},
+		{
+			name:        "throughput is valid",
+			annotations: map[string]string{AnnotationPerformanceMode: "throughput"},
+			wantErr:     false,
+		},
+		{
+			name:        "unknown value is invalid",
+			annotations: map[string]string{AnnotationPerformanceMode: "fast"},
+			wantErr:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ws := baseWorkspace.DeepCopy()
+			ws.Annotations = tt.annotations
+			errs := ws.Validate(context.Background())
+			if (errs != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", errs, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 	RegisterValidationTestModels()
 

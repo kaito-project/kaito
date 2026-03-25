@@ -19,5 +19,4 @@ var (
 	GinkgoLabelFastCheck    = g.Label("FastCheck")
 	GinkgoLabelA100Required = g.Label("A100Required")
 	GinkgoLabelAzureLinux   = g.Label("AzureLinux")
-	GinkgoLabelBenchmark    = g.Label("Benchmark")
 )

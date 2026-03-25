@@ -60,6 +60,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -82,6 +83,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -107,6 +109,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		time.Sleep(1 * time.Minute)
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -119,42 +122,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInferenceSetStatus(inferenceSetObj)
 		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
-		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
-	})
-
-	It("should complete benchmark and record performance for a llama-3.1-8b-instruct workspace", utils.GinkgoLabelBenchmark, func() {
-		numOfNode := 1
-		workspaceObj := createLlama3_1_8BInstructWorkspaceWithBenchmark(numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		// validateWorkspaceReadiness asserts WorkspaceSucceeded=True, which only becomes
-		// True after BenchmarkCompleted=True, so this gates on the benchmark finishing.
-		validateWorkspaceReadiness(workspaceObj)
-		validateWorkspaceBenchmarkCompleted(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
-	})
-
-	It("should complete benchmark and record aggregated performance for a Gemma InferenceSet", utils.GinkgoLabelBenchmark, func() {
-		numOfReplicas := 2
-		inferenceSetObj := createGemmaInferenceSetWithBenchmark(numOfReplicas)
-		defer cleanupResourcesForInferenceSet(inferenceSetObj)
-		time.Sleep(120 * time.Second)
-
-		validateInferenceSetStatus(inferenceSetObj)
-		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
 		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
+		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
 	})
 
 	It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelA100Required, func() {
@@ -175,6 +144,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 
@@ -209,6 +179,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -231,6 +202,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -253,6 +225,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -275,6 +248,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -297,6 +271,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -319,6 +294,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -527,42 +503,6 @@ func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1alpha1.Inference
 			return false
 		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(), "Failed to validate Flux HelmRelease is Ready")
 	})
-}
-
-func createLlama3_1_8BInstructWorkspaceWithBenchmark(numOfNode int) *kaitov1beta1.Workspace {
-	modelSecret := createAndValidateModelSecret()
-	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Llama 3.1-8B Instruct and benchmark enabled", func() {
-		uniqueID := fmt.Sprint("preset-llama3-1-8b-bench-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
-			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name, "")
-		if workspaceObj.Annotations == nil {
-			workspaceObj.Annotations = make(map[string]string)
-		}
-		workspaceObj.Annotations[kaitov1beta1.AnnotationRunBenchmark] = "true"
-		createAndValidateWorkspace(workspaceObj)
-	})
-	return workspaceObj
-}
-
-func createGemmaInferenceSetWithBenchmark(replicas int) *kaitov1alpha1.InferenceSet {
-	modelSecret := createAndValidateModelSecret()
-	inferenceSetObj := &kaitov1alpha1.InferenceSet{}
-	By("Creating an InferenceSet CR with Gemma preset public mode, vLLM, and benchmark enabled", func() {
-		uniqueID := fmt.Sprint("preset-gemma-is-bench-", rand.Intn(1000))
-		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
-			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
-		if inferenceSetObj.Annotations == nil {
-			inferenceSetObj.Annotations = make(map[string]string)
-		}
-		inferenceSetObj.Annotations[kaitov1alpha1.AnnotationRunBenchmark] = "true"
-		createAndValidateInferenceSet(inferenceSetObj)
-	})
-	return inferenceSetObj
 }
 
 // validateWorkspaceBenchmarkCompleted asserts that:

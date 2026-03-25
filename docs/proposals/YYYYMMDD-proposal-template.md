@@ -30,7 +30,7 @@ To get started with this template:
   Aim for single topic PRs to keep discussions focused.
   If you disagree with what is already in a document, open a new PR with suggested changes.
 
-The canonical place for the latest set of instructions (and the likely source of this file) is [here](./YYYYMMDD-template.md).
+The canonical place for the latest set of instructions (and the likely source of this file) is [here](./YYYYMMDD-proposal-template.md).
 
 The `Metadata` section above is intended to support the creation of tooling around the proposal process.
 This will be a YAML section that is fenced as a code block.
@@ -79,7 +79,7 @@ If this proposal adds new terms, or defines some, make the changes to the book's
 ## Summary
 
 The `Summary` section is incredibly important for producing high quality user-focused documentation such as release notes or a development roadmap.
-It should be possible to collect this information before implementation begins in order to avoid requiring implementors to split their attention between writing release notes and implementing the feature itself.
+It should be possible to collect this information before implementation begins in order to avoid requiring implementers to split their attention between writing release notes and implementing the feature itself.
 
 A good summary is probably at least a paragraph in length.
 
@@ -156,7 +156,7 @@ considerations for performance, reliability and security.
 - What are some important details that didn't come across above.
 - What are the caveats to the implementation?
 - Go in to as much detail as necessary here.
-- Talk about core concepts and how they releate.
+- Talk about core concepts and how they relate.
 
 ### Risks and Mitigations
 

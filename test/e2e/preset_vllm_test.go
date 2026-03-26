@@ -15,8 +15,10 @@ package e2e
 
 import (
 	"fmt"
+	"io"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
@@ -543,8 +545,39 @@ func validateWorkspaceBenchmarkCompleted(workspaceObj *kaitov1beta1.Workspace) {
 				}
 			}
 			return true
-		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(),
+		}, 30*time.Second, utils.PollInterval).Should(BeTrue(),
 			"workspace benchmark should complete with valid performance metrics")
+	})
+
+	By("Printing benchmark elapsed time from pod logs", func() {
+		coreClient, err := utils.GetK8sClientset()
+		if err != nil {
+			GinkgoWriter.Printf("WARNING: could not get k8s clientset to fetch benchmark logs: %v\n", err)
+			return
+		}
+		podName := workspaceObj.Name + "-0"
+		tailLines := int64(50)
+		req := coreClient.CoreV1().Pods(workspaceObj.Namespace).GetLogs(podName, &corev1.PodLogOptions{
+			TailLines: &tailLines,
+		})
+		stream, err := req.Stream(ctx)
+		if err != nil {
+			GinkgoWriter.Printf("WARNING: could not fetch logs for pod %s: %v\n", podName, err)
+			return
+		}
+		defer stream.Close()
+		buf := new(strings.Builder)
+		if _, err = io.Copy(buf, stream); err != nil {
+			GinkgoWriter.Printf("WARNING: could not read logs for pod %s: %v\n", podName, err)
+			return
+		}
+		for _, line := range strings.Split(buf.String(), "\n") {
+			if strings.Contains(line, "benchmark_done") {
+				GinkgoWriter.Printf("[benchmark] %s: %s\n", workspaceObj.Name, line)
+				return
+			}
+		}
+		GinkgoWriter.Printf("[benchmark] %s: benchmark_done line not found in pod logs\n", workspaceObj.Name)
 	})
 }
 
@@ -573,7 +606,7 @@ func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1alpha1.Infer
 				return false
 			}
 			return true
-		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(),
+		}, 30*time.Second, utils.PollInterval).Should(BeTrue(),
 			"inferenceset should have aggregated performance metric")
 	})
 
@@ -601,7 +634,7 @@ func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1alpha1.Infer
 				}
 			}
 			return true
-		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(),
+		}, 30*time.Second, utils.PollInterval).Should(BeTrue(),
 			"all child workspaces should have BenchmarkCompleted=True and performance set")
 	})
 }

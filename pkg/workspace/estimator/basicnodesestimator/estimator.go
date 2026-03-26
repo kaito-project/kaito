@@ -17,16 +17,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/samber/lo"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	estimator "github.com/kaito-project/kaito/pkg/workspace/estimator"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -39,53 +37,57 @@ func (e *BasicNodesEstimator) Name() string {
 	return "basic"
 }
 
-func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace, client client.Client) (int32, error) {
-	// If inference is not configured, default to resource count or 1
-	if wObj.Inference == nil || wObj.Inference.Preset == nil || wObj.Inference.Preset.Name == "" {
-		//nolint:staticcheck //SA1019: deprecate Resource.Count field
-		if wObj.Resource.Count != nil {
-			//nolint:staticcheck //SA1019: deprecate Resource.Count field
-			return int32(*wObj.Resource.Count), nil
+func (e *BasicNodesEstimator) EstimateNodeCount(ctx context.Context, req estimator.NodeEstimateRequest, c client.Client) (int32, error) {
+	// If no preset is configured, default to the requested node count or 1.
+	if req.ModelProfile.Name == "" {
+		if req.ResourceProfile.RequestedNodeCount > 0 {
+			return int32(req.ResourceProfile.RequestedNodeCount), nil
 		}
 		return 1, nil
 	}
 
-	presetName := string(wObj.Inference.Preset.Name)
-	secretName := wObj.Inference.Preset.PresetOptions.ModelAccessSecret
-	model, err := models.GetModelByName(ctx, presetName, secretName, wObj.Namespace, client)
+	model, err := models.GetModelByNameWithToken(ctx, req.ModelProfile.Name, req.ModelProfile.AccessToken)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get model by name: %w", err)
 	}
 
-	// Import featuregates and consts for NAP check
 	var gpuConfig *sku.GPUConfig
 
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// NAP is disabled (BYO scenario) - instanceType is optional
-		// Try to get GPU config from existing nodes
-		if readyNodes, err := resources.GetReadyNodes(ctx, client, wObj); err != nil {
-			return 0, fmt.Errorf("failed to list ready nodes: %w", err)
-		} else if len(readyNodes) == 0 {
-			return 0, fmt.Errorf("no ready nodes found, unable to determine GPU configuration")
-		} else {
-			gpuConfig, err = utils.GetGPUConfigFromNodeLabels(readyNodes[0])
-			if err != nil {
-				return 0, fmt.Errorf("failed to get GPU config from existing nodes: %w", err)
+	if req.ResourceProfile.DisableNodeAutoProvisioning {
+		// NAP is disabled (BYO scenario) — derive GPU config from existing ready nodes.
+		var matchLabels client.MatchingLabels
+		if req.ResourceProfile.LabelSelector != nil {
+			matchLabels = req.ResourceProfile.LabelSelector.MatchLabels
+		}
+		nodeList, listErr := resources.ListNodes(ctx, c, matchLabels)
+		if listErr != nil {
+			return 0, fmt.Errorf("failed to list ready nodes: %w", listErr)
+		}
+		var readyNodes []*corev1.Node
+		for i := range nodeList.Items {
+			if resources.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
+				readyNodes = append(readyNodes, &nodeList.Items[i])
 			}
 		}
-	} else {
-		// NAP is enabled - instanceType is required and must be valid
-		gpuConfig, err = utils.GetGPUConfigBySKU(wObj.Resource.InstanceType)
+		if len(readyNodes) == 0 {
+			return 0, fmt.Errorf("no ready nodes found, unable to determine GPU configuration")
+		}
+		gpuConfig, err = utils.GetGPUConfigFromNodeLabels(readyNodes[0])
 		if err != nil {
-			return 0, fmt.Errorf("failed to get GPU config for instance type %s: %w", wObj.Resource.InstanceType, err)
+			return 0, fmt.Errorf("failed to get GPU config from existing nodes: %w", err)
+		}
+	} else {
+		// NAP is enabled — instanceType is required and must be valid.
+		gpuConfig, err = utils.GetGPUConfigBySKU(req.ResourceProfile.InstanceType)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get GPU config for instance type %s: %w", req.ResourceProfile.InstanceType, err)
 		}
 	}
 
-	// Start with the user-requested node count (default is 1)
-	//nolint:staticcheck //SA1019: deprecate Resource.Count field
-	nodeCountPerReplica := lo.FromPtr(wObj.Resource.Count)
+	// Start with the user-requested node count.
+	nodeCountPerReplica := req.ResourceProfile.RequestedNodeCount
 
-	// If GPU memory information is available, calculate the optimal node count
+	// If GPU memory information is available, calculate the optimal node count.
 	if !gpuConfig.GPUMem.IsZero() && gpuConfig.GPUCount > 0 {
 		totalGPUMemoryRequired := resource.MustParse(model.GetInferenceParameters().TotalSafeTensorFileSize)
 		totalGPUMemoryPerNodeBytes := gpuConfig.GPUMem.Value()

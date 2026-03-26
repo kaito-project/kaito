@@ -30,6 +30,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
 func init() {
@@ -228,7 +229,9 @@ func TestAdvancedNodesEstimator_EstimateNodeCount(t *testing.T) {
 				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
 			}()
 
-			count, err := calculator.EstimateNodeCount(ctx, tt.workspace, nil)
+			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, nil)
+			require.NoError(t, reqErr)
+			count, err := calculator.EstimateNodeCount(ctx, req, nil)
 
 			if tt.expectedError {
 				require.Error(t, err)
@@ -428,7 +431,9 @@ func TestAdvancedNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			count, err := calculator.EstimateNodeCount(ctx, tt.workspace, mockClient)
+			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, mockClient)
+			require.NoError(t, reqErr)
+			count, err := calculator.EstimateNodeCount(ctx, req, mockClient)
 
 			if tt.expectedError {
 				require.Error(t, err)
@@ -537,7 +542,9 @@ func TestAdvancedNodesEstimator_EstimateNodeCount_Falcon7B(t *testing.T) {
 				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
 			}()
 
-			count, err := calculator.EstimateNodeCount(ctx, tt.workspace, nil)
+			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, nil)
+			require.NoError(t, reqErr)
+			count, err := calculator.EstimateNodeCount(ctx, req, nil)
 
 			if tt.expectedError {
 				require.Error(t, err)
@@ -600,7 +607,9 @@ func TestAdvancedNodesEstimator_EstimateNodeCount_Qwen25Coder32B(t *testing.T) {
 				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
 			}()
 
-			count, err := calculator.EstimateNodeCount(ctx, tt.workspace, nil)
+			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, nil)
+			require.NoError(t, reqErr)
+			count, err := calculator.EstimateNodeCount(ctx, req, nil)
 
 			if tt.expectedError {
 				require.Error(t, err)

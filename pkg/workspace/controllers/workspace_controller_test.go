@@ -43,6 +43,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/basicnodesestimator"
 )
 
@@ -522,7 +524,12 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			if tc.workspace.Status.TargetNodeCount == 0 {
-				cnt, err := reconciler.Estimator.EstimateNodeCount(t.Context(), &tc.workspace, mockClient)
+				req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), &tc.workspace, mockClient)
+				if reqErr != nil {
+					t.Errorf("Failed to build estimate request: %v", reqErr)
+					return
+				}
+				cnt, err := reconciler.Estimator.EstimateNodeCount(t.Context(), req, mockClient)
 				if err != nil {
 					t.Errorf("Failed to estimate node count: %v", err)
 					return
@@ -819,8 +826,8 @@ func (m *mockEstimator) Name() string {
 	return args.String(0)
 }
 
-func (m *mockEstimator) EstimateNodeCount(ctx context.Context, workspace *v1beta1.Workspace, client client.Client) (int32, error) {
-	args := m.Called(ctx, workspace, client)
+func (m *mockEstimator) EstimateNodeCount(ctx context.Context, req estimator.NodeEstimateRequest, client client.Client) (int32, error) {
+	args := m.Called(ctx, req, client)
 	return args.Get(0).(int32), args.Error(1)
 }
 
@@ -869,7 +876,7 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator, updatedTarget *int32) {
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(3), nil)
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(estimator.NodeEstimateRequest{}), mock.Anything).Return(int32(3), nil)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ws := args.Get(2).(*v1beta1.Workspace)
@@ -892,7 +899,7 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator, _ *int32) {
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(0), fmt.Errorf("estimator error"))
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(estimator.NodeEstimateRequest{}), mock.Anything).Return(int32(0), fmt.Errorf("estimator error"))
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ws := args.Get(2).(*v1beta1.Workspace)

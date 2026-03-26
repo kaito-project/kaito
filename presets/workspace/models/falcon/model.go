@@ -58,7 +58,6 @@ var (
 		"chat_template": "/workspace/chat_templates/falcon-instruct.jinja",
 	}
 	falconRunParamsVLLM = map[string]string{
-		"dtype":         "float16",
 		"chat-template": "/workspace/chat_templates/falcon-instruct.jinja",
 	}
 )

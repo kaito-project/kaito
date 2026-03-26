@@ -46,11 +46,8 @@ var (
 		"pipeline":          "text-generation",
 		"trust_remote_code": "",
 	}
-	phi4RunParamsVLLM = map[string]string{
-		"dtype": "float16",
-	}
+	phi4RunParamsVLLM     = map[string]string{}
 	phi4MiniRunParamsVLLM = map[string]string{
-		"dtype":                   "float16",
 		"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
 		"tool-call-parser":        "phi4_mini_json",
 		"enable-auto-tool-choice": "",

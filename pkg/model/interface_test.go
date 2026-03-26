@@ -491,3 +491,86 @@ func TestGetInferenceCommandVLLMSmallModelOnMultiNodeUsesTP(t *testing.T) {
 	assert.Contains(t, cmd[2], "pipeline-parallel-size=2")
 	assert.NotContains(t, cmd[2], "data-parallel-size")
 }
+
+func TestBuildVLLMInferenceCommandDTypeDynamic(t *testing.T) {
+	t.Run("bfloat16 downgraded to float16 on older GPU", func(t *testing.T) {
+		p := &PresetParam{
+			RuntimeParam: RuntimeParam{
+				VLLM: VLLMParam{
+					BaseCommand:    "vllm serve",
+					ModelRunParams: map[string]string{"dtype": "bfloat16"},
+				},
+			},
+		}
+		rc := RuntimeContext{
+			RuntimeName: RuntimeNameVLLM,
+			SKUNumGPUs:  1,
+			NumNodes:    1,
+			GPUConfig:   &sku.GPUConfig{SKU: "test-t4", CUDAComputeCapability: 7.5},
+		}
+		cmd := p.GetInferenceCommand(rc)
+		require.Len(t, cmd, 3)
+		assert.Contains(t, cmd[2], "dtype=float16")
+		assert.NotContains(t, cmd[2], "dtype=bfloat16")
+	})
+
+	t.Run("bfloat16 preserved on Ampere GPU", func(t *testing.T) {
+		p := &PresetParam{
+			RuntimeParam: RuntimeParam{
+				VLLM: VLLMParam{
+					BaseCommand:    "vllm serve",
+					ModelRunParams: map[string]string{"dtype": "bfloat16"},
+				},
+			},
+		}
+		rc := RuntimeContext{
+			RuntimeName: RuntimeNameVLLM,
+			SKUNumGPUs:  1,
+			NumNodes:    1,
+			GPUConfig:   &sku.GPUConfig{SKU: "test-a100", CUDAComputeCapability: 8.0},
+		}
+		cmd := p.GetInferenceCommand(rc)
+		require.Len(t, cmd, 3)
+		assert.Contains(t, cmd[2], "dtype=bfloat16")
+	})
+
+	t.Run("float16 unchanged on older GPU", func(t *testing.T) {
+		p := &PresetParam{
+			RuntimeParam: RuntimeParam{
+				VLLM: VLLMParam{
+					BaseCommand:    "vllm serve",
+					ModelRunParams: map[string]string{"dtype": "float16"},
+				},
+			},
+		}
+		rc := RuntimeContext{
+			RuntimeName: RuntimeNameVLLM,
+			SKUNumGPUs:  1,
+			NumNodes:    1,
+			GPUConfig:   &sku.GPUConfig{SKU: "test-t4", CUDAComputeCapability: 7.5},
+		}
+		cmd := p.GetInferenceCommand(rc)
+		require.Len(t, cmd, 3)
+		assert.Contains(t, cmd[2], "dtype=float16")
+	})
+
+	t.Run("nil GPUConfig does not modify dtype", func(t *testing.T) {
+		p := &PresetParam{
+			RuntimeParam: RuntimeParam{
+				VLLM: VLLMParam{
+					BaseCommand:    "vllm serve",
+					ModelRunParams: map[string]string{"dtype": "bfloat16"},
+				},
+			},
+		}
+		rc := RuntimeContext{
+			RuntimeName: RuntimeNameVLLM,
+			SKUNumGPUs:  1,
+			NumNodes:    1,
+			GPUConfig:   nil,
+		}
+		cmd := p.GetInferenceCommand(rc)
+		require.Len(t, cmd, 3)
+		assert.Contains(t, cmd[2], "dtype=bfloat16")
+	})
+}

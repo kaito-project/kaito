@@ -981,10 +981,30 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	var err error
 	targetNodeCount := int32(1)
 	if wObj.Status.TargetNodeCount == 0 {
+		// Build the estimate request once, outside the status-update closure.
+		req, reqErr := workspace.NodeEstimateRequestFromWorkspace(ctx, wObj, c.Client)
+		if reqErr != nil {
+			return fmt.Errorf("failed to build node estimate request: %w", reqErr)
+		}
+
+		// Resolve the context window size from the workspace's inference ConfigMap (if any)
+		// and pass it through RuntimeProfile so the estimator does not need to do I/O.
+		if wObj.Inference != nil && wObj.Inference.Config != "" {
+			configMap := &corev1.ConfigMap{}
+			if cmErr := resources.GetResource(ctx, wObj.Inference.Config, wObj.Namespace, c.Client, configMap); cmErr != nil {
+				klog.Warningf("[UpdateWorkspaceTargetNodeCount] workspace=%s: failed to get ConfigMap %s: %v, using estimator default context size",
+					wObj.Name, wObj.Inference.Config, cmErr)
+			} else if configData, exists := configMap.Data["inference_config.yaml"]; exists {
+				if contextSize, found := utils.ParseExplicitMaxModelLen(configData); found {
+					req.RuntimeProfile = estimator.RuntimeProfile{ContextSize: contextSize}
+				}
+			}
+		}
+
 		if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
 			if wObj.Inference != nil {
 				if v1beta1.GetWorkspaceRuntimeName(wObj) == pkgmodel.RuntimeNameVLLM {
-					targetNodeCount, err = c.Estimator.EstimateNodeCount(ctx, wObj, c.Client)
+					targetNodeCount, err = c.Estimator.EstimateNodeCount(ctx, req, c.Client)
 					if err != nil {
 						return fmt.Errorf("failed to calculate target node count: %w", err)
 					}

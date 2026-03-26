@@ -30,6 +30,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
 func init() {
@@ -229,7 +230,9 @@ func TestBasicNodesEstimator_EstimateNodeCount(t *testing.T) {
 				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
 			}()
 
-			count, err := estimator.EstimateNodeCount(ctx, tt.workspace, nil)
+			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, nil)
+			require.NoError(t, reqErr)
+			count, err := estimator.EstimateNodeCount(ctx, req, nil)
 
 			if tt.expectedError {
 				require.Error(t, err)
@@ -280,7 +283,9 @@ func TestBasicNodesEstimator_EstimateNodeCount_GPUMemoryCalculation(t *testing.T
 			},
 		}
 
-		count, err := estimator.EstimateNodeCount(ctx, workspace, nil)
+		req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
+		require.NoError(t, reqErr)
+		count, err := estimator.EstimateNodeCount(ctx, req, nil)
 		require.NoError(t, err)
 
 		// The estimator should calculate optimal node count based on GPU memory
@@ -478,7 +483,9 @@ func TestBasicNodesEstimator_EstimateNodeCount_BYO(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			count, err := estimator.EstimateNodeCount(ctx, tt.workspace, mockClient)
+			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, mockClient)
+			require.NoError(t, reqErr)
+			count, err := estimator.EstimateNodeCount(ctx, req, mockClient)
 
 			if tt.expectedError {
 				require.Error(t, err)
@@ -534,7 +541,9 @@ func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 			},
 		}
 
-		count, err := estimator.EstimateNodeCount(ctx, workspace, nil)
+		req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
+		require.NoError(t, reqErr)
+		count, err := estimator.EstimateNodeCount(ctx, req, nil)
 		require.NoError(t, err)
 
 		// With the new logic, when minimumNodes < nodeCountPerReplica,
@@ -568,7 +577,9 @@ func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 			},
 		}
 
-		count, err := estimator.EstimateNodeCount(ctx, workspace, nil)
+		req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
+		require.NoError(t, reqErr)
+		count, err := estimator.EstimateNodeCount(ctx, req, nil)
 		require.NoError(t, err)
 
 		// The function should update nodeCountPerReplica to minimumNodes when minimumNodes < nodeCountPerReplica,
@@ -603,7 +614,9 @@ func TestBasicNodesEstimator_EstimateNodeCount_EdgeCases(t *testing.T) {
 			},
 		}
 
-		count, err := estimator.EstimateNodeCount(ctx, workspace, nil)
+		req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
+		require.NoError(t, reqErr)
+		count, err := estimator.EstimateNodeCount(ctx, req, nil)
 		require.NoError(t, err)
 
 		// When a model requires more nodes than the minimum calculation suggests,

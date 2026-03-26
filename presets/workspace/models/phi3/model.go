@@ -61,9 +61,7 @@ var (
 		"pipeline":          "text-generation",
 		"trust_remote_code": "",
 	}
-	phiRunParamsVLLM = map[string]string{
-		"dtype": "float16",
-	}
+	phiRunParamsVLLM = map[string]string{}
 )
 
 var phi3MiniA phi3Mini4KInst

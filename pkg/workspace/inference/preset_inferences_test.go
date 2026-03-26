@@ -38,7 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator/advancednodesestimator"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -281,7 +281,7 @@ func TestGeneratePresetInference(t *testing.T) {
 		},
 	}
 
-	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
+	estimator := &nodesestimator.NodeEstimator{}
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)

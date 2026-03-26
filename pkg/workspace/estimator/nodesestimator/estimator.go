@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package advancednodesestimator
+package nodesestimator
 
 import (
 	"context"
@@ -30,16 +30,16 @@ import (
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
-// AdvancedNodesEstimator estimates node count based on SKU memory and model memory requirement
-type AdvancedNodesEstimator struct {
+// NodeEstimator estimates node count based on SKU memory and model memory requirement
+type NodeEstimator struct {
 	// no fields needed
 }
 
-func (c *AdvancedNodesEstimator) Name() string {
-	return "advanced"
+func (c *NodeEstimator) Name() string {
+	return "node-estimator"
 }
 
-func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, req estimator.NodeEstimateRequest, cl client.Client) (int32, error) {
+func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.NodeEstimateRequest, cl client.Client) (int32, error) {
 	// If no preset is configured, default to the requested node count or 1.
 	if req.ModelProfile.Name == "" {
 		if req.ResourceProfile.RequestedNodeCount > 0 {
@@ -98,7 +98,7 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, req esti
 		maxModelLen = req.RuntimeProfile.ContextSize
 	}
 
-	klog.Infof("[AdvancedEstimator] workspace=%s maxModelLen=%d", req.WorkspaceName, maxModelLen)
+	klog.Infof("[NodeEstimator] workspace=%s maxModelLen=%d", req.WorkspaceName, maxModelLen)
 
 	// If GPU memory information is available, calculate the optimal node count
 	if !gpuConfig.GPUMem.IsZero() && gpuConfig.GPUCount > 0 {
@@ -118,7 +118,7 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, req esti
 		}
 
 		if availGPUMem <= overhead {
-			return 0, fmt.Errorf("GPU memory %.0f bytes is too small, needs at least %.1f GB overhead (base: 2.3GB + Advanced KV Cache: %.1f GB)",
+			return 0, fmt.Errorf("GPU memory %.0f bytes is too small, needs at least %.1f GB overhead (base: 2.3GB + KV Cache: %.1f GB)",
 				gpuMemPerGPU, overhead/float64(consts.GiBToBytes), kvCache/float64(consts.GiBToBytes))
 		}
 
@@ -138,6 +138,6 @@ func (c *AdvancedNodesEstimator) EstimateNodeCount(ctx context.Context, req esti
 		}
 	}
 
-	klog.Infof("[AdvancedEstimator] Final result: nodeCountPerReplica=%d for workspace %s", nodeCountPerReplica, req.WorkspaceName)
+	klog.Infof("[NodeEstimator] Final result: nodeCountPerReplica=%d for workspace %s", nodeCountPerReplica, req.WorkspaceName)
 	return int32(nodeCountPerReplica), nil
 }

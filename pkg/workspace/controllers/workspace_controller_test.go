@@ -45,7 +45,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator/basicnodesestimator"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -518,7 +518,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			reconciler := &WorkspaceReconciler{
 				Client:    mockClient,
 				Scheme:    test.NewTestScheme(),
-				Estimator: &basicnodesestimator.BasicNodesEstimator{},
+				Estimator: &nodesestimator.NodeEstimator{},
 			}
 			ctx := context.Background()
 

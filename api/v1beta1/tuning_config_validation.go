@@ -148,7 +148,6 @@ func validateTrainingArgsViaConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
 			}
 
 			// TODO: Here we perform the tuning GPU Memory Checks!
-			fmt.Println(trainingArgsRaw)
 		}
 	}
 	return nil

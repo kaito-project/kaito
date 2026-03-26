@@ -577,6 +577,15 @@ func validateWorkspaceBenchmarkCompleted(workspaceObj *kaitov1beta1.Workspace) {
 			if strings.Contains(line, "total_phase_elapsed=") {
 				GinkgoWriter.Printf("[benchmark] %s: %s\n", workspaceObj.Name, line)
 				foundDuration = true
+				for _, field := range strings.Fields(line) {
+					if strings.HasPrefix(field, "total_phase_elapsed=") {
+						valStr := strings.TrimSuffix(strings.TrimPrefix(field, "total_phase_elapsed="), "s")
+						if v, parseErr := strconv.ParseFloat(valStr, 64); parseErr == nil {
+							Expect(v).To(BeNumerically("<=", 300.0),
+								"benchmark phase for %s took %.1fs, expected <= 300s", workspaceObj.Name, v)
+						}
+					}
+				}
 			}
 		}
 		if !foundDuration {

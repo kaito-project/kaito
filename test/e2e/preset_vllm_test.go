@@ -28,6 +28,7 @@ import (
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
@@ -555,43 +556,46 @@ func validateWorkspaceBenchmarkCompleted(workspaceObj *kaitov1beta1.Workspace) {
 			GinkgoWriter.Printf("WARNING: could not get k8s clientset to fetch benchmark logs: %v\n", err)
 			return
 		}
-		podName := workspaceObj.Name + "-0"
-		tailLines := int64(500)
-		req := coreClient.CoreV1().Pods(workspaceObj.Namespace).GetLogs(podName, &corev1.PodLogOptions{
-			TailLines: &tailLines,
-		})
-		stream, err := req.Stream(ctx)
-		if err != nil {
-			GinkgoWriter.Printf("WARNING: could not fetch logs for pod %s: %v\n", podName, err)
-			return
-		}
-		defer stream.Close()
-		buf := new(strings.Builder)
-		if _, err = io.Copy(buf, stream); err != nil {
-			GinkgoWriter.Printf("WARNING: could not read logs for pod %s: %v\n", podName, err)
-			return
-		}
+		logBenchmarkPhaseElapsed(coreClient, workspaceObj.Name, workspaceObj.Namespace)
+	})
+}
 
-		foundDuration := false
-		for line := range strings.SplitSeq(buf.String(), "\n") {
-			if strings.Contains(line, "total_phase_elapsed=") {
-				GinkgoWriter.Printf("[benchmark] %s: %s\n", workspaceObj.Name, line)
-				foundDuration = true
-				for _, field := range strings.Fields(line) {
-					if strings.HasPrefix(field, "total_phase_elapsed=") {
-						valStr := strings.TrimSuffix(strings.TrimPrefix(field, "total_phase_elapsed="), "s")
-						if v, parseErr := strconv.ParseFloat(valStr, 64); parseErr == nil {
-							Expect(v).To(BeNumerically("<=", 300.0),
-								"benchmark phase for %s took %.1fs, expected <= 300s", workspaceObj.Name, v)
-						}
+func logBenchmarkPhaseElapsed(coreClient *kubernetes.Clientset, wsName, wsNamespace string) {
+	tailLines := int64(500)
+	podName := wsName + "-0"
+	req := coreClient.CoreV1().Pods(wsNamespace).GetLogs(podName, &corev1.PodLogOptions{
+		TailLines: &tailLines,
+	})
+	stream, err := req.Stream(ctx)
+	if err != nil {
+		GinkgoWriter.Printf("WARNING: could not fetch logs for pod %s: %v\n", podName, err)
+		return
+	}
+	defer stream.Close()
+	buf := new(strings.Builder)
+	if _, err = io.Copy(buf, stream); err != nil {
+		GinkgoWriter.Printf("WARNING: could not read logs for pod %s: %v\n", podName, err)
+		return
+	}
+	foundDuration := false
+	for line := range strings.SplitSeq(buf.String(), "\n") {
+		if strings.Contains(line, "total_phase_elapsed=") {
+			GinkgoWriter.Printf("[benchmark] %s: %s\n", wsName, line)
+			foundDuration = true
+			for field := range strings.FieldsSeq(line) {
+				if valStr, ok := strings.CutPrefix(field, "total_phase_elapsed="); ok {
+					valStr = strings.TrimSuffix(valStr, "s")
+					if v, parseErr := strconv.ParseFloat(valStr, 64); parseErr == nil {
+						Expect(v).To(BeNumerically("<=", 300.0),
+							"benchmark phase for %s took %.1fs, expected <= 300s", wsName, v)
 					}
 				}
 			}
 		}
-		if !foundDuration {
-			GinkgoWriter.Printf("[benchmark] %s: total_phase_elapsed not found in last %d log lines\n", workspaceObj.Name, tailLines)
-		}
-	})
+	}
+	if !foundDuration {
+		GinkgoWriter.Printf("[benchmark] %s: total_phase_elapsed not found in last %d log lines\n", wsName, tailLines)
+	}
 }
 
 // validateInferenceSetBenchmarkCompleted asserts that:
@@ -649,5 +653,25 @@ func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1alpha1.Infer
 			return true
 		}, 30*time.Second, utils.PollInterval).Should(BeTrue(),
 			"all child workspaces should have BenchmarkCompleted=True and performance set")
+	})
+
+	By("Validating benchmark phase duration from child workspace pod logs", func() {
+		coreClient, err := utils.GetK8sClientset()
+		if err != nil {
+			GinkgoWriter.Printf("WARNING: could not get k8s clientset to fetch benchmark logs: %v\n", err)
+			return
+		}
+		wsList := &kaitov1beta1.WorkspaceList{}
+		if err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+			client.InNamespace(inferenceSetObj.Namespace),
+			client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
+		); err != nil {
+			GinkgoWriter.Printf("WARNING: could not list child workspaces: %v\n", err)
+			return
+		}
+		for i := range wsList.Items {
+			ws := &wsList.Items[i]
+			logBenchmarkPhaseElapsed(coreClient, ws.Name, ws.Namespace)
+		}
 	})
 }

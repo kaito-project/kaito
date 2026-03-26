@@ -549,14 +549,14 @@ func validateWorkspaceBenchmarkCompleted(workspaceObj *kaitov1beta1.Workspace) {
 			"workspace benchmark should complete with valid performance metrics")
 	})
 
-	By("Printing benchmark elapsed time from pod logs", func() {
+	By("Validating benchmark phase duration from pod logs", func() {
 		coreClient, err := utils.GetK8sClientset()
 		if err != nil {
 			GinkgoWriter.Printf("WARNING: could not get k8s clientset to fetch benchmark logs: %v\n", err)
 			return
 		}
 		podName := workspaceObj.Name + "-0"
-		tailLines := int64(50)
+		tailLines := int64(500)
 		req := coreClient.CoreV1().Pods(workspaceObj.Namespace).GetLogs(podName, &corev1.PodLogOptions{
 			TailLines: &tailLines,
 		})
@@ -571,13 +571,17 @@ func validateWorkspaceBenchmarkCompleted(workspaceObj *kaitov1beta1.Workspace) {
 			GinkgoWriter.Printf("WARNING: could not read logs for pod %s: %v\n", podName, err)
 			return
 		}
-		for _, line := range strings.Split(buf.String(), "\n") {
-			if strings.Contains(line, "benchmark_done") {
+
+		foundDuration := false
+		for line := range strings.SplitSeq(buf.String(), "\n") {
+			if strings.Contains(line, "total_phase_elapsed=") {
 				GinkgoWriter.Printf("[benchmark] %s: %s\n", workspaceObj.Name, line)
-				return
+				foundDuration = true
 			}
 		}
-		GinkgoWriter.Printf("[benchmark] %s: benchmark_done line not found in pod logs\n", workspaceObj.Name)
+		if !foundDuration {
+			GinkgoWriter.Printf("[benchmark] %s: total_phase_elapsed not found in last %d log lines\n", workspaceObj.Name, tailLines)
+		}
 	})
 }
 

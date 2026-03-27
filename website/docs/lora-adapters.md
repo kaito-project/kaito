@@ -139,6 +139,33 @@ inference:
         image: "<YOUR_ACR>.azurecr.io/phi-3-adapter:0.0.1"
 ```
 
+**Example with vLLM runtime using volume source:**
+
+Instead of pulling adapter weights from a container image, you can mount them directly from a PersistentVolumeClaim (PVC). This is useful when adapter weights are stored on a shared volume — for example, saved from a prior tuning job or uploaded manually.
+
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-phi4-volume-adapter
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: phi4-volume-adapter
+inference:
+  preset:
+    name: phi-4-mini-instruct
+  adapters:
+    - source:
+        name: "my-volume-adapter"
+        volume:
+          persistentVolumeClaim:
+            claimName: my-adapter-pvc
+```
+
+> **Note:** When using a volume source, the adapter weights are mounted directly into the inference pod — no init container is created to pull an image. The PVC must contain valid PEFT/LoRA weight files (e.g., `adapter_model.safetensors` and `adapter_config.json`). The `strength` field is not supported with vLLM and must be omitted.
+
 ```sh
 kubectl apply -f workspace-inference-adapter.yaml
 ```
@@ -149,6 +176,7 @@ Key fields:
 |-------|-------------|
 | `adapters[].source.name` | A unique name for the adapter |
 | `adapters[].source.image` | Container image containing the adapter weights |
+| `adapters[].source.volume` | Volume source (e.g., PVC) containing the adapter weights. Use instead of `image` to mount weights directly |
 | `adapters[].strength` | Adapter influence (0.0–1.0). **Transformers runtime only** — omit for vLLM |
 
 ---
@@ -228,6 +256,7 @@ The adapter container image should contain the LoRA weight files (typically `ada
 | Feature | Transformers | vLLM |
 |---------|-------------|------|
 | Basic adapter loading | ✅ | ✅ |
+| Volume source adapter | ✅ | ✅ |
 | `strength` field | ✅ | ❌ Rejected |
 | Multiple adapters | ✅ | Limited |
 

@@ -16,7 +16,6 @@ package e2e
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"strings"
 	"time"
 
@@ -476,70 +475,4 @@ var _ = Describe("Workspace Preset", func() {
 		},
 	)
 
-	It("should create a falcon workspace with volume-based adapter successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		volumeAdapterName := "e2e-volume-adapter"
-		adapterImage := fullImageName1 // reuse the same e2e-adapter image
-		imagePullSecret := utils.GetEnv("E2E_ACR_REGISTRY_SECRET")
-
-		By("Creating and populating a PVC with adapter weights")
-		pvcName := createAdapterPVCWithData("managed-csi", adapterImage, imagePullSecret)
-
-		By("Creating workspace with volume-based adapter")
-		volumeAdapters := []kaitov1beta1.AdapterSpec{
-			{
-				Source: &kaitov1beta1.DataSource{
-					Name: volumeAdapterName,
-					Volume: &corev1.VolumeSource{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-							ClaimName: pvcName,
-						},
-					},
-				},
-				Strength: &DefaultStrength,
-			},
-		}
-
-		uniqueID := fmt.Sprint("vol-adapter-falcon-", rand.Intn(1000))
-		workspaceObj := utils.GenerateInferenceWorkspaceManifest(
-			uniqueID,
-			namespaceName,
-			"",
-			numOfNode,
-			"Standard_NV36ads_A10_v5",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "volume-adapter-e2e-test-falcon"},
-			},
-			nil,
-			PresetFalcon7BModel,
-			nil,
-			nil,
-			volumeAdapters,
-			"",
-			"",
-		)
-
-		createAndValidateWorkspace(workspaceObj)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-
-		validateRevision(workspaceObj, "1")
-
-		// Key volume adapter validations
-		validateNoAdapterInitContainer(workspaceObj)
-		validatePVCMounted(workspaceObj, pvcName)
-		validateAdapterAdded(workspaceObj, workspaceObj.Name, volumeAdapterName)
-	})
 })

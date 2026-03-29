@@ -51,9 +51,16 @@ const (
 )
 
 var (
-	containerPorts = []corev1.ContainerPort{{
-		ContainerPort: int32(consts.PortInferenceServer),
-	}}
+	containerPorts = []corev1.ContainerPort{
+		{
+			Name:          "http",
+			ContainerPort: int32(consts.PortInferenceServer),
+		},
+		{
+			Name:          "kv-events",
+			ContainerPort: int32(consts.PortKVCacheEvents),
+		},
+	}
 
 	// defaultLivenessProbe has no initial delay because the startup probe ensures
 	// the model is up before liveness evaluation begins.

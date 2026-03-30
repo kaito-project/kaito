@@ -69,8 +69,8 @@ We are dedicated to providing a harassment-free experience for everyone. Please 
 We’re glad you're here! Start by checking out:
 
 * [Open roadmap items](https://github.com/orgs/kaito-project/projects/1)
-* [Good first issues](https://github.com/YOUR-REPO/labels/good%20first%20issue)
-* [Contribution Guidelines](./CONTRIBUTING.md)
+* [Good first issues](https://github.com/kaito-project/kaito/labels/good%20first%20issue)
+* [Contribution Guidelines](https://kaito-project.github.io/kaito/docs/contributing)
 
 If you have questions or ideas, open an issue or start a discussion!
 ---

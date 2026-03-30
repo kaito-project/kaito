@@ -134,7 +134,7 @@ def _compute_max_concurrency() -> int:
     This reflects the true number of requests that fit simultaneously in the
     KV cache, accounting for gpu_memory_utilization and all runtime factors.
 
-    Raises ``RuntimeError`` if the metric is absent or unparseable.
+    Raises ``RuntimeError`` if the metric is absent or unparsable.
     """
     try:
         data = (

@@ -139,7 +139,10 @@ def test_compute_max_concurrency_metric_absent():
     """Raises RuntimeError when vllm:cache_config_info line is not in /metrics."""
     body = b"vllm:some_other_metric{} 1.0\n"
     resp = _make_urlopen_response(200, body)
-    with patch("urllib.request.urlopen", return_value=resp), pytest.raises(RuntimeError, match="vllm:cache_config_info metric not found"):
+    with (
+        patch("urllib.request.urlopen", return_value=resp),
+        pytest.raises(RuntimeError, match="vllm:cache_config_info metric not found"),
+    ):
         bm._compute_max_concurrency()
 
 
@@ -147,13 +150,19 @@ def test_compute_max_concurrency_labels_missing():
     """Raises RuntimeError when cache_config_info line lacks num_gpu_blocks or block_size."""
     body = b'vllm:cache_config_info{gpu_memory_utilization="0.7"} 1.0\n'
     resp = _make_urlopen_response(200, body)
-    with patch("urllib.request.urlopen", return_value=resp), pytest.raises(RuntimeError, match="missing num_gpu_blocks or block_size"):
+    with (
+        patch("urllib.request.urlopen", return_value=resp),
+        pytest.raises(RuntimeError, match="missing num_gpu_blocks or block_size"),
+    ):
         bm._compute_max_concurrency()
 
 
 def test_compute_max_concurrency_fetch_fails():
     """Raises RuntimeError when /metrics is unreachable."""
-    with patch("urllib.request.urlopen", side_effect=OSError("connection refused")), pytest.raises(RuntimeError, match="failed to fetch /metrics"):
+    with (
+        patch("urllib.request.urlopen", side_effect=OSError("connection refused")),
+        pytest.raises(RuntimeError, match="failed to fetch /metrics"),
+    ):
         bm._compute_max_concurrency()
 
 
@@ -162,7 +171,10 @@ def test_compute_max_concurrency_zero_result():
     # num_gpu_blocks=1, block_size=1 → 1 // 2304 = 0
     body = b'vllm:cache_config_info{num_gpu_blocks="1",block_size="1"} 1.0\n'
     resp = _make_urlopen_response(200, body)
-    with patch("urllib.request.urlopen", return_value=resp), pytest.raises(RuntimeError, match="computed max_concurrency=0"):
+    with (
+        patch("urllib.request.urlopen", return_value=resp),
+        pytest.raises(RuntimeError, match="computed max_concurrency=0"),
+    ):
         bm._compute_max_concurrency()
 
 

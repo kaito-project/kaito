@@ -5,7 +5,7 @@ models:
     runtime: tfs
     tag: 0.2.8
     # Tag history:
-    # 0.2.8 - update benchmark_entrypoint.py to poll kv cache size for concurrency calculation
+    # 0.2.8 - update benchmark_entrypoint.py to poll kv cache size for concurrency calculation and pin venv transformer to 5.3.0
     # 0.2.7 - bump vllm to 0.17.1
     # 0.2.6 - update benchmark_entrypoint.py: re-emit config before result, add max_concurrency output
     # 0.2.5 - remove uv after installation to fix CVEs in uv package

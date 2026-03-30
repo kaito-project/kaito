@@ -33,7 +33,7 @@ Follow the instructions [here](https://karpenter.sh/docs/getting-started/getting
 Then update the KAITO workspace controller Helm chart values for AWS:
 
 ```bash
-helm update kaito-workspace --namespace kaito-workspace --set cloudProviderName=aws
+helm upgrade kaito-workspace --namespace kaito-workspace --set cloudProviderName=aws
 ```
 
 ### Using Auto-Provisioning

@@ -615,21 +615,34 @@ class BaseVectorStore(ABC):
                 not_found_docs.append(document)
 
         try:
-            if self.use_rwlock:
-                async with self.rwlock.writer_lock:
-                    refreshed_docs = self.index_map[index_name].refresh_ref_docs(
-                        llama_docs
-                    )
-            else:
-                refreshed_docs = self.index_map[index_name].refresh_ref_docs(llama_docs)
-
             updated_docs = []
             unchanged_docs = []
-            for doc, was_updated in zip(found_docs, refreshed_docs):
-                if was_updated:
+            index = self.index_map[index_name]
+
+            for doc, llama_doc in zip(found_docs, llama_docs):
+                existing_hash = index.docstore.get_document_hash(llama_doc.id_)
+                if existing_hash is not None and existing_hash != llama_doc.hash:
+                    # Document content changed: delete old doc+nodes then re-insert.
+                    # Using explicit delete_ref_doc + insert instead of
+                    # refresh_ref_docs to ensure the vector store (e.g. FAISS)
+                    # properly removes stale node embeddings before inserting
+                    # new ones. refresh_ref_docs can leave orphaned entries in
+                    # vector stores that do not support true in-place deletion.
+                    if self.use_rwlock:
+                        async with self.rwlock.writer_lock:
+                            index.delete_ref_doc(
+                                llama_doc.id_, delete_from_docstore=True
+                            )
+                            index.insert(llama_doc)
+                    else:
+                        index.delete_ref_doc(
+                            llama_doc.id_, delete_from_docstore=True
+                        )
+                        index.insert(llama_doc)
                     updated_docs.append(doc)
                 else:
                     unchanged_docs.append(doc)
+
             return {
                 "updated_documents": updated_docs,
                 "unchanged_documents": unchanged_docs,

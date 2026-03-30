@@ -421,7 +421,7 @@ func validateInferenceSetStatus(inferenceSetObj *kaitov1alpha1.InferenceSet) {
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
-		}, 25*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for InferenceSet status to be ready")
+		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for InferenceSet status to be ready")
 	})
 }
 
@@ -506,7 +506,7 @@ func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, e
 			}
 
 			return totalReadyReplicas == expectedReplicas
-		}, 25*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for InferenceSet replicas to be ready")
+		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for InferenceSet replicas to be ready")
 	})
 }
 
@@ -717,7 +717,7 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
-		}, 15*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace to be ready")
+		}, 12*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace to be ready")
 	})
 }
 

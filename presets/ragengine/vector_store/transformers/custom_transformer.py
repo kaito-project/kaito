@@ -51,6 +51,5 @@ class CustomTransformer(TransformComponent):
     def __call__(self, nodes, **kwargs):
         all_nodes: list[BaseNode] = []
         for node in nodes:
-            nodes = self.split_node(node)
             all_nodes.extend(self.split_node(node))
         return all_nodes

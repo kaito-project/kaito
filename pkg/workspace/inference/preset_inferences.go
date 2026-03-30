@@ -169,7 +169,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
 	}
 	if v1beta1.IsRunBenchmarkEnabled(workspaceObj) {
-		podOpts = append(podOpts, SetBenchmarkConfig(gpuConfig, numNodes, distributed))
+		podOpts = append(podOpts, SetBenchmarkConfig(distributed))
 	}
 
 	ssOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]{
@@ -545,11 +545,10 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 	return nil
 }
 
-// SetBenchmarkConfig overrides the startup probe to run the benchmark entrypoint
-// and injects the BENCHMARK_MAX_CONCURRENCY env var. It must be appended after
-// GenerateInferencePodSpec (and SetDistributedInferenceProbe when distributed)
-// so the container already exists.
-func SetBenchmarkConfig(gpuConfig *sku.GPUConfig, numNodes int, distributed bool) generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec] {
+// SetBenchmarkConfig overrides the startup probe to run the benchmark entrypoint.
+// It must be appended after GenerateInferencePodSpec (and SetDistributedInferenceProbe
+// when distributed) so the container already exists.
+func SetBenchmarkConfig(distributed bool) generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec] {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		inferenceParam := ctx.Model.GetInferenceParameters()
 		readinessTimeout := inferenceParam.ReadinessTimeout
@@ -563,38 +562,9 @@ func SetBenchmarkConfig(gpuConfig *sku.GPUConfig, numNodes int, distributed bool
 		}
 		startupProbe := buildBenchmarkStartupProbe(readinessTimeout, wObj, distributed)
 
-		// Max concurrency controls the number of concurrent requests sent during the benchmark.
-		// The goal is to saturate the GPU so the result reflects peak throughput rather
-		// than a load level that happens to be idle. We estimate how many simultaneous
-		// requests fit in available VRAM given the per-request KV-cache footprint at the
-		// benchmark input length. The 0.9 factor is to leave some buffer for overhead.
-		var maxConcurrency int
-		if gpuConfig != nil && inferenceParam.TotalSafeTensorFileSize != "" && inferenceParam.BytesPerToken > 0 {
-			const benchmarkInputLen = 2048
-			totalVRAMGiB := gpuConfig.GPUMem.AsApproximateFloat64() / math.Pow(2, 30) * float64(numNodes)
-			if weightQty, parseErr := resource.ParseQuantity(inferenceParam.TotalSafeTensorFileSize); parseErr == nil {
-				modelWeightGiB := weightQty.AsApproximateFloat64() / math.Pow(2, 30)
-				availableVRAMGiB := (totalVRAMGiB - modelWeightGiB) * 0.9
-				kvPerReqGiB := float64(benchmarkInputLen) * float64(inferenceParam.BytesPerToken) / math.Pow(1024, 3)
-				maxConcurrency = int(math.Ceil(availableVRAMGiB / kvPerReqGiB))
-				if maxConcurrency < 1 {
-					maxConcurrency = 1
-				}
-			}
-		}
-		const defaultBenchmarkMaxConcurrency = 256
-		if maxConcurrency == 0 {
-			maxConcurrency = defaultBenchmarkMaxConcurrency
-		}
-
-		benchmarkEnvVars := []corev1.EnvVar{
-			{Name: "BENCHMARK_MAX_CONCURRENCY", Value: strconv.Itoa(maxConcurrency)},
-		}
-
 		for i := range spec.Containers {
 			if spec.Containers[i].Name == ctx.Workspace.Name {
 				spec.Containers[i].StartupProbe = startupProbe
-				spec.Containers[i].Env = append(spec.Containers[i].Env, benchmarkEnvVars...)
 				break
 			}
 		}

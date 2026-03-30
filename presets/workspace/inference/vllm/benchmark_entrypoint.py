@@ -35,6 +35,7 @@ own sys.stdout if /proc/1/fd/1 is not accessible.
 import asyncio
 import glob
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -123,23 +124,48 @@ def _read_counter(metric: str) -> int:
 
 
 def _compute_max_concurrency() -> int:
-    """Return the pre-computed saturation concurrency injected by the controller.
+    """Compute saturation concurrency from vLLM's actual KV cache allocation.
 
-    The controller always sets BENCHMARK_MAX_CONCURRENCY (defaulting to 256 when
-    the model or SKU metadata is unavailable). Values <= 0 are rejected.
+    Parses ``vllm:cache_config_info`` from /metrics to get ``num_gpu_blocks``
+    and ``block_size``, then computes:
+
+        floor(num_gpu_blocks * block_size / (input_tokens + output_tokens))
+
+    This reflects the true number of requests that fit simultaneously in the
+    KV cache, accounting for gpu_memory_utilization and all runtime factors.
+
+    Raises ``RuntimeError`` if the metric is absent or unparseable.
     """
-    val = os.environ.get("BENCHMARK_MAX_CONCURRENCY", "")
     try:
-        concurrency = int(val)
-    except ValueError:
-        raise RuntimeError(
-            f"invalid BENCHMARK_MAX_CONCURRENCY={val!r}: must be a positive integer"
+        data = (
+            urllib.request.urlopen(f"{VLLM_BASE_URL}/metrics", timeout=5)
+            .read()
+            .decode()
         )
-    if concurrency <= 0:
-        raise RuntimeError(
-            f"invalid BENCHMARK_MAX_CONCURRENCY={val!r}: must be a positive integer"
-        )
-    return concurrency
+    except Exception as exc:
+        raise RuntimeError(f"failed to fetch /metrics: {exc}") from exc
+
+    for line in data.splitlines():
+        if not line.startswith("vllm:cache_config_info{"):
+            continue
+        num_gpu_blocks_match = re.search(r'num_gpu_blocks="(\d+)"', line)
+        block_size_match = re.search(r'block_size="(\d+)"', line)
+        if not num_gpu_blocks_match or not block_size_match:
+            raise RuntimeError(
+                f"vllm:cache_config_info line missing num_gpu_blocks or block_size: {line!r}"
+            )
+        num_gpu_blocks = int(num_gpu_blocks_match.group(1))
+        block_size = int(block_size_match.group(1))
+        seq_len = BENCHMARK_INPUT_LEN + BENCHMARK_OUTPUT_LEN
+        concurrency = (num_gpu_blocks * block_size) // seq_len
+        if concurrency <= 0:
+            raise RuntimeError(
+                f"computed max_concurrency={concurrency} <= 0 "
+                f"(num_gpu_blocks={num_gpu_blocks}, block_size={block_size}, seq_len={seq_len})"
+            )
+        return concurrency
+
+    raise RuntimeError("vllm:cache_config_info metric not found in /metrics output")
 
 
 def _resolve_processor() -> str:

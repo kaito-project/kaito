@@ -527,21 +527,66 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 		return nil
 	}
 
-	// add adapter volume mount if adapters are enabled
-	adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
-	spec.Volumes = append(spec.Volumes, adapterVolume)
-	for i := range spec.Containers { // FIXME: assume only one container in the pod
-		spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, adapterVolumeMount)
+	// Separate adapters by source type
+	var imageAdapters []v1beta1.AdapterSpec
+	var volumeAdapters []v1beta1.AdapterSpec
+	for _, adapter := range ctx.Workspace.Inference.Adapters {
+		if adapter.Source != nil && adapter.Source.Volume != nil {
+			volumeAdapters = append(volumeAdapters, adapter)
+		} else {
+			imageAdapters = append(imageAdapters, adapter)
+		}
 	}
 
-	// add container to pull adapters
-	volumeMounts := []corev1.VolumeMount{adapterVolumeMount}
-	pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(ctx.Workspace, volumeMounts)
-	spec.InitContainers = append(spec.InitContainers, pullerContainers...)
-	spec.Volumes = append(spec.Volumes, pullerVolumes...)
-	for i := range spec.Containers { // FIXME: assume only one container in the pod
-		spec.Containers[i].Env = append(spec.Containers[i].Env, pullerEnvVars...)
+	// Handle image-based adapters (existing flow: EmptyDir + puller init containers)
+	if len(imageAdapters) > 0 {
+		adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume(nil)
+		spec.Volumes = append(spec.Volumes, adapterVolume)
+		for i := range spec.Containers { // FIXME: assume only one container in the pod
+			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, adapterVolumeMount)
+		}
+
+		// add container to pull adapters
+		volumeMounts := []corev1.VolumeMount{adapterVolumeMount}
+		pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(ctx.Workspace, imageAdapters, volumeMounts)
+		spec.InitContainers = append(spec.InitContainers, pullerContainers...)
+		spec.Volumes = append(spec.Volumes, pullerVolumes...)
+		for i := range spec.Containers { // FIXME: assume only one container in the pod
+			spec.Containers[i].Env = append(spec.Containers[i].Env, pullerEnvVars...)
+		}
 	}
+
+	// Handle volume-based adapters (mount volume directly, no puller needed)
+	for _, adapter := range volumeAdapters {
+		sourceName := adapter.Source.Name
+		volumeName := fmt.Sprintf("adapter-volume-%s", sourceName)
+		mountPath := fmt.Sprintf("%s/%s", utils.DefaultAdapterVolumePath, sourceName)
+
+		volume := corev1.Volume{
+			Name:         volumeName,
+			VolumeSource: *adapter.Source.Volume,
+		}
+		volumeMount := corev1.VolumeMount{
+			Name:      volumeName,
+			MountPath: mountPath,
+		}
+		spec.Volumes = append(spec.Volumes, volume)
+		for i := range spec.Containers {
+			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, volumeMount)
+		}
+
+		// Propagate strength env vars for volume adapters
+		if adapter.Strength != nil {
+			envVar := corev1.EnvVar{
+				Name:  sourceName,
+				Value: *adapter.Strength,
+			}
+			for i := range spec.Containers {
+				spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)
+			}
+		}
+	}
+
 	return nil
 }
 

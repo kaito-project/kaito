@@ -162,6 +162,52 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateAdapterLoadedInVLLM(workspaceObj, phi4AdapterName)
 	})
 
+	It("should create a phi4 workspace with volume-based adapter successfully", utils.GinkgoLabelA100Required, func() {
+		numOfNode := 1
+		volumeAdapterName := "adapter-phi-3-mini-pycoder"
+		volumeAdapterImageName := utils.GetEnv("E2E_ACR_REGISTRY") + "/" + phi4AdapterName + ":0.0.1"
+		imagePullSecret := utils.GetEnv("E2E_ACR_REGISTRY_SECRET")
+
+		By("Creating and populating a PVC with adapter weights")
+		pvcName := createAdapterPVCWithData("managed-csi", volumeAdapterImageName, imagePullSecret)
+
+		By("Creating workspace with volume-based adapter")
+		volumeAdapters := []kaitov1beta1.AdapterSpec{
+			{
+				Source: &kaitov1beta1.DataSource{
+					Name: volumeAdapterName,
+					Volume: &corev1.VolumeSource{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+							ClaimName: pvcName,
+						},
+					},
+				},
+			},
+		}
+
+		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, volumeAdapters)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		// Key volume adapter validations
+		validateNoAdapterInitContainer(workspaceObj)
+		validatePVCMounted(workspaceObj, pvcName)
+		validateAdapterLoadedInVLLM(workspaceObj, volumeAdapterName)
+	})
+
 	It("should create a llama-3.3-70b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
 		// Need 2 Standard_NC48ads_A100_v4 nodes to run Llama 3.3-70B Instruct model.
 		// Each node has 2 A100 GPUs, so total 4 GPUs are used

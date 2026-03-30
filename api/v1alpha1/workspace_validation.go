@@ -159,8 +159,12 @@ func (r *AdapterSpec) validateCreateorUpdate() (errs *apis.FieldError) {
 		} else if errmsgs := validation.IsDNS1123Subdomain(r.Source.Name); len(errmsgs) > 0 {
 			errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "adapters.source.name"))
 		}
-		if r.Source.Image == "" {
-			errs = errs.Also(apis.ErrMissingField("Image of Adapter field must be specified"))
+		// Adapters support Image or Volume as source (not URLs)
+		if r.Source.Image == "" && r.Source.Volume == nil {
+			errs = errs.Also(apis.ErrGeneric("Either Image or Volume must be specified for adapter source", "adapters.source"))
+		}
+		if len(r.Source.URLs) > 0 {
+			errs = errs.Also(apis.ErrGeneric("URLs are not supported as adapter source", "adapters.source.urls"))
 		}
 		if r.Strength == nil {
 			var defaultStrength = "1.0"

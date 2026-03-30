@@ -564,14 +564,14 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 			// for backward compatibility, old.InstanceType is non-empty
 			// but update to empty is allowed.
 			if r.InstanceType != "" && old.InstanceType != r.InstanceType {
-				errs = errs.Also(apis.ErrInvalidValue("instanceType is cannot be changed once set", "instanceType"))
+				errs = errs.Also(apis.ErrInvalidValue("instanceType cannot be changed once set", "instanceType"))
 			}
 		}
 	} else {
 		if r.InstanceType == "" {
 			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "instanceType"))
 		} else if old.InstanceType != "" && old.InstanceType != r.InstanceType {
-			errs = errs.Also(apis.ErrGeneric("instanceType is cannot be changed once set when node auto-provisioning is enabled", "instanceType"))
+			errs = errs.Also(apis.ErrGeneric("instanceType cannot be changed once set when node auto-provisioning is enabled", "instanceType"))
 		}
 	}
 

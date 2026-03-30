@@ -213,7 +213,7 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGenerat
 		})
 
 		// tuning commands
-		tuningParam := ctx.Model.GetInferenceParameters().DeepCopy()
+		tuningParam := ctx.Model.GetTuningParameters().DeepCopy()
 		commands := tuningParam.GetTuningCommand(pkgmodel.RuntimeContext{
 			SKUNumGPUs: skuNumGPUs,
 		})

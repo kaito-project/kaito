@@ -123,16 +123,6 @@ data:
         version: https://huggingface.co/microsoft/Phi-3.5-mini-instruct/commit/3145e03a9fd4cdd7cd953c34d9bbf7ad606122ca
         runtime: tfs
         tag: 0.2.0
-      - name: phi-4-mini-instruct
-        type: text-generation
-        version: https://huggingface.co/microsoft/Phi-4-mini-instruct/commit/c0fb9e74abda11b496b7907a9c6c9009a7a0488f
-        runtime: tfs
-        tag: 0.2.0
-      - name: phi-4
-        type: text-generation
-        version: https://huggingface.co/microsoft/phi-4/commit/187ef0342fff0eb3333be9f00389385e95ef0b61
-        runtime: tfs
-        tag: 0.2.0
       - name: qwen2.5-coder-7b-instruct
         type: text-generation
         version: https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct/commit/c03e6d358207e414f1eca0bb1891e29f1db0e242
@@ -176,3 +166,78 @@ data:
         runtime: tfs
         downloadAtRuntime: true
         tag: 0.0.1
+  BuiltinModels: |
+    models:
+      - name: phi-4
+        type: text-generation
+        version: https://huggingface.co/microsoft/phi-4/commit/187ef0342fff0eb3333be9f00389385e95ef0b61
+        totalSafeTensorFileSize: "27.31Gi"
+        diskStorageRequirement: "150Gi"
+        gpuCountRequirement: "1"
+        bytesPerToken: 204800
+        modelTokenLimit: 16384
+        readinessTimeout: 30m
+        supportDistributedInference: false
+        supportTuning: true
+        runtimeParameters:
+          transformers:
+            baseCommand: "accelerate launch"
+            inferenceMainFile: "/workspace/tfs/inference_api.py"
+            accelerateParams:
+              num_processes: "1"
+              num_machines: "1"
+              machine_rank: "0"
+              gpu_ids: "all"
+            modelRunParams:
+              torch_dtype: "auto"
+              pipeline: "text-generation"
+              trust_remote_code: ""
+          vllm:
+            baseCommand: "python3 /workspace/vllm/inference_api.py"
+            modelRunParams: {}
+        tuning:
+          totalSafeTensorFileSize: "70Gi"
+          diskStorageRequirement: "150Gi"
+          gpuCountRequirement: "1"
+          readinessTimeout: 30m
+          runtimeParameters:
+            transformers:
+              baseCommand: "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
+      - name: phi-4-mini-instruct
+        type: text-generation
+        version: https://huggingface.co/microsoft/Phi-4-mini-instruct/commit/c0fb9e74abda11b496b7907a9c6c9009a7a0488f
+        totalSafeTensorFileSize: "7.15Gi"
+        diskStorageRequirement: "70Gi"
+        gpuCountRequirement: "1"
+        bytesPerToken: 131072
+        modelTokenLimit: 131072
+        readinessTimeout: 30m
+        supportDistributedInference: false
+        supportTuning: true
+        runtimeParameters:
+          transformers:
+            baseCommand: "accelerate launch"
+            inferenceMainFile: "/workspace/tfs/inference_api.py"
+            accelerateParams:
+              num_processes: "1"
+              num_machines: "1"
+              machine_rank: "0"
+              gpu_ids: "all"
+            modelRunParams:
+              torch_dtype: "auto"
+              pipeline: "text-generation"
+              trust_remote_code: ""
+          vllm:
+            baseCommand: "python3 /workspace/vllm/inference_api.py"
+            modelRunParams:
+              chat-template: "/workspace/chat_templates/tool-chat-phi4-mini.jinja"
+              tool-call-parser: "phi4_mini_json"
+              enable-auto-tool-choice: ""
+        tuning:
+          totalSafeTensorFileSize: "72Gi"
+          diskStorageRequirement: "70Gi"
+          gpuCountRequirement: "1"
+          readinessTimeout: 30m
+          runtimeParameters:
+            transformers:
+              baseCommand: "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"

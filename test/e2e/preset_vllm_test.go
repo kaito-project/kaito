@@ -330,6 +330,50 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
+
+	It("should create a phi-4 workspace with vllm preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createPhi4WorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
+	})
+
+	It("should create a phi-4-mini-instruct workspace with vllm preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createPhi4MiniInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
+	})
 })
 
 func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
@@ -486,6 +530,34 @@ func createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode i
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-ministral-3-3b-instruct-vllm"},
 			}, nil, PresetMinistral33BInstructModel, nil, nil, nil, "", "")
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createPhi4WorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Phi-4 preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-phi-4-vllm-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-4-vllm"},
+			}, nil, PresetPhi4Model, nil, nil, nil, "", "")
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createPhi4MiniInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Phi-4-mini-instruct preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-phi-4-mini-vllm-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-4-mini-vllm"},
+			}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})

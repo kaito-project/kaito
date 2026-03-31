@@ -46,6 +46,7 @@ const (
 	PresetFalcon40BModel            = "falcon-40b"
 	PresetQwen3_Coder30BModel       = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
 	PresetPhi3Mini128kModel         = "phi-3-mini-128k-instruct"
+	PresetPhi4Model                 = "phi-4"
 	PresetPhi4MiniModel             = "phi-4-mini-instruct"
 	PresetGemma3_4BInstructModel    = "gemma-3-4b-instruct"
 	PresetGemma3_27BInstructModel   = "gemma-3-27b-instruct"
@@ -187,6 +188,34 @@ func createGemma3_27BInstructWorkspaceWithPresetPublicMode(numOfNode int) *kaito
 			numOfNode, "Standard_NC24ads_A100_v4", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-3-27b"},
 			}, nil, PresetGemma3_27BInstructModel, nil, nil, nil, modelSecret.Name, "")
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createPhi4WorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Phi-4 preset public mode", func() {
+		uniqueID := fmt.Sprint("preset-phi-4-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
+			numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-4"},
+			}, nil, PresetPhi4Model, nil, nil, nil, "", "")
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createPhi4MiniInstructWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Phi-4-mini-instruct preset public mode", func() {
+		uniqueID := fmt.Sprint("preset-phi-4-mini-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
+			numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi-4-mini"},
+			}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -1181,6 +1210,50 @@ var _ = Describe("Workspace Preset", func() {
 
 		validateAssociatedService(workspaceObj)
 		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
+	})
+
+	It("should create a phi-4 workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createPhi4WorkspaceWithPresetPublicMode(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
+	})
+
+	It("should create a phi-4-mini-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createPhi4MiniInstructWorkspaceWithPresetPublicMode(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
 
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 

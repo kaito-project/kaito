@@ -80,8 +80,10 @@ func (b *generalSKUHandler) GetSupportedSKUs() []string {
 }
 
 func (b *generalSKUHandler) GetGPUConfigBySKU(sku string) *GPUConfig {
-	if config, ok := b.supportedSKUs[sku]; ok {
-		return &config
+	for _, config := range b.supportedSKUs {
+		if strings.EqualFold(config.SKU, sku) {
+			return &config
+		}
 	}
 	return nil
 }

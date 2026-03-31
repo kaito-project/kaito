@@ -46,6 +46,22 @@ func TestAzureSKUHandler(t *testing.T) {
 	}
 }
 
+func TestGetGPUConfigBySKUCaseInsensitive(t *testing.T) {
+	handler := NewAzureSKUHandler()
+
+	canonical := "Standard_NC4as_T4_v3"
+	cases := []string{canonical, "standard_nc4as_t4_v3", "STANDARD_NC4AS_T4_V3"}
+	for _, input := range cases {
+		config := handler.GetGPUConfigBySKU(input)
+		if config == nil {
+			t.Fatalf("Expected GPUConfig for %q, got nil", input)
+		}
+		if config.SKU != canonical {
+			t.Errorf("GetGPUConfigBySKU(%q): expected SKU %s, got %s", input, canonical, config.SKU)
+		}
+	}
+}
+
 func TestHasSKUNamePrefix(t *testing.T) {
 	tests := []struct {
 		name     string

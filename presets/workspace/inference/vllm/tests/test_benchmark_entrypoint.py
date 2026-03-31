@@ -141,18 +141,18 @@ def test_compute_max_concurrency_metric_absent():
     resp = _make_urlopen_response(200, body)
     with (
         patch("urllib.request.urlopen", return_value=resp),
-        pytest.raises(RuntimeError, match="vllm:cache_config_info metric not found"),
+        pytest.raises(RuntimeError, match="vllm:cache_config_info metric or required labels not found"),
     ):
         bm._compute_max_concurrency()
 
 
 def test_compute_max_concurrency_labels_missing():
-    """Raises RuntimeError when cache_config_info line lacks num_gpu_blocks or block_size."""
+    """Raises RuntimeError when cache_config_info sample lacks num_gpu_blocks or block_size."""
     body = b'vllm:cache_config_info{gpu_memory_utilization="0.7"} 1.0\n'
     resp = _make_urlopen_response(200, body)
     with (
         patch("urllib.request.urlopen", return_value=resp),
-        pytest.raises(RuntimeError, match="missing num_gpu_blocks or block_size"),
+        pytest.raises(RuntimeError, match="vllm:cache_config_info metric or required labels not found"),
     ):
         bm._compute_max_concurrency()
 

@@ -35,11 +35,11 @@ own sys.stdout if /proc/1/fd/1 is not accessible.
 import asyncio
 import glob
 import os
-import re
 import sys
 import time
 import urllib.request
 from pathlib import Path
+from prometheus_client.parser import text_string_to_metric_families
 
 # Inject guidellm's isolated venv into sys.path before any huggingface_hub
 # import so that guidellm's newer huggingface_hub (which exports is_offline_mode
@@ -137,7 +137,7 @@ def _compute_max_concurrency() -> int:
     Raises ``RuntimeError`` if the metric is absent or unparsable.
     """
     try:
-        data = (
+        content = (
             urllib.request.urlopen(f"{VLLM_BASE_URL}/metrics", timeout=5)
             .read()
             .decode()
@@ -145,27 +145,26 @@ def _compute_max_concurrency() -> int:
     except Exception as exc:
         raise RuntimeError(f"failed to fetch /metrics: {exc}") from exc
 
-    for line in data.splitlines():
-        if not line.startswith("vllm:cache_config_info{"):
-            continue
-        num_gpu_blocks_match = re.search(r'num_gpu_blocks="(\d+)"', line)
-        block_size_match = re.search(r'block_size="(\d+)"', line)
-        if not num_gpu_blocks_match or not block_size_match:
-            raise RuntimeError(
-                f"vllm:cache_config_info line missing num_gpu_blocks or block_size: {line!r}"
-            )
-        num_gpu_blocks = int(num_gpu_blocks_match.group(1))
-        block_size = int(block_size_match.group(1))
-        seq_len = BENCHMARK_INPUT_LEN + BENCHMARK_OUTPUT_LEN
-        concurrency = (num_gpu_blocks * block_size) // seq_len
-        if concurrency <= 0:
-            raise RuntimeError(
-                f"computed max_concurrency={concurrency} <= 0 "
-                f"(num_gpu_blocks={num_gpu_blocks}, block_size={block_size}, seq_len={seq_len})"
-            )
-        return concurrency
+    target_metric = "vllm:cache_config_info"
+    for family in text_string_to_metric_families(content):
+        if family.name == target_metric:
+            for sample in family.samples:
+                labels = sample.labels
+                if "num_gpu_blocks" in labels and "block_size" in labels:
+                    num_gpu_blocks = int(labels["num_gpu_blocks"])
+                    block_size = int(labels["block_size"])
+                    seq_len = BENCHMARK_INPUT_LEN + BENCHMARK_OUTPUT_LEN
+                    concurrency = (num_gpu_blocks * block_size) // seq_len
+                    if concurrency <= 0:
+                        raise RuntimeError(
+                            f"computed max_concurrency={concurrency} <= 0 "
+                            f"(num_gpu_blocks={num_gpu_blocks}, block_size={block_size}, seq_len={seq_len})"
+                        )
+                    return concurrency
 
-    raise RuntimeError("vllm:cache_config_info metric not found in /metrics output")
+    raise RuntimeError(
+        f"{target_metric} metric or required labels not found in /metrics output"
+    )
 
 
 def _resolve_processor() -> str:

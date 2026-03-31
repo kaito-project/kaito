@@ -22,7 +22,5 @@ import (
 	_ "github.com/kaito-project/kaito/presets/workspace/models/llama3"
 	_ "github.com/kaito-project/kaito/presets/workspace/models/mistral"
 	_ "github.com/kaito-project/kaito/presets/workspace/models/phi3"
-
-	// phi4 models are now registered via builtin_models.yaml
 	_ "github.com/kaito-project/kaito/presets/workspace/models/qwen"
 )

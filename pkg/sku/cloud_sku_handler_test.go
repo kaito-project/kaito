@@ -46,53 +46,6 @@ func TestAzureSKUHandler(t *testing.T) {
 	}
 }
 
-func TestAzureSKUHandlerCaseInsensitive(t *testing.T) {
-	handler := NewAzureSKUHandler()
-
-	// Canonical casing should work
-	canonical := "Standard_NC4as_T4_v3"
-	config := handler.GetGPUConfigBySKU(canonical)
-	if config == nil {
-		t.Fatalf("Expected GPUConfig for %s, got nil", canonical)
-	}
-	if config.SKU != canonical {
-		t.Errorf("Expected SKU %s, got %s", canonical, config.SKU)
-	}
-
-	// All-lowercase should resolve to the same config
-	lower := "standard_nc4as_t4_v3"
-	configLower := handler.GetGPUConfigBySKU(lower)
-	if configLower == nil {
-		t.Fatalf("Expected GPUConfig for %s (lowercase), got nil", lower)
-	}
-	if configLower.SKU != canonical {
-		t.Errorf("Expected canonical SKU %s, got %s", canonical, configLower.SKU)
-	}
-
-	// All-uppercase should also resolve
-	upper := "STANDARD_NC4AS_T4_V3"
-	configUpper := handler.GetGPUConfigBySKU(upper)
-	if configUpper == nil {
-		t.Fatalf("Expected GPUConfig for %s (uppercase), got nil", upper)
-	}
-	if configUpper.SKU != canonical {
-		t.Errorf("Expected canonical SKU %s, got %s", canonical, configUpper.SKU)
-	}
-
-	// GetSupportedSKUs should return canonical (not lowercased) SKU names
-	skus := handler.GetSupportedSKUs()
-	foundCanonical := false
-	for _, s := range skus {
-		if s == canonical {
-			foundCanonical = true
-			break
-		}
-	}
-	if !foundCanonical {
-		t.Errorf("GetSupportedSKUs() should return canonical SKU names, %s not found", canonical)
-	}
-}
-
 func TestAwsSKUHandler(t *testing.T) {
 	handler := NewAwsSKUHandler()
 

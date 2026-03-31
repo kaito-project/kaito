@@ -30,6 +30,7 @@ import (
 	"knative.dev/pkg/apis"
 
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
@@ -405,8 +406,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	} else {
 		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		lowerInstanceType := strings.ToLower(instanceType)
-		if provider != consts.AzureCloudName || (!strings.HasPrefix(lowerInstanceType, strings.ToLower(N_SERIES_PREFIX)) && !strings.HasPrefix(lowerInstanceType, strings.ToLower(D_SERIES_PREFIX))) {
+		if provider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}

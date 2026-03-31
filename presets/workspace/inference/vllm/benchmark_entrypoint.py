@@ -152,7 +152,9 @@ def _compute_max_concurrency() -> int:
             for sample in family.samples:
                 labels = sample.labels
                 if "num_gpu_blocks" in labels and "block_size" in labels:
+                    # num_gpu_blocks: total KV cache blocks allocated across all GPUs
                     num_gpu_blocks = int(labels["num_gpu_blocks"])
+                    # block_size: number of tokens each KV cache block holds
                     block_size = int(labels["block_size"])
                     seq_len = BENCHMARK_INPUT_LEN + BENCHMARK_OUTPUT_LEN
                     concurrency = (num_gpu_blocks * block_size) // seq_len

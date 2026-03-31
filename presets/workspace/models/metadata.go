@@ -46,7 +46,8 @@ type Catalog struct {
 	Models []model.Metadata `yaml:"models,omitempty"`
 }
 
-// init unmarshals the YAML data in supportedModelsYAML into the SupportedModels struct.
+// init unmarshals the YAML data in supportedModelsYAML into the SupportedModels struct,
+// then registers builtin models from builtin_models.yaml.
 func init() {
 	catalog := Catalog{}
 	utilruntime.Must(yaml.Unmarshal(supportedModelsYAML, &catalog))
@@ -55,6 +56,8 @@ func init() {
 		utilruntime.Must(m.Validate())
 		supportedModels.Store(m.Name, &m)
 	}
+
+	registerBuiltinModels()
 }
 
 // MustGet retrieves the model metadata for the given model name or

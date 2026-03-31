@@ -141,7 +141,10 @@ def test_compute_max_concurrency_metric_absent():
     resp = _make_urlopen_response(200, body)
     with (
         patch("urllib.request.urlopen", return_value=resp),
-        pytest.raises(RuntimeError, match="vllm:cache_config_info metric or required labels not found"),
+        pytest.raises(
+            RuntimeError,
+            match="vllm:cache_config_info metric or required labels not found",
+        ),
     ):
         bm._compute_max_concurrency()
 
@@ -152,7 +155,10 @@ def test_compute_max_concurrency_labels_missing():
     resp = _make_urlopen_response(200, body)
     with (
         patch("urllib.request.urlopen", return_value=resp),
-        pytest.raises(RuntimeError, match="vllm:cache_config_info metric or required labels not found"),
+        pytest.raises(
+            RuntimeError,
+            match="vllm:cache_config_info metric or required labels not found",
+        ),
     ):
         bm._compute_max_concurrency()
 

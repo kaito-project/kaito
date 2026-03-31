@@ -15,6 +15,7 @@ package sku
 
 import (
 	"fmt"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/api/resource"
 
@@ -65,7 +66,7 @@ type generalSKUHandler struct {
 func NewGeneralSKUHandler(supportedSKUs []GPUConfig) CloudSKUHandler {
 	skuMap := make(map[string]GPUConfig)
 	for _, sku := range supportedSKUs {
-		skuMap[sku.SKU] = sku
+		skuMap[strings.ToLower(sku.SKU)] = sku
 	}
 	return &generalSKUHandler{supportedSKUs: skuMap}
 }
@@ -79,7 +80,7 @@ func (b *generalSKUHandler) GetSupportedSKUs() []string {
 }
 
 func (b *generalSKUHandler) GetGPUConfigBySKU(sku string) *GPUConfig {
-	if config, ok := b.supportedSKUs[sku]; ok {
+	if config, ok := b.supportedSKUs[strings.ToLower(sku)]; ok {
 		return &config
 	}
 	return nil

@@ -30,6 +30,9 @@ import (
 )
 
 var (
+	//go:embed model_catalog.yaml
+	modelCatalogYAML []byte
+
 	// builtinVLLMModels is the mapping of built-in VLLM model names to their preset names
 	// make sure all key and values are in lower case
 	builtinVLLMModels = map[string]string{
@@ -130,7 +133,7 @@ func generateHuggingFaceModel(modelName, token string) (model.Model, error) {
 		return plugin.KaitoModelRegister.MustGet(builtinModelName), nil
 	}
 
-	param, err := generator.GeneratePreset(modelName, token)
+	param, err := generator.GeneratePreset(modelName, token, modelCatalogYAML)
 	if err != nil {
 		return nil, err
 	}

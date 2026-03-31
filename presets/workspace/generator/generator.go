@@ -27,6 +27,8 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
@@ -134,9 +136,10 @@ var (
 )
 
 type Generator struct {
-	ModelRepo string
-	Token     string
-	Param     model.PresetParam
+	ModelRepo   string
+	Token       string
+	Param       model.PresetParam
+	CatalogData []byte // Optional embedded catalog YAML
 
 	// Analyzed params
 	LoadFormat    string
@@ -465,9 +468,83 @@ func (g *Generator) FinalizeParams() {
 	g.Param.AttnType = attnType
 }
 
+// loadFromCatalog checks whether the model repo exists in the embedded catalog.
+// If found, it populates the generator's ModelConfig and Param fields from the
+// catalog entry, avoiding any HuggingFace API calls.
+func (g *Generator) loadFromCatalog() bool {
+	if len(g.CatalogData) == 0 {
+		return false
+	}
+
+	catalog := ModelCatalog{}
+	if err := yaml.Unmarshal(g.CatalogData, &catalog); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to unmarshal model catalog for %q: %v\n", g.ModelRepo, err)
+		return false
+	}
+
+	var entry *CatalogEntry
+	for i, m := range catalog.Models {
+		if strings.EqualFold(m.Name, g.ModelRepo) {
+			entry = &catalog.Models[i]
+			break
+		}
+	}
+	if entry == nil {
+		return false
+	}
+
+	// Populate ModelConfig from catalog entry so existing calculation
+	// functions (ParseModelMetadata, FinalizeParams) work unchanged.
+	g.ModelConfig = map[string]interface{}{
+		"hidden_size":             entry.HiddenSize,
+		"num_hidden_layers":       entry.NumHiddenLayers,
+		"num_attention_heads":     entry.NumAttentionHeads,
+		"num_key_value_heads":     entry.NumKeyValueHeads,
+		"max_position_embeddings": entry.ModelTokenLimit,
+	}
+	if entry.HeadDim > 0 {
+		g.ModelConfig["head_dim"] = entry.HeadDim
+	}
+	if entry.KVLoraRank > 0 {
+		g.ModelConfig["kv_lora_rank"] = entry.KVLoraRank
+	}
+	if entry.QKRopeHeadDim > 0 {
+		g.ModelConfig["qk_rope_head_dim"] = entry.QKRopeHeadDim
+	}
+
+	// Set architectures in config for ParseModelMetadata to pick up
+	archInterfaces := make([]interface{}, len(entry.Architectures))
+	for i, a := range entry.Architectures {
+		archInterfaces[i] = a
+	}
+	g.ModelConfig["architectures"] = archInterfaces
+
+	// Populate fields that FetchModelMetadata would have set
+	g.Param.Metadata.ModelFileSize = entry.ModelFileSize
+	g.Param.VLLM.ModelRunParams = make(map[string]string)
+
+	if entry.LoadFormat != "" {
+		g.LoadFormat = entry.LoadFormat
+	}
+	if entry.ConfigFormat != "" {
+		g.ConfigFormat = entry.ConfigFormat
+	} else if entry.LoadFormat != "" {
+		g.ConfigFormat = entry.LoadFormat
+	}
+	if entry.TokenizerMode != "" {
+		g.TokenizerMode = entry.TokenizerMode
+	} else if entry.LoadFormat != "" {
+		g.TokenizerMode = entry.LoadFormat
+	}
+
+	return true
+}
+
 func (g *Generator) Generate() (*model.PresetParam, error) {
-	if err := g.FetchModelMetadata(); err != nil {
-		return nil, err
+	if !g.loadFromCatalog() {
+		if err := g.FetchModelMetadata(); err != nil {
+			return nil, err
+		}
 	}
 	g.ParseModelMetadata()
 	g.FinalizeParams()
@@ -475,11 +552,16 @@ func (g *Generator) Generate() (*model.PresetParam, error) {
 	return &g.Param, nil
 }
 
-// GeneratePreset is the global function to generate preset param
-func GeneratePreset(modelRepo, token string) (*model.PresetParam, error) {
+// GeneratePreset is the global function to generate preset param.
+// If catalogData is provided, the generator will check for the model in the
+// catalog before making any HuggingFace API calls.
+func GeneratePreset(modelRepo, token string, catalogData ...[]byte) (*model.PresetParam, error) {
 	if modelRepo == "" {
 		return nil, errors.New("model repo is required")
 	}
 	gen := NewGenerator(modelRepo, token)
+	if len(catalogData) > 0 {
+		gen.CatalogData = catalogData[0]
+	}
 	return gen.Generate()
 }

@@ -73,8 +73,8 @@ func NewGeneralSKUHandler(supportedSKUs []GPUConfig) CloudSKUHandler {
 
 func (b *generalSKUHandler) GetSupportedSKUs() []string {
 	keys := make([]string, 0, len(b.supportedSKUs))
-	for k := range b.supportedSKUs {
-		keys = append(keys, k)
+	for _, v := range b.supportedSKUs {
+		keys = append(keys, v.SKU)
 	}
 	return keys
 }

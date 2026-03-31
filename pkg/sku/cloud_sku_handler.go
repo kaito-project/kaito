@@ -66,21 +66,21 @@ type generalSKUHandler struct {
 func NewGeneralSKUHandler(supportedSKUs []GPUConfig) CloudSKUHandler {
 	skuMap := make(map[string]GPUConfig)
 	for _, sku := range supportedSKUs {
-		skuMap[sku.SKU] = sku
+		skuMap[strings.ToLower(sku.SKU)] = sku
 	}
 	return &generalSKUHandler{supportedSKUs: skuMap}
 }
 
 func (b *generalSKUHandler) GetSupportedSKUs() []string {
-	keys := make([]string, 0, len(b.supportedSKUs))
-	for k := range b.supportedSKUs {
-		keys = append(keys, k)
+	skus := make([]string, 0, len(b.supportedSKUs))
+	for _, v := range b.supportedSKUs {
+		skus = append(skus, v.SKU)
 	}
-	return keys
+	return skus
 }
 
 func (b *generalSKUHandler) GetGPUConfigBySKU(sku string) *GPUConfig {
-	if config, ok := b.supportedSKUs[sku]; ok {
+	if config, ok := b.supportedSKUs[strings.ToLower(sku)]; ok {
 		return &config
 	}
 	return nil

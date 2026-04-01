@@ -138,13 +138,13 @@ func catalogFields(e *generator.CatalogEntry) map[string]string {
 }
 
 func catalogFieldLines(e *generator.CatalogEntry) []string {
-	var lines []string
 	fields := catalogFields(e)
 	keys := make([]string, 0, len(fields))
 	for k := range fields {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
+	lines := make([]string, 0, len(keys))
 	for _, k := range keys {
 		lines = append(lines, fmt.Sprintf("      %s: %s", k, fields[k]))
 	}

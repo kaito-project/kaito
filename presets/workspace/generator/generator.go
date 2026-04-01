@@ -284,8 +284,8 @@ func (g *Generator) FetchModelMetadata() error {
 		totalBytes += f.Size
 	}
 
-	modelSizeGB := float64(totalBytes) / (1024 * 1024 * 1024)
-	g.Param.Metadata.ModelFileSize = fmt.Sprintf("%.0fGi", math.Ceil(modelSizeGB))
+	modelSizeGiB := float64(totalBytes) / (1024 * 1024 * 1024)
+	g.Param.Metadata.ModelFileSize = fmt.Sprintf("%.0fGi", math.Ceil(modelSizeGiB))
 
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
@@ -321,13 +321,7 @@ func getInt(config map[string]interface{}, keys []string, defaultVal int) int {
 }
 
 func (g *Generator) ParseModelMetadata() {
-	maxPos := getInt(g.ModelConfig, []string{
-		"max_position_embeddings",
-		"n_ctx",
-		"seq_length",
-		"max_seq_len",
-		"max_sequence_length",
-	}, DefaultModelTokenLimit)
+	maxPos := getInt(g.ModelConfig, configKeyMap["modelTokenLimit"], DefaultModelTokenLimit)
 
 	g.Param.Metadata.ModelTokenLimit = maxPos
 
@@ -404,19 +398,19 @@ func (g *Generator) calculateStorageSize() string {
 func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 	config := g.ModelConfig
 
-	hiddenSize := getInt(config, []string{"hidden_size", "n_embd", "d_model"}, 0)
-	hiddenLayers := getInt(config, []string{"num_hidden_layers", "n_layer", "n_layers"}, 0)
-	attentionHeads := getInt(config, []string{"num_attention_heads", "n_head", "n_heads"}, 0)
-	kvHeads := getInt(config, []string{"num_key_value_heads", "n_head_kv", "n_kv_heads"}, 0)
-	headDim := getInt(config, []string{"head_dim"}, 0)
+	hiddenSize := getInt(config, configKeyMap["hiddenSize"], 0)
+	hiddenLayers := getInt(config, configKeyMap["numHiddenLayers"], 0)
+	attentionHeads := getInt(config, configKeyMap["numAttentionHeads"], 0)
+	kvHeads := getInt(config, configKeyMap["numKeyValueHeads"], 0)
+	headDim := getInt(config, optionalKeyMap["headDim"], 0)
 
 	if headDim == 0 && attentionHeads > 0 {
 		headDim = hiddenSize / attentionHeads
 	}
 
 	// DeepSeek MLA
-	kvLoraRank := getInt(config, []string{"kv_lora_rank"}, -1)
-	qkRopeHeadDim := getInt(config, []string{"qk_rope_head_dim"}, 0)
+	kvLoraRank := getInt(config, optionalKeyMap["kvLoraRank"], -1)
+	qkRopeHeadDim := getInt(config, optionalKeyMap["qkRopeHeadDim"], 0)
 
 	// Fallback KV heads
 	if kvHeads == 0 && attentionHeads > 0 {

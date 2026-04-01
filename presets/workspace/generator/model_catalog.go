@@ -16,9 +16,7 @@ package generator
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
-	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -27,9 +25,9 @@ import (
 // storing the raw HuggingFace config values needed for preset generation
 // without requiring runtime API calls.
 type CatalogEntry struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description,omitempty"`
-	License      string   `yaml:"license,omitempty"`
+	Name              string   `yaml:"name"`
+	Description       string   `yaml:"description,omitempty"`
+	License           string   `yaml:"license,omitempty"`
 	PipelineTag       string   `yaml:"pipelineTag,omitempty"`
 	BaseModel         []string `yaml:"baseModel,omitempty"`
 	ModelFileSize     string   `yaml:"modelFileSize"`
@@ -75,12 +73,12 @@ func fetchModelInfo(g *Generator, repo string) (license, pipelineTag string, bas
 	url := fmt.Sprintf("%s/api/models/%s", HuggingFaceWebsite, repo)
 	body, err := g.fetchURL(url)
 	if err != nil {
-		return
+		return "", "", nil
 	}
 
 	var info map[string]interface{}
 	if err := json.Unmarshal(body, &info); err != nil {
-		return
+		return "", "", nil
 	}
 
 	// pipeline_tag: prefer top-level, fall back to cardData
@@ -114,7 +112,7 @@ func fetchModelInfo(g *Generator, repo string) (license, pipelineTag string, bas
 		}
 	}
 
-	return
+	return license, pipelineTag, baseModel
 }
 
 // FetchCatalogEntry fetches a CatalogEntry for a model repo from HuggingFace.
@@ -124,80 +122,19 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 	// Fetch model info (license, pipeline, base_model)
 	license, pipelineTag, baseModel := fetchModelInfo(g, repo)
 
-	// Fetch file listing
-	url := fmt.Sprintf("%s/api/models/%s/tree/main?recursive=true", HuggingFaceWebsite, repo)
-	body, err := g.fetchURL(url)
-	if err != nil {
-		return nil, fmt.Errorf("error listing files: %v", err)
+	if err := g.FetchModelMetadata(); err != nil {
+		return nil, err
 	}
 
-	var files []FileInfo
-	if err := json.Unmarshal(body, &files); err != nil {
-		return nil, fmt.Errorf("error parsing file list: %v", err)
-	}
-
-	var selectedFiles, mistralFiles []FileInfo
-	for _, f := range files {
-		if mistralRegex.MatchString(f.Path) {
-			mistralFiles = append(mistralFiles, f)
-		}
-		if safetensorRegex.MatchString(f.Path) || binRegex.MatchString(f.Path) {
-			selectedFiles = append(selectedFiles, f)
-		}
-	}
-
-	var configFile string
-	isMistral := len(mistralFiles) > 0
-
-	if isMistral {
-		selectedFiles = mistralFiles
-		configFile = "params.json"
-	} else if len(selectedFiles) > 0 {
-		configFile = "config.json"
-		hasSafetensors := false
-		for _, f := range selectedFiles {
-			if strings.HasSuffix(f.Path, ".safetensors") {
-				hasSafetensors = true
-				break
-			}
-		}
-		if hasSafetensors {
-			var only []FileInfo
-			for _, f := range selectedFiles {
-				if strings.HasSuffix(f.Path, ".safetensors") {
-					only = append(only, f)
-				}
-			}
-			selectedFiles = only
-		}
-	} else {
-		return nil, fmt.Errorf("no .safetensors or .bin files found")
-	}
-
-	var totalBytes int64
-	for _, f := range selectedFiles {
-		totalBytes += f.Size
-	}
-	sizeGiB := int(math.Ceil(float64(totalBytes) / (1024 * 1024 * 1024)))
-
-	configURL := fmt.Sprintf("%s/%s/resolve/main/%s", HuggingFaceWebsite, repo, configFile)
-	configBody, err := g.fetchURL(configURL)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching config: %v", err)
-	}
-
-	var config map[string]interface{}
-	if err := json.Unmarshal(configBody, &config); err != nil {
-		return nil, fmt.Errorf("error parsing config: %v", err)
-	}
+	config := g.ModelConfig
 
 	entry := &CatalogEntry{
-		Name:        repo,
-		Description: fmt.Sprintf("%s/%s", HuggingFaceWebsite, repo),
-		License:      license,
-		PipelineTag:  pipelineTag,
-		BaseModel:    baseModel,
-		ModelFileSize: fmt.Sprintf("%dGi", sizeGiB),
+		Name:          repo,
+		Description:   fmt.Sprintf("%s/%s", HuggingFaceWebsite, repo),
+		License:       license,
+		PipelineTag:   pipelineTag,
+		BaseModel:     baseModel,
+		ModelFileSize: g.Param.Metadata.ModelFileSize,
 	}
 
 	if archList, ok := config["architectures"].([]interface{}); ok {
@@ -224,10 +161,15 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 		}
 	}
 
-	if isMistral {
-		entry.LoadFormat = "mistral"
-		entry.ConfigFormat = "mistral"
-		entry.TokenizerMode = "mistral"
+	// Copy format fields from generator (only when non-default)
+	if g.LoadFormat != "auto" {
+		entry.LoadFormat = g.LoadFormat
+	}
+	if g.ConfigFormat != "auto" {
+		entry.ConfigFormat = g.ConfigFormat
+	}
+	if g.TokenizerMode != "auto" {
+		entry.TokenizerMode = g.TokenizerMode
 	}
 
 	return entry, nil

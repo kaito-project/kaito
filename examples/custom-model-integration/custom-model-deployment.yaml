@@ -12,7 +12,7 @@ inference:
     spec:
       containers:
         - name: custom-llm-container
-          image: mcr.microsoft.com/aks/kaito/kaito-base:0.0.8 # KAITO base image which includes hf runtime
+          image: mcr.microsoft.com/aks/kaito/kaito-base:0.2.0 # KAITO base image which includes hf runtime
           livenessProbe:
             failureThreshold: 3
             httpGet:

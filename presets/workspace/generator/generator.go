@@ -51,8 +51,6 @@ var (
 		"granite-3.2":  "granite",
 		"kimi-k2":      "kimi_k2",
 		"minimax-m2":   "minimax_m2_append_think",
-		"mistral":      "mistral",
-		"nemotron":     "nemotron_v3",
 		"olmo-3":       "olmo3",
 		"qwen3":        "qwen3",
 		"qwq-32b":      "deepseek_r1",

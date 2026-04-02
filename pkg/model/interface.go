@@ -402,6 +402,10 @@ func (p *PresetParam) configureParallelism(rc RuntimeContext) {
 	if !multiNode && p.modelFitsOnSingleGPU(rc) {
 		p.VLLM.ModelRunParams["data-parallel-size"] = strconv.Itoa(rc.SKUNumGPUs)
 		p.VLLM.ModelRunParams["tensor-parallel-size"] = "1"
+		if rc.SKUNumGPUs > 1 {
+			// Disable kv cache CPU offloading for data-parallel-size > 1 due to conflicts between DP and CPU offloading.
+			p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
+		}
 		return
 	}
 

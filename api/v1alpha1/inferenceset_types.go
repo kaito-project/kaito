@@ -28,6 +28,10 @@ type InferenceSetResourceSpec struct {
 
 // InferenceSetTemplate defines the template for creating InferenceSet instances.
 type InferenceSetTemplate struct {
+	// Standard object's metadata.
+	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+	// +optional
+	metav1.ObjectMeta `json:"metadata,omitempty"`
 	// +optional
 	Resource  InferenceSetResourceSpec   `json:"resource"`
 	Inference kaitov1beta1.InferenceSpec `json:"inference"`

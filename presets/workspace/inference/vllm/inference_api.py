@@ -204,15 +204,31 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
     available_memory_gb = (
         psutil.virtual_memory().total - psutil.virtual_memory().used
     ) / (1024**3)
+
+    # Determine the effective parallelism divisor.
+    # vLLM may auto-set data_parallel_size = num_gpus / tensor_parallel_size.
+    # When data parallelism is used, each DP worker spawns its own LMCache
+    # instance, so we must divide the CPU memory budget accordingly.
+    pynvml.nvmlInit()
+    num_gpus = pynvml.nvmlDeviceGetCount()
+    pynvml.nvmlShutdown()
+    data_parallel_size = getattr(args, "data_parallel_size", 0) or max(
+        1, num_gpus // args.tensor_parallel_size
+    )
+    total_parallelism = args.tensor_parallel_size * data_parallel_size
+
     logger.info(
-        f"Offload KV cache to CPU RAM, size limit: {available_memory_gb} * {args.kaito_kv_cache_cpu_memory_utilization} GB split among {args.tensor_parallel_size} GPUs"
+        f"Offload KV cache to CPU RAM, size limit: {available_memory_gb} * "
+        f"{args.kaito_kv_cache_cpu_memory_utilization} GB split among "
+        f"{args.tensor_parallel_size} TP x {data_parallel_size} DP = "
+        f"{total_parallelism} workers"
     )
 
-    # When using tensor parallelism, the KV cache CPU memory allocation must be divided evenly
-    # across all GPUs. Each GPU should only allocate its portion (1/tensor_parallel_size) of the
-    # total available CPU memory to prevent OOM.
+    # When using tensor and/or data parallelism, the KV cache CPU memory
+    # allocation must be divided evenly across all workers (TP * DP).
+    # Each worker should only allocate its portion to prevent OOM.
     os.environ["LMCACHE_MAX_LOCAL_CPU_SIZE"] = (
-        f"{available_memory_gb * args.kaito_kv_cache_cpu_memory_utilization / args.tensor_parallel_size}"
+        f"{available_memory_gb * args.kaito_kv_cache_cpu_memory_utilization / total_parallelism}"
     )
 
     if args.kv_transfer_config is None:

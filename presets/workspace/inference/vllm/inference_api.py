@@ -205,16 +205,9 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
         psutil.virtual_memory().total - psutil.virtual_memory().used
     ) / (1024**3)
 
-    # Determine the effective parallelism divisor.
-    # vLLM may auto-set data_parallel_size = num_gpus / tensor_parallel_size.
     # When data parallelism is used, each DP worker spawns its own LMCache
     # instance, so we must divide the CPU memory budget accordingly.
-    pynvml.nvmlInit()
-    num_gpus = pynvml.nvmlDeviceGetCount()
-    pynvml.nvmlShutdown()
-    data_parallel_size = getattr(args, "data_parallel_size", 0) or max(
-        1, num_gpus // args.tensor_parallel_size
-    )
+    data_parallel_size = getattr(args, "data_parallel_size", 1) or 1
     total_parallelism = args.tensor_parallel_size * data_parallel_size
 
     logger.info(

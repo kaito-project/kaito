@@ -101,6 +101,11 @@ var (
 		"olmo-3":        "olmo3",
 		"gigachat3":     "gigachat3",
 		"ernie-4.5":     "ernie45",
+		"phi4-mini":     "phi4_mini_json",
+		"step3p5":       "step3p5",
+		"step3":         "step3",
+		"seed-oss":      "seed_oss",
+		"gemma-3":       "functiongemma",
 	}
 
 	// key is model architecture name, value is ToolCallParser mode name
@@ -126,12 +131,17 @@ var (
 		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
 		"LongcatFlashForCausalLM":                "longcat",
 		"Glm4MoeForCausalLM":                     "glm45",
+		"Glm47MoeForCausalLM":                    "glm47",
 		"Gemma3ForCausalLM":                      "functiongemma",
 		"Olmo3ForCausalLM":                       "olmo3",
 		"SeedOssForCausalLM":                     "seed_oss",
 		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
 		"Ernie4_5_MoeForCausalLM":                "ernie45",
 		"Step3TextForCausalLM":                   "step3",
+		"Step3p5TextForCausalLM":                 "step3p5",
+		"Phi4MiniForCausalLM":                    "phi4_mini_json",
+		"KimiK2ForCausalLM":                      "kimi_k2",
+		"GigaChat3ForCausalLM":                   "gigachat3",
 	}
 )
 

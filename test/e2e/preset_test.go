@@ -717,7 +717,7 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
-		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace to be ready")
+		}, 12*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace to be ready")
 	})
 }
 

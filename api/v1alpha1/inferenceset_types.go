@@ -28,6 +28,10 @@ type InferenceSetResourceSpec struct {
 
 // InferenceSetTemplate defines the template for creating InferenceSet instances.
 type InferenceSetTemplate struct {
+	// Standard object's metadata.
+	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+	// +optional
+	metav1.ObjectMeta `json:"metadata,omitempty"`
 	// +optional
 	Resource  InferenceSetResourceSpec   `json:"resource"`
 	Inference kaitov1beta1.InferenceSpec `json:"inference"`
@@ -57,6 +61,25 @@ type InferenceSetSpec struct {
 	UpdateStrategy appsv1.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty"`
 }
 
+// Metric holds an aggregated benchmark measurement across workspace replicas.
+type Metric struct {
+	// Description describes the benchmark type and load pattern, e.g. "stress/high-concurrency".
+	Description string `json:"description"`
+	// Value is the aggregated metric value, formatted as a string.
+	Value string `json:"value"`
+	// Unit is the unit of the metric value (e.g. "tokens/min").
+	// +optional
+	Unit string `json:"unit,omitempty"`
+}
+
+// Performance holds aggregated performance characteristics across all workspace replicas,
+// keyed by metric name (e.g. "aggregatedPeakTokensPerMinute").
+type Performance struct {
+	// Metrics is a map of metric name to Metric.
+	// +optional
+	Metrics map[string]Metric `json:"metrics,omitempty"`
+}
+
 // InferenceSetStatus defines the observed state of InferenceSet
 type InferenceSetStatus struct {
 	// Replicas is the total number of workspaces created by the InferenceSet.
@@ -69,6 +92,9 @@ type InferenceSetStatus struct {
 	// Conditions report the current conditions of the InferenceSet.
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	// Performance holds aggregated performance characteristics across all workspace replicas.
+	// +optional
+	Performance *Performance `json:"performance,omitempty"`
 }
 
 // InferenceSet is the Schema for the InferenceSet API

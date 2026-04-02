@@ -46,6 +46,49 @@ func TestAzureSKUHandler(t *testing.T) {
 	}
 }
 
+func TestGetGPUConfigBySKUCaseInsensitive(t *testing.T) {
+	handler := NewAzureSKUHandler()
+
+	canonical := "Standard_NC4as_T4_v3"
+	cases := []string{canonical, "standard_nc4as_t4_v3", "STANDARD_NC4AS_T4_V3"}
+	for _, input := range cases {
+		config := handler.GetGPUConfigBySKU(input)
+		if config == nil {
+			t.Fatalf("Expected GPUConfig for %q, got nil", input)
+		}
+		if config.SKU != canonical {
+			t.Errorf("GetGPUConfigBySKU(%q): expected SKU %s, got %s", input, canonical, config.SKU)
+		}
+	}
+}
+
+func TestHasSKUNamePrefix(t *testing.T) {
+	tests := []struct {
+		name     string
+		skuName  string
+		prefixes []string
+		expected bool
+	}{
+		{"exact case match", "Standard_NC4as_T4_v3", []string{"Standard_N"}, true},
+		{"lowercase sku", "standard_nc4as_t4_v3", []string{"Standard_N"}, true},
+		{"uppercase sku", "STANDARD_NC4AS_T4_V3", []string{"Standard_N"}, true},
+		{"d-series match", "standard_d2s_v6", []string{"Standard_D"}, true},
+		{"multiple prefixes first match", "Standard_NC4as_T4_v3", []string{"Standard_N", "Standard_D"}, true},
+		{"multiple prefixes second match", "Standard_D2s_v6", []string{"Standard_N", "Standard_D"}, true},
+		{"no match", "Standard_E4s_v3", []string{"Standard_N", "Standard_D"}, false},
+		{"empty sku", "", []string{"Standard_N"}, false},
+		{"empty prefixes", "Standard_NC4as_T4_v3", []string{}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := HasSKUNamePrefix(tt.skuName, tt.prefixes...)
+			if result != tt.expected {
+				t.Errorf("HasSKUNamePrefix(%q, %v) = %v, want %v", tt.skuName, tt.prefixes, result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestAwsSKUHandler(t *testing.T) {
 	handler := NewAwsSKUHandler()
 

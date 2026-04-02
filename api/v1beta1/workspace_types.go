@@ -193,6 +193,28 @@ const (
 	WorkspaceStateFailed    WorkspaceState = "Failed"
 )
 
+// Metric holds a single benchmark measurement along with its description and config.
+type Metric struct {
+	// Description describes the benchmark type and load pattern, e.g. "stress/high-concurrency".
+	Description string `json:"description"`
+	// Value is the measured metric value, formatted as a string.
+	Value string `json:"value"`
+	// Unit is the unit of the metric value (e.g. "tokens/min").
+	// +optional
+	Unit string `json:"unit,omitempty"`
+	// Config holds the benchmark parameters used to produce this metric as free-form key/value pairs.
+	// +optional
+	Config map[string]string `json:"config,omitempty"`
+}
+
+// Performance holds the metrics captured by the post-load inference benchmark,
+// keyed by metric name (e.g. "peakTokensPerMinute").
+type Performance struct {
+	// Metrics is a map of metric name to Metric.
+	// +optional
+	Metrics map[string]Metric `json:"metrics,omitempty"`
+}
+
 // WorkspaceStatus defines the observed state of Workspace
 type WorkspaceStatus struct {
 	// WorkerNodes is the list of nodes chosen to run the workload based on the workspace resource requirement.
@@ -210,6 +232,11 @@ type WorkspaceStatus struct {
 	// TargetNodeCount is used for recording the desired number of gpu nodes that needed for the workspace.
 	// This field remains immutable after being set by NodesEstimator.
 	TargetNodeCount int32 `json:"targetNodeCount,omitempty"`
+
+	// Performance holds the metrics from the post-load inference benchmark.
+	// Only populated when the kaito.sh/run-benchmark annotation is "true".
+	// +optional
+	Performance *Performance `json:"performance,omitempty"`
 }
 
 // Workspace is the Schema for the workspaces API

@@ -46,7 +46,6 @@ var (
 		"pipeline":    "text-generation",
 	}
 	qwenRunParamsVLLM = map[string]string{
-		"dtype":                   "float16",
 		"chat-template":           "/workspace/chat_templates/tool-chat-hermes.jinja",
 		"tool-call-parser":        "hermes",
 		"enable-auto-tool-choice": "",

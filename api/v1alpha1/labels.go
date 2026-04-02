@@ -58,6 +58,10 @@ const (
 
 	// AnnotationNodeImageFamily specifies node image family used by generated NodeClaim.
 	AnnotationNodeImageFamily = KAITOPrefix + "node-image-family"
+
+	// AnnotationRunBenchmark enables the post-load inference benchmark when set to "true".
+	// When set on an InferenceSet, it is propagated to all Workspaces the InferenceSet creates.
+	AnnotationRunBenchmark = KAITOPrefix + "run-benchmark"
 )
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.
@@ -101,4 +105,10 @@ func GetInferenceSetRuntimeName(iObj *InferenceSet) model.RuntimeName {
 	}
 
 	return runtime
+}
+
+// IsRunBenchmarkEnabled reports whether the InferenceSet has the benchmark
+// annotation set to "true".
+func IsRunBenchmarkEnabled(iObj *InferenceSet) bool {
+	return iObj.Annotations[AnnotationRunBenchmark] == "true"
 }

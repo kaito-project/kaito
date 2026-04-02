@@ -1,5 +1,9 @@
 # RAG Library Requirements
 llama-index==0.14.15
+# Pin llama-index-core to 0.14.18 to avoid refresh_ref_docs regression in 0.14.19
+# that causes KeyError on document IDs after update_documents with FAISS backend.
+# See: https://github.com/kaito-project/kaito/issues/TBD
+llama-index-core==0.14.18
 # HF Embeddings
 llama-index-embeddings-huggingface==0.6.1
 llama-index-embeddings-huggingface-api==0.4.1

@@ -307,6 +307,7 @@ func GenerateInferenceWorkspaceManifestWithVLLM(name, namespace, imageName strin
 		workspace.Annotations = make(map[string]string)
 	}
 	workspace.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(model.RuntimeNameVLLM)
+	workspace.Annotations[kaitov1beta1.AnnotationRunBenchmark] = "true"
 	return workspace
 }
 
@@ -321,6 +322,7 @@ func GenerateInferenceSetManifestWithVLLM(name, namespace, imageName string, rep
 		inferenceSet.Annotations = make(map[string]string)
 	}
 	inferenceSet.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(model.RuntimeNameVLLM)
+	inferenceSet.Annotations[kaitov1alpha1.AnnotationRunBenchmark] = "true"
 	return inferenceSet
 }
 
@@ -509,7 +511,7 @@ func GenerateE2EInferenceConfigMapManifest(name, namespace string) *corev1.Confi
 		Data: map[string]string{
 			"inference_config.yaml": `
 vllm:
-  max-model-len: 1024
+  max-model-len: 2560
   gpu-memory-utilization: 0.7
 `,
 		},

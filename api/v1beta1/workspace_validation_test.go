@@ -1246,6 +1246,31 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			runtimeName: model.RuntimeNameHuggingfaceTransformers,
 		},
 		{
+			name: "Valid with volume adapters/vllm",
+			inferenceSpec: func() *InferenceSpec {
+				spec := &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name: ModelName("test-validation"),
+						},
+					},
+				}
+				for i := 1; i <= 2; i++ {
+					spec.Adapters = append(spec.Adapters, AdapterSpec{
+						Source: &DataSource{
+							Name: fmt.Sprintf("adapter-%d", i),
+							Volume: &v1.VolumeSource{
+								PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+									ClaimName: fmt.Sprintf("pvc-adapter-%d", i),
+								},
+							},
+						},
+					})
+				}
+				return spec
+			}(),
+		},
+		{
 			name: "Adapters with strength/vllm",
 			inferenceSpec: func() *InferenceSpec {
 				spec := &InferenceSpec{
@@ -1470,6 +1495,45 @@ func TestAdapterSpecValidateCreateorUpdate(t *testing.T) {
 			},
 			errContent: "",
 			expectErrs: false,
+		},
+		{
+			name: "Valid Adapter with Volume source",
+			adapterSpec: &AdapterSpec{
+				Source: &DataSource{
+					Name: "adapter-1",
+					Volume: &v1.VolumeSource{
+						PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+							ClaimName: "test-pvc",
+						},
+					},
+				},
+				Strength: &ValidStrength,
+			},
+			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "Missing both Image and Volume",
+			adapterSpec: &AdapterSpec{
+				Source: &DataSource{
+					Name: "adapter-1",
+				},
+				Strength: &ValidStrength,
+			},
+			errContent: "Either Image or Volume must be specified for adapter source",
+			expectErrs: true,
+		},
+		{
+			name: "Adapter with unsupported URLs source",
+			adapterSpec: &AdapterSpec{
+				Source: &DataSource{
+					Name: "adapter-1",
+					URLs: []string{"https://example.com/adapter.bin"},
+				},
+				Strength: &ValidStrength,
+			},
+			errContent: "URLs are not supported as adapter source",
+			expectErrs: true,
 		},
 	}
 
@@ -1754,6 +1818,81 @@ func TestWorkspaceValidateName(t *testing.T) {
 			}
 			if errs != nil && !strings.Contains(errs.Error(), tt.errField) {
 				t.Errorf("Validate() expected error to contain field %s, but got %s", tt.errField, errs.Error())
+			}
+		})
+	}
+}
+
+func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
+	RegisterValidationTestModels()
+
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		defaultInferenceConfigMapManifest(),
+	).Build()
+	k8sclient.SetGlobalClient(client)
+
+	baseWorkspace := &Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-workspace",
+			Namespace: "kaito",
+		},
+		Resource: ResourceSpec{
+			InstanceType: "Standard_NC4as_T4_v3",
+			Count:        pointerToInt(1),
+		},
+		Inference: &InferenceSpec{
+			Preset: &PresetSpec{
+				PresetMeta: PresetMeta{
+					Name: ModelName("test-validation-static"),
+				},
+			},
+		},
+	}
+
+	tests := []struct {
+		name        string
+		annotations map[string]string
+		wantErr     bool
+	}{
+		{
+			name:        "no annotation is valid",
+			annotations: nil,
+			wantErr:     false,
+		},
+		{
+			name:        "balanced is valid",
+			annotations: map[string]string{AnnotationPerformanceMode: "balanced"},
+			wantErr:     false,
+		},
+		{
+			name:        "interactivity is valid",
+			annotations: map[string]string{AnnotationPerformanceMode: "interactivity"},
+			wantErr:     false,
+		},
+		{
+			name:        "throughput is valid",
+			annotations: map[string]string{AnnotationPerformanceMode: "throughput"},
+			wantErr:     false,
+		},
+		{
+			name:        "unknown value is invalid",
+			annotations: map[string]string{AnnotationPerformanceMode: "fast"},
+			wantErr:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ws := baseWorkspace.DeepCopy()
+			ws.Annotations = tt.annotations
+			errs := ws.Validate(context.Background())
+			if (errs != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", errs, tt.wantErr)
 			}
 		})
 	}

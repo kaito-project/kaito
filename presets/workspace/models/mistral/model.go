@@ -68,12 +68,10 @@ var (
 		"chat_template": "/workspace/chat_templates/mistral-instruct.jinja",
 	}
 	mistralRunParamsVLLM = map[string]string{
-		"dtype":                   "float16",
 		"tool-call-parser":        "mistral",
 		"enable-auto-tool-choice": "",
 	}
 	mistral3RunParamsVLLM = map[string]string{
-		"dtype":                   "float16",
 		"tool-call-parser":        "mistral",
 		"tokenizer_mode":          "mistral",
 		"config_format":           "mistral",

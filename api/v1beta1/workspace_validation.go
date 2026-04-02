@@ -69,6 +69,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
+		errs = errs.Also(w.validateAnnotations())
 		if w.Inference != nil {
 			// Check if the bypass resource checks annotation is set
 			bypassResourceChecks := false
@@ -103,6 +104,25 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		}
 		if w.Tuning != nil {
 			errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
+		}
+	}
+	return errs
+}
+
+func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
+	annotations := w.GetAnnotations()
+	if annotations == nil {
+		return nil
+	}
+	if v, ok := annotations[AnnotationPerformanceMode]; ok {
+		switch v {
+		case PerformanceModeBalanced, PerformanceModeInteractivity, PerformanceModeThroughput:
+			// valid
+		default:
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("%q is not a valid performance mode; choose one of: balanced, interactivity, throughput", v),
+				fmt.Sprintf("metadata.annotations[%s]", AnnotationPerformanceMode),
+			))
 		}
 	}
 	return errs
@@ -180,8 +200,12 @@ func (r *AdapterSpec) validateCreateorUpdate() (errs *apis.FieldError) {
 		} else if errmsgs := validation.IsDNS1123Subdomain(r.Source.Name); len(errmsgs) > 0 {
 			errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "adapters.source.name"))
 		}
-		if r.Source.Image == "" {
-			errs = errs.Also(apis.ErrMissingField("Image of Adapter field must be specified"))
+		// Adapters support Image or Volume as source (not URLs)
+		if r.Source.Image == "" && r.Source.Volume == nil {
+			errs = errs.Also(apis.ErrGeneric("Either Image or Volume must be specified for adapter source", "adapters.source"))
+		}
+		if len(r.Source.URLs) > 0 {
+			errs = errs.Also(apis.ErrGeneric("URLs are not supported as adapter source", "adapters.source.urls"))
 		}
 		if r.Strength == nil {
 			var defaultStrength = "1.0"
@@ -460,7 +484,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		if skuConfig == nil {
 			provider := os.Getenv("CLOUD_PROVIDER")
 			// Check for other instance types pattern matches if cloud provider is Azure
-			if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
+			if provider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
 				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 			}
 		}

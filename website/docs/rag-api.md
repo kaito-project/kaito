@@ -399,7 +399,7 @@ POST /retrieve
 
 - `index_name`: The name of the index to query for relevant documents.
 - `query`: The content that will be used to search for relevant documents in the vector store.
-- `max_node_count`: The max amount of nodes to return. Default 5.
+- `max_node_count`: Optional parameter setting the max amount of nodes to be returned. Defaults to 5.
 - `metadata_filter`: An optional dict of key/value pairs that can be used to filter documents for response.
 
 ### Retrieve Response

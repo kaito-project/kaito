@@ -381,7 +381,7 @@ Use this endpoint to integrate RAG capabilities into applications that already u
 
 ## Retrieve Relevant Context
 
-The RAGEngine provides a `/retrieve` api that will fetch relevant context from your backing vector store and retrieve the nodes without calling out to the LLM.  This api route provides a simple way to integrate with a MCP server or Skill for agents to provide context to LLM's rather than using the chat completions api with direct LLM calls.
+The RAGEngine provides a `/retrieve` api that will leverage hybrid search to fetch relevant context from your backing vector store and return the nodes without calling out to the LLM.  This api route provides a simple way to integrate with a MCP server or Skill for agents to provide context to LLM's rather than using the chat completions api with direct LLM calls.
 
 ### Retrieve Request
 

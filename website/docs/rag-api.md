@@ -434,6 +434,6 @@ POST /retrieve
 }
 ```
 
-## Example Python Client
+## Python Client
 
-You can leverage the [example_rag_client.py](./example_rag_client.py) as a starting point for a rag client with inputs that match the route documentation above.
+You can leverage the [kaito-rag-engine-client](https://pypi.org/project/kaito-rag-engine-client/) python package to connect to and interact with your RAGEngine.  You can find example client setup and API calls on the project page.

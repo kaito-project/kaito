@@ -409,6 +409,33 @@ func TestGetInferenceCommandVLLMDataParallelism(t *testing.T) {
 	assert.Contains(t, cmd[2], "tensor-parallel-size=1")
 }
 
+func TestGetInferenceCommandVLLMDisableDataParallelism(t *testing.T) {
+	// When DisableDataParallelism is true, even if model fits on a single GPU,
+	// DP should be set to 1 and TP should be used instead.
+	// This works around vLLM v0.17.x CUDA event device mismatch bug
+	// (https://github.com/vllm-project/vllm/issues/37659).
+	p := &PresetParam{
+		TotalSafeTensorFileSize: "8Gi",
+		RuntimeParam: RuntimeParam{
+			DisableDataParallelism: true,
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		GPUConfig:   &sku.GPUConfig{GPUMem: resource.MustParse("320Gi")},
+		SKUNumGPUs:  4,
+		NumNodes:    1,
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "data-parallel-size=1")
+	assert.Contains(t, cmd[2], "tensor-parallel-size=4")
+}
+
 func TestGetInferenceCommandVLLMTensorParallelismWhenModelLarge(t *testing.T) {
 	p := &PresetParam{
 		TotalSafeTensorFileSize: "64Gi",

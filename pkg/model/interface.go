@@ -205,6 +205,13 @@ type RuntimeParam struct {
 	VLLM         VLLMParam
 	// Disable the tensor parallelism
 	DisableTensorParallelism bool
+	// DisableDataParallelism disables the automatic data parallelism strategy.
+	// When set to true, data-parallel-size will always be set to 1 even if the
+	// model fits on a single GPU and multiple GPUs are available.
+	// This is a workaround for vLLM v0.17.x data parallelism bugs such as
+	// https://github.com/vllm-project/vllm/issues/37659 where CUDA event
+	// device mismatch causes EngineCore crashes with DP > 1.
+	DisableDataParallelism bool
 }
 
 type HuggingfaceTransformersParam struct {
@@ -400,9 +407,16 @@ func (p *PresetParam) configureParallelism(rc RuntimeContext) {
 	// Tier 1: Model fits on a single GPU → Data Parallelism.
 	// Use DP only on a single node; multi-node DP is not supported.
 	if !multiNode && p.modelFitsOnSingleGPU(rc) {
-		p.VLLM.ModelRunParams["data-parallel-size"] = strconv.Itoa(rc.SKUNumGPUs)
-		p.VLLM.ModelRunParams["tensor-parallel-size"] = "1"
-		return
+		if p.DisableDataParallelism {
+			// Workaround for vLLM v0.17.x CUDA event device mismatch bug
+			// (https://github.com/vllm-project/vllm/issues/37659).
+			// Force DP=1 and fall through to TP instead.
+			p.VLLM.ModelRunParams["data-parallel-size"] = "1"
+		} else {
+			p.VLLM.ModelRunParams["data-parallel-size"] = strconv.Itoa(rc.SKUNumGPUs)
+			p.VLLM.ModelRunParams["tensor-parallel-size"] = "1"
+			return
+		}
 	}
 
 	// Tier 2: Model fits on a single node → Tensor Parallelism.

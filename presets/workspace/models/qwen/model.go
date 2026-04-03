@@ -18,7 +18,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -39,13 +38,8 @@ const (
 )
 
 var (
-	baseCommandPresetQwenInference = "accelerate launch"
-	baseCommandPresetQwenTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	qwenRunParams                  = map[string]string{
-		"torch_dtype": "bfloat16",
-		"pipeline":    "text-generation",
-	}
-	qwenRunParamsVLLM = map[string]string{
+	baseCommandPresetQwenTuning = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
+	qwenRunParamsVLLM           = map[string]string{
 		"chat-template":           "/workspace/chat_templates/tool-chat-hermes.jinja",
 		"tool-call-parser":        "hermes",
 		"enable-auto-tool-choice": "",
@@ -65,13 +59,7 @@ func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           57344,
 		ModelTokenLimit:         32768, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				ModelRunParams:    qwenRunParams,
-				BaseCommand:       baseCommandPresetQwenInference,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelName:         PresetQwen2_5Coder7BInstructModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetQwen2_5Coder7BInstructModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetQwen2_5Coder7BInstructModel,
@@ -120,13 +108,7 @@ func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           262144,
 		ModelTokenLimit:         32768, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				ModelRunParams:    qwenRunParams,
-				BaseCommand:       baseCommandPresetQwenInference,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelName:         PresetQwen2_5Coder32BInstructModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetQwen2_5Coder32BInstructModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetQwen2_5Coder32BInstructModel,

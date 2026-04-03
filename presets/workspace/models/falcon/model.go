@@ -18,7 +18,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -50,14 +49,8 @@ const (
 )
 
 var (
-	baseCommandPresetFalconInference = "accelerate launch"
-	baseCommandPresetFalconTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	falconRunParams                  = map[string]string{
-		"torch_dtype":   "bfloat16",
-		"pipeline":      "text-generation",
-		"chat_template": "/workspace/chat_templates/falcon-instruct.jinja",
-	}
-	falconRunParamsVLLM = map[string]string{
+	baseCommandPresetFalconTuning = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
+	falconRunParamsVLLM           = map[string]string{
 		"chat-template": "/workspace/chat_templates/falcon-instruct.jinja",
 	}
 )
@@ -75,13 +68,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           8192,
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetFalconInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    falconRunParams,
-				ModelName:         "falcon-7b",
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetFalcon7BModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      "falcon-7b",
@@ -137,13 +124,7 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           8192,
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetFalconInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    falconRunParams,
-				ModelName:         PresetFalcon7BInstructModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetFalcon7BInstructModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetFalcon7BInstructModel,
@@ -183,13 +164,7 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           8192,
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetFalconInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    falconRunParams,
-				ModelName:         PresetFalcon40BModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetFalcon40BModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetFalcon40BModel,
@@ -238,13 +213,7 @@ func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           1966080,
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetFalconInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    falconRunParams,
-				ModelName:         PresetFalcon40BInstructModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetFalcon40BInstructModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetFalcon40BInstructModel,

@@ -29,9 +29,9 @@ import (
 	"github.com/awslabs/operatorpkg/status"
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
@@ -402,6 +402,9 @@ func ListNodeClaim(ctx context.Context, obj client.Object, kubeClient client.Cli
 		return nil, fmt.Errorf("unsupported object type: %T", obj)
 	}
 
+	// Check if the object is being deleted — used to scope NoMatch error handling
+	isDeleting := !obj.GetDeletionTimestamp().IsZero()
+
 	err := retry.OnError(retry.DefaultBackoff, func(err error) bool {
 		// Do not retry if Karpenter CRDs are not installed
 		if meta.IsNoMatchError(err) {
@@ -412,9 +415,11 @@ func ListNodeClaim(ctx context.Context, obj client.Object, kubeClient client.Cli
 		return kubeClient.List(ctx, nodeClaimList, &client.MatchingLabelsSelector{Selector: ls.AsSelector()})
 	})
 	if err != nil {
-		// If Karpenter CRDs are not installed, return an empty list instead of an error
-		if meta.IsNoMatchError(err) {
-			klog.InfoS("Karpenter NodeClaim CRD not found, skipping NodeClaim cleanup")
+		// If Karpenter CRDs are not installed and the object is being deleted (GC finalizer),
+		// return an empty list so the finalizer can proceed. For non-deletion reconciliation,
+		// propagate the error so a missing Karpenter installation is not silently ignored.
+		if meta.IsNoMatchError(err) && isDeleting {
+			klog.InfoS("Karpenter NodeClaim CRD not found, skipping NodeClaim cleanup", "object", klog.KObj(obj))
 			return &karpenterv1.NodeClaimList{}, nil
 		}
 		return nil, err

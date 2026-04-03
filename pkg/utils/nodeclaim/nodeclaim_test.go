@@ -24,7 +24,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -406,5 +408,46 @@ func TestCreateKarpenterNodeClass(t *testing.T) {
 
 		err := CreateKarpenterNodeClass(context.Background(), mockClient)
 		assert.Error(t, err, "create failed")
+	})
+}
+
+func TestListNodeClaimNoMatchError(t *testing.T) {
+	noMatchErr := &meta.NoKindMatchError{
+		GroupKind:        schema.GroupKind{Group: "karpenter.sh", Kind: "NodeClaim"},
+		SearchedVersions: []string{"v1"},
+	}
+
+	t.Run("Returns empty list when CRD missing and object is deleting", func(t *testing.T) {
+		now := metav1.Now()
+		ws := &kaitov1beta1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              "test-ws",
+				Namespace:         "default",
+				DeletionTimestamp: &now,
+				Finalizers:        []string{consts.WorkspaceFinalizer},
+			},
+		}
+
+		mockClient := test.NewClient()
+		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(noMatchErr)
+
+		result, err := ListNodeClaim(context.Background(), ws, mockClient)
+		assert.NilError(t, err)
+		assert.Equal(t, len(result.Items), 0)
+	})
+
+	t.Run("Returns error when CRD missing and object is NOT deleting", func(t *testing.T) {
+		ws := &kaitov1beta1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "test-ws",
+				Namespace: "default",
+			},
+		}
+
+		mockClient := test.NewClient()
+		mockClient.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(noMatchErr)
+
+		_, err := ListNodeClaim(context.Background(), ws, mockClient)
+		assert.ErrorContains(t, err, "NodeClaim")
 	})
 }

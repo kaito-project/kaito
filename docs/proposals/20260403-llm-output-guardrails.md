@@ -1,8 +1,19 @@
-# KAITO LLM Output Filtering - Design Proposal
+---
+title: LLM Output Guardrails using LLM Guard
+authors:
+  - "@andyzhangx"
+reviewers:
+  - "@Fei-Guo"
+  - "@Mossaka"
+  - "@zhuangqh"
+creation-date: 2026-04-03
+last-updated: 2026-04-03
+status: provisional
+see-also:
+  - "https://github.com/kaito-project/kaito/issues/1310"
+---
 
-> Analysis of [kaito-project/kaito#1310](https://github.com/kaito-project/kaito/issues/1310)
->
-> Date: 2026-04-03
+# LLM Output Guardrails using LLM Guard
 
 ## Problem
 
@@ -89,7 +100,7 @@ This allows users to enable/disable scanners and customize rules through the Con
 3. **Parse guardrails config** from `inference_config.yaml`
 4. **Instantiate configured scanners** at startup
 5. **Apply scanners** to each response before returning to the client
-6. **Log/metric** blocked responses for observability
+6. **Emit observability data for blocked responses using minimal metadata only** (for example: scanner name, rule/pattern ID, block decision, and aggregate counts), and **do not log full response text by default** to avoid leaking sensitive model output into logs/telemetry
 
 ### Streaming Considerations
 

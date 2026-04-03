@@ -831,7 +831,7 @@ func TestGenerateHuggingFaceModel_CatalogOnlyModelsSkipShortCircuit(t *testing.T
 	// For catalog-only models in builtinVLLMModels, generateHuggingFaceModel
 	// should NOT short-circuit to a pre-registered preset. Instead it should
 	// proceed to GeneratePreset and register a new vLLMCompatibleModel.
-	for modelName := range catalogOnlyModels {
+	for modelName := range catalogOnlyBuiltinModels {
 		t.Run(modelName, func(t *testing.T) {
 			// Ensure the model is NOT registered under the full HF name before the call
 			assert.Nil(t, plugin.KaitoModelRegister.MustGet(modelName),
@@ -847,6 +847,51 @@ func TestGenerateHuggingFaceModel_CatalogOnlyModelsSkipShortCircuit(t *testing.T
 			registered := plugin.KaitoModelRegister.MustGet(modelName)
 			assert.NotNil(t, registered,
 				"model %q should be registered under full HF name after catalog generation", modelName)
+		})
+	}
+}
+
+func TestPresetToHFModel(t *testing.T) {
+	// Verify the reverse map was built correctly from catalogOnlyBuiltinModels + builtinVLLMModels
+	for hfName := range catalogOnlyBuiltinModels {
+		shortName, ok := builtinVLLMModels[hfName]
+		assert.True(t, ok, "catalogOnlyBuiltinModels entry %q must be in builtinVLLMModels", hfName)
+		resolved, ok := presetToHFModel[shortName]
+		assert.True(t, ok, "presetToHFModel should contain short name %q", shortName)
+		assert.Equal(t, hfName, resolved)
+	}
+}
+
+func TestGetModelByName_ShortNameRedirectsToCatalog(t *testing.T) {
+	// When a short name (e.g. "phi-4") is in presetToHFModel, GetModelByName
+	// should redirect to the full HF name and generate via model catalog
+	// instead of returning the pre-registered phi4Model.
+	for shortName, hfName := range presetToHFModel {
+		t.Run(shortName, func(t *testing.T) {
+			result, err := GetModelByName(context.Background(), shortName, "", "", nil)
+			assert.NoError(t, err)
+			assert.NotNil(t, result)
+
+			// The result should be a vLLMCompatibleModel, not the pre-registered model type.
+			_, isVLLM := result.(*vLLMCompatibleModel)
+			assert.True(t, isVLLM, "model %q should resolve to vLLMCompatibleModel, not pre-registered type", shortName)
+
+			// Should be registered under the full HF name
+			registered := plugin.KaitoModelRegister.MustGet(hfName)
+			assert.NotNil(t, registered)
+		})
+	}
+}
+
+func TestGetModelByNameWithToken_ShortNameRedirectsToCatalog(t *testing.T) {
+	for shortName := range presetToHFModel {
+		t.Run(shortName, func(t *testing.T) {
+			result, err := GetModelByNameWithToken(context.Background(), shortName, "")
+			assert.NoError(t, err)
+			assert.NotNil(t, result)
+
+			_, isVLLM := result.(*vLLMCompatibleModel)
+			assert.True(t, isVLLM, "model %q should resolve to vLLMCompatibleModel", shortName)
 		})
 	}
 }

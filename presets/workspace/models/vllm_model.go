@@ -67,14 +67,27 @@ var (
 		"qwen/qwen2.5-coder-32b-instruct":              "qwen2.5-coder-32b-instruct",
 	}
 
-	// catalogOnlyModels lists HuggingFace model IDs that are in builtinVLLMModels
+	// catalogOnlyBuiltinModels lists HuggingFace model IDs that are in builtinVLLMModels
 	// (for preset name resolution) but should still be generated via model catalog
 	// rather than short-circuited to a pre-registered preset.
-	catalogOnlyModels = map[string]bool{
+	catalogOnlyBuiltinModels = map[string]bool{
 		"microsoft/phi-4":               true,
 		"microsoft/phi-4-mini-instruct": true,
 	}
+
+	// presetToHFModel is the reverse mapping for catalogOnlyBuiltinModels entries:
+	// short preset name → full HuggingFace model ID. Built at init time.
+	presetToHFModel map[string]string
 )
+
+func init() {
+	presetToHFModel = make(map[string]string)
+	for hfName := range catalogOnlyBuiltinModels {
+		if shortName, ok := builtinVLLMModels[hfName]; ok {
+			presetToHFModel[shortName] = hfName
+		}
+	}
+}
 
 // registerModel registers a HuggingFace model with the given ID and parameters
 // into the model registry and returns the registered model. If param is nil,
@@ -100,6 +113,12 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 // Pass an empty string for token when working with public models that require no authentication.
 func GetModelByNameWithToken(ctx context.Context, modelName, token string) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
+	// Redirect catalog-only short names (e.g. "phi-4") to their full HuggingFace
+	// model ID (e.g. "microsoft/phi-4"). This bypasses the pre-registered preset
+	// model so the catalog path generates a vLLMCompatibleModel instead.
+	if hfName, ok := presetToHFModel[modelName]; ok {
+		modelName = hfName
+	}
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}
@@ -118,6 +137,12 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 // Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
 func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
+	// Redirect catalog-only short names (e.g. "phi-4") to their full HuggingFace
+	// model ID (e.g. "microsoft/phi-4"). This bypasses the pre-registered preset
+	// model so the catalog path generates a vLLMCompatibleModel instead.
+	if hfName, ok := presetToHFModel[modelName]; ok {
+		modelName = hfName
+	}
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}
@@ -136,7 +161,7 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 // generateHuggingFaceModel generates or retrieves a vLLM preset for modelName (which must
 // contain a "/") using the provided token.
 func generateHuggingFaceModel(modelName, token string) (model.Model, error) {
-	if builtinModelName, ok := builtinVLLMModels[modelName]; ok && !catalogOnlyModels[modelName] {
+	if builtinModelName, ok := builtinVLLMModels[modelName]; ok && !catalogOnlyBuiltinModels[modelName] {
 		klog.InfoS("Using built-in VLLM model preset", "model", modelName, "builtinModelName", builtinModelName)
 		return plugin.KaitoModelRegister.MustGet(builtinModelName), nil
 	}

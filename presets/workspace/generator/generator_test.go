@@ -15,6 +15,7 @@ package generator
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -328,5 +329,85 @@ func TestReasoningParserMap(t *testing.T) {
 func TestToolCallParserMap(t *testing.T) {
 	for key := range toolCallParserModeNamePrefixMap {
 		assert.Equal(t, key, strings.ToLower(key), "toolCallParserModeNamePrefixMap key is not lowercased: %s", key)
+	}
+}
+
+func TestLoadFromCatalog(t *testing.T) {
+	cases := []struct {
+		modelRepo     string
+		expectFound   bool
+		expectedParam model.PresetParam
+	}{
+		{
+			modelRepo:   "microsoft/Phi-4-mini-instruct",
+			expectFound: true,
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "phi-4-mini-instruct",
+					Architectures:          []string{"Phi3ForCausalLM"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
+					DownloadAtRuntime:      true,
+					ModelFileSize:          "8Gi",
+					BytesPerToken:          131072,
+					ModelTokenLimit:        131072,
+					DiskStorageRequirement: "88Gi",
+				},
+				AttnType: "GQA",
+			},
+		},
+		{
+			modelRepo:   "microsoft/phi-4",
+			expectFound: true,
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "phi-4",
+					Architectures:          []string{"Phi3ForCausalLM"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/phi-4"),
+					DownloadAtRuntime:      true,
+					ModelFileSize:          "10Gi",
+					BytesPerToken:          204800,
+					ModelTokenLimit:        16384,
+					DiskStorageRequirement: "90Gi",
+				},
+				AttnType: "GQA",
+			},
+		},
+		{
+			modelRepo:   "some-org/unknown-model",
+			expectFound: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.modelRepo, func(t *testing.T) {
+			catalogData, err := os.ReadFile("../models/model_catalog.yaml")
+			assert.NoError(t, err)
+
+			gen := NewGenerator(tc.modelRepo, "")
+			gen.CatalogData = catalogData
+			found := gen.loadFromCatalog()
+			assert.Equal(t, tc.expectFound, found)
+
+			if !found {
+				return
+			}
+
+			// Run the same pipeline that Generate() would run after loadFromCatalog
+			gen.ParseModelMetadata()
+			gen.FinalizeParams()
+
+			assert.Equal(t, tc.expectedParam.Name, gen.Param.Name)
+			assert.Equal(t, tc.expectedParam.Architectures, gen.Param.Architectures)
+			assert.Equal(t, tc.expectedParam.ModelType, gen.Param.ModelType)
+			assert.Equal(t, tc.expectedParam.Version, gen.Param.Version)
+			assert.Equal(t, tc.expectedParam.DownloadAtRuntime, gen.Param.DownloadAtRuntime)
+			assert.Equal(t, tc.expectedParam.Metadata.ModelFileSize, gen.Param.Metadata.ModelFileSize)
+			assert.Equal(t, tc.expectedParam.Metadata.BytesPerToken, gen.Param.Metadata.BytesPerToken)
+			assert.Equal(t, tc.expectedParam.Metadata.ModelTokenLimit, gen.Param.Metadata.ModelTokenLimit)
+			assert.Equal(t, tc.expectedParam.Metadata.DiskStorageRequirement, gen.Param.Metadata.DiskStorageRequirement)
+			assert.Equal(t, tc.expectedParam.AttnType, gen.Param.AttnType)
+		})
 	}
 }

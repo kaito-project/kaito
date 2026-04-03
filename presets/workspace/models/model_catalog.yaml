@@ -1,0 +1,25 @@
+models:
+- name: microsoft/phi-4
+  description: https://huggingface.co/microsoft/phi-4
+  license: mit
+  pipelineTag: text-generation
+  modelFileSize: 28Gi
+  architectures:
+  - Phi3ForCausalLM
+  modelTokenLimit: 16384
+  hiddenSize: 5120
+  numHiddenLayers: 40
+  numAttentionHeads: 40
+  numKeyValueHeads: 10
+- name: microsoft/Phi-4-mini-instruct
+  description: https://huggingface.co/microsoft/Phi-4-mini-instruct
+  license: mit
+  pipelineTag: text-generation
+  modelFileSize: 8Gi
+  architectures:
+  - Phi3ForCausalLM
+  modelTokenLimit: 131072
+  hiddenSize: 3072
+  numHiddenLayers: 32
+  numAttentionHeads: 24
+  numKeyValueHeads: 8

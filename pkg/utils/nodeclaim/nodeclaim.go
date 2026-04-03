@@ -31,6 +31,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
@@ -402,11 +403,20 @@ func ListNodeClaim(ctx context.Context, obj client.Object, kubeClient client.Cli
 	}
 
 	err := retry.OnError(retry.DefaultBackoff, func(err error) bool {
+		// Do not retry if Karpenter CRDs are not installed
+		if meta.IsNoMatchError(err) {
+			return false
+		}
 		return true
 	}, func() error {
 		return kubeClient.List(ctx, nodeClaimList, &client.MatchingLabelsSelector{Selector: ls.AsSelector()})
 	})
 	if err != nil {
+		// If Karpenter CRDs are not installed, return an empty list instead of an error
+		if meta.IsNoMatchError(err) {
+			klog.InfoS("Karpenter NodeClaim CRD not found, skipping NodeClaim cleanup")
+			return &karpenterv1.NodeClaimList{}, nil
+		}
 		return nil, err
 	}
 

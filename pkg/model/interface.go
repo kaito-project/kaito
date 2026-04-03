@@ -214,6 +214,8 @@ type HuggingfaceTransformersParam struct {
 	ModelRunParams    map[string]string // Parameters for running the model training/inference.
 	// The model name used in the OpenAI serving API.
 	ModelName string
+	// Tag is the ORAS image tag for pre-built model weights.
+	Tag string
 }
 
 type VLLMParam struct {

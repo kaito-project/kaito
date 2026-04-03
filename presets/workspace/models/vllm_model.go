@@ -61,8 +61,18 @@ var (
 		"microsoft/phi-3-medium-4k-instruct":           "phi-3-medium-4k-instruct",
 		"microsoft/phi-3-medium-128k-instruct":         "phi-3-medium-128k-instruct",
 		"microsoft/phi-3.5-mini-instruct":              "phi-3.5-mini-instruct",
+		"microsoft/phi-4":                              "phi-4",
+		"microsoft/phi-4-mini-instruct":                "phi-4-mini-instruct",
 		"qwen/qwen2.5-coder-7b-instruct":               "qwen2.5-coder-7b-instruct",
 		"qwen/qwen2.5-coder-32b-instruct":              "qwen2.5-coder-32b-instruct",
+	}
+
+	// catalogOnlyModels lists HuggingFace model IDs that are in builtinVLLMModels
+	// (for preset name resolution) but should still be generated via model catalog
+	// rather than short-circuited to a pre-registered preset.
+	catalogOnlyModels = map[string]bool{
+		"microsoft/phi-4":               true,
+		"microsoft/phi-4-mini-instruct": true,
 	}
 )
 
@@ -126,7 +136,7 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 // generateHuggingFaceModel generates or retrieves a vLLM preset for modelName (which must
 // contain a "/") using the provided token.
 func generateHuggingFaceModel(modelName, token string) (model.Model, error) {
-	if builtinModelName, ok := builtinVLLMModels[modelName]; ok {
+	if builtinModelName, ok := builtinVLLMModels[modelName]; ok && !catalogOnlyModels[modelName] {
 		klog.InfoS("Using built-in VLLM model preset", "model", modelName, "builtinModelName", builtinModelName)
 		return plugin.KaitoModelRegister.MustGet(builtinModelName), nil
 	}
@@ -154,6 +164,16 @@ type vLLMCompatibleModel struct {
 	model model.Metadata
 }
 
+// resolvePresetName returns the short preset name for the model.
+// If the model name is a full HuggingFace model ID found in builtinVLLMModels,
+// it returns the corresponding short name. Otherwise it returns the name as-is.
+func (m *vLLMCompatibleModel) resolvePresetName() string {
+	if short, ok := builtinVLLMModels[strings.ToLower(m.model.Name)]; ok {
+		return short
+	}
+	return m.model.Name
+}
+
 func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	metaData := &model.Metadata{
 		Name:                 m.model.Name,
@@ -162,6 +182,17 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		Runtime:              "tfs",
 		DownloadAtRuntime:    true,
 		DownloadAuthRequired: m.model.DownloadAuthRequired,
+	}
+
+	// If the model has a transformers inference entry without allow_remote_files,
+	// use ORAS pre-built weights instead of downloading from HuggingFace at runtime.
+	presetName := m.resolvePresetName()
+	if tfsParam, ok := TransformerInferenceParameters[presetName]; ok {
+		if _, hasAllowRemote := tfsParam.ModelRunParams["allow_remote_files"]; !hasAllowRemote {
+			metaData.DownloadAtRuntime = false
+			metaData.Name = presetName
+			metaData.Tag = tfsParam.Tag
+		}
 	}
 
 	runParamsVLLM := map[string]string{
@@ -194,6 +225,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           m.model.BytesPerToken,
 		ModelTokenLimit:         m.model.ModelTokenLimit,
 		RuntimeParam: model.RuntimeParam{
+			Transformers: TransformerInferenceParameters[m.resolvePresetName()],
 			VLLM: model.VLLMParam{
 				BaseCommand:          DefaultVLLMCommand,
 				ModelName:            metaData.Name,
@@ -208,16 +240,34 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	return presetParam
 }
 
-func (*vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
-	return nil
+func (m *vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
+	presetName := m.resolvePresetName()
+	tc, ok := TransformerTuningParameters[presetName]
+	if !ok {
+		return nil
+	}
+	return &model.PresetParam{
+		Metadata:                      MustGet(presetName),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
+		RuntimeParam: model.RuntimeParam{
+			Transformers: tc.Transformers,
+		},
+	}
 }
 
 func (*vLLMCompatibleModel) SupportDistributedInference() bool {
 	return true
 }
 
-func (*vLLMCompatibleModel) SupportTuning() bool {
-	return false
+func (m *vLLMCompatibleModel) SupportTuning() bool {
+	_, ok := TransformerTuningParameters[m.resolvePresetName()]
+	return ok
 }
 
 // GetHFTokenFromSecret retrieves the HuggingFace token from a Kubernetes secret.

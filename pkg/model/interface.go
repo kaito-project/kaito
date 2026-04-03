@@ -494,6 +494,10 @@ func (p *PresetParam) modelFitsOnSingleGPU(rc RuntimeContext) bool {
 func (p *PresetParam) Validate(rc RuntimeContext) error {
 	var errs []string
 	switch rc.RuntimeName {
+	case RuntimeNameHuggingfaceTransformers:
+		if p.Transformers.BaseCommand == "" {
+			errs = append(errs, fmt.Sprintf("model %s does not support inference with Huggingface Transformers runtime", p.Metadata.Name))
+		}
 	case RuntimeNameVLLM:
 		if rc.AdaptersEnabled && p.VLLM.DisallowLoRA {
 			errs = append(errs, fmt.Sprintf("vLLM does not support LoRA adapters for this model: %s", p.VLLM.ModelName))

@@ -58,6 +58,11 @@ func (*testModel) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 		ModelTokenLimit:         4096, // Add ModelTokenLimit for validation testing
+		RuntimeParam: model.RuntimeParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand: "accelerate launch",
+			},
+		},
 	}
 }
 func (*testModel) GetTuningParameters() *model.PresetParam {

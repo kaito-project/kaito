@@ -14,7 +14,7 @@
 from unittest import mock
 
 from llama_index.core.schema import TextNode
-from vector_store.transformers.custom_transformer import CustomTransformer
+from ragengine.vector_store.transformers.custom_transformer import CustomTransformer
 
 # CustomTransformer.__call__ tests
 

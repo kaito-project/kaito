@@ -59,8 +59,7 @@ const (
 )
 
 var (
-	baseCommandPresetMistralTuning = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	mistralRunParamsVLLM           = map[string]string{
+	mistralRunParamsVLLM = map[string]string{
 		"tool-call-parser":        "mistral",
 		"enable-auto-tool-choice": "",
 	}
@@ -98,20 +97,19 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 
 }
 func (*mistral7b) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetMistral7BModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetMistral7BModel),
-		DiskStorageRequirement:  "90Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "16Gi",
+		Metadata:                      metadata.MustGet(PresetMistral7BModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				// AccelerateParams: tuning.DefaultAccelerateParams,
-				// ModelRunParams:   mistralRunParams,
-				BaseCommand: baseCommandPresetMistralTuning,
-				ModelName:   PresetMistral7BModel,
-			},
+			Transformers: tc.Transformers,
 		},
-		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
 }
 

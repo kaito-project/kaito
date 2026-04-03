@@ -38,9 +38,8 @@ const (
 )
 
 var (
-	baseCommandPresetPhiTuning = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	phi4RunParamsVLLM          = map[string]string{}
-	phi4MiniRunParamsVLLM      = map[string]string{
+	phi4RunParamsVLLM     = map[string]string{}
+	phi4MiniRunParamsVLLM = map[string]string{
 		"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
 		"tool-call-parser":        "phi4_mini_json",
 		"enable-auto-tool-choice": "",
@@ -72,17 +71,18 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 }
 
 func (*phi4Model) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetPhi4Model]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetPhi4Model),
-		DiskStorageRequirement:  "150Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "70Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
-		ReadinessTimeout:        time.Duration(30) * time.Minute,
+		Metadata:                      metadata.MustGet(PresetPhi4Model),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
-				ModelName:   PresetPhi4Model,
-			},
+			Transformers: tc.Transformers,
 		},
 	}
 }
@@ -117,17 +117,18 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 }
 
 func (*phi4MiniInstruct) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetPhi4MiniInstructModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetPhi4MiniInstructModel),
-		DiskStorageRequirement:  "70Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "72Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
-		ReadinessTimeout:        time.Duration(30) * time.Minute,
+		Metadata:                      metadata.MustGet(PresetPhi4MiniInstructModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
-				ModelName:   PresetPhi4MiniInstructModel,
-			},
+			Transformers: tc.Transformers,
 		},
 	}
 }

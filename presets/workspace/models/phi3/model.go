@@ -53,8 +53,7 @@ const (
 )
 
 var (
-	baseCommandPresetPhiTuning = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	phiRunParamsVLLM           = map[string]string{}
+	phiRunParamsVLLM = map[string]string{}
 )
 
 var phi3MiniA phi3Mini4KInst
@@ -81,19 +80,18 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 	}
 }
 func (*phi3Mini4KInst) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetPhi3Mini4kModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetPhi3Mini4kModel),
-		DiskStorageRequirement:  "80Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "72Gi",
-		// AccelerateParams:          inference.DefaultAccelerateParams,
-		// ModelRunParams:            phiRunParams,
-		ReadinessTimeout: time.Duration(30) * time.Minute,
+		Metadata:                      metadata.MustGet(PresetPhi3Mini4kModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
-				ModelName:   PresetPhi3Mini4kModel,
-			},
+			Transformers: tc.Transformers,
 		},
 	}
 }
@@ -126,17 +124,18 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 	}
 }
 func (*phi3Mini128KInst) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetPhi3Mini128kModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetPhi3Mini128kModel),
-		DiskStorageRequirement:  "80Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "72Gi",
-		ReadinessTimeout:        time.Duration(30) * time.Minute,
+		Metadata:                      metadata.MustGet(PresetPhi3Mini128kModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
-				ModelName:   PresetPhi3Mini128kModel,
-			},
+			Transformers: tc.Transformers,
 		},
 	}
 }
@@ -169,19 +168,18 @@ func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 	}
 }
 func (*phi3_5MiniInst) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetPhi3_5MiniInstruct]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetPhi3_5MiniInstruct),
-		DiskStorageRequirement:  "70Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "72Gi",
-		// AccelerateParams:          inference.DefaultAccelerateParams,
-		// ModelRunParams:            phiRunParams,
-		ReadinessTimeout: time.Duration(30) * time.Minute,
+		Metadata:                      metadata.MustGet(PresetPhi3_5MiniInstruct),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
-				ModelName:   PresetPhi3_5MiniInstruct,
-			},
+			Transformers: tc.Transformers,
 		},
 	}
 }
@@ -214,19 +212,18 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 	}
 }
 func (*Phi3Medium4kInstruct) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetPhi3Medium4kModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetPhi3Medium4kModel),
-		DiskStorageRequirement:  "120Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "80Gi",
-		// AccelerateParams:          inference.DefaultAccelerateParams,
-		// ModelRunParams:            phiRunParams,
-		ReadinessTimeout: time.Duration(30) * time.Minute,
+		Metadata:                      metadata.MustGet(PresetPhi3Medium4kModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
-				ModelName:   PresetPhi3Medium4kModel,
-			},
+			Transformers: tc.Transformers,
 		},
 	}
 }
@@ -259,17 +256,18 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 	}
 }
 func (*Phi3Medium128kInstruct) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetPhi3Medium128kModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetPhi3Medium128kModel),
-		DiskStorageRequirement:  "120Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "80Gi",
-		ReadinessTimeout:        time.Duration(30) * time.Minute,
+		Metadata:                      metadata.MustGet(PresetPhi3Medium128kModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
-				ModelName:   PresetPhi3Medium128kModel,
-			},
+			Transformers: tc.Transformers,
 		},
 	}
 }

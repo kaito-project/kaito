@@ -18,7 +18,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -49,8 +48,7 @@ const (
 )
 
 var (
-	baseCommandPresetFalconTuning = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	falconRunParamsVLLM           = map[string]string{
+	falconRunParamsVLLM = map[string]string{
 		"chat-template": "/workspace/chat_templates/falcon-instruct.jinja",
 	}
 )
@@ -85,22 +83,19 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 	}
 }
 func (*falcon7b) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetFalcon7BModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetFalcon7BModel),
-		DiskStorageRequirement:  "90Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "16Gi",
-		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
+		Metadata:                      metadata.MustGet(PresetFalcon7BModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:      baseCommandPresetFalconTuning,
-				AccelerateParams: tuning.DefaultAccelerateParams,
-				ModelName:        PresetFalcon7BModel,
-				// ModelRunPrams:    falconRunTuningParams, // TODO
-			},
+			Transformers: tc.Transformers,
 		},
-		ReadinessTimeout:              time.Duration(30) * time.Minute,
-		TuningPerGPUMemoryRequirement: map[string]int{"qlora": 16},
 	}
 }
 
@@ -175,22 +170,19 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 	}
 }
 func (*falcon40b) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetFalcon40BModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetFalcon40BModel),
-		DiskStorageRequirement:  "280Gi",
-		GPUCountRequirement:     "2",
-		TotalSafeTensorFileSize: "77.9Gi",
-		BytesPerToken:           1966080,
-		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
+		Metadata:                      metadata.MustGet(PresetFalcon40BModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:      baseCommandPresetFalconTuning,
-				AccelerateParams: tuning.DefaultAccelerateParams,
-				ModelName:        PresetFalcon40BModel,
-				// ModelRunPrams:    falconRunTuningParams, // TODO
-			},
+			Transformers: tc.Transformers,
 		},
-		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
 }
 func (*falcon40b) SupportDistributedInference() bool {

@@ -38,8 +38,7 @@ const (
 )
 
 var (
-	baseCommandPresetQwenTuning = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	qwenRunParamsVLLM           = map[string]string{
+	qwenRunParamsVLLM = map[string]string{
 		"chat-template":           "/workspace/chat_templates/tool-chat-hermes.jinja",
 		"tool-call-parser":        "hermes",
 		"enable-auto-tool-choice": "",
@@ -71,20 +70,19 @@ func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 }
 
 func (*qwen2_5Coder7BInstruct) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetQwen2_5Coder7BInstructModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetQwen2_5Coder7BInstructModel),
-		DiskStorageRequirement:  "110Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "24Gi",
+		Metadata:                      metadata.MustGet(PresetQwen2_5Coder7BInstructModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				// AccelerateParams: tuning.DefaultAccelerateParams,
-				// ModelRunParams:   qwenRunParams,
-				BaseCommand: baseCommandPresetQwenTuning,
-				ModelName:   PresetQwen2_5Coder7BInstructModel,
-			},
+			Transformers: tc.Transformers,
 		},
-		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
 }
 
@@ -120,18 +118,19 @@ func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 }
 
 func (*qwen2_5Coder32BInstruct) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetQwen2_5Coder32BInstructModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetQwen2_5Coder32BInstructModel),
-		DiskStorageRequirement:  "230Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "140Gi", // Requires at least 2 A100 - TODO: Revisit for more accurate metric
+		Metadata:                      metadata.MustGet(PresetQwen2_5Coder32BInstructModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetQwenTuning,
-				ModelName:   PresetQwen2_5Coder32BInstructModel,
-			},
+			Transformers: tc.Transformers,
 		},
-		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
 }
 

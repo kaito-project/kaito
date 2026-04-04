@@ -161,6 +161,32 @@ The MaliciousURLs scanner scores URLs across multiple dimensions (domain reputat
 | `"Python version is 3.12"` | None (`3.12` has only 2 segments, doesn't match IP regex) | ✅ Passed |
 | `"See docs at https://docs.python.org"` | MaliciousURLs (legitimate domain, score < 0.5) | ✅ Passed |
 
+## Design Decisions
+
+### Guardrails Disabled by Default
+
+`guardrails.enabled` defaults to `false`. Reasons:
+
+- **No breaking changes** — existing users upgrading KAITO won't see unexpected response blocking
+- **False positive risk** — scanners like BanTopics and Regex can block legitimate content depending on the use case (e.g., networking tools outputting IPs, medical/security domains discussing violence)
+- **Opt-in model** — users should consciously choose which scanners fit their threat model
+
+Users opt in by setting `enabled: true` in their ConfigMap.
+
+### Scanner Selection Guide
+
+When a user sets `enabled: true` without specifying `output_scanners`, only **MaliciousURLs** (threshold 0.5) is applied as the implicit default. All other scanners must be explicitly configured.
+
+| Scanner | Safe as Default? | Rationale |
+|---------|-----------------|-----------|
+| **MaliciousURLs** | ✅ Yes | Rule-based URL reputation check; low false positive rate; no extra model needed; directly addresses the core ask in [#1310](https://github.com/kaito-project/kaito/issues/1310) |
+| **Regex** (IP blocking) | ⚠️ Use with caution | Depends entirely on the pattern — legitimate outputs often contain IPs (network diagnostics, cluster info, logs). Should be user-configured, not default |
+| **BanTopics** | ❌ No | Requires NLI model inference (CPU/GPU overhead); topic classification is domain-dependent — "violence" is legitimate content in medical, security, and gaming contexts |
+| **Sensitive** (PII) | ⚠️ Use with caution | Useful but requires NER model; adds latency and dependency. Better as an opt-in for compliance-sensitive workloads |
+| **Toxicity / Bias** | ❌ No | Requires model inference; high overhead; classification standards are subjective and controversial |
+
+The documentation should include a "recommended configurations" section with copy-paste examples for common scenarios (agentic AI, compliance, general safety).
+
 ## References
 
 - Issue: https://github.com/kaito-project/kaito/issues/1310

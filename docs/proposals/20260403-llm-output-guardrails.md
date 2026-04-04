@@ -79,7 +79,7 @@ vllm:
   # existing vllm args...
 
 guardrails:
-  enabled: true
+  enabled: false
   output_scanners:
     - name: MaliciousURLs
       threshold: 0.5
@@ -90,7 +90,7 @@ guardrails:
       topics: ["violence"]
 ```
 
-This allows users to enable/disable scanners and customize rules through the ConfigMap without rebuilding the container image.
+Guardrails are **disabled by default** (`enabled: false`) to avoid unexpected behavior changes for existing users. Users opt in by setting `enabled: true` in their ConfigMap. This allows users to enable/disable scanners and customize rules through the ConfigMap without rebuilding the container image.
 
 ### Implementation Steps
 
@@ -109,7 +109,7 @@ For streaming responses (`stream=true`), the scanner needs to operate on accumul
 
 ```yaml
 guardrails:
-  enabled: true                    # Master switch — set to true to enable output filtering
+  enabled: false                   # Master switch — disabled by default. Set to true to enable output filtering.
   output_scanners:                 # List of scanners to apply (executed in order)
 
     - name: MaliciousURLs          # Scanner 1: Malicious URL detection

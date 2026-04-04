@@ -279,6 +279,27 @@ func TestGeneratePresetInference(t *testing.T) {
 				},
 			}},
 		},
+
+		"test-model/vllm-byo-pvc": {
+			workspace: test.MockWorkspaceWithPresetVLLMByoPVC,
+			nodeCount: 1,
+			modelName: "test-model",
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				// Do NOT mock StorageClass Get — NVMe check should be skipped entirely
+			},
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+		},
+
+		"test-model/vllm-byo-pvc-subpath": {
+			workspace: test.MockWorkspaceWithPresetVLLMByoPVCSubPath,
+			nodeCount: 1,
+			modelName: "test-model",
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+			},
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+		},
 	}
 
 	estimator := &nodesestimator.NodeEstimator{}
@@ -412,6 +433,49 @@ func TestGeneratePresetInference(t *testing.T) {
 				}
 				if !found {
 					t.Errorf("%s: expected adapter volume %s not found", k, tc.expectedVolume)
+				}
+			}
+
+			// BYO PVC volume assertions
+			if tc.workspace.Inference != nil && tc.workspace.Inference.Preset != nil &&
+				tc.workspace.Inference.Preset.PresetOptions.ModelWeightsPVC != "" {
+				expectedPVCName := tc.workspace.Inference.Preset.PresetOptions.ModelWeightsPVC
+				found := false
+				for _, volume := range statefulset.Spec.Template.Spec.Volumes {
+					if volume.Name == "model-weights-volume" &&
+						volume.PersistentVolumeClaim != nil &&
+						volume.PersistentVolumeClaim.ClaimName == expectedPVCName {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Errorf("%s: expected user PVC volume 'model-weights-volume' with claimName '%s' not found in volumes: %+v",
+						k, expectedPVCName, statefulset.Spec.Template.Spec.Volumes)
+				}
+				if len(statefulset.Spec.VolumeClaimTemplates) > 0 {
+					t.Errorf("%s: expected no VolumeClaimTemplates with BYO PVC, got %d",
+						k, len(statefulset.Spec.VolumeClaimTemplates))
+				}
+			}
+
+			// SubPath assertions
+			if tc.workspace.Inference != nil && tc.workspace.Inference.Preset != nil &&
+				tc.workspace.Inference.Preset.PresetOptions.ModelWeightsSubPath != "" {
+				expectedSubPath := tc.workspace.Inference.Preset.PresetOptions.ModelWeightsSubPath
+				for _, vm := range statefulset.Spec.Template.Spec.Containers[0].VolumeMounts {
+					if vm.Name == "model-weights-volume" && vm.SubPath != expectedSubPath {
+						t.Errorf("%s: main container model-weights-volume SubPath = %q, want %q",
+							k, vm.SubPath, expectedSubPath)
+					}
+				}
+				for _, ic := range statefulset.Spec.Template.Spec.InitContainers {
+					for _, vm := range ic.VolumeMounts {
+						if vm.Name == "model-weights-volume" && vm.SubPath != expectedSubPath {
+							t.Errorf("%s: init container %s model-weights-volume SubPath = %q, want %q",
+								k, ic.Name, vm.SubPath, expectedSubPath)
+						}
+					}
 				}
 			}
 		})

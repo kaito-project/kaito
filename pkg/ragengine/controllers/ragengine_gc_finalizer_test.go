@@ -28,18 +28,39 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func TestGarbageCollectRAGEngine(t *testing.T) {
 	testcases := map[string]struct {
-		callMocks      func(c *test.MockClient)
-		ragengine      *kaitov1beta1.RAGEngine
-		expectedResult ctrl.Result
-		expectedError  error
-		verifyCalls    func(c *test.MockClient)
+		callMocks                   func(c *test.MockClient)
+		ragengine                   *kaitov1beta1.RAGEngine
+		disableNodeAutoProvisioning bool
+		expectedResult              ctrl.Result
+		expectedError               error
+		verifyCalls                 func(c *test.MockClient)
 	}{
+		"Successfully skips NodeClaim cleanup when disableNodeAutoProvisioning is true": {
+			disableNodeAutoProvisioning: true,
+			callMocks: func(c *test.MockClient) {
+				// Mock successful finalizer removal - no List/Delete for NodeClaims
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
+			},
+			ragengine: func() *kaitov1beta1.RAGEngine {
+				ragengine := test.MockRAGEngineDistributedModel.DeepCopy()
+				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				return ragengine
+			}(),
+			expectedResult: ctrl.Result{},
+			expectedError:  nil,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 0)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 1)
+			},
+		},
 		"Successfully garbage collect RAGEngine with no nodeClaims": {
 			callMocks: func(c *test.MockClient) {
 				// Mock empty nodeClaim list
@@ -323,6 +344,12 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
+
+			// Set the feature gate for this test case
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			}()
 
 			reconciler := &RAGEngineReconciler{
 				Client: mockClient,

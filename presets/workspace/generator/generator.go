@@ -42,7 +42,7 @@ var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
 	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
-	// source: https://github.com/vllm-project/vllm/blob/main/docs/features/reasoning_outputs.md
+	// source: https://github.com/vllm-project/vllm/blob/v0.17.1/vllm/reasoning/__init__.py
 	reasoningParserModeNamePrefixMap = map[string]string{
 		"deepseek-r1":  "deepseek_r1",
 		"deepseek-v3":  "deepseek_v3",
@@ -51,9 +51,12 @@ var (
 		"holo2":        "holo2",
 		"hunyuan-a13b": "hunyuan_a13b",
 		"granite-3.2":  "granite",
+		"kimi-k2":      "kimi_k2",
 		"minimax-m2":   "minimax_m2_append_think",
+		"olmo-3":       "olmo3",
 		"qwen3":        "qwen3",
 		"qwq-32b":      "deepseek_r1",
+		"step3":        "step3",
 	}
 	reasoningParserArchMap = map[string]string{
 		"DeepseekV3ForCausalLM":                  "deepseek_v3",
@@ -62,7 +65,11 @@ var (
 		"Glm4MoeForCausalLM":                     "glm45",
 		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
 		"GraniteForCausalLM":                     "granite",
+		"KimiK2ForCausalLM":                      "kimi_k2",
 		"MiniMaxM2ForCausalLM":                   "minimax_m2_append_think",
+		"MistralForCausalLM":                     "mistral",
+		"NemotronForCausalLM":                    "nemotron_v3",
+		"OlmoForCausalLM":                        "olmo3",
 		"Qwen3ForCausalLM":                       "qwen3",
 		"Qwen3MoeForCausalLM":                    "qwen3",
 		"GptOssForCausalLM":                      "openai_gptoss",

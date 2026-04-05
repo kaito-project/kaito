@@ -37,7 +37,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator/advancednodesestimator"
+	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -70,6 +71,20 @@ func TestGeneratePresetInference(t *testing.T) {
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			hasAdapters: false,
+		},
+
+		"test-model/vllm-float16": {
+			workspace: test.MockWorkspaceWithPresetVLLMFloat16,
+			nodeCount: 1,
+			modelName: "test-model",
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+			},
+			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
+			// T4 GPU does not support bfloat16, so dtype=float16 is added
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
 		},
 
@@ -185,7 +200,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=6 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=6 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=6 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=6 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
@@ -221,7 +236,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				// Mock node list for BYO node discovery
 				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=6 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=6 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=6 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=6 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
@@ -266,7 +281,7 @@ func TestGeneratePresetInference(t *testing.T) {
 		},
 	}
 
-	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
+	estimator := &nodesestimator.NodeEstimator{}
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -284,7 +299,12 @@ func TestGeneratePresetInference(t *testing.T) {
 
 			// Set the Status.Inference.TargetNodeCount for proper node count calculation
 			if workspace.Inference != nil {
-				nodeCount, err := estimator.EstimateNodeCount(t.Context(), workspace, mockClient)
+				req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), workspace, mockClient)
+				if reqErr != nil {
+					t.Errorf("%s: failed to build estimate request: %v", k, reqErr)
+					return
+				}
+				nodeCount, err := estimator.EstimateNodeCount(t.Context(), req, mockClient)
 				if err != nil {
 					t.Errorf("%s: failed to estimate node count: %v", k, err)
 					return
@@ -920,6 +940,79 @@ func TestSetAdapterPuller(t *testing.T) {
 			expectedEnvVars: []string{"adapter-1"},
 			expectError:     false,
 		},
+		"single volume adapter": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Adapters: []v1beta1.AdapterSpec{
+						{
+							Source: &v1beta1.DataSource{
+								Name: "adapter-1",
+								Volume: &corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "test-pvc",
+									},
+								},
+							},
+							Strength: &ValidStrength,
+						},
+					},
+				},
+			},
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-container",
+					},
+				},
+			},
+			expectedVolumes: []string{"adapter-volume-adapter-1"},
+			expectedEnvVars: []string{"adapter-1"},
+			expectError:     false,
+		},
+		"mixed image and volume adapters": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Adapters: []v1beta1.AdapterSpec{
+						{
+							Source: &v1beta1.DataSource{
+								Name:  "adapter-img",
+								Image: "test-registry/adapter:v1",
+							},
+							Strength: &ValidStrength,
+						},
+						{
+							Source: &v1beta1.DataSource{
+								Name: "adapter-vol",
+								Volume: &corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "test-pvc",
+									},
+								},
+							},
+							Strength: &ValidStrength,
+						},
+					},
+				},
+			},
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-container",
+					},
+				},
+			},
+			expectedVolumes: []string{"adapter-volume", "adapter-volume-adapter-vol"},
+			expectedEnvVars: []string{"adapter-img", "adapter-vol"},
+			expectError:     false,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -947,21 +1040,23 @@ func TestSetAdapterPuller(t *testing.T) {
 				t.Errorf("volumes mismatch: expected %v, got %v", tc.expectedVolumes, actualVolumes)
 			}
 
-			// Check volume mounts on containers
+			// Check volume mounts on containers (only adapter volumes, not docker-config secret volumes)
 			if len(tc.expectedVolumes) > 0 {
 				for _, container := range tc.spec.Containers {
-					foundAdapterMount := false
-					for _, mount := range container.VolumeMounts {
-						if mount.Name == "adapter-volume" {
-							foundAdapterMount = true
-							if mount.MountPath != "/mnt/adapter" {
-								t.Errorf("unexpected mount path for adapter volume: %s", mount.MountPath)
-							}
-							break
+					for _, expectedVol := range tc.expectedVolumes {
+						if !strings.HasPrefix(expectedVol, "adapter-volume") {
+							continue // docker-config volumes are only mounted on init containers
 						}
-					}
-					if !foundAdapterMount {
-						t.Errorf("adapter volume mount not found in container %s", container.Name)
+						foundMount := false
+						for _, mount := range container.VolumeMounts {
+							if mount.Name == expectedVol {
+								foundMount = true
+								break
+							}
+						}
+						if !foundMount {
+							t.Errorf("volume mount %s not found in container %s", expectedVol, container.Name)
+						}
 					}
 				}
 			}
@@ -990,10 +1085,25 @@ func TestSetAdapterPuller(t *testing.T) {
 				}
 			}
 
-			// Check init containers
-			if len(tc.workspace.Inference.Adapters) > 0 {
+			// Check init containers: only image-based adapters should produce pullers
+			hasImageAdapters := false
+			for _, adapter := range tc.workspace.Inference.Adapters {
+				if adapter.Source != nil && adapter.Source.Image != "" {
+					hasImageAdapters = true
+					break
+				}
+			}
+			if hasImageAdapters {
 				if len(tc.spec.InitContainers) == 0 {
-					t.Errorf("expected init containers for adapter pulling but found none")
+					t.Errorf("expected init containers for image-based adapter pulling but found none")
+				}
+			}
+
+			// Check that volume-based adapters do NOT produce init containers
+			hasOnlyVolumeAdapters := len(tc.workspace.Inference.Adapters) > 0 && !hasImageAdapters
+			if hasOnlyVolumeAdapters {
+				if len(tc.spec.InitContainers) != 0 {
+					t.Errorf("expected no init containers for volume-only adapters but found %d", len(tc.spec.InitContainers))
 				}
 			}
 		})

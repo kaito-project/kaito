@@ -87,7 +87,7 @@ endif
 golangci-lint: $(GOLANGCI_LINT) ## Download and install golangci-lint locally.
 
 .PHONY: ginkgo
-ginkgo: $(GOLANGCI_LINT) ## Download and install ginkgo locally.
+ginkgo: $(GINKGO) ## Download and install ginkgo locally.
 
 $(GOLANGCI_LINT): ## Download and install golangci-lint locally.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)
@@ -115,9 +115,9 @@ SHELL = /usr/bin/env bash -o pipefail
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole, and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-	cp config/crd/bases/kaito.sh_workspaces.yaml charts/kaito/workspace/crds/
-	cp config/crd/bases/kaito.sh_inferencesets.yaml charts/kaito/workspace/crds/
-	cp config/crd/bases/kaito.sh_ragengines.yaml charts/kaito/ragengine/crds/
+	cp config/crd/bases/kaito.sh_workspaces.yaml charts/kaito/workspace/templates/
+	cp config/crd/bases/kaito.sh_inferencesets.yaml charts/kaito/workspace/templates/
+	cp config/crd/bases/kaito.sh_ragengines.yaml charts/kaito/ragengine/templates/
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.

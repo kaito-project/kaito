@@ -53,4 +53,9 @@ const (
 
 	// ConditionTypeScalingDownStatus is the state when scaling down nodeClaim.
 	ConditionTypeScalingDownStatus = ConditionType("ScalingDownCompleted")
+
+	// WorkspaceConditionTypeBenchmarkCompleted is the state after the post-load benchmark has run.
+	// True means the benchmark completed and results are stored in status.benchmarkResult.
+	// Only set when the kaito.sh/run-benchmark annotation is "true".
+	WorkspaceConditionTypeBenchmarkCompleted = ConditionType("BenchmarkCompleted")
 )

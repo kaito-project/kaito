@@ -56,7 +56,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator/advancednodesestimator"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
@@ -92,7 +92,7 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 		klogger:             klog.NewKlogr().WithName("WorkspaceController"),
 		Recorder:            Recorder,
 		expectations:        expectations,
-		Estimator:           &advancednodesestimator.AdvancedNodesEstimator{},
+		Estimator:           &nodesestimator.NodeEstimator{},
 		nodeClaimManager:    resource.NewNodeClaimManager(client, Recorder, expectations),
 		nodeResourceManager: resource.NewNodeManager(client),
 	}
@@ -563,7 +563,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		}
 
 		if wObj.Inference != nil {
-			applyInferenceWorkspaceStatus(status, wObj.GetGeneration(), appendReconcileErrMessage, inferenceReady, nodeSnapshot.resourceConditionStatus)
+			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, nodeSnapshot.resourceConditionStatus)
 			return nil
 		}
 
@@ -806,14 +806,25 @@ func applyTuningWorkspaceStatus(status *kaitov1beta1.WorkspaceStatus, generation
 	}
 }
 
-func applyInferenceWorkspaceStatus(status *kaitov1beta1.WorkspaceStatus, generation int64, appendMessage func(string) string,
+func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, appendMessage func(string) string,
 	inferenceReady bool, resourceConditionStatus metav1.ConditionStatus) {
+	generation := wObj.GetGeneration()
 	resourceReady := resourceConditionStatus == metav1.ConditionTrue
 	isInferenceEstablished := status.State == kaitov1beta1.WorkspaceStateReady || status.State == kaitov1beta1.WorkspaceStateNotReady
 
 	if inferenceReady && resourceReady {
 		setWorkspaceCondition(status, generation, appendMessage,
 			kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue, "WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully")
+
+		if kaitov1beta1.IsRunBenchmarkEnabled(wObj) {
+			if err := applyBenchmarkStatus(ctx, status, wObj, generation, appendMessage); err != nil {
+				setWorkspaceCondition(status, generation, appendMessage,
+					kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "BenchmarkFailed", err.Error())
+				status.State = kaitov1beta1.WorkspaceStateNotReady
+				return
+			}
+		}
+
 		setWorkspaceCondition(status, generation, appendMessage,
 			kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionTrue, "workspaceSucceeded", "workspace succeeds")
 		status.State = kaitov1beta1.WorkspaceStateReady
@@ -824,11 +835,46 @@ func applyInferenceWorkspaceStatus(status *kaitov1beta1.WorkspaceStatus, generat
 		kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse, "WorkspaceInferenceStatusPending", "Inference workload is not ready")
 	setWorkspaceCondition(status, generation, appendMessage,
 		kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", "workspace is waiting for inference workload readiness")
+	// Clear benchmark state so applyBenchmarkStatus re-runs once inference recovers.
+	// This ensures a pod restart or rolling update doesn't leave stale results.
+	if kaitov1beta1.IsRunBenchmarkEnabled(wObj) {
+		meta.RemoveStatusCondition(&status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+		status.Performance = nil
+	}
 	if isInferenceEstablished {
 		status.State = kaitov1beta1.WorkspaceStateNotReady
 	} else {
 		status.State = kaitov1beta1.WorkspaceStatePending
 	}
+}
+
+// applyBenchmarkStatus reads and parses the benchmark result from pod logs,
+// then sets the BenchmarkCompleted condition on the workspace status.
+// Returns nil on success (or when already recorded), non-nil on terminal failure.
+// Skips the log read when BenchmarkCompleted is already True — the not-ready path
+// clears the condition on any pod restart or rolling update.
+func applyBenchmarkStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, generation int64, appendMessage func(string) string) error {
+	// Skip once the benchmark is done. Safe because the not-ready path clears BenchmarkCompleted
+	// whenever inference goes down, so we won't get into a stale state.
+	if c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted)); c != nil && c.Status == metav1.ConditionTrue {
+		return nil
+	}
+
+	result, err := reconcileBenchmarkResult(ctx, wObj)
+	// These errors are terminal
+	if err != nil {
+		klog.ErrorS(err, "benchmark failed", "workspace", klog.KObj(wObj))
+		setWorkspaceCondition(status, generation, appendMessage,
+			kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted, metav1.ConditionFalse,
+			"BenchmarkFailed", err.Error())
+		return err
+	}
+
+	status.Performance = result
+	setWorkspaceCondition(status, generation, appendMessage,
+		kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
+		"BenchmarkCompleted", "benchmark result has been recorded")
+	return nil
 }
 
 func (c *WorkspaceReconciler) updateWorkspaceStatusIfChanged(ctx context.Context, key types.NamespacedName, modifyFn func(*kaitov1beta1.WorkspaceStatus) error) error {
@@ -935,10 +981,30 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	var err error
 	targetNodeCount := int32(1)
 	if wObj.Status.TargetNodeCount == 0 {
+		// Build the estimate request once, outside the status-update closure.
+		req, reqErr := workspace.NodeEstimateRequestFromWorkspace(ctx, wObj, c.Client)
+		if reqErr != nil {
+			return fmt.Errorf("failed to build node estimate request: %w", reqErr)
+		}
+
+		// Resolve the context window size from the workspace's inference ConfigMap (if any)
+		// and pass it through RuntimeProfile so the estimator does not need to do I/O.
+		if wObj.Inference != nil && wObj.Inference.Config != "" {
+			configMap := &corev1.ConfigMap{}
+			if cmErr := resources.GetResource(ctx, wObj.Inference.Config, wObj.Namespace, c.Client, configMap); cmErr != nil {
+				klog.Warningf("[UpdateWorkspaceTargetNodeCount] workspace=%s: failed to get ConfigMap %s: %v, using estimator default context size",
+					wObj.Name, wObj.Inference.Config, cmErr)
+			} else if configData, exists := configMap.Data["inference_config.yaml"]; exists {
+				if contextSize, found := utils.ParseExplicitMaxModelLen(configData); found {
+					req.RuntimeProfile = estimator.RuntimeProfile{ContextSize: contextSize}
+				}
+			}
+		}
+
 		if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
 			if wObj.Inference != nil {
 				if v1beta1.GetWorkspaceRuntimeName(wObj) == pkgmodel.RuntimeNameVLLM {
-					targetNodeCount, err = c.Estimator.EstimateNodeCount(ctx, wObj, c.Client)
+					targetNodeCount, err = c.Estimator.EstimateNodeCount(ctx, req, c.Client)
 					if err != nil {
 						return fmt.Errorf("failed to calculate target node count: %w", err)
 					}

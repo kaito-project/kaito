@@ -448,6 +448,52 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 			},
 		},
 		{
+			name: "valid labels with CUDA compute capability",
+			node: &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gpu-node-a100",
+					Labels: map[string]string{
+						"nvidia.com/gpu.product":        "A100-SXM4-80GB",
+						"nvidia.com/gpu.count":          "1",
+						"nvidia.com/gpu.memory":         "81920",
+						"nvidia.com/cuda.compute.major": "8",
+						"nvidia.com/cuda.compute.minor": "0",
+					},
+				},
+			},
+			wantErr: false,
+			expected: &sku.GPUConfig{
+				SKU:                   "unknown",
+				GPUCount:              1,
+				GPUModel:              "A100-SXM4-80GB",
+				GPUMem:                resource.MustParse("80Gi"),
+				CUDAComputeCapability: 8.0,
+			},
+		},
+		{
+			name: "valid labels with CUDA compute capability 7.5",
+			node: &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gpu-node-t4",
+					Labels: map[string]string{
+						"nvidia.com/gpu.product":        "Tesla-T4",
+						"nvidia.com/gpu.count":          "1",
+						"nvidia.com/gpu.memory":         "16384",
+						"nvidia.com/cuda.compute.major": "7",
+						"nvidia.com/cuda.compute.minor": "5",
+					},
+				},
+			},
+			wantErr: false,
+			expected: &sku.GPUConfig{
+				SKU:                   "unknown",
+				GPUCount:              1,
+				GPUModel:              "Tesla-T4",
+				GPUMem:                resource.MustParse("16Gi"),
+				CUDAComputeCapability: 7.5,
+			},
+		},
+		{
 			name: "missing nvidia.com/gpu.product label",
 			node: &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
@@ -528,6 +574,7 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 				assert.Equal(t, tt.expected.GPUCount, got.GPUCount)
 				assert.Equal(t, tt.expected.GPUModel, got.GPUModel)
 				assert.True(t, tt.expected.GPUMem.Cmp(got.GPUMem) == 0, "expected GPUMem %s, got %s", tt.expected.GPUMem.String(), got.GPUMem.String())
+				assert.Equal(t, tt.expected.CUDAComputeCapability, got.CUDAComputeCapability)
 			}
 		})
 	}

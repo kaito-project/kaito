@@ -65,7 +65,10 @@ jobs:
   build-models:
     needs: determine-models
     if: needs.determine-models.outputs.is_matrix_empty == 'false'
-    runs-on: [ "self-hosted", "1ES.Pool=1es-aks-kaito-image-build-agent-pool-ubuntu" ]
+    runs-on:
+      - self-hosted
+      - 1ES.Pool=1es-aks-kaito-image-build-agent-pool-ubuntu
+      - JobId=buildModels-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
     environment: preset-env
     strategy:
       fail-fast: false
@@ -192,4 +195,3 @@ jobs:
           model_runtime: ${{ matrix.model.runtime }}
           hf_username: ${{ secrets.HF_USERNAME }}
           hf_token: ${{ secrets.HF_TOKEN }}
-          runs_on: "1ES.Pool=1es-aks-kaito-image-build-agent-pool-ubuntu"

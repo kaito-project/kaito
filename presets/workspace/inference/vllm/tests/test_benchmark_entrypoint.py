@@ -120,27 +120,67 @@ def test_read_counter_network_error():
 
 # ── _compute_max_concurrency ──────────────────────────────────────────────────
 
+_CACHE_CONFIG_METRICS_BODY = b"""\
+# HELP vllm:cache_config_info Information of the LLMEngine CacheConfig
+# TYPE vllm:cache_config_info gauge
+vllm:cache_config_info{block_size="16",cache_dtype="auto",engine="0",gpu_memory_utilization="0.7",num_gpu_blocks="8059"} 1.0
+"""
 
-def test_compute_max_concurrency_with_env(monkeypatch):
-    monkeypatch.setenv("BENCHMARK_MAX_CONCURRENCY", "256")
-    assert bm._compute_max_concurrency() == 256
+
+def test_compute_max_concurrency_success():
+    """Parses num_gpu_blocks and block_size and returns floor division result."""
+    # 8059 * 16 // (2048 + 256) = 128944 // 2304 = 55
+    resp = _make_urlopen_response(200, _CACHE_CONFIG_METRICS_BODY)
+    with patch("urllib.request.urlopen", return_value=resp):
+        assert bm._compute_max_concurrency() == 55
 
 
-def test_compute_max_concurrency_missing_env_raises(monkeypatch):
-    monkeypatch.delenv("BENCHMARK_MAX_CONCURRENCY", raising=False)
-    with pytest.raises(RuntimeError, match="invalid BENCHMARK_MAX_CONCURRENCY"):
+def test_compute_max_concurrency_metric_absent():
+    """Raises RuntimeError when vllm:cache_config_info line is not in /metrics."""
+    body = b"vllm:some_other_metric{} 1.0\n"
+    resp = _make_urlopen_response(200, body)
+    with (
+        patch("urllib.request.urlopen", return_value=resp),
+        pytest.raises(
+            RuntimeError,
+            match="vllm:cache_config_info metric or required labels not found",
+        ),
+    ):
         bm._compute_max_concurrency()
 
 
-def test_compute_max_concurrency_invalid_env_raises(monkeypatch):
-    monkeypatch.setenv("BENCHMARK_MAX_CONCURRENCY", "notanumber")
-    with pytest.raises(RuntimeError, match="invalid BENCHMARK_MAX_CONCURRENCY"):
+def test_compute_max_concurrency_labels_missing():
+    """Raises RuntimeError when cache_config_info sample lacks num_gpu_blocks or block_size."""
+    body = b'vllm:cache_config_info{gpu_memory_utilization="0.7"} 1.0\n'
+    resp = _make_urlopen_response(200, body)
+    with (
+        patch("urllib.request.urlopen", return_value=resp),
+        pytest.raises(
+            RuntimeError,
+            match="vllm:cache_config_info metric or required labels not found",
+        ),
+    ):
         bm._compute_max_concurrency()
 
 
-def test_compute_max_concurrency_zero_raises(monkeypatch):
-    monkeypatch.setenv("BENCHMARK_MAX_CONCURRENCY", "0")
-    with pytest.raises(RuntimeError, match="invalid BENCHMARK_MAX_CONCURRENCY"):
+def test_compute_max_concurrency_fetch_fails():
+    """Raises RuntimeError when /metrics is unreachable."""
+    with (
+        patch("urllib.request.urlopen", side_effect=OSError("connection refused")),
+        pytest.raises(RuntimeError, match="failed to fetch /metrics"),
+    ):
+        bm._compute_max_concurrency()
+
+
+def test_compute_max_concurrency_zero_result():
+    """Raises RuntimeError when computed concurrency is 0 (block capacity < seq_len)."""
+    # num_gpu_blocks=1, block_size=1 → 1 // 2304 = 0
+    body = b'vllm:cache_config_info{num_gpu_blocks="1",block_size="1"} 1.0\n'
+    resp = _make_urlopen_response(200, body)
+    with (
+        patch("urllib.request.urlopen", return_value=resp),
+        pytest.raises(RuntimeError, match="computed max_concurrency=0"),
+    ):
         bm._compute_max_concurrency()
 
 
@@ -302,12 +342,13 @@ def test_run_benchmark_success(monkeypatch):
             side_effect=[0.0, 60.0],  # t0, t1 → 60 s elapsed
         ),
     ):
-        tpm, ttft, tpot = bm._run_benchmark()
+        tpm, ttft, tpot, max_concurrency = bm._run_benchmark()
 
     # (6000 + 24576) * 60 / 60 = 30576.0
     assert tpm == pytest.approx(30576.0)
     assert ttft == 42.12
     assert tpot == 3.46
+    assert max_concurrency == 128
 
 
 def test_run_benchmark_no_generation():
@@ -411,7 +452,7 @@ def test_main_benchmark_success_exits_0(monkeypatch):
 
     with (
         patch.object(bm, "_health_check", return_value=True),
-        patch.object(bm, "_run_benchmark", return_value=(12345.67, 42.12, 3.46)),
+        patch.object(bm, "_run_benchmark", return_value=(12345.67, 42.12, 3.46, 256)),
         patch.object(bm, "_drain"),
         patch.object(bm, "_write_to_pid1", side_effect=fake_write),
         patch("time.time", return_value=0.0),
@@ -463,7 +504,7 @@ def test_main_exactly_one_result_line_on_success(monkeypatch):
 
     with (
         patch.object(bm, "_health_check", return_value=True),
-        patch.object(bm, "_run_benchmark", return_value=(999.0, 10.0, 2.0)),
+        patch.object(bm, "_run_benchmark", return_value=(999.0, 10.0, 2.0, 128)),
         patch.object(bm, "_drain"),
         patch.object(
             bm, "_write_to_pid1", side_effect=lambda line, fd=1: written.append(line)

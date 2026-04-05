@@ -23,7 +23,10 @@ import (
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -180,10 +183,196 @@ func validateAdapterAdded(workspaceObj *kaitov1beta1.Workspace, deploymentName s
 	})
 }
 
+// createAdapterPVCWithData creates a PVC and populates it with adapter weights
+// by running a pod that copies data from the given adapter image into the PVC.
+// This follows the same pattern as createInputDatasetVolume() in preset_test.go.
+func createAdapterPVCWithData(storageClassName string, adapterImage string, imagePullSecret string) string {
+	coreClient, err := utils.GetK8sClientset()
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to create core client: %v", err))
+	}
+
+	pvcName := fmt.Sprintf("adapter-pvc-%s", string(uuid.NewUUID())[:8])
+	pvc, err := coreClient.CoreV1().PersistentVolumeClaims(namespaceName).Create(ctx, &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pvcName,
+			Namespace: namespaceName,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: resource.MustParse("500Mi"),
+				},
+			},
+			StorageClassName: &storageClassName,
+		},
+	}, metav1.CreateOptions{})
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to create PVC: %v", err))
+	}
+
+	volumeName := "adapter-data"
+	volumeMount := corev1.VolumeMount{
+		Name:      volumeName,
+		MountPath: "/mnt/adapter",
+		ReadOnly:  false,
+	}
+	volume := corev1.Volume{
+		Name: volumeName,
+		VolumeSource: corev1.VolumeSource{
+			PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+				ClaimName: pvc.Name,
+			},
+		},
+	}
+
+	// Create a pod that copies adapter weights from the image to the PVC
+	podName := fmt.Sprintf("populate-adapter-%s", string(uuid.NewUUID())[:8])
+	pod := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      podName,
+			Namespace: namespaceName,
+		},
+		Spec: corev1.PodSpec{
+			RestartPolicy: corev1.RestartPolicyNever,
+			ImagePullSecrets: []corev1.LocalObjectReference{
+				{Name: imagePullSecret},
+			},
+			Containers: []corev1.Container{
+				{
+					Name:    "copy-adapter",
+					Image:   adapterImage,
+					Command: []string{"/bin/sh", "-c", "cp -r /data/. /mnt/adapter/ && ls -la /mnt/adapter/"},
+					VolumeMounts: []corev1.VolumeMount{
+						volumeMount,
+					},
+				},
+			},
+			Volumes: []corev1.Volume{
+				volume,
+			},
+		},
+	}
+	_, err = coreClient.CoreV1().Pods(namespaceName).Create(ctx, pod, metav1.CreateOptions{})
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to create adapter population Pod: %v", err))
+	}
+
+	// Wait for the PVC to be bound
+	Eventually(func() bool {
+		pvc, err := coreClient.CoreV1().PersistentVolumeClaims(namespaceName).Get(ctx, pvcName, metav1.GetOptions{})
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to get PVC: %v", err))
+		}
+		return pvc.Status.Phase == corev1.ClaimBound
+	}, 5*time.Minute, 10*time.Second).Should(BeTrue(), "PVC is not bound")
+
+	// Wait for the Pod to succeed (completed copying)
+	Eventually(func() bool {
+		pod, err := coreClient.CoreV1().Pods(namespaceName).Get(ctx, podName, metav1.GetOptions{})
+		if err != nil {
+			Fail(fmt.Sprintf("Failed to get Pod: %v", err))
+		}
+		return pod.Status.Phase == corev1.PodSucceeded
+	}, 5*time.Minute, 10*time.Second).Should(BeTrue(), "Adapter population pod did not succeed")
+
+	// Delete the pod to release the PVC
+	err = coreClient.CoreV1().Pods(namespaceName).Delete(ctx, podName, metav1.DeleteOptions{})
+	if err != nil {
+		Fail(fmt.Sprintf("Failed to delete adapter population Pod: %v", err))
+	}
+
+	// Wait for the Pod to be deleted
+	Eventually(func() bool {
+		_, err := coreClient.CoreV1().Pods(namespaceName).Get(ctx, podName, metav1.GetOptions{})
+		if err != nil {
+			if errors.IsNotFound(err) {
+				return true
+			}
+			Fail(fmt.Sprintf("Failed to get Pod: %v", err))
+		}
+		return false
+	}, 5*time.Minute, 10*time.Second).Should(BeTrue(), "Adapter population pod not deleted")
+
+	return pvcName
+}
+
+func validateNoAdapterInitContainer(workspaceObj *kaitov1beta1.Workspace) {
+	By("Checking that no adapter puller init container exists (volume adapter path)", func() {
+		Eventually(func() bool {
+			sts := &appsv1.StatefulSet{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, sts)
+			if err != nil {
+				GinkgoWriter.Printf("Error fetching StatefulSet: %v\n", err)
+				return false
+			}
+
+			for _, ic := range sts.Spec.Template.Spec.InitContainers {
+				// The puller init containers follow the pattern "puller-<adapterName>"
+				if strings.HasPrefix(ic.Name, "puller-") {
+					GinkgoWriter.Printf("Found unexpected adapter puller init container: %s\n", ic.Name)
+					return false
+				}
+			}
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "Volume-based adapter should NOT create puller init containers")
+	})
+}
+
+func validatePVCMounted(workspaceObj *kaitov1beta1.Workspace, pvcName string) {
+	By("Checking that the PVC is mounted in the StatefulSet", func() {
+		Eventually(func() bool {
+			sts := &appsv1.StatefulSet{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, sts)
+			if err != nil {
+				GinkgoWriter.Printf("Error fetching StatefulSet: %v\n", err)
+				return false
+			}
+
+			// Check that a volume referencing the PVC exists
+			pvcVolumeFound := false
+			var pvcVolumeName string
+			for _, vol := range sts.Spec.Template.Spec.Volumes {
+				if vol.PersistentVolumeClaim != nil && vol.PersistentVolumeClaim.ClaimName == pvcName {
+					pvcVolumeFound = true
+					pvcVolumeName = vol.Name
+					break
+				}
+			}
+			if !pvcVolumeFound {
+				GinkgoWriter.Printf("PVC %s not found in StatefulSet volumes\n", pvcName)
+				return false
+			}
+
+			// Check that the volume is mounted in the main container at /mnt/adapter/<name>
+			for _, container := range sts.Spec.Template.Spec.Containers {
+				for _, vm := range container.VolumeMounts {
+					if vm.Name == pvcVolumeName && strings.HasPrefix(vm.MountPath, "/mnt/adapter/") {
+						return true
+					}
+				}
+			}
+			GinkgoWriter.Printf("Volume %s not mounted in any container\n", pvcVolumeName)
+			return false
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "PVC should be mounted in the StatefulSet")
+	})
+}
+
 func validateAdapterLoadedInVLLM(workspaceObj *kaitov1beta1.Workspace, adapterName string) {
 	deploymentName := workspaceObj.Name
 	execOption := corev1.PodExecOptions{
-		Command:   []string{"bash", "-c", "apt-get update && apt-get install curl -y; curl -s 127.0.0.1:5000/v1/models | grep " + adapterName},
+		Command: []string{
+			"bash",
+			"-c",
+			"apt-get update && apt-get install curl -y; curl -s 127.0.0.1:5000/v1/models | grep " + adapterName,
+		},
 		Container: deploymentName,
 		Stdout:    true,
 		Stderr:    true,
@@ -228,57 +417,62 @@ var _ = Describe("Workspace Preset", func() {
 		loadModelVersions()
 	})
 
-	It("should create a falcon workspace with adapter, and update the workspace with another adapter", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		workspaceObj := createCustomWorkspaceWithAdapter(numOfNode, testAdapters1)
+	It(
+		"should create a falcon workspace with adapter, and update the workspace with another adapter",
+		utils.GinkgoLabelFastCheck,
+		func() {
+			numOfNode := 1
+			workspaceObj := createCustomWorkspaceWithAdapter(numOfNode, testAdapters1)
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+			defer cleanupResources(workspaceObj)
+			time.Sleep(30 * time.Second)
 
-		utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
+			utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
+			validateResourceStatus(workspaceObj)
 
-		time.Sleep(30 * time.Second)
+			time.Sleep(30 * time.Second)
 
-		validateAssociatedService(workspaceObj)
+			validateAssociatedService(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode))
+			validateInferenceResource(workspaceObj, int32(numOfNode))
 
-		validateWorkspaceReadiness(workspaceObj)
+			validateWorkspaceReadiness(workspaceObj)
 
-		validateRevision(workspaceObj, "1")
+			validateRevision(workspaceObj, "1")
 
-		var expectedInitContainers1 = []corev1.Container{
-			{
-				Name:  baseInitContainer.Name + "-" + imageName1,
-				Image: baseInitContainer.Image,
-			},
-		}
-		var expectedInitContainers2 = []corev1.Container{
-			{
-				Name:  baseInitContainer.Name + "-" + imageName2,
-				Image: baseInitContainer.Image,
-			},
-		}
+			var expectedInitContainers1 = []corev1.Container{
+				{
+					Name:  baseInitContainer.Name + "-" + imageName1,
+					Image: baseInitContainer.Image,
+				},
+			}
+			var expectedInitContainers2 = []corev1.Container{
+				{
+					Name:  baseInitContainer.Name + "-" + imageName2,
+					Image: baseInitContainer.Image,
+				},
+			}
 
-		validateInitContainers(workspaceObj, expectedInitContainers1)
-		validateImagePullSecrets(workspaceObj, testAdapters1[0].Source.ImagePullSecrets)
-		validateAdapterAdded(workspaceObj, workspaceObj.Name, imageName1)
+			validateInitContainers(workspaceObj, expectedInitContainers1)
+			validateImagePullSecrets(workspaceObj, testAdapters1[0].Source.ImagePullSecrets)
+			validateAdapterAdded(workspaceObj, workspaceObj.Name, imageName1)
 
-		workspaceObj = updateCustomWorkspaceWithAdapter(workspaceObj, testAdapters2)
-		validateResourceStatus(workspaceObj)
+			workspaceObj = updateCustomWorkspaceWithAdapter(workspaceObj, testAdapters2)
+			validateResourceStatus(workspaceObj)
 
-		time.Sleep(30 * time.Second)
+			time.Sleep(30 * time.Second)
 
-		validateAssociatedService(workspaceObj)
+			validateAssociatedService(workspaceObj)
 
-		validateInferenceResource(workspaceObj, int32(numOfNode))
+			validateInferenceResource(workspaceObj, int32(numOfNode))
 
-		validateWorkspaceReadiness(workspaceObj)
+			validateWorkspaceReadiness(workspaceObj)
 
-		validateRevision(workspaceObj, "2")
-		validateInitContainers(workspaceObj, expectedInitContainers2)
-		validateImagePullSecrets(workspaceObj, testAdapters2[0].Source.ImagePullSecrets)
-		validateAdapterAdded(workspaceObj, workspaceObj.Name, imageName2)
-	})
+			validateRevision(workspaceObj, "2")
+			validateInitContainers(workspaceObj, expectedInitContainers2)
+			validateImagePullSecrets(workspaceObj, testAdapters2[0].Source.ImagePullSecrets)
+			validateAdapterAdded(workspaceObj, workspaceObj.Name, imageName2)
+		},
+	)
+
 })

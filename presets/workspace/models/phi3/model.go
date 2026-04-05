@@ -61,9 +61,7 @@ var (
 		"pipeline":          "text-generation",
 		"trust_remote_code": "",
 	}
-	phiRunParamsVLLM = map[string]string{
-		"dtype": "float16",
-	}
+	phiRunParamsVLLM = map[string]string{}
 )
 
 var phi3MiniA phi3Mini4KInst
@@ -84,6 +82,7 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
+				ModelName:         PresetPhi3Mini4kModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -106,6 +105,7 @@ func (*phi3Mini4KInst) GetTuningParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetPhiTuning,
+				ModelName:   PresetPhi3Mini4kModel,
 			},
 		},
 	}
@@ -133,6 +133,7 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
+				ModelName:         PresetPhi3Mini128kModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -153,6 +154,7 @@ func (*phi3Mini128KInst) GetTuningParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetPhiTuning,
+				ModelName:   PresetPhi3Mini128kModel,
 			},
 		},
 	}
@@ -180,6 +182,7 @@ func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
+				ModelName:         PresetPhi3_5MiniInstruct,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -202,6 +205,7 @@ func (*phi3_5MiniInst) GetTuningParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetPhiTuning,
+				ModelName:   PresetPhi3_5MiniInstruct,
 			},
 		},
 	}
@@ -229,6 +233,7 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
+				ModelName:         PresetPhi3Medium4kModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -251,6 +256,7 @@ func (*Phi3Medium4kInstruct) GetTuningParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetPhiTuning,
+				ModelName:   PresetPhi3Medium4kModel,
 			},
 		},
 	}
@@ -278,6 +284,7 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phiRunParams,
+				ModelName:         PresetPhi3Medium128kModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -298,6 +305,7 @@ func (*Phi3Medium128kInstruct) GetTuningParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetPhiTuning,
+				ModelName:   PresetPhi3Medium128kModel,
 			},
 		},
 	}

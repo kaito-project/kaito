@@ -20,6 +20,21 @@ A **RAGEngine index** is a logical collection that organizes and stores your doc
 
 This design enables fine-grained retrieval and more accurate, context-aware responses from your LLM-powered applications.
 
+## Vector Store Backend Differences
+
+The RAGEngine API is the same regardless of the vector store backend (FAISS, Qdrant, etc.), but there are behavioral differences worth noting:
+
+| Feature | FAISS | Qdrant |
+|---|---|---|
+| **Search type** | Dense embedding similarity | Hybrid (dense + BM25 sparse) with Reciprocal Rank Fusion |
+| **Persistence** | In-memory; requires PVC or `/persist` API | Server-side; data survives pod restarts automatically |
+| **Document dedup** | Via in-memory docstore | Via Qdrant `count()` queries (docstore-independent) |
+| **Index restore on restart** | From PVC snapshot (if configured) | Automatic from Qdrant collections |
+
+:::note Qdrant hybrid search
+When using the Qdrant backend, all retrieval queries (`/retrieve` and `/v1/chat/completions`) automatically use **hybrid search**: results from dense vector similarity and BM25 keyword matching are fused using Reciprocal Rank Fusion (RRF). This typically improves retrieval quality for mixed keyword/semantic queries without any API changes.
+:::
+
 ## Creating an Index With Documents
 
 To add documents to an index or create a new index, use the `/index` API route. This endpoint accepts a POST request with the index name and a list of documents to be indexed.
@@ -364,6 +379,61 @@ POST /v1/chat/completions
 
 Use this endpoint to integrate RAG capabilities into applications that already use OpenAI's chat completions API format.
 
-## Example Python Client
+## Retrieve Relevant Context
 
-You can leverage the [example_rag_client.py](./example_rag_client.py) as a starting point for a rag client with inputs that match the route documentation above.
+The RAGEngine provides a `/retrieve` api that will leverage hybrid search to fetch relevant context from your backing vector store and return the nodes without calling out to the LLM.  This api route provides a simple way to integrate with a MCP server or Skill for agents to provide context to LLM's rather than using the chat completions api with direct LLM calls.
+
+### Retrieve Request
+
+```json
+POST /retrieve
+{
+  "index_name": "rag_index",
+  "query": "what is KAITO?",
+  "max_node_count": 1,
+  "metadata_filter": {
+    "branch": "main"
+  }
+}
+```
+
+- `index_name`: The name of the index to query for relevant documents.
+- `query`: The content that will be used to search for relevant documents in the vector store.
+- `max_node_count`: Optional parameter setting the max amount of nodes to be returned. Defaults to 5.
+- `metadata_filter`: An optional dict of key/value pairs that can be used to filter documents for response.
+
+### Retrieve Response
+
+```json
+{
+    "query": "what is KAITO?",
+    "results": [
+        {
+            "doc_id": "cc86eb0843ef01a3801d54e4380e3adcdb258b5a1f54d2ebd564f9b65ea35c17",
+            "node_id": "83949ab9-b1cc-434b-b421-87cbaf495646",
+            "text": "func createAndValidateIndexPod(ragengineObj *kaitov1beta1.RAGEngine) (map[string]any, error) {\n\tcurlCommand := `curl -X POST ` + ragengineObj.ObjectMeta.Name + `:80/index \\\n-H \"Content-Type: application/json\" \\\n-d '{\n    \"index_name\": \"kaito\",\n    \"documents\": [\n        {\n            \"text\": \"Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster\",\n            \"metadata\": {\"author\": \"kaito\", \"category\": \"kaito\"}\n        }\n    ]\n}'`\n\topts := PodValidationOptions{\n\t\tPodName:            fmt.Sprintf(\"index-pod-%s\", utils.GenerateRandomString()),\n\t\tCurlCommand:        curlCommand,\n\t\tNamespace:          ragengineObj.ObjectMeta.Namespace,\n\t\tExpectedLogContent: \"Kaito is an operator that automates the AI/ML model inference or tuning workload in a Kubernetes cluster\",\n\t\tWaitForRunning:     false,\n\t\tParseJSONResponse:  true,\n\t\tJSONStartMarker:    \"[\",\n\t\tJSONEndMarker:      \"]\",\n\t}\n\treturn createAndValidateAPIPod(ragengineObj, opts)\n}",
+            "score": 0.5,
+            "dense_score": 0.71294934,
+            "sparse_score": null,
+            "source": "dense_only",
+            "metadata": {
+                "autoindexer": "default_kaito-code-autoindexer",
+                "source_type": "git",
+                "repository": "https://github.com/kaito-project/kaito.git",
+                "branch": "main",
+                "file_path": "test/rage2e/rag_test.go",
+                "change_type": "full",
+                "timestamp": "2026-04-01T21:40:52.780599Z",
+                "commit": "a9c5bef552aa673acac5714ccf50c42c9043aba6",
+                "language": "go",
+                "split_type": "code"
+            }
+        },
+    ],
+    "count": 1
+}
+```
+
+## Python Client
+
+You can leverage the [kaito-rag-engine-client](https://pypi.org/project/kaito-rag-engine-client/) python package to connect to and interact with your RAGEngine.  You can find example client setup and API calls on the project page.

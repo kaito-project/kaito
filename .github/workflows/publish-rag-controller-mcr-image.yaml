@@ -13,13 +13,16 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: '1.24'
+  GO_VERSION: '1.25'
   IMAGE_NAME: 'ragengine'
 
 jobs:
   build-publish-mcr-image:
     runs-on:
-      labels: [ "self-hosted", "1ES.Pool=1es-aks-kaito-agent-pool-ubuntu" ]
+      labels:
+        - self-hosted
+        - 1ES.Pool=1es-aks-kaito-agent-pool-ubuntu
+        - JobId=buildPublishMcrImage-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
     environment: publish-mcr
     steps:
       - name: Install Helm
@@ -44,7 +47,7 @@ jobs:
           ver=${{ github.event.client_payload.tag || github.event.inputs.tag }}
           echo "IMG_TAG=${ver#"v"}" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
           submodules: true
@@ -58,15 +61,17 @@ jobs:
       - name: 'Build and Publish RAGEngine to MCR'
         id: Publish
         run: |
-          INDEX_REF="${REGISTRY}/${RAGENGINE_IMAGE_NAME}:${IMG_TAG}"
+          ARTF_REPO="${REGISTRY}/${RAGENGINE_IMAGE_NAME}"
+          INDEX_REF="${ARTF_REPO}:${IMG_TAG}"
 
-          make docker-build-ragengine IMG_TAG="${IMG_TAG}-linux"
-          LINUX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-linux")"
+          make docker-build-ragengine
+          INDEX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
 
-          make helm-package-ragengine IMG_TAG="${IMG_TAG}-chart"
-          CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}-chart")"
-
-          oras manifest index create "${INDEX_REF}" "${LINUX_DIG}" "${CHART_DIG}"
+          # TODO(pedrotorres): remove REGISTRY override and uncomment all lines once sync problem is solved
+          make helm-package-ragengine REGISTRY="${REGISTRY}/helm"
+          # CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
+          #
+          # oras manifest index update "${ARTF_REPO}@${INDEX_DIG}" --add "${CHART_DIG}" --tag "${IMG_TAG}"
         env:
           VERSION: ${{ github.event.client_payload.tag || github.event.inputs.tag }}
           REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito

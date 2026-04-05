@@ -22,7 +22,7 @@ import pynvml
 import uvloop
 import vllm.entrypoints.openai.api_server as api_server
 import yaml
-from vllm.entrypoints.openai.serving_models import LoRAModulePath
+from vllm.entrypoints.openai.models.protocol import LoRAModulePath
 from vllm.utils.argparse_utils import FlexibleArgumentParser
 
 # Initialize logger

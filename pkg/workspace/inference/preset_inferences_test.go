@@ -19,12 +19,14 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -35,7 +37,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator/advancednodesestimator"
+	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -67,7 +70,21 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			hasAdapters: false,
+		},
+
+		"test-model/vllm-float16": {
+			workspace: test.MockWorkspaceWithPresetVLLMFloat16,
+			nodeCount: 1,
+			modelName: "test-model",
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+			},
+			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
+			// T4 GPU does not support bfloat16, so dtype=float16 is added
+			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters: false,
 		},
 
@@ -110,7 +127,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
-			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters:        true,
 			expectedVolume:     "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{{
@@ -183,7 +200,8 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=3 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=3 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=6 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=6 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -205,10 +223,10 @@ func TestGeneratePresetInference(t *testing.T) {
 		},
 
 		"test-model-download-distributed/vllm (more nodes than required)": {
-			// Using Standard_NC12s_v3, which has 32GB GPU memory per node.
-			// The preset requires 64GB GPU memory for the model, so only 4 nodes are needed.
+			// Using Standard_NC4as_T4_v3, which has 16GB GPU memory per node.
+			// The preset requires 64GB GPU memory for the model; estimator computes 6 nodes needed.
 			workspace: test.MockWorkspaceWithPresetDownloadVLLM,
-			nodeCount: 4, // 4 nodes are needed
+			nodeCount: 8, // 8 nodes requested; model requires 6, so 6 pipeline stages are used
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
@@ -218,7 +236,8 @@ func TestGeneratePresetInference(t *testing.T) {
 				// Mock node list for BYO node discovery
 				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=3 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --pipeline-parallel-size=3 --tensor-parallel-size=2; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=6 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=6 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -262,7 +281,7 @@ func TestGeneratePresetInference(t *testing.T) {
 		},
 	}
 
-	estimator := &advancednodesestimator.AdvancedNodesEstimator{}
+	estimator := &nodesestimator.NodeEstimator{}
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -280,7 +299,12 @@ func TestGeneratePresetInference(t *testing.T) {
 
 			// Set the Status.Inference.TargetNodeCount for proper node count calculation
 			if workspace.Inference != nil {
-				nodeCount, err := estimator.EstimateNodeCount(t.Context(), workspace, mockClient)
+				req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), workspace, mockClient)
+				if reqErr != nil {
+					t.Errorf("%s: failed to build estimate request: %v", k, reqErr)
+					return
+				}
+				nodeCount, err := estimator.EstimateNodeCount(t.Context(), req, mockClient)
 				if err != nil {
 					t.Errorf("%s: failed to estimate node count: %v", k, err)
 					return
@@ -401,6 +425,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 		initialDelaySeconds int32
 		periodSeconds       int32
 		timeoutSeconds      int32
+		failureThreshold    int32
 		expectedProbe       *corev1.Probe
 	}{
 		"Liveness": {
@@ -414,6 +439,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 			initialDelaySeconds: 30,
 			periodSeconds:       5,
 			timeoutSeconds:      5,
+			failureThreshold:    1,
 			expectedProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					Exec: &corev1.ExecAction{
@@ -438,6 +464,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 			initialDelaySeconds: 30,
 			periodSeconds:       5,
 			timeoutSeconds:      5,
+			failureThreshold:    1,
 			expectedProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					Exec: &corev1.ExecAction{
@@ -454,7 +481,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds)
+			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds, tc.failureThreshold)
 			if actualProbe.Exec != nil && tc.expectedProbe.Exec != nil {
 				expected := toParameterMap(tc.expectedProbe.Exec.Command)
 				actual := toParameterMap(actualProbe.Exec.Command)
@@ -466,6 +493,101 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 				if !reflect.DeepEqual(actualProbe.HTTPGet, tc.expectedProbe.HTTPGet) {
 					t.Errorf("HTTPGet mismatch: expected %+v, got %+v", tc.expectedProbe.HTTPGet, actualProbe.HTTPGet)
 				}
+			}
+		})
+	}
+}
+
+func TestBuildDistributedStartupProbe(t *testing.T) {
+	testcases := map[string]struct {
+		timeout           time.Duration
+		workspace         *v1beta1.Workspace
+		expectedThreshold int32
+		expectedPeriod    int32
+	}{
+		"30 minutes maps to 180 failures at 10s period": {
+			timeout: 30 * time.Minute,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-ws", Namespace: "test-ns"},
+			},
+			expectedThreshold: 180,
+			expectedPeriod:    10,
+		},
+		"45 minutes maps to 270 failures at 10s period": {
+			timeout: 45 * time.Minute,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-ws", Namespace: "test-ns"},
+			},
+			expectedThreshold: 270,
+			expectedPeriod:    10,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			probe := buildDistributedStartupProbe(tc.timeout, tc.workspace)
+			if probe == nil {
+				t.Fatal("expected non-nil probe")
+			}
+			if probe.FailureThreshold != tc.expectedThreshold {
+				t.Errorf("FailureThreshold: expected %d, got %d", tc.expectedThreshold, probe.FailureThreshold)
+			}
+			if probe.PeriodSeconds != tc.expectedPeriod {
+				t.Errorf("PeriodSeconds: expected %d, got %d", tc.expectedPeriod, probe.PeriodSeconds)
+			}
+			if probe.InitialDelaySeconds != 0 {
+				t.Errorf("InitialDelaySeconds: expected 0, got %d", probe.InitialDelaySeconds)
+			}
+			if probe.Exec == nil {
+				t.Error("expected Exec probe handler, got nil")
+			}
+			if probe.HTTPGet != nil {
+				t.Error("expected no HTTPGet probe handler for distributed startup probe")
+			}
+		})
+	}
+}
+
+func TestBuildStartupProbe(t *testing.T) {
+	testcases := map[string]struct {
+		timeout           time.Duration
+		expectedThreshold int32
+		expectedPeriod    int32
+	}{
+		"30 minutes maps to 180 failures at 10s period": {
+			timeout:           30 * time.Minute,
+			expectedThreshold: 180,
+			expectedPeriod:    10,
+		},
+		"45 minutes maps to 270 failures at 10s period": {
+			timeout:           45 * time.Minute,
+			expectedThreshold: 270,
+			expectedPeriod:    10,
+		},
+		"non-divisible timeout rounds up to cover full budget": {
+			timeout:           30*time.Minute + 5*time.Second,
+			expectedThreshold: 181,
+			expectedPeriod:    10,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			probe := buildStartupProbe(tc.timeout)
+			if probe == nil {
+				t.Fatal("expected non-nil probe")
+			}
+			if probe.FailureThreshold != tc.expectedThreshold {
+				t.Errorf("FailureThreshold: expected %d, got %d", tc.expectedThreshold, probe.FailureThreshold)
+			}
+			if probe.PeriodSeconds != tc.expectedPeriod {
+				t.Errorf("PeriodSeconds: expected %d, got %d", tc.expectedPeriod, probe.PeriodSeconds)
+			}
+			if probe.InitialDelaySeconds != 0 {
+				t.Errorf("InitialDelaySeconds: expected 0, got %d", probe.InitialDelaySeconds)
+			}
+			if probe.HTTPGet == nil {
+				t.Error("expected HTTPGet probe handler")
 			}
 		})
 	}
@@ -498,7 +620,7 @@ func TestGetGPUConfig(t *testing.T) {
 			expectedConfig: &sku.GPUConfig{
 				SKU:             "Standard_NC24ads_A100_v4",
 				GPUCount:        1,
-				GPUMemGiB:       80,
+				GPUMem:          resource.MustParse("80Gi"),
 				GPUModel:        "NVIDIA A100",
 				NVMeDiskEnabled: true,
 			},
@@ -651,8 +773,8 @@ func TestGetGPUConfig(t *testing.T) {
 			}
 
 			// Check GPUMemGB if expected
-			if tc.expectedConfig.GPUMemGiB > 0 && config.GPUMemGiB != tc.expectedConfig.GPUMemGiB {
-				t.Errorf("Expected GPUMemGB %d, got %d", tc.expectedConfig.GPUMemGiB, config.GPUMemGiB)
+			if !tc.expectedConfig.GPUMem.IsZero() && tc.expectedConfig.GPUMem.Cmp(config.GPUMem) != 0 {
+				t.Errorf("Expected GPUMemGB %s, got %s", tc.expectedConfig.GPUMem.String(), config.GPUMem.String())
 			}
 
 			// Check NVMeDiskEnabled if expected
@@ -818,6 +940,79 @@ func TestSetAdapterPuller(t *testing.T) {
 			expectedEnvVars: []string{"adapter-1"},
 			expectError:     false,
 		},
+		"single volume adapter": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Adapters: []v1beta1.AdapterSpec{
+						{
+							Source: &v1beta1.DataSource{
+								Name: "adapter-1",
+								Volume: &corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "test-pvc",
+									},
+								},
+							},
+							Strength: &ValidStrength,
+						},
+					},
+				},
+			},
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-container",
+					},
+				},
+			},
+			expectedVolumes: []string{"adapter-volume-adapter-1"},
+			expectedEnvVars: []string{"adapter-1"},
+			expectError:     false,
+		},
+		"mixed image and volume adapters": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Adapters: []v1beta1.AdapterSpec{
+						{
+							Source: &v1beta1.DataSource{
+								Name:  "adapter-img",
+								Image: "test-registry/adapter:v1",
+							},
+							Strength: &ValidStrength,
+						},
+						{
+							Source: &v1beta1.DataSource{
+								Name: "adapter-vol",
+								Volume: &corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "test-pvc",
+									},
+								},
+							},
+							Strength: &ValidStrength,
+						},
+					},
+				},
+			},
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-container",
+					},
+				},
+			},
+			expectedVolumes: []string{"adapter-volume", "adapter-volume-adapter-vol"},
+			expectedEnvVars: []string{"adapter-img", "adapter-vol"},
+			expectError:     false,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -845,21 +1040,23 @@ func TestSetAdapterPuller(t *testing.T) {
 				t.Errorf("volumes mismatch: expected %v, got %v", tc.expectedVolumes, actualVolumes)
 			}
 
-			// Check volume mounts on containers
+			// Check volume mounts on containers (only adapter volumes, not docker-config secret volumes)
 			if len(tc.expectedVolumes) > 0 {
 				for _, container := range tc.spec.Containers {
-					foundAdapterMount := false
-					for _, mount := range container.VolumeMounts {
-						if mount.Name == "adapter-volume" {
-							foundAdapterMount = true
-							if mount.MountPath != "/mnt/adapter" {
-								t.Errorf("unexpected mount path for adapter volume: %s", mount.MountPath)
-							}
-							break
+					for _, expectedVol := range tc.expectedVolumes {
+						if !strings.HasPrefix(expectedVol, "adapter-volume") {
+							continue // docker-config volumes are only mounted on init containers
 						}
-					}
-					if !foundAdapterMount {
-						t.Errorf("adapter volume mount not found in container %s", container.Name)
+						foundMount := false
+						for _, mount := range container.VolumeMounts {
+							if mount.Name == expectedVol {
+								foundMount = true
+								break
+							}
+						}
+						if !foundMount {
+							t.Errorf("volume mount %s not found in container %s", expectedVol, container.Name)
+						}
 					}
 				}
 			}
@@ -888,10 +1085,25 @@ func TestSetAdapterPuller(t *testing.T) {
 				}
 			}
 
-			// Check init containers
-			if len(tc.workspace.Inference.Adapters) > 0 {
+			// Check init containers: only image-based adapters should produce pullers
+			hasImageAdapters := false
+			for _, adapter := range tc.workspace.Inference.Adapters {
+				if adapter.Source != nil && adapter.Source.Image != "" {
+					hasImageAdapters = true
+					break
+				}
+			}
+			if hasImageAdapters {
 				if len(tc.spec.InitContainers) == 0 {
-					t.Errorf("expected init containers for adapter pulling but found none")
+					t.Errorf("expected init containers for image-based adapter pulling but found none")
+				}
+			}
+
+			// Check that volume-based adapters do NOT produce init containers
+			hasOnlyVolumeAdapters := len(tc.workspace.Inference.Adapters) > 0 && !hasImageAdapters
+			if hasOnlyVolumeAdapters {
+				if len(tc.spec.InitContainers) != 0 {
+					t.Errorf("expected no init containers for volume-only adapters but found %d", len(tc.spec.InitContainers))
 				}
 			}
 		})

@@ -46,11 +46,8 @@ var (
 		"pipeline":          "text-generation",
 		"trust_remote_code": "",
 	}
-	phi4RunParamsVLLM = map[string]string{
-		"dtype": "float16",
-	}
+	phi4RunParamsVLLM     = map[string]string{}
 	phi4MiniRunParamsVLLM = map[string]string{
-		"dtype":                   "float16",
 		"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
 		"tool-call-parser":        "phi4_mini_json",
 		"enable-auto-tool-choice": "",
@@ -75,6 +72,7 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phi4RunParams,
+				ModelName:         PresetPhi4Model,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -96,6 +94,7 @@ func (*phi4Model) GetTuningParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetPhiTuning,
+				ModelName:   PresetPhi4Model,
 			},
 		},
 	}
@@ -124,6 +123,7 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    phi4RunParams,
+				ModelName:         PresetPhi4MiniInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -145,6 +145,7 @@ func (*phi4MiniInstruct) GetTuningParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetPhiTuning,
+				ModelName:   PresetPhi4MiniInstructModel,
 			},
 		},
 	}

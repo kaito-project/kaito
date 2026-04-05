@@ -116,8 +116,17 @@ var (
 	}
 )
 
+type ManifestOptions struct {
+	DefaultNodeImageFamily string
+}
+
 // GenerateNodeClaimManifest generates a nodeClaim object from the given workspace or RAGEngine.
 func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *karpenterv1.NodeClaim {
+	return GenerateNodeClaimManifestWithOptions(storageRequirement, obj, ManifestOptions{})
+}
+
+// GenerateNodeClaimManifestWithOptions generates a nodeClaim object from the given workspace or RAGEngine with explicit options.
+func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.Object, options ManifestOptions) *karpenterv1.NodeClaim {
 	klog.InfoS("GenerateNodeClaimManifest", "object", obj)
 
 	// Determine the type of the input object and extract relevant fields
@@ -140,6 +149,18 @@ func GenerateNodeClaimManifest(storageRequirement string, obj client.Object) *ka
 
 	nodeClaimAnnotations := map[string]string{
 		karpenterv1.DoNotDisruptAnnotationKey: "true", // To prevent Karpenter from scaling down.
+	}
+
+	if options.DefaultNodeImageFamily == "" {
+		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = consts.NodeImageFamilyUbuntu
+	} else if defaultNodeImageFamily, ok := consts.NormalizeSupportedNodeImageFamily(options.DefaultNodeImageFamily); ok {
+		nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = defaultNodeImageFamily
+	}
+
+	if nodeImageFamily, ok := obj.GetAnnotations()[kaitov1beta1.AnnotationNodeImageFamily]; ok {
+		if normalizedNodeImageFamily, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); valid {
+			nodeClaimAnnotations[kaitov1beta1.AnnotationNodeImageFamily] = normalizedNodeImageFamily
+		}
 	}
 
 	cloudName := os.Getenv("CLOUD_PROVIDER")

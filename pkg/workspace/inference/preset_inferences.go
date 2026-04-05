@@ -16,7 +16,9 @@ package inference
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
+	"time"
 
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -42,6 +44,10 @@ import (
 
 const (
 	ProbePath = "/health"
+
+	// defaultStartupProbeTimeout is the startup probe timeout for models that do not
+	// specify ReadinessTimeout. 30 minutes covers all current models.
+	defaultStartupProbeTimeout = 30 * time.Minute
 )
 
 var (
@@ -49,6 +55,8 @@ var (
 		ContainerPort: int32(consts.PortInferenceServer),
 	}}
 
+	// defaultLivenessProbe has no initial delay because the startup probe ensures
+	// the model is up before liveness evaluation begins.
 	defaultLivenessProbe = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
@@ -56,8 +64,9 @@ var (
 				Path: ProbePath,
 			},
 		},
-		InitialDelaySeconds: 600, // 10 minutes
+		InitialDelaySeconds: 0,
 		PeriodSeconds:       10,
+		FailureThreshold:    3,
 	}
 
 	defaultReadinessProbe = &corev1.Probe{
@@ -155,8 +164,12 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// For multi-node distributed inference with vLLM, we need StatefulSet to ensure pods are
 	// created with individual identities (their ordinal indexes) -
 	// https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-identity
-	if shouldUseDistributedInference(gctx, numNodes) {
+	distributed := shouldUseDistributedInference(gctx, numNodes)
+	if distributed {
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
+	}
+	if v1beta1.IsRunBenchmarkEnabled(workspaceObj) {
+		podOpts = append(podOpts, SetBenchmarkConfig(distributed))
 	}
 
 	ssOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]{
@@ -232,7 +245,7 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 }
 
 // getDistributedInferenceProbe returns a container probe configuration for the distributed inference workload.
-func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds int32) *corev1.Probe {
+func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32) *corev1.Probe {
 	args := map[string]string{
 		"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
 	}
@@ -259,17 +272,85 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 		InitialDelaySeconds: initialDelaySeconds,
 		PeriodSeconds:       periodSeconds,
 		TimeoutSeconds:      timeoutSeconds,
-
-		// lowering the failure threshold from 3 (default) to 1 and setting the
-		// termination grace period to 1 second to ensure that the pod is terminated
-		// immediately if the health check fails to minimize downtime.
-		FailureThreshold: 1,
+		FailureThreshold:    failureThreshold,
 	}
 	if probeType == probeTypeLiveness {
 		probe.TerminationGracePeriodSeconds = lo.ToPtr(int64(1))
 	}
 
 	return probe
+}
+
+func buildStartupProbe(timeout time.Duration) *corev1.Probe {
+	const periodSeconds = 10
+	// ceil(timeout / period) ensures the full timeout window is covered.
+	failureThreshold := int32(math.Ceil(timeout.Seconds() / periodSeconds))
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{
+				Port: intstr.FromInt32(consts.PortInferenceServer),
+				Path: ProbePath,
+			},
+		},
+		InitialDelaySeconds: 0,
+		PeriodSeconds:       periodSeconds,
+		FailureThreshold:    failureThreshold,
+	}
+}
+
+func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace) *corev1.Probe {
+	const periodSeconds = int32(10)
+	const timeoutSeconds = int32(1)
+	failureThreshold := int32(math.Ceil(timeout.Seconds() / float64(periodSeconds)))
+	return getDistributedInferenceProbe(probeTypeReadiness, wObj, 0, periodSeconds, timeoutSeconds, failureThreshold)
+}
+
+// buildBenchmarkStartupProbe returns an exec startup probe that runs
+// benchmark_entrypoint.py on every kubelet tick.
+//
+// While vLLM is loading, the script exits 1 (/health not yet up), consuming the
+// failureThreshold budget.  Once /health passes, the script runs the full benchmark
+// and drain phase, then exits 0 — which marks the startup probe as passed and
+// activates the readiness probe.
+//
+// When wObj is non-nil the probe is built for distributed inference: a shell
+// conditional routes the leader (POD_INDEX=0) to benchmark_entrypoint.py and
+// workers to the standard multi-node health check.
+//
+// timeoutSeconds is set to 600 to prevent kubelet killing the process mid-benchmark.
+func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, distributed bool) *corev1.Probe {
+	const periodSeconds = int32(10)
+	const timeoutSeconds = int32(600) // covers benchmark duration + drain + buffer
+	failureThreshold := int32(math.Ceil(timeout.Seconds() / float64(periodSeconds)))
+
+	var command []string
+	if !distributed {
+		command = []string{"python3", "/workspace/vllm/benchmark_entrypoint.py"}
+	} else {
+		workerCmd := utils.BuildCmdStr(
+			fmt.Sprintf("%s readiness", DefaultVLLMMultiNodeHealthCheckCommand),
+			map[string]string{
+				"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
+				"vllm-port":      strconv.FormatInt(int64(consts.PortInferenceServer), 10),
+			},
+		)
+		cmd := fmt.Sprintf(
+			`if [ "$POD_INDEX" = "0" ]; then python3 /workspace/vllm/benchmark_entrypoint.py; else %s; fi`,
+			workerCmd,
+		)
+		command = utils.ShellCmd(cmd)
+	}
+
+	return &corev1.Probe{
+		ProbeHandler: corev1.ProbeHandler{
+			Exec: &corev1.ExecAction{
+				Command: command,
+			},
+		},
+		PeriodSeconds:    periodSeconds,
+		TimeoutSeconds:   timeoutSeconds,
+		FailureThreshold: failureThreshold,
+	}
 }
 
 func GetBaseImageName() string {
@@ -350,7 +431,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 						//} else {
 						// If no user value, compute planned value
 						maxModelLen = computeMaxModelLen(presetParams, gpuConfig, numNodes)
-						klog.Infof("[RuntimeContext] workspace=%s using computed max-model-len=%d (gpuConfig=%+v, numNodes=%d)", ctx.Workspace.Name, maxModelLen, *gpuConfig, numNodes)
+						klog.Infof("[RuntimeContext] workspace=%s using computed max-model-len=%d (gpuConfig=%s, numNodes=%d)", ctx.Workspace.Name, maxModelLen, gpuConfig.String(), numNodes)
 						//}
 					}
 				}
@@ -368,6 +449,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			MaxModelLen:          maxModelLen,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
 				AdaptersEnabled: len(ctx.Workspace.Inference.Adapters) > 0,
+				PerformanceMode: v1beta1.GetPerformanceMode(ctx.Workspace),
 			},
 		})
 
@@ -383,6 +465,14 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			},
 		}
 		spec.ImagePullSecrets = GetInferenceImageInfo(ctx.Ctx, ctx.Workspace)
+
+		// Use the model's ReadinessTimeout if specified; otherwise fall back to the
+		// default. containerStatuses[].started is reliable for downstream.
+		readinessTimeout := inferenceParam.ReadinessTimeout
+		if readinessTimeout <= 0 {
+			readinessTimeout = defaultStartupProbeTimeout
+		}
+
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
@@ -390,6 +480,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 				Command:        commands,
 				Resources:      resourceReq,
 				Ports:          containerPorts,
+				StartupProbe:   buildStartupProbe(readinessTimeout),
 				LivenessProbe:  defaultLivenessProbe,
 				ReadinessProbe: defaultReadinessProbe,
 				VolumeMounts:   volumeMounts,
@@ -436,28 +527,106 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 		return nil
 	}
 
-	// add adapter volume mount if adapters are enabled
-	adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
-	spec.Volumes = append(spec.Volumes, adapterVolume)
-	for i := range spec.Containers { // FIXME: assume only one container in the pod
-		spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, adapterVolumeMount)
+	// Separate adapters by source type
+	var imageAdapters []v1beta1.AdapterSpec
+	var volumeAdapters []v1beta1.AdapterSpec
+	for _, adapter := range ctx.Workspace.Inference.Adapters {
+		if adapter.Source != nil && adapter.Source.Volume != nil {
+			volumeAdapters = append(volumeAdapters, adapter)
+		} else {
+			imageAdapters = append(imageAdapters, adapter)
+		}
 	}
 
-	// add container to pull adapters
-	volumeMounts := []corev1.VolumeMount{adapterVolumeMount}
-	pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(ctx.Workspace, volumeMounts)
-	spec.InitContainers = append(spec.InitContainers, pullerContainers...)
-	spec.Volumes = append(spec.Volumes, pullerVolumes...)
-	for i := range spec.Containers { // FIXME: assume only one container in the pod
-		spec.Containers[i].Env = append(spec.Containers[i].Env, pullerEnvVars...)
+	// Handle image-based adapters (existing flow: EmptyDir + puller init containers)
+	if len(imageAdapters) > 0 {
+		adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume(nil)
+		spec.Volumes = append(spec.Volumes, adapterVolume)
+		for i := range spec.Containers { // FIXME: assume only one container in the pod
+			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, adapterVolumeMount)
+		}
+
+		// add container to pull adapters
+		volumeMounts := []corev1.VolumeMount{adapterVolumeMount}
+		pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(ctx.Workspace, imageAdapters, volumeMounts)
+		spec.InitContainers = append(spec.InitContainers, pullerContainers...)
+		spec.Volumes = append(spec.Volumes, pullerVolumes...)
+		for i := range spec.Containers { // FIXME: assume only one container in the pod
+			spec.Containers[i].Env = append(spec.Containers[i].Env, pullerEnvVars...)
+		}
 	}
+
+	// Handle volume-based adapters (mount volume directly, no puller needed)
+	for _, adapter := range volumeAdapters {
+		sourceName := adapter.Source.Name
+		volumeName := fmt.Sprintf("adapter-volume-%s", sourceName)
+		mountPath := fmt.Sprintf("%s/%s", utils.DefaultAdapterVolumePath, sourceName)
+
+		volume := corev1.Volume{
+			Name:         volumeName,
+			VolumeSource: *adapter.Source.Volume,
+		}
+		volumeMount := corev1.VolumeMount{
+			Name:      volumeName,
+			MountPath: mountPath,
+		}
+		spec.Volumes = append(spec.Volumes, volume)
+		for i := range spec.Containers {
+			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, volumeMount)
+		}
+
+		// Propagate strength env vars for volume adapters
+		if adapter.Strength != nil {
+			envVar := corev1.EnvVar{
+				Name:  sourceName,
+				Value: *adapter.Strength,
+			}
+			for i := range spec.Containers {
+				spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)
+			}
+		}
+	}
+
 	return nil
 }
 
+// SetBenchmarkConfig overrides the startup probe to run the benchmark entrypoint.
+// It must be appended after GenerateInferencePodSpec (and SetDistributedInferenceProbe
+// when distributed) so the container already exists.
+func SetBenchmarkConfig(distributed bool) generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec] {
+	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+		inferenceParam := ctx.Model.GetInferenceParameters()
+		readinessTimeout := inferenceParam.ReadinessTimeout
+		if readinessTimeout <= 0 {
+			readinessTimeout = defaultStartupProbeTimeout
+		}
+
+		var wObj *v1beta1.Workspace
+		if distributed {
+			wObj = ctx.Workspace
+		}
+		startupProbe := buildBenchmarkStartupProbe(readinessTimeout, wObj, distributed)
+
+		for i := range spec.Containers {
+			if spec.Containers[i].Name == ctx.Workspace.Name {
+				spec.Containers[i].StartupProbe = startupProbe
+				break
+			}
+		}
+		return nil
+	}
+}
+
 func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	readinessTimeout := ctx.Model.GetInferenceParameters().ReadinessTimeout
+	if readinessTimeout <= 0 {
+		readinessTimeout = defaultStartupProbeTimeout
+	}
+
 	// 60 seconds initial delay for liveness probe to allow workers to join the cluster
-	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5)
-	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1)
+	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5, 1)
+	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1)
+	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace)
 	envVar := corev1.EnvVar{
 		Name: "POD_INDEX",
 		ValueFrom: &corev1.EnvVarSource{
@@ -468,6 +637,7 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 	}
 	for i := range spec.Containers {
 		if spec.Containers[i].Name == ctx.Workspace.Name {
+			spec.Containers[i].StartupProbe = startupProbe
 			spec.Containers[i].LivenessProbe = livenessProbe
 			spec.Containers[i].ReadinessProbe = readinessProbe
 			spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)

@@ -13,7 +13,10 @@
 
 package consts
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 const (
 	// WorkspaceFinalizer is used to make sure that workspace controller handles garbage collection.
@@ -35,6 +38,8 @@ const (
 	NvidiaGPUProduct              = "nvidia.com/gpu.product"
 	NvidiaGPUCount                = "nvidia.com/gpu.count"
 	NvidiaGPUMemory               = "nvidia.com/gpu.memory"
+	NvidiaCUDAComputeCapMajor     = "nvidia.com/cuda.compute.major"
+	NvidiaCUDAComputeCapMinor     = "nvidia.com/cuda.compute.minor"
 
 	// Feature flags
 	FeatureFlagVLLM                         = "vLLM"
@@ -67,7 +72,7 @@ const (
 
 	// InferencePoolChartVersion is the tag/version of the inferencepool chart to deploy.
 	// MUST KEEP IN SYNC with the version in go.mod.
-	InferencePoolChartVersion = "v1.0.1"
+	InferencePoolChartVersion = "v1.3.1"
 
 	// GatewayAPIInferenceExtensionImageRepository is the image repository for the Gateway API Inference Extension components.
 	GatewayAPIInferenceExtensionImageRepository = "mcr.microsoft.com/oss/v2/gateway-api-inference-extension"
@@ -76,8 +81,21 @@ const (
 	ConditionReady = "Ready"
 
 	WorkspaceCreatedByInferenceSetLabel = "inferenceset.kaito.sh/created-by"
+
+	NodeImageFamilyUbuntu     = "ubuntu"
+	NodeImageFamilyAzureLinux = "azurelinux"
 )
 
 var (
 	LocalNVMeStorageClass = "kaito-local-nvme-disk"
 )
+
+func NormalizeSupportedNodeImageFamily(value string) (string, bool) {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	switch normalized {
+	case NodeImageFamilyUbuntu, NodeImageFamilyAzureLinux:
+		return normalized, true
+	default:
+		return "", false
+	}
+}

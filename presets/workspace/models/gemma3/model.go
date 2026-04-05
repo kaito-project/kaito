@@ -34,9 +34,7 @@ var (
 		"pipeline":           "text-generation",
 		"allow_remote_files": "",
 	}
-	gemma3RunParamsVLLM = map[string]string{
-		"dtype": "bfloat16",
-	}
+	gemma3RunParamsVLLM = map[string]string{}
 )
 
 var gemma3_4bInst gemma3_4BInstruct
@@ -58,7 +56,7 @@ type gemma3_4BInstruct struct{}
 func (*gemma3_4BInstruct) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                metadata.MustGet(PresetGemma3_4BInstructModel),
-		DiskStorageRequirement:  "60Gi",
+		DiskStorageRequirement:  "90Gi",
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "8.6Gi",
 		BytesPerToken:           348160,
@@ -69,6 +67,7 @@ func (*gemma3_4BInstruct) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    gemma3RunParams,
+				ModelName:         PresetGemma3_4BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -108,6 +107,7 @@ func (*gemma3_27BInstruct) GetInferenceParameters() *model.PresetParam {
 				AccelerateParams:  inference.DefaultAccelerateParams,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
 				ModelRunParams:    gemma3RunParams,
+				ModelName:         PresetGemma3_27BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,

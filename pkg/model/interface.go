@@ -22,6 +22,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -211,6 +212,8 @@ type HuggingfaceTransformersParam struct {
 	AccelerateParams  map[string]string // Parameters for configuring the accelerate command.
 	InferenceMainFile string            // The main file for inference.
 	ModelRunParams    map[string]string // Parameters for running the model training/inference.
+	// The model name used in the OpenAI serving API.
+	ModelName string
 }
 
 type VLLMParam struct {
@@ -288,6 +291,7 @@ type RuntimeContext struct {
 type RuntimeContextExtraArguments struct {
 	AdaptersEnabled        bool
 	AdapterStrengthEnabled bool
+	PerformanceMode        string // vLLM --performance-mode; defaults to "balanced"
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -302,6 +306,9 @@ func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
 }
 
 func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
+	if p.Transformers.ModelName != "" {
+		p.Transformers.ModelRunParams["served_model_name"] = p.Transformers.ModelName
+	}
 	if p.DownloadAtRuntime {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
 		p.Transformers.ModelRunParams["pretrained_model_name_or_path"] = repoId
@@ -329,11 +336,13 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	}
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.84"
 
-	if !p.DisableTensorParallelism {
-		// Tensor Parallelism (TP) is set to the number of GPUs on a given node per vLLM guidance:
-		// https://docs.vllm.ai/en/latest/serving/distributed_serving.html.
-		p.VLLM.ModelRunParams["tensor-parallel-size"] = strconv.Itoa(rc.SKUNumGPUs)
+	// Dynamically determine dtype based on GPU compute capability.
+	// bfloat16 requires CUDA compute capability >= 8.0 (Ampere+).
+	// Fall back to float16 on older GPUs.
+	if rc.GPUConfig != nil && !rc.GPUConfig.SupportsBFloat16() {
+		p.VLLM.ModelRunParams["dtype"] = "float16"
 	}
+
 	if !p.VLLM.DisallowLoRA && rc.AdaptersEnabled {
 		p.VLLM.ModelRunParams["enable-lora"] = ""
 	}
@@ -348,24 +357,78 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	if rc.ConfigVolume != nil {
 		p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(rc.ConfigVolume.MountPath, ConfigfileNameVLLM)
 	}
+	if rc.PerformanceMode != "" && rc.PerformanceMode != "balanced" {
+		p.VLLM.ModelRunParams["performance-mode"] = rc.PerformanceMode
+	}
 
-	// If user wants to deploy a model that supports distributed inference, but
-	// there is only one node, we don't need to setup a multi-node Ray cluster.
+	// Parallelism strategy follows a 3-tier hierarchy (see configureParallelism):
+	//  1. Data Parallelism (DP)   – model fits on a single GPU
+	//  2. Tensor Parallelism (TP) – model fits on a single node (multiple GPUs)
+	//  3. Pipeline Parallelism (PP) + TP – model requires multiple nodes
+	p.configureParallelism(rc)
+
+	// Single-node path: no Ray cluster needed.
 	if !rc.DistributedInference || rc.NumNodes == 1 {
 		modelCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
 		return utils.ShellCmd(modelCommand)
 	}
 
-	// Pipeline Parallelism (PP) is set to the number of nodes for multi-node inference per vLLM guidance:
-	// https://docs.vllm.ai/en/latest/serving/distributed_serving.html.
-	p.VLLM.ModelRunParams["pipeline-parallel-size"] = strconv.Itoa(rc.NumNodes)
+	// Multi-node path: set up a Ray cluster for cross-node parallelism.
+	return p.buildMultiNodeRayCommand(rc)
+}
 
-	// Since vllm 0.12.0, we need to set the distributed-executor-backend explicitly
-	p.VLLM.ModelRunParams["distributed-executor-backend"] = "ray"
+// configureParallelism sets the vLLM parallelism parameters according to a
+// 3-tier strategy based on where the model can be placed:
+//
+//  1. Single-GPU (DP): If the model file size is less than 50% of a single GPU's
+//     memory, each GPU can serve the model independently. We use data parallelism
+//     to run replicas across GPUs for maximum throughput.
+//
+//  2. Single-node (TP): If the model is too large for one GPU but fits within the
+//     combined memory of all GPUs on a single node, we shard the model across GPUs
+//     using tensor parallelism.
+//
+//  3. Multi-node (PP + TP): If the model exceeds a single node's capacity, we use
+//     pipeline parallelism across nodes, with tensor parallelism within each node.
+func (p *PresetParam) configureParallelism(rc RuntimeContext) {
+	if p.DisableTensorParallelism {
+		return
+	}
 
-	// We need to setup multi-node Ray cluster and assume pod index 0 is the leader of the cluster.
-	// - leader: start as ray leader along with the model run command
-	// - worker: start as ray worker - don't need to provide the model run command
+	multiNode := rc.DistributedInference && rc.NumNodes > 1
+
+	// Tier 1: Model fits on a single GPU → Data Parallelism.
+	// Use DP only on a single node; multi-node DP is not supported.
+	if !multiNode && p.modelFitsOnSingleGPU(rc) {
+		p.VLLM.ModelRunParams["data-parallel-size"] = strconv.Itoa(rc.SKUNumGPUs)
+		p.VLLM.ModelRunParams["tensor-parallel-size"] = "1"
+		// In this branch, data-parallel-size is guaranteed to be > 1; disable kv cache CPU offloading
+		// due to conflicts between data parallelism and CPU offloading.
+		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
+		return
+	}
+
+	// Tier 2: Model fits on a single node → Tensor Parallelism.
+	// TP is set to the number of GPUs on the node.
+	p.VLLM.ModelRunParams["tensor-parallel-size"] = strconv.Itoa(rc.SKUNumGPUs)
+
+	// Tier 3: Model requires multiple nodes → Pipeline Parallelism + TP.
+	if multiNode {
+		// Disable kv cache CPU offloading when pipeline parallelism is enabled.
+		// TODO: LMCache doesn't support cross-node PP in CPU offload mode.
+		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
+
+		// PP is set to the number of nodes.
+		p.VLLM.ModelRunParams["pipeline-parallel-size"] = strconv.Itoa(rc.NumNodes)
+
+		// Since vllm 0.12.0, we need to set the distributed-executor-backend explicitly.
+		p.VLLM.ModelRunParams["distributed-executor-backend"] = "ray"
+	}
+}
+
+// buildMultiNodeRayCommand constructs the shell command for multi-node inference
+// using a Ray cluster. Pod index 0 is the leader; all other pods are workers.
+func (p *PresetParam) buildMultiNodeRayCommand(rc RuntimeContext) []string {
 	if p.VLLM.RayLeaderParams == nil {
 		p.VLLM.RayLeaderParams = make(map[string]string)
 	}
@@ -381,14 +444,49 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	rayLeaderCommand := utils.BuildCmdStr(p.VLLM.RayLeaderBaseCommand, p.VLLM.RayLeaderParams)
 	modelRunCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
 	result := utils.BuildIfElseCmdStr(
-		`[ "${POD_INDEX}" = "0" ]`,                                      // initiate as ray leader if the pod index is 0, otherwise initiate as ray worker
-		strings.Join([]string{rayLeaderCommand, modelRunCommand}, "; "), // command if true, concatenate the ray leader command and model run command
-		map[string]string{},                                             // no parameters needed since the command is already built above
-		p.VLLM.RayWorkerBaseCommand,                                     // command if false
-		p.VLLM.RayWorkerParams,                                          // parameters for the false command
+		`[ "${POD_INDEX}" = "0" ]`,                                      // leader if pod index is 0, otherwise worker
+		strings.Join([]string{rayLeaderCommand, modelRunCommand}, "; "), // leader: start ray head + model
+		map[string]string{},
+		p.VLLM.RayWorkerBaseCommand, // worker: join the cluster
+		p.VLLM.RayWorkerParams,
 	)
 
 	return utils.ShellCmd(result)
+}
+
+// getModelFileSize returns the model file size as a resource.Quantity.
+// It tries TotalSafeTensorFileSize first (preset models), then ModelFileSize (best-effort models).
+func (p *PresetParam) getModelFileSize() *resource.Quantity {
+	if p.TotalSafeTensorFileSize != "" {
+		q, err := resource.ParseQuantity(p.TotalSafeTensorFileSize)
+		if err == nil {
+			return &q
+		}
+	}
+	if p.ModelFileSize != "" {
+		q, err := resource.ParseQuantity(p.ModelFileSize)
+		if err == nil {
+			return &q
+		}
+	}
+	return nil
+}
+
+// modelFitsOnSingleGPU returns true when the model file size is smaller than
+// 50% of a single GPU's memory, meaning the entire model can be loaded onto
+// one GPU with headroom to spare.
+func (p *PresetParam) modelFitsOnSingleGPU(rc RuntimeContext) bool {
+	if rc.GPUConfig == nil || rc.SKUNumGPUs <= 1 {
+		return false
+	}
+	modelSize := p.getModelFileSize()
+	if modelSize == nil {
+		return false
+	}
+	// Single GPU memory = total GPU memory / number of GPUs.
+	// Condition: modelSize < 0.5 * singleGPUMem
+	// Rearranged to avoid division: modelSize * numGPUs * 2 < totalGPUMem.
+	return modelSize.Value()*int64(rc.SKUNumGPUs)*2 < rc.GPUConfig.GPUMem.Value()
 }
 
 func (p *PresetParam) Validate(rc RuntimeContext) error {

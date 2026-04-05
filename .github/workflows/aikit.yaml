@@ -13,7 +13,7 @@ on:
       - main
 
 env:
-  KIND_VERSION: "0.29.0"
+  KIND_VERSION: "0.31.0"
   KUBECTL_VERSION: "1.33.0"
   AIKIT_IMAGE: ${{ github.event.inputs.aikit_image || 'ghcr.io/kaito-project/aikit/llama3.2:1b' }}
   KAITO_NAMESPACE: "kaito-system"
@@ -62,7 +62,7 @@ jobs:
       - name: Build workspace controller
         run: |
           # Use the docker-build-workspace target with local configuration
-          make docker-build-workspace
+          make docker-build-workspace ARCH=amd64
 
           # Load into kind cluster
           kind load docker-image local/workspace:test --name kaito
@@ -71,7 +71,6 @@ jobs:
           IMG_NAME: "workspace"
           IMG_TAG: "test"
           OUTPUT_TYPE: "type=docker"
-          ARCH: "amd64"
 
       - name: Deploy KAITO workspace controller
         run: |

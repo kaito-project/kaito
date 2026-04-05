@@ -22,6 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 )
@@ -30,18 +31,22 @@ import (
 func (c *RAGEngineReconciler) garbageCollectRAGEngine(ctx context.Context, ragEngineObj *kaitov1beta1.RAGEngine) (ctrl.Result, error) {
 	klog.InfoS("garbageCollectRAGEngine", "ragengine", klog.KObj(ragEngineObj))
 
-	// Check if there are any nodeClaims associated with this ragengine.
-	ncList, err := nodeclaim.ListNodeClaim(ctx, ragEngineObj, c.Client)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
+	// Only clean up NodeClaims when node auto-provisioning is enabled,
+	// since NodeClaim CRDs may not be installed when it's disabled.
+	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		// Check if there are any nodeClaims associated with this ragengine.
+		ncList, err := nodeclaim.ListNodeClaim(ctx, ragEngineObj, c.Client)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 
-	// We should delete all the nodeClaims that are created by this ragengine
-	for i := range ncList.Items {
-		if ncList.Items[i].DeletionTimestamp.IsZero() {
-			if deleteErr := c.Delete(ctx, &ncList.Items[i], &client.DeleteOptions{}); deleteErr != nil {
-				klog.ErrorS(deleteErr, "failed to delete the nodeClaim", "nodeClaim", klog.KObj(&ncList.Items[i]))
-				return ctrl.Result{}, deleteErr
+		// We should delete all the nodeClaims that are created by this ragengine
+		for i := range ncList.Items {
+			if ncList.Items[i].DeletionTimestamp.IsZero() {
+				if deleteErr := c.Delete(ctx, &ncList.Items[i], &client.DeleteOptions{}); deleteErr != nil {
+					klog.ErrorS(deleteErr, "failed to delete the nodeClaim", "nodeClaim", klog.KObj(&ncList.Items[i]))
+					return ctrl.Result{}, deleteErr
+				}
 			}
 		}
 	}

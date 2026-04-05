@@ -32,7 +32,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Run e2e-base-setup composite action
         uses: ./.github/actions/e2e-base-setup
@@ -98,7 +98,7 @@ jobs:
           yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
 
           # Upgrade the chart
-          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace
+          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --take-ownership
 
           # Wait for deployment to be rolled out
           kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s
@@ -143,7 +143,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Run e2e-base-setup composite action
         uses: ./.github/actions/e2e-base-setup
@@ -164,16 +164,55 @@ jobs:
       - name: Add Node Pool for BYO test
         shell: bash
         run: |
-          az aks nodepool add \
-            --resource-group "${{ env.CLUSTER_NAME }}" \
-            --cluster-name "${{ env.CLUSTER_NAME }}" \
-            --name "byonode" \
-            --node-vm-size "Standard_NV36ads_A10_v5" \
-            --node-count 1 \
-            --labels apps=byo
+          set -euo pipefail
 
-          node_name=$(kubectl get nodes -l apps=byo -o jsonpath='{.items[0].metadata.name}')
-          echo "NODE_NAME=$node_name" >> $GITHUB_ENV
+          RG="${{ env.CLUSTER_NAME }}"
+          CLUSTER="${{ env.CLUSTER_NAME }}"
+          MAX_RETRIES=12
+          SLEEP_SECONDS=30
+
+          for attempt in $(seq 1 ${MAX_RETRIES}); do
+            state=$(az aks show --resource-group "${RG}" --name "${CLUSTER}" --query provisioningState -o tsv || echo "Unknown")
+            echo "AKS provisioningState: ${state} (attempt ${attempt}/${MAX_RETRIES})"
+
+            if [ "${state}" != "Succeeded" ]; then
+              echo "Cluster operation still in progress. Waiting ${SLEEP_SECONDS}s before retrying..."
+              sleep ${SLEEP_SECONDS}
+              continue
+            fi
+
+            set +e
+            output=$(az aks nodepool add \
+              --resource-group "${RG}" \
+              --cluster-name "${CLUSTER}" \
+              --name byonode \
+              --node-vm-size "Standard_NV36ads_A10_v5" \
+              --node-count 1 \
+              --labels apps=byo 2>&1)
+            status=$?
+            set -e
+
+            if [ ${status} -eq 0 ]; then
+              echo "${output}"
+              echo "byonode node pool created successfully."
+              node_name=$(kubectl get nodes -l apps=byo -o jsonpath='{.items[0].metadata.name}')
+              echo "NODE_NAME=$node_name" >> $GITHUB_ENV
+              exit 0
+            fi
+
+            echo "${output}"
+            if echo "${output}" | grep -q "OperationNotAllowed"; then
+              echo "Detected in-progress AKS operation. Retrying in ${SLEEP_SECONDS}s..."
+              sleep ${SLEEP_SECONDS}
+              continue
+            fi
+
+            echo "Node pool creation failed with a non-retryable error."
+            exit ${status}
+          done
+
+          echo "Timed out waiting to create byonode after ${MAX_RETRIES} attempts."
+          exit 1
       - name: Install old chart (${{ env.OLD_CHART_VERSION }}) with disabled auto-provisioning
         shell: bash
         run: |
@@ -241,7 +280,7 @@ jobs:
           yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
 
           # Upgrade the chart
-          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set featureGates.disableNodeAutoProvisioning=true
+          helm upgrade kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set featureGates.disableNodeAutoProvisioning=true --take-ownership
 
           # Wait for deployment to be rolled out
           kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s

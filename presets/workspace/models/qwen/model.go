@@ -46,7 +46,6 @@ var (
 		"pipeline":    "text-generation",
 	}
 	qwenRunParamsVLLM = map[string]string{
-		"dtype":                   "float16",
 		"chat-template":           "/workspace/chat_templates/tool-chat-hermes.jinja",
 		"tool-call-parser":        "hermes",
 		"enable-auto-tool-choice": "",
@@ -71,6 +70,7 @@ func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    qwenRunParams,
 				BaseCommand:       baseCommandPresetQwenInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelName:         PresetQwen2_5Coder7BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -93,6 +93,7 @@ func (*qwen2_5Coder7BInstruct) GetTuningParameters() *model.PresetParam {
 				// AccelerateParams: tuning.DefaultAccelerateParams,
 				// ModelRunParams:   qwenRunParams,
 				BaseCommand: baseCommandPresetQwenTuning,
+				ModelName:   PresetQwen2_5Coder7BInstructModel,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -124,6 +125,7 @@ func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    qwenRunParams,
 				BaseCommand:       baseCommandPresetQwenInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelName:         PresetQwen2_5Coder32BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -144,6 +146,7 @@ func (*qwen2_5Coder32BInstruct) GetTuningParameters() *model.PresetParam {
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
 				BaseCommand: baseCommandPresetQwenTuning,
+				ModelName:   PresetQwen2_5Coder32BInstructModel,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

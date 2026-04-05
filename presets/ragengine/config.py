@@ -74,8 +74,16 @@ LLM_CONTEXT_WINDOW = int(
 """
 
 # Vector database configuration
-VECTOR_DB_IMPLEMENTATION = os.getenv("VECTOR_DB_IMPLEMENTATION", "faiss")
+# VECTOR_DB_TYPE is injected by the Go controller from CRD spec.storage.vectorDB.engine
+# When VectorDB is nil in the CRD, FAISS (in-process) is used by default.
+# Supported values: "faiss" (default, in-process), "qdrant" (client-server)
+VECTOR_DB_TYPE = os.getenv("VECTOR_DB_TYPE", "faiss")
 DEFAULT_VECTOR_DB_PERSIST_DIR = os.getenv("DEFAULT_VECTOR_DB_PERSIST_DIR", "storage")
+
+# Vector DB connection info (injected from CRD spec.storage.vectorDB)
+# Used when VECTOR_DB_TYPE is a client-server backend (e.g., qdrant)
+VECTOR_DB_URL = os.getenv("VECTOR_DB_URL", None)  # None = in-memory/local mode
+VECTOR_DB_ACCESS_SECRET = os.getenv("VECTOR_DB_ACCESS_SECRET", None)
 
 """
 =========================================================================

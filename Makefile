@@ -2,8 +2,8 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.8.0
-GPU_PROVISIONER_VERSION ?= 0.3.8
+VERSION ?= v0.9.0
+GPU_PROVISIONER_VERSION ?= 0.4.1
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
@@ -87,7 +87,7 @@ endif
 golangci-lint: $(GOLANGCI_LINT) ## Download and install golangci-lint locally.
 
 .PHONY: ginkgo
-ginkgo: $(GOLANGCI_LINT) ## Download and install ginkgo locally.
+ginkgo: $(GINKGO) ## Download and install ginkgo locally.
 
 $(GOLANGCI_LINT): ## Download and install golangci-lint locally.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)
@@ -115,8 +115,9 @@ SHELL = /usr/bin/env bash -o pipefail
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole, and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-	cp config/crd/bases/kaito.sh_workspaces.yaml charts/kaito/workspace/crds/
-	cp config/crd/bases/kaito.sh_ragengines.yaml charts/kaito/ragengine/crds/
+	cp config/crd/bases/kaito.sh_workspaces.yaml charts/kaito/workspace/templates/
+	cp config/crd/bases/kaito.sh_inferencesets.yaml charts/kaito/workspace/templates/
+	cp config/crd/bases/kaito.sh_ragengines.yaml charts/kaito/ragengine/templates/
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -125,6 +126,10 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 .PHONY: compare-model-configs
 compare-model-configs: ## Compare supported_models.yaml with ConfigMap template (ignoring comments).
 	@./hack/compare_model_configs.sh
+
+.PHONY: generate-vllm-arch-list
+generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_list.txt.
+	@./hack/generate_vllm_arch_list.sh
 
 ## --------------------------------------
 ## Unit Tests
@@ -170,7 +175,7 @@ inference-api-e2e: ## Run inference API e2e tests with pytest.
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
-GINKGO_LABEL ?= !A100Required
+GINKGO_LABEL ?= !A100Required && !AzureLinux
 GINKGO_NODES ?= 2
 GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 120m
@@ -293,9 +298,12 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 		docker run --rm --privileged mcr.microsoft.com/mirror/docker/multiarch/qemu-user-static:$(QEMU_VERSION) --reset -p yes; \
 		docker buildx create --name $(BUILDX_BUILDER_NAME) --driver-opt image=mcr.microsoft.com/oss/v2/moby/buildkit:$(BUILDKIT_VERSION) --use; \
 		docker buildx inspect $(BUILDX_BUILDER_NAME) --bootstrap; \
+	else \
+		docker buildx use $(BUILDX_BUILDER_NAME); \
 	fi
 
 .PHONY: docker-build-workspace
+docker-build-workspace: ARCH = amd64,linux/arm64
 docker-build-workspace: docker-buildx ## Build Docker image for workspace.
 	docker buildx build \
 		--file ./docker/workspace/Dockerfile \
@@ -574,7 +582,7 @@ CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
-CONTROLLER_TOOLS_VERSION ?= v0.15.0
+CONTROLLER_TOOLS_VERSION ?= v0.20.1
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary. If wrong version is installed, it will be overwritten.
@@ -622,7 +630,7 @@ release-manifest: ## Update manifest and Helm charts for release.
 	@sed -i '' -e 's/^VERSION ?= .*/VERSION ?= ${VERSION}/' ./Makefile
 	@sed -i '' -e "1,20s/version: .*/version: ${IMG_TAG}/" ./charts/kaito/workspace/Chart.yaml
 	@sed -i '' -e "s/appVersion: .*/appVersion: ${IMG_TAG}/" ./charts/kaito/workspace/Chart.yaml
-	@sed -i '' -e "1,20s/  tag: .*/  tag: ${IMG_TAG}/" ./charts/kaito/workspace/values.yaml
+	@sed -i '' -e "1,30s/  tag: .*/  tag: ${IMG_TAG}/" ./charts/kaito/workspace/values.yaml
 	@sed -i '' -e 's/IMG_TAG=.*/IMG_TAG=${IMG_TAG}/' ./charts/kaito/workspace/README.md
 	@sed -i '' -e "s/version: .*/version: ${IMG_TAG}/" ./charts/kaito/ragengine/Chart.yaml
 	@sed -i '' -e "s/appVersion: .*/appVersion: ${IMG_TAG}/" ./charts/kaito/ragengine/Chart.yaml

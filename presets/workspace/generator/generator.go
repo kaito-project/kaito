@@ -27,11 +27,13 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
 const (
-	SystemFileDiskSizeGiB  = 50
+	SystemFileDiskSizeGiB  = 80
 	DefaultModelTokenLimit = 2048
 	HuggingFaceWebsite     = "https://huggingface.co"
 )
@@ -40,7 +42,7 @@ var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
 	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
-	// source: https://github.com/vllm-project/vllm/blob/main/docs/features/reasoning_outputs.md
+	// source: https://github.com/vllm-project/vllm/blob/v0.17.1/vllm/reasoning/__init__.py
 	reasoningParserModeNamePrefixMap = map[string]string{
 		"deepseek-r1":  "deepseek_r1",
 		"deepseek-v3":  "deepseek_v3",
@@ -49,9 +51,12 @@ var (
 		"holo2":        "holo2",
 		"hunyuan-a13b": "hunyuan_a13b",
 		"granite-3.2":  "granite",
+		"kimi-k2":      "kimi_k2",
 		"minimax-m2":   "minimax_m2_append_think",
+		"olmo-3":       "olmo3",
 		"qwen3":        "qwen3",
 		"qwq-32b":      "deepseek_r1",
+		"step3":        "step3",
 	}
 	reasoningParserArchMap = map[string]string{
 		"DeepseekV3ForCausalLM":                  "deepseek_v3",
@@ -60,9 +65,16 @@ var (
 		"Glm4MoeForCausalLM":                     "glm45",
 		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
 		"GraniteForCausalLM":                     "granite",
+		"KimiK2ForCausalLM":                      "kimi_k2",
 		"MiniMaxM2ForCausalLM":                   "minimax_m2_append_think",
+		"MistralForCausalLM":                     "mistral",
+		"NemotronForCausalLM":                    "nemotron_v3",
+		"OlmoForCausalLM":                        "olmo3",
 		"Qwen3ForCausalLM":                       "qwen3",
 		"Qwen3MoeForCausalLM":                    "qwen3",
+		"GptOssForCausalLM":                      "openai_gptoss",
+		"Step3TextForCausalLM":                   "step3",
+		"Step3VLForConditionalGeneration":        "step3",
 	}
 
 	// source: https://github.com/vllm-project/vllm/blob/main/docs/features/tool_calling.md
@@ -85,6 +97,7 @@ var (
 		"deepseek-r1":   "deepseek_v3",
 		"deepseek-v3":   "deepseek_v3",
 		"deepseek-v3.1": "deepseek_v31",
+		"deepseek-v3.2": "deepseek_v32",
 		"kimi_k2":       "kimi_k2",
 		"hunyuan-a13b":  "hunyuan_a13b",
 		"longcat":       "longcat",
@@ -94,39 +107,56 @@ var (
 		"qwen3-coder":   "qwen3_xml",
 		"olmo-3":        "olmo3",
 		"gigachat3":     "gigachat3",
+		"ernie-4.5":     "ernie45",
+		"phi4-mini":     "phi4_mini_json",
+		"step3p5":       "step3p5",
+		"step3":         "step3",
+		"seed-oss":      "seed_oss",
+		"gemma-3":       "functiongemma",
 	}
 
 	// key is model architecture name, value is ToolCallParser mode name
 	toolCallParserArchMap = map[string]string{
-		"MistralForCausalLM":             "mistral",
-		"MistralLarge3ForCausalLM":       "mistral",
-		"LlamaForCausalLM":               "llama3_json",
-		"Llama4ForConditionalGeneration": "llama4_pythonic",
-		"GraniteForCausalLM":             "granite",
-		"GraniteMoeForCausalLM":          "granite",
-		"GraniteMoeHybridForCausalLM":    "hermes",
-		"GPTBigCodeForCausalLM":          "granite-20b-fc",
-		"InternLM2ForCausalLM":           "internlm",
-		"JambaForCausalLM":               "jamba",
-		"Qwen2ForCausalLM":               "hermes",
-		"Qwen3ForCausalLM":               "hermes",
-		"Qwen3MoeForCausalLM":            "qwen3_xml",
-		"MiniMaxM1ForCausalLM":           "minimax",
-		"DeepseekV3ForCausalLM":          "deepseek_v3",
-		"GptOssForCausalLM":              "openai",
-		"HunYuanMoEV1ForCausalLM":        "hunyuan_a13b",
-		"LongcatFlashForCausalLM":        "longcat",
-		"Glm4MoeForCausalLM":             "glm45",
-		"Gemma3ForCausalLM":              "functiongemma",
-		"Olmo3ForCausalLM":               "olmo3",
-		"SeedOssForCausalLM":             "seed_oss",
+		"MistralForCausalLM":                     "mistral",
+		"MistralLarge3ForCausalLM":               "mistral",
+		"LlamaForCausalLM":                       "llama3_json",
+		"Llama4ForConditionalGeneration":         "llama4_pythonic",
+		"GraniteForCausalLM":                     "granite",
+		"GraniteMoeForCausalLM":                  "granite",
+		"GraniteMoeHybridForCausalLM":            "hermes",
+		"GPTBigCodeForCausalLM":                  "granite-20b-fc",
+		"InternLM2ForCausalLM":                   "internlm",
+		"JambaForCausalLM":                       "jamba",
+		"Qwen2ForCausalLM":                       "hermes",
+		"Qwen3ForCausalLM":                       "hermes",
+		"Qwen3MoeForCausalLM":                    "qwen3_xml",
+		"MiniMaxM1ForCausalLM":                   "minimax",
+		"MiniMaxM2ForCausalLM":                   "minimax_m2",
+		"DeepseekV3ForCausalLM":                  "deepseek_v3",
+		"DeepseekV32ForCausalLM":                 "deepseek_v32",
+		"GptOssForCausalLM":                      "openai",
+		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
+		"LongcatFlashForCausalLM":                "longcat",
+		"Glm4MoeForCausalLM":                     "glm45",
+		"Glm47MoeForCausalLM":                    "glm47",
+		"Gemma3ForCausalLM":                      "functiongemma",
+		"Olmo3ForCausalLM":                       "olmo3",
+		"SeedOssForCausalLM":                     "seed_oss",
+		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
+		"Ernie4_5_MoeForCausalLM":                "ernie45",
+		"Step3TextForCausalLM":                   "step3",
+		"Step3p5TextForCausalLM":                 "step3p5",
+		"Phi4MiniForCausalLM":                    "phi4_mini_json",
+		"KimiK2ForCausalLM":                      "kimi_k2",
+		"GigaChat3ForCausalLM":                   "gigachat3",
 	}
 )
 
 type Generator struct {
-	ModelRepo string
-	Token     string
-	Param     model.PresetParam
+	ModelRepo   string
+	Token       string
+	Param       model.PresetParam
+	CatalogData []byte // Optional embedded catalog YAML
 
 	// Analyzed params
 	LoadFormat    string
@@ -152,7 +182,7 @@ func NewGenerator(modelRepo, token string) *Generator {
 	gen.Param.Metadata.ModelType = "tfs"
 	gen.Param.Metadata.Version = fmt.Sprintf("%s/%s", HuggingFaceWebsite, modelRepo)
 	gen.Param.Metadata.DownloadAtRuntime = true
-	gen.Param.Metadata.DiskStorageRequirement = "50Gi"
+	gen.Param.Metadata.DiskStorageRequirement = fmt.Sprintf("%dGi", SystemFileDiskSizeGiB)
 	gen.Param.Metadata.ModelFileSize = "0Gi"
 
 	return gen
@@ -271,8 +301,8 @@ func (g *Generator) FetchModelMetadata() error {
 		totalBytes += f.Size
 	}
 
-	modelSizeGB := float64(totalBytes) / (1024 * 1024 * 1024)
-	g.Param.Metadata.ModelFileSize = fmt.Sprintf("%.0fGi", math.Ceil(modelSizeGB))
+	modelSizeGiB := float64(totalBytes) / (1024 * 1024 * 1024)
+	g.Param.Metadata.ModelFileSize = fmt.Sprintf("%.0fGi", math.Ceil(modelSizeGiB))
 
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
@@ -308,13 +338,7 @@ func getInt(config map[string]interface{}, keys []string, defaultVal int) int {
 }
 
 func (g *Generator) ParseModelMetadata() {
-	maxPos := getInt(g.ModelConfig, []string{
-		"max_position_embeddings",
-		"n_ctx",
-		"seq_length",
-		"max_seq_len",
-		"max_sequence_length",
-	}, DefaultModelTokenLimit)
+	maxPos := getInt(g.ModelConfig, configKeyMap["modelTokenLimit"], DefaultModelTokenLimit)
 
 	g.Param.Metadata.ModelTokenLimit = maxPos
 
@@ -391,19 +415,19 @@ func (g *Generator) calculateStorageSize() string {
 func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 	config := g.ModelConfig
 
-	hiddenSize := getInt(config, []string{"hidden_size", "n_embd", "d_model"}, 0)
-	hiddenLayers := getInt(config, []string{"num_hidden_layers", "n_layer", "n_layers"}, 0)
-	attentionHeads := getInt(config, []string{"num_attention_heads", "n_head", "n_heads"}, 0)
-	kvHeads := getInt(config, []string{"num_key_value_heads", "n_head_kv", "n_kv_heads"}, 0)
-	headDim := getInt(config, []string{"head_dim"}, 0)
+	hiddenSize := getInt(config, configKeyMap["hiddenSize"], 0)
+	hiddenLayers := getInt(config, configKeyMap["numHiddenLayers"], 0)
+	attentionHeads := getInt(config, configKeyMap["numAttentionHeads"], 0)
+	kvHeads := getInt(config, configKeyMap["numKeyValueHeads"], 0)
+	headDim := getInt(config, optionalKeyMap["headDim"], 0)
 
 	if headDim == 0 && attentionHeads > 0 {
 		headDim = hiddenSize / attentionHeads
 	}
 
 	// DeepSeek MLA
-	kvLoraRank := getInt(config, []string{"kv_lora_rank"}, -1)
-	qkRopeHeadDim := getInt(config, []string{"qk_rope_head_dim"}, 0)
+	kvLoraRank := getInt(config, optionalKeyMap["kvLoraRank"], -1)
+	qkRopeHeadDim := getInt(config, optionalKeyMap["qkRopeHeadDim"], 0)
 
 	// Fallback KV heads
 	if kvHeads == 0 && attentionHeads > 0 {
@@ -455,9 +479,83 @@ func (g *Generator) FinalizeParams() {
 	g.Param.AttnType = attnType
 }
 
+// loadFromCatalog checks whether the model repo exists in the embedded catalog.
+// If found, it populates the generator's ModelConfig and Param fields from the
+// catalog entry, avoiding any HuggingFace API calls.
+func (g *Generator) loadFromCatalog() bool {
+	if len(g.CatalogData) == 0 {
+		return false
+	}
+
+	catalog := ModelCatalog{}
+	if err := yaml.Unmarshal(g.CatalogData, &catalog); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to unmarshal model catalog for %q: %v\n", g.ModelRepo, err)
+		return false
+	}
+
+	var entry *CatalogEntry
+	for i, m := range catalog.Models {
+		if strings.EqualFold(m.Name, g.ModelRepo) {
+			entry = &catalog.Models[i]
+			break
+		}
+	}
+	if entry == nil {
+		return false
+	}
+
+	// Populate ModelConfig from catalog entry so existing calculation
+	// functions (ParseModelMetadata, FinalizeParams) work unchanged.
+	g.ModelConfig = map[string]interface{}{
+		"hidden_size":             entry.HiddenSize,
+		"num_hidden_layers":       entry.NumHiddenLayers,
+		"num_attention_heads":     entry.NumAttentionHeads,
+		"num_key_value_heads":     entry.NumKeyValueHeads,
+		"max_position_embeddings": entry.ModelTokenLimit,
+	}
+	if entry.HeadDim > 0 {
+		g.ModelConfig["head_dim"] = entry.HeadDim
+	}
+	if entry.KVLoraRank > 0 {
+		g.ModelConfig["kv_lora_rank"] = entry.KVLoraRank
+	}
+	if entry.QKRopeHeadDim > 0 {
+		g.ModelConfig["qk_rope_head_dim"] = entry.QKRopeHeadDim
+	}
+
+	// Set architectures in config for ParseModelMetadata to pick up
+	archInterfaces := make([]interface{}, len(entry.Architectures))
+	for i, a := range entry.Architectures {
+		archInterfaces[i] = a
+	}
+	g.ModelConfig["architectures"] = archInterfaces
+
+	// Populate fields that FetchModelMetadata would have set
+	g.Param.Metadata.ModelFileSize = entry.ModelFileSize
+	g.Param.VLLM.ModelRunParams = make(map[string]string)
+
+	if entry.LoadFormat != "" {
+		g.LoadFormat = entry.LoadFormat
+	}
+	if entry.ConfigFormat != "" {
+		g.ConfigFormat = entry.ConfigFormat
+	} else if entry.LoadFormat != "" {
+		g.ConfigFormat = entry.LoadFormat
+	}
+	if entry.TokenizerMode != "" {
+		g.TokenizerMode = entry.TokenizerMode
+	} else if entry.LoadFormat != "" {
+		g.TokenizerMode = entry.LoadFormat
+	}
+
+	return true
+}
+
 func (g *Generator) Generate() (*model.PresetParam, error) {
-	if err := g.FetchModelMetadata(); err != nil {
-		return nil, err
+	if !g.loadFromCatalog() {
+		if err := g.FetchModelMetadata(); err != nil {
+			return nil, err
+		}
 	}
 	g.ParseModelMetadata()
 	g.FinalizeParams()
@@ -465,11 +563,16 @@ func (g *Generator) Generate() (*model.PresetParam, error) {
 	return &g.Param, nil
 }
 
-// GeneratePreset is the global function to generate preset param
-func GeneratePreset(modelRepo, token string) (*model.PresetParam, error) {
+// GeneratePreset is the global function to generate preset param.
+// If catalogData is provided, the generator will check for the model in the
+// catalog before making any HuggingFace API calls.
+func GeneratePreset(modelRepo, token string, catalogData ...[]byte) (*model.PresetParam, error) {
 	if modelRepo == "" {
 		return nil, errors.New("model repo is required")
 	}
 	gen := NewGenerator(modelRepo, token)
+	if len(catalogData) > 0 {
+		gen.CatalogData = catalogData[0]
+	}
 	return gen.Generate()
 }

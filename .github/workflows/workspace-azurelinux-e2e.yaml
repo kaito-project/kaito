@@ -1,0 +1,48 @@
+name: Workspace AzureLinux E2E Tests
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_sha:
+        description: "Git SHA to test (optional, defaults to current SHA)"
+        required: false
+        type: string
+      region:
+        description: "Azure region for E2E cluster"
+        required: false
+        default: "eastus"
+        type: string
+      node_provisioner:
+        description: "Node provisioner"
+        required: false
+        default: "gpuprovisioner"
+        type: choice
+        options:
+          - gpuprovisioner
+      k8s_version:
+        description: "AKS Kubernetes version"
+        required: false
+        default: "1.32.9"
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  azurelinux-e2e:
+    name: azurelinux-e2e-${{ inputs.node_provisioner }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/e2e-workflow.yaml
+    with:
+      git_sha: ${{ inputs.git_sha != '' && inputs.git_sha || github.sha }}
+      node_provisioner: ${{ inputs.node_provisioner }}
+      region: ${{ inputs.region }}
+      k8s_version: ${{ inputs.k8s_version }}
+      ginkgo_label: "AzureLinux"

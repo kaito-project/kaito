@@ -13,13 +13,14 @@ on:
   workflow_dispatch:
 
 env:
-    GO_VERSION: "1.24"
+    GO_VERSION: "1.25"
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     WEIGHTS_DIR: "/mnt/storage"
 
 permissions:
   id-token: write
   contents: read
+  packages: write
 
 jobs:
   determine-models:
@@ -64,7 +65,10 @@ jobs:
   build-models:
     needs: determine-models
     if: needs.determine-models.outputs.is_matrix_empty == 'false'
-    runs-on: [ "self-hosted", "1ES.Pool=1es-aks-kaito-image-build-agent-pool-ubuntu" ]
+    runs-on:
+      - self-hosted
+      - 1ES.Pool=1es-aks-kaito-image-build-agent-pool-ubuntu
+      - JobId=buildModels-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
     environment: preset-env
     strategy:
       fail-fast: false
@@ -183,10 +187,11 @@ jobs:
           acr_name: ${{ secrets.PROD_1ES_ACR_USERNAME }}
           acr_username: ${{ secrets.PROD_1ES_ACR_USERNAME }}
           acr_password: ${{ secrets.PROD_1ES_ACR_PASSWORD }}
+          ghcr_username: ${{ github.actor }}
+          ghcr_token: ${{ secrets.GITHUB_TOKEN }}
           model_name: ${{ matrix.model.name }}
           model_type: ${{ matrix.model.type }}
           model_version: ${{ matrix.model.version }}
           model_runtime: ${{ matrix.model.runtime }}
           hf_username: ${{ secrets.HF_USERNAME }}
           hf_token: ${{ secrets.HF_TOKEN }}
-          runs_on: "1ES.Pool=1es-aks-kaito-image-build-agent-pool-ubuntu"

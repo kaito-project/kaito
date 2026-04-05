@@ -30,6 +30,7 @@ import (
 	"knative.dev/pkg/apis"
 
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
@@ -108,7 +109,33 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 	if w.Inference != nil && w.Tuning != nil {
 		errs = errs.Also(apis.ErrGeneric("Either Inference or Tuning must be specified, but not both", ""))
 	}
+
+	errmsgs := w.validateNodeImageFamilyAnnotation()
+	if errmsgs != nil {
+		errs = errs.Also(errmsgs)
+	}
+
 	return errs
+}
+
+func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) {
+	if w.GetAnnotations() == nil {
+		return nil
+	}
+
+	nodeImageFamily, exists := w.GetAnnotations()[AnnotationNodeImageFamily]
+	if !exists {
+		return nil
+	}
+
+	if _, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("unsupported node image family %q, supported values are azurelinux, ubuntu", nodeImageFamily),
+			fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeImageFamily),
+		)
+	}
+
+	return nil
 }
 
 func (w *Workspace) validateUpdate(old *Workspace) (errs *apis.FieldError) {
@@ -133,8 +160,12 @@ func (r *AdapterSpec) validateCreateorUpdate() (errs *apis.FieldError) {
 		} else if errmsgs := validation.IsDNS1123Subdomain(r.Source.Name); len(errmsgs) > 0 {
 			errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "adapters.source.name"))
 		}
-		if r.Source.Image == "" {
-			errs = errs.Also(apis.ErrMissingField("Image of Adapter field must be specified"))
+		// Adapters support Image or Volume as source (not URLs)
+		if r.Source.Image == "" && r.Source.Volume == nil {
+			errs = errs.Also(apis.ErrGeneric("Either Image or Volume must be specified for adapter source", "adapters.source"))
+		}
+		if len(r.Source.URLs) > 0 {
+			errs = errs.Also(apis.ErrGeneric("URLs are not supported as adapter source", "adapters.source.urls"))
 		}
 		if r.Strength == nil {
 			var defaultStrength = "1.0"
@@ -341,53 +372,41 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 			params := model.GetInferenceParameters()
 
 			machineCount := *r.Count
-			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
-			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
+			machineTotalGPUMem := resource.NewQuantity(int64(machineCount)*skuConfig.GPUMem.Value(), resource.BinarySI) // Total GPU memory
 
-			modelGPUCount := resource.MustParse(params.GPUCountRequirement)
-			modelTotalGPUMemory := resource.MustParse(params.TotalSafeTensorFileSize)
-
-			// Separate the checks for specific error messages
-			if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
-				if bypassResourceChecks {
-					klog.Warningf("Bypassing resource check: Insufficient number of GPUs detected but continuing due to bypass flag. Instance type %s provides %s, but preset %s requires at least %d",
-						instanceType, machineTotalNumGPUs.String(), presetName, modelGPUCount.Value())
-				} else {
+			if params.TotalSafeTensorFileSize == "" {
+				klog.V(4).Infof("Skipping GPU memory validation for preset %s: TotalSafeTensorFileSize not specified", presetName)
+			} else {
+				modelTotalGPUMemory, err := resource.ParseQuantity(params.TotalSafeTensorFileSize)
+				if err != nil {
+					klog.Warningf("Failed to parse TotalSafeTensorFileSize %q for preset %s: %v", params.TotalSafeTensorFileSize, presetName, err)
 					errs = errs.Also(apis.ErrInvalidValue(
-						fmt.Sprintf(
-							"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
-							instanceType,
-							machineTotalNumGPUs.String(),
-							presetName,
-							modelGPUCount.Value(),
-						),
-						"instanceType",
+						fmt.Sprintf("invalid TotalSafeTensorFileSize %q for preset %s: %v", params.TotalSafeTensorFileSize, presetName, err),
+						"TotalSafeTensorFileSize",
 					))
-				}
-			}
-
-			if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
-				if bypassResourceChecks {
-					klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
-						instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
-				} else {
-					errs = errs.Also(apis.ErrInvalidValue(
-						fmt.Sprintf(
-							"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
-							instanceType,
-							machineTotalGPUMem.String(),
-							presetName,
-							modelTotalGPUMemory.String(),
-						),
-						"instanceType",
-					))
+				} else if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
+					if bypassResourceChecks {
+						klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
+							instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
+					} else {
+						errs = errs.Also(apis.ErrInvalidValue(
+							fmt.Sprintf(
+								"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
+								instanceType,
+								machineTotalGPUMem.String(),
+								presetName,
+								modelTotalGPUMemory.String(),
+							),
+							"instanceType",
+						))
+					}
 				}
 			}
 		}
 	} else {
 		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
+		if provider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}

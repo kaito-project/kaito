@@ -13,13 +13,16 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: '1.24'
+  GO_VERSION: '1.25'
   IMAGE_NAME: 'kaito-rag-service'
 
 jobs:
   build-publish-mcr-image:
     runs-on:
-      labels: [ "self-hosted", "1ES.Pool=1es-aks-kaito-agent-pool-ubuntu" ]
+      labels:
+        - self-hosted
+        - 1ES.Pool=1es-aks-kaito-agent-pool-ubuntu
+        - JobId=buildPublishMcrImage-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
     environment: publish-mcr
     steps:
       - name: Set up Go ${{ env.GO_VERSION }}
@@ -32,7 +35,7 @@ jobs:
           ver=${{ github.event.client_payload.tag || github.event.inputs.tag }}
           echo "IMG_TAG=${ver#"v"}" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
           submodules: true

@@ -68,12 +68,10 @@ var (
 		"chat_template": "/workspace/chat_templates/mistral-instruct.jinja",
 	}
 	mistralRunParamsVLLM = map[string]string{
-		"dtype":                   "float16",
 		"tool-call-parser":        "mistral",
 		"enable-auto-tool-choice": "",
 	}
 	mistral3RunParamsVLLM = map[string]string{
-		"dtype":                   "float16",
 		"tool-call-parser":        "mistral",
 		"tokenizer_mode":          "mistral",
 		"config_format":           "mistral",
@@ -100,6 +98,7 @@ func (*mistral7b) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    mistralRunParams,
 				BaseCommand:       baseCommandPresetMistralInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelName:         PresetMistral7BModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -122,6 +121,7 @@ func (*mistral7b) GetTuningParameters() *model.PresetParam {
 				// AccelerateParams: tuning.DefaultAccelerateParams,
 				// ModelRunParams:   mistralRunParams,
 				BaseCommand: baseCommandPresetMistralTuning,
+				ModelName:   PresetMistral7BModel,
 			},
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
@@ -153,6 +153,7 @@ func (*mistral7bInst) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    mistralRunParams,
 				BaseCommand:       baseCommandPresetMistralInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelName:         PresetMistral7BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -195,6 +196,7 @@ func (*ministral3_3bInstruct) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    mistralRunParams,
 				BaseCommand:       baseCommandPresetMistralInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelName:         PresetMinistral33BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -225,6 +227,7 @@ func (*ministral3_8bInstruct) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    mistralRunParams,
 				BaseCommand:       baseCommandPresetMistralInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelName:         PresetMinistral38BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -255,6 +258,7 @@ func (*ministral3_14bInstruct) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    mistralRunParams,
 				BaseCommand:       baseCommandPresetMistralInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelName:         PresetMinistral314BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
@@ -287,6 +291,7 @@ func (*mistralLarge3_675bInstruct) GetInferenceParameters() *model.PresetParam {
 				ModelRunParams:    mistralRunParams,
 				BaseCommand:       baseCommandPresetMistralInference,
 				InferenceMainFile: inference.DefaultTransformersMainFile,
+				ModelName:         PresetMistralLarge3675BInstructModel,
 			},
 			VLLM: model.VLLMParam{
 				BaseCommand:          metadata.DefaultVLLMCommand,

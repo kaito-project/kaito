@@ -13,7 +13,7 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: "1.24"
+  GO_VERSION: "1.25"
 
 jobs:
   unit-tests:
@@ -47,6 +47,19 @@ jobs:
       - name: Generate APIs
         run: |
           make generate
+
+      - name: Install deadcode
+        run: go install golang.org/x/tools/cmd/deadcode@latest
+
+      - name: Run deadcode check
+        run: |
+          output=$(deadcode -test ./... 2>&1)
+          if [ -n "$output" ]; then
+            echo "Dead code detected:"
+            echo "$output"
+            exit 1
+          fi
+          echo "No dead code found."
 
       - name: Run unit tests & Generate coverage
         run: |

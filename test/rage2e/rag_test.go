@@ -323,6 +323,63 @@ var _ = Describe("RAGEngine", func() {
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
+	It("should create RAG with Qdrant vector database backend successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfReplica := 1
+		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
+
+		time.Sleep(30 * time.Second)
+
+		validateWorkspaceResourceStatus(workspaceObj)
+		validateAssociatedService(workspaceObj.ObjectMeta)
+		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
+		validateWorkspaceReadiness(workspaceObj)
+
+		serviceName := workspaceObj.ObjectMeta.Name
+		serviceNamespace := workspaceObj.ObjectMeta.Namespace
+		service := &v1.Service{}
+
+		_ = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: serviceNamespace,
+			Name:      serviceName,
+		}, service)
+
+		clusterIP := service.Spec.ClusterIP
+
+		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngineWithQdrant(clusterIP, "v1/completions")
+
+		defer cleanupResources(workspaceObj, ragengineObj)
+
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateAssociatedService(ragengineObj.ObjectMeta)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+		// Index a document
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
+		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
+		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
+		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
+		docID := indexDoc["doc_id"].(string)
+
+		// Retrieve document - Qdrant uses hybrid search (dense + sparse)
+		expectedText := indexDoc["text"].(string)
+		err = createAndValidateRetrievalPod(ragengineObj, docID, expectedText)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate RetrievalPod")
+
+		// Update document
+		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
+
+		// Delete document
+		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
+
+		// Delete index
+		err = createAndValidateDeleteIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
+	})
+
 	It("should create RAG with PVC storage and persist indexes across pod restarts", utils.GinkgoLabelFastCheck, func() {
 		numOfReplica := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
@@ -584,6 +641,32 @@ func createLocalEmbeddingKaitoVLLMRAGEngineWithStorage(baseURL, llmPath, pvcName
 				PersistentVolume: &kaitov1beta1.PersistentVolumeConfig{
 					PersistentVolumeClaim: pvcName,
 					MountPath:             "/mnt/vector-db",
+				},
+			},
+		)
+
+		createAndValidateRAGEngine(ragEngineObj)
+	})
+	return ragEngineObj
+}
+
+func createLocalEmbeddingKaitoVLLMRAGEngineWithQdrant(baseURL, llmPath string) *kaitov1beta1.RAGEngine {
+	ragEngineObj := &kaitov1beta1.RAGEngine{}
+	serviceURL := fmt.Sprintf("http://%s/%s", baseURL, llmPath)
+	By("Creating RAG with localembedding, kaito vllm inference, and Qdrant backend", func() {
+		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifestWithStorage(uniqueID, namespaceName, "Standard_NV36ads_A10_v5", "BAAI/bge-small-en-v1.5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"apps": "phi-3"},
+			},
+			&kaitov1beta1.InferenceServiceSpec{
+				URL:               serviceURL,
+				ContextWindowSize: 128000,
+			},
+			&kaitov1beta1.StorageSpec{
+				VectorDB: &kaitov1beta1.VectorDBConfig{
+					Engine: "qdrant",
+					URL:    "http://qdrant.qdrant.svc.cluster.local:6333",
 				},
 			},
 		)
@@ -1190,10 +1273,11 @@ func createAndValidateRetrievalPod(ragengineObj *kaitov1beta1.RAGEngine, expecte
 	if !ok {
 		return fmt.Errorf("node missing 'node_id' field or not a string")
 	}
+	_ = nodeID // node_id is a chunk-level UUID, different from doc_id
 
-	// Verify doc_id and node_id are the same (as per implementation)
-	if docID != nodeID {
-		return fmt.Errorf("doc_id (%s) should match node_id (%s)", docID, nodeID)
+	// Verify doc_id matches the expected document ID from indexing
+	if docID != expectedDocID {
+		return fmt.Errorf("doc_id (%s) should match expectedDocID (%s)", docID, expectedDocID)
 	}
 
 	text, ok := firstNode["text"].(string)

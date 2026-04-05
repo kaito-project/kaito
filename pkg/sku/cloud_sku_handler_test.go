@@ -15,6 +15,8 @@ package sku
 
 import (
 	"testing"
+
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 func TestAzureSKUHandler(t *testing.T) {
@@ -27,7 +29,7 @@ func TestAzureSKUHandler(t *testing.T) {
 	}
 
 	// Test GetGPUConfigs with a SKU that is supported
-	sku := "Standard_NC6s_v3"
+	sku := "Standard_NC4as_T4_v3"
 	gpuConfig1 := handler.GetGPUConfigBySKU(sku)
 	if gpuConfig1 == nil {
 		t.Fatalf("Supported SKU missing from GPUConfigs")
@@ -41,6 +43,49 @@ func TestAzureSKUHandler(t *testing.T) {
 	gpuConfig2 := handler.GetGPUConfigBySKU(sku)
 	if gpuConfig2 != nil {
 		t.Errorf("Unsupported SKU found in GPUConfigs")
+	}
+}
+
+func TestGetGPUConfigBySKUCaseInsensitive(t *testing.T) {
+	handler := NewAzureSKUHandler()
+
+	canonical := "Standard_NC4as_T4_v3"
+	cases := []string{canonical, "standard_nc4as_t4_v3", "STANDARD_NC4AS_T4_V3"}
+	for _, input := range cases {
+		config := handler.GetGPUConfigBySKU(input)
+		if config == nil {
+			t.Fatalf("Expected GPUConfig for %q, got nil", input)
+		}
+		if config.SKU != canonical {
+			t.Errorf("GetGPUConfigBySKU(%q): expected SKU %s, got %s", input, canonical, config.SKU)
+		}
+	}
+}
+
+func TestHasSKUNamePrefix(t *testing.T) {
+	tests := []struct {
+		name     string
+		skuName  string
+		prefixes []string
+		expected bool
+	}{
+		{"exact case match", "Standard_NC4as_T4_v3", []string{"Standard_N"}, true},
+		{"lowercase sku", "standard_nc4as_t4_v3", []string{"Standard_N"}, true},
+		{"uppercase sku", "STANDARD_NC4AS_T4_V3", []string{"Standard_N"}, true},
+		{"d-series match", "standard_d2s_v6", []string{"Standard_D"}, true},
+		{"multiple prefixes first match", "Standard_NC4as_T4_v3", []string{"Standard_N", "Standard_D"}, true},
+		{"multiple prefixes second match", "Standard_D2s_v6", []string{"Standard_N", "Standard_D"}, true},
+		{"no match", "Standard_E4s_v3", []string{"Standard_N", "Standard_D"}, false},
+		{"empty sku", "", []string{"Standard_N"}, false},
+		{"empty prefixes", "Standard_NC4as_T4_v3", []string{}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := HasSKUNamePrefix(tt.skuName, tt.prefixes...)
+			if result != tt.expected {
+				t.Errorf("HasSKUNamePrefix(%q, %v) = %v, want %v", tt.skuName, tt.prefixes, result, tt.expected)
+			}
+		})
 	}
 }
 
@@ -68,5 +113,63 @@ func TestAwsSKUHandler(t *testing.T) {
 	gpuConfig2 := handler.GetGPUConfigBySKU(sku)
 	if gpuConfig2 != nil {
 		t.Errorf("Unsupported SKU found in GPUConfigs")
+	}
+}
+
+func TestGPUConfigMemoryIsQuantity(t *testing.T) {
+	tests := []struct {
+		name           string
+		handler        CloudSKUHandler
+		sku            string
+		expectedMemGiB string
+	}{
+		{
+			name:           "Azure Standard_NC4as_T4_v3",
+			handler:        NewAzureSKUHandler(),
+			sku:            "Standard_NC4as_T4_v3",
+			expectedMemGiB: "16Gi",
+		},
+		{
+			name:           "Azure Standard_NC24ads_A100_v4",
+			handler:        NewAzureSKUHandler(),
+			sku:            "Standard_NC24ads_A100_v4",
+			expectedMemGiB: "80Gi",
+		},
+		{
+			name:           "AWS p2.xlarge",
+			handler:        NewAwsSKUHandler(),
+			sku:            "p2.xlarge",
+			expectedMemGiB: "12Gi",
+		},
+		{
+			name:           "AWS p5.48xlarge",
+			handler:        NewAwsSKUHandler(),
+			sku:            "p5.48xlarge",
+			expectedMemGiB: "640Gi",
+		},
+		{
+			name:           "Arc Standard_NK6",
+			handler:        NewArcSKUHandler(),
+			sku:            "Standard_NK6",
+			expectedMemGiB: "8Gi",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := tt.handler.GetGPUConfigBySKU(tt.sku)
+			if config == nil {
+				t.Fatalf("SKU %s not found", tt.sku)
+			}
+			expected := resource.MustParse(tt.expectedMemGiB)
+			if config.GPUMem.Cmp(expected) != 0 {
+				t.Errorf("GPUMem mismatch for %s: expected %s, got %s",
+					tt.sku, expected.String(), config.GPUMem.String())
+			}
+			// Verify the value is positive (non-zero)
+			if config.GPUMem.IsZero() {
+				t.Errorf("GPUMem should not be zero for SKU %s", tt.sku)
+			}
+		})
 	}
 }

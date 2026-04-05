@@ -69,6 +69,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
+		errs = errs.Also(w.validateAnnotations())
 		if w.Inference != nil {
 			// Check if the bypass resource checks annotation is set
 			bypassResourceChecks := false
@@ -108,6 +109,25 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	return errs
 }
 
+func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
+	annotations := w.GetAnnotations()
+	if annotations == nil {
+		return nil
+	}
+	if v, ok := annotations[AnnotationPerformanceMode]; ok {
+		switch v {
+		case PerformanceModeBalanced, PerformanceModeInteractivity, PerformanceModeThroughput:
+			// valid
+		default:
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("%q is not a valid performance mode; choose one of: balanced, interactivity, throughput", v),
+				fmt.Sprintf("metadata.annotations[%s]", AnnotationPerformanceMode),
+			))
+		}
+	}
+	return errs
+}
+
 func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 	if w.Inference == nil && w.Tuning == nil {
 		errs = errs.Also(apis.ErrGeneric("Either Inference or Tuning must be specified, not neither", ""))
@@ -130,7 +150,32 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 		}
 	}
 
+	errmsgs := w.validateNodeImageFamilyAnnotation()
+	if errmsgs != nil {
+		errs = errs.Also(errmsgs)
+	}
+
 	return errs
+}
+
+func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) {
+	if w.GetAnnotations() == nil {
+		return nil
+	}
+
+	nodeImageFamily, exists := w.GetAnnotations()[AnnotationNodeImageFamily]
+	if !exists {
+		return nil
+	}
+
+	if _, valid := consts.NormalizeSupportedNodeImageFamily(nodeImageFamily); !valid {
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("unsupported node image family %q, supported values are azurelinux, ubuntu", nodeImageFamily),
+			fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeImageFamily),
+		)
+	}
+
+	return nil
 }
 
 func (w *Workspace) validateUpdate(old *Workspace) (errs *apis.FieldError) {
@@ -155,8 +200,12 @@ func (r *AdapterSpec) validateCreateorUpdate() (errs *apis.FieldError) {
 		} else if errmsgs := validation.IsDNS1123Subdomain(r.Source.Name); len(errmsgs) > 0 {
 			errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "adapters.source.name"))
 		}
-		if r.Source.Image == "" {
-			errs = errs.Also(apis.ErrMissingField("Image of Adapter field must be specified"))
+		// Adapters support Image or Volume as source (not URLs)
+		if r.Source.Image == "" && r.Source.Volume == nil {
+			errs = errs.Also(apis.ErrGeneric("Either Image or Volume must be specified for adapter source", "adapters.source"))
+		}
+		if len(r.Source.URLs) > 0 {
+			errs = errs.Also(apis.ErrGeneric("URLs are not supported as adapter source", "adapters.source.urls"))
 		}
 		if r.Strength == nil {
 			var defaultStrength = "1.0"
@@ -409,8 +458,8 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU count: node %s has %d GPUs, but previous node has %d GPUs", node.Name, gpuConfig.GPUCount, skuConfig.GPUCount)))
 						return errs
 					}
-					if gpuConfig.GPUMemGiB != skuConfig.GPUMemGiB {
-						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %d GB memory, but previous node has %d GB memory", node.Name, gpuConfig.GPUMemGiB, skuConfig.GPUMemGiB)))
+					if !gpuConfig.GPUMem.Equal(skuConfig.GPUMem) {
+						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %s memory, but previous node has %s memory", node.Name, gpuConfig.GPUMem.String(), skuConfig.GPUMem.String())))
 						return errs
 					}
 				}
@@ -435,7 +484,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		if skuConfig == nil {
 			provider := os.Getenv("CLOUD_PROVIDER")
 			// Check for other instance types pattern matches if cloud provider is Azure
-			if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
+			if provider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
 				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 			}
 		}
@@ -450,56 +499,47 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			}
 			params := modelPreset.GetInferenceParameters()
 
-			machineTotalNumGPUs := resource.NewQuantity(int64(machineCount*skuConfig.GPUCount), resource.DecimalSI)
-			machineTotalGPUMem := resource.NewQuantity(int64(machineCount*skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI) // Total GPU memory
+			machineTotalGPUMem := resource.NewQuantity(int64(machineCount)*skuConfig.GPUMem.Value(), resource.BinarySI) // Total GPU memory
 
-			modelGPUCount := resource.MustParse(params.GPUCountRequirement)
-			modelTotalGPUMemory := resource.MustParse(params.TotalSafeTensorFileSize)
-
-			// Separate the checks for specific error messages
-			if machineTotalNumGPUs.Cmp(modelGPUCount) < 0 {
-				if bypassResourceChecks {
-					klog.Warningf("Bypassing resource check: Insufficient number of GPUs detected but continuing due to bypass flag. Instance type %s provides %s, but preset %s requires at least %d",
-						instanceType, machineTotalNumGPUs.String(), presetName, modelGPUCount.Value())
-				} else {
+			// GPU memory check and distributed inference runtime check: only run if TotalSafeTensorFileSize is specified
+			if params.TotalSafeTensorFileSize == "" {
+				klog.V(4).Infof("Skipping GPU memory validation for preset %s: TotalSafeTensorFileSize not specified", presetName)
+			} else {
+				modelTotalGPUMemory, err := resource.ParseQuantity(params.TotalSafeTensorFileSize)
+				if err != nil {
+					klog.Warningf("Failed to parse TotalSafeTensorFileSize %q for preset %s: %v", params.TotalSafeTensorFileSize, presetName, err)
 					errs = errs.Also(apis.ErrInvalidValue(
-						fmt.Sprintf(
-							"Insufficient number of GPUs: Instance type %s provides %s, but preset %s requires at least %d",
-							instanceType,
-							machineTotalNumGPUs.String(),
-							presetName,
-							modelGPUCount.Value(),
-						),
-						"instanceType",
+						fmt.Sprintf("invalid TotalSafeTensorFileSize %q for preset %s: %v", params.TotalSafeTensorFileSize, presetName, err),
+						"TotalSafeTensorFileSize",
 					))
-				}
-			}
-
-			if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
-				if bypassResourceChecks {
-					klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
-						instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
 				} else {
-					errs = errs.Also(apis.ErrInvalidValue(
-						fmt.Sprintf(
-							"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
-							instanceType,
-							machineTotalGPUMem.String(),
-							presetName,
-							modelTotalGPUMemory.String(),
-						),
-						"instanceType",
-					))
-				}
-			}
+					if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
+						if bypassResourceChecks {
+							klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
+								instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
+						} else {
+							errs = errs.Also(apis.ErrInvalidValue(
+								fmt.Sprintf(
+									"Insufficient total GPU memory: Instance type %s has a total of %s, but preset %s requires at least %s",
+									instanceType,
+									machineTotalGPUMem.String(),
+									presetName,
+									modelTotalGPUMemory.String(),
+								),
+								"instanceType",
+							))
+						}
+					}
 
-			// If the model preset supports distributed inference, and a single machine has insufficient GPU memory to run the model,
-			// then we need to make sure the Workspace is not using the Huggingface Transformers runtime since it no longer supports
-			// multi-node distributed inference.
-			totalGPUMemoryPerMachine := resource.NewQuantity(int64(skuConfig.GPUMemGiB)*consts.GiBToBytes, resource.BinarySI)
-			distributedInferenceRequired := modelTotalGPUMemory.Cmp(*totalGPUMemoryPerMachine) > 0
-			if modelPreset.SupportDistributedInference() && distributedInferenceRequired && runtime == model.RuntimeNameHuggingfaceTransformers {
-				errs = errs.Also(apis.ErrGeneric("Multi-node distributed inference is not supported with Huggingface Transformers runtime"))
+					// If the model preset supports distributed inference, and a single machine has insufficient GPU memory to run the model,
+					// then we need to make sure the Workspace is not using the Huggingface Transformers runtime since it no longer supports
+					// multi-node distributed inference.
+					totalGPUMemoryPerMachine := resource.NewQuantity(skuConfig.GPUMem.Value(), resource.BinarySI)
+					distributedInferenceRequired := modelTotalGPUMemory.Cmp(*totalGPUMemoryPerMachine) > 0
+					if modelPreset.SupportDistributedInference() && distributedInferenceRequired && runtime == model.RuntimeNameHuggingfaceTransformers {
+						errs = errs.Also(apis.ErrGeneric("Multi-node distributed inference is not supported with Huggingface Transformers runtime"))
+					}
+				}
 			}
 		}
 	}

@@ -35,7 +35,7 @@ jobs:
 
     env:
       TEST_SUITE: ${{ inputs.node_provisioner }}
-      GO_VERSION: "1.24"
+      GO_VERSION: "1.25"
       KARPENTER_NAMESPACE: "karpenter"
       GPU_PROVISIONER_NAMESPACE: "gpu-provisioner"
 
@@ -120,17 +120,102 @@ jobs:
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           RAGENGINE_SERVICE_IMG_TAG: ${{ env.VERSION }}
 
+      - name: Deploy Qdrant vector database for E2E tests
+        shell: bash
+        run: |
+          kubectl create namespace qdrant || true
+          cat <<'EOF' | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: qdrant
+            namespace: qdrant
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: qdrant
+            template:
+              metadata:
+                labels:
+                  app: qdrant
+              spec:
+                containers:
+                - name: qdrant
+                  image: qdrant/qdrant:v1.15.2
+                  ports:
+                  - containerPort: 6333
+                  - containerPort: 6334
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: qdrant
+            namespace: qdrant
+          spec:
+            selector:
+              app: qdrant
+            ports:
+            - name: http
+              port: 6333
+              targetPort: 6333
+            - name: grpc
+              port: 6334
+              targetPort: 6334
+          EOF
+          kubectl wait --for=condition=available deploy/qdrant -n qdrant --timeout=300s
+
       - name: Create node pool for RAG workloads
         uses: azure/CLI@v2.2.0
         with:
           inlineScript: |
-            az aks nodepool add \
-              --resource-group "${{ env.CLUSTER_NAME }}" \
-              --cluster-name "${{ env.CLUSTER_NAME }}" \
-              --name ragpool \
-              -s Standard_D8_v3 \
-              -c 1 \
-              --labels apps=phi-3
+            set -euo pipefail
+
+            RG="${{ env.CLUSTER_NAME }}"
+            CLUSTER="${{ env.CLUSTER_NAME }}"
+            MAX_RETRIES=12
+            SLEEP_SECONDS=30
+
+            for attempt in $(seq 1 ${MAX_RETRIES}); do
+              state=$(az aks show --resource-group "${RG}" --name "${CLUSTER}" --query provisioningState -o tsv || echo "Unknown")
+              echo "AKS provisioningState: ${state} (attempt ${attempt}/${MAX_RETRIES})"
+
+              if [ "${state}" != "Succeeded" ]; then
+                echo "Cluster operation still in progress. Waiting ${SLEEP_SECONDS}s before retrying..."
+                sleep ${SLEEP_SECONDS}
+                continue
+              fi
+
+              set +e
+              output=$(az aks nodepool add \
+                --resource-group "${RG}" \
+                --cluster-name "${CLUSTER}" \
+                --name ragpool \
+                -s Standard_D8_v3 \
+                -c 1 \
+                --labels apps=phi-3 2>&1)
+              status=$?
+              set -e
+
+              if [ ${status} -eq 0 ]; then
+                echo "${output}"
+                echo "ragpool node pool created successfully."
+                exit 0
+              fi
+
+              echo "${output}"
+              if echo "${output}" | grep -q "OperationNotAllowed"; then
+                echo "Detected in-progress AKS operation. Retrying in ${SLEEP_SECONDS}s..."
+                sleep ${SLEEP_SECONDS}
+                continue
+              fi
+
+              echo "Node pool creation failed with a non-retryable error."
+              exit ${status}
+            done
+
+            echo "Timed out waiting to create ragpool after ${MAX_RETRIES} attempts."
+            exit 1
         env:
           AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
           AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}

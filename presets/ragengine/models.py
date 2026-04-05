@@ -65,6 +65,9 @@ class NodeWithScore(BaseModel):
     node_id: str
     text: str
     score: float
+    dense_score: float | None = None
+    sparse_score: float | None = None
+    source: str | None = None  # "both", "dense_only", "sparse_only"
     metadata: dict | None = None
 
 

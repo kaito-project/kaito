@@ -29,6 +29,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
@@ -42,8 +43,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	// to ensure that exec-entrypoint and run can make use of them.
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -92,6 +91,7 @@ func main() {
 	var enableWebhook bool
 	var probeAddr string
 	var featureGates string
+	var defaultNodeImageFamily string
 	var kubeClientQPS int = 30
 	var kubeClientBurst int = 50
 	var printVersionAndExit bool
@@ -105,6 +105,7 @@ func main() {
 	flag.BoolVar(&enableWebhook, "webhook", true,
 		"Enable webhook for controller manager. Default is true.")
 	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false.")
+	flag.StringVar(&defaultNodeImageFamily, "default-node-image-family", "", "Default node image family annotation for generated NodeClaims. Supported values: azurelinux, ubuntu. Empty means ubuntu. Unsupported values cause startup failure.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
 		Development: true,
@@ -121,6 +122,17 @@ func main() {
 	if err := featuregates.ParseAndValidateFeatureGates(featureGates); err != nil {
 		klog.ErrorS(err, "unable to set `feature-gates` flag")
 		exitWithErrorFunc()
+	}
+
+	if defaultNodeImageFamily == "" {
+		defaultNodeImageFamily = consts.NodeImageFamilyUbuntu
+	} else {
+		normalizedNodeImageFamily, valid := consts.NormalizeSupportedNodeImageFamily(defaultNodeImageFamily)
+		if !valid {
+			klog.ErrorS(fmt.Errorf("unsupported node image family %q", defaultNodeImageFamily), "unable to set `default-node-image-family` flag")
+			exitWithErrorFunc()
+		}
+		defaultNodeImageFamily = normalizedNodeImageFamily
 	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
@@ -162,12 +174,20 @@ func main() {
 	k8sclient.SetGlobalClient(mgr.GetClient())
 	kClient := k8sclient.GetGlobalClient()
 
+	kubeClient, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		klog.ErrorS(err, "unable to create kubernetes client")
+		exitWithErrorFunc()
+	}
+	k8sclient.SetGlobalClientGoClient(kubeClient)
+
 	workspaceReconciler := controllers.NewWorkspaceReconciler(
 		kClient,
 		mgr.GetScheme(),
 		log.Log.WithName("controllers").WithName("Workspace"),
 		mgr.GetEventRecorderFor("KAITO-Workspace-controller"),
 	)
+	workspaceReconciler.SetDefaultNodeImageFamily(defaultNodeImageFamily)
 
 	if err = workspaceReconciler.SetupWithManager(mgr); err != nil {
 		klog.ErrorS(err, "unable to create controller", "controller", "Workspace")

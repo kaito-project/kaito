@@ -30,6 +30,9 @@ import (
 )
 
 var (
+	//go:embed model_catalog.yaml
+	modelCatalogYAML []byte
+
 	// builtinVLLMModels is the mapping of built-in VLLM model names to their preset names
 	// make sure all key and values are in lower case
 	builtinVLLMModels = map[string]string{
@@ -58,8 +61,6 @@ var (
 		"microsoft/phi-3-medium-4k-instruct":           "phi-3-medium-4k-instruct",
 		"microsoft/phi-3-medium-128k-instruct":         "phi-3-medium-128k-instruct",
 		"microsoft/phi-3.5-mini-instruct":              "phi-3.5-mini-instruct",
-		"microsoft/phi-4":                              "phi-4",
-		"microsoft/phi-4-mini-instruct":                "phi-4-mini-instruct",
 		"qwen/qwen2.5-coder-7b-instruct":               "qwen2.5-coder-7b-instruct",
 		"qwen/qwen2.5-coder-32b-instruct":              "qwen2.5-coder-32b-instruct",
 	}
@@ -83,56 +84,70 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 	return model
 }
 
-// GetModelByName returns a vLLM-compatible model for the given modelName.
-// It first looks up an existing registration in the KaitoModelRegister. If the
-// model is not already registered and modelName contains a "/", it attempts to
-// generate a preset for the corresponding HuggingFace model by optionally
-// retrieving an access token from the Kubernetes Secret identified by
-// secretName and secretNamespace using kubeClient and ctx.
-//
-// The returned model.Model represents the registered or newly generated model.
-// If preset generation fails, or if the modelName does not correspond to a
-// registered or generatable model, this method returns an error instead of panicking.
-// Callers should ensure that modelName is valid and handle the error accordingly.
-func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
+// GetModelByNameWithToken returns a vLLM-compatible model for the given modelName using
+// a pre-resolved access token. Unlike GetModelByName, this function does not perform any
+// Kubernetes Secret lookups; the caller is responsible for obtaining the token beforehand.
+// Pass an empty string for token when working with public models that require no authentication.
+func GetModelByNameWithToken(ctx context.Context, modelName, token string) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
-	model := plugin.KaitoModelRegister.MustGet(modelName)
-	if model != nil {
-		return model, nil
+	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
+		return m, nil
 	}
-
-	// if name contains "/", get model data from HuggingFace
 	if strings.Contains(modelName, "/") {
-		if builtinModelName, ok := builtinVLLMModels[modelName]; ok {
-			klog.InfoS("Using built-in VLLM model preset", "model", modelName, "builtinModelName", builtinModelName)
-			return plugin.KaitoModelRegister.MustGet(builtinModelName), nil
-		}
-
-		klog.InfoS("Generating VLLM model preset for HuggingFace model", "model", modelName, "secretName", secretName, "secretNamespace", secretNamespace)
-		token, err := GetHFTokenFromSecret(ctx, kubeClient, secretName, secretNamespace)
-		if err != nil {
-			// only log the error here since token may not be required for public models
-			klog.ErrorS(err, "failed to get huggingface token from secret", "secretName", secretName, "secretNamespace", secretNamespace)
-		}
-		param, err := generator.GeneratePreset(modelName, token)
-		if err != nil {
-			return nil, err
-		}
-		// check whether the model is in the supported model architecture list
-		if len(param.Metadata.Architectures) == 0 {
-			klog.InfoS("Model architecture not specified, assuming supported by VLLM", "model", modelName)
-			return registerModel(modelName, param), nil
-		}
-
-		for _, arch := range param.Metadata.Architectures {
-			if _, ok := vLLMModelArchMap[arch]; ok {
-				return registerModel(modelName, param), nil
-			}
-		}
-
-		return nil, fmt.Errorf("unsupported model architecture for %s: %s", modelName, strings.Join(param.Metadata.Architectures, ", "))
+		return generateHuggingFaceModel(modelName, token)
 	}
 	return nil, fmt.Errorf("model is not registered: %s", modelName)
+}
+
+// GetModelByName returns a vLLM-compatible model for the given modelName.
+// It first looks up an existing registration in the KaitoModelRegister. If the
+// model is not already registered and modelName contains a "/", it fetches an
+// access token from the Kubernetes Secret identified by secretName and secretNamespace,
+// then generates a preset for the corresponding HuggingFace model.
+//
+// Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
+func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
+	modelName = strings.ToLower(modelName)
+	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
+		return m, nil
+	}
+	if !strings.Contains(modelName, "/") {
+		return nil, fmt.Errorf("model is not registered: %s", modelName)
+	}
+	klog.InfoS("Generating VLLM model preset for HuggingFace model", "model", modelName, "secretName", secretName, "secretNamespace", secretNamespace)
+	token, err := GetHFTokenFromSecret(ctx, kubeClient, secretName, secretNamespace)
+	if err != nil {
+		// only log the error here since token may not be required for public models
+		klog.ErrorS(err, "failed to get huggingface token from secret", "secretName", secretName, "secretNamespace", secretNamespace)
+	}
+	return generateHuggingFaceModel(modelName, token)
+}
+
+// generateHuggingFaceModel generates or retrieves a vLLM preset for modelName (which must
+// contain a "/") using the provided token.
+func generateHuggingFaceModel(modelName, token string) (model.Model, error) {
+	if builtinModelName, ok := builtinVLLMModels[modelName]; ok {
+		klog.InfoS("Using built-in VLLM model preset", "model", modelName, "builtinModelName", builtinModelName)
+		return plugin.KaitoModelRegister.MustGet(builtinModelName), nil
+	}
+
+	param, err := generator.GeneratePreset(modelName, token, modelCatalogYAML)
+	if err != nil {
+		return nil, err
+	}
+	// check whether the model is in the supported model architecture list
+	if len(param.Metadata.Architectures) == 0 {
+		klog.InfoS("Model architecture not specified, assuming supported by VLLM", "model", modelName)
+		return registerModel(modelName, param), nil
+	}
+
+	for _, arch := range param.Metadata.Architectures {
+		if vLLMModelArchSet.Has(arch) {
+			return registerModel(modelName, param), nil
+		}
+	}
+
+	return nil, fmt.Errorf("unsupported model architecture for %s: %s", modelName, strings.Join(param.Metadata.Architectures, ", "))
 }
 
 type vLLMCompatibleModel struct {

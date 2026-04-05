@@ -14,6 +14,11 @@
 package sku
 
 import (
+	"fmt"
+	"strings"
+
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -23,11 +28,22 @@ type CloudSKUHandler interface {
 }
 
 type GPUConfig struct {
-	SKU             string
-	GPUCount        int
-	GPUMemGiB       int
-	GPUModel        string
-	NVMeDiskEnabled bool
+	SKU                   string
+	GPUCount              int
+	GPUMem                resource.Quantity
+	GPUModel              string
+	NVMeDiskEnabled       bool
+	CUDAComputeCapability float64 // CUDA compute capability version (e.g., 7.5 for Turing, 8.0 for Ampere)
+}
+
+func (cfg *GPUConfig) String() string {
+	return fmt.Sprintf("SKU: %s, GPUCount: %d, GPUMem: %s, GPUModel: %s, NVMeDiskEnabled: %t, CUDAComputeCapability: %.1f",
+		cfg.SKU, cfg.GPUCount, cfg.GPUMem.String(), cfg.GPUModel, cfg.NVMeDiskEnabled, cfg.CUDAComputeCapability)
+}
+
+// SupportsBFloat16 returns true if the GPU supports bfloat16 (requires CUDA compute capability >= 8.0).
+func (cfg *GPUConfig) SupportsBFloat16() bool {
+	return cfg.CUDAComputeCapability >= 8.0
 }
 
 func GetCloudSKUHandler(cloud string) CloudSKUHandler {
@@ -64,8 +80,23 @@ func (b *generalSKUHandler) GetSupportedSKUs() []string {
 }
 
 func (b *generalSKUHandler) GetGPUConfigBySKU(sku string) *GPUConfig {
-	if config, ok := b.supportedSKUs[sku]; ok {
-		return &config
+	for _, config := range b.supportedSKUs {
+		if strings.EqualFold(config.SKU, sku) {
+			return &config
+		}
 	}
 	return nil
+}
+
+// HasSKUNamePrefix checks if the given SKU name has one of the specified prefixes,
+// using case-insensitive comparison. This is useful because Azure VM SKU names are
+// case-insensitive (e.g., "standard_d2s_v6" and "Standard_D2s_v6" refer to the same SKU).
+func HasSKUNamePrefix(skuName string, prefixes ...string) bool {
+	lowerSKU := strings.ToLower(skuName)
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(lowerSKU, strings.ToLower(prefix)) {
+			return true
+		}
+	}
+	return false
 }

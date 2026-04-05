@@ -74,14 +74,6 @@ func GetTuningImageInfo() string {
 	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
-func GetDataSrcImageInfo(ctx context.Context, wObj *kaitov1beta1.Workspace) (string, []corev1.LocalObjectReference) {
-	imagePullSecretRefs := make([]corev1.LocalObjectReference, len(wObj.Tuning.Input.ImagePullSecrets))
-	for i, secretName := range wObj.Tuning.Input.ImagePullSecrets {
-		imagePullSecretRefs[i] = corev1.LocalObjectReference{Name: secretName}
-	}
-	return wObj.Tuning.Input.Image, imagePullSecretRefs
-}
-
 // PrepareOutputDir ensures the output directory is within the base directory.
 func PrepareOutputDir(outputDir string) (string, error) {
 	if outputDir == "" {
@@ -133,13 +125,6 @@ func GetTrainingOutputDir(ctx context.Context, configMap *corev1.ConfigMap) (str
 	}
 
 	return PrepareOutputDir(outputDir)
-}
-
-// SetupTrainingOutputVolume adds shared volume for results dir
-func SetupTrainingOutputVolume(ctx context.Context, configMap *corev1.ConfigMap, outputVolume *corev1.VolumeSource) (corev1.Volume, corev1.VolumeMount, string) {
-	outputDir, _ := GetTrainingOutputDir(ctx, configMap)
-	resultsVolume, resultsVolumeMount := utils.ConfigResultsVolume(outputDir, outputVolume)
-	return resultsVolume, resultsVolumeMount, outputDir
 }
 
 func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, revisionNum string,

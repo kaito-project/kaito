@@ -157,6 +157,14 @@ func (m *MockClient) getObjectListFromMap(list k8sClient.ObjectList) k8sClient.O
 			}
 		}
 		return inferenceSetList
+	case *corev1.PersistentVolumeClaimList:
+		pvcList := &corev1.PersistentVolumeClaimList{}
+		for _, obj := range relevantMap {
+			if pvc, ok := obj.(*corev1.PersistentVolumeClaim); ok {
+				pvcList.Items = append(pvcList.Items, *pvc)
+			}
+		}
+		return pvcList
 	}
 	//add additional object lists as needed
 	return nil

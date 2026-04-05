@@ -111,38 +111,6 @@ func TestMustGet(t *testing.T) {
 	})
 }
 
-func TestListModelNames(t *testing.T) {
-	t.Run("list empty registry", func(t *testing.T) {
-		reg := &ModelRegister{}
-
-		names := reg.ListModelNames()
-
-		if len(names) != 0 {
-			t.Error("expected empty list")
-		}
-	})
-
-	t.Run("list registered models", func(t *testing.T) {
-		reg := &ModelRegister{}
-		reg.Register(&Registration{Name: "model1", Instance: &MockModel{}})
-		reg.Register(&Registration{Name: "model2", Instance: &MockModel{}})
-
-		names := reg.ListModelNames()
-
-		if len(names) != 2 {
-			t.Errorf("expected 2 names, got %d", len(names))
-		}
-
-		nameSet := make(map[string]bool)
-		for _, n := range names {
-			nameSet[n] = true
-		}
-		if !nameSet["model1"] || !nameSet["model2"] {
-			t.Error("expected model1 and model2 in list")
-		}
-	})
-}
-
 func TestHas(t *testing.T) {
 	t.Run("has existing model", func(t *testing.T) {
 		reg := &ModelRegister{}

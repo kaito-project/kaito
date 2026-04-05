@@ -30,6 +30,7 @@ import (
 	"knative.dev/pkg/apis"
 
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
@@ -159,8 +160,12 @@ func (r *AdapterSpec) validateCreateorUpdate() (errs *apis.FieldError) {
 		} else if errmsgs := validation.IsDNS1123Subdomain(r.Source.Name); len(errmsgs) > 0 {
 			errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "adapters.source.name"))
 		}
-		if r.Source.Image == "" {
-			errs = errs.Also(apis.ErrMissingField("Image of Adapter field must be specified"))
+		// Adapters support Image or Volume as source (not URLs)
+		if r.Source.Image == "" && r.Source.Volume == nil {
+			errs = errs.Also(apis.ErrGeneric("Either Image or Volume must be specified for adapter source", "adapters.source"))
+		}
+		if len(r.Source.URLs) > 0 {
+			errs = errs.Also(apis.ErrGeneric("URLs are not supported as adapter source", "adapters.source.urls"))
 		}
 		if r.Strength == nil {
 			var defaultStrength = "1.0"
@@ -401,7 +406,7 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	} else {
 		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
+		if provider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}

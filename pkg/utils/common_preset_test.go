@@ -243,14 +243,40 @@ func TestConfigDataVolume(t *testing.T) {
 }
 
 func TestConfigAdapterVolume(t *testing.T) {
-	vol, mount := ConfigAdapterVolume()
-	if vol.Name != "adapter-volume" {
-		t.Errorf("unexpected volume name %q", vol.Name)
-	}
-	if vol.VolumeSource.EmptyDir == nil {
-		t.Error("expected EmptyDir volume source")
-	}
-	if mount.MountPath != DefaultAdapterVolumePath {
-		t.Errorf("unexpected mount path %q", mount.MountPath)
-	}
+	t.Run("nil volume source uses EmptyDir", func(t *testing.T) {
+		vol, mount := ConfigAdapterVolume(nil)
+		if vol.Name != "adapter-volume" {
+			t.Errorf("unexpected volume name %q", vol.Name)
+		}
+		if vol.VolumeSource.EmptyDir == nil {
+			t.Error("expected EmptyDir volume source")
+		}
+		if mount.MountPath != DefaultAdapterVolumePath {
+			t.Errorf("unexpected mount path %q", mount.MountPath)
+		}
+	})
+
+	t.Run("provided volume source is used", func(t *testing.T) {
+		pvcSource := &corev1.VolumeSource{
+			PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+				ClaimName: "test-pvc",
+			},
+		}
+		vol, mount := ConfigAdapterVolume(pvcSource)
+		if vol.Name != "adapter-volume" {
+			t.Errorf("unexpected volume name %q", vol.Name)
+		}
+		if vol.VolumeSource.PersistentVolumeClaim == nil {
+			t.Error("expected PersistentVolumeClaim volume source")
+		}
+		if vol.VolumeSource.PersistentVolumeClaim.ClaimName != "test-pvc" {
+			t.Errorf("unexpected claim name %q", vol.VolumeSource.PersistentVolumeClaim.ClaimName)
+		}
+		if vol.VolumeSource.EmptyDir != nil {
+			t.Error("did not expect EmptyDir volume source")
+		}
+		if mount.MountPath != DefaultAdapterVolumePath {
+			t.Errorf("unexpected mount path %q", mount.MountPath)
+		}
+	})
 }

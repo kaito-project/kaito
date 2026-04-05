@@ -34,9 +34,7 @@ var (
 		"pipeline":           "text-generation",
 		"allow_remote_files": "",
 	}
-	gemma3RunParamsVLLM = map[string]string{
-		"dtype": "bfloat16",
-	}
+	gemma3RunParamsVLLM = map[string]string{}
 )
 
 var gemma3_4bInst gemma3_4BInstruct

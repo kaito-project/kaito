@@ -55,7 +55,6 @@ var (
 		"pipeline":    "text-generation",
 	}
 	deepseekLlama8bRunParamsVLLM = map[string]string{
-		"dtype":            "float16",
 		"reasoning-parser": "deepseek_r1",
 	}
 	deepseekQwen14bRunParams = map[string]string{
@@ -63,7 +62,6 @@ var (
 		"pipeline":    "text-generation",
 	}
 	deepseekQwen14bRunParamsVLLM = map[string]string{
-		"dtype":            "float16",
 		"reasoning-parser": "deepseek_r1",
 	}
 	deepseekR1RunParams = map[string]string{

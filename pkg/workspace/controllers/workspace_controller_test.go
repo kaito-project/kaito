@@ -34,14 +34,18 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	kubefake "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator/basicnodesestimator"
+	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -514,13 +518,18 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			reconciler := &WorkspaceReconciler{
 				Client:    mockClient,
 				Scheme:    test.NewTestScheme(),
-				Estimator: &basicnodesestimator.BasicNodesEstimator{},
+				Estimator: &nodesestimator.NodeEstimator{},
 			}
 			ctx := context.Background()
 
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			if tc.workspace.Status.TargetNodeCount == 0 {
-				cnt, err := reconciler.Estimator.EstimateNodeCount(t.Context(), &tc.workspace, mockClient)
+				req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), &tc.workspace, mockClient)
+				if reqErr != nil {
+					t.Errorf("Failed to build estimate request: %v", reqErr)
+					return
+				}
+				cnt, err := reconciler.Estimator.EstimateNodeCount(t.Context(), req, mockClient)
 				if err != nil {
 					t.Errorf("Failed to estimate node count: %v", err)
 					return
@@ -817,8 +826,8 @@ func (m *mockEstimator) Name() string {
 	return args.String(0)
 }
 
-func (m *mockEstimator) EstimateNodeCount(ctx context.Context, workspace *v1beta1.Workspace, client client.Client) (int32, error) {
-	args := m.Called(ctx, workspace, client)
+func (m *mockEstimator) EstimateNodeCount(ctx context.Context, req estimator.NodeEstimateRequest, client client.Client) (int32, error) {
+	args := m.Called(ctx, req, client)
 	return args.Get(0).(int32), args.Error(1)
 }
 
@@ -867,7 +876,7 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator, updatedTarget *int32) {
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(3), nil)
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(estimator.NodeEstimateRequest{}), mock.Anything).Return(int32(3), nil)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ws := args.Get(2).(*v1beta1.Workspace)
@@ -890,7 +899,7 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator, _ *int32) {
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(int32(0), fmt.Errorf("estimator error"))
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(estimator.NodeEstimateRequest{}), mock.Anything).Return(int32(0), fmt.Errorf("estimator error"))
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ws := args.Get(2).(*v1beta1.Workspace)
@@ -1157,7 +1166,7 @@ func TestBuildReconcileErrMessageAppender(t *testing.T) {
 func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 	t.Run("ready when inference and resource are ready", func(t *testing.T) {
 		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
-		applyInferenceWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue)
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue)
 
 		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
 		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
@@ -1171,12 +1180,78 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 
 	t.Run("not ready after established", func(t *testing.T) {
 		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateReady}
-		applyInferenceWorkspaceStatus(status, 1, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue)
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue)
 
 		assert.Equal(t, v1beta1.WorkspaceStateNotReady, status.State)
 		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
 		assert.NotNil(t, inferenceCondition)
 		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
+	})
+
+	t.Run("not-ready path clears benchmark condition and result when annotation is set", func(t *testing.T) {
+		wObj := &v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{
+				Annotations: map[string]string{v1beta1.AnnotationRunBenchmark: "true"},
+			},
+		}
+		// Pre-populate status as if a previous reconcile completed the benchmark.
+		status := &v1beta1.WorkspaceStatus{
+			State: v1beta1.WorkspaceStateReady,
+			Performance: &v1beta1.Performance{
+				Metrics: map[string]v1beta1.Metric{
+					BenchmarkMetricPeakTPM: {Value: "12345"},
+				},
+			},
+			Conditions: []v1.Condition{
+				{
+					Type:   string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
+					Status: v1.ConditionTrue,
+					Reason: "BenchmarkCompleted",
+				},
+			},
+		}
+
+		// kubeClient is nil — applyBenchmarkStatus must not be called on the not-ready path.
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue)
+
+		assert.Nil(t, status.Performance, "Performance should be cleared on not-ready")
+		benchmarkCond := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+		assert.Nil(t, benchmarkCond, "BenchmarkCompleted condition should be removed on not-ready")
+	})
+
+	t.Run("benchmark guard skips StreamLogs when BenchmarkCompleted is already True", func(t *testing.T) {
+		wObj := &v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{
+				Name:        "ws",
+				Namespace:   "default",
+				Annotations: map[string]string{v1beta1.AnnotationRunBenchmark: "true"},
+			},
+		}
+		status := &v1beta1.WorkspaceStatus{
+			State: v1beta1.WorkspaceStateReady,
+			Performance: &v1beta1.Performance{
+				Metrics: map[string]v1beta1.Metric{
+					BenchmarkMetricPeakTPM: {Value: "12345"},
+				},
+			},
+			Conditions: []v1.Condition{
+				{
+					Type:   string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
+					Status: v1.ConditionTrue,
+					Reason: "BenchmarkCompleted",
+				},
+			},
+		}
+
+		k8sclient.SetGlobalClientGoClient(kubefake.NewSimpleClientset())
+		applyBenchmarkStatus(context.Background(), status, wObj, 1, buildReconcileErrMessageAppender(nil))
+
+		// Result and condition must be unchanged — the guard must have fired.
+		m, ok := status.Performance.Metrics[BenchmarkMetricPeakTPM]
+		assert.True(t, ok)
+		assert.Equal(t, "12345", m.Value)
+		benchmarkCond := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+		assert.Equal(t, v1.ConditionTrue, benchmarkCond.Status)
 	})
 }
 

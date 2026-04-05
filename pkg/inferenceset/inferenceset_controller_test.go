@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"testing"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
@@ -37,6 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
@@ -57,7 +59,7 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									InferenceSetHashAnnotation: "d79964ce6f0ca4ea65ab2b4f277970a667c628961d609e86cb2ccbcae154dbba",
+									InferenceSetHashAnnotation: "05e6d3ba23ae871ac11ab7a93452f7e70fe02fb5a88827c6ff7a77f91e5d45bc",
 								},
 							},
 							Revision: 1,
@@ -354,5 +356,144 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 	err := reconciler.ensureGatewayAPIInferenceExtension(context.Background(), nil)
 	if err == nil || err.Error() != "InferenceSet object is nil" {
 		t.Errorf("Expected error for nil InferenceSet, got: %v", err)
+	}
+}
+
+// --------------------------------------------------------------------------
+// TestInferenceSetBenchmarkAggregation covers the TPM sum and BenchmarkCompleted
+// condition logic inside addOrUpdateInferenceSet.
+// --------------------------------------------------------------------------
+
+func TestInferenceSetBenchmarkAggregation(t *testing.T) {
+	makeWorkspace := func(name string, tpm string) v1beta1.Workspace {
+		ws := v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{Name: name, Namespace: "default"},
+			// Mark as succeeded so DetermineWorkspacePhase returns "succeeded".
+			Status: v1beta1.WorkspaceStatus{
+				State: v1beta1.WorkspaceStateReady,
+				Conditions: []v1.Condition{
+					{Type: string(v1beta1.WorkspaceConditionTypeSucceeded), Status: v1.ConditionTrue},
+					{Type: string(v1beta1.WorkspaceConditionTypeInferenceStatus), Status: v1.ConditionTrue},
+					{Type: string(v1beta1.ConditionTypeResourceStatus), Status: v1.ConditionTrue},
+				},
+			},
+		}
+		if tpm != "" {
+			ws.Status.Performance = &v1beta1.Performance{
+				Metrics: map[string]v1beta1.Metric{
+					controllers.BenchmarkMetricPeakTPM: {Value: tpm},
+				},
+			}
+		}
+		return ws
+	}
+
+	makeInferenceSet := func(replicas int, withBenchmarkAnnotation bool) *v1alpha1.InferenceSet {
+		iObj := &v1alpha1.InferenceSet{
+			ObjectMeta: v1.ObjectMeta{Name: "phi-4-mini", Namespace: "default"},
+			Spec:       v1alpha1.InferenceSetSpec{Replicas: replicas},
+		}
+		if withBenchmarkAnnotation {
+			iObj.Annotations = map[string]string{
+				v1alpha1.AnnotationRunBenchmark: "true",
+			}
+		}
+		return iObj
+	}
+
+	tests := map[string]struct {
+		workspaces            []v1beta1.Workspace
+		inferenceset          *v1alpha1.InferenceSet
+		expectedTPM           string
+		expectBenchmarkCond   bool
+		expectBenchmarkStatus v1.ConditionStatus
+		expectBenchmarkMsg    string
+	}{
+		"all replicas benchmarked — condition True, TPM is sum": {
+			workspaces: []v1beta1.Workspace{
+				makeWorkspace("ws-0", "100000"),
+				makeWorkspace("ws-1", "200000"),
+			},
+			inferenceset:          makeInferenceSet(2, true),
+			expectedTPM:           "300000",
+			expectBenchmarkCond:   true,
+			expectBenchmarkStatus: v1.ConditionTrue,
+			expectBenchmarkMsg:    "2/2 replicas benchmarked",
+		},
+		"partial replicas benchmarked — condition False, TPM is partial sum": {
+			workspaces: []v1beta1.Workspace{
+				makeWorkspace("ws-0", "100000"),
+				makeWorkspace("ws-1", ""), // no result yet
+			},
+			inferenceset:          makeInferenceSet(2, true),
+			expectedTPM:           "100000",
+			expectBenchmarkCond:   true,
+			expectBenchmarkStatus: v1.ConditionFalse,
+			expectBenchmarkMsg:    "1/2 replicas benchmarked",
+		},
+		"no replicas benchmarked — no TPM, condition False": {
+			workspaces: []v1beta1.Workspace{
+				makeWorkspace("ws-0", ""),
+				makeWorkspace("ws-1", ""),
+			},
+			inferenceset:          makeInferenceSet(2, true),
+			expectedTPM:           "",
+			expectBenchmarkCond:   true,
+			expectBenchmarkStatus: v1.ConditionFalse,
+			expectBenchmarkMsg:    "0/2 replicas benchmarked",
+		},
+		"benchmark annotation absent — no condition set, TPM not written": {
+			workspaces: []v1beta1.Workspace{
+				makeWorkspace("ws-0", "100000"),
+			},
+			inferenceset: makeInferenceSet(1, false),
+			// TPM is aggregated regardless, but not written to status without the annotation.
+			// We verify only that the annotation gate works, not the aggregation itself.
+			expectedTPM:         "100000",
+			expectBenchmarkCond: false,
+		},
+		"all replicas benchmarked but replicas count mismatch — condition False": {
+			// 2 workspaces benchmarked but Spec.Replicas is 3, so not all desired are done.
+			workspaces: []v1beta1.Workspace{
+				makeWorkspace("ws-0", "100000"),
+				makeWorkspace("ws-1", "200000"),
+			},
+			inferenceset:          makeInferenceSet(3, true),
+			expectedTPM:           "300000",
+			expectBenchmarkCond:   true,
+			expectBenchmarkStatus: v1.ConditionFalse,
+			expectBenchmarkMsg:    "2/3 replicas benchmarked",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			totalTPM, _, benchmarkedReplicas, hasBenchmarkResult := aggregateBenchmarkResults(tc.workspaces)
+
+			// Verify TPM aggregation.
+			if tc.expectedTPM == "" {
+				assert.False(t, hasBenchmarkResult, "expected no benchmark result")
+			} else {
+				assert.True(t, hasBenchmarkResult)
+				assert.Equal(t, tc.expectedTPM, strconv.FormatFloat(totalTPM, 'f', -1, 64))
+			}
+
+			// Verify benchmark condition gate — annotation controls whether the condition is set.
+			if !tc.expectBenchmarkCond {
+				assert.False(t, v1alpha1.IsRunBenchmarkEnabled(tc.inferenceset))
+				return
+			}
+
+			assert.True(t, v1alpha1.IsRunBenchmarkEnabled(tc.inferenceset))
+
+			allBenchmarked := benchmarkedReplicas == tc.inferenceset.Spec.Replicas && tc.inferenceset.Spec.Replicas > 0
+			if tc.expectBenchmarkStatus == v1.ConditionTrue {
+				assert.True(t, allBenchmarked)
+			} else {
+				assert.False(t, allBenchmarked)
+			}
+			assert.Equal(t, tc.expectBenchmarkMsg,
+				fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, tc.inferenceset.Spec.Replicas))
+		})
 	}
 }

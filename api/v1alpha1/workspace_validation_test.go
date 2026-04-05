@@ -762,6 +762,32 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			runtimeName: model.RuntimeNameHuggingfaceTransformers,
 		},
 		{
+			name: "Valid with volume adapters/vllm",
+			inferenceSpec: func() *InferenceSpec {
+				spec := &InferenceSpec{
+					Preset: &PresetSpec{
+						PresetMeta: PresetMeta{
+							Name:       ModelName("test-validation"),
+							AccessMode: ModelImageAccessModePublic,
+						},
+					},
+				}
+				for i := 1; i <= 2; i++ {
+					spec.Adapters = append(spec.Adapters, AdapterSpec{
+						Source: &DataSource{
+							Name: fmt.Sprintf("adapter-%d", i),
+							Volume: &v1.VolumeSource{
+								PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+									ClaimName: fmt.Sprintf("pvc-adapter-%d", i),
+								},
+							},
+						},
+					})
+				}
+				return spec
+			}(),
+		},
+		{
 			name: "Adapters with strength/vllm",
 			inferenceSpec: func() *InferenceSpec {
 				spec := &InferenceSpec{
@@ -936,6 +962,45 @@ func TestAdapterSpecValidateCreateorUpdate(t *testing.T) {
 			},
 			errContent: "",
 			expectErrs: false,
+		},
+		{
+			name: "Valid Adapter with Volume source",
+			adapterSpec: &AdapterSpec{
+				Source: &DataSource{
+					Name: "adapter-1",
+					Volume: &v1.VolumeSource{
+						PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+							ClaimName: "test-pvc",
+						},
+					},
+				},
+				Strength: &ValidStrength,
+			},
+			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "Missing both Image and Volume",
+			adapterSpec: &AdapterSpec{
+				Source: &DataSource{
+					Name: "adapter-1",
+				},
+				Strength: &ValidStrength,
+			},
+			errContent: "Either Image or Volume must be specified for adapter source",
+			expectErrs: true,
+		},
+		{
+			name: "Adapter with unsupported URLs source",
+			adapterSpec: &AdapterSpec{
+				Source: &DataSource{
+					Name: "adapter-1",
+					URLs: []string{"https://example.com/adapter.bin"},
+				},
+				Strength: &ValidStrength,
+			},
+			errContent: "URLs are not supported as adapter source",
+			expectErrs: true,
 		},
 	}
 

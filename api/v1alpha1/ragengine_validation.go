@@ -19,13 +19,13 @@ import (
 	"net/url"
 	"os"
 	"regexp"
-	"strings"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
@@ -91,7 +91,7 @@ func (r *ResourceSpec) validateRAGCreate() (errs *apis.FieldError) {
 	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig == nil {
 		provider := os.Getenv("CLOUD_PROVIDER")
 		// Check for other instance types pattern matches if cloud provider is Azure
-		if provider != consts.AzureCloudName || (!strings.HasPrefix(instanceType, N_SERIES_PREFIX) && !strings.HasPrefix(instanceType, D_SERIES_PREFIX)) {
+		if provider != consts.AzureCloudName || !sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX, D_SERIES_PREFIX) {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported instance type %s. Supported SKUs: %s", instanceType, skuHandler.GetSupportedSKUs()), "instanceType"))
 		}
 	}

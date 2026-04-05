@@ -60,6 +60,23 @@ const (
 	// When set to "true" on a Workspace, the inference container runs a guidellm
 	// benchmark after the model loads before marking the container as ready.
 	AnnotationRunBenchmark = KAITOPrefix + "run-benchmark"
+
+	// AnnotationPerformanceMode selects the vLLM performance preset.
+	// Valid values are "balanced" (default), "interactivity", and "throughput".
+	//   - "interactivity": optimizes for low per-request latency (fine-grained CUDA
+	//     graphs, latency-oriented kernels, smaller batch sizes).
+	//   - "balanced": sensible trade-off between latency and throughput (default).
+	//   - "throughput": maximizes aggregate tokens/sec (larger CUDA graphs, more
+	//     aggressive batching, throughput-oriented kernels).
+	// Only supported when the vLLM runtime is used.
+	AnnotationPerformanceMode = KAITOPrefix + "performance-mode"
+)
+
+// Valid values for AnnotationPerformanceMode.
+const (
+	PerformanceModeBalanced      = "balanced"
+	PerformanceModeInteractivity = "interactivity"
+	PerformanceModeThroughput    = "throughput"
 )
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.
@@ -88,4 +105,16 @@ func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {
 // annotation set to "true".
 func IsRunBenchmarkEnabled(ws *Workspace) bool {
 	return ws.Annotations[AnnotationRunBenchmark] == "true"
+}
+
+// GetPerformanceMode returns the performance mode annotation value, defaulting to
+// PerformanceModeBalanced when the annotation is absent or empty.
+func GetPerformanceMode(ws *Workspace) string {
+	if ws == nil {
+		return PerformanceModeBalanced
+	}
+	if v := ws.Annotations[AnnotationPerformanceMode]; v != "" {
+		return v
+	}
+	return PerformanceModeBalanced
 }

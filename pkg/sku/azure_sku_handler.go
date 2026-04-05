@@ -17,31 +17,31 @@ import "k8s.io/apimachinery/pkg/api/resource"
 
 func NewAzureSKUHandler() CloudSKUHandler {
 	supportedSKUs := []GPUConfig{
-		{SKU: "Standard_NC4as_T4_v3", GPUCount: 1, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA T4"},
-		{SKU: "Standard_NC8as_T4_v3", GPUCount: 1, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA T4"},
-		{SKU: "Standard_NC16as_T4_v3", GPUCount: 1, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA T4"},
-		{SKU: "Standard_NC64as_T4_v3", GPUCount: 4, GPUMem: resource.MustParse("64Gi"), GPUModel: "NVIDIA T4"},
-		{SKU: "Standard_NV36ads_A10_v5", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA A10"},
-		{SKU: "Standard_NV72ads_A10_v5", GPUCount: 2, GPUMem: resource.MustParse("48Gi"), GPUModel: "NVIDIA A10"},
-		{SKU: "Standard_NC24ads_A100_v4", GPUCount: 1, GPUMem: resource.MustParse("80Gi"), GPUModel: "NVIDIA A100", NVMeDiskEnabled: true},
-		{SKU: "Standard_NC48ads_A100_v4", GPUCount: 2, GPUMem: resource.MustParse("160Gi"), GPUModel: "NVIDIA A100", NVMeDiskEnabled: true},
-		{SKU: "Standard_NC96ads_A100_v4", GPUCount: 4, GPUMem: resource.MustParse("320Gi"), GPUModel: "NVIDIA A100", NVMeDiskEnabled: true},
-		{SKU: "Standard_ND96asr_A100_v4", GPUCount: 8, GPUMem: resource.MustParse("320Gi"), GPUModel: "NVIDIA A100"},
-		{SKU: "Standard_ND96amsr_A100_v4", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA A100", NVMeDiskEnabled: true},
+		{SKU: "Standard_NC4as_T4_v3", GPUCount: 1, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA T4", CUDAComputeCapability: 7.5},
+		{SKU: "Standard_NC8as_T4_v3", GPUCount: 1, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA T4", CUDAComputeCapability: 7.5},
+		{SKU: "Standard_NC16as_T4_v3", GPUCount: 1, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA T4", CUDAComputeCapability: 7.5},
+		{SKU: "Standard_NC64as_T4_v3", GPUCount: 4, GPUMem: resource.MustParse("64Gi"), GPUModel: "NVIDIA T4", CUDAComputeCapability: 7.5},
+		{SKU: "Standard_NV36ads_A10_v5", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA A10", CUDAComputeCapability: 8.6},
+		{SKU: "Standard_NV72ads_A10_v5", GPUCount: 2, GPUMem: resource.MustParse("48Gi"), GPUModel: "NVIDIA A10", CUDAComputeCapability: 8.6},
+		{SKU: "Standard_NC24ads_A100_v4", GPUCount: 1, GPUMem: resource.MustParse("80Gi"), GPUModel: "NVIDIA A100", NVMeDiskEnabled: true, CUDAComputeCapability: 8.0},
+		{SKU: "Standard_NC48ads_A100_v4", GPUCount: 2, GPUMem: resource.MustParse("160Gi"), GPUModel: "NVIDIA A100", NVMeDiskEnabled: true, CUDAComputeCapability: 8.0},
+		{SKU: "Standard_NC96ads_A100_v4", GPUCount: 4, GPUMem: resource.MustParse("320Gi"), GPUModel: "NVIDIA A100", NVMeDiskEnabled: true, CUDAComputeCapability: 8.0},
+		{SKU: "Standard_ND96asr_A100_v4", GPUCount: 8, GPUMem: resource.MustParse("320Gi"), GPUModel: "NVIDIA A100", CUDAComputeCapability: 8.0},
+		{SKU: "Standard_ND96amsr_A100_v4", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA A100", NVMeDiskEnabled: true, CUDAComputeCapability: 8.0},
 		// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/ncadsh100v5-series
-		{SKU: "Standard_NC40ads_H100_v5", GPUCount: 1, GPUMem: resource.MustParse("94Gi"), GPUModel: "NVIDIA H100", NVMeDiskEnabled: true},
-		{SKU: "Standard_NC80adis_H100_v5", GPUCount: 2, GPUMem: resource.MustParse("188Gi"), GPUModel: "NVIDIA H100", NVMeDiskEnabled: true},
+		{SKU: "Standard_NC40ads_H100_v5", GPUCount: 1, GPUMem: resource.MustParse("94Gi"), GPUModel: "NVIDIA H100", NVMeDiskEnabled: true, CUDAComputeCapability: 9.0},
+		{SKU: "Standard_NC80adis_H100_v5", GPUCount: 2, GPUMem: resource.MustParse("188Gi"), GPUModel: "NVIDIA H100", NVMeDiskEnabled: true, CUDAComputeCapability: 9.0},
 		// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/ndh100v5-series
-		{SKU: "Standard_ND96isr_H100_v5", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100", NVMeDiskEnabled: true},
+		{SKU: "Standard_ND96isr_H100_v5", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100", NVMeDiskEnabled: true, CUDAComputeCapability: 9.0},
 		// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nccadsh100v5-series
-		{SKU: "Standard_NCC40ads_H100_v5", GPUCount: 1, GPUMem: resource.MustParse("94Gi"), GPUModel: "NVIDIA H100"},
+		{SKU: "Standard_NCC40ads_H100_v5", GPUCount: 1, GPUMem: resource.MustParse("94Gi"), GPUModel: "NVIDIA H100", CUDAComputeCapability: 9.0},
 		// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nd-h200-v5-series
-		{SKU: "Standard_ND96isr_H200_v5", GPUCount: 8, GPUMem: resource.MustParse("1128Gi"), GPUModel: "NVIDIA H200", NVMeDiskEnabled: true},
+		{SKU: "Standard_ND96isr_H200_v5", GPUCount: 8, GPUMem: resource.MustParse("1128Gi"), GPUModel: "NVIDIA H200", NVMeDiskEnabled: true, CUDAComputeCapability: 9.0},
 		{SKU: "Standard_NG32ads_V620_v1", GPUCount: 1, GPUMem: resource.MustParse("32Gi"), GPUModel: "AMD Radeon PRO V620"},
 		{SKU: "Standard_NG32adms_V620_v1", GPUCount: 1, GPUMem: resource.MustParse("32Gi"), GPUModel: "AMD Radeon PRO V620"},
-		{SKU: "Standard_NV12s_v3", GPUCount: 1, GPUMem: resource.MustParse("8Gi"), GPUModel: "NVIDIA M60"},
-		{SKU: "Standard_NV24s_v3", GPUCount: 2, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA M60"},
-		{SKU: "Standard_NV48s_v3", GPUCount: 4, GPUMem: resource.MustParse("32Gi"), GPUModel: "NVIDIA M60"},
+		{SKU: "Standard_NV12s_v3", GPUCount: 1, GPUMem: resource.MustParse("8Gi"), GPUModel: "NVIDIA M60", CUDAComputeCapability: 5.2},
+		{SKU: "Standard_NV24s_v3", GPUCount: 2, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA M60", CUDAComputeCapability: 5.2},
+		{SKU: "Standard_NV48s_v3", GPUCount: 4, GPUMem: resource.MustParse("32Gi"), GPUModel: "NVIDIA M60", CUDAComputeCapability: 5.2},
 		{SKU: "Standard_NV32as_v4", GPUCount: 1, GPUMem: resource.MustParse("16Gi"), GPUModel: "AMD Radeon Instinct MI25"},
 
 		// Not supporting partial gpu skus for now

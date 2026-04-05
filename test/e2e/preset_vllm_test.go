@@ -15,21 +15,27 @@ package e2e
 
 import (
 	"fmt"
+	"io"
 	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	controllers "github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -57,6 +63,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -79,6 +86,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -104,6 +112,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		time.Sleep(1 * time.Minute)
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -116,6 +125,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInferenceSetStatus(inferenceSetObj)
 		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
 		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
 	})
 
@@ -137,6 +147,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 
@@ -149,6 +160,52 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInitContainers(workspaceObj, expectedInitContainers)
 
 		validateAdapterLoadedInVLLM(workspaceObj, phi4AdapterName)
+	})
+
+	It("should create a phi4 workspace with volume-based adapter successfully", utils.GinkgoLabelA100Required, func() {
+		numOfNode := 1
+		volumeAdapterName := "adapter-phi-3-mini-pycoder"
+		volumeAdapterImageName := utils.GetEnv("E2E_ACR_REGISTRY") + "/" + phi4AdapterName + ":0.0.1"
+		imagePullSecret := utils.GetEnv("E2E_ACR_REGISTRY_SECRET")
+
+		By("Creating and populating a PVC with adapter weights")
+		pvcName := createAdapterPVCWithData("managed-csi", volumeAdapterImageName, imagePullSecret)
+
+		By("Creating workspace with volume-based adapter")
+		volumeAdapters := []kaitov1beta1.AdapterSpec{
+			{
+				Source: &kaitov1beta1.DataSource{
+					Name: volumeAdapterName,
+					Volume: &corev1.VolumeSource{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+							ClaimName: pvcName,
+						},
+					},
+				},
+			},
+		}
+
+		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, volumeAdapters)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		// Key volume adapter validations
+		validateNoAdapterInitContainer(workspaceObj)
+		validatePVCMounted(workspaceObj, pvcName)
+		validateAdapterLoadedInVLLM(workspaceObj, volumeAdapterName)
 	})
 
 	It("should create a llama-3.3-70b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
@@ -171,6 +228,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -193,6 +251,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -215,6 +274,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -237,6 +297,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -259,6 +320,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -281,6 +343,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -488,5 +551,173 @@ func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1alpha1.Inference
 			}
 			return false
 		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(), "Failed to validate Flux HelmRelease is Ready")
+	})
+}
+
+// validateWorkspaceBenchmarkCompleted asserts that:
+// - BenchmarkCompleted condition is True
+// - status.Performance.Metrics["peakTokensPerMinute"] is set with a positive value
+// - config map has the four standard keys
+func validateWorkspaceBenchmarkCompleted(workspaceObj *kaitov1beta1.Workspace) {
+	By("Validating workspace benchmark completed and performance is set", func() {
+		Eventually(func() bool {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Name:      workspaceObj.Name,
+				Namespace: workspaceObj.Namespace,
+			}, workspaceObj)
+			if err != nil {
+				return false
+			}
+			_, conditionFound := lo.Find(workspaceObj.Status.Conditions, func(condition metav1.Condition) bool {
+				return condition.Type == string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted) &&
+					condition.Status == metav1.ConditionTrue
+			})
+			if !conditionFound {
+				return false
+			}
+			if workspaceObj.Status.Performance == nil {
+				return false
+			}
+			m, ok := workspaceObj.Status.Performance.Metrics[controllers.BenchmarkMetricPeakTPM]
+			if !ok {
+				return false
+			}
+			tpm, err := strconv.ParseFloat(m.Value, 64)
+			if err != nil || tpm <= 0 {
+				return false
+			}
+			for _, key := range []string{"durationSec", "inputTokens", "outputTokens", "maxConcurrency"} {
+				if _, hasKey := m.Config[key]; !hasKey {
+					return false
+				}
+			}
+			return true
+		}, 30*time.Second, utils.PollInterval).Should(BeTrue(),
+			"workspace benchmark should complete with valid performance metrics")
+	})
+
+	By("Validating benchmark phase duration from pod logs", func() {
+		coreClient, err := utils.GetK8sClientset()
+		if err != nil {
+			GinkgoWriter.Printf("WARNING: could not get k8s clientset to fetch benchmark logs: %v\n", err)
+			return
+		}
+		logBenchmarkPhaseElapsed(coreClient, workspaceObj.Name, workspaceObj.Namespace)
+	})
+}
+
+func logBenchmarkPhaseElapsed(coreClient *kubernetes.Clientset, wsName, wsNamespace string) {
+	tailLines := int64(500)
+	podName := wsName + "-0"
+	req := coreClient.CoreV1().Pods(wsNamespace).GetLogs(podName, &corev1.PodLogOptions{
+		TailLines: &tailLines,
+	})
+	stream, err := req.Stream(ctx)
+	if err != nil {
+		GinkgoWriter.Printf("WARNING: could not fetch logs for pod %s: %v\n", podName, err)
+		return
+	}
+	defer stream.Close()
+	buf := new(strings.Builder)
+	if _, err = io.Copy(buf, stream); err != nil {
+		GinkgoWriter.Printf("WARNING: could not read logs for pod %s: %v\n", podName, err)
+		return
+	}
+	foundDuration := false
+	for line := range strings.SplitSeq(buf.String(), "\n") {
+		if strings.Contains(line, "total_phase_elapsed=") {
+			GinkgoWriter.Printf("[benchmark] %s: %s\n", wsName, line)
+			foundDuration = true
+			for field := range strings.FieldsSeq(line) {
+				if valStr, ok := strings.CutPrefix(field, "total_phase_elapsed="); ok {
+					valStr = strings.TrimSuffix(valStr, "s")
+					if v, parseErr := strconv.ParseFloat(valStr, 64); parseErr == nil {
+						Expect(v).To(BeNumerically("<=", 300.0),
+							"benchmark phase for %s took %.1fs, expected <= 300s", wsName, v)
+					}
+				}
+			}
+		}
+	}
+	if !foundDuration {
+		GinkgoWriter.Printf("[benchmark] %s: total_phase_elapsed not found in last %d log lines\n", wsName, tailLines)
+	}
+}
+
+// validateInferenceSetBenchmarkCompleted asserts that:
+// - status.performance.metrics["aggregatedPeakTokensPerMinute"] is set with a positive value
+// - all child workspaces have BenchmarkCompleted=True and their own performance set
+func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1alpha1.InferenceSet) {
+	By("Validating inferenceset aggregated performance is set", func() {
+		Eventually(func() bool {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Name:      inferenceSetObj.Name,
+				Namespace: inferenceSetObj.Namespace,
+			}, inferenceSetObj)
+			if err != nil {
+				return false
+			}
+			if inferenceSetObj.Status.Performance == nil {
+				return false
+			}
+			m, ok := inferenceSetObj.Status.Performance.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM]
+			if !ok {
+				return false
+			}
+			tpm, err := strconv.ParseFloat(m.Value, 64)
+			if err != nil || tpm <= 0 {
+				return false
+			}
+			return true
+		}, 30*time.Second, utils.PollInterval).Should(BeTrue(),
+			"inferenceset should have aggregated performance metric")
+	})
+
+	By("Validating all child workspace benchmarks completed", func() {
+		wsList := &kaitov1beta1.WorkspaceList{}
+		Eventually(func() bool {
+			err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+				client.InNamespace(inferenceSetObj.Namespace),
+				client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
+			)
+			if err != nil {
+				return false
+			}
+			for i := range wsList.Items {
+				ws := &wsList.Items[i]
+				_, condFound := lo.Find(ws.Status.Conditions, func(c metav1.Condition) bool {
+					return c.Type == string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted) &&
+						c.Status == metav1.ConditionTrue
+				})
+				if !condFound {
+					return false
+				}
+				if ws.Status.Performance == nil {
+					return false
+				}
+			}
+			return true
+		}, 30*time.Second, utils.PollInterval).Should(BeTrue(),
+			"all child workspaces should have BenchmarkCompleted=True and performance set")
+	})
+
+	By("Validating benchmark phase duration from child workspace pod logs", func() {
+		coreClient, err := utils.GetK8sClientset()
+		if err != nil {
+			GinkgoWriter.Printf("WARNING: could not get k8s clientset to fetch benchmark logs: %v\n", err)
+			return
+		}
+		wsList := &kaitov1beta1.WorkspaceList{}
+		if err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+			client.InNamespace(inferenceSetObj.Namespace),
+			client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
+		); err != nil {
+			GinkgoWriter.Printf("WARNING: could not list child workspaces: %v\n", err)
+			return
+		}
+		for i := range wsList.Items {
+			ws := &wsList.Items[i]
+			logBenchmarkPhaseElapsed(coreClient, ws.Name, ws.Namespace)
+		}
 	})
 }

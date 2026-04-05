@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -468,7 +469,7 @@ func (c *RAGEngineReconciler) getAllQualifiedNodes(ctx context.Context, ragEngin
 		}
 
 		// match the instanceType
-		if nodeObj.Labels[corev1.LabelInstanceTypeStable] == ragEngineObj.Spec.Compute.InstanceType {
+		if strings.EqualFold(nodeObj.Labels[corev1.LabelInstanceTypeStable], ragEngineObj.Spec.Compute.InstanceType) {
 			qualifiedNodes = append(qualifiedNodes, lo.ToPtr(nodeObj))
 		}
 	}

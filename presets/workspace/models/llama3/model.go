@@ -48,13 +48,14 @@ var (
 		"allow_remote_files": "",
 	}
 	llamaRunParamsVLLM = map[string]string{
-		"dtype":                   "float16",
-		"chat-template":           "/workspace/chat_templates/tool-chat-llama3.1-json.jinja",
-		"tool-call-parser":        "llama3_json",
+		"chat-template":    "/workspace/chat_templates/tool-chat-llama3.1-json.jinja",
+		"tool-call-parser": "llama3_json",
+		// pin the attention backend to triton for llama3 models, as flashinfer is unavailable in KAITO base image.
+		"attention-backend":       "TRITON_ATTN",
 		"enable-auto-tool-choice": "",
 	}
-	// pin the attention backend to triton for llama3 models, as flashinfer is unavailable in KAITO base image.
-	llama3VLLMCommand = "VLLM_ATTENTION_BACKEND=TRITON_ATTN python3 /workspace/vllm/inference_api.py"
+
+	llama3VLLMCommand = "python3 /workspace/vllm/inference_api.py"
 )
 
 var llama3_1_8b_instructA llama3_1_8BInstruct

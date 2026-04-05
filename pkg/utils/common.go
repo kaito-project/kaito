@@ -192,11 +192,26 @@ func GetGPUConfigFromNodeLabels(node *corev1.Node) (*sku.GPUConfig, error) {
 
 	gpuMemGiB := int64((float64(gpuMemoryMiB)/1024)+0.5) * int64(gpuCount)
 
+	// Parse CUDA compute capability from nvidia.com/cuda.compute.major and nvidia.com/cuda.compute.minor labels.
+	// These are set by the NVIDIA GPU Feature Discovery (GFD) DaemonSet.
+	var cudaComputeCap float64
+	if majorStr, ok := node.Labels[consts.NvidiaCUDAComputeCapMajor]; ok {
+		if major, err := strconv.Atoi(majorStr); err == nil {
+			cudaComputeCap = float64(major)
+			if minorStr, ok := node.Labels[consts.NvidiaCUDAComputeCapMinor]; ok {
+				if minor, err := strconv.Atoi(minorStr); err == nil {
+					cudaComputeCap += float64(minor) / 10.0
+				}
+			}
+		}
+	}
+
 	return &sku.GPUConfig{
-		SKU:      "unknown", // SKU is not available from node labels
-		GPUCount: gpuCount,
-		GPUModel: gpuProduct,
-		GPUMem:   *resource.NewQuantity(gpuMemGiB*consts.GiBToBytes, resource.BinarySI),
+		SKU:                   "unknown", // SKU is not available from node labels
+		GPUCount:              gpuCount,
+		GPUModel:              gpuProduct,
+		GPUMem:                *resource.NewQuantity(gpuMemGiB*consts.GiBToBytes, resource.BinarySI),
+		CUDAComputeCapability: cudaComputeCap,
 	}, nil
 }
 

@@ -214,6 +214,7 @@ func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
 		},
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "8Gi",
+		DiskStorageRequirement:  "100Gi",
 		RuntimeParam: model.RuntimeParam{
 			DisableTensorParallelism: true,
 			VLLM: model.VLLMParam{

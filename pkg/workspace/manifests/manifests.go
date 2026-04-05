@@ -209,14 +209,14 @@ func SetJobPodSpec(podSpec *corev1.PodSpec) func(*generator.WorkspaceGeneratorCo
 	}
 }
 
-func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, volumeMounts []corev1.VolumeMount) ([]corev1.Container, []corev1.EnvVar, []corev1.Volume) {
-	size := len(wObj.Inference.Adapters)
+func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, adapters []kaitov1beta1.AdapterSpec, volumeMounts []corev1.VolumeMount) ([]corev1.Container, []corev1.EnvVar, []corev1.Volume) {
+	size := len(adapters)
 
 	initContainers := make([]corev1.Container, 0, size)
 	var envVars []corev1.EnvVar
 	volumes := make([]corev1.Volume, 0, size)
 
-	for _, adapter := range wObj.Inference.Adapters {
+	for _, adapter := range adapters {
 		source := adapter.Source
 		sourceName := source.Name
 

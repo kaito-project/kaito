@@ -24,15 +24,27 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func TestGarbageCollectWorkspace(t *testing.T) {
 	testcases := map[string]struct {
-		callMocks     func(c *test.MockClient)
-		expectedError error
+		callMocks                   func(c *test.MockClient)
+		disableNodeAutoProvisioning bool
+		expectedError               error
 	}{
+		"Successfully skips NodeClaim cleanup when disableNodeAutoProvisioning is true": {
+			disableNodeAutoProvisioning: true,
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+				// No List or Delete calls for NodeClaims expected
+			},
+			expectedError: nil,
+		},
 		"Fails to delete workspace because associated nodeClaims cannot be retrieved": {
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
@@ -151,6 +163,12 @@ func TestGarbageCollectWorkspace(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
+
+			// Set the feature gate for this test case
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			}()
 
 			reconciler := &WorkspaceReconciler{
 				Client: mockClient,

@@ -17,8 +17,8 @@ helm upgrade --install kaito-ragengine kaito/ragengine \
   --take-ownership
 ```
 
-### Using Nightly Builds (Optional)
-
+#### Using Nightly Builds (for testing purpose)
+<details>
 To install the RAG engine controller using the latest nightly image from GHCR:
 
 :::caution
@@ -41,6 +41,7 @@ The nightly image is tagged with:
 
 - **`nightly-latest`** — always points to the most recent successful nightly build
 - **`nightly-<sha>`** — pinned to a specific commit (12-character short SHA)
+</details>
 
 ## Verify installation
 You can run the following commands to verify the installation of the controllers were successful.

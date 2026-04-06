@@ -339,13 +339,142 @@ def _resolve_model_name(body: dict) -> dict:
     return body
 
 
+def _maybe_return_json_response(output: Any) -> JSONResponse | None:
+    """Pass through upstream non-streaming responses when available."""
+    if isinstance(output, JSONResponse):
+        return output
+    if isinstance(output, dict):
+        return JSONResponse(output)
+    if hasattr(output, "model_dump"):
+        return JSONResponse(output.model_dump(exclude_none=True))
+    if hasattr(output, "dict"):
+        return JSONResponse(output.dict(exclude_none=True))
+    return None
+
+
+def _iter_sse_payloads(output: Any):
+    """Yield JSON payloads from the transformers SSE generator."""
+    for raw_chunk in output:
+        if raw_chunk is None:
+            continue
+        if isinstance(raw_chunk, bytes):
+            raw_chunk = raw_chunk.decode()
+
+        for line in str(raw_chunk).splitlines():
+            if not line.startswith("data:"):
+                continue
+
+            payload = line.removeprefix("data:").strip()
+            if payload == "" or payload == "[DONE]":
+                continue
+
+            try:
+                yield json.loads(payload)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"invalid SSE payload from transformers serve: {payload}") from exc
+
+
+def _merge_tool_call_delta(
+    tool_calls_by_index: dict[int, dict[str, Any]], tool_call_delta: dict[str, Any]
+):
+    """Merge streaming tool-call deltas into a final OpenAI message payload."""
+    index = tool_call_delta.get("index", 0)
+    tool_call = tool_calls_by_index.setdefault(
+        index,
+        {
+            "index": index,
+            "type": "function",
+            "function": {"name": "", "arguments": ""},
+        },
+    )
+
+    if tool_call_delta.get("id"):
+        tool_call["id"] = tool_call_delta["id"]
+    if tool_call_delta.get("type"):
+        tool_call["type"] = tool_call_delta["type"]
+
+    function_delta = tool_call_delta.get("function") or {}
+    if function_delta.get("name"):
+        tool_call["function"]["name"] = function_delta["name"]
+    if function_delta.get("arguments"):
+        tool_call["function"]["arguments"] += function_delta["arguments"]
+
+
+def _collect_chat_completion_response(output: Any, requested_model: str) -> dict[str, Any]:
+    """Aggregate SSE chat-completion chunks into a single JSON response."""
+    response = {
+        "id": None,
+        "object": "chat.completion",
+        "created": int(datetime.datetime.now().timestamp()),
+        "model": requested_model,
+    }
+    role = "assistant"
+    content_parts: list[str] = []
+    finish_reason = None
+    tool_calls_by_index: dict[int, dict[str, Any]] = {}
+
+    for payload in _iter_sse_payloads(output):
+        if response["id"] is None and payload.get("id") is not None:
+            response["id"] = payload["id"]
+        if payload.get("created") is not None:
+            response["created"] = payload["created"]
+        if payload.get("usage") is not None:
+            response["usage"] = payload["usage"]
+
+        for choice in payload.get("choices", []):
+            delta = choice.get("delta") or {}
+            if delta.get("role"):
+                role = delta["role"]
+            if delta.get("content"):
+                content_parts.append(delta["content"])
+            for tool_call_delta in delta.get("tool_calls") or []:
+                _merge_tool_call_delta(tool_calls_by_index, tool_call_delta)
+            if choice.get("finish_reason") is not None:
+                finish_reason = choice["finish_reason"]
+
+    if response["id"] is None:
+        raise ValueError("no chat completion data received from transformers serve")
+
+    message: dict[str, Any] = {"role": role}
+    content = "".join(content_parts)
+    if tool_calls_by_index:
+        ordered_tool_calls = []
+        for index in sorted(tool_calls_by_index):
+            tool_call = dict(tool_calls_by_index[index])
+            tool_call.pop("index", None)
+            ordered_tool_calls.append(tool_call)
+        message["content"] = content or None
+        message["tool_calls"] = ordered_tool_calls
+    else:
+        message["content"] = content
+
+    response["choices"] = [
+        {
+            "index": 0,
+            "message": message,
+            "finish_reason": finish_reason or ("tool_calls" if tool_calls_by_index else "stop"),
+        }
+    ]
+    return response
+
+
 @app.post("/v1/chat/completions")
 def chat_completion(body: dict):
-    """OpenAI-compatible chat completions endpoint (SSE streamed)."""
+    """OpenAI-compatible chat completions endpoint."""
+    requested_model = body.get("model", _served_model_name)
     body = _resolve_model_name(body)
     serve_command.validate_chat_completion_request(request=body)
     output = serve_command.generate_chat_completion(body)
-    return StreamingResponse(output, media_type="text/event-stream")
+    if body.get("stream", True):
+        if isinstance(output, StreamingResponse):
+            return output
+        return StreamingResponse(output, media_type="text/event-stream")
+
+    upstream_response = _maybe_return_json_response(output)
+    if upstream_response is not None:
+        return upstream_response
+
+    return JSONResponse(_collect_chat_completion_response(output, requested_model))
 
 
 @app.post("/v1/responses")

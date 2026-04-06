@@ -70,17 +70,31 @@ def configured_app(request):
     sys.argv = original_argv
 
 
-def _make_sse_chunk(role="assistant", content="Hello", finish_reason=None):
+def _make_sse_chunk(
+    role="assistant",
+    content="Hello",
+    finish_reason=None,
+    model="HuggingFaceTB/SmolLM2-135M-Instruct",
+    tool_calls=None,
+):
     """Build a single SSE chunk string matching the transformers serve format."""
+    delta = {}
+    if role is not None:
+        delta["role"] = role
+    if content is not None:
+        delta["content"] = content
+    if tool_calls is not None:
+        delta["tool_calls"] = tool_calls
+
     chunk = {
         "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
         "object": "chat.completion.chunk",
         "created": 1700000000,
-        "model": "HuggingFaceTB/SmolLM2-135M-Instruct",
+        "model": model,
         "choices": [
             {
                 "index": 0,
-                "delta": {"role": role, "content": content},
+                "delta": delta,
                 "finish_reason": finish_reason,
             }
         ],
@@ -166,6 +180,130 @@ def test_chat_completions_multi_turn(configured_app):
                 content_pieces.append(delta["content"])
 
     assert len(content_pieces) > 0, "Expected generated content in the response"
+
+
+def test_chat_completions_stream_false_returns_json(configured_app):
+    """POST /v1/chat/completions returns a single JSON response when stream=false."""
+    fake_sse = iter(
+        [
+            _make_sse_chunk(content="Hi"),
+            _make_sse_chunk(role=None, content=" there", finish_reason="stop"),
+        ]
+    )
+
+    client = TestClient(configured_app)
+    request_data = {
+        "model": configured_app.test_config["model_path"],
+        "messages": [{"role": "user", "content": "Say hello in two words."}],
+        "max_tokens": 10,
+        "temperature": 0.0,
+        "stream": False,
+    }
+    with (
+        patch("inference_api.serve_command.validate_chat_completion_request"),
+        patch(
+            "inference_api.serve_command.generate_chat_completion",
+            return_value=fake_sse,
+        ),
+    ):
+        response = client.post("/v1/chat/completions", json=request_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["object"] == "chat.completion"
+    assert data["model"] == configured_app.test_config["model_path"]
+    assert data["choices"][0]["message"] == {
+        "role": "assistant",
+        "content": "Hi there",
+    }
+    assert data["choices"][0]["finish_reason"] == "stop"
+
+
+def test_chat_completions_stream_false_aggregates_tool_calls(configured_app):
+    """POST /v1/chat/completions preserves streamed tool-call deltas when stream=false."""
+    fake_sse = iter(
+        [
+            _make_sse_chunk(content=None),
+            _make_sse_chunk(
+                role=None,
+                content=None,
+                tool_calls=[
+                    {
+                        "index": 0,
+                        "id": "call_123",
+                        "type": "function",
+                        "function": {"name": "get_weather"},
+                    }
+                ],
+            ),
+            _make_sse_chunk(
+                role=None,
+                content=None,
+                tool_calls=[
+                    {
+                        "index": 0,
+                        "type": "function",
+                        "function": {"arguments": '{"city":"'},
+                    }
+                ],
+            ),
+            _make_sse_chunk(
+                role=None,
+                content=None,
+                finish_reason="tool_calls",
+                tool_calls=[
+                    {
+                        "index": 0,
+                        "type": "function",
+                        "function": {"arguments": 'Paris"}'},
+                    }
+                ],
+            ),
+        ]
+    )
+
+    client = TestClient(configured_app)
+    request_data = {
+        "model": configured_app.test_config["model_path"],
+        "messages": [{"role": "user", "content": "What's the weather in Paris?"}],
+        "stream": False,
+        "tools": [
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_weather",
+                    "description": "Get the weather for a city.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"city": {"type": "string"}},
+                    },
+                },
+            }
+        ],
+    }
+    with (
+        patch("inference_api.serve_command.validate_chat_completion_request"),
+        patch(
+            "inference_api.serve_command.generate_chat_completion",
+            return_value=fake_sse,
+        ),
+    ):
+        response = client.post("/v1/chat/completions", json=request_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["choices"][0]["finish_reason"] == "tool_calls"
+    assert data["choices"][0]["message"]["content"] is None
+    assert data["choices"][0]["message"]["tool_calls"] == [
+        {
+            "id": "call_123",
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "arguments": '{"city":"Paris"}',
+            },
+        }
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -376,3 +514,39 @@ def test_served_model_name_in_chat_completions(local_model_app):
     ):
         response = client.post("/v1/chat/completions", json=request_data)
     assert response.status_code == 200
+
+
+def test_served_model_name_in_non_stream_chat_completions(local_model_app):
+    """POST /v1/chat/completions keeps the served model name when stream=false."""
+    fake_sse = iter(
+        [
+            _make_sse_chunk(content="Hi", model=local_model_app.test_config["model_path"]),
+            _make_sse_chunk(
+                role=None,
+                content=" there",
+                finish_reason="stop",
+                model=local_model_app.test_config["model_path"],
+            ),
+        ]
+    )
+
+    client = TestClient(local_model_app)
+    request_data = {
+        "model": "smollm2",
+        "messages": [{"role": "user", "content": "Hi"}],
+        "max_tokens": 5,
+        "stream": False,
+    }
+    with (
+        patch("inference_api.serve_command.validate_chat_completion_request"),
+        patch(
+            "inference_api.serve_command.generate_chat_completion",
+            return_value=fake_sse,
+        ),
+    ):
+        response = client.post("/v1/chat/completions", json=request_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["model"] == "smollm2"
+    assert data["choices"][0]["message"]["content"] == "Hi there"

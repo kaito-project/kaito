@@ -19,9 +19,13 @@ import (
 	"strings"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -55,9 +59,45 @@ func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 	if is.Spec.Replicas < 1 {
 		errs = errs.Also(apis.ErrInvalidValue(is.Spec.Replicas, "replicas", "must be at least 1"))
 	}
+	errs = errs.Also(is.validateBYOPVCAccessMode())
 	return errs
 }
 
 func (is *InferenceSet) validateUpdate(_ *InferenceSet) (errs *apis.FieldError) {
+	errs = errs.Also(is.validateBYOPVCAccessMode())
+	return errs
+}
+
+// validateBYOPVCAccessMode rejects a ReadWriteOnce BYO PVC when replicas > 1,
+// because each InferenceSet replica becomes a separate Workspace/pod that needs
+// to mount the same PVC — RWO only allows mounting on a single node.
+func (is *InferenceSet) validateBYOPVCAccessMode() (errs *apis.FieldError) {
+	if is.Spec.Template.Inference.Preset == nil {
+		return errs
+	}
+	pvcName := is.Spec.Template.Inference.Preset.PresetOptions.ModelWeightsPVC
+	if pvcName == "" || is.Spec.Replicas <= 1 {
+		return errs
+	}
+	if k8sclient.Client == nil {
+		return errs
+	}
+	pvc := &corev1.PersistentVolumeClaim{}
+	if err := k8sclient.Client.Get(context.TODO(), types.NamespacedName{
+		Name:      pvcName,
+		Namespace: is.Namespace,
+	}, pvc); err == nil {
+		for _, accessMode := range pvc.Spec.AccessModes {
+			if accessMode == corev1.ReadWriteOnce {
+				errs = errs.Also(apis.ErrInvalidValue(
+					fmt.Sprintf(
+						"PVC '%s' has ReadWriteOnce access mode but replicas is %d; use a ReadWriteMany PVC for multi-replica InferenceSet",
+						pvcName, is.Spec.Replicas),
+					"template.inference.presetOptions.modelWeightsPVC",
+				).ViaField("spec"))
+				break
+			}
+		}
+	}
 	return errs
 }

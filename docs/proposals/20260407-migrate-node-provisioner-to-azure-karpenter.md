@@ -1,9 +1,11 @@
 ---
 title: Migrate Node Provisioner from gpu-provisioner to Azure Karpenter
 authors:
-  - "@rambohe"
+  - "@rambohe-ch"
 reviewers:
-  - "@TBD"
+  - "@Fei-Guo"
+  - "@zhuangqh"
+  - "@2170chm"
 creation-date: 2026-04-07
 last-updated: 2026-04-07
 status: provisional
@@ -35,6 +37,8 @@ status: provisional
     - [Drift Detection and Node Upgrade](#drift-detection-and-node-upgrade)
     - [Preventing Azure Karpenter Interference](#preventing-azure-karpenter-interference)
   - [gpu-provisioner and Azure Karpenter Coexistence](#gpu-provisioner-and-azure-karpenter-coexistence)
+- [Known Issues](#known-issues)
+  - [GPU Zonal Provisioning Failure](#gpu-zonal-provisioning-failure)
 - [Risks and Mitigations](#risks-and-mitigations)
 - [Alternatives](#alternatives)
 - [Implementation History](#implementation-history)
@@ -196,6 +200,11 @@ spec:
         name: kaito-nc-is-default-llama-serving
         kind: AKSNodeClass
         group: karpenter.azure.com
+      # Regional placement for GPU SKUs (see Known Issues: GPU Zonal Provisioning)
+      requirements:
+        - key: karpenter.azure.com/zone-placement
+          operator: In
+          values: ["regional"]
       taints:
         - key: sku
           value: gpu
@@ -324,6 +333,29 @@ During coexistence, KAITO counts ready NodeClaims from both backends but creates
 4. New workspaces and scale-up use Azure Karpenter. Scoped NodePool/AKSNodeClass created automatically.
 5. Once all gpu-provisioner NodeClaims are naturally replaced, gpu-provisioner can be uninstalled.
 
+## Known Issues
+
+### GPU Zonal Provisioning Failure
+
+**Problem**: GPU SKUs such as A100 and A10 are reported as zone-capable by the Azure Resource API, but **explicit zonal VM creation frequently fails** while **non-zonal (regional) creation succeeds**. This is because available GPU capacity often exists only in regional (non-zone-mapped) hardware pools. Azure Karpenter currently treats zone-listed SKUs as zonal-only and has **no fallback from zonal to non-zonal provisioning**, causing GPU NodeClaim creation to fail.
+
+**Impact on KAITO**: This is a **critical blocker** for KAITO's migration. KAITO workloads are predominantly GPU-based (A100, H100, A10), and the inability to provision these SKUs reliably through Karpenter makes the migration non-viable without a workaround.
+
+**Proposed solution in Azure Karpenter**: Introduce an opt-in NodePool requirement:
+
+```
+karpenter.azure.com/zone-placement = zonal | regional
+```
+
+- `zonal` — current default; Karpenter pins VM to a specific zone.
+- `regional` — Karpenter creates VM without specifying a zone, allowing Azure RP to place it in any available hardware pool.
+
+Regional nodes would surface as zone `"0"` in Kubernetes, preserving compatibility with topology spread constraints. This approach mirrors AKS behavior but provides more flexibility since Karpenter can mix zonal and regional NodePools.
+
+**KAITO's approach**: KAITO sets `karpenter.azure.com/zone-placement=regional` as a default requirement on all KAITO-managed NodePools (as shown in the NodePool configuration example above). This ensures GPU NodeClaims are provisioned non-zonally, avoiding the capacity issue. If Azure Karpenter has not yet implemented this requirement, KAITO can use a temporary annotation or label as a short-term workaround while the formal API is being designed.
+
+**Status**: Pending Azure Karpenter support. The Azure Karpenter team has acknowledged the issue and is evaluating the `zone-placement` requirement approach.
+
 ## Risks and Mitigations
 
 | Risk | Mitigation |
@@ -333,6 +365,7 @@ During coexistence, KAITO counts ready NodeClaims from both backends but creates
 | Frequent node replacements from drift signals | KAITO controls when to act; add delay/rate-limiting |
 | Race condition in drift replacement | `kaito.sh/replaces-nodeclaim` label for idempotent tracking; ControllerExpectations mechanism |
 | Many scoped NodePools in large clusters | Deterministic naming + labels for filtering; garbage collection on owner deletion |
+| GPU zonal provisioning failures (A100, A10) | Set `karpenter.azure.com/zone-placement=regional` on KAITO NodePools; track Azure Karpenter support for this requirement |
 
 ## Alternatives
 

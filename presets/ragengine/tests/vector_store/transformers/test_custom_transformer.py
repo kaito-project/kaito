@@ -14,6 +14,7 @@
 from unittest import mock
 
 from llama_index.core.schema import TextNode
+
 from ragengine.vector_store.transformers.custom_transformer import CustomTransformer
 
 # CustomTransformer.__call__ tests
@@ -29,7 +30,7 @@ def test_split_node_called_once_per_input_node():
     ]
 
     with mock.patch.object(
-        transformer,
+        CustomTransformer,
         "split_node",
         return_value=[TextNode(text="split")],
     ) as mock_split:
@@ -50,7 +51,7 @@ def test_call_returns_all_split_results():
     split_c = TextNode(text="split_c")
 
     with mock.patch.object(
-        transformer,
+        CustomTransformer,
         "split_node",
         side_effect=[[split_a, split_b], [split_c]],
     ):
@@ -63,7 +64,7 @@ def test_call_with_empty_input():
     """Should return empty list without calling split_node for empty input."""
     transformer = CustomTransformer()
 
-    with mock.patch.object(transformer, "split_node") as mock_split:
+    with mock.patch.object(CustomTransformer, "split_node") as mock_split:
         result = transformer([])
         expected = []
         assert result == expected

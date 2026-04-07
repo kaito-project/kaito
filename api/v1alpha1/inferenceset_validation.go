@@ -85,11 +85,11 @@ func (is *InferenceSet) validateBYOPVCAccessMode() (errs *apis.FieldError) {
 		Namespace: is.Namespace,
 	}, pvc); err == nil {
 		for _, accessMode := range pvc.Spec.AccessModes {
-			if accessMode == corev1.ReadWriteOnce {
+			if accessMode == corev1.ReadWriteOnce || accessMode == corev1.ReadWriteOncePod {
 				errs = errs.Also(apis.ErrInvalidValue(
 					fmt.Sprintf(
-						"PVC '%s' has ReadWriteOnce access mode but replicas is %d; use a ReadWriteMany PVC for multi-replica InferenceSet",
-						pvcName, is.Spec.Replicas),
+						"PVC '%s' has %s access mode but replicas is %d; use a ReadWriteMany PVC for multi-replica InferenceSet",
+						pvcName, accessMode, is.Spec.Replicas),
 					"template.inference.presetOptions.modelWeightsPVC",
 				).ViaField("spec"))
 				break

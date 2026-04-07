@@ -3003,6 +3003,15 @@ func TestValidateCreateWithInferenceRWOPVC(t *testing.T) {
 				},
 			},
 		},
+		&v1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{Name: "rwop-pvc", Namespace: ""},
+			Spec: v1.PersistentVolumeClaimSpec{
+				AccessModes: []v1.PersistentVolumeAccessMode{v1.ReadWriteOncePod},
+				Resources: v1.VolumeResourceRequirements{
+					Requests: v1.ResourceList{v1.ResourceStorage: resource.MustParse("200Gi")},
+				},
+			},
+		},
 	).Build()
 	k8sclient.SetGlobalClient(fakeClient)
 
@@ -3025,7 +3034,22 @@ func TestValidateCreateWithInferenceRWOPVC(t *testing.T) {
 					PresetOptions: PresetOptions{ModelWeightsPVC: "rwo-pvc"},
 				},
 			},
-			errContent: "ReadWriteOnce access mode",
+			errContent: "ReadWriteOnce",
+			expectErrs: true,
+		},
+		{
+			name: "RWOP PVC with count=2 rejected",
+			resource: &ResourceSpec{
+				InstanceType: "Standard_NC24ads_A100_v4",
+				Count:        pointerToInt(2),
+			},
+			inference: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "rwop-pvc"},
+				},
+			},
+			errContent: "ReadWriteOncePod",
 			expectErrs: true,
 		},
 		{

@@ -319,6 +319,15 @@ func TestInferenceSet_validateBYOPVCAccessMode(t *testing.T) {
 				},
 			},
 		},
+		&corev1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{Name: "rwop-pvc", Namespace: "default"},
+			Spec: corev1.PersistentVolumeClaimSpec{
+				AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOncePod},
+				Resources: corev1.VolumeResourceRequirements{
+					Requests: corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("200Gi")},
+				},
+			},
+		},
 	).Build()
 	k8sclient.SetGlobalClient(fakeClient)
 
@@ -344,7 +353,25 @@ func TestInferenceSet_validateBYOPVCAccessMode(t *testing.T) {
 				},
 			},
 			wantErr:    true,
-			errContent: "ReadWriteOnce access mode",
+			errContent: "ReadWriteOnce",
+		},
+		{
+			name: "RWOP PVC with replicas=2 rejected",
+			is: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+				Spec: InferenceSetSpec{
+					Replicas: 2,
+					Template: InferenceSetTemplate{
+						Inference: kaitov1beta1.InferenceSpec{
+							Preset: &kaitov1beta1.PresetSpec{
+								PresetOptions: kaitov1beta1.PresetOptions{ModelWeightsPVC: "rwop-pvc"},
+							},
+						},
+					},
+				},
+			},
+			wantErr:    true,
+			errContent: "ReadWriteOncePod",
 		},
 		{
 			name: "RWX PVC with replicas=2 accepted",

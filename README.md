@@ -53,7 +53,7 @@ The details of the service APIs can be found in this [document](https://kaito-pr
 
 
 ## Getting Started 
-- **Installation**: Please check the guidance [here](https://kaito-project.github.io/kaito/docs/installation) for installing core components (Workspace, InferenceSet) using helm and [here](./terraform/README.md) for installation using Terraform.
+- **Installation**: Please check the guidance [here](https://kaito-project.github.io/kaito/docs/installation) for installing core components (Workspace, InferenceSet) using helm and [here](https://github.com/kaito-project/kaito/blob/main/terraform/README.md) for installation using Terraform.
 - **Quick Start**: Please check the quick start guidance [here](https://kaito-project.github.io/kaito/docs/quick-start) for running your first model using KAITO!
 - **AutoScaling**: Please check this [doc](https://kaito-project.github.io/kaito/docs/keda-autoscaler-inference) for configuring KAITO and KEDA to enable autoscaling inference workload.
 - **BYO models using HuggingFace runtime**: If you plan to run any BYO models using the HuggingFace runtime, check this [doc](https://kaito-project.github.io/kaito/docs/custom-model). Note: KAITO only supports BYO models hosted in HuggingFace.

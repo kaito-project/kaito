@@ -2,87 +2,12 @@
 title: Quick Start
 ---
 
-After installing KAITO, you can quickly deploy a phi-4-mini-instruct inference service to get started.
-
-## Prerequisites
-
-- A Kubernetes cluster with KAITO installed (see [Installation](installation))
-- `kubectl` configured to access your cluster
-- **GPU nodes available in your cluster** - You have two **mutually exclusive** options:
-  - **Bring your own GPU (BYO) nodes**: If you already have GPU nodes in your cluster, you can use the preferred nodes approach (shown below). **Requires Node Auto Provisioning to be disabled.**
-  - **Auto-provisioning**: Set up automatic GPU node provisioning for your cloud provider (see [these steps](installation#option-2-auto-provision-gpu-nodes)). **Cannot be used with BYO nodes.**
+Install KAITO first following the [installation guide](installation). After installation, you can quickly deploy a phi-4-mini-instruct inference service to get started.
 
 ## Deploy Your First Model
+### Option 1: Auto-provision GPU nodes
 
-Your model can be deployed either on your own GPU nodes, or KAITO can auto-provision nodes for it to run on. **These options are mutually exclusive** - you must choose one approach.
-
-:::warning Important
-BYO nodes and Auto-provisioning are **mutually exclusive**. If you're using your own GPU nodes, ensure KAITO was installed with `--set featureGates.disableNodeAutoProvisioning=true`. If you're using auto-provisioning, do not use this flag.
-:::
-
-### Option 1: Bring your own GPU nodes
-
-:::info Prerequisites for BYO Nodes
-Before using this option, ensure that:
-1. KAITO was installed with Node Auto Provisioning disabled: `--set featureGates.disableNodeAutoProvisioning=true`
-2. You have existing GPU nodes in your cluster
-3. Your GPU nodes are properly labeled for workload selection
-:::
-
-Let's start by deploying a phi-4-mini-instruct model on your existing GPU nodes.
-
-First get the nodes.
-
-```bash
-kubectl get nodes -l accelerator=nvidia
-```
-
-The output should look similar to this, showing all your GPU nodes.
-
-```
-NAME                                  STATUS   ROLES    AGE     VERSION
-gpunp-26695285-vmss000000             Ready    <none>   2d21h   v1.31.9
-gpunp-26695285-vmss000001             Ready    <none>   2d21h   v1.31.9
-```
-
-The GPU nodes will need a label in order for a KAITO Workspace to select it. We'll use the label `apps=llm-inference` for this example. Label the nodes you want to use. 
-
-```bash
-kubectl label node gpunp-26695285-vmss000001 apps=llm-inference
-kubectl label node gpunp-26695285-vmss000000 apps=llm-inference
-```
-
-Create a YAML file named `phi-4-workspace.yaml` with the following content. The label selector here must match the labels you set on the nodes.
-
-```yaml title="phi-4-workspace.yaml"
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  name: workspace-phi-4-mini
-resource:
-  labelSelector:
-    matchLabels:
-      apps: llm-inference
-inference:
-  preset:
-    name: phi-4-mini-instruct
-```
-
-:::note
-Make sure that `resource.instanceType` is empty when using BYO as it's only used for the auto-provisioning scenario.
-:::
-
-Apply your configuration to your cluster:
-
-```bash
-kubectl apply -f phi-4-workspace.yaml
-```
-
-The nodes will be populated with their specs using [NVIDIA GPU Feature Discovery](https://github.com/NVIDIA/k8s-device-plugin/tree/main/docs/gpu-feature-discovery#deployment-via-helm), and KAITO will verify that your nodes have the proper memory, # GPUS, etc. to run the model.
-
-### Option 2: Auto-provision GPU nodes
-
-The following cloud providers support auto-provisioning GPU nodes in addition to BYO nodes.
+The following cloud providers support auto-provisioning GPU nodes.
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -92,8 +17,6 @@ import TabItem from '@theme/TabItem';
 
 :::info
 If you have not already, follow the steps [here](azure#setup-auto-provisioning) to install the `gpu-provisioner` Helm chart.
-
-Ensure that the chart is ready and pods are running with [these steps](azure#verify-setup) otherwise the GPU nodes will not be provisioned.
 :::
 
 Create a YAML file named `phi-4-workspace.yaml` with the following content. The `instanceType` field will specify what nodes will be auto-provisioned instead of only matching existing nodes in the BYO case.
@@ -118,8 +41,6 @@ inference:
 
 :::info
 If you have not already, follow the steps [here](aws#setup-auto-provisioning) to install the `Karpenter` Helm chart.
-
-Ensure that the chart is ready and pods are running, otherwise the GPU nodes will not be provisioned.
 :::
 
 Create a YAML file named `phi-4-workspace.yaml` with the following content. The `instanceType` field will specify what nodes will be auto-provisioned instead of only matching existing nodes in the BYO case.
@@ -148,6 +69,37 @@ Apply your configuration to your cluster:
 kubectl apply -f phi-4-workspace.yaml
 ```
 
+### Option 2: Bring your own GPU nodes
+
+:::info Important
+Before using this option, ensure that:
+1. KAITO was installed with Node Auto Provisioning disabled: `--set featureGates.disableNodeAutoProvisioning=true`.
+2. You have existing GPU nodes in your cluster with device plugin and GPU drivers installed.
+3. Your GPU nodes are properly labeled for workload selection.
+:::
+
+Assuming the GPU node is added label `apps=llm-inference` for a KAITO Workspace to select, create a YAML file named `phi-4-workspace.yaml` with the following content. Make sure that `resource.instanceType` is **empty** 
+when using BYO nodes.
+
+```yaml title="phi-4-workspace.yaml"
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-phi-4-mini
+resource:
+  labelSelector:
+    matchLabels:
+      apps: llm-inference
+inference:
+  preset:
+    name: phi-4-mini-instruct
+```
+Apply your configuration to your cluster:
+
+```bash
+kubectl apply -f phi-4-workspace.yaml
+```
+
 ## Monitor Deployment
 
 Track the workspace status to see when the model has been deployed successfully:
@@ -164,7 +116,7 @@ workspace-phi-4-mini   Standard_NC24ads_A100_v4   True            True          
 ```
 
 :::note
-The `INSTANCE` column will default to `Standard_NC24ads_A100_v4` if you have not set up auto-provisioning. If you have auto-provisioning configured, it will show the specific instance type used.
+The `INSTANCE` column will be empty if BYO nodes are used. Otherwise, it will show the specific instance type used.
 :::
 
 ## Test the Model
@@ -214,18 +166,8 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
   }'
 ```
 
-## Next Steps
-
 🎉 Congratulations! You've successfully deployed and tested your first model with KAITO.
 
-**What's Next:**
+## What's Next
 
-- **Explore More Models**: Check out the full range of supported models in the [presets documentation](https://github.com/kaito-project/kaito/tree/main/presets)
-- **Advanced Configurations**: Learn about [workspace configurations](https://github.com/kaito-project/kaito/blob/main/api/v1alpha1/workspace_types.go)
-- **Custom Models**: See how to [contribute new models](https://github.com/kaito-project/kaito/blob/main/docs/How-to-add-new-models.md)
-
-**Additional Resources:**
-
-- [Fine-tuning Guide](https://github.com/kaito-project/kaito/tree/main/examples/fine-tuning) - Customize models for your specific use cases
-- [RAG Examples](https://github.com/kaito-project/kaito/tree/main/examples/RAG) - Retrieval-Augmented Generation patterns
-- [Troubleshooting Guide](https://github.com/kaito-project/kaito/blob/main/docs/troubleshooting.md) - Common issues and solutions
+- **Supported Models**: Check out how KAITO supports models from HuggingFace in [presets documentation](presets).

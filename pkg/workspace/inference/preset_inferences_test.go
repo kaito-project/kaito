@@ -286,7 +286,6 @@ func TestGeneratePresetInference(t *testing.T) {
 			modelName: "test-model",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				// Do NOT mock StorageClass Get — NVMe check should be skipped entirely
 			},
 			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 		},

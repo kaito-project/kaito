@@ -556,22 +556,20 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 	// Validate BYO PVC access mode for multi-node inference
 	if inference != nil && inference.Preset != nil {
 		if pvcName := inference.Preset.PresetOptions.ModelWeightsPVC; pvcName != "" && machineCount > 1 {
-			if k8sclient.Client != nil {
-				pvc := &corev1.PersistentVolumeClaim{}
-				if err := k8sclient.Client.Get(context.TODO(), types.NamespacedName{
-					Name:      pvcName,
-					Namespace: wsNamespace,
-				}, pvc); err == nil {
-					for _, accessMode := range pvc.Spec.AccessModes {
-						if accessMode == corev1.ReadWriteOnce {
-							errs = errs.Also(apis.ErrInvalidValue(
-								fmt.Sprintf(
-									"PVC '%s' has ReadWriteOnce access mode but resource.count is %d; use a ReadWriteMany PVC for multi-node inference",
-									pvcName, machineCount),
-								"presetOptions.modelWeightsPVC",
-							))
-							break
-						}
+			pvc := &corev1.PersistentVolumeClaim{}
+			if err := k8sclient.Client.Get(context.TODO(), types.NamespacedName{
+				Name:      pvcName,
+				Namespace: wsNamespace,
+			}, pvc); err == nil {
+				for _, accessMode := range pvc.Spec.AccessModes {
+					if accessMode == corev1.ReadWriteOnce {
+						errs = errs.Also(apis.ErrInvalidValue(
+							fmt.Sprintf(
+								"PVC '%s' has ReadWriteOnce access mode but resource.count is %d; use a ReadWriteMany PVC for multi-node inference",
+								pvcName, machineCount),
+							"presetOptions.modelWeightsPVC",
+						))
+						break
 					}
 				}
 			}
@@ -681,30 +679,26 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 		}
 
 		if pvcName := i.Preset.PresetOptions.ModelWeightsPVC; pvcName != "" {
-			if k8sclient.Client == nil {
-				errs = errs.Also(apis.ErrGeneric("Failed to obtain client from context.Context"))
+			pvc := &corev1.PersistentVolumeClaim{}
+			if err := k8sclient.Client.Get(ctx, types.NamespacedName{
+				Name:      pvcName,
+				Namespace: wsNamespace,
+			}, pvc); err != nil {
+				errs = errs.Also(apis.ErrInvalidValue(
+					fmt.Sprintf("PVC '%s' not found in namespace '%s'", pvcName, wsNamespace),
+					"presetOptions.modelWeightsPVC",
+				))
 			} else {
-				pvc := &corev1.PersistentVolumeClaim{}
-				if err := k8sclient.Client.Get(ctx, types.NamespacedName{
-					Name:      pvcName,
-					Namespace: wsNamespace,
-				}, pvc); err != nil {
-					errs = errs.Also(apis.ErrInvalidValue(
-						fmt.Sprintf("PVC '%s' not found in namespace '%s'", pvcName, wsNamespace),
-						"presetOptions.modelWeightsPVC",
-					))
-				} else {
-					if params.DiskStorageRequirement != "" {
-						requiredSize, parseErr := resource.ParseQuantity(params.DiskStorageRequirement)
-						if parseErr == nil {
-							pvcSize := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
-							if pvcSize.Cmp(requiredSize) < 0 {
-								errs = errs.Also(apis.ErrInvalidValue(
-									fmt.Sprintf("PVC capacity (%s) is less than required model size (%s)",
-										pvcSize.String(), requiredSize.String()),
-									"presetOptions.modelWeightsPVC",
-								))
-							}
+				if params.DiskStorageRequirement != "" {
+					requiredSize, parseErr := resource.ParseQuantity(params.DiskStorageRequirement)
+					if parseErr == nil {
+						pvcSize := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
+						if pvcSize.Cmp(requiredSize) < 0 {
+							errs = errs.Also(apis.ErrInvalidValue(
+								fmt.Sprintf("PVC capacity (%s) is less than required model size (%s)",
+									pvcSize.String(), requiredSize.String()),
+								"presetOptions.modelWeightsPVC",
+							))
 						}
 					}
 				}

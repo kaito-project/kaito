@@ -79,9 +79,6 @@ func (is *InferenceSet) validateBYOPVCAccessMode() (errs *apis.FieldError) {
 	if pvcName == "" || is.Spec.Replicas <= 1 {
 		return errs
 	}
-	if k8sclient.Client == nil {
-		return errs
-	}
 	pvc := &corev1.PersistentVolumeClaim{}
 	if err := k8sclient.Client.Get(context.TODO(), types.NamespacedName{
 		Name:      pvcName,

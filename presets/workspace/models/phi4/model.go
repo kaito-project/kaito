@@ -42,9 +42,8 @@ var (
 	baseCommandPresetPhiInference = "accelerate launch"
 	baseCommandPresetPhiTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
 	phi4RunParams                 = map[string]string{
-		"torch_dtype":       "auto",
-		"pipeline":          "text-generation",
-		"trust_remote_code": "",
+		"torch_dtype": "auto",
+		"pipeline":    "text-generation",
 	}
 	phi4RunParamsVLLM     = map[string]string{}
 	phi4MiniRunParamsVLLM = map[string]string{

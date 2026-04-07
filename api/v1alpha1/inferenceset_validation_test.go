@@ -277,7 +277,7 @@ func TestInferenceSet_validateCreate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.is.validateCreate()
+			err := tt.is.validateCreate(context.Background())
 			if tt.wantErr {
 				assert.NotNil(t, err)
 				if tt.errField != "" {
@@ -293,7 +293,7 @@ func TestInferenceSet_validateCreate(t *testing.T) {
 func TestInferenceSet_validateUpdate(t *testing.T) {
 	is := &InferenceSet{}
 	old := &InferenceSet{}
-	err := is.validateUpdate(old)
+	err := is.validateUpdate(context.Background(), old)
 	assert.Nil(t, err)
 }
 
@@ -408,6 +408,23 @@ func TestInferenceSet_validateBYOPVCAccessMode(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "RWOP PVC with replicas=1 accepted",
+			is: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+				Spec: InferenceSetSpec{
+					Replicas: 1,
+					Template: InferenceSetTemplate{
+						Inference: kaitov1beta1.InferenceSpec{
+							Preset: &kaitov1beta1.PresetSpec{
+								PresetOptions: kaitov1beta1.PresetOptions{ModelWeightsPVC: "rwop-pvc"},
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
 			name: "No PVC with replicas=3 accepted",
 			is: &InferenceSet{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
@@ -439,7 +456,7 @@ func TestInferenceSet_validateBYOPVCAccessMode(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			errs := tc.is.validateBYOPVCAccessMode()
+			errs := tc.is.validateBYOPVCAccessMode(context.Background())
 			hasErrs := errs != nil
 			if hasErrs != tc.wantErr {
 				t.Errorf("validateBYOPVCAccessMode() errors = %v, wantErr %v", errs, tc.wantErr)

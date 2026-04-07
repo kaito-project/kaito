@@ -43,35 +43,35 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
-		errs = errs.Also(is.validateCreate().ViaField("spec"))
+		errs = errs.Also(is.validateCreate(ctx).ViaField("spec"))
 	} else {
 		klog.InfoS("Validate update", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
 		old := base.(*InferenceSet)
 		errs = errs.Also(
-			is.validateUpdate(old).ViaField("spec"),
+			is.validateUpdate(ctx, old).ViaField("spec"),
 		)
 	}
 	return errs
 }
 
-func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
+func (is *InferenceSet) validateCreate(ctx context.Context) (errs *apis.FieldError) {
 	// Validate replicas is at least 1
 	if is.Spec.Replicas < 1 {
 		errs = errs.Also(apis.ErrInvalidValue(is.Spec.Replicas, "replicas", "must be at least 1"))
 	}
-	errs = errs.Also(is.validateBYOPVCAccessMode())
+	errs = errs.Also(is.validateBYOPVCAccessMode(ctx))
 	return errs
 }
 
-func (is *InferenceSet) validateUpdate(_ *InferenceSet) (errs *apis.FieldError) {
-	errs = errs.Also(is.validateBYOPVCAccessMode())
+func (is *InferenceSet) validateUpdate(ctx context.Context, _ *InferenceSet) (errs *apis.FieldError) {
+	errs = errs.Also(is.validateBYOPVCAccessMode(ctx))
 	return errs
 }
 
 // validateBYOPVCAccessMode rejects a ReadWriteOnce BYO PVC when replicas > 1,
 // because each InferenceSet replica becomes a separate Workspace/pod that needs
 // to mount the same PVC — RWO only allows mounting on a single node.
-func (is *InferenceSet) validateBYOPVCAccessMode() (errs *apis.FieldError) {
+func (is *InferenceSet) validateBYOPVCAccessMode(ctx context.Context) (errs *apis.FieldError) {
 	if is.Spec.Template.Inference.Preset == nil {
 		return errs
 	}
@@ -80,7 +80,7 @@ func (is *InferenceSet) validateBYOPVCAccessMode() (errs *apis.FieldError) {
 		return errs
 	}
 	pvc := &corev1.PersistentVolumeClaim{}
-	if err := k8sclient.Client.Get(context.TODO(), types.NamespacedName{
+	if err := k8sclient.Client.Get(ctx, types.NamespacedName{
 		Name:      pvcName,
 		Namespace: is.Namespace,
 	}, pvc); err == nil {
@@ -91,7 +91,7 @@ func (is *InferenceSet) validateBYOPVCAccessMode() (errs *apis.FieldError) {
 						"PVC '%s' has %s access mode but replicas is %d; use a ReadWriteMany PVC for multi-replica InferenceSet",
 						pvcName, accessMode, is.Spec.Replicas),
 					"template.inference.presetOptions.modelWeightsPVC",
-				).ViaField("spec"))
+				))
 				break
 			}
 		}

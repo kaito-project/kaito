@@ -3080,6 +3080,34 @@ func TestValidateCreateWithInferenceRWOPVC(t *testing.T) {
 			},
 			expectErrs: false,
 		},
+		{
+			name: "RWOP PVC with count=1 accepted",
+			resource: &ResourceSpec{
+				InstanceType: "Standard_NC24ads_A100_v4",
+				Count:        pointerToInt(1),
+			},
+			inference: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "rwop-pvc"},
+				},
+			},
+			expectErrs: false,
+		},
+		{
+			name: "nonexistent PVC with count=2 accepted (lookup failure ignored)",
+			resource: &ResourceSpec{
+				InstanceType: "Standard_NC24ads_A100_v4",
+				Count:        pointerToInt(2),
+			},
+			inference: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "no-such-pvc"},
+				},
+			},
+			expectErrs: false,
+		},
 	}
 
 	for _, tc := range tests {

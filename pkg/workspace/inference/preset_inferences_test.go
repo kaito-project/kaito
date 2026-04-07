@@ -463,18 +463,34 @@ func TestGeneratePresetInference(t *testing.T) {
 			if tc.workspace.Inference != nil && tc.workspace.Inference.Preset != nil &&
 				tc.workspace.Inference.Preset.PresetOptions.ModelWeightsSubPath != "" {
 				expectedSubPath := tc.workspace.Inference.Preset.PresetOptions.ModelWeightsSubPath
+				mountFound := false
 				for _, vm := range statefulset.Spec.Template.Spec.Containers[0].VolumeMounts {
-					if vm.Name == "model-weights-volume" && vm.SubPath != expectedSubPath {
-						t.Errorf("%s: main container model-weights-volume SubPath = %q, want %q",
-							k, vm.SubPath, expectedSubPath)
+					if vm.Name == "model-weights-volume" {
+						mountFound = true
+						if vm.SubPath != expectedSubPath {
+							t.Errorf("%s: main container model-weights-volume SubPath = %q, want %q",
+								k, vm.SubPath, expectedSubPath)
+						}
 					}
 				}
+				if !mountFound {
+					t.Errorf("%s: main container model-weights-volume mount not found, expected SubPath %q",
+						k, expectedSubPath)
+				}
 				for _, ic := range statefulset.Spec.Template.Spec.InitContainers {
+					icMountFound := false
 					for _, vm := range ic.VolumeMounts {
-						if vm.Name == "model-weights-volume" && vm.SubPath != expectedSubPath {
-							t.Errorf("%s: init container %s model-weights-volume SubPath = %q, want %q",
-								k, ic.Name, vm.SubPath, expectedSubPath)
+						if vm.Name == "model-weights-volume" {
+							icMountFound = true
+							if vm.SubPath != expectedSubPath {
+								t.Errorf("%s: init container %s model-weights-volume SubPath = %q, want %q",
+									k, ic.Name, vm.SubPath, expectedSubPath)
+							}
 						}
+					}
+					if !icMountFound {
+						t.Errorf("%s: init container %s model-weights-volume mount not found, expected SubPath %q",
+							k, ic.Name, expectedSubPath)
 					}
 				}
 			}
@@ -1251,6 +1267,48 @@ func TestSetModelDownloadInfo(t *testing.T) {
 			},
 			expectedEnvVars:       []corev1.EnvVar{},
 			expectedInitContainer: 1, // Expecting model-weights-downloader
+			expectError:           false,
+		},
+		"download at runtime with BYO PVC - skip model puller, add HF_TOKEN": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model-download",
+						},
+						PresetOptions: v1beta1.PresetOptions{
+							ModelAccessSecret: "hf-secret",
+							ModelWeightsPVC:   "my-model-pvc",
+						},
+					},
+				},
+			},
+			modelName: "test-model-download",
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "container-1",
+					},
+				},
+			},
+			expectedEnvVars: []corev1.EnvVar{
+				{
+					Name: "HF_TOKEN",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: "hf-secret",
+							},
+							Key: "HF_TOKEN",
+						},
+					},
+				},
+			},
+			expectedInitContainer: 0, // BYO PVC + DownloadAtRuntime: no model puller needed
 			expectError:           false,
 		},
 	}

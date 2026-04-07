@@ -269,7 +269,7 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 		if r.Preset.PresetOptions.ModelWeightsPVC != "" || r.Preset.PresetOptions.ModelWeightsSubPath != "" {
 			errs = errs.Also(apis.ErrInvalidValue(
 				"modelWeightsPVC and modelWeightsSubPath are not supported for tuning workspaces",
-				"presetOptions",
+				"presetOptions.modelWeightsPVC",
 			))
 		}
 	}
@@ -557,7 +557,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 	if inference != nil && inference.Preset != nil {
 		if pvcName := inference.Preset.PresetOptions.ModelWeightsPVC; pvcName != "" && machineCount > 1 {
 			pvc := &corev1.PersistentVolumeClaim{}
-			if err := k8sclient.Client.Get(context.TODO(), types.NamespacedName{
+			if err := k8sclient.Client.Get(ctx, types.NamespacedName{
 				Name:      pvcName,
 				Namespace: wsNamespace,
 			}, pvc); err == nil {

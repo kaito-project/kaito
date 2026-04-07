@@ -215,8 +215,9 @@ spec:
       matchLabels:
         apps: ragengine-example
   storage:
-    persistentVolumeClaim: pvc-ragengine-vector-db
-    mountPath: /mnt/vector-db
+    persistentVolume:
+      persistentVolumeClaim: pvc-ragengine-vector-db
+      mountPath: /mnt/vector-db
   embedding:
     local:
       modelID: "BAAI/bge-small-en-v1.5"

@@ -42,9 +42,6 @@ inputs:
   hf_token:
     description: "HuggingFace Token"
     required: true
-  runs_on:
-    description: "The runner to use"
-    required: true
   ghcr_username:
     description: "GitHub username or organization name for GHCR"
     required: true

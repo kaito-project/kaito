@@ -3034,7 +3034,7 @@ func TestValidateCreateWithInferenceRWOPVC(t *testing.T) {
 					PresetOptions: PresetOptions{ModelWeightsPVC: "rwo-pvc"},
 				},
 			},
-			errContent: "ReadWriteOnce",
+			errContent: "does not have ReadWriteMany",
 			expectErrs: true,
 		},
 		{
@@ -3049,7 +3049,7 @@ func TestValidateCreateWithInferenceRWOPVC(t *testing.T) {
 					PresetOptions: PresetOptions{ModelWeightsPVC: "rwop-pvc"},
 				},
 			},
-			errContent: "ReadWriteOncePod",
+			errContent: "does not have ReadWriteMany",
 			expectErrs: true,
 		},
 		{

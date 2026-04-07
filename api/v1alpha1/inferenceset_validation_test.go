@@ -353,7 +353,7 @@ func TestInferenceSet_validateBYOPVCAccessMode(t *testing.T) {
 				},
 			},
 			wantErr:    true,
-			errContent: "ReadWriteOnce",
+			errContent: "does not have ReadWriteMany",
 		},
 		{
 			name: "RWOP PVC with replicas=2 rejected",
@@ -371,7 +371,7 @@ func TestInferenceSet_validateBYOPVCAccessMode(t *testing.T) {
 				},
 			},
 			wantErr:    true,
-			errContent: "ReadWriteOncePod",
+			errContent: "does not have ReadWriteMany",
 		},
 		{
 			name: "RWX PVC with replicas=2 accepted",

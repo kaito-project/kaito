@@ -561,16 +561,20 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 				Name:      pvcName,
 				Namespace: wsNamespace,
 			}, pvc); err == nil {
+				hasRWX := false
 				for _, accessMode := range pvc.Spec.AccessModes {
-					if accessMode == corev1.ReadWriteOnce || accessMode == corev1.ReadWriteOncePod {
-						errs = errs.Also(apis.ErrInvalidValue(
-							fmt.Sprintf(
-								"PVC '%s' has %s access mode but resource.count is %d; use a ReadWriteMany PVC for multi-node inference",
-								pvcName, accessMode, machineCount),
-							"presetOptions.modelWeightsPVC",
-						))
+					if accessMode == corev1.ReadWriteMany {
+						hasRWX = true
 						break
 					}
+				}
+				if !hasRWX {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"PVC '%s' does not have ReadWriteMany access mode but resource.count is %d; use a ReadWriteMany PVC for multi-node inference",
+							pvcName, machineCount),
+						"presetOptions.modelWeightsPVC",
+					))
 				}
 			}
 		}

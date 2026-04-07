@@ -288,6 +288,9 @@ RAGENGINE_SERVICE_APP_VERSION := $(subst v,,$(RAGENGINE_SERVICE_IMG_TAG))
 KAITO_BASE_IMG_NAME ?= kaito-base
 KAITO_BASE_IMG_TAG ?= v0.0.1
 
+MT_BENCH_IMG_NAME ?= mt-bench-eval
+MT_BENCH_IMG_TAG ?= v0.0.1
+
 E2E_IMAGE_NAME ?= kaito-e2e
 E2E_IMAGE_TAG ?= v0.0.1
 
@@ -394,6 +397,16 @@ docker-build-dataset: docker-buildx ## Build Docker images for datasets.
 		--platform="linux/$(ARCH)" \
 		--pull \
 		--tag $(REGISTRY)/e2e-dataset2:0.0.1 .
+
+.PHONY: docker-build-mt-bench
+docker-build-mt-bench: docker-buildx ## Build Docker image for MT-Bench evaluation.
+	docker buildx build \
+		--file ./benchmarks/mt_bench/Dockerfile \
+		--output=$(OUTPUT_TYPE) \
+		--platform="linux/$(ARCH)" \
+		--pull \
+		$(BUILD_FLAGS) \
+		--tag $(REGISTRY)/$(MT_BENCH_IMG_NAME):$(MT_BENCH_IMG_TAG) .
 
 ## --------------------------------------
 ## Helm

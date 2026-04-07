@@ -2,7 +2,7 @@
 title: Quick Start
 ---
 
-Install KATIO first following the [installation guide](installation). After installation, you can quickly deploy a phi-4-mini-instruct inference service to get started.
+Install KAITO first following the [installation guide](installation). After installation, you can quickly deploy a phi-4-mini-instruct inference service to get started.
 
 ## Deploy Your First Model
 ### Option 1: Auto-provision GPU nodes
@@ -78,8 +78,7 @@ Before using this option, ensure that:
 3. Your GPU nodes are properly labeled for workload selection.
 :::
 
-Assuming the GPU node is added label `apps=llm-inference` for a KAITO Workspace to select it, create a YAML file 
-named `phi-4-workspace.yaml` with the following content. Make sure that `resource.instanceType` is **empty** 
+Assuming the GPU node is added label `apps=llm-inference` for a KAITO Workspace to select, create a YAML file named `phi-4-workspace.yaml` with the following content. Make sure that `resource.instanceType` is **empty** 
 when using BYO nodes.
 
 ```yaml title="phi-4-workspace.yaml"
@@ -171,4 +170,4 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
 
 ## What's Next
 
-- **Supported Models**: Check out how KATIO supports models from HuggingFace in [presets documentation](presets).
+- **Supported Models**: Check out how KAITO supports models from HuggingFace in [presets documentation](presets).

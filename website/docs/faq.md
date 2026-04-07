@@ -4,7 +4,7 @@ title: FAQ
 
 ### How do I use existing GPUs in the cluster for my inference workload?
 
-Regardless the GPUs are in cloud provider or on-prem clusters, make sure each node has the label specified in the `resource.labelSelector` field of the workspace. For example, if your labelSelector in the workspace is:
+Regardless of whether the GPUs are in cloud provider or on-prem clusters, make sure each node has the label specified in the `resource.labelSelector` field of the workspace. For example, if your labelSelector in the workspace is:
 
 ```yaml
 resource:
@@ -17,7 +17,7 @@ Then the node should have the label: `apps=falcon-7b`. In addition, if the GPU n
 
 ### Will KAITO controller upgrade affect existing inference workload?
 
-No. KATIO controller does not update exising inference workload when controller is upgraded. 
+No. KAITO controller does not update existing inference workload when controller is upgraded. 
 
 ### How to upgrade the existing workload to use the latest model configuration?
 

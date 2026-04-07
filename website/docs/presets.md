@@ -38,4 +38,4 @@ KAITO controller performs a validation check of whether the specified SKU and no
 
 ## Distributed inference
 
-Based on the provided GPU instanceType and the model metadata, KATIO controller determines the number of GPU nodes used to run the model. The controller will setup proper health/readiness probes for both leader and worker nodes to handle node failure gracefully. For more details, please check the [design doc](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250325-distributed-inference.md#liveness-and-readiness-probes).
+Based on the provided GPU instanceType and the model metadata, KAITO controller determines the number of GPU nodes used to run the model. The controller will set up proper health/readiness probes for both leader and worker nodes to handle node failure gracefully. For more details, please check the [design doc](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250325-distributed-inference.md#liveness-and-readiness-probes).

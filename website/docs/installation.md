@@ -73,7 +73,7 @@ You should see the workspace controller pod in a `Running` state.
 
 ## Setup GPU Nodes
 
-The inference workload created by KAITO needs to be run in GPU nodes. There are two **mutually exclusive** options to setup GPU nodes, you must choose one approach or the other:
+The inference workload created by KAITO needs to run on GPU nodes. There are two **mutually exclusive** options to set up GPU nodes. You must choose one approach or the other:
 
 - **Auto-provisioning**: Set up automatic GPU node provisioning. This is recommended for GPU nodes provisioned by cloud providers. 
 - **Bring your own GPU (BYO) nodes**: Create and configure your own GPU nodes. This is recommended for GPUs installed in local or on-prem clusters.
@@ -92,7 +92,7 @@ You can still use this option when you plan to use existing GPU nodes in the clu
 - The instance type of the node is known by KAITO (i.e., listed in [here](https://github.com/kaito-project/kaito/blob/main/pkg/sku/azure_sku_handler.go) or [here](https://github.com/kaito-project/kaito/blob/main/pkg/sku/aws_sku_handler.go)). 
 - Follow the [instruction](faq#how-do-i-use-existing-gpus-in-the-cluster-for-my-inference-workload) to add proper labels and make sure the instance type is consistent between the node and the workspace.
 
-When KATIO controller ensures existing GPUs are sufficient to run the workspace, no extra GPU nodes will be created.
+When KAITO controller ensures existing GPUs are sufficient to run the workspace, no extra GPU nodes will be created.
 :::
 
 ### Option 2: Bring your own GPU nodes
@@ -116,7 +116,7 @@ Follow this [instruction](faq#how-do-i-use-existing-gpus-in-the-cluster-for-my-i
 BYO nodes are correctly labeled manually. 
 
 :::note
-For BYO nodes, KATIO controller relies on Node Feature Discovery and GPU Feature Discovery daemonsets to populate proper node labels for the GPU hardware. These two daemonsets are not needed for instance types that KAITO know since KATIO controller is able to extract the GPU topology and hardware specification from the instanc type. If KAITO does not know the instance type, even though the node is provisoned by cloud vendor, BYO option has to be chosen. 
+For BYO nodes, the KAITO controller relies on Node Feature Discovery and GPU Feature Discovery daemonsets to populate proper node labels for the GPU hardware. These two daemonsets are not needed for instance types that KAITO knows since KAITO controller is able to extract the GPU topology and hardware specification from the instance type. If KAITO does not know the instance type, even though the node is provisioned by the cloud provider, the BYO option has to be chosen.
 :::
 
 

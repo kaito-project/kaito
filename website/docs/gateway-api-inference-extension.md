@@ -45,13 +45,12 @@ When the feature gate is enabled, [Flux](https://fluxcd.io/) will be installed i
 
 When you create a InferenceSet, the KAITO InferenceSet controller will:
 
-1) Dry-run the inference workload to determine whether it's a Deployment or StatefulSet (important for how endpoints are selected)
-2) Create or update two Flux resources in the InferenceSet namespace:
+1) Create or update two Flux resources in the InferenceSet namespace:
 	 - [OCIRepository](https://fluxcd.io/flux/components/source/ocirepositories/): points to the upstream GWIE inferencepool Helm chart
 		 - URL: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
 		 - Tag/Version: https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest
 	 - [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/): references the OCIRepository and applies values to deploy EPP and related resources
-3) Wait for Flux resources to become Ready
+2) Wait for Flux resources to become Ready
 
 You can inspect these resources with kubectl in the InferenceSet namespace. Updates to the InferenceSet will reconcile these resources.
 

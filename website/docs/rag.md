@@ -2,7 +2,7 @@
 title: Retrieval-Augmented Generation (RAG)
 ---
 
-This document presents how to use the KAITO `ragengine` Custom Resource Definition (CRD) for retrieval-augumented generatoin workflow. By creating a RAGEngine resource, you can quickly stand up a service that indexes documents and queries them in conjunction with an existing LLM inference endpoint—no need to custom-build pipelines. This enables your large language model to answer questions based on your own private content.
+This document presents how to use the KAITO `ragengine` Custom Resource Definition (CRD) for retrieval-augmented generation workflow. By creating a RAGEngine resource, you can quickly stand up a service that indexes documents and queries them in conjunction with an existing LLM inference endpoint—no need to custom-build pipelines. This enables your large language model to answer questions based on your own private content.
 
 ## Installation
 
@@ -17,8 +17,8 @@ helm upgrade --install kaito-ragengine kaito/ragengine \
   --take-ownership
 ```
 
-### Using Nightly Builds (Optional)
-
+#### Using Nightly Builds (for testing purpose)
+<details>
 To install the RAG engine controller using the latest nightly image from GHCR:
 
 :::caution
@@ -41,6 +41,7 @@ The nightly image is tagged with:
 
 - **`nightly-latest`** — always points to the most recent successful nightly build
 - **`nightly-<sha>`** — pinned to a specific commit (12-character short SHA)
+</details>
 
 ## Verify installation
 You can run the following commands to verify the installation of the controllers were successful.
@@ -215,8 +216,9 @@ spec:
       matchLabels:
         apps: ragengine-example
   storage:
-    persistentVolumeClaim: pvc-ragengine-vector-db
-    mountPath: /mnt/vector-db
+    persistentVolume:
+      persistentVolumeClaim: pvc-ragengine-vector-db
+      mountPath: /mnt/vector-db
   embedding:
     local:
       modelID: "BAAI/bge-small-en-v1.5"

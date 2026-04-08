@@ -23,7 +23,6 @@ const sidebars = {
                 'installation',
                 'quick-start',
                 'presets',
-                'usage',
                 'faq'
             ],
         },

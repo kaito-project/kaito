@@ -87,7 +87,7 @@ endif
 golangci-lint: $(GOLANGCI_LINT) ## Download and install golangci-lint locally.
 
 .PHONY: ginkgo
-ginkgo: $(GOLANGCI_LINT) ## Download and install ginkgo locally.
+ginkgo: $(GINKGO) ## Download and install ginkgo locally.
 
 $(GOLANGCI_LINT): ## Download and install golangci-lint locally.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)

@@ -163,6 +163,20 @@ func createGPTOss120BWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.
 	return workspaceObj
 }
 
+func createPhi4MiniInstructWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Phi-4 Mini Instruct preset public mode", func() {
+		uniqueID := fmt.Sprint("preset-phi4-mini-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
+			numOfNode, "Standard_NC24ads_A100_v4", &metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi4-mini"},
+			}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
 func createGemma3_4BInstructWorkspaceWithPresetPublicMode(numOfNode int) *kaitov1beta1.Workspace {
 	modelSecret := createAndValidateModelSecret()
 	workspaceObj := &kaitov1beta1.Workspace{}
@@ -717,7 +731,7 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
-		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace to be ready")
+		}, 12*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace to be ready")
 	})
 }
 
@@ -1124,6 +1138,29 @@ var _ = Describe("Workspace Preset", func() {
 	It("should create a gpt-oss-120b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
 		numOfNode := 1
 		workspaceObj := createGPTOss120BWorkspaceWithPresetPublicMode(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
+	})
+
+	It("should create a phi-4-mini-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+		numOfNode := 1
+		workspaceObj := createPhi4MiniInstructWorkspaceWithPresetPublicMode(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)

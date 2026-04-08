@@ -200,12 +200,16 @@ func ConfigDataVolume(inputVolumeSource *corev1.VolumeSource) (corev1.Volume, co
 	return volume, volumeMount
 }
 
-func ConfigAdapterVolume() (corev1.Volume, corev1.VolumeMount) {
+func ConfigAdapterVolume(inputVolumeSource *corev1.VolumeSource) (corev1.Volume, corev1.VolumeMount) {
 	var volume corev1.Volume
 	var volumeMount corev1.VolumeMount
-
-	volumeSource := corev1.VolumeSource{
-		EmptyDir: &corev1.EmptyDirVolumeSource{},
+	var volumeSource corev1.VolumeSource
+	if inputVolumeSource != nil {
+		volumeSource = *inputVolumeSource
+	} else {
+		volumeSource = corev1.VolumeSource{
+			EmptyDir: &corev1.EmptyDirVolumeSource{},
+		}
 	}
 
 	volume = corev1.Volume{

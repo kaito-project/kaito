@@ -407,6 +407,7 @@ func TestGetInferenceCommandVLLMDataParallelism(t *testing.T) {
 	require.Len(t, cmd, 3)
 	assert.Contains(t, cmd[2], "data-parallel-size=4")
 	assert.Contains(t, cmd[2], "tensor-parallel-size=1")
+	assert.Contains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization=0")
 }
 
 func TestGetInferenceCommandVLLMTensorParallelismWhenModelLarge(t *testing.T) {

@@ -19,7 +19,10 @@ env:
 jobs:
   build-publish-mcr-image:
     runs-on:
-      labels: [ "self-hosted", "1ES.Pool=1es-aks-kaito-agent-pool-ubuntu" ]
+      labels:
+        - self-hosted
+        - 1ES.Pool=1es-aks-kaito-agent-pool-ubuntu
+        - JobId=buildPublishMcrImage-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
     environment: publish-mcr
     steps:
       - name: Install Helm

@@ -34,7 +34,7 @@ KAITO follows the classic Kubernetes Custom Resource Definition(CRD)/controller 
 
 The above figure presents the KAITO architecture overview. Its major components consist of:
 
-- **Workspace controller**: Reconciles the `workspace` custom resource, creates `machine` custom resources to trigger node auto provisioning, and creates the inference or tuning workload (`deployment`, `statefulset` or `job`) based on the model preset configurations.
+- **Workspace controller**: Reconciles the `workspace` custom resource, creates `machine` custom resources to trigger node auto provisioning, and creates the inference or tuning workload (`statefulset` or `job`) based on the model preset configurations.
 - **Node provisioner controller**: The controller's name is *gpu-provisioner* in [gpu-provisioner helm chart](https://github.com/Azure/gpu-provisioner/tree/main/charts/gpu-provisioner). It uses the `machine` CRD originated from [Karpenter](https://sigs.k8s.io/karpenter) to interact with the workspace controller. It integrates with Azure Resource Manager REST APIs to add new GPU nodes to the AKS or AKS Arc cluster.
 
 :::note

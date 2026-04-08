@@ -118,6 +118,27 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 				return utils.TestingCluster.KubeClient.Delete(ctx, workspaceObj, &client.DeleteOptions{})
 			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete workspace")
 		})
+
+		By("Creating a workspace with adapter missing both image and volume", func() {
+			invalidAdapters := []kaitov1beta1.AdapterSpec{
+				{
+					Source: &kaitov1beta1.DataSource{
+						Name: "invalid-adapter",
+					},
+					Strength: &DefaultStrength,
+				},
+			}
+			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+				&metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
+				}, nil, PresetFalcon7BModel, nil, nil, invalidAdapters, "", "")
+
+			// Create workspace - should fail since neither image nor volume is specified
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(HaveOccurred(), "Workspace creation should have failed for adapter with no image or volume")
+		})
 	})
 
 	It("should validate the workspace inference configfile", func() {

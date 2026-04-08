@@ -226,7 +226,7 @@ func TestGeneratePullerContainers(t *testing.T) {
 			}
 			w.Inference.Adapters = tc.adapters
 
-			containers, envVars, volumes := GeneratePullerContainers(w, tc.volumeMounts)
+			containers, envVars, volumes := GeneratePullerContainers(w, tc.adapters, tc.volumeMounts)
 
 			assert.Len(t, containers, tc.expectedContainers)
 			assert.Len(t, volumes, tc.expectedVolumes)

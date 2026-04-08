@@ -182,7 +182,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
 	}
 	if v1beta1.IsRunBenchmarkEnabled(workspaceObj) {
-		podOpts = append(podOpts, SetBenchmarkConfig(gpuConfig, numNodes, distributed))
+		podOpts = append(podOpts, SetBenchmarkConfig(distributed))
 	}
 
 	ssOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]{
@@ -540,29 +540,73 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 		return nil
 	}
 
-	// add adapter volume mount if adapters are enabled
-	adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume()
-	spec.Volumes = append(spec.Volumes, adapterVolume)
-	for i := range spec.Containers { // FIXME: assume only one container in the pod
-		spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, adapterVolumeMount)
+	// Separate adapters by source type
+	var imageAdapters []v1beta1.AdapterSpec
+	var volumeAdapters []v1beta1.AdapterSpec
+	for _, adapter := range ctx.Workspace.Inference.Adapters {
+		if adapter.Source != nil && adapter.Source.Volume != nil {
+			volumeAdapters = append(volumeAdapters, adapter)
+		} else {
+			imageAdapters = append(imageAdapters, adapter)
+		}
 	}
 
-	// add container to pull adapters
-	volumeMounts := []corev1.VolumeMount{adapterVolumeMount}
-	pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(ctx.Workspace, volumeMounts)
-	spec.InitContainers = append(spec.InitContainers, pullerContainers...)
-	spec.Volumes = append(spec.Volumes, pullerVolumes...)
-	for i := range spec.Containers { // FIXME: assume only one container in the pod
-		spec.Containers[i].Env = append(spec.Containers[i].Env, pullerEnvVars...)
+	// Handle image-based adapters (existing flow: EmptyDir + puller init containers)
+	if len(imageAdapters) > 0 {
+		adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume(nil)
+		spec.Volumes = append(spec.Volumes, adapterVolume)
+		for i := range spec.Containers { // FIXME: assume only one container in the pod
+			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, adapterVolumeMount)
+		}
+
+		// add container to pull adapters
+		volumeMounts := []corev1.VolumeMount{adapterVolumeMount}
+		pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(ctx.Workspace, imageAdapters, volumeMounts)
+		spec.InitContainers = append(spec.InitContainers, pullerContainers...)
+		spec.Volumes = append(spec.Volumes, pullerVolumes...)
+		for i := range spec.Containers { // FIXME: assume only one container in the pod
+			spec.Containers[i].Env = append(spec.Containers[i].Env, pullerEnvVars...)
+		}
 	}
+
+	// Handle volume-based adapters (mount volume directly, no puller needed)
+	for _, adapter := range volumeAdapters {
+		sourceName := adapter.Source.Name
+		volumeName := fmt.Sprintf("adapter-volume-%s", sourceName)
+		mountPath := fmt.Sprintf("%s/%s", utils.DefaultAdapterVolumePath, sourceName)
+
+		volume := corev1.Volume{
+			Name:         volumeName,
+			VolumeSource: *adapter.Source.Volume,
+		}
+		volumeMount := corev1.VolumeMount{
+			Name:      volumeName,
+			MountPath: mountPath,
+		}
+		spec.Volumes = append(spec.Volumes, volume)
+		for i := range spec.Containers {
+			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, volumeMount)
+		}
+
+		// Propagate strength env vars for volume adapters
+		if adapter.Strength != nil {
+			envVar := corev1.EnvVar{
+				Name:  sourceName,
+				Value: *adapter.Strength,
+			}
+			for i := range spec.Containers {
+				spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)
+			}
+		}
+	}
+
 	return nil
 }
 
-// SetBenchmarkConfig overrides the startup probe to run the benchmark entrypoint
-// and injects the BENCHMARK_MAX_CONCURRENCY env var. It must be appended after
-// GenerateInferencePodSpec (and SetDistributedInferenceProbe when distributed)
-// so the container already exists.
-func SetBenchmarkConfig(gpuConfig *sku.GPUConfig, numNodes int, distributed bool) generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec] {
+// SetBenchmarkConfig overrides the startup probe to run the benchmark entrypoint.
+// It must be appended after GenerateInferencePodSpec (and SetDistributedInferenceProbe
+// when distributed) so the container already exists.
+func SetBenchmarkConfig(distributed bool) generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec] {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		inferenceParam := ctx.Model.GetInferenceParameters()
 		readinessTimeout := inferenceParam.ReadinessTimeout
@@ -576,38 +620,9 @@ func SetBenchmarkConfig(gpuConfig *sku.GPUConfig, numNodes int, distributed bool
 		}
 		startupProbe := buildBenchmarkStartupProbe(readinessTimeout, wObj, distributed)
 
-		// Max concurrency controls the number of concurrent requests sent during the benchmark.
-		// The goal is to saturate the GPU so the result reflects peak throughput rather
-		// than a load level that happens to be idle. We estimate how many simultaneous
-		// requests fit in available VRAM given the per-request KV-cache footprint at the
-		// benchmark input length. The 0.9 factor is to leave some buffer for overhead.
-		var maxConcurrency int
-		if gpuConfig != nil && inferenceParam.TotalSafeTensorFileSize != "" && inferenceParam.BytesPerToken > 0 {
-			const benchmarkInputLen = 2048
-			totalVRAMGiB := gpuConfig.GPUMem.AsApproximateFloat64() / math.Pow(2, 30) * float64(numNodes)
-			if weightQty, parseErr := resource.ParseQuantity(inferenceParam.TotalSafeTensorFileSize); parseErr == nil {
-				modelWeightGiB := weightQty.AsApproximateFloat64() / math.Pow(2, 30)
-				availableVRAMGiB := (totalVRAMGiB - modelWeightGiB) * 0.9
-				kvPerReqGiB := float64(benchmarkInputLen) * float64(inferenceParam.BytesPerToken) / math.Pow(1024, 3)
-				maxConcurrency = int(math.Ceil(availableVRAMGiB / kvPerReqGiB))
-				if maxConcurrency < 1 {
-					maxConcurrency = 1
-				}
-			}
-		}
-		const defaultBenchmarkMaxConcurrency = 256
-		if maxConcurrency == 0 {
-			maxConcurrency = defaultBenchmarkMaxConcurrency
-		}
-
-		benchmarkEnvVars := []corev1.EnvVar{
-			{Name: "BENCHMARK_MAX_CONCURRENCY", Value: strconv.Itoa(maxConcurrency)},
-		}
-
 		for i := range spec.Containers {
 			if spec.Containers[i].Name == ctx.Workspace.Name {
 				spec.Containers[i].StartupProbe = startupProbe
-				spec.Containers[i].Env = append(spec.Containers[i].Env, benchmarkEnvVars...)
 				break
 			}
 		}

@@ -15,6 +15,7 @@ package sku
 
 import (
 	"fmt"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/api/resource"
 
@@ -79,8 +80,23 @@ func (b *generalSKUHandler) GetSupportedSKUs() []string {
 }
 
 func (b *generalSKUHandler) GetGPUConfigBySKU(sku string) *GPUConfig {
-	if config, ok := b.supportedSKUs[sku]; ok {
-		return &config
+	for _, config := range b.supportedSKUs {
+		if strings.EqualFold(config.SKU, sku) {
+			return &config
+		}
 	}
 	return nil
+}
+
+// HasSKUNamePrefix checks if the given SKU name has one of the specified prefixes,
+// using case-insensitive comparison. This is useful because Azure VM SKU names are
+// case-insensitive (e.g., "standard_d2s_v6" and "Standard_D2s_v6" refer to the same SKU).
+func HasSKUNamePrefix(skuName string, prefixes ...string) bool {
+	lowerSKU := strings.ToLower(skuName)
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(lowerSKU, strings.ToLower(prefix)) {
+			return true
+		}
+	}
+	return false
 }

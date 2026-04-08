@@ -40,6 +40,8 @@ import time
 import urllib.request
 from pathlib import Path
 
+from prometheus_client.parser import text_string_to_metric_families
+
 # Inject guidellm's isolated venv into sys.path before any huggingface_hub
 # import so that guidellm's newer huggingface_hub (which exports is_offline_mode
 # and other symbols) is loaded instead of the older system-installed version.
@@ -123,23 +125,49 @@ def _read_counter(metric: str) -> int:
 
 
 def _compute_max_concurrency() -> int:
-    """Return the pre-computed saturation concurrency injected by the controller.
+    """Compute saturation concurrency from vLLM's actual KV cache allocation.
 
-    The controller always sets BENCHMARK_MAX_CONCURRENCY (defaulting to 256 when
-    the model or SKU metadata is unavailable). Values <= 0 are rejected.
+    Parses ``vllm:cache_config_info`` from /metrics to get ``num_gpu_blocks``
+    and ``block_size``, then computes:
+
+        floor(num_gpu_blocks * block_size / (input_tokens + output_tokens))
+
+    This reflects the true number of requests that fit simultaneously in the
+    KV cache, accounting for gpu_memory_utilization and all runtime factors.
+
+    Raises ``RuntimeError`` if the metric is absent or unparsable.
     """
-    val = os.environ.get("BENCHMARK_MAX_CONCURRENCY", "")
     try:
-        concurrency = int(val)
-    except ValueError:
-        raise RuntimeError(
-            f"invalid BENCHMARK_MAX_CONCURRENCY={val!r}: must be a positive integer"
+        content = (
+            urllib.request.urlopen(f"{VLLM_BASE_URL}/metrics", timeout=5)
+            .read()
+            .decode()
         )
-    if concurrency <= 0:
-        raise RuntimeError(
-            f"invalid BENCHMARK_MAX_CONCURRENCY={val!r}: must be a positive integer"
-        )
-    return concurrency
+    except Exception as exc:
+        raise RuntimeError(f"failed to fetch /metrics: {exc}") from exc
+
+    target_metric = "vllm:cache_config_info"
+    for family in text_string_to_metric_families(content):
+        if family.name == target_metric:
+            for sample in family.samples:
+                labels = sample.labels
+                if "num_gpu_blocks" in labels and "block_size" in labels:
+                    # num_gpu_blocks: total KV cache blocks allocated across all GPUs
+                    num_gpu_blocks = int(labels["num_gpu_blocks"])
+                    # block_size: number of tokens each KV cache block holds
+                    block_size = int(labels["block_size"])
+                    seq_len = BENCHMARK_INPUT_LEN + BENCHMARK_OUTPUT_LEN
+                    concurrency = (num_gpu_blocks * block_size) // seq_len
+                    if concurrency <= 0:
+                        raise RuntimeError(
+                            f"computed max_concurrency={concurrency} <= 0 "
+                            f"(num_gpu_blocks={num_gpu_blocks}, block_size={block_size}, seq_len={seq_len})"
+                        )
+                    return concurrency
+
+    raise RuntimeError(
+        f"{target_metric} metric or required labels not found in /metrics output"
+    )
 
 
 def _resolve_processor() -> str:

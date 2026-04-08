@@ -202,7 +202,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters_TransformerLookup(t *testing
 	}{
 		{
 			name:                       "model in TransformerInferenceParameters map gets Transformers populated",
-			modelName:                  "microsoft/phi-4",
+			modelName:                  "phi-4",
 			expectTransformerPopulated: true,
 		},
 		{
@@ -244,16 +244,16 @@ func TestVLLMCompatibleModel_GetInferenceParameters_ORASEligibility(t *testing.T
 	}{
 		{
 			name:                    "model without allow_remote_files uses ORAS",
-			modelName:               "microsoft/phi-4-mini-instruct",
+			modelName:               "phi-4-mini-instruct",
 			expectDownloadAtRuntime: false,
 			expectMetadataName:      "phi-4-mini-instruct",
 			expectTag:               TransformerInferenceParameters["phi-4-mini-instruct"].Tag,
 		},
 		{
 			name:                    "model with allow_remote_files downloads at runtime",
-			modelName:               "meta-llama/Llama-3.1-8B-Instruct",
+			modelName:               "llama-3.1-8b-instruct",
 			expectDownloadAtRuntime: true,
-			expectMetadataName:      "meta-llama/Llama-3.1-8B-Instruct",
+			expectMetadataName:      "llama-3.1-8b-instruct",
 			expectTag:               "",
 		},
 		{
@@ -292,7 +292,7 @@ func TestVLLMCompatibleModel_GetTuningParameters(t *testing.T) {
 		},
 		{
 			name:      "model in tuning map returns populated PresetParam",
-			modelName: "microsoft/phi-4",
+			modelName: "phi-4",
 			expectNil: false,
 		},
 	}
@@ -337,7 +337,7 @@ func TestVLLMCompatibleModel_SupportTuning(t *testing.T) {
 	}{
 		{
 			name:      "model in tuning map returns true",
-			modelName: "microsoft/phi-4",
+			modelName: "phi-4",
 			expected:  true,
 		},
 		{
@@ -828,10 +828,10 @@ func TestGetModelByName_ContextCancellation(t *testing.T) {
 }
 
 func TestGenerateHuggingFaceModel_CatalogOnlyModelsSkipShortCircuit(t *testing.T) {
-	// For catalog-only models in builtinVLLMModels, generateHuggingFaceModel
-	// should NOT short-circuit to a pre-registered preset. Instead it should
-	// proceed to GeneratePreset and register a new vLLMCompatibleModel.
-	for modelName := range catalogOnlyBuiltinModels {
+	// Catalog-only models are not in builtinVLLMModels, so
+	// generateHuggingFaceModel proceeds to GeneratePreset and
+	// registers a new vLLMCompatibleModel.
+	for _, modelName := range legacyBuiltinToCatalog {
 		t.Run(modelName, func(t *testing.T) {
 			// Ensure the model is NOT registered under the full HF name before the call
 			assert.Nil(t, plugin.KaitoModelRegister.MustGet(modelName),
@@ -851,22 +851,20 @@ func TestGenerateHuggingFaceModel_CatalogOnlyModelsSkipShortCircuit(t *testing.T
 	}
 }
 
-func TestPresetToHFModel(t *testing.T) {
-	// Verify the reverse map was built correctly from catalogOnlyBuiltinModels + builtinVLLMModels
-	for hfName := range catalogOnlyBuiltinModels {
-		shortName, ok := builtinVLLMModels[hfName]
-		assert.True(t, ok, "catalogOnlyBuiltinModels entry %q must be in builtinVLLMModels", hfName)
-		resolved, ok := presetToHFModel[shortName]
-		assert.True(t, ok, "presetToHFModel should contain short name %q", shortName)
-		assert.Equal(t, hfName, resolved)
+func TestCatalogOnlyPresets(t *testing.T) {
+	// Verify catalogOnlyPresets entries are not in builtinVLLMModels
+	// (they must go through the catalog path, not get short-circuited).
+	for _, hfName := range legacyBuiltinToCatalog {
+		_, ok := builtinVLLMModels[hfName]
+		assert.False(t, ok, "catalogOnlyPresets value %q must NOT be in builtinVLLMModels", hfName)
 	}
 }
 
 func TestGetModelByName_ShortNameRedirectsToCatalog(t *testing.T) {
-	// When a short name (e.g. "phi-4") is in presetToHFModel, GetModelByName
+	// When a short name (e.g. "phi-4") is in catalogOnlyPresets, GetModelByName
 	// should redirect to the full HF name and generate via model catalog
 	// instead of returning the pre-registered phi4Model.
-	for shortName, hfName := range presetToHFModel {
+	for shortName, hfName := range legacyBuiltinToCatalog {
 		t.Run(shortName, func(t *testing.T) {
 			result, err := GetModelByName(context.Background(), shortName, "", "", nil)
 			assert.NoError(t, err)
@@ -884,7 +882,7 @@ func TestGetModelByName_ShortNameRedirectsToCatalog(t *testing.T) {
 }
 
 func TestGetModelByNameWithToken_ShortNameRedirectsToCatalog(t *testing.T) {
-	for shortName := range presetToHFModel {
+	for shortName := range legacyBuiltinToCatalog {
 		t.Run(shortName, func(t *testing.T) {
 			result, err := GetModelByNameWithToken(context.Background(), shortName, "")
 			assert.NoError(t, err)

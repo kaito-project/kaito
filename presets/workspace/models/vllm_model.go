@@ -61,33 +61,18 @@ var (
 		"microsoft/phi-3-medium-4k-instruct":           "phi-3-medium-4k-instruct",
 		"microsoft/phi-3-medium-128k-instruct":         "phi-3-medium-128k-instruct",
 		"microsoft/phi-3.5-mini-instruct":              "phi-3.5-mini-instruct",
-		"microsoft/phi-4":                              "phi-4",
-		"microsoft/phi-4-mini-instruct":                "phi-4-mini-instruct",
 		"qwen/qwen2.5-coder-7b-instruct":               "qwen2.5-coder-7b-instruct",
 		"qwen/qwen2.5-coder-32b-instruct":              "qwen2.5-coder-32b-instruct",
 	}
 
-	// catalogOnlyBuiltinModels lists HuggingFace model IDs that are in builtinVLLMModels
-	// (for preset name resolution) but should still be generated via model catalog
-	// rather than short-circuited to a pre-registered preset.
-	catalogOnlyBuiltinModels = map[string]bool{
-		"microsoft/phi-4":               true,
-		"microsoft/phi-4-mini-instruct": true,
+	// legacyBuiltinToCatalog maps short preset names to their full HuggingFace model
+	// IDs for models that should be generated via model catalog rather than short-circuited
+	// to a pre-registered preset.
+	legacyBuiltinToCatalog = map[string]string{
+		"phi-4":               "microsoft/phi-4",
+		"phi-4-mini-instruct": "microsoft/phi-4-mini-instruct",
 	}
-
-	// presetToHFModel is the reverse mapping for catalogOnlyBuiltinModels entries:
-	// short preset name → full HuggingFace model ID. Built at init time.
-	presetToHFModel map[string]string
 )
-
-func init() {
-	presetToHFModel = make(map[string]string)
-	for hfName := range catalogOnlyBuiltinModels {
-		if shortName, ok := builtinVLLMModels[hfName]; ok {
-			presetToHFModel[shortName] = hfName
-		}
-	}
-}
 
 // registerModel registers a HuggingFace model with the given ID and parameters
 // into the model registry and returns the registered model. If param is nil,
@@ -116,7 +101,7 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 	// Redirect catalog-only short names (e.g. "phi-4") to their full HuggingFace
 	// model ID (e.g. "microsoft/phi-4"). This bypasses the pre-registered preset
 	// model so the catalog path generates a vLLMCompatibleModel instead.
-	if hfName, ok := presetToHFModel[modelName]; ok {
+	if hfName, ok := legacyBuiltinToCatalog[modelName]; ok {
 		modelName = hfName
 	}
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
@@ -140,7 +125,7 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 	// Redirect catalog-only short names (e.g. "phi-4") to their full HuggingFace
 	// model ID (e.g. "microsoft/phi-4"). This bypasses the pre-registered preset
 	// model so the catalog path generates a vLLMCompatibleModel instead.
-	if hfName, ok := presetToHFModel[modelName]; ok {
+	if hfName, ok := legacyBuiltinToCatalog[modelName]; ok {
 		modelName = hfName
 	}
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
@@ -161,7 +146,7 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 // generateHuggingFaceModel generates or retrieves a vLLM preset for modelName (which must
 // contain a "/") using the provided token.
 func generateHuggingFaceModel(modelName, token string) (model.Model, error) {
-	if builtinModelName, ok := builtinVLLMModels[modelName]; ok && !catalogOnlyBuiltinModels[modelName] {
+	if builtinModelName, ok := builtinVLLMModels[modelName]; ok {
 		klog.InfoS("Using built-in VLLM model preset", "model", modelName, "builtinModelName", builtinModelName)
 		return plugin.KaitoModelRegister.MustGet(builtinModelName), nil
 	}
@@ -189,16 +174,6 @@ type vLLMCompatibleModel struct {
 	model model.Metadata
 }
 
-// resolvePresetName returns the short preset name for the model.
-// If the model name is a full HuggingFace model ID found in builtinVLLMModels,
-// it returns the corresponding short name. Otherwise it returns the name as-is.
-func (m *vLLMCompatibleModel) resolvePresetName() string {
-	if short, ok := builtinVLLMModels[strings.ToLower(m.model.Name)]; ok {
-		return short
-	}
-	return m.model.Name
-}
-
 func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	metaData := &model.Metadata{
 		Name:                 m.model.Name,
@@ -211,11 +186,10 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 
 	// If the model has a transformers inference entry without allow_remote_files,
 	// use ORAS pre-built weights instead of downloading from HuggingFace at runtime.
-	presetName := m.resolvePresetName()
-	if tfsParam, ok := TransformerInferenceParameters[presetName]; ok {
+	if tfsParam, ok := TransformerInferenceParameters[m.model.Name]; ok {
 		if _, hasAllowRemote := tfsParam.ModelRunParams["allow_remote_files"]; !hasAllowRemote {
 			metaData.DownloadAtRuntime = false
-			metaData.Name = presetName
+			metaData.Name = m.model.Name
 			metaData.Tag = tfsParam.Tag
 		}
 	}
@@ -250,7 +224,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           m.model.BytesPerToken,
 		ModelTokenLimit:         m.model.ModelTokenLimit,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: TransformerInferenceParameters[m.resolvePresetName()],
+			Transformers: TransformerInferenceParameters[m.model.Name],
 			VLLM: model.VLLMParam{
 				BaseCommand:          DefaultVLLMCommand,
 				ModelName:            metaData.Name,
@@ -266,13 +240,12 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 }
 
 func (m *vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
-	presetName := m.resolvePresetName()
-	tc, ok := TransformerTuningParameters[presetName]
+	tc, ok := TransformerTuningParameters[m.model.Name]
 	if !ok {
 		return nil
 	}
 	return &model.PresetParam{
-		Metadata:                      MustGet(presetName),
+		Metadata:                      MustGet(m.model.Name),
 		DiskStorageRequirement:        tc.DiskStorageRequirement,
 		GPUCountRequirement:           tc.GPUCountRequirement,
 		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
@@ -291,7 +264,7 @@ func (*vLLMCompatibleModel) SupportDistributedInference() bool {
 }
 
 func (m *vLLMCompatibleModel) SupportTuning() bool {
-	_, ok := TransformerTuningParameters[m.resolvePresetName()]
+	_, ok := TransformerTuningParameters[m.model.Name]
 	return ok
 }
 

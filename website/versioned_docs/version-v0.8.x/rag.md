@@ -2,7 +2,7 @@
 title: Retrieval-Augmented Generation (RAG)
 ---
 
-This document presents how to use the KAITO `ragengine` Custom Resource Definition (CRD) for retrieval-augumented generatoin workflow. By creating a RAGEngine resource, you can quickly stand up a service that indexes documents and queries them in conjunction with an existing LLM inference endpoint—no need to custom-build pipelines. This enables your large language model to answer questions based on your own private content.
+This document presents how to use the KAITO `ragengine` Custom Resource Definition (CRD) for retrieval-augmented generation workflow. By creating a RAGEngine resource, you can quickly stand up a service that indexes documents and queries them in conjunction with an existing LLM inference endpoint—no need to custom-build pipelines. This enables your large language model to answer questions based on your own private content.
 
 ## Installation
 

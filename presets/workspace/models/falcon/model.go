@@ -18,8 +18,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/workspace/inference"
-	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -50,13 +48,6 @@ const (
 )
 
 var (
-	baseCommandPresetFalconInference = "accelerate launch"
-	baseCommandPresetFalconTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	falconRunParams                  = map[string]string{
-		"torch_dtype":   "bfloat16",
-		"pipeline":      "text-generation",
-		"chat_template": "/workspace/chat_templates/falcon-instruct.jinja",
-	}
 	falconRunParamsVLLM = map[string]string{
 		"chat-template": "/workspace/chat_templates/falcon-instruct.jinja",
 	}
@@ -75,13 +66,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           8192,
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetFalconInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    falconRunParams,
-				ModelName:         "falcon-7b",
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetFalcon7BModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      "falcon-7b",
@@ -98,22 +83,19 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 	}
 }
 func (*falcon7b) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetFalcon7BModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetFalcon7BModel),
-		DiskStorageRequirement:  "90Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "16Gi",
-		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
+		Metadata:                      metadata.MustGet(PresetFalcon7BModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:      baseCommandPresetFalconTuning,
-				AccelerateParams: tuning.DefaultAccelerateParams,
-				ModelName:        PresetFalcon7BModel,
-				// ModelRunPrams:    falconRunTuningParams, // TODO
-			},
+			Transformers: tc.Transformers,
 		},
-		ReadinessTimeout:              time.Duration(30) * time.Minute,
-		TuningPerGPUMemoryRequirement: map[string]int{"qlora": 16},
 	}
 }
 
@@ -137,13 +119,7 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           8192,
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetFalconInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    falconRunParams,
-				ModelName:         PresetFalcon7BInstructModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetFalcon7BInstructModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetFalcon7BInstructModel,
@@ -183,13 +159,7 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           8192,
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetFalconInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    falconRunParams,
-				ModelName:         PresetFalcon40BModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetFalcon40BModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetFalcon40BModel,
@@ -200,22 +170,19 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 	}
 }
 func (*falcon40b) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetFalcon40BModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetFalcon40BModel),
-		DiskStorageRequirement:  "280Gi",
-		GPUCountRequirement:     "2",
-		TotalSafeTensorFileSize: "77.9Gi",
-		BytesPerToken:           1966080,
-		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
+		Metadata:                      metadata.MustGet(PresetFalcon40BModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:      baseCommandPresetFalconTuning,
-				AccelerateParams: tuning.DefaultAccelerateParams,
-				ModelName:        PresetFalcon40BModel,
-				// ModelRunPrams:    falconRunTuningParams, // TODO
-			},
+			Transformers: tc.Transformers,
 		},
-		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
 }
 func (*falcon40b) SupportDistributedInference() bool {
@@ -238,13 +205,7 @@ func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           1966080,
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetFalconInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    falconRunParams,
-				ModelName:         PresetFalcon40BInstructModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetFalcon40BInstructModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetFalcon40BInstructModel,

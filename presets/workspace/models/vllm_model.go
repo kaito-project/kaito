@@ -64,6 +64,14 @@ var (
 		"qwen/qwen2.5-coder-7b-instruct":               "qwen2.5-coder-7b-instruct",
 		"qwen/qwen2.5-coder-32b-instruct":              "qwen2.5-coder-32b-instruct",
 	}
+
+	// legacyBuiltinToCatalog maps short preset names to their full HuggingFace model
+	// IDs for models that should be generated via model catalog rather than short-circuited
+	// to a pre-registered preset.
+	legacyBuiltinToCatalog = map[string]string{
+		"phi-4":               "microsoft/phi-4",
+		"phi-4-mini-instruct": "microsoft/phi-4-mini-instruct",
+	}
 )
 
 // registerModel registers a HuggingFace model with the given ID and parameters
@@ -90,6 +98,12 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 // Pass an empty string for token when working with public models that require no authentication.
 func GetModelByNameWithToken(ctx context.Context, modelName, token string) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
+	// Redirect catalog-only short names (e.g. "phi-4") to their full HuggingFace
+	// model ID (e.g. "microsoft/phi-4"). This bypasses the pre-registered preset
+	// model so the catalog path generates a vLLMCompatibleModel instead.
+	if hfName, ok := legacyBuiltinToCatalog[modelName]; ok {
+		modelName = hfName
+	}
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}
@@ -108,6 +122,12 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 // Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
 func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
+	// Redirect catalog-only short names (e.g. "phi-4") to their full HuggingFace
+	// model ID (e.g. "microsoft/phi-4"). This bypasses the pre-registered preset
+	// model so the catalog path generates a vLLMCompatibleModel instead.
+	if hfName, ok := legacyBuiltinToCatalog[modelName]; ok {
+		modelName = hfName
+	}
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}
@@ -164,6 +184,16 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		DownloadAuthRequired: m.model.DownloadAuthRequired,
 	}
 
+	// If the model has a transformers inference entry without allow_remote_files,
+	// use ORAS pre-built weights instead of downloading from HuggingFace at runtime.
+	if tfsParam, ok := TransformerInferenceParameters[m.model.Name]; ok {
+		if _, hasAllowRemote := tfsParam.ModelRunParams["allow_remote_files"]; !hasAllowRemote {
+			metaData.DownloadAtRuntime = false
+			metaData.Name = m.model.Name
+			metaData.Tag = tfsParam.Tag
+		}
+	}
+
 	runParamsVLLM := map[string]string{
 		"trust-remote-code": "",
 	}
@@ -194,6 +224,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           m.model.BytesPerToken,
 		ModelTokenLimit:         m.model.ModelTokenLimit,
 		RuntimeParam: model.RuntimeParam{
+			Transformers: TransformerInferenceParameters[m.model.Name],
 			VLLM: model.VLLMParam{
 				BaseCommand:          DefaultVLLMCommand,
 				ModelName:            metaData.Name,
@@ -208,16 +239,33 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	return presetParam
 }
 
-func (*vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
-	return nil
+func (m *vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
+	tc, ok := TransformerTuningParameters[m.model.Name]
+	if !ok {
+		return nil
+	}
+	return &model.PresetParam{
+		Metadata:                      MustGet(m.model.Name),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
+		RuntimeParam: model.RuntimeParam{
+			Transformers: tc.Transformers,
+		},
+	}
 }
 
 func (*vLLMCompatibleModel) SupportDistributedInference() bool {
 	return true
 }
 
-func (*vLLMCompatibleModel) SupportTuning() bool {
-	return false
+func (m *vLLMCompatibleModel) SupportTuning() bool {
+	_, ok := TransformerTuningParameters[m.model.Name]
+	return ok
 }
 
 // GetHFTokenFromSecret retrieves the HuggingFace token from a Kubernetes secret.

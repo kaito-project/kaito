@@ -18,7 +18,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -28,12 +27,6 @@ const (
 )
 
 var (
-	baseCommandPresetGemma3Inference = "accelerate launch"
-	gemma3RunParams                  = map[string]string{
-		"torch_dtype":        "auto",
-		"pipeline":           "text-generation",
-		"allow_remote_files": "",
-	}
 	gemma3RunParamsVLLM = map[string]string{}
 )
 
@@ -62,13 +55,7 @@ func (*gemma3_4BInstruct) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           348160,
 		ModelTokenLimit:         131072,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetGemma3Inference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    gemma3RunParams,
-				ModelName:         PresetGemma3_4BInstructModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetGemma3_4BInstructModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetGemma3_4BInstructModel,
@@ -102,13 +89,7 @@ func (*gemma3_27BInstruct) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           666624,
 		ModelTokenLimit:         131072,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetGemma3Inference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    gemma3RunParams,
-				ModelName:         PresetGemma3_27BInstructModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetGemma3_27BInstructModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetGemma3_27BInstructModel,

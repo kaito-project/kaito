@@ -18,7 +18,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -39,14 +38,7 @@ const (
 )
 
 var (
-	baseCommandPresetLlamaInference = "accelerate launch"
 	// baseCommandPresetLlamaTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	llamaRunParams = map[string]string{
-		"torch_dtype":        "bfloat16",
-		"pipeline":           "text-generation",
-		"chat_template":      "/workspace/chat_templates/llama-3-instruct.jinja",
-		"allow_remote_files": "",
-	}
 	llamaRunParamsVLLM = map[string]string{
 		"chat-template":    "/workspace/chat_templates/tool-chat-llama3.1-json.jinja",
 		"tool-call-parser": "llama3_json",
@@ -71,13 +63,7 @@ func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           131072,
 		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetLlamaInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    llamaRunParams,
-				ModelName:         PresetLlama3_1_8BInstructModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetLlama3_1_8BInstructModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:          llama3VLLMCommand,
 				ModelName:            PresetLlama3_1_8BInstructModel,
@@ -117,13 +103,7 @@ func (*llama3_3_70Binstruct) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           327680,
 		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetLlamaInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    llamaRunParams,
-				ModelName:         PresetLlama3_3_70BInstructModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetLlama3_3_70BInstructModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:          llama3VLLMCommand,
 				ModelName:            PresetLlama3_3_70BInstructModel,

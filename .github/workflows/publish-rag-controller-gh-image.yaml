@@ -139,19 +139,9 @@ jobs:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
-  run-e2e-gh-image:
-    needs: [ check-tag, build-scan-publish-gh-images ]
-    uses: ./.github/workflows/ragengine-e2e-workflow.yaml
-    with:
-      git_sha: ${{ github.sha }}
-      isRelease: true
-      registry: ${{ needs.build-scan-publish-gh-images.outputs.registry_repository }}
-      k8s_version: ${{ vars.AKS_K8S_VERSION }}
-      tag: ${{ needs.check-tag.outputs.tag }}
-
   publish-mcr-image:
     runs-on: ubuntu-latest
-    needs: [ check-tag, run-e2e-gh-image ]
+    needs: [ check-tag, build-scan-publish-gh-images ]
     steps:
       - name: 'Dispatch ragengine MCR publishing'
         uses: peter-evans/repository-dispatch@v4

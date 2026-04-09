@@ -26,7 +26,7 @@ All performance tests utilized [vLLM](https://github.com/vllm-project/vllm) by r
 We tested the models [Phi-4-mini-instruct](https://huggingface.co/microsoft/Phi-4-mini-instruct) and [Llama-3.1-8B-Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct). The following fields were configured:
 
 - **Requests Per Second (RPS)**: Total throughput capacity with latency in powers of two, such as 1, 2, 4, etc. up to 64 for larger GPUs, indicated by the `--request-rate` flag.
-- **Max Concurrency**: The maximum number of simultaneous requests the server can handle, configured with the `--max-concurrency` flag. It was set to 200 for the A10 and H100 tests and 50 for the A10 tests. These values were selected in order to set a ceiling high enough that it will not bottleneck the GPU.
+- **Max Concurrency**: The maximum number of simultaneous requests the server can handle, configured with the `--max-concurrency` flag. It was set to 200 for the A100 and H100 tests and 50 for the A10 tests. These values were selected in order to set a ceiling high enough that it will not bottleneck the GPU.
 - **Random Input Length**: The length of the input prompts, configured with the `--random-input-len` flag. This value was increased for larger models/GPUs that could handle an increased workload. A smaller value could represent a conversation workload, while a larger value could represent a document or source code.
 - **Random Output Length**: The length of the expected output responses, configured with the `--random-output-len` flag.
 - **Number of prompts**: We configured each test to run for 60 seconds, so with the number of prompts was set to `$RATE * 60`.
@@ -134,7 +134,7 @@ Since the A10 GPU was not powerful enough to run larger models, higher input/out
 
 ### A10 GPU Performance
 
-The A10 GPU performas well on Phi 4 Mini but is not suited for larger models such as Llama 3.1 8B.
+The A10 GPU performs well on Phi 4 Mini but is not suited for larger models such as Llama 3.1 8B.
 
 **Phi 4 Mini on A10:**
 - TTFT remains stable and fast from (19-35ms)

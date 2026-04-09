@@ -194,10 +194,134 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 	}
 }
 
+func TestVLLMCompatibleModel_GetInferenceParameters_TransformerLookup(t *testing.T) {
+	tests := []struct {
+		name                       string
+		modelName                  string
+		expectTransformerPopulated bool
+	}{
+		{
+			name:                       "model in TransformerInferenceParameters map gets Transformers populated",
+			modelName:                  "phi-4",
+			expectTransformerPopulated: true,
+		},
+		{
+			name:                       "model not in TransformerInferenceParameters map gets empty Transformers",
+			modelName:                  "unknown-dynamic-model",
+			expectTransformerPopulated: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &vLLMCompatibleModel{
+				model: model.Metadata{Name: tt.modelName},
+			}
+			params := m.GetInferenceParameters()
+			assert.NotNil(t, params)
+
+			if tt.expectTransformerPopulated {
+				expected := TransformerInferenceParameters["phi-4"]
+				assert.Equal(t, expected.BaseCommand, params.RuntimeParam.Transformers.BaseCommand)
+				assert.Equal(t, expected.ModelName, params.RuntimeParam.Transformers.ModelName)
+				assert.Equal(t, expected.InferenceMainFile, params.RuntimeParam.Transformers.InferenceMainFile)
+				assert.NotEmpty(t, params.RuntimeParam.Transformers.AccelerateParams)
+			} else {
+				assert.Empty(t, params.RuntimeParam.Transformers.BaseCommand)
+				assert.Empty(t, params.RuntimeParam.Transformers.ModelName)
+			}
+		})
+	}
+}
+
+func TestVLLMCompatibleModel_GetInferenceParameters_ORASEligibility(t *testing.T) {
+	tests := []struct {
+		name                    string
+		modelName               string
+		expectDownloadAtRuntime bool
+		expectMetadataName      string
+		expectTag               string
+	}{
+		{
+			name:                    "model without allow_remote_files uses ORAS",
+			modelName:               "phi-4-mini-instruct",
+			expectDownloadAtRuntime: false,
+			expectMetadataName:      "phi-4-mini-instruct",
+			expectTag:               TransformerInferenceParameters["phi-4-mini-instruct"].Tag,
+		},
+		{
+			name:                    "model with allow_remote_files downloads at runtime",
+			modelName:               "llama-3.1-8b-instruct",
+			expectDownloadAtRuntime: true,
+			expectMetadataName:      "llama-3.1-8b-instruct",
+			expectTag:               "",
+		},
+		{
+			name:                    "model not in TransformerInferenceParameters downloads at runtime",
+			modelName:               "some-org/unknown-model",
+			expectDownloadAtRuntime: true,
+			expectMetadataName:      "some-org/unknown-model",
+			expectTag:               "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &vLLMCompatibleModel{
+				model: model.Metadata{Name: tt.modelName},
+			}
+			params := m.GetInferenceParameters()
+			assert.NotNil(t, params)
+			assert.Equal(t, tt.expectDownloadAtRuntime, params.Metadata.DownloadAtRuntime)
+			assert.Equal(t, tt.expectMetadataName, params.Metadata.Name)
+			assert.Equal(t, tt.expectTag, params.Metadata.Tag)
+		})
+	}
+}
+
 func TestVLLMCompatibleModel_GetTuningParameters(t *testing.T) {
-	m := &vLLMCompatibleModel{}
-	params := m.GetTuningParameters()
-	assert.Nil(t, params)
+	tests := []struct {
+		name      string
+		modelName string
+		expectNil bool
+	}{
+		{
+			name:      "model not in tuning map returns nil",
+			modelName: "unknown-model",
+			expectNil: true,
+		},
+		{
+			name:      "model in tuning map returns populated PresetParam",
+			modelName: "phi-4",
+			expectNil: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &vLLMCompatibleModel{
+				model: model.Metadata{Name: tt.modelName},
+			}
+			params := m.GetTuningParameters()
+
+			if tt.expectNil {
+				assert.Nil(t, params)
+				return
+			}
+
+			assert.NotNil(t, params)
+			tc := TransformerTuningParameters["phi-4"]
+			assert.Equal(t, tc.DiskStorageRequirement, params.DiskStorageRequirement)
+			assert.Equal(t, tc.GPUCountRequirement, params.GPUCountRequirement)
+			assert.Equal(t, tc.TotalSafeTensorFileSize, params.TotalSafeTensorFileSize)
+			assert.Equal(t, tc.ModelTokenLimit, params.ModelTokenLimit)
+			assert.Equal(t, tc.BytesPerToken, params.BytesPerToken)
+			assert.Equal(t, tc.TuningPerGPUMemoryRequirement, params.TuningPerGPUMemoryRequirement)
+			assert.Equal(t, tc.ReadinessTimeout, params.ReadinessTimeout)
+			assert.Equal(t, tc.Transformers.BaseCommand, params.RuntimeParam.Transformers.BaseCommand)
+			assert.Equal(t, tc.Transformers.ModelName, params.RuntimeParam.Transformers.ModelName)
+		})
+	}
 }
 
 func TestVLLMCompatibleModel_SupportDistributedInference(t *testing.T) {
@@ -206,8 +330,31 @@ func TestVLLMCompatibleModel_SupportDistributedInference(t *testing.T) {
 }
 
 func TestVLLMCompatibleModel_SupportTuning(t *testing.T) {
-	m := &vLLMCompatibleModel{}
-	assert.False(t, m.SupportTuning())
+	tests := []struct {
+		name      string
+		modelName string
+		expected  bool
+	}{
+		{
+			name:      "model in tuning map returns true",
+			modelName: "phi-4",
+			expected:  true,
+		},
+		{
+			name:      "model not in tuning map returns false",
+			modelName: "unknown-model",
+			expected:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &vLLMCompatibleModel{
+				model: model.Metadata{Name: tt.modelName},
+			}
+			assert.Equal(t, tt.expected, m.SupportTuning())
+		})
+	}
 }
 
 func TestRegisterModel(t *testing.T) {
@@ -678,4 +825,71 @@ func TestGetModelByName_ContextCancellation(t *testing.T) {
 	// Should still work for registered models since context is only used for k8s client
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
+}
+
+func TestGenerateHuggingFaceModel_CatalogOnlyModelsSkipShortCircuit(t *testing.T) {
+	// Catalog-only models are not in builtinVLLMModels, so
+	// generateHuggingFaceModel proceeds to GeneratePreset and
+	// registers a new vLLMCompatibleModel.
+	for _, modelName := range legacyBuiltinToCatalog {
+		t.Run(modelName, func(t *testing.T) {
+			// Ensure the model is NOT registered under the full HF name before the call
+			assert.Nil(t, plugin.KaitoModelRegister.MustGet(modelName),
+				"model %q should not be pre-registered under full HF name", modelName)
+
+			result, err := generateHuggingFaceModel(modelName, "")
+			// Should succeed via model catalog, not short-circuit
+			assert.NoError(t, err)
+			assert.NotNil(t, result)
+
+			// The catalog path registers the model under the full HF name;
+			// the short-circuit path would not. Verify it was registered.
+			registered := plugin.KaitoModelRegister.MustGet(modelName)
+			assert.NotNil(t, registered,
+				"model %q should be registered under full HF name after catalog generation", modelName)
+		})
+	}
+}
+
+func TestCatalogOnlyPresets(t *testing.T) {
+	// Verify catalogOnlyPresets entries are not in builtinVLLMModels
+	// (they must go through the catalog path, not get short-circuited).
+	for _, hfName := range legacyBuiltinToCatalog {
+		_, ok := builtinVLLMModels[hfName]
+		assert.False(t, ok, "catalogOnlyPresets value %q must NOT be in builtinVLLMModels", hfName)
+	}
+}
+
+func TestGetModelByName_ShortNameRedirectsToCatalog(t *testing.T) {
+	// When a short name (e.g. "phi-4") is in catalogOnlyPresets, GetModelByName
+	// should redirect to the full HF name and generate via model catalog
+	// instead of returning the pre-registered phi4Model.
+	for shortName, hfName := range legacyBuiltinToCatalog {
+		t.Run(shortName, func(t *testing.T) {
+			result, err := GetModelByName(context.Background(), shortName, "", "", nil)
+			assert.NoError(t, err)
+			assert.NotNil(t, result)
+
+			// The result should be a vLLMCompatibleModel, not the pre-registered model type.
+			_, isVLLM := result.(*vLLMCompatibleModel)
+			assert.True(t, isVLLM, "model %q should resolve to vLLMCompatibleModel, not pre-registered type", shortName)
+
+			// Should be registered under the full HF name
+			registered := plugin.KaitoModelRegister.MustGet(hfName)
+			assert.NotNil(t, registered)
+		})
+	}
+}
+
+func TestGetModelByNameWithToken_ShortNameRedirectsToCatalog(t *testing.T) {
+	for shortName := range legacyBuiltinToCatalog {
+		t.Run(shortName, func(t *testing.T) {
+			result, err := GetModelByNameWithToken(context.Background(), shortName, "")
+			assert.NoError(t, err)
+			assert.NotNil(t, result)
+
+			_, isVLLM := result.(*vLLMCompatibleModel)
+			assert.True(t, isVLLM, "model %q should resolve to vLLMCompatibleModel", shortName)
+		})
+	}
 }

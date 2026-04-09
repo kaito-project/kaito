@@ -67,38 +67,6 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			errField: "Embedding must be specified",
 		},
 		{
-			name: "Inference Service not specified",
-			ragEngine: &RAGEngine{
-				Spec: &RAGEngineSpec{
-					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
-					},
-					Embedding: &EmbeddingSpec{
-						Local: &LocalEmbeddingSpec{
-							ModelID: "BAAI/bge-small-en-v1.5",
-						},
-					},
-					InferenceService: nil,
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "Compute resource not specified",
-			ragEngine: &RAGEngine{
-				Spec: &RAGEngineSpec{
-					Compute: nil,
-					Embedding: &EmbeddingSpec{
-						Local: &LocalEmbeddingSpec{
-							ModelID: "BAAI/bge-small-en-v1.5",
-						},
-					},
-					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
-				},
-			},
-			wantErr: false,
-		},
-		{
 			name: "None of Local and Remote Embedding specified",
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
@@ -159,6 +127,56 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			},
 			wantErr:  true,
 			errField: "ContextWindowSize must be a positive integer",
+		},
+		{
+			name: "Nil InferenceService",
+			ragEngine: &RAGEngine{
+				Spec: &RAGEngineSpec{
+					Compute: &ResourceSpec{
+						InstanceType: "Standard_NC4as_T4_v3",
+					},
+					Embedding: &EmbeddingSpec{
+						Local: &LocalEmbeddingSpec{
+							ModelID: "BAAI/bge-small-en-v1.5",
+						},
+					},
+				},
+			},
+			wantErr:  true,
+			errField: "InferenceService must be specified",
+		},
+		{
+			name: "Nil Compute with valid spec",
+			ragEngine: &RAGEngine{
+				Spec: &RAGEngineSpec{
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
+					Embedding: &EmbeddingSpec{
+						Local: &LocalEmbeddingSpec{
+							ModelID: "BAAI/bge-small-en-v1.5",
+						},
+					},
+				},
+			},
+			wantErr:  true,
+			errField: "Compute must be specified",
+		},
+		{
+			name: "Invalid local embedding image error propagates",
+			ragEngine: &RAGEngine{
+				Spec: &RAGEngineSpec{
+					Compute: &ResourceSpec{
+						InstanceType: "Standard_NC4as_T4_v3",
+					},
+					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
+					Embedding: &EmbeddingSpec{
+						Local: &LocalEmbeddingSpec{
+							Image: "invalid-format",
+						},
+					},
+				},
+			},
+			wantErr:  true,
+			errField: "embedding",
 		},
 	}
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)

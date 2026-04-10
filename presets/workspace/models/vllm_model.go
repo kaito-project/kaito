@@ -33,11 +33,10 @@ var (
 	//go:embed model_catalog.yaml
 	modelCatalogYAML []byte
 
-	// builtinVLLMModels is the mapping of built-in VLLM model names to their preset names
-	// make sure all key and values are in lower case
+	// builtinVLLMModels is the mapping of built-in VLLM model names to their preset names.
+	// Models listed here use their builtin preset code paths instead of the model catalog.
+	// Make sure all keys and values are in lower case.
 	builtinVLLMModels = map[string]string{
-		"deepseek-ai/deepseek-r1-distill-llama-8b":     "deepseek-r1-distill-llama-8b",
-		"deepseek-ai/deepseek-r1-distill-qwen-14b":     "deepseek-r1-distill-qwen-14b",
 		"deepseek-ai/deepseek-r1-0528":                 "deepseek-r1-0528",
 		"deepseek-ai/deepseek-v3-0324":                 "deepseek-v3-0324",
 		"tiiuae/falcon-7b":                             "falcon-7b",
@@ -46,31 +45,33 @@ var (
 		"tiiuae/falcon-40b-instruct":                   "falcon-40b-instruct",
 		"google/gemma-3-4b-it":                         "gemma-3-4b-instruct",
 		"google/gemma-3-27b-it":                        "gemma-3-27b-instruct",
-		"openai/gpt-oss-20b":                           "gpt-oss-20b",
-		"openai/gpt-oss-120b":                          "gpt-oss-120b",
-		"meta-llama/llama-3.1-8b-instruct":             "llama-3.1-8b-instruct",
-		"meta-llama/llama-3.3-70b-instruct":            "llama-3.3-70b-instruct",
 		"mistralai/mistral-7b-v0.3":                    "mistral-7b",
 		"mistralai/mistral-7b-instruct-v0.3":           "mistral-7b-instruct",
 		"mistralai/ministral-3-3b-instruct-2512":       "ministral-3-3b-instruct",
 		"mistralai/ministral-3-8b-instruct-2512":       "ministral-3-8b-instruct",
 		"mistralai/ministral-3-14b-instruct-2512":      "ministral-3-14b-instruct",
 		"mistralai/mistral-large-3-675b-instruct-2512": "mistral-large-3-675b-instruct",
-		"microsoft/phi-3-mini-4k-instruct":             "phi-3-mini-4k-instruct",
-		"microsoft/phi-3-mini-128k-instruct":           "phi-3-mini-128k-instruct",
-		"microsoft/phi-3-medium-4k-instruct":           "phi-3-medium-4k-instruct",
-		"microsoft/phi-3-medium-128k-instruct":         "phi-3-medium-128k-instruct",
-		"microsoft/phi-3.5-mini-instruct":              "phi-3.5-mini-instruct",
-		"qwen/qwen2.5-coder-7b-instruct":               "qwen2.5-coder-7b-instruct",
-		"qwen/qwen2.5-coder-32b-instruct":              "qwen2.5-coder-32b-instruct",
 	}
 
 	// legacyBuiltinToCatalog maps short preset names to their full HuggingFace model
 	// IDs for models that should be generated via model catalog rather than short-circuited
 	// to a pre-registered preset.
 	legacyBuiltinToCatalog = map[string]string{
-		"phi-4":               "microsoft/phi-4",
-		"phi-4-mini-instruct": "microsoft/phi-4-mini-instruct",
+		"phi-4":                        "microsoft/phi-4",
+		"phi-4-mini-instruct":          "microsoft/phi-4-mini-instruct",
+		"llama-3.1-8b-instruct":        "meta-llama/llama-3.1-8b-instruct",
+		"llama-3.3-70b-instruct":       "meta-llama/llama-3.3-70b-instruct",
+		"deepseek-r1-distill-llama-8b": "deepseek-ai/deepseek-r1-distill-llama-8b",
+		"deepseek-r1-distill-qwen-14b": "deepseek-ai/deepseek-r1-distill-qwen-14b",
+		"phi-3-mini-4k-instruct":       "microsoft/phi-3-mini-4k-instruct",
+		"phi-3-mini-128k-instruct":     "microsoft/phi-3-mini-128k-instruct",
+		"phi-3-medium-4k-instruct":     "microsoft/phi-3-medium-4k-instruct",
+		"phi-3-medium-128k-instruct":   "microsoft/phi-3-medium-128k-instruct",
+		"phi-3.5-mini-instruct":        "microsoft/phi-3.5-mini-instruct",
+		"qwen2.5-coder-7b-instruct":    "qwen/qwen2.5-coder-7b-instruct",
+		"qwen2.5-coder-32b-instruct":   "qwen/qwen2.5-coder-32b-instruct",
+		"gpt-oss-20b":                  "openai/gpt-oss-20b",
+		"gpt-oss-120b":                 "openai/gpt-oss-120b",
 	}
 )
 

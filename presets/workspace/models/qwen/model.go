@@ -37,14 +37,6 @@ const (
 	PresetQwen2_5Coder32BInstructModel = "qwen2.5-coder-32b-instruct"
 )
 
-var (
-	qwenRunParamsVLLM = map[string]string{
-		"chat-template":           "/workspace/chat_templates/tool-chat-hermes.jinja",
-		"tool-call-parser":        "hermes",
-		"enable-auto-tool-choice": "",
-	}
-)
-
 var qwen2_5coder7bInst qwen2_5Coder7BInstruct
 
 type qwen2_5Coder7BInstruct struct{}
@@ -59,11 +51,7 @@ func (*qwen2_5Coder7BInstruct) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         32768, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetQwen2_5Coder7BInstructModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetQwen2_5Coder7BInstructModel,
-				ModelRunParams: qwenRunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetQwen2_5Coder7BInstructModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
@@ -107,11 +95,7 @@ func (*qwen2_5Coder32BInstruct) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         32768, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetQwen2_5Coder32BInstructModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetQwen2_5Coder32BInstructModel,
-				ModelRunParams: qwenRunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetQwen2_5Coder32BInstructModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}

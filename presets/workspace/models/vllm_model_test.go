@@ -234,6 +234,88 @@ func TestVLLMCompatibleModel_GetInferenceParameters_TransformerLookup(t *testing
 	}
 }
 
+func TestVLLMCompatibleModel_GetInferenceParameters_VLLMLookup(t *testing.T) {
+	tests := []struct {
+		name                  string
+		modelName             string
+		expectVLLMFromMap     bool
+		expectRayCommands     bool
+		expectDisallowLoRA    bool
+		expectModelRunParamKV map[string]string // subset of expected run params
+	}{
+		{
+			name:              "preset model with tool-call params uses VLLMInferenceParameters",
+			modelName:         "phi-4-mini-instruct",
+			expectVLLMFromMap: true,
+			expectModelRunParamKV: map[string]string{
+				"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
+				"tool-call-parser":        "phi4_mini_json",
+				"enable-auto-tool-choice": "",
+			},
+		},
+		{
+			name:              "preset model with ray commands uses VLLMInferenceParameters",
+			modelName:         "llama-3.1-8b-instruct",
+			expectVLLMFromMap: true,
+			expectRayCommands: true,
+			expectModelRunParamKV: map[string]string{
+				"attention-backend": "TRITON_ATTN",
+			},
+		},
+		{
+			name:               "preset model with DisallowLoRA uses VLLMInferenceParameters",
+			modelName:          "falcon-7b",
+			expectVLLMFromMap:  true,
+			expectDisallowLoRA: true,
+		},
+		{
+			name:              "unknown model falls back to dynamic VLLM params",
+			modelName:         "some-org/unknown-dynamic-model",
+			expectVLLMFromMap: false,
+			expectRayCommands: true, // dynamic models always get ray commands
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &vLLMCompatibleModel{
+				model: model.Metadata{Name: tt.modelName},
+			}
+			params := m.GetInferenceParameters()
+			assert.NotNil(t, params)
+
+			if tt.expectVLLMFromMap {
+				expected := VLLMInferenceParameters[tt.modelName]
+				assert.Equal(t, expected.BaseCommand, params.RuntimeParam.VLLM.BaseCommand)
+				assert.Equal(t, expected.ModelName, params.RuntimeParam.VLLM.ModelName)
+				assert.Equal(t, expected.ModelRunParams, params.RuntimeParam.VLLM.ModelRunParams)
+				assert.Equal(t, expected.DisallowLoRA, params.RuntimeParam.VLLM.DisallowLoRA)
+				assert.Equal(t, expected.RayLeaderBaseCommand, params.RuntimeParam.VLLM.RayLeaderBaseCommand)
+				assert.Equal(t, expected.RayWorkerBaseCommand, params.RuntimeParam.VLLM.RayWorkerBaseCommand)
+			} else {
+				// Dynamic models get default base command and dynamically-built params
+				assert.Equal(t, DefaultVLLMCommand, params.RuntimeParam.VLLM.BaseCommand)
+				assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "trust-remote-code")
+				assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "dtype")
+			}
+
+			if tt.expectRayCommands {
+				assert.Equal(t, DefaultVLLMRayLeaderBaseCommand, params.RuntimeParam.VLLM.RayLeaderBaseCommand)
+				assert.Equal(t, DefaultVLLMRayWorkerBaseCommand, params.RuntimeParam.VLLM.RayWorkerBaseCommand)
+			}
+
+			if tt.expectDisallowLoRA {
+				assert.True(t, params.RuntimeParam.VLLM.DisallowLoRA)
+			}
+
+			for k, v := range tt.expectModelRunParamKV {
+				assert.Equal(t, v, params.RuntimeParam.VLLM.ModelRunParams[k],
+					"expected ModelRunParams[%q] = %q", k, v)
+			}
+		})
+	}
+}
+
 func TestVLLMCompatibleModel_GetInferenceParameters_ORASEligibility(t *testing.T) {
 	tests := []struct {
 		name                    string

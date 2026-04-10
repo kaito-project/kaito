@@ -217,6 +217,19 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		runParamsVLLM["reasoning-parser"] = m.model.ReasoningParser
 	}
 
+	// If the model has a pre-registered vLLM inference entry, use those params
+	// directly instead of dynamically building them from catalog metadata.
+	vllmParam := model.VLLMParam{
+		BaseCommand:          DefaultVLLMCommand,
+		ModelName:            metaData.Name,
+		ModelRunParams:       runParamsVLLM,
+		RayLeaderBaseCommand: DefaultVLLMRayLeaderBaseCommand,
+		RayWorkerBaseCommand: DefaultVLLMRayWorkerBaseCommand,
+	}
+	if registeredVLLM, ok := VLLMInferenceParameters[m.model.Name]; ok {
+		vllmParam = registeredVLLM
+	}
+
 	presetParam := &model.PresetParam{
 		Metadata:                *metaData,
 		TotalSafeTensorFileSize: m.model.ModelFileSize,
@@ -225,13 +238,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         m.model.ModelTokenLimit,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: TransformerInferenceParameters[m.model.Name],
-			VLLM: model.VLLMParam{
-				BaseCommand:          DefaultVLLMCommand,
-				ModelName:            metaData.Name,
-				ModelRunParams:       runParamsVLLM,
-				RayLeaderBaseCommand: DefaultVLLMRayLeaderBaseCommand,
-				RayWorkerBaseCommand: DefaultVLLMRayWorkerBaseCommand,
-			},
+			VLLM:         vllmParam,
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}

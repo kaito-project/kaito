@@ -37,19 +37,6 @@ const (
 	PresetLlama3_3_70BInstructModel = "llama-3.3-70b-instruct"
 )
 
-var (
-	// baseCommandPresetLlamaTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	llamaRunParamsVLLM = map[string]string{
-		"chat-template":    "/workspace/chat_templates/tool-chat-llama3.1-json.jinja",
-		"tool-call-parser": "llama3_json",
-		// pin the attention backend to triton for llama3 models, as flashinfer is unavailable in KAITO base image.
-		"attention-backend":       "TRITON_ATTN",
-		"enable-auto-tool-choice": "",
-	}
-
-	llama3VLLMCommand = "python3 /workspace/vllm/inference_api.py"
-)
-
 var llama3_1_8b_instructA llama3_1_8BInstruct
 
 type llama3_1_8BInstruct struct{}
@@ -64,13 +51,7 @@ func (*llama3_1_8BInstruct) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetLlama3_1_8BInstructModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:          llama3VLLMCommand,
-				ModelName:            PresetLlama3_1_8BInstructModel,
-				ModelRunParams:       llamaRunParamsVLLM,
-				RayLeaderBaseCommand: metadata.DefaultVLLMRayLeaderBaseCommand,
-				RayWorkerBaseCommand: metadata.DefaultVLLMRayWorkerBaseCommand,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetLlama3_1_8BInstructModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
@@ -104,13 +85,7 @@ func (*llama3_3_70Binstruct) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetLlama3_3_70BInstructModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:          llama3VLLMCommand,
-				ModelName:            PresetLlama3_3_70BInstructModel,
-				ModelRunParams:       llamaRunParamsVLLM,
-				RayLeaderBaseCommand: metadata.DefaultVLLMRayLeaderBaseCommand,
-				RayWorkerBaseCommand: metadata.DefaultVLLMRayWorkerBaseCommand,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetLlama3_3_70BInstructModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}

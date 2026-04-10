@@ -7,7 +7,7 @@ reviewers:
   - "@zhuangqh"
   - "@2170chm"
 creation-date: 2026-04-07
-last-updated: 2026-04-09
+last-updated: 2026-04-10
 status: provisional
 ---
 
@@ -23,8 +23,9 @@ status: provisional
 - [Proposal](#proposal)
   - [Design Principles](#design-principles)
   - [Architecture Overview](#architecture-overview)
-  - [NodePool and AKSNodeClass Scoping Strategy](#nodepool-and-aksnodeclass-scoping-strategy)
-    - [Scoping Rules](#scoping-rules)
+  - [NodePool and AKSNodeClass Strategy](#nodepool-and-aksnodeclass-strategy)
+    - [Global AKSNodeClass](#global-aksnodeclass)
+    - [Per-Workspace NodePool](#per-workspace-nodepool)
     - [Naming Conventions](#naming-conventions)
     - [Resource Ownership and Lifecycle](#resource-ownership-and-lifecycle)
     - [Handling Existing (Legacy) Workspaces](#handling-existing-legacy-workspaces)
@@ -39,6 +40,7 @@ status: provisional
     - [New CRD Dependencies](#new-crd-dependencies)
     - [Provisioner Abstraction Layer](#provisioner-abstraction-layer)
     - [NodePool Lifecycle Management](#nodepool-lifecycle-management)
+    - [Legacy NodeClaim GC Controller](#legacy-nodeclaim-gc-controller)
   - [gpu-provisioner and Azure Karpenter Coexistence](#gpu-provisioner-and-azure-karpenter-coexistence)
   - [Deletion Strategy](#deletion-strategy)
 - [Known Issues](#known-issues)
@@ -62,7 +64,7 @@ status: provisional
 
 ## Summary
 
-Migrate KAITO's node provisioning from gpu-provisioner to Azure Karpenter. KAITO creates a per-Workspace NodePool (with `replicas`) and a shared AKSNodeClass per InferenceSet, while Azure Karpenter handles NodeClaim/Node creation, VM lifecycle, and drift-based node upgrades. Per-Workspace NodePool isolation ensures clean scale-down semantics (deleting a Workspace's NodePool cascades exactly its NodeClaims). Drift at the InferenceSet level is orchestrated by KAITO via toggling NodePool disruption budgets one Workspace at a time. gpu-provisioner is retained only for cleaning up legacy NodeClaims during the coexistence period.
+Migrate KAITO's node provisioning from gpu-provisioner to Azure Karpenter. Two global AKSNodeClasses (`nc-ubuntu`, `nc-azure-linux`) are pre-installed at KAITO deployment time — all NodePools reference one of these. KAITO creates a per-Workspace NodePool (with `replicas`), while Azure Karpenter handles NodeClaim/Node creation, VM lifecycle, and drift-based node upgrades. Per-Workspace NodePool isolation ensures clean scale-down semantics (deleting a Workspace's NodePool cascades exactly its NodeClaims). Drift at the InferenceSet level is orchestrated by KAITO via toggling NodePool disruption budgets one Workspace at a time. gpu-provisioner is retained only for cleaning up legacy NodeClaims during the coexistence period. A legacy NodeClaim GC controller handles leaked NodeClaims from the gpu-provisioner era.
 
 ## Motivation
 
@@ -70,11 +72,12 @@ gpu-provisioner is a KAITO-specific fork with no drift detection, no node upgrad
 
 ### Goals
 
-1. KAITO manages NodePool and AKSNodeClass lifecycle (create, update replicas, delete). Azure Karpenter manages NodeClaim/Node creation, VM provisioning, and drift-based node upgrades.
-2. Per-Workspace NodePool: each Workspace (whether from InferenceSet or standalone) gets its own NodePool. InferenceSet Workspaces share a single AKSNodeClass for unified drift signals.
+1. KAITO manages NodePool lifecycle (create, delete). Two global AKSNodeClasses are pre-installed at deployment time. Azure Karpenter manages NodeClaim/Node creation, VM provisioning, and drift-based node upgrades.
+2. Per-Workspace NodePool: each Workspace (whether from InferenceSet or standalone) gets its own NodePool referencing a global AKSNodeClass.
 3. Drift orchestration at InferenceSet level: KAITO controls drift upgrade pace by toggling per-Workspace NodePool disruption budgets one at a time.
 4. gpu-provisioner coexistence: gpu-provisioner **no longer creates new resources**, retained only for cleaning up legacy NodeClaims. All new resources managed by Azure Karpenter.
 5. Zero Azure Karpenter modification — all integration via existing extension points.
+6. Legacy NodeClaim GC controller cleans up leaked NodeClaims from the gpu-provisioner era.
 
 ### Non-Goals
 
@@ -87,12 +90,13 @@ gpu-provisioner is a KAITO-specific fork with no drift detection, no node upgrad
 
 ### Design Principles
 
-1. **Clear responsibility split**: KAITO creates/deletes NodePool and AKSNodeClass and computes `replicas`. Azure Karpenter creates/deletes NodeClaims and Nodes, provisions/deprovisions VMs, and handles drift-based node upgrades.
+1. **Clear responsibility split**: KAITO creates/deletes NodePools. Global AKSNodeClasses are pre-installed. Azure Karpenter creates/deletes NodeClaims and Nodes, provisions/deprovisions VMs, and handles drift-based node upgrades.
 2. **Static provisioning via replicas**: NodePool `spec.replicas` controls the exact number of NodeClaims. Karpenter's static provisioning/deprovisioning controller automatically maintains the desired count.
-3. **Per-Workspace NodePool for clean scale-down**: Each Workspace gets its own NodePool. Deleting a Workspace's NodePool cascades exactly its NodeClaims — no ambiguity about which nodes to remove. InferenceSet Workspaces share a single AKSNodeClass for unified drift detection.
-4. **Budget-controlled drift orchestration**: Per-Workspace NodePools default to `budgets.nodes: "0"` (drift replacement blocked). KAITO orchestrates InferenceSet-level drift by toggling one Workspace's NodePool budget at a time, preventing concurrent upgrades across the InferenceSet.
-5. **Label-based isolation for coexistence**: New NodeClaims use `karpenter.kaito.sh/*` labels, legacy NodeClaims retain `kaito.sh/workspace` labels. The two provisioners cannot interfere with each other.
-6. **NodeClassRef-based coexistence**: Azure Karpenter's `IsManaged()` only processes `AKSNodeClass` NodeClaims, automatically ignoring gpu-provisioner's `KaitoNodeClass` NodeClaims.
+3. **Global AKSNodeClass**: Two AKSNodeClasses (`nc-ubuntu`, `nc-azure-linux`) are pre-installed at KAITO deployment time. All NodePools reference one of these — KAITO never creates or deletes AKSNodeClass resources at runtime.
+4. **Per-Workspace NodePool for clean scale-down**: Each Workspace gets its own NodePool. Deleting a Workspace's NodePool cascades exactly its NodeClaims — no ambiguity about which nodes to remove.
+5. **Budget-controlled drift orchestration**: Per-Workspace NodePools default to `budgets.nodes: "0"` (drift replacement blocked). KAITO orchestrates InferenceSet-level drift by toggling one Workspace's NodePool budget at a time, preventing concurrent upgrades across the InferenceSet.
+6. **Label-based isolation for coexistence**: New NodeClaims use `karpenter.kaito.sh/*` labels, legacy NodeClaims retain `kaito.sh/workspace` labels. The two provisioners cannot interfere with each other.
+7. **NodeClassRef-based coexistence**: Azure Karpenter's `IsManaged()` only processes `AKSNodeClass` NodeClaims, automatically ignoring gpu-provisioner's `KaitoNodeClass` NodeClaims.
 
 ### Architecture Overview
 
@@ -100,22 +104,22 @@ gpu-provisioner is a KAITO-specific fork with no drift detection, no node upgrad
 ┌──────────────────────────────────────────────────────────────────────┐
 │                KAITO Controllers (Workspace + InferenceSet)          │
 │                                                                      │
-│  • Create per-Workspace NodePool + shared AKSNodeClass               │
-│  • Compute and set NodePool replicas                                 │
+│  • Create per-Workspace NodePool (referencing global AKSNodeClass)    │
+│  • Set NodePool replicas = TargetNodeCount                           │
 │  • Watch NodeClaim Ready condition → Schedule workload pods          │
 │  • Drift orchestration: toggle NodePool budget per Workspace         │
-│  • On deletion: delete NodePool (cascade) / AKSNodeClass             │
-│  • Clean up legacy gpu-provisioner NodeClaims (if any)               │
+│  • On deletion: delete NodePool (cascade cleanup)                    │
+│  • Legacy NodeClaim GC controller: clean up leaked old NodeClaims    │
 └──────────┬──────────────────────┬────────────────────────────────────┘
            │ Create/Update/Delete │ Watch NodeClaim
-           │ NodePool+AKSNodeClass│ Ready + Drifted
+           │ NodePool             │ Ready + Drifted
            ▼                      ▼
 ┌──────────────────────────────────────────────────────────────────────┐
 │                     Kubernetes API Server                            │
 │                                                                      │
+│  AKSNodeClass (karpenter.azure.com/v1beta1)  ── 2 global instances   │
+│    nc-ubuntu, nc-azure-linux (pre-installed)                         │
 │  NodePool (karpenter.sh/v1)  ── per Workspace                       │
-│  AKSNodeClass (karpenter.azure.com/v1beta1)  ── per InferenceSet    │
-│         or per standalone Workspace                                  │
 │  NodeClaim (karpenter.sh/v1)  ── per GPU node (created by Karpenter)│
 └──────────┬──────────────────────┬─────────────────────┬──────────────┘
            │ Static Provisioning  │ Drift Detection     │ Drift-Based
@@ -139,42 +143,46 @@ gpu-provisioner is a KAITO-specific fork with no drift detection, no node upgrad
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-### NodePool and AKSNodeClass Scoping Strategy
+### NodePool and AKSNodeClass Strategy
 
-Each Workspace gets its own NodePool for clean scale-down semantics. InferenceSet Workspaces share a single AKSNodeClass for unified drift detection. Standalone Workspaces get both a dedicated NodePool and AKSNodeClass.
+#### Global AKSNodeClass
 
-#### Scoping Rules
+Two AKSNodeClasses are **pre-installed** when KAITO is deployed (via Helm chart or created at KAITO controller startup). They are global, shared by all Workspaces, and never created or deleted at runtime:
 
-| Workspace Origin | NodePool Scope | AKSNodeClass Scope | Replicas |
-|-----------------|---------------|--------------------|---------|
-| InferenceSet `foo`, Workspace `foo-0` | Dedicated NodePool `np-foo-0` | Shared `nc-foo` | `workspace.Status.TargetNodeCount` |
-| InferenceSet `foo`, Workspace `foo-1` | Dedicated NodePool `np-foo-1` | Shared `nc-foo` | `workspace.Status.TargetNodeCount` |
-| InferenceSet `bar`, Workspace `bar-0` | Dedicated NodePool `np-bar-0` | Shared `nc-bar` | `workspace.Status.TargetNodeCount` |
-| Standalone Workspace `ws-a` | Dedicated NodePool `np-ws-a` | Dedicated `nc-ws-a` | `workspace.Status.TargetNodeCount` |
+| AKSNodeClass | Image Family | Use Case |
+|-------------|-------------|----------|
+| `nc-ubuntu` | Ubuntu | Default for most GPU workloads |
+| `nc-azure-linux` | AzureLinux | For workloads requiring AzureLinux |
+
+All NodePools reference one of these two AKSNodeClasses via `nodeClassRef`. Drift signals from AKSNodeClass changes (K8s version upgrade, node image update) affect all NodeClaims referencing that AKSNodeClass globally.
+
+#### Per-Workspace NodePool
+
+Each Workspace gets its own NodePool. This ensures clean scale-down semantics: deleting a Workspace's NodePool cascades exactly its NodeClaims/Nodes/VMs.
+
+| Workspace Origin | NodePool | AKSNodeClass | Replicas |
+|-----------------|----------|-------------|----------|
+| InferenceSet `foo`, Workspace `foo-0` | `np-foo-0` | `nc-ubuntu` (global) | `workspace.Status.TargetNodeCount` |
+| InferenceSet `foo`, Workspace `foo-1` | `np-foo-1` | `nc-ubuntu` (global) | `workspace.Status.TargetNodeCount` |
+| Standalone Workspace `ws-a` | `np-ws-a` | `nc-ubuntu` (global) | `workspace.Status.TargetNodeCount` |
 
 **Why per-Workspace NodePool**: When an InferenceSet scales down, specific Workspaces are removed. The corresponding NodePool is deleted, and Karpenter cascades the cleanup to exactly that Workspace's NodeClaims/Nodes/VMs. A shared NodePool cannot guarantee which NodeClaims are removed during scale-down.
-
-**Why shared AKSNodeClass**: InferenceSet Workspaces run the same model on the same node configuration. Sharing an AKSNodeClass ensures drift signals (K8s version upgrade, node image update) affect all Workspaces in the InferenceSet uniformly. Different InferenceSets and standalone Workspaces use separate AKSNodeClasses for isolation.
 
 #### Naming Conventions
 
 | Resource | Name | Example |
 |----------|------|---------|
-| NodePool (InferenceSet Workspace) | `np-<workspace-name>` | `np-foo-0`, `np-foo-1` |
-| NodePool (Standalone Workspace) | `np-<workspace-name>` | `np-ws-a` |
-| AKSNodeClass (InferenceSet) | `nc-<inferenceSet-name>` | `nc-foo` |
-| AKSNodeClass (Standalone Workspace) | `nc-<workspace-name>` | `nc-ws-a` |
+| NodePool | `np-<workspace-name>` | `np-foo-0`, `np-ws-a` |
+| AKSNodeClass (global) | `nc-ubuntu`, `nc-azure-linux` | Pre-installed, not dynamically named |
 
-Names use prefix `np-`/`nc-` followed by the resource name. If exceeding 253 characters, a truncated name with hash suffix is used.
+NodePool names use prefix `np-` followed by the workspace name. If exceeding 253 characters, a truncated name with hash suffix is used.
 
 #### Resource Ownership and Lifecycle
 
-- **InferenceSet path**:
-  - **AKSNodeClass**: Created when the first child Workspace is created. Deleted by InferenceSet finalizer when InferenceSet is deleted.
-  - **NodePool**: One per Workspace. Created when each child Workspace is created. Deleted when the corresponding Workspace is removed (scale-down or InferenceSet deletion).
-- **Standalone Workspace path**: NodePool and AKSNodeClass created when the Workspace is created. Both deleted by Workspace finalizer.
+- **AKSNodeClass**: Pre-installed globally. Never created or deleted by KAITO controllers at runtime.
+- **NodePool**: One per Workspace. Created when the Workspace is created. Deleted when the Workspace is removed (scale-down, standalone deletion, or InferenceSet deletion).
 
-Management labels on NodePool and AKSNodeClass: `karpenter.kaito.sh/managed-by: kaito`.
+Management label on NodePool: `karpenter.kaito.sh/managed-by: kaito`.
 
 #### Handling Existing (Legacy) Workspaces
 
@@ -187,25 +195,37 @@ Management labels on NodePool and AKSNodeClass: `karpenter.kaito.sh/managed-by: 
 
 #### AKSNodeClass Configuration
 
-**Example: Shared AKSNodeClass for InferenceSet `llama-serving`:**
+Two global AKSNodeClasses are pre-installed when KAITO is deployed:
 
 ```yaml
 apiVersion: karpenter.azure.com/v1beta1
 kind: AKSNodeClass
 metadata:
-  name: nc-llama-serving
+  name: nc-ubuntu
   labels:
     karpenter.kaito.sh/managed-by: kaito
 spec:
-  imageFamily: Ubuntu2204
-  osDiskSizeGB: 256
+  imageFamily: Ubuntu
+  osDiskSizeGB: 300
+---
+apiVersion: karpenter.azure.com/v1beta1
+kind: AKSNodeClass
+metadata:
+  name: nc-azure-linux
+  labels:
+    karpenter.kaito.sh/managed-by: kaito
+spec:
+  imageFamily: AzureLinux
+  osDiskSizeGB: 300
 ```
 
-Drift sources: changing `imageFamily` triggers `NodeClassDrift`; AKS K8s version upgrade triggers `K8sVersionDrift`; Azure node image gallery update triggers `ImageDrift`. All drift signals affect **all** NodeClaims across all Workspaces scoped to this AKSNodeClass. This is the desired behavior — all Workspaces in an InferenceSet should drift together.
+These are installed via the KAITO Helm chart or created at KAITO controller startup. They are never created or deleted at runtime.
+
+Drift sources: AKS K8s version upgrade triggers `K8sVersionDrift`; Azure node image gallery update triggers `ImageDrift`. Since all KAITO-managed NodePools reference one of these two global AKSNodeClasses, drift signals affect all KAITO NodeClaims globally. The budget-controlled drift orchestration ensures upgrades are performed one Workspace at a time within each InferenceSet.
 
 #### NodePool Configuration (InferenceSet Workspace)
 
-Each Workspace within an InferenceSet gets its own NodePool, referencing the shared AKSNodeClass. NodePool disruption budget defaults to `nodes: "0"` — drift replacement is **blocked** until KAITO's drift orchestrator enables it.
+Each Workspace within an InferenceSet gets its own NodePool, referencing a global AKSNodeClass. NodePool disruption budget defaults to `nodes: "0"` — drift replacement is **blocked** until KAITO's drift orchestrator enables it.
 
 **Example: NodePool for Workspace `llama-serving-0` (child of InferenceSet `llama-serving`, TargetNodeCount=2):**
 
@@ -226,7 +246,7 @@ spec:
       nodeClassRef:
         group: karpenter.azure.com
         kind: AKSNodeClass
-        name: nc-llama-serving             # Shared AKSNodeClass
+        name: nc-ubuntu                    # Global AKSNodeClass
       requirements:
         - key: "node.kubernetes.io/instance-type"
           operator: In
@@ -251,15 +271,15 @@ Key settings:
 
 | Workspace | NodePool | Replicas | AKSNodeClass |
 |-----------|----------|----------|--------------|
-| `llama-serving-0` | `np-llama-serving-0` | 2 | `nc-llama-serving` (shared) |
-| `llama-serving-1` | `np-llama-serving-1` | 2 | `nc-llama-serving` (shared) |
-| `llama-serving-2` | `np-llama-serving-2` | 2 | `nc-llama-serving` (shared) |
+| `llama-serving-0` | `np-llama-serving-0` | 2 | `nc-ubuntu` (global) |
+| `llama-serving-1` | `np-llama-serving-1` | 2 | `nc-ubuntu` (global) |
+| `llama-serving-2` | `np-llama-serving-2` | 2 | `nc-ubuntu` (global) |
 
 Total NodeClaims: 6 (3 Workspaces × 2 TargetNodeCount).
 
 #### NodePool Configuration (Standalone Workspace)
 
-Standalone Workspaces get both a dedicated NodePool and AKSNodeClass. Drift replacement budget defaults to `nodes: "1"` since there is no InferenceSet-level coordination needed.
+Standalone Workspaces also reference a global AKSNodeClass. Drift replacement budget defaults to `nodes: "1"` since there is no InferenceSet-level coordination needed.
 
 **Example: NodePool for standalone Workspace `my-workspace` (TargetNodeCount=2):**
 
@@ -280,7 +300,7 @@ spec:
       nodeClassRef:
         group: karpenter.azure.com
         kind: AKSNodeClass
-        name: nc-my-workspace              # Dedicated AKSNodeClass
+        name: nc-ubuntu                    # Global AKSNodeClass
       requirements:
         - key: "node.kubernetes.io/instance-type"
           operator: In
@@ -329,7 +349,7 @@ nodePoolReplicas = workspace.Status.TargetNodeCount
 
 ### Drift Orchestration
 
-When drift signals occur (K8s version upgrade, node image update), all NodeClaims referencing the shared AKSNodeClass are marked with the `Drifted` condition. Without coordination, all per-Workspace NodePools would attempt drift replacement simultaneously, potentially disrupting the entire InferenceSet.
+When drift signals occur (K8s version upgrade, node image update), all NodeClaims referencing the global AKSNodeClass are marked with the `Drifted` condition. Since all KAITO NodePools reference the same global AKSNodeClass, drift signals are cluster-wide. Without coordination, all per-Workspace NodePools would attempt drift replacement simultaneously, potentially disrupting all InferenceSets.
 
 KAITO implements an **InferenceSet-level drift orchestrator** that controls the pace of upgrades by toggling NodePool disruption budgets:
 
@@ -366,9 +386,9 @@ Add `karpenter.sh/v1` (NodePool, NodeClaim) and `karpenter.azure.com/v1beta1` (A
 Abstract the provisioner interface with two implementations:
 
 - **gpu-provisioner implementation**: **Only retains cleanup capability** (NodeClaim deletion). No creation logic.
-- **Karpenter implementation**: Responsible for creating AKSNodeClass + NodePool, updating NodePool disruption budget (for drift orchestration), and deleting NodePool + AKSNodeClass.
+- **Karpenter implementation**: Responsible for creating NodePool, updating NodePool disruption budget (for drift orchestration), and deleting NodePool.
 - **All new NodeClaim/Node creation** happens via Karpenter (automatically via NodePool replicas).
-- **Deleting Karpenter resources** (NodePool, AKSNodeClass) uses the Karpenter interface.
+- **AKSNodeClass** is pre-installed globally — not managed by the provisioner interface.
 
 KAITO controller distinguishes management paths by provisioner type annotation on InferenceSet/Workspace (e.g., `kaito.sh/provisioner: karpenter` or `kaito.sh/provisioner: gpu-provisioner`). New resources always use the Karpenter path.
 
@@ -377,17 +397,18 @@ KAITO controller distinguishes management paths by provisioner type annotation o
 ```go
 // NodeProvisioner abstracts node provisioning for a Workspace.
 // Callers pass the Workspace object directly — all internal resources
-// (NodePool, AKSNodeClass, NodeClaim) are managed by the implementation.
-// The implementation derives resource names, labels, taints, disruption
-// budgets, and AKSNodeClass sharing strategy from the Workspace object.
+// (NodePool, NodeClaim) are managed by the implementation.
+// The implementation derives resource names, labels, taints, and disruption
+// budgets from the Workspace object. AKSNodeClass is pre-installed globally
+// and is NOT managed by this interface.
 //
 // Two implementations:
-//   - KarpenterProvisioner: creates AKSNodeClass + NodePool; Karpenter
-//     auto-creates NodeClaims via static provisioning.
+//   - KarpenterProvisioner: creates NodePool referencing global AKSNodeClass;
+//     Karpenter auto-creates NodeClaims via static provisioning.
 //   - GpuProvisioner: legacy cleanup only (deletes old NodeClaims).
 type NodeProvisioner interface {
-    // ProvisionNodes ensures all node resources for the Workspace exist
-    // and are progressing toward Ready.
+    // ProvisionNodes ensures the per-Workspace NodePool exists and is
+    // progressing toward Ready.
     //
     // The implementation reads the following from the Workspace object:
     //   - ws.Name / ws.Namespace
@@ -396,37 +417,21 @@ type NodeProvisioner interface {
     //   - ws.Labels["inferenceset.kaito.sh/created-by"] (InferenceSet name, if any)
     //
     // Karpenter impl:
-    //   1. If InferenceSet Workspace: ensure shared AKSNodeClass
-    //      (nc-<inferenceSet-name>) exists (idempotent create-if-absent).
-    //      If standalone Workspace: ensure dedicated AKSNodeClass
-    //      (nc-<workspace-name>) exists.
-    //   2. Create per-Workspace NodePool (np-<workspace-name>) with
-    //      replicas=TargetNodeCount, appropriate disruption budget
-    //      (nodes="0" for InferenceSet, nodes="1" for standalone),
-    //      labels, taints, and nodeClassRef.
+    //   Create per-Workspace NodePool (np-<workspace-name>) with
+    //   replicas=TargetNodeCount, appropriate disruption budget
+    //   (nodes="0" for InferenceSet, nodes="1" for standalone),
+    //   labels, taints, and nodeClassRef pointing to global AKSNodeClass.
     //   Karpenter's static provisioning controller then creates NodeClaims
     //   automatically.
     //
     // gpu-provisioner impl: returns ErrNotSupported (no new creation).
     ProvisionNodes(ctx context.Context, ws *v1beta1.Workspace) error
 
-    // DeprovisionNodes removes all node resources for the Workspace.
-    //
-    // The implementation reads the following from the Workspace object:
-    //   - ws.Name / ws.Namespace
-    //   - ws.Labels["inferenceset.kaito.sh/created-by"] (InferenceSet name, if any)
+    // DeprovisionNodes removes the per-Workspace NodePool.
     //
     // Karpenter impl:
-    //   1. Delete per-Workspace NodePool (np-<workspace-name>).
-    //      Karpenter cascades: NodeClaim → Node → Azure VM.
-    //   2. Determine whether to also delete the shared AKSNodeClass:
-    //      - Standalone Workspace: always delete AKSNodeClass (nc-<workspace-name>).
-    //      - InferenceSet Workspace: check if the owning InferenceSet is
-    //        being deleted (DeletionTimestamp set) or has already been deleted
-    //        (not found). If so, and this is the last Workspace being cleaned
-    //        up (no other sibling NodePools remain), delete the shared
-    //        AKSNodeClass (nc-<inferenceSet-name>).
-    //        Otherwise, leave the shared AKSNodeClass for remaining siblings.
+    //   Delete per-Workspace NodePool (np-<workspace-name>).
+    //   Karpenter cascades: NodeClaim → Node → Azure VM.
     //
     // gpu-provisioner impl:
     //   Deletes legacy NodeClaims with kaito.sh/workspace label.
@@ -436,16 +441,12 @@ type NodeProvisioner interface {
     // by patching its disruption budget to allow node replacement.
     // Used by the InferenceSet drift orchestrator.
     //
-    // The implementation derives the NodePool name: np-<workspaceName>.
-    //
     // Karpenter impl: patches budget nodes="0" → "1".
     // gpu-provisioner impl: no-op.
     EnableDrift(ctx context.Context, workspaceName string) error
 
     // DisableDrift disables drift replacement for the Workspace's NodePool
     // by patching its disruption budget back to zero.
-    //
-    // The implementation derives the NodePool name: np-<workspaceName>.
     //
     // Karpenter impl: patches budget nodes="1" → "0".
     // gpu-provisioner impl: no-op.
@@ -455,13 +456,43 @@ type NodeProvisioner interface {
 
 #### NodePool Lifecycle Management
 
-- **InferenceSet scenario**: When each child Workspace is created → ensure shared AKSNodeClass exists (`nc-<inferenceSet-name>`, idempotent create-if-absent) + create per-Workspace NodePool (`np-<workspace-name>`).
-- **standalone Workspace scenario**: Workspace creation → create dedicated AKSNodeClass + NodePool.
+- **InferenceSet scenario**: When each child Workspace is created → create per-Workspace NodePool (`np-<workspace-name>`) referencing global AKSNodeClass.
+- **Standalone Workspace scenario**: Workspace creation → create NodePool referencing global AKSNodeClass.
 - InferenceSet scale-up → new Workspaces trigger new NodePool creation.
 - InferenceSet scale-down → removed Workspaces trigger NodePool deletion.
 - InferenceSet/Workspace deletion → see [Deletion Strategy](#deletion-strategy).
 
 **Remove direct Azure Compute API dependency** (in the Karpenter path): Azure VM lifecycle is managed entirely by Karpenter's cloud provider.
+
+#### Legacy NodeClaim GC Controller
+
+A dedicated garbage collection controller handles leaked legacy NodeClaims from the gpu-provisioner era.
+
+**Problem scenario**: A legacy Workspace's node crashes, but the gpu-provisioner NodeClaim is not cleaned up (e.g., gpu-provisioner is no longer running or has a bug). When the Workspace is reconciled by the new KAITO controller, it creates a new NodePool via Azure Karpenter, and Karpenter provisions new NodeClaims. The old gpu-provisioner NodeClaim becomes an orphan — it references `KaitoNodeClass` (which Azure Karpenter ignores), its backing node no longer exists, and no controller is managing it.
+
+**GC Controller behavior**:
+
+```
+Periodically (e.g., every 10 seconds):
+  List all Workspaces that have legacy gpu-provisioner NodeClaims
+    (i.e., Workspaces whose NodeClaims carry kaito.sh/workspace label)
+  For each such Workspace:
+    List Karpenter-managed NodeClaims for this Workspace
+      (label karpenter.kaito.sh/workspace=<workspace-name>)
+    if all Karpenter NodeClaims are Ready:
+      List legacy NodeClaims for this Workspace
+        (label kaito.sh/workspace=<workspace-name>)
+      if any legacy NodeClaims still exist:
+        → Delete these legacy NodeClaims (they have been superseded
+          by Karpenter-managed nodes that are already Ready)
+```
+
+**Key points**:
+- Runs as a **periodic scan** (e.g., every 10 seconds), not event-driven.
+- Scans **legacy Workspaces** (those with gpu-provisioner NodeClaims), not new Karpenter-managed Workspaces.
+- Only deletes a legacy NodeClaim when the replacement Karpenter NodeClaims are **Ready** — ensures the Workspace's workload has a healthy node before removing the old one.
+- Only targets NodeClaims with `kaito.sh/workspace` label (legacy gpu-provisioner NodeClaims). Never touches `karpenter.kaito.sh/*`-labeled NodeClaims.
+- Complements the synchronous cleanup in `DeprovisionNodes()` — the GC controller is a safety net for cases where the Workspace is not being deleted.
 
 ### gpu-provisioner and Azure Karpenter Coexistence
 
@@ -480,8 +511,9 @@ No cross-interference is possible.
 2. Update KAITO controller to use the Karpenter provisioner interface for all new resources.
 3. gpu-provisioner **stops creating new resources** — retained solely for legacy cleanup.
 4. Existing workspaces continue with gpu-provisioner NodeClaims — no disruption.
-5. New InferenceSets and Workspaces use Azure Karpenter exclusively. Scoped NodePool/AKSNodeClass created automatically.
-6. Once all gpu-provisioner NodeClaims are deleted (either naturally or via accelerated migration), gpu-provisioner can be uninstalled.
+5. New InferenceSets and Workspaces use Azure Karpenter exclusively. Per-Workspace NodePool created automatically, referencing global AKSNodeClass.
+6. Legacy NodeClaim GC controller cleans up leaked NodeClaims from gpu-provisioner era.
+7. Once all gpu-provisioner NodeClaims are deleted (either naturally, via GC, or via accelerated migration), gpu-provisioner can be uninstalled.
 
 ### Deletion Strategy
 
@@ -495,24 +527,21 @@ if workspace has legacy gpu-provisioner NodeClaims (kaito.sh/workspace label):
 → delete NodePool (np-<workspace-name>)
     → Karpenter cascades via OwnerReference: NodeClaim → Node → Azure VM
 
-if workspace is standalone (not part of InferenceSet):
-    → also delete AKSNodeClass (nc-<workspace-name>)
+// Global AKSNodeClass is NOT deleted (it is pre-installed and shared)
 ```
 
 **When deleting an InferenceSet:**
 
 ```
-→ clean up all legacy NodeClaims from associated Workspaces (if any)
-→ delete all per-Workspace NodePools (np-<workspace-name> for each child Workspace)
-    → Karpenter cascades via OwnerReference: NodeClaim → Node → Azure VM
-→ delete shared AKSNodeClass (nc-<inferenceSet-name>)
+→ delete all child Workspaces (existing InferenceSet deletion logic)
+    → each Workspace deletion triggers its own cleanup (see above)
 ```
 
 Key points:
-- **Legacy NodeClaims**: KAITO controller directly deletes NodeClaims with `kaito.sh/workspace` label to prevent resource leaks.
+- **Legacy NodeClaims**: KAITO controller directly deletes legacy NodeClaims with `kaito.sh/workspace` label during Workspace deletion. The Legacy NodeClaim GC controller also handles leaked NodeClaims asynchronously.
 - **Per-Workspace NodePool deletion**: Deleting a NodePool cascades cleanup to exactly that Workspace's NodeClaims/Nodes/VMs. No ambiguity about which nodes are removed.
-- **InferenceSet scale-down**: Removing a Workspace deletes its NodePool — clean and deterministic. The shared AKSNodeClass is preserved.
-- **InferenceSet deletion**: All per-Workspace NodePools and the shared AKSNodeClass are deleted.
+- **InferenceSet deletion**: Follows existing logic — deletes all child Workspaces. Each Workspace deletion handles its own NodePool cleanup. No InferenceSet-level NodePool management needed.
+- **AKSNodeClass**: Never deleted at runtime. Global AKSNodeClasses persist across all Workspace lifecycles.
 
 ## Known Issues
 
@@ -546,8 +575,9 @@ Regional nodes would surface as zone `"0"` in Kubernetes, preserving compatibili
 | Concurrent drift replacement across InferenceSet Workspaces | Per-Workspace NodePools default to `budgets.nodes: "0"`; KAITO drift orchestrator toggles one Workspace at a time |
 | Many per-Workspace NodePools in large clusters | Deterministic naming + labels for filtering; garbage collection on owner deletion. NodePool is lightweight (no heavyweight state) |
 | GPU zonal provisioning failures (A100, A10) | Set `karpenter.azure.com/zone-placement=regional` on KAITO NodePools; track Azure Karpenter support for this requirement |
-| Legacy NodeClaim leaks during migration | KAITO controller directly deletes legacy NodeClaims on Workspace/InferenceSet deletion |
+| Legacy NodeClaim leaks during migration | Legacy NodeClaim GC controller detects and cleans up orphaned/superseded NodeClaims |
 | `budgets.nodes: "0"` semantics change upstream | Monitor Karpenter releases; e2e tests for budget behavior; this is a well-documented feature |
+| Drift signals are global (all KAITO NodeClaims affected simultaneously) | Budget-controlled drift orchestration ensures upgrades happen one Workspace at a time per InferenceSet |
 
 ## Alternatives
 
@@ -583,9 +613,12 @@ Regional nodes would surface as zone `"0"` in Kubernetes, preserving compatibili
 3. **Per-Workspace NodePool count**: An InferenceSet with `replicas=N` creates N NodePools. NodePool is a lightweight CRD — Karpenter is designed to handle many NodePools in a cluster.
 4. **`workspace.Status.TargetNodeCount` is immutable**: NodePool `replicas` is set once at creation and never patched. InferenceSet scale-up/down is handled by creating/deleting NodePools, not by patching replicas.
 5. **Drift orchestration is InferenceSet-scoped**: The budget toggle mechanism only applies to NodePools belonging to the same InferenceSet. Standalone Workspace NodePools allow drift replacement by default (`budgets.nodes: "1"`).
+6. **Global AKSNodeClass**: Two pre-installed AKSNodeClasses (`nc-ubuntu`, `nc-azure-linux`) simplify the design — KAITO never creates or deletes AKSNodeClass at runtime. The trade-off is that drift signals are global (not scoped per InferenceSet), but budget-controlled drift orchestration mitigates the blast radius.
+7. **Legacy NodeClaim GC**: The GC controller is a safety net for leaked legacy NodeClaims. It is not on the critical path — normal cleanup happens via `DeprovisionNodes()` during Workspace/InferenceSet deletion.
 
 ## Implementation History
 
 - 2026-04-07: Initial proposal created.
 - 2026-04-09: Revised to v2 — switched from KAITO-managed NodeClaims to Karpenter static provisioning via NodePool replicas; delegated drift handling to Karpenter; simplified gpu-provisioner to cleanup-only role.
 - 2026-04-09: Revised to v3 — per-Workspace NodePool with shared AKSNodeClass for clean scale-down; added InferenceSet-level drift orchestration via budget toggling.
+- 2026-04-10: Revised to v4 — global pre-installed AKSNodeClasses (nc-ubuntu, nc-azure-linux); removed per-scope AKSNodeClass creation/deletion; added Legacy NodeClaim GC controller.

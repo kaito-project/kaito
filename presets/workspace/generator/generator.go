@@ -263,14 +263,25 @@ func (g *Generator) FetchModelMetadata() error {
 
 	var configFile string
 
-	// Logic to detect model format
-	if len(mistralFiles) > 0 {
+	// Logic to detect model format.
+	// Models with consolidated*.safetensors are Mistral-format and need
+	// load_format=mistral for vLLM. However, many also ship a standard
+	// config.json with all metadata fields. We always try config.json first
+	// for metadata extraction and only fall back to params.json when
+	// config.json is absent.
+	hasMistralWeights := len(mistralFiles) > 0
+	if hasMistralWeights {
 		g.LoadFormat = "mistral"
 		g.ConfigFormat = "mistral"
 		g.TokenizerMode = "mistral"
-		configFile = "params.json"
 		selectedFiles = mistralFiles
-	} else if len(selectedFiles) > 0 {
+	}
+
+	if len(selectedFiles) == 0 {
+		return fmt.Errorf("no .safetensors or .bin files found")
+	}
+
+	if !hasMistralWeights {
 		configFile = "config.json"
 
 		// Prefer safetensors if mixed with bin
@@ -292,7 +303,8 @@ func (g *Generator) FetchModelMetadata() error {
 			selectedFiles = onlySafetensors
 		}
 	} else {
-		return fmt.Errorf("no .safetensors or .bin files found")
+		// Mistral-format model: try config.json first, fall back to params.json.
+		configFile = "config.json"
 	}
 
 	var totalBytes int64
@@ -307,12 +319,32 @@ func (g *Generator) FetchModelMetadata() error {
 
 	configURL := fmt.Sprintf("%s/%s/resolve/main/%s", HuggingFaceWebsite, g.ModelRepo, configFile)
 	configBody, err := g.fetchURL(configURL)
+	if err != nil && hasMistralWeights && configFile == "config.json" {
+		// config.json not available; fall back to params.json (Mistral native format).
+		g.LoadFormat = "mistral"
+		g.ConfigFormat = "mistral"
+		g.TokenizerMode = "mistral"
+		configFile = "params.json"
+		configURL = fmt.Sprintf("%s/%s/resolve/main/%s", HuggingFaceWebsite, g.ModelRepo, configFile)
+		configBody, err = g.fetchURL(configURL)
+	}
 	if err != nil {
 		return fmt.Errorf("error fetching config: %v", err)
 	}
 
 	if err := json.Unmarshal(configBody, &g.ModelConfig); err != nil {
 		return fmt.Errorf("error parsing config: %v", err)
+	}
+
+	// For multimodal models (e.g., Gemma-3, Ministral-3), architecture-specific
+	// parameters live under a nested "text_config" object. Merge those fields
+	// into the top-level config so that getInt lookups find them.
+	if textConfig, ok := g.ModelConfig["text_config"].(map[string]interface{}); ok {
+		for k, v := range textConfig {
+			if _, exists := g.ModelConfig[k]; !exists {
+				g.ModelConfig[k] = v
+			}
+		}
 	}
 
 	return nil

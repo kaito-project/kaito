@@ -189,3 +189,113 @@ models:
   numHiddenLayers: 80
   numAttentionHeads: 64
   numKeyValueHeads: 8
+- name: mistralai/Mistral-7B-v0.3
+  description: https://huggingface.co/mistralai/Mistral-7B-v0.3
+  license: apache-2.0
+  modelFileSize: 14Gi
+  architectures:
+  - MistralForCausalLM
+  modelTokenLimit: 32768
+  hiddenSize: 4096
+  numHiddenLayers: 32
+  numAttentionHeads: 32
+  numKeyValueHeads: 8
+  loadFormat: mistral
+  configFormat: mistral
+  tokenizerMode: mistral
+- name: mistralai/Mistral-7B-Instruct-v0.3
+  description: https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3
+  license: apache-2.0
+  baseModel:
+  - mistralai/Mistral-7B-v0.3
+  modelFileSize: 14Gi
+  architectures:
+  - MistralForCausalLM
+  modelTokenLimit: 32768
+  hiddenSize: 4096
+  numHiddenLayers: 32
+  numAttentionHeads: 32
+  numKeyValueHeads: 8
+  loadFormat: mistral
+  configFormat: mistral
+  tokenizerMode: mistral
+- name: mistralai/Ministral-3-3B-Instruct-2512
+  description: https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512
+  license: apache-2.0
+  baseModel:
+  - mistralai/Ministral-3-3B-Base-2512
+  modelFileSize: 5Gi
+  architectures:
+  - Mistral3ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 3072
+  numHiddenLayers: 26
+  numAttentionHeads: 32
+  numKeyValueHeads: 8
+  loadFormat: mistral
+  configFormat: mistral
+  tokenizerMode: mistral
+  headDim: 128
+- name: mistralai/Ministral-3-8B-Instruct-2512
+  description: https://huggingface.co/mistralai/Ministral-3-8B-Instruct-2512
+  license: apache-2.0
+  baseModel:
+  - mistralai/Ministral-3-8B-Base-2512
+  modelFileSize: 10Gi
+  architectures:
+  - Mistral3ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 4096
+  numHiddenLayers: 34
+  numAttentionHeads: 32
+  numKeyValueHeads: 8
+  loadFormat: mistral
+  configFormat: mistral
+  tokenizerMode: mistral
+- name: mistralai/Ministral-3-14B-Instruct-2512
+  description: https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512
+  license: apache-2.0
+  baseModel:
+  - mistralai/Ministral-3-14B-Base-2512
+  modelFileSize: 15Gi
+  architectures:
+  - Mistral3ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 5120
+  numHiddenLayers: 40
+  numAttentionHeads: 32
+  numKeyValueHeads: 8
+  loadFormat: mistral
+  configFormat: mistral
+  tokenizerMode: mistral
+  headDim: 128
+- name: google/gemma-3-4b-it
+  description: https://huggingface.co/google/gemma-3-4b-it
+  license: gemma
+  pipelineTag: image-text-to-text
+  baseModel:
+  - google/gemma-3-4b-pt
+  modelFileSize: 9Gi
+  architectures:
+  - Gemma3ForConditionalGeneration
+  modelTokenLimit: 131072
+  hiddenSize: 2560
+  numHiddenLayers: 34
+  numAttentionHeads: 8
+  numKeyValueHeads: 4
+  headDim: 256
+- name: google/gemma-3-27b-it
+  description: https://huggingface.co/google/gemma-3-27b-it
+  license: gemma
+  pipelineTag: image-text-to-text
+  baseModel:
+  - google/gemma-3-27b-pt
+  modelFileSize: 52Gi
+  architectures:
+  - Gemma3ForConditionalGeneration
+  modelTokenLimit: 131072
+  hiddenSize: 5376
+  numHiddenLayers: 62
+  numAttentionHeads: 32
+  numKeyValueHeads: 16
+  headDim: 128

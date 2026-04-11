@@ -332,6 +332,107 @@ func TestToolCallParserMap(t *testing.T) {
 	}
 }
 
+func TestTextConfigMerging(t *testing.T) {
+	cases := []struct {
+		name           string
+		modelConfig    map[string]interface{}
+		expectedHidden int
+		expectedLayers int
+		expectedHeads  int
+		expectedKV     int
+		expectedToken  int
+	}{
+		{
+			name: "text_config fields merged into top-level",
+			modelConfig: map[string]interface{}{
+				"architectures":           []interface{}{"Gemma3ForConditionalGeneration"},
+				"max_position_embeddings": float64(8192),
+				"text_config": map[string]interface{}{
+					"hidden_size":         float64(2560),
+					"num_hidden_layers":   float64(34),
+					"num_attention_heads": float64(8),
+					"num_key_value_heads": float64(4),
+				},
+			},
+			expectedHidden: 2560,
+			expectedLayers: 34,
+			expectedHeads:  8,
+			expectedKV:     4,
+			expectedToken:  8192,
+		},
+		{
+			name: "top-level values take precedence over text_config",
+			modelConfig: map[string]interface{}{
+				"architectures":           []interface{}{"TestModel"},
+				"max_position_embeddings": float64(4096),
+				"hidden_size":             float64(1024),
+				"text_config": map[string]interface{}{
+					"hidden_size":       float64(2048),
+					"num_hidden_layers": float64(12),
+				},
+			},
+			expectedHidden: 1024, // top-level wins
+			expectedLayers: 12,   // only in text_config
+			expectedHeads:  0,    // absent everywhere
+			expectedKV:     0,    // absent everywhere
+			expectedToken:  4096,
+		},
+		{
+			name: "no text_config present",
+			modelConfig: map[string]interface{}{
+				"architectures":           []interface{}{"PlainModel"},
+				"max_position_embeddings": float64(2048),
+				"hidden_size":             float64(768),
+				"num_hidden_layers":       float64(12),
+				"num_attention_heads":     float64(12),
+				"num_key_value_heads":     float64(4),
+			},
+			expectedHidden: 768,
+			expectedLayers: 12,
+			expectedHeads:  12,
+			expectedKV:     4,
+			expectedToken:  2048,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Apply the same text_config merge logic as FetchModelMetadata
+			config := tc.modelConfig
+			if textConfig, ok := config["text_config"].(map[string]interface{}); ok {
+				for k, v := range textConfig {
+					if _, exists := config[k]; !exists {
+						config[k] = v
+					}
+				}
+			}
+
+			assert.Equal(t, tc.expectedHidden, getInt(config, configKeyMap["hiddenSize"], 0))
+			assert.Equal(t, tc.expectedLayers, getInt(config, configKeyMap["numHiddenLayers"], 0))
+			assert.Equal(t, tc.expectedHeads, getInt(config, configKeyMap["numAttentionHeads"], 0))
+			assert.Equal(t, tc.expectedKV, getInt(config, configKeyMap["numKeyValueHeads"], 0))
+			assert.Equal(t, tc.expectedToken, getInt(config, configKeyMap["modelTokenLimit"], 0))
+		})
+	}
+}
+
+func TestDimConfigKey(t *testing.T) {
+	// The "dim" key was added to configKeyMap["hiddenSize"] for Mistral models
+	// whose params.json uses "dim" instead of "hidden_size".
+	config := map[string]interface{}{
+		"dim":      float64(4096),
+		"n_layers": float64(32),
+	}
+	assert.Equal(t, 4096, getInt(config, configKeyMap["hiddenSize"], 0))
+
+	// "hidden_size" should still take priority over "dim"
+	configWithBoth := map[string]interface{}{
+		"hidden_size": float64(2048),
+		"dim":         float64(4096),
+	}
+	assert.Equal(t, 2048, getInt(configWithBoth, configKeyMap["hiddenSize"], 0))
+}
+
 func TestLoadFromCatalog(t *testing.T) {
 	cases := []struct {
 		modelRepo     string
@@ -375,6 +476,62 @@ func TestLoadFromCatalog(t *testing.T) {
 			},
 		},
 		{
+			modelRepo:   "google/gemma-3-4b-it",
+			expectFound: true,
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "gemma-3-4b-it",
+					Architectures:          []string{"Gemma3ForConditionalGeneration"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "google/gemma-3-4b-it"),
+					DownloadAtRuntime:      true,
+					ModelFileSize:          "9Gi",
+					BytesPerToken:          139264,
+					ModelTokenLimit:        131072,
+					DiskStorageRequirement: "89Gi",
+					ToolCallParser:         "functiongemma",
+				},
+				AttnType: "GQA",
+			},
+		},
+		{
+			modelRepo:   "mistralai/Mistral-7B-v0.3",
+			expectFound: true,
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "mistral-7b-v0.3",
+					Architectures:          []string{"MistralForCausalLM"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-7B-v0.3"),
+					DownloadAtRuntime:      true,
+					ModelFileSize:          "14Gi",
+					BytesPerToken:          131072,
+					ModelTokenLimit:        32768,
+					DiskStorageRequirement: "94Gi",
+					ToolCallParser:         "mistral",
+				},
+				AttnType: "GQA",
+			},
+		},
+		{
+			modelRepo:   "mistralai/Ministral-3-8B-Instruct-2512",
+			expectFound: true,
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "ministral-3-8b-instruct-2512",
+					Architectures:          []string{"Mistral3ForConditionalGeneration"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
+					DownloadAtRuntime:      true,
+					ModelFileSize:          "10Gi",
+					BytesPerToken:          139264,
+					ModelTokenLimit:        262144,
+					DiskStorageRequirement: "90Gi",
+				},
+				AttnType: "GQA",
+			},
+		},
+		{
 			modelRepo:   "some-org/unknown-model",
 			expectFound: false,
 		},
@@ -407,7 +564,62 @@ func TestLoadFromCatalog(t *testing.T) {
 			assert.Equal(t, tc.expectedParam.Metadata.BytesPerToken, gen.Param.Metadata.BytesPerToken)
 			assert.Equal(t, tc.expectedParam.Metadata.ModelTokenLimit, gen.Param.Metadata.ModelTokenLimit)
 			assert.Equal(t, tc.expectedParam.Metadata.DiskStorageRequirement, gen.Param.Metadata.DiskStorageRequirement)
+			assert.Equal(t, tc.expectedParam.Metadata.ToolCallParser, gen.Param.Metadata.ToolCallParser)
 			assert.Equal(t, tc.expectedParam.AttnType, gen.Param.AttnType)
+		})
+	}
+}
+
+func TestLoadFromCatalogMistralFormats(t *testing.T) {
+	catalogData, err := os.ReadFile("../models/model_catalog.yaml")
+	assert.NoError(t, err)
+
+	// Mistral catalog entries should set load_format, config_format, tokenizer_mode
+	// to "mistral" in VLLM.ModelRunParams after FinalizeParams.
+	mistralRepos := []string{
+		"mistralai/Mistral-7B-v0.3",
+		"mistralai/Mistral-7B-Instruct-v0.3",
+		"mistralai/Ministral-3-3B-Instruct-2512",
+		"mistralai/Ministral-3-8B-Instruct-2512",
+		"mistralai/Ministral-3-14B-Instruct-2512",
+	}
+
+	for _, repo := range mistralRepos {
+		t.Run(repo, func(t *testing.T) {
+			gen := NewGenerator(repo, "")
+			gen.CatalogData = catalogData
+			found := gen.loadFromCatalog()
+			assert.True(t, found)
+
+			gen.ParseModelMetadata()
+			gen.FinalizeParams()
+
+			assert.Equal(t, "mistral", gen.Param.VLLM.ModelRunParams["load_format"])
+			assert.Equal(t, "mistral", gen.Param.VLLM.ModelRunParams["config_format"])
+			assert.Equal(t, "mistral", gen.Param.VLLM.ModelRunParams["tokenizer_mode"])
+		})
+	}
+
+	// Non-Mistral catalog entries should have "auto" for all format fields.
+	nonMistralRepos := []string{
+		"google/gemma-3-4b-it",
+		"google/gemma-3-27b-it",
+		"microsoft/Phi-4-mini-instruct",
+	}
+
+	for _, repo := range nonMistralRepos {
+		t.Run(repo, func(t *testing.T) {
+			gen := NewGenerator(repo, "")
+			gen.CatalogData = catalogData
+			found := gen.loadFromCatalog()
+			assert.True(t, found)
+
+			gen.ParseModelMetadata()
+			gen.FinalizeParams()
+
+			assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["load_format"])
+			assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["config_format"])
+			assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["tokenizer_mode"])
 		})
 	}
 }

@@ -127,12 +127,12 @@ var VLLMInferenceParameters = map[string]model.VLLMParam{
 	},
 
 	// Gemma-3 family
-	"gemma-3-4b-instruct": {
+	"gemma-3-4b-it": {
 		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "gemma-3-4b-instruct",
 		ModelRunParams: gemma3RunParamsVLLM,
 	},
-	"gemma-3-27b-instruct": {
+	"gemma-3-27b-it": {
 		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "gemma-3-27b-instruct",
 		ModelRunParams: gemma3RunParamsVLLM,
@@ -167,27 +167,27 @@ var VLLMInferenceParameters = map[string]model.VLLMParam{
 	},
 
 	// Mistral family
-	"mistral-7b": {
+	"mistral-7b-v0.3": {
 		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "mistral-7b",
 		ModelRunParams: mistralRunParamsVLLM,
 	},
-	"mistral-7b-instruct": {
+	"mistral-7b-instruct-v0.3": {
 		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "mistral-7b-instruct",
 		ModelRunParams: mistralRunParamsVLLM,
 	},
-	"ministral-3-3b-instruct": {
+	"ministral-3-3b-instruct-2512": {
 		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "ministral-3-3b-instruct",
 		ModelRunParams: mistral3RunParamsVLLM,
 	},
-	"ministral-3-8b-instruct": {
+	"ministral-3-8b-instruct-2512": {
 		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "ministral-3-8b-instruct",
 		ModelRunParams: mistral3RunParamsVLLM,
 	},
-	"ministral-3-14b-instruct": {
+	"ministral-3-14b-instruct-2512": {
 		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "ministral-3-14b-instruct",
 		ModelRunParams: mistral3RunParamsVLLM,

@@ -43,13 +43,6 @@ var (
 		"tiiuae/falcon-7b-instruct":                    "falcon-7b-instruct",
 		"tiiuae/falcon-40b":                            "falcon-40b",
 		"tiiuae/falcon-40b-instruct":                   "falcon-40b-instruct",
-		"google/gemma-3-4b-it":                         "gemma-3-4b-instruct",
-		"google/gemma-3-27b-it":                        "gemma-3-27b-instruct",
-		"mistralai/mistral-7b-v0.3":                    "mistral-7b",
-		"mistralai/mistral-7b-instruct-v0.3":           "mistral-7b-instruct",
-		"mistralai/ministral-3-3b-instruct-2512":       "ministral-3-3b-instruct",
-		"mistralai/ministral-3-8b-instruct-2512":       "ministral-3-8b-instruct",
-		"mistralai/ministral-3-14b-instruct-2512":      "ministral-3-14b-instruct",
 		"mistralai/mistral-large-3-675b-instruct-2512": "mistral-large-3-675b-instruct",
 	}
 
@@ -72,6 +65,13 @@ var (
 		"qwen2.5-coder-32b-instruct":   "qwen/qwen2.5-coder-32b-instruct",
 		"gpt-oss-20b":                  "openai/gpt-oss-20b",
 		"gpt-oss-120b":                 "openai/gpt-oss-120b",
+		"gemma-3-4b-instruct":          "google/gemma-3-4b-it",
+		"gemma-3-27b-instruct":         "google/gemma-3-27b-it",
+		"mistral-7b":                   "mistralai/mistral-7b-v0.3",
+		"mistral-7b-instruct":          "mistralai/mistral-7b-instruct-v0.3",
+		"ministral-3-3b-instruct":      "mistralai/ministral-3-3b-instruct-2512",
+		"ministral-3-8b-instruct":      "mistralai/ministral-3-8b-instruct-2512",
+		"ministral-3-14b-instruct":     "mistralai/ministral-3-14b-instruct-2512",
 	}
 )
 

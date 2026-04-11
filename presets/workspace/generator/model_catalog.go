@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -54,7 +55,7 @@ type ModelCatalog struct {
 // config keys to try, mirroring the getInt lookup order.
 var configKeyMap = map[string][]string{
 	"modelTokenLimit":   {"max_position_embeddings", "n_ctx", "seq_length", "max_seq_len", "max_sequence_length"},
-	"hiddenSize":        {"hidden_size", "n_embd", "d_model"},
+	"hiddenSize":        {"hidden_size", "n_embd", "d_model", "dim"},
 	"numHiddenLayers":   {"num_hidden_layers", "n_layer", "n_layers"},
 	"numAttentionHeads": {"num_attention_heads", "n_head", "n_heads"},
 	"numKeyValueHeads":  {"num_key_value_heads", "n_head_kv", "n_kv_heads"},
@@ -115,6 +116,21 @@ func fetchModelInfo(g *Generator, repo string) (license, pipelineTag string, bas
 	return license, pipelineTag, baseModel
 }
 
+// catalogOverrides provides hardcoded values for models whose HuggingFace
+// config.json omits fields that are class defaults in the transformers library.
+// Keys are lowercased HuggingFace repo names.
+var catalogOverrides = map[string]CatalogEntry{
+	"google/gemma-3-4b-it": {
+		ModelTokenLimit:   131072,
+		NumAttentionHeads: 8,
+		NumKeyValueHeads:  4,
+		HeadDim:           256,
+	},
+	"google/gemma-3-27b-it": {
+		ModelTokenLimit: 131072,
+	},
+}
+
 // FetchCatalogEntry fetches a CatalogEntry for a model repo from HuggingFace.
 func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 	g := NewGenerator(repo, token)
@@ -170,6 +186,37 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 	}
 	if g.TokenizerMode != "auto" {
 		entry.TokenizerMode = g.TokenizerMode
+	}
+
+	// Apply hardcoded overrides — these always take precedence over HF values.
+	if ovr, ok := catalogOverrides[strings.ToLower(repo)]; ok {
+		if ovr.ModelTokenLimit != 0 {
+			entry.ModelTokenLimit = ovr.ModelTokenLimit
+		}
+		if ovr.NumAttentionHeads != 0 {
+			entry.NumAttentionHeads = ovr.NumAttentionHeads
+		}
+		if ovr.NumKeyValueHeads != 0 {
+			entry.NumKeyValueHeads = ovr.NumKeyValueHeads
+		}
+		if ovr.HeadDim != 0 {
+			entry.HeadDim = ovr.HeadDim
+		}
+		if ovr.HiddenSize != 0 {
+			entry.HiddenSize = ovr.HiddenSize
+		}
+		if ovr.NumHiddenLayers != 0 {
+			entry.NumHiddenLayers = ovr.NumHiddenLayers
+		}
+		if ovr.KVLoraRank != 0 {
+			entry.KVLoraRank = ovr.KVLoraRank
+		}
+		if ovr.QKRopeHeadDim != 0 {
+			entry.QKRopeHeadDim = ovr.QKRopeHeadDim
+		}
+		if len(ovr.Architectures) > 0 {
+			entry.Architectures = ovr.Architectures
+		}
 	}
 
 	return entry, nil

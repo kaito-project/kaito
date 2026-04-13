@@ -236,97 +236,98 @@ type FileInfo struct {
 }
 
 func (g *Generator) FetchModelMetadata() error {
-	// List files using HF API
-	url := fmt.Sprintf("%s/api/models/%s/tree/main?recursive=true", HuggingFaceWebsite, g.ModelRepo)
-	body, err := g.fetchURL(url)
+	files, err := g.listRepoFiles()
 	if err != nil {
-		return fmt.Errorf("error listing files: %v", err)
+		return err
 	}
 
-	var files []FileInfo
-	if err := json.Unmarshal(body, &files); err != nil {
-		return fmt.Errorf("error parsing file list: %v", err)
-	}
-
-	// Filter files
-	var selectedFiles []FileInfo
-	var mistralFiles []FileInfo
-
-	for _, f := range files {
-		if mistralRegex.MatchString(f.Path) {
-			mistralFiles = append(mistralFiles, f)
-		}
-		if safetensorRegex.MatchString(f.Path) || binRegex.MatchString(f.Path) {
-			selectedFiles = append(selectedFiles, f)
-		}
-	}
-
-	var configFile string
-
-	// Logic to detect model format.
-	// Models with consolidated*.safetensors are Mistral-format and need
-	// load_format=mistral for vLLM. However, many also ship a standard
-	// config.json with all metadata fields. We always try config.json first
-	// for metadata extraction and only fall back to params.json when
-	// config.json is absent.
-	hasMistralWeights := len(mistralFiles) > 0
-	if hasMistralWeights {
-		g.LoadFormat = "mistral"
-		g.ConfigFormat = "mistral"
-		g.TokenizerMode = "mistral"
-		selectedFiles = mistralFiles
-	}
-
+	selectedFiles, hasMistralWeights := g.selectWeightFiles(files)
 	if len(selectedFiles) == 0 {
 		return fmt.Errorf("no .safetensors or .bin files found")
 	}
 
-	if !hasMistralWeights {
-		configFile = "config.json"
-
-		// Prefer safetensors if mixed with bin
-		hasSafetensors := false
-		for _, f := range selectedFiles {
-			if strings.HasSuffix(f.Path, ".safetensors") {
-				hasSafetensors = true
-				break
-			}
-		}
-
-		if hasSafetensors {
-			var onlySafetensors []FileInfo
-			for _, f := range selectedFiles {
-				if strings.HasSuffix(f.Path, ".safetensors") {
-					onlySafetensors = append(onlySafetensors, f)
-				}
-			}
-			selectedFiles = onlySafetensors
-		}
-	} else {
-		// Mistral-format model: try config.json first, fall back to params.json.
-		configFile = "config.json"
+	if hasMistralWeights {
+		g.setMistralMode()
 	}
 
-	var totalBytes int64
-	for _, f := range selectedFiles {
-		totalBytes += f.Size
-	}
-
-	modelSizeGiB := float64(totalBytes) / (1024 * 1024 * 1024)
-	g.Param.Metadata.ModelFileSize = fmt.Sprintf("%.2fGi", modelSizeGiB)
-
+	g.Param.Metadata.ModelFileSize = calculateModelFileSize(selectedFiles)
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
-	configURL := fmt.Sprintf("%s/%s/resolve/main/%s", HuggingFaceWebsite, g.ModelRepo, configFile)
-	configBody, err := g.fetchURL(configURL)
-	if err != nil && hasMistralWeights && configFile == "config.json" {
+	if err := g.fetchAndParseConfig(hasMistralWeights); err != nil {
+		return err
+	}
+
+	g.mergeTextConfig()
+	return nil
+}
+
+// listRepoFiles fetches the full file tree for the model repo from HuggingFace.
+func (g *Generator) listRepoFiles() ([]FileInfo, error) {
+	url := fmt.Sprintf("%s/api/models/%s/tree/main?recursive=true", HuggingFaceWebsite, g.ModelRepo)
+	body, err := g.fetchURL(url)
+	if err != nil {
+		return nil, fmt.Errorf("error listing files: %v", err)
+	}
+
+	var files []FileInfo
+	if err := json.Unmarshal(body, &files); err != nil {
+		return nil, fmt.Errorf("error parsing file list: %v", err)
+	}
+	return files, nil
+}
+
+// selectWeightFiles picks the model weight files to use and detects whether
+// the model uses Mistral format. For Mistral-format models (those with
+// consolidated*.safetensors), it sets the load/config/tokenizer modes and
+// returns only the consolidated files. For standard models, it prefers
+// .safetensors over .bin when both are present.
+func (g *Generator) selectWeightFiles(files []FileInfo) (selected []FileInfo, isMistral bool) {
+	var safetensors, bins, mistral []FileInfo
+
+	for _, f := range files {
+		if mistralRegex.MatchString(f.Path) {
+			mistral = append(mistral, f)
+		}
+		if safetensorRegex.MatchString(f.Path) {
+			safetensors = append(safetensors, f)
+		} else if binRegex.MatchString(f.Path) {
+			bins = append(bins, f)
+		}
+	}
+
+	if len(mistral) > 0 {
+		return mistral, true
+	}
+
+	// Prefer safetensors over bin files when both exist.
+	if len(safetensors) > 0 {
+		return safetensors, false
+	}
+	return bins, false
+}
+
+func (g *Generator) setMistralMode() {
+	g.LoadFormat = "mistral"
+	g.ConfigFormat = "mistral"
+	g.TokenizerMode = "mistral"
+}
+
+func calculateModelFileSize(files []FileInfo) string {
+	var totalBytes int64
+	for _, f := range files {
+		totalBytes += f.Size
+	}
+	sizeGiB := float64(totalBytes) / (1024 * 1024 * 1024)
+	return fmt.Sprintf("%.2fGi", sizeGiB)
+}
+
+// fetchAndParseConfig downloads and parses the model's config.json. For
+// Mistral-format models, it falls back to params.json if config.json is absent.
+func (g *Generator) fetchAndParseConfig(hasMistralWeights bool) error {
+	configBody, err := g.fetchConfigFile("config.json")
+	if err != nil && hasMistralWeights {
 		// config.json not available; fall back to params.json (Mistral native format).
-		g.LoadFormat = "mistral"
-		g.ConfigFormat = "mistral"
-		g.TokenizerMode = "mistral"
-		configFile = "params.json"
-		configURL = fmt.Sprintf("%s/%s/resolve/main/%s", HuggingFaceWebsite, g.ModelRepo, configFile)
-		configBody, err = g.fetchURL(configURL)
+		configBody, err = g.fetchConfigFile("params.json")
 	}
 	if err != nil {
 		return fmt.Errorf("error fetching config: %v", err)
@@ -335,19 +336,27 @@ func (g *Generator) FetchModelMetadata() error {
 	if err := json.Unmarshal(configBody, &g.ModelConfig); err != nil {
 		return fmt.Errorf("error parsing config: %v", err)
 	}
+	return nil
+}
 
-	// For multimodal models (e.g., Gemma-3, Ministral-3), architecture-specific
-	// parameters live under a nested "text_config" object. Merge those fields
-	// into the top-level config so that getInt lookups find them.
-	if textConfig, ok := g.ModelConfig["text_config"].(map[string]interface{}); ok {
-		for k, v := range textConfig {
-			if _, exists := g.ModelConfig[k]; !exists {
-				g.ModelConfig[k] = v
-			}
+func (g *Generator) fetchConfigFile(name string) ([]byte, error) {
+	url := fmt.Sprintf("%s/%s/resolve/main/%s", HuggingFaceWebsite, g.ModelRepo, name)
+	return g.fetchURL(url)
+}
+
+// mergeTextConfig promotes fields from a nested "text_config" object into the
+// top-level config. This is needed for multimodal models (e.g., Gemma-3,
+// Ministral-3) where architecture-specific parameters live under text_config.
+func (g *Generator) mergeTextConfig() {
+	textConfig, ok := g.ModelConfig["text_config"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	for k, v := range textConfig {
+		if _, exists := g.ModelConfig[k]; !exists {
+			g.ModelConfig[k] = v
 		}
 	}
-
-	return nil
 }
 
 func getInt(config map[string]interface{}, keys []string, defaultVal int) int {

@@ -27,7 +27,7 @@ models:
   description: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Llama-8B
   license: mit
   pipelineTag: text-generation
-  modelFileSize: 15Gi
+  modelFileSize: 14.96Gi
   architectures:
   - LlamaForCausalLM
   modelTokenLimit: 131072
@@ -39,7 +39,7 @@ models:
   description: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
   license: mit
   pipelineTag: text-generation
-  modelFileSize: 28Gi
+  modelFileSize: 27.51Gi
   architectures:
   - Qwen2ForCausalLM
   modelTokenLimit: 131072
@@ -51,7 +51,7 @@ models:
   description: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct
   license: mit
   pipelineTag: text-generation
-  modelFileSize: 8Gi
+  modelFileSize: 7.12Gi
   architectures:
   - Phi3ForCausalLM
   modelTokenLimit: 4096
@@ -63,7 +63,7 @@ models:
   description: https://huggingface.co/microsoft/Phi-3-mini-128k-instruct
   license: mit
   pipelineTag: text-generation
-  modelFileSize: 8Gi
+  modelFileSize: 7.12Gi
   architectures:
   - Phi3ForCausalLM
   modelTokenLimit: 131072
@@ -75,7 +75,7 @@ models:
   description: https://huggingface.co/microsoft/Phi-3-medium-4k-instruct
   license: mit
   pipelineTag: text-generation
-  modelFileSize: 27Gi
+  modelFileSize: 26.00Gi
   architectures:
   - Phi3ForCausalLM
   modelTokenLimit: 4096
@@ -87,7 +87,7 @@ models:
   description: https://huggingface.co/microsoft/Phi-3-medium-128k-instruct
   license: mit
   pipelineTag: text-generation
-  modelFileSize: 27Gi
+  modelFileSize: 26.00Gi
   architectures:
   - Phi3ForCausalLM
   modelTokenLimit: 131072
@@ -99,7 +99,7 @@ models:
   description: https://huggingface.co/microsoft/Phi-3.5-mini-instruct
   license: mit
   pipelineTag: text-generation
-  modelFileSize: 8Gi
+  modelFileSize: 7.12Gi
   architectures:
   - Phi3ForCausalLM
   modelTokenLimit: 131072
@@ -113,7 +113,7 @@ models:
   pipelineTag: text-generation
   baseModel:
   - Qwen/Qwen2.5-Coder-7B
-  modelFileSize: 15Gi
+  modelFileSize: 14.19Gi
   architectures:
   - Qwen2ForCausalLM
   modelTokenLimit: 32768
@@ -127,7 +127,7 @@ models:
   pipelineTag: text-generation
   baseModel:
   - Qwen/Qwen2.5-Coder-32B
-  modelFileSize: 62Gi
+  modelFileSize: 61.03Gi
   architectures:
   - Qwen2ForCausalLM
   modelTokenLimit: 32768
@@ -139,7 +139,7 @@ models:
   description: https://huggingface.co/openai/gpt-oss-20b
   license: apache-2.0
   pipelineTag: text-generation
-  modelFileSize: 26Gi
+  modelFileSize: 25.63Gi
   architectures:
   - GptOssForCausalLM
   modelTokenLimit: 131072
@@ -152,7 +152,7 @@ models:
   description: https://huggingface.co/openai/gpt-oss-120b
   license: apache-2.0
   pipelineTag: text-generation
-  modelFileSize: 122Gi
+  modelFileSize: 121.54Gi
   architectures:
   - GptOssForCausalLM
   modelTokenLimit: 131072
@@ -167,7 +167,7 @@ models:
   pipelineTag: text-generation
   baseModel:
   - meta-llama/Meta-Llama-3.1-8B
-  modelFileSize: 15Gi
+  modelFileSize: 14.96Gi
   architectures:
   - LlamaForCausalLM
   modelTokenLimit: 131072
@@ -181,7 +181,7 @@ models:
   pipelineTag: text-generation
   baseModel:
   - meta-llama/Llama-3.1-70B
-  modelFileSize: 132Gi
+  modelFileSize: 131.42Gi
   architectures:
   - LlamaForCausalLM
   modelTokenLimit: 131072
@@ -192,7 +192,7 @@ models:
 - name: mistralai/Mistral-7B-v0.3
   description: https://huggingface.co/mistralai/Mistral-7B-v0.3
   license: apache-2.0
-  modelFileSize: 14Gi
+  modelFileSize: 13.50Gi
   architectures:
   - MistralForCausalLM
   modelTokenLimit: 32768
@@ -208,7 +208,7 @@ models:
   license: apache-2.0
   baseModel:
   - mistralai/Mistral-7B-v0.3
-  modelFileSize: 14Gi
+  modelFileSize: 13.50Gi
   architectures:
   - MistralForCausalLM
   modelTokenLimit: 32768
@@ -224,7 +224,7 @@ models:
   license: apache-2.0
   baseModel:
   - mistralai/Ministral-3-3B-Base-2512
-  modelFileSize: 5Gi
+  modelFileSize: 4.35Gi
   architectures:
   - Mistral3ForConditionalGeneration
   modelTokenLimit: 262144
@@ -241,7 +241,7 @@ models:
   license: apache-2.0
   baseModel:
   - mistralai/Ministral-3-8B-Base-2512
-  modelFileSize: 10Gi
+  modelFileSize: 9.70Gi
   architectures:
   - Mistral3ForConditionalGeneration
   modelTokenLimit: 262144
@@ -257,7 +257,7 @@ models:
   license: apache-2.0
   baseModel:
   - mistralai/Ministral-3-14B-Base-2512
-  modelFileSize: 15Gi
+  modelFileSize: 14.65Gi
   architectures:
   - Mistral3ForConditionalGeneration
   modelTokenLimit: 262144
@@ -275,7 +275,7 @@ models:
   pipelineTag: image-text-to-text
   baseModel:
   - google/gemma-3-4b-pt
-  modelFileSize: 9Gi
+  modelFileSize: 8.01Gi
   architectures:
   - Gemma3ForConditionalGeneration
   modelTokenLimit: 131072
@@ -290,7 +290,7 @@ models:
   pipelineTag: image-text-to-text
   baseModel:
   - google/gemma-3-27b-pt
-  modelFileSize: 52Gi
+  modelFileSize: 51.10Gi
   architectures:
   - Gemma3ForConditionalGeneration
   modelTokenLimit: 131072

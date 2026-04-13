@@ -29,27 +29,28 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
 
-// GpuProvisioner wraps the existing gpu-provisioner logic behind the
+// AzureGPUProvisioner wraps the Azure gpu-provisioner
+// (https://github.com/Azure/gpu-provisioner) logic behind the
 // NodesProvisioner interface. It creates NodeClaims directly (the legacy
 // path) and has no drift support.
-type GpuProvisioner struct {
+type AzureGPUProvisioner struct {
 	nodeClaimManager    *resource.NodeClaimManager
 	nodeResourceManager *resource.NodeManager
 }
 
-var _ nodeprovision.NodesProvisioner = (*GpuProvisioner)(nil)
+var _ nodeprovision.NodesProvisioner = (*AzureGPUProvisioner)(nil)
 
-// NewGpuProvisioner creates a GpuProvisioner that delegates to the existing
+// NewAzureGPUProvisioner creates an AzureGPUProvisioner that delegates to the existing
 // NodeClaimManager and NodeManager.
-func NewGpuProvisioner(ncm *resource.NodeClaimManager, nm *resource.NodeManager) *GpuProvisioner {
-	return &GpuProvisioner{
+func NewAzureGPUProvisioner(ncm *resource.NodeClaimManager, nm *resource.NodeManager) *AzureGPUProvisioner {
+	return &AzureGPUProvisioner{
 		nodeClaimManager:    ncm,
 		nodeResourceManager: nm,
 	}
 }
 
-// ProvisionNodes creates NodeClaims via the gpu-provisioner backend.
-func (g *GpuProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
+// ProvisionNodes creates NodeClaims via the Azure gpu-provisioner backend.
+func (g *AzureGPUProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
 	readyNodes, err := resources.GetReadyNodes(ctx, g.nodeClaimManager.Client, ws)
 	if err != nil {
 		return fmt.Errorf("failed to list ready nodes: %w", err)
@@ -69,7 +70,7 @@ func (g *GpuProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Wo
 }
 
 // DeprovisionNodes deletes all NodeClaims associated with the workspace.
-func (g *GpuProvisioner) DeprovisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
+func (g *AzureGPUProvisioner) DeprovisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
 	ncList, err := nodeclaim.ListNodeClaim(ctx, ws, g.nodeClaimManager.Client)
 	if err != nil {
 		return err
@@ -87,13 +88,13 @@ func (g *GpuProvisioner) DeprovisionNodes(ctx context.Context, ws *kaitov1beta1.
 	return nil
 }
 
-// EnableDrift is a no-op for gpu-provisioner (no drift support).
-func (g *GpuProvisioner) EnableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error {
+// EnableDrift is a no-op for Azure gpu-provisioner (no drift support).
+func (g *AzureGPUProvisioner) EnableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error {
 	return nil
 }
 
-// DisableDrift is a no-op for gpu-provisioner (no drift support).
-func (g *GpuProvisioner) DisableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error {
+// DisableDrift is a no-op for Azure gpu-provisioner (no drift support).
+func (g *AzureGPUProvisioner) DisableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error {
 	return nil
 }
 
@@ -101,7 +102,7 @@ func (g *GpuProvisioner) DisableDrift(ctx context.Context, workspaceNamespace, w
 //  1. All expected NodeClaims are in Ready state -> ProvisioningNotReady if not.
 //  2. Enough Nodes with the correct instance type are ready -> NodesNotReady if not.
 //  3. GPU device plugins are installed on provisioned nodes -> NodesNotReady if not.
-func (g *GpuProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (nodeprovision.NodeReadiness, error) {
+func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (nodeprovision.NodeReadiness, error) {
 	// List nodes once and derive both readyNodes (for NodeClaim check) and
 	// readyCount with correct instance type (for node readiness check).
 	nodeList, err := resources.ListNodes(ctx, g.nodeClaimManager.Client, ws.Resource.LabelSelector.MatchLabels)

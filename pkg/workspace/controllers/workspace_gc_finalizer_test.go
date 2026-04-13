@@ -185,7 +185,7 @@ func TestGarbageCollectWorkspace(t *testing.T) {
 				expectations := utils.NewControllerExpectations()
 				ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
 				nm := resource.NewNodeManager(mockClient)
-				reconciler.nodeProvisioner = gpuprovisioner.NewGpuProvisioner(ncm, nm)
+				reconciler.nodeProvisioner = gpuprovisioner.NewAzureGPUProvisioner(ncm, nm)
 			}
 			ctx := context.Background()
 

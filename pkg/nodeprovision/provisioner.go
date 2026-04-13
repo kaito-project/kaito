@@ -45,21 +45,21 @@ const (
 // any other mechanism.
 //
 // Three implementations:
-//   - GpuProvisioner: wraps existing gpu-provisioner logic.
+//   - AzureGPUProvisioner: wraps Azure gpu-provisioner (https://github.com/Azure/gpu-provisioner) logic.
 //   - KarpenterProvisioner (future): creates NodePool with static replicas.
 //   - NopProvisioner: no-op for BYO mode.
 type NodesProvisioner interface {
 	// ProvisionNodes ensures all node resources for the Workspace exist
 	// and are progressing toward Ready.
 	//
-	// GpuProvisioner: creates NodeClaims via gpu-provisioner.
+	// AzureGPUProvisioner: creates NodeClaims via Azure gpu-provisioner.
 	// KarpenterProvisioner (future): creates NodePool with replicas.
 	// NopProvisioner: no-op.
 	ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error
 
 	// DeprovisionNodes removes all node resources for the Workspace.
 	//
-	// GpuProvisioner: deletes NodeClaims.
+	// AzureGPUProvisioner: deletes NodeClaims.
 	// KarpenterProvisioner (future): deletes NodePool (cascades).
 	// NopProvisioner: no-op.
 	DeprovisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error
@@ -78,14 +78,14 @@ type NodesProvisioner interface {
 
 	// EnableDrift enables drift replacement for the Workspace's nodes.
 	//
-	// GpuProvisioner: no-op.
+	// AzureGPUProvisioner: no-op.
 	// KarpenterProvisioner (future): patches NodePool budget nodes="0" → "1".
 	// NopProvisioner: no-op.
 	EnableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error
 
 	// DisableDrift disables drift replacement for the Workspace's nodes.
 	//
-	// GpuProvisioner: no-op.
+	// AzureGPUProvisioner: no-op.
 	// KarpenterProvisioner (future): patches NodePool budget nodes="1" → "0".
 	// NopProvisioner: no-op.
 	DisableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error

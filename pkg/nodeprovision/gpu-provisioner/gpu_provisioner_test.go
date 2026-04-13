@@ -54,38 +54,38 @@ func newTestWorkspace() *kaitov1beta1.Workspace {
 	}
 }
 
-func TestGpuProvisionerImplementsInterface(t *testing.T) {
+func TestAzureGPUProvisionerImplementsInterface(t *testing.T) {
 	mockClient := test.NewClient()
 	expectations := utils.NewControllerExpectations()
 	ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
 	nm := resource.NewNodeManager(mockClient)
 
-	var _ nodeprovision.NodesProvisioner = NewGpuProvisioner(ncm, nm)
+	var _ nodeprovision.NodesProvisioner = NewAzureGPUProvisioner(ncm, nm)
 }
 
-func TestGpuProvisionerEnableDriftIsNoop(t *testing.T) {
+func TestAzureGPUProvisionerEnableDriftIsNoop(t *testing.T) {
 	mockClient := test.NewClient()
 	expectations := utils.NewControllerExpectations()
 	ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
 	nm := resource.NewNodeManager(mockClient)
 
-	p := NewGpuProvisioner(ncm, nm)
+	p := NewAzureGPUProvisioner(ncm, nm)
 	err := p.EnableDrift(context.Background(), "default", "test-workspace")
 	assert.NilError(t, err)
 }
 
-func TestGpuProvisionerDisableDriftIsNoop(t *testing.T) {
+func TestAzureGPUProvisionerDisableDriftIsNoop(t *testing.T) {
 	mockClient := test.NewClient()
 	expectations := utils.NewControllerExpectations()
 	ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
 	nm := resource.NewNodeManager(mockClient)
 
-	p := NewGpuProvisioner(ncm, nm)
+	p := NewAzureGPUProvisioner(ncm, nm)
 	err := p.DisableDrift(context.Background(), "default", "test-workspace")
 	assert.NilError(t, err)
 }
 
-func TestGpuProvisionerDeprovisionNodes(t *testing.T) {
+func TestAzureGPUProvisionerDeprovisionNodes(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
 		expectedError error
@@ -140,7 +140,7 @@ func TestGpuProvisionerDeprovisionNodes(t *testing.T) {
 			expectations := utils.NewControllerExpectations()
 			ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
 			nm := resource.NewNodeManager(mockClient)
-			p := NewGpuProvisioner(ncm, nm)
+			p := NewAzureGPUProvisioner(ncm, nm)
 
 			ws := newTestWorkspace()
 			err := p.DeprovisionNodes(context.Background(), ws)
@@ -153,7 +153,7 @@ func TestGpuProvisionerDeprovisionNodes(t *testing.T) {
 	}
 }
 
-func TestGpuProvisionerEnsureNodesReady(t *testing.T) {
+func TestAzureGPUProvisionerEnsureNodesReady(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks         func(c *test.MockClient)
 		expectedReadiness nodeprovision.NodeReadiness
@@ -202,7 +202,7 @@ func TestGpuProvisionerEnsureNodesReady(t *testing.T) {
 			expectations := utils.NewControllerExpectations()
 			ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
 			nm := resource.NewNodeManager(mockClient)
-			p := NewGpuProvisioner(ncm, nm)
+			p := NewAzureGPUProvisioner(ncm, nm)
 
 			ws := newTestWorkspace()
 			readiness, err := p.EnsureNodesReady(context.Background(), ws)

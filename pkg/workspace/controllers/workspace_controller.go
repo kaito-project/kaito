@@ -99,7 +99,7 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		provisioner = noprovisioner.NewNopProvisioner(client)
 	} else {
-		provisioner = gpuprovisioner.NewGpuProvisioner(ncm, nm)
+		provisioner = gpuprovisioner.NewAzureGPUProvisioner(ncm, nm)
 	}
 
 	return &WorkspaceReconciler{

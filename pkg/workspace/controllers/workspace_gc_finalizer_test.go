@@ -25,8 +25,12 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	gpuprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/gpu-provisioner"
+	noprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/no-provisioner"
+	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
 
 func TestGarbageCollectWorkspace(t *testing.T) {
@@ -170,9 +174,18 @@ func TestGarbageCollectWorkspace(t *testing.T) {
 				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
 			}()
 
+			// Select provisioner based on feature gate (mirrors constructor logic)
 			reconciler := &WorkspaceReconciler{
 				Client: mockClient,
 				Scheme: test.NewTestScheme(),
+			}
+			if tc.disableNodeAutoProvisioning {
+				reconciler.nodeProvisioner = noprovisioner.NewNopProvisioner(mockClient)
+			} else {
+				expectations := utils.NewControllerExpectations()
+				ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
+				nm := resource.NewNodeManager(mockClient)
+				reconciler.nodeProvisioner = gpuprovisioner.NewGpuProvisioner(ncm, nm)
 			}
 			ctx := context.Background()
 

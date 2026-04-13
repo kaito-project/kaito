@@ -19,13 +19,10 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 )
 
@@ -33,25 +30,10 @@ import (
 func (c *WorkspaceReconciler) garbageCollectWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (ctrl.Result, error) {
 	klog.InfoS("garbageCollectWorkspace", "workspace", klog.KObj(wObj))
 
-	// Only clean up NodeClaims when node auto-provisioning is enabled,
-	// since NodeClaim CRDs may not be installed when it's disabled.
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// Check if there are any nodeClaims associated with this workspace.
-		ncList, err := nodeclaim.ListNodeClaim(ctx, wObj, c.Client)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-
-		// We should delete all the nodeClaims that are created by this workspace
-		for i := range ncList.Items {
-			if ncList.Items[i].DeletionTimestamp.IsZero() {
-				klog.InfoS("Deleting associated NodeClaim...", "nodeClaim", ncList.Items[i].Name)
-				if deleteErr := c.Delete(ctx, &ncList.Items[i], &client.DeleteOptions{}); deleteErr != nil {
-					klog.ErrorS(deleteErr, "failed to delete the nodeClaim", "nodeClaim", klog.KObj(&ncList.Items[i]))
-					return ctrl.Result{}, deleteErr
-				}
-			}
-		}
+	// DeprovisionNodes via the NodesProvisioner interface.
+	// GpuProvisioner deletes NodeClaims; NopProvisioner (BYO mode) is a no-op.
+	if err := c.nodeProvisioner.DeprovisionNodes(ctx, wObj); err != nil {
+		return ctrl.Result{}, err
 	}
 
 	updateErr := workspace.UpdateWorkspaceWithRetry(ctx, c.Client, wObj, func(ws *kaitov1beta1.Workspace) error {

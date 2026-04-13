@@ -49,6 +49,9 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/nodeprovision"
+	gpuprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/gpu-provisioner"
+	noprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/no-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
@@ -79,12 +82,26 @@ type WorkspaceReconciler struct {
 	klogger             klog.Logger
 	expectations        *utils.ControllerExpectations
 	Estimator           estimator.NodesEstimator
+	nodeProvisioner     nodeprovision.NodesProvisioner
 	nodeClaimManager    *resource.NodeClaimManager
 	nodeResourceManager *resource.NodeManager
 }
 
 func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder) *WorkspaceReconciler {
 	expectations := utils.NewControllerExpectations()
+	ncm := resource.NewNodeClaimManager(client, Recorder, expectations)
+	nm := resource.NewNodeManager(client)
+
+	// Select provisioner based on the feature gate:
+	// - NAP enabled (default): use GpuProvisioner to create/delete NodeClaims
+	// - NAP disabled (BYO mode): use NopProvisioner (all provisioning ops are no-ops)
+	var provisioner nodeprovision.NodesProvisioner
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		provisioner = noprovisioner.NewNopProvisioner(client)
+	} else {
+		provisioner = gpuprovisioner.NewGpuProvisioner(ncm, nm)
+	}
+
 	return &WorkspaceReconciler{
 		Client:              client,
 		Scheme:              scheme,
@@ -93,8 +110,9 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 		Recorder:            Recorder,
 		expectations:        expectations,
 		Estimator:           &nodesestimator.NodeEstimator{},
-		nodeClaimManager:    resource.NewNodeClaimManager(client, Recorder, expectations),
-		nodeResourceManager: resource.NewNodeManager(client),
+		nodeProvisioner:     provisioner,
+		nodeClaimManager:    ncm,
+		nodeResourceManager: nm,
 	}
 }
 
@@ -158,52 +176,26 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 }
 
 func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
-	nodeList, err := resources.ListNodes(ctx, c.Client, wObj.Resource.LabelSelector.MatchLabels)
+	// Provision nodes via the NodesProvisioner interface.
+	// GpuProvisioner creates NodeClaims; NopProvisioner (BYO mode) is a no-op.
+	if err := c.nodeProvisioner.ProvisionNodes(ctx, wObj); err != nil {
+		return &reconcile.Result{}, err
+	}
+
+	// Check if nodes are ready.
+	// Each provisioner encapsulates its own readiness criteria:
+	// GpuProvisioner: NodeClaims ready + nodes with correct instance type + GPU plugins.
+	// NopProvisioner: enough matching nodes are ready.
+	readiness, err := c.nodeProvisioner.EnsureNodesReady(ctx, wObj)
 	if err != nil {
 		return &reconcile.Result{}, err
 	}
-	matchingNodes := []*corev1.Node{}
-	for i := range nodeList.Items {
-		node := &nodeList.Items[i]
-		matchingNodes = append(matchingNodes, node)
-	}
-
-	readyNodes, err := resources.GetReadyNodes(ctx, c.Client, wObj)
-	if err != nil {
-		return &reconcile.Result{}, fmt.Errorf("failed to list ready nodes: %w", err)
-	}
-
-	existingNodeClaims := []*karpenterv1.NodeClaim{}
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// diff node claims
-		var numNodeClaimsToCreate int
-		var err error
-		numNodeClaimsToCreate, existingNodeClaims, err = c.nodeClaimManager.CheckNodeClaims(ctx, wObj, readyNodes)
-		klog.InfoS("NodeClaims to create", "count", numNodeClaimsToCreate, "workspace", klog.KObj(wObj))
-		if err != nil {
-			return &reconcile.Result{}, err
-		}
-
-		// create nodeclaims
-		if err := c.nodeClaimManager.CreateUpNodeClaims(ctx, wObj, numNodeClaimsToCreate); err != nil {
-			return &reconcile.Result{}, err
-		}
-
-		// check nodeclaims meet the target count
-		if ready, err := c.nodeClaimManager.EnsureNodeClaimsReady(ctx, wObj, readyNodes, existingNodeClaims); err != nil {
-			return &reconcile.Result{}, err
-		} else if !ready {
-			// Not enough ready nodeclaims, requeue and wait for next reconcile.
-			return &reconcile.Result{}, nil
-		}
-	}
-
-	// Check if selected nodes are ready in both NAP and BYO scenarios.
-	ready, err := c.nodeResourceManager.EnsureNodesReady(ctx, wObj, matchingNodes, existingNodeClaims)
-	if err != nil {
-		return &reconcile.Result{}, err
-	} else if !ready {
-		// The node resource changes can not trigger workspace controller reconcile, so we need to requeue reconcile when don't proceed because of node resource not ready.
+	switch readiness {
+	case nodeprovision.NodesReady:
+		// All nodes ready, proceed.
+	case nodeprovision.ProvisioningNotReady:
+		return &reconcile.Result{}, nil
+	case nodeprovision.NodesNotReady:
 		return &reconcile.Result{RequeueAfter: 2 * time.Second}, nil
 	}
 

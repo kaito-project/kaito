@@ -174,7 +174,7 @@ func TestGarbageCollectWorkspace(t *testing.T) {
 				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
 			}()
 
-			// Select provisioner based on feature gate (mirrors constructor logic)
+			// Select provisioner based on feature gate (mirrors factory logic)
 			reconciler := &WorkspaceReconciler{
 				Client: mockClient,
 				Scheme: test.NewTestScheme(),

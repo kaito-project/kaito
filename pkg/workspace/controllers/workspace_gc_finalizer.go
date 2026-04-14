@@ -30,7 +30,7 @@ import (
 func (c *WorkspaceReconciler) garbageCollectWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (ctrl.Result, error) {
 	klog.InfoS("garbageCollectWorkspace", "workspace", klog.KObj(wObj))
 
-	// DeprovisionNodes via the NodesProvisioner interface.
+	// DeprovisionNodes via the NodeProvisioner interface.
 	// GpuProvisioner deletes NodeClaims; NopProvisioner (BYO mode) is a no-op.
 	if err := c.nodeProvisioner.DeprovisionNodes(ctx, wObj); err != nil {
 		return ctrl.Result{}, err

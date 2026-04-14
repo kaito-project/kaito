@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
@@ -31,14 +32,14 @@ import (
 
 // AzureGPUProvisioner wraps the Azure gpu-provisioner
 // (https://github.com/Azure/gpu-provisioner) logic behind the
-// NodesProvisioner interface. It creates NodeClaims directly (the legacy
+// NodeProvisioner interface. It creates NodeClaims directly (the legacy
 // path) and has no drift support.
 type AzureGPUProvisioner struct {
 	nodeClaimManager    *resource.NodeClaimManager
 	nodeResourceManager *resource.NodeManager
 }
 
-var _ nodeprovision.NodesProvisioner = (*AzureGPUProvisioner)(nil)
+var _ nodeprovision.NodeProvisioner = (*AzureGPUProvisioner)(nil)
 
 // NewAzureGPUProvisioner creates an AzureGPUProvisioner that delegates to the existing
 // NodeClaimManager and NodeManager.
@@ -48,6 +49,9 @@ func NewAzureGPUProvisioner(ncm *resource.NodeClaimManager, nm *resource.NodeMan
 		nodeResourceManager: nm,
 	}
 }
+
+// Name returns the provisioner name.
+func (g *AzureGPUProvisioner) Name() string { return "AzureGPUProvisioner" }
 
 // ProvisionNodes creates NodeClaims via the Azure gpu-provisioner backend.
 func (g *AzureGPUProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
@@ -160,4 +164,91 @@ func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1b
 	}
 
 	return nodeprovision.NodesReady, nil
+}
+
+// CollectNodeStatusInfo gathers status conditions for workspace status.
+func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1beta1.Workspace) ([]metav1.Condition, error) {
+	nodeCond := metav1.Condition{
+		Type: string(kaitov1beta1.ConditionTypeNodeStatus), Status: metav1.ConditionFalse,
+		Reason: "NodeNotReady", Message: "Not enough Nodes are ready",
+	}
+	nodeClaimCond := metav1.Condition{
+		Type: string(kaitov1beta1.ConditionTypeNodeClaimStatus), Status: metav1.ConditionFalse,
+		Reason: "NodeClaimNotReady", Message: "Ready NodeClaims are not enough",
+	}
+	resourceCond := metav1.Condition{
+		Type: string(kaitov1beta1.ConditionTypeResourceStatus), Status: metav1.ConditionFalse,
+		Reason: "workspaceResourceStatusNotReady", Message: "node claim or node status condition not ready",
+	}
+
+	nodeList, err := resources.ListNodes(ctx, g.nodeClaimManager.Client, ws.Resource.LabelSelector.MatchLabels)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list nodes: %w", err)
+	}
+	var readyNodes []*corev1.Node
+	readyWithInstanceType := 0
+	for i := range nodeList.Items {
+		node := &nodeList.Items[i]
+		if resources.NodeIsReadyAndNotDeleting(node) {
+			readyNodes = append(readyNodes, node)
+			if it, ok := node.Labels[corev1.LabelInstanceTypeStable]; ok && it == ws.Resource.InstanceType {
+				readyWithInstanceType++
+			}
+		}
+	}
+
+	// NodeClaim readiness.
+	ncList, err := nodeclaim.ListNodeClaim(ctx, ws, g.nodeClaimManager.Client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list NodeClaims: %w", err)
+	}
+	existingNodeClaims := make([]*karpenterv1.NodeClaim, 0, len(ncList.Items))
+	for i := range ncList.Items {
+		existingNodeClaims = append(existingNodeClaims, &ncList.Items[i])
+	}
+	targetNodeClaimCount := g.nodeClaimManager.GetNumNodeClaimsNeeded(ctx, ws, readyNodes)
+	readyNodeClaimCount := 0
+	for _, claim := range existingNodeClaims {
+		if nodeclaim.IsNodeClaimReadyNotDeleting(claim) {
+			readyNodeClaimCount++
+		}
+	}
+	if readyNodeClaimCount >= targetNodeClaimCount {
+		nodeClaimCond.Status = metav1.ConditionTrue
+		nodeClaimCond.Reason = "NodeClaimsReady"
+		nodeClaimCond.Message = "Enough NodeClaims are ready"
+	}
+
+	// Node readiness.
+	targetNodeCount := int(ws.Status.TargetNodeCount)
+	if readyWithInstanceType >= targetNodeCount {
+		nodeCond.Status = metav1.ConditionTrue
+		nodeCond.Reason = "NodesReady"
+		nodeCond.Message = "Enough Nodes are ready"
+		pluginReady, pluginErr := g.nodeResourceManager.CheckIfNodePluginsReady(ctx, ws, existingNodeClaims)
+		if pluginErr != nil {
+			nodeCond.Status = metav1.ConditionFalse
+			nodeCond.Reason = "NodePluginsNotReady"
+			nodeCond.Message = pluginErr.Error()
+		} else if !pluginReady {
+			nodeCond.Status = metav1.ConditionFalse
+			nodeCond.Reason = "NodePluginsNotReady"
+			nodeCond.Message = "waiting all node plugins to be ready"
+		}
+	}
+
+	// Derive resource condition.
+	if nodeCond.Status == metav1.ConditionTrue && nodeClaimCond.Status == metav1.ConditionTrue {
+		resourceCond.Status = metav1.ConditionTrue
+		resourceCond.Reason = "workspaceResourceStatusSuccess"
+		resourceCond.Message = "workspace resource is ready"
+	} else if nodeClaimCond.Status != metav1.ConditionTrue {
+		resourceCond.Reason = nodeClaimCond.Reason
+		resourceCond.Message = nodeClaimCond.Message
+	} else {
+		resourceCond.Reason = nodeCond.Reason
+		resourceCond.Message = nodeCond.Message
+	}
+
+	return []metav1.Condition{nodeCond, nodeClaimCond, resourceCond}, nil
 }

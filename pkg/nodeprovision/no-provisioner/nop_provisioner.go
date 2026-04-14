@@ -16,6 +16,7 @@ package noprovisioner
 import (
 	"context"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -24,7 +25,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
 
-// NopProvisioner is a no-op NodesProvisioner for BYO (Bring Your Own) node
+// NopProvisioner is a no-op NodeProvisioner for BYO (Bring Your Own) node
 // scenarios where node auto-provisioning is disabled. ProvisionNodes and
 // DeprovisionNodes are no-ops. EnsureNodesReady only checks that enough
 // matching Nodes are ready (no instance type validation, no GPU plugin checks).
@@ -32,11 +33,14 @@ type NopProvisioner struct {
 	client client.Client
 }
 
-var _ nodeprovision.NodesProvisioner = (*NopProvisioner)(nil)
+var _ nodeprovision.NodeProvisioner = (*NopProvisioner)(nil)
 
 func NewNopProvisioner(c client.Client) *NopProvisioner {
 	return &NopProvisioner{client: c}
 }
+
+// Name returns the provisioner name.
+func (n *NopProvisioner) Name() string { return "NopProvisioner" }
 
 func (n *NopProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
 	return nil
@@ -84,4 +88,43 @@ func (n *NopProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.
 		"workspace", client.ObjectKeyFromObject(ws).String(),
 		"targetNodes", targetNodeCount, "currentReadyNodes", readyCount)
 	return nodeprovision.NodesNotReady, nil
+}
+
+// CollectNodeStatusInfo gathers status conditions for workspace status.
+// In BYO mode, no NodeClaimStatus condition is returned.
+func (n *NopProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1beta1.Workspace) ([]metav1.Condition, error) {
+	nodeCond := metav1.Condition{
+		Type: string(kaitov1beta1.ConditionTypeNodeStatus), Status: metav1.ConditionFalse,
+		Reason: "NodeNotReady", Message: "Not enough Nodes are ready",
+	}
+	resourceCond := metav1.Condition{
+		Type: string(kaitov1beta1.ConditionTypeResourceStatus), Status: metav1.ConditionFalse,
+		Reason: "workspaceResourceStatusNotReady", Message: "node status condition not ready",
+	}
+
+	var matchLabels client.MatchingLabels
+	if ws.Resource.LabelSelector != nil {
+		matchLabels = ws.Resource.LabelSelector.MatchLabels
+	}
+	nodeList, err := resources.ListNodes(ctx, n.client, matchLabels)
+	if err != nil {
+		return nil, err
+	}
+	readyCount := 0
+	for i := range nodeList.Items {
+		if resources.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
+			readyCount++
+		}
+	}
+	if readyCount >= int(ws.Status.TargetNodeCount) {
+		nodeCond.Status = metav1.ConditionTrue
+		nodeCond.Reason = "NodesReady"
+		nodeCond.Message = "Enough Nodes are ready"
+		resourceCond.Status = metav1.ConditionTrue
+		resourceCond.Reason = "workspaceResourceStatusSuccess"
+		resourceCond.Message = "workspace resource is ready"
+	}
+
+	// BYO mode: no NodeClaimStatus condition.
+	return []metav1.Condition{nodeCond, resourceCond}, nil
 }

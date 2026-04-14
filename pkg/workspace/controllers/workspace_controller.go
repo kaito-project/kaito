@@ -50,8 +50,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
-	gpuprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/gpu-provisioner"
-	noprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/no-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
@@ -62,7 +60,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
-	"github.com/kaito-project/kaito/pkg/workspace/resource"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -79,45 +76,25 @@ type WorkspaceReconciler struct {
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 
-	klogger             klog.Logger
-	expectations        *utils.ControllerExpectations
-	Estimator           estimator.NodesEstimator
-	nodeProvisioner     nodeprovision.NodesProvisioner
-	nodeClaimManager    *resource.NodeClaimManager
-	nodeResourceManager *resource.NodeManager
+	klogger         klog.Logger
+	expectations    *utils.ControllerExpectations
+	Estimator       estimator.NodesEstimator
+	nodeProvisioner nodeprovision.NodeProvisioner
 }
 
-func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder) *WorkspaceReconciler {
+func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder, provisioner nodeprovision.NodeProvisioner) *WorkspaceReconciler {
 	expectations := utils.NewControllerExpectations()
-	ncm := resource.NewNodeClaimManager(client, Recorder, expectations)
-	nm := resource.NewNodeManager(client)
-
-	// Select provisioner based on the feature gate:
-	// - NAP enabled (default): use GpuProvisioner to create/delete NodeClaims
-	// - NAP disabled (BYO mode): use NopProvisioner (all provisioning ops are no-ops)
-	var provisioner nodeprovision.NodesProvisioner
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		provisioner = noprovisioner.NewNopProvisioner(client)
-	} else {
-		provisioner = gpuprovisioner.NewAzureGPUProvisioner(ncm, nm)
-	}
 
 	return &WorkspaceReconciler{
-		Client:              client,
-		Scheme:              scheme,
-		Log:                 log,
-		klogger:             klog.NewKlogr().WithName("WorkspaceController"),
-		Recorder:            Recorder,
-		expectations:        expectations,
-		Estimator:           &nodesestimator.NodeEstimator{},
-		nodeProvisioner:     provisioner,
-		nodeClaimManager:    ncm,
-		nodeResourceManager: nm,
+		Client:          client,
+		Scheme:          scheme,
+		Log:             log,
+		klogger:         klog.NewKlogr().WithName("WorkspaceController"),
+		Recorder:        Recorder,
+		expectations:    expectations,
+		Estimator:       &nodesestimator.NodeEstimator{},
+		nodeProvisioner: provisioner,
 	}
-}
-
-func (c *WorkspaceReconciler) SetDefaultNodeImageFamily(defaultNodeImageFamily string) {
-	c.nodeClaimManager.SetDefaultNodeImageFamily(defaultNodeImageFamily)
 }
 
 func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (result reconcile.Result, err error) {
@@ -176,7 +153,7 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 }
 
 func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
-	// Provision nodes via the NodesProvisioner interface.
+	// Provision nodes via the NodeProvisioner interface.
 	// GpuProvisioner creates NodeClaims; NopProvisioner (BYO mode) is a no-op.
 	if err := c.nodeProvisioner.ProvisionNodes(ctx, wObj); err != nil {
 		return &reconcile.Result{}, err
@@ -538,16 +515,28 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		}
 
 		status.WorkerNodes = nodeSnapshot.workerNodeNames
-		setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
-			kaitov1beta1.ConditionTypeNodeStatus, nodeSnapshot.nodeConditionStatus, nodeSnapshot.nodeConditionReason, nodeSnapshot.nodeConditionMessage)
-		if nodeSnapshot.nodeClaimRequired {
-			setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
-				kaitov1beta1.ConditionTypeNodeClaimStatus, nodeSnapshot.nodeClaimConditionStatus, nodeSnapshot.nodeClaimConditionReason, nodeSnapshot.nodeClaimConditionMessage)
-		} else {
-			meta.RemoveStatusCondition(&status.Conditions, string(kaitov1beta1.ConditionTypeNodeClaimStatus))
+
+		// Merge node conditions from provisioner: set returned conditions,
+		// remove any known node condition type that was not returned.
+		returnedTypes := make(map[string]struct{}, len(nodeSnapshot.conditions))
+		for i := range nodeSnapshot.conditions {
+			cond := nodeSnapshot.conditions[i]
+			returnedTypes[cond.Type] = struct{}{}
+			cond.Message = appendReconcileErrMessage(cond.Message)
+			cond.ObservedGeneration = wObj.GetGeneration()
+			meta.SetStatusCondition(&status.Conditions, cond)
 		}
-		setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
-			kaitov1beta1.ConditionTypeResourceStatus, nodeSnapshot.resourceConditionStatus, nodeSnapshot.resourceConditionReason, nodeSnapshot.resourceConditionMessage)
+		for _, t := range nodeConditionTypes {
+			if _, ok := returnedTypes[t]; !ok {
+				meta.RemoveStatusCondition(&status.Conditions, t)
+			}
+		}
+
+		// Extract ResourceStatus condition status for downstream use.
+		resourceConditionStatus := metav1.ConditionFalse
+		if rc := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus)); rc != nil {
+			resourceConditionStatus = rc.Status
+		}
 
 		if wObj.Tuning != nil {
 			applyTuningWorkspaceStatus(status, wObj.GetGeneration(), appendReconcileErrMessage, tuningSnapshot)
@@ -555,7 +544,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		}
 
 		if wObj.Inference != nil {
-			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, nodeSnapshot.resourceConditionStatus)
+			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, resourceConditionStatus)
 			return nil
 		}
 
@@ -564,128 +553,42 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 }
 
 type nodeStatusSnapshot struct {
-	workerNodeNames           []string
-	existingNodeClaims        []*karpenterv1.NodeClaim
-	nodeClaimRequired         bool
-	nodeConditionStatus       metav1.ConditionStatus
-	nodeConditionReason       string
-	nodeConditionMessage      string
-	nodeClaimConditionStatus  metav1.ConditionStatus
-	nodeClaimConditionReason  string
-	nodeClaimConditionMessage string
-	resourceConditionStatus   metav1.ConditionStatus
-	resourceConditionReason   string
-	resourceConditionMessage  string
+	workerNodeNames []string
+	conditions      []metav1.Condition
+}
+
+// nodeConditionTypes is the complete set of node-related condition types
+// managed by NodeProvisioner. Conditions returned by CollectNodeStatusInfo
+// are set; any type in this set not returned is removed from status.
+var nodeConditionTypes = []string{
+	string(kaitov1beta1.ConditionTypeNodeStatus),
+	string(kaitov1beta1.ConditionTypeNodeClaimStatus),
+	string(kaitov1beta1.ConditionTypeResourceStatus),
 }
 
 func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wObj *kaitov1beta1.Workspace) (*nodeStatusSnapshot, error) {
-	targetNodeCount := int(wObj.Status.TargetNodeCount)
 	snapshot := &nodeStatusSnapshot{
-		workerNodeNames:           []string{},
-		existingNodeClaims:        []*karpenterv1.NodeClaim{},
-		nodeClaimRequired:         !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning],
-		nodeConditionStatus:       metav1.ConditionFalse,
-		nodeConditionReason:       "NodeNotReady",
-		nodeConditionMessage:      "Not enough Nodes are ready",
-		nodeClaimConditionStatus:  metav1.ConditionFalse,
-		nodeClaimConditionReason:  "NodeClaimNotReady",
-		nodeClaimConditionMessage: "Ready NodeClaims are not enough",
-		resourceConditionStatus:   metav1.ConditionFalse,
-		resourceConditionReason:   "workspaceResourceStatusNotReady",
-		resourceConditionMessage:  "node claim or node status condition not ready",
+		workerNodeNames: []string{},
 	}
 
-	nodeReadyCount := 0
-	readyNodes := []*corev1.Node{}
-
+	// Collect worker node names for status.
 	var matchLabels client.MatchingLabels
 	if wObj.Resource.LabelSelector != nil {
 		matchLabels = wObj.Resource.LabelSelector.MatchLabels
 	}
-
 	nodeList, err := resources.ListNodes(ctx, c.Client, matchLabels)
 	if err != nil {
 		return nil, err
 	}
 	for i := range nodeList.Items {
-		node := &nodeList.Items[i]
-		snapshot.workerNodeNames = append(snapshot.workerNodeNames, node.Name)
-		if resources.NodeIsReadyAndNotDeleting(node) {
-			readyNodes = append(readyNodes, node)
-			if !snapshot.nodeClaimRequired {
-				nodeReadyCount++
-				continue
-			}
-			instanceType, ok := node.Labels[corev1.LabelInstanceTypeStable]
-			if ok && instanceType == wObj.Resource.InstanceType {
-				nodeReadyCount++
-			}
-		}
+		snapshot.workerNodeNames = append(snapshot.workerNodeNames, nodeList.Items[i].Name)
 	}
 	sort.Strings(snapshot.workerNodeNames)
 
-	if snapshot.nodeClaimRequired {
-		ncList, err := nodeclaim.ListNodeClaim(ctx, wObj, c.Client)
-		if err != nil {
-			return nil, fmt.Errorf("failed to list node claims: %w", err)
-		}
-		for i := range ncList.Items {
-			snapshot.existingNodeClaims = append(snapshot.existingNodeClaims, &ncList.Items[i])
-		}
-
-		targetNodeClaimCount := c.nodeClaimManager.GetNumNodeClaimsNeeded(ctx, wObj, readyNodes)
-		readyNodeClaimCount := 0
-		for _, claim := range snapshot.existingNodeClaims {
-			if nodeclaim.IsNodeClaimReadyNotDeleting(claim) {
-				readyNodeClaimCount++
-			}
-		}
-
-		if readyNodeClaimCount >= targetNodeClaimCount {
-			snapshot.nodeClaimConditionStatus = metav1.ConditionTrue
-			snapshot.nodeClaimConditionReason = "NodeClaimsReady"
-			snapshot.nodeClaimConditionMessage = "Enough NodeClaims are ready"
-		} else {
-			snapshot.nodeClaimConditionStatus = metav1.ConditionFalse
-			snapshot.nodeClaimConditionReason = "NodeClaimNotReady"
-			snapshot.nodeClaimConditionMessage = "Ready NodeClaims are not enough"
-		}
-	}
-
-	if nodeReadyCount >= targetNodeCount {
-		snapshot.nodeConditionStatus = metav1.ConditionTrue
-		snapshot.nodeConditionReason = "NodesReady"
-		snapshot.nodeConditionMessage = "Enough Nodes are ready"
-		if snapshot.nodeClaimRequired {
-			pluginReady, pluginErr := c.nodeResourceManager.CheckIfNodePluginsReady(ctx, wObj, snapshot.existingNodeClaims)
-			if pluginErr != nil {
-				snapshot.nodeConditionStatus = metav1.ConditionFalse
-				snapshot.nodeConditionReason = "NodePluginsNotReady"
-				snapshot.nodeConditionMessage = pluginErr.Error()
-			} else if !pluginReady {
-				snapshot.nodeConditionStatus = metav1.ConditionFalse
-				snapshot.nodeConditionReason = "NodePluginsNotReady"
-				snapshot.nodeConditionMessage = "waiting all node plugins to be ready"
-			}
-		}
-	} else {
-		snapshot.nodeConditionStatus = metav1.ConditionFalse
-		snapshot.nodeConditionReason = "NodeNotReady"
-		snapshot.nodeConditionMessage = "Not enough Nodes are ready"
-	}
-
-	if snapshot.nodeConditionStatus == metav1.ConditionTrue && (!snapshot.nodeClaimRequired || snapshot.nodeClaimConditionStatus == metav1.ConditionTrue) {
-		snapshot.resourceConditionStatus = metav1.ConditionTrue
-		snapshot.resourceConditionReason = "workspaceResourceStatusSuccess"
-		snapshot.resourceConditionMessage = "workspace resource is ready"
-	} else if snapshot.nodeClaimRequired && snapshot.nodeClaimConditionStatus != metav1.ConditionTrue {
-		snapshot.resourceConditionStatus = metav1.ConditionFalse
-		snapshot.resourceConditionReason = snapshot.nodeClaimConditionReason
-		snapshot.resourceConditionMessage = snapshot.nodeClaimConditionMessage
-	} else {
-		snapshot.resourceConditionStatus = metav1.ConditionFalse
-		snapshot.resourceConditionReason = snapshot.nodeConditionReason
-		snapshot.resourceConditionMessage = snapshot.nodeConditionMessage
+	// Delegate status condition collection to the NodeProvisioner.
+	snapshot.conditions, err = c.nodeProvisioner.CollectNodeStatusInfo(ctx, wObj)
+	if err != nil {
+		return nil, err
 	}
 
 	return snapshot, nil

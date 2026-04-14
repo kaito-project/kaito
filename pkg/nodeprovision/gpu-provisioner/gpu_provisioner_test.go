@@ -60,7 +60,7 @@ func TestAzureGPUProvisionerImplementsInterface(t *testing.T) {
 	ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
 	nm := resource.NewNodeManager(mockClient)
 
-	var _ nodeprovision.NodesProvisioner = NewAzureGPUProvisioner(ncm, nm)
+	var _ nodeprovision.NodeProvisioner = NewAzureGPUProvisioner(ncm, nm)
 }
 
 func TestAzureGPUProvisionerEnableDriftIsNoop(t *testing.T) {

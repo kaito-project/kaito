@@ -16,6 +16,8 @@ package nodeprovision
 import (
 	"context"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
@@ -37,7 +39,7 @@ const (
 	NodesNotReady
 )
 
-// NodesProvisioner abstracts node provisioning for a Workspace.
+// NodeProvisioner abstracts node provisioning for a Workspace.
 // Callers pass the Workspace object directly — all internal resources
 // (NodePool, NodeClaim, AKSNodeClass) are managed by the implementation.
 // The caller only needs to call ProvisionNodes and EnsureNodesReady,
@@ -48,7 +50,10 @@ const (
 //   - AzureGPUProvisioner: wraps Azure gpu-provisioner (https://github.com/Azure/gpu-provisioner) logic.
 //   - KarpenterProvisioner (future): creates NodePool with static replicas.
 //   - NopProvisioner: no-op for BYO mode.
-type NodesProvisioner interface {
+type NodeProvisioner interface {
+	// Name returns the name of this provisioner implementation.
+	Name() string
+
 	// ProvisionNodes ensures all node resources for the Workspace exist
 	// and are progressing toward Ready.
 	//
@@ -89,4 +94,11 @@ type NodesProvisioner interface {
 	// KarpenterProvisioner (future): patches NodePool budget nodes="1" → "0".
 	// NopProvisioner: no-op.
 	DisableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error
+
+	// CollectNodeStatusInfo gathers node-related status conditions for the
+	// Workspace. Each provisioner returns only the condition types it manages
+	// (e.g., NodeStatus, NodeClaimStatus, ResourceStatus). The controller
+	// merges these into the workspace status and removes any known node
+	// condition types that are absent from the returned slice.
+	CollectNodeStatusInfo(ctx context.Context, ws *kaitov1beta1.Workspace) ([]metav1.Condition, error)
 }

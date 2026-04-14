@@ -40,6 +40,7 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
+	noprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/no-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -1100,7 +1101,8 @@ func TestSyncWorkspaceStatus(t *testing.T) {
 			}
 
 			mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil).Twice()
-			mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil).Once()
+			// collectNodeStatusSnapshot calls ListNodes once, then CollectNodeStatusInfo calls ListNodes again.
+			mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil).Twice()
 
 			if ws.Inference != nil {
 				if tc.statefulSetNotFound {
@@ -1125,7 +1127,7 @@ func TestSyncWorkspaceStatus(t *testing.T) {
 				synced = args.Get(1).(*v1beta1.Workspace).DeepCopy()
 			}).Return(nil).Once()
 
-			reconciler := &WorkspaceReconciler{Client: mockClient}
+			reconciler := &WorkspaceReconciler{Client: mockClient, nodeProvisioner: noprovisioner.NewNopProvisioner(mockClient)}
 			err := reconciler.syncWorkspaceStatus(context.Background(), types.NamespacedName{Name: ws.Name, Namespace: ws.Namespace}, tc.reconcileErr)
 			assert.NoError(t, err)
 			if assert.NotNil(t, synced) {

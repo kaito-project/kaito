@@ -19,6 +19,7 @@ import os
 import time
 import uuid
 from abc import ABC, abstractmethod
+from collections.abc import AsyncGenerator
 from itertools import islice
 from typing import Any
 
@@ -474,6 +475,232 @@ class BaseVectorStore(ABC):
             logger.error(f"Error during chat completion: {str(e)}")
             raise HTTPException(
                 status_code=500, detail=f"Chat completion failed: {str(e)}"
+            )
+
+    async def chat_completion_stream(
+        self, request: dict
+    ) -> AsyncGenerator[dict[str, Any], None]:
+        if (
+            request.get("index_name")
+            and request.get("index_name") not in self.index_map
+        ):
+            raise HTTPException(
+                status_code=404,
+                detail=f"No such index: '{request.get('index_name')}' exists.",
+            )
+
+        if request.get("context_token_ratio") and (
+            request.get("context_token_ratio") < 0.2
+            or request.get("context_token_ratio") > 0.8
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid context_token_ratio: {request.get('context_token_ratio')}. Must be between 0.2 and 0.8.",
+            )
+
+        llm_params = {}
+        if request.get("model") is not None:
+            llm_params["model"] = request.get("model")
+        if request.get("temperature") is not None:
+            llm_params["temperature"] = request.get("temperature")
+        if request.get("top_p") is not None:
+            llm_params["top_p"] = request.get("top_p")
+        if request.get("max_tokens") is not None:
+            llm_params["max_tokens"] = request.get("max_tokens")
+
+        logger.info("converting streaming request to OpenAI format")
+        openai_request = None
+        last_error = None
+        for model_cls in CompletionCreateParams.__args__:
+            try:
+                openai_request = model_cls(**request)
+                break
+            except ValidationError as e:
+                last_error = e
+
+        if openai_request is None:
+            logger.error(f"Invalid request format: {str(last_error)}")
+            raise HTTPException(
+                status_code=400, detail=f"Invalid request format: {str(last_error)}"
+            )
+
+        if not request.get("index_name"):
+            logger.info(
+                "Streaming request does not specify an index, passing through to LLM directly."
+            )
+            return await self.llm.chat_completions_stream_passthrough(openai_request)
+
+        if request.get("tools") or request.get("functions"):
+            logger.info(
+                "Streaming request contains tools or functions, passing through to LLM directly."
+            )
+            return await self.llm.chat_completions_stream_passthrough(openai_request)
+
+        for message in request.get("messages", []):
+            if not message.get("role"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid request format: messages must contain 'role'.",
+                )
+
+            if message.get("role") != "assistant" and message.get("content") is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid request format: messages must contain 'content' for role '{message.get('role')}'.",
+                )
+
+            if message.get("role") not in ["user", "system", "assistant", "developer"]:
+                logger.info(
+                    f"Streaming request contains unsupported role '{message.get('role')}' in messages, passing through to LLM directly."
+                )
+                return await self.llm.chat_completions_stream_passthrough(openai_request)
+
+            if message.get("role") == "user":
+                if message.get("content"):
+                    content = message.get("content")
+                    if isinstance(content, list):
+                        for part in content:
+                            if not isinstance(part, str) and part.get("type") != "text":
+                                logger.info(
+                                    "Streaming request contains unsupported content type in user message, passing through to LLM directly."
+                                )
+                                return await self.llm.chat_completions_stream_passthrough(
+                                    openai_request
+                                )
+                    elif isinstance(content, str | ChatCompletionContentPartTextParam):
+                        pass
+                    else:
+                        logger.info(
+                            f"Streaming request contains unsupported content type '{type(content)}' in messages, passing through to LLM directly."
+                        )
+                        return await self.llm.chat_completions_stream_passthrough(
+                            openai_request
+                        )
+                else:
+                    logger.error(
+                        "Invalid request format: user messages must contain 'content'."
+                    )
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Invalid request format: user messages must contain 'content'.",
+                    )
+
+        max_tokens = request.get("max_tokens")
+        messages = input_messages_to_llamaindex_messages(request.get("messages", []))
+
+        total_prompt_for_token_aprox = ""
+        chat_history = []
+        user_messages_for_prompt = []
+        assistant_message_found = False
+        for i in range(len(messages) - 1, -1, -1):
+            message = messages[i]
+            message_content = message.content
+            total_prompt_for_token_aprox = (
+                total_prompt_for_token_aprox + "\n\n" + message_content
+            )
+            if message.role == MessageRole.USER and not assistant_message_found:
+                user_messages_for_prompt.insert(0, message_content)
+            else:
+                if message.role == MessageRole.ASSISTANT:
+                    assistant_message_found = True
+                chat_history.insert(0, message)
+
+        user_prompt = (
+            "\n\n".join(user_messages_for_prompt) if user_messages_for_prompt else ""
+        )
+        if user_prompt == "":
+            raise HTTPException(
+                status_code=400,
+                detail="There must be a user prompt since the latest assistant message.",
+            )
+
+        prompt_len = self.llm.count_tokens(total_prompt_for_token_aprox)
+        if prompt_len > self.llm.metadata.context_window:
+            raise HTTPException(
+                status_code=400, detail="Prompt length exceeds context window."
+            )
+
+        if max_tokens and max_tokens > self.llm.metadata.context_window - prompt_len:
+            logger.warning(
+                f"max_tokens ({max_tokens}) is greater than available context after prompt consideration. Setting to {self.llm.metadata.context_window - prompt_len}."
+            )
+            max_tokens = self.llm.metadata.context_window - prompt_len
+
+        top_k = max(
+            100,
+            int(
+                (self.llm.metadata.context_window - prompt_len)
+                / RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION
+            ),
+        )
+        chat_engine = self.index_map[request.get("index_name")].as_chat_engine(
+            llm=self.llm,
+            similarity_top_k=top_k,
+            chat_mode=ChatMode.CONTEXT,
+            node_postprocessors=[
+                ContextSelectionProcessor(
+                    rag_context_token_fill_ratio=request.get(
+                        "context_token_ratio", RAG_DEFAULT_CONTEXT_TOKEN_FILL_RATIO
+                    ),
+                    llm=self.llm,
+                    max_tokens=max_tokens,
+                    similarity_threshold=RAG_SIMILARITY_THRESHOLD,
+                )
+            ],
+        )
+
+        try:
+            if self.use_rwlock:
+                async with self.rwlock.reader_lock:
+                    self.llm.set_params(llm_params)
+                    chat_result = await chat_engine.astream_chat(
+                        user_prompt, chat_history=chat_history
+                    )
+            else:
+                self.llm.set_params(llm_params)
+                chat_result = await chat_engine.astream_chat(
+                    user_prompt, chat_history=chat_history
+                )
+
+            if len(chat_result.source_nodes) == 0:
+                logger.info(
+                    "No relevant context found for the streaming query. Falling back to passthrough request"
+                )
+                return await self.llm.chat_completions_stream_passthrough(openai_request)
+
+            response_id = uuid.uuid4().hex
+            created = int(time.time())
+            source_nodes = [
+                {
+                    "doc_id": source_node.node.ref_doc_id,
+                    "node_id": source_node.node_id,
+                    "text": source_node.text,
+                    "score": source_node.score,
+                    "metadata": source_node.metadata,
+                }
+                for source_node in chat_result.source_nodes
+            ]
+
+            async def stream_generator() -> AsyncGenerator[dict[str, Any], None]:
+                yield {
+                    "type": "metadata",
+                    "id": response_id,
+                    "created": created,
+                    "model": request.get("model"),
+                    "response_mode": "rag",
+                    "source_nodes": source_nodes,
+                }
+                async for token in chat_result.async_response_gen():
+                    if token:
+                        yield {"type": "delta", "delta": token}
+                yield {"type": "done", "finish_reason": "stop"}
+
+            return stream_generator()
+        except Exception as e:
+            logger.error(f"Error during streaming chat completion: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Streaming chat completion failed: {str(e)}",
             )
 
     async def add_document_to_index(

@@ -41,6 +41,75 @@ spec:
     url: "<inference-url>/v1/completions"
 ```
 
+### Runtime Environment Configuration For The RAG Service Pod
+
+The Helm chart installs the RAGEngine controller. The output-guardrails and remote-audit settings described in the preset service are runtime environment variables for the generated RAG service pod, not Helm values on the controller chart and not fields in the `RAGEngine` CRD schema.
+
+That means these settings should be applied to the RAG service deployment created for a specific `RAGEngine` resource. For example:
+
+```bash
+kubectl set env deployment/ragengine-example -n <namespace> \
+  OUTPUT_GUARDRAILS_ENABLED=true \
+  OUTPUT_GUARDRAILS_ACTION_ON_HIT=redact \
+  OUTPUT_GUARDRAILS_REGEX_PATTERNS='https?://\\S+' \
+  OUTPUT_GUARDRAILS_AUDIT_SINKS=log,remote \
+  OUTPUT_GUARDRAILS_AUDIT_REMOTE_EVENT_URL=https://audit.example.com/events \
+  OUTPUT_GUARDRAILS_AUDIT_REMOTE_REPORT_URL=https://audit.example.com/reports
+```
+
+Common runtime variables include:
+
+| Variable | Purpose |
+|----------|---------|
+| `OUTPUT_GUARDRAILS_ENABLED` | Enables output guardrail scanning on `/v1/chat/completions` |
+| `OUTPUT_GUARDRAILS_FAIL_OPEN` | Allows responses to pass through if guardrail evaluation fails |
+| `OUTPUT_GUARDRAILS_ACTION_ON_HIT` | Chooses `redact` or `block` when a scanner triggers |
+| `OUTPUT_GUARDRAILS_REGEX_PATTERNS` | Comma-separated regex scanners |
+| `OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS` | Comma-separated substring scanners |
+| `OUTPUT_GUARDRAILS_BLOCK_MESSAGE` | Replacement message for `block` mode |
+| `OUTPUT_GUARDRAILS_STREAM_HOLDBACK_CHARS` | Holdback buffer for streaming inspection |
+| `OUTPUT_GUARDRAILS_AUDIT_SINKS` | Audit sinks such as `log`, `file`, or `remote` |
+| `OUTPUT_GUARDRAILS_AUDIT_FILE_PATH` | JSONL target for the `file` sink |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_URL` | Shared fallback URL for remote event/report delivery |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_EVENT_URL` | Dedicated remote endpoint for staged streaming events |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_REPORT_URL` | Dedicated remote endpoint for final audit reports |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_AUTH_HEADER` | Shared fallback auth header |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_AUTH_TOKEN` | Shared fallback auth token |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_AUTH_TOKEN_PREFIX` | Shared fallback token prefix, for example `Bearer ` |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_EVENT_AUTH_HEADER` | Event-specific auth header override |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_EVENT_AUTH_TOKEN` | Event-specific auth token override |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_EVENT_AUTH_TOKEN_PREFIX` | Event-specific token prefix override |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_REPORT_AUTH_HEADER` | Report-specific auth header override |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_REPORT_AUTH_TOKEN` | Report-specific auth token override |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_REPORT_AUTH_TOKEN_PREFIX` | Report-specific token prefix override |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_TIMEOUT_SECONDS` | Remote sink timeout |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_MAX_RETRIES` | Remote sink retry count |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_RETRY_BACKOFF_SECONDS` | Retry backoff multiplier |
+| `OUTPUT_GUARDRAILS_AUDIT_SHUTDOWN_DRAIN_TIMEOUT_SECONDS` | Maximum shutdown wait for pending background audit deliveries |
+| `OUTPUT_GUARDRAILS_AUDIT_MAX_IN_FLIGHT_BACKGROUND_TASKS` | Maximum number of concurrent background audit deliveries before backpressure is applied |
+| `OUTPUT_GUARDRAILS_AUDIT_BACKPRESSURE_POLICY` | Overflow policy when the in-flight limit is reached: `drop` or `block` |
+
+If both shared and event/report-specific remote settings are present, the endpoint-specific settings win. If only the shared remote settings are present, both staged events and final reports use the shared endpoint and token.
+
+During shutdown, RAGEngine now drains pending background audit deliveries before exiting, up to `OUTPUT_GUARDRAILS_AUDIT_SHUTDOWN_DRAIN_TIMEOUT_SECONDS`. This is intended to preserve the tail end of audit traffic during pod termination and worker reload.
+
+During normal serving, background audit delivery is also bounded by `OUTPUT_GUARDRAILS_AUDIT_MAX_IN_FLIGHT_BACKGROUND_TASKS`. If that limit is reached, `OUTPUT_GUARDRAILS_AUDIT_BACKPRESSURE_POLICY=drop` drops the new delivery and records the overflow, while `block` waits for delivery inline instead of creating another background task.
+
+The default remains `drop` because this keeps audit sink overload from spilling directly into user-facing chat latency. Teams that need stricter audit completeness can switch to `block`, but they should treat that as a latency tradeoff rather than a free improvement.
+
+These shutdown-drain metrics are available on the existing Prometheus `/metrics` endpoint:
+
+- `rag_output_guardrails_audit_shutdown_drain_total{status="success|timeout"}`
+- `rag_output_guardrails_audit_shutdown_drain_latency_seconds{status="success|timeout"}`
+- `rag_output_guardrails_audit_cancelled_deliveries_total`
+- `rag_output_guardrails_audit_in_flight_background_tasks`
+- `rag_output_guardrails_audit_backpressure_total{policy="drop|block",delivery_type="event|report"}`
+- `rag_output_guardrails_audit_dropped_deliveries_total{delivery_type="event|report"}`
+
+Reusable monitoring examples for these metrics are available in `examples/RAG/monitoring/`, including a `PrometheusRule` for the two warning alerts and a Grafana dashboard `ConfigMap` for the key shutdown-drain and backlog views.
+
+Current limitation: these guardrail runtime settings are not yet modeled as `RAGEngine.spec` fields. If the controller later rolls the generated deployment because of a CR-driven update, operators should verify that their runtime env overrides are still present.
+
 ### Using Persistent Storage
 
 To enable persistent storage for vector indexes, add a `storage` specification:

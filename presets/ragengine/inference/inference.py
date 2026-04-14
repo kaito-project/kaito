@@ -16,7 +16,9 @@ import asyncio
 import concurrent.futures
 import json
 import logging
-from collections.abc import Sequence
+import time
+import uuid
+from collections.abc import AsyncGenerator, Sequence
 from typing import Any
 from urllib.parse import urljoin, urlparse
 
@@ -315,6 +317,108 @@ class Inference(CustomLLM):
             raise HTTPException(
                 status_code=500, detail=f"Error during POST request: {str(e)}"
             )
+
+    async def chat_completions_stream_passthrough(
+        self, chatCompletionsRequest: CompletionCreateParams, **kwargs: Any
+    ) -> AsyncGenerator[dict[str, Any], None]:
+        if "/chat/completions" not in LLM_INFERENCE_URL:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Chat completions not supported through endpoint {LLM_INFERENCE_URL}.",
+            )
+
+        payload = (
+            chatCompletionsRequest.model_dump(mode="json", exclude_none=True)
+            if hasattr(chatCompletionsRequest, "model_dump")
+            else dict(chatCompletionsRequest)
+        )
+        payload["stream"] = True
+
+        async def stream_generator() -> AsyncGenerator[dict[str, Any], None]:
+            client = await self._get_httpx_client()
+            metadata_emitted = False
+            fallback_id = uuid.uuid4().hex
+            fallback_created = int(time.time())
+            fallback_model = payload.get("model")
+
+            try:
+                async with client.stream(
+                    "POST",
+                    LLM_INFERENCE_URL,
+                    json=payload,
+                    headers=DEFAULT_HEADERS,
+                ) as response:
+                    response.raise_for_status()
+
+                    async for line in response.aiter_lines():
+                        if not line or not line.startswith("data:"):
+                            continue
+
+                        data = line[5:].strip()
+                        if data == "[DONE]":
+                            if not metadata_emitted:
+                                yield {
+                                    "type": "metadata",
+                                    "id": fallback_id,
+                                    "created": fallback_created,
+                                    "model": fallback_model,
+                                    "response_mode": "passthrough",
+                                    "source_nodes": None,
+                                }
+                            yield {"type": "done", "finish_reason": "stop"}
+                            return
+
+                        chunk = json.loads(data)
+                        if not metadata_emitted:
+                            metadata_emitted = True
+                            yield {
+                                "type": "metadata",
+                                "id": chunk.get("id", fallback_id),
+                                "created": chunk.get("created", fallback_created),
+                                "model": chunk.get("model") or fallback_model,
+                                "response_mode": "passthrough",
+                                "source_nodes": None,
+                            }
+
+                        for choice in chunk.get("choices", []):
+                            delta = choice.get("delta") or {}
+                            content = delta.get("content")
+                            if delta and (
+                                (isinstance(content, str) and content)
+                                or "tool_calls" in delta
+                                or "function_call" in delta
+                            ):
+                                yield {"type": "delta", "delta": delta}
+
+                            finish_reason = choice.get("finish_reason")
+                            if finish_reason is not None:
+                                yield {
+                                    "type": "done",
+                                    "finish_reason": finish_reason,
+                                }
+                                return
+            except httpx.HTTPStatusError as e:
+                logger.error(
+                    f"HTTP error {e.response.status_code} during stream POST request to {LLM_INFERENCE_URL}: {e.response.text}"
+                )
+                raise HTTPException(
+                    status_code=e.response.status_code,
+                    detail=f"{str(e.response.content)}",
+                )
+            except httpx.RequestError as e:
+                logger.error(f"Error during stream POST request to {LLM_INFERENCE_URL}: {e}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Error during stream POST request: {str(e)}",
+                )
+            except Exception as e:
+                logger.error(f"Unexpected error during stream POST request: {e}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Error during stream POST request: {str(e)}",
+                )
+
+        return stream_generator()
 
     async def _async_completions(
         self, prompt: str, **kwargs: Any

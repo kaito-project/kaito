@@ -108,6 +108,82 @@ spec:
     contextWindowSize: 512    # Modify to fit the model's context window.
 ```
 
+### Guardrail And Audit Runtime Environment Variables
+
+The current output-guardrails and remote-audit integration is configured through environment variables on the generated RAG service pod. These are not currently part of the `RAGEngine.spec` schema.
+
+In practice, that means:
+
+- define your `RAGEngine` resource as usual
+- wait for the generated deployment to exist
+- set the runtime environment variables on that deployment
+
+Example:
+
+```bash
+kubectl set env deployment/ragengine-start -n default \
+  OUTPUT_GUARDRAILS_ENABLED=true \
+  OUTPUT_GUARDRAILS_FAIL_OPEN=true \
+  OUTPUT_GUARDRAILS_ACTION_ON_HIT=redact \
+  OUTPUT_GUARDRAILS_REGEX_PATTERNS='https?://\\S+' \
+  OUTPUT_GUARDRAILS_AUDIT_SINKS=log,remote \
+  OUTPUT_GUARDRAILS_AUDIT_REMOTE_EVENT_URL=https://audit.example.com/events \
+  OUTPUT_GUARDRAILS_AUDIT_REMOTE_REPORT_URL=https://audit.example.com/reports \
+  OUTPUT_GUARDRAILS_AUDIT_REMOTE_EVENT_AUTH_HEADER=X-Event-Auth \
+  OUTPUT_GUARDRAILS_AUDIT_REMOTE_EVENT_AUTH_TOKEN=<event-token> \
+  OUTPUT_GUARDRAILS_AUDIT_REMOTE_REPORT_AUTH_HEADER=X-Report-Auth \
+  OUTPUT_GUARDRAILS_AUDIT_REMOTE_REPORT_AUTH_TOKEN=<report-token>
+```
+
+Recommended variables:
+
+| Variable | Meaning |
+|----------|---------|
+| `OUTPUT_GUARDRAILS_ENABLED` | Enables output scanning for chat completions |
+| `OUTPUT_GUARDRAILS_FAIL_OPEN` | Returns the original model output if scanning fails |
+| `OUTPUT_GUARDRAILS_ACTION_ON_HIT` | `redact` or `block` |
+| `OUTPUT_GUARDRAILS_REGEX_PATTERNS` | Comma-separated regex scanners |
+| `OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS` | Comma-separated substring scanners |
+| `OUTPUT_GUARDRAILS_BLOCK_MESSAGE` | Replacement text when `block` is used |
+| `OUTPUT_GUARDRAILS_STREAM_HOLDBACK_CHARS` | Streaming holdback window for incremental scanning |
+| `OUTPUT_GUARDRAILS_AUDIT_SINKS` | `log`, `file`, `remote`, or a comma-separated combination |
+| `OUTPUT_GUARDRAILS_AUDIT_FILE_PATH` | File sink path for JSONL audit records |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_URL` | Shared remote endpoint fallback |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_EVENT_URL` | Endpoint for staged streaming events |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_REPORT_URL` | Endpoint for final reports |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_AUTH_*` | Shared remote auth fallback |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_EVENT_AUTH_*` | Event-specific auth override |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_REPORT_AUTH_*` | Report-specific auth override |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_TIMEOUT_SECONDS` | Remote request timeout |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_MAX_RETRIES` | Number of remote retries |
+| `OUTPUT_GUARDRAILS_AUDIT_REMOTE_RETRY_BACKOFF_SECONDS` | Retry backoff multiplier |
+| `OUTPUT_GUARDRAILS_AUDIT_SHUTDOWN_DRAIN_TIMEOUT_SECONDS` | Maximum shutdown wait for pending background audit deliveries |
+| `OUTPUT_GUARDRAILS_AUDIT_MAX_IN_FLIGHT_BACKGROUND_TASKS` | Maximum number of concurrent background audit deliveries before backpressure is applied |
+| `OUTPUT_GUARDRAILS_AUDIT_BACKPRESSURE_POLICY` | Overflow policy when the in-flight limit is reached: `drop` or `block` |
+
+If both the shared remote auth variables and the event/report-specific auth variables are set, the endpoint-specific values take precedence.
+
+On shutdown, RAGEngine now drains pending background audit deliveries before exit, up to `OUTPUT_GUARDRAILS_AUDIT_SHUTDOWN_DRAIN_TIMEOUT_SECONDS`. This reduces the chance of losing the last batch of staged events or final reports during pod termination or worker reload.
+
+While the process is still running, background audit delivery is now also bounded by `OUTPUT_GUARDRAILS_AUDIT_MAX_IN_FLIGHT_BACKGROUND_TASKS`. When that limit is reached, `OUTPUT_GUARDRAILS_AUDIT_BACKPRESSURE_POLICY=drop` drops the new background delivery and records metrics, while `block` applies backpressure by awaiting delivery inline on the request path.
+
+The default policy remains `drop`. This favors protecting chat latency when the audit sink is already saturated. Use `block` only when preserving audit completeness is more important than keeping the request path isolated from audit sink slowness.
+
+The Prometheus `/metrics` endpoint also exposes shutdown-drain observability for this path:
+
+- `rag_output_guardrails_audit_shutdown_drain_total{status="success|timeout"}`
+- `rag_output_guardrails_audit_shutdown_drain_latency_seconds{status="success|timeout"}`
+- `rag_output_guardrails_audit_cancelled_deliveries_total`
+- `rag_output_guardrails_audit_in_flight_background_tasks`
+- `rag_output_guardrails_audit_backpressure_total{policy="drop|block",delivery_type="event|report"}`
+- `rag_output_guardrails_audit_dropped_deliveries_total{delivery_type="event|report"}`
+
+Basic monitoring examples are available in [examples/RAG/monitoring/ragengine-output-guardrails-prometheusrule.yaml](https://github.com/kaito-project/kaito/blob/main/examples/RAG/monitoring/ragengine-output-guardrails-prometheusrule.yaml), [examples/RAG/monitoring/ragengine-output-guardrails-dashboard.json](https://github.com/kaito-project/kaito/blob/main/examples/RAG/monitoring/ragengine-output-guardrails-dashboard.json), and [examples/RAG/monitoring/kustomization.yaml](https://github.com/kaito-project/kaito/blob/main/examples/RAG/monitoring/kustomization.yaml). These examples intentionally omit `metadata.namespace` so each user can apply them into their own namespace with `kubectl -n <namespace> apply -f ...` or `kubectl apply -k ...`, or inject the namespace through their preferred overlay tool. A ready-to-use Kustomize overlay example is also included under `examples/RAG/monitoring/kustomize/` for teams that want to override namespace, alert severity, and the Grafana Prometheus datasource UID together.
+
+:::note
+Because these settings are runtime env vars rather than CRD fields today, operators should re-check them after a CR-driven rollout or reconciliation that recreates the generated deployment.
+:::
+
 ### Vector Store Backends
 
 RAGEngine supports multiple vector store backends. The backend is selected via the `storage.vectorDB` field in the RAGEngine spec.

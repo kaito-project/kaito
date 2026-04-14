@@ -172,6 +172,42 @@ num_requests_running = Gauge(
     "num_requests_running", "Number of requests currently being processed"
 )
 
+# Output guardrails audit shutdown metrics
+rag_output_guardrails_audit_shutdown_drain_total = Counter(
+    "rag_output_guardrails_audit_shutdown_drain_total",
+    "Count of guardrail audit shutdown drain attempts by outcome",
+    labelnames=[STATUS_LABEL],
+)
+
+rag_output_guardrails_audit_shutdown_drain_latency = Histogram(
+    "rag_output_guardrails_audit_shutdown_drain_latency_seconds",
+    "Time spent draining pending background guardrail audit deliveries during shutdown",
+    labelnames=[STATUS_LABEL],
+    buckets=(0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
+)
+
+rag_output_guardrails_audit_cancelled_deliveries_total = Counter(
+    "rag_output_guardrails_audit_cancelled_deliveries_total",
+    "Number of background guardrail audit deliveries cancelled during shutdown drain timeout",
+)
+
+rag_output_guardrails_audit_in_flight_background_tasks = Gauge(
+    "rag_output_guardrails_audit_in_flight_background_tasks",
+    "Number of background guardrail audit delivery tasks currently in flight",
+)
+
+rag_output_guardrails_audit_backpressure_total = Counter(
+    "rag_output_guardrails_audit_backpressure_total",
+    "Number of times guardrail audit background delivery hit the configured in-flight limit",
+    labelnames=["policy", "delivery_type"],
+)
+
+rag_output_guardrails_audit_dropped_deliveries_total = Counter(
+    "rag_output_guardrails_audit_dropped_deliveries_total",
+    "Number of guardrail audit deliveries dropped due to backpressure policy",
+    labelnames=["delivery_type"],
+)
+
 # Vector store operation latency (used by base.py and qdrant_store.py)
 rag_vector_store_operation_latency = Histogram(
     "rag_vector_store_operation_latency_seconds",

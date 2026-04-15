@@ -173,26 +173,3 @@ The evaluation compared different configurations:
 When caching model files on local NVMe disks, testing on Standard_NC80adis_H100_v5 with Llama-3.3-70B-Instruct model shows significant improvements on model loading times:
 
 ![Model loading time benchmarking](/img/kaito-model-loading-with-local-csi.png)
-
-## Getting Started
-
-### Automatic Usage
-
-KAITO automatically uses OCI Artifacts for supported models when the feature is available. No additional configuration is required - simply deploy your model using standard KAITO workflows and the system will optimize the distribution automatically.
-
-### Verifying OCI Artifacts Usage
-
-To confirm that your model is using OCI Artifacts:
-
-1. Check the pod specification for initContainers that download model artifacts
-2. Monitor pod startup times for improved performance compared to traditional container pulls
-3. Review registry storage to see separate base images and model artifact entries
-
-### Troubleshooting
-
-If you encounter issues with OCI Artifacts:
-
-- Ensure your container runtime supports OCI Artifacts (see Compatibility section)
-- Verify registry compatibility with OCI Artifacts specification
-- Check initContainer logs for artifact download status
-- Refer to the [technical specification](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250609-model-as-oci-artifacts.md) for advanced configuration options

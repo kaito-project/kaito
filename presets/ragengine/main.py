@@ -27,6 +27,7 @@ from embedding.huggingface_local_embedding import (  # noqa: E402
 )
 from embedding.remote_embedding import RemoteEmbeddingModel  # noqa: E402
 from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
+from guardrails import OutputGuardrails  # noqa: E402
 from models import (  # noqa: E402
     ChatCompletionResponse,
     DeleteDocumentRequest,
@@ -160,6 +161,7 @@ else:
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
+output_guardrails = OutputGuardrails.from_config()
 
 
 @app.get("/metrics", operation_id="get_metrics", tags=["Monitoring"])
@@ -335,6 +337,7 @@ async def chat_completions(request: dict):
             )
 
         response = await rag_ops.chat_completion(request)
+        response = output_guardrails.guard_response(response, request)
         status = STATUS_SUCCESS
         return response
     except HTTPException as http_exc:

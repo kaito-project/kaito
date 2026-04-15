@@ -11,6 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .output_guardrails import OutputGuardrails
+from .output_guardrails import OutputGuardrails, OutputGuardrailsError
 
-__all__ = ["OutputGuardrails"]
+__all__ = ["OutputGuardrails", "OutputGuardrailsError"]

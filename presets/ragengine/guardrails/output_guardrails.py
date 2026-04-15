@@ -26,9 +26,14 @@ logger = logging.getLogger(__name__)
 DEFAULT_BLOCK_MESSAGE = "The model output was blocked by output guardrails."
 
 
+class OutputGuardrailsError(RuntimeError):
+    pass
+
+
 @dataclass
 class OutputGuardrails:
     enabled: bool
+    fail_open: bool
     action_on_hit: str
     regex_patterns: list[str]
     banned_substrings: list[str]
@@ -38,6 +43,7 @@ class OutputGuardrails:
     def from_config(cls) -> "OutputGuardrails":
         return cls(
             enabled=config.OUTPUT_GUARDRAILS_ENABLED,
+            fail_open=config.OUTPUT_GUARDRAILS_FAIL_OPEN,
             action_on_hit=config.OUTPUT_GUARDRAILS_ACTION_ON_HIT,
             regex_patterns=list(config.OUTPUT_GUARDRAILS_REGEX_PATTERNS),
             banned_substrings=list(config.OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS),
@@ -52,11 +58,11 @@ class OutputGuardrails:
         if not self.enabled:
             return response
 
-        scanners = self._build_scanners()
-        if not scanners:
-            return response
-
         try:
+            scanners = self._build_scanners()
+            if not scanners:
+                return response
+
             prompt = self._extract_prompt(request)
             response_data = response.model_dump(mode="python")
 
@@ -90,9 +96,17 @@ class OutputGuardrails:
                 )
 
             return ChatCompletionResponse(**response_data)
-        except Exception:
-            logger.exception("output_guardrails_failed")
-            return response
+        except Exception as exc:
+            logger.exception(
+                "output_guardrails_failed fail_open=%s response_id=%s",
+                self.fail_open,
+                response.id,
+            )
+            if self.fail_open:
+                return response
+            raise OutputGuardrailsError(
+                "Output guardrails failed while scanning the model response."
+            ) from exc
 
     def _build_scanners(self) -> list[Any]:
         scanners: list[Any] = []

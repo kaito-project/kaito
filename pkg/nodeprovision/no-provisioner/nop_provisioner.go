@@ -27,7 +27,7 @@ import (
 
 // NopProvisioner is a no-op NodeProvisioner for BYO (Bring Your Own) node
 // scenarios where node auto-provisioning is disabled. ProvisionNodes and
-// DeprovisionNodes are no-ops. EnsureNodesReady only checks that enough
+// DeleteNodes are no-ops. EnsureNodesReady only checks that enough
 // matching Nodes are ready (no instance type validation, no GPU plugin checks).
 type NopProvisioner struct {
 	client client.Client
@@ -46,22 +46,22 @@ func (n *NopProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Wo
 	return nil
 }
 
-func (n *NopProvisioner) DeprovisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
+func (n *NopProvisioner) DeleteNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
 	return nil
 }
 
-func (n *NopProvisioner) EnableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error {
+func (n *NopProvisioner) EnableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error {
 	return nil
 }
 
-func (n *NopProvisioner) DisableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error {
+func (n *NopProvisioner) DisableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error {
 	return nil
 }
 
 // EnsureNodesReady checks that enough matching Nodes are ready for the
-// Workspace. In BYO mode there are no provisioning resources, so this
-// never returns ProvisioningNotReady — only NodesReady or NodesNotReady.
-func (n *NopProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (nodeprovision.NodeReadiness, error) {
+// Workspace. In BYO mode there are no provisioning resources, so needRequeue
+// is always true when nodes are not ready.
+func (n *NopProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
 	var matchLabels client.MatchingLabels
 	if ws.Resource.LabelSelector != nil {
 		matchLabels = ws.Resource.LabelSelector.MatchLabels
@@ -69,7 +69,7 @@ func (n *NopProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.
 
 	nodeList, err := resources.ListNodes(ctx, n.client, matchLabels)
 	if err != nil {
-		return nodeprovision.NodesNotReady, err
+		return false, true, err
 	}
 
 	targetNodeCount := int(ws.Status.TargetNodeCount)
@@ -81,13 +81,13 @@ func (n *NopProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.
 	}
 
 	if readyCount >= targetNodeCount {
-		return nodeprovision.NodesReady, nil
+		return true, false, nil
 	}
 
 	klog.InfoS("Not enough Nodes are ready for workspace (BYO mode)",
 		"workspace", client.ObjectKeyFromObject(ws).String(),
 		"targetNodes", targetNodeCount, "currentReadyNodes", readyCount)
-	return nodeprovision.NodesNotReady, nil
+	return false, true, nil
 }
 
 // CollectNodeStatusInfo gathers status conditions for workspace status.

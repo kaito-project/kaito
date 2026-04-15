@@ -63,29 +63,29 @@ func TestAzureGPUProvisionerImplementsInterface(t *testing.T) {
 	var _ nodeprovision.NodeProvisioner = NewAzureGPUProvisioner(ncm, nm)
 }
 
-func TestAzureGPUProvisionerEnableDriftIsNoop(t *testing.T) {
+func TestAzureGPUProvisionerEnableDriftRemediationIsNoop(t *testing.T) {
 	mockClient := test.NewClient()
 	expectations := utils.NewControllerExpectations()
 	ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
 	nm := resource.NewNodeManager(mockClient)
 
 	p := NewAzureGPUProvisioner(ncm, nm)
-	err := p.EnableDrift(context.Background(), "default", "test-workspace")
+	err := p.EnableDriftRemediation(context.Background(), "default", "test-workspace")
 	assert.NilError(t, err)
 }
 
-func TestAzureGPUProvisionerDisableDriftIsNoop(t *testing.T) {
+func TestAzureGPUProvisionerDisableDriftRemediationIsNoop(t *testing.T) {
 	mockClient := test.NewClient()
 	expectations := utils.NewControllerExpectations()
 	ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)
 	nm := resource.NewNodeManager(mockClient)
 
 	p := NewAzureGPUProvisioner(ncm, nm)
-	err := p.DisableDrift(context.Background(), "default", "test-workspace")
+	err := p.DisableDriftRemediation(context.Background(), "default", "test-workspace")
 	assert.NilError(t, err)
 }
 
-func TestAzureGPUProvisionerDeprovisionNodes(t *testing.T) {
+func TestAzureGPUProvisionerDeleteNodes(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
 		expectedError error
@@ -143,7 +143,7 @@ func TestAzureGPUProvisionerDeprovisionNodes(t *testing.T) {
 			p := NewAzureGPUProvisioner(ncm, nm)
 
 			ws := newTestWorkspace()
-			err := p.DeprovisionNodes(context.Background(), ws)
+			err := p.DeleteNodes(context.Background(), ws)
 			if tc.expectedError == nil {
 				assert.NilError(t, err)
 			} else {
@@ -155,11 +155,11 @@ func TestAzureGPUProvisionerDeprovisionNodes(t *testing.T) {
 
 func TestAzureGPUProvisionerEnsureNodesReady(t *testing.T) {
 	testcases := map[string]struct {
-		callMocks         func(c *test.MockClient)
-		expectedReadiness nodeprovision.NodeReadiness
-		expectedError     bool
+		callMocks     func(c *test.MockClient)
+		expectedReady bool
+		expectedError bool
 	}{
-		"Returns ProvisioningNotReady when NodeClaims exist but are not ready": {
+		"Returns not ready when NodeClaims exist but are not ready": {
 			callMocks: func(c *test.MockClient) {
 				// GetReadyNodes -> ListNodes (corev1.NodeList): no BYO nodes
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
@@ -174,23 +174,23 @@ func TestAzureGPUProvisionerEnsureNodesReady(t *testing.T) {
 				}
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 			},
-			expectedReadiness: nodeprovision.ProvisioningNotReady,
-			expectedError:     false,
+			expectedReady: false,
+			expectedError: false,
 		},
 		"Returns error when ready nodes cannot be listed": {
 			callMocks: func(c *test.MockClient) {
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(errors.New("node list error"))
 			},
-			expectedReadiness: nodeprovision.ProvisioningNotReady,
-			expectedError:     true,
+			expectedReady: false,
+			expectedError: true,
 		},
 		"Returns error when NodeClaims cannot be listed": {
 			callMocks: func(c *test.MockClient) {
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(errors.New("nodeclaim list error"))
 			},
-			expectedReadiness: nodeprovision.ProvisioningNotReady,
-			expectedError:     true,
+			expectedReady: false,
+			expectedError: true,
 		},
 	}
 
@@ -205,12 +205,12 @@ func TestAzureGPUProvisionerEnsureNodesReady(t *testing.T) {
 			p := NewAzureGPUProvisioner(ncm, nm)
 
 			ws := newTestWorkspace()
-			readiness, err := p.EnsureNodesReady(context.Background(), ws)
+			ready, _, err := p.EnsureNodesReady(context.Background(), ws)
 			if tc.expectedError {
 				assert.Assert(t, err != nil)
 			} else {
 				assert.NilError(t, err)
-				assert.Equal(t, tc.expectedReadiness, readiness)
+				assert.Equal(t, tc.expectedReady, ready)
 			}
 		})
 	}

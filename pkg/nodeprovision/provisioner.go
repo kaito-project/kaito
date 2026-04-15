@@ -21,24 +21,6 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
-// NodeReadiness represents the readiness state of nodes for a Workspace.
-type NodeReadiness int
-
-const (
-	// NodesReady indicates all nodes are fully ready for the Workspace.
-	NodesReady NodeReadiness = iota
-
-	// ProvisioningNotReady indicates the provisioning resources (e.g., NodeClaims,
-	// NodePools) are not yet ready. The controller should wait for events from the
-	// provisioning backend (no requeue needed).
-	ProvisioningNotReady
-
-	// NodesNotReady indicates the underlying Nodes are not yet ready (e.g., node
-	// not yet registered, GPU plugins not installed). The controller should requeue
-	// with a delay since node changes do not trigger workspace reconciliation.
-	NodesNotReady
-)
-
 // NodeProvisioner abstracts node provisioning for a Workspace.
 // Callers pass the Workspace object directly — all internal resources
 // (NodePool, NodeClaim, AKSNodeClass) are managed by the implementation.
@@ -62,38 +44,37 @@ type NodeProvisioner interface {
 	// NopProvisioner: no-op.
 	ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error
 
-	// DeprovisionNodes removes all node resources for the Workspace.
+	// DeleteNodes removes all node resources for the Workspace.
 	//
 	// AzureGPUProvisioner: deletes NodeClaims.
 	// KarpenterProvisioner (future): deletes NodePool (cascades).
 	// NopProvisioner: no-op.
-	DeprovisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error
+	DeleteNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error
 
 	// EnsureNodesReady checks whether all nodes are ready and fully
-	// initialized for the Workspace. Returns a NodeReadiness enum:
+	// initialized for the Workspace. Returns two booleans:
 	//
-	//   - NodesReady: all nodes are ready, proceed with workload deployment.
-	//   - ProvisioningNotReady: provisioning resources (NodeClaims/NodePools)
-	//     not yet ready. Wait for events (no requeue needed).
-	//   - NodesNotReady: nodes not yet ready (not registered, GPU plugins
-	//     missing, etc.). Requeue with delay.
+	//   - ready: true if all nodes are ready, proceed with workload deployment.
+	//   - needRequeue: true if the controller should requeue with a delay
+	//     (e.g., nodes not yet registered, GPU plugins missing).
+	//     When false and ready is false, wait for events (no requeue needed).
 	//
 	// Each implementation encapsulates its own readiness criteria internally.
-	EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (NodeReadiness, error)
+	EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (ready bool, needRequeue bool, err error)
 
-	// EnableDrift enables drift replacement for the Workspace's nodes.
+	// EnableDriftRemediation enables drift replacement for the Workspace's nodes.
 	//
 	// AzureGPUProvisioner: no-op.
 	// KarpenterProvisioner (future): patches NodePool budget nodes="0" → "1".
 	// NopProvisioner: no-op.
-	EnableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error
+	EnableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error
 
-	// DisableDrift disables drift replacement for the Workspace's nodes.
+	// DisableDriftRemediation disables drift replacement for the Workspace's nodes.
 	//
 	// AzureGPUProvisioner: no-op.
 	// KarpenterProvisioner (future): patches NodePool budget nodes="1" → "0".
 	// NopProvisioner: no-op.
-	DisableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error
+	DisableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error
 
 	// CollectNodeStatusInfo gathers node-related status conditions for the
 	// Workspace. Each provisioner returns only the condition types it manages

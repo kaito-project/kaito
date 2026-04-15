@@ -66,15 +66,11 @@ func (g *AzureGPUProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1bet
 	}
 	klog.InfoS("NodeClaims to create", "count", numNodeClaimsToCreate, "workspace", klog.KObj(ws))
 
-	if err := g.nodeClaimManager.CreateUpNodeClaims(ctx, ws, numNodeClaimsToCreate); err != nil {
-		return err
-	}
-
-	return nil
+	return g.nodeClaimManager.CreateUpNodeClaims(ctx, ws, numNodeClaimsToCreate)
 }
 
-// DeprovisionNodes deletes all NodeClaims associated with the workspace.
-func (g *AzureGPUProvisioner) DeprovisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
+// DeleteNodes deletes all NodeClaims associated with the workspace.
+func (g *AzureGPUProvisioner) DeleteNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
 	ncList, err := nodeclaim.ListNodeClaim(ctx, ws, g.nodeClaimManager.Client)
 	if err != nil {
 		return err
@@ -92,26 +88,26 @@ func (g *AzureGPUProvisioner) DeprovisionNodes(ctx context.Context, ws *kaitov1b
 	return nil
 }
 
-// EnableDrift is a no-op for Azure gpu-provisioner (no drift support).
-func (g *AzureGPUProvisioner) EnableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error {
+// EnableDriftRemediation is a no-op for Azure gpu-provisioner (no drift support).
+func (g *AzureGPUProvisioner) EnableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error {
 	return nil
 }
 
-// DisableDrift is a no-op for Azure gpu-provisioner (no drift support).
-func (g *AzureGPUProvisioner) DisableDrift(ctx context.Context, workspaceNamespace, workspaceName string) error {
+// DisableDriftRemediation is a no-op for Azure gpu-provisioner (no drift support).
+func (g *AzureGPUProvisioner) DisableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error {
 	return nil
 }
 
 // EnsureNodesReady checks that:
-//  1. All expected NodeClaims are in Ready state -> ProvisioningNotReady if not.
-//  2. Enough Nodes with the correct instance type are ready -> NodesNotReady if not.
-//  3. GPU device plugins are installed on provisioned nodes -> NodesNotReady if not.
-func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (nodeprovision.NodeReadiness, error) {
+//  1. All expected NodeClaims are in Ready state -> (false, false) if not.
+//  2. Enough Nodes with the correct instance type are ready -> (false, true) if not.
+//  3. GPU device plugins are installed on provisioned nodes -> (false, true) if not.
+func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
 	// List nodes once and derive both readyNodes (for NodeClaim check) and
 	// readyCount with correct instance type (for node readiness check).
 	nodeList, err := resources.ListNodes(ctx, g.nodeClaimManager.Client, ws.Resource.LabelSelector.MatchLabels)
 	if err != nil {
-		return nodeprovision.ProvisioningNotReady, fmt.Errorf("failed to list nodes: %w", err)
+		return false, false, fmt.Errorf("failed to list nodes: %w", err)
 	}
 
 	var readyNodes []*corev1.Node
@@ -129,7 +125,7 @@ func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1b
 	// Step 1: Check NodeClaims readiness.
 	ncList, err := nodeclaim.ListNodeClaim(ctx, ws, g.nodeClaimManager.Client)
 	if err != nil {
-		return nodeprovision.ProvisioningNotReady, fmt.Errorf("failed to list NodeClaims: %w", err)
+		return false, false, fmt.Errorf("failed to list NodeClaims: %w", err)
 	}
 
 	existingNodeClaims := make([]*karpenterv1.NodeClaim, 0, len(ncList.Items))
@@ -139,10 +135,10 @@ func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1b
 
 	nodeClaimsReady, err := g.nodeClaimManager.EnsureNodeClaimsReady(ctx, ws, readyNodes, existingNodeClaims)
 	if err != nil {
-		return nodeprovision.ProvisioningNotReady, err
+		return false, false, err
 	}
 	if !nodeClaimsReady {
-		return nodeprovision.ProvisioningNotReady, nil
+		return false, false, nil
 	}
 
 	// Step 2: Check that enough Nodes with the correct instance type are ready.
@@ -151,19 +147,19 @@ func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1b
 		klog.InfoS("Not enough Nodes are ready for workspace",
 			"workspace", client.ObjectKeyFromObject(ws).String(),
 			"targetNodes", targetNodeCount, "currentReadyNodes", readyWithInstanceType)
-		return nodeprovision.NodesNotReady, nil
+		return false, true, nil
 	}
 
 	// Step 3: Check GPU device plugins on provisioned nodes.
-	ready, err := g.nodeResourceManager.CheckIfNodePluginsReady(ctx, ws, existingNodeClaims)
+	pluginReady, err := g.nodeResourceManager.CheckIfNodePluginsReady(ctx, ws, existingNodeClaims)
 	if err != nil {
-		return nodeprovision.NodesNotReady, fmt.Errorf("failed to check node plugin readiness: %w", err)
+		return false, true, fmt.Errorf("failed to check node plugin readiness: %w", err)
 	}
-	if !ready {
-		return nodeprovision.NodesNotReady, nil
+	if !pluginReady {
+		return false, true, nil
 	}
 
-	return nodeprovision.NodesReady, nil
+	return true, false, nil
 }
 
 // CollectNodeStatusInfo gathers status conditions for workspace status.

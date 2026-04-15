@@ -160,20 +160,15 @@ func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1b
 	}
 
 	// Check if nodes are ready.
-	// Each provisioner encapsulates its own readiness criteria:
-	// GpuProvisioner: NodeClaims ready + nodes with correct instance type + GPU plugins.
-	// NopProvisioner: enough matching nodes are ready.
-	readiness, err := c.nodeProvisioner.EnsureNodesReady(ctx, wObj)
+	ready, needRequeue, err := c.nodeProvisioner.EnsureNodesReady(ctx, wObj)
 	if err != nil {
 		return &reconcile.Result{}, err
 	}
-	switch readiness {
-	case nodeprovision.NodesReady:
-		// All nodes ready, proceed.
-	case nodeprovision.ProvisioningNotReady:
+	if !ready {
+		if needRequeue {
+			return &reconcile.Result{RequeueAfter: 2 * time.Second}, nil
+		}
 		return &reconcile.Result{}, nil
-	case nodeprovision.NodesNotReady:
-		return &reconcile.Result{RequeueAfter: 2 * time.Second}, nil
 	}
 
 	return nil, nil

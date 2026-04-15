@@ -5,8 +5,8 @@ slug: /
 
 :::info What's NEW!
 
-ALL vLLM supported models can be run in KAITO now, check the latest [release](https://github.com/kaito-project/kaito/releases).  
-**Latest Release:** Feb 26th, 2026. KAITO v0.9.0.  
+ALL vLLM supported models can be run in KAITO now.  
+**Latest Release:** Apr 15th, 2026. KAITO v0.10.0.  
 **First Release:** Nov 15th, 2023. KAITO v0.1.0.
 :::
 

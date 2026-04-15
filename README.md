@@ -8,8 +8,8 @@
 
 | ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ALL vLLM supported models can be run in KAITO now, check the latest [release](https://github.com/kaito-project/kaito/releases). |
-| Latest Release: Feb 26th, 2026. KAITO v0.9.0. |
+| ALL vLLM supported models can be run in KAITO now. |
+| Latest Release: Apr 15th, 2026. KAITO v0.10.0. |
 | First Release: Nov 15th, 2023. KAITO v0.1.0. |
 
 KAITO is an operator suite that automates LLM model inference, fine-tuning, and RAG (Retrieval Augmented Generation) engine deployment in a Kubernetes cluster.

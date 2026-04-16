@@ -26,3 +26,11 @@ metadata:
 ```
 > Important: This approach is **NOT** recommended for production environments. For production scenarios, use an [Ingress Controller](https://learn.microsoft.com/en-us/azure/aks/ingress-basic?tabs=azure-cli) to safely expose the service.
 
+---
+
+### RAGEngine Runtime Env Overrides
+
+The `examples/RAG` manifests define the `RAGEngine` CRD objects themselves. The current output-guardrails and remote-audit settings are still configured as runtime env vars on the generated RAG service deployment rather than as `RAGEngine.spec` fields.
+
+See `examples/RAG/README.md` for the concrete `kubectl set env deployment/...` flow and recommended variables.
+

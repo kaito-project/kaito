@@ -28,6 +28,10 @@ class VectorStoreManager:
         """Chat completion using the vector store."""
         return await self.vector_store.chat_completion(request)
 
+    async def chat_completion_stream(self, request: dict):
+        """Streaming chat completion using the vector store."""
+        return await self.vector_store.chat_completion_stream(request)
+
     def list_indexes(self):
         """List all indexes."""
         return self.vector_store.list_indexes()

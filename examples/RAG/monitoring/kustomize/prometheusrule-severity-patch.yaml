@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ragengine-output-guardrails
+spec:
+  groups:
+    - name: ragengine-output-guardrails
+      rules:
+        - alert: RAGEngineAuditShutdownDrainTimeouts
+          labels:
+            severity: critical
+        - alert: RAGEngineAuditCancelledDeliveries
+          labels:
+            severity: critical

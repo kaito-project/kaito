@@ -2,6 +2,17 @@ apiVersion: kaito.sh/v1alpha1
 kind: RAGEngine
 metadata:
   name: ragengine-start
+# Operational note:
+# Output guardrail and remote audit settings are runtime env vars on the generated
+# RAG service deployment, not RAGEngine.spec fields yet.
+# After applying this manifest, configure the generated deployment with commands like:
+# kubectl set env deployment/ragengine-start -n <namespace> \
+#   OUTPUT_GUARDRAILS_ENABLED=true \
+#   OUTPUT_GUARDRAILS_ACTION_ON_HIT=redact \
+#   OUTPUT_GUARDRAILS_AUDIT_SINKS=log,remote \
+#   OUTPUT_GUARDRAILS_AUDIT_REMOTE_EVENT_URL=https://audit.example.com/events \
+#   OUTPUT_GUARDRAILS_AUDIT_REMOTE_REPORT_URL=https://audit.example.com/reports
+# See examples/RAG/README.md for a fuller first-time setup flow.
 spec:
   compute:
     instanceType: "Standard_NC6s_v3"  

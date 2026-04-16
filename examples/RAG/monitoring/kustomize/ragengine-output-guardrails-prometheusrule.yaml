@@ -1,0 +1,55 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ragengine-output-guardrails
+  labels:
+    app.kubernetes.io/name: ragengine
+spec:
+  groups:
+    - name: ragengine-output-guardrails
+      interval: 1m
+      rules:
+        - alert: RAGEngineAuditShutdownDrainTimeouts
+          expr: increase(rag_output_guardrails_audit_shutdown_drain_total{status="timeout"}[15m]) > 0
+          for: 0m
+          labels:
+            severity: warning
+            component: ragengine
+          annotations:
+            summary: RAGEngine audit shutdown drains are timing out
+            description: |
+              One or more RAGEngine guardrail audit shutdown drains timed out in the last 15 minutes.
+              Check remote audit sink health and pending background task backlog.
+        - alert: RAGEngineAuditCancelledDeliveries
+          expr: increase(rag_output_guardrails_audit_cancelled_deliveries_total[15m]) > 0
+          for: 0m
+          labels:
+            severity: warning
+            component: ragengine
+          annotations:
+            summary: RAGEngine cancelled background audit deliveries
+            description: |
+              RAGEngine cancelled one or more background audit deliveries in the last 15 minutes.
+              This indicates audit data loss risk during shutdown drain timeout.
+        - alert: RAGEngineAuditBackpressure
+          expr: increase(rag_output_guardrails_audit_backpressure_total[15m]) > 0
+          for: 0m
+          labels:
+            severity: warning
+            component: ragengine
+          annotations:
+            summary: RAGEngine audit backpressure is active
+            description: |
+              RAGEngine hit the configured in-flight audit delivery limit in the last 15 minutes.
+              Check remote audit sink latency and the current backlog policy.
+        - alert: RAGEngineAuditDroppedDeliveries
+          expr: increase(rag_output_guardrails_audit_dropped_deliveries_total[15m]) > 0
+          for: 0m
+          labels:
+            severity: warning
+            component: ragengine
+          annotations:
+            summary: RAGEngine dropped audit deliveries
+            description: |
+              RAGEngine dropped one or more audit deliveries in the last 15 minutes because backpressure policy was set to drop.
+              This indicates audit completeness loss under load.

@@ -17,6 +17,7 @@ import logging
 import os
 import time
 from urllib.parse import unquote
+import uuid
 
 import nest_asyncio
 
@@ -27,6 +28,8 @@ from embedding.huggingface_local_embedding import (  # noqa: E402
 )
 from embedding.remote_embedding import RemoteEmbeddingModel  # noqa: E402
 from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
+from guardrails.audit import GuardrailAuditEmitter  # noqa: E402
+from guardrails.output_guardrails import OutputGuardrails  # noqa: E402
 from models import (  # noqa: E402
     ChatCompletionResponse,
     DeleteDocumentRequest,
@@ -43,13 +46,14 @@ from models import (  # noqa: E402
 
 # Import Prometheus client for metrics collection
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: E402
-from starlette.responses import Response  # noqa: E402
+from starlette.responses import Response, StreamingResponse  # noqa: E402
 from vector_store_manager.manager import VectorStoreManager  # noqa: E402
 
 from ragengine.config import (  # noqa: E402
     DEFAULT_VECTOR_DB_PERSIST_DIR,
     EMBEDDING_SOURCE_TYPE,
     LOCAL_EMBEDDING_MODEL_ID,
+    OUTPUT_GUARDRAILS_AUDIT_SHUTDOWN_DRAIN_TIMEOUT_SECONDS,
     REMOTE_EMBEDDING_ACCESS_SECRET,
     REMOTE_EMBEDDING_URL,
     VECTOR_DB_ACCESS_SECRET,
@@ -95,6 +99,68 @@ app = FastAPI(
 )
 
 
+def _extract_trace_id(request: Request) -> str | None:
+    traceparent = request.headers.get("traceparent")
+    if traceparent:
+        parts = traceparent.split("-")
+        if len(parts) >= 4 and len(parts[1]) == 32:
+            return parts[1]
+
+    trace_id = request.headers.get("x-trace-id")
+    if trace_id:
+        return trace_id
+
+    return None
+
+
+def _get_request_id(request: Request) -> str:
+    return (
+        request.headers.get("x-request-id")
+        or request.headers.get("x-ms-client-request-id")
+        or uuid.uuid4().hex
+    )
+
+
+def _encode_sse(payload: dict | str) -> bytes:
+    if payload == "[DONE]":
+        return b"data: [DONE]\n\n"
+    return f"data: {json.dumps(payload, separators=(',', ':'))}\n\n".encode(
+        "utf-8"
+    )
+
+
+def _build_stream_chunk(
+    response_id: str,
+    created: int,
+    model: str | None,
+    *,
+    delta: dict | None = None,
+    content: str | None = None,
+    role: str | None = None,
+    finish_reason: str | None = None,
+) -> dict:
+    if delta is None:
+        delta = {}
+        if role is not None:
+            delta["role"] = role
+        if content is not None:
+            delta["content"] = content
+
+    return {
+        "id": response_id,
+        "object": "chat.completion.chunk",
+        "created": created,
+        "model": model,
+        "choices": [
+            {
+                "index": 0,
+                "delta": delta,
+                "finish_reason": finish_reason,
+            }
+        ],
+    }
+
+
 @app.middleware("http")
 async def track_requests(request: Request, call_next):
     tracked_paths = [
@@ -114,10 +180,13 @@ async def track_requests(request: Request, call_next):
     num_requests_running.inc()
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
+    request.state.request_id = _get_request_id(request)
+    request.state.trace_id = _extract_trace_id(request)
 
     try:
         response = await call_next(request)
         status = STATUS_SUCCESS
+        response.headers["X-Request-Id"] = request.state.request_id
         return response
     except Exception:
         raise
@@ -160,6 +229,8 @@ else:
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
+output_guardrails = OutputGuardrails.from_config()
+guardrail_audit_emitter = GuardrailAuditEmitter.from_config()
 
 
 @app.get("/metrics", operation_id="get_metrics", tags=["Monitoring"])
@@ -323,7 +394,7 @@ async def index_documents(request: IndexRequest):
     ```
     """,
 )
-async def chat_completions(request: dict):
+async def chat_completions(request: dict, http_request: Request):
     start_time = time.perf_counter()
     status = STATUS_FAILURE  # Default status
     try:
@@ -334,7 +405,144 @@ async def chat_completions(request: dict):
                 detail="InferenceService not configured. This RAGEngine instance only supports document retrieve via /retrieve API. To use chat completions, configure an InferenceService in the RAGEngine spec.",
             )
 
+        request_metadata = {
+            "request_id": getattr(http_request.state, "request_id", None),
+            "trace_id": getattr(http_request.state, "trace_id", None),
+        }
+
+        if request.get("stream"):
+            stream = await rag_ops.chat_completion_stream(request)
+
+            async def stream_response():
+                metadata = await anext(stream)
+                stream_session = output_guardrails.create_stream_session(
+                    request,
+                    metadata,
+                    request_metadata,
+                )
+                upstream_finish_reason = "stop"
+
+                if stream_session.should_emit_audit_events():
+                    await guardrail_audit_emitter.emit_event_async(
+                        stream_session.start_event()
+                    )
+
+                yield _encode_sse(
+                    _build_stream_chunk(
+                        metadata["id"],
+                        metadata["created"],
+                        metadata.get("model"),
+                        role="assistant",
+                    )
+                )
+
+                async for event in stream:
+                    if event["type"] == "delta":
+                        raw_delta = event["delta"]
+                        emit_texts: list[str] = []
+                        staged_events = []
+
+                        if isinstance(raw_delta, str):
+                            emit_texts, staged_events = stream_session.append_text(
+                                raw_delta
+                            )
+                        elif isinstance(raw_delta, dict):
+                            content_delta = raw_delta.get("content")
+                            structured_delta = {
+                                key: value
+                                for key, value in raw_delta.items()
+                                if key != "content" and not (key == "role" and value == "assistant")
+                            }
+
+                            if isinstance(content_delta, str) and content_delta:
+                                emit_texts, staged_events = stream_session.append_text(
+                                    content_delta
+                                )
+
+                            structured_events = stream_session.observe_structured_delta(
+                                structured_delta
+                            )
+                            staged_events.extend(structured_events)
+                            if structured_delta:
+                                yield _encode_sse(
+                                    _build_stream_chunk(
+                                        metadata["id"],
+                                        metadata["created"],
+                                        metadata.get("model"),
+                                        delta=structured_delta,
+                                    )
+                                )
+
+                        if stream_session.should_emit_audit_events():
+                            for staged_event in staged_events:
+                                await guardrail_audit_emitter.emit_event_async(
+                                    staged_event
+                                )
+                        for emit_text in emit_texts:
+                            yield _encode_sse(
+                                _build_stream_chunk(
+                                    metadata["id"],
+                                    metadata["created"],
+                                    metadata.get("model"),
+                                    content=emit_text,
+                                )
+                            )
+                    elif event["type"] == "done":
+                        upstream_finish_reason = event.get("finish_reason") or "stop"
+                        break
+
+                remaining_texts, audit_report, guard_finish_reason, staged_events = (
+                    stream_session.finalize()
+                )
+                if stream_session.should_emit_audit_events():
+                    for staged_event in staged_events:
+                        await guardrail_audit_emitter.emit_event_async(staged_event)
+                for emit_text in remaining_texts:
+                    yield _encode_sse(
+                        _build_stream_chunk(
+                            metadata["id"],
+                            metadata["created"],
+                            metadata.get("model"),
+                            content=emit_text,
+                        )
+                    )
+
+                if audit_report is not None:
+                    await guardrail_audit_emitter.emit_report_async(audit_report)
+
+                yield _encode_sse(
+                    _build_stream_chunk(
+                        metadata["id"],
+                        metadata["created"],
+                        metadata.get("model"),
+                        finish_reason=(
+                            guard_finish_reason
+                            if guard_finish_reason == "content_filter"
+                            else upstream_finish_reason
+                        ),
+                    )
+                )
+                yield _encode_sse("[DONE]")
+
+            status = STATUS_SUCCESS
+            return StreamingResponse(
+                stream_response(),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                    "X-Request-Id": request_metadata["request_id"],
+                },
+            )
+
         response = await rag_ops.chat_completion(request)
+        response, audit_report = output_guardrails.guard_response(
+            response,
+            request,
+            request_metadata,
+        )
+        if audit_report is not None:
+            await guardrail_audit_emitter.emit_report_async(audit_report)
         status = STATUS_SUCCESS
         return response
     except HTTPException as http_exc:
@@ -820,6 +1028,9 @@ async def delete_index(index_name: str):
 @app.on_event("shutdown")
 async def shutdown_event():
     """Ensure the client is properly closed when the server shuts down."""
+    await guardrail_audit_emitter.drain_background_tasks(
+        OUTPUT_GUARDRAILS_AUDIT_SHUTDOWN_DRAIN_TIMEOUT_SECONDS
+    )
     await rag_ops.shutdown()
 
 

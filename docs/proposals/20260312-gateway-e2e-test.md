@@ -81,10 +81,10 @@ The test plan is organized into two sequential parts: **environment setup** (Par
 │                                       ▼                                       │
 │                              ┌─────────────────┐                              │
 │                              │  Shadow Pod      │  ← real pod IP (AKS CNI)    │
-│                              │  (LLM Mocker)    │                              │
+│                              │  (llm-d-inference-sim) ← vLLM simulator       │
 │                              │  /v1/chat/compl. │                              │
 │                              │  /metrics        │                              │
-│                              │  _debug headers  │                              │
+│                              │  OpenAI response │                              │
 │                              └─────────────────┘                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -95,8 +95,8 @@ The test plan is organized into two sequential parts: **environment setup** (Par
 |---|---|---|
 | **Cluster** | AKS (non-GPU SKU) | Real AKS CNI networking, real LB, matches production topology. No GPU quota needed. |
 | **GPU node provisioning** | GPU Node Mocker (replaces `gpu-provisioner`) | Intercepts `NodeClaim`, creates a fake `Node` and keeps it `Ready` via Lease heartbeat, without launching a real VM. |
-| **Inference pod** | Shadow Pod on real AKS node | The pending pod (on the fake node, created by KAITO from the standard preset) has its `status.podIP` patched to the shadow pod's real CNI IP. The preset image never runs. Gateway/EPP route to the real IP and hit the LLM Mocker. |
-| **LLM simulation** | LLM Mocker HTTP server (`kaito/llm-mocker`) | Exposes `/v1/chat/completions` and `/metrics`. Echoes BBR/EPP-injected headers in the response body so tests can assert routing correctness without log scraping. |
+| **Inference pod** | Shadow Pod on real AKS node | The pending pod (on the fake node, created by KAITO from the standard preset) has its `status.podIP` patched to the shadow pod's real CNI IP. The preset image never runs. Gateway/EPP route to the real IP and hit the llm-d-inference-sim. |
+| **LLM simulation** | llm-d-inference-sim (`ghcr.io/llm-d/llm-d-inference-sim`) | A lightweight, OpenAI-compatible vLLM simulator. Supports echo/random response modes, Prometheus-compatible vLLM metrics (`/metrics`), and KV-cache simulation — all without GPU. Tests assert routing via the `model` field in the standard OpenAI response and per-pod Prometheus metrics. |
 | **KAITO conditions** | Fake Node → `ResourceReady=True`; Shadow Pod patch → `InferenceReady=True` | KAITO's two readiness conditions are satisfied through the two-phase mocker design. |
 
 **End-to-end flow for a single inference request:**
@@ -105,8 +105,8 @@ The test plan is organized into two sequential parts: **environment setup** (Par
 2. **BBR** reads the request body, extracts `model`, injects `X-Gateway-Model-Name: falcon-7b-instruct`.
 3. **HTTPRoute** matches the header and forwards to `falcon-7b-instruct-inferencepool`.
 4. **EPP** selects an inference pod (by KV-cache score), injects `X-Gateway-Destination-Endpoint: <shadow-pod-IP>:5000`.
-5. Envoy forwards the request to the shadow pod IP. The **LLM Mocker** responds with an OpenAI-compatible JSON body that includes `_debug.gateway_model_name` and `_debug.destination_endpoint`.
-6. The E2E test asserts on these `_debug` fields to verify correct routing.
+5. Envoy forwards the request to the shadow pod IP. The **llm-d-inference-sim** responds with a standard OpenAI-compatible JSON body. The `model` field in the response confirms the request reached the correct model endpoint.
+6. The E2E test asserts on the response `model` field to verify correct routing, and checks per-pod Prometheus metrics (`/metrics`) to confirm traffic distribution.
 
 ---
 
@@ -180,13 +180,13 @@ The mocker uses a **two-phase** design to make both `ResourceReady` and `Inferen
 │          │                        ┌──────────────────────────────────┐ │
 │          │                        │         Shadow Pod               │ │
 │          │                        │  • Scheduled on real AKS node    │ │
-│          │                        │  • Runs LLM Mocker container     │ │
+│          │                        │  • Runs llm-d-inference-sim container     │ │
 │          │    patch podIP=        │  • Gets real CNI IP from AKS     │ │
 │          └──── shadow pod IP ─────┤  • Exposes /v1/chat/completions  │ │
 │               patch status=Ready  │    and /metrics                  │ │
 │                                   └──────────────────────────────────┘ │
 │                                                                        │
-│  Gateway ──► routes to patched pod IP ──► hits Shadow Pod (LLM Mocker) │
+│  Gateway ──► routes to patched pod IP ──► hits Shadow Pod (llm-d-inference-sim) │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -196,7 +196,7 @@ When the mocker detects a new `NodeClaim`:
 
 1. Creates a `Node` resource with a non-cloud-parseable `spec.providerID` (e.g. `fake://<node-name>`) so the Azure Cloud Controller Manager skips deletion (CCM calls `InstanceExistsByProviderID`, receives a parse error, and skips the node rather than deleting it).
 2. Adds the label `node.kubernetes.io/exclude-from-external-load-balancers: "true"` to avoid CCM LB reconciliation errors.
-3. Patches the node's `status.conditions` to `Ready=True` and sets `status.allocatable` / `status.capacity`.
+3. Patches the node's `status.conditions` to `Ready=True` and sets `status.allocatable` / `status.capacity`, including GPU resources (e.g., `nvidia.com/gpu: 1`) so that the scheduler treats the fake node as GPU-capable.
 4. Creates a `Lease` in `kube-node-lease` for this node.
 5. Starts a background goroutine that renews the `Lease.spec.renewTime` every 10 seconds, keeping the node-lifecycle-controller from marking the node `Unknown`.
 6. Adds the workspace-specific label (`kaito.sh/workspace: <name>`) and any other labels required by the `InferenceSet`'s `labelSelector`, so the KAITO workspace controller flips `ResourceReady=True`.
@@ -206,7 +206,11 @@ When the mocker detects a new `NodeClaim`:
 When KAITO creates a pod and binds it (`spec.nodeName`) to the fake node, the pod stays `Pending` indefinitely — there is no kubelet. The mocker:
 
 1. Detects the `Pending` pod assigned to the fake node.
-2. Creates a **shadow pod** on a real AKS worker node. The shadow pod runs the LLM Mocker container (see below) and is assigned a real CNI IP by AKS.
+2. Creates a **shadow pod** on a real AKS worker node. The shadow pod:
+   - **Name**: `shadow-<original-pod-name>` (e.g., `shadow-falcon-7b-instruct-0`)
+   - **Namespace**: same namespace as the original pod
+   - **Labels**: `app.kaito.sh/role: shadow`, `app.kaito.sh/original-pod: <original-pod-name>`. These labels must **not** overlap with the workspace/InferenceSet `labelSelector` to avoid the shadow pod being selected by the workload Service or InferencePool endpoint picker.
+   - **Container**: runs the `ghcr.io/llm-d/llm-d-inference-sim:v0.8.2` image with `--mode echo --model <model-name>` and is assigned a real CNI IP by AKS.
 3. Waits for the shadow pod to reach `Running` and records its `status.podIP`.
 4. Patches the original pending pod's `status` via `--subresource=status`:
    - `status.phase = Running`
@@ -214,44 +218,41 @@ When KAITO creates a pod and binds it (`spec.nodeName`) to the fake node, the po
    - `status.conditions[Ready] = True`
    - `status.containerStatuses[*].ready = true`
 
-From KAITO's perspective the pending pod is now `Running/Ready`, so `InferenceReady` flips to `True`. From the Gateway/EPP's perspective, the pod IP it receives is the shadow pod's real IP — meaning inference traffic is actually served by the LLM Mocker.
+From KAITO's perspective the pending pod is now `Running/Ready`, so `InferenceReady` flips to `True`. From the Gateway/EPP's perspective, the pod IP it receives is the shadow pod's real IP — meaning inference traffic is actually served by the llm-d-inference-sim.
 
-**LLM Mocker**
+**llm-d-inference-sim (vLLM Simulator)**
 
-The LLM mocker is a new lightweight HTTP server image (`kaito/llm-mocker`) that simulates a vLLM-compatible OpenAI inference endpoint. It runs inside **shadow pods** on real AKS worker nodes (scheduled by the GPU node mocker in Phase 2), making the E2E tests GPU-free while still exercising real AKS networking and the full Gateway → EPP routing path.
+[llm-d-inference-sim](https://github.com/llm-d/llm-d-inference-sim) is an open-source, lightweight, OpenAI-compatible vLLM simulator. It runs inside **shadow pods** on real AKS worker nodes (scheduled by the GPU node mocker in Phase 2), making the E2E tests GPU-free while still exercising real AKS networking and the full Gateway → EPP routing path.
 
-Key features:
+Key features used in E2E tests:
 
 | Feature | Behaviour |
 |---|---|
-| **`/v1/chat/completions`** | Accepts OpenAI-compatible chat requests and returns a well-formed JSON response. |
-| **`/metrics`** | Exposes Prometheus-compatible vLLM metrics (e.g., `vllm:num_requests_waiting`) so EPP can score pods. |
-| **Tool call priority** | When the request contains a `tools` array, the response always includes a `tool_calls` assistant turn, enabling multi-turn tool-call test flows. |
-| **Header echo** | Reads the `X-Gateway-Model-Name` and `X-Gateway-Destination-Endpoint` request headers (injected by BBR and EPP respectively) and echoes them back in the response body under `_debug.gateway_model_name` and `_debug.destination_endpoint`. This lets E2E tests assert routing correctness without requiring log scraping. |
-| **Model name parameter** | The model name is passed as a CLI argument (`--model-name=<name>`), so the same image can stand in for any model. |
+| **`/v1/chat/completions`** | Accepts OpenAI-compatible chat requests and returns a well-formed JSON response with the correct `model` field. |
+| **`/metrics`** | Exposes Prometheus-compatible vLLM metrics (e.g., `vllm:num_requests_waiting`) so EPP can score pods and tests can verify traffic distribution per pod. |
+| **Echo mode** | With `--mode echo`, the response content mirrors the input message, useful for verifying request routing. |
+| **KV-cache simulation** | Tracks simulated KV-cache memory usage and publishes ZMQ events, enabling EPP's prefix-cache-aware pod selection to work correctly. |
+| **Model name parameter** | The model name is passed as `--model <name>`, so the same image can stand in for any model. |
 
-Example LLM mocker response for a chat request:
+Example response for a chat request:
 
 ```json
 {
-  "id": "chatcmpl-mock-001",
+  "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "model": "falcon-7b-instruct",
   "choices": [
     {
       "index": 0,
-      "message": {"role": "assistant", "content": "[mock response]"},
+      "message": {"role": "assistant", "content": "What is the weather in Seattle?"},
       "finish_reason": "stop"
     }
   ],
-  "_debug": {
-    "gateway_model_name": "falcon-7b-instruct",
-    "destination_endpoint": "10.244.1.5:5000"
-  }
+  "usage": {"prompt_tokens": 12, "completion_tokens": 8, "total_tokens": 20}
 }
 ```
 
-When a `tools` array is present the `choices[0].message` is replaced with a `tool_calls` list instead of a plain content string, producing a valid tool-call turn for multi-turn conversation tests.
+The `model` field in the response can be used by E2E tests to verify that the request was routed to the correct model endpoint. Per-pod Prometheus metrics can verify traffic distribution.
 
 **Verification**
 
@@ -263,9 +264,6 @@ kubectl -n kaito-system get pods -l app=kaito-workspace
 
 # GPU node mocker is running
 kubectl -n kaito-system get pods -l app=gpunode-mocker
-
-# AKS cluster nodes are ready
-kubectl get nodes
 ```
 
 All pods must reach `Running` state and all AKS nodes must reach `Ready` state before proceeding.
@@ -294,7 +292,9 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extens
 Install BBR at version **v1.3.1**. BBR runs as a deployment and is registered as an Envoy `ext_proc` filter via an Istio `EnvoyFilter` resource. It intercepts incoming requests, reads the `model` field from the JSON request body, and injects an `X-Gateway-Model-Name` header so the `HTTPRoute` can perform header-based routing to the correct `InferencePool`.
 
 ```bash
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/download/v1.3.1/body-based-router.yaml
+helm install body-based-routing \
+  oci://registry.k8s.io/gateway-api-inference-extension/charts/body-based-routing \
+  --version v1.3.1
 ```
 
 **Gateway**
@@ -345,7 +345,7 @@ All components must be `Running` and `Ready` before proceeding.
 
 **InferenceSet Resources**
 
-Deploy the following two `InferenceSet` resources using their standard `preset` configurations (i.e., the existing YAML files under `examples/inference/`). No custom container spec is needed: KAITO creates the inference pods normally using the preset image, but the pods are assigned to fake nodes and therefore stay `Pending` indefinitely. The GPU node mocker's Phase 2 then patches each pending pod's `status.podIP` to the corresponding shadow pod's real CNI IP, making KAITO treat them as `Running/Ready`. The preset image itself **never executes** — all actual inference traffic is served by the shadow pod running the LLM Mocker.
+Deploy the following two `InferenceSet` resources using their standard `preset` configurations (i.e., the existing YAML files under `examples/inference/`). No custom container spec is needed: KAITO creates the inference pods normally using the preset image, but the pods are assigned to fake nodes and therefore stay `Pending` indefinitely. The GPU node mocker's Phase 2 then patches each pending pod's `status.podIP` to the corresponding shadow pod's real CNI IP, making KAITO treat them as `Running/Ready`. The preset image itself **never executes** — all actual inference traffic is served by the shadow pod running the llm-d-inference-sim.
 
 | Model | File | Replicas |
 |---|---|---|
@@ -368,7 +368,7 @@ The resulting logical topology (fake nodes host the pending pods; shadow pods on
 │  InferencePool: ministral-3-3b-instruct-inferencepool                │
 │    └── ministral-3-3b-instruct-pod-0 (fake-node-2, IP=shadow-pod-2-IP)│
 │                                                                      │
-│  Shadow Pods (on real AKS nodes, running LLM Mocker):                │
+│  Shadow Pods (on real AKS nodes, running llm-d-inference-sim):                │
 │    shadow-pod-0  10.244.x.x  ← falcon pod-0 traffic lands here      │
 │    shadow-pod-1  10.244.x.x  ← falcon pod-1 traffic lands here      │
 │    shadow-pod-2  10.244.x.x  ← ministral pod-0 traffic lands here   │
@@ -485,69 +485,56 @@ Verify that requests containing a valid model name in the JSON body are correctl
 1. Send a POST request with `"model": "falcon-7b-instruct"` and verify the response comes back from the correct pool.
 2. Send a POST request with `"model": "ministral-3-3b-instruct"` and verify routing to the other pool.
 
-**Assertions** (using the `_debug` fields echoed by the LLM mocker):
+**Assertions:**
 
-- `response._debug.gateway_model_name` equals the requested model name — confirms BBR correctly extracted the model from the request body and injected `X-Gateway-Model-Name`.
-- `response._debug.destination_endpoint` is non-empty and matches an IP of a pod belonging to the expected `InferencePool` — confirms EPP selected a pod and injected `X-Gateway-Destination-Endpoint`.
+- `response.model` equals the requested model name — confirms the request was routed to the correct model endpoint via BBR and HTTPRoute.
 - HTTP status is `200`.
+- Per-pod Prometheus metrics (`/metrics`) show increased request counts on pods belonging to the expected `InferencePool`, confirming EPP selected the correct pod.
 
-##### 2.2 Prefix Cache Affinity — Multi-Turn Conversation with Tool Calls
+##### 2.2 Prefix Cache Affinity — Multi-Turn Plain Text Conversation
 
-EPP implements prefix-cache-aware pod selection: when a follow-up request shares a long common prefix with a previous request (e.g., same system prompt, same conversation history, same tool definitions), EPP should prefer the pod that already has that prefix cached in its KV-cache, minimizing recomputation and latency.
+EPP implements prefix-cache-aware pod selection: when a follow-up request shares a long common prefix with a previous request (e.g., same system prompt, same conversation history), EPP should prefer the pod that already has that prefix cached in its KV-cache, minimizing recomputation and latency.
 
-**Test scenario — multi-turn conversation with tool calls:**
+**Test scenario — multi-turn plain text conversation:**
 
-1. Send an initial request to `falcon-7b-instruct` that includes a system prompt, a tool schema (`tools` array), and a first user message. Record the inference pod selected by EPP (via the `X-Gateway-Destination-Endpoint` response header or server-side logs).
+1. Send an initial request to `falcon-7b-instruct` that includes a system prompt and a first user message. Record the inference pod that handled the request (by checking per-pod Prometheus metrics or Envoy access logs).
 
    ```json
    {
      "model": "falcon-7b-instruct",
      "messages": [
-       {"role": "system", "content": "You are a helpful assistant with access to tools."},
+       {"role": "system", "content": "You are a helpful assistant."},
        {"role": "user", "content": "What is the weather in Seattle?"}
-     ],
-     "tools": [
-       {
-         "type": "function",
-         "function": {
-           "name": "get_weather",
-           "description": "Get current weather for a city",
-           "parameters": {"type": "object", "properties": {"city": {"type": "string"}}}
-         }
-       }
      ]
    }
    ```
 
-2. Append the assistant's tool-call response and a follow-up user message (same system prompt + tool schema prefix), then send the second turn. Record which pod EPP selects.
+2. Append the assistant's response and a follow-up user message (same system prompt prefix), then send the second turn. Record which pod EPP selects.
 
    ```json
    {
      "model": "falcon-7b-instruct",
      "messages": [
-       {"role": "system", "content": "You are a helpful assistant with access to tools."},
+       {"role": "system", "content": "You are a helpful assistant."},
        {"role": "user", "content": "What is the weather in Seattle?"},
-       {"role": "assistant", "tool_calls": [{"id": "call_1", "function": {"name": "get_weather", "arguments": "{\"city\": \"Seattle\"}"}}]},
-       {"role": "tool", "tool_call_id": "call_1", "content": "Rainy, 12°C"},
+       {"role": "assistant", "content": "It is currently rainy and 12°C in Seattle."},
        {"role": "user", "content": "What about tomorrow?"}
-     ],
-     "tools": [ /* same tool schema */ ]
+     ]
    }
    ```
 
 3. Repeat turn 2 several more times, extending the conversation history each time.
 
-**Assertions** (using the `_debug` fields echoed by the LLM mocker):
+**Assertions:**
 
-- `response._debug.destination_endpoint` is **identical** across all turns of the same conversation — EPP selected the same pod each time because the long shared prefix (system prompt + tool schema + conversation history) causes that pod to score highest on prefix-cache affinity.
-- The LLM mocker returns a `tool_calls` turn for turn 1 (because `tools` was present), enabling the test to construct a valid turn-2 message with `role: tool`.
-- If the pinned pod is deleted mid-conversation, EPP falls back to another pod with no error returned to the client (the `destination_endpoint` changes to a new pod IP).
+- Per-pod Prometheus metrics confirm the **same pod** handled all turns of the same conversation — EPP selected the same pod each time because the long shared prefix (system prompt + conversation history) causes that pod to score highest on prefix-cache affinity.
+- If the pinned pod is deleted mid-conversation, EPP falls back to another pod with no error returned to the client.
 
 ##### 2.3 Load Distribution Across Multiple Replicas
 
 With 2 `falcon-7b-instruct` replicas, issue multiple concurrent **independent** requests (distinct messages, no shared prefix) and verify that:
 
-- `response._debug.destination_endpoint` varies across responses — both pods receive traffic.
+- Per-pod Prometheus metrics show traffic distributed across both pods — both pods receive traffic.
 - No single pod's endpoint appears in 100% of responses under normal conditions.
 
 ##### 2.4 Unknown Model Error Handling
@@ -740,7 +727,7 @@ For KAITO's E2E tests, we use the **upstream GAIE EPP** because:
 2. **Minimal dependencies**: The upstream EPP requires only an ext-proc-capable gateway (Istio in our case) and optionally BBR. In contrast, llm-d additionally requires `llm-d-kv-cache` and a routing sidecar on decode pods for P/D mode; Dynamo EPP requires a FrontEnd sidecar on every worker pod plus NATS/ZMQ event plane for KV-cache scoring.
 3. **Test fidelity**: The E2E tests validate KAITO ↔ GAIE integration correctness (CRD creation, condition propagation, routing behavior). Using the reference EPP ensures we test against the canonical implementation without introducing platform-specific behaviors (e.g., Dynamo's `x-worker-instance-id` header routing or llm-d's sidecar-based P/D orchestration).
 4. **Production readiness**: GAIE is GA (v1.3.1) with broad production adoption and active maintenance. llm-d (v0.6.0) and Dynamo EPP (v1.0.1) are also production-ready but carry heavier dependency stacks.
-5. **Simplicity**: llm-d and Dynamo offer more advanced KV-cache scoring (real-time KV events, token-aware hashing), but GAIE's estimation-based `prefix-cache-scorer` is sufficient for validating routing correctness in the E2E environment with LLM mockers that do not have real KV caches.
+5. **Simplicity**: llm-d and Dynamo offer more advanced KV-cache scoring (real-time KV events, token-aware hashing), but GAIE's estimation-based `prefix-cache-scorer` is sufficient for validating routing correctness in the E2E environment with llm-d-inference-sims that do not have real KV caches.
 
 ## Alternatives
 

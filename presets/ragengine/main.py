@@ -27,7 +27,7 @@ from embedding.huggingface_local_embedding import (  # noqa: E402
 )
 from embedding.remote_embedding import RemoteEmbeddingModel  # noqa: E402
 from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
-from guardrails import OutputGuardrails  # noqa: E402
+from ragengine.guardrails import OutputGuardrails  # noqa: E402
 from models import (  # noqa: E402
     ChatCompletionResponse,
     DeleteDocumentRequest,

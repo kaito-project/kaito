@@ -94,8 +94,12 @@ type RAGEngineSpec struct {
 	Storage *StorageSpec `json:"storage,omitempty"`
 	// Embedding specifies whether the RAG engine generates embedding vectors using a remote service
 	// or using a embedding model running locally.
-	Embedding        *EmbeddingSpec        `json:"embedding"`
-	InferenceService *InferenceServiceSpec `json:"inferenceService"`
+	Embedding *EmbeddingSpec `json:"embedding"`
+	// InferenceService specifies the endpoint of the LLM inference service for generating responses.
+	// This field is optional - if not specified, the RAG engine operates in retrieve-only mode,
+	// supporting pure document search via the /retrieve API without LLM-based response generation.
+	// +optional
+	InferenceService *InferenceServiceSpec `json:"inferenceService,omitempty"`
 	// QueryServiceName is the name of the service which exposes the endpoint for accepting user queries to the
 	// inference service. If not specified, a default service name will be created by the RAG engine.
 	// +optional

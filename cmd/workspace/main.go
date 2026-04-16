@@ -48,6 +48,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
+	nodeprovisionmanager "github.com/kaito-project/kaito/pkg/nodeprovision/manager"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/version"
@@ -181,13 +182,18 @@ func main() {
 	}
 	k8sclient.SetGlobalClientGoClient(kubeClient)
 
+	// Create the node provisioner based on feature gates.
+	recorder := mgr.GetEventRecorderFor("KAITO-Workspace-controller")
+	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(kClient, recorder, defaultNodeImageFamily)
+	klog.InfoS("Node provisioner selected", "name", nodeProvisioner.Name())
+
 	workspaceReconciler := controllers.NewWorkspaceReconciler(
 		kClient,
 		mgr.GetScheme(),
 		log.Log.WithName("controllers").WithName("Workspace"),
-		mgr.GetEventRecorderFor("KAITO-Workspace-controller"),
+		recorder,
+		nodeProvisioner,
 	)
-	workspaceReconciler.SetDefaultNodeImageFamily(defaultNodeImageFamily)
 
 	if err = workspaceReconciler.SetupWithManager(mgr); err != nil {
 		klog.ErrorS(err, "unable to create controller", "controller", "Workspace")

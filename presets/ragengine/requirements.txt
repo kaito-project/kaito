@@ -27,7 +27,7 @@ asyncio==3.4.3
 aiorwlock==1.5.0
 nest-asyncio==1.6.0
 httpx==0.27.0
-requests==2.32.4
+requests==2.33.0
 openai==1.108.1
 llm-guard==0.3.16
 

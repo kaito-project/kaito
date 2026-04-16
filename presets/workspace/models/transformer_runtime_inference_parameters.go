@@ -92,14 +92,15 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		ModelName:         "phi-4",
 		Tag:               "0.2.0",
 	},
-	"phi-4-mini-instruct": {
-		BaseCommand:       "accelerate launch",
-		AccelerateParams:  defaultAccelerateParams,
-		InferenceMainFile: defaultTransformersMainFile,
-		ModelRunParams:    phiRunParams,
-		ModelName:         "phi-4-mini-instruct",
-		Tag:               "0.2.0",
-	},
+	// phi-4-mini-instruct requires transformer v5.0+
+	// "phi-4-mini-instruct": {
+	// 	BaseCommand:       "accelerate launch",
+	// 	AccelerateParams:  defaultAccelerateParams,
+	// 	InferenceMainFile: defaultTransformersMainFile,
+	// 	ModelRunParams:    phiRunParams,
+	// 	ModelName:         "phi-4-mini-instruct",
+	// 	Tag:               "0.2.0",
+	// },
 
 	// Phi-3 family
 	"phi-3-mini-4k-instruct": {
@@ -160,30 +161,31 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		ModelName:         "mistral-7b-instruct",
 		Tag:               "0.2.0",
 	},
-	"ministral-3-3b-instruct-2512": {
-		BaseCommand:       "accelerate launch",
-		AccelerateParams:  defaultAccelerateParams,
-		InferenceMainFile: defaultTransformersMainFile,
-		ModelRunParams:    mistralRunParams,
-		ModelName:         "ministral-3-3b-instruct",
-		Tag:               "0.0.1",
-	},
-	"ministral-3-8b-instruct-2512": {
-		BaseCommand:       "accelerate launch",
-		AccelerateParams:  defaultAccelerateParams,
-		InferenceMainFile: defaultTransformersMainFile,
-		ModelRunParams:    mistralRunParams,
-		ModelName:         "ministral-3-8b-instruct",
-		Tag:               "0.0.1",
-	},
-	"ministral-3-14b-instruct-2512": {
-		BaseCommand:       "accelerate launch",
-		AccelerateParams:  defaultAccelerateParams,
-		InferenceMainFile: defaultTransformersMainFile,
-		ModelRunParams:    mistralRunParams,
-		ModelName:         "ministral-3-14b-instruct",
-		Tag:               "0.0.1",
-	},
+	// ministral-3-3b/8b/14b require transformer v5.0+
+	// "ministral-3-3b-instruct-2512": {
+	// 	BaseCommand:       "accelerate launch",
+	// 	AccelerateParams:  defaultAccelerateParams,
+	// 	InferenceMainFile: defaultTransformersMainFile,
+	// 	ModelRunParams:    mistralRunParams,
+	// 	ModelName:         "ministral-3-3b-instruct",
+	// 	Tag:               "0.0.1",
+	// },
+	// "ministral-3-8b-instruct-2512": {
+	// 	BaseCommand:       "accelerate launch",
+	// 	AccelerateParams:  defaultAccelerateParams,
+	// 	InferenceMainFile: defaultTransformersMainFile,
+	// 	ModelRunParams:    mistralRunParams,
+	// 	ModelName:         "ministral-3-8b-instruct",
+	// 	Tag:               "0.0.1",
+	// },
+	// "ministral-3-14b-instruct-2512": {
+	// 	BaseCommand:       "accelerate launch",
+	// 	AccelerateParams:  defaultAccelerateParams,
+	// 	InferenceMainFile: defaultTransformersMainFile,
+	// 	ModelRunParams:    mistralRunParams,
+	// 	ModelName:         "ministral-3-14b-instruct",
+	// 	Tag:               "0.0.1",
+	// },
 	"mistral-large-3-675b-instruct": {
 		BaseCommand:       "accelerate launch",
 		AccelerateParams:  defaultAccelerateParams,

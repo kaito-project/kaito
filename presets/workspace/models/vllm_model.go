@@ -185,16 +185,6 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		DownloadAuthRequired: m.model.DownloadAuthRequired,
 	}
 
-	// If the model has a transformers inference entry without allow_remote_files,
-	// use ORAS pre-built weights instead of downloading from HuggingFace at runtime.
-	if tfsParam, ok := TransformerInferenceParameters[m.model.Name]; ok {
-		if _, hasAllowRemote := tfsParam.ModelRunParams["allow_remote_files"]; !hasAllowRemote {
-			metaData.DownloadAtRuntime = false
-			metaData.Name = m.model.Name
-			metaData.Tag = tfsParam.Tag
-		}
-	}
-
 	runParamsVLLM := map[string]string{
 		"trust-remote-code": "",
 	}

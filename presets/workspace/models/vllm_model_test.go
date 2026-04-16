@@ -320,51 +320,6 @@ func TestVLLMCompatibleModel_GetInferenceParameters_VLLMLookup(t *testing.T) {
 	}
 }
 
-func TestVLLMCompatibleModel_GetInferenceParameters_ORASEligibility(t *testing.T) {
-	tests := []struct {
-		name                    string
-		modelName               string
-		expectDownloadAtRuntime bool
-		expectMetadataName      string
-		expectTag               string
-	}{
-		{
-			name:                    "model without allow_remote_files uses ORAS",
-			modelName:               "phi-4-mini-instruct",
-			expectDownloadAtRuntime: false,
-			expectMetadataName:      "phi-4-mini-instruct",
-			expectTag:               TransformerInferenceParameters["phi-4-mini-instruct"].Tag,
-		},
-		{
-			name:                    "model with allow_remote_files downloads at runtime",
-			modelName:               "llama-3.1-8b-instruct",
-			expectDownloadAtRuntime: true,
-			expectMetadataName:      "llama-3.1-8b-instruct",
-			expectTag:               "",
-		},
-		{
-			name:                    "model not in TransformerInferenceParameters downloads at runtime",
-			modelName:               "some-org/unknown-model",
-			expectDownloadAtRuntime: true,
-			expectMetadataName:      "some-org/unknown-model",
-			expectTag:               "",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			m := &vLLMCompatibleModel{
-				model: model.Metadata{Name: tt.modelName},
-			}
-			params := m.GetInferenceParameters()
-			assert.NotNil(t, params)
-			assert.Equal(t, tt.expectDownloadAtRuntime, params.Metadata.DownloadAtRuntime)
-			assert.Equal(t, tt.expectMetadataName, params.Metadata.Name)
-			assert.Equal(t, tt.expectTag, params.Metadata.Tag)
-		})
-	}
-}
-
 func TestVLLMCompatibleModel_GetTuningParameters(t *testing.T) {
 	tests := []struct {
 		name      string

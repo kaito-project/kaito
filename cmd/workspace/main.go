@@ -27,6 +27,7 @@ import (
 	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -38,6 +39,7 @@ import (
 	"knative.dev/pkg/webhook"
 	ctrl "sigs.k8s.io/controller-runtime"
 	runtimecache "sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -81,6 +83,7 @@ func init() {
 	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(helmv2.AddToScheme(scheme))
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
+	utilruntime.Must(apiextensionsv1.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
 	klog.InitFlags(nil)
@@ -182,10 +185,22 @@ func main() {
 	}
 	k8sclient.SetGlobalClientGoClient(kubeClient)
 
-	// Create the node provisioner based on feature gates.
+	// Create a direct (non-cached) client for provisioner initialization,
+	// since the manager's cache is not started yet.
+	directClient, directErr := client.New(cfg, client.Options{Scheme: scheme})
+	if directErr != nil {
+		klog.ErrorS(directErr, "unable to create direct client for provisioner Start")
+		exitWithErrorFunc()
+	}
+
+	// Select and initialize the node provisioner based on feature gates.
 	recorder := mgr.GetEventRecorderFor("KAITO-Workspace-controller")
-	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(kClient, recorder, defaultNodeImageFamily)
+	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(kClient, directClient, recorder, defaultNodeImageFamily)
 	klog.InfoS("Node provisioner selected", "name", nodeProvisioner.Name())
+	if err := nodeProvisioner.Start(ctx); err != nil {
+		klog.ErrorS(err, "failed to start node provisioner")
+		exitWithErrorFunc()
+	}
 
 	workspaceReconciler := controllers.NewWorkspaceReconciler(
 		kClient,

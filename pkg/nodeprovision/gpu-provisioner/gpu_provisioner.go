@@ -53,6 +53,9 @@ func NewAzureGPUProvisioner(ncm *resource.NodeClaimManager, nm *resource.NodeMan
 // Name returns the provisioner name.
 func (g *AzureGPUProvisioner) Name() string { return "AzureGPUProvisioner" }
 
+// Start is a no-op for AzureGPUProvisioner.
+func (g *AzureGPUProvisioner) Start(ctx context.Context) error { return nil }
+
 // ProvisionNodes creates NodeClaims via the Azure gpu-provisioner backend.
 func (g *AzureGPUProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
 	readyNodes, err := resources.GetReadyNodes(ctx, g.nodeClaimManager.Client, ws)

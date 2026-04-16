@@ -23,9 +23,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
 
@@ -119,43 +117,4 @@ func (c *NodeManager) getReadyNodesFromNodeClaims(ctx context.Context, wObj *kai
 	}
 
 	return nodes, nil
-}
-
-// EnsureNodesReady is used for checking the number of ready nodes meet the target node count.
-func (c *NodeManager) EnsureNodesReady(ctx context.Context, wObj *kaitov1beta1.Workspace, matchingNodes []*corev1.Node, nodeClaims []*karpenterv1.NodeClaim) (bool, error) {
-	targetNodeCount := int(wObj.Status.TargetNodeCount)
-	readyCount := 0
-
-	for _, node := range matchingNodes {
-		if resources.NodeIsReadyAndNotDeleting(node) {
-			if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-				// If NAP is enabled, ensure the nodes have the instance type label set correctly and that it matches the workspace instance type.
-				instanceType, ok := node.Labels[corev1.LabelInstanceTypeStable]
-				if ok && instanceType == wObj.Resource.InstanceType {
-					readyCount++
-				}
-			} else {
-				readyCount++
-			}
-		}
-	}
-
-	if readyCount >= targetNodeCount { // Enough nodes are ready.
-		// If NAP is enabled, ensure node plugins are ready.
-		if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-			ready, err := c.CheckIfNodePluginsReady(ctx, wObj, nodeClaims)
-			if err != nil {
-				return false, fmt.Errorf("failed to check node plugin readiness: %w", err)
-			}
-			if !ready {
-				return false, nil
-			}
-		}
-
-		return true, nil
-	} else {
-		klog.InfoS("Not enough Nodes are ready for workspace", "workspace", client.ObjectKeyFromObject(wObj).String(),
-			"targetNodes", targetNodeCount, "currentReadyNodes", readyCount)
-		return false, nil
-	}
 }

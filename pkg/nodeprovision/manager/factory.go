@@ -19,6 +19,7 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
+	azurekarpenter "github.com/kaito-project/kaito/pkg/nodeprovision/azure-karpenter"
 	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	gpuprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/gpu-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -28,9 +29,14 @@ import (
 
 // NewNodeProvisioner creates and returns a NodeProvisioner based on feature gates.
 //
+//   - ensureNodeClass enabled: AzureKarpenterProvisioner (uses directClient for
+//     CRD verification and global AKSNodeClass bootstrap at Start time).
 //   - NAP disabled (BYO mode): BYOProvisioner (all provisioning ops are no-ops).
 //   - Default (NAP enabled): AzureGPUProvisioner (creates/deletes NodeClaims).
-func NewNodeProvisioner(kClient client.Client, recorder record.EventRecorder, defaultNodeImageFamily string) nodeprovision.NodeProvisioner {
+func NewNodeProvisioner(kClient, directClient client.Client, recorder record.EventRecorder, defaultNodeImageFamily string) nodeprovision.NodeProvisioner {
+	if featuregates.FeatureGates[consts.FeatureFlagEnsureNodeClass] {
+		return azurekarpenter.NewAzureKarpenterProvisioner(directClient)
+	}
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		return byoprovisioner.NewBYOProvisioner(kClient)
 	}

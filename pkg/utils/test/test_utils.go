@@ -1265,11 +1265,9 @@ var (
 		Spec: karpenterv1.NodeClaimSpec{
 			Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
 				{
-					NodeSelectorRequirement: corev1.NodeSelectorRequirement{
-						Key:      corev1.LabelInstanceTypeStable,
-						Operator: corev1.NodeSelectorOpIn,
-						Values:   []string{"Standard_NC24ads_A100_v4"},
-					},
+					Key:       corev1.LabelInstanceTypeStable,
+					Operator:  corev1.NodeSelectorOpIn,
+					Values:    []string{"Standard_NC24ads_A100_v4"},
 					MinValues: lo.ToPtr(1),
 				},
 			},

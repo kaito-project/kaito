@@ -57,6 +57,7 @@ const sidebars = {
                     },
                     items: [
                         'rag-api',
+                        'rag-output-guardrails',
                         'rag-chat-completions-wrapper'
                     ],
                 },

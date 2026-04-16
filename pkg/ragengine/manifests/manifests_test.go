@@ -23,15 +23,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
-func kvInNodeRequirement(key, val string, nodeReq []v1.NodeSelectorRequirement) bool {
-	for _, each := range nodeReq {
-		if each.Key == key && each.Values[0] == val && each.Operator == v1.NodeSelectorOpIn {
-			return true
-		}
-	}
-	return false
-}
-
 func TestGenerateRAGDeploymentManifestDifferentConfigurations(t *testing.T) {
 	testcases := map[string]struct {
 		ragEngine    *kaitov1beta1.RAGEngine

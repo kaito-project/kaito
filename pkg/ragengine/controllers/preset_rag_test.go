@@ -146,12 +146,12 @@ func TestCreatePresetRAGWithDifferentConfigurations(t *testing.T) {
 			}
 
 			deployment := createdObject.(*appsv1.Deployment)
-			
+
 			// Check that the deployment has the correct labels
 			if deployment.Spec.Selector.MatchLabels[v1beta1.LabelRAGEngineName] != tc.expectedLabel {
 				t.Errorf("%s: expected label %s, got %s", tc.testCase, tc.expectedLabel, deployment.Spec.Selector.MatchLabels[v1beta1.LabelRAGEngineName])
 			}
-			
+
 			// Verify template labels match selector labels
 			if deployment.Spec.Template.ObjectMeta.Labels[v1beta1.LabelRAGEngineName] != tc.expectedLabel {
 				t.Errorf("%s: template label mismatch, expected %s, got %s", tc.testCase, tc.expectedLabel, deployment.Spec.Template.ObjectMeta.Labels[v1beta1.LabelRAGEngineName])

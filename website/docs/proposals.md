@@ -2,15 +2,15 @@
 title: Proposals
 ---
 
-This section contains proposals for adding new models to KAITO. Each proposal describes the process of evaluating and integrating new OSS models into the KAITO ecosystem.
+This section contains proposals for significant KAITO features and model integrations. Some proposals describe how new OSS models are evaluated and integrated, while others define broader platform or API changes.
 
 ## Proposal Template
 
-Before creating a new model proposal, please use the following template: [Model Proposal Template](https://github.com/kaito-project/kaito/blob/main/docs/proposals/YYYYMMDD-model-template.md)
+Before creating a new proposal, use the appropriate template in [docs/proposals](https://github.com/kaito-project/kaito/tree/main/docs/proposals).
 
 ## Current Proposals
 
-Below are the current model proposals in various stages of integration:
+Below are the current proposals in various stages of integration:
 
 ### Provisional Status
 - [Llama 3.3 70B Instruct](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250529-llama-3.3-70b-instruct.md) - Meta's multilingual instruction-tuned 70B model
@@ -18,6 +18,7 @@ Below are the current model proposals in various stages of integration:
 - [Phi-4 Instruct](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20241212-phi4-instruct.md) - Microsoft's latest Phi-4 instruction-tuned model
 - [Distributed Inference](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250325-distributed-inference.md) - Support for distributed inference across multiple GPUs
 - [Model as OCI Artifacts](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250609-model-as-oci-artifacts.md) - Packaging models as OCI artifacts
+- [RAGEngine Guardrails UX and API](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20260416-ragengine-guardrails-ux-api.md) - Minimal enable switch plus ConfigMap-based YAML policy for RAGEngine guardrails
 
 ### Integrated Status
 - [Mistral Instruct](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20240205-mistral-instruct.md) - Mistral AI's instruction-tuned model

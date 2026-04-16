@@ -284,10 +284,26 @@ func TestPresetParamValidate(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("transformers runtime always valid", func(t *testing.T) {
-		p := &PresetParam{}
+	t.Run("transformers runtime with supported model", func(t *testing.T) {
+		p := &PresetParam{
+			RuntimeParam: RuntimeParam{
+				Transformers: HuggingfaceTransformersParam{BaseCommand: "accelerate launch"},
+			},
+		}
 		err := p.Validate(RuntimeContext{RuntimeName: RuntimeNameHuggingfaceTransformers})
 		assert.NoError(t, err)
+	})
+
+	t.Run("transformers runtime with unsupported model", func(t *testing.T) {
+		p := &PresetParam{
+			Metadata: Metadata{Name: "unsupported-model"},
+			RuntimeParam: RuntimeParam{
+				Transformers: HuggingfaceTransformersParam{}, // empty BaseCommand
+			},
+		}
+		err := p.Validate(RuntimeContext{RuntimeName: RuntimeNameHuggingfaceTransformers})
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "does not support inference with Huggingface Transformers runtime")
 	})
 }
 

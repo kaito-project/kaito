@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mt-bench-eval
+  # Must run in the same namespace as the Kaito workspace for DNS resolution
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mt-bench
+          # TODO: replace with your mt-bench image
+          image: YOUR_REGISTRY/mt-bench-eval:tag
+          resources:
+            requests:
+              cpu: "1"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "1Gi"
+          env:
+            # ── Kaito workspace target ──
+            - name: KAITO_ENDPOINT
+              # TODO: replace WORKSPACE_NAME and NAMESPACE with your values
+              value: "http://WORKSPACE_NAME.NAMESPACE.svc.cluster.local:80"
+            - name: MODEL_NAME
+              # TODO: replace with your model name
+              value: "YOUR_MODEL_NAME"
+
+            # ── LLM judge ──
+            - name: JUDGE_SOURCE
+              # TODO: replace with your judge source
+              value: "MICROSOFT_AI_FOUNDRY"
+            - name: JUDGE_ENDPOINT
+              # TODO: replace with your judge LLM endpoint
+              value: "https://YOUR_RESOURCE.openai.azure.com"
+            - name: JUDGE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  # TODO: replace with your secret name
+                  name: judge-secret
+                  key: api-key
+            - name: AZURE_OPENAI_DEPLOYMENT
+              # TODO: replace with your Azure OpenAI deployment name (only needed if using Microsoft AI Foundry)
+              value: "gpt-5.4"
+            - name: AZURE_OPENAI_API_VERSION
+              # TODO: replace with your Azure OpenAI API version (only needed if using Microsoft AI Foundry)
+              value: "2025-03-01-preview"
+
+            # ── Optional tuning ──
+            - name: PARALLEL
+              value: "2"
+            - name: MAX_TOKENS
+              value: "1024"
+            - name: TEMPERATURE
+              value: "0.0"

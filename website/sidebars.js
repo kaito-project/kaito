@@ -42,9 +42,12 @@ const sidebars = {
             items: [
                 'inference',
                 'multi-node-inference',
+                'memory-estimator',
                 'keda-autoscaler-inference',
                 'tuning',
                 'lora-adapters',
+                'custom-model',
+                'tool-calling',
                 {
                     type: 'category',
                     label: 'Retrieval-Augmented Generation (RAG)',
@@ -54,11 +57,10 @@ const sidebars = {
                     },
                     items: [
                         'rag-api',
+                        'rag-output-guardrails',
                         'rag-chat-completions-wrapper'
                     ],
                 },
-                'custom-model',
-                'tool-calling',
                 'model-as-oci-artifacts',
                 'headlamp-kaito',
             ],

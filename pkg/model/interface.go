@@ -214,6 +214,8 @@ type HuggingfaceTransformersParam struct {
 	ModelRunParams    map[string]string // Parameters for running the model training/inference.
 	// The model name used in the OpenAI serving API.
 	ModelName string
+	// Tag is the ORAS image tag for pre-built model weights.
+	Tag string
 }
 
 type VLLMParam struct {
@@ -492,6 +494,10 @@ func (p *PresetParam) modelFitsOnSingleGPU(rc RuntimeContext) bool {
 func (p *PresetParam) Validate(rc RuntimeContext) error {
 	var errs []string
 	switch rc.RuntimeName {
+	case RuntimeNameHuggingfaceTransformers:
+		if p.Transformers.BaseCommand == "" {
+			errs = append(errs, fmt.Sprintf("model %s does not support inference with Huggingface Transformers runtime", p.Metadata.Name))
+		}
 	case RuntimeNameVLLM:
 		if rc.AdaptersEnabled && p.VLLM.DisallowLoRA {
 			errs = append(errs, fmt.Sprintf("vLLM does not support LoRA adapters for this model: %s", p.VLLM.ModelName))

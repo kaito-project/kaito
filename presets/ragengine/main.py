@@ -19,6 +19,9 @@ import time
 from urllib.parse import unquote
 
 import nest_asyncio
+from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: E402
+from starlette.responses import Response  # noqa: E402
 
 nest_asyncio.apply()  # Allow nested event loops (LlamaIndex sync internals inside FastAPI async)
 
@@ -26,7 +29,6 @@ from embedding.huggingface_local_embedding import (  # noqa: E402
     LocalHuggingFaceEmbedding,
 )
 from embedding.remote_embedding import RemoteEmbeddingModel  # noqa: E402
-from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
 from models import (  # noqa: E402
     ChatCompletionResponse,
     DeleteDocumentRequest,
@@ -40,10 +42,6 @@ from models import (  # noqa: E402
     UpdateDocumentRequest,
     UpdateDocumentResponse,
 )
-
-# Import Prometheus client for metrics collection
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: E402
-from starlette.responses import Response  # noqa: E402
 from vector_store_manager.manager import VectorStoreManager  # noqa: E402
 
 from ragengine.config import (  # noqa: E402
@@ -56,6 +54,7 @@ from ragengine.config import (  # noqa: E402
     VECTOR_DB_TYPE,
     VECTOR_DB_URL,
 )
+from ragengine.guardrails import OutputGuardrails  # noqa: E402
 from ragengine.metrics.prometheus_metrics import (  # noqa: E402
     MODE_LOCAL,
     MODE_REMOTE,
@@ -160,6 +159,7 @@ else:
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
+output_guardrails = OutputGuardrails.from_config()
 
 
 @app.get("/metrics", operation_id="get_metrics", tags=["Monitoring"])
@@ -335,6 +335,7 @@ async def chat_completions(request: dict):
             )
 
         response = await rag_ops.chat_completion(request)
+        response = output_guardrails.guard_response(response, request)
         status = STATUS_SUCCESS
         return response
     except HTTPException as http_exc:

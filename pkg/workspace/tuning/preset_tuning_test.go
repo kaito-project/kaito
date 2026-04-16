@@ -28,6 +28,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
@@ -639,6 +640,39 @@ func TestGenerateBasicTuningPodSpec_NodeAffinity(t *testing.T) {
 	}
 }
 
+func TestDefaultTolerations(t *testing.T) {
+	testcases := map[string]struct {
+		cloudProvider string
+		expectSpot    bool
+	}{
+		"azure includes spot toleration": {
+			cloudProvider: consts.AzureCloudName,
+			expectSpot:    true,
+		},
+		"aws excludes spot toleration": {
+			cloudProvider: consts.AWSCloudName,
+			expectSpot:    false,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
+
+			actual := defaultTolerations()
+			hasSpot := false
+			for _, toleration := range actual {
+				if toleration.Key == consts.SpotInstanceKey && toleration.Value == consts.SpotInstanceValue {
+					hasSpot = true
+					break
+				}
+			}
+
+			assert.Equal(t, tc.expectSpot, hasSpot)
+		})
+	}
+}
+
 // mockModel implements pkgmodel.Model for testing
 type mockModel struct{}
 
@@ -660,4 +694,81 @@ func (m *mockModel) SupportDistributedInference() bool {
 
 func (m *mockModel) SupportTuning() bool {
 	return true
+}
+
+// mockModelDistinctParams returns different PresetParam values for inference vs tuning,
+// allowing tests to verify the correct method is called.
+type mockModelDistinctParams struct{}
+
+func (m *mockModelDistinctParams) GetInferenceParameters() *pkgmodel.PresetParam {
+	return &pkgmodel.PresetParam{
+		GPUCountRequirement: "1",
+		RuntimeParam: pkgmodel.RuntimeParam{
+			Transformers: pkgmodel.HuggingfaceTransformersParam{
+				BaseCommand: "inference-command-should-not-appear",
+			},
+		},
+	}
+}
+
+func (m *mockModelDistinctParams) GetTuningParameters() *pkgmodel.PresetParam {
+	return &pkgmodel.PresetParam{
+		GPUCountRequirement: "1",
+		RuntimeParam: pkgmodel.RuntimeParam{
+			Transformers: pkgmodel.HuggingfaceTransformersParam{
+				BaseCommand: "tuning-base-command",
+			},
+		},
+	}
+}
+
+func (m *mockModelDistinctParams) SupportDistributedInference() bool {
+	return false
+}
+
+func (m *mockModelDistinctParams) SupportTuning() bool {
+	return true
+}
+
+func TestGenerateBasicTuningPodSpec_UsesTuningParams(t *testing.T) {
+	workspace := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-workspace",
+			Namespace: "default",
+		},
+		Resource: kaitov1beta1.ResourceSpec{
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"accelerator": "nvidia-gpu",
+				},
+			},
+		},
+		Tuning: &kaitov1beta1.TuningSpec{
+			Preset: &kaitov1beta1.PresetSpec{
+				PresetMeta: kaitov1beta1.PresetMeta{
+					Name: "test-model",
+				},
+			},
+		},
+	}
+
+	gctx := &generator.WorkspaceGeneratorContext{
+		Ctx:       context.Background(),
+		Workspace: workspace,
+		Model:     &mockModelDistinctParams{},
+	}
+
+	podSpec := &corev1.PodSpec{}
+
+	modifier := GenerateBasicTuningPodSpec(1)
+	err := modifier(gctx, podSpec)
+	assert.NoError(t, err)
+
+	// The container command should use tuning parameters, not inference parameters
+	assert.NotEmpty(t, podSpec.Containers, "expected at least one container")
+	cmd := strings.Join(podSpec.Containers[0].Command, " ")
+	assert.Contains(t, cmd, "tuning-base-command",
+		"expected tuning command to use GetTuningParameters().BaseCommand")
+	assert.NotContains(t, cmd, "inference-command-should-not-appear",
+		"tuning command must not use GetInferenceParameters().BaseCommand")
 }

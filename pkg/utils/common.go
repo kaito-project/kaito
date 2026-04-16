@@ -153,6 +153,10 @@ func GetSKUHandler() (sku.CloudSKUHandler, error) {
 	return skuHandler, nil
 }
 
+func IsAzureCloudProvider() bool {
+	return os.Getenv("CLOUD_PROVIDER") == consts.AzureCloudName
+}
+
 func GetGPUConfigBySKU(instanceType string) (*sku.GPUConfig, error) {
 	skuHandler, err := GetSKUHandler()
 	if err != nil {

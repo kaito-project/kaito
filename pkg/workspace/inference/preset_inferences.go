@@ -79,8 +79,10 @@ var (
 		InitialDelaySeconds: 30,
 		PeriodSeconds:       10,
 	}
+)
 
-	tolerations = []corev1.Toleration{
+func defaultTolerations() []corev1.Toleration {
+	tolerations := []corev1.Toleration{
 		{
 			Effect:   corev1.TaintEffectNoSchedule,
 			Operator: corev1.TolerationOpExists,
@@ -93,7 +95,18 @@ var (
 			Operator: corev1.TolerationOpEqual,
 		},
 	}
-)
+
+	if utils.IsAzureCloudProvider() {
+		tolerations = append(tolerations, corev1.Toleration{
+			Effect:   corev1.TaintEffectNoSchedule,
+			Key:      consts.SpotInstanceKey,
+			Operator: corev1.TolerationOpEqual,
+			Value:    consts.SpotInstanceValue,
+		})
+	}
+
+	return tolerations
+}
 
 func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace) []corev1.LocalObjectReference {
 	imagePullSecretRefs := []corev1.LocalObjectReference{}
@@ -486,7 +499,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 				VolumeMounts:   volumeMounts,
 			},
 		}
-		spec.Tolerations = tolerations
+		spec.Tolerations = defaultTolerations()
 		spec.Volumes = volumes
 
 		return nil

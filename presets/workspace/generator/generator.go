@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
 	"net/http"
 	"os"
 	"regexp"
@@ -302,7 +301,7 @@ func (g *Generator) FetchModelMetadata() error {
 	}
 
 	modelSizeGiB := float64(totalBytes) / (1024 * 1024 * 1024)
-	g.Param.Metadata.ModelFileSize = fmt.Sprintf("%.0fGi", math.Ceil(modelSizeGiB))
+	g.Param.Metadata.ModelFileSize = fmt.Sprintf("%.2fGi", modelSizeGiB)
 
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 

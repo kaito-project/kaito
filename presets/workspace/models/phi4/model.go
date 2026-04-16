@@ -18,7 +18,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -39,12 +38,6 @@ const (
 )
 
 var (
-	baseCommandPresetPhiInference = "accelerate launch"
-	baseCommandPresetPhiTuning    = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
-	phi4RunParams                 = map[string]string{
-		"torch_dtype": "auto",
-		"pipeline":    "text-generation",
-	}
 	phi4RunParamsVLLM     = map[string]string{}
 	phi4MiniRunParamsVLLM = map[string]string{
 		"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
@@ -66,13 +59,7 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           204800,
 		ModelTokenLimit:         16384, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetPhiInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    phi4RunParams,
-				ModelName:         PresetPhi4Model,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetPhi4Model],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetPhi4Model,
@@ -84,17 +71,18 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 }
 
 func (*phi4Model) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetPhi4Model]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetPhi4Model),
-		DiskStorageRequirement:  "150Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "70Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
-		ReadinessTimeout:        time.Duration(30) * time.Minute,
+		Metadata:                      metadata.MustGet(PresetPhi4Model),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
-				ModelName:   PresetPhi4Model,
-			},
+			Transformers: tc.Transformers,
 		},
 	}
 }
@@ -117,13 +105,7 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           131072,
 		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       baseCommandPresetPhiInference,
-				AccelerateParams:  inference.DefaultAccelerateParams,
-				InferenceMainFile: inference.DefaultTransformersMainFile,
-				ModelRunParams:    phi4RunParams,
-				ModelName:         PresetPhi4MiniInstructModel,
-			},
+			Transformers: metadata.TransformerInferenceParameters[PresetPhi4MiniInstructModel],
 			VLLM: model.VLLMParam{
 				BaseCommand:    metadata.DefaultVLLMCommand,
 				ModelName:      PresetPhi4MiniInstructModel,
@@ -135,17 +117,18 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 }
 
 func (*phi4MiniInstruct) GetTuningParameters() *model.PresetParam {
+	tc := metadata.TransformerTuningParameters[PresetPhi4MiniInstructModel]
 	return &model.PresetParam{
-		Metadata:                metadata.MustGet(PresetPhi4MiniInstructModel),
-		DiskStorageRequirement:  "70Gi",
-		GPUCountRequirement:     "1",
-		TotalSafeTensorFileSize: "72Gi", // Requires at least A100 - TODO: Revisit for more accurate metric here
-		ReadinessTimeout:        time.Duration(30) * time.Minute,
+		Metadata:                      metadata.MustGet(PresetPhi4MiniInstructModel),
+		DiskStorageRequirement:        tc.DiskStorageRequirement,
+		GPUCountRequirement:           tc.GPUCountRequirement,
+		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
+		ModelTokenLimit:               tc.ModelTokenLimit,
+		BytesPerToken:                 tc.BytesPerToken,
+		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
+		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand: baseCommandPresetPhiTuning,
-				ModelName:   PresetPhi4MiniInstructModel,
-			},
+			Transformers: tc.Transformers,
 		},
 	}
 }

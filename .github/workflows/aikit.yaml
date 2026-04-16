@@ -12,6 +12,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 env:
   KIND_VERSION: "0.31.0"
   KUBECTL_VERSION: "1.33.0"

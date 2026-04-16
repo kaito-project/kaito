@@ -3,7 +3,7 @@ models:
   description: https://huggingface.co/microsoft/phi-4
   license: mit
   pipelineTag: text-generation
-  modelFileSize: 28Gi
+  modelFileSize: 27.31Gi
   architectures:
   - Phi3ForCausalLM
   modelTokenLimit: 16384
@@ -15,7 +15,7 @@ models:
   description: https://huggingface.co/microsoft/Phi-4-mini-instruct
   license: mit
   pipelineTag: text-generation
-  modelFileSize: 8Gi
+  modelFileSize: 7.15Gi
   architectures:
   - Phi3ForCausalLM
   modelTokenLimit: 131072

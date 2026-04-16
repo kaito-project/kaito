@@ -58,6 +58,11 @@ func (*testModel) GetInferenceParameters() *model.PresetParam {
 		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 		ModelTokenLimit:         4096, // Add ModelTokenLimit for validation testing
+		RuntimeParam: model.RuntimeParam{
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand: "accelerate launch",
+			},
+		},
 	}
 }
 func (*testModel) GetTuningParameters() *model.PresetParam {
@@ -927,7 +932,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				Count:        pointerToInt(1),
 			},
 			disableNAP: false, // NAP enabled
-			errContent: "instanceType is cannot be changed once set when node auto-provisioning is enabled",
+			errContent: "instanceType cannot be changed once set when node auto-provisioning is enabled",
 			expectErrs: true,
 		},
 		{
@@ -1017,7 +1022,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				Count:        pointerToInt(1),
 			},
 			disableNAP: true, // NAP disabled (BYO mode)
-			errContent: "instanceType is cannot be changed once set",
+			errContent: "instanceType cannot be changed once set",
 			expectErrs: true,
 		},
 		{

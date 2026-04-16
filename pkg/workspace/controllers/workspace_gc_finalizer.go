@@ -31,7 +31,7 @@ func (c *WorkspaceReconciler) garbageCollectWorkspace(ctx context.Context, wObj 
 	klog.InfoS("garbageCollectWorkspace", "workspace", klog.KObj(wObj))
 
 	// DeleteNodes via the NodeProvisioner interface.
-	// GpuProvisioner deletes NodeClaims; NopProvisioner (BYO mode) is a no-op.
+	// GpuProvisioner deletes NodeClaims; BYOProvisioner (BYO mode) is a no-op.
 	if err := c.nodeProvisioner.DeleteNodes(ctx, wObj); err != nil {
 		return ctrl.Result{}, err
 	}

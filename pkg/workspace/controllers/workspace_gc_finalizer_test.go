@@ -25,8 +25,8 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	gpuprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/gpu-provisioner"
-	noprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/no-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -180,7 +180,7 @@ func TestGarbageCollectWorkspace(t *testing.T) {
 				Scheme: test.NewTestScheme(),
 			}
 			if tc.disableNodeAutoProvisioning {
-				reconciler.nodeProvisioner = noprovisioner.NewNopProvisioner(mockClient)
+				reconciler.nodeProvisioner = byoprovisioner.NewBYOProvisioner(mockClient)
 			} else {
 				expectations := utils.NewControllerExpectations()
 				ncm := resource.NewNodeClaimManager(mockClient, nil, expectations)

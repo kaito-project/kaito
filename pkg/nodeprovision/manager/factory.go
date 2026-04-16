@@ -19,8 +19,8 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
+	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	gpuprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/gpu-provisioner"
-	noprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/no-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
@@ -28,11 +28,11 @@ import (
 
 // NewNodeProvisioner creates and returns a NodeProvisioner based on feature gates.
 //
-//   - NAP disabled (BYO mode): NopProvisioner (all provisioning ops are no-ops).
+//   - NAP disabled (BYO mode): BYOProvisioner (all provisioning ops are no-ops).
 //   - Default (NAP enabled): AzureGPUProvisioner (creates/deletes NodeClaims).
 func NewNodeProvisioner(kClient client.Client, recorder record.EventRecorder, defaultNodeImageFamily string) nodeprovision.NodeProvisioner {
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		return noprovisioner.NewNopProvisioner(kClient)
+		return byoprovisioner.NewBYOProvisioner(kClient)
 	}
 	expectations := utils.NewControllerExpectations()
 	ncm := resource.NewNodeClaimManager(kClient, recorder, expectations)

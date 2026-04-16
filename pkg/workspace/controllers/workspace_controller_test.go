@@ -40,7 +40,7 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
-	noprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/no-provisioner"
+	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -1127,7 +1127,7 @@ func TestSyncWorkspaceStatus(t *testing.T) {
 				synced = args.Get(1).(*v1beta1.Workspace).DeepCopy()
 			}).Return(nil).Once()
 
-			reconciler := &WorkspaceReconciler{Client: mockClient, nodeProvisioner: noprovisioner.NewNopProvisioner(mockClient)}
+			reconciler := &WorkspaceReconciler{Client: mockClient, nodeProvisioner: byoprovisioner.NewBYOProvisioner(mockClient)}
 			err := reconciler.syncWorkspaceStatus(context.Background(), types.NamespacedName{Name: ws.Name, Namespace: ws.Namespace}, tc.reconcileErr)
 			assert.NoError(t, err)
 			if assert.NotNil(t, synced) {

@@ -31,7 +31,7 @@ import (
 // Three implementations:
 //   - AzureGPUProvisioner: wraps Azure gpu-provisioner (https://github.com/Azure/gpu-provisioner) logic.
 //   - KarpenterProvisioner (future): creates NodePool with static replicas.
-//   - NopProvisioner: no-op for BYO mode.
+//   - BYOProvisioner: no-op for BYO mode.
 type NodeProvisioner interface {
 	// Name returns the name of this provisioner implementation.
 	Name() string
@@ -41,14 +41,14 @@ type NodeProvisioner interface {
 	//
 	// AzureGPUProvisioner: creates NodeClaims via Azure gpu-provisioner.
 	// KarpenterProvisioner (future): creates NodePool with replicas.
-	// NopProvisioner: no-op.
+	// BYOProvisioner: no-op.
 	ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error
 
 	// DeleteNodes removes all node resources for the Workspace.
 	//
 	// AzureGPUProvisioner: deletes NodeClaims.
 	// KarpenterProvisioner (future): deletes NodePool (cascades).
-	// NopProvisioner: no-op.
+	// BYOProvisioner: no-op.
 	DeleteNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error
 
 	// EnsureNodesReady checks whether all nodes are ready and fully
@@ -66,14 +66,14 @@ type NodeProvisioner interface {
 	//
 	// AzureGPUProvisioner: no-op.
 	// KarpenterProvisioner (future): patches NodePool budget nodes="0" → "1".
-	// NopProvisioner: no-op.
+	// BYOProvisioner: no-op.
 	EnableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error
 
 	// DisableDriftRemediation disables drift replacement for the Workspace's nodes.
 	//
 	// AzureGPUProvisioner: no-op.
 	// KarpenterProvisioner (future): patches NodePool budget nodes="1" → "0".
-	// NopProvisioner: no-op.
+	// BYOProvisioner: no-op.
 	DisableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error
 
 	// CollectNodeStatusInfo gathers node-related status conditions for the

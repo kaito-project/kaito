@@ -154,7 +154,7 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 
 func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
 	// Provision nodes via the NodeProvisioner interface.
-	// GpuProvisioner creates NodeClaims; NopProvisioner (BYO mode) is a no-op.
+	// GpuProvisioner creates NodeClaims; BYOProvisioner (BYO mode) is a no-op.
 	if err := c.nodeProvisioner.ProvisionNodes(ctx, wObj); err != nil {
 		return &reconcile.Result{}, err
 	}

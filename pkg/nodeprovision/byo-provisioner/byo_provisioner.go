@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package noprovisioner
+package byoprovisioner
 
 import (
 	"context"
@@ -25,43 +25,43 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
 
-// NopProvisioner is a no-op NodeProvisioner for BYO (Bring Your Own) node
+// BYOProvisioner is a no-op NodeProvisioner for BYO (Bring Your Own) node
 // scenarios where node auto-provisioning is disabled. ProvisionNodes and
 // DeleteNodes are no-ops. EnsureNodesReady only checks that enough
 // matching Nodes are ready (no instance type validation, no GPU plugin checks).
-type NopProvisioner struct {
+type BYOProvisioner struct {
 	client client.Client
 }
 
-var _ nodeprovision.NodeProvisioner = (*NopProvisioner)(nil)
+var _ nodeprovision.NodeProvisioner = (*BYOProvisioner)(nil)
 
-func NewNopProvisioner(c client.Client) *NopProvisioner {
-	return &NopProvisioner{client: c}
+func NewBYOProvisioner(c client.Client) *BYOProvisioner {
+	return &BYOProvisioner{client: c}
 }
 
 // Name returns the provisioner name.
-func (n *NopProvisioner) Name() string { return "NopProvisioner" }
+func (n *BYOProvisioner) Name() string { return "BYOProvisioner" }
 
-func (n *NopProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
+func (n *BYOProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
 	return nil
 }
 
-func (n *NopProvisioner) DeleteNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
+func (n *BYOProvisioner) DeleteNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
 	return nil
 }
 
-func (n *NopProvisioner) EnableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error {
+func (n *BYOProvisioner) EnableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error {
 	return nil
 }
 
-func (n *NopProvisioner) DisableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error {
+func (n *BYOProvisioner) DisableDriftRemediation(ctx context.Context, workspaceNamespace, workspaceName string) error {
 	return nil
 }
 
 // EnsureNodesReady checks that enough matching Nodes are ready for the
 // Workspace. In BYO mode there are no provisioning resources, so needRequeue
 // is always true when nodes are not ready.
-func (n *NopProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
+func (n *BYOProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
 	var matchLabels client.MatchingLabels
 	if ws.Resource.LabelSelector != nil {
 		matchLabels = ws.Resource.LabelSelector.MatchLabels
@@ -92,7 +92,7 @@ func (n *NopProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.
 
 // CollectNodeStatusInfo gathers status conditions for workspace status.
 // In BYO mode, no NodeClaimStatus condition is returned.
-func (n *NopProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1beta1.Workspace) ([]metav1.Condition, error) {
+func (n *BYOProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1beta1.Workspace) ([]metav1.Condition, error) {
 	nodeCond := metav1.Condition{
 		Type: string(kaitov1beta1.ConditionTypeNodeStatus), Status: metav1.ConditionFalse,
 		Reason: "NodeNotReady", Message: "Not enough Nodes are ready",

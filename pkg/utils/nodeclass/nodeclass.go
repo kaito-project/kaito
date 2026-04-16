@@ -15,7 +15,6 @@ package nodeclass
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 
@@ -76,55 +75,6 @@ func GenerateEC2NodeClassManifest(ctx context.Context) *awsv1.EC2NodeClass {
 			},
 		},
 	}
-}
-
-// CreateKarpenterNodeClass creates a nodeClass object for Karpenter.
-// Deprecated: Use CheckNodeClass instead, which handles create-if-not-exists.
-func CreateKarpenterNodeClass(ctx context.Context, kubeClient client.Client) error {
-	cloudName := os.Getenv("CLOUD_PROVIDER")
-	klog.InfoS("CreateKarpenterNodeClass", "cloudName", cloudName)
-
-	switch cloudName {
-	case consts.AzureCloudName:
-		return kubeClient.Create(ctx, GenerateAKSNodeClassManifest(ctx), &client.CreateOptions{})
-	case consts.AWSCloudName:
-		return kubeClient.Create(ctx, GenerateEC2NodeClassManifest(ctx), &client.CreateOptions{})
-	default:
-		return fmt.Errorf("unsupported cloud provider %s", cloudName)
-	}
-}
-
-// IsNodeClassAvailable checks if a NodeClass resource exists for the given cloud provider.
-// Deprecated: Use CheckNodeClass instead, which handles create-if-not-exists.
-func IsNodeClassAvailable(ctx context.Context, cloudName string, kubeClient client.Client) bool {
-	switch cloudName {
-	case consts.AzureCloudName:
-		return kubeClient.Get(ctx, client.ObjectKey{Name: consts.NodeClassName},
-			&azurev1beta1.AKSNodeClass{}, &client.GetOptions{}) == nil
-	case consts.AWSCloudName:
-		return kubeClient.Get(ctx, client.ObjectKey{Name: consts.NodeClassName},
-			&awsv1.EC2NodeClass{}, &client.GetOptions{}) == nil
-	default:
-		klog.Error("unsupported cloud provider ", cloudName)
-		return false
-	}
-}
-
-// CheckNodeClass ensures the default Karpenter NodeClass exists for the current cloud provider.
-// If the NodeClass does not exist, it creates one automatically.
-func CheckNodeClass(ctx context.Context, kClient client.Client) error {
-	cloudProvider := os.Getenv("CLOUD_PROVIDER")
-	if cloudProvider == "" {
-		return errors.New("CLOUD_PROVIDER environment variable cannot be empty")
-	}
-	if !IsNodeClassAvailable(ctx, cloudProvider, kClient) {
-		klog.Infof("NodeClass is not available, creating NodeClass")
-		if err := CreateKarpenterNodeClass(ctx, kClient); err != nil && client.IgnoreAlreadyExists(err) != nil {
-			klog.ErrorS(err, "unable to create NodeClass")
-			return errors.New("error while creating NodeClass")
-		}
-	}
-	return nil
 }
 
 // VerifyAKSNodeClassCRD checks if the AKSNodeClass CRD is installed in the cluster.

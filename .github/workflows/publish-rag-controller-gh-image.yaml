@@ -12,7 +12,7 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: '1.25'
+  GO_VERSION: '1.26.2'
   IMAGE_NAME: 'ragengine'
   REGISTRY: ghcr.io
 

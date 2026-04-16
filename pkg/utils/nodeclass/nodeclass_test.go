@@ -57,38 +57,6 @@ func TestGenerateEC2NodeClassManifest(t *testing.T) {
 	})
 }
 
-func TestCreateKarpenterNodeClass(t *testing.T) {
-	t.Run("Should create AKSNodeClass when cloud provider is Azure", func(t *testing.T) {
-		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
-		mockClient := test.NewClient()
-		mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&azurev1beta1.AKSNodeClass{}), mock.Anything).Return(nil)
-
-		err := CreateKarpenterNodeClass(context.Background(), mockClient)
-		assert.NoError(t, err)
-	})
-
-	t.Run("Should create EC2NodeClass when cloud provider is AWS", func(t *testing.T) {
-		t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
-		t.Setenv("CLUSTER_NAME", "test-cluster")
-
-		mockClient := test.NewClient()
-		mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&awsv1.EC2NodeClass{}), mock.Anything).Return(nil)
-
-		err := CreateKarpenterNodeClass(context.Background(), mockClient)
-		assert.NoError(t, err)
-	})
-
-	t.Run("Should return error when cloud provider is unsupported", func(t *testing.T) {
-		t.Setenv("CLOUD_PROVIDER", "unsupported")
-
-		mockClient := test.NewClient()
-
-		err := CreateKarpenterNodeClass(context.Background(), mockClient)
-		assert.Error(t, err)
-	})
-}
-
 func TestVerifyAKSNodeClassCRD(t *testing.T) {
 	tests := []struct {
 		name       string

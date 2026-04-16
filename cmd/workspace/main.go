@@ -185,8 +185,11 @@ func main() {
 	}
 	k8sclient.SetGlobalClientGoClient(kubeClient)
 
-	// Create a direct (non-cached) client for provisioner initialization,
-	// since the manager's cache is not started yet.
+	// Create a direct (non-cached) client for provisioner initialization.
+	// This is necessary because nodeProvisioner.Start() runs before mgr.Start(),
+	// and the manager's cached client is not usable until the cache is started.
+	// The direct client is only used for lightweight CRD existence checks and
+	// global AKSNodeClass creation during startup.
 	directClient, directErr := client.New(cfg, client.Options{Scheme: scheme})
 	if directErr != nil {
 		klog.ErrorS(directErr, "unable to create direct client for provisioner Start")

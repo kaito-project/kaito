@@ -44,7 +44,7 @@ var requiredCRDs = []string{
 
 // AzureKarpenterProvisioner implements NodeProvisioner using Azure Karpenter
 // (https://github.com/Azure/karpenter-provider-azure).
-// Init verifies that required Karpenter CRDs are installed, bootstraps global
+// Start verifies that required Karpenter CRDs are installed, bootstraps global
 // AKSNodeClass resources, and starts a background goroutine to recreate them
 // if they are accidentally deleted.
 type AzureKarpenterProvisioner struct {

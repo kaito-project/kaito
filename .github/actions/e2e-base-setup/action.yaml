@@ -26,7 +26,7 @@ inputs:
   k8s_version:
     description: "Kubernetes version"
     required: false
-    default: "1.32.9"
+    default: "1.33.8"
   build_kaito_base_image:
     description: "Whether to build kaito base image"
     required: false

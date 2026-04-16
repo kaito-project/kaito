@@ -120,14 +120,17 @@ func (c *RAGEngineReconciler) ensureFinalizer(ctx context.Context, ragEngineObj 
 }
 
 func (c *RAGEngineReconciler) addRAGEngine(ctx context.Context, ragEngineObj *kaitov1beta1.RAGEngine) (reconcile.Result, error) {
-	err := c.applyRAGEngineResource(ctx, ragEngineObj)
-	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
-			"ragengineFailed", err.Error()); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
-			return reconcile.Result{}, updateErr
+	var err error
+	if ragEngineObj.Spec.Compute != nil && ragEngineObj.Spec.Compute.InstanceType != "" {
+		err = c.applyRAGEngineResource(ctx, ragEngineObj)
+		if err != nil {
+			if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
+				"ragengineFailed", err.Error()); updateErr != nil {
+				klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
+				return reconcile.Result{}, updateErr
+			}
+			return reconcile.Result{}, err
 		}
-		return reconcile.Result{}, err
 	}
 	if err := c.ensureService(ctx, ragEngineObj); err != nil {
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,

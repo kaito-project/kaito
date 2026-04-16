@@ -96,6 +96,29 @@ func TestUpdateRAGEngineStatus(t *testing.T) {
 		err := reconciler.updateRAGEngineStatus(ctx, &client.ObjectKey{Name: ragengine.Name, Namespace: ragengine.Namespace}, &condition, workerNodes)
 		assert.Nil(t, err)
 	})
+
+	t.Run("Should update status for RAGEngine with no inference service", func(t *testing.T) {
+		mockClient := test.NewClient()
+		reconciler := &RAGEngineReconciler{
+			Client: mockClient,
+			Scheme: test.NewTestScheme(),
+		}
+		ctx := context.Background()
+		ragengine := test.MockRAGEngineWithNoInferenceService
+		condition := metav1.Condition{
+			Type:    "TestCondition",
+			Status:  metav1.ConditionStatus("True"),
+			Reason:  "TestReason",
+			Message: "TestMessage",
+		}
+		workerNodes := []string{"node1"}
+
+		mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
+		mockClient.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
+
+		err := reconciler.updateRAGEngineStatus(ctx, &client.ObjectKey{Name: ragengine.Name, Namespace: ragengine.Namespace}, &condition, workerNodes)
+		assert.Nil(t, err)
+	})
 }
 
 func TestRAGEngineUpdateStatusConditionIfNotMatch(t *testing.T) {

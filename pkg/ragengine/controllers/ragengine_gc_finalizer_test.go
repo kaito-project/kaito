@@ -338,6 +338,42 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 				c.AssertNumberOfCalls(t, "Update", 1)
 			},
 		},
+		"Successfully garbage collect RAGEngine marked for deletion with old CR": {
+			callMocks: func(c *test.MockClient) {
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
+			},
+			ragengine: func() *kaitov1beta1.RAGEngine {
+				ragengine := test.MockRAGEngineWithDeleteOldCR.DeepCopy()
+				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				return ragengine
+			}(),
+			expectedResult: ctrl.Result{},
+			expectedError:  nil,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 1)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 1)
+			},
+		},
+		"Successfully garbage collect RAGEngine with no inference service": {
+			callMocks: func(c *test.MockClient) {
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&kaitov1beta1.RAGEngine{}), mock.Anything).Return(nil)
+			},
+			ragengine: func() *kaitov1beta1.RAGEngine {
+				ragengine := test.MockRAGEngineWithNoInferenceService.DeepCopy()
+				ragengine.Finalizers = []string{consts.RAGEngineFinalizer}
+				return ragengine
+			}(),
+			expectedResult: ctrl.Result{},
+			expectedError:  nil,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 1)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 1)
+			},
+		},
 	}
 
 	for k, tc := range testcases {

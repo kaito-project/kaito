@@ -66,11 +66,15 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 					Compute: &ResourceSpec{
 						InstanceType: "Standard_NC4as_T4_v3",
 					},
+					Embedding: &EmbeddingSpec{
+						Local: &LocalEmbeddingSpec{
+							ModelID: "BAAI/bge-small-en-v1.5",
+						},
+					},
 					InferenceService: nil,
 				},
 			},
-			wantErr:  true,
-			errField: "InferenceService must be specified",
+			wantErr: false,
 		},
 		{
 			name: "Compute resource not specified",
@@ -85,8 +89,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 				},
 			},
-			wantErr:  true,
-			errField: "Compute resource must be specified",
+			wantErr: false,
 		},
 		{
 			name: "None of Local and Remote Embedding specified",

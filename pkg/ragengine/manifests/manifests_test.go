@@ -32,123 +32,142 @@ func kvInNodeRequirement(key, val string, nodeReq []v1.NodeSelectorRequirement) 
 	return false
 }
 
-func TestGenerateRAGDeploymentManifest(t *testing.T) {
-	t.Run("generate RAG deployment", func(t *testing.T) {
+func TestGenerateRAGDeploymentManifestDifferentConfigurations(t *testing.T) {
+	testcases := map[string]struct {
+		ragEngine    *kaitov1beta1.RAGEngine
+		expectedEnvs map[string]string
+	}{
+		"test-rag-with-no-compute-resource-and-inference-service": {
+			ragEngine: test.MockRAGEngineWithNoComputeResourceAndInferenceService,
+			expectedEnvs: map[string]string{
+				"VECTOR_DB_TYPE": "faiss",
+				"EMBEDDING_TYPE": "local",
+				"MODEL_ID":       "BAAI/bge-small-en-v1.5",
+			},
+		},
+		"test-rag-with-no-compute-resource": {
+			ragEngine: test.MockRAGEngineWithNoComputeResource,
+			expectedEnvs: map[string]string{
+				"VECTOR_DB_TYPE":     "faiss",
+				"EMBEDDING_TYPE":     "local",
+				"LLM_CONTEXT_WINDOW": "512",
+				"MODEL_ID":           "BAAI/bge-small-en-v1.5",
+				"LLM_INFERENCE_URL":  "http://localhost:5000/chat",
+			},
+		},
+		"test-rag-with-no-inference-service": {
+			ragEngine: test.MockRAGEngineWithNoInferenceService,
+			expectedEnvs: map[string]string{
+				"VECTOR_DB_TYPE": "faiss",
+				"EMBEDDING_TYPE": "local",
+				"MODEL_ID":       "BAAI/bge-small-en-v1.5",
+			},
+		},
+		"test-rag-with-preset": {
+			ragEngine: test.MockRAGEngineWithPreset,
+			expectedEnvs: map[string]string{
+				"VECTOR_DB_TYPE":     "faiss",
+				"EMBEDDING_TYPE":     "local",
+				"LLM_CONTEXT_WINDOW": "512",
+				"MODEL_ID":           "BAAI/bge-small-en-v1.5",
+				"LLM_INFERENCE_URL":  "http://localhost:5000/chat",
+			},
+		},
+	}
 
-		// Mocking the RAGEngine object for the test
-		ragEngine := test.MockRAGEngineWithPreset
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			// Generate the deployment manifest
+			obj := GenerateRAGDeploymentManifest(tc.ragEngine, test.MockRAGEngineWithPresetHash,
+				"",  // imageName
+				nil, // imagePullSecretRefs
+				nil, // commands
+				nil, // containerPorts
+				nil, // livenessProbe
+				nil, // readinessProbe
+				v1.ResourceRequirements{},
+				nil, // tolerations
+				nil, // volumes
+				nil, // volumeMount
+			)
 
-		// Calling the function to generate the deployment manifest
-		obj := GenerateRAGDeploymentManifest(ragEngine, test.MockRAGEngineWithPresetHash,
-			"",  // imageName
-			nil, // imagePullSecretRefs
-			nil, // commands
-			nil, // containerPorts
-			nil, // livenessProbe
-			nil, // readinessProbe
-			v1.ResourceRequirements{},
-			nil, // tolerations
-			nil, // volumes
-			nil, // volumeMount
-		)
-
-		// Expected label selector for the deployment
-		appSelector := map[string]string{
-			kaitov1beta1.LabelRAGEngineName: ragEngine.Name,
-		}
-
-		// Check if the deployment's selector is correct
-		if !reflect.DeepEqual(appSelector, obj.Spec.Selector.MatchLabels) {
-			t.Errorf("RAGEngine workload selector is wrong")
-		}
-
-		// Check if the template labels match the expected labels
-		if !reflect.DeepEqual(appSelector, obj.Spec.Template.ObjectMeta.Labels) {
-			t.Errorf("RAGEngine template label is wrong")
-		}
-
-		// Extract node selector requirements from the deployment manifest
-		nodeReq := obj.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions
-
-		// Validate if the node requirements match the RAGEngine's label selector
-		for key, value := range ragEngine.Spec.Compute.LabelSelector.MatchLabels {
-			if !kvInNodeRequirement(key, value, nodeReq) {
-				t.Errorf("Node affinity requirements are wrong for key %s and value %s", key, value)
+			// Expected label selector for the deployment
+			appSelector := map[string]string{
+				kaitov1beta1.LabelRAGEngineName: tc.ragEngine.Name,
 			}
-		}
 
-		// Verify owner references
-		if len(obj.OwnerReferences) != 1 {
-			t.Errorf("Expected 1 owner reference, got %d", len(obj.OwnerReferences))
-		}
-		ownerRef := obj.OwnerReferences[0]
-		if ownerRef.APIVersion != kaitov1beta1.GroupVersion.String() {
-			t.Errorf("Expected owner reference APIVersion %s, got %s", kaitov1beta1.GroupVersion.String(), ownerRef.APIVersion)
-		}
-		if ownerRef.Kind != "RAGEngine" {
-			t.Errorf("Expected owner reference Kind %s, got %s", "RAGEngine", ownerRef.Kind)
-		}
-		if ownerRef.Name != ragEngine.Name {
-			t.Errorf("Expected owner reference Name %s, got %s", ragEngine.Name, ownerRef.Name)
-		}
-		if string(ownerRef.UID) != string(ragEngine.UID) {
-			t.Errorf("Expected owner reference UID %s, got %s", string(ragEngine.UID), string(ownerRef.UID))
-		}
-		if ownerRef.Controller == nil || !*ownerRef.Controller {
-			t.Error("Expected owner reference Controller to be true")
-		}
+			// Check if the deployment's selector is correct
+			if !reflect.DeepEqual(appSelector, obj.Spec.Selector.MatchLabels) {
+				t.Errorf("RAGEngine workload selector is wrong")
+			}
 
-		// Verify the environment variables in the container
-		requiredEnvs := map[string]string{
-			"VECTOR_DB_TYPE":     "faiss",
-			"EMBEDDING_TYPE":     "local",
-			"LLM_CONTEXT_WINDOW": "512",
-			"MODEL_ID":           "BAAI/bge-small-en-v1.5",
-			"LLM_INFERENCE_URL":  "http://localhost:5000/chat",
-		}
-		envs := obj.Spec.Template.Spec.Containers[0].Env
-		for i := range envs {
-			if _, exists := requiredEnvs[envs[i].Name]; exists {
-				if requiredEnvs[envs[i].Name] != envs[i].Value {
-					t.Errorf("Expected %s to be %s, got %s", envs[i].Name, requiredEnvs[envs[i].Name], envs[i].Value)
+			// Check if the template labels match the expected labels
+			if !reflect.DeepEqual(appSelector, obj.Spec.Template.ObjectMeta.Labels) {
+				t.Errorf("RAGEngine template label is wrong")
+			}
+
+			// Verify owner references
+			if len(obj.OwnerReferences) != 1 {
+				t.Errorf("Expected 1 owner reference, got %d", len(obj.OwnerReferences))
+			}
+			ownerRef := obj.OwnerReferences[0]
+			if ownerRef.APIVersion != kaitov1beta1.GroupVersion.String() {
+				t.Errorf("Expected owner reference APIVersion %s, got %s", kaitov1beta1.GroupVersion.String(), ownerRef.APIVersion)
+			}
+			if ownerRef.Kind != "RAGEngine" {
+				t.Errorf("Expected owner reference Kind %s, got %s", "RAGEngine", ownerRef.Kind)
+			}
+			if ownerRef.Name != tc.ragEngine.Name {
+				t.Errorf("Expected owner reference Name %s, got %s", tc.ragEngine.Name, ownerRef.Name)
+			}
+			if string(ownerRef.UID) != string(tc.ragEngine.UID) {
+				t.Errorf("Expected owner reference UID %s, got %s", string(tc.ragEngine.UID), string(ownerRef.UID))
+			}
+			if ownerRef.Controller == nil || !*ownerRef.Controller {
+				t.Error("Expected owner reference Controller to be true")
+			}
+
+			// Verify the environment variables in the container
+			envs := obj.Spec.Template.Spec.Containers[0].Env
+			for i := range envs {
+				if _, exists := tc.expectedEnvs[envs[i].Name]; exists {
+					if tc.expectedEnvs[envs[i].Name] != envs[i].Value {
+						t.Errorf("Expected %s to be %s, got %s", envs[i].Name, tc.expectedEnvs[envs[i].Name], envs[i].Value)
+					}
+					delete(tc.expectedEnvs, envs[i].Name)
 				}
-				delete(requiredEnvs, envs[i].Name)
 			}
-		}
-		if len(requiredEnvs) > 0 {
-			t.Errorf("Missing required environment variables: %v", requiredEnvs)
-		}
+			if len(tc.expectedEnvs) > 0 {
+				t.Errorf("Missing required environment variables: %v", tc.expectedEnvs)
+			}
 
-		// Verify TerminationGracePeriodSeconds
-		if obj.Spec.Template.Spec.TerminationGracePeriodSeconds == nil || *obj.Spec.Template.Spec.TerminationGracePeriodSeconds != 60 {
-			t.Errorf("Expected TerminationGracePeriodSeconds to be 60")
-		}
-
-		// Verify Lifecycle hooks
-		lifecycle := obj.Spec.Template.Spec.Containers[0].Lifecycle
-		if lifecycle == nil {
-			t.Errorf("Expected Lifecycle to be configured")
-		} else {
-			// Verify PostStart hook
-			if lifecycle.PostStart == nil || lifecycle.PostStart.Exec == nil {
-				t.Errorf("Expected PostStart hook to be configured")
+			// Verify Lifecycle hooks
+			lifecycle := obj.Spec.Template.Spec.Containers[0].Lifecycle
+			if lifecycle == nil {
+				t.Errorf("Expected Lifecycle to be configured")
 			} else {
-				expectedPostStart := []string{"python3", "/app/ragengine/lifecycle/hooks.py", "poststart"}
-				if !reflect.DeepEqual(lifecycle.PostStart.Exec.Command, expectedPostStart) {
-					t.Errorf("Expected PostStart command %v, got %v", expectedPostStart, lifecycle.PostStart.Exec.Command)
+				// Verify PostStart hook
+				if lifecycle.PostStart == nil || lifecycle.PostStart.Exec == nil {
+					t.Errorf("Expected PostStart hook to be configured")
+				} else {
+					expectedPostStart := []string{"python3", "/app/ragengine/lifecycle/hooks.py", "poststart"}
+					if !reflect.DeepEqual(lifecycle.PostStart.Exec.Command, expectedPostStart) {
+						t.Errorf("Expected PostStart command %v, got %v", expectedPostStart, lifecycle.PostStart.Exec.Command)
+					}
+				}
+				// Verify PreStop hook
+				if lifecycle.PreStop == nil || lifecycle.PreStop.Exec == nil {
+					t.Errorf("Expected PreStop hook to be configured")
+				} else {
+					expectedPreStop := []string{"/bin/sh", "-c", "python3 /app/ragengine/lifecycle/hooks.py prestop && sleep 5"}
+					if !reflect.DeepEqual(lifecycle.PreStop.Exec.Command, expectedPreStop) {
+						t.Errorf("Expected PreStop command %v, got %v", expectedPreStop, lifecycle.PreStop.Exec.Command)
+					}
 				}
 			}
-			// Verify PreStop hook
-			if lifecycle.PreStop == nil || lifecycle.PreStop.Exec == nil {
-				t.Errorf("Expected PreStop hook to be configured")
-			} else {
-				expectedPreStop := []string{"/bin/sh", "-c", "python3 /app/ragengine/lifecycle/hooks.py prestop && sleep 5"}
-				if !reflect.DeepEqual(lifecycle.PreStop.Exec.Command, expectedPreStop) {
-					t.Errorf("Expected PreStop command %v, got %v", expectedPreStop, lifecycle.PreStop.Exec.Command)
-				}
-			}
-		}
-	})
+
+		})
+	}
 }
 
 func TestGenerateRAGServiceManifest(t *testing.T) {

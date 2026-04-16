@@ -54,9 +54,7 @@ func (w *RAGEngine) Validate(ctx context.Context) (errs *apis.FieldError) {
 }
 
 func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
-	if w.Spec.InferenceService == nil {
-		errs = errs.Also(apis.ErrGeneric("InferenceService must be specified", ""))
-	} else {
+	if w.Spec.InferenceService != nil {
 		errs = errs.Also(w.Spec.InferenceService.validateCreate())
 	}
 
@@ -71,9 +69,7 @@ func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrGeneric("Either remote embedding or local embedding must be specified, but not both", ""))
 	}
 
-	if w.Spec.Compute == nil {
-		errs = errs.Also(apis.ErrGeneric("Compute resource must be specified", ""))
-	} else {
+	if w.Spec.Compute != nil {
 		errs = errs.Also(w.Spec.Compute.validateRAGCreate())
 	}
 

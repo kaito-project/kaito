@@ -97,6 +97,69 @@ func TestCreatePresetRAG(t *testing.T) {
 	}
 }
 
+func TestCreatePresetRAGWithDifferentConfigurations(t *testing.T) {
+	test.RegisterTestModel()
+
+	testcases := map[string]struct {
+		ragEngine     *v1beta1.RAGEngine
+		callMocks     func(c *test.MockClient)
+		expectedLabel string
+		testCase      string
+	}{
+		"test-rag-with-preferred-cpu-nodes": {
+			ragEngine: test.MockRAGEngineWithPresetPreferredCPUNodes,
+			callMocks: func(c *test.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			expectedLabel: "testRAGEngine",
+			testCase:      "RAGEngine with preferred CPU nodes should create deployment",
+		},
+		"test-rag-with-revision-1": {
+			ragEngine: test.MockRAGEngineWithRevision1,
+			callMocks: func(c *test.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			expectedLabel: "testRAGEngine",
+			testCase:      "RAGEngine with revision 1 should create deployment with proper labels",
+		},
+		"test-rag-with-revision-2": {
+			ragEngine: test.MockRAGEngineWithRevision2,
+			callMocks: func(c *test.MockClient) {
+				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			expectedLabel: "testRAGEngine",
+			testCase:      "RAGEngine with revision 2 should create deployment with proper labels",
+		},
+	}
+
+	for k, tc := range testcases {
+		t.Run(k, func(t *testing.T) {
+			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+			mockClient := test.NewClient()
+			tc.callMocks(mockClient)
+
+			createdObject, err := CreatePresetRAG(context.TODO(), tc.ragEngine, "1", mockClient)
+			if err != nil {
+				t.Errorf("%s failed: %v", tc.testCase, err)
+				return
+			}
+
+			deployment := createdObject.(*appsv1.Deployment)
+			
+			// Check that the deployment has the correct labels
+			if deployment.Spec.Selector.MatchLabels[v1beta1.LabelRAGEngineName] != tc.expectedLabel {
+				t.Errorf("%s: expected label %s, got %s", tc.testCase, tc.expectedLabel, deployment.Spec.Selector.MatchLabels[v1beta1.LabelRAGEngineName])
+			}
+			
+			// Verify template labels match selector labels
+			if deployment.Spec.Template.ObjectMeta.Labels[v1beta1.LabelRAGEngineName] != tc.expectedLabel {
+				t.Errorf("%s: template label mismatch, expected %s, got %s", tc.testCase, tc.expectedLabel, deployment.Spec.Template.ObjectMeta.Labels[v1beta1.LabelRAGEngineName])
+			}
+		})
+	}
+}
+
 func TestGPUConfigLogic(t *testing.T) {
 	test.RegisterTestModel()
 

@@ -30,13 +30,16 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisio
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
 	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount) *appsv1.Deployment {
 
-	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ragEngineObj.Spec.Compute.LabelSelector.MatchLabels))
-	for key, value := range ragEngineObj.Spec.Compute.LabelSelector.MatchLabels {
-		nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
-			Key:      key,
-			Operator: corev1.NodeSelectorOpIn,
-			Values:   []string{value},
-		})
+	var nodeRequirements []corev1.NodeSelectorRequirement
+	if ragEngineObj.Spec.Compute != nil && ragEngineObj.Spec.Compute.LabelSelector != nil {
+		nodeRequirements = make([]corev1.NodeSelectorRequirement, 0, len(ragEngineObj.Spec.Compute.LabelSelector.MatchLabels))
+		for key, value := range ragEngineObj.Spec.Compute.LabelSelector.MatchLabels {
+			nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
+				Key:      key,
+				Operator: corev1.NodeSelectorOpIn,
+				Values:   []string{value},
+			})
+		}
 	}
 
 	selector := map[string]string{
@@ -236,34 +239,35 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 	}
 	envs = append(envs, persistDirEnv)
 
-	// Always set LLM_CONTEXT_WINDOW since InferenceService is required
-	contextWindowEnv := corev1.EnvVar{
-		Name:  "LLM_CONTEXT_WINDOW",
-		Value: fmt.Sprintf("%d", ragEngineObj.Spec.InferenceService.ContextWindowSize),
-	}
-	envs = append(envs, contextWindowEnv)
-
-	// Only add LLM_INFERENCE_URL if URL is not empty (URL is optional)
-	if ragEngineObj.Spec.InferenceService.URL != "" {
-		inferenceServiceURLEnv := corev1.EnvVar{
-			Name:  "LLM_INFERENCE_URL",
-			Value: ragEngineObj.Spec.InferenceService.URL,
+	if ragEngineObj.Spec.InferenceService != nil {
+		contextWindowEnv := corev1.EnvVar{
+			Name:  "LLM_CONTEXT_WINDOW",
+			Value: fmt.Sprintf("%d", ragEngineObj.Spec.InferenceService.ContextWindowSize),
 		}
-		envs = append(envs, inferenceServiceURLEnv)
+		envs = append(envs, contextWindowEnv)
 
-		if ragEngineObj.Spec.InferenceService.AccessSecret != "" {
-			accessSecretEnv := corev1.EnvVar{
-				Name: "LLM_ACCESS_SECRET",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: ragEngineObj.Spec.InferenceService.AccessSecret,
-						},
-						Key: "LLM_ACCESS_SECRET",
-					},
-				},
+		// Only add LLM_INFERENCE_URL if URL is not empty (URL is optional)
+		if ragEngineObj.Spec.InferenceService.URL != "" {
+			inferenceServiceURLEnv := corev1.EnvVar{
+				Name:  "LLM_INFERENCE_URL",
+				Value: ragEngineObj.Spec.InferenceService.URL,
 			}
-			envs = append(envs, accessSecretEnv)
+			envs = append(envs, inferenceServiceURLEnv)
+
+			if ragEngineObj.Spec.InferenceService.AccessSecret != "" {
+				accessSecretEnv := corev1.EnvVar{
+					Name: "LLM_ACCESS_SECRET",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: ragEngineObj.Spec.InferenceService.AccessSecret,
+							},
+							Key: "LLM_ACCESS_SECRET",
+						},
+					},
+				}
+				envs = append(envs, accessSecretEnv)
+			}
 		}
 	}
 

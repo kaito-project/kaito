@@ -152,10 +152,11 @@ var (
 )
 
 type Generator struct {
-	ModelRepo   string
-	Token       string
-	Param       model.PresetParam
-	CatalogData []byte // Optional embedded catalog YAML
+	ModelRepo      string
+	Token          string
+	Param          model.PresetParam
+	CatalogData    []byte // Optional embedded catalog YAML
+	IsMistralModel bool
 
 	// Analyzed params
 	LoadFormat    string
@@ -241,19 +242,19 @@ func (g *Generator) FetchModelMetadata() error {
 		return err
 	}
 
-	selectedFiles, hasMistralWeights := g.selectWeightFiles(files)
+	selectedFiles := g.selectWeightFiles(files)
 	if len(selectedFiles) == 0 {
 		return fmt.Errorf("no .safetensors or .bin files found")
 	}
 
-	if hasMistralWeights {
+	if g.IsMistralModel {
 		g.setMistralMode()
 	}
 
 	g.Param.Metadata.ModelFileSize = calculateModelFileSize(selectedFiles)
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
-	if err := g.fetchAndParseConfig(hasMistralWeights); err != nil {
+	if err := g.fetchAndParseConfig(); err != nil {
 		return err
 	}
 
@@ -278,10 +279,10 @@ func (g *Generator) listRepoFiles() ([]FileInfo, error) {
 
 // selectWeightFiles picks the model weight files to use and detects whether
 // the model uses Mistral format. For Mistral-format models (those with
-// consolidated*.safetensors), it sets the load/config/tokenizer modes and
-// returns only the consolidated files. For standard models, it prefers
-// .safetensors over .bin when both are present.
-func (g *Generator) selectWeightFiles(files []FileInfo) (selected []FileInfo, isMistral bool) {
+// consolidated*.safetensors), it sets g.IsMistralModel and returns only the
+// consolidated files. For standard models, it prefers .safetensors over .bin
+// when both are present.
+func (g *Generator) selectWeightFiles(files []FileInfo) []FileInfo {
 	var safetensors, bins, mistral []FileInfo
 
 	for _, f := range files {
@@ -296,14 +297,15 @@ func (g *Generator) selectWeightFiles(files []FileInfo) (selected []FileInfo, is
 	}
 
 	if len(mistral) > 0 {
-		return mistral, true
+		g.IsMistralModel = true
+		return mistral
 	}
 
 	// Prefer safetensors over bin files when both exist.
 	if len(safetensors) > 0 {
-		return safetensors, false
+		return safetensors
 	}
-	return bins, false
+	return bins
 }
 
 func (g *Generator) setMistralMode() {
@@ -323,9 +325,9 @@ func calculateModelFileSize(files []FileInfo) string {
 
 // fetchAndParseConfig downloads and parses the model's config.json. For
 // Mistral-format models, it falls back to params.json if config.json is absent.
-func (g *Generator) fetchAndParseConfig(hasMistralWeights bool) error {
+func (g *Generator) fetchAndParseConfig() error {
 	configBody, err := g.fetchConfigFile("config.json")
-	if err != nil && hasMistralWeights {
+	if err != nil && g.IsMistralModel {
 		// config.json not available; fall back to params.json (Mistral native format).
 		configBody, err = g.fetchConfigFile("params.json")
 	}

@@ -133,7 +133,15 @@ func (c *RAGEngineReconciler) addRAGEngine(ctx context.Context, ragEngineObj *ka
 			}
 			return reconcile.Result{}, err
 		}
+	} else {
+		// set resource status to true when no compute resource is needed.
+		if err = c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue,
+			"ragengineResourceStatusSuccess", "ragengine resource is ready"); err != nil {
+			klog.ErrorS(err, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
+			return reconcile.Result{}, err
+		}
 	}
+
 	if err := c.ensureService(ctx, ragEngineObj); err != nil {
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
 			"ragEngineFailed", err.Error()); updateErr != nil {

@@ -114,7 +114,7 @@ var TransformerTuningParameters = map[string]TuningConfig{
 	},
 
 	// Mistral family
-	"mistral-7b": {
+	"mistral-7b-v0.3": {
 		DiskStorageRequirement:  "90Gi",
 		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "16Gi",

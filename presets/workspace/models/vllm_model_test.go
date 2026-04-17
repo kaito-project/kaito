@@ -14,16 +14,20 @@
 package models
 
 import (
+	"bufio"
 	"context"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
 func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
@@ -229,6 +233,88 @@ func TestVLLMCompatibleModel_GetInferenceParameters_TransformerLookup(t *testing
 			} else {
 				assert.Empty(t, params.RuntimeParam.Transformers.BaseCommand)
 				assert.Empty(t, params.RuntimeParam.Transformers.ModelName)
+			}
+		})
+	}
+}
+
+func TestVLLMCompatibleModel_GetInferenceParameters_VLLMLookup(t *testing.T) {
+	tests := []struct {
+		name                  string
+		modelName             string
+		expectVLLMFromMap     bool
+		expectRayCommands     bool
+		expectDisallowLoRA    bool
+		expectModelRunParamKV map[string]string // subset of expected run params
+	}{
+		{
+			name:              "preset model with tool-call params uses VLLMInferenceParameters",
+			modelName:         "phi-4-mini-instruct",
+			expectVLLMFromMap: true,
+			expectModelRunParamKV: map[string]string{
+				"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
+				"tool-call-parser":        "phi4_mini_json",
+				"enable-auto-tool-choice": "",
+			},
+		},
+		{
+			name:              "preset model with ray commands uses VLLMInferenceParameters",
+			modelName:         "llama-3.1-8b-instruct",
+			expectVLLMFromMap: true,
+			expectRayCommands: true,
+			expectModelRunParamKV: map[string]string{
+				"attention-backend": "TRITON_ATTN",
+			},
+		},
+		{
+			name:               "preset model with DisallowLoRA uses VLLMInferenceParameters",
+			modelName:          "falcon-7b",
+			expectVLLMFromMap:  true,
+			expectDisallowLoRA: true,
+		},
+		{
+			name:              "unknown model falls back to dynamic VLLM params",
+			modelName:         "some-org/unknown-dynamic-model",
+			expectVLLMFromMap: false,
+			expectRayCommands: true, // dynamic models always get ray commands
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &vLLMCompatibleModel{
+				model: model.Metadata{Name: tt.modelName},
+			}
+			params := m.GetInferenceParameters()
+			assert.NotNil(t, params)
+
+			if tt.expectVLLMFromMap {
+				expected := VLLMInferenceParameters[tt.modelName]
+				assert.Equal(t, expected.BaseCommand, params.RuntimeParam.VLLM.BaseCommand)
+				assert.Equal(t, expected.ModelName, params.RuntimeParam.VLLM.ModelName)
+				assert.Equal(t, expected.ModelRunParams, params.RuntimeParam.VLLM.ModelRunParams)
+				assert.Equal(t, expected.DisallowLoRA, params.RuntimeParam.VLLM.DisallowLoRA)
+				assert.Equal(t, expected.RayLeaderBaseCommand, params.RuntimeParam.VLLM.RayLeaderBaseCommand)
+				assert.Equal(t, expected.RayWorkerBaseCommand, params.RuntimeParam.VLLM.RayWorkerBaseCommand)
+			} else {
+				// Dynamic models get default base command and dynamically-built params
+				assert.Equal(t, DefaultVLLMCommand, params.RuntimeParam.VLLM.BaseCommand)
+				assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "trust-remote-code")
+				assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "dtype")
+			}
+
+			if tt.expectRayCommands {
+				assert.Equal(t, DefaultVLLMRayLeaderBaseCommand, params.RuntimeParam.VLLM.RayLeaderBaseCommand)
+				assert.Equal(t, DefaultVLLMRayWorkerBaseCommand, params.RuntimeParam.VLLM.RayWorkerBaseCommand)
+			}
+
+			if tt.expectDisallowLoRA {
+				assert.True(t, params.RuntimeParam.VLLM.DisallowLoRA)
+			}
+
+			for k, v := range tt.expectModelRunParamKV {
+				assert.Equal(t, v, params.RuntimeParam.VLLM.ModelRunParams[k],
+					"expected ModelRunParams[%q] = %q", k, v)
 			}
 		})
 	}
@@ -892,4 +978,66 @@ func TestGetModelByNameWithToken_ShortNameRedirectsToCatalog(t *testing.T) {
 			assert.True(t, isVLLM, "model %q should resolve to vLLMCompatibleModel", shortName)
 		})
 	}
+}
+
+// TestCatalogModelsHaveMTBenchScores ensures every model in model_catalog.yaml
+// has a corresponding score entry in model_catalog_mtbench_scores.md.
+func TestCatalogModelsHaveMTBenchScores(t *testing.T) {
+	// Parse the model catalog.
+	var catalog generator.ModelCatalog
+	err := yaml.Unmarshal(modelCatalogYAML, &catalog)
+	if err != nil {
+		t.Fatalf("Failed to parse model_catalog.yaml: %v", err)
+	}
+
+	// Parse scored model names from the markdown table.
+	scoredModels := parseMTBenchScores(t, "model_catalog_mtbench_scores.md")
+
+	// Check each catalog model has a score.
+	for _, entry := range catalog.Models {
+		t.Run(entry.Name, func(t *testing.T) {
+			_, found := scoredModels[strings.ToLower(entry.Name)]
+			assert.True(t, found,
+				"model %q has no MT-bench score in model_catalog_mtbench_scores.md",
+				entry.Name)
+		})
+	}
+}
+
+// parseMTBenchScores reads the markdown scores file and returns a set of
+// lowercase model names that have score entries.
+func parseMTBenchScores(t *testing.T, filename string) map[string]bool {
+	t.Helper()
+	f, err := os.Open(filename)
+	if err != nil {
+		t.Fatalf("Failed to open %s: %v", filename, err)
+	}
+	defer f.Close()
+
+	scores := make(map[string]bool)
+	scanner := bufio.NewScanner(f)
+	headerSkipped := false
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if !strings.HasPrefix(line, "|") {
+			continue
+		}
+		// Skip the header row and separator row.
+		if !headerSkipped {
+			headerSkipped = true
+			continue // "| Model | Runtime | ..."
+		}
+		if strings.Contains(line, "---") {
+			continue // separator row
+		}
+		cols := strings.Split(line, "|")
+		if len(cols) < 3 {
+			continue
+		}
+		modelName := strings.TrimSpace(cols[1])
+		if modelName != "" {
+			scores[strings.ToLower(modelName)] = true
+		}
+	}
+	return scores
 }

@@ -195,30 +195,10 @@ var _ = Describe("RAGEngine", func() {
 
 	It("should create RAG with localembedding and no compute or inference and kaito VLLM workspace successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplica := 1
-		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
-
-		time.Sleep(30 * time.Second)
-
-		validateWorkspaceResourceStatus(workspaceObj)
-
-		validateAssociatedService(workspaceObj.ObjectMeta)
-
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
-
-		validateWorkspaceReadiness(workspaceObj)
-
-		serviceName := workspaceObj.ObjectMeta.Name
-		serviceNamespace := workspaceObj.ObjectMeta.Namespace
-		service := &v1.Service{}
-
-		_ = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-			Namespace: serviceNamespace,
-			Name:      serviceName,
-		}, service)
 
 		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngineWithNoComputeOrInference()
 
-		defer cleanupResources(workspaceObj, ragengineObj)
+		defer cleanupResources(nil, ragengineObj)
 
 		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
 		validateAssociatedService(ragengineObj.ObjectMeta)

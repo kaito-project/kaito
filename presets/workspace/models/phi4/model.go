@@ -37,15 +37,6 @@ const (
 	PresetPhi4MiniInstructModel = "phi-4-mini-instruct"
 )
 
-var (
-	phi4RunParamsVLLM     = map[string]string{}
-	phi4MiniRunParamsVLLM = map[string]string{
-		"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
-		"tool-call-parser":        "phi4_mini_json",
-		"enable-auto-tool-choice": "",
-	}
-)
-
 var phi4A phi4Model
 
 type phi4Model struct{}
@@ -60,11 +51,7 @@ func (*phi4Model) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         16384, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetPhi4Model],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetPhi4Model,
-				ModelRunParams: phi4RunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetPhi4Model],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
@@ -106,11 +93,7 @@ func (*phi4MiniInstruct) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetPhi4MiniInstructModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetPhi4MiniInstructModel,
-				ModelRunParams: phi4MiniRunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetPhi4MiniInstructModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}

@@ -37,9 +37,10 @@ var (
 		"trust_remote_code": "",
 	}
 	mistralRunParams = map[string]string{
-		"torch_dtype":   "bfloat16",
-		"pipeline":      "text-generation",
-		"chat_template": "/workspace/chat_templates/mistral-instruct.jinja",
+		"torch_dtype":        "bfloat16",
+		"pipeline":           "text-generation",
+		"chat_template":      "/workspace/chat_templates/mistral-instruct.jinja",
+		"allow_remote_files": "",
 	}
 	gemma3RunParams = map[string]string{
 		"torch_dtype":        "auto",
@@ -143,7 +144,7 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 	},
 
 	// Mistral family
-	"mistral-7b": {
+	"mistral-7b-v0.3": {
 		BaseCommand:       "accelerate launch",
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
@@ -151,7 +152,7 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		ModelName:         "mistral-7b",
 		Tag:               "0.2.0",
 	},
-	"mistral-7b-instruct": {
+	"mistral-7b-instruct-v0.3": {
 		BaseCommand:       "accelerate launch",
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
@@ -159,7 +160,7 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		ModelName:         "mistral-7b-instruct",
 		Tag:               "0.2.0",
 	},
-	"ministral-3-3b-instruct": {
+	"ministral-3-3b-instruct-2512": {
 		BaseCommand:       "accelerate launch",
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
@@ -167,7 +168,7 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		ModelName:         "ministral-3-3b-instruct",
 		Tag:               "0.0.1",
 	},
-	"ministral-3-8b-instruct": {
+	"ministral-3-8b-instruct-2512": {
 		BaseCommand:       "accelerate launch",
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
@@ -175,7 +176,7 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		ModelName:         "ministral-3-8b-instruct",
 		Tag:               "0.0.1",
 	},
-	"ministral-3-14b-instruct": {
+	"ministral-3-14b-instruct-2512": {
 		BaseCommand:       "accelerate launch",
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
@@ -193,7 +194,7 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 	},
 
 	// Gemma-3 family
-	"gemma-3-4b-instruct": {
+	"gemma-3-4b-it": {
 		BaseCommand:       "accelerate launch",
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
@@ -201,7 +202,7 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		ModelName:         "gemma-3-4b-instruct",
 		Tag:               "0.0.1",
 	},
-	"gemma-3-27b-instruct": {
+	"gemma-3-27b-it": {
 		BaseCommand:       "accelerate launch",
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,

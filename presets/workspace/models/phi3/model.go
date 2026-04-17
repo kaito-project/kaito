@@ -52,10 +52,6 @@ const (
 	PresetPhi3_5MiniInstruct  = "phi-3.5-mini-instruct"
 )
 
-var (
-	phiRunParamsVLLM = map[string]string{}
-)
-
 var phi3MiniA phi3Mini4KInst
 
 type phi3Mini4KInst struct{}
@@ -70,11 +66,7 @@ func (*phi3Mini4KInst) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         4096, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetPhi3Mini4kModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetPhi3Mini4kModel,
-				ModelRunParams: phiRunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetPhi3Mini4kModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
@@ -114,11 +106,7 @@ func (*phi3Mini128KInst) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetPhi3Mini128kModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetPhi3Mini128kModel,
-				ModelRunParams: phiRunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetPhi3Mini128kModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
@@ -158,11 +146,7 @@ func (*phi3_5MiniInst) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetPhi3_5MiniInstruct],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetPhi3_5MiniInstruct,
-				ModelRunParams: phiRunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetPhi3_5MiniInstruct],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
@@ -202,11 +186,7 @@ func (*Phi3Medium4kInstruct) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         4096, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetPhi3Medium4kModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetPhi3Medium4kModel,
-				ModelRunParams: phiRunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetPhi3Medium4kModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
@@ -246,11 +226,7 @@ func (*Phi3Medium128kInstruct) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         131072, // max_position_embeddings from HF config
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetPhi3Medium128kModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetPhi3Medium128kModel,
-				ModelRunParams: phiRunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetPhi3Medium128kModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}

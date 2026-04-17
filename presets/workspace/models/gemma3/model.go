@@ -26,10 +26,6 @@ const (
 	PresetGemma3_27BInstructModel = "gemma-3-27b-instruct"
 )
 
-var (
-	gemma3RunParamsVLLM = map[string]string{}
-)
-
 var gemma3_4bInst gemma3_4BInstruct
 var gemma3_27bInst gemma3_27BInstruct
 
@@ -56,11 +52,7 @@ func (*gemma3_4BInstruct) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetGemma3_4BInstructModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetGemma3_4BInstructModel,
-				ModelRunParams: gemma3RunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetGemma3_4BInstructModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
@@ -90,11 +82,7 @@ func (*gemma3_27BInstruct) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         131072,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetGemma3_27BInstructModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetGemma3_27BInstructModel,
-				ModelRunParams: gemma3RunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetGemma3_27BInstructModel],
 		},
 		ReadinessTimeout: time.Duration(45) * time.Minute,
 	}

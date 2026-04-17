@@ -47,12 +47,6 @@ const (
 	PresetFalcon40BInstructModel = PresetFalcon40BModel + "-instruct"
 )
 
-var (
-	falconRunParamsVLLM = map[string]string{
-		"chat-template": "/workspace/chat_templates/falcon-instruct.jinja",
-	}
-)
-
 var falconA falcon7b
 
 type falcon7b struct{}
@@ -67,12 +61,7 @@ func (*falcon7b) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetFalcon7BModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      "falcon-7b",
-				ModelRunParams: falconRunParamsVLLM,
-				DisallowLoRA:   true,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetFalcon7BModel],
 			// vllm requires the model specification to be exactly divisible by
 			// the number of GPUs(tensor parallel level).
 			// falcon-7b have 71 attention heads, which is a prime number.
@@ -120,12 +109,7 @@ func (*falcon7bInst) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetFalcon7BInstructModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetFalcon7BInstructModel,
-				ModelRunParams: falconRunParamsVLLM,
-				DisallowLoRA:   true,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetFalcon7BInstructModel],
 			// vllm requires the model specification to be exactly divisible by
 			// the number of GPUs(tensor parallel level).
 			// falcon-7b-instruct have 71 attention heads, which is a prime number.
@@ -160,11 +144,7 @@ func (*falcon40b) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetFalcon40BModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetFalcon40BModel,
-				ModelRunParams: falconRunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetFalcon40BModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
@@ -206,11 +186,7 @@ func (*falcon40bInst) GetInferenceParameters() *model.PresetParam {
 		ModelTokenLimit:         2048, // per requirement: uniform Falcon context window
 		RuntimeParam: model.RuntimeParam{
 			Transformers: metadata.TransformerInferenceParameters[PresetFalcon40BInstructModel],
-			VLLM: model.VLLMParam{
-				BaseCommand:    metadata.DefaultVLLMCommand,
-				ModelName:      PresetFalcon40BInstructModel,
-				ModelRunParams: falconRunParamsVLLM,
-			},
+			VLLM:         metadata.VLLMInferenceParameters[PresetFalcon40BInstructModel],
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}

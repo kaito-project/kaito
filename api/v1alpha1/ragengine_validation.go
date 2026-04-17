@@ -47,8 +47,21 @@ func (w *RAGEngine) Validate(ctx context.Context) (errs *apis.FieldError) {
 		old := base.(*RAGEngine)
 		errs = errs.Also(
 			w.validateCreate().ViaField("spec"),
-			w.Spec.Compute.validateUpdate(old.Spec.Compute).ViaField("resource"),
+			w.validateUpdate(old).ViaField("resource"),
 		)
+	}
+	return errs
+}
+
+func (w *RAGEngine) validateUpdate(old *RAGEngine) (errs *apis.FieldError) {
+	if w.Spec.Compute != nil && old.Spec.Compute == nil {
+		errs = errs.Also(apis.ErrGeneric("Compute resources cannot be added after creation", "compute"))
+	}
+	if w.Spec.Compute == nil && old.Spec.Compute != nil {
+		errs = errs.Also(apis.ErrGeneric("Compute resources cannot be removed after creation", "compute"))
+	}
+	if w.Spec.Compute != nil && old.Spec.Compute != nil {
+		errs = errs.Also(w.Spec.Compute.validateUpdate(old.Spec.Compute).ViaField("resource"))
 	}
 	return errs
 }

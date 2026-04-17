@@ -30,15 +30,29 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisio
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
 	tolerations []corev1.Toleration, volumes []corev1.Volume, volumeMount []corev1.VolumeMount) *appsv1.Deployment {
 
-	var nodeRequirements []corev1.NodeSelectorRequirement
+	var affinity *corev1.Affinity
 	if ragEngineObj.Spec.Compute != nil && ragEngineObj.Spec.Compute.LabelSelector != nil {
-		nodeRequirements = make([]corev1.NodeSelectorRequirement, 0, len(ragEngineObj.Spec.Compute.LabelSelector.MatchLabels))
+		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ragEngineObj.Spec.Compute.LabelSelector.MatchLabels))
 		for key, value := range ragEngineObj.Spec.Compute.LabelSelector.MatchLabels {
 			nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
 				Key:      key,
 				Operator: corev1.NodeSelectorOpIn,
 				Values:   []string{value},
 			})
+		}
+		// we only set node affinity if there are node requirements specified. If there are no requirements, we don't set affinity at all to allow scheduling on any node.
+		if len(nodeRequirements) > 0 {
+			affinity = &corev1.Affinity{
+				NodeAffinity: &corev1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+						NodeSelectorTerms: []corev1.NodeSelectorTerm{
+							{
+								MatchExpressions: nodeRequirements,
+							},
+						},
+					},
+				},
+			}
 		}
 	}
 
@@ -86,18 +100,8 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisio
 				Spec: corev1.PodSpec{
 					TerminationGracePeriodSeconds: lo.ToPtr(int64(60)),
 					ImagePullSecrets:              imagePullSecretRefs,
-					Affinity: &corev1.Affinity{
-						NodeAffinity: &corev1.NodeAffinity{
-							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-								NodeSelectorTerms: []corev1.NodeSelectorTerm{
-									{
-										MatchExpressions: nodeRequirements,
-									},
-								},
-							},
-						},
-					},
-					InitContainers: initContainers,
+					Affinity:                      affinity,
+					InitContainers:                initContainers,
 					Containers: []corev1.Container{
 						{
 							Name:           ragEngineObj.Name,

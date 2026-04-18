@@ -32,3 +32,6 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | mistralai/Ministral-3-8B-Instruct-2512 | vllm | 7.26 | 7.95 | 7.10 | 6.50 | 8.70 | 6.70 | 8.00 | 6.65 | 6.50 | 2026-04-15 |
 | mistralai/Ministral-3-14B-Instruct-2512 | vllm | 7.45 | 7.95 | 7.35 | 6.40 | 9.90 | 6.20 | 8.40 | 6.80 | 6.60 | 2026-04-15 |
 | mistralai/Mistral-7B-v0.3 | vllm | 1.91 | 2.20 | 1.30 | 1.50 | 1.60 | 1.60 | 2.05 | 3.20 | 1.80 | 2026-04-15 |
+| deepseek-ai/DeepSeek-R1-0528 | vllm | 5.06 | 7.90 | 7.30 | 3.85 | 2.65 | 1.65 | 5.55 | 5.55 | 6.05 | 2026-04-17 |
+| deepseek-ai/DeepSeek-V3-0324 | vllm | 8.07 | 8.20 | 7.95 | 7.35 | 9.50 | 8.20 | 8.30 | 7.00 | 8.05 | 2026-04-17 |
+| mistralai/Mistral-Large-3-675B-Instruct-2512 | vllm | 7.86 | 8.05 | 7.65 | 7.75 | 9.05 | 7.90 | 8.50 | 7.25 | 6.70 | 2026-04-17 |

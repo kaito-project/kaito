@@ -129,6 +129,10 @@ var catalogOverrides = map[string]CatalogEntry{
 	"google/gemma-3-27b-it": {
 		ModelTokenLimit: 131072,
 	},
+	"mistralai/mistral-large-3-675b-instruct-2512": {
+		Architectures: []string{"MistralLarge3ForCausalLM"},
+		PipelineTag:   "text-generation",
+	},
 }
 
 // FetchCatalogEntry fetches a CatalogEntry for a model repo from HuggingFace.
@@ -216,6 +220,9 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 		}
 		if len(ovr.Architectures) > 0 {
 			entry.Architectures = ovr.Architectures
+		}
+		if ovr.PipelineTag != "" {
+			entry.PipelineTag = ovr.PipelineTag
 		}
 	}
 

@@ -230,3 +230,11 @@ func GetPresetImageName(registry, name, tag string) string {
 	}
 	return fmt.Sprintf("%s/kaito-%s:%s", registry, name, tag)
 }
+
+func GetEnvWithDefault(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
+}

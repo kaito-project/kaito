@@ -30,6 +30,10 @@ on:
         type: string
         required: false
         default: ""
+      build_kaito_base_image:
+        type: boolean
+        description: "Whether to build the kaito base image (detected from path changes)"
+        default: false
 
 jobs:
   e2e-tests:
@@ -75,9 +79,7 @@ jobs:
 
       - name: Set BUILD_KAITO_BASE_IMAGE
         run: |
-          # Check if we are missing the kaito-base image. If we are, we should run full e2e tests. Otherwise, run fast e2e tests.
-          BUILD_KAITO_BASE_IMAGE=$(python3 .github/determine_missing_preset_images.py | jq -r '.[] | select(.name == "base") | length > 0')
-          echo "BUILD_KAITO_BASE_IMAGE=${BUILD_KAITO_BASE_IMAGE}" >> $GITHUB_ENV
+          echo "BUILD_KAITO_BASE_IMAGE=${{ inputs.build_kaito_base_image }}" >> $GITHUB_ENV
 
       - name: Run e2e-base-setup composite action
         id: base-setup

@@ -55,6 +55,12 @@ spec:
                   fieldPath: metadata.namespace
             - name: PRESET_REGISTRY_NAME
               value: {{ .Values.presetRegistryName | quote }}
+            - name: PRESET_BASE_REGISTRY_NAME
+              value: {{ .Values.presetBaseRegistryName | quote }}
+            - name: PRESET_BASE_IMAGE_NAME
+              value: {{ .Values.presetBaseImageName | quote }}
+            - name: PRESET_BASE_IMAGE_TAG
+              value: {{ .Values.presetBaseImageTag | quote }}
             - name: CLOUD_PROVIDER
               value: {{ .Values.cloudProviderName | quote }}
             - name: CLUSTER_NAME

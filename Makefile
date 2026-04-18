@@ -447,6 +447,12 @@ az-patch-install-helm: ## Install KAITO workspace Helm chart and set Azure clien
 	yq -i '(.image.repository)                                              = "$(REGISTRY)/workspace"'                    ./charts/kaito/workspace/values.yaml
 	yq -i '(.image.tag)                                                     = "$(IMG_TAG)"'                               ./charts/kaito/workspace/values.yaml
 	yq -i '(.clusterName)                                                   = "$(AZURE_CLUSTER_NAME)"'                    ./charts/kaito/workspace/values.yaml
+ifdef PRESET_BASE_REGISTRY_NAME
+	yq -i '(.presetBaseRegistryName)                                        = "$(PRESET_BASE_REGISTRY_NAME)"'             ./charts/kaito/workspace/values.yaml
+endif
+ifdef PRESET_BASE_IMAGE_TAG
+	yq -i '(.presetBaseImageTag)                                            = "$(PRESET_BASE_IMAGE_TAG)"'                 ./charts/kaito/workspace/values.yaml
+endif
 
 	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 

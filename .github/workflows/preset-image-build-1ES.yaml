@@ -1,4 +1,4 @@
-name: Build and Push Preset Models 1ES
+name: Build and Push Preset Images
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -8,9 +8,23 @@ on:
   push:
     branches:
       - main
+      - 'release-*'
     paths:
-      - presets/workspace/models/supported_models.yaml
+      - 'presets/workspace/models/supported_models.yaml'
+      - 'presets/workspace/inference/**'
+      - 'presets/workspace/dependencies/**'
+      - 'presets/workspace/tuning/**'
+      - 'docker/presets/models/tfs/Dockerfile'
   workflow_dispatch:
+    inputs:
+      build_base_image:
+        description: 'Build the base image'
+        type: boolean
+        default: false
+      base_image_tag:
+        description: 'Base image tag (required when build_base_image is true, e.g. v0.9.0)'
+        type: string
+        required: false
 
 env:
     GO_VERSION: "1.26.2"
@@ -23,7 +37,139 @@ permissions:
   packages: write
 
 jobs:
+  # -------------------------------------------------------------------
+  # Detect which builds are needed based on changed files
+  # -------------------------------------------------------------------
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      build_base_image: ${{ steps.check.outputs.build_base_image }}
+      base_image_tag: ${{ steps.check.outputs.base_image_tag }}
+      build_models: ${{ steps.check.outputs.build_models }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        id: check
+        run: |
+          # workflow_dispatch: use inputs directly
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "build_base_image=${{ inputs.build_base_image }}" >> $GITHUB_OUTPUT
+            echo "base_image_tag=${{ inputs.base_image_tag }}" >> $GITHUB_OUTPUT
+            # workflow_dispatch without build_base_image means build models
+            if [ "${{ inputs.build_base_image }}" != "true" ]; then
+              echo "build_models=true" >> $GITHUB_OUTPUT
+            else
+              echo "build_models=false" >> $GITHUB_OUTPUT
+            fi
+            exit 0
+          fi
+
+          # push event: check changed files
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }})
+
+          BUILD_BASE=false
+          BUILD_MODELS=false
+
+          if echo "$CHANGED_FILES" | grep -qE '^(presets/workspace/(inference|dependencies|tuning)/|docker/presets/models/tfs/Dockerfile)'; then
+            BUILD_BASE=true
+          fi
+          if echo "$CHANGED_FILES" | grep -qF 'presets/workspace/models/supported_models.yaml'; then
+            BUILD_MODELS=true
+          fi
+
+          echo "build_base_image=$BUILD_BASE" >> $GITHUB_OUTPUT
+          echo "build_models=$BUILD_MODELS" >> $GITHUB_OUTPUT
+
+          # Determine base image tag
+          if [ "$BUILD_BASE" == "true" ]; then
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              echo "base_image_tag=latest" >> $GITHUB_OUTPUT
+            elif [[ "${{ github.ref }}" == refs/heads/release-* ]]; then
+              MINOR_VERSION=$(echo "${{ github.ref_name }}" | sed 's/release-//')
+              LATEST_TAG=$(git tag --list "v${MINOR_VERSION}.*" --sort=-v:refname | head -1)
+              if [ -n "$LATEST_TAG" ]; then
+                echo "base_image_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+              else
+                echo "base_image_tag=v${MINOR_VERSION}.0" >> $GITHUB_OUTPUT
+              fi
+            fi
+          fi
+
+          echo "build_base_image=$BUILD_BASE build_models=$BUILD_MODELS"
+
+  # -------------------------------------------------------------------
+  # Build the workspace base image (kaito-base)
+  # -------------------------------------------------------------------
+  build-base-image:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.build_base_image == 'true'
+    runs-on: ubuntu-latest
+    environment: preset-env
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+          disable-sudo: true
+          disable-telemetry: true
+
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Print image tag
+        run: echo "Base image tag will be ${{ needs.detect-changes.outputs.base_image_tag }}"
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo apt-get clean
+          df -h
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to ACR
+        run: |
+          echo "${{ secrets.PROD_1ES_ACR_PASSWORD }}" | docker login "${{ secrets.PROD_1ES_ACR_USERNAME }}.azurecr.io" \
+            -u "${{ secrets.PROD_1ES_ACR_USERNAME }}" --password-stdin
+
+      - name: Set up Docker Buildx
+        run: |
+          if ! docker buildx inspect img-builder &>/dev/null; then
+            docker buildx create --name=img-builder --driver=docker-container --use --bootstrap \
+              --driver-opt image=mcr.microsoft.com/oss/v2/moby/buildkit:v0.20.2
+          else
+            docker buildx use img-builder
+          fi
+
+      - name: Build and push
+        run: |
+          TAG="${{ needs.detect-changes.outputs.base_image_tag }}"
+          docker buildx build \
+            --builder img-builder \
+            --build-arg VERSION=$TAG \
+            --build-arg MODEL_TYPE=text-generation \
+            -t ghcr.io/kaito-project/kaito/kaito-base:$TAG \
+            -t ${{ secrets.PROD_1ES_ACR_USERNAME }}.azurecr.io/unlisted/aks/kaito/kaito-base:$TAG \
+            -o type=image,push=true,compression=zstd \
+            -f ./docker/presets/models/tfs/Dockerfile .
+
+  # -------------------------------------------------------------------
+  # Determine which preset model images need building
+  # -------------------------------------------------------------------
   determine-models:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.build_models == 'true'
     runs-on: ubuntu-latest
     environment: preset-env
     outputs:

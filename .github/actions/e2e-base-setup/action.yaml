@@ -196,19 +196,15 @@ runs:
         # non-existent images from remote registry, leading to test failures.
         python3 .github/determine_missing_preset_images.py | jq -c '.[]' | while read -r model; do
           export MODEL_NAME=$(echo "$model" | jq -r '.name')
+          export MODEL_VERSION_URL=$(echo "$model" | jq -r '.version')
 
-          # Push preset model weights as OCI artifact to ACR using ORAS
-          if [ "$MODEL_NAME" != "base" ]; then
-            export MODEL_VERSION_URL=$(echo "$model" | jq -r '.version')
-
-            # Use shared script to build and push OCI artifact
-            docker/presets/models/tfs/build_oci_artifact.sh \
-              "$MODEL_VERSION_URL" \
-              "kaito-$MODEL_NAME" \
-              "${{ env.REGISTRY }}" \
-              "${{ env.VERSION }}" \
-              "$HF_TOKEN"
-          fi
+          # Use shared script to build and push OCI artifact
+          docker/presets/models/tfs/build_oci_artifact.sh \
+            "$MODEL_VERSION_URL" \
+            "kaito-$MODEL_NAME" \
+            "${{ env.REGISTRY }}" \
+            "${{ env.VERSION }}" \
+            "$HF_TOKEN"
 
           # Override image properties in supported_models.yaml for testing purposes.
           # The updated supported_models.yaml will be read by the Workspace controller via
@@ -268,6 +264,10 @@ runs:
       if: ${{ inputs.skip_helm_install == 'false' }}
       shell: bash
       run: |
+        if [ "${{ inputs.build_kaito_base_image }}" == "true" ]; then
+          export PRESET_BASE_REGISTRY_NAME="${{ env.REGISTRY }}"
+          export PRESET_BASE_IMAGE_TAG="${{ env.VERSION }}"
+        fi
         make az-patch-install-helm
         kubectl wait --for=condition=available deploy "kaito-workspace" -n kaito-workspace --timeout=300s
       env:

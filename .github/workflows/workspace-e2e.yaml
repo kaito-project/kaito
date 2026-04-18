@@ -16,7 +16,34 @@ permissions:
   contents: read # This is required for actions/checkout
 
 jobs:
+  detect-base-image-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      build_base_image: ${{ steps.check.outputs.build_base_image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Check for workspace base image changes
+        id: check
+        run: |
+          CHANGED=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} -- \
+            'presets/workspace/inference/' \
+            'presets/workspace/dependencies/' \
+            'presets/workspace/tuning/' \
+            'docker/presets/models/tfs/Dockerfile' | head -1)
+          if [ -n "$CHANGED" ]; then
+            echo "build_base_image=true" >> $GITHUB_OUTPUT
+            echo "Workspace base image related files changed, will rebuild."
+          else
+            echo "build_base_image=false" >> $GITHUB_OUTPUT
+            echo "No workspace base image related files changed."
+          fi
+
   run-e2e:
+    needs: detect-base-image-changes
     strategy:
       fail-fast: false
       matrix:
@@ -30,3 +57,4 @@ jobs:
       pull_request_number: ${{ github.event.pull_request.number }}
       git_sha: ${{ github.event.pull_request.head.sha }}
       node_provisioner: ${{ matrix.node-provisioner }}
+      build_kaito_base_image: ${{ needs.detect-base-image-changes.outputs.build_base_image == 'true' }}

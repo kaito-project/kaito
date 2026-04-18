@@ -39,15 +39,16 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
-	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 var ValidStrength string = "0.5"
 
 func TestGeneratePresetInference(t *testing.T) {
 	test.RegisterTestModel()
-	baseImage := metadata.MustGet("base")
-	baseImageName := fmt.Sprintf("test-registry/kaito-base:%s", baseImage.Tag)
+	t.Setenv("PRESET_BASE_REGISTRY_NAME", "test-registry")
+	t.Setenv("PRESET_BASE_IMAGE_NAME", "kaito-base")
+	t.Setenv("PRESET_BASE_IMAGE_TAG", "0.2.8")
+	baseImageName := "test-registry/kaito-base:0.2.8"
 	testcases := map[string]struct {
 		workspace          *v1beta1.Workspace
 		nodeCount          int

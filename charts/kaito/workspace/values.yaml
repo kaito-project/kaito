@@ -62,6 +62,9 @@ webhook:
 logging:
   level: "error"
 presetRegistryName: mcr.microsoft.com/aks/kaito
+presetBaseRegistryName: "mcr.microsoft.com/aks/kaito"
+presetBaseImageName: "kaito-base"
+presetBaseImageTag: "0.2.8"
 resources:
   limits:
     cpu: 500m

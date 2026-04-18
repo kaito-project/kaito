@@ -35,7 +35,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
-	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -83,8 +82,10 @@ func defaultTolerations() []corev1.Toleration {
 }
 
 func GetTuningImageInfo() string {
-	presetObj := metadata.MustGet("base")
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+	registryName := utils.GetEnvWithDefault("PRESET_BASE_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
+	imageName := utils.GetEnvWithDefault("PRESET_BASE_IMAGE_NAME", "kaito-base")
+	imageTag := utils.GetEnvWithDefault("PRESET_BASE_IMAGE_TAG", "0.2.8")
+	return fmt.Sprintf("%s/%s:%s", registryName, imageName, imageTag)
 }
 
 // PrepareOutputDir ensures the output directory is within the base directory.

@@ -1,32 +1,4 @@
 models:
-  # base image with no model weights
-  - name: base
-    type: text-generation
-    runtime: tfs
-    tag: 0.2.8
-    # Tag history:
-    # 0.2.8 - update benchmark_entrypoint.py to poll kv cache size for concurrency calculation and pin venv transformer to 5.3.0
-    # 0.2.7 - bump vllm to 0.17.1
-    # 0.2.6 - update benchmark_entrypoint.py: re-emit config before result, add max_concurrency output
-    # 0.2.5 - remove uv after installation to fix CVEs in uv package
-    # 0.2.4 - fix CVEs in kaito-base image
-    # 0.2.3 - add benchmark exec startup probe support
-    # 0.2.2 - bump vllm to 0.14.1
-    # 0.2.1 - fix adapter loading logs
-    # 0.2.0 - switch transformers runtime to OpenAI-compatible serve engine (transformers[serving])
-    # 0.1.2 - fix unknown severity vulnerability in kaito-base image
-    # 0.1.1 - bump ray to 2.52.1
-    # 0.1.0 - bump vLLM to 0.12.0. remove the support for vllm v0
-    # 0.0.9 - bump pip to 25.3
-    # 0.0.8 - Fix multi-node-health-check issue
-    # 0.0.7 - bump lmcache to 0.3.5
-    # 0.0.6 - bump vLLM to 0.10.1.1, transformers to 4.55.2, torch to 2.7.1, lmcache to 0.3.3, ray to 2.48.0, accelerate to 1.3.0
-    # 0.0.5 - update chat-template for new models
-    # 0.0.4 - bump vLLM to 0.9.0.
-    # 0.0.3 - add dependencies to support vLLM multi-node distributed inference
-    # 0.0.2 - bump vLLM to 0.8.5. Tool chat template added.
-    # 0.0.1 - Initial Release
-
   # Llama
   - name: llama-3.1-8b-instruct
     type: text-generation

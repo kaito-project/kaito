@@ -39,7 +39,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
-	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -367,8 +366,10 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 }
 
 func GetBaseImageName() string {
-	presetObj := metadata.MustGet("base")
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+	registryName := utils.GetEnvWithDefault("PRESET_BASE_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
+	imageName := utils.GetEnvWithDefault("PRESET_BASE_IMAGE_NAME", "kaito-base")
+	imageTag := utils.GetEnvWithDefault("PRESET_BASE_IMAGE_TAG", "0.2.8")
+	return fmt.Sprintf("%s/%s:%s", registryName, imageName, imageTag)
 }
 
 func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {

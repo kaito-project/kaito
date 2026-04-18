@@ -32,23 +32,14 @@ OUTPUT_FILE="${ROOT_DIR}/presets/workspace/models/vllm_model_arch_list.txt"
 BASE_REGISTRY="mcr.microsoft.com/aks/kaito/kaito-base"
 
 # ---------------------------------------------------------------------------
-# 1. Read the base image tag from supported_models.yaml
+# 1. Determine the base image tag
 # ---------------------------------------------------------------------------
-if ! command -v yq &>/dev/null; then
-    echo "ERROR: 'yq' is required but not found in PATH" >&2
-    exit 1
-fi
-
 if ! command -v docker &>/dev/null; then
     echo "ERROR: 'docker' is required but not found in PATH" >&2
     exit 1
 fi
 
-BASE_TAG=$(yq '.models[] | select(.name == "base") | .tag' "${SUPPORTED_MODELS_YAML}")
-if [[ -z "${BASE_TAG}" ]]; then
-    echo "ERROR: could not find 'base' model tag in ${SUPPORTED_MODELS_YAML}" >&2
-    exit 1
-fi
+BASE_TAG="${PRESET_BASE_IMAGE_TAG:-0.2.8}"
 
 IMAGE="${BASE_REGISTRY}:${BASE_TAG}"
 echo "Using base image: ${IMAGE}"

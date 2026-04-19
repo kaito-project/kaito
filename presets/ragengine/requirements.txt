@@ -6,7 +6,7 @@ llama-index==0.14.15
 llama-index-core==0.14.18
 # HF Embeddings
 llama-index-embeddings-huggingface==0.6.1
-llama-index-embeddings-huggingface-api==0.4.1
+llama-index-embeddings-huggingface-api==0.5.0
 # HF LLMs
 llama-index-llms-huggingface==0.6.1
 llama-index-llms-huggingface-api==0.6.2

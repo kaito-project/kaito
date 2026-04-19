@@ -43,10 +43,14 @@ const (
 
 	// Feature flags
 	FeatureFlagVLLM                         = "vLLM"
-	FeatureFlagEnsureNodeClass              = "ensureNodeClass"
 	FeatureFlagDisableNodeAutoProvisioning  = "disableNodeAutoProvisioning"
 	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
 	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
+
+	// Node provisioner types
+	NodeProvisionerAzureGPU       = "azure-gpu-provisioner"
+	NodeProvisionerAzureKarpenter = "azure-karpenter"
+	NodeProvisionerBYO            = "byo"
 
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"

@@ -96,6 +96,7 @@ func main() {
 	var probeAddr string
 	var featureGates string
 	var defaultNodeImageFamily string
+	var nodeProvisionerType string
 	var kubeClientQPS int = 30
 	var kubeClientBurst int = 50
 	var printVersionAndExit bool
@@ -110,6 +111,7 @@ func main() {
 		"Enable webhook for controller manager. Default is true.")
 	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false.")
 	flag.StringVar(&defaultNodeImageFamily, "default-node-image-family", "", "Default node image family annotation for generated NodeClaims. Supported values: azurelinux, ubuntu. Empty means ubuntu. Unsupported values cause startup failure.")
+	flag.StringVar(&nodeProvisionerType, "node-provisioner", "", "Node provisioner type. Supported values: azure-gpu-provisioner, azure-karpenter, byo. Default: azure-gpu-provisioner. If empty, inferred from feature gates for backward compatibility.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
 		Development: true,
@@ -125,6 +127,31 @@ func main() {
 
 	if err := featuregates.ParseAndValidateFeatureGates(featureGates); err != nil {
 		klog.ErrorS(err, "unable to set `feature-gates` flag")
+		exitWithErrorFunc()
+	}
+
+	// Resolve node provisioner type: if --node-provisioner is not explicitly set,
+	// infer from feature gates for backward compatibility.
+	if nodeProvisionerType == "" {
+		switch {
+		case featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]:
+			nodeProvisionerType = consts.NodeProvisionerBYO
+		default:
+			nodeProvisionerType = consts.NodeProvisionerAzureGPU
+		}
+		klog.InfoS("--node-provisioner not set, inferred from feature gates", "type", nodeProvisionerType)
+	}
+
+	// Sync feature gate internal state based on --node-provisioner for downstream consumers.
+	switch nodeProvisionerType {
+	case consts.NodeProvisionerBYO:
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	case consts.NodeProvisionerAzureKarpenter:
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	case consts.NodeProvisionerAzureGPU:
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	default:
+		klog.ErrorS(fmt.Errorf("unsupported node provisioner type %q", nodeProvisionerType), "unable to set --node-provisioner")
 		exitWithErrorFunc()
 	}
 
@@ -198,7 +225,7 @@ func main() {
 
 	// Select and initialize the node provisioner based on feature gates.
 	recorder := mgr.GetEventRecorderFor("KAITO-Workspace-controller")
-	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(kClient, directClient, recorder, defaultNodeImageFamily)
+	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(kClient, directClient, recorder, defaultNodeImageFamily, nodeProvisionerType)
 	klog.InfoS("Node provisioner selected", "name", nodeProvisioner.Name())
 	if err := nodeProvisioner.Start(ctx); err != nil {
 		klog.ErrorS(err, "failed to start node provisioner")

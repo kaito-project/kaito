@@ -22,7 +22,6 @@ import (
 	awsv1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -30,17 +29,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
-
-func TestGenerateAKSNodeClassManifest(t *testing.T) {
-	t.Run("Should generate a valid AKSNodeClass object", func(t *testing.T) {
-		nodeClass := GenerateAKSNodeClassManifest(context.Background())
-
-		assert.NotNil(t, nodeClass)
-		assert.Equal(t, consts.NodeClassName, nodeClass.Name)
-		assert.Equal(t, "General purpose AKSNodeClass for running Ubuntu 22.04 nodes", nodeClass.Annotations["kubernetes.io/description"])
-		assert.Equal(t, "Ubuntu2204", *nodeClass.Spec.ImageFamily)
-	})
-}
 
 func TestGenerateEC2NodeClassManifest(t *testing.T) {
 	t.Run("Should generate a valid EC2NodeClass object", func(t *testing.T) {
@@ -55,67 +43,6 @@ func TestGenerateEC2NodeClassManifest(t *testing.T) {
 		assert.Equal(t, "test-cluster", nodeClass.Spec.SubnetSelectorTerms[0].Tags["karpenter.sh/discovery"])
 		assert.Equal(t, "test-cluster", nodeClass.Spec.SecurityGroupSelectorTerms[0].Tags["karpenter.sh/discovery"])
 	})
-}
-
-func TestVerifyAKSNodeClassCRD(t *testing.T) {
-	tests := []struct {
-		name       string
-		setupMocks func(*test.MockClient)
-		expectErr  bool
-		errMsg     string
-	}{
-		{
-			name: "CRD exists",
-			setupMocks: func(m *test.MockClient) {
-				crd := &apiextensionsv1.CustomResourceDefinition{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "aksnodeclasses.karpenter.azure.com",
-					},
-				}
-				m.CreateOrUpdateObjectInMap(crd)
-				m.On("Get", mock.Anything, mock.Anything, mock.IsType(&apiextensionsv1.CustomResourceDefinition{}), mock.Anything).
-					Return(nil)
-			},
-			expectErr: false,
-		},
-		{
-			name: "CRD not found",
-			setupMocks: func(m *test.MockClient) {
-				m.On("Get", mock.Anything, mock.Anything, mock.IsType(&apiextensionsv1.CustomResourceDefinition{}), mock.Anything).
-					Return(apierrors.NewNotFound(schema.GroupResource{Group: "apiextensions.k8s.io", Resource: "customresourcedefinitions"}, "aksnodeclasses.karpenter.azure.com"))
-			},
-			expectErr: true,
-			errMsg:    "AKSNodeClass CRD",
-		},
-		{
-			name: "API error",
-			setupMocks: func(m *test.MockClient) {
-				m.On("Get", mock.Anything, mock.Anything, mock.IsType(&apiextensionsv1.CustomResourceDefinition{}), mock.Anything).
-					Return(errors.New("connection refused"))
-			},
-			expectErr: true,
-			errMsg:    "failed to check AKSNodeClass CRD existence",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			mockClient := test.NewClient()
-			tc.setupMocks(mockClient)
-
-			err := VerifyAKSNodeClassCRD(context.Background(), mockClient)
-
-			if tc.expectErr {
-				assert.Error(t, err)
-				if tc.errMsg != "" {
-					assert.Contains(t, err.Error(), tc.errMsg)
-				}
-			} else {
-				assert.NoError(t, err)
-			}
-			mockClient.AssertExpectations(t)
-		})
-	}
 }
 
 func TestEnsureGlobalAKSNodeClasses(t *testing.T) {

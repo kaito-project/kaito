@@ -59,20 +59,6 @@ func TestParseFeatureGates(t *testing.T) {
 			expectedValue: false,
 		},
 		{
-			name:          "WithValidEnableFeatureGates-ensureNodeClass",
-			featureGates:  "ensureNodeClass=true",
-			expectedError: false,
-			targetFeature: "ensureNodeClass",
-			expectedValue: true,
-		},
-		{
-			name:          "WithValidDisableFeatureGates-ensureNodeClass",
-			featureGates:  "ensureNodeClass=false",
-			expectedError: false,
-			targetFeature: "ensureNodeClass",
-			expectedValue: false,
-		},
-		{
 			name:          "WithEnableInferenceSetController",
 			featureGates:  "enableInferenceSetController=true",
 			expectedError: false,

@@ -21,7 +21,6 @@ import (
 	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
 	awsv1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1"
 	"github.com/samber/lo"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
@@ -29,21 +28,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
-
-// GenerateAKSNodeClassManifest generates a default AKSNodeClass object.
-func GenerateAKSNodeClassManifest(ctx context.Context) *azurev1beta1.AKSNodeClass {
-	return &azurev1beta1.AKSNodeClass{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: consts.NodeClassName,
-			Annotations: map[string]string{
-				"kubernetes.io/description": "General purpose AKSNodeClass for running Ubuntu 22.04 nodes",
-			},
-		},
-		Spec: azurev1beta1.AKSNodeClassSpec{
-			ImageFamily: lo.ToPtr("Ubuntu2204"),
-		},
-	}
-}
 
 // GenerateEC2NodeClassManifest generates a default EC2NodeClass object.
 func GenerateEC2NodeClassManifest(ctx context.Context) *awsv1.EC2NodeClass {
@@ -75,21 +59,6 @@ func GenerateEC2NodeClassManifest(ctx context.Context) *awsv1.EC2NodeClass {
 			},
 		},
 	}
-}
-
-// VerifyAKSNodeClassCRD checks if the AKSNodeClass CRD is installed in the cluster.
-// Returns an error if the CRD does not exist (i.e., Azure Karpenter is not installed).
-func VerifyAKSNodeClassCRD(ctx context.Context, c client.Client) error {
-	crd := &apiextensionsv1.CustomResourceDefinition{}
-	crdName := "aksnodeclasses.karpenter.azure.com"
-	if err := c.Get(ctx, client.ObjectKey{Name: crdName}, crd); err != nil {
-		if apierrors.IsNotFound(err) {
-			return fmt.Errorf("AKSNodeClass CRD (%s) not found: Azure Karpenter must be installed before enabling ensureNodeClass feature gate", crdName)
-		}
-		return fmt.Errorf("failed to check AKSNodeClass CRD existence: %w", err)
-	}
-	klog.InfoS("AKSNodeClass CRD verified", "crd", crdName)
-	return nil
 }
 
 // ensureAKSNodeClassExists checks if an AKSNodeClass exists and creates it if not.

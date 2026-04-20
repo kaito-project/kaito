@@ -62,11 +62,6 @@ var (
 		"pipeline":           "text-generation",
 		"allow_remote_files": "",
 	}
-	falconRunParams = map[string]string{
-		"torch_dtype":   "bfloat16",
-		"pipeline":      "text-generation",
-		"chat_template": "/workspace/chat_templates/falcon-instruct.jinja",
-	}
 	deepseekDistillRunParams = map[string]string{
 		"torch_dtype": "bfloat16",
 		"pipeline":    "text-generation",
@@ -265,40 +260,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		ModelRunParams:    gptRunParams,
 		ModelName:         "gpt-oss-120b",
 		Tag:               "0.0.1",
-	},
-
-	// Falcon family
-	"falcon-7b": {
-		BaseCommand:       "accelerate launch",
-		AccelerateParams:  defaultAccelerateParams,
-		InferenceMainFile: defaultTransformersMainFile,
-		ModelRunParams:    falconRunParams,
-		ModelName:         "falcon-7b",
-		Tag:               "0.2.0",
-	},
-	"falcon-7b-instruct": {
-		BaseCommand:       "accelerate launch",
-		AccelerateParams:  defaultAccelerateParams,
-		InferenceMainFile: defaultTransformersMainFile,
-		ModelRunParams:    falconRunParams,
-		ModelName:         "falcon-7b-instruct",
-		Tag:               "0.2.0",
-	},
-	"falcon-40b": {
-		BaseCommand:       "accelerate launch",
-		AccelerateParams:  defaultAccelerateParams,
-		InferenceMainFile: defaultTransformersMainFile,
-		ModelRunParams:    falconRunParams,
-		ModelName:         "falcon-40b",
-		Tag:               "0.2.0",
-	},
-	"falcon-40b-instruct": {
-		BaseCommand:       "accelerate launch",
-		AccelerateParams:  defaultAccelerateParams,
-		InferenceMainFile: defaultTransformersMainFile,
-		ModelRunParams:    falconRunParams,
-		ModelName:         "falcon-40b-instruct",
-		Tag:               "0.2.0",
 	},
 
 	// DeepSeek family

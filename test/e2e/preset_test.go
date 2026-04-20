@@ -42,11 +42,10 @@ import (
 const (
 	PresetLlama3_1_8BInstruct       = "llama-3.1-8b-instruct"
 	PresetLlama3_3_70BInstruct      = "llama-3.3-70b-instruct"
-	PresetFalcon7BModel             = "falcon-7b"
-	PresetFalcon40BModel            = "falcon-40b"
 	PresetQwen3_Coder30BModel       = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
 	PresetPhi3Mini128kModel         = "phi-3-mini-128k-instruct"
 	PresetPhi4MiniModel             = "phi-4-mini-instruct"
+	PresetPhi4Model                 = "phi-4"
 	PresetGemma3_4BInstructModel    = "gemma-3-4b-instruct"
 	PresetGemma3_27BInstructModel   = "gemma-3-27b-instruct"
 	PresetGPT_OSS_20BModel          = "gpt-oss-20b"
@@ -96,8 +95,8 @@ func createCustomWorkspaceWithAdapter(numOfNode int, validAdapters []kaitov1beta
 		uniqueID := fmt.Sprint("preset-falcon-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "custom-preset-e2e-test-falcon"},
-			}, nil, PresetFalcon7BModel, nil, nil, validAdapters, "", "")
+				MatchLabels: map[string]string{"kaito-workspace": "custom-preset-e2e-test-adapter"},
+			}, nil, PresetPhi4MiniModel, nil, nil, validAdapters, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -233,7 +232,7 @@ func createPhi3TuningWorkspaceWithPresetPublicMode(configMapName string, numOfNo
 	outputRegistryUrl := fmt.Sprintf("%s.azurecr.io/%s:%s", azureClusterName, e2eOutputImageName, e2eOutputImageTag)
 	var uniqueID string
 	By("Creating a workspace Tuning CR with Phi-3 preset public mode", func() {
-		uniqueID = fmt.Sprint("preset-tuning-falcon-", rand.Intn(1000))
+		uniqueID = fmt.Sprint("preset-tuning-phi3-", rand.Intn(1000))
 		workspaceObj = utils.GenerateE2ETuningWorkspaceManifest(uniqueID, namespaceName, "",
 			fullDatasetImageName1, outputRegistryUrl, numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": uniqueID},

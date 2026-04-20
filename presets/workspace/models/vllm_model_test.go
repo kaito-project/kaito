@@ -285,14 +285,6 @@ func TestVLLMCompatibleModel_GetInferenceParameters_VLLMLookup(t *testing.T) {
 			},
 		},
 		{
-			name:               "builtin model (falcon) with DisallowLoRA",
-			modelName:          "falcon-7b",
-			expectDisallowLoRA: true,
-			expectModelRunParamKV: map[string]string{
-				"chat-template": "/workspace/chat_templates/falcon-instruct.jinja",
-			},
-		},
-		{
 			name:              "unknown model uses only dynamic VLLM params",
 			modelName:         "some-org/unknown-dynamic-model",
 			expectModelName:   "some-org/unknown-dynamic-model",
@@ -643,15 +635,6 @@ func TestGetModelByName(t *testing.T) {
 	}
 }
 
-// this test only makes sure that all keys and values in builtinVLLMModels are in lower case
-func TestBuiltinVLLMModels(t *testing.T) {
-	t.Logf("Testing builtinVLLMModels for lower case keys and values, total models: %d", len(builtinVLLMModels))
-	for k, v := range builtinVLLMModels {
-		assert.Equal(t, k, strings.ToLower(k), "key is not in lower case: %s", k)
-		assert.Equal(t, v, strings.ToLower(v), "value is not in lower case: %s", v)
-	}
-}
-
 func TestGetModelByName_BuiltinModels(t *testing.T) {
 	tests := []struct {
 		name            string
@@ -663,12 +646,6 @@ func TestGetModelByName_BuiltinModels(t *testing.T) {
 			name:            "builtin deepseek-r1-distill-llama-8b",
 			modelName:       "deepseek-ai/deepseek-r1-distill-llama-8b",
 			expectedShort:   "deepseek-r1-distill-llama-8b",
-			shouldFindModel: true,
-		},
-		{
-			name:            "builtin falcon-7b",
-			modelName:       "tiiuae/falcon-7b",
-			expectedShort:   "falcon-7b",
 			shouldFindModel: true,
 		},
 		{
@@ -886,10 +863,9 @@ func TestGetModelByName_ContextCancellation(t *testing.T) {
 	assert.NotNil(t, result)
 }
 
-func TestGenerateHuggingFaceModel_CatalogOnlyModelsSkipShortCircuit(t *testing.T) {
-	// Catalog-only models are not in builtinVLLMModels, so
-	// generateHuggingFaceModel proceeds to GeneratePreset and
-	// registers a new vLLMCompatibleModel.
+func TestGenerateHuggingFaceModel_CatalogOnlyModelsUseCatalogPath(t *testing.T) {
+	// All legacy short-name models go through GeneratePreset and
+	// register a new vLLMCompatibleModel.
 	for _, modelName := range legacyBuiltinToCatalog {
 		t.Run(modelName, func(t *testing.T) {
 			// Ensure the model is NOT registered under the full HF name before the call
@@ -907,15 +883,6 @@ func TestGenerateHuggingFaceModel_CatalogOnlyModelsSkipShortCircuit(t *testing.T
 			assert.NotNil(t, registered,
 				"model %q should be registered under full HF name after catalog generation", modelName)
 		})
-	}
-}
-
-func TestCatalogOnlyPresets(t *testing.T) {
-	// Verify catalogOnlyPresets entries are not in builtinVLLMModels
-	// (they must go through the catalog path, not get short-circuited).
-	for _, hfName := range legacyBuiltinToCatalog {
-		_, ok := builtinVLLMModels[hfName]
-		assert.False(t, ok, "catalogOnlyPresets value %q must NOT be in builtinVLLMModels", hfName)
 	}
 }
 

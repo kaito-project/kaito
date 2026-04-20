@@ -33,16 +33,6 @@ var (
 	//go:embed model_catalog.yaml
 	modelCatalogYAML []byte
 
-	// builtinVLLMModels is the mapping of built-in VLLM model names to their preset names.
-	// Models listed here use their builtin preset code paths instead of the model catalog.
-	// Make sure all keys and values are in lower case.
-	builtinVLLMModels = map[string]string{
-		"tiiuae/falcon-7b":           "falcon-7b",
-		"tiiuae/falcon-7b-instruct":  "falcon-7b-instruct",
-		"tiiuae/falcon-40b":          "falcon-40b",
-		"tiiuae/falcon-40b-instruct": "falcon-40b-instruct",
-	}
-
 	// legacyBuiltinToCatalog maps short preset names to their full HuggingFace model
 	// IDs for models that should be generated via model catalog rather than short-circuited
 	// to a pre-registered preset.
@@ -147,11 +137,6 @@ func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace 
 // generateHuggingFaceModel generates or retrieves a vLLM preset for modelName (which must
 // contain a "/") using the provided token.
 func generateHuggingFaceModel(modelName, token string) (model.Model, error) {
-	if builtinModelName, ok := builtinVLLMModels[modelName]; ok {
-		klog.InfoS("Using built-in VLLM model preset", "model", modelName, "builtinModelName", builtinModelName)
-		return plugin.KaitoModelRegister.MustGet(builtinModelName), nil
-	}
-
 	param, err := generator.GeneratePreset(modelName, token, modelCatalogYAML)
 	if err != nil {
 		return nil, err

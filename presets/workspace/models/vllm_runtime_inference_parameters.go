@@ -25,9 +25,6 @@ var (
 	deepseekV3RunParamsVLLM = map[string]string{
 		"chat-template": "/workspace/chat_templates/tool-chat-deepseekv3.jinja",
 	}
-	falconRunParamsVLLM = map[string]string{
-		"chat-template": "/workspace/chat_templates/falcon-instruct.jinja",
-	}
 	llamaRunParamsVLLM = map[string]string{
 		"chat-template": "/workspace/chat_templates/tool-chat-llama3.1-json.jinja",
 		// pin the attention backend to triton for llama3 models, as flashinfer is unavailable in KAITO base image.
@@ -61,30 +58,6 @@ var VLLMInferenceParameters = map[string]model.VLLMParam{
 	},
 	"deepseek-v3-0324": {
 		ModelRunParams: deepseekV3RunParamsVLLM,
-	},
-
-	// Falcon family
-	"falcon-7b": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "falcon-7b",
-		ModelRunParams: falconRunParamsVLLM,
-		DisallowLoRA:   true,
-	},
-	"falcon-7b-instruct": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "falcon-7b-instruct",
-		ModelRunParams: falconRunParamsVLLM,
-		DisallowLoRA:   true,
-	},
-	"falcon-40b": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "falcon-40b",
-		ModelRunParams: falconRunParamsVLLM,
-	},
-	"falcon-40b-instruct": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "falcon-40b-instruct",
-		ModelRunParams: falconRunParamsVLLM,
 	},
 
 	// Gemma-3 family

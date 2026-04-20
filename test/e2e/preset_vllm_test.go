@@ -303,7 +303,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 	})
 
 	It("should create a gpt-oss-120b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
-		Skip("Skipping GPT-OSS-120B test temporarily due to OOM issues, will re-enable after mem esitmator have better support for quantized models")
+		Skip("Skipping GPT-OSS-120B test temporarily due to OOM issues, will re-enable after mem estimator have better support for quantized models")
 		numOfNode := 1
 		workspaceObj := createGPTOss120BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 

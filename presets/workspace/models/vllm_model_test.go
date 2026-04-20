@@ -242,41 +242,65 @@ func TestVLLMCompatibleModel_GetInferenceParameters_VLLMLookup(t *testing.T) {
 	tests := []struct {
 		name                  string
 		modelName             string
-		expectVLLMFromMap     bool
+		expectOverrideApplied bool
+		expectModelName       string // expected served model name
 		expectRayCommands     bool
 		expectDisallowLoRA    bool
 		expectModelRunParamKV map[string]string // subset of expected run params
 	}{
 		{
-			name:              "preset model with tool-call params uses VLLMInferenceParameters",
-			modelName:         "phi-4-mini-instruct",
-			expectVLLMFromMap: true,
+			name:                  "catalog model merges chat-template override from VLLMInferenceParameters",
+			modelName:             "phi-4-mini-instruct",
+			expectOverrideApplied: true,
+			expectModelName:       "phi-4-mini-instruct", // same as Metadata.Name
+			expectRayCommands:     true,                  // dynamic defaults always present
 			expectModelRunParamKV: map[string]string{
-				"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
-				"tool-call-parser":        "phi4_mini_json",
-				"enable-auto-tool-choice": "",
+				"chat-template":     "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
+				"trust-remote-code": "",         // from dynamic base
+				"dtype":             "bfloat16", // from dynamic base
 			},
 		},
 		{
-			name:              "preset model with ray commands uses VLLMInferenceParameters",
-			modelName:         "llama-3.1-8b-instruct",
-			expectVLLMFromMap: true,
-			expectRayCommands: true,
+			name:                  "catalog model merges attention-backend override",
+			modelName:             "llama-3.1-8b-instruct",
+			expectOverrideApplied: true,
+			expectModelName:       "llama-3.1-8b-instruct",
+			expectRayCommands:     true,
 			expectModelRunParamKV: map[string]string{
 				"attention-backend": "TRITON_ATTN",
+				"chat-template":     "/workspace/chat_templates/tool-chat-llama3.1-json.jinja",
+				"trust-remote-code": "",
+				"dtype":             "bfloat16",
 			},
 		},
 		{
-			name:               "preset model with DisallowLoRA uses VLLMInferenceParameters",
-			modelName:          "falcon-7b",
-			expectVLLMFromMap:  true,
-			expectDisallowLoRA: true,
+			name:                  "catalog model merges ModelName override",
+			modelName:             "gemma-3-4b-it",
+			expectOverrideApplied: true,
+			expectModelName:       "gemma-3-4b-instruct", // overridden
+			expectRayCommands:     true,
+			expectModelRunParamKV: map[string]string{
+				"trust-remote-code": "",
+				"dtype":             "bfloat16",
+			},
 		},
 		{
-			name:              "unknown model falls back to dynamic VLLM params",
+			name:               "builtin model (falcon) with DisallowLoRA",
+			modelName:          "falcon-7b",
+			expectDisallowLoRA: true,
+			expectModelRunParamKV: map[string]string{
+				"chat-template": "/workspace/chat_templates/falcon-instruct.jinja",
+			},
+		},
+		{
+			name:              "unknown model uses only dynamic VLLM params",
 			modelName:         "some-org/unknown-dynamic-model",
-			expectVLLMFromMap: false,
-			expectRayCommands: true, // dynamic models always get ray commands
+			expectModelName:   "some-org/unknown-dynamic-model",
+			expectRayCommands: true,
+			expectModelRunParamKV: map[string]string{
+				"trust-remote-code": "",
+				"dtype":             "bfloat16",
+			},
 		},
 	}
 
@@ -288,19 +312,13 @@ func TestVLLMCompatibleModel_GetInferenceParameters_VLLMLookup(t *testing.T) {
 			params := m.GetInferenceParameters()
 			assert.NotNil(t, params)
 
-			if tt.expectVLLMFromMap {
-				expected := VLLMInferenceParameters[tt.modelName]
-				assert.Equal(t, expected.BaseCommand, params.RuntimeParam.VLLM.BaseCommand)
-				assert.Equal(t, expected.ModelName, params.RuntimeParam.VLLM.ModelName)
-				assert.Equal(t, expected.ModelRunParams, params.RuntimeParam.VLLM.ModelRunParams)
-				assert.Equal(t, expected.DisallowLoRA, params.RuntimeParam.VLLM.DisallowLoRA)
-				assert.Equal(t, expected.RayLeaderBaseCommand, params.RuntimeParam.VLLM.RayLeaderBaseCommand)
-				assert.Equal(t, expected.RayWorkerBaseCommand, params.RuntimeParam.VLLM.RayWorkerBaseCommand)
-			} else {
-				// Dynamic models get default base command and dynamically-built params
-				assert.Equal(t, DefaultVLLMCommand, params.RuntimeParam.VLLM.BaseCommand)
-				assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "trust-remote-code")
-				assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "dtype")
+			// All models get dynamic base params
+			assert.Equal(t, DefaultVLLMCommand, params.RuntimeParam.VLLM.BaseCommand)
+			assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "trust-remote-code")
+			assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "dtype")
+
+			if tt.expectModelName != "" {
+				assert.Equal(t, tt.expectModelName, params.RuntimeParam.VLLM.ModelName)
 			}
 
 			if tt.expectRayCommands {

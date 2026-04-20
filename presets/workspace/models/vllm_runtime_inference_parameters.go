@@ -19,56 +19,35 @@ import (
 
 // Shared vLLM ModelRunParams for model families that use the same parameters.
 var (
-	deepseekLlama8bRunParamsVLLM = map[string]string{
-		"reasoning-parser": "deepseek_r1",
-	}
-	deepseekQwen14bRunParamsVLLM = map[string]string{
-		"reasoning-parser": "deepseek_r1",
-	}
 	deepseekR1RunParamsVLLM = map[string]string{
-		"reasoning-parser":        "deepseek_r1",
-		"chat-template":           "/workspace/chat_templates/tool-chat-deepseekr1.jinja",
-		"tool-call-parser":        "deepseek_v3",
-		"enable-auto-tool-choice": "",
+		"chat-template": "/workspace/chat_templates/tool-chat-deepseekr1.jinja",
 	}
 	deepseekV3RunParamsVLLM = map[string]string{
-		"chat-template":           "/workspace/chat_templates/tool-chat-deepseekv3.jinja",
-		"tool-call-parser":        "deepseek_v3",
-		"enable-auto-tool-choice": "",
+		"chat-template": "/workspace/chat_templates/tool-chat-deepseekv3.jinja",
 	}
 	falconRunParamsVLLM = map[string]string{
 		"chat-template": "/workspace/chat_templates/falcon-instruct.jinja",
 	}
-	gemma3RunParamsVLLM = map[string]string{}
-	gptRunParamsVLLM    = map[string]string{} // TODO: add the dtype to the gpt model
-	llamaRunParamsVLLM  = map[string]string{
-		"chat-template":    "/workspace/chat_templates/tool-chat-llama3.1-json.jinja",
-		"tool-call-parser": "llama3_json",
+	llamaRunParamsVLLM = map[string]string{
+		"chat-template": "/workspace/chat_templates/tool-chat-llama3.1-json.jinja",
 		// pin the attention backend to triton for llama3 models, as flashinfer is unavailable in KAITO base image.
-		"attention-backend":       "TRITON_ATTN",
-		"enable-auto-tool-choice": "",
+		"attention-backend": "TRITON_ATTN",
 	}
 	mistralRunParamsVLLM = map[string]string{
-		"tool-call-parser":        "mistral",
-		"enable-auto-tool-choice": "",
+		"tokenizer_mode": "mistral",
+		"config_format":  "mistral",
+		"load_format":    "mistral",
 	}
 	mistral3RunParamsVLLM = map[string]string{
-		"tool-call-parser":        "mistral",
-		"tokenizer_mode":          "mistral",
-		"config_format":           "mistral",
-		"load_format":             "mistral",
-		"enable-auto-tool-choice": "",
+		"tokenizer_mode": "mistral",
+		"config_format":  "mistral",
+		"load_format":    "mistral",
 	}
-	phiRunParamsVLLM      = map[string]string{}
 	phi4MiniRunParamsVLLM = map[string]string{
-		"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
-		"tool-call-parser":        "phi4_mini_json",
-		"enable-auto-tool-choice": "",
+		"chat-template": "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
 	}
 	qwenRunParamsVLLM = map[string]string{
-		"chat-template":           "/workspace/chat_templates/tool-chat-hermes.jinja",
-		"tool-call-parser":        "hermes",
-		"enable-auto-tool-choice": "",
+		"chat-template": "/workspace/chat_templates/tool-chat-hermes.jinja",
 	}
 )
 
@@ -77,29 +56,11 @@ var (
 // look up its VLLM config from this map instead of hardcoding the values inline.
 var VLLMInferenceParameters = map[string]model.VLLMParam{
 	// DeepSeek family
-	"deepseek-r1-distill-llama-8b": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "deepseek-r1-distill-llama-8b",
-		ModelRunParams: deepseekLlama8bRunParamsVLLM,
-	},
-	"deepseek-r1-distill-qwen-14b": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "deepseek-r1-distill-qwen-14b",
-		ModelRunParams: deepseekQwen14bRunParamsVLLM,
-	},
 	"deepseek-r1-0528": {
-		BaseCommand:          DefaultVLLMCommand,
-		ModelName:            "deepseek-r1-0528",
-		ModelRunParams:       deepseekR1RunParamsVLLM,
-		RayLeaderBaseCommand: DefaultVLLMRayLeaderBaseCommand,
-		RayWorkerBaseCommand: DefaultVLLMRayWorkerBaseCommand,
+		ModelRunParams: deepseekR1RunParamsVLLM,
 	},
 	"deepseek-v3-0324": {
-		BaseCommand:          DefaultVLLMCommand,
-		ModelName:            "deepseek-v3-0324",
-		ModelRunParams:       deepseekV3RunParamsVLLM,
-		RayLeaderBaseCommand: DefaultVLLMRayLeaderBaseCommand,
-		RayWorkerBaseCommand: DefaultVLLMRayWorkerBaseCommand,
+		ModelRunParams: deepseekV3RunParamsVLLM,
 	},
 
 	// Falcon family
@@ -128,126 +89,56 @@ var VLLMInferenceParameters = map[string]model.VLLMParam{
 
 	// Gemma-3 family
 	"gemma-3-4b-it": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "gemma-3-4b-instruct",
-		ModelRunParams: gemma3RunParamsVLLM,
+		ModelName: "gemma-3-4b-instruct",
 	},
 	"gemma-3-27b-it": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "gemma-3-27b-instruct",
-		ModelRunParams: gemma3RunParamsVLLM,
-	},
-
-	// GPT-OSS family
-	"gpt-oss-20b": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "gpt-oss-20b",
-		ModelRunParams: gptRunParamsVLLM,
-	},
-	"gpt-oss-120b": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "gpt-oss-120b",
-		ModelRunParams: gptRunParamsVLLM,
+		ModelName: "gemma-3-27b-instruct",
 	},
 
 	// Llama-3 family
 	"llama-3.1-8b-instruct": {
-		BaseCommand:          DefaultVLLMCommand,
-		ModelName:            "llama-3.1-8b-instruct",
-		ModelRunParams:       llamaRunParamsVLLM,
-		RayLeaderBaseCommand: DefaultVLLMRayLeaderBaseCommand,
-		RayWorkerBaseCommand: DefaultVLLMRayWorkerBaseCommand,
+		ModelRunParams: llamaRunParamsVLLM,
 	},
 	"llama-3.3-70b-instruct": {
-		BaseCommand:          DefaultVLLMCommand,
-		ModelName:            "llama-3.3-70b-instruct",
-		ModelRunParams:       llamaRunParamsVLLM,
-		RayLeaderBaseCommand: DefaultVLLMRayLeaderBaseCommand,
-		RayWorkerBaseCommand: DefaultVLLMRayWorkerBaseCommand,
+		ModelRunParams: llamaRunParamsVLLM,
 	},
 
 	// Mistral family
 	"mistral-7b-v0.3": {
-		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "mistral-7b",
 		ModelRunParams: mistralRunParamsVLLM,
 	},
 	"mistral-7b-instruct-v0.3": {
-		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "mistral-7b-instruct",
 		ModelRunParams: mistralRunParamsVLLM,
 	},
 	"ministral-3-3b-instruct-2512": {
-		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "ministral-3-3b-instruct",
 		ModelRunParams: mistral3RunParamsVLLM,
 	},
 	"ministral-3-8b-instruct-2512": {
-		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "ministral-3-8b-instruct",
 		ModelRunParams: mistral3RunParamsVLLM,
 	},
 	"ministral-3-14b-instruct-2512": {
-		BaseCommand:    DefaultVLLMCommand,
 		ModelName:      "ministral-3-14b-instruct",
 		ModelRunParams: mistral3RunParamsVLLM,
 	},
-	"mistral-large-3-675b-instruct": {
-		BaseCommand:          DefaultVLLMCommand,
-		ModelName:            "mistral-large-3-675b-instruct",
-		ModelRunParams:       mistral3RunParamsVLLM,
-		RayLeaderBaseCommand: DefaultVLLMRayLeaderBaseCommand,
-		RayWorkerBaseCommand: DefaultVLLMRayWorkerBaseCommand,
-	},
-
-	// Phi-3 family
-	"phi-3-mini-4k-instruct": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "phi-3-mini-4k-instruct",
-		ModelRunParams: phiRunParamsVLLM,
-	},
-	"phi-3-mini-128k-instruct": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "phi-3-mini-128k-instruct",
-		ModelRunParams: phiRunParamsVLLM,
-	},
-	"phi-3.5-mini-instruct": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "phi-3.5-mini-instruct",
-		ModelRunParams: phiRunParamsVLLM,
-	},
-	"phi-3-medium-4k-instruct": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "phi-3-medium-4k-instruct",
-		ModelRunParams: phiRunParamsVLLM,
-	},
-	"phi-3-medium-128k-instruct": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "phi-3-medium-128k-instruct",
-		ModelRunParams: phiRunParamsVLLM,
+	"mistral-large-3-675b-instruct-2512": {
+		ModelName:      "mistral-large-3-675b-instruct",
+		ModelRunParams: mistral3RunParamsVLLM,
 	},
 
 	// Phi-4 family
-	"phi-4": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "phi-4",
-		ModelRunParams: phiRunParamsVLLM,
-	},
 	"phi-4-mini-instruct": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "phi-4-mini-instruct",
 		ModelRunParams: phi4MiniRunParamsVLLM,
 	},
 
 	// Qwen family
 	"qwen2.5-coder-7b-instruct": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "qwen2.5-coder-7b-instruct",
 		ModelRunParams: qwenRunParamsVLLM,
 	},
 	"qwen2.5-coder-32b-instruct": {
-		BaseCommand:    DefaultVLLMCommand,
-		ModelName:      "qwen2.5-coder-32b-instruct",
 		ModelRunParams: qwenRunParamsVLLM,
 	},
 }

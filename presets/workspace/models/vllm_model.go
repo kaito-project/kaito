@@ -208,8 +208,6 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		runParamsVLLM["reasoning-parser"] = m.model.ReasoningParser
 	}
 
-	// If the model has a pre-registered vLLM inference entry, use those params
-	// directly instead of dynamically building them from catalog metadata.
 	vllmParam := model.VLLMParam{
 		BaseCommand:          DefaultVLLMCommand,
 		ModelName:            metaData.Name,
@@ -217,8 +215,19 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		RayLeaderBaseCommand: DefaultVLLMRayLeaderBaseCommand,
 		RayWorkerBaseCommand: DefaultVLLMRayWorkerBaseCommand,
 	}
+	// Merge pre-registered overrides on top of the dynamically-built params.
+	// VLLMInferenceParameters entries only need to contain values that differ
+	// from or cannot be inferred by the generator/catalog path.
 	if registeredVLLM, ok := VLLMInferenceParameters[m.model.Name]; ok {
-		vllmParam = registeredVLLM
+		if registeredVLLM.ModelName != "" {
+			vllmParam.ModelName = registeredVLLM.ModelName
+		}
+		if registeredVLLM.DisallowLoRA {
+			vllmParam.DisallowLoRA = true
+		}
+		for k, v := range registeredVLLM.ModelRunParams {
+			vllmParam.ModelRunParams[k] = v
+		}
 	}
 
 	presetParam := &model.PresetParam{

@@ -85,8 +85,14 @@ const (
 	// MUST KEEP IN SYNC with the version in go.mod.
 	InferencePoolChartVersion = "v1.3.1"
 
-	// GatewayAPIInferenceExtensionImageRepository is the image repository for the Gateway API Inference Extension components.
-	GatewayAPIInferenceExtensionImageRepository = "mcr.microsoft.com/oss/v2/gateway-api-inference-extension"
+	// EPP (Endpoint Picker) image configuration.
+	// The InferencePool chart composes the image as: {hub}/{name}:{tag}
+	// Using llm-d inference scheduler which consolidates the GWIE EPP implementation
+	// with advanced scheduling plugins (KV cache-aware routing, P/D disaggregation, etc.)
+	// See: https://github.com/llm-d/llm-d-inference-scheduler
+	EPPImageHub  = "ghcr.io/llm-d"
+	EPPImageName = "llm-d-inference-scheduler"
+	EPPImageTag  = "v0.7.1"
 
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"

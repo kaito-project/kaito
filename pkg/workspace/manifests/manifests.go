@@ -380,8 +380,9 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 	helmValues := map[string]any{
 		"inferenceExtension": map[string]any{
 			"image": map[string]string{
-				"hub":        consts.GatewayAPIInferenceExtensionImageRepository,
-				"tag":        consts.InferencePoolChartVersion,
+				"hub":        consts.EPPImageHub,
+				"name":       consts.EPPImageName,
+				"tag":        consts.EPPImageTag,
 				"pullPolicy": string(corev1.PullIfNotPresent),
 			},
 		},

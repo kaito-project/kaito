@@ -2,14 +2,14 @@
 title: Gateway API Inference Extension
 ---
 
-KAITO integrates with [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) (GWIE) to provide model-aware routing and optimal endpoint selection for inference. This page covers what it is, prerequisites, how to enable it in KAITO, how it's wired, and a quickstart.
+KAITO integrates with [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) (GWIE) and [llm-d](https://github.com/llm-d/llm-d-inference-scheduler) to provide model-aware routing and optimal endpoint selection for inference. This page covers what it is, prerequisites, how to enable it in KAITO, how it's wired, and a quickstart.
 
 ## What is it
 
 Gateway API Inference Extension extends [Gateway API](https://gateway-api.sigs.k8s.io/) with inference-focused backends and behaviors. It adds:
 
 - [InferencePool](https://gateway-api-inference-extension.sigs.k8s.io/api-types/inferencepool/) CRD to represent model-serving backends
-- A reference [Endpoint Picker](https://github.com/kubernetes-sigs/gateway-api-inference-extension/tree/main/pkg/epp) (EPP) that uses inference server metrics and policies to pick the best backend
+- An [Endpoint Picker](https://github.com/llm-d/llm-d-inference-scheduler) (EPP) that uses inference server metrics and policies to pick the best backend. KAITO uses the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler) as the EPP, which consolidates the GWIE EPP implementation with advanced scheduling plugins including KV cache-aware routing, prefill/decode (P/D) disaggregation, and pluggable filters/scorers.
 - Optional [Body-Based Routing](https://github.com/kubernetes-sigs/gateway-api-inference-extension/tree/main/pkg/bbr) (BBR) that extracts model names from OpenAI-style requests and injects a header for routing purposes
 
 KAITO uses GWIE to route requests for models to the right Workspace pods, improving latency and GPU utilization.
@@ -45,12 +45,13 @@ When the feature gate is enabled, [Flux](https://fluxcd.io/) will be installed i
 
 When you create an InferenceSet, the KAITO InferenceSet controller will:
 
-1) Create or update two Flux resources in the InferenceSet namespace:
-   - [OCIRepository](https://fluxcd.io/flux/components/source/ocirepositories/): points to the upstream GWIE inferencepool Helm chart
-     - URL: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
-     - Tag/Version: https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest
-   - [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/): references the OCIRepository and applies values to deploy EPP and related resources
-2) Wait for Flux resources to become Ready
+1) Dry-run the inference workload to determine whether it's a Deployment or StatefulSet (important for how endpoints are selected)
+2) Create or update two Flux resources in the InferenceSet namespace:
+	 - [OCIRepository](https://fluxcd.io/flux/components/source/ocirepositories/): points to the upstream GWIE inferencepool Helm chart
+		 - URL: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
+		 - Tag/Version: https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest
+	 - [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/): references the OCIRepository and applies values to deploy the InferencePool and EPP. The EPP image is overridden to use the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler) (`ghcr.io/llm-d/llm-d-inference-scheduler`) instead of the default GWIE EPP.
+3) Wait for Flux resources to become Ready
 
 You can inspect these resources with kubectl in the InferenceSet namespace. Updates to the InferenceSet will reconcile these resources.
 
@@ -111,7 +112,7 @@ NAME                       AGE
 phi-4-mini-inferencepool   69s
 ```
 
-Verify that the Endpoint Picker Pod is running in the InferenceSet namespace:
+Verify that the Endpoint Picker (EPP) Pod is running with the llm-d inference scheduler image in the InferenceSet namespace:
 
 ```bash
 kubectl get pod -l inferencepool=phi-4-mini-inferencepool-epp

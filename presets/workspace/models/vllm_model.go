@@ -32,37 +32,6 @@ import (
 var (
 	//go:embed model_catalog.yaml
 	modelCatalogYAML []byte
-
-	// legacyBuiltinToCatalog maps short preset names to their full HuggingFace model
-	// IDs for models that should be generated via model catalog rather than short-circuited
-	// to a pre-registered preset.
-	legacyBuiltinToCatalog = map[string]string{
-		"phi-4":                         "microsoft/phi-4",
-		"phi-4-mini-instruct":           "microsoft/phi-4-mini-instruct",
-		"llama-3.1-8b-instruct":         "meta-llama/llama-3.1-8b-instruct",
-		"llama-3.3-70b-instruct":        "meta-llama/llama-3.3-70b-instruct",
-		"deepseek-r1-distill-llama-8b":  "deepseek-ai/deepseek-r1-distill-llama-8b",
-		"deepseek-r1-distill-qwen-14b":  "deepseek-ai/deepseek-r1-distill-qwen-14b",
-		"deepseek-r1-0528":              "deepseek-ai/deepseek-r1-0528",
-		"deepseek-v3-0324":              "deepseek-ai/deepseek-v3-0324",
-		"phi-3-mini-4k-instruct":        "microsoft/phi-3-mini-4k-instruct",
-		"phi-3-mini-128k-instruct":      "microsoft/phi-3-mini-128k-instruct",
-		"phi-3-medium-4k-instruct":      "microsoft/phi-3-medium-4k-instruct",
-		"phi-3-medium-128k-instruct":    "microsoft/phi-3-medium-128k-instruct",
-		"phi-3.5-mini-instruct":         "microsoft/phi-3.5-mini-instruct",
-		"qwen2.5-coder-7b-instruct":     "qwen/qwen2.5-coder-7b-instruct",
-		"qwen2.5-coder-32b-instruct":    "qwen/qwen2.5-coder-32b-instruct",
-		"gpt-oss-20b":                   "openai/gpt-oss-20b",
-		"gpt-oss-120b":                  "openai/gpt-oss-120b",
-		"gemma-3-4b-instruct":           "google/gemma-3-4b-it",
-		"gemma-3-27b-instruct":          "google/gemma-3-27b-it",
-		"mistral-7b":                    "mistralai/mistral-7b-v0.3",
-		"mistral-7b-instruct":           "mistralai/mistral-7b-instruct-v0.3",
-		"ministral-3-3b-instruct":       "mistralai/ministral-3-3b-instruct-2512",
-		"ministral-3-8b-instruct":       "mistralai/ministral-3-8b-instruct-2512",
-		"ministral-3-14b-instruct":      "mistralai/ministral-3-14b-instruct-2512",
-		"mistral-large-3-675b-instruct": "mistralai/mistral-large-3-675b-instruct-2512",
-	}
 )
 
 // registerModel registers a HuggingFace model with the given ID and parameters
@@ -73,7 +42,11 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 		return nil
 	}
 
-	model := &vLLMCompatibleModel{model: param.Metadata}
+	model := &vLLMCompatibleModel{
+		model:              param.Metadata,
+		generatedRunParams: param.VLLM.ModelRunParams,
+		generatedModelName: param.VLLM.ModelName,
+	}
 	r := &plugin.Registration{
 		Name:     hfModelCardID,
 		Instance: model,
@@ -89,10 +62,9 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 // Pass an empty string for token when working with public models that require no authentication.
 func GetModelByNameWithToken(ctx context.Context, modelName, token string) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
-	// Redirect catalog-only short names (e.g. "phi-4") to their full HuggingFace
-	// model ID (e.g. "microsoft/phi-4"). This bypasses the pre-registered preset
-	// model so the catalog path generates a vLLMCompatibleModel instead.
-	if hfName, ok := legacyBuiltinToCatalog[modelName]; ok {
+	// Redirect legacy preset names (e.g. "phi-4") to their full HuggingFace
+	// model ID (e.g. "microsoft/phi-4").
+	if hfName, ok := plugin.LegacyBuiltinToCatalog[modelName]; ok {
 		modelName = hfName
 	}
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
@@ -105,18 +77,15 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 }
 
 // GetModelByName returns a vLLM-compatible model for the given modelName.
-// It first looks up an existing registration in the KaitoModelRegister. If the
-// model is not already registered and modelName contains a "/", it fetches an
-// access token from the Kubernetes Secret identified by secretName and secretNamespace,
+// If the modelName contains a "/", it fetches an access token from the
+// Kubernetes Secret identified by secretName and secretNamespace,
 // then generates a preset for the corresponding HuggingFace model.
-//
 // Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
 func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
-	// Redirect catalog-only short names (e.g. "phi-4") to their full HuggingFace
-	// model ID (e.g. "microsoft/phi-4"). This bypasses the pre-registered preset
-	// model so the catalog path generates a vLLMCompatibleModel instead.
-	if hfName, ok := legacyBuiltinToCatalog[modelName]; ok {
+	// Redirect legacy preset names (e.g. "phi-4") to their full HuggingFace
+	// model ID (e.g. "microsoft/phi-4").
+	if hfName, ok := plugin.LegacyBuiltinToCatalog[modelName]; ok {
 		modelName = hfName
 	}
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
@@ -157,7 +126,9 @@ func generateHuggingFaceModel(modelName, token string) (model.Model, error) {
 }
 
 type vLLMCompatibleModel struct {
-	model model.Metadata
+	model              model.Metadata
+	generatedRunParams map[string]string // vLLM run params produced by the generator
+	generatedModelName string            // vLLM served model name from the generator
 }
 
 func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
@@ -170,13 +141,20 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		DownloadAuthRequired: m.model.DownloadAuthRequired,
 	}
 
-	runParamsVLLM := map[string]string{
-		"trust-remote-code": "",
+	runParamsVLLM := make(map[string]string)
+	for k, v := range m.generatedRunParams {
+		runParamsVLLM[k] = v
 	}
-	if m.model.DType != "" {
-		runParamsVLLM["dtype"] = m.model.DType
-	} else {
-		runParamsVLLM["dtype"] = "bfloat16"
+	// Apply defaults for keys the generator doesn't set.
+	if _, ok := runParamsVLLM["trust-remote-code"]; !ok {
+		runParamsVLLM["trust-remote-code"] = ""
+	}
+	if _, ok := runParamsVLLM["dtype"]; !ok {
+		if m.model.DType != "" {
+			runParamsVLLM["dtype"] = m.model.DType
+		} else {
+			runParamsVLLM["dtype"] = "bfloat16"
+		}
 	}
 
 	if m.model.ToolCallParser != "" {
@@ -193,26 +171,17 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		runParamsVLLM["reasoning-parser"] = m.model.ReasoningParser
 	}
 
+	modelName := metaData.Name
+	if m.generatedModelName != "" {
+		modelName = m.generatedModelName
+	}
+
 	vllmParam := model.VLLMParam{
 		BaseCommand:          DefaultVLLMCommand,
-		ModelName:            metaData.Name,
+		ModelName:            modelName,
 		ModelRunParams:       runParamsVLLM,
 		RayLeaderBaseCommand: DefaultVLLMRayLeaderBaseCommand,
 		RayWorkerBaseCommand: DefaultVLLMRayWorkerBaseCommand,
-	}
-	// Merge pre-registered overrides on top of the dynamically-built params.
-	// VLLMInferenceParameters entries only need to contain values that differ
-	// from or cannot be inferred by the generator/catalog path.
-	if registeredVLLM, ok := VLLMInferenceParameters[m.model.Name]; ok {
-		if registeredVLLM.ModelName != "" {
-			vllmParam.ModelName = registeredVLLM.ModelName
-		}
-		if registeredVLLM.DisallowLoRA {
-			vllmParam.DisallowLoRA = true
-		}
-		for k, v := range registeredVLLM.ModelRunParams {
-			vllmParam.ModelRunParams[k] = v
-		}
 	}
 
 	presetParam := &model.PresetParam{

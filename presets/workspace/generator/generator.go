@@ -149,6 +149,35 @@ var (
 		"KimiK2ForCausalLM":                      "kimi_k2",
 		"GigaChat3ForCausalLM":                   "gigachat3",
 	}
+
+	// chatTemplatePrefixMap maps model name prefixes to vllm-customized chat templates.
+	// Templates are located in /workspace/chat_templates/ in the KAITO container image.
+	// source: https://github.com/vllm-project/vllm/tree/main/examples
+	chatTemplatePrefixMap = map[string]string{
+		"deepseek-r1": "tool-chat-deepseekr1.jinja",
+		"deepseek-v3": "tool-chat-deepseekv3.jinja",
+		"llama-3":     "tool-chat-llama3.1-json.jinja",
+		"phi-4-mini":  "tool-chat-phi4-mini.jinja",
+		"qwen2.5":     "tool-chat-hermes.jinja",
+	}
+
+	// attentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
+	attentionBackendPrefixMap = map[string]string{
+		"llama-3": "TRITON_ATTN",
+	}
+
+	// modelServedNameMap maps HuggingFace-derived model names (lowercased last
+	// segment of the repo) to the --served-model-name that vLLM should use.
+	modelServedNameMap = map[string]string{
+		"gemma-3-4b-it":                      "gemma-3-4b-instruct",
+		"gemma-3-27b-it":                     "gemma-3-27b-instruct",
+		"mistral-7b-v0.3":                    "mistral-7b",
+		"mistral-7b-instruct-v0.3":           "mistral-7b-instruct",
+		"ministral-3-3b-instruct-2512":       "ministral-3-3b-instruct",
+		"ministral-3-8b-instruct-2512":       "ministral-3-8b-instruct",
+		"ministral-3-14b-instruct-2512":      "ministral-3-14b-instruct",
+		"mistral-large-3-675b-instruct-2512": "mistral-large-3-675b-instruct",
+	}
 )
 
 type Generator struct {
@@ -445,6 +474,14 @@ func (g *Generator) ParseModelMetadata() {
 			}
 		}
 	}
+
+	// set ChatTemplate based on model name prefix
+	for prefix, template := range chatTemplatePrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.Metadata.ChatTemplate = template
+			break
+		}
+	}
 }
 
 func (g *Generator) calculateStorageSize() string {
@@ -515,6 +552,19 @@ func (g *Generator) FinalizeParams() {
 	g.Param.VLLM.ModelRunParams["load_format"] = g.LoadFormat
 	g.Param.VLLM.ModelRunParams["config_format"] = g.ConfigFormat
 	g.Param.VLLM.ModelRunParams["tokenizer_mode"] = g.TokenizerMode
+
+	// Override served model name if needed
+	if override, ok := modelServedNameMap[g.Param.Metadata.Name]; ok {
+		g.Param.VLLM.ModelName = override
+	}
+
+	// Set attention backend based on model name prefix
+	for prefix, backend := range attentionBackendPrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.VLLM.ModelRunParams["attention-backend"] = backend
+			break
+		}
+	}
 
 	bpt, attnType := g.calculateKVCacheTokenSize()
 	g.Param.Metadata.BytesPerToken = bpt

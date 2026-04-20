@@ -204,4 +204,12 @@ func TestIsValidPreset(t *testing.T) {
 			t.Error("expected IsValidPreset to return false for empty string")
 		}
 	})
+
+	t.Run("valid legacy builtin preset", func(t *testing.T) {
+		KaitoModelRegister = ModelRegister{}
+
+		if !IsValidPreset("llama-3.1-8b-instruct") {
+			t.Error("expected IsValidPreset to return true for legacy builtin preset name")
+		}
+	})
 }

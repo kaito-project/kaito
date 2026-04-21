@@ -53,6 +53,11 @@ spec:
           value: spot
           effect: NoSchedule
         {{- end }}
+        {{- if eq .Values.nodeProvisioner "karpenter" }}
+        - key: karpenter.kaito.sh/workspace
+          operator: Exists
+          effect: NoSchedule
+        {{- end }}
       priorityClassName: "system-node-critical"
       containers:
         - image: {{ .Values.nvidiaDevicePlugin.image | quote }}

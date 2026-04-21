@@ -276,6 +276,14 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 		}
 	}
 
+	// Pin pods to nodes provisioned for this workspace (karpenter only).
+	if consts.IsKarpenterProvisioner() {
+		if templateCopy.Spec.NodeSelector == nil {
+			templateCopy.Spec.NodeSelector = make(map[string]string)
+		}
+		templateCopy.Spec.NodeSelector[consts.KarpenterWorkspaceKey] = workspaceObj.Name
+	}
+
 	// Overwrite affinity
 	templateCopy.Spec.Affinity = &corev1.Affinity{
 		NodeAffinity: &corev1.NodeAffinity{

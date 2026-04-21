@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -97,6 +98,10 @@ func main() {
 	var featureGates string
 	var defaultNodeImageFamily string
 	var nodeProvisionerType string
+	var karpenterNodeClassGroup string
+	var karpenterNodeClassKind string
+	var karpenterNodeClassDefaultName string
+	var karpenterImageFamilyNames string
 	var kubeClientQPS int = 30
 	var kubeClientBurst int = 50
 	var printVersionAndExit bool
@@ -111,7 +116,11 @@ func main() {
 		"Enable webhook for controller manager. Default is true.")
 	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false.")
 	flag.StringVar(&defaultNodeImageFamily, "default-node-image-family", "", "Default node image family annotation for generated NodeClaims. Supported values: azurelinux, ubuntu. Empty means ubuntu. Unsupported values cause startup failure.")
-	flag.StringVar(&nodeProvisionerType, "node-provisioner", "", "Node provisioner type. Supported values: azure-gpu-provisioner, azure-karpenter, byo. Default: azure-gpu-provisioner. If empty, inferred from feature gates for backward compatibility.")
+	flag.StringVar(&nodeProvisionerType, "node-provisioner", "", "Node provisioner type. Supported values: azure-gpu-provisioner, karpenter, byo. Default: azure-gpu-provisioner. If empty, inferred from feature gates for backward compatibility.")
+	flag.StringVar(&karpenterNodeClassGroup, "karpenter-node-class-group", "karpenter.azure.com", "Karpenter NodeClass API group. Only used when node-provisioner=karpenter.")
+	flag.StringVar(&karpenterNodeClassKind, "karpenter-node-class-kind", "AKSNodeClass", "Karpenter NodeClass API kind. Only used when node-provisioner=karpenter.")
+	flag.StringVar(&karpenterNodeClassDefaultName, "karpenter-node-class-default-name", "image-family-ubuntu", "Default Karpenter NodeClass resource name. Only used when node-provisioner=karpenter.")
+	flag.StringVar(&karpenterImageFamilyNames, "karpenter-image-family-names", "ubuntu=image-family-ubuntu,azurelinux=image-family-azure-linux", "Comma-separated key=value pairs mapping image family annotation values to NodeClass resource names. Only used when node-provisioner=karpenter.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
 		Development: true,
@@ -142,11 +151,14 @@ func main() {
 		klog.InfoS("--node-provisioner not set, inferred from feature gates", "type", nodeProvisionerType)
 	}
 
+	// Expose the resolved provisioner type for downstream scheduling logic.
+	consts.ActiveNodeProvisioner = nodeProvisionerType
+
 	// Sync feature gate internal state based on --node-provisioner for downstream consumers.
 	switch nodeProvisionerType {
 	case consts.NodeProvisionerBYO:
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
-	case consts.NodeProvisionerAzureKarpenter:
+	case consts.NodeProvisionerKarpenter:
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
 	case consts.NodeProvisionerAzureGPU:
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
@@ -225,7 +237,7 @@ func main() {
 
 	// Select and initialize the node provisioner based on feature gates.
 	recorder := mgr.GetEventRecorderFor("KAITO-Workspace-controller")
-	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(kClient, directClient, recorder, defaultNodeImageFamily, nodeProvisionerType)
+	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(kClient, directClient, recorder, defaultNodeImageFamily, nodeProvisionerType, karpenterNodeClassGroup, karpenterNodeClassKind, karpenterNodeClassDefaultName, parseKeyValuePairs(karpenterImageFamilyNames))
 	klog.InfoS("Node provisioner selected", "name", nodeProvisioner.Name())
 	if err := nodeProvisioner.Start(ctx); err != nil {
 		klog.ErrorS(err, "failed to start node provisioner")
@@ -320,4 +332,19 @@ func setRestConfig(c *rest.Config, kubeClientQPS, kubeClientBurst int) {
 	if kubeClientBurst > 0 {
 		c.Burst = kubeClientBurst
 	}
+}
+
+// parseKeyValuePairs parses a comma-separated "key=value" string into a map.
+func parseKeyValuePairs(s string) map[string]string {
+	m := make(map[string]string)
+	if s == "" {
+		return m
+	}
+	for _, pair := range strings.Split(s, ",") {
+		parts := strings.SplitN(pair, "=", 2)
+		if len(parts) == 2 {
+			m[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+		}
+	}
+	return m
 }

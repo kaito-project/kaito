@@ -18,9 +18,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
-	azurekarpenter "github.com/kaito-project/kaito/pkg/nodeprovision/azure-karpenter"
 	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	gpuprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/gpu-provisioner"
+	karpenterprov "github.com/kaito-project/kaito/pkg/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
@@ -28,14 +28,19 @@ import (
 
 // NewNodeProvisioner creates and returns a NodeProvisioner based on the provisionerType parameter.
 //
-//   - azure-karpenter: AzureKarpenterProvisioner (uses directClient for
-//     CRD verification and global AKSNodeClass bootstrap at Start time).
+//   - karpenter: KarpenterProvisioner (cloud-agnostic karpenter NodePool CRUD).
 //   - byo: BYOProvisioner (all provisioning ops are no-ops).
 //   - azure-gpu-provisioner (default): AzureGPUProvisioner (creates/deletes NodeClaims).
-func NewNodeProvisioner(kClient, directClient client.Client, recorder record.EventRecorder, defaultNodeImageFamily string, provisionerType string) nodeprovision.NodeProvisioner {
+func NewNodeProvisioner(kClient, directClient client.Client, recorder record.EventRecorder, defaultNodeImageFamily string, provisionerType string, nodeClassGroup, nodeClassKind, nodeClassDefaultName string, imageFamilyNames map[string]string) nodeprovision.NodeProvisioner {
 	switch provisionerType {
-	case consts.NodeProvisionerAzureKarpenter:
-		return azurekarpenter.NewAzureKarpenterProvisioner(directClient)
+	case consts.NodeProvisionerKarpenter:
+		cfg := karpenterprov.NodeClassConfig{
+			Group:            nodeClassGroup,
+			Kind:             nodeClassKind,
+			DefaultName:      nodeClassDefaultName,
+			ImageFamilyNames: imageFamilyNames,
+		}
+		return karpenterprov.NewKarpenterProvisioner(directClient, cfg)
 	case consts.NodeProvisionerBYO:
 		return byoprovisioner.NewBYOProvisioner(kClient)
 	default: // consts.NodeProvisionerAzureGPU

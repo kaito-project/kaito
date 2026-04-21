@@ -1,0 +1,15 @@
+{{- if and (eq .Values.nodeProvisioner "karpenter") (eq .Values.karpenterNodeClass.group "karpenter.azure.com") }}
+{{- range .Values.karpenterNodeClass.resources }}
+---
+apiVersion: {{ $.Values.karpenterNodeClass.group }}/v1beta1
+kind: {{ $.Values.karpenterNodeClass.kind }}
+metadata:
+  name: {{ .name }}
+  labels:
+    kaito.sh/managed-by: kaito
+    {{- include "kaito.labels" $ | nindent 4 }}
+spec:
+  imageFamily: {{ .imageFamily | quote }}
+  osDiskSizeGB: 300
+{{- end }}
+{{- end }}

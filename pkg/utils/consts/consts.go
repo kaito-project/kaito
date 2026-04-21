@@ -48,10 +48,22 @@ const (
 	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
 
 	// Node provisioner types
-	NodeProvisionerAzureGPU       = "azure-gpu-provisioner"
-	NodeProvisionerAzureKarpenter = "azure-karpenter"
-	NodeProvisionerBYO            = "byo"
+	NodeProvisionerAzureGPU  = "azure-gpu-provisioner"
+	NodeProvisionerKarpenter = "karpenter"
+	NodeProvisionerBYO       = "byo"
+)
 
+// ActiveNodeProvisioner holds the resolved provisioner type at runtime.
+// Set once during startup in main.go; read by inference scheduling code
+// to decide whether karpenter-specific nodeSelector/tolerations are needed.
+var ActiveNodeProvisioner string
+
+// IsKarpenterProvisioner returns true if the active node provisioner is karpenter.
+func IsKarpenterProvisioner() bool {
+	return ActiveNodeProvisioner == NodeProvisionerKarpenter
+}
+
+const (
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"
 	LabelNodePool                 = "karpenter.sh/nodepool"
@@ -97,6 +109,11 @@ const (
 	NodeImageFamilyAzureLinux = "azurelinux"
 	SpotInstanceKey           = "kubernetes.azure.com/scalesetpriority"
 	SpotInstanceValue         = "spot"
+
+	// Karpenter NodePool management labels and values.
+	KarpenterWorkspaceKey             = "karpenter.kaito.sh/workspace"
+	KarpenterInferenceSetKey          = "karpenter.kaito.sh/inferenceset"
+	KarpenterInferenceSetNamespaceKey = "karpenter.kaito.sh/inferenceset-namespace"
 )
 
 var (

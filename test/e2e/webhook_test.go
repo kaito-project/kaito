@@ -33,8 +33,8 @@ var (
 	testDataSourceConfig      = &kaitov1beta1.DataSource{Name: PresetPhi4MiniModel, Image: testModelImage}
 	testDataDestinationConfig = &kaitov1beta1.DataDestination{Image: testModelImage, ImagePushSecret: utils.GetEnv("AI_MODELS_REGISTRY_SECRET")}
 
-	initialPresetSpec = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: PresetPhi4MiniModel}}
-	updatedPresetSpec = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: PresetPhi4Model}}
+	initialPresetSpec = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: PresetPhi4Model}}
+	updatedPresetSpec = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: PresetGPT_OSS_20BModel}}
 
 	initialTuningMethod     = kaitov1beta1.TuningMethodLora
 	alternativeTuningMethod = kaitov1beta1.TuningMethodQLora
@@ -45,7 +45,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_Bad",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-			}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")
+			}, nil, PresetPhi4Model, nil, nil, nil, "", "")
 
 		By("Creating a workspace with invalid instancetype", func() {
 			// Create workspace
@@ -106,7 +106,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
 				&metav1.LabelSelector{
 					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-				}, nil, PresetPhi4MiniModel, nil, nil, testAdapters1, "", "")
+				}, nil, PresetPhi3Mini128kModel, nil, nil, testAdapters1, "", "")
 			// Create workspace
 			Eventually(func() error {
 				return utils.TestingCluster.KubeClient.Create(ctx, workspaceObj, &client.CreateOptions{})
@@ -131,7 +131,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
 				&metav1.LabelSelector{
 					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-				}, nil, PresetPhi4MiniModel, nil, nil, invalidAdapters, "", "")
+				}, nil, PresetPhi4Model, nil, nil, invalidAdapters, "", "")
 
 			// Create workspace - should fail since neither image nor volume is specified
 			Eventually(func() error {
@@ -146,7 +146,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
 				&metav1.LabelSelector{
 					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
-				}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")
+				}, nil, PresetPhi4Model, nil, nil, nil, "", "")
 
 			// Create workspace
 			Eventually(func() error {
@@ -246,7 +246,7 @@ vllm:
 	//TODO custom template
 
 	It("should validate the workspace resource spec at update ", func() {
-		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+		workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")
@@ -330,7 +330,7 @@ vllm:
 	})
 
 	It("should validate the workspace inference spec at update ", func() {
-		workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+		workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")

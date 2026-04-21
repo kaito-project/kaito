@@ -92,11 +92,11 @@ func loadModelVersions() {
 func createCustomWorkspaceWithAdapter(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace with adapter", func() {
-		uniqueID := fmt.Sprint("preset-falcon-", rand.Intn(1000))
+		uniqueID := fmt.Sprint("preset-phi3-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "custom-preset-e2e-test-adapter"},
-			}, nil, PresetPhi4MiniModel, nil, nil, validAdapters, "", "")
+			}, nil, PresetPhi3Mini128kModel, nil, nil, validAdapters, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})

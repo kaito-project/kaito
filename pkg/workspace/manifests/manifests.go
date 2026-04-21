@@ -371,7 +371,9 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 		consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 	}
 
-	// Endpoint Picker from Gateway API Inference Extension expects to pick an endpoint that can serve traffic.
+	// The EPP (Endpoint Picker Plugin) from Gateway API Inference Extension picks an endpoint that can serve traffic.
+	// KAITO overrides the default GWIE EPP image with the llm-d inference scheduler, which provides
+	// advanced scheduling plugins (KV cache-aware routing, P/D disaggregation, pluggable filters/scorers).
 	// In a multi-node inference environment, this means we need to select the leader pod (with pod index 0)
 	// since only the leader pod is capable of serving traffic.
 	matchLabels[appsv1.PodIndexLabel] = "0"

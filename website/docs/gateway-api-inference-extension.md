@@ -9,7 +9,7 @@ KAITO integrates with [Gateway API Inference Extension](https://gateway-api-infe
 Gateway API Inference Extension extends [Gateway API](https://gateway-api.sigs.k8s.io/) with inference-focused backends and behaviors. It adds:
 
 - [InferencePool](https://gateway-api-inference-extension.sigs.k8s.io/api-types/inferencepool/) CRD to represent model-serving backends
-- An [Endpoint Picker](https://github.com/llm-d/llm-d-inference-scheduler) (EPP) that uses inference server metrics and policies to pick the best backend. KAITO uses the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler) as the EPP, which consolidates the GWIE EPP implementation with advanced scheduling plugins including KV cache-aware routing, prefill/decode (P/D) disaggregation, and pluggable filters/scorers.
+- A reference Endpoint Picker Plugin (EPP) that uses inference server metrics and policies to pick the best backend. In KAITO, the EPP image is overridden to use the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler), which builds on the GWIE EPP with advanced scheduling plugins including KV cache-aware routing, prefill/decode (P/D) disaggregation, and pluggable filters/scorers.
 - Optional [Body-Based Routing](https://github.com/kubernetes-sigs/gateway-api-inference-extension/tree/main/pkg/bbr) (BBR) that extracts model names from OpenAI-style requests and injects a header for routing purposes
 
 KAITO uses GWIE to route requests for models to the right Workspace pods, improving latency and GPU utilization.
@@ -111,13 +111,20 @@ NAME                       AGE
 phi-4-mini-inferencepool   69s
 ```
 
-Verify that the Endpoint Picker (EPP) Pod is running with the llm-d inference scheduler image in the InferenceSet namespace:
+Verify that the Endpoint Picker (EPP) Pod is running in the InferenceSet namespace:
 
 ```bash
 kubectl get pod -l inferencepool=phi-4-mini-inferencepool-epp
 
 NAME                                           READY   STATUS    RESTARTS   AGE
 phi-4-mini-inferencepool-epp-b74f8994b-s9kkt   1/1     Running   0          87s
+```
+
+Confirm the EPP is using the llm-d inference scheduler image:
+
+```bash
+kubectl get pod -l inferencepool=phi-4-mini-inferencepool-epp -o jsonpath='{.items[0].spec.containers[0].image}'
+# Expected: mcr.microsoft.com/oss/v2/llm-d/llm-d-inference-scheduler:v0.7.1
 ```
 
 ### 3. Deploy DestinationRule and HTTPRoute

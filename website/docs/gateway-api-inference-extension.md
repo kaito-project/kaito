@@ -50,7 +50,7 @@ When you create an InferenceSet, the KAITO InferenceSet controller will:
 	 - [OCIRepository](https://fluxcd.io/flux/components/source/ocirepositories/): points to the upstream GWIE inferencepool Helm chart
 		 - URL: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
 		 - Tag/Version: https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest
-	 - [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/): references the OCIRepository and applies values to deploy the InferencePool and EPP. The EPP image is overridden to use the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler) (`ghcr.io/llm-d/llm-d-inference-scheduler`) instead of the default GWIE EPP.
+	 - [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/): references the OCIRepository and applies values to deploy the InferencePool and EPP. The EPP image is overridden to use the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler) (`mcr.microsoft.com/oss/v2/llm-d/llm-d-inference-scheduler`) instead of the default GWIE EPP.
 3) Wait for Flux resources to become Ready
 
 You can inspect these resources with kubectl in the InferenceSet namespace. Updates to the InferenceSet will reconcile these resources.

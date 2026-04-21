@@ -90,7 +90,7 @@ const (
 	// Using llm-d inference scheduler which consolidates the GWIE EPP implementation
 	// with advanced scheduling plugins (KV cache-aware routing, P/D disaggregation, etc.)
 	// See: https://github.com/llm-d/llm-d-inference-scheduler
-	EPPImageHub  = "ghcr.io/llm-d"
+	EPPImageHub  = "mcr.microsoft.com/oss/v2/llm-d"
 	EPPImageName = "llm-d-inference-scheduler"
 	EPPImageTag  = "v0.7.1"
 

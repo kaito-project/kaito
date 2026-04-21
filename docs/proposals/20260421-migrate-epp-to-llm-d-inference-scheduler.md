@@ -10,7 +10,7 @@ creation-date: 2026-04-21
 last-updated: 2026-04-21
 status: provisional
 see-also:
-  - "docs/proposals/20250918-introduce_inferenceset_autoscaling.md"
+  - "/docs/proposals/20250918-introduce_inferenceset_autoscaling.md"
 ---
 
 # Migrate Default EPP to llm-d Inference Scheduler
@@ -69,7 +69,7 @@ The InferencePool Helm chart remains from GWIE. Only the EPP container image is 
 │  extension/charts │    │         /oss/v2/llm-d     │
 │  /inferencepool   │    │    name: llm-d-inference   │
 │                   │    │          -scheduler        │
-│  Tag: latest      │    │    tag: v0.7.1             │
+│  Tag: v1.3.1      │    │    tag: v0.7.1             │
 └──────────────────┘    └──────────────────────────┘
 ```
 
@@ -265,7 +265,7 @@ spec:
 - [GIE to llm-d migration plan](https://github.com/kubernetes-sigs/gateway-api-inference-extension/issues/2430)
 - [KAITO GWIE documentation](https://kaito-project.github.io/kaito/docs/gateway-api-inference-extension)
 - [llm-d architecture docs](https://github.com/llm-d/llm-d-inference-scheduler/blob/main/docs/architecture.md)
-- [Migration guide (detailed)](https://github.com/andyzhangx/demo/blob/master/llm/kaito-llm-d/README.md)
+- [Migration guide (detailed)](https://github.com/llm-d/llm-d/blob/main/docs/getting-started.md)
 
 ## Implementation History
 

@@ -17,7 +17,7 @@ see-also:
 
 ## Summary
 
-This proposal migrates KAITO's default Endpoint Picker (EPP) from the upstream [Gateway API Inference Extension (GWIE)](https://github.com/kubernetes-sigs/gateway-api-inference-extension) EPP to the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler). The llm-d inference scheduler consolidates the GWIE EPP with advanced scheduling plugins — including KV cache-aware routing, prefix cache matching, and prefill/decode disaggregation — under a single project, per the [GIE to llm-d migration plan](https://github.com/kubernetes-sigs/gateway-api-inference-extension/issues/2430).
+This proposal migrates KAITO's default Endpoint Picker (EPP) from the upstream [Gateway API Inference Extension (GWIE)](https://github.com/kubernetes-sigs/gateway-api-inference-extension) EPP to the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler). The llm-d inference scheduler consolidates the GWIE EPP with advanced scheduling plugins — including KV cache-aware routing, prefix cache matching, and prefill/decode disaggregation — under a single project, per the [GWIE to llm-d migration plan](https://github.com/kubernetes-sigs/gateway-api-inference-extension/issues/2430).
 
 This change only replaces the EPP container image in the InferencePool Helm release. The InferencePool chart, CRDs, and all other KAITO components remain unchanged. There is no breaking change for existing users.
 
@@ -225,13 +225,16 @@ BBR is **completely unaffected** by this EPP migration — it is an independent 
 
 ### Why DestinationRule Is Needed
 
-EPP runs with `--secure-serving=true` by default, generating a self-signed TLS certificate. Istio's sidecar proxy doesn't trust self-signed certs, so without the DestinationRule, the Gateway → EPP ext-proc connection fails with TLS errors. One DestinationRule is needed per InferencePool/EPP service:
+EPP runs with `--secure-serving=true` by default, generating a self-signed TLS certificate. Istio's sidecar proxy doesn't trust self-signed certs, so without the DestinationRule, the Gateway → EPP ext-proc connection fails with TLS errors. One DestinationRule is needed per InferencePool/EPP service.
+
+> **Namespace note:** The DestinationRule must be created in the **same namespace** as the EPP service (i.e., the InferenceSet namespace). In Istio, DestinationRules are namespace-scoped and only visible to clients in the same namespace by default. Since KAITO deploys the Gateway/Envoy and EPP in the same namespace, this works out of the box. If a custom deployment places the Gateway in a different namespace, the DestinationRule must either be created in the Gateway's namespace or exported via `exportTo: ["*"]`.
 
 ```yaml
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: <inferencepool-name>-epp
+  namespace: <inferenceset-namespace>  # Must be in the same namespace as the EPP service
 spec:
   host: <inferencepool-name>-epp
   trafficPolicy:
@@ -262,7 +265,7 @@ spec:
 ## References
 
 - [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler)
-- [GIE to llm-d migration plan](https://github.com/kubernetes-sigs/gateway-api-inference-extension/issues/2430)
+- [GWIE to llm-d migration plan](https://github.com/kubernetes-sigs/gateway-api-inference-extension/issues/2430)
 - [KAITO GWIE documentation](https://kaito-project.github.io/kaito/docs/gateway-api-inference-extension)
 - [llm-d architecture docs](https://github.com/llm-d/llm-d-inference-scheduler/blob/main/docs/architecture.md)
 - [Migration guide (detailed)](https://github.com/llm-d/llm-d/blob/main/docs/getting-started.md)

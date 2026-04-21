@@ -73,16 +73,6 @@ The InferencePool Helm chart remains from GWIE. Only the EPP container image is 
 └──────────────────┘    └──────────────────────────┘
 ```
 
-### EPP Image Change
-
-Replace the single EPP image constant with hub/name/tag to match the InferencePool chart's image composition (`{hub}/{name}:{tag}`):
-
-| Field | Before | After |
-|-------|--------|-------|
-| Hub | `mcr.microsoft.com/oss/v2/gateway-api-inference-extension` | `mcr.microsoft.com/oss/v2/llm-d` |
-| Name | (embedded in hub) | `llm-d-inference-scheduler` |
-| Tag | (embedded in hub) | `v0.7.1` |
-
 ### Default Behavior (Zero Config)
 
 After the migration, **no additional configuration is needed** for basic usage. The InferencePool chart creates a `default-plugins.yaml` ConfigMap with three default scorers:
@@ -254,9 +244,8 @@ spec:
 
 ### Step 1: EPP Image Migration (This Proposal)
 
-- Replace EPP image constants in `pkg/utils/consts/consts.go`
-- Update `GenerateInferencePoolHelmRelease` to pass `hub`/`name`/`tag` image fields
-- Update tests and documentation
+- Replace the default EPP image to use llm-d inference scheduler
+- Update documentation
 - **PR**: [kaito-project/kaito#1975](https://github.com/kaito-project/kaito/pull/1975)
 
 ### Step 2: MCR Image Publishing

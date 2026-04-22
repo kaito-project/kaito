@@ -174,69 +174,55 @@ jobs:
           echo "Waiting for inferenceset to be ready..."
           kubectl wait --for='jsonpath={.status.readyReplicas}=1' inferenceset/inferenceset-aikit-test --timeout 300s
 
-      - name: Validate GWIE resource chain
+      - name: Validate GWIE infrastructure
         run: |
-          POOL_NAME="inferenceset-aikit-test-inferencepool"
+          # Note: GWIE resource chain (OCIRepository → HelmRelease → InferencePool → EPP)
+          # is only created for vLLM preset-based InferenceSet workloads.
+          # AIKit uses custom template inference, so GWIE resources won't be created.
+          # Here we validate that the GWIE infrastructure is correctly deployed.
 
-          echo "=== Checking Flux OCIRepository ==="
-          kubectl wait --for=condition=ready ocirepository/$POOL_NAME --timeout=120s
-          echo "OCIRepository is ready"
+          echo "=== Checking Flux CRDs are installed ==="
+          kubectl get crd ocirepositories.source.toolkit.fluxcd.io
+          echo "✓ Flux OCIRepository CRD installed"
+          kubectl get crd helmreleases.helm.toolkit.fluxcd.io
+          echo "✓ Flux HelmRelease CRD installed"
 
-          echo "=== Checking Flux HelmRelease ==="
-          kubectl wait --for=condition=ready helmrelease/$POOL_NAME --timeout=180s
-          echo "HelmRelease is ready"
+          echo "=== Checking InferencePool CRD is installed ==="
+          kubectl get crd inferencepools.inference.networking.k8s.io
+          echo "✓ InferencePool CRD installed"
 
-          echo "=== Checking InferencePool ==="
-          kubectl get inferencepool $POOL_NAME -o yaml
-          echo "InferencePool created successfully"
-
-          echo "=== Checking EPP Deployment ==="
-          kubectl wait --for=condition=available --timeout=180s deployment/${POOL_NAME}-epp
-          echo "EPP Deployment is available"
-
-          echo "=== Verifying EPP container args ==="
-          EPP_ARGS=$(kubectl get deployment ${POOL_NAME}-epp -o jsonpath='{.spec.template.spec.containers[0].args}')
-          echo "EPP args: $EPP_ARGS"
-
-          # Verify critical args
-          for expected in "pool-name" "pool-namespace" "grpc-port"; do
-            if echo "$EPP_ARGS" | grep -q "$expected"; then
-              echo "✓ Found expected arg: $expected"
-            else
-              echo "✗ Missing expected arg: $expected"
-              exit 1
-            fi
-          done
-
-          echo "=== Verifying EPP pod is Running ==="
-          kubectl get pod -l app=${POOL_NAME}-epp -o wide
-          EPP_POD=$(kubectl get pod -l app=${POOL_NAME}-epp -o jsonpath='{.items[0].metadata.name}')
-          EPP_STATUS=$(kubectl get pod $EPP_POD -o jsonpath='{.status.phase}')
-          if [ "$EPP_STATUS" != "Running" ]; then
-            echo "EPP pod is not running: $EPP_STATUS"
-            kubectl describe pod $EPP_POD
+          echo "=== Checking Flux controllers are running ==="
+          kubectl get pods -n ${{ env.KAITO_NAMESPACE }} -l app.kubernetes.io/part-of=flux -o wide
+          FLUX_PODS=$(kubectl get pods -n ${{ env.KAITO_NAMESPACE }} -l app.kubernetes.io/part-of=flux --no-headers 2>/dev/null | wc -l)
+          if [ "$FLUX_PODS" -ge 1 ]; then
+            echo "✓ Flux controllers running ($FLUX_PODS pods)"
+          else
+            echo "✗ No Flux controllers found"
             exit 1
           fi
 
-          echo "=== Checking EPP health endpoint ==="
-          kubectl port-forward deployment/${POOL_NAME}-epp 9090:9090 &
-          EPP_PF_PID=$!
-          sleep 3
-          # EPP exposes metrics on :9090/metrics
-          if curl -sf http://localhost:9090/metrics > /dev/null 2>&1; then
-            echo "✓ EPP metrics endpoint is healthy"
+          echo "=== Checking controller feature gates ==="
+          CONTROLLER_ARGS=$(kubectl get deployment kaito-workspace -n ${{ env.KAITO_NAMESPACE }} -o jsonpath='{.spec.template.spec.containers[0].args}')
+          echo "Controller args: $CONTROLLER_ARGS"
+          if echo "$CONTROLLER_ARGS" | grep -q "gatewayAPIInferenceExtension=true"; then
+            echo "✓ gatewayAPIInferenceExtension feature gate enabled"
           else
-            echo "⚠ EPP metrics endpoint not reachable (may be expected if secure-serving is changing)"
+            echo "✗ gatewayAPIInferenceExtension feature gate not found"
+            exit 1
           fi
-          kill $EPP_PF_PID || true
+          if echo "$CONTROLLER_ARGS" | grep -q "enableInferenceSetController=true"; then
+            echo "✓ enableInferenceSetController feature gate enabled"
+          else
+            echo "✗ enableInferenceSetController feature gate not found"
+            exit 1
+          fi
 
-          echo "=== Verifying InferencePool selector matches inference pods ==="
-          POOL_SELECTOR=$(kubectl get inferencepool $POOL_NAME -o jsonpath='{.spec.selector}')
-          echo "InferencePool selector: $POOL_SELECTOR"
-          MATCHED_PODS=$(kubectl get pods -l kaito.sh/createdByInferenceSet=inferenceset-aikit-test --no-headers 2>/dev/null | wc -l)
-          echo "Pods matching InferencePool selector: $MATCHED_PODS"
-          if [ "$MATCHED_PODS" -lt 1 ]; then
-            echo "WARNING: No pods matched InferencePool selector"
+          echo "=== Verifying GWIE not created for non-preset InferenceSet (expected) ==="
+          POOL_NAME="inferenceset-aikit-test-inferencepool"
+          if kubectl get ocirepository $POOL_NAME 2>/dev/null; then
+            echo "⚠ Unexpected: GWIE resources found for custom template InferenceSet"
+          else
+            echo "✓ Confirmed: GWIE resources not created for AIKit custom template (only vLLM preset supported)"
           fi
 
       - name: Validate response content

@@ -187,9 +187,11 @@ jobs:
           kubectl get crd helmreleases.helm.toolkit.fluxcd.io
           echo "✓ Flux HelmRelease CRD installed"
 
-          echo "=== Checking InferencePool CRD is installed ==="
+          echo "=== Checking GWIE CRDs are installed ==="
           kubectl get crd inferencepools.inference.networking.k8s.io
           echo "✓ InferencePool CRD installed"
+          kubectl get crd inferenceobjectives.inference.networking.x-k8s.io
+          echo "✓ InferenceObjective CRD installed"
 
           echo "=== Checking Flux controllers are running ==="
           # Flux helm-controller and source-controller are deployed as part of the flux2 subchart
@@ -223,7 +225,8 @@ jobs:
           echo "=== Verifying GWIE not created for non-preset InferenceSet (expected) ==="
           POOL_NAME="inferenceset-aikit-test-inferencepool"
           if kubectl get ocirepository $POOL_NAME 2>/dev/null; then
-            echo "⚠ Unexpected: GWIE resources found for custom template InferenceSet"
+            echo "✗ Unexpected: GWIE resources found for custom template InferenceSet"
+            exit 1
           else
             echo "✓ Confirmed: GWIE resources not created for AIKit custom template (only vLLM preset supported)"
           fi

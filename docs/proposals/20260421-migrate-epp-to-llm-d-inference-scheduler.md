@@ -75,24 +75,46 @@ The InferencePool Helm chart remains from GWIE. Only the EPP container image is 
 
 ### Default Behavior (Zero Config)
 
-After the migration, **no additional configuration is needed** for basic usage. The InferencePool chart creates a `default-plugins.yaml` ConfigMap with three default scorers:
+After the migration, **no additional configuration is needed** for basic usage. The InferencePool chart creates a `default-plugins.yaml` ConfigMap with three default scorers, e.g.
+
+```bash
+# kubectl get configmap phi-4-mini-inferencepool-epp -o yaml
+```
 
 ```yaml
-apiVersion: inference.networking.x-k8s.io/v1alpha1
-kind: EndpointPickerConfig
-plugins:
-- type: queue-scorer
-- type: kv-cache-utilization-scorer
-- type: prefix-cache-scorer
-schedulingProfiles:
-- name: default
-  plugins:
-  - pluginRef: queue-scorer
-    weight: 2
-  - pluginRef: kv-cache-utilization-scorer
-    weight: 2
-  - pluginRef: prefix-cache-scorer
-    weight: 3
+apiVersion: v1
+data:
+  default-plugins.yaml: |
+    apiVersion: inference.networking.x-k8s.io/v1alpha1
+    kind: EndpointPickerConfig
+    plugins:
+    - type: queue-scorer
+    - type: kv-cache-utilization-scorer
+    - type: prefix-cache-scorer
+    schedulingProfiles:
+    - name: default
+      plugins:
+      - pluginRef: queue-scorer
+        weight: 2
+      - pluginRef: kv-cache-utilization-scorer
+        weight: 2
+      - pluginRef: prefix-cache-scorer
+        weight: 3
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: phi-4-mini-inferencepool
+    meta.helm.sh/release-namespace: default
+  creationTimestamp: "2026-04-20T02:49:11Z"
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    helm.toolkit.fluxcd.io/name: phi-4-mini-inferencepool
+    helm.toolkit.fluxcd.io/namespace: default
+  name: phi-4-mini-inferencepool-epp
+  namespace: default
+  resourceVersion: "140558777"
+  uid: 4b5ff03a-5d6b-4262-bed0-c004e8137913
+```
 ```
 
 The llm-d EPP binary is fully compatible with this config format (same `EndpointPickerConfig` API).

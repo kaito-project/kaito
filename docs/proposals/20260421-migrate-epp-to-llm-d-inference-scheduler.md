@@ -59,18 +59,18 @@ The InferencePool Helm chart remains from GWIE. Only the EPP container image is 
                        │
           ┌────────────┴────────────┐
           ▼                         ▼
-┌──────────────────┐    ┌──────────────────────────┐
-│  OCIRepository    │    │     HelmRelease           │
-│  (GWIE chart)     │    │  (EPP image override      │
-│                   │    │   to llm-d)               │
-│  oci://registry.  │    │                           │
-│  k8s.io/gateway-  │    │  image:                   │
-│  api-inference-   │    │    hub: mcr.microsoft.    │
-│  extension/charts │    │      com/oss/v2/llm-d     │
-│  /inferencepool   │    │    name: llm-d-inference  │
-│                   │    │      -scheduler            │
-│  Tag: v1.3.1      │    │    tag: v0.7.1             │
-└──────────────────┘    └──────────────────────────┘
+┌──────────────────┐    ┌────────────────────────────────┐
+│  OCIRepository    │    │     HelmRelease                 │
+│  (GWIE chart)     │    │  (EPP image override to llm-d)  │
+│                   │    │                                  │
+│  oci://registry.  │    │  image:                          │
+│  k8s.io/gateway-  │    │    hub: mcr.microsoft.com/      │
+│  api-inference-   │    │         oss/v2/llm-d             │
+│  extension/charts │    │    name: llm-d-inference-        │
+│  /inferencepool   │    │          scheduler               │
+│                   │    │    tag: v0.7.1                    │
+│  Tag: v1.3.1      │    │                                  │
+└──────────────────┘    └────────────────────────────────┘
 ```
 
 ### Default Behavior (Zero Config)
@@ -83,37 +83,31 @@ After the migration, **no additional configuration is needed** for basic usage. 
 
 ```yaml
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: phi-4-mini-inferencepool-epp
+  namespace: default
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    helm.toolkit.fluxcd.io/name: phi-4-mini-inferencepool
+    helm.toolkit.fluxcd.io/namespace: default
 data:
   default-plugins.yaml: |
     apiVersion: inference.networking.x-k8s.io/v1alpha1
     kind: EndpointPickerConfig
     plugins:
-    - type: queue-scorer
-    - type: kv-cache-utilization-scorer
-    - type: prefix-cache-scorer
+      - type: queue-scorer
+      - type: kv-cache-utilization-scorer
+      - type: prefix-cache-scorer
     schedulingProfiles:
-    - name: default
-      plugins:
-      - pluginRef: queue-scorer
-        weight: 2
-      - pluginRef: kv-cache-utilization-scorer
-        weight: 2
-      - pluginRef: prefix-cache-scorer
-        weight: 3
-kind: ConfigMap
-metadata:
-  annotations:
-    meta.helm.sh/release-name: phi-4-mini-inferencepool
-    meta.helm.sh/release-namespace: default
-  creationTimestamp: "2026-04-20T02:49:11Z"
-  labels:
-    app.kubernetes.io/managed-by: Helm
-    helm.toolkit.fluxcd.io/name: phi-4-mini-inferencepool
-    helm.toolkit.fluxcd.io/namespace: default
-  name: phi-4-mini-inferencepool-epp
-  namespace: default
-  resourceVersion: "140558777"
-  uid: 4b5ff03a-5d6b-4262-bed0-c004e8137913
+      - name: default
+        plugins:
+          - pluginRef: queue-scorer
+            weight: 2
+          - pluginRef: kv-cache-utilization-scorer
+            weight: 2
+          - pluginRef: prefix-cache-scorer
+            weight: 3
 ```
 
 The llm-d EPP binary is fully compatible with this config format (same `EndpointPickerConfig` API).

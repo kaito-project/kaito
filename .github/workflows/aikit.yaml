@@ -86,7 +86,7 @@ jobs:
           # Install via Helm
           # CSI Local Node cannot be configured to not deploy and it crashes on kind on github runners for unknown reasons
           # so we need to filter it out its components
-          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set featureGates.disableNodeAutoProvisioning="true" --set featureGates.enableInferenceSetController="true" --include-crds --debug --wait | awk '
+          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set featureGates.disableNodeAutoProvisioning="true" --set featureGates.enableInferenceSetController="true" --set featureGates.gatewayAPIInferenceExtension="true" --include-crds --debug --wait | awk '
             BEGIN { RS="---\n"; ORS="---\n"; csi=0 }
             /kind: ServiceAccount/ && /name: csi-local-node/ { csi=1 }
             /kind: StorageClass/ && /name: kaito-local-nvme-disk/ { csi=1 }
@@ -194,14 +194,49 @@ jobs:
           kubectl wait --for=condition=available --timeout=180s deployment/${POOL_NAME}-epp
           echo "EPP Deployment is available"
 
-          echo "=== Verifying EPP pod args ==="
+          echo "=== Verifying EPP container args ==="
           EPP_ARGS=$(kubectl get deployment ${POOL_NAME}-epp -o jsonpath='{.spec.template.spec.containers[0].args}')
           echo "EPP args: $EPP_ARGS"
-          if echo "$EPP_ARGS" | grep -q "pool-name"; then
-            echo "EPP pool-name arg found"
-          else
-            echo "ERROR: EPP missing pool-name arg"
+
+          # Verify critical args
+          for expected in "pool-name" "pool-namespace" "grpc-port"; do
+            if echo "$EPP_ARGS" | grep -q "$expected"; then
+              echo "✓ Found expected arg: $expected"
+            else
+              echo "✗ Missing expected arg: $expected"
+              exit 1
+            fi
+          done
+
+          echo "=== Verifying EPP pod is Running ==="
+          kubectl get pod -l app=${POOL_NAME}-epp -o wide
+          EPP_POD=$(kubectl get pod -l app=${POOL_NAME}-epp -o jsonpath='{.items[0].metadata.name}')
+          EPP_STATUS=$(kubectl get pod $EPP_POD -o jsonpath='{.status.phase}')
+          if [ "$EPP_STATUS" != "Running" ]; then
+            echo "EPP pod is not running: $EPP_STATUS"
+            kubectl describe pod $EPP_POD
             exit 1
+          fi
+
+          echo "=== Checking EPP health endpoint ==="
+          kubectl port-forward deployment/${POOL_NAME}-epp 9090:9090 &
+          EPP_PF_PID=$!
+          sleep 3
+          # EPP exposes metrics on :9090/metrics
+          if curl -sf http://localhost:9090/metrics > /dev/null 2>&1; then
+            echo "✓ EPP metrics endpoint is healthy"
+          else
+            echo "⚠ EPP metrics endpoint not reachable (may be expected if secure-serving is changing)"
+          fi
+          kill $EPP_PF_PID || true
+
+          echo "=== Verifying InferencePool selector matches inference pods ==="
+          POOL_SELECTOR=$(kubectl get inferencepool $POOL_NAME -o jsonpath='{.spec.selector}')
+          echo "InferencePool selector: $POOL_SELECTOR"
+          MATCHED_PODS=$(kubectl get pods -l kaito.sh/createdByInferenceSet=inferenceset-aikit-test --no-headers 2>/dev/null | wc -l)
+          echo "Pods matching InferencePool selector: $MATCHED_PODS"
+          if [ "$MATCHED_PODS" -lt 1 ]; then
+            echo "WARNING: No pods matched InferencePool selector"
           fi
 
       - name: Validate response content
@@ -300,16 +335,16 @@ jobs:
           kubectl describe nodes
 
           echo "=== GWIE: OCIRepository ==="
-          kubectl get ocirepository -A -o yaml
+          kubectl get ocirepository -A -o yaml || true
 
           echo "=== GWIE: HelmRelease ==="
-          kubectl get helmrelease -A -o yaml
+          kubectl get helmrelease -A -o yaml || true
 
           echo "=== GWIE: InferencePool ==="
-          kubectl get inferencepool -A -o yaml
+          kubectl get inferencepool -A -o yaml || true
 
           echo "=== GWIE: EPP Deployment ==="
-          kubectl get deployment -l app=inferenceset-aikit-test-inferencepool-epp -o yaml
+          kubectl get deployment -l app=inferenceset-aikit-test-inferencepool-epp -o yaml || true
 
           echo "=== GWIE: EPP Pod Logs ==="
           kubectl logs -l app=inferenceset-aikit-test-inferencepool-epp --tail=50 || true

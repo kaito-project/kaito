@@ -37,6 +37,7 @@ const (
 	HuggingFaceWebsite     = "https://huggingface.co"
 )
 
+// Please update the following model-specific configurations when adding new models to model catalog
 var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
@@ -163,20 +164,32 @@ var (
 
 	// attentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
 	attentionBackendPrefixMap = map[string]string{
+		// flashinfer attention backend is chosen by default for LLaMA 3 models, which requires the FlashInfer library to be installed lively.
+		// Pin to triton backend as a workaround.
 		"llama-3": "TRITON_ATTN",
 	}
 
-	// modelServedNameMap maps HuggingFace-derived model names (lowercased last
-	// segment of the repo) to the --served-model-name that vLLM should use.
-	modelServedNameMap = map[string]string{
-		"gemma-3-4b-it":                      "gemma-3-4b-instruct",
-		"gemma-3-27b-it":                     "gemma-3-27b-instruct",
-		"mistral-7b-v0.3":                    "mistral-7b",
-		"mistral-7b-instruct-v0.3":           "mistral-7b-instruct",
-		"ministral-3-3b-instruct-2512":       "ministral-3-3b-instruct",
-		"ministral-3-8b-instruct-2512":       "ministral-3-8b-instruct",
-		"ministral-3-14b-instruct-2512":      "ministral-3-14b-instruct",
-		"mistral-large-3-675b-instruct-2512": "mistral-large-3-675b-instruct",
+	// catalogOverrides provides hardcoded values for models whose HuggingFace
+	// config.json omits fields that are required in model_catalog.yaml.
+	// Keys are lowercased HuggingFace repo names.
+	catalogOverrides = map[string]CatalogEntry{
+		// source: https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/configuration_gemma3.py
+		"google/gemma-3-4b-it": {
+			ModelTokenLimit:   131072,
+			NumAttentionHeads: 8,
+			NumKeyValueHeads:  4,
+			HeadDim:           256,
+		},
+		// Based on Gemma 3 model card, the 128K context window (131072 tokens) applies to all Gemma 3 4B/12B/27B sizes
+		// source: https://huggingface.co/google/gemma-3-27b-it
+		"google/gemma-3-27b-it": {
+			ModelTokenLimit: 131072,
+		},
+		"mistralai/mistral-large-3-675b-instruct-2512": {
+			// source: https://docs.vllm.ai/en/v0.17.1/api/vllm/model_executor/models/mistral_large_3/
+			Architectures: []string{"MistralLarge3ForCausalLM"},
+			PipelineTag:   "text-generation",
+		},
 	}
 )
 
@@ -552,11 +565,6 @@ func (g *Generator) FinalizeParams() {
 	g.Param.VLLM.ModelRunParams["load_format"] = g.LoadFormat
 	g.Param.VLLM.ModelRunParams["config_format"] = g.ConfigFormat
 	g.Param.VLLM.ModelRunParams["tokenizer_mode"] = g.TokenizerMode
-
-	// Override served model name if needed
-	if override, ok := modelServedNameMap[g.Param.Metadata.Name]; ok {
-		g.Param.VLLM.ModelName = override
-	}
 
 	// Set attention backend based on model name prefix
 	for prefix, backend := range attentionBackendPrefixMap {

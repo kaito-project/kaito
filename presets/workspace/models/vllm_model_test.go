@@ -227,12 +227,12 @@ func TestVLLMCompatibleModel_GetInferenceParameters_TransformerLookup(t *testing
 			if tt.expectTransformerPopulated {
 				expected := TransformerInferenceParameters["phi-4"]
 				assert.Equal(t, expected.BaseCommand, params.RuntimeParam.Transformers.BaseCommand)
-				assert.Equal(t, expected.ModelName, params.RuntimeParam.Transformers.ModelName)
+				assert.Equal(t, tt.modelName, params.RuntimeParam.Transformers.ModelName)
 				assert.Equal(t, expected.InferenceMainFile, params.RuntimeParam.Transformers.InferenceMainFile)
 				assert.NotEmpty(t, params.RuntimeParam.Transformers.AccelerateParams)
 			} else {
 				assert.Empty(t, params.RuntimeParam.Transformers.BaseCommand)
-				assert.Empty(t, params.RuntimeParam.Transformers.ModelName)
+				assert.Equal(t, tt.modelName, params.RuntimeParam.Transformers.ModelName)
 			}
 		})
 	}
@@ -243,7 +243,6 @@ func TestVLLMCompatibleModel_GetInferenceParameters_VLLMLookup(t *testing.T) {
 		name                  string
 		modelName             string
 		generatedRunParams    map[string]string
-		generatedModelName    string
 		expectModelName       string // expected served model name
 		expectRayCommands     bool
 		expectDisallowLoRA    bool
@@ -278,11 +277,10 @@ func TestVLLMCompatibleModel_GetInferenceParameters_VLLMLookup(t *testing.T) {
 			},
 		},
 		{
-			name:               "generator-produced ModelName override is used",
-			modelName:          "gemma-3-4b-it",
-			generatedModelName: "gemma-3-4b-instruct",
-			expectModelName:    "gemma-3-4b-instruct", // overridden
-			expectRayCommands:  true,
+			name:              "model name is used as served model name",
+			modelName:         "gemma-3-4b-it",
+			expectModelName:   "gemma-3-4b-it",
+			expectRayCommands: true,
 			expectModelRunParamKV: map[string]string{
 				"trust-remote-code": "",
 				"dtype":             "bfloat16",
@@ -305,7 +303,6 @@ func TestVLLMCompatibleModel_GetInferenceParameters_VLLMLookup(t *testing.T) {
 			m := &vLLMCompatibleModel{
 				model:              model.Metadata{Name: tt.modelName},
 				generatedRunParams: tt.generatedRunParams,
-				generatedModelName: tt.generatedModelName,
 			}
 			params := m.GetInferenceParameters()
 			assert.NotNil(t, params)

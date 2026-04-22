@@ -46,11 +46,11 @@ const (
 	PresetPhi3Mini128kModel         = "phi-3-mini-128k-instruct"
 	PresetPhi4MiniModel             = "phi-4-mini-instruct"
 	PresetPhi4Model                 = "phi-4"
-	PresetGemma3_4BInstructModel    = "gemma-3-4b-instruct"
-	PresetGemma3_27BInstructModel   = "gemma-3-27b-instruct"
+	PresetGemma3_4BInstructModel    = "google/gemma-3-4b-it"
+	PresetGemma3_27BInstructModel   = "google/gemma-3-27b-it"
 	PresetGPT_OSS_20BModel          = "gpt-oss-20b"
 	PresetGPT_OSS_120BModel         = "gpt-oss-120b"
-	PresetMinistral33BInstructModel = "ministral-3-3b-instruct"
+	PresetMinistral33BInstructModel = "mistralai/ministral-3-3b-instruct-2512"
 	WorkspaceHashAnnotation         = "workspace.kaito.io/hash"
 	// WorkspaceRevisionAnnotation represents the revision number of the workload managed by the workspace
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"
@@ -1106,7 +1106,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a gemma-3-4b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a gemma-3-4b-it workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createGemma3_4BInstructWorkspaceWithPresetPublicMode(numOfNode)
 
@@ -1129,7 +1129,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gemma-3-27b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+	It("should create a gemma-3-27b-it workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
 		numOfNode := 1
 		workspaceObj := createGemma3_27BInstructWorkspaceWithPresetPublicMode(numOfNode)
 

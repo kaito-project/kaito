@@ -45,7 +45,6 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 	model := &vLLMCompatibleModel{
 		model:              param.Metadata,
 		generatedRunParams: param.VLLM.ModelRunParams,
-		generatedModelName: param.VLLM.ModelName,
 	}
 	r := &plugin.Registration{
 		Name:     hfModelCardID,
@@ -128,7 +127,6 @@ func generateHuggingFaceModel(modelName, token string) (model.Model, error) {
 type vLLMCompatibleModel struct {
 	model              model.Metadata
 	generatedRunParams map[string]string // vLLM run params produced by the generator
-	generatedModelName string            // vLLM served model name from the generator
 }
 
 func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
@@ -171,18 +169,16 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		runParamsVLLM["reasoning-parser"] = m.model.ReasoningParser
 	}
 
-	modelName := metaData.Name
-	if m.generatedModelName != "" {
-		modelName = m.generatedModelName
-	}
-
 	vllmParam := model.VLLMParam{
 		BaseCommand:          DefaultVLLMCommand,
-		ModelName:            modelName,
+		ModelName:            metaData.Name,
 		ModelRunParams:       runParamsVLLM,
 		RayLeaderBaseCommand: DefaultVLLMRayLeaderBaseCommand,
 		RayWorkerBaseCommand: DefaultVLLMRayWorkerBaseCommand,
 	}
+
+	tfsParam := TransformerInferenceParameters[m.model.Name]
+	tfsParam.ModelName = metaData.Name
 
 	presetParam := &model.PresetParam{
 		Metadata:                *metaData,
@@ -191,7 +187,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		BytesPerToken:           m.model.BytesPerToken,
 		ModelTokenLimit:         m.model.ModelTokenLimit,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: TransformerInferenceParameters[m.model.Name],
+			Transformers: tfsParam,
 			VLLM:         vllmParam,
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,

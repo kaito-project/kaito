@@ -84,7 +84,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    phiRunParams,
-		ModelName:         "phi-4",
 		Tag:               "0.2.0",
 	},
 	// phi-4-mini-instruct requires transformer v5.0+
@@ -93,7 +92,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 	// 	AccelerateParams:  defaultAccelerateParams,
 	// 	InferenceMainFile: defaultTransformersMainFile,
 	// 	ModelRunParams:    phiRunParams,
-	// 	ModelName:         "phi-4-mini-instruct",
 	// 	Tag:               "0.2.0",
 	// },
 
@@ -103,7 +101,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    phiRunParams,
-		ModelName:         "phi-3-mini-4k-instruct",
 		Tag:               "0.2.0",
 	},
 	"phi-3-mini-128k-instruct": {
@@ -111,7 +108,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    phiRunParams,
-		ModelName:         "phi-3-mini-128k-instruct",
 		Tag:               "0.2.0",
 	},
 	"phi-3-medium-4k-instruct": {
@@ -119,7 +115,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    phiRunParams,
-		ModelName:         "phi-3-medium-4k-instruct",
 		Tag:               "0.2.0",
 	},
 	"phi-3-medium-128k-instruct": {
@@ -127,7 +122,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    phiRunParams,
-		ModelName:         "phi-3-medium-128k-instruct",
 		Tag:               "0.2.0",
 	},
 	"phi-3.5-mini-instruct": {
@@ -135,7 +129,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    phiRunParams,
-		ModelName:         "phi-3.5-mini-instruct",
 		Tag:               "0.2.0",
 	},
 
@@ -145,7 +138,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    mistralRunParams,
-		ModelName:         "mistral-7b",
 		Tag:               "0.2.0",
 	},
 	"mistral-7b-instruct-v0.3": {
@@ -153,7 +145,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    mistralRunParams,
-		ModelName:         "mistral-7b-instruct",
 		Tag:               "0.2.0",
 	},
 	// ministral-3-3b/8b/14b require transformer v5.0+
@@ -162,7 +153,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 	// 	AccelerateParams:  defaultAccelerateParams,
 	// 	InferenceMainFile: defaultTransformersMainFile,
 	// 	ModelRunParams:    mistralRunParams,
-	// 	ModelName:         "ministral-3-3b-instruct",
 	// 	Tag:               "0.0.1",
 	// },
 	// "ministral-3-8b-instruct-2512": {
@@ -170,7 +160,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 	// 	AccelerateParams:  defaultAccelerateParams,
 	// 	InferenceMainFile: defaultTransformersMainFile,
 	// 	ModelRunParams:    mistralRunParams,
-	// 	ModelName:         "ministral-3-8b-instruct",
 	// 	Tag:               "0.0.1",
 	// },
 	// "ministral-3-14b-instruct-2512": {
@@ -178,7 +167,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 	// 	AccelerateParams:  defaultAccelerateParams,
 	// 	InferenceMainFile: defaultTransformersMainFile,
 	// 	ModelRunParams:    mistralRunParams,
-	// 	ModelName:         "ministral-3-14b-instruct",
 	// 	Tag:               "0.0.1",
 	// },
 	"mistral-large-3-675b-instruct": {
@@ -186,7 +174,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    mistralRunParams,
-		ModelName:         "mistral-large-3-675b-instruct",
 		Tag:               "0.0.1",
 	},
 
@@ -196,7 +183,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    gemma3RunParams,
-		ModelName:         "gemma-3-4b-instruct",
 		Tag:               "0.0.1",
 	},
 	"gemma-3-27b-it": {
@@ -204,7 +190,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    gemma3RunParams,
-		ModelName:         "gemma-3-27b-instruct",
 		Tag:               "0.0.1",
 	},
 
@@ -214,7 +199,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    qwenRunParams,
-		ModelName:         "qwen2.5-coder-7b-instruct",
 		Tag:               "0.2.0",
 	},
 	"qwen2.5-coder-32b-instruct": {
@@ -222,7 +206,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    qwenRunParams,
-		ModelName:         "qwen2.5-coder-32b-instruct",
 		Tag:               "0.2.0",
 	},
 
@@ -232,7 +215,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    llamaRunParams,
-		ModelName:         "llama-3.1-8b-instruct",
 		Tag:               "0.2.0",
 	},
 	"llama-3.3-70b-instruct": {
@@ -240,7 +222,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    llamaRunParams,
-		ModelName:         "llama-3.3-70b-instruct",
 		Tag:               "0.0.1",
 	},
 
@@ -250,7 +231,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    gptRunParams,
-		ModelName:         "gpt-oss-20b",
 		Tag:               "0.0.2",
 	},
 	"gpt-oss-120b": {
@@ -258,7 +238,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    gptRunParams,
-		ModelName:         "gpt-oss-120b",
 		Tag:               "0.0.1",
 	},
 
@@ -268,7 +247,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    deepseekDistillRunParams,
-		ModelName:         "deepseek-r1-distill-llama-8b",
 		Tag:               "0.2.0",
 	},
 	"deepseek-r1-distill-qwen-14b": {
@@ -276,7 +254,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    deepseekDistillRunParams,
-		ModelName:         "deepseek-r1-distill-qwen-14b",
 		Tag:               "0.2.0",
 	},
 	"deepseek-r1-0528": {
@@ -284,7 +261,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    deepseekLargeRunParams,
-		ModelName:         "deepseek-r1-0528",
 		Tag:               "0.0.1",
 	},
 	"deepseek-v3-0324": {
@@ -292,7 +268,6 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 		AccelerateParams:  defaultAccelerateParams,
 		InferenceMainFile: defaultTransformersMainFile,
 		ModelRunParams:    deepseekLargeRunParams,
-		ModelName:         "deepseek-v3-0324",
 		Tag:               "0.0.1",
 	},
 }

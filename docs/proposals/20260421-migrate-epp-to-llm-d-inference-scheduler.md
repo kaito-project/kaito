@@ -172,6 +172,42 @@ When `eppPluginsConfigRef` is set:
 3. Flux reconciles the HelmRelease → EPP deployment picks up the custom config
 4. Controller watches the referenced ConfigMap for changes and triggers re-reconciliation
 
+#### Configuration Update Behavior
+
+The llm-d EPP (v0.7.1) loads the plugin configuration **once at startup** via `--configFile` and does not support hot-reload. When the `eppPluginsConfigRef` ConfigMap is updated, the EPP pod must be restarted to pick up the new configuration.
+
+KAITO handles this automatically:
+
+1. The InferenceSet controller watches the referenced ConfigMap for changes
+2. On change, the controller computes a SHA-256 checksum of the ConfigMap's `config.yaml` content and updates the HelmRelease values with a checksum annotation on the EPP Deployment pod template:
+   ```yaml
+   podAnnotations:
+     checksum/epp-plugins-config: <sha256 of config.yaml>
+   ```
+3. Flux reconciles the HelmRelease → the annotation change triggers a rolling restart of the EPP Deployment
+4. The new EPP pod starts with the updated configuration
+
+This makes ConfigMap updates transparent to the user — they only need to update the ConfigMap, and KAITO handles the restart automatically.
+
+> **Note**: If llm-d adds hot-reload support in a future version, KAITO can remove the checksum annotation mechanism. The ConfigMap volume mount would be sufficient since Kubernetes automatically propagates ConfigMap updates to mounted volumes (with the kubelet sync delay, typically ~60s).
+
+#### Validation
+
+Validation is performed at two levels:
+
+1. **KAITO controller-level (structural validation)**:
+   - Validates that the referenced ConfigMap exists
+   - Validates that the ConfigMap contains the required `config.yaml` key
+   - If validation fails, the controller sets a `ConfigInvalid` condition on the InferenceSet and does **not** proceed with the HelmRelease update
+   - The controller does **not** validate plugin names, types, or parameters — this avoids tight coupling with the llm-d plugin ecosystem
+
+2. **EPP-level (semantic validation)**:
+   - The llm-d EPP validates the full `EndpointPickerConfig` schema on load, including plugin types, parameters, and scheduling profile references ([configloader.go](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/main/pkg/epp/config/loader/configloader.go))
+   - If the configuration is invalid (unknown plugin type, missing required parameter, invalid profile reference), the EPP fails to start and the pod enters `CrashLoopBackOff`
+   - Users can diagnose configuration errors via `kubectl logs` on the EPP pod
+
+This separation ensures KAITO remains loosely coupled with llm-d — new plugins can be added upstream without requiring KAITO code changes.
+
 #### Example: Precise Prefix Cache Scorer
 
 Token-level KV cache matching using KV events from the routing sidecar:

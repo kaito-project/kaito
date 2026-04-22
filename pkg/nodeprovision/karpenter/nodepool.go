@@ -81,7 +81,7 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 	templateLabels := map[string]string{
 		consts.KarpenterWorkspaceKey:         ws.Name,
 		kaitov1beta1.LabelWorkspaceName:      ws.Name,      // Required by the controller's NodeClaim watch predicate.
-		kaitov1beta1.LabelWorkspaceNamespace: ws.Namespace,  // Required by the controller's NodeClaim event handler.
+		kaitov1beta1.LabelWorkspaceNamespace: ws.Namespace, // Required by the controller's NodeClaim event handler.
 	}
 	if ws.Resource.LabelSelector != nil {
 		for k, v := range ws.Resource.LabelSelector.MatchLabels {

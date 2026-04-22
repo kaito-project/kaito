@@ -72,6 +72,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 						"tag":        consts.EPPImageTag,
 						"pullPolicy": string(corev1.PullIfNotPresent),
 					},
+					"flags": map[string]any{
+						"secure-serving": false,
+					},
 				},
 				"inferencePool": map[string]any{
 					"targetPorts": []any{

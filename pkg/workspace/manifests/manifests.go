@@ -387,6 +387,12 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 				"tag":        consts.EPPImageTag,
 				"pullPolicy": string(corev1.PullIfNotPresent),
 			},
+			"flags": map[string]any{
+				// Disable EPP's built-in self-signed TLS so that the Gateway provider
+				// (Istio / Envoy Gateway) handles mTLS natively.  This removes the
+				// need for an Istio DestinationRule to bypass certificate verification.
+				"secure-serving": false,
+			},
 		},
 		"inferencePool": map[string]any{
 			"targetPorts": []map[string]any{{

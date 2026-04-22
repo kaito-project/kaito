@@ -20,6 +20,7 @@ import (
 	"path"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	kustomize "github.com/fluxcd/pkg/apis/kustomize"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -387,13 +388,6 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 				"tag":        consts.EPPImageTag,
 				"pullPolicy": string(corev1.PullIfNotPresent),
 			},
-			// Disable EPP's built-in self-signed TLS so that the Gateway provider
-			// (Istio / Envoy Gateway) handles mTLS natively. This removes the
-			// need for an Istio DestinationRule to bypass certificate verification.
-			// Requires upstream GWIE chart fix: https://github.com/kubernetes-sigs/gateway-api-inference-extension/pull/2871
-			"flags": map[string]any{
-				"secure-serving": false,
-			},
 		},
 		"inferencePool": map[string]any{
 			"targetPorts": []map[string]any{{
@@ -427,6 +421,25 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 			Values: &apiextensionsv1.JSON{
 				Raw: rawHelmValues,
 			},
+			// Disable EPP's built-in self-signed TLS so that the Gateway provider
+			// (Istio / Envoy Gateway) handles mTLS natively. This removes the
+			// need for an Istio DestinationRule to bypass certificate verification.
+			// We use a Flux postRenderer instead of chart flags because the current
+			// GWIE chart (v1.3.1) renders boolean flags as separate args
+			// (--key "value"), which Go pflag misinterprets for bool flags.
+			// See: https://github.com/kubernetes-sigs/gateway-api-inference-extension/pull/2871
+			PostRenderers: []helmv2.PostRenderer{{
+				Kustomize: &helmv2.Kustomize{
+					Patches: []kustomize.Patch{{
+						Target: &kustomize.Selector{
+							Kind: "Deployment",
+						},
+						Patch: `- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value: --secure-serving=false`,
+					}},
+				},
+			}},
 		},
 	}, nil
 }

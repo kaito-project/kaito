@@ -72,9 +72,6 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 						"tag":        consts.EPPImageTag,
 						"pullPolicy": string(corev1.PullIfNotPresent),
 					},
-					"flags": map[string]any{
-						"secure-serving": false,
-					},
 				},
 				"inferencePool": map[string]any{
 					"targetPorts": []any{
@@ -113,6 +110,14 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 			vals := map[string]any{}
 			assert.NoError(t, json.Unmarshal(helmRelease.Spec.Values.Raw, &vals))
 			assert.Equal(t, tc.expected, vals)
+
+			// Verify postRenderers inject --secure-serving=false
+			assert.Len(t, helmRelease.Spec.PostRenderers, 1)
+			assert.NotNil(t, helmRelease.Spec.PostRenderers[0].Kustomize)
+			assert.Len(t, helmRelease.Spec.PostRenderers[0].Kustomize.Patches, 1)
+			patch := helmRelease.Spec.PostRenderers[0].Kustomize.Patches[0]
+			assert.Equal(t, "Deployment", patch.Target.Kind)
+			assert.Contains(t, patch.Patch, "--secure-serving=false")
 		})
 	}
 }

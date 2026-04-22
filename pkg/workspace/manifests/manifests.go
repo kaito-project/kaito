@@ -281,7 +281,7 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 		if templateCopy.Spec.NodeSelector == nil {
 			templateCopy.Spec.NodeSelector = make(map[string]string)
 		}
-		templateCopy.Spec.NodeSelector[consts.KarpenterWorkspaceKey] = workspaceObj.Name
+		templateCopy.Spec.NodeSelector[consts.KarpenterWorkspaceKey] = workspaceObj.Namespace + "-" + workspaceObj.Name
 	}
 
 	// Overwrite affinity

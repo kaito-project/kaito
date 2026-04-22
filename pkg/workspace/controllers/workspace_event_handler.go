@@ -15,6 +15,7 @@ package controllers
 
 import (
 	"context"
+	"strings"
 
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
@@ -26,6 +27,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type nodeClaimEventHandler struct {
@@ -37,15 +39,20 @@ type nodeClaimEventHandler struct {
 var _ handler.TypedEventHandler[client.Object, reconcile.Request] = (*nodeClaimEventHandler)(nil)
 
 func getControllerKeyForNodeClaim(nc *karpenterv1.NodeClaim) *client.ObjectKey {
-	name, ok := nc.Labels[kaitov1beta1.LabelWorkspaceName]
-	if !ok {
-		return nil
+	// Legacy gpu-provisioner path.
+	if name, ok := nc.Labels[kaitov1beta1.LabelWorkspaceName]; ok {
+		if namespace, ok := nc.Labels[kaitov1beta1.LabelWorkspaceNamespace]; ok {
+			return &client.ObjectKey{Namespace: namespace, Name: name}
+		}
 	}
-	namespace, ok := nc.Labels[kaitov1beta1.LabelWorkspaceNamespace]
-	if !ok {
-		return nil
+	// Karpenter path — label value is "namespace-name" (nodePoolName format).
+	if nodePoolName, ok := nc.Labels[consts.KarpenterWorkspaceKey]; ok {
+		if namespace, ok := nc.Labels[consts.KarpenterWorkspaceNamespaceKey]; ok {
+			name := strings.TrimPrefix(nodePoolName, namespace+"-")
+			return &client.ObjectKey{Namespace: namespace, Name: name}
+		}
 	}
-	return &client.ObjectKey{Namespace: namespace, Name: name}
+	return nil
 }
 
 func (n *nodeClaimEventHandler) Create(ctx context.Context, evt event.TypedCreateEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {

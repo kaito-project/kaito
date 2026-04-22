@@ -162,7 +162,7 @@ func TestGenerateNodePool_Standalone(t *testing.T) {
 	assert.Equal(t, consts.KarpenterManagedByValue, np.Labels[consts.KarpenterLabelManagedBy])
 
 	// Template labels
-	assert.Equal(t, ws.Name, np.Spec.Template.Labels[consts.KarpenterWorkspaceKey])
+	assert.Equal(t, "default-llama-serve", np.Spec.Template.Labels[consts.KarpenterWorkspaceKey])
 
 	// Standalone workspaces should NOT have InferenceSet labels
 	_, hasInfSetLabel := np.Spec.Template.Labels[consts.KarpenterInferenceSetKey]
@@ -185,7 +185,7 @@ func TestGenerateNodePool_Standalone(t *testing.T) {
 	assert.Equal(t, 1, len(np.Spec.Template.Spec.Taints))
 	taint := np.Spec.Template.Spec.Taints[0]
 	assert.Equal(t, consts.KarpenterWorkspaceKey, taint.Key)
-	assert.Equal(t, ws.Name, taint.Value)
+	assert.Equal(t, "default-llama-serve", taint.Value)
 	assert.Equal(t, corev1.TaintEffectNoSchedule, taint.Effect)
 
 	// Disruption — standalone gets budget "1"

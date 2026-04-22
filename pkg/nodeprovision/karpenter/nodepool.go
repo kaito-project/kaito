@@ -76,13 +76,12 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 	}
 
 	// Template labels propagated to NodeClaims and Nodes.
-	// Include the workspace scheduling label plus the user's matchLabels
-	// so that inference pods' nodeAffinity (built from matchLabels) is satisfied.
 	templateLabels := map[string]string{
-		consts.KarpenterWorkspaceKey:         ws.Name,
-		kaitov1beta1.LabelWorkspaceName:      ws.Name,      // Required by the controller's NodeClaim watch predicate.
-		kaitov1beta1.LabelWorkspaceNamespace: ws.Namespace, // Required by the controller's NodeClaim event handler.
+		consts.KarpenterWorkspaceKey:          nodePoolName,
+		consts.KarpenterWorkspaceNamespaceKey: ws.Namespace,
 	}
+	// Include the user's matchLabels so that inference pods' nodeAffinity
+	// (built from matchLabels) is satisfied.
 	if ws.Resource.LabelSelector != nil {
 		for k, v := range ws.Resource.LabelSelector.MatchLabels {
 			templateLabels[k] = v
@@ -124,7 +123,7 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 					Taints: []corev1.Taint{
 						{
 							Key:    consts.KarpenterWorkspaceKey,
-							Value:  ws.Name,
+							Value:  nodePoolName,
 							Effect: corev1.TaintEffectNoSchedule,
 						},
 					},

@@ -112,6 +112,7 @@ const (
 
 	// Karpenter NodePool management labels and values.
 	KarpenterWorkspaceKey             = "karpenter.kaito.sh/workspace"
+	KarpenterWorkspaceNamespaceKey    = "karpenter.kaito.sh/workspace-namespace"
 	KarpenterInferenceSetKey          = "karpenter.kaito.sh/inferenceset"
 	KarpenterInferenceSetNamespaceKey = "karpenter.kaito.sh/inferenceset-namespace"
 )

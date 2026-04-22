@@ -112,7 +112,7 @@ func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
 			Effect:   corev1.TaintEffectNoSchedule,
 			Key:      consts.KarpenterWorkspaceKey,
 			Operator: corev1.TolerationOpEqual,
-			Value:    ws.Name,
+			Value:    ws.Namespace + "-" + ws.Name,
 		})
 	}
 
@@ -479,7 +479,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 
 		if consts.IsKarpenterProvisioner() {
 			spec.NodeSelector = map[string]string{
-				consts.KarpenterWorkspaceKey: ctx.Workspace.Name,
+				consts.KarpenterWorkspaceKey: ctx.Workspace.Namespace + "-" + ctx.Workspace.Name,
 			}
 		}
 		spec.Affinity = &corev1.Affinity{

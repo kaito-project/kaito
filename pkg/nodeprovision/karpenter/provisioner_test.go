@@ -145,6 +145,9 @@ func TestProvisionNodes_UsesAnnotationImageFamily(t *testing.T) {
 
 func TestDeleteNodes_Success(t *testing.T) {
 	mockClient := test.NewClient()
+	np := &karpenterv1.NodePool{ObjectMeta: metav1.ObjectMeta{Name: "default-ws1"}}
+	mockClient.CreateOrUpdateObjectInMap(np)
+	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
 	mockClient.On("Delete", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
 
 	p := NewKarpenterProvisioner(mockClient, testConfig)
@@ -157,7 +160,7 @@ func TestDeleteNodes_Success(t *testing.T) {
 func TestDeleteNodes_NotFound(t *testing.T) {
 	mockClient := test.NewClient()
 	notFoundErr := apierrors.NewNotFound(schema.GroupResource{Group: "karpenter.sh", Resource: "nodepools"}, "default-ws1")
-	mockClient.On("Delete", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(notFoundErr)
+	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(notFoundErr)
 
 	p := NewKarpenterProvisioner(mockClient, testConfig)
 	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, nil)
@@ -166,8 +169,33 @@ func TestDeleteNodes_NotFound(t *testing.T) {
 	assert.NoError(t, err) // NotFound is silently ignored
 }
 
+func TestDeleteNodes_AlreadyDeleting(t *testing.T) {
+	mockClient := test.NewClient()
+	now := metav1.Now()
+	np := &karpenterv1.NodePool{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "default-ws1",
+			DeletionTimestamp: &now,
+			Finalizers:        []string{"karpenter.sh/termination"},
+		},
+	}
+	mockClient.CreateOrUpdateObjectInMap(np)
+	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
+
+	p := NewKarpenterProvisioner(mockClient, testConfig)
+	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, nil)
+
+	err := p.DeleteNodes(context.Background(), ws)
+	assert.NoError(t, err)
+	// Delete should NOT have been called
+	mockClient.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything, mock.Anything)
+}
+
 func TestDeleteNodes_DeleteError(t *testing.T) {
 	mockClient := test.NewClient()
+	np := &karpenterv1.NodePool{ObjectMeta: metav1.ObjectMeta{Name: "default-ws1"}}
+	mockClient.CreateOrUpdateObjectInMap(np)
+	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
 	mockClient.On("Delete", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(errors.New("forbidden"))
 
 	p := NewKarpenterProvisioner(mockClient, testConfig)

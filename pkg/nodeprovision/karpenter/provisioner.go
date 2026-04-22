@@ -27,6 +27,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
+	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
 
 // NodeClassConfig holds cloud-specific NodeClass reference info injected at
@@ -42,15 +43,16 @@ type NodeClassConfig struct {
 // Karpenter API (NodePool / NodeClaim). Cloud-specific details (NodeClass
 // group, kind, name mapping) are provided via NodeClassConfig.
 type KarpenterProvisioner struct {
-	client          client.Client
-	nodeClassConfig NodeClassConfig
+	client              client.Client
+	nodeClassConfig     NodeClassConfig
+	nodeResourceManager *resource.NodeManager
 }
 
 var _ nodeprovision.NodeProvisioner = (*KarpenterProvisioner)(nil)
 
 // NewKarpenterProvisioner creates a new KarpenterProvisioner.
 func NewKarpenterProvisioner(c client.Client, cfg NodeClassConfig) *KarpenterProvisioner {
-	return &KarpenterProvisioner{client: c, nodeClassConfig: cfg}
+	return &KarpenterProvisioner{client: c, nodeClassConfig: cfg, nodeResourceManager: resource.NewNodeManager(c)}
 }
 
 // Name returns the provisioner name.
@@ -77,8 +79,15 @@ func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1be
 func (p *KarpenterProvisioner) DeleteNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
 	nodePoolName := NodePoolName(ws.Namespace, ws.Name)
 	np := &karpenterv1.NodePool{}
-	np.Name = nodePoolName
-
+	if err := p.client.Get(ctx, types.NamespacedName{Name: nodePoolName}, np); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return fmt.Errorf("getting NodePool %q: %w", nodePoolName, err)
+	}
+	if np.DeletionTimestamp != nil {
+		return nil
+	}
 	if err := p.client.Delete(ctx, np); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil
@@ -89,9 +98,9 @@ func (p *KarpenterProvisioner) DeleteNodes(ctx context.Context, ws *kaitov1beta1
 }
 
 // EnsureNodesReady returns (true, false, nil) when all expected NodeClaims for
-// the Workspace are present and in Ready state (not being deleted).
-// When not ready, needRequeue is false because NodeClaim watch events trigger
-// reconciliation — no polling requeue is needed.
+// the Workspace are present, in Ready state, and have GPU resources available.
+// Returns needRequeue=true when NodeClaims are ready but GPU plugins are not,
+// since GPU readiness is not event-driven.
 func (p *KarpenterProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
 	nodePoolName := NodePoolName(ws.Namespace, ws.Name)
 
@@ -106,10 +115,21 @@ func (p *KarpenterProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1
 		return false, false, nil
 	}
 
+	existingNodeClaims := make([]*karpenterv1.NodeClaim, 0, len(nodeClaimList.Items))
 	for i := range nodeClaimList.Items {
 		if !nodeclaim.IsNodeClaimReadyNotDeleting(&nodeClaimList.Items[i]) {
 			return false, false, nil
 		}
+		existingNodeClaims = append(existingNodeClaims, &nodeClaimList.Items[i])
+	}
+
+	// Verify GPU device plugins are ready on all provisioned nodes.
+	pluginReady, err := p.nodeResourceManager.CheckIfNodePluginsReady(ctx, ws, existingNodeClaims)
+	if err != nil {
+		return false, false, fmt.Errorf("checking GPU plugin readiness: %w", err)
+	}
+	if !pluginReady {
+		return false, true, nil // needRequeue=true, GPU not ready yet
 	}
 
 	return true, false, nil
@@ -140,6 +160,9 @@ func (p *KarpenterProvisioner) setDriftBudget(ctx context.Context, workspaceName
 		for i := range np.Spec.Disruption.Budgets {
 			for _, reason := range np.Spec.Disruption.Budgets[i].Reasons {
 				if reason == karpenterv1.DisruptionReasonDrifted {
+					if np.Spec.Disruption.Budgets[i].Nodes == nodes {
+						return nil
+					}
 					np.Spec.Disruption.Budgets[i].Nodes = nodes
 					found = true
 					break
@@ -189,11 +212,13 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 		return nil, fmt.Errorf("listing NodeClaims for NodePool %q: %w", nodePoolName, err)
 	}
 
-	// Count ready NodeClaims.
+	// Count ready NodeClaims and collect pointers for GPU check.
 	readyCount := 0
+	existingNodeClaims := make([]*karpenterv1.NodeClaim, 0, len(nodeClaimList.Items))
 	for i := range nodeClaimList.Items {
 		if nodeclaim.IsNodeClaimReadyNotDeleting(&nodeClaimList.Items[i]) {
 			readyCount++
+			existingNodeClaims = append(existingNodeClaims, &nodeClaimList.Items[i])
 		}
 	}
 
@@ -203,12 +228,19 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 		nodeClaimCond.Reason = "NodeClaimsReady"
 		nodeClaimCond.Message = "Enough NodeClaims are ready"
 
-		// For karpenter, NodeClaim readiness implies node readiness because
-		// karpenter only marks a NodeClaim Ready after the underlying node
-		// is registered and ready.
-		nodeCond.Status = metav1.ConditionTrue
-		nodeCond.Reason = "NodesReady"
-		nodeCond.Message = "Enough Nodes are ready"
+		// Check GPU plugin readiness on the underlying nodes.
+		pluginReady, err := p.nodeResourceManager.CheckIfNodePluginsReady(ctx, ws, existingNodeClaims)
+		if err != nil {
+			return nil, fmt.Errorf("checking GPU plugin readiness: %w", err)
+		}
+		if pluginReady {
+			nodeCond.Status = metav1.ConditionTrue
+			nodeCond.Reason = "NodesReady"
+			nodeCond.Message = "Enough Nodes are ready with GPU resources"
+		} else {
+			nodeCond.Reason = "GPUPluginNotReady"
+			nodeCond.Message = "GPU resources not yet available on nodes"
+		}
 	}
 
 	// Derive resource condition.

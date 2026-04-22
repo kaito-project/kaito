@@ -131,54 +131,111 @@ All three default scorers work out of the box with KAITO's vLLM inference server
 
 The EPP scrapes metrics from the InferencePool's `targetPorts` (port 5000, the same port as KAITO's vLLM API endpoint). KAITO's vLLM exposes the `/metrics` endpoint on port 5000 with all required Prometheus metrics.
 
-### Advanced llm-d Plugins
+### Advanced: Custom EPP Plugin Configuration
 
-Users can access llm-d-specific plugins by providing custom `pluginsCustomConfig` in the InferencePool Helm values:
+For advanced plugins like `precise-prefix-cache-scorer` or P/D disaggregation, users provide a custom `EndpointPickerConfig` via a **ConfigMap reference** in the InferenceSet spec. This keeps the InferenceSet clean — the plugin configuration lives in a separate ConfigMap.
 
-#### Precise Prefix Cache Scorer
+#### API Changes
+
+Add an optional `eppPluginsConfigRef` field to InferenceSetSpec:
+
+```go
+type InferenceSetSpec struct {
+    // ...existing fields...
+
+    // EPPPluginsConfigRef references a ConfigMap containing custom EPP plugins configuration.
+    // The ConfigMap must contain a key "config.yaml" with the EndpointPickerConfig content.
+    // If not specified, the default llm-d plugins (queue-scorer, kv-cache-utilization-scorer,
+    // prefix-cache-scorer) are used.
+    // +optional
+    EPPPluginsConfigRef *corev1.LocalObjectReference `json:"eppPluginsConfigRef,omitempty"`
+}
+```
+
+#### User Experience
+
+```yaml
+apiVersion: kaito.sh/v1alpha1
+kind: InferenceSet
+metadata:
+  name: phi-4-mini
+spec:
+  eppPluginsConfigRef:
+    name: phi-4-mini-epp-plugins   # references a ConfigMap in the same namespace
+  # ...other fields unchanged...
+```
+
+#### Controller Behavior
+
+When `eppPluginsConfigRef` is set:
+
+1. Controller reads the referenced ConfigMap's `config.yaml` key
+2. Injects the content into the InferencePool HelmRelease values:
+   ```yaml
+   inferenceExtension:
+     pluginsConfigFile: "custom-plugins.yaml"
+     pluginsCustomConfig:
+       custom-plugins.yaml: <content from ConfigMap>
+   ```
+3. Flux reconciles the HelmRelease → EPP deployment picks up the custom config
+4. Controller watches the referenced ConfigMap for changes and triggers re-reconciliation
+
+#### Example: Precise Prefix Cache Scorer
 
 Token-level KV cache matching using KV events from the routing sidecar:
 
 ```yaml
-inferenceExtension:
-  pluginsCustomConfig:
-    custom-plugins.yaml: |-
-      apiVersion: inference.networking.x-k8s.io/v1alpha1
-      kind: EndpointPickerConfig
-      plugins:
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: phi-4-mini-epp-plugins
+data:
+  config.yaml: |
+    apiVersion: inference.networking.x-k8s.io/v1alpha1
+    kind: EndpointPickerConfig
+    plugins:
+      - type: single-profile-handler
+      - type: decode-filter
       - type: precise-prefix-cache-scorer
         parameters:
+          tokenProcessorConfig:
+            blockSize: 64                 # must match vLLM block size
+            hashSeed: "42"                # must match vLLM PYTHONHASHSEED env var
           indexerConfig:
-            tokenProcessorConfig:
-              blockSize: 5
             kvBlockIndexConfig:
-              maxPrefixBlocksToMatch: 256
-      - type: decode-filter
+              enableMetrics: true
+      - type: kv-cache-utilization-scorer
+      - type: queue-scorer
       - type: max-score-picker
-      - type: single-profile-handler
-      schedulingProfiles:
+    schedulingProfiles:
       - name: default
         plugins:
-        - pluginRef: decode-filter
-        - pluginRef: max-score-picker
-        - pluginRef: precise-prefix-cache-scorer
-          weight: 50
-  pluginsConfigFile: "custom-plugins.yaml"
+          - pluginRef: decode-filter
+          - pluginRef: precise-prefix-cache-scorer
+            weight: 2.0
+          - pluginRef: kv-cache-utilization-scorer
+            weight: 1.0
+          - pluginRef: queue-scorer
+            weight: 1.0
+          - pluginRef: max-score-picker
 ```
 
-#### Prefill/Decode (P/D) Disaggregation
+> **Note**: `precise-prefix-cache-scorer` requires the `llm-d-routing-sidecar` to provide KV events via UDS socket. The sidecar must be deployed alongside vLLM pods.
 
-Separate prefill and decode phases to different pods for better GPU utilization:
+#### Example: Prefill/Decode (P/D) Disaggregation
 
 ```yaml
-inferenceExtension:
-  pluginsCustomConfig:
-    custom-plugins.yaml: |-
-      apiVersion: inference.networking.x-k8s.io/v1alpha1
-      kind: EndpointPickerConfig
-      featureGates:
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pd-disagg-epp-plugins
+data:
+  config.yaml: |
+    apiVersion: inference.networking.x-k8s.io/v1alpha1
+    kind: EndpointPickerConfig
+    featureGates:
       - prepareDataPlugins
-      plugins:
+    plugins:
       - type: prefix-based-pd-decider
         parameters:
           nonCachedTokens: 4
@@ -198,17 +255,16 @@ inferenceExtension:
             inference-role: decode
       - type: precise-prefix-cache-scorer
       - type: max-score-picker
-      schedulingProfiles:
+    schedulingProfiles:
       - name: prefill
         plugins:
-        - pluginRef: prefill-filter
-        - pluginRef: precise-prefix-cache-scorer
-          weight: 50
+          - pluginRef: prefill-filter
+          - pluginRef: precise-prefix-cache-scorer
+            weight: 50
       - name: decode
         plugins:
-        - pluginRef: decode-filter
-        - pluginRef: max-score-picker
-  pluginsConfigFile: "custom-plugins.yaml"
+          - pluginRef: decode-filter
+          - pluginRef: max-score-picker
 ```
 
 > **Note**: P/D disaggregation requires prefill and decode pods deployed separately with appropriate labels (`inference-role: prefill` / `inference-role: decode`).
@@ -218,9 +274,9 @@ inferenceExtension:
 | Feature | Extra Config Needed? | Notes |
 |---------|---------------------|-------|
 | Basic inference routing (queue/kv-cache/prefix-cache) | ❌ No | Default plugins work out of the box |
-| Precise prefix cache matching | ✅ Yes | Custom `pluginsCustomConfig` |
-| P/D disaggregated scheduling | ✅ Yes | Custom config + separate prefill/decode pods |
-| Label-based pod filtering | ✅ Yes | Custom `pluginsCustomConfig` |
+| Precise prefix cache matching | ✅ Yes | ConfigMap with `eppPluginsConfigRef` |
+| P/D disaggregated scheduling | ✅ Yes | ConfigMap + separate prefill/decode pods |
+| Label-based pod filtering | ✅ Yes | ConfigMap with `eppPluginsConfigRef` |
 | BBR multi-model routing | ❌ No | Independent component, unchanged |
 
 ### Request Flow

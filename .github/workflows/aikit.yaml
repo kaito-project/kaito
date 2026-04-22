@@ -174,6 +174,36 @@ jobs:
           echo "Waiting for inferenceset to be ready..."
           kubectl wait --for='jsonpath={.status.readyReplicas}=1' inferenceset/inferenceset-aikit-test --timeout 300s
 
+      - name: Validate GWIE resource chain
+        run: |
+          POOL_NAME="inferenceset-aikit-test-inferencepool"
+
+          echo "=== Checking Flux OCIRepository ==="
+          kubectl wait --for=condition=ready ocirepository/$POOL_NAME --timeout=120s
+          echo "OCIRepository is ready"
+
+          echo "=== Checking Flux HelmRelease ==="
+          kubectl wait --for=condition=ready helmrelease/$POOL_NAME --timeout=180s
+          echo "HelmRelease is ready"
+
+          echo "=== Checking InferencePool ==="
+          kubectl get inferencepool $POOL_NAME -o yaml
+          echo "InferencePool created successfully"
+
+          echo "=== Checking EPP Deployment ==="
+          kubectl wait --for=condition=available --timeout=180s deployment/${POOL_NAME}-epp
+          echo "EPP Deployment is available"
+
+          echo "=== Verifying EPP pod args ==="
+          EPP_ARGS=$(kubectl get deployment ${POOL_NAME}-epp -o jsonpath='{.spec.template.spec.containers[0].args}')
+          echo "EPP args: $EPP_ARGS"
+          if echo "$EPP_ARGS" | grep -q "pool-name"; then
+            echo "EPP pool-name arg found"
+          else
+            echo "ERROR: EPP missing pool-name arg"
+            exit 1
+          fi
+
       - name: Validate response content
         run: |
           # Set up port forwarding to the workspace service
@@ -268,3 +298,18 @@ jobs:
 
           echo "=== Node information ==="
           kubectl describe nodes
+
+          echo "=== GWIE: OCIRepository ==="
+          kubectl get ocirepository -A -o yaml
+
+          echo "=== GWIE: HelmRelease ==="
+          kubectl get helmrelease -A -o yaml
+
+          echo "=== GWIE: InferencePool ==="
+          kubectl get inferencepool -A -o yaml
+
+          echo "=== GWIE: EPP Deployment ==="
+          kubectl get deployment -l app=inferenceset-aikit-test-inferencepool-epp -o yaml
+
+          echo "=== GWIE: EPP Pod Logs ==="
+          kubectl logs -l app=inferenceset-aikit-test-inferencepool-epp --tail=50 || true

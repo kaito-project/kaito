@@ -65,10 +65,10 @@ The InferencePool Helm chart remains from GWIE. Only the EPP container image is 
 │                   │    │   to llm-d)               │
 │  oci://registry.  │    │                           │
 │  k8s.io/gateway-  │    │  image:                   │
-│  api-inference-   │    │    hub: mcr.microsoft.com  │
-│  extension/charts │    │         /oss/v2/llm-d     │
-│  /inferencepool   │    │    name: llm-d-inference   │
-│                   │    │          -scheduler        │
+│  api-inference-   │    │    hub: mcr.microsoft.    │
+│  extension/charts │    │      com/oss/v2/llm-d     │
+│  /inferencepool   │    │    name: llm-d-inference  │
+│                   │    │      -scheduler            │
 │  Tag: v1.3.1      │    │    tag: v0.7.1             │
 └──────────────────┘    └──────────────────────────┘
 ```
@@ -114,7 +114,6 @@ metadata:
   namespace: default
   resourceVersion: "140558777"
   uid: 4b5ff03a-5d6b-4262-bed0-c004e8137913
-```
 ```
 
 The llm-d EPP binary is fully compatible with this config format (same `EndpointPickerConfig` API).

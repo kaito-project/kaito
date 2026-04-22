@@ -43,7 +43,7 @@ The GWIE project is migrating its EPP implementation and plugin ecosystem to `ll
 - Changing the InferencePool Helm chart source (remains from GWIE `oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool`)
 - Migrating BBR (Body-Based Routing) — BBR is an independent component unaffected by this change
 - Implementing llm-d routing sidecar integration for KV event-based precise prefix cache scoring
-- Automatic configuration of advanced llm-d plugins (users configure via Helm values)
+- Automatic configuration of advanced llm-d plugins (users configure via `eppPluginsConfigRef` ConfigMap)
 
 ## Proposal
 

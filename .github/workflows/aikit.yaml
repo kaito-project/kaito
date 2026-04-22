@@ -95,7 +95,7 @@ jobs:
             /kind: DaemonSet/ && /name: csi-local-node/ { csi=1 }
             !csi { print }
             { csi=0 }
-          ' | kubectl apply -f -
+          ' | kubectl apply --namespace ${{ env.KAITO_NAMESPACE }} -f -
 
           # Wait for controller to be ready
           kubectl wait --for=condition=available --timeout=300s deployment/kaito-workspace -n ${{ env.KAITO_NAMESPACE }}

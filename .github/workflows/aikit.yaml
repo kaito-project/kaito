@@ -192,14 +192,17 @@ jobs:
           echo "✓ InferencePool CRD installed"
 
           echo "=== Checking Flux controllers are running ==="
-          kubectl get pods -n ${{ env.KAITO_NAMESPACE }} -l app.kubernetes.io/part-of=flux -o wide
-          FLUX_PODS=$(kubectl get pods -n ${{ env.KAITO_NAMESPACE }} -l app.kubernetes.io/part-of=flux --no-headers 2>/dev/null | wc -l)
-          if [ "$FLUX_PODS" -ge 1 ]; then
-            echo "✓ Flux controllers running ($FLUX_PODS pods)"
-          else
-            echo "✗ No Flux controllers found"
-            exit 1
-          fi
+          # Flux helm-controller and source-controller are deployed as part of the flux2 subchart
+          kubectl get deployments -n ${{ env.KAITO_NAMESPACE }} -o wide
+          for controller in helm-controller source-controller; do
+            if kubectl get deployment $controller -n ${{ env.KAITO_NAMESPACE }} >/dev/null 2>&1; then
+              kubectl wait --for=condition=available --timeout=120s deployment/$controller -n ${{ env.KAITO_NAMESPACE }}
+              echo "✓ $controller is available"
+            else
+              echo "✗ $controller deployment not found"
+              exit 1
+            fi
+          done
 
           echo "=== Checking controller feature gates ==="
           CONTROLLER_ARGS=$(kubectl get deployment kaito-workspace -n ${{ env.KAITO_NAMESPACE }} -o jsonpath='{.spec.template.spec.containers[0].args}')

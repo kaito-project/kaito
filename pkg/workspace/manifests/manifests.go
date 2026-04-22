@@ -388,7 +388,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 				"pullPolicy": string(corev1.PullIfNotPresent),
 			},
 			// Disable EPP's built-in self-signed TLS so that the Gateway provider
-			// (Istio / Envoy Gateway) handles mTLS natively.  This removes the
+			// (Istio / Envoy Gateway) handles mTLS natively. This removes the
 			// need for an Istio DestinationRule to bypass certificate verification.
 			// Requires upstream GWIE chart fix: https://github.com/kubernetes-sigs/gateway-api-inference-extension/pull/2871
 			"flags": map[string]any{

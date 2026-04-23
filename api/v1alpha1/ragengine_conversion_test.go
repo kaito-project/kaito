@@ -48,7 +48,7 @@ func TestRAGEngineConversion(t *testing.T) {
 						ContextWindowSize: 4096,
 					},
 					Guardrails: &GuardrailsSpec{
-						Enabled: true,
+						Enabled:      true,
 						ConfigMapRef: &ConfigMapReference{Name: "guardrails-policy"},
 					},
 				},

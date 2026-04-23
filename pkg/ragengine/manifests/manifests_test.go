@@ -249,44 +249,4 @@ func TestRAGSetEnv(t *testing.T) {
 			t.Errorf("expected MODEL_ID 'BAAI/bge-small-en-v1.5', got %s", envMap["MODEL_ID"])
 		}
 	})
-
-	t.Run("test RAG guardrails environment variables", func(t *testing.T) {
-		ragEngine := test.MockRAGEngineWithPreset.DeepCopy()
-		ragEngine.Spec.Guardrails = &kaitov1beta1.GuardrailsSpec{
-			Enabled: true,
-			ConfigMapRef: &kaitov1beta1.ConfigMapReference{
-				Name: "guardrails-policy",
-			},
-		}
-
-		envs := RAGSetEnv(ragEngine)
-		envMap := make(map[string]string)
-		for _, env := range envs {
-			envMap[env.Name] = env.Value
-		}
-
-		if envMap["OUTPUT_GUARDRAILS_ENABLED"] != "true" {
-			t.Errorf("expected OUTPUT_GUARDRAILS_ENABLED 'true', got %s", envMap["OUTPUT_GUARDRAILS_ENABLED"])
-		}
-		if envMap["OUTPUT_GUARDRAILS_POLICY_FILE"] != GuardrailsPolicyFilePath {
-			t.Errorf("expected OUTPUT_GUARDRAILS_POLICY_FILE %q, got %q", GuardrailsPolicyFilePath, envMap["OUTPUT_GUARDRAILS_POLICY_FILE"])
-		}
-	})
-
-	t.Run("test RAG default guardrails environment variables", func(t *testing.T) {
-		ragEngine := test.MockRAGEngineWithPreset.DeepCopy()
-		ragEngine.Spec.Guardrails = &kaitov1beta1.GuardrailsSpec{
-			Enabled: true,
-		}
-
-		envs := RAGSetEnv(ragEngine)
-		envMap := make(map[string]string)
-		for _, env := range envs {
-			envMap[env.Name] = env.Value
-		}
-
-		if envMap["OUTPUT_GUARDRAILS_POLICY_FILE"] != DefaultGuardrailsPolicyFilePath {
-			t.Errorf("expected OUTPUT_GUARDRAILS_POLICY_FILE %q, got %q", DefaultGuardrailsPolicyFilePath, envMap["OUTPUT_GUARDRAILS_POLICY_FILE"])
-		}
-	})
 }

@@ -25,13 +25,6 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
-const (
-	GuardrailsPolicyMountDir  = "/etc/kaito/guardrails"
-	GuardrailsPolicyFileName  = "guardrails.yaml"
-	GuardrailsPolicyFilePath  = GuardrailsPolicyMountDir + "/" + GuardrailsPolicyFileName
-	DefaultGuardrailsPolicyFilePath = "/app/ragengine/guardrails/default_guardrails.yaml"
-)
-
 func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisionNum string, imageName string,
 	imagePullSecretRefs []corev1.LocalObjectReference, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
@@ -279,23 +272,6 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 				}
 				envs = append(envs, accessSecretEnv)
 			}
-		}
-	}
-
-	if ragEngineObj.Spec.Guardrails != nil {
-		envs = append(envs, corev1.EnvVar{
-			Name:  "OUTPUT_GUARDRAILS_ENABLED",
-			Value: fmt.Sprintf("%t", ragEngineObj.Spec.Guardrails.Enabled),
-		})
-		if ragEngineObj.Spec.Guardrails.Enabled {
-			policyFilePath := DefaultGuardrailsPolicyFilePath
-			if ragEngineObj.Spec.Guardrails.ConfigMapRef != nil && ragEngineObj.Spec.Guardrails.ConfigMapRef.Name != "" {
-				policyFilePath = GuardrailsPolicyFilePath
-			}
-			envs = append(envs, corev1.EnvVar{
-				Name:  "OUTPUT_GUARDRAILS_POLICY_FILE",
-				Value: policyFilePath,
-			})
 		}
 	}
 

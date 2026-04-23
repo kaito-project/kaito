@@ -78,6 +78,7 @@ def _parse_csv_env(name: str) -> tuple[str, ...]:
 OUTPUT_GUARDRAILS_ENABLED = (
     os.getenv("OUTPUT_GUARDRAILS_ENABLED", "false").lower() == "true"
 )
+OUTPUT_GUARDRAILS_POLICY_PATH = os.getenv("OUTPUT_GUARDRAILS_POLICY_PATH", "")
 OUTPUT_GUARDRAILS_ACTION_ON_HIT = os.getenv(
     "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact"
 ).lower()

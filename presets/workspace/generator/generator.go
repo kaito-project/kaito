@@ -37,6 +37,7 @@ const (
 	HuggingFaceWebsite     = "https://huggingface.co"
 )
 
+// Please update the following model-specific configurations when adding new models to model catalog
 var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
@@ -149,13 +150,55 @@ var (
 		"KimiK2ForCausalLM":                      "kimi_k2",
 		"GigaChat3ForCausalLM":                   "gigachat3",
 	}
+
+	// chatTemplatePrefixMap maps model name prefixes to vllm-customized chat templates.
+	// Templates are located in /workspace/chat_templates/ in the KAITO container image.
+	// source: https://github.com/vllm-project/vllm/tree/main/examples
+	chatTemplatePrefixMap = map[string]string{
+		"deepseek-r1": "tool-chat-deepseekr1.jinja",
+		"deepseek-v3": "tool-chat-deepseekv3.jinja",
+		"llama-3":     "tool-chat-llama3.1-json.jinja",
+		"phi-4-mini":  "tool-chat-phi4-mini.jinja",
+		"qwen2.5":     "tool-chat-hermes.jinja",
+	}
+
+	// attentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
+	attentionBackendPrefixMap = map[string]string{
+		// flashinfer attention backend is chosen by default for LLaMA 3 models, which requires the FlashInfer library to be installed lively.
+		// Pin to triton backend as a workaround.
+		"llama-3": "TRITON_ATTN",
+	}
+
+	// catalogOverrides provides hardcoded values for models whose HuggingFace
+	// config.json omits fields that are required in model_catalog.yaml.
+	// Keys are lowercased HuggingFace repo names.
+	catalogOverrides = map[string]CatalogEntry{
+		// source: https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma3/configuration_gemma3.py
+		"google/gemma-3-4b-it": {
+			ModelTokenLimit:   131072,
+			NumAttentionHeads: 8,
+			NumKeyValueHeads:  4,
+			HeadDim:           256,
+		},
+		// Based on Gemma 3 model card, the 128K context window (131072 tokens) applies to all Gemma 3 4B/12B/27B sizes
+		// source: https://huggingface.co/google/gemma-3-27b-it
+		"google/gemma-3-27b-it": {
+			ModelTokenLimit: 131072,
+		},
+		"mistralai/mistral-large-3-675b-instruct-2512": {
+			// source: https://docs.vllm.ai/en/v0.17.1/api/vllm/model_executor/models/mistral_large_3/
+			Architectures: []string{"MistralLarge3ForCausalLM"},
+			PipelineTag:   "text-generation",
+		},
+	}
 )
 
 type Generator struct {
-	ModelRepo   string
-	Token       string
-	Param       model.PresetParam
-	CatalogData []byte // Optional embedded catalog YAML
+	ModelRepo      string
+	Token          string
+	Param          model.PresetParam
+	CatalogData    []byte // Optional embedded catalog YAML
+	IsMistralModel bool
 
 	// Analyzed params
 	LoadFormat    string
@@ -241,19 +284,19 @@ func (g *Generator) FetchModelMetadata() error {
 		return err
 	}
 
-	selectedFiles, hasMistralWeights := g.selectWeightFiles(files)
+	selectedFiles := g.selectWeightFiles(files)
 	if len(selectedFiles) == 0 {
 		return fmt.Errorf("no .safetensors or .bin files found")
 	}
 
-	if hasMistralWeights {
+	if g.IsMistralModel {
 		g.setMistralMode()
 	}
 
 	g.Param.Metadata.ModelFileSize = calculateModelFileSize(selectedFiles)
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
-	if err := g.fetchAndParseConfig(hasMistralWeights); err != nil {
+	if err := g.fetchAndParseConfig(); err != nil {
 		return err
 	}
 
@@ -278,10 +321,10 @@ func (g *Generator) listRepoFiles() ([]FileInfo, error) {
 
 // selectWeightFiles picks the model weight files to use and detects whether
 // the model uses Mistral format. For Mistral-format models (those with
-// consolidated*.safetensors), it sets the load/config/tokenizer modes and
-// returns only the consolidated files. For standard models, it prefers
-// .safetensors over .bin when both are present.
-func (g *Generator) selectWeightFiles(files []FileInfo) (selected []FileInfo, isMistral bool) {
+// consolidated*.safetensors), it sets g.IsMistralModel and returns only the
+// consolidated files. For standard models, it prefers .safetensors over .bin
+// when both are present.
+func (g *Generator) selectWeightFiles(files []FileInfo) []FileInfo {
 	var safetensors, bins, mistral []FileInfo
 
 	for _, f := range files {
@@ -296,14 +339,15 @@ func (g *Generator) selectWeightFiles(files []FileInfo) (selected []FileInfo, is
 	}
 
 	if len(mistral) > 0 {
-		return mistral, true
+		g.IsMistralModel = true
+		return mistral
 	}
 
 	// Prefer safetensors over bin files when both exist.
 	if len(safetensors) > 0 {
-		return safetensors, false
+		return safetensors
 	}
-	return bins, false
+	return bins
 }
 
 func (g *Generator) setMistralMode() {
@@ -323,9 +367,9 @@ func calculateModelFileSize(files []FileInfo) string {
 
 // fetchAndParseConfig downloads and parses the model's config.json. For
 // Mistral-format models, it falls back to params.json if config.json is absent.
-func (g *Generator) fetchAndParseConfig(hasMistralWeights bool) error {
+func (g *Generator) fetchAndParseConfig() error {
 	configBody, err := g.fetchConfigFile("config.json")
-	if err != nil && hasMistralWeights {
+	if err != nil && g.IsMistralModel {
 		// config.json not available; fall back to params.json (Mistral native format).
 		configBody, err = g.fetchConfigFile("params.json")
 	}
@@ -443,6 +487,14 @@ func (g *Generator) ParseModelMetadata() {
 			}
 		}
 	}
+
+	// set ChatTemplate based on model name prefix
+	for prefix, template := range chatTemplatePrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.Metadata.ChatTemplate = template
+			break
+		}
+	}
 }
 
 func (g *Generator) calculateStorageSize() string {
@@ -513,6 +565,14 @@ func (g *Generator) FinalizeParams() {
 	g.Param.VLLM.ModelRunParams["load_format"] = g.LoadFormat
 	g.Param.VLLM.ModelRunParams["config_format"] = g.ConfigFormat
 	g.Param.VLLM.ModelRunParams["tokenizer_mode"] = g.TokenizerMode
+
+	// Set attention backend based on model name prefix
+	for prefix, backend := range attentionBackendPrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.VLLM.ModelRunParams["attention-backend"] = backend
+			break
+		}
+	}
 
 	bpt, attnType := g.calculateKVCacheTokenSize()
 	g.Param.Metadata.BytesPerToken = bpt

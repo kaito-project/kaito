@@ -146,32 +146,4 @@ var TransformerTuningParameters = map[string]TuningConfig{
 		},
 		ReadinessTimeout: time.Duration(30) * time.Minute,
 	},
-
-	// Falcon family
-	"falcon-7b": {
-		DiskStorageRequirement:        "90Gi",
-		GPUCountRequirement:           "1",
-		TotalSafeTensorFileSize:       "16Gi",
-		ModelTokenLimit:               2048,
-		TuningPerGPUMemoryRequirement: map[string]int{"qlora": 16},
-		Transformers: model.HuggingfaceTransformersParam{
-			BaseCommand:      defaultTuningBaseCommand,
-			AccelerateParams: defaultAccelerateParams,
-			ModelName:        "falcon-7b",
-		},
-		ReadinessTimeout: time.Duration(30) * time.Minute,
-	},
-	"falcon-40b": {
-		DiskStorageRequirement:  "280Gi",
-		GPUCountRequirement:     "2",
-		TotalSafeTensorFileSize: "77.9Gi",
-		BytesPerToken:           1966080,
-		ModelTokenLimit:         2048,
-		Transformers: model.HuggingfaceTransformersParam{
-			BaseCommand:      defaultTuningBaseCommand,
-			AccelerateParams: defaultAccelerateParams,
-			ModelName:        "falcon-40b",
-		},
-		ReadinessTimeout: time.Duration(30) * time.Minute,
-	},
 }

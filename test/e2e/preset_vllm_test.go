@@ -233,7 +233,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gemma-3-4b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a gemma-3-4b-it workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createGemma3_4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -256,7 +256,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gemma-3-27b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+	It("should create a gemma-3-27b-it workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
 		numOfNode := 1
 		workspaceObj := createGemma3_27BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -326,7 +326,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a ministral-3-3b-instruct workspace with preset public mode successfully", func() {
+	It("should create a ministral-3-3b-instruct-2512 workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 

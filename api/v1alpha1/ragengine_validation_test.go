@@ -292,7 +292,7 @@ func TestRAGEngineValidateGuardrails(t *testing.T) {
 			ragEngine: &RAGEngine{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-rag", Namespace: "default"},
 				Spec: &RAGEngineSpec{
-					Embedding: &EmbeddingSpec{Local: &LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"}},
+					Embedding:  &EmbeddingSpec{Local: &LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"}},
 					Guardrails: &GuardrailsSpec{Enabled: true},
 				},
 			},
@@ -304,7 +304,7 @@ func TestRAGEngineValidateGuardrails(t *testing.T) {
 				Spec: &RAGEngineSpec{
 					Embedding: &EmbeddingSpec{Local: &LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"}},
 					Guardrails: &GuardrailsSpec{
-						Enabled: true,
+						Enabled:      true,
 						ConfigMapRef: &ConfigMapReference{Name: "guardrails-policy"},
 					},
 				},
@@ -321,14 +321,31 @@ func TestRAGEngineValidateGuardrails(t *testing.T) {
 				Spec: &RAGEngineSpec{
 					Embedding: &EmbeddingSpec{Local: &LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"}},
 					Guardrails: &GuardrailsSpec{
-						Enabled: true,
+						Enabled:      true,
 						ConfigMapRef: &ConfigMapReference{Name: "guardrails-policy"},
 					},
 				},
 			},
 			objects: []runtime.Object{
-				&v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "guardrails-policy", Namespace: "default"}, Data: map[string]string{"guardrails.yaml": "action: redact\nscanners:\n  - type: regex\n    patterns:\n      - 'https?://\\\\S+'\n"}},
+				&v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "guardrails-policy", Namespace: "default"}, Data: map[string]string{"guardrails.yaml": "action: redact\nscanners:\n  - type: toxicity\n  - type: bias\n"}},
 			},
+		},
+		{
+			name: "unsupported scanner type is rejected",
+			ragEngine: &RAGEngine{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-rag", Namespace: "default"},
+				Spec: &RAGEngineSpec{
+					Embedding: &EmbeddingSpec{Local: &LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"}},
+					Guardrails: &GuardrailsSpec{
+						Enabled:      true,
+						ConfigMapRef: &ConfigMapReference{Name: "guardrails-policy"},
+					},
+				},
+			},
+			objects: []runtime.Object{
+				&v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "guardrails-policy", Namespace: "default"}, Data: map[string]string{"guardrails.yaml": "action: redact\nscanners:\n  - type: regex\n"}},
+			},
+			wantErr: "unsupported scanner type \"regex\"",
 		},
 	}
 

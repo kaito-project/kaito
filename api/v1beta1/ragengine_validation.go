@@ -20,6 +20,7 @@ import (
 	"os"
 	"regexp"
 
+	"gopkg.in/yaml.v2"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -27,7 +28,6 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"gopkg.in/yaml.v2"
 
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -44,9 +44,7 @@ type guardrailsPolicy struct {
 }
 
 type guardrailsScannerPolicy struct {
-	Type       string   `yaml:"type"`
-	Patterns   []string `yaml:"patterns"`
-	Substrings []string `yaml:"substrings"`
+	Type string `yaml:"type"`
 }
 
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -155,14 +153,7 @@ func validateGuardrailsPolicyConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
 	for i, scanner := range policy.Scanners {
 		fieldPath := fmt.Sprintf("scanners[%d]", i)
 		switch scanner.Type {
-		case "regex":
-			if len(scanner.Patterns) == 0 {
-				return apis.ErrMissingField(fieldPath + ".patterns")
-			}
-		case "ban_substrings":
-			if len(scanner.Substrings) == 0 {
-				return apis.ErrMissingField(fieldPath + ".substrings")
-			}
+		case "toxicity", "bias", "sensitive":
 		case "":
 			return apis.ErrMissingField(fieldPath + ".type")
 		default:

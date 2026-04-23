@@ -26,28 +26,41 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
 
+// ProvisionerConfig holds all parameters needed to create a NodeProvisioner.
+type ProvisionerConfig struct {
+	KClient                client.Client
+	DirectClient           client.Client
+	Recorder               record.EventRecorder
+	DefaultNodeImageFamily string
+	ProvisionerType        string
+	NodeClassGroup         string
+	NodeClassKind          string
+	NodeClassDefaultName   string
+	ImageFamilyNames       map[string]string
+}
+
 // NewNodeProvisioner creates and returns a NodeProvisioner based on the provisionerType parameter.
 //
 //   - karpenter: KarpenterProvisioner (cloud-agnostic karpenter NodePool CRUD).
 //   - byo: BYOProvisioner (all provisioning ops are no-ops).
 //   - azure-gpu-provisioner (default): AzureGPUProvisioner (creates/deletes NodeClaims).
-func NewNodeProvisioner(kClient, directClient client.Client, recorder record.EventRecorder, defaultNodeImageFamily string, provisionerType string, nodeClassGroup, nodeClassKind, nodeClassDefaultName string, imageFamilyNames map[string]string) nodeprovision.NodeProvisioner {
-	switch provisionerType {
+func NewNodeProvisioner(cfg ProvisionerConfig) nodeprovision.NodeProvisioner {
+	switch cfg.ProvisionerType {
 	case consts.NodeProvisionerKarpenter:
-		cfg := karpenterprov.NodeClassConfig{
-			Group:            nodeClassGroup,
-			Kind:             nodeClassKind,
-			DefaultName:      nodeClassDefaultName,
-			ImageFamilyNames: imageFamilyNames,
+		ncCfg := karpenterprov.NodeClassConfig{
+			Group:            cfg.NodeClassGroup,
+			Kind:             cfg.NodeClassKind,
+			DefaultName:      cfg.NodeClassDefaultName,
+			ImageFamilyNames: cfg.ImageFamilyNames,
 		}
-		return karpenterprov.NewKarpenterProvisioner(directClient, cfg)
+		return karpenterprov.NewKarpenterProvisioner(cfg.DirectClient, ncCfg)
 	case consts.NodeProvisionerBYO:
-		return byoprovisioner.NewBYOProvisioner(kClient)
+		return byoprovisioner.NewBYOProvisioner(cfg.KClient)
 	default: // consts.NodeProvisionerAzureGPU
 		expectations := utils.NewControllerExpectations()
-		ncm := resource.NewNodeClaimManager(kClient, recorder, expectations)
-		ncm.SetDefaultNodeImageFamily(defaultNodeImageFamily)
-		nm := resource.NewNodeManager(kClient)
+		ncm := resource.NewNodeClaimManager(cfg.KClient, cfg.Recorder, expectations)
+		ncm.SetDefaultNodeImageFamily(cfg.DefaultNodeImageFamily)
+		nm := resource.NewNodeManager(cfg.KClient)
 		return gpuprovisioner.NewAzureGPUProvisioner(ncm, nm)
 	}
 }

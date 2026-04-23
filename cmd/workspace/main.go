@@ -237,7 +237,17 @@ func main() {
 
 	// Select and initialize the node provisioner based on feature gates.
 	recorder := mgr.GetEventRecorderFor("KAITO-Workspace-controller")
-	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(kClient, directClient, recorder, defaultNodeImageFamily, nodeProvisionerType, karpenterNodeClassGroup, karpenterNodeClassKind, karpenterNodeClassDefaultName, parseKeyValuePairs(karpenterImageFamilyNames))
+	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(nodeprovisionmanager.ProvisionerConfig{
+		KClient:                kClient,
+		DirectClient:           directClient,
+		Recorder:               recorder,
+		DefaultNodeImageFamily: defaultNodeImageFamily,
+		ProvisionerType:        nodeProvisionerType,
+		NodeClassGroup:         karpenterNodeClassGroup,
+		NodeClassKind:          karpenterNodeClassKind,
+		NodeClassDefaultName:   karpenterNodeClassDefaultName,
+		ImageFamilyNames:       parseKeyValuePairs(karpenterImageFamilyNames),
+	})
 	klog.InfoS("Node provisioner selected", "name", nodeProvisioner.Name())
 	if err := nodeProvisioner.Start(ctx); err != nil {
 		klog.ErrorS(err, "failed to start node provisioner")

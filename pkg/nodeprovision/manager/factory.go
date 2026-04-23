@@ -35,8 +35,10 @@ type ProvisionerConfig struct {
 	ProvisionerType        string
 	NodeClassGroup         string
 	NodeClassKind          string
+	NodeClassCRDName       string
 	NodeClassDefaultName   string
 	ImageFamilyNames       map[string]string
+	NodeClassConfigMapName string
 }
 
 // NewNodeProvisioner creates and returns a NodeProvisioner based on the provisionerType parameter.
@@ -50,8 +52,10 @@ func NewNodeProvisioner(cfg ProvisionerConfig) nodeprovision.NodeProvisioner {
 		ncCfg := karpenterprov.NodeClassConfig{
 			Group:            cfg.NodeClassGroup,
 			Kind:             cfg.NodeClassKind,
+			CRDName:          cfg.NodeClassCRDName,
 			DefaultName:      cfg.NodeClassDefaultName,
 			ImageFamilyNames: cfg.ImageFamilyNames,
+			ConfigMapName:    cfg.NodeClassConfigMapName,
 		}
 		return karpenterprov.NewKarpenterProvisioner(cfg.DirectClient, ncCfg)
 	case consts.NodeProvisionerBYO:

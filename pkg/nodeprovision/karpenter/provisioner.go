@@ -16,16 +16,25 @@ package karpenter
 import (
 	"context"
 	"fmt"
+	"time"
 
+	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+	sigsyaml "sigs.k8s.io/yaml"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
+	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
@@ -35,8 +44,10 @@ import (
 type NodeClassConfig struct {
 	Group            string            // e.g. "karpenter.azure.com"
 	Kind             string            // e.g. "AKSNodeClass"
+	CRDName          string            // full CRD resource name (e.g. "aksnodeclasses.karpenter.azure.com")
 	DefaultName      string            // default NodeClass name (e.g. "image-family-ubuntu")
 	ImageFamilyNames map[string]string // image family annotation value → NodeClass resource name
+	ConfigMapName    string            // ConfigMap containing NodeClass manifests (e.g. "kaito-nodeclasses")
 }
 
 // KarpenterProvisioner implements NodeProvisioner using the cloud-agnostic
@@ -58,9 +69,102 @@ func NewKarpenterProvisioner(c client.Client, cfg NodeClassConfig) *KarpenterPro
 // Name returns the provisioner name.
 func (p *KarpenterProvisioner) Name() string { return "KarpenterProvisioner" }
 
-// Start is a no-op. The installer/Helm chart is responsible for ensuring
-// NodeClass resources exist before KAITO starts.
-func (p *KarpenterProvisioner) Start(_ context.Context) error { return nil }
+// Start verifies that the Karpenter NodeClass CRD is installed and creates
+// NodeClass resources from the configured ConfigMap. Returns an error if
+// Karpenter is not installed — the operator cannot function without it when
+// node-provisioner=karpenter is set.
+func (p *KarpenterProvisioner) Start(ctx context.Context) error {
+	if p.nodeClassConfig.ConfigMapName == "" {
+		return nil
+	}
+
+	// Check if the NodeClass CRD exists.
+	crdName := p.nodeClassConfig.CRDName
+	crd := &apiextensionsv1.CustomResourceDefinition{}
+	if err := p.client.Get(ctx, types.NamespacedName{Name: crdName}, crd); err != nil {
+		if apierrors.IsNotFound(err) {
+			return fmt.Errorf("NodeClass CRD %q not found — Karpenter must be installed before KAITO when node-provisioner=karpenter", crdName)
+		}
+		return fmt.Errorf("checking NodeClass CRD %q: %w", crdName, err)
+	}
+
+	releaseNS, err := utils.GetReleaseNamespace()
+	if err != nil {
+		return fmt.Errorf("resolving release namespace: %w", err)
+	}
+
+	// Read the ConfigMap containing NodeClass manifests.
+	cm := &corev1.ConfigMap{}
+	if err := p.client.Get(ctx, types.NamespacedName{
+		Name: p.nodeClassConfig.ConfigMapName, Namespace: releaseNS,
+	}, cm); err != nil {
+		return fmt.Errorf("reading NodeClass ConfigMap %q in namespace %q: %w",
+			p.nodeClassConfig.ConfigMapName, releaseNS, err)
+	}
+
+	// Create each NodeClass from the ConfigMap entries.
+	nodeClassNames := make([]string, 0, len(cm.Data))
+	for name, raw := range cm.Data {
+		obj := &unstructured.Unstructured{}
+		if err := sigsyaml.Unmarshal([]byte(raw), &obj.Object); err != nil {
+			return fmt.Errorf("decoding NodeClass %q from ConfigMap: %w", name, err)
+		}
+		klog.InfoS("Creating NodeClass", "name", obj.GetName(), "kind", obj.GetKind())
+		if err := p.client.Create(ctx, obj); err != nil {
+			if !apierrors.IsAlreadyExists(err) {
+				return fmt.Errorf("creating NodeClass %q: %w", name, err)
+			}
+			klog.InfoS("NodeClass already exists", "name", obj.GetName())
+		}
+		nodeClassNames = append(nodeClassNames, obj.GetName())
+	}
+
+	// Wait for all NodeClasses to become Ready.
+	for _, name := range nodeClassNames {
+		if err := p.waitForNodeClassReady(ctx, name); err != nil {
+			return err
+		}
+	}
+	klog.InfoS("All NodeClasses are ready", "count", len(nodeClassNames))
+	return nil
+}
+
+// waitForNodeClassReady polls until the NodeClass has a Ready=True condition.
+func (p *KarpenterProvisioner) waitForNodeClassReady(ctx context.Context, name string) error {
+	return wait.PollUntilContextTimeout(ctx, 5*time.Second, 120*time.Second, true, func(ctx context.Context) (bool, error) {
+		obj := &unstructured.Unstructured{}
+		obj.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   p.nodeClassConfig.Group,
+			Version: "v1beta1",
+			Kind:    p.nodeClassConfig.Kind,
+		})
+		if err := p.client.Get(ctx, types.NamespacedName{Name: name}, obj); err != nil {
+			if apierrors.IsNotFound(err) {
+				return false, nil // not created yet
+			}
+			return false, err
+		}
+
+		conditions, found, err := unstructured.NestedSlice(obj.Object, "status", "conditions")
+		if err != nil {
+			return false, fmt.Errorf("reading conditions for NodeClass %q: %w", name, err)
+		}
+		if !found {
+			return false, nil
+		}
+		for _, c := range conditions {
+			cond, ok := c.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if cond["type"] == "Ready" && cond["status"] == "True" {
+				klog.InfoS("NodeClass is ready", "name", name)
+				return true, nil
+			}
+		}
+		return false, nil
+	})
+}
 
 // ProvisionNodes creates a NodePool for the Workspace. Idempotent — AlreadyExists is ignored.
 func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {

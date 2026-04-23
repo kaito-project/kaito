@@ -29,21 +29,36 @@ import (
 
 const (
 	maxNodePoolNameLen = 253
-	truncatedLen       = 243 // 253 - 1 (dash) - 9 (hash suffix)
+	maxLabelValueLen   = 63
 	hashSuffixLen      = 9
 )
+
+// truncatedName returns a deterministic, truncated string with a hash suffix
+// for uniqueness when the input exceeds maxLen.
+func truncatedName(workspaceNamespace, workspaceName string, maxLen int) string {
+	full := workspaceNamespace + "-" + workspaceName
+	if len(full) <= maxLen {
+		return full
+	}
+	truncLen := maxLen - 1 - hashSuffixLen // 1 for dash separator
+	h := sha256.Sum256([]byte(full))
+	return full[:truncLen] + "-" + hex.EncodeToString(h[:])[:hashSuffixLen]
+}
 
 // NodePoolName returns a deterministic, DNS-safe name for the NodePool
 // derived from the workspace namespace and name.
 // If the result exceeds 253 characters, it is truncated and a 9-char
 // SHA-256 hex suffix is appended for uniqueness.
 func NodePoolName(workspaceNamespace, workspaceName string) string {
-	full := workspaceNamespace + "-" + workspaceName
-	if len(full) <= maxNodePoolNameLen {
-		return full
-	}
-	h := sha256.Sum256([]byte(full))
-	return full[:truncatedLen] + "-" + hex.EncodeToString(h[:])[:hashSuffixLen]
+	return truncatedName(workspaceNamespace, workspaceName, maxNodePoolNameLen)
+}
+
+// WorkspaceLabelValue returns a deterministic, label-safe value (≤63 chars)
+// derived from the workspace namespace and name.
+// Used for labels, taints, tolerations, and nodeSelectors — all of which
+// enforce the Kubernetes 63-character label value limit.
+func WorkspaceLabelValue(workspaceNamespace, workspaceName string) string {
+	return truncatedName(workspaceNamespace, workspaceName, maxLabelValueLen)
 }
 
 // resolveNodeClassName determines the NodeClass resource name for a Workspace.
@@ -66,6 +81,7 @@ func isInferenceSetWorkspace(ws *kaitov1beta1.Workspace) bool {
 // generateNodePool builds a karpenter NodePool manifest for the given Workspace.
 func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpenterv1.NodePool {
 	nodePoolName := NodePoolName(ws.Namespace, ws.Name)
+	workspaceLabelVal := WorkspaceLabelValue(ws.Namespace, ws.Name)
 	nodeClassName := resolveNodeClassName(ws, cfg)
 
 	// Drift budget: InferenceSet workspaces start with "0" (blocked),
@@ -77,7 +93,8 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 
 	// Template labels propagated to NodeClaims and Nodes.
 	templateLabels := map[string]string{
-		consts.KarpenterWorkspaceKey:          nodePoolName,
+		consts.KarpenterWorkspaceKey:          workspaceLabelVal,
+		consts.KarpenterWorkspaceNameKey:      ws.Name,
 		consts.KarpenterWorkspaceNamespaceKey: ws.Namespace,
 	}
 	// Include the user's matchLabels so that inference pods' nodeAffinity
@@ -123,7 +140,7 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 					Taints: []corev1.Taint{
 						{
 							Key:    consts.KarpenterWorkspaceKey,
-							Value:  nodePoolName,
+							Value:  workspaceLabelVal,
 							Effect: corev1.TaintEffectNoSchedule,
 						},
 					},

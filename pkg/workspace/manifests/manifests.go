@@ -34,6 +34,7 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
@@ -281,7 +282,7 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 		if templateCopy.Spec.NodeSelector == nil {
 			templateCopy.Spec.NodeSelector = make(map[string]string)
 		}
-		templateCopy.Spec.NodeSelector[consts.KarpenterWorkspaceKey] = workspaceObj.Namespace + "-" + workspaceObj.Name
+		templateCopy.Spec.NodeSelector[consts.KarpenterWorkspaceKey] = karpenter.WorkspaceLabelValue(workspaceObj.Namespace, workspaceObj.Name)
 	}
 
 	// Overwrite affinity

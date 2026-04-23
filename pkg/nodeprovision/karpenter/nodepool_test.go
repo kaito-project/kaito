@@ -44,8 +44,8 @@ func TestNodePoolName_Over253_Truncated(t *testing.T) {
 	ws := strings.Repeat("b", 251)
 	name := NodePoolName("ns", ws)
 	assert.Assert(t, len(name) == 253, "expected length 253, got %d", len(name))
-	assert.Assert(t, name[truncatedLen] == '-', "expected dash at position %d", truncatedLen)
-	suffix := name[truncatedLen+1:]
+	assert.Assert(t, name[maxNodePoolNameLen-1-hashSuffixLen] == '-', "expected dash at truncation point")
+	suffix := name[maxNodePoolNameLen-hashSuffixLen:]
 	assert.Equal(t, hashSuffixLen, len(suffix))
 }
 
@@ -163,6 +163,8 @@ func TestGenerateNodePool_Standalone(t *testing.T) {
 
 	// Template labels
 	assert.Equal(t, "default-llama-serve", np.Spec.Template.Labels[consts.KarpenterWorkspaceKey])
+	assert.Equal(t, "llama-serve", np.Spec.Template.Labels[consts.KarpenterWorkspaceNameKey])
+	assert.Equal(t, "default", np.Spec.Template.Labels[consts.KarpenterWorkspaceNamespaceKey])
 
 	// Standalone workspaces should NOT have InferenceSet labels
 	_, hasInfSetLabel := np.Spec.Template.Labels[consts.KarpenterInferenceSetKey]

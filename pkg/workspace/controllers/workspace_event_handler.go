@@ -15,7 +15,6 @@ package controllers
 
 import (
 	"context"
-	"strings"
 
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
@@ -45,10 +44,9 @@ func getControllerKeyForNodeClaim(nc *karpenterv1.NodeClaim) *client.ObjectKey {
 			return &client.ObjectKey{Namespace: namespace, Name: name}
 		}
 	}
-	// Karpenter path — label value is "namespace-name" (nodePoolName format).
-	if nodePoolName, ok := nc.Labels[consts.KarpenterWorkspaceKey]; ok {
+	// Karpenter path.
+	if name, ok := nc.Labels[consts.KarpenterWorkspaceNameKey]; ok {
 		if namespace, ok := nc.Labels[consts.KarpenterWorkspaceNamespaceKey]; ok {
-			name := strings.TrimPrefix(nodePoolName, namespace+"-")
 			return &client.ObjectKey{Namespace: namespace, Name: name}
 		}
 	}

@@ -74,17 +74,6 @@ func (src *RAGEngine) ConvertTo(dstRaw conversion.Hub) error {
 			}
 		}
 
-		if src.Spec.Guardrails != nil {
-			dst.Spec.Guardrails = &v1beta1.GuardrailsSpec{
-				Enabled: src.Spec.Guardrails.Enabled,
-			}
-			if src.Spec.Guardrails.ConfigMapRef != nil {
-				dst.Spec.Guardrails.ConfigMapRef = &v1beta1.ConfigMapReference{
-					Name: src.Spec.Guardrails.ConfigMapRef.Name,
-				}
-			}
-		}
-
 		// Note: QueryServiceName and IndexServiceName are v1alpha1-only fields, not converted
 	}
 
@@ -147,17 +136,6 @@ func (dst *RAGEngine) ConvertFrom(srcRaw conversion.Hub) error {
 				URL:               src.Spec.InferenceService.URL,
 				AccessSecret:      src.Spec.InferenceService.AccessSecret,
 				ContextWindowSize: src.Spec.InferenceService.ContextWindowSize,
-			}
-		}
-
-		if src.Spec.Guardrails != nil {
-			dst.Spec.Guardrails = &GuardrailsSpec{
-				Enabled: src.Spec.Guardrails.Enabled,
-			}
-			if src.Spec.Guardrails.ConfigMapRef != nil {
-				dst.Spec.Guardrails.ConfigMapRef = &ConfigMapReference{
-					Name: src.Spec.Guardrails.ConfigMapRef.Name,
-				}
 			}
 		}
 

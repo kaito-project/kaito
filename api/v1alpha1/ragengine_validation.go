@@ -21,20 +21,14 @@ import (
 	"regexp"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
-
-const guardrailsPolicyFileName = "guardrails.yaml"
 
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {
 	return []admissionregistrationv1.OperationType{
@@ -49,14 +43,12 @@ func (w *RAGEngine) Validate(ctx context.Context) (errs *apis.FieldError) {
 		klog.InfoS("Validate creation", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(
 			w.validateCreate().ViaField("spec"),
-			w.validateGuardrails(ctx).ViaField("spec.guardrails"),
 		)
 	} else {
 		klog.InfoS("Validate update", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		old := base.(*RAGEngine)
 		errs = errs.Also(
 			w.validateCreate().ViaField("spec"),
-			w.validateGuardrails(ctx).ViaField("spec.guardrails"),
 			w.validateUpdate(old).ViaField("resource"),
 		)
 	}
@@ -172,43 +164,4 @@ func (e *InferenceServiceSpec) validateCreate() (errs *apis.FieldError) {
 	}
 
 	return errs
-}
-
-func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldError) {
-	if w.Spec == nil || w.Spec.Guardrails == nil {
-		return nil
-	}
-
-	guardrails := w.Spec.Guardrails
-	if guardrails.ConfigMapRef == nil || guardrails.ConfigMapRef.Name == "" {
-		return nil
-	}
-	if k8sclient.Client == nil {
-		return apis.ErrGeneric("Failed to obtain client from context.Context")
-	}
-
-	var cm corev1.ConfigMap
-	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: guardrails.ConfigMapRef.Name, Namespace: w.Namespace}, &cm)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			return apis.ErrGeneric(
-				fmt.Sprintf("ConfigMap '%s' specified in guardrails.configMapRef not found in namespace '%s'", guardrails.ConfigMapRef.Name, w.Namespace),
-				"configMapRef.name",
-			)
-		}
-		return apis.ErrGeneric(
-			fmt.Sprintf("Failed to get ConfigMap '%s' in namespace '%s': %v", guardrails.ConfigMapRef.Name, w.Namespace, err),
-			"configMapRef.name",
-		)
-	}
-
-	return validateGuardrailsPolicyConfigMap(&cm)
-}
-
-func validateGuardrailsPolicyConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
-	if _, ok := cm.Data[guardrailsPolicyFileName]; !ok {
-		return apis.ErrMissingField(fmt.Sprintf("%s in ConfigMap", guardrailsPolicyFileName))
-	}
-
-	return nil
 }

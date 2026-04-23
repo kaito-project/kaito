@@ -173,24 +173,6 @@ spec:
                     - url
                     type: object
                 type: object
-              guardrails:
-                description: Guardrails configures output guardrails for chat completions.
-                properties:
-                  configMapRef:
-                    description: ConfigMapRef points to a ConfigMap that contains
-                      a guardrails.yaml policy document.
-                    properties:
-                      name:
-                        description: Name is the name of the ConfigMap in the same
-                          namespace as the RAGEngine.
-                        type: string
-                    required:
-                    - name
-                    type: object
-                  enabled:
-                    description: Enabled turns response guardrails on for chat completions.
-                    type: boolean
-                type: object
               indexServiceName:
                 description: |-
                   IndexServiceName is the name of the service which exposes the endpoint for user to input the index data

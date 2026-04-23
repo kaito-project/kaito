@@ -67,8 +67,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 			expected: map[string]any{
 				"inferenceExtension": map[string]any{
 					"image": map[string]any{
-						"hub":        consts.GatewayAPIInferenceExtensionImageRepository,
-						"tag":        consts.InferencePoolChartVersion,
+						"hub":        consts.EPPImageHub,
+						"name":       consts.EPPImageName,
+						"tag":        consts.EPPImageTag,
 						"pullPolicy": string(corev1.PullIfNotPresent),
 					},
 				},

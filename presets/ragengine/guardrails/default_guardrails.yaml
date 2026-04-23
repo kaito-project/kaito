@@ -1,0 +1,9 @@
+action: redact
+blockMessage: The model output was blocked by output guardrails.
+scanners:
+  - type: regex
+    patterns:
+      - 'https?://\S+'
+  - type: ban_substrings
+    substrings:
+      - secret

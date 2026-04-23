@@ -21,14 +21,33 @@ import (
 	"regexp"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"gopkg.in/yaml.v2"
 
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
+
+const guardrailsPolicyFileName = "guardrails.yaml"
+
+type guardrailsPolicy struct {
+	Action       string                    `yaml:"action"`
+	BlockMessage string                    `yaml:"blockMessage"`
+	Scanners     []guardrailsScannerPolicy `yaml:"scanners"`
+}
+
+type guardrailsScannerPolicy struct {
+	Type       string   `yaml:"type"`
+	Patterns   []string `yaml:"patterns"`
+	Substrings []string `yaml:"substrings"`
+}
 
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {
 	return []admissionregistrationv1.OperationType{
@@ -41,12 +60,16 @@ func (w *RAGEngine) Validate(ctx context.Context) (errs *apis.FieldError) {
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
-		errs = errs.Also(w.validateCreate().ViaField("spec"))
+		errs = errs.Also(
+			w.validateCreate().ViaField("spec"),
+			w.validateGuardrails(ctx).ViaField("spec.guardrails"),
+		)
 	} else {
 		klog.InfoS("Validate update", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		old := base.(*RAGEngine)
 		errs = errs.Also(
 			w.validateCreate().ViaField("spec"),
+			w.validateGuardrails(ctx).ViaField("spec.guardrails"),
 			w.validateUpdate(old).ViaField("resource"),
 		)
 	}
@@ -162,4 +185,71 @@ func (e *InferenceServiceSpec) validateCreate() (errs *apis.FieldError) {
 	}
 
 	return errs
+}
+
+func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldError) {
+	if w.Spec == nil || w.Spec.Guardrails == nil {
+		return nil
+	}
+
+	guardrails := w.Spec.Guardrails
+	if guardrails.ConfigMapRef == nil || guardrails.ConfigMapRef.Name == "" {
+		return nil
+	}
+	if k8sclient.Client == nil {
+		return apis.ErrGeneric("Failed to obtain client from context.Context")
+	}
+
+	var cm corev1.ConfigMap
+	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: guardrails.ConfigMapRef.Name, Namespace: w.Namespace}, &cm)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return apis.ErrGeneric(
+				fmt.Sprintf("ConfigMap '%s' specified in guardrails.configMapRef not found in namespace '%s'", guardrails.ConfigMapRef.Name, w.Namespace),
+				"configMapRef.name",
+			)
+		}
+		return apis.ErrGeneric(
+			fmt.Sprintf("Failed to get ConfigMap '%s' in namespace '%s': %v", guardrails.ConfigMapRef.Name, w.Namespace, err),
+			"configMapRef.name",
+		)
+	}
+
+	return validateGuardrailsPolicyConfigMap(&cm)
+}
+
+func validateGuardrailsPolicyConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
+	policyYAML, ok := cm.Data[guardrailsPolicyFileName]
+	if !ok {
+		return apis.ErrMissingField(fmt.Sprintf("%s in ConfigMap", guardrailsPolicyFileName))
+	}
+
+	var policy guardrailsPolicy
+	if err := yaml.Unmarshal([]byte(policyYAML), &policy); err != nil {
+		return apis.ErrGeneric(fmt.Sprintf("Failed to parse %s: %v", guardrailsPolicyFileName, err), guardrailsPolicyFileName)
+	}
+
+	if policy.Action != "" && policy.Action != "redact" && policy.Action != "block" {
+		return apis.ErrInvalidValue("action must be either 'redact' or 'block'", "action")
+	}
+
+	for i, scanner := range policy.Scanners {
+		fieldPath := fmt.Sprintf("scanners[%d]", i)
+		switch scanner.Type {
+		case "regex":
+			if len(scanner.Patterns) == 0 {
+				return apis.ErrMissingField(fieldPath + ".patterns")
+			}
+		case "ban_substrings":
+			if len(scanner.Substrings) == 0 {
+				return apis.ErrMissingField(fieldPath + ".substrings")
+			}
+		case "":
+			return apis.ErrMissingField(fieldPath + ".type")
+		default:
+			return apis.ErrInvalidValue(fmt.Sprintf("unsupported scanner type %q", scanner.Type), fieldPath+".type")
+		}
+	}
+
+	return nil
 }

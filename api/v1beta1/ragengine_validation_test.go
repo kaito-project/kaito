@@ -14,9 +14,16 @@
 package v1beta1
 
 import (
+	"context"
 	"strings"
 	"testing"
 
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	ctrlclientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -268,6 +275,78 @@ func TestRemoteEmbeddingValidateCreate(t *testing.T) {
 
 			if hasErr && tt.errField != "" && !strings.Contains(err.Error(), tt.errField) {
 				t.Errorf("validateCreate() expected error to contain %s, but got %s", tt.errField, err.Error())
+			}
+		})
+	}
+}
+
+func TestRAGEngineValidateGuardrails(t *testing.T) {
+	tests := []struct {
+		name      string
+		ragEngine *RAGEngine
+		objects   []runtime.Object
+		wantErr   string
+	}{
+		{
+			name: "enabled guardrails without configmap ref uses default policy",
+			ragEngine: &RAGEngine{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-rag", Namespace: "default"},
+				Spec: &RAGEngineSpec{
+					Embedding: &EmbeddingSpec{Local: &LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"}},
+					Guardrails: &GuardrailsSpec{Enabled: true},
+				},
+			},
+		},
+		{
+			name: "invalid guardrails policy is rejected",
+			ragEngine: &RAGEngine{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-rag", Namespace: "default"},
+				Spec: &RAGEngineSpec{
+					Embedding: &EmbeddingSpec{Local: &LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"}},
+					Guardrails: &GuardrailsSpec{
+						Enabled: true,
+						ConfigMapRef: &ConfigMapReference{Name: "guardrails-policy"},
+					},
+				},
+			},
+			objects: []runtime.Object{
+				&v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "guardrails-policy", Namespace: "default"}, Data: map[string]string{"guardrails.yaml": "action: passthrough"}},
+			},
+			wantErr: "action must be either 'redact' or 'block'",
+		},
+		{
+			name: "valid guardrails policy passes",
+			ragEngine: &RAGEngine{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-rag", Namespace: "default"},
+				Spec: &RAGEngineSpec{
+					Embedding: &EmbeddingSpec{Local: &LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"}},
+					Guardrails: &GuardrailsSpec{
+						Enabled: true,
+						ConfigMapRef: &ConfigMapReference{Name: "guardrails-policy"},
+					},
+				},
+			},
+			objects: []runtime.Object{
+				&v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "guardrails-policy", Namespace: "default"}, Data: map[string]string{"guardrails.yaml": "action: redact\nscanners:\n  - type: regex\n    patterns:\n      - 'https?://\\\\S+'\n"}},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scheme := runtime.NewScheme()
+			_ = v1.AddToScheme(scheme)
+			k8sclient.Client = ctrlclientfake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
+
+			err := tt.ragEngine.validateGuardrails(context.Background())
+			if tt.wantErr == "" {
+				if err != nil {
+					t.Fatalf("validateGuardrails() unexpected error = %v", err)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+				t.Fatalf("validateGuardrails() error = %v, want substring %q", err, tt.wantErr)
 			}
 		})
 	}

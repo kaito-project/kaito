@@ -140,6 +140,24 @@ func configStorageVolume(storageSpec *v1beta1.StorageSpec) (corev1.Volume, corev
 	return volume, volumeMount
 }
 
+func configGuardrailsVolume(guardrailsSpec *v1beta1.GuardrailsSpec) (corev1.Volume, corev1.VolumeMount) {
+	volume := corev1.Volume{
+		Name: "guardrails-policy",
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{Name: guardrailsSpec.ConfigMapRef.Name},
+			},
+		},
+	}
+	volumeMount := corev1.VolumeMount{
+		Name:      volume.Name,
+		MountPath: manifests.GuardrailsPolicyMountDir,
+		ReadOnly:  true,
+	}
+
+	return volume, volumeMount
+}
+
 func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
@@ -153,6 +171,11 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 		storageVolume, storageVolumeMount := configStorageVolume(ragEngineObj.Spec.Storage)
 		volumes = append(volumes, storageVolume)
 		volumeMounts = append(volumeMounts, storageVolumeMount)
+	}
+	if ragEngineObj.Spec.Guardrails != nil && ragEngineObj.Spec.Guardrails.Enabled && ragEngineObj.Spec.Guardrails.ConfigMapRef != nil && ragEngineObj.Spec.Guardrails.ConfigMapRef.Name != "" {
+		guardrailsVolume, guardrailsVolumeMount := configGuardrailsVolume(ragEngineObj.Spec.Guardrails)
+		volumes = append(volumes, guardrailsVolume)
+		volumeMounts = append(volumeMounts, guardrailsVolumeMount)
 	}
 
 	var resourceReq corev1.ResourceRequirements

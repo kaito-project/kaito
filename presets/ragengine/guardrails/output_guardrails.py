@@ -13,8 +13,10 @@
 
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
+import yaml
 from llm_guard import scan_output
 from llm_guard.output_scanners import BanSubstrings, Regex
 
@@ -36,13 +38,75 @@ class OutputGuardrails:
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
+        action_on_hit = config.OUTPUT_GUARDRAILS_ACTION_ON_HIT
+        regex_patterns = list(config.OUTPUT_GUARDRAILS_REGEX_PATTERNS)
+        banned_substrings = list(config.OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS)
+        block_message = config.OUTPUT_GUARDRAILS_BLOCK_MESSAGE
+
+        if config.OUTPUT_GUARDRAILS_ENABLED:
+            action_on_hit, regex_patterns, banned_substrings, block_message = (
+                cls._load_policy_file(config.OUTPUT_GUARDRAILS_POLICY_FILE)
+                or (
+                    action_on_hit,
+                    regex_patterns,
+                    banned_substrings,
+                    block_message,
+                )
+            )
+
         return cls(
             enabled=config.OUTPUT_GUARDRAILS_ENABLED,
-            action_on_hit=config.OUTPUT_GUARDRAILS_ACTION_ON_HIT,
-            regex_patterns=list(config.OUTPUT_GUARDRAILS_REGEX_PATTERNS),
-            banned_substrings=list(config.OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS),
-            block_message=config.OUTPUT_GUARDRAILS_BLOCK_MESSAGE,
+            action_on_hit=action_on_hit,
+            regex_patterns=regex_patterns,
+            banned_substrings=banned_substrings,
+            block_message=block_message,
         )
+
+    @staticmethod
+    def _load_policy_file(
+        policy_file: str,
+    ) -> tuple[str, list[str], list[str], str] | None:
+        path = Path(policy_file)
+        if not path.is_file():
+            logger.warning("output_guardrails_policy_file_missing path=%s", policy_file)
+            return None
+
+        try:
+            raw_policy = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        except Exception:
+            logger.exception("output_guardrails_policy_file_invalid path=%s", policy_file)
+            return None
+
+        if not isinstance(raw_policy, dict):
+            logger.warning("output_guardrails_policy_file_invalid_root path=%s", policy_file)
+            return None
+
+        action_on_hit = str(raw_policy.get("action") or config.OUTPUT_GUARDRAILS_ACTION_ON_HIT).lower()
+        block_message = str(raw_policy.get("blockMessage") or config.OUTPUT_GUARDRAILS_BLOCK_MESSAGE)
+        regex_patterns: list[str] = []
+        banned_substrings: list[str] = []
+
+        scanners = raw_policy.get("scanners") or []
+        if not isinstance(scanners, list):
+            logger.warning("output_guardrails_policy_scanners_invalid path=%s", policy_file)
+            scanners = []
+
+        for scanner in scanners:
+            if not isinstance(scanner, dict):
+                continue
+            scanner_type = str(scanner.get("type") or "").lower()
+            if scanner_type == "regex":
+                patterns = scanner.get("patterns") or []
+                if isinstance(patterns, list):
+                    regex_patterns.extend(str(pattern) for pattern in patterns if pattern)
+            elif scanner_type == "ban_substrings":
+                substrings = scanner.get("substrings") or []
+                if isinstance(substrings, list):
+                    banned_substrings.extend(
+                        str(substring) for substring in substrings if substring
+                    )
+
+        return action_on_hit, regex_patterns, banned_substrings, block_message
 
     def guard_response(
         self,

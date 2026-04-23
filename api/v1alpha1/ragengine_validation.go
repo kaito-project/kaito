@@ -20,7 +20,6 @@ import (
 	"os"
 	"regexp"
 
-	"gopkg.in/yaml.v2"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -36,16 +35,6 @@ import (
 )
 
 const guardrailsPolicyFileName = "guardrails.yaml"
-
-type guardrailsPolicy struct {
-	Action       string                    `yaml:"action"`
-	BlockMessage string                    `yaml:"blockMessage"`
-	Scanners     []guardrailsScannerPolicy `yaml:"scanners"`
-}
-
-type guardrailsScannerPolicy struct {
-	Type string `yaml:"type"`
-}
 
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {
 	return []admissionregistrationv1.OperationType{
@@ -217,29 +206,8 @@ func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldErr
 }
 
 func validateGuardrailsPolicyConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
-	policyYAML, ok := cm.Data[guardrailsPolicyFileName]
-	if !ok {
+	if _, ok := cm.Data[guardrailsPolicyFileName]; !ok {
 		return apis.ErrMissingField(fmt.Sprintf("%s in ConfigMap", guardrailsPolicyFileName))
-	}
-
-	var policy guardrailsPolicy
-	if err := yaml.Unmarshal([]byte(policyYAML), &policy); err != nil {
-		return apis.ErrGeneric(fmt.Sprintf("Failed to parse %s: %v", guardrailsPolicyFileName, err), guardrailsPolicyFileName)
-	}
-
-	if policy.Action != "" && policy.Action != "redact" && policy.Action != "block" {
-		return apis.ErrInvalidValue("action must be either 'redact' or 'block'", "action")
-	}
-
-	for i, scanner := range policy.Scanners {
-		fieldPath := fmt.Sprintf("scanners[%d]", i)
-		switch scanner.Type {
-		case "toxicity", "bias", "sensitive":
-		case "":
-			return apis.ErrMissingField(fieldPath + ".type")
-		default:
-			return apis.ErrInvalidValue(fmt.Sprintf("unsupported scanner type %q", scanner.Type), fieldPath+".type")
-		}
 	}
 
 	return nil

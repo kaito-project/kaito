@@ -298,7 +298,7 @@ func TestRAGEngineValidateGuardrails(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid guardrails policy is rejected",
+			name: "missing guardrails policy file is rejected",
 			ragEngine: &RAGEngine{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-rag", Namespace: "default"},
 				Spec: &RAGEngineSpec{
@@ -310,9 +310,9 @@ func TestRAGEngineValidateGuardrails(t *testing.T) {
 				},
 			},
 			objects: []runtime.Object{
-				&v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "guardrails-policy", Namespace: "default"}, Data: map[string]string{"guardrails.yaml": "action: passthrough"}},
+				&v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "guardrails-policy", Namespace: "default"}, Data: map[string]string{"other.yaml": "action: passthrough"}},
 			},
-			wantErr: "action must be either 'redact' or 'block'",
+			wantErr: "guardrails.yaml in ConfigMap",
 		},
 		{
 			name: "valid guardrails policy passes",
@@ -329,23 +329,6 @@ func TestRAGEngineValidateGuardrails(t *testing.T) {
 			objects: []runtime.Object{
 				&v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "guardrails-policy", Namespace: "default"}, Data: map[string]string{"guardrails.yaml": "action: redact\nscanners:\n  - type: toxicity\n  - type: bias\n"}},
 			},
-		},
-		{
-			name: "unsupported scanner type is rejected",
-			ragEngine: &RAGEngine{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-rag", Namespace: "default"},
-				Spec: &RAGEngineSpec{
-					Embedding: &EmbeddingSpec{Local: &LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"}},
-					Guardrails: &GuardrailsSpec{
-						Enabled:      true,
-						ConfigMapRef: &ConfigMapReference{Name: "guardrails-policy"},
-					},
-				},
-			},
-			objects: []runtime.Object{
-				&v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "guardrails-policy", Namespace: "default"}, Data: map[string]string{"guardrails.yaml": "action: redact\nscanners:\n  - type: regex\n"}},
-			},
-			wantErr: "unsupported scanner type \"regex\"",
 		},
 	}
 

@@ -11,13 +11,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import inspect
 import logging
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from typing import Any
 
+import llm_guard.output_scanners as llm_guard_output_scanners
 import yaml
 from llm_guard import scan_output
-from llm_guard.output_scanners import BanSubstrings, Regex
 from ragengine import config
 from ragengine.models import ChatCompletionResponse, get_message_content
 
@@ -25,22 +27,44 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_BLOCK_MESSAGE = "The model output was blocked by output guardrails."
 
+SUPPORTED_POLICY_SCANNERS = {
+    "ban_code": "BanCode",
+    "ban_competitors": "BanCompetitors",
+    "ban_substrings": "BanSubstrings",
+    "ban_topics": "BanTopics",
+    "bias": "Bias",
+    "code": "Code",
+    "factual_consistency": "FactualConsistency",
+    "gibberish": "Gibberish",
+    "json": "JSON",
+    "language": "Language",
+    "language_same": "LanguageSame",
+    "malicious_urls": "MaliciousURLs",
+    "no_refusal": "NoRefusal",
+    "no_refusal_light": "NoRefusalLight",
+    "reading_time": "ReadingTime",
+    "regex": "Regex",
+    "relevance": "Relevance",
+    "secret_detection": "Sensitive",
+    "sensitive": "Sensitive",
+    "sentiment": "Sentiment",
+    "toxicity": "Toxicity",
+    "url_reachability": "URLReachability",
+}
+
 
 @dataclass
 class OutputGuardrails:
     enabled: bool
     action_on_hit: str
-    regex_patterns: list[str]
-    banned_substrings: list[str]
     block_message: str = DEFAULT_BLOCK_MESSAGE
+    scanner_configs: list[dict[str, Any]] = field(default_factory=list)
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
         guardrails = cls(
             enabled=config.OUTPUT_GUARDRAILS_ENABLED,
             action_on_hit=config.OUTPUT_GUARDRAILS_ACTION_ON_HIT,
-            regex_patterns=list(config.OUTPUT_GUARDRAILS_REGEX_PATTERNS),
-            banned_substrings=list(config.OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS),
             block_message=config.OUTPUT_GUARDRAILS_BLOCK_MESSAGE,
         )
         return guardrails._apply_policy_file(config.OUTPUT_GUARDRAILS_POLICY_PATH)
@@ -65,43 +89,18 @@ class OutputGuardrails:
             logger.warning("output_guardrails_policy_invalid path=%s", policy_path)
             return self
 
-        regex_patterns = list(self.regex_patterns)
-        banned_substrings = list(self.banned_substrings)
+        scanner_configs = list(self.scanner_configs)
         if "scanners" in policy:
-            regex_patterns = []
-            banned_substrings = []
-            scanners = policy.get("scanners") or []
-            if not isinstance(scanners, list):
-                logger.warning(
-                    "output_guardrails_policy_invalid_scanners path=%s", policy_path
-                )
-                scanners = []
-
-            for scanner in scanners:
-                if not isinstance(scanner, dict):
-                    continue
-
-                scanner_type = str(scanner.get("type", "")).lower()
-                if scanner_type == "regex":
-                    regex_patterns.extend(_coerce_string_list(scanner.get("patterns")))
-                elif scanner_type == "ban_substrings":
-                    banned_substrings.extend(
-                        _coerce_string_list(scanner.get("substrings"))
-                    )
-                elif scanner_type:
-                    logger.warning(
-                        "output_guardrails_policy_unknown_scanner type=%s",
-                        scanner_type,
-                    )
+            scanner_configs = _coerce_policy_scanner_configs(
+                policy.get("scanners"),
+                policy_path,
+            )
 
         return OutputGuardrails(
             enabled=self.enabled,
             action_on_hit=_normalize_action(policy.get("action"), self.action_on_hit),
-            regex_patterns=regex_patterns,
-            banned_substrings=banned_substrings,
-            block_message=_coerce_string(
-                policy.get("blockMessage"), self.block_message
-            ),
+            block_message=_coerce_string(policy.get("blockMessage"), self.block_message),
+            scanner_configs=scanner_configs,
         )
 
     def guard_response(
@@ -156,17 +155,10 @@ class OutputGuardrails:
 
     def _build_scanners(self) -> list[Any]:
         scanners: list[Any] = []
-
-        if self.regex_patterns:
-            scanners.append(Regex(patterns=self.regex_patterns, redact=True))
-
-        if self.banned_substrings:
-            scanners.append(
-                BanSubstrings(
-                    substrings=self.banned_substrings,
-                    redact=self.action_on_hit == "redact",
-                )
-            )
+        for scanner_config in self.scanner_configs:
+            scanner = _build_scanner(scanner_config, self.action_on_hit)
+            if scanner is not None:
+                scanners.append(scanner)
 
         return scanners
 
@@ -190,6 +182,105 @@ def _coerce_string_list(value: Any) -> list[str]:
     if not isinstance(value, list):
         return []
     return [item for item in value if isinstance(item, str) and item]
+
+
+def _coerce_policy_scanner_configs(value: Any, policy_path: str) -> list[dict[str, Any]]:
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        logger.warning("output_guardrails_policy_invalid_scanners path=%s", policy_path)
+        return []
+
+    scanner_configs: list[dict[str, Any]] = []
+    for scanner in value:
+        if not isinstance(scanner, dict):
+            continue
+        scanner_type = _normalize_scanner_key(str(scanner.get("type", "")).strip())
+        if not scanner_type:
+            continue
+
+        normalized_config = {"type": scanner_type}
+        for key, item in scanner.items():
+            if key == "type":
+                continue
+            normalized_config[_normalize_scanner_key(str(key))] = item
+        scanner_configs.append(normalized_config)
+
+    return scanner_configs
+
+
+def _build_scanner(scanner_config: dict[str, Any], action_on_hit: str) -> Any | None:
+    scanner_type = str(scanner_config.get("type", "")).lower()
+    class_name = SUPPORTED_POLICY_SCANNERS.get(scanner_type)
+    if not class_name:
+        logger.warning("output_guardrails_policy_unknown_scanner type=%s", scanner_type)
+        return None
+
+    scanner_class = getattr(llm_guard_output_scanners, class_name, None)
+    if scanner_class is None:
+        logger.warning("output_guardrails_policy_unavailable_scanner type=%s", scanner_type)
+        return None
+
+    kwargs = _build_scanner_kwargs(scanner_class, scanner_config, action_on_hit)
+    if kwargs is None:
+        return None
+
+    try:
+        return scanner_class(**kwargs)
+    except Exception:
+        logger.exception(
+            "output_guardrails_policy_scanner_build_failed type=%s",
+            scanner_type,
+        )
+        return None
+
+
+def _build_scanner_kwargs(
+    scanner_class: type[Any],
+    scanner_config: dict[str, Any],
+    action_on_hit: str,
+) -> dict[str, Any] | None:
+    signature = inspect.signature(scanner_class)
+    kwargs: dict[str, Any] = {}
+    config_values = {key: value for key, value in scanner_config.items() if key != "type"}
+
+    for name, parameter in signature.parameters.items():
+        if parameter.kind not in (
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
+        ):
+            continue
+
+        if name in config_values:
+            kwargs[name] = config_values[name]
+            continue
+
+        if name == "redact":
+            kwargs[name] = action_on_hit == "redact"
+            continue
+
+        if name == "patterns" and scanner_config.get("type") == "regex":
+            kwargs[name] = _coerce_string_list(scanner_config.get("patterns"))
+            continue
+
+        if name == "substrings" and scanner_config.get("type") == "ban_substrings":
+            kwargs[name] = _coerce_string_list(scanner_config.get("substrings"))
+            continue
+
+        if parameter.default is inspect.Signature.empty:
+            logger.warning(
+                "output_guardrails_policy_invalid_scanner_config type=%s missing=%s",
+                scanner_config.get("type"),
+                name,
+            )
+            return None
+
+    return kwargs
+
+
+def _normalize_scanner_key(value: str) -> str:
+    value = value.replace("-", "_")
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", value).lower()
 
 
 def _coerce_string(value: Any, fallback: str) -> str:

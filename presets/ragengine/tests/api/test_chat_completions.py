@@ -300,8 +300,7 @@ async def test_chat_completions_output_guardrails_redact(
         OutputGuardrails(
             enabled=True,
             action_on_hit="redact",
-            regex_patterns=[r"https?://\S+"],
-            banned_substrings=[],
+            scanner_configs=[{"type": "regex", "patterns": [r"https?://\S+"]}],
         ),
     )
 
@@ -356,9 +355,8 @@ async def test_chat_completions_output_guardrails_block(
         OutputGuardrails(
             enabled=True,
             action_on_hit="block",
-            regex_patterns=[r"https?://\S+"],
-            banned_substrings=[],
             block_message="blocked-by-policy",
+            scanner_configs=[{"type": "regex", "patterns": [r"https?://\S+"]}],
         ),
     )
 
@@ -428,12 +426,6 @@ async def test_chat_completions_output_guardrails_policy_file(
         ragengine.config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path)
     )
     monkeypatch.setattr(ragengine.config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
-    monkeypatch.setattr(
-        ragengine.config, "OUTPUT_GUARDRAILS_REGEX_PATTERNS", (r"secret",)
-    )
-    monkeypatch.setattr(
-        ragengine.config, "OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS", tuple()
-    )
     monkeypatch.setattr(
         ragengine.config,
         "OUTPUT_GUARDRAILS_BLOCK_MESSAGE",

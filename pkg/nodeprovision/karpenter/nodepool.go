@@ -69,7 +69,7 @@ func resolveNodeClassName(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) strin
 			return name
 		}
 	}
-	return cfg.DefaultName
+	return cfg.Name
 }
 
 // isInferenceSetWorkspace returns true if the Workspace was created by an InferenceSet.

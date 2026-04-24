@@ -101,7 +101,7 @@ func main() {
 	var karpenterNodeClassGroup string
 	var karpenterNodeClassKind string
 	var karpenterNodeClassCRDName string
-	var karpenterNodeClassDefaultName string
+	var karpenterNodeClassName string
 	var karpenterImageFamilyNames string
 	var karpenterNodeClassConfigMap string
 	var kubeClientQPS int = 30
@@ -122,7 +122,7 @@ func main() {
 	flag.StringVar(&karpenterNodeClassGroup, "karpenter-node-class-group", "karpenter.azure.com", "Karpenter NodeClass API group. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassKind, "karpenter-node-class-kind", "AKSNodeClass", "Karpenter NodeClass API kind. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassCRDName, "karpenter-node-class-crd-name", "aksnodeclasses.karpenter.azure.com", "Full CRD resource name for the NodeClass (e.g. aksnodeclasses.karpenter.azure.com). Only used when node-provisioner=karpenter.")
-	flag.StringVar(&karpenterNodeClassDefaultName, "karpenter-node-class-default-name", "image-family-ubuntu", "Default Karpenter NodeClass resource name. Only used when node-provisioner=karpenter.")
+	flag.StringVar(&karpenterNodeClassName, "karpenter-node-class-name", "image-family-ubuntu", "Karpenter NodeClass resource name. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterImageFamilyNames, "karpenter-image-family-names", "ubuntu=image-family-ubuntu,azurelinux=image-family-azure-linux", "Comma-separated key=value pairs mapping image family annotation values to NodeClass resource names. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassConfigMap, "karpenter-node-class-configmap", "kaito-nodeclasses", "Name of the ConfigMap containing NodeClass manifests. Only used when node-provisioner=karpenter.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
@@ -250,7 +250,7 @@ func main() {
 		NodeClassGroup:         karpenterNodeClassGroup,
 		NodeClassKind:          karpenterNodeClassKind,
 		NodeClassCRDName:       karpenterNodeClassCRDName,
-		NodeClassDefaultName:   karpenterNodeClassDefaultName,
+		NodeClassName:          karpenterNodeClassName,
 		ImageFamilyNames:       parseKeyValuePairs(karpenterImageFamilyNames),
 		NodeClassConfigMapName: karpenterNodeClassConfigMap,
 	})

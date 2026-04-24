@@ -45,7 +45,7 @@ type NodeClassConfig struct {
 	Group            string            // e.g. "karpenter.azure.com"
 	Kind             string            // e.g. "AKSNodeClass"
 	CRDName          string            // full CRD resource name (e.g. "aksnodeclasses.karpenter.azure.com")
-	DefaultName      string            // default NodeClass name (e.g. "image-family-ubuntu")
+	Name             string            // NodeClass name (e.g. "image-family-ubuntu")
 	ImageFamilyNames map[string]string // image family annotation value → NodeClass resource name
 	ConfigMapName    string            // ConfigMap containing NodeClass manifests (e.g. "kaito-nodeclasses")
 }
@@ -119,14 +119,48 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 		nodeClassNames = append(nodeClassNames, obj.GetName())
 	}
 
-	// Wait for all NodeClasses to become Ready.
-	for _, name := range nodeClassNames {
-		if err := p.waitForNodeClassReady(ctx, name); err != nil {
-			return err
+	// Only wait for the default NodeClass to be ready during startup.
+	// Other NodeClasses may not be available in all regions; readiness of
+	// the specific NodeClass used by a workspace is checked in ProvisionNodes.
+	if err := p.waitForNodeClassReady(ctx, p.nodeClassConfig.Name); err != nil {
+		return fmt.Errorf("default NodeClass %q not ready: %w", p.nodeClassConfig.Name, err)
+	}
+	klog.InfoS("NodeClass resources created", "count", len(nodeClassNames))
+	return nil
+}
+
+// checkNodeClassReady performs a single point-in-time check that the named
+// NodeClass exists and has a Ready=True condition. Unlike waitForNodeClassReady,
+// it does not poll — it returns an error immediately if the resource is missing
+// or not ready.
+func (p *KarpenterProvisioner) checkNodeClassReady(ctx context.Context, name string) error {
+	obj := &unstructured.Unstructured{}
+	obj.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   p.nodeClassConfig.Group,
+		Version: "v1beta1",
+		Kind:    p.nodeClassConfig.Kind,
+	})
+	if err := p.client.Get(ctx, types.NamespacedName{Name: name}, obj); err != nil {
+		return fmt.Errorf("getting NodeClass %q: %w", name, err)
+	}
+
+	conditions, found, err := unstructured.NestedSlice(obj.Object, "status", "conditions")
+	if err != nil {
+		return fmt.Errorf("reading conditions for NodeClass %q: %w", name, err)
+	}
+	if !found {
+		return fmt.Errorf("NodeClass %q has no status conditions", name)
+	}
+	for _, c := range conditions {
+		cond, ok := c.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if cond["type"] == "Ready" && cond["status"] == "True" {
+			return nil
 		}
 	}
-	klog.InfoS("All NodeClasses are ready", "count", len(nodeClassNames))
-	return nil
+	return fmt.Errorf("NodeClass %q exists but is not Ready", name)
 }
 
 // waitForNodeClassReady polls until the NodeClass has a Ready=True condition.
@@ -167,7 +201,12 @@ func (p *KarpenterProvisioner) waitForNodeClassReady(ctx context.Context, name s
 }
 
 // ProvisionNodes creates a NodePool for the Workspace. Idempotent — AlreadyExists is ignored.
+// Before creating the NodePool, it verifies the target NodeClass exists and is Ready.
 func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
+	nodeClassName := resolveNodeClassName(ws, p.nodeClassConfig)
+	if err := p.checkNodeClassReady(ctx, nodeClassName); err != nil {
+		return fmt.Errorf("NodeClass %q is not ready: %w", nodeClassName, err)
+	}
 	np := generateNodePool(ws, p.nodeClassConfig)
 	if err := p.client.Create(ctx, np); err != nil {
 		if apierrors.IsAlreadyExists(err) {

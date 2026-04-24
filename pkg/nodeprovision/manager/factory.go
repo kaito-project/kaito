@@ -36,7 +36,7 @@ type ProvisionerConfig struct {
 	NodeClassGroup         string
 	NodeClassKind          string
 	NodeClassCRDName       string
-	NodeClassDefaultName   string
+	NodeClassName          string
 	ImageFamilyNames       map[string]string
 	NodeClassConfigMapName string
 }
@@ -53,7 +53,7 @@ func NewNodeProvisioner(cfg ProvisionerConfig) nodeprovision.NodeProvisioner {
 			Group:            cfg.NodeClassGroup,
 			Kind:             cfg.NodeClassKind,
 			CRDName:          cfg.NodeClassCRDName,
-			DefaultName:      cfg.NodeClassDefaultName,
+			Name:             cfg.NodeClassName,
 			ImageFamilyNames: cfg.ImageFamilyNames,
 			ConfigMapName:    cfg.NodeClassConfigMapName,
 		}

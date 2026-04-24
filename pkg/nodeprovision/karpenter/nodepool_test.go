@@ -91,9 +91,9 @@ func TestResolveNodeClassName_UnknownAnnotation_FallsBackToDefault(t *testing.T)
 
 func TestResolveNodeClassName_CustomConfig(t *testing.T) {
 	cfg := NodeClassConfig{
-		Group:       "karpenter.k8s.aws",
-		Kind:        "EC2NodeClass",
-		DefaultName: "default-ec2",
+		Group: "karpenter.k8s.aws",
+		Kind:  "EC2NodeClass",
+		Name:  "default-ec2",
 		ImageFamilyNames: map[string]string{
 			"al2023": "al2023-nodeclass",
 		},
@@ -174,7 +174,7 @@ func TestGenerateNodePool_Standalone(t *testing.T) {
 	ref := np.Spec.Template.Spec.NodeClassRef
 	assert.Equal(t, testConfig.Group, ref.Group)
 	assert.Equal(t, testConfig.Kind, ref.Kind)
-	assert.Equal(t, testConfig.DefaultName, ref.Name)
+	assert.Equal(t, testConfig.Name, ref.Name)
 
 	// Requirements
 	assert.Equal(t, 1, len(np.Spec.Template.Spec.Requirements))
@@ -214,7 +214,7 @@ func TestGenerateNodePool_InferenceSet(t *testing.T) {
 	assert.Equal(t, "0", np.Spec.Disruption.Budgets[0].Nodes)
 
 	// Default NodeClass name (no annotation)
-	assert.Equal(t, testConfig.DefaultName, np.Spec.Template.Spec.NodeClassRef.Name)
+	assert.Equal(t, testConfig.Name, np.Spec.Template.Spec.NodeClassRef.Name)
 
 	// InferenceSet labels on template for drift controller mapping
 	assert.Equal(t, "my-infset", np.Spec.Template.Labels[consts.KarpenterInferenceSetKey])
@@ -233,7 +233,7 @@ func TestGenerateNodePool_CustomCloudConfig(t *testing.T) {
 	cfg := NodeClassConfig{
 		Group:            "karpenter.k8s.aws",
 		Kind:             "EC2NodeClass",
-		DefaultName:      "default-ec2",
+		Name:             "default-ec2",
 		ImageFamilyNames: map[string]string{},
 	}
 	ws := newTestWorkspace("default", "ws1", "m5.xlarge", 1, nil, nil)

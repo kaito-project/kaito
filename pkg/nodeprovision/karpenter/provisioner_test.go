@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
@@ -33,13 +34,35 @@ import (
 )
 
 var testConfig = NodeClassConfig{
-	Group:       "karpenter.azure.com",
-	Kind:        "AKSNodeClass",
-	DefaultName: "image-family-ubuntu",
+	Group: "karpenter.azure.com",
+	Kind:  "AKSNodeClass",
+	Name:  "image-family-ubuntu",
 	ImageFamilyNames: map[string]string{
 		"ubuntu":     "image-family-ubuntu",
 		"azurelinux": "image-family-azure-linux",
 	},
+}
+
+// mockNodeClassReady sets up a mock Get call for an unstructured NodeClass that
+// populates the object with a Ready=True condition.
+func mockNodeClassReady(mockClient *test.MockClient, name string) {
+	mockClient.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
+		return key.Name == name
+	}), mock.IsType(&unstructured.Unstructured{}), mock.Anything).
+		Run(func(args mock.Arguments) {
+			obj := args.Get(2).(*unstructured.Unstructured)
+			obj.Object = map[string]interface{}{
+				"status": map[string]interface{}{
+					"conditions": []interface{}{
+						map[string]interface{}{
+							"type":   "Ready",
+							"status": "True",
+						},
+					},
+				},
+			}
+		}).
+		Return(nil)
 }
 
 func TestKarpenterProvisionerImplementsInterface(t *testing.T) {
@@ -62,6 +85,7 @@ func TestStart_NoOp(t *testing.T) {
 
 func TestProvisionNodes_Success(t *testing.T) {
 	mockClient := test.NewClient()
+	mockNodeClassReady(mockClient, "image-family-ubuntu")
 	mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
 
 	p := NewKarpenterProvisioner(mockClient, testConfig)
@@ -74,6 +98,7 @@ func TestProvisionNodes_Success(t *testing.T) {
 
 func TestProvisionNodes_AlreadyExists(t *testing.T) {
 	mockClient := test.NewClient()
+	mockNodeClassReady(mockClient, "image-family-ubuntu")
 	alreadyExistsErr := apierrors.NewAlreadyExists(schema.GroupResource{Group: "karpenter.sh", Resource: "nodepools"}, "default-ws1")
 	mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(alreadyExistsErr)
 
@@ -86,6 +111,7 @@ func TestProvisionNodes_AlreadyExists(t *testing.T) {
 
 func TestProvisionNodes_CreateError(t *testing.T) {
 	mockClient := test.NewClient()
+	mockNodeClassReady(mockClient, "image-family-ubuntu")
 	mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(errors.New("API server down"))
 
 	p := NewKarpenterProvisioner(mockClient, testConfig)
@@ -98,6 +124,7 @@ func TestProvisionNodes_CreateError(t *testing.T) {
 
 func TestProvisionNodes_UsesDefaultNodeClassName(t *testing.T) {
 	mockClient := test.NewClient()
+	mockNodeClassReady(mockClient, "image-family-ubuntu")
 	mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
 
 	p := NewKarpenterProvisioner(mockClient, testConfig)
@@ -121,6 +148,7 @@ func TestProvisionNodes_UsesDefaultNodeClassName(t *testing.T) {
 
 func TestProvisionNodes_UsesAnnotationImageFamily(t *testing.T) {
 	mockClient := test.NewClient()
+	mockNodeClassReady(mockClient, "image-family-azure-linux")
 	mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
 
 	p := NewKarpenterProvisioner(mockClient, testConfig)

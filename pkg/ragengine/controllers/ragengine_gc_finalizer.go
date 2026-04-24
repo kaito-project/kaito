@@ -33,7 +33,7 @@ func (c *RAGEngineReconciler) garbageCollectRAGEngine(ctx context.Context, ragEn
 
 	// Only clean up NodeClaims when node auto-provisioning is enabled,
 	// since NodeClaim CRDs may not be installed when it's disabled.
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if ragEngineObj.Spec.Compute != nil && !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// Check if there are any nodeClaims associated with this ragengine.
 		ncList, err := nodeclaim.ListNodeClaim(ctx, ragEngineObj, c.Client)
 		if err != nil {

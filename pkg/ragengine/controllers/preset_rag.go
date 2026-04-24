@@ -157,7 +157,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 
 	var resourceReq corev1.ResourceRequirements
 
-	if ragEngineObj.Spec.Embedding.Local != nil {
+	if ragEngineObj.Spec.Embedding.Local != nil && ragEngineObj.Spec.Compute != nil && ragEngineObj.Spec.Compute.InstanceType != "" {
 		instanceType := ragEngineObj.Spec.Compute.InstanceType
 		gpuConfig, err := utils.GetGPUConfigBySKU(instanceType)
 		// If GetGPUConfigBySKU returns error, skip GPU resource allocation (e.g., CPU-only instances)
@@ -172,6 +172,15 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 					corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
 				},
 			}
+		}
+	} else {
+		// If embedding is remote or compute instance type is not specified, do not allocate GPU resources by default
+		// and apply default CPU and memory requests to ensure the pod can be scheduled.
+		resourceReq = corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("500m"),
+				corev1.ResourceMemory: resource.MustParse("512Mi"),
+			},
 		}
 	}
 	commands := utils.ShellCmd("python3 main.py")

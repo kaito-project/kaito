@@ -17,8 +17,8 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
+	azurekarpenter "github.com/kaito-project/kaito/pkg/nodeprovision/azure-karpenter"
 	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	gpuprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/gpu-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -26,17 +26,23 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
 
-// NewNodeProvisioner creates and returns a NodeProvisioner based on feature gates.
+// NewNodeProvisioner creates and returns a NodeProvisioner based on the provisionerType parameter.
 //
-//   - NAP disabled (BYO mode): BYOProvisioner (all provisioning ops are no-ops).
-//   - Default (NAP enabled): AzureGPUProvisioner (creates/deletes NodeClaims).
-func NewNodeProvisioner(kClient client.Client, recorder record.EventRecorder, defaultNodeImageFamily string) nodeprovision.NodeProvisioner {
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+//   - azure-karpenter: AzureKarpenterProvisioner (uses directClient for
+//     CRD verification and global AKSNodeClass bootstrap at Start time).
+//   - byo: BYOProvisioner (all provisioning ops are no-ops).
+//   - azure-gpu-provisioner (default): AzureGPUProvisioner (creates/deletes NodeClaims).
+func NewNodeProvisioner(kClient, directClient client.Client, recorder record.EventRecorder, defaultNodeImageFamily string, provisionerType string) nodeprovision.NodeProvisioner {
+	switch provisionerType {
+	case consts.NodeProvisionerAzureKarpenter:
+		return azurekarpenter.NewAzureKarpenterProvisioner(directClient)
+	case consts.NodeProvisionerBYO:
 		return byoprovisioner.NewBYOProvisioner(kClient)
+	default: // consts.NodeProvisionerAzureGPU
+		expectations := utils.NewControllerExpectations()
+		ncm := resource.NewNodeClaimManager(kClient, recorder, expectations)
+		ncm.SetDefaultNodeImageFamily(defaultNodeImageFamily)
+		nm := resource.NewNodeManager(kClient)
+		return gpuprovisioner.NewAzureGPUProvisioner(ncm, nm)
 	}
-	expectations := utils.NewControllerExpectations()
-	ncm := resource.NewNodeClaimManager(kClient, recorder, expectations)
-	ncm.SetDefaultNodeImageFamily(defaultNodeImageFamily)
-	nm := resource.NewNodeManager(kClient)
-	return gpuprovisioner.NewAzureGPUProvisioner(ncm, nm)
 }

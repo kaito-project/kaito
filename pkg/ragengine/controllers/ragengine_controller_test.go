@@ -163,6 +163,33 @@ func TestApplyRAGEngineResource(t *testing.T) {
 			ragengine:     *test.MockRAGEngineDistributedModel,
 			expectedError: apierrors.NewNotFound(corev1.Resource("Node"), "node1"),
 		},
+		"RAGEngine with no inference service should succeed": {
+			callMocks: func(c *test.MockClient) {
+				nodeList := test.MockNodeList
+				relevantMap := c.CreateMapWithType(nodeList)
+				//insert node objects into the map
+				for _, obj := range nodeList.Items {
+					n := obj
+					objKey := client.ObjectKeyFromObject(&n)
+
+					relevantMap[objKey] = &n
+				}
+				node1 := test.MockNodeList.Items[0]
+				//insert node object into the map
+				c.CreateOrUpdateObjectInMap(&node1)
+
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
+
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).Return(nil)
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+			},
+			ragengine:     *test.MockRAGEngineWithNoInferenceService,
+			expectedError: nil,
+		},
 	}
 
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -365,7 +392,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									RAGEngineHashAnnotation: "a0e0caff25969ecdfa6e3f827bab323d9edb3ad48fa2eaf6992899c982133951",
+									RAGEngineHashAnnotation: "01d86e3f2e4fe40da099e879d9af1881169b9468d4c44e2512d616b9a4e07641",
 								},
 							},
 						}
@@ -590,6 +617,90 @@ func TestApplyRAG(t *testing.T) {
 				c.AssertNumberOfCalls(t, "Update", 1)
 			},
 		},
+
+		"Create RAG with no compute resources": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(test.NotFoundError()).Times(4)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+					depObj := &appsv1.Deployment{}
+					key := client.ObjectKey{Namespace: "kaito", Name: "testRAGEngine"}
+					c.GetObjectFromMap(depObj, key)
+					depObj.Status.ReadyReplicas = 1
+					c.CreateOrUpdateObjectInMap(depObj)
+				})
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+			},
+			ragengine: *test.MockRAGEngineWithNoComputeResource,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 0)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 7)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 0)
+			},
+			expectedError: nil,
+		},
+
+		"Create RAG with no inference resources": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(test.NotFoundError()).Times(4)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+					depObj := &appsv1.Deployment{}
+					key := client.ObjectKey{Namespace: "kaito", Name: "testRAGEngine"}
+					c.GetObjectFromMap(depObj, key)
+					depObj.Status.ReadyReplicas = 1
+					c.CreateOrUpdateObjectInMap(depObj)
+				})
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+			},
+			ragengine:     *test.MockRAGEngineWithNoInferenceService,
+			expectedError: nil,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 0)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 7)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 0)
+			},
+		},
+
+		"Create RAG with no compute or inference resources": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(test.NotFoundError()).Times(4)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+					depObj := &appsv1.Deployment{}
+					key := client.ObjectKey{Namespace: "kaito", Name: "testRAGEngine"}
+					c.GetObjectFromMap(depObj, key)
+					depObj.Status.ReadyReplicas = 1
+					c.CreateOrUpdateObjectInMap(depObj)
+				})
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+			},
+			ragengine:     *test.MockRAGEngineWithNoComputeResourceAndInferenceService,
+			expectedError: nil,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 0)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 7)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 0)
+			},
+		},
 	}
 
 	for k, tc := range testcases {
@@ -665,6 +776,54 @@ func TestEnsureService(t *testing.T) {
 			},
 			expectedError: nil,
 			ragengine:     *test.MockRAGEngineWithPreset,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 0)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 4)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 0)
+			},
+		},
+
+		"Successfully creates a new service with no compute": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(test.NotFoundError())
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+			},
+			expectedError: nil,
+			ragengine:     *test.MockRAGEngineWithNoComputeResource,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 0)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 4)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 0)
+			},
+		},
+
+		"Successfully creates a new service with no inference": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(test.NotFoundError())
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+			},
+			expectedError: nil,
+			ragengine:     *test.MockRAGEngineWithNoInferenceService,
+			verifyCalls: func(c *test.MockClient) {
+				c.AssertNumberOfCalls(t, "List", 0)
+				c.AssertNumberOfCalls(t, "Create", 1)
+				c.AssertNumberOfCalls(t, "Get", 4)
+				c.AssertNumberOfCalls(t, "Delete", 0)
+				c.AssertNumberOfCalls(t, "Update", 0)
+			},
+		},
+
+		"Successfully creates a new service with no compute or inference": {
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(test.NotFoundError())
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+			},
+			expectedError: nil,
+			ragengine:     *test.MockRAGEngineWithNoComputeResourceAndInferenceService,
 			verifyCalls: func(c *test.MockClient) {
 				c.AssertNumberOfCalls(t, "List", 0)
 				c.AssertNumberOfCalls(t, "Create", 1)
@@ -791,6 +950,175 @@ func TestReconcile(t *testing.T) {
 					}).Return(nil)
 			},
 			ragengine:     mockRAGEngineDistributedModel0Node,
+			expectedError: nil,
+			expectRequeue: false,
+		},
+		"Successfully create new RAGEngine without compute resources": {
+			callMocks: func(c *test.MockClient) {
+				ragengine := test.MockRAGEngineWithNoComputeResource.DeepCopy()
+				ragengine.Finalizers = []string{} // No finalizer initially
+
+				deployment := test.MockDeploymentUpdated.DeepCopy()
+				deployment.Finalizers = []string{} // No finalizer initially
+
+				nodeClaim := test.MockNodeClaim.DeepCopy()
+				nodeClaim.Status.Conditions = []status.Condition{
+					{
+						Type:   string(apis.ConditionReady),
+						Status: v1.ConditionTrue,
+					},
+				}
+				nodeClaim.Finalizers = []string{} // No finalizer initially
+
+				nodes := test.MockNodes[0].DeepCopy()
+				nodes.Finalizers = []string{} // No finalizer initially
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*v1beta1.RAGEngine)
+						*dep = *ragengine
+					}).Return(nil)
+
+				// ensureFinalizer calls
+				c.On("Patch", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything, mock.Anything).Return(nil)
+
+				// syncControllerRevision calls
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), "test-revision"))
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+
+				// addRAGEngine calls
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(test.NotFoundError()).Once()
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*appsv1.Deployment)
+						*dep = *deployment
+					}).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			ragengine:     test.MockRAGEngineWithNoComputeResource,
+			expectedError: nil,
+			expectRequeue: false,
+		},
+		"Successfully create new RAGEngine without inference service": {
+			callMocks: func(c *test.MockClient) {
+				ragengine := test.MockRAGEngineWithNoInferenceService.DeepCopy()
+				ragengine.Finalizers = []string{} // No finalizer initially
+
+				deployment := test.MockDeploymentUpdated.DeepCopy()
+				deployment.Finalizers = []string{} // No finalizer initially
+
+				nodeClaim := test.MockNodeClaim.DeepCopy()
+				nodeClaim.Status.Conditions = []status.Condition{
+					{
+						Type:   string(apis.ConditionReady),
+						Status: v1.ConditionTrue,
+					},
+				}
+				nodeClaim.Finalizers = []string{} // No finalizer initially
+
+				nodes := test.MockNodes[0].DeepCopy()
+				nodes.Finalizers = []string{} // No finalizer initially
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*v1beta1.RAGEngine)
+						*dep = *ragengine
+					}).Return(nil)
+
+				// ensureFinalizer calls
+				c.On("Patch", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything, mock.Anything).Return(nil)
+
+				// syncControllerRevision calls
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), "test-revision"))
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+
+				// addRAGEngine calls
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&karpenterv1.NodeClaim{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*karpenterv1.NodeClaim)
+						*dep = *nodeClaim
+					}).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Node{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*corev1.Node)
+						*dep = *nodes
+					}).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(test.NotFoundError()).Once()
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*appsv1.Deployment)
+						*dep = *deployment
+					}).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			ragengine:     test.MockRAGEngineWithNoInferenceService,
+			expectedError: nil,
+			expectRequeue: false,
+		},
+		"Successfully create new RAGEngine without compute or inference service": {
+			callMocks: func(c *test.MockClient) {
+				ragengine := test.MockRAGEngineWithNoComputeResourceAndInferenceService.DeepCopy()
+				ragengine.Finalizers = []string{} // No finalizer initially
+
+				deployment := test.MockDeploymentUpdated.DeepCopy()
+				deployment.Finalizers = []string{} // No finalizer initially
+
+				nodeClaim := test.MockNodeClaim.DeepCopy()
+				nodeClaim.Status.Conditions = []status.Condition{
+					{
+						Type:   string(apis.ConditionReady),
+						Status: v1.ConditionTrue,
+					},
+				}
+				nodeClaim.Finalizers = []string{} // No finalizer initially
+
+				nodes := test.MockNodes[0].DeepCopy()
+				nodes.Finalizers = []string{} // No finalizer initially
+
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*v1beta1.RAGEngine)
+						*dep = *ragengine
+					}).Return(nil)
+
+				// ensureFinalizer calls
+				c.On("Patch", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything, mock.Anything).Return(nil)
+
+				// syncControllerRevision calls
+				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
+					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), "test-revision"))
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+
+				// addRAGEngine calls
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(test.NotFoundError()).Once()
+				c.On("Create", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+				c.StatusMock.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.RAGEngine{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
+				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.Deployment{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						dep := args.Get(2).(*appsv1.Deployment)
+						*dep = *deployment
+					}).Return(nil)
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
+			},
+			ragengine:     test.MockRAGEngineWithNoComputeResourceAndInferenceService,
 			expectedError: nil,
 			expectRequeue: false,
 		},

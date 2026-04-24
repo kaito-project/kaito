@@ -13,32 +13,48 @@ helm install workspace ./charts/kaito/workspace  \
 
 ## Values
 
-| Key                                      | Type   | Default                                 | Description                                                   |
-|------------------------------------------|--------|-----------------------------------------|---------------------------------------------------------------|
-| affinity                                 | object | `{}`                                    |                                                               |
-| image.pullPolicy                         | string | `"IfNotPresent"`                        |                                                               |
-| image.repository                         | string | `mcr.microsoft.com/aks/kaito/workspace` |                                                               |
-| image.tag                                | string | `"0.3.0"`                               |                                                               |
-| imagePullSecrets                         | list   | `[]`                                    |                                                               |
-| nodeSelector                             | object | `{}`                                    |                                                               |
-| podAnnotations                           | object | `{}`                                    |                                                               |
-| podSecurityContext.runAsNonRoot          | bool   | `true`                                  |                                                               |
-| presetRegistryName                       | string | `"mcr.microsoft.com/aks/kaito"`         |                                                               |
-| replicaCount                             | int    | `1`                                     |                                                               |
-| resources.limits.cpu                     | string | `"500m"`                                |                                                               |
-| resources.limits.memory                  | string | `"128Mi"`                               |                                                               |
-| resources.requests.cpu                   | string | `"10m"`                                 |                                                               |
-| resources.requests.memory                | string | `"64Mi"`                                |                                                               |
-| securityContext.allowPrivilegeEscalation | bool   | `false`                                 |                                                               |
-| securityContext.capabilities.drop[0]     | string | `"ALL"`                                 |                                                               |
-| defaultNodeImageFamily                   | string | `""`                                    | Default NodeClaim image-family annotation value. Supported values: `azurelinux`, `ubuntu`. Empty means `ubuntu`. Unsupported values cause workspace controller startup failure. |
-| tolerations                              | list   | `[]`                                    |                                                               |
-| webhook.port                             | int    | `9443`                                  |                                                               |
-| cloudProviderName                        | string | `"azure"`                               | Karpenter cloud provider name. Values can be "azure" or "aws" |
-| nvidiaDevicePlugin.enabled               | bool   | `true`                                  | Enable deployment of NVIDIA device plugin DaemonSet. Set to false if your cluster already has the NVIDIA device plugin installed (e.g., via GPU Operator). |
-| featureGates.disableNodeAutoProvisioning | bool   | `false`                                 | When `true`, disables Node Auto-Provisioning (NAP) and installs the `gpu-feature-discovery` subchart as a standalone replacement. Leave `false` (default) if using NAP. |
-| gpu-feature-discovery.nfd.enabled        | bool   | `true`                                  | Enable Node Feature Discovery (NFD) deployment within the GFD subchart. Set to `false` if NFD is already installed (e.g., via the NVIDIA GPU Operator) to avoid CRD conflicts. Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
-| gpu-feature-discovery.gfd.enabled        | bool   | `true`                                  | Enable GPU Feature Discovery (GFD) within the GFD subchart. Set to `false` if GFD is already installed (e.g., via the NVIDIA GPU Operator). Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
+| Key                                            | Type   | Default                                                  | Description                                                   |
+|------------------------------------------------|--------|----------------------------------------------------------|---------------------------------------------------------------|
+| affinity                                       | object | `{}`                                                     | Pod affinity rules.                                           |
+| image.pullPolicy                               | string | `"IfNotPresent"`                                         | Allowed values: `Always`, `IfNotPresent`, `Never`.            |
+| image.repository                               | string | `mcr.microsoft.com/aks/kaito/workspace`                  | Controller image repository.                                  |
+| image.tag                                      | string | `"0.10.0"`                                               | Controller image tag.                                         |
+| imagePullSecrets                               | list   | `[]`                                                     | List of image pull secret references (`[{name: <secret>}]`).  |
+| nodeSelector                                   | object | `{"kubernetes.io/os": "linux"}`                          | Controller pod node selector.                                 |
+| podAnnotations                                 | object | `{}`                                                     | Extra annotations added to the controller pod.                |
+| podSecurityContext.runAsUser                   | int    | `1000`                                                   | UID the controller runs as. Must be non-zero (runAsNonRoot).  |
+| podSecurityContext.runAsGroup                  | int    | `1000`                                                   | GID the controller runs as.                                   |
+| podSecurityContext.runAsNonRoot                | bool   | `true`                                                   | Allowed values: `true`, `false`. Must stay `true` on restricted PSS clusters. |
+| podSecurityContext.seccompProfile.type         | string | `"RuntimeDefault"`                                       | Allowed values: `RuntimeDefault`, `Localhost`, `Unconfined`.  |
+| presetRegistryName                             | string | `"mcr.microsoft.com/aks/kaito"`                          | Registry used to pull preset inference/tuning images.         |
+| replicaCount                                   | int    | `1`                                                      | Controller replicas. Non-negative integer; leader election enables HA when >1. |
+| deploymentStrategy.rollingUpdate.maxUnavailable| int / string | `1`                                                | Integer or percentage string (e.g. `"50%"`) per Kubernetes rolling update semantics. |
+| resources.limits.cpu                           | string | `"500m"`                                                 | Kubernetes CPU quantity.                                      |
+| resources.limits.memory                        | string | `"128Mi"`                                                | Kubernetes memory quantity.                                   |
+| resources.requests.cpu                         | string | `"10m"`                                                  | Kubernetes CPU quantity.                                      |
+| resources.requests.memory                      | string | `"64Mi"`                                                 | Kubernetes memory quantity.                                   |
+| securityContext.allowPrivilegeEscalation       | bool   | `false`                                                  | Allowed values: `true`, `false`.                              |
+| securityContext.readOnlyRootFilesystem         | bool   | `true`                                                   | Allowed values: `true`, `false`.                              |
+| securityContext.capabilities.drop[0]           | string | `"ALL"`                                                  | Linux capability name, or the special value `ALL`.            |
+| defaultNodeImageFamily                         | string | `""`                                                     | Default NodeClaim image-family annotation. Allowed values: `""` (treated as `ubuntu`), `ubuntu`, `azurelinux`. Any other value causes controller startup failure. |
+| nodeProvisioner                                | string | `""`                                                     | Node provisioner type. Allowed values: `""` (inferred from feature gates for backward compatibility), `azure-gpu-provisioner`, `azure-karpenter`, `byo`. |
+| tolerations                                    | list   | `[]`                                                     | Controller pod tolerations.                                   |
+| webhook.port                                   | int    | `9443`                                                   | Webhook HTTPS port. Valid TCP port (1–65535); must not conflict with other container ports. |
+| logging.level                                  | string | `"error"`                                                | Knative zap logging level. Allowed values: `debug`, `info`, `warn`, `error`, `dpanic`, `panic`, `fatal`. |
+| cloudProviderName                              | string | `"azure"`                                                | Cloud provider identifier propagated as the `CLOUD_PROVIDER` env var. Allowed values: `azure`, `aws`, `arc`. |
+| clusterName                                    | string | `"kaito"`                                                | Logical Kubernetes cluster name used in controller labels/metrics. |
+| spotInstance.enabled                           | bool   | `false`                                                  | Allowed values: `true`, `false`. When `true`, adds the Azure Spot toleration so workloads can be scheduled on Spot GPU node pools. |
+| localCSIDriver.useLocalCSIDriver               | bool   | `true`                                                   | Allowed values: `true`, `false`. Enables use of the bundled local CSI driver. |
+| nvidiaDevicePlugin.enabled                     | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if the cluster already has an NVIDIA device plugin (e.g., via GPU Operator). |
+| nvidiaDevicePlugin.daemonsetName               | string | `"nvidia-device-plugin-daemonset"`                       | DNS-1123 name of the generated DaemonSet.                     |
+| nvidiaDevicePlugin.image                       | string | `"mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.18.2-1"` | Full image reference for the device plugin container. |
+| nvidiaDevicePlugin.imagePullPolicy             | string | `"IfNotPresent"`                                         | Allowed values: `Always`, `IfNotPresent`, `Never`.            |
+| featureGates.vLLM                              | bool   | `true`                                                   | Allowed values: `true`, `false`. Enables the vLLM inference runtime feature gate. |
+| featureGates.disableNodeAutoProvisioning       | bool   | `false`                                                  | Allowed values: `true`, `false`. When `true`, disables Node Auto-Provisioning (NAP) and installs the `gpu-feature-discovery` subchart as a standalone replacement. |
+| featureGates.gatewayAPIInferenceExtension      | bool   | `false`                                                  | Allowed values: `true`, `false`. Enables the Gateway API Inference Extension (also gates installation of the GAIE subchart). |
+| featureGates.enableInferenceSetController      | bool   | `false`                                                  | Allowed values: `true`, `false`. Enables the InferenceSet controller and its RBAC. |
+| gpu-feature-discovery.nfd.enabled              | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if NFD is already installed (e.g., via the NVIDIA GPU Operator) to avoid CRD conflicts. Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
+| gpu-feature-discovery.gfd.enabled              | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if GFD is already installed (e.g., via the NVIDIA GPU Operator). Only applies when the GFD subchart is active (`featureGates.disableNodeAutoProvisioning=true`). |
 
 ## NVIDIA GPU Operator Coexistence
 

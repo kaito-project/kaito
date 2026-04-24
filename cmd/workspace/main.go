@@ -27,6 +27,7 @@ import (
 	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -38,6 +39,7 @@ import (
 	"knative.dev/pkg/webhook"
 	ctrl "sigs.k8s.io/controller-runtime"
 	runtimecache "sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -81,6 +83,7 @@ func init() {
 	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(helmv2.AddToScheme(scheme))
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
+	utilruntime.Must(apiextensionsv1.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
 	klog.InitFlags(nil)
@@ -93,6 +96,7 @@ func main() {
 	var probeAddr string
 	var featureGates string
 	var defaultNodeImageFamily string
+	var nodeProvisionerType string
 	var kubeClientQPS int = 30
 	var kubeClientBurst int = 50
 	var printVersionAndExit bool
@@ -107,6 +111,7 @@ func main() {
 		"Enable webhook for controller manager. Default is true.")
 	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false.")
 	flag.StringVar(&defaultNodeImageFamily, "default-node-image-family", "", "Default node image family annotation for generated NodeClaims. Supported values: azurelinux, ubuntu. Empty means ubuntu. Unsupported values cause startup failure.")
+	flag.StringVar(&nodeProvisionerType, "node-provisioner", "", "Node provisioner type. Supported values: azure-gpu-provisioner, azure-karpenter, byo. Default: azure-gpu-provisioner. If empty, inferred from feature gates for backward compatibility.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
 		Development: true,
@@ -122,6 +127,31 @@ func main() {
 
 	if err := featuregates.ParseAndValidateFeatureGates(featureGates); err != nil {
 		klog.ErrorS(err, "unable to set `feature-gates` flag")
+		exitWithErrorFunc()
+	}
+
+	// Resolve node provisioner type: if --node-provisioner is not explicitly set,
+	// infer from feature gates for backward compatibility.
+	if nodeProvisionerType == "" {
+		switch {
+		case featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]:
+			nodeProvisionerType = consts.NodeProvisionerBYO
+		default:
+			nodeProvisionerType = consts.NodeProvisionerAzureGPU
+		}
+		klog.InfoS("--node-provisioner not set, inferred from feature gates", "type", nodeProvisionerType)
+	}
+
+	// Sync feature gate internal state based on --node-provisioner for downstream consumers.
+	switch nodeProvisionerType {
+	case consts.NodeProvisionerBYO:
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	case consts.NodeProvisionerAzureKarpenter:
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	case consts.NodeProvisionerAzureGPU:
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	default:
+		klog.ErrorS(fmt.Errorf("unsupported node provisioner type %q", nodeProvisionerType), "unable to set --node-provisioner")
 		exitWithErrorFunc()
 	}
 
@@ -182,10 +212,25 @@ func main() {
 	}
 	k8sclient.SetGlobalClientGoClient(kubeClient)
 
-	// Create the node provisioner based on feature gates.
+	// Create a direct (non-cached) client for provisioner initialization.
+	// This is necessary because nodeProvisioner.Start() runs before mgr.Start(),
+	// and the manager's cached client is not usable until the cache is started.
+	// The direct client is only used for lightweight CRD existence checks and
+	// global AKSNodeClass creation during startup.
+	directClient, directErr := client.New(cfg, client.Options{Scheme: scheme})
+	if directErr != nil {
+		klog.ErrorS(directErr, "unable to create direct client for provisioner Start")
+		exitWithErrorFunc()
+	}
+
+	// Select and initialize the node provisioner based on feature gates.
 	recorder := mgr.GetEventRecorderFor("KAITO-Workspace-controller")
-	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(kClient, recorder, defaultNodeImageFamily)
+	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(kClient, directClient, recorder, defaultNodeImageFamily, nodeProvisionerType)
 	klog.InfoS("Node provisioner selected", "name", nodeProvisioner.Name())
+	if err := nodeProvisioner.Start(ctx); err != nil {
+		klog.ErrorS(err, "failed to start node provisioner")
+		exitWithErrorFunc()
+	}
 
 	workspaceReconciler := controllers.NewWorkspaceReconciler(
 		kClient,

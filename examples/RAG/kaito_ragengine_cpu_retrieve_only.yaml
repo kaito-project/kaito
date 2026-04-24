@@ -1,0 +1,8 @@
+apiVersion: kaito.sh/v1beta1
+kind: RAGEngine
+metadata:
+  name: ragengine-retrieve
+spec:
+  embedding:  
+    local:
+      modelID: "BAAI/bge-small-en-v1.5"

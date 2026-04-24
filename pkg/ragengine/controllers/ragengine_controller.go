@@ -31,7 +31,9 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
@@ -120,15 +122,26 @@ func (c *RAGEngineReconciler) ensureFinalizer(ctx context.Context, ragEngineObj 
 }
 
 func (c *RAGEngineReconciler) addRAGEngine(ctx context.Context, ragEngineObj *kaitov1beta1.RAGEngine) (reconcile.Result, error) {
-	err := c.applyRAGEngineResource(ctx, ragEngineObj)
-	if err != nil {
-		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
-			"ragengineFailed", err.Error()); updateErr != nil {
-			klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
-			return reconcile.Result{}, updateErr
+	var err error
+	if ragEngineObj.Spec.Compute != nil && ragEngineObj.Spec.Compute.InstanceType != "" {
+		err = c.applyRAGEngineResource(ctx, ragEngineObj)
+		if err != nil {
+			if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
+				"ragengineFailed", err.Error()); updateErr != nil {
+				klog.ErrorS(updateErr, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
+				return reconcile.Result{}, updateErr
+			}
+			return reconcile.Result{}, err
 		}
-		return reconcile.Result{}, err
+	} else {
+		// set resource status to true when no compute resource is needed.
+		if err = c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue,
+			"ragengineResourceStatusSuccess", "ragengine resource is ready"); err != nil {
+			klog.ErrorS(err, "failed to update ragengine status", "ragengine", klog.KObj(ragEngineObj))
+			return reconcile.Result{}, err
+		}
 	}
+
 	if err := c.ensureService(ctx, ragEngineObj); err != nil {
 		if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.RAGEngineConditionTypeSucceeded, metav1.ConditionFalse,
 			"ragEngineFailed", err.Error()); updateErr != nil {
@@ -563,18 +576,50 @@ func (c *RAGEngineReconciler) ensureNodePlugins(ctx context.Context, ragEngineOb
 	}
 }
 
+// isNodeClaimCRDAvailable checks if the Karpenter NodeClaim CRD is installed in the cluster
+func isNodeClaimCRDAvailable(mgr ctrl.Manager) bool {
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
+	if err != nil {
+		klog.ErrorS(err, "failed to create discovery client")
+		return false
+	}
+
+	// Check if karpenter.sh/v1 NodeClaim resource is available
+	gv := schema.GroupVersion{Group: "karpenter.sh", Version: "v1"}
+	resourceList, err := discoveryClient.ServerResourcesForGroupVersion(gv.String())
+	if err != nil {
+		klog.V(4).InfoS("Karpenter v1 resources not available", "error", err)
+		return false
+	}
+
+	for _, resource := range resourceList.APIResources {
+		if resource.Kind == "NodeClaim" {
+			klog.InfoS("Found Karpenter NodeClaim CRD, enabling NodeClaim watching")
+			return true
+		}
+	}
+
+	klog.InfoS("Karpenter NodeClaim CRD not found, disabling NodeClaim watching")
+	return false
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (c *RAGEngineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("RAGEngine")
 
-	builder := ctrl.NewControllerManagedBy(mgr).
+	bldr := ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1beta1.RAGEngine{}).
 		Owns(&appsv1.ControllerRevision{}).
-		Owns(&appsv1.Deployment{}).
-		Watches(&karpenterv1.NodeClaim{}, c.watchNodeClaims(), builder.WithPredicates(nodeclaim.NodeClaimPredicate)). // watches for nodeClaim with labels indicating ragengine name.
-		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
+		Owns(&appsv1.Deployment{})
 
-	return builder.Complete(c)
+	// Only watch NodeClaim resources if the CRD is actually installed
+	if isNodeClaimCRDAvailable(mgr) {
+		klog.InfoS("Karpenter NodeClaim CRD is available, setting up watch for NodeClaims")
+		bldr = bldr.Watches(&karpenterv1.NodeClaim{}, c.watchNodeClaims(), builder.WithPredicates(nodeclaim.NodeClaimPredicate))
+	}
+
+	return bldr.WithOptions(controller.Options{MaxConcurrentReconciles: 5}).
+		Complete(c)
 }
 
 // watches for nodeClaim with labels indicating RAGEngine name.

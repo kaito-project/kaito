@@ -317,6 +317,7 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 		if revision != "" {
 			p.Transformers.ModelRunParams["revision"] = revision
 		}
+		p.Transformers.ModelRunParams["allow_remote_files"] = ""
 	}
 	torchCommand := utils.BuildCmdStr(
 		p.Transformers.BaseCommand,

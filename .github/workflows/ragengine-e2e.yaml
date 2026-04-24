@@ -13,7 +13,7 @@ on:
       - 'presets/ragengine/**'
 
 env:
-  GO_VERSION: "1.25"
+  GO_VERSION: "1.26.2"
 
 permissions:
   id-token: write # This is required for requesting the JWT

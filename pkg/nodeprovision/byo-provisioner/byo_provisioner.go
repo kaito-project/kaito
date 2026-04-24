@@ -42,6 +42,9 @@ func NewBYOProvisioner(c client.Client) *BYOProvisioner {
 // Name returns the provisioner name.
 func (n *BYOProvisioner) Name() string { return "BYOProvisioner" }
 
+// Start is a no-op for BYOProvisioner.
+func (n *BYOProvisioner) Start(ctx context.Context) error { return nil }
+
 func (n *BYOProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
 	return nil
 }

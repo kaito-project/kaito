@@ -1245,7 +1245,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 			},
 		}
 
-		k8sclient.SetGlobalClientGoClient(kubefake.NewSimpleClientset())
+		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
 		applyBenchmarkStatus(context.Background(), status, wObj, 1, buildReconcileErrMessageAppender(nil))
 
 		// Result and condition must be unchanged — the guard must have fired.

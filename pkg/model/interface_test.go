@@ -143,6 +143,51 @@ func TestGetInferenceCommandHuggingfaceWithModelName(t *testing.T) {
 	assert.Contains(t, cmd[2], "test-served-model")
 }
 
+func TestGetInferenceCommandHuggingfaceDownloadAtRuntime(t *testing.T) {
+	p := &PresetParam{
+		Metadata: Metadata{
+			Version:           "https://huggingface.co/microsoft/phi-3-mini-128k-instruct",
+			DownloadAtRuntime: true,
+		},
+		RuntimeParam: RuntimeParam{
+			Transformers: HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				AccelerateParams:  map[string]string{},
+				InferenceMainFile: "/workspace/inference.py",
+				ModelRunParams:    map[string]string{"torch_dtype": "float16"},
+			},
+		},
+	}
+	rc := RuntimeContext{RuntimeName: RuntimeNameHuggingfaceTransformers}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "pretrained_model_name_or_path=microsoft/phi-3-mini-128k-instruct")
+	assert.Contains(t, cmd[2], "allow_remote_files")
+}
+
+func TestGetInferenceCommandHuggingfaceDownloadAtRuntimeWithRevision(t *testing.T) {
+	p := &PresetParam{
+		Metadata: Metadata{
+			Version:           "https://huggingface.co/microsoft/phi-3-mini-128k-instruct/commit/abc123",
+			DownloadAtRuntime: true,
+		},
+		RuntimeParam: RuntimeParam{
+			Transformers: HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				AccelerateParams:  map[string]string{},
+				InferenceMainFile: "/workspace/inference.py",
+				ModelRunParams:    map[string]string{"torch_dtype": "float16"},
+			},
+		},
+	}
+	rc := RuntimeContext{RuntimeName: RuntimeNameHuggingfaceTransformers}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "pretrained_model_name_or_path=microsoft/phi-3-mini-128k-instruct")
+	assert.Contains(t, cmd[2], "revision=abc123")
+	assert.Contains(t, cmd[2], "allow_remote_files")
+}
+
 func TestGetInferenceCommandVLLMSingleNode(t *testing.T) {
 	p := &PresetParam{
 		RuntimeParam: RuntimeParam{

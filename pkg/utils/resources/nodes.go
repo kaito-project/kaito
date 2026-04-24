@@ -108,10 +108,12 @@ func ExtractObjFields(obj client.Object) (instanceType, namespace, name string, 
 		nameLabel = kaitov1beta1.LabelWorkspaceName
 		namespaceLabel = kaitov1beta1.LabelWorkspaceNamespace
 	case *kaitov1beta1.RAGEngine:
-		instanceType = o.Spec.Compute.InstanceType
+		if o.Spec.Compute != nil {
+			instanceType = o.Spec.Compute.InstanceType
+			labelSelector = o.Spec.Compute.LabelSelector
+		}
 		namespace = o.Namespace
 		name = o.Name
-		labelSelector = o.Spec.Compute.LabelSelector
 		nameLabel = kaitov1beta1.LabelRAGEngineName
 		namespaceLabel = kaitov1beta1.LabelRAGEngineNamespace
 	default:

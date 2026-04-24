@@ -42,6 +42,7 @@ featureGates:
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: false
 defaultNodeImageFamily: ""
+nodeProvisioner: ""
 nvidiaDevicePlugin:
   enabled: true
   daemonsetName: "nvidia-device-plugin-daemonset"

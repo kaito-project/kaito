@@ -2,8 +2,7 @@
 
 ## Overview
 
-These files are part of a set used for conducting end-to-end (E2E) testing of an adapter component. The Dockerfile builds an image incorporating the configuration and model files, which is then used within an Init Container for testing. The adapter1 is training from [dolly-15k-oai-style](https://huggingface.co/datasets/philschmid/dolly-15k-oai-style) dataset
-and was trained using default [qlora-params.yaml](../../charts/kaito/workspace/templates/qlora-params.yaml) . The adapter2 is from [falcon-7b-instruct-ft-adapters](https://huggingface.co/gmazur591/falcon-7b-instruct-ft-adapters) for test.
+These files are part of a set used for conducting end-to-end (E2E) testing of an adapter component. The Dockerfile builds an image incorporating the configuration and model files, which is then used within an Init Container for testing. The adapter1 and adapter2 are Phi-3-compatible LoRA adapters (copied from adapter-phi-3-mini-pycoder) used for testing adapter swap functionality with phi-3-mini-128k-instruct. The adapter-phi-3-mini-pycoder is a LoRA adapter trained for the Phi-3 Mini model family.
 
 ## Files
 

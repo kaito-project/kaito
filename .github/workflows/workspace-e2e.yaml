@@ -7,9 +7,21 @@ concurrency:
 on:
   pull_request:
     paths-ignore: ['docs/**', '**.md', '**.mdx', '**.png', '**.jpg', 'examples/**', 'website/**', 'hack/**']
+  workflow_dispatch:
+    inputs:
+      ginkgo_label:
+        description: "Ginkgo label filter for e2e tests"
+        required: false
+        type: string
+        default: ""
+      region:
+        description: "The azure location to run the e2e test in"
+        required: false
+        type: string
+        default: "swedencentral"
 
 env:
-  GO_VERSION: "1.25"
+  GO_VERSION: "1.26.2"
 
 permissions:
   id-token: write # This is required for requesting the JWT
@@ -28,5 +40,7 @@ jobs:
     uses: ./.github/workflows/e2e-workflow.yaml
     with:
       pull_request_number: ${{ github.event.pull_request.number }}
-      git_sha: ${{ github.event.pull_request.head.sha }}
+      git_sha: ${{ github.event.pull_request.head.sha || github.sha }}
       node_provisioner: ${{ matrix.node-provisioner }}
+      ginkgo_label: ${{ inputs.ginkgo_label || '' }}
+      region: ${{ inputs.region || 'swedencentral' }}

@@ -193,6 +193,43 @@ var _ = Describe("RAGEngine", func() {
 		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
 	})
 
+	It("should create RAG with localembedding and no compute or inference and kaito VLLM workspace successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfReplica := 1
+
+		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngineWithNoComputeOrInference()
+
+		defer cleanupResources(nil, ragengineObj)
+
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
+		validateAssociatedService(ragengineObj.ObjectMeta)
+		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
+		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
+
+		indexDoc, err := createAndValidateIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
+		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
+		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
+		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
+		docID := indexDoc["doc_id"].(string)
+
+		persistLogSuccess := "Successfully persisted index kaito"
+		err = createAndValidatePersistPod(ragengineObj, persistLogSuccess)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate PersistPod")
+
+		loadLogSuccess := "Successfully loaded index kaito"
+		err = createAndValidateLoadPod(ragengineObj, loadLogSuccess)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate LoadPod")
+
+		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
+
+		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
+
+		err = createAndValidateDeleteIndexPod(ragengineObj)
+		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
+	})
+
 	It("should create RAG with preferred nodes and kaito VLLM workspace successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplica := 1
 		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
@@ -538,6 +575,22 @@ func GenerateLocalEmbeddingRAGEngineManifest(name, namespace, instanceType, embe
 	}
 }
 
+func GenerateLocalEmbeddingRAGEngineManifestWithNoComputeOrInference(name, namespace, embeddingModelID string) *kaitov1beta1.RAGEngine {
+	return &kaitov1beta1.RAGEngine{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: &kaitov1beta1.RAGEngineSpec{
+			Embedding: &kaitov1beta1.EmbeddingSpec{
+				Local: &kaitov1beta1.LocalEmbeddingSpec{
+					ModelID: embeddingModelID,
+				},
+			},
+		},
+	}
+}
+
 func GenerateLocalEmbeddingRAGEngineManifestWithStorage(name, namespace, instanceType, embeddingModelID string, labelSelector *metav1.LabelSelector, inferenceSpec *kaitov1beta1.InferenceServiceSpec, storageSpec *kaitov1beta1.StorageSpec) *kaitov1beta1.RAGEngine {
 	return &kaitov1beta1.RAGEngine{
 		ObjectMeta: metav1.ObjectMeta{
@@ -602,6 +655,17 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 			return conditionFound
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace to be ready")
 	})
+}
+
+func createLocalEmbeddingKaitoVLLMRAGEngineWithNoComputeOrInference() *kaitov1beta1.RAGEngine {
+	ragEngineObj := &kaitov1beta1.RAGEngine{}
+	By("Creating RAG with localembedding and kaito vllm inference", func() {
+		uniqueID := fmt.Sprint("rag-", rand.Intn(1000))
+		ragEngineObj = GenerateLocalEmbeddingRAGEngineManifestWithNoComputeOrInference(uniqueID, namespaceName, "BAAI/bge-small-en-v1.5")
+
+		createAndValidateRAGEngine(ragEngineObj)
+	})
+	return ragEngineObj
 }
 
 func createLocalEmbeddingKaitoVLLMRAGEngine(baseURL, llmPath string) *kaitov1beta1.RAGEngine {

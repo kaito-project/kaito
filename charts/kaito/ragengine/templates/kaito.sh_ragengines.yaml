@@ -173,12 +173,34 @@ spec:
                     - url
                     type: object
                 type: object
+              guardrails:
+                description: Guardrails configures output guardrails for chat completions.
+                properties:
+                  configMapRef:
+                    description: ConfigMapRef points to a ConfigMap that contains
+                      a guardrails.yaml policy document.
+                    properties:
+                      name:
+                        description: Name is the name of the ConfigMap in the same
+                          namespace as the RAGEngine.
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  enabled:
+                    description: Enabled turns response guardrails on for chat completions.
+                    type: boolean
+                type: object
               indexServiceName:
                 description: |-
                   IndexServiceName is the name of the service which exposes the endpoint for user to input the index data
                   to generate embeddings. If not specified, a default service name will be created by the RAG engine.
                 type: string
               inferenceService:
+                description: |-
+                  InferenceService specifies the endpoint of the LLM inference service for generating responses.
+                  This field is optional - if not specified, the RAG engine operates in retrieve-only mode,
+                  supporting pure document search via the /retrieve API without LLM-based response generation.
                 properties:
                   accessSecret:
                     description: AccessSecret is the name of the secret that contains
@@ -230,7 +252,6 @@ spec:
                 type: object
             required:
             - embedding
-            - inferenceService
             type: object
           status:
             description: RAGEngineStatus defines the observed state of RAGEngine
@@ -458,7 +479,29 @@ spec:
                     - url
                     type: object
                 type: object
+              guardrails:
+                description: Guardrails configures output guardrails for chat completions.
+                properties:
+                  configMapRef:
+                    description: ConfigMapRef points to a ConfigMap that contains
+                      a guardrails.yaml policy document.
+                    properties:
+                      name:
+                        description: Name is the name of the ConfigMap in the same
+                          namespace as the RAGEngine.
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  enabled:
+                    description: Enabled turns response guardrails on for chat completions.
+                    type: boolean
+                type: object
               inferenceService:
+                description: |-
+                  InferenceService specifies the endpoint of the LLM inference service for generating responses.
+                  This field is optional - if not specified, the RAG engine operates in retrieve-only mode,
+                  supporting pure document search via the /retrieve API without LLM-based response generation.
                 properties:
                   accessSecret:
                     description: AccessSecret is the name of the secret that contains
@@ -538,7 +581,6 @@ spec:
                 type: object
             required:
             - embedding
-            - inferenceService
             type: object
           status:
             description: RAGEngineStatus defines the observed state of RAGEngine

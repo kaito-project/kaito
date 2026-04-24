@@ -30,11 +30,17 @@ import (
 //
 // Three implementations:
 //   - AzureGPUProvisioner: wraps Azure gpu-provisioner (https://github.com/Azure/gpu-provisioner) logic.
-//   - KarpenterProvisioner (future): creates NodePool with static replicas.
+//   - AzureKarpenterProvisioner: uses Azure Karpenter (https://github.com/Azure/karpenter-provider-azure) for node provisioning.
 //   - BYOProvisioner: no-op for BYO mode.
 type NodeProvisioner interface {
 	// Name returns the name of this provisioner implementation.
 	Name() string
+
+	// Start performs any initialization required before the provisioner can
+	// handle ProvisionNodes / DeleteNodes calls. For example, verifying
+	// that required CRDs are installed or creating global resources.
+	// It is called once during controller startup.
+	Start(ctx context.Context) error
 
 	// ProvisionNodes ensures all node resources for the Workspace exist
 	// and are progressing toward Ready.

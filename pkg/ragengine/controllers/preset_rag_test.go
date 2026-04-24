@@ -21,8 +21,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
+	ctrlclientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -222,4 +227,104 @@ func TestGPUConfigLogic(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCreatePresetRAGGuardrailsUsesDefaultTemplate(t *testing.T) {
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, "kaito-system")
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	test.RegisterTestModel()
+
+	scheme := runtime.NewScheme()
+	_ = appsv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+	_ = v1beta1.AddToScheme(scheme)
+
+	ragEngine := test.MockRAGEngineWithPreset.DeepCopy()
+	ragEngine.Spec.Guardrails = &v1beta1.GuardrailsSpec{Enabled: true}
+
+	kubeClient := ctrlclientfake.NewClientBuilder().WithScheme(scheme).WithObjects(
+		&corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      v1beta1.DefaultGuardrailsPolicyConfigMapTemplate,
+				Namespace: "kaito-system",
+			},
+			Data: map[string]string{v1beta1.GuardrailsPolicyFileName: "action: block\nscanners: []\n"},
+		},
+	).Build()
+
+	createdObject, err := CreatePresetRAG(context.TODO(), ragEngine, "1", kubeClient)
+	if err != nil {
+		t.Fatalf("CreatePresetRAG() unexpected error = %v", err)
+	}
+
+	deployment := createdObject.(*appsv1.Deployment)
+	container := deployment.Spec.Template.Spec.Containers[0]
+	if !hasVolumeMount(container.VolumeMounts, guardrailsVolumeName, manifests.GuardrailsPolicyMountDir) {
+		t.Fatalf("expected guardrails volume mount at %s", manifests.GuardrailsPolicyMountDir)
+	}
+	if !hasConfigMapVolume(deployment.Spec.Template.Spec.Volumes, guardrailsVolumeName, v1beta1.DefaultGuardrailsPolicyConfigMapTemplate) {
+		t.Fatalf("expected deployment to use copied default guardrails ConfigMap")
+	}
+
+	var copiedCM corev1.ConfigMap
+	if err := kubeClient.Get(context.TODO(), ctrlclient.ObjectKey{Name: v1beta1.DefaultGuardrailsPolicyConfigMapTemplate, Namespace: ragEngine.Namespace}, &copiedCM); err != nil {
+		t.Fatalf("expected copied guardrails ConfigMap in target namespace: %v", err)
+	}
+	if _, ok := copiedCM.Data[v1beta1.GuardrailsPolicyFileName]; !ok {
+		t.Fatalf("expected copied guardrails ConfigMap to contain %s", v1beta1.GuardrailsPolicyFileName)
+	}
+}
+
+func TestCreatePresetRAGGuardrailsUsesCustomConfigMap(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	test.RegisterTestModel()
+
+	scheme := runtime.NewScheme()
+	_ = appsv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+	_ = v1beta1.AddToScheme(scheme)
+
+	ragEngine := test.MockRAGEngineWithPreset.DeepCopy()
+	ragEngine.Spec.Guardrails = &v1beta1.GuardrailsSpec{
+		Enabled:      true,
+		ConfigMapRef: &v1beta1.ConfigMapReference{Name: "custom-guardrails"},
+	}
+
+	kubeClient := ctrlclientfake.NewClientBuilder().WithScheme(scheme).WithObjects(
+		&corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "custom-guardrails",
+				Namespace: ragEngine.Namespace,
+			},
+			Data: map[string]string{v1beta1.GuardrailsPolicyFileName: "action: block\nscanners: []\n"},
+		},
+	).Build()
+
+	createdObject, err := CreatePresetRAG(context.TODO(), ragEngine, "1", kubeClient)
+	if err != nil {
+		t.Fatalf("CreatePresetRAG() unexpected error = %v", err)
+	}
+
+	deployment := createdObject.(*appsv1.Deployment)
+	if !hasConfigMapVolume(deployment.Spec.Template.Spec.Volumes, guardrailsVolumeName, "custom-guardrails") {
+		t.Fatalf("expected deployment to use custom guardrails ConfigMap")
+	}
+}
+
+func hasConfigMapVolume(volumes []corev1.Volume, volumeName, configMapName string) bool {
+	for _, volume := range volumes {
+		if volume.Name == volumeName && volume.ConfigMap != nil && volume.ConfigMap.Name == configMapName {
+			return true
+		}
+	}
+	return false
+}
+
+func hasVolumeMount(volumeMounts []corev1.VolumeMount, volumeName, mountPath string) bool {
+	for _, volumeMount := range volumeMounts {
+		if volumeMount.Name == volumeName && volumeMount.MountPath == mountPath {
+			return true
+		}
+	}
+	return false
 }

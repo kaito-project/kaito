@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ragengine-guardrails-policy-template
+  namespace: {{ .Release.Namespace }}
+data:
+  guardrails.yaml: |
+    action: block
+    blockMessage: The model output was blocked by output guardrails.
+    scanners: []

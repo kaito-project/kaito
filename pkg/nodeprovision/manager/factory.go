@@ -35,6 +35,7 @@ type ProvisionerConfig struct {
 	ProvisionerType        string
 	NodeClassGroup         string
 	NodeClassKind          string
+	NodeClassVersion       string
 	NodeClassResourceName  string
 }
 
@@ -49,6 +50,7 @@ func NewNodeProvisioner(cfg ProvisionerConfig) nodeprovision.NodeProvisioner {
 		ncCfg := karpenterprov.NodeClassConfig{
 			Group:        cfg.NodeClassGroup,
 			Kind:         cfg.NodeClassKind,
+			Version:      cfg.NodeClassVersion,
 			ResourceName: cfg.NodeClassResourceName,
 		}
 		return karpenterprov.NewKarpenterProvisioner(cfg.DirectClient, ncCfg)

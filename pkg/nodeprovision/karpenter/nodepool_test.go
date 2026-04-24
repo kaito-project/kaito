@@ -61,12 +61,12 @@ func TestResolveNodeClassName_FromAnnotation(t *testing.T) {
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				kaitov1beta1.AnnotationNodeImageFamily: "AzureLinux",
+				kaitov1beta1.AnnotationNodeClassName: "my-custom-nodeclass",
 			},
 		},
 	}
 	name := resolveNodeClassName(ws, testConfig)
-	assert.Equal(t, "image-family-azure-linux", name)
+	assert.Equal(t, "my-custom-nodeclass", name)
 }
 
 func TestResolveNodeClassName_DefaultFallback(t *testing.T) {
@@ -77,11 +77,11 @@ func TestResolveNodeClassName_DefaultFallback(t *testing.T) {
 	assert.Equal(t, "image-family-ubuntu", name)
 }
 
-func TestResolveNodeClassName_UnknownAnnotation_FallsBackToDefault(t *testing.T) {
+func TestResolveNodeClassName_EmptyAnnotation_FallsBackToDefault(t *testing.T) {
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				kaitov1beta1.AnnotationNodeImageFamily: "unknown-family",
+				kaitov1beta1.AnnotationNodeClassName: "",
 			},
 		},
 	}
@@ -93,16 +93,13 @@ func TestResolveNodeClassName_CustomConfig(t *testing.T) {
 	cfg := NodeClassConfig{
 		Group:        "karpenter.k8s.aws",
 		Kind:         "EC2NodeClass",
-		ResourceName: "ec2nodeclasses.karpenter.k8s.aws",
+		ResourceName: "ec2nodeclasses",
 		DefaultName:  "default-ec2",
-		AnnotationMap: map[string]string{
-			"al2023": "al2023-nodeclass",
-		},
 	}
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				kaitov1beta1.AnnotationNodeImageFamily: "AL2023",
+				kaitov1beta1.AnnotationNodeClassName: "al2023-nodeclass",
 			},
 		},
 	}
@@ -224,7 +221,7 @@ func TestGenerateNodePool_InferenceSet(t *testing.T) {
 
 func TestGenerateNodePool_WithAnnotation(t *testing.T) {
 	ws := newTestWorkspace("default", "ws1", "Standard_D4s_v3", 1, nil, map[string]string{
-		kaitov1beta1.AnnotationNodeImageFamily: "azurelinux",
+		kaitov1beta1.AnnotationNodeClassName: "image-family-azure-linux",
 	})
 	np := generateNodePool(ws, testConfig)
 	assert.Equal(t, "image-family-azure-linux", np.Spec.Template.Spec.NodeClassRef.Name)
@@ -232,10 +229,9 @@ func TestGenerateNodePool_WithAnnotation(t *testing.T) {
 
 func TestGenerateNodePool_CustomCloudConfig(t *testing.T) {
 	cfg := NodeClassConfig{
-		Group:         "karpenter.k8s.aws",
-		Kind:          "EC2NodeClass",
-		DefaultName:   "default-ec2",
-		AnnotationMap: map[string]string{},
+		Group:       "karpenter.k8s.aws",
+		Kind:        "EC2NodeClass",
+		DefaultName: "default-ec2",
 	}
 	ws := newTestWorkspace("default", "ws1", "m5.xlarge", 1, nil, nil)
 	np := generateNodePool(ws, cfg)

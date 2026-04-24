@@ -37,12 +37,9 @@ import (
 var testConfig = NodeClassConfig{
 	Group:        "karpenter.azure.com",
 	Kind:         "AKSNodeClass",
-	ResourceName: "aksnodeclasses.karpenter.azure.com",
+	Version:      "v1beta1",
+	ResourceName: "aksnodeclasses",
 	DefaultName:  "image-family-ubuntu",
-	AnnotationMap: map[string]string{
-		"ubuntu":     "image-family-ubuntu",
-		"azurelinux": "image-family-azure-linux",
-	},
 }
 
 // mockNodeClassReady sets up a mock Get call for an unstructured NodeClass that
@@ -153,14 +150,14 @@ func TestProvisionNodes_UsesDefaultNodeClassName(t *testing.T) {
 	assert.True(t, found, "expected Create to be called with a NodePool")
 }
 
-func TestProvisionNodes_UsesAnnotationImageFamily(t *testing.T) {
+func TestProvisionNodes_UsesAnnotationNodeClassName(t *testing.T) {
 	mockClient := test.NewClient()
 	mockNodeClassReady(mockClient, "image-family-azure-linux")
 	mockClient.On("Create", mock.IsType(context.Background()), mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
 
 	p := NewKarpenterProvisioner(mockClient, testConfig)
 	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, map[string]string{
-		kaitov1beta1.AnnotationNodeImageFamily: "AzureLinux",
+		kaitov1beta1.AnnotationNodeClassName: "image-family-azure-linux",
 	})
 
 	err := p.ProvisionNodes(context.Background(), ws)

@@ -19,9 +19,6 @@ data:
         {{- if .default }}
         karpenter.kaito.sh/default: "true"
         {{- end }}
-        {{- if .annotationValue }}
-        karpenter.kaito.sh/annotation-value: {{ .annotationValue | quote }}
-        {{- end }}
     spec:
       {{- toYaml .spec | nindent 6 }}
   {{- end }}

@@ -40,14 +40,14 @@ import (
 )
 
 // NodeClassConfig holds cloud-specific NodeClass reference info.
-// Group, Kind, and ResourceName are injected via CLI flags.
-// DefaultName and AnnotationMap are derived by Start() from ConfigMap labels.
+// Group, Kind, Version, and ResourceName are injected via CLI flags.
+// DefaultName is derived by Start() from ConfigMap labels.
 type NodeClassConfig struct {
-	Group         string            // e.g. "karpenter.azure.com"
-	Kind          string            // e.g. "AKSNodeClass"
-	ResourceName  string            // full CRD resource name (e.g. "aksnodeclasses.karpenter.azure.com")
-	DefaultName   string            // populated by Start(): name of entry with karpenter.kaito.sh/default=true
-	AnnotationMap map[string]string // populated by Start(): annotationValue → name
+	Group        string // e.g. "karpenter.azure.com"
+	Kind         string // e.g. "AKSNodeClass"
+	Version      string // e.g. "v1beta1"
+	ResourceName string // plural resource name (e.g. "aksnodeclasses"); combined with Group for CRD lookup
+	DefaultName  string // populated by Start(): name of entry with karpenter.kaito.sh/default=true
 }
 
 // KarpenterProvisioner implements NodeProvisioner using the cloud-agnostic
@@ -72,11 +72,11 @@ func (p *KarpenterProvisioner) Name() string { return "KarpenterProvisioner" }
 const nodeClassConfigMapName = "kaito-nodeclasses"
 
 // Start verifies that the Karpenter NodeClass CRD is installed, creates
-// NodeClass resources from the ConfigMap, and derives DefaultName and
-// AnnotationMap from labels. Returns an error if Karpenter is not installed.
+// NodeClass resources from the ConfigMap, and derives DefaultName from labels.
+// Returns an error if Karpenter is not installed.
 func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 	// Check if the NodeClass CRD exists.
-	crdName := p.nodeClassConfig.ResourceName
+	crdName := p.nodeClassConfig.ResourceName + "." + p.nodeClassConfig.Group
 	crd := &apiextensionsv1.CustomResourceDefinition{}
 	if err := p.client.Get(ctx, types.NamespacedName{Name: crdName}, crd); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -99,8 +99,7 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 			nodeClassConfigMapName, releaseNS, err)
 	}
 
-	// Create each NodeClass and derive DefaultName/AnnotationMap from labels.
-	p.nodeClassConfig.AnnotationMap = make(map[string]string)
+	// Create each NodeClass and derive DefaultName from labels.
 	for key, raw := range cm.Data {
 		obj := &unstructured.Unstructured{}
 		if err := sigsyaml.Unmarshal([]byte(raw), &obj.Object); err != nil {
@@ -110,19 +109,13 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 		name := obj.GetName()
 		labels := obj.GetLabels()
 
-		// Track default and annotation mappings.
+		// Track the default NodeClass entry.
 		if labels["karpenter.kaito.sh/default"] == "true" {
 			if p.nodeClassConfig.DefaultName != "" {
 				return fmt.Errorf("multiple NodeClass entries have karpenter.kaito.sh/default=true: %q and %q",
 					p.nodeClassConfig.DefaultName, name)
 			}
 			p.nodeClassConfig.DefaultName = name
-		}
-		if av, ok := labels["karpenter.kaito.sh/annotation-value"]; ok {
-			if existing, dup := p.nodeClassConfig.AnnotationMap[av]; dup {
-				return fmt.Errorf("duplicate annotationValue %q on NodeClass entries %q and %q", av, existing, name)
-			}
-			p.nodeClassConfig.AnnotationMap[av] = name
 		}
 
 		klog.InfoS("Creating NodeClass", "name", name, "kind", obj.GetKind())
@@ -144,8 +137,7 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 	}
 	klog.InfoS("NodeClass resources created",
 		"count", len(cm.Data),
-		"default", p.nodeClassConfig.DefaultName,
-		"annotationMap", p.nodeClassConfig.AnnotationMap)
+		"default", p.nodeClassConfig.DefaultName)
 	return nil
 }
 
@@ -157,7 +149,7 @@ func (p *KarpenterProvisioner) checkNodeClassReady(ctx context.Context, name str
 	obj := &unstructured.Unstructured{}
 	obj.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   p.nodeClassConfig.Group,
-		Version: "v1beta1",
+		Version: p.nodeClassConfig.Version,
 		Kind:    p.nodeClassConfig.Kind,
 	})
 	if err := p.client.Get(ctx, types.NamespacedName{Name: name}, obj); err != nil {
@@ -189,7 +181,7 @@ func (p *KarpenterProvisioner) waitForNodeClassReady(ctx context.Context, name s
 		obj := &unstructured.Unstructured{}
 		obj.SetGroupVersionKind(schema.GroupVersionKind{
 			Group:   p.nodeClassConfig.Group,
-			Version: "v1beta1",
+			Version: p.nodeClassConfig.Version,
 			Kind:    p.nodeClassConfig.Kind,
 		})
 		if err := p.client.Get(ctx, types.NamespacedName{Name: name}, obj); err != nil {

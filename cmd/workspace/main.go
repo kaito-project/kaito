@@ -99,6 +99,7 @@ func main() {
 	var nodeProvisionerType string
 	var karpenterNodeClassGroup string
 	var karpenterNodeClassKind string
+	var karpenterNodeClassVersion string
 	var karpenterNodeClassResourceName string
 	var kubeClientQPS int = 30
 	var kubeClientBurst int = 50
@@ -117,7 +118,8 @@ func main() {
 	flag.StringVar(&nodeProvisionerType, "node-provisioner", "", "Node provisioner type. Supported values: azure-gpu-provisioner, karpenter, byo. Default: azure-gpu-provisioner. If empty, inferred from feature gates for backward compatibility.")
 	flag.StringVar(&karpenterNodeClassGroup, "karpenter-node-class-group", "karpenter.azure.com", "Karpenter NodeClass API group. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassKind, "karpenter-node-class-kind", "AKSNodeClass", "Karpenter NodeClass API kind. Only used when node-provisioner=karpenter.")
-	flag.StringVar(&karpenterNodeClassResourceName, "karpenter-node-class-resource-name", "aksnodeclasses.karpenter.azure.com", "Full CRD resource name for the NodeClass (e.g. aksnodeclasses.karpenter.azure.com). Only used when node-provisioner=karpenter.")
+	flag.StringVar(&karpenterNodeClassVersion, "karpenter-node-class-version", "v1beta1", "Karpenter NodeClass API version. Only used when node-provisioner=karpenter.")
+	flag.StringVar(&karpenterNodeClassResourceName, "karpenter-node-class-resource-name", "aksnodeclasses", "Plural resource name for the NodeClass CRD (e.g. aksnodeclasses). Combined with --karpenter-node-class-group to form the full CRD name. Only used when node-provisioner=karpenter.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
 		Development: true,
@@ -242,6 +244,7 @@ func main() {
 		ProvisionerType:        nodeProvisionerType,
 		NodeClassGroup:         karpenterNodeClassGroup,
 		NodeClassKind:          karpenterNodeClassKind,
+		NodeClassVersion:       karpenterNodeClassVersion,
 		NodeClassResourceName:  karpenterNodeClassResourceName,
 	})
 	klog.InfoS("Node provisioner selected", "name", nodeProvisioner.Name())

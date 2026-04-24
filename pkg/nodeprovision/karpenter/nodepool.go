@@ -16,7 +16,6 @@ package karpenter
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"strings"
 
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
@@ -62,13 +61,11 @@ func WorkspaceLabelValue(workspaceNamespace, workspaceName string) string {
 }
 
 // resolveNodeClassName determines the NodeClass resource name for a Workspace.
-// It checks the workspace annotation against the AnnotationMap built from
-// ConfigMap labels, then falls back to the config default.
+// It checks for the node-class-name annotation on the workspace, then falls
+// back to the configured default.
 func resolveNodeClassName(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) string {
-	if ann, ok := ws.Annotations[kaitov1beta1.AnnotationNodeImageFamily]; ok {
-		if name, ok := cfg.AnnotationMap[strings.ToLower(ann)]; ok {
-			return name
-		}
+	if name, ok := ws.Annotations[kaitov1beta1.AnnotationNodeClassName]; ok && name != "" {
+		return name
 	}
 	return cfg.DefaultName
 }

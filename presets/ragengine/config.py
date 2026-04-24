@@ -69,6 +69,28 @@ LLM_CONTEXT_WINDOW = int(
 )  # Default context window size
 # LLM_RESPONSE_FIELD = os.getenv("LLM_RESPONSE_FIELD", "result")  # Uncomment if needed in the future
 
+
+def _parse_csv_env(name: str) -> tuple[str, ...]:
+    raw_value = os.getenv(name, "")
+    return tuple(item.strip() for item in raw_value.split(",") if item.strip())
+
+
+OUTPUT_GUARDRAILS_ENABLED = (
+    os.getenv("OUTPUT_GUARDRAILS_ENABLED", "false").lower() == "true"
+)
+OUTPUT_GUARDRAILS_POLICY_PATH = os.getenv("OUTPUT_GUARDRAILS_POLICY_PATH", "")
+OUTPUT_GUARDRAILS_ACTION_ON_HIT = os.getenv(
+    "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact"
+).lower()
+OUTPUT_GUARDRAILS_REGEX_PATTERNS = _parse_csv_env("OUTPUT_GUARDRAILS_REGEX_PATTERNS")
+OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS = _parse_csv_env(
+    "OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS"
+)
+OUTPUT_GUARDRAILS_BLOCK_MESSAGE = os.getenv(
+    "OUTPUT_GUARDRAILS_BLOCK_MESSAGE",
+    "The model output was blocked by output guardrails.",
+)
+
 """
 =========================================================================
 """

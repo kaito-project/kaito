@@ -189,6 +189,16 @@ var (
 			// source: https://docs.vllm.ai/en/v0.17.1/api/vllm/model_executor/models/mistral_large_3/
 			Architectures: []string{"MistralLarge3ForCausalLM"},
 			PipelineTag:   "text-generation",
+			// source: https://huggingface.co/mistralai/Mistral-Large-3-675B-Instruct-2512/blob/main/consolidated-00001-of-00272.safetensors
+			DType: "bfloat16",
+		},
+		"openai/gpt-oss-20b": {
+			// source: https://huggingface.co/openai/gpt-oss-20b/blob/main/model-00000-of-00002.safetensors
+			DType: "bfloat16",
+		},
+		"openai/gpt-oss-120b": {
+			// source: https://huggingface.co/openai/gpt-oss-120b/blob/main/model-00000-of-00014.safetensors
+			DType: "bfloat16",
 		},
 	}
 )
@@ -419,6 +429,19 @@ func getInt(config map[string]interface{}, keys []string, defaultVal int) int {
 		}
 	}
 	return defaultVal
+}
+
+// getString looks up the first matching key in config and returns its string value,
+// or "" if none of the keys are present.
+func getString(config map[string]interface{}, keys []string) string {
+	for _, key := range keys {
+		if val, ok := config[key]; ok {
+			if s, ok := val.(string); ok && s != "" {
+				return s
+			}
+		}
+	}
+	return ""
 }
 
 func (g *Generator) ParseModelMetadata() {

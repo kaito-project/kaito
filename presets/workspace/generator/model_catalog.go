@@ -38,6 +38,7 @@ type CatalogEntry struct {
 	NumHiddenLayers   int      `yaml:"numHiddenLayers"`
 	NumAttentionHeads int      `yaml:"numAttentionHeads"`
 	NumKeyValueHeads  int      `yaml:"numKeyValueHeads"`
+	DType             string   `yaml:"dtype,omitempty"`
 	LoadFormat        string   `yaml:"loadFormat,omitempty"`
 	ConfigFormat      string   `yaml:"configFormat,omitempty"`
 	TokenizerMode     string   `yaml:"tokenizerMode,omitempty"`
@@ -59,6 +60,7 @@ var configKeyMap = map[string][]string{
 	"numHiddenLayers":   {"num_hidden_layers", "n_layer", "n_layers"},
 	"numAttentionHeads": {"num_attention_heads", "n_head", "n_heads"},
 	"numKeyValueHeads":  {"num_key_value_heads", "n_head_kv", "n_kv_heads"},
+	"dtype":             {"torch_dtype", "dtype"},
 }
 
 // optionalKeyMap holds catalog fields that are only stored when present and > 0.
@@ -155,6 +157,7 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 	entry.HeadDim = getInt(config, optionalKeyMap["headDim"], 0)
 	entry.KVLoraRank = getInt(config, optionalKeyMap["kvLoraRank"], 0)
 	entry.QKRopeHeadDim = getInt(config, optionalKeyMap["qkRopeHeadDim"], 0)
+	entry.DType = getString(config, configKeyMap["dtype"])
 
 	if entry.HeadDim > 0 && entry.NumAttentionHeads > 0 && entry.HiddenSize > 0 {
 		if entry.HeadDim == entry.HiddenSize/entry.NumAttentionHeads {
@@ -204,6 +207,9 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 		}
 		if ovr.PipelineTag != "" {
 			entry.PipelineTag = ovr.PipelineTag
+		}
+		if ovr.DType != "" {
+			entry.DType = ovr.DType
 		}
 	}
 

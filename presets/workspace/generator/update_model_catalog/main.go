@@ -103,6 +103,7 @@ func catalogFields(e *generator.CatalogEntry) map[string]string {
 		"numHiddenLayers":   fmt.Sprintf("%d", e.NumHiddenLayers),
 		"numAttentionHeads": fmt.Sprintf("%d", e.NumAttentionHeads),
 		"numKeyValueHeads":  fmt.Sprintf("%d", e.NumKeyValueHeads),
+		"dtype":             fmt.Sprintf("%s", e.DType),
 	}
 	if e.Description != "" {
 		m["description"] = e.Description

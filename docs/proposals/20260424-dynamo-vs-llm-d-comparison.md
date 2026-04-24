@@ -1,3 +1,12 @@
+---
+title: "Dynamo vs llm-d: Distributed LLM Inference Orchestration Framework Comparison"
+authors:
+  - "@andyzhangx"
+creation-date: 2026-04-24
+last-updated: 2026-04-24
+status: informational
+---
+
 # Dynamo vs llm-d: Distributed LLM Inference Orchestration Framework Comparison
 
 Both are **orchestration layers** for LLM inference, sitting above inference engines (vLLM/SGLang/TRT-LLM) to solve multi-GPU/multi-node distributed serving challenges. Core capabilities overlap significantly, but design philosophies and implementation paths differ.
@@ -29,7 +38,7 @@ Both are **orchestration layers** for LLM inference, sitting above inference eng
 |---|---|---|
 | **Led by** | NVIDIA | Red Hat + open-source community (IBM, etc.) |
 | **Core language** | **Rust** + Python | **Go** (scheduler) + Python (vLLM contributions) |
-| **Control plane** | Custom service discovery + etcd/NATS; K8s via Grove operator (optional) | **Kubernetes-native** — built directly on K8s Gateway API / Inference Gateway (IGW) |
+| **Control plane** | Custom service discovery + etcd/NATS; K8s via Grove operator (optional) | **Kubernetes-native** — built directly on K8s Gateway API / Gateway API Inference Extension |
 | **Deployment model** | Bare metal, container, or K8s (flexible but requires extra config) | **K8s-first**, Helm chart + standard K8s API as control plane |
 | **Inference engine coupling** | Deep support for SGLang, TRT-LLM, and vLLM simultaneously | Deeply bound to **vLLM**, scheduler orchestrates P/D via sidecar |
 | **Hardware affinity** | Strong NVIDIA optimization (NVLink/NVSwitch/GB200 NVL72) | Hardware-neutral — explicit support for **NVIDIA GPU, Intel XPU, Google TPU** |
@@ -50,7 +59,7 @@ Both are **orchestration layers** for LLM inference, sitting above inference eng
 | **Essence** | Custom standalone routing component, embedded in Dynamo Frontend or independently deployed | K8s Gateway API **EPP (Endpoint Picker) extension**, embedded in Envoy ext-proc callback chain |
 | **Language** | **Rust** (core) + Python bindings | **Go** |
 | **Data plane** | Dynamo's own HTTP Frontend forwards directly | **Envoy** proxy → ext-proc callback → EPP makes decisions → Envoy executes forwarding |
-| **Control plane** | etcd/NATS service discovery, Router maintains global state | **K8s API** (InferencePool / InferenceModel CRD) + GIE framework |
+| **Control plane** | etcd/NATS service discovery, Router maintains global state | **K8s API** (InferencePool / InferenceModel CRD) + Gateway API Inference Extension framework |
 | **Service discovery** | Dynamic registration (`register_model()`), broadcast via etcd | K8s Pod endpoint auto-discovery |
 
 **Core distinction**: Dynamo Router is a **fully custom stateful router**; llm-d is **plugin-style enhancement** on top of standard K8s Gateway.
@@ -160,7 +169,7 @@ llm-d's plugin architecture is significantly stronger — routing strategies can
 
 4. **Declarative extensibility**: llm-d's SchedulingProfile orchestrates filter/scorer chains via YAML; KAITO can map CRD parameters to different scheduling strategies without code changes. Dynamo requires modifying Rust logic.
 
-5. **Community direction alignment**: llm-d is led by Red Hat + IBM community, aligned with KAITO's open-source K8s ecosystem positioning. Gateway API + Inference Extension (IGW) is already the K8s SIG direction.
+5. **Community direction alignment**: llm-d is led by Red Hat + IBM community, aligned with KAITO's open-source K8s ecosystem positioning. Gateway API Inference Extension (formerly IGW) is already the K8s SIG direction.
 
 ### Recommended Integration Path
 

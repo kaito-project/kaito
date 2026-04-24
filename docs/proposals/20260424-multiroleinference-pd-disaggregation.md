@@ -28,7 +28,7 @@ Large language models (LLMs) like DeepSeek-V3 benefit significantly from separat
 - Define a `MultiRoleInference` CRD that allows users to specify prefill and decode roles with independent replica counts, instance types, and configurations
 - Automatically create and manage child InferenceSets for each role
 - Integrate with llm-d inference scheduler for P/D-aware request routing via Gateway API
-- Support multi-GPU Ray cluster topologies (head pod routing via `pod-index: "0"`)
+- Support multi-GPU Ray cluster topologies (head pod routing via `apps.kubernetes.io/pod-index: "0"`)
 - Enable independent KEDA autoscaling for prefill and decode roles
 
 ### Non-Goals/Future Work
@@ -205,7 +205,7 @@ type MultiRoleInferenceSpec struct {
 
     // EPPPluginsConfigRef references a ConfigMap containing custom EPP plugins configuration.
     // If not set, the controller auto-generates a standard P/D disaggregation plugin config
-    // with prefill-filter, decode-filter, prefix-cache-scorer, and load-aware-scorer.
+    // with prefill-filter, decode-filter, precise-prefix-cache-scorer, and load-aware-scorer.
     // +optional
     EPPPluginsConfigRef *corev1.LocalObjectReference `json:"eppPluginsConfigRef,omitempty"`
 
@@ -629,7 +629,7 @@ spec:
       pluginsConfigFile: "config.yaml"
       pluginsCustomConfig:
         config.yaml: |
-          # content from deepseek-v32-epp-plugins ConfigMap data.config.yaml
+          # content from deepseek-v32-epp-plugins ConfigMap key "config.yaml"
           ...
     inferencePool:
       targetPorts:

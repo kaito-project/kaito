@@ -57,16 +57,17 @@ HTTPRoute                               ◄── Match header → route to Infe
   ▼
 llm-d EPP (ext-proc)                    ◄── P/D disaggregation scheduling
   │
-  │  1. disagg-profile-handler decides: prefill or decode?
-  │  2. by-label-selector filters pods by inference-role
-  │  3. scorer ranks candidates
-  │  4. picker selects best pod
-  │
-  ├──► prefill workspace (inference-role=prefill)
-  │      KV cache produced → NixlConnector → decode workspace
+  │  1. disagg-profile-handler decides: prefill needed?
+  │  2. by-label-selector filters decode pods
+  │  3. scorer ranks candidates (prefix-cache + load-aware)
+  │  4. picker selects best decode pod
+  │  5. if prefill needed: sets x-prefiller-host-port header
   │
   └──► decode workspace (inference-role=decode)
-         KV cache consumed → generate tokens → response
+         routing sidecar (port 8080) receives request
+         ├── if x-prefiller-host-port header present:
+         │     contacts prefill pod → KV transfer via NixlConnector → decode
+         └── if no header: prefill + decode locally
 ```
 
 ## Architecture
@@ -117,6 +118,8 @@ llm-d EPP (ext-proc)                    ◄── P/D disaggregation scheduling
 apiVersion: kaito.sh/v1alpha1
 kind: MultiRoleInference
 metadata:
+  # The InferencePool resource name matches the MRI name.
+  # The HelmRelease that deploys this pool is named "deepseek-v32-inferencepool".
   name: deepseek-v32
   namespace: default
 spec:
@@ -411,7 +414,7 @@ containers:
 The sidecar sits in front of the vLLM engine on decode workspaces:
 - Incoming requests hit the sidecar (port 8080)
 - Sidecar orchestrates prefill (if needed) and then forwards to local vLLM (port 5000)
-- The InferencePool `targetPortNumber` should point to the sidecar port (8080) for decode workspaces
+- The InferencePool `targetPorts` should point to the sidecar port (8080) for decode workspaces
 
 > **Multi-node Ray cluster**: Since the sidecar is part of the StatefulSet pod template, all decode pods (head + workers) will have the sidecar container. Only the head pod (index 0) receives traffic from the EPP, so only its sidecar is actively working. Worker pod sidecars remain idle.
 
@@ -706,9 +709,9 @@ Incoming Request
 │    max-score-picker     │  - max-score-picker (pick best)
 └──────────┬──────────────┘
            │
-           │  selected pod
+           │  selected decode pod
            ▼
-     Envoy forwards request to selected pod
+     Envoy forwards request to selected decode pod (sidecar port 8080)
 ```
 
 > **Why `by-label-selector` instead of llm-d's built-in `prefill-filter`/`decode-filter`?**
@@ -842,6 +845,8 @@ kubectl apply -f - <<EOF
 apiVersion: kaito.sh/v1alpha1
 kind: MultiRoleInference
 metadata:
+  # The InferencePool resource name matches the MRI name.
+  # The HelmRelease that deploys this pool is named "deepseek-v32-inferencepool".
   name: deepseek-v32
   namespace: default
 spec:
@@ -897,8 +902,8 @@ kubectl get is -l kaito.sh/parent=deepseek-v32
 # deepseek-v32-decode       3          3               10m
 
 # Check InferencePool and EPP
-kubectl get inferencepool deepseek-v32-inferencepool
-kubectl get pod -l inferencepool=deepseek-v32-inferencepool-epp
+kubectl get inferencepool deepseek-v32
+kubectl get pod -l inferencepool=deepseek-v32-epp
 
 # Verify workspace labels
 kubectl get pods -l apps=deepseek-v32 --show-labels
@@ -931,9 +936,9 @@ curl -s http://<gateway-ip>/v1/chat/completions \
 | | 3 | Controller: inject default vLLM NixlConnector kv-transfer-config (`kv_both`) into child InferenceSet config | TODO |
 | | 4 | Controller: create InferencePool (selector: `apps.kubernetes.io/pod-index: "0"` for Ray cluster support) | TODO |
 | | 5 | Controller: auto-generate P/D EPP plugin ConfigMap (`disagg-profile-handler` + `by-label-selector`) | TODO |
-| | 6 | Controller: create OCI Repository + HelmRelease (llm-d EPP image) | ✅ Done ([PR #1975](https://github.com/kaito-project/kaito/pull/1975)) |
+| | 6 | Controller: create OCI Repository + HelmRelease (llm-d EPP image) | ✅ Done ([PR #1975](https://github.com/kaito-project/kaito/pull/1975)) — currently in InferenceSet controller; will be moved to MRI controller |
 | | 7 | Controller: create DestinationRule (TLS bypass) — **temporary, remove after [kaito#1983](https://github.com/kaito-project/kaito/pull/1983)** | TODO (skip if #1983 merges first) |
-| | 8 | Controller: inject llm-d routing sidecar into decode workspace during reconcile | TODO |
+| | 8 | Workspace controller: include llm-d routing sidecar in decode StatefulSet spec when `inference-role: decode` label is present | TODO |
 | | 9 | Controller: status aggregation from child InferenceSets + InferencePool → MRI status | TODO |
 | | 10 | Webhook: validation + defaulting | TODO |
 | **Phase 2: Advanced** | 11 | Support custom `eppPluginsConfigRef` for user-defined EPP plugins | TODO |

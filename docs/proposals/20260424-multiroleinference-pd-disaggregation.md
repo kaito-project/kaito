@@ -61,7 +61,7 @@ llm-d EPP (ext-proc)                    ◄── P/D disaggregation scheduling
   │  2. by-label-selector filters decode pods
   │  3. scorer ranks candidates (prefix-cache + load-aware)
   │  4. picker selects best decode pod
-  │  5. if prefill needed: sets x-prefiller-host-port header
+  │  5. disagg-headers-handler sets x-prefiller-host-port header (prefill-pod-ip:8000)
   │
   └──► decode workspace (inference-role=decode)
          routing sidecar (port 8080) receives request
@@ -507,7 +507,7 @@ When a model uses tensor parallelism (e.g., 8-way TP), each workspace creates a 
 The EPP must only route to head pods. Kubernetes StatefulSet pods have a built-in label `apps.kubernetes.io/pod-index`, so the InferencePool selector includes `apps.kubernetes.io/pod-index: "0"` to match only head pods. This works for both single-GPU (1 pod per workspace, always index 0) and multi-GPU Ray cluster topologies.
 
 In P/D mode, **all requests go to decode pods first** (through the routing sidecar on port 8080). The sidecar handles prefill orchestration internally — prefill pods are not accessed via the InferencePool. The `targetPorts: [{number: 8080}]` ensures the Gateway routes to the decode sidecar, which then:
-- Contacts the selected prefill pod directly (via `x-prefiller-host-port` header from EPP, e.g., `prefill-pod-ip:5000`) on the vLLM serving port
+- Contacts the selected prefill pod directly (via `x-prefiller-host-port` header set by `disagg-headers-handler`, e.g., `prefill-pod-ip:8000`) on the vLLM serving port (8000, the default vLLM port — this is the prefill pod's container port, not the InferencePool targetPort which is 8080 for the decode sidecar)
 - Falls back to local prefill+decode if not disaggregated
 
 ### 4. EPP Plugin ConfigMap (auto-generated if not provided)

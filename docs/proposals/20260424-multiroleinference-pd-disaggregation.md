@@ -13,12 +13,11 @@ see-also:
   - "/docs/proposals/20260421-migrate-epp-to-llm-d-inference-scheduler.md"
   - "/docs/proposals/20250704-keda-scaler-for-inference-workloads.md"
 ---
-
 # MultiRoleInference for Prefill/Decode Disaggregated Inference
 
 ## Summary
 
-This proposal introduces a `MultiRoleInference` CRD for prefill/decode (P/D) disaggregated inference in KAITO. It uses the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler) ([architecture](https://github.com/llm-d/llm-d-inference-scheduler/blob/main/docs/architecture.md)) as the routing layer, built on the Kubernetes-native Gateway API stack. The MultiRoleInference controller creates separate child InferenceSets for prefill and decode roles, a shared InferencePool, and orchestrates KV cache transfer between them via NixlConnector.
+This proposal introduces a `MultiRoleInference` CRD for prefill/decode (P/D) disaggregated inference in KAITO using [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler) ([architecture](https://github.com/llm-d/llm-d-inference-scheduler/blob/main/docs/architecture.md)) as the routing layer, built on the Kubernetes-native Gateway API stack. The MultiRoleInference controller creates separate child InferenceSets for prefill and decode roles, a shared InferencePool, and orchestrates KV cache transfer between them via NixlConnector.
 
 ## Motivation
 
@@ -31,7 +30,6 @@ Large language models (LLMs) like DeepSeek-V3 benefit significantly from separat
 - Integrate with llm-d inference scheduler for P/D-aware request routing via Gateway API
 - Support multi-GPU Ray cluster topologies (head pod routing via `pod-index: "0"`)
 - Enable independent KEDA autoscaling for prefill and decode roles
-- Provide a general-purpose sidecar injection mechanism via `additionalContainers` in InferenceSet API
 
 ### Non-Goals/Future Work
 
@@ -403,51 +401,32 @@ The sidecar sits in front of the vLLM engine on decode workspaces:
 
 > **Multi-node Ray cluster**: Since the sidecar is part of the StatefulSet pod template, all decode pods (head + workers) will have the sidecar container. Only the head pod (index 0) receives traffic from the EPP, so only its sidecar is actively working. Worker pod sidecars remain idle.
 
-#### Sidecar Injection Mechanism: `additionalContainers` in InferenceSet API
+#### Sidecar Injection Mechanism: Controller Reconcile Injection
 
 Three approaches were evaluated for injecting the routing sidecar into decode pods:
 
 1. **Controller patches StatefulSet directly** — rejected due to controller competition (MRI controller and InferenceSet controller both reconciling the same StatefulSet, causing override loops)
-2. **InferenceSet API `additionalContainers` field** — selected as the optimal approach (see below)
+2. **InferenceSet API `additionalContainers` field** — rejected; the sidecar configuration is fully deterministic (fixed image, port, env vars), so exposing it in the API adds unnecessary complexity without user value
 3. **Mutating webhook** — rejected due to operational overhead (extra component to deploy/maintain, TLS certs, availability risk) and poor observability (sidecar not visible in InferenceSet spec)
 
-The InferenceSet CRD adds an `additionalContainers` field to `spec`. The MRI controller populates this field when creating the decode InferenceSet, and the InferenceSet controller merges it into the StatefulSet pod template:
+**Selected approach**: The MRI controller injects the sidecar during workspace reconciliation. When the controller detects a child InferenceSet with `inference-role: decode`, it injects the routing sidecar into the workspace's pod template before creating/updating the StatefulSet. The sidecar configuration is deterministic and pinned in `consts.go` (similar to how EPP image is managed in [PR #1975](https://github.com/kaito-project/kaito/pull/1975)):
 
 ```go
-type InferenceSetSpec struct {
-    // ...existing fields...
-
-    // AdditionalContainers specifies extra containers to inject into the pod template.
-    // +optional
-    AdditionalContainers []corev1.Container `json:"additionalContainers,omitempty"`
-}
+const (
+    // Routing sidecar for P/D disaggregation on decode workspaces
+    RoutingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
+    RoutingSidecarTag   = "v0.7.0"
+    RoutingSidecarPort  = 8080
+)
 ```
 
-The MRI controller creates the decode InferenceSet with the sidecar in `additionalContainers`:
+The injected sidecar container:
+- **Image**: pinned version in `consts.go`, updated by KAITO releases
+- **Port 8080**: receives requests from EPP, proxies to local vLLM on port 5000
+- **BACKEND_URL**: always `http://localhost:5000` (local vLLM engine)
+- **POD_IP**: from `status.podIP` fieldRef
 
-```yaml
-apiVersion: kaito.sh/v1alpha1
-kind: InferenceSet
-metadata:
-  name: deepseek-v32-decode
-spec:
-  replicas: 3
-  additionalContainers:
-    - name: llm-d-routing-sidecar
-      image: mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar:v0.7.0
-      ports:
-        - containerPort: 8080
-          name: sidecar
-      env:
-        - name: BACKEND_URL
-          value: "http://localhost:5000"
-        - name: POD_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
-```
-
-This approach avoids controller competition (StatefulSet is owned solely by InferenceSet controller), is fully declarative, and provides a general-purpose sidecar injection capability for future use cases (metrics exporters, log collectors, etc.).
+No InferenceSet API changes required. Users do not need to know about or configure the sidecar.
 
 ### InferencePool and EPP Ownership
 
@@ -924,14 +903,14 @@ curl -s http://<gateway-ip>/v1/chat/completions \
 
 | Phase | Step | Description | Status / Dependencies |
 |-------|------|-------------|----------------------|
-| **Phase 1: Core** | 1 | MultiRoleInference CRD types (prefill + decode roles, `additionalContainers` in InferenceSet) | TODO |
+| **Phase 1: Core** | 1 | MultiRoleInference CRD types (prefill + decode roles) | TODO |
 | | 2 | Controller: create prefill/decode child InferenceSets with `inference-role` label and `kaito.sh/parent` label | TODO |
 | | 3 | Controller: inject default vLLM NixlConnector kv-transfer-config (`kv_both`) into child InferenceSet config | TODO |
 | | 4 | Controller: create InferencePool (selector: `apps.kubernetes.io/pod-index: "0"` for Ray cluster support) | TODO |
 | | 5 | Controller: auto-generate P/D EPP plugin ConfigMap (`disagg-profile-handler` + `by-label-selector`) | TODO |
 | | 6 | Controller: create OCI Repository + HelmRelease (llm-d EPP image) | ✅ Done ([PR #1975](https://github.com/kaito-project/kaito/pull/1975)) |
 | | 7 | Controller: create DestinationRule (TLS bypass) — **temporary, remove after [kaito#1983](https://github.com/kaito-project/kaito/pull/1983)** | TODO (skip if #1983 merges first) |
-| | 8 | Controller: inject llm-d routing sidecar into decode InferenceSet via `additionalContainers` | TODO |
+| | 8 | Controller: inject llm-d routing sidecar into decode workspace during reconcile | TODO |
 | | 9 | Controller: status aggregation from child InferenceSets + InferencePool → MRI status | TODO |
 | | 10 | Webhook: validation + defaulting | TODO |
 | **Phase 2: Advanced** | 11 | Support custom `eppPluginsConfigRef` for user-defined EPP plugins | TODO |

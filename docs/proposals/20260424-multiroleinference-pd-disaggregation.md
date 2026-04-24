@@ -53,7 +53,7 @@ BBR (ext-proc)                          ◄── Extract model name from body
   │  Inject header: X-Gateway-Model-Name: deepseek-v32
   ▼
 HTTPRoute                               ◄── Match header → route to InferencePool
-  │  backendRef: deepseek-v32
+  │  backendRefs: deepseek-v32
   ▼
 llm-d EPP (ext-proc)                    ◄── P/D disaggregation scheduling
   │
@@ -462,7 +462,7 @@ Child InferenceSets must **skip** the GWIE logic to avoid creating redundant Inf
 // In InferenceSet controller's ensureGatewayAPIInferenceExtension()
 func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
     // Skip GWIE for child InferenceSets managed by MultiRoleInference.
-    // Use OwnerReferences (immutable by non-owners) instead of labels (user-modifiable)
+    // Use OwnerReferences (controller-managed) instead of labels (easily user-modifiable)
     // to prevent accidental GWIE bypass on standalone InferenceSets.
     for _, owner := range iObj.OwnerReferences {
         if owner.Controller != nil && *owner.Controller &&
@@ -738,7 +738,7 @@ Prefill Pod                              Decode Pod
 
 > **Note**: This section covers the autoscaling design for the [keda-kaito-scaler](https://github.com/kaito-project/keda-kaito-scaler) project. Implementation details will be discussed in that project's design process.
 
-Each child InferenceSet is a standard InferenceSet with `/scale` subresource, so keda-kaito-scaler works with **zero modifications**.
+Each child InferenceSet is a standard InferenceSet with `/scale` subresource. Basic ScaledObject-based scaling works without changes, but **MRI-level annotation-based scaling requires a keda-kaito-scaler update** to support per-role annotations (e.g., `prefill-min-replicas`, `decode-min-replicas`).
 
 ### Recommended Approach: Annotation-Based Auto-Provision (Per InferenceSet)
 

@@ -35,7 +35,9 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_REGEX_PATTERNS", tuple())
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS", tuple())
-    monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE)
+    monkeypatch.setattr(
+        config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE
+    )
 
     guardrails = OutputGuardrails.from_config()
 
@@ -48,11 +50,15 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
 
 def test_from_config_falls_back_to_env_values_when_policy_path_missing(monkeypatch):
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ENABLED", True)
-    monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_POLICY_PATH", "/tmp/missing-guardrails.yaml")
+    monkeypatch.setattr(
+        config, "OUTPUT_GUARDRAILS_POLICY_PATH", "/tmp/missing-guardrails.yaml"
+    )
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_REGEX_PATTERNS", (r"secret",))
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS", ("token",))
-    monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE)
+    monkeypatch.setattr(
+        config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE
+    )
 
     guardrails = OutputGuardrails.from_config()
 
@@ -83,7 +89,9 @@ def test_from_config_policy_scanners_replace_env_values(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_REGEX_PATTERNS", (r"secret",))
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS", ("token",))
-    monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE)
+    monkeypatch.setattr(
+        config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE
+    )
 
     guardrails = OutputGuardrails.from_config()
 
@@ -112,7 +120,9 @@ def test_from_config_invalid_action_falls_back_to_env_value(tmp_path, monkeypatc
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_REGEX_PATTERNS", tuple())
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS", tuple())
-    monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE)
+    monkeypatch.setattr(
+        config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE
+    )
 
     guardrails = OutputGuardrails.from_config()
 

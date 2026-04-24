@@ -18,6 +18,7 @@ from typing import Any
 import yaml
 from llm_guard import scan_output
 from llm_guard.output_scanners import BanSubstrings, Regex
+
 from ragengine import config
 from ragengine.models import ChatCompletionResponse, get_message_content
 
@@ -56,7 +57,9 @@ class OutputGuardrails:
             logger.warning("output_guardrails_policy_missing path=%s", policy_path)
             return self
         except Exception:
-            logger.exception("output_guardrails_policy_load_failed path=%s", policy_path)
+            logger.exception(
+                "output_guardrails_policy_load_failed path=%s", policy_path
+            )
             return self
 
         if not isinstance(policy, dict):
@@ -70,7 +73,9 @@ class OutputGuardrails:
             banned_substrings = []
             scanners = policy.get("scanners") or []
             if not isinstance(scanners, list):
-                logger.warning("output_guardrails_policy_invalid_scanners path=%s", policy_path)
+                logger.warning(
+                    "output_guardrails_policy_invalid_scanners path=%s", policy_path
+                )
                 scanners = []
 
             for scanner in scanners:
@@ -95,7 +100,9 @@ class OutputGuardrails:
             action_on_hit=_normalize_action(policy.get("action"), self.action_on_hit),
             regex_patterns=regex_patterns,
             banned_substrings=banned_substrings,
-            block_message=_coerce_string(policy.get("blockMessage"), self.block_message),
+            block_message=_coerce_string(
+                policy.get("blockMessage"), self.block_message
+            ),
         )
 
     def guard_response(

@@ -424,10 +424,16 @@ async def test_chat_completions_output_guardrails_policy_file(
     import ragengine.main
 
     monkeypatch.setattr(ragengine.config, "OUTPUT_GUARDRAILS_ENABLED", True)
-    monkeypatch.setattr(ragengine.config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path))
+    monkeypatch.setattr(
+        ragengine.config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path)
+    )
     monkeypatch.setattr(ragengine.config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
-    monkeypatch.setattr(ragengine.config, "OUTPUT_GUARDRAILS_REGEX_PATTERNS", (r"secret",))
-    monkeypatch.setattr(ragengine.config, "OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS", tuple())
+    monkeypatch.setattr(
+        ragengine.config, "OUTPUT_GUARDRAILS_REGEX_PATTERNS", (r"secret",)
+    )
+    monkeypatch.setattr(
+        ragengine.config, "OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS", tuple()
+    )
     monkeypatch.setattr(
         ragengine.config,
         "OUTPUT_GUARDRAILS_BLOCK_MESSAGE",

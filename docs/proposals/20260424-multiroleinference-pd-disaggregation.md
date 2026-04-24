@@ -55,9 +55,6 @@ BBR (ext-proc)                          ◄── Extract model name from body
 HTTPRoute                               ◄── Match header → route to InferencePool
   │  backendRef: deepseek-v32-inferencepool
   ▼
-DestinationRule                          ◄── TLS policy: skip self-signed cert
-  │
-  ▼
 llm-d EPP (ext-proc)                    ◄── P/D disaggregation scheduling
   │
   │  1. disagg-profile-handler decides: prefill or decode?
@@ -109,7 +106,6 @@ llm-d EPP (ext-proc)                    ◄── P/D disaggregation scheduling
                                       │  Gateway (Envoy)    │
                                       │  + BBR              │
                                       │  + HTTPRoute        │
-                                      │  + DestinationRule  │
                                       └────────────────────┘
 ```
 

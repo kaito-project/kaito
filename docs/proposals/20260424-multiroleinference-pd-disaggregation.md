@@ -127,11 +127,9 @@ spec:
   labelSelector:
     matchLabels:
       apps: deepseek-v32
-  inference:
-    preset:
-      name: deepseek-ai/DeepSeek-V3.2
-      presetOptions:
-        modelAccessSecret: hf-token
+  model:
+    name: deepseek-ai/DeepSeek-V3.2
+    modelAccessSecret: hf-token
   # Optional: custom EPP plugins. If not set, controller auto-generates P/D config.
   eppPluginsConfigRef:
     name: deepseek-v32-epp-plugins
@@ -139,12 +137,19 @@ spec:
     - type: prefill
       replicas: 2
       instanceType: Standard_NC24ads_A100_v4
-      config: prefill-params        # optional ConfigMap for role-specific vLLM args
+      runtimeConfigRef: prefill-params   # optional ConfigMap for role-specific vLLM args
     - type: decode
       replicas: 3
       instanceType: Standard_NC24ads_A100_v4
-      config: decode-params         # optional ConfigMap for role-specific vLLM args
+      runtimeConfigRef: decode-params    # optional ConfigMap for role-specific vLLM args
 ```
+
+**Design rationale for the simplified CRD:**
+
+- **`model` at top level** — the model is the core shared resource across all roles. Elevating it from `inference.preset.name` makes the intent immediately clear: "one model, multiple roles". This avoids the indirection through `InferenceSpec.Preset.PresetMeta.Name` which is verbose and inherits Workspace-era complexity.
+- **`instanceType` per role** — P/D disaggregation often uses different GPU SKUs (e.g., large memory for prefill, smaller for decode). Placing `instanceType` directly on the role keeps the most common tuning knob visible at the top level.
+- **`runtimeConfigRef` per role** — each role may need different vLLM runtime arguments (e.g., prefill: `--max-num-batched-tokens`, decode: `--kv-cache-dtype`). Named `runtimeConfigRef` instead of generic `config` to clearly indicate it references vLLM/runtime parameters.
+- **`modelAccessSecret` on model** — the secret is model-scoped (HuggingFace token), not role-scoped. Placing it next to the model name is the natural location.
 
 ### API Types
 
@@ -156,13 +161,19 @@ const (
     MultiRoleInferenceRoleDecode  MultiRoleInferenceRoleType = "decode"
 )
 
-type MultiRoleInferencePresetSpec struct {
-    Name          string            `json:"name,omitempty"`
-    PresetOptions map[string]string `json:"presetOptions,omitempty"`
-}
+// MultiRoleInferenceModelSpec defines the shared model configuration.
+// The model is the core shared resource — all roles serve the same model
+// with different runtime configurations.
+type MultiRoleInferenceModelSpec struct {
+    // Name is the model identifier (e.g., HuggingFace model ID).
+    // This maps to the preset name used when generating child InferenceSets.
+    // +required
+    Name string `json:"name"`
 
-type MultiRoleInferenceSharedInferenceSpec struct {
-    Preset *MultiRoleInferencePresetSpec `json:"preset,omitempty"`
+    // ModelAccessSecret references a Secret containing credentials for model download
+    // (e.g., HuggingFace token). Applied to all child workloads.
+    // +optional
+    ModelAccessSecret string `json:"modelAccessSecret,omitempty"`
 }
 
 type MultiRoleInferenceRoleSpec struct {
@@ -170,38 +181,43 @@ type MultiRoleInferenceRoleSpec struct {
     // +kubebuilder:validation:Enum=prefill;decode
     Type MultiRoleInferenceRoleType `json:"type"`
 
-    // Replicas is the number of workspaces to create for this role.
-    // Maps directly to the child InferenceSet's spec.replicas.
+    // Replicas is the number of workspaces (InferenceSet replicas) for this role.
+    // Each replica maps to one Workspace → one StatefulSet.
+    // +kubebuilder:default=1
     // +kubebuilder:validation:Minimum=1
-    // +optional
-    Replicas *int32 `json:"replicas,omitempty"`
+    Replicas int32 `json:"replicas"`
 
-    // InstanceType specifies the GPU node SKU.
-    // +optional
-    InstanceType string `json:"instanceType,omitempty"`
+    // InstanceType specifies the GPU node SKU for this role.
+    // Different roles may use different instance types (e.g., larger GPU for prefill).
+    // +required
+    InstanceType string `json:"instanceType"`
 
-    // Config references a ConfigMap with role-specific inference arguments.
+    // RuntimeConfigRef references a ConfigMap with role-specific vLLM runtime arguments.
+    // These override or extend the default inference parameters for this role.
     // +optional
-    Config string `json:"config,omitempty"`
+    RuntimeConfigRef string `json:"runtimeConfigRef,omitempty"`
 }
 
 type MultiRoleInferenceSpec struct {
-    // LabelSelector is propagated to generated child workloads.
-    // +optional
-    LabelSelector *metav1.LabelSelector `json:"labelSelector,omitempty"`
+    // LabelSelector is propagated to generated child workloads (InferenceSets, Workspaces).
+    // +required
+    LabelSelector *metav1.LabelSelector `json:"labelSelector"`
 
-    // Inference defines the shared inference configuration across roles.
-    // +optional
-    Inference *MultiRoleInferenceSharedInferenceSpec `json:"inference,omitempty"`
+    // Model defines the shared model configuration across all roles.
+    // +required
+    Model MultiRoleInferenceModelSpec `json:"model"`
 
     // EPPPluginsConfigRef references a ConfigMap containing custom EPP plugins configuration.
-    // If not set, the controller auto-generates a P/D disaggregation plugin config.
+    // If not set, the controller auto-generates a standard P/D disaggregation plugin config
+    // with prefill-filter, decode-filter, prefix-cache-scorer, and load-aware-scorer.
     // +optional
     EPPPluginsConfigRef *corev1.LocalObjectReference `json:"eppPluginsConfigRef,omitempty"`
 
     // Roles defines the role topology of this inference service.
-    // +optional
-    Roles []MultiRoleInferenceRoleSpec `json:"roles,omitempty"`
+    // Exactly two roles are required: one prefill and one decode.
+    // +kubebuilder:validation:MinItems=2
+    // +kubebuilder:validation:MaxItems=2
+    Roles []MultiRoleInferenceRoleSpec `json:"roles"`
 }
 
 type MultiRoleInferenceStatus struct {
@@ -211,6 +227,7 @@ type MultiRoleInferenceStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Model",type="string",JSONPath=".spec.model.name"
 // +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 type MultiRoleInference struct {
@@ -262,10 +279,10 @@ spec:
         name: deepseek-ai/DeepSeek-V3.2
         presetOptions:
           modelAccessSecret: hf-token
-      config: prefill-params    # from MRI roles[prefill].config
+      config: prefill-params    # from MRI roles[prefill].runtimeConfigRef
 ```
 
-The `config` field references a ConfigMap with role-specific vLLM arguments. Example:
+The `runtimeConfigRef` field references a ConfigMap with role-specific vLLM arguments. Example:
 
 ```yaml
 apiVersion: v1
@@ -353,7 +370,7 @@ spec:
         name: deepseek-ai/DeepSeek-V3.2
         presetOptions:
           modelAccessSecret: hf-token
-      config: decode-params     # from MRI roles[decode].config
+      config: decode-params     # from MRI roles[decode].runtimeConfigRef
 ```
 
 ```yaml
@@ -401,15 +418,16 @@ The sidecar sits in front of the vLLM engine on decode workspaces:
 
 > **Multi-node Ray cluster**: Since the sidecar is part of the StatefulSet pod template, all decode pods (head + workers) will have the sidecar container. Only the head pod (index 0) receives traffic from the EPP, so only its sidecar is actively working. Worker pod sidecars remain idle.
 
-#### Sidecar Injection Mechanism: Controller Reconcile Injection
+#### Sidecar Injection Mechanism: Controller Template Injection
 
-Three approaches were evaluated for injecting the routing sidecar into decode pods:
+Four approaches were evaluated for injecting the routing sidecar into decode pods:
 
 1. **Controller patches StatefulSet directly** — rejected due to controller competition (MRI controller and InferenceSet controller both reconciling the same StatefulSet, causing override loops)
 2. **InferenceSet API `additionalContainers` field** — rejected; the sidecar configuration is fully deterministic (fixed image, port, env vars), so exposing it in the API adds unnecessary complexity without user value
 3. **Mutating webhook** — rejected due to operational overhead (extra component to deploy/maintain, TLS certs, availability risk) and poor observability (sidecar not visible in InferenceSet spec)
+4. **MRI controller embeds sidecar in InferenceSet template at creation time** ✅ — the MRI controller injects the routing sidecar into the child InferenceSet's `template.inference.template.spec.containers` when creating the decode-role InferenceSet. The sidecar flows naturally through InferenceSet → Workspace → StatefulSet → Pod with no post-hoc patching. Unlike #1, there is no controller competition because the sidecar is set at the source (InferenceSet creation), not patched onto a downstream resource. Unlike #2, the user never sees or configures it. Unlike #3, no extra infrastructure is needed.
 
-**Selected approach**: The MRI controller injects the sidecar during workspace reconciliation. When the controller detects a child InferenceSet with `inference-role: decode`, it injects the routing sidecar into the workspace's pod template before creating/updating the StatefulSet. The sidecar configuration is deterministic and pinned in `consts.go` (similar to how EPP image is managed in [PR #1975](https://github.com/kaito-project/kaito/pull/1975)):
+**Selected approach (#4)**: The MRI controller injects the sidecar during child InferenceSet creation. When the controller creates a child InferenceSet with `inference-role: decode`, it embeds the routing sidecar into the InferenceSet's pod template. The sidecar configuration is deterministic and pinned in `consts.go` (similar to how EPP image is managed in [PR #1975](https://github.com/kaito-project/kaito/pull/1975)):
 
 ```go
 const (

@@ -45,15 +45,11 @@ spec:
             {{- if .Values.nodeProvisioner }}
             - --node-provisioner={{ .Values.nodeProvisioner }}
             {{- end }}
-            {{- if .Values.karpenterNodeClass }}
-            - --karpenter-node-class-group={{ .Values.karpenterNodeClass.group }}
-            - --karpenter-node-class-kind={{ .Values.karpenterNodeClass.kind }}
-            - --karpenter-node-class-crd-name={{ .Values.karpenterNodeClass.crdName }}
-            - --karpenter-node-class-name={{ .Values.karpenterNodeClass.name }}
-            {{- if .Values.karpenterNodeClass.imageFamilyNames }}
-            - --karpenter-image-family-names={{ include "utils.joinKeyValueStrPairs" .Values.karpenterNodeClass.imageFamilyNames }}
-            {{- end }}
-            - --karpenter-node-class-configmap={{ .Values.karpenterNodeClass.configMapName | default "kaito-nodeclasses" }}
+            {{- if eq .Values.nodeProvisioner "karpenter" }}
+            {{- $provider := index .Values .Values.karpenterProvider }}
+            - --karpenter-node-class-group={{ $provider.group }}
+            - --karpenter-node-class-kind={{ $provider.kind }}
+            - --karpenter-node-class-resource-name={{ $provider.resourceName }}
             {{- end }}
           env:
             - name: CONFIG_LOGGING_NAME

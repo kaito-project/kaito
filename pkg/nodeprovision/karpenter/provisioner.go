@@ -39,15 +39,15 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
 
-// NodeClassConfig holds cloud-specific NodeClass reference info injected at
-// construction time, making the provisioner cloud-agnostic.
+// NodeClassConfig holds cloud-specific NodeClass reference info.
+// Group, Kind, and ResourceName are injected via CLI flags.
+// DefaultName and AnnotationMap are derived by Start() from ConfigMap labels.
 type NodeClassConfig struct {
-	Group            string            // e.g. "karpenter.azure.com"
-	Kind             string            // e.g. "AKSNodeClass"
-	CRDName          string            // full CRD resource name (e.g. "aksnodeclasses.karpenter.azure.com")
-	Name             string            // NodeClass name (e.g. "image-family-ubuntu")
-	ImageFamilyNames map[string]string // image family annotation value → NodeClass resource name
-	ConfigMapName    string            // ConfigMap containing NodeClass manifests (e.g. "kaito-nodeclasses")
+	Group         string            // e.g. "karpenter.azure.com"
+	Kind          string            // e.g. "AKSNodeClass"
+	ResourceName  string            // full CRD resource name (e.g. "aksnodeclasses.karpenter.azure.com")
+	DefaultName   string            // populated by Start(): name of entry with karpenter.kaito.sh/default=true
+	AnnotationMap map[string]string // populated by Start(): annotationValue → name
 }
 
 // KarpenterProvisioner implements NodeProvisioner using the cloud-agnostic
@@ -69,17 +69,14 @@ func NewKarpenterProvisioner(c client.Client, cfg NodeClassConfig) *KarpenterPro
 // Name returns the provisioner name.
 func (p *KarpenterProvisioner) Name() string { return "KarpenterProvisioner" }
 
-// Start verifies that the Karpenter NodeClass CRD is installed and creates
-// NodeClass resources from the configured ConfigMap. Returns an error if
-// Karpenter is not installed — the operator cannot function without it when
-// node-provisioner=karpenter is set.
-func (p *KarpenterProvisioner) Start(ctx context.Context) error {
-	if p.nodeClassConfig.ConfigMapName == "" {
-		return nil
-	}
+const nodeClassConfigMapName = "kaito-nodeclasses"
 
+// Start verifies that the Karpenter NodeClass CRD is installed, creates
+// NodeClass resources from the ConfigMap, and derives DefaultName and
+// AnnotationMap from labels. Returns an error if Karpenter is not installed.
+func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 	// Check if the NodeClass CRD exists.
-	crdName := p.nodeClassConfig.CRDName
+	crdName := p.nodeClassConfig.ResourceName
 	crd := &apiextensionsv1.CustomResourceDefinition{}
 	if err := p.client.Get(ctx, types.NamespacedName{Name: crdName}, crd); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -96,36 +93,59 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 	// Read the ConfigMap containing NodeClass manifests.
 	cm := &corev1.ConfigMap{}
 	if err := p.client.Get(ctx, types.NamespacedName{
-		Name: p.nodeClassConfig.ConfigMapName, Namespace: releaseNS,
+		Name: nodeClassConfigMapName, Namespace: releaseNS,
 	}, cm); err != nil {
 		return fmt.Errorf("reading NodeClass ConfigMap %q in namespace %q: %w",
-			p.nodeClassConfig.ConfigMapName, releaseNS, err)
+			nodeClassConfigMapName, releaseNS, err)
 	}
 
-	// Create each NodeClass from the ConfigMap entries.
-	nodeClassNames := make([]string, 0, len(cm.Data))
-	for name, raw := range cm.Data {
+	// Create each NodeClass and derive DefaultName/AnnotationMap from labels.
+	p.nodeClassConfig.AnnotationMap = make(map[string]string)
+	for key, raw := range cm.Data {
 		obj := &unstructured.Unstructured{}
 		if err := sigsyaml.Unmarshal([]byte(raw), &obj.Object); err != nil {
-			return fmt.Errorf("decoding NodeClass %q from ConfigMap: %w", name, err)
+			return fmt.Errorf("decoding NodeClass %q from ConfigMap: %w", key, err)
 		}
-		klog.InfoS("Creating NodeClass", "name", obj.GetName(), "kind", obj.GetKind())
+
+		name := obj.GetName()
+		labels := obj.GetLabels()
+
+		// Track default and annotation mappings.
+		if labels["karpenter.kaito.sh/default"] == "true" {
+			if p.nodeClassConfig.DefaultName != "" {
+				return fmt.Errorf("multiple NodeClass entries have karpenter.kaito.sh/default=true: %q and %q",
+					p.nodeClassConfig.DefaultName, name)
+			}
+			p.nodeClassConfig.DefaultName = name
+		}
+		if av, ok := labels["karpenter.kaito.sh/annotation-value"]; ok {
+			if existing, dup := p.nodeClassConfig.AnnotationMap[av]; dup {
+				return fmt.Errorf("duplicate annotationValue %q on NodeClass entries %q and %q", av, existing, name)
+			}
+			p.nodeClassConfig.AnnotationMap[av] = name
+		}
+
+		klog.InfoS("Creating NodeClass", "name", name, "kind", obj.GetKind())
 		if err := p.client.Create(ctx, obj); err != nil {
 			if !apierrors.IsAlreadyExists(err) {
-				return fmt.Errorf("creating NodeClass %q: %w", name, err)
+				return fmt.Errorf("creating NodeClass %q: %w", key, err)
 			}
-			klog.InfoS("NodeClass already exists", "name", obj.GetName())
+			klog.InfoS("NodeClass already exists", "name", name)
 		}
-		nodeClassNames = append(nodeClassNames, obj.GetName())
 	}
 
-	// Only wait for the default NodeClass to be ready during startup.
-	// Other NodeClasses may not be available in all regions; readiness of
-	// the specific NodeClass used by a workspace is checked in ProvisionNodes.
-	if err := p.waitForNodeClassReady(ctx, p.nodeClassConfig.Name); err != nil {
-		return fmt.Errorf("default NodeClass %q not ready: %w", p.nodeClassConfig.Name, err)
+	if p.nodeClassConfig.DefaultName == "" {
+		return fmt.Errorf("no NodeClass entry has label karpenter.kaito.sh/default=true")
 	}
-	klog.InfoS("NodeClass resources created", "count", len(nodeClassNames))
+
+	// Wait for the default NodeClass to be ready.
+	if err := p.waitForNodeClassReady(ctx, p.nodeClassConfig.DefaultName); err != nil {
+		return fmt.Errorf("default NodeClass %q not ready: %w", p.nodeClassConfig.DefaultName, err)
+	}
+	klog.InfoS("NodeClass resources created",
+		"count", len(cm.Data),
+		"default", p.nodeClassConfig.DefaultName,
+		"annotationMap", p.nodeClassConfig.AnnotationMap)
 	return nil
 }
 

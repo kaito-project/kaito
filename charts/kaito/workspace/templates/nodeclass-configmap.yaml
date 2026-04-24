@@ -1,20 +1,27 @@
 {{- if eq .Values.nodeProvisioner "karpenter" }}
+{{- $provider := index .Values .Values.karpenterProvider }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.karpenterNodeClass.configMapName | default "kaito-nodeclasses" }}
+  name: kaito-nodeclasses
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "kaito.labels" . | nindent 4 }}
 data:
-  {{- range .Values.karpenterNodeClass.resources }}
+  {{- range $provider.nodeClasses }}
   {{ .name }}: |
-    apiVersion: {{ $.Values.karpenterNodeClass.group }}/v1beta1
-    kind: {{ $.Values.karpenterNodeClass.kind }}
+    apiVersion: {{ $provider.group }}/{{ $provider.apiVersion }}
+    kind: {{ $provider.kind }}
     metadata:
       name: {{ .name }}
       labels:
         karpenter.kaito.sh/managed-by: kaito
+        {{- if .default }}
+        karpenter.kaito.sh/default: "true"
+        {{- end }}
+        {{- if .annotationValue }}
+        karpenter.kaito.sh/annotation-value: {{ .annotationValue | quote }}
+        {{- end }}
     spec:
       {{- toYaml .spec | nindent 6 }}
   {{- end }}

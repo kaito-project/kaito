@@ -21,6 +21,7 @@ import (
 	"github.com/awslabs/operatorpkg/status"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -34,10 +35,11 @@ import (
 )
 
 var testConfig = NodeClassConfig{
-	Group: "karpenter.azure.com",
-	Kind:  "AKSNodeClass",
-	Name:  "image-family-ubuntu",
-	ImageFamilyNames: map[string]string{
+	Group:        "karpenter.azure.com",
+	Kind:         "AKSNodeClass",
+	ResourceName: "aksnodeclasses.karpenter.azure.com",
+	DefaultName:  "image-family-ubuntu",
+	AnnotationMap: map[string]string{
 		"ubuntu":     "image-family-ubuntu",
 		"azurelinux": "image-family-azure-linux",
 	},
@@ -75,10 +77,15 @@ func TestName(t *testing.T) {
 	assert.Equal(t, "KarpenterProvisioner", p.Name())
 }
 
-func TestStart_NoOp(t *testing.T) {
-	p := NewKarpenterProvisioner(test.NewClient(), testConfig)
+func TestStart_CRDNotFound(t *testing.T) {
+	mockClient := test.NewClient()
+	notFoundErr := apierrors.NewNotFound(schema.GroupResource{Group: "apiextensions.k8s.io", Resource: "customresourcedefinitions"}, "aksnodeclasses.karpenter.azure.com")
+	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&apiextensionsv1.CustomResourceDefinition{}), mock.Anything).Return(notFoundErr)
+
+	p := NewKarpenterProvisioner(mockClient, testConfig)
 	err := p.Start(context.Background())
-	assert.NoError(t, err)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Karpenter must be installed")
 }
 
 // --- ProvisionNodes tests ---

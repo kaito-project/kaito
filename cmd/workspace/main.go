@@ -20,7 +20,6 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
@@ -100,10 +99,7 @@ func main() {
 	var nodeProvisionerType string
 	var karpenterNodeClassGroup string
 	var karpenterNodeClassKind string
-	var karpenterNodeClassCRDName string
-	var karpenterNodeClassName string
-	var karpenterImageFamilyNames string
-	var karpenterNodeClassConfigMap string
+	var karpenterNodeClassResourceName string
 	var kubeClientQPS int = 30
 	var kubeClientBurst int = 50
 	var printVersionAndExit bool
@@ -121,10 +117,7 @@ func main() {
 	flag.StringVar(&nodeProvisionerType, "node-provisioner", "", "Node provisioner type. Supported values: azure-gpu-provisioner, karpenter, byo. Default: azure-gpu-provisioner. If empty, inferred from feature gates for backward compatibility.")
 	flag.StringVar(&karpenterNodeClassGroup, "karpenter-node-class-group", "karpenter.azure.com", "Karpenter NodeClass API group. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassKind, "karpenter-node-class-kind", "AKSNodeClass", "Karpenter NodeClass API kind. Only used when node-provisioner=karpenter.")
-	flag.StringVar(&karpenterNodeClassCRDName, "karpenter-node-class-crd-name", "aksnodeclasses.karpenter.azure.com", "Full CRD resource name for the NodeClass (e.g. aksnodeclasses.karpenter.azure.com). Only used when node-provisioner=karpenter.")
-	flag.StringVar(&karpenterNodeClassName, "karpenter-node-class-name", "image-family-ubuntu", "Karpenter NodeClass resource name. Only used when node-provisioner=karpenter.")
-	flag.StringVar(&karpenterImageFamilyNames, "karpenter-image-family-names", "ubuntu=image-family-ubuntu,azurelinux=image-family-azure-linux", "Comma-separated key=value pairs mapping image family annotation values to NodeClass resource names. Only used when node-provisioner=karpenter.")
-	flag.StringVar(&karpenterNodeClassConfigMap, "karpenter-node-class-configmap", "kaito-nodeclasses", "Name of the ConfigMap containing NodeClass manifests. Only used when node-provisioner=karpenter.")
+	flag.StringVar(&karpenterNodeClassResourceName, "karpenter-node-class-resource-name", "aksnodeclasses.karpenter.azure.com", "Full CRD resource name for the NodeClass (e.g. aksnodeclasses.karpenter.azure.com). Only used when node-provisioner=karpenter.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	opts := zap.Options{
 		Development: true,
@@ -249,10 +242,7 @@ func main() {
 		ProvisionerType:        nodeProvisionerType,
 		NodeClassGroup:         karpenterNodeClassGroup,
 		NodeClassKind:          karpenterNodeClassKind,
-		NodeClassCRDName:       karpenterNodeClassCRDName,
-		NodeClassName:          karpenterNodeClassName,
-		ImageFamilyNames:       parseKeyValuePairs(karpenterImageFamilyNames),
-		NodeClassConfigMapName: karpenterNodeClassConfigMap,
+		NodeClassResourceName:  karpenterNodeClassResourceName,
 	})
 	klog.InfoS("Node provisioner selected", "name", nodeProvisioner.Name())
 	if err := nodeProvisioner.Start(ctx); err != nil {
@@ -348,19 +338,4 @@ func setRestConfig(c *rest.Config, kubeClientQPS, kubeClientBurst int) {
 	if kubeClientBurst > 0 {
 		c.Burst = kubeClientBurst
 	}
-}
-
-// parseKeyValuePairs parses a comma-separated "key=value" string into a map.
-func parseKeyValuePairs(s string) map[string]string {
-	m := make(map[string]string)
-	if s == "" {
-		return m
-	}
-	for _, pair := range strings.Split(s, ",") {
-		parts := strings.SplitN(pair, "=", 2)
-		if len(parts) == 2 {
-			m[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
-		}
-	}
-	return m
 }

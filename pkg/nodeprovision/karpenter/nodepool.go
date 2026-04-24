@@ -62,14 +62,15 @@ func WorkspaceLabelValue(workspaceNamespace, workspaceName string) string {
 }
 
 // resolveNodeClassName determines the NodeClass resource name for a Workspace.
-// It checks the workspace annotation first, then falls back to the config default.
+// It checks the workspace annotation against the AnnotationMap built from
+// ConfigMap labels, then falls back to the config default.
 func resolveNodeClassName(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) string {
 	if ann, ok := ws.Annotations[kaitov1beta1.AnnotationNodeImageFamily]; ok {
-		if name, ok := cfg.ImageFamilyNames[strings.ToLower(ann)]; ok {
+		if name, ok := cfg.AnnotationMap[strings.ToLower(ann)]; ok {
 			return name
 		}
 	}
-	return cfg.Name
+	return cfg.DefaultName
 }
 
 // isInferenceSetWorkspace returns true if the Workspace was created by an InferenceSet.

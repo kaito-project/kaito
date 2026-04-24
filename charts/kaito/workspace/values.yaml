@@ -43,21 +43,21 @@ featureGates:
   enableInferenceSetController: false
 defaultNodeImageFamily: ""
 nodeProvisioner: ""
-karpenterNodeClass:
+karpenterProvider: "karpenterAzure"
+karpenterAzure:
   group: "karpenter.azure.com"
   kind: "AKSNodeClass"
-  crdName: "aksnodeclasses.karpenter.azure.com"
-  name: "image-family-ubuntu"
-  configMapName: "kaito-nodeclasses"
-  imageFamilyNames:
-    ubuntu: "image-family-ubuntu"
-    azurelinux: "image-family-azure-linux"
-  resources:
+  apiVersion: "v1beta1"
+  resourceName: "aksnodeclasses.karpenter.azure.com"
+  nodeClasses:
     - name: "image-family-ubuntu"
+      default: true
+      annotationValue: "ubuntu"
       spec:
         imageFamily: "Ubuntu2204"
         osDiskSizeGB: 300
     - name: "image-family-azure-linux"
+      annotationValue: "azurelinux"
       spec:
         imageFamily: "AzureLinux"
         osDiskSizeGB: 300

@@ -263,8 +263,7 @@ jobs:
               spec:
                 containers:
                   - name: dummy
-                    image: busybox
-                    command: ["sleep", "infinity"]
+                    image: registry.k8s.io/pause:3.10
           EOF
           kubectl apply -f dummy-workspace.yaml
 
@@ -288,7 +287,9 @@ jobs:
           EOF
           kubectl apply -f preset-inferenceset.yaml
 
-          # Add ownerReference to the dummy workspace so the controller recognizes it
+          # Add ownerReference to the dummy workspace for proper garbage collection.
+          # Note: the controller finds workspaces by the inferenceset.kaito.sh/created-by label,
+          # not by ownerReferences. The ownerRef ensures K8s GC cleans up the workspace.
           IS_UID=$(kubectl get inferenceset inferenceset-preset-gwie-test -o jsonpath='{.metadata.uid}')
           kubectl patch workspace inferenceset-preset-gwie-test-dummy --type=merge -p "{
             \"metadata\": {
@@ -314,25 +315,37 @@ jobs:
 
           # Wait for OCIRepository to be created (indicates GWIE reconciliation ran)
           echo "Waiting for GWIE OCIRepository to be created..."
+          OCI_FOUND=false
           for i in $(seq 1 60); do
             if kubectl get ocirepository "$POOL_NAME" 2>/dev/null; then
               echo "✓ OCIRepository $POOL_NAME created"
+              OCI_FOUND=true
               break
             fi
             echo "  Attempt $i/60: waiting for OCIRepository..."
             sleep 5
           done
+          if [ "$OCI_FOUND" != "true" ]; then
+            echo "✗ Timed out waiting for OCIRepository $POOL_NAME (300s)"
+            exit 1
+          fi
 
           # Wait for HelmRelease to be created
           echo "Waiting for GWIE HelmRelease to be created..."
+          HR_FOUND=false
           for i in $(seq 1 60); do
             if kubectl get helmrelease "$POOL_NAME" 2>/dev/null; then
               echo "✓ HelmRelease $POOL_NAME created"
+              HR_FOUND=true
               break
             fi
             echo "  Attempt $i/60: waiting for HelmRelease..."
             sleep 5
           done
+          if [ "$HR_FOUND" != "true" ]; then
+            echo "✗ Timed out waiting for HelmRelease $POOL_NAME (300s)"
+            exit 1
+          fi
 
       - name: Validate GWIE resource chain for preset InferenceSet
         run: |
@@ -361,7 +374,7 @@ jobs:
           echo "✓ HelmRelease references correct OCIRepository"
 
           # Validate HelmRelease has correct owner reference
-          OWNER=$(kubectl get helmrelease "$POOL_NAME" -o jsonpath='{.metadata.ownerReferences[0].kind}')
+          OWNER=$(kubectl get helmrelease "$POOL_NAME" -o json | jq -r '.metadata.ownerReferences[] | select(.kind=="InferenceSet") | .kind')
           if [ "$OWNER" != "InferenceSet" ]; then
             echo "✗ HelmRelease owner is '$OWNER', expected 'InferenceSet'"
             exit 1

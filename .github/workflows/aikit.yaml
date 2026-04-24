@@ -254,18 +254,17 @@ jobs:
             labels:
               inferenceset.kaito.sh/created-by: inferenceset-preset-gwie-test
               apps: gwie-preset-test
-          spec:
-            resource:
-              labelSelector:
-                matchLabels:
-                  apps: gwie-preset-test
-            inference:
-              template:
-                spec:
-                  containers:
-                    - name: dummy
-                      image: busybox
-                      command: ["sleep", "infinity"]
+          resource:
+            labelSelector:
+              matchLabels:
+                apps: gwie-preset-test
+          inference:
+            template:
+              spec:
+                containers:
+                  - name: dummy
+                    image: busybox
+                    command: ["sleep", "infinity"]
           EOF
           kubectl apply -f dummy-workspace.yaml
 

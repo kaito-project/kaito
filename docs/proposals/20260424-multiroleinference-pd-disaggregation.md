@@ -386,7 +386,7 @@ data:
 
 #### Sidecar Injection
 
-The Workspace controller injects a sidecar container into decode workspaces based on the `inference-role: decode` label. When the Workspace controller detects this label during reconciliation, it adds the [llm-d routing sidecar](https://github.com/llm-d/llm-d-routing-sidecar) to the pod template before creating/updating the StatefulSet. Prefill workspaces (labeled `inference-role: prefill`) do not get the sidecar. The sidecar handles P/D coordination:
+The Workspace controller creates decode StatefulSets with the routing sidecar container included. When the Workspace controller detects the `inference-role: decode` label during reconciliation, it adds the [llm-d routing sidecar](https://github.com/llm-d/llm-d-routing-sidecar) as part of the StatefulSet's container spec alongside the main vLLM container. Prefill workspaces (labeled `inference-role: prefill`) are created without the sidecar. The sidecar handles P/D coordination:
 
 ```yaml
 # Injected into decode pod spec by the controller
@@ -421,9 +421,9 @@ Four approaches were evaluated for injecting the routing sidecar into decode pod
 1. **MRI controller patches StatefulSet directly** — rejected due to controller competition (MRI controller and Workspace controller both reconciling the same StatefulSet, causing override loops)
 2. **InferenceSet API `additionalContainers` field** — rejected; the sidecar configuration is fully deterministic (fixed image, port, env vars), so exposing it in the API adds unnecessary complexity without user value
 3. **Mutating webhook** — rejected due to operational overhead (extra component to deploy/maintain, TLS certs, availability risk) and poor observability (sidecar not visible in pod spec until admission)
-4. **Workspace controller injects sidecar based on workspace label** ✅ — the Workspace controller checks the `inference-role` label during reconciliation. When it detects `inference-role: decode`, it injects the routing sidecar into the pod template before creating/updating the StatefulSet. The MRI controller only needs to set the label on child InferenceSets — it does not touch the sidecar directly. Unlike #1, there is no controller competition because the Workspace controller is the sole owner of the StatefulSet. Unlike #2, the user never sees or configures it. Unlike #3, no extra infrastructure is needed.
+4. **Workspace controller includes sidecar in decode StatefulSet** ✅ — the Workspace controller checks the `inference-role` label during reconciliation. When it detects `inference-role: decode`, it includes the routing sidecar as part of the StatefulSet's container spec when creating/updating the StatefulSet. The sidecar is a first-class container in the decode StatefulSet, not a post-hoc injection. The MRI controller only needs to set the label on child InferenceSets — it does not touch the sidecar directly. Unlike #1, there is no controller competition because the Workspace controller is the sole owner of the StatefulSet. Unlike #2, the user never sees or configures it. Unlike #3, no extra infrastructure is needed.
 
-**Selected approach (#4)**: The Workspace controller injects the sidecar during StatefulSet reconciliation based on the `inference-role: decode` label. The MRI controller's responsibility is limited to setting the correct label when creating child InferenceSets. The sidecar configuration is deterministic and pinned in `consts.go` (similar to how EPP image is managed in [PR #1975](https://github.com/kaito-project/kaito/pull/1975)):
+**Selected approach (#4)**: The Workspace controller includes the sidecar container in decode StatefulSets based on the `inference-role: decode` label. The MRI controller's responsibility is limited to setting the correct label when creating child InferenceSets. The sidecar configuration is deterministic and pinned in `consts.go` (similar to how EPP image is managed in [PR #1975](https://github.com/kaito-project/kaito/pull/1975)):
 
 ```go
 const (

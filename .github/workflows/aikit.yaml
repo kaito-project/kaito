@@ -231,26 +231,45 @@ jobs:
             echo "✓ Confirmed: GWIE resources not created for AIKit custom template (only vLLM preset supported)"
           fi
 
-      - name: Label Kind node with fake GPU labels for preset test
-        run: |
-          # Add nvidia GPU labels to the Kind node so the Workspace webhook validation
-          # can determine GPU configuration. This simulates a T4 GPU node.
-          NODE_NAME=$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')
-          kubectl label node "$NODE_NAME" \
-            apps=gwie-preset-test \
-            nvidia.com/gpu.product=Tesla-T4 \
-            nvidia.com/gpu.count=1 \
-            nvidia.com/gpu.memory=16384 \
-            --overwrite
-
-          echo "✓ Labeled node $NODE_NAME with fake GPU labels for preset GWIE test"
-
       - name: Create preset InferenceSet for GWIE resource chain test
         run: |
-          # Create a preset-based InferenceSet that will trigger the full GWIE resource chain
-          # (OCIRepository → HelmRelease → InferencePool → EPP).
-          # The inference workload won't actually run (no real GPU), but the Workspace CR
-          # will exist which is enough for the InferenceSet controller to create GWIE resources.
+          # Strategy: Pre-create a dummy Workspace with the correct label so the
+          # InferenceSet controller finds it during reconciliation and proceeds to
+          # ensureGatewayAPIInferenceExtension(). We can't let the controller create
+          # the Workspace itself because the Workspace webhook calls the HuggingFace
+          # API for preset validation, which fails on CI without a token.
+          #
+          # 1. Create dummy Workspace first (with matching label, custom template to avoid HF API)
+          # 2. Create InferenceSet with preset (triggers GWIE code path)
+          # 3. Controller sees workspace count >= 1, skips creation, proceeds to GWIE
+
+          # Create a dummy Workspace with the controller's label so it counts as
+          # an existing workspace. Use custom template (no preset) to avoid webhook
+          # calling HuggingFace API.
+          cat << 'EOF' > dummy-workspace.yaml
+          apiVersion: kaito.sh/v1beta1
+          kind: Workspace
+          metadata:
+            name: inferenceset-preset-gwie-test-dummy
+            labels:
+              inferenceset.kaito.sh/created-by: inferenceset-preset-gwie-test
+              apps: gwie-preset-test
+          spec:
+            resource:
+              labelSelector:
+                matchLabels:
+                  apps: gwie-preset-test
+            inference:
+              template:
+                spec:
+                  containers:
+                    - name: dummy
+                      image: busybox
+                      command: ["sleep", "infinity"]
+          EOF
+          kubectl apply -f dummy-workspace.yaml
+
+          # Now create the preset InferenceSet
           cat << 'EOF' > preset-inferenceset.yaml
           apiVersion: kaito.sh/v1alpha1
           kind: InferenceSet
@@ -270,25 +289,29 @@ jobs:
           EOF
           kubectl apply -f preset-inferenceset.yaml
 
+          # Add ownerReference to the dummy workspace so the controller recognizes it
+          IS_UID=$(kubectl get inferenceset inferenceset-preset-gwie-test -o jsonpath='{.metadata.uid}')
+          kubectl patch workspace inferenceset-preset-gwie-test-dummy --type=merge -p "{
+            \"metadata\": {
+              \"ownerReferences\": [{
+                \"apiVersion\": \"kaito.sh/v1alpha1\",
+                \"kind\": \"InferenceSet\",
+                \"name\": \"inferenceset-preset-gwie-test\",
+                \"uid\": \"$IS_UID\",
+                \"controller\": true,
+                \"blockOwnerDeletion\": true
+              }]
+            }
+          }"
+
+          echo "✓ Created dummy Workspace + preset InferenceSet for GWIE test"
+
       - name: Wait for GWIE resource chain to be created
         run: |
           POOL_NAME="inferenceset-preset-gwie-test-inferencepool"
 
-          # Wait for the InferenceSet controller to create the child Workspace first
-          echo "Waiting for child Workspace to be created..."
-          for i in $(seq 1 60); do
-            WS_COUNT=$(kubectl get workspace -l kaito.sh/inferenceset=inferenceset-preset-gwie-test --no-headers 2>/dev/null | wc -l)
-            if [ "$WS_COUNT" -ge 1 ]; then
-              echo "✓ Child Workspace created (count: $WS_COUNT)"
-              break
-            fi
-            echo "  Attempt $i/60: waiting for child Workspace..."
-            sleep 5
-          done
-          if [ "$WS_COUNT" -lt 1 ]; then
-            echo "✗ Child Workspace not created within timeout"
-            exit 1
-          fi
+          # The dummy Workspace is already created. Wait for the InferenceSet controller
+          # to reconcile and create GWIE resources (OCIRepository, HelmRelease).
 
           # Wait for OCIRepository to be created (indicates GWIE reconciliation ran)
           echo "Waiting for GWIE OCIRepository to be created..."
@@ -463,7 +486,7 @@ jobs:
           kubectl get inferenceset inferenceset-preset-gwie-test -o yaml || true
 
           echo "=== Preset GWIE Test: Child Workspaces ==="
-          kubectl get workspace -l kaito.sh/inferenceset=inferenceset-preset-gwie-test -o yaml || true
+          kubectl get workspace -l inferenceset.kaito.sh/created-by=inferenceset-preset-gwie-test -o yaml || true
 
           echo "=== Preset GWIE Test: Node Labels ==="
           kubectl get nodes --show-labels || true

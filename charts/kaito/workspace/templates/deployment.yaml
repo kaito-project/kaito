@@ -46,7 +46,7 @@ spec:
             - --node-provisioner={{ .Values.nodeProvisioner }}
             {{- end }}
             {{- if eq .Values.nodeProvisioner "karpenter" }}
-            {{- $provider := index .Values .Values.karpenterProvider }}
+            {{- $provider := index .Values.karpenterProviders .Values.karpenterProvider }}
             - --karpenter-node-class-group={{ $provider.group }}
             - --karpenter-node-class-kind={{ $provider.kind }}
             - --karpenter-node-class-resource-name={{ $provider.resourceName }}

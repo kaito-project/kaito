@@ -43,24 +43,25 @@ featureGates:
   enableInferenceSetController: false
 defaultNodeImageFamily: ""
 nodeProvisioner: ""
-karpenterProvider: "karpenterAzure"
-karpenterAzure:
-  group: "karpenter.azure.com"
-  kind: "AKSNodeClass"
-  apiVersion: "v1beta1"
-  resourceName: "aksnodeclasses.karpenter.azure.com"
-  nodeClasses:
-    - name: "image-family-ubuntu"
-      default: true
-      annotationValue: "ubuntu"
-      spec:
-        imageFamily: "Ubuntu2204"
-        osDiskSizeGB: 300
-    - name: "image-family-azure-linux"
-      annotationValue: "azurelinux"
-      spec:
-        imageFamily: "AzureLinux"
-        osDiskSizeGB: 300
+karpenterProvider: "azure"
+karpenterProviders:
+  azure:
+    group: "karpenter.azure.com"
+    kind: "AKSNodeClass"
+    version: "v1beta1"
+    resourceName: "aksnodeclasses.karpenter.azure.com"
+    nodeClasses:
+      - name: "image-family-ubuntu"
+        default: true
+        annotationValue: "ubuntu"
+        spec:
+          imageFamily: "Ubuntu2204"
+          osDiskSizeGB: 300
+      - name: "image-family-azure-linux"
+        annotationValue: "azurelinux"
+        spec:
+          imageFamily: "AzureLinux"
+          osDiskSizeGB: 300
 nvidiaDevicePlugin:
   enabled: true
   daemonsetName: "nvidia-device-plugin-daemonset"

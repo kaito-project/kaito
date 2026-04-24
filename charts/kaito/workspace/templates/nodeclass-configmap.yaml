@@ -1,5 +1,5 @@
 {{- if eq .Values.nodeProvisioner "karpenter" }}
-{{- $provider := index .Values .Values.karpenterProvider }}
+{{- $provider := index .Values.karpenterProviders .Values.karpenterProvider }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -10,7 +10,7 @@ metadata:
 data:
   {{- range $provider.nodeClasses }}
   {{ .name }}: |
-    apiVersion: {{ $provider.group }}/{{ $provider.apiVersion }}
+    apiVersion: {{ $provider.group }}/{{ $provider.version }}
     kind: {{ $provider.kind }}
     metadata:
       name: {{ .name }}

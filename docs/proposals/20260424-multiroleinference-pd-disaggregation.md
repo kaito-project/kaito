@@ -458,10 +458,14 @@ Child InferenceSets must **skip** the GWIE logic to avoid creating redundant Inf
 // In InferenceSet controller's ensureGatewayAPIInferenceExtension()
 func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
     // Skip GWIE for child InferenceSets managed by MultiRoleInference.
-    // The parent MultiRoleInference controller owns the shared InferencePool and EPP.
-    // Standalone InferenceSets (no parent label) continue to create their own InferencePool/EPP.
-    if iObj.Labels["kaito.sh/parent"] != "" {
-        return nil
+    // Use OwnerReferences (immutable by non-owners) instead of labels (user-modifiable)
+    // to prevent accidental GWIE bypass on standalone InferenceSets.
+    for _, owner := range iObj.OwnerReferences {
+        if owner.Controller != nil && *owner.Controller &&
+            owner.Kind == "MultiRoleInference" &&
+            owner.APIVersion == "kaito.sh/v1alpha1" {
+            return nil
+        }
     }
     // ... existing logic for standalone InferenceSets (unchanged) ...
 }
@@ -705,7 +709,7 @@ Incoming Request
 
 ### KV Cache Transfer Between Prefill and Decode
 
-The current P/D disaggregation design uses [NixlConnector](https://github.com/ai-dynamo/nixl) as the default KV cache transfer mechanism. NixlConnector enables high-performance KV cache transfer between prefill and decode workspaces via RDMA (when available) or TCP fallback. The controller automatically injects the required vLLM kv-transfer-config (`kv_connector=NixlConnector`, `kv_role=kv_both`) into both prefill and decode workspaces.
+The current P/D disaggregation design uses [NixlConnector](https://github.com/ai-dynamo/nixl) as the default KV cache transfer mechanism. NixlConnector enables high-performance KV cache transfer between prefill and decode workspaces via RDMA (when available) or TCP fallback. The `kv-transfer-config` is **controller-managed**: users do not need to include it in the `runtimeConfigRef` ConfigMap. During reconciliation, the controller merges the role-specific vLLM configuration from `runtimeConfigRef` and ensures the effective config for both prefill and decode workspaces includes the required KV transfer settings (`kv_connector=NixlConnector`, `kv_role=kv_both`), overriding any conflicting user-provided values. The earlier ConfigMap examples show the final merged config for clarity, not what users need to provide.
 
 ```
 Prefill Pod                              Decode Pod
@@ -837,11 +841,9 @@ spec:
   labelSelector:
     matchLabels:
       apps: deepseek-v32
-  inference:
-    preset:
-      name: deepseek-ai/DeepSeek-V3.2
-      presetOptions:
-        modelAccessSecret: hf-token
+  model:
+    name: deepseek-ai/DeepSeek-V3.2
+    modelAccessSecret: hf-token
   roles:
     - type: prefill
       replicas: 2

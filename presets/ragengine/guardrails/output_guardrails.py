@@ -18,7 +18,6 @@ from typing import Any
 import yaml
 from llm_guard import scan_output
 from llm_guard.output_scanners import BanSubstrings, Regex
-
 from ragengine import config
 from ragengine.models import ChatCompletionResponse, get_message_content
 
@@ -87,7 +86,8 @@ class OutputGuardrails:
                     )
                 elif scanner_type:
                     logger.warning(
-                        "output_guardrails_policy_unknown_scanner type=%s", scanner_type
+                        "output_guardrails_policy_unknown_scanner type=%s",
+                        scanner_type,
                     )
 
         return OutputGuardrails(

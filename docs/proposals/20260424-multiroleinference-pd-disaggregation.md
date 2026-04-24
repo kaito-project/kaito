@@ -477,7 +477,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 
 ### 3. InferencePool
 
-One InferencePool per MultiRoleInference, selecting ALL prefill + decode workspaces:
+One InferencePool per MultiRoleInference, selecting ALL prefill + decode workspaces. This resource is **rendered by the GWIE Helm chart** (deployed via the OCIRepository + HelmRelease in step 5), not created directly by the controller:
 
 ```yaml
 apiVersion: inference.networking.k8s.io/v1
@@ -490,7 +490,7 @@ metadata:
 spec:
   targetPorts:
     - number: 8080
-  modelServers:
+  selector:
     matchLabels:
       apps: deepseek-v32
       apps.kubernetes.io/pod-index: "0"
@@ -639,7 +639,7 @@ spec:
     inferencePool:
       targetPorts:
         - number: 8080
-      modelServers:
+      selector:
         matchLabels:
           apps: deepseek-v32
 ```

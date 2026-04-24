@@ -10,7 +10,7 @@ creation-date: 2026-04-24
 last-updated: 2026-04-24
 status: provisional
 see-also:
-  - "/docs/proposals/20260421-migrate-epp-to-llm-d-inference-scheduler.md"
+  - "[Planned] Migrate EPP to llm-d inference scheduler"
   - "/docs/proposals/20250704-keda-scaler-for-inference-workloads.md"
 ---
 # MultiRoleInference for Prefill/Decode Disaggregated Inference
@@ -39,7 +39,7 @@ Large language models (LLMs) like DeepSeek-V3 benefit significantly from separat
 
 ## Proposal
 
-## Request Flow
+### Request Flow
 
 ```
 Client
@@ -213,6 +213,7 @@ type MultiRoleInferenceSpec struct {
     // Exactly two roles are required: one prefill and one decode.
     // +kubebuilder:validation:MinItems=2
     // +kubebuilder:validation:MaxItems=2
+    // +kubebuilder:validation:XValidation:rule="self.exists(r, r.type == 'prefill') && self.exists(r, r.type == 'decode')",message="exactly one prefill and one decode role required"
     Roles []MultiRoleInferenceRoleSpec `json:"roles"`
 }
 
@@ -621,11 +622,13 @@ spec:
         name: llm-d-inference-scheduler
         tag: v0.7.1
         pullPolicy: IfNotPresent
-      # Inject custom P/D plugin config
-      pluginsConfigFile: "custom-plugins.yaml"
+      # Inject custom P/D plugin config from the auto-generated ConfigMap
+      # The controller copies the content from deepseek-v32-epp-plugins ConfigMap's
+      # config.yaml into this HelmRelease value.
+      pluginsConfigFile: "config.yaml"
       pluginsCustomConfig:
-        custom-plugins.yaml: |
-          # content from deepseek-v32-epp-plugins ConfigMap
+        config.yaml: |
+          # content from deepseek-v32-epp-plugins ConfigMap data.config.yaml
           ...
     inferencePool:
       name: deepseek-v32
@@ -734,7 +737,7 @@ Each child InferenceSet is a standard InferenceSet with `/scale` subresource, so
 
 The MultiRoleInference controller propagates KEDA annotations to child InferenceSets. This is the recommended approach because:
 - Users configure scaling in a single place (the MRI resource) without needing to know child InferenceSet names
-- Fully compatible with the existing keda-kaito-scaler — no scaler changes required
+- Leverages the existing keda-kaito-scaler architecture — requires scaler update to support per-role annotations (e.g., `prefill-min-replicas`, `decode-min-replicas`)
 - Prefill and decode get independent scaling metrics and thresholds
 
 > **Note**: Users can also create ScaledObject resources targeting child InferenceSets directly for full KEDA flexibility, but the annotation-based approach is the primary supported path.
@@ -749,13 +752,13 @@ metadata:
     scaledobject.kaito.sh/prefill-auto-provision: "true"
     scaledobject.kaito.sh/prefill-metricName: "vllm:num_requests_waiting"
     scaledobject.kaito.sh/prefill-threshold: "10"
-    scaledobject.kaito.sh/prefill-min-replicas: "1"
+    scaledobject.kaito.sh/prefill-min-replicas: "1"   # requires keda-kaito-scaler update for P/D support
     scaledobject.kaito.sh/prefill-max-replicas: "4"
     # Decode scaling config
     scaledobject.kaito.sh/decode-auto-provision: "true"
     scaledobject.kaito.sh/decode-metricName: "vllm:gpu_cache_usage_perc"
     scaledobject.kaito.sh/decode-threshold: "80"
-    scaledobject.kaito.sh/decode-min-replicas: "2"
+    scaledobject.kaito.sh/decode-min-replicas: "2"    # requires keda-kaito-scaler update for P/D support
     scaledobject.kaito.sh/decode-max-replicas: "6"
 spec:
   roles:
@@ -939,7 +942,7 @@ curl -s http://<gateway-ip>/v1/chat/completions \
 
 - [llm-d Inference Scheduler Architecture](https://github.com/llm-d/llm-d-inference-scheduler/blob/main/docs/architecture.md)
 - [MultiRoleInference proposal (PR #1846)](https://github.com/kaito-project/kaito/pull/1846)
-- [llm-d EPP migration proposal](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20260421-migrate-epp-to-llm-d-inference-scheduler.md)
+- [llm-d EPP migration proposal] (planned — not yet submitted)
 - [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler)
 - [llm-d disagg-profile-handler](https://github.com/llm-d/llm-d-inference-scheduler/tree/main/pkg/plugins)
 - [keda-kaito-scaler](https://github.com/kaito-project/keda-kaito-scaler)

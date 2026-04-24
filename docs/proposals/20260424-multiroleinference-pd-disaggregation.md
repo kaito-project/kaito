@@ -230,7 +230,7 @@ type MultiRoleInferenceStatus struct {
 type MultiRoleInference struct {
     metav1.TypeMeta   `json:",inline"`
     metav1.ObjectMeta `json:"metadata,omitempty"`
-    Spec              MultiRoleInferenceSpec   `json:"spec,omitempty"`
+    Spec              MultiRoleInferenceSpec   `json:"spec"`
     Status            MultiRoleInferenceStatus `json:"status,omitempty"`
 }
 ```
@@ -477,14 +477,15 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 One InferencePool per MultiRoleInference, selecting ALL prefill + decode workspaces:
 
 ```yaml
-apiVersion: inference.networking.x-k8s.io/v1alpha1
+apiVersion: inference.networking.x-k8s.io/v1
 kind: InferencePool
 metadata:
   name: deepseek-v32
   namespace: default
 spec:
-  targetPortNumber: 8080
-  selector:
+  targetPorts:
+    - number: 8080
+  modelServers:
     matchLabels:
       apps: deepseek-v32
       apps.kubernetes.io/pod-index: "0"
@@ -500,8 +501,8 @@ When a model uses tensor parallelism (e.g., 8-way TP), each workspace creates a 
 
 The EPP must only route to head pods. Kubernetes StatefulSet pods have a built-in label `apps.kubernetes.io/pod-index`, so the InferencePool selector includes `apps.kubernetes.io/pod-index: "0"` to match only head pods. This works for both single-GPU (1 pod per workspace, always index 0) and multi-GPU Ray cluster topologies.
 
-In P/D mode, **all requests go to decode pods first** (through the routing sidecar on port 8080). The sidecar handles prefill orchestration internally — prefill pods are not accessed via the InferencePool. The `targetPortNumber: 8080` ensures the Gateway routes to the decode sidecar, which then:
-- Contacts the selected prefill pod directly (via `x-prefiller-host-port` header from EPP) if disaggregation is triggered
+In P/D mode, **all requests go to decode pods first** (through the routing sidecar on port 8080). The sidecar handles prefill orchestration internally — prefill pods are not accessed via the InferencePool. The `targetPorts: [{number: 8080}]` ensures the Gateway routes to the decode sidecar, which then:
+- Contacts the selected prefill pod directly (via `x-prefiller-host-port` header from EPP, e.g., `prefill-pod-ip:5000`) on the vLLM serving port
 - Falls back to local prefill+decode if not disaggregated
 
 ### 4. EPP Plugin ConfigMap (auto-generated if not provided)
@@ -519,7 +520,7 @@ metadata:
       name: deepseek-v32
 data:
   config.yaml: |
-    apiVersion: inference.networking.x-k8s.io/v1alpha1
+    apiVersion: inference.networking.x-k8s.io/v1
     kind: EndpointPickerConfig
     featureGates:
       - prepareDataPlugins
@@ -631,10 +632,11 @@ spec:
           # content from deepseek-v32-epp-plugins ConfigMap data.config.yaml
           ...
     inferencePool:
-      name: deepseek-v32
-      targetPortNumber: 8080
-      selector:
-        apps: deepseek-v32
+      targetPorts:
+        - number: 8080
+      modelServers:
+        matchLabels:
+          apps: deepseek-v32
 ```
 
 ### 6. DestinationRule (TLS bypass for EPP)
@@ -942,7 +944,7 @@ curl -s http://<gateway-ip>/v1/chat/completions \
 
 - [llm-d Inference Scheduler Architecture](https://github.com/llm-d/llm-d-inference-scheduler/blob/main/docs/architecture.md)
 - [MultiRoleInference proposal (PR #1846)](https://github.com/kaito-project/kaito/pull/1846)
-- [llm-d EPP migration proposal] (planned — not yet submitted)
+- llm-d EPP migration proposal (planned — not yet submitted)
 - [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler)
 - [llm-d disagg-profile-handler](https://github.com/llm-d/llm-d-inference-scheduler/tree/main/pkg/plugins)
 - [keda-kaito-scaler](https://github.com/kaito-project/keda-kaito-scaler)

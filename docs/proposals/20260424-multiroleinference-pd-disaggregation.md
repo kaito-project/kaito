@@ -87,7 +87,7 @@ llm-d EPP (ext-proc)                    ◄── P/D disaggregation scheduling
 │ InferenceSet │   │ InferenceSet │   │ InferencePool              │
 │ deepseek-v32 │   │ deepseek-v32 │   │ deepseek-v32               │
 │ -prefill     │   │ -decode      │   │                            │
-│ replicas: 2  │   │ replicas: 3  │   │ selector:                  │
+│ replicas: 2  │   │ replicas: 3  │   │ modelServers:                  │
 │              │   │              │   │   apps: deepseek-v32       │
 │ workspaces:  │   │ workspaces:  │   │                            │
 │  ws-0        │   │  ws-0        │   │ ┌────────────────────────┐ │
@@ -639,7 +639,7 @@ spec:
     inferencePool:
       targetPorts:
         - number: 8080
-      selector:
+      modelServers:
         matchLabels:
           apps: deepseek-v32
 ```

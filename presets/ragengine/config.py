@@ -75,9 +75,12 @@ def _parse_csv_env(name: str) -> tuple[str, ...]:
     return tuple(item.strip() for item in raw_value.split(",") if item.strip())
 
 
-OUTPUT_GUARDRAILS_ENABLED = (
-    os.getenv("OUTPUT_GUARDRAILS_ENABLED", "false").lower() == "true"
-)
+def _parse_bool_env(name: str, default: str = "false") -> bool:
+    return os.getenv(name, default).lower() == "true"
+
+
+OUTPUT_GUARDRAILS_ENABLED = _parse_bool_env("OUTPUT_GUARDRAILS_ENABLED")
+OUTPUT_GUARDRAILS_FAIL_OPEN = _parse_bool_env("OUTPUT_GUARDRAILS_FAIL_OPEN", "true")
 OUTPUT_GUARDRAILS_ACTION_ON_HIT = os.getenv(
     "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact"
 ).lower()

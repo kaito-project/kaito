@@ -42,6 +42,10 @@ from models import (  # noqa: E402
     UpdateDocumentRequest,
     UpdateDocumentResponse,
 )
+from ragengine.guardrails import (  # noqa: E402
+    OutputGuardrails,
+    OutputGuardrailsError,
+)
 from vector_store_manager.manager import VectorStoreManager  # noqa: E402
 
 from ragengine.config import (  # noqa: E402
@@ -54,7 +58,6 @@ from ragengine.config import (  # noqa: E402
     VECTOR_DB_TYPE,
     VECTOR_DB_URL,
 )
-from ragengine.guardrails import OutputGuardrails  # noqa: E402
 from ragengine.metrics.prometheus_metrics import (  # noqa: E402
     MODE_LOCAL,
     MODE_REMOTE,
@@ -341,6 +344,8 @@ async def chat_completions(request: dict):
     except HTTPException as http_exc:
         # Preserve HTTP exceptions like 422 from reranker
         raise http_exc
+    except OutputGuardrailsError as guardrails_exc:
+        raise HTTPException(status_code=500, detail=str(guardrails_exc))
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:

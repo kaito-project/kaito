@@ -418,7 +418,7 @@ var _ = Describe("Workspace Preset", func() {
 	})
 
 	It(
-		"should create a falcon workspace with adapter, and update the workspace with another adapter",
+		"should create a phi-3 workspace with adapter, and update the workspace with another adapter",
 		utils.GinkgoLabelFastCheck,
 		func() {
 			numOfNode := 1

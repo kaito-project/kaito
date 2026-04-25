@@ -116,21 +116,6 @@ func fetchModelInfo(g *Generator, repo string) (license, pipelineTag string, bas
 	return license, pipelineTag, baseModel
 }
 
-// catalogOverrides provides hardcoded values for models whose HuggingFace
-// config.json omits fields that are class defaults in the transformers library.
-// Keys are lowercased HuggingFace repo names.
-var catalogOverrides = map[string]CatalogEntry{
-	"google/gemma-3-4b-it": {
-		ModelTokenLimit:   131072,
-		NumAttentionHeads: 8,
-		NumKeyValueHeads:  4,
-		HeadDim:           256,
-	},
-	"google/gemma-3-27b-it": {
-		ModelTokenLimit: 131072,
-	},
-}
-
 // FetchCatalogEntry fetches a CatalogEntry for a model repo from HuggingFace.
 func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 	g := NewGenerator(repo, token)
@@ -216,6 +201,9 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 		}
 		if len(ovr.Architectures) > 0 {
 			entry.Architectures = ovr.Architectures
+		}
+		if ovr.PipelineTag != "" {
+			entry.PipelineTag = ovr.PipelineTag
 		}
 	}
 

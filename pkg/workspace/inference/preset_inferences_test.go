@@ -266,7 +266,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
+			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py --allow_remote_files --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{

@@ -86,7 +86,7 @@ jobs:
           # Install via Helm
           # CSI Local Node cannot be configured to not deploy and it crashes on kind on github runners for unknown reasons
           # so we need to filter it out its components
-          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set featureGates.disableNodeAutoProvisioning="true" --set featureGates.enableInferenceSetController="true" --include-crds --debug --wait | awk '
+          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set featureGates.disableNodeAutoProvisioning="true" --set featureGates.enableInferenceSetController="true" --set featureGates.gatewayAPIInferenceExtension="true" --include-crds --debug --wait | awk '
             BEGIN { RS="---\n"; ORS="---\n"; csi=0 }
             /kind: ServiceAccount/ && /name: csi-local-node/ { csi=1 }
             /kind: StorageClass/ && /name: kaito-local-nvme-disk/ { csi=1 }
@@ -95,7 +95,7 @@ jobs:
             /kind: DaemonSet/ && /name: csi-local-node/ { csi=1 }
             !csi { print }
             { csi=0 }
-          ' | kubectl apply -f -
+          ' | kubectl apply --namespace ${{ env.KAITO_NAMESPACE }} -f -
 
           # Wait for controller to be ready
           kubectl wait --for=condition=available --timeout=300s deployment/kaito-workspace -n ${{ env.KAITO_NAMESPACE }}
@@ -173,6 +173,63 @@ jobs:
         run: |
           echo "Waiting for inferenceset to be ready..."
           kubectl wait --for='jsonpath={.status.readyReplicas}=1' inferenceset/inferenceset-aikit-test --timeout 300s
+
+      - name: Validate GWIE infrastructure
+        run: |
+          # Note: GWIE resource chain (OCIRepository → HelmRelease → InferencePool → EPP)
+          # is only created for vLLM preset-based InferenceSet workloads.
+          # AIKit uses custom template inference, so GWIE resources won't be created.
+          # Here we validate that the GWIE infrastructure is correctly deployed.
+
+          echo "=== Checking Flux CRDs are installed ==="
+          kubectl get crd ocirepositories.source.toolkit.fluxcd.io
+          echo "✓ Flux OCIRepository CRD installed"
+          kubectl get crd helmreleases.helm.toolkit.fluxcd.io
+          echo "✓ Flux HelmRelease CRD installed"
+
+          echo "=== Checking GWIE CRDs are installed ==="
+          kubectl get crd inferencepools.inference.networking.k8s.io
+          echo "✓ InferencePool CRD installed"
+          kubectl get crd inferenceobjectives.inference.networking.x-k8s.io
+          echo "✓ InferenceObjective CRD installed"
+
+          echo "=== Checking Flux controllers are running ==="
+          # Flux helm-controller and source-controller are deployed as part of the flux2 subchart
+          kubectl get deployments -n ${{ env.KAITO_NAMESPACE }} -o wide
+          for controller in helm-controller source-controller; do
+            if kubectl get deployment $controller -n ${{ env.KAITO_NAMESPACE }} >/dev/null 2>&1; then
+              kubectl wait --for=condition=available --timeout=120s deployment/$controller -n ${{ env.KAITO_NAMESPACE }}
+              echo "✓ $controller is available"
+            else
+              echo "✗ $controller deployment not found"
+              exit 1
+            fi
+          done
+
+          echo "=== Checking controller feature gates ==="
+          CONTROLLER_ARGS=$(kubectl get deployment kaito-workspace -n ${{ env.KAITO_NAMESPACE }} -o jsonpath='{.spec.template.spec.containers[0].args}')
+          echo "Controller args: $CONTROLLER_ARGS"
+          if echo "$CONTROLLER_ARGS" | grep -q "gatewayAPIInferenceExtension=true"; then
+            echo "✓ gatewayAPIInferenceExtension feature gate enabled"
+          else
+            echo "✗ gatewayAPIInferenceExtension feature gate not found"
+            exit 1
+          fi
+          if echo "$CONTROLLER_ARGS" | grep -q "enableInferenceSetController=true"; then
+            echo "✓ enableInferenceSetController feature gate enabled"
+          else
+            echo "✗ enableInferenceSetController feature gate not found"
+            exit 1
+          fi
+
+          echo "=== Verifying GWIE not created for non-preset InferenceSet (expected) ==="
+          POOL_NAME="inferenceset-aikit-test-inferencepool"
+          if kubectl get ocirepository $POOL_NAME 2>/dev/null; then
+            echo "✗ Unexpected: GWIE resources found for custom template InferenceSet"
+            exit 1
+          else
+            echo "✓ Confirmed: GWIE resources not created for AIKit custom template (only vLLM preset supported)"
+          fi
 
       - name: Validate response content
         run: |
@@ -268,3 +325,18 @@ jobs:
 
           echo "=== Node information ==="
           kubectl describe nodes
+
+          echo "=== GWIE: OCIRepository ==="
+          kubectl get ocirepository -A -o yaml || true
+
+          echo "=== GWIE: HelmRelease ==="
+          kubectl get helmrelease -A -o yaml || true
+
+          echo "=== GWIE: InferencePool ==="
+          kubectl get inferencepool -A -o yaml || true
+
+          echo "=== GWIE: EPP Deployment ==="
+          kubectl get deployment -l app=inferenceset-aikit-test-inferencepool-epp -o yaml || true
+
+          echo "=== GWIE: EPP Pod Logs ==="
+          kubectl logs -l app=inferenceset-aikit-test-inferencepool-epp --tail=50 || true

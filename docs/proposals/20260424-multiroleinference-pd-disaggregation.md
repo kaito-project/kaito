@@ -588,9 +588,9 @@ data:
           - pluginRef: max-score-picker
 ```
 
-### 5. OCI Repository + HelmRelease (InferencePool chart with llm-d EPP) — ✅ Done ([PR #1975](https://github.com/kaito-project/kaito/pull/1975))
+### 5. OCI Repository + HelmRelease (InferencePool chart with llm-d EPP) — Partially Done ([PR #1975](https://github.com/kaito-project/kaito/pull/1975))
 
-Already implemented in the existing InferenceSet controller. PR #1975 migrated the default EPP from GWIE to llm-d inference scheduler. The controller reuses the existing GWIE InferencePool chart, overriding the EPP image to llm-d:
+PR #1975 migrated the default EPP from GWIE to llm-d inference scheduler in the **InferenceSet controller** (owned by InferenceSet, `targetPorts: 5000`). For MRI, this logic will be **moved to the MultiRoleInference controller** with MRI ownership and `targetPorts: 8080` (decode sidecar port). The YAML below shows the target MRI-owned state:
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1
@@ -936,7 +936,7 @@ curl -s http://<gateway-ip>/v1/chat/completions \
 | | 3 | Controller: inject default vLLM NixlConnector kv-transfer-config (`kv_both`) into child InferenceSet config | TODO |
 | | 4 | Controller: create InferencePool (selector: `apps.kubernetes.io/pod-index: "0"` for Ray cluster support) | TODO |
 | | 5 | Controller: auto-generate P/D EPP plugin ConfigMap (`disagg-profile-handler` + `by-label-selector`) | TODO |
-| | 6 | Controller: create OCI Repository + HelmRelease (llm-d EPP image) | ✅ Done ([PR #1975](https://github.com/kaito-project/kaito/pull/1975)) — currently in InferenceSet controller; will be moved to MRI controller |
+| | 6 | Controller: create OCI Repository + HelmRelease (llm-d EPP image, MRI-owned, targetPorts: 8080) | Partially done ([PR #1975](https://github.com/kaito-project/kaito/pull/1975)) — llm-d image override done in InferenceSet controller; MRI ownership + port 8080 change still TODO |
 | | 7 | Controller: create DestinationRule (TLS bypass) — **temporary, remove after [kaito#1983](https://github.com/kaito-project/kaito/pull/1983)** | TODO (skip if #1983 merges first) |
 | | 8 | Workspace controller: include llm-d routing sidecar in decode StatefulSet spec when `inference-role: decode` label is present | TODO |
 | | 9 | Controller: status aggregation from child InferenceSets + InferencePool → MRI status | TODO |

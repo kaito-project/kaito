@@ -53,7 +53,7 @@ BBR (ext-proc)                          ◄── Extract model name from body
   │  Inject header: X-Gateway-Model-Name: deepseek-v32
   ▼
 HTTPRoute                               ◄── Match header → route to InferencePool
-  │  backendRefs: deepseek-v32
+  │  backendRefs: deepseek-v32-inferencepool
   ▼
 llm-d EPP (ext-proc)                    ◄── P/D disaggregation scheduling
   │
@@ -85,7 +85,7 @@ llm-d EPP (ext-proc)                    ◄── P/D disaggregation scheduling
        ▼                   ▼                           ▼
 ┌──────────────┐   ┌──────────────┐   ┌────────────────────────────┐
 │ InferenceSet │   │ InferenceSet │   │ InferencePool              │
-│ deepseek-v32 │   │ deepseek-v32 │   │ deepseek-v32               │
+│ deepseek-v32 │   │ deepseek-v32 │   │ deepseek-v32-inferencepool │
 │ -prefill     │   │ -decode      │   │                            │
 │ replicas: 2  │   │ replicas: 3  │   │ selector.matchLabels:        │
 │              │   │              │   │   apps: deepseek-v32       │
@@ -118,8 +118,8 @@ llm-d EPP (ext-proc)                    ◄── P/D disaggregation scheduling
 apiVersion: kaito.sh/v1alpha1
 kind: MultiRoleInference
 metadata:
-  # The InferencePool resource name matches the MRI name.
-  # The HelmRelease that deploys this pool is named "deepseek-v32-inferencepool".
+  # The HelmRelease is named "deepseek-v32-inferencepool" and renders an
+  # InferencePool CR also named "deepseek-v32-inferencepool" (GWIE naming convention).
   name: deepseek-v32
   namespace: default
 spec:
@@ -483,9 +483,9 @@ One InferencePool per MultiRoleInference, selecting ALL prefill + decode workspa
 apiVersion: inference.networking.k8s.io/v1
 kind: InferencePool
 metadata:
-  # The InferencePool resource name matches the MRI name.
-  # The HelmRelease that deploys this pool is named "deepseek-v32-inferencepool".
-  name: deepseek-v32
+  # The HelmRelease is named "deepseek-v32-inferencepool" and renders an
+  # InferencePool CR also named "deepseek-v32-inferencepool" (GWIE naming convention).
+  name: deepseek-v32-inferencepool
   namespace: default
 spec:
   targetPorts:
@@ -648,6 +648,7 @@ spec:
       modelServers:
         matchLabels:
           apps: deepseek-v32
+          apps.kubernetes.io/pod-index: "0"
 ```
 
 ### 6. DestinationRule (TLS bypass for EPP)
@@ -851,8 +852,8 @@ kubectl apply -f - <<EOF
 apiVersion: kaito.sh/v1alpha1
 kind: MultiRoleInference
 metadata:
-  # The InferencePool resource name matches the MRI name.
-  # The HelmRelease that deploys this pool is named "deepseek-v32-inferencepool".
+  # The HelmRelease is named "deepseek-v32-inferencepool" and renders an
+  # InferencePool CR also named "deepseek-v32-inferencepool" (GWIE naming convention).
   name: deepseek-v32
   namespace: default
 spec:
@@ -888,7 +889,7 @@ spec:
       backendRefs:
         - group: inference.networking.k8s.io
           kind: InferencePool
-          name: deepseek-v32
+          name: deepseek-v32-inferencepool
           port: 8080
 EOF
 ```
@@ -908,8 +909,8 @@ kubectl get is -l kaito.sh/parent=deepseek-v32
 # deepseek-v32-decode       3          3               10m
 
 # Check InferencePool and EPP
-kubectl get inferencepool deepseek-v32
-kubectl get pod -l inferencepool=deepseek-v32-epp
+kubectl get inferencepool deepseek-v32-inferencepool
+kubectl get pod -l inferencepool=deepseek-v32-inferencepool-epp
 
 # Verify workspace labels
 kubectl get pods -l apps=deepseek-v32 --show-labels

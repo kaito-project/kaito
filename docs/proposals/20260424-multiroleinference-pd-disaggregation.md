@@ -490,11 +490,17 @@ metadata:
 spec:
   targetPorts:
     - number: 8080
+  endpointPickerRef:
+    group: "inference.networking.x-k8s.io"
+    kind: "EndpointPicker"
+    name: "deepseek-v32-epp"
   selector:
     matchLabels:
       apps: deepseek-v32
       apps.kubernetes.io/pod-index: "0"
 ```
+
+> **Note:** The `endpointPickerRef` is a required field in the InferencePool CRD. The actual EPP name and configuration are rendered by the GWIE Helm chart.
 
 #### Multi-GPU / Ray Cluster Routing
 

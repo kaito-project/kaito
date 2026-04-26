@@ -254,7 +254,7 @@ metadata:
   namespace: default
   labels:
     kaito.sh/parent: deepseek-v32
-    kaito.sh/role: prefill
+    inference-role: prefill
   ownerReferences:
     - apiVersion: kaito.sh/v1alpha1
       kind: MultiRoleInference
@@ -345,7 +345,7 @@ metadata:
   namespace: default
   labels:
     kaito.sh/parent: deepseek-v32
-    kaito.sh/role: decode
+    inference-role: decode
   ownerReferences:
     - apiVersion: kaito.sh/v1alpha1
       kind: MultiRoleInference
@@ -500,7 +500,7 @@ spec:
       apps.kubernetes.io/pod-index: "0"
 ```
 
-> **Note:** The `endpointPickerRef` is a required field in the InferencePool CRD. The actual EPP name and configuration are rendered by the GWIE Helm chart.
+> **Note:** The `endpointPickerRef` is a required field in the InferencePool CRD. The actual EPP name and configuration are rendered by the GWIE Helm chart. The `apps: deepseek-v32` label is set by the MRI controller on child InferenceSet pod templates (via `spec.template.metadata.labels`), which propagates to all workspace pods. The `apps.kubernetes.io/pod-index` label is automatically set by Kubernetes on StatefulSet pods.
 
 #### Multi-GPU / Ray Cluster Routing
 
@@ -940,7 +940,7 @@ curl -s http://<gateway-ip>/v1/chat/completions \
 | **Phase 1: Core** | 1 | MultiRoleInference CRD types (prefill + decode roles) | TODO |
 | | 2 | Controller: create prefill/decode child InferenceSets with `inference-role` label and `kaito.sh/parent` label | TODO |
 | | 3 | Controller: inject default vLLM NixlConnector kv-transfer-config (`kv_both`) into child InferenceSet config | TODO |
-| | 4 | Controller: create InferencePool (selector: `apps.kubernetes.io/pod-index: "0"` for Ray cluster support) | TODO |
+| | 4 | Controller: create OCIRepository + HelmRelease that renders InferencePool (selector: `apps.kubernetes.io/pod-index: "0"` for Ray cluster support) | TODO |
 | | 5 | Controller: auto-generate P/D EPP plugin ConfigMap (`disagg-profile-handler` + `by-label-selector`) | TODO |
 | | 6 | Controller: create OCI Repository + HelmRelease (llm-d EPP image, MRI-owned, targetPorts: 8080) | Partially done ([PR #1975](https://github.com/kaito-project/kaito/pull/1975)) — llm-d image override done in InferenceSet controller; MRI ownership + port 8080 change still TODO |
 | | 7 | Controller: create DestinationRule (TLS bypass) — **temporary, remove after [kaito#1983](https://github.com/kaito-project/kaito/pull/1983)** | TODO (skip if #1983 merges first) |

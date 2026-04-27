@@ -393,7 +393,7 @@ data:
 The Workspace controller creates decode StatefulSets with the routing sidecar container included. When the Workspace controller detects the `inference-role: decode` label during reconciliation, it adds the [llm-d routing sidecar](https://github.com/llm-d/llm-d-routing-sidecar) as part of the StatefulSet's container spec alongside the main vLLM container. Prefill workspaces (labeled `inference-role: prefill`) are created without the sidecar. The sidecar handles P/D coordination:
 
 ```yaml
-# Injected into decode pod spec by the controller
+# Decode pod spec created by the Workspace controller when inference-role=decode
 containers:
   - name: vllm                          # main inference container (existing)
     # ...

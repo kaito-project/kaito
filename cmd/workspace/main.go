@@ -284,6 +284,7 @@ func main() {
 			kClient,
 			mgr.GetScheme(),
 			mgr.GetEventRecorderFor("drift-controller"),
+			nodeProvisioner,
 		)
 		if err = driftReconciler.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "Drift")

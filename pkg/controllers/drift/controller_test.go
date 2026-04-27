@@ -38,6 +38,36 @@ import (
 
 // --- Test helpers ---
 
+// mockProvisioner records EnableDriftRemediation/DisableDriftRemediation calls.
+type mockProvisioner struct {
+	mock.Mock
+}
+
+func (m *mockProvisioner) Name() string { return "mock" }
+func (m *mockProvisioner) Start(_ context.Context) error {
+	return nil
+}
+func (m *mockProvisioner) ProvisionNodes(_ context.Context, _ *kaitov1beta1.Workspace) error {
+	return nil
+}
+func (m *mockProvisioner) DeleteNodes(_ context.Context, _ *kaitov1beta1.Workspace) error {
+	return nil
+}
+func (m *mockProvisioner) EnsureNodesReady(_ context.Context, _ *kaitov1beta1.Workspace) (bool, bool, error) {
+	return false, false, nil
+}
+func (m *mockProvisioner) CollectNodeStatusInfo(_ context.Context, _ *kaitov1beta1.Workspace) ([]metav1.Condition, error) {
+	return nil, nil
+}
+func (m *mockProvisioner) EnableDriftRemediation(ctx context.Context, ns, name string) error {
+	args := m.Called(ctx, ns, name)
+	return args.Error(0)
+}
+func (m *mockProvisioner) DisableDriftRemediation(ctx context.Context, ns, name string) error {
+	args := m.Called(ctx, ns, name)
+	return args.Error(0)
+}
+
 func newNodePoolWithDriftBudget(name, nodes string) *karpenterv1.NodePool {
 	return &karpenterv1.NodePool{
 		ObjectMeta: metav1.ObjectMeta{Name: name},
@@ -94,7 +124,7 @@ func newNodeClaimWithDriftCondition(name, nodePoolName string, drifted bool) *ka
 	return nc
 }
 
-// --- getDriftBudgetNodes / setDriftBudgetNodes tests ---
+// --- getDriftBudgetNodes tests ---
 
 func TestGetDriftBudgetNodes_Found(t *testing.T) {
 	np := newNodePoolWithDriftBudget("test-np", "0")
@@ -113,21 +143,6 @@ func TestGetDriftBudgetNodes_NotFound(t *testing.T) {
 		},
 	}
 	_, err := getDriftBudgetNodes(np)
-	assert.Assert(t, err != nil)
-}
-
-func TestSetDriftBudgetNodes_Found(t *testing.T) {
-	np := newNodePoolWithDriftBudget("test-np", "0")
-	err := setDriftBudgetNodes(np, "1")
-	assert.NilError(t, err)
-	assert.Equal(t, "1", np.Spec.Disruption.Budgets[0].Nodes)
-}
-
-func TestSetDriftBudgetNodes_NotFound(t *testing.T) {
-	np := &karpenterv1.NodePool{
-		ObjectMeta: metav1.ObjectMeta{Name: "test-np"},
-	}
-	err := setDriftBudgetNodes(np, "1")
 	assert.Assert(t, err != nil)
 }
 
@@ -215,7 +230,7 @@ func TestReconcile_InferenceSetNotFound(t *testing.T) {
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
 		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(notFoundErr)
 
-	r := NewDriftReconciler(mockClient, nil, record.NewFakeRecorder(10))
+	r := NewDriftReconciler(mockClient, nil, record.NewFakeRecorder(10), &mockProvisioner{})
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "missing", Namespace: "default"},
 	})
@@ -236,7 +251,7 @@ func TestReconcile_NoWorkspaces(t *testing.T) {
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&kaitov1beta1.WorkspaceList{}), mock.Anything).Return(nil)
 
-	r := NewDriftReconciler(mockClient, nil, record.NewFakeRecorder(10))
+	r := NewDriftReconciler(mockClient, nil, record.NewFakeRecorder(10), &mockProvisioner{})
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})
@@ -268,7 +283,7 @@ func TestReconcile_NoDriftedWorkspaces(t *testing.T) {
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 
-	r := NewDriftReconciler(mockClient, nil, record.NewFakeRecorder(10))
+	r := NewDriftReconciler(mockClient, nil, record.NewFakeRecorder(10), &mockProvisioner{})
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})
@@ -299,31 +314,20 @@ func TestReconcile_OneDrifted_EnablesDrift(t *testing.T) {
 		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
-	mockClient.On("Update", mock.IsType(context.Background()),
-		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
+
+	mockProv := &mockProvisioner{}
+	mockProv.On("EnableDriftRemediation", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	recorder := record.NewFakeRecorder(10)
-	r := NewDriftReconciler(mockClient, nil, recorder)
+	r := NewDriftReconciler(mockClient, nil, recorder, mockProv)
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})
 	assert.NilError(t, err)
 	assert.Equal(t, driftRequeueInterval, result.RequeueAfter)
 
-	// Verify the NodePool budget was updated to "1" by inspecting the Update call args.
-	found := false
-	for _, call := range mockClient.Calls {
-		if call.Method == "Update" {
-			updatedNP, ok := call.Arguments[1].(*karpenterv1.NodePool)
-			if ok {
-				budgetNodes, bErr := getDriftBudgetNodes(updatedNP)
-				assert.NilError(t, bErr)
-				assert.Equal(t, "1", budgetNodes)
-				found = true
-			}
-		}
-	}
-	assert.Assert(t, found, "expected Update to be called with a NodePool")
+	// Verify EnableDriftRemediation was called exactly once.
+	mockProv.AssertNumberOfCalls(t, "EnableDriftRemediation", 1)
 }
 
 func TestReconcile_UpgradingStillDrifted_Requeues(t *testing.T) {
@@ -352,17 +356,17 @@ func TestReconcile_UpgradingStillDrifted_Requeues(t *testing.T) {
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 
 	recorder := record.NewFakeRecorder(10)
-	r := NewDriftReconciler(mockClient, nil, recorder)
+	mockProv := &mockProvisioner{}
+	r := NewDriftReconciler(mockClient, nil, recorder, mockProv)
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})
 	assert.NilError(t, err)
 	assert.Equal(t, driftRequeueInterval, result.RequeueAfter)
 
-	// Verify no Update was called (still waiting for drift to complete).
-	for _, call := range mockClient.Calls {
-		assert.Assert(t, call.Method != "Update", "expected no Update call while still drifted")
-	}
+	// Verify neither Enable nor Disable was called (still waiting for drift to complete).
+	mockProv.AssertNotCalled(t, "EnableDriftRemediation", mock.Anything, mock.Anything, mock.Anything)
+	mockProv.AssertNotCalled(t, "DisableDriftRemediation", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func TestReconcile_UpgradingNoLongerDrifted_DisablesDrift(t *testing.T) {
@@ -389,31 +393,21 @@ func TestReconcile_UpgradingNoLongerDrifted_DisablesDrift(t *testing.T) {
 		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
-	mockClient.On("Update", mock.IsType(context.Background()),
-		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
+
+	mockProv := &mockProvisioner{}
+	mockProv.On("DisableDriftRemediation", mock.Anything, "default", "ws-0").Return(nil)
 
 	recorder := record.NewFakeRecorder(10)
-	r := NewDriftReconciler(mockClient, nil, recorder)
+	r := NewDriftReconciler(mockClient, nil, recorder, mockProv)
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})
 	assert.NilError(t, err)
 	assert.Equal(t, driftRequeueInterval, result.RequeueAfter)
 
-	// Verify the NodePool budget was set back to "0".
-	found := false
-	for _, call := range mockClient.Calls {
-		if call.Method == "Update" {
-			updatedNP, ok := call.Arguments[1].(*karpenterv1.NodePool)
-			if ok {
-				budgetNodes, bErr := getDriftBudgetNodes(updatedNP)
-				assert.NilError(t, bErr)
-				assert.Equal(t, "0", budgetNodes)
-				found = true
-			}
-		}
-	}
-	assert.Assert(t, found, "expected Update to be called with a NodePool")
+	// Verify DisableDriftRemediation was called for the correct workspace.
+	mockProv.AssertCalled(t, "DisableDriftRemediation", mock.Anything, "default", "ws-0")
+	mockProv.AssertNumberOfCalls(t, "DisableDriftRemediation", 1)
 }
 
 func TestReconcile_MultipleDrifted_OnlyOneEnabled(t *testing.T) {
@@ -446,33 +440,20 @@ func TestReconcile_MultipleDrifted_OnlyOneEnabled(t *testing.T) {
 		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
-	mockClient.On("Update", mock.IsType(context.Background()),
-		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
+
+	mockProv := &mockProvisioner{}
+	mockProv.On("EnableDriftRemediation", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	recorder := record.NewFakeRecorder(10)
-	r := NewDriftReconciler(mockClient, nil, recorder)
+	r := NewDriftReconciler(mockClient, nil, recorder, mockProv)
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})
 	assert.NilError(t, err)
 	assert.Equal(t, driftRequeueInterval, result.RequeueAfter)
 
-	// Verify exactly one Update was called (serial: only first candidate enabled).
-	// Note: mock List returns all objects regardless of label selector, and Go map
-	// iteration is non-deterministic, so we assert on count rather than which one.
-	updateCount := 0
-	for _, call := range mockClient.Calls {
-		if call.Method == "Update" {
-			updatedNP, ok := call.Arguments[1].(*karpenterv1.NodePool)
-			if ok {
-				budgetNodes, bErr := getDriftBudgetNodes(updatedNP)
-				assert.NilError(t, bErr)
-				assert.Equal(t, "1", budgetNodes)
-				updateCount++
-			}
-		}
-	}
-	assert.Equal(t, 1, updateCount, "expected exactly one NodePool to have drift enabled")
+	// Verify exactly one EnableDriftRemediation was called (serial: only first candidate enabled).
+	mockProv.AssertNumberOfCalls(t, "EnableDriftRemediation", 1)
 }
 
 func TestReconcile_NodePoolNotFound_SkipsWorkspace(t *testing.T) {
@@ -499,7 +480,7 @@ func TestReconcile_NodePoolNotFound_SkipsWorkspace(t *testing.T) {
 		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(notFoundErr)
 
 	recorder := record.NewFakeRecorder(10)
-	r := NewDriftReconciler(mockClient, nil, recorder)
+	r := NewDriftReconciler(mockClient, nil, recorder, &mockProvisioner{})
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})

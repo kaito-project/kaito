@@ -22,7 +22,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -34,6 +33,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	karpenterpkg "github.com/kaito-project/kaito/pkg/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
@@ -47,16 +47,18 @@ const (
 // DriftReconciler orchestrates rolling drift upgrades for InferenceSet-managed Workspaces.
 type DriftReconciler struct {
 	client.Client
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Scheme      *runtime.Scheme
+	Recorder    record.EventRecorder
+	Provisioner nodeprovision.NodeProvisioner
 }
 
 // NewDriftReconciler creates a DriftReconciler.
-func NewDriftReconciler(c client.Client, scheme *runtime.Scheme, recorder record.EventRecorder) *DriftReconciler {
+func NewDriftReconciler(c client.Client, scheme *runtime.Scheme, recorder record.EventRecorder, provisioner nodeprovision.NodeProvisioner) *DriftReconciler {
 	return &DriftReconciler{
-		Client:   c,
-		Scheme:   scheme,
-		Recorder: recorder,
+		Client:      c,
+		Scheme:      scheme,
+		Recorder:    recorder,
+		Provisioner: provisioner,
 	}
 }
 
@@ -71,20 +73,6 @@ func getDriftBudgetNodes(np *karpenterv1.NodePool) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("NodePool %q has no budget entry with Drifted reason", np.Name)
-}
-
-// setDriftBudgetNodes sets the Drifted budget Nodes value on an already-fetched NodePool.
-// Returns an error if no budget entry with DisruptionReasonDrifted is found.
-func setDriftBudgetNodes(np *karpenterv1.NodePool, nodes string) error {
-	for i := range np.Spec.Disruption.Budgets {
-		for _, reason := range np.Spec.Disruption.Budgets[i].Reasons {
-			if reason == karpenterv1.DisruptionReasonDrifted {
-				np.Spec.Disruption.Budgets[i].Nodes = nodes
-				return nil
-			}
-		}
-	}
-	return fmt.Errorf("NodePool %q has no budget entry with Drifted reason", np.Name)
 }
 
 // Reconcile implements the drift upgrade state machine for a single InferenceSet.
@@ -193,9 +181,9 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		}
 
 		// No longer drifted — disable drift remediation (set budget back to "0").
-		if err := r.updateDriftBudget(ctx, upgrading.nodePoolName, "0"); err != nil {
-			return ctrl.Result{}, fmt.Errorf("disabling drift remediation for NodePool %q: %w",
-				upgrading.nodePoolName, err)
+		if err := r.Provisioner.DisableDriftRemediation(ctx, upgrading.workspaceNamespace, upgrading.workspaceName); err != nil {
+			return ctrl.Result{}, fmt.Errorf("disabling drift remediation for workspace %s/%s: %w",
+				upgrading.workspaceNamespace, upgrading.workspaceName, err)
 		}
 		klog.V(2).InfoS("Drift replacement complete, disabled drift remediation",
 			"workspace", klog.KRef(upgrading.workspaceNamespace, upgrading.workspaceName),
@@ -215,9 +203,9 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 	// Enable drift remediation on the first candidate.
 	candidate := driftedCandidates[0]
-	if err := r.updateDriftBudget(ctx, candidate.nodePoolName, "1"); err != nil {
-		return ctrl.Result{}, fmt.Errorf("enabling drift remediation for NodePool %q: %w",
-			candidate.nodePoolName, err)
+	if err := r.Provisioner.EnableDriftRemediation(ctx, candidate.workspaceNamespace, candidate.workspaceName); err != nil {
+		return ctrl.Result{}, fmt.Errorf("enabling drift remediation for workspace %s/%s: %w",
+			candidate.workspaceNamespace, candidate.workspaceName, err)
 	}
 	klog.V(2).InfoS("Enabled drift remediation",
 		"workspace", klog.KRef(candidate.workspaceNamespace, candidate.workspaceName),
@@ -226,23 +214,6 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		"Started drift replacement for workspace %s/%s",
 		candidate.workspaceNamespace, candidate.workspaceName)
 	return ctrl.Result{RequeueAfter: driftRequeueInterval}, nil
-}
-
-// updateDriftBudget updates the Drifted budget entry in the NodePool using
-// RetryOnConflict for optimistic concurrency. If setDriftBudgetNodes returns
-// an error (no drifted budget entry), it is not retried — only conflict errors
-// trigger retries.
-func (r *DriftReconciler) updateDriftBudget(ctx context.Context, nodePoolName, nodes string) error {
-	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		np := &karpenterv1.NodePool{}
-		if err := r.Get(ctx, types.NamespacedName{Name: nodePoolName}, np); err != nil {
-			return err
-		}
-		if err := setDriftBudgetNodes(np, nodes); err != nil {
-			return err
-		}
-		return r.Update(ctx, np)
-	})
 }
 
 // inferenceSetNodeClaimPredicate filters to only NodeClaims with the
@@ -256,8 +227,7 @@ func inferenceSetNodeClaimPredicate() predicate.Predicate {
 }
 
 // mapNodeClaimToInferenceSet extracts InferenceSet name/namespace from
-// NodeClaim labels and returns a reconcile request. Package-private but
-// accessible from same-package tests for direct testability.
+// NodeClaim labels and returns a reconcile request.
 func mapNodeClaimToInferenceSet(_ context.Context, o client.Object) []reconcile.Request {
 	labels := o.GetLabels()
 	name := labels[consts.KarpenterInferenceSetKey]
@@ -276,6 +246,7 @@ var enqueueInferenceSetForNodeClaim = handler.EnqueueRequestsFromMapFunc(mapNode
 // SetupWithManager registers the controller with the manager.
 func (r *DriftReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
+		Named("drift").
 		For(&kaitov1alpha1.InferenceSet{}).
 		Watches(&karpenterv1.NodeClaim{},
 			enqueueInferenceSetForNodeClaim,

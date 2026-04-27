@@ -20,6 +20,7 @@ from typing import Any
 import llm_guard.output_scanners as llm_guard_output_scanners
 import yaml
 from llm_guard import scan_output
+
 from ragengine import config
 from ragengine.models import ChatCompletionResponse, get_message_content
 

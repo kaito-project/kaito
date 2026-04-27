@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 
 	"github.com/kaito-project/kaito/pkg/model"
 )
@@ -703,4 +704,99 @@ func TestSelectWeightFiles(t *testing.T) {
 			assert.Equal(t, tc.expectedPaths, paths)
 		})
 	}
+}
+
+func TestGetString(t *testing.T) {
+	config := map[string]interface{}{
+		"torch_dtype": "bfloat16",
+		"other_key":   "value",
+		"empty_key":   "",
+		"non_string":  42,
+	}
+
+	// First matching key wins
+	assert.Equal(t, "bfloat16", getString(config, []string{"torch_dtype", "dtype"}))
+	// Falls back to second key
+	assert.Equal(t, "value", getString(config, []string{"missing", "other_key"}))
+	// No match returns empty string
+	assert.Equal(t, "", getString(config, []string{"no_such_key"}))
+	// Skips empty string values
+	assert.Equal(t, "", getString(config, []string{"empty_key"}))
+	// Skips non-string values
+	assert.Equal(t, "", getString(config, []string{"non_string"}))
+}
+
+func TestCalculateKVCacheTokenSizeWithDType(t *testing.T) {
+	// Base GQA config: 32 layers, 32 attn heads, 8 kv heads, hidden=4096
+	// headDim = 4096/32 = 128
+	// elementsPerToken = 2 * 8 * 128 = 2048
+	// totalElements = 2048 * 32 = 65536
+	baseConfig := map[string]interface{}{
+		"hidden_size":         4096,
+		"num_hidden_layers":   32,
+		"num_attention_heads": 32,
+		"num_key_value_heads": 8,
+	}
+
+	cases := []struct {
+		name             string
+		dtype            string
+		expectedBPT      int
+		expectedAttnType string
+	}{
+		{"bfloat16 uses 2 bytes", "bfloat16", 65536 * 2, "GQA"},
+		{"float16 uses 2 bytes", "float16", 65536 * 2, "GQA"},
+		{"float32 uses 4 bytes", "float32", 65536 * 4, "GQA"},
+		{"fp8 uses 1 byte", "fp8", 65536 * 1, "GQA"},
+		{"int8 uses 1 byte", "int8", 65536 * 1, "GQA"},
+		{"unknown dtype defaults to 2 bytes", "weird_type", 65536 * 2, "GQA"},
+		{"empty dtype defaults to 2 bytes", "", 65536 * 2, "GQA"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			gen := NewGenerator("test/model", "")
+			gen.ModelConfig = baseConfig
+			gen.Param.Metadata.DType = tc.dtype
+
+			bpt, attnType := gen.calculateKVCacheTokenSize()
+			assert.Equal(t, tc.expectedBPT, bpt)
+			assert.Equal(t, tc.expectedAttnType, attnType)
+		})
+	}
+}
+
+func TestDTypeBytesMapCompleteness(t *testing.T) {
+	// Ensure all dtypes used in model_catalog.yaml are present in dtypeBytesMap
+	catalogData, err := os.ReadFile("../models/model_catalog.yaml")
+	assert.NoError(t, err)
+
+	var catalog ModelCatalog
+	err = yaml.Unmarshal(catalogData, &catalog)
+	assert.NoError(t, err)
+
+	for _, m := range catalog.Models {
+		if m.DType == "" {
+			continue
+		}
+		_, ok := dtypeBytesMap[m.DType]
+		assert.True(t, ok, "dtype %q (from model %s) not found in dtypeBytesMap", m.DType, m.Name)
+	}
+}
+
+func TestLoadFromCatalogDType(t *testing.T) {
+	catalogData, err := os.ReadFile("../models/model_catalog.yaml")
+	assert.NoError(t, err)
+
+	// Pick a model known to have dtype: bfloat16 in the catalog
+	gen := NewGenerator("microsoft/phi-4", "")
+	gen.CatalogData = catalogData
+	found := gen.loadFromCatalog()
+	assert.True(t, found)
+
+	gen.ParseModelMetadata()
+	gen.FinalizeParams()
+
+	// DType should be populated from the catalog entry
+	assert.Equal(t, "bfloat16", gen.Param.Metadata.DType, "loadFromCatalog should propagate DType to Param.Metadata.DType")
 }

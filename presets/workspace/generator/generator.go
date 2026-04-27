@@ -449,6 +449,13 @@ func (g *Generator) ParseModelMetadata() {
 
 	g.Param.Metadata.ModelTokenLimit = maxPos
 
+	// Parse dtype from config (torch_dtype or dtype key) if not already set
+	if g.Param.Metadata.DType == "" {
+		if dt := getString(g.ModelConfig, configKeyMap["dtype"]); dt != "" {
+			g.Param.Metadata.DType = dt
+		}
+	}
+
 	g.Param.Metadata.Architectures = []string{}
 	if arch, ok := g.ModelConfig["architectures"].([]interface{}); ok {
 		for _, a := range arch {
@@ -527,6 +534,19 @@ func (g *Generator) calculateStorageSize() string {
 	return fmt.Sprintf("%dGi", req)
 }
 
+// dtypeBytesMap maps dtype strings to their size in bytes.
+// Used to compute KV cache memory from element counts.
+var dtypeBytesMap = map[string]int{
+	"float32":  4,
+	"float16":  2,
+	"bfloat16": 2,
+	"fp8":      1,
+	"float8":   1,
+	"int8":     1,
+}
+
+const defaultBytesPerElement = 2 // fp16
+
 func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 	config := g.ModelConfig
 
@@ -572,7 +592,12 @@ func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 	}
 
 	totalElements := elementsPerToken * hiddenLayers
-	tokenSize := totalElements * 2 // fp16
+
+	bytesPerElement := defaultBytesPerElement
+	if b, ok := dtypeBytesMap[g.Param.Metadata.DType]; ok {
+		bytesPerElement = b
+	}
+	tokenSize := totalElements * bytesPerElement
 
 	return tokenSize, attnType
 }
@@ -655,6 +680,7 @@ func (g *Generator) loadFromCatalog() bool {
 
 	// Populate fields that FetchModelMetadata would have set
 	g.Param.Metadata.ModelFileSize = entry.ModelFileSize
+	g.Param.Metadata.DType = entry.DType
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
 	if entry.LoadFormat != "" {

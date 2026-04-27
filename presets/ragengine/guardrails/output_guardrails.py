@@ -100,7 +100,9 @@ class OutputGuardrails:
         return OutputGuardrails(
             enabled=self.enabled,
             action_on_hit=_normalize_action(policy.get("action"), self.action_on_hit),
-            block_message=_coerce_string(policy.get("blockMessage"), self.block_message),
+            block_message=_coerce_string(
+                policy.get("blockMessage"), self.block_message
+            ),
             scanner_configs=scanner_configs,
         )
 
@@ -185,7 +187,9 @@ def _coerce_string_list(value: Any) -> list[str]:
     return [item for item in value if isinstance(item, str) and item]
 
 
-def _coerce_policy_scanner_configs(value: Any, policy_path: str) -> list[dict[str, Any]]:
+def _coerce_policy_scanner_configs(
+    value: Any, policy_path: str
+) -> list[dict[str, Any]]:
     if value is None:
         return []
     if not isinstance(value, list):
@@ -219,7 +223,9 @@ def _build_scanner(scanner_config: dict[str, Any], action_on_hit: str) -> Any | 
 
     scanner_class = getattr(llm_guard_output_scanners, class_name, None)
     if scanner_class is None:
-        logger.warning("output_guardrails_policy_unavailable_scanner type=%s", scanner_type)
+        logger.warning(
+            "output_guardrails_policy_unavailable_scanner type=%s", scanner_type
+        )
         return None
 
     kwargs = _build_scanner_kwargs(scanner_class, scanner_config, action_on_hit)
@@ -243,7 +249,9 @@ def _build_scanner_kwargs(
 ) -> dict[str, Any] | None:
     signature = inspect.signature(scanner_class)
     kwargs: dict[str, Any] = {}
-    config_values = {key: value for key, value in scanner_config.items() if key != "type"}
+    config_values = {
+        key: value for key, value in scanner_config.items() if key != "type"
+    }
 
     for name, parameter in signature.parameters.items():
         if parameter.kind not in (

@@ -130,24 +130,23 @@ spec:
     name: deepseek-ai/DeepSeek-V3.2
     modelAccessSecret: hf-token
   # Optional: custom EPP plugins. If not set, controller auto-generates P/D config.
-  eppPluginsConfigRef:
-    name: deepseek-v32-epp-plugins
+  eppPluginsConfig: deepseek-v32-epp-plugins
   roles:
     - type: prefill
       replicas: 2
       instanceType: Standard_NC24ads_A100_v4
-      runtimeConfigRef: prefill-params   # optional ConfigMap for role-specific vLLM args
+      runtimeConfig: prefill-params   # optional ConfigMap for role-specific vLLM args
     - type: decode
       replicas: 3
       instanceType: Standard_NC24ads_A100_v4
-      runtimeConfigRef: decode-params    # optional ConfigMap for role-specific vLLM args
+      runtimeConfig: decode-params    # optional ConfigMap for role-specific vLLM args
 ```
 
 **Design rationale for the simplified CRD:**
 
 - **`model` at top level** — the model is the core shared resource across all roles. Elevating it from `inference.preset.name` makes the intent immediately clear: "one model, multiple roles". This avoids the indirection through `InferenceSpec.Preset.PresetMeta.Name` which is verbose and inherits Workspace-era complexity.
 - **`instanceType` per role** — P/D disaggregation often uses different GPU SKUs (e.g., large memory for prefill, smaller for decode). Placing `instanceType` directly on the role keeps the most common tuning knob visible at the top level.
-- **`runtimeConfigRef` per role** — each role may need different vLLM runtime arguments (e.g., prefill: `--max-num-batched-tokens`, decode: `--kv-cache-dtype`). Named `runtimeConfigRef` instead of generic `config` to clearly indicate it references vLLM/runtime parameters.
+- **`runtimeConfig` per role** — each role may need different vLLM runtime arguments (e.g., prefill: `--max-num-batched-tokens`, decode: `--kv-cache-dtype`). References a ConfigMap name, consistent with `modelAccessSecret` which also uses a plain string to reference a Kubernetes object.
 - **`modelAccessSecret` on model** — the secret is model-scoped (HuggingFace token), not role-scoped. Placing it next to the model name is the natural location.
 
 ### API Types
@@ -191,10 +190,10 @@ type MultiRoleInferenceRoleSpec struct {
     // +required
     InstanceType string `json:"instanceType"`
 
-    // RuntimeConfigRef references a ConfigMap with role-specific vLLM runtime arguments.
+    // RuntimeConfig references a ConfigMap with role-specific vLLM runtime arguments.
     // These override or extend the default inference parameters for this role.
     // +optional
-    RuntimeConfigRef string `json:"runtimeConfigRef,omitempty"`
+    RuntimeConfig string `json:"runtimeConfig,omitempty"`
 }
 
 type MultiRoleInferenceSpec struct {
@@ -206,11 +205,11 @@ type MultiRoleInferenceSpec struct {
     // +required
     Model MultiRoleInferenceModelSpec `json:"model"`
 
-    // EPPPluginsConfigRef references a ConfigMap containing custom EPP plugins configuration.
+    // EPPPluginsConfig references a ConfigMap containing custom EPP plugins configuration.
     // If not set, the controller auto-generates a standard P/D disaggregation plugin config
     // with prefill-filter, decode-filter, precise-prefix-cache-scorer, and load-aware-scorer.
     // +optional
-    EPPPluginsConfigRef *corev1.LocalObjectReference `json:"eppPluginsConfigRef,omitempty"`
+    EPPPluginsConfig string `json:"eppPluginsConfig,omitempty"`
 
     // Roles defines the role topology of this inference service.
     // Exactly two roles are required: one prefill and one decode.
@@ -279,10 +278,10 @@ spec:
         name: deepseek-ai/DeepSeek-V3.2
         presetOptions:
           modelAccessSecret: hf-token
-      config: prefill-params    # from MRI roles[prefill].runtimeConfigRef
+      config: prefill-params    # from MRI roles[prefill].runtimeConfig
 ```
 
-The `runtimeConfigRef` field references a ConfigMap with role-specific vLLM arguments. Example:
+The `runtimeConfig` field references a ConfigMap with role-specific vLLM arguments. Example:
 
 ```yaml
 apiVersion: v1
@@ -370,7 +369,7 @@ spec:
         name: deepseek-ai/DeepSeek-V3.2
         presetOptions:
           modelAccessSecret: hf-token
-      config: decode-params     # from MRI roles[decode].runtimeConfigRef
+      config: decode-params     # from MRI roles[decode].runtimeConfig
 ```
 
 ```yaml
@@ -518,7 +517,7 @@ In P/D mode, **all requests go to decode pods first** (through the routing sidec
 
 ### 4. EPP Plugin ConfigMap (auto-generated if not provided)
 
-When `eppPluginsConfigRef` is not set, the controller generates a default P/D disaggregation config:
+When `eppPluginsConfig` is not set, the controller generates a default P/D disaggregation config:
 
 ```yaml
 apiVersion: v1
@@ -726,7 +725,7 @@ Incoming Request
 
 ### KV Cache Transfer Between Prefill and Decode
 
-The current P/D disaggregation design uses [NixlConnector](https://github.com/ai-dynamo/nixl) as the default KV cache transfer mechanism. NixlConnector enables high-performance KV cache transfer between prefill and decode workspaces via RDMA (when available) or TCP fallback. The `kv-transfer-config` is **controller-managed**: users do not need to include it in the `runtimeConfigRef` ConfigMap. During reconciliation, the controller merges the role-specific vLLM configuration from `runtimeConfigRef` and ensures the effective config for both prefill and decode workspaces includes the required KV transfer settings (`kv_connector=NixlConnector`, `kv_role=kv_both`), overriding any conflicting user-provided values. The earlier ConfigMap examples show the final merged config for clarity, not what users need to provide.
+The current P/D disaggregation design uses [NixlConnector](https://github.com/ai-dynamo/nixl) as the default KV cache transfer mechanism. NixlConnector enables high-performance KV cache transfer between prefill and decode workspaces via RDMA (when available) or TCP fallback. The `kv-transfer-config` is **controller-managed**: users do not need to include it in the `runtimeConfig` ConfigMap. During reconciliation, the controller merges the role-specific vLLM configuration from `runtimeConfig` and ensures the effective config for both prefill and decode workspaces includes the required KV transfer settings (`kv_connector=NixlConnector`, `kv_role=kv_both`), overriding any conflicting user-provided values. The earlier ConfigMap examples show the final merged config for clarity, not what users need to provide.
 
 ```
 Prefill Pod                              Decode Pod
@@ -948,7 +947,7 @@ curl -s http://<gateway-ip>/v1/chat/completions \
 | | 8 | Workspace controller: include llm-d routing sidecar in decode StatefulSet spec when `inference-role: decode` label is present | TODO |
 | | 9 | Controller: status aggregation from child InferenceSets + InferencePool → MRI status | TODO |
 | | 10 | Webhook: validation + defaulting | TODO |
-| **Phase 2: Advanced** | 11 | Support custom `eppPluginsConfigRef` for user-defined EPP plugins | TODO |
+| **Phase 2: Advanced** | 11 | Support custom `eppPluginsConfig` for user-defined EPP plugins | TODO |
 | | 12 | Support MRI `roles[].replicas` sync: controller watches MRI spec changes and updates child InferenceSet `spec.replicas` | TODO |
 | | 13 | E2E tests | TODO |
 | **Phase 3: Autoscaling** ([keda-kaito-scaler](https://github.com/kaito-project/keda-kaito-scaler)) | 14 | Controller: propagate KEDA annotations from MRI to child InferenceSets | TODO |

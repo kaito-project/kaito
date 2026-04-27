@@ -623,3 +623,84 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 		})
 	}
 }
+
+func TestSelectWeightFiles(t *testing.T) {
+	cases := []struct {
+		name              string
+		files             []FileInfo
+		expectedPaths     []string
+		expectedIsMistral bool
+	}{
+		{
+			name: "mistral consolidated weights sets IsMistralModel",
+			files: []FileInfo{
+				{Path: "consolidated.00.safetensors", Size: 1000},
+				{Path: "consolidated.01.safetensors", Size: 2000},
+				{Path: "config.json", Size: 100},
+			},
+			expectedPaths:     []string{"consolidated.00.safetensors", "consolidated.01.safetensors"},
+			expectedIsMistral: true,
+		},
+		{
+			name: "safetensors only does not set IsMistralModel",
+			files: []FileInfo{
+				{Path: "model-00001-of-00002.safetensors", Size: 5000},
+				{Path: "model-00002-of-00002.safetensors", Size: 5000},
+				{Path: "config.json", Size: 100},
+			},
+			expectedPaths:     []string{"model-00001-of-00002.safetensors", "model-00002-of-00002.safetensors"},
+			expectedIsMistral: false,
+		},
+		{
+			name: "bin files only does not set IsMistralModel",
+			files: []FileInfo{
+				{Path: "pytorch_model-00001-of-00002.bin", Size: 5000},
+				{Path: "pytorch_model-00002-of-00002.bin", Size: 5000},
+			},
+			expectedPaths:     []string{"pytorch_model-00001-of-00002.bin", "pytorch_model-00002-of-00002.bin"},
+			expectedIsMistral: false,
+		},
+		{
+			name: "prefers safetensors over bin when both present",
+			files: []FileInfo{
+				{Path: "model.safetensors", Size: 5000},
+				{Path: "pytorch_model.bin", Size: 5000},
+			},
+			expectedPaths:     []string{"model.safetensors"},
+			expectedIsMistral: false,
+		},
+		{
+			name: "no weight files returns empty",
+			files: []FileInfo{
+				{Path: "config.json", Size: 100},
+				{Path: "tokenizer.json", Size: 200},
+			},
+			expectedPaths:     nil,
+			expectedIsMistral: false,
+		},
+		{
+			name: "mistral weights take priority over regular safetensors",
+			files: []FileInfo{
+				{Path: "consolidated.safetensors", Size: 1000},
+				{Path: "model.safetensors", Size: 2000},
+			},
+			expectedPaths:     []string{"consolidated.safetensors"},
+			expectedIsMistral: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			gen := NewGenerator("test/model", "")
+			selected := gen.selectWeightFiles(tc.files)
+
+			assert.Equal(t, tc.expectedIsMistral, gen.IsMistralModel)
+
+			var paths []string
+			for _, f := range selected {
+				paths = append(paths, f.Path)
+			}
+			assert.Equal(t, tc.expectedPaths, paths)
+		})
+	}
+}

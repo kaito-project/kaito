@@ -165,6 +165,14 @@ func (m *MockClient) getObjectListFromMap(list k8sClient.ObjectList) k8sClient.O
 			}
 		}
 		return pvcList
+	case *karpenterv1.NodePoolList:
+		nodePoolList := &karpenterv1.NodePoolList{}
+		for _, obj := range relevantMap {
+			if m, ok := obj.(*karpenterv1.NodePool); ok {
+				nodePoolList.Items = append(nodePoolList.Items, *m)
+			}
+		}
+		return nodePoolList
 	}
 	//add additional object lists as needed
 	return nil

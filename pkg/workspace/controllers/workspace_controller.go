@@ -53,7 +53,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
@@ -359,7 +358,11 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta
 	}
 
 	presetName := string(wObj.Tuning.Preset.Name)
-	model := plugin.KaitoModelRegister.MustGet(presetName)
+	model, err := models.GetModelByName(ctx, presetName, "", wObj.Namespace, c.Client)
+	if err != nil {
+		klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
+		return err
+	}
 	revisionNum := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 
 	existingObj := &batchv1.Job{}
@@ -381,7 +384,7 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta
 		return err
 	}
 
-	_, err := tuning.CreatePresetTuning(ctx, wObj, revisionNum, model, c.Client)
+	_, err = tuning.CreatePresetTuning(ctx, wObj, revisionNum, model, c.Client)
 	return err
 }
 

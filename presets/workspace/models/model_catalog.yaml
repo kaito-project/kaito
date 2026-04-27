@@ -298,4 +298,51 @@ models:
   numHiddenLayers: 62
   numAttentionHeads: 32
   numKeyValueHeads: 16
-  headDim: 128
+- name: deepseek-ai/DeepSeek-R1-0528
+  description: https://huggingface.co/deepseek-ai/DeepSeek-R1-0528
+  license: mit
+  pipelineTag: text-generation
+  modelFileSize: 641.30Gi
+  architectures:
+  - DeepseekV3ForCausalLM
+  modelTokenLimit: 163840
+  hiddenSize: 7168
+  numHiddenLayers: 61
+  numAttentionHeads: 128
+  numKeyValueHeads: 128
+  kvLoraRank: 512
+  qkRopeHeadDim: 64
+- name: deepseek-ai/DeepSeek-V3-0324
+  description: https://huggingface.co/deepseek-ai/DeepSeek-V3-0324
+  license: mit
+  pipelineTag: text-generation
+  modelFileSize: 641.30Gi
+  architectures:
+  - DeepseekV3ForCausalLM
+  modelTokenLimit: 163840
+  hiddenSize: 7168
+  numHiddenLayers: 61
+  numAttentionHeads: 128
+  numKeyValueHeads: 128
+  kvLoraRank: 512
+  qkRopeHeadDim: 64
+- name: mistralai/Mistral-Large-3-675B-Instruct-2512
+  description: https://huggingface.co/mistralai/Mistral-Large-3-675B-Instruct-2512
+  license: apache-2.0
+  pipelineTag: text-generation
+  baseModel:
+  - mistralai/Mistral-Large-3-675B-Base-2512
+  modelFileSize: 634.70Gi
+  architectures:
+  - MistralLarge3ForCausalLM
+  modelTokenLimit: 294912
+  hiddenSize: 7168
+  numHiddenLayers: 61
+  numAttentionHeads: 128
+  numKeyValueHeads: 128
+  loadFormat: mistral
+  configFormat: mistral
+  tokenizerMode: mistral
+  headDim: 192
+  kvLoraRank: 512
+  qkRopeHeadDim: 64

@@ -227,12 +227,12 @@ func TestVLLMCompatibleModel_GetInferenceParameters_TransformerLookup(t *testing
 			if tt.expectTransformerPopulated {
 				expected := TransformerInferenceParameters["phi-4"]
 				assert.Equal(t, expected.BaseCommand, params.RuntimeParam.Transformers.BaseCommand)
-				assert.Equal(t, expected.ModelName, params.RuntimeParam.Transformers.ModelName)
+				assert.Equal(t, tt.modelName, params.RuntimeParam.Transformers.ModelName)
 				assert.Equal(t, expected.InferenceMainFile, params.RuntimeParam.Transformers.InferenceMainFile)
 				assert.NotEmpty(t, params.RuntimeParam.Transformers.AccelerateParams)
 			} else {
 				assert.Empty(t, params.RuntimeParam.Transformers.BaseCommand)
-				assert.Empty(t, params.RuntimeParam.Transformers.ModelName)
+				assert.Equal(t, tt.modelName, params.RuntimeParam.Transformers.ModelName)
 			}
 		})
 	}
@@ -242,65 +242,78 @@ func TestVLLMCompatibleModel_GetInferenceParameters_VLLMLookup(t *testing.T) {
 	tests := []struct {
 		name                  string
 		modelName             string
-		expectVLLMFromMap     bool
+		generatedRunParams    map[string]string
+		expectModelName       string // expected served model name
 		expectRayCommands     bool
 		expectDisallowLoRA    bool
 		expectModelRunParamKV map[string]string // subset of expected run params
 	}{
 		{
-			name:              "preset model with tool-call params uses VLLMInferenceParameters",
-			modelName:         "phi-4-mini-instruct",
-			expectVLLMFromMap: true,
+			name:      "generator-produced chat-template is preserved",
+			modelName: "phi-4-mini-instruct",
+			generatedRunParams: map[string]string{
+				"chat-template": "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
+			},
+			expectModelName:   "phi-4-mini-instruct", // same as Metadata.Name
+			expectRayCommands: true,
 			expectModelRunParamKV: map[string]string{
-				"chat-template":           "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
-				"tool-call-parser":        "phi4_mini_json",
-				"enable-auto-tool-choice": "",
+				"chat-template":     "/workspace/chat_templates/tool-chat-phi4-mini.jinja",
+				"trust-remote-code": "",         // from dynamic base
+				"dtype":             "bfloat16", // from dynamic base
 			},
 		},
 		{
-			name:              "preset model with ray commands uses VLLMInferenceParameters",
-			modelName:         "llama-3.1-8b-instruct",
-			expectVLLMFromMap: true,
+			name:      "generator-produced attention-backend is preserved",
+			modelName: "llama-3.1-8b-instruct",
+			generatedRunParams: map[string]string{
+				"attention-backend": "TRITON_ATTN",
+			},
+			expectModelName:   "llama-3.1-8b-instruct",
 			expectRayCommands: true,
 			expectModelRunParamKV: map[string]string{
 				"attention-backend": "TRITON_ATTN",
+				"trust-remote-code": "",
+				"dtype":             "bfloat16",
 			},
 		},
 		{
-			name:               "preset model with DisallowLoRA uses VLLMInferenceParameters",
-			modelName:          "falcon-7b",
-			expectVLLMFromMap:  true,
-			expectDisallowLoRA: true,
+			name:              "model name is used as served model name",
+			modelName:         "gemma-3-4b-it",
+			expectModelName:   "gemma-3-4b-it",
+			expectRayCommands: true,
+			expectModelRunParamKV: map[string]string{
+				"trust-remote-code": "",
+				"dtype":             "bfloat16",
+			},
 		},
 		{
-			name:              "unknown model falls back to dynamic VLLM params",
+			name:              "unknown model uses only dynamic VLLM params",
 			modelName:         "some-org/unknown-dynamic-model",
-			expectVLLMFromMap: false,
-			expectRayCommands: true, // dynamic models always get ray commands
+			expectModelName:   "some-org/unknown-dynamic-model",
+			expectRayCommands: true,
+			expectModelRunParamKV: map[string]string{
+				"trust-remote-code": "",
+				"dtype":             "bfloat16",
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &vLLMCompatibleModel{
-				model: model.Metadata{Name: tt.modelName},
+				model:              model.Metadata{Name: tt.modelName},
+				generatedRunParams: tt.generatedRunParams,
 			}
 			params := m.GetInferenceParameters()
 			assert.NotNil(t, params)
 
-			if tt.expectVLLMFromMap {
-				expected := VLLMInferenceParameters[tt.modelName]
-				assert.Equal(t, expected.BaseCommand, params.RuntimeParam.VLLM.BaseCommand)
-				assert.Equal(t, expected.ModelName, params.RuntimeParam.VLLM.ModelName)
-				assert.Equal(t, expected.ModelRunParams, params.RuntimeParam.VLLM.ModelRunParams)
-				assert.Equal(t, expected.DisallowLoRA, params.RuntimeParam.VLLM.DisallowLoRA)
-				assert.Equal(t, expected.RayLeaderBaseCommand, params.RuntimeParam.VLLM.RayLeaderBaseCommand)
-				assert.Equal(t, expected.RayWorkerBaseCommand, params.RuntimeParam.VLLM.RayWorkerBaseCommand)
-			} else {
-				// Dynamic models get default base command and dynamically-built params
-				assert.Equal(t, DefaultVLLMCommand, params.RuntimeParam.VLLM.BaseCommand)
-				assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "trust-remote-code")
-				assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "dtype")
+			// All models get dynamic base params
+			assert.Equal(t, DefaultVLLMCommand, params.RuntimeParam.VLLM.BaseCommand)
+			assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "trust-remote-code")
+			assert.Contains(t, params.RuntimeParam.VLLM.ModelRunParams, "dtype")
+
+			if tt.expectModelName != "" {
+				assert.Equal(t, tt.expectModelName, params.RuntimeParam.VLLM.ModelName)
 			}
 
 			if tt.expectRayCommands {
@@ -316,51 +329,6 @@ func TestVLLMCompatibleModel_GetInferenceParameters_VLLMLookup(t *testing.T) {
 				assert.Equal(t, v, params.RuntimeParam.VLLM.ModelRunParams[k],
 					"expected ModelRunParams[%q] = %q", k, v)
 			}
-		})
-	}
-}
-
-func TestVLLMCompatibleModel_GetInferenceParameters_ORASEligibility(t *testing.T) {
-	tests := []struct {
-		name                    string
-		modelName               string
-		expectDownloadAtRuntime bool
-		expectMetadataName      string
-		expectTag               string
-	}{
-		{
-			name:                    "model without allow_remote_files uses ORAS",
-			modelName:               "phi-4-mini-instruct",
-			expectDownloadAtRuntime: false,
-			expectMetadataName:      "phi-4-mini-instruct",
-			expectTag:               TransformerInferenceParameters["phi-4-mini-instruct"].Tag,
-		},
-		{
-			name:                    "model with allow_remote_files downloads at runtime",
-			modelName:               "llama-3.1-8b-instruct",
-			expectDownloadAtRuntime: true,
-			expectMetadataName:      "llama-3.1-8b-instruct",
-			expectTag:               "",
-		},
-		{
-			name:                    "model not in TransformerInferenceParameters downloads at runtime",
-			modelName:               "some-org/unknown-model",
-			expectDownloadAtRuntime: true,
-			expectMetadataName:      "some-org/unknown-model",
-			expectTag:               "",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			m := &vLLMCompatibleModel{
-				model: model.Metadata{Name: tt.modelName},
-			}
-			params := m.GetInferenceParameters()
-			assert.NotNil(t, params)
-			assert.Equal(t, tt.expectDownloadAtRuntime, params.Metadata.DownloadAtRuntime)
-			assert.Equal(t, tt.expectMetadataName, params.Metadata.Name)
-			assert.Equal(t, tt.expectTag, params.Metadata.Tag)
 		})
 	}
 }
@@ -670,68 +638,40 @@ func TestGetModelByName(t *testing.T) {
 	}
 }
 
-// this test only makes sure that all keys and values in builtinVLLMModels are in lower case
-func TestBuiltinVLLMModels(t *testing.T) {
-	t.Logf("Testing builtinVLLMModels for lower case keys and values, total models: %d", len(builtinVLLMModels))
-	for k, v := range builtinVLLMModels {
-		assert.Equal(t, k, strings.ToLower(k), "key is not in lower case: %s", k)
-		assert.Equal(t, v, strings.ToLower(v), "value is not in lower case: %s", v)
-	}
-}
-
 func TestGetModelByName_BuiltinModels(t *testing.T) {
 	tests := []struct {
-		name            string
-		modelName       string
-		expectedShort   string
-		shouldFindModel bool
+		name          string
+		modelName     string
+		expectedShort string
 	}{
 		{
-			name:            "builtin deepseek-r1-distill-llama-8b",
-			modelName:       "deepseek-ai/deepseek-r1-distill-llama-8b",
-			expectedShort:   "deepseek-r1-distill-llama-8b",
-			shouldFindModel: true,
+			name:          "builtin deepseek-r1-distill-llama-8b",
+			modelName:     "deepseek-ai/deepseek-r1-distill-llama-8b",
+			expectedShort: "deepseek-r1-distill-llama-8b",
 		},
 		{
-			name:            "builtin falcon-7b",
-			modelName:       "tiiuae/falcon-7b",
-			expectedShort:   "falcon-7b",
-			shouldFindModel: true,
+			name:          "builtin phi-4",
+			modelName:     "microsoft/phi-4",
+			expectedShort: "phi-4",
 		},
 		{
-			name:            "builtin phi-4",
-			modelName:       "microsoft/phi-4",
-			expectedShort:   "phi-4",
-			shouldFindModel: true,
+			name:          "builtin model with uppercase input",
+			modelName:     "MICROSOFT/PHI-4",
+			expectedShort: "phi-4",
 		},
 		{
-			name:            "builtin model with uppercase input",
-			modelName:       "MICROSOFT/PHI-4",
-			expectedShort:   "phi-4",
-			shouldFindModel: true,
-		},
-		{
-			name:            "builtin model mixed case",
-			modelName:       "Meta-Llama/Llama-3.1-8b-Instruct",
-			expectedShort:   "llama-3.1-8b-instruct",
-			shouldFindModel: true,
+			name:          "builtin model mixed case",
+			modelName:     "Meta-Llama/Llama-3.1-8b-Instruct",
+			expectedShort: "llama-3.1-8b-instruct",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Check if the short name is registered (it should be for builtin models)
-			shortModel := plugin.KaitoModelRegister.MustGet(tt.expectedShort)
-			if shortModel == nil && tt.shouldFindModel {
-				t.Skipf("Builtin model %s not registered, skipping test", tt.expectedShort)
-			}
-
 			result, err := GetModelByName(context.Background(), tt.modelName, "", "", nil)
 
-			if tt.shouldFindModel && shortModel != nil {
-				assert.NoError(t, err)
-				assert.NotNil(t, result)
-			}
+			assert.NoError(t, err)
+			assert.NotNil(t, result)
 		})
 	}
 }
@@ -913,23 +853,22 @@ func TestGetModelByName_ContextCancellation(t *testing.T) {
 	assert.NotNil(t, result)
 }
 
-func TestGenerateHuggingFaceModel_CatalogOnlyModelsSkipShortCircuit(t *testing.T) {
-	// Catalog-only models are not in builtinVLLMModels, so
-	// generateHuggingFaceModel proceeds to GeneratePreset and
-	// registers a new vLLMCompatibleModel.
-	for _, modelName := range legacyBuiltinToCatalog {
+func TestGenerateHuggingFaceModel_CatalogOnlyModelsUseCatalogPath(t *testing.T) {
+	// All legacy short-name models go through GeneratePreset and
+	// register a new vLLMCompatibleModel.
+	for _, modelName := range plugin.LegacyBuiltinToCatalog {
 		t.Run(modelName, func(t *testing.T) {
-			// Ensure the model is NOT registered under the full HF name before the call
-			assert.Nil(t, plugin.KaitoModelRegister.MustGet(modelName),
-				"model %q should not be pre-registered under full HF name", modelName)
-
 			result, err := generateHuggingFaceModel(modelName, "")
-			// Should succeed via model catalog, not short-circuit
+			// Should succeed via model catalog
 			assert.NoError(t, err)
 			assert.NotNil(t, result)
 
-			// The catalog path registers the model under the full HF name;
-			// the short-circuit path would not. Verify it was registered.
+			// Verify it's a vLLMCompatibleModel from the catalog path.
+			_, isVLLM := result.(*vLLMCompatibleModel)
+			assert.True(t, isVLLM,
+				"model %q should be a vLLMCompatibleModel", modelName)
+
+			// The catalog path registers the model under the full HF name.
 			registered := plugin.KaitoModelRegister.MustGet(modelName)
 			assert.NotNil(t, registered,
 				"model %q should be registered under full HF name after catalog generation", modelName)
@@ -937,20 +876,11 @@ func TestGenerateHuggingFaceModel_CatalogOnlyModelsSkipShortCircuit(t *testing.T
 	}
 }
 
-func TestCatalogOnlyPresets(t *testing.T) {
-	// Verify catalogOnlyPresets entries are not in builtinVLLMModels
-	// (they must go through the catalog path, not get short-circuited).
-	for _, hfName := range legacyBuiltinToCatalog {
-		_, ok := builtinVLLMModels[hfName]
-		assert.False(t, ok, "catalogOnlyPresets value %q must NOT be in builtinVLLMModels", hfName)
-	}
-}
-
 func TestGetModelByName_ShortNameRedirectsToCatalog(t *testing.T) {
 	// When a short name (e.g. "phi-4") is in catalogOnlyPresets, GetModelByName
 	// should redirect to the full HF name and generate via model catalog
 	// instead of returning the pre-registered phi4Model.
-	for shortName, hfName := range legacyBuiltinToCatalog {
+	for shortName, hfName := range plugin.LegacyBuiltinToCatalog {
 		t.Run(shortName, func(t *testing.T) {
 			result, err := GetModelByName(context.Background(), shortName, "", "", nil)
 			assert.NoError(t, err)
@@ -968,7 +898,7 @@ func TestGetModelByName_ShortNameRedirectsToCatalog(t *testing.T) {
 }
 
 func TestGetModelByNameWithToken_ShortNameRedirectsToCatalog(t *testing.T) {
-	for shortName := range legacyBuiltinToCatalog {
+	for shortName := range plugin.LegacyBuiltinToCatalog {
 		t.Run(shortName, func(t *testing.T) {
 			result, err := GetModelByNameWithToken(context.Background(), shortName, "")
 			assert.NoError(t, err)

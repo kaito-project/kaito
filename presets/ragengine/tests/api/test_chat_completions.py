@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import re
+import textwrap
 import time
 from unittest.mock import patch
 
@@ -19,7 +20,7 @@ import httpx
 import pytest
 import respx
 
-from ragengine.guardrails.output_guardrails import OutputGuardrails
+from ragengine.guardrails import OutputGuardrails
 
 
 @pytest.fixture(autouse=True)
@@ -359,6 +360,89 @@ async def test_chat_completions_output_guardrails_block(
             banned_substrings=[],
             block_message="blocked-by-policy",
         ),
+    )
+
+    response = await async_client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "messages": [{"role": "user", "content": "Share the link"}],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["choices"][0]["message"]["content"] == "blocked-by-policy"
+
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")
+async def test_chat_completions_output_guardrails_policy_file(
+    mock_get, async_client, monkeypatch, tmp_path
+):
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    mock_response = {
+        "id": "chatcmpl-policy123",
+        "object": "chat.completion",
+        "created": int(time.time()),
+        "model": "mock-model",
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "Visit http://evil.example now",
+                },
+                "finish_reason": "stop",
+            }
+        ],
+    }
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+
+    policy_path = tmp_path / "guardrails.yaml"
+    policy_path.write_text(
+        textwrap.dedent(
+            """
+            action: block
+            blockMessage: blocked-by-policy
+            scanners:
+              - type: regex
+                patterns:
+                  - https?://\\S+
+            """
+        ).strip(),
+        encoding="utf-8",
+    )
+
+    import ragengine.config
+    import ragengine.main
+
+    monkeypatch.setattr(ragengine.config, "OUTPUT_GUARDRAILS_ENABLED", True)
+    monkeypatch.setattr(
+        ragengine.config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path)
+    )
+    monkeypatch.setattr(ragengine.config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
+    monkeypatch.setattr(
+        ragengine.config, "OUTPUT_GUARDRAILS_REGEX_PATTERNS", (r"secret",)
+    )
+    monkeypatch.setattr(
+        ragengine.config, "OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS", tuple()
+    )
+    monkeypatch.setattr(
+        ragengine.config,
+        "OUTPUT_GUARDRAILS_BLOCK_MESSAGE",
+        "env-block-message",
+    )
+    monkeypatch.setattr(
+        ragengine.main,
+        "output_guardrails",
+        OutputGuardrails.from_config(),
     )
 
     response = await async_client.post(

@@ -34,6 +34,7 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
@@ -276,6 +277,14 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 		}
 	}
 
+	// Pin pods to nodes provisioned for this workspace (karpenter only).
+	if consts.IsKarpenterProvisioner() {
+		if templateCopy.Spec.NodeSelector == nil {
+			templateCopy.Spec.NodeSelector = make(map[string]string)
+		}
+		templateCopy.Spec.NodeSelector[consts.KarpenterWorkspaceKey] = karpenter.WorkspaceLabelValue(workspaceObj.Namespace, workspaceObj.Name)
+	}
+
 	// Overwrite affinity
 	templateCopy.Spec.Affinity = &corev1.Affinity{
 		NodeAffinity: &corev1.NodeAffinity{
@@ -371,7 +380,9 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 		consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 	}
 
-	// Endpoint Picker from Gateway API Inference Extension expects to pick an endpoint that can serve traffic.
+	// The Endpoint Picker (EPP) from Gateway API Inference Extension picks an endpoint that can serve traffic.
+	// KAITO overrides the default GWIE EPP image with the llm-d inference scheduler, which provides
+	// advanced scheduling plugins (KV cache-aware routing, P/D disaggregation, pluggable filters/scorers).
 	// In a multi-node inference environment, this means we need to select the leader pod (with pod index 0)
 	// since only the leader pod is capable of serving traffic.
 	matchLabels[appsv1.PodIndexLabel] = "0"
@@ -380,8 +391,9 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 	helmValues := map[string]any{
 		"inferenceExtension": map[string]any{
 			"image": map[string]string{
-				"hub":        consts.GatewayAPIInferenceExtensionImageRepository,
-				"tag":        consts.InferencePoolChartVersion,
+				"hub":        consts.EPPImageHub,
+				"name":       consts.EPPImageName,
+				"tag":        consts.EPPImageTag,
 				"pullPolicy": string(corev1.PullIfNotPresent),
 			},
 		},

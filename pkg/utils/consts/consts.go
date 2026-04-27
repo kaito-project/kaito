@@ -43,11 +43,27 @@ const (
 
 	// Feature flags
 	FeatureFlagVLLM                         = "vLLM"
-	FeatureFlagEnsureNodeClass              = "ensureNodeClass"
 	FeatureFlagDisableNodeAutoProvisioning  = "disableNodeAutoProvisioning"
 	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
 	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
 
+	// Node provisioner types
+	NodeProvisionerAzureGPU  = "azure-gpu-provisioner"
+	NodeProvisionerKarpenter = "karpenter"
+	NodeProvisionerBYO       = "byo"
+)
+
+// ActiveNodeProvisioner holds the resolved provisioner type at runtime.
+// Set once during startup in main.go; read by inference scheduling code
+// to decide whether karpenter-specific nodeSelector/tolerations are needed.
+var ActiveNodeProvisioner string
+
+// IsKarpenterProvisioner returns true if the active node provisioner is karpenter.
+func IsKarpenterProvisioner() bool {
+	return ActiveNodeProvisioner == NodeProvisionerKarpenter
+}
+
+const (
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"
 	LabelNodePool                 = "karpenter.sh/nodepool"
@@ -81,8 +97,14 @@ const (
 	// MUST KEEP IN SYNC with the version in go.mod.
 	InferencePoolChartVersion = "v1.3.1"
 
-	// GatewayAPIInferenceExtensionImageRepository is the image repository for the Gateway API Inference Extension components.
-	GatewayAPIInferenceExtensionImageRepository = "mcr.microsoft.com/oss/v2/gateway-api-inference-extension"
+	// EPP (Endpoint Picker) image configuration.
+	// The InferencePool chart composes the image as: {hub}/{name}:{tag}
+	// Using llm-d inference scheduler which consolidates the GWIE EPP implementation
+	// with advanced scheduling plugins (KV cache-aware routing, P/D disaggregation, etc.)
+	// See: https://github.com/llm-d/llm-d-inference-scheduler
+	EPPImageHub  = "mcr.microsoft.com/oss/v2/llm-d"
+	EPPImageName = "llm-d-inference-scheduler"
+	EPPImageTag  = "v0.7.1"
 
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"
@@ -93,6 +115,13 @@ const (
 	NodeImageFamilyAzureLinux = "azurelinux"
 	SpotInstanceKey           = "kubernetes.azure.com/scalesetpriority"
 	SpotInstanceValue         = "spot"
+
+	// Karpenter NodePool management labels and values.
+	KarpenterWorkspaceKey             = "karpenter.kaito.sh/workspace"
+	KarpenterWorkspaceNameKey         = "karpenter.kaito.sh/workspace-name"
+	KarpenterWorkspaceNamespaceKey    = "karpenter.kaito.sh/workspace-namespace"
+	KarpenterInferenceSetKey          = "karpenter.kaito.sh/inferenceset"
+	KarpenterInferenceSetNamespaceKey = "karpenter.kaito.sh/inferenceset-namespace"
 )
 
 var (

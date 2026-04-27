@@ -266,7 +266,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
+			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py --allow_remote_files --pretrained_model_name_or_path=test-repo/test-model --revision=test-revision",
 			expectedEnvVars: []corev1.EnvVar{{
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -1293,7 +1293,9 @@ func TestDefaultTolerations(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
 
-			actual := defaultTolerations()
+			actual := defaultTolerations(&v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace"},
+			})
 			hasSpot := false
 			for _, toleration := range actual {
 				if toleration.Key == consts.SpotInstanceKey && toleration.Value == consts.SpotInstanceValue {

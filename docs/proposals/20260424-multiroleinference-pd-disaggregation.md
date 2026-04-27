@@ -213,6 +213,7 @@ type MultiRoleInferenceSpec struct {
 
     // Roles defines the role topology of this inference service.
     // Exactly two roles are required: one prefill and one decode.
+    // +required
     // +kubebuilder:validation:MinItems=2
     // +kubebuilder:validation:MaxItems=2
     // +kubebuilder:validation:XValidation:rule="self.exists(r, r.type == 'prefill') && self.exists(r, r.type == 'decode')",message="exactly one prefill and one decode role required"
@@ -458,7 +459,7 @@ In the standard (non-disaggregated) flow, each InferenceSet creates its own Infe
 Child InferenceSets must **skip** the GWIE logic to avoid creating redundant InferencePool/EPP resources. Standalone InferenceSets (not created by MultiRoleInference) continue to create their own InferencePool/EPP as before — this is an additive change, not a breaking one:
 
 ```go
-// In InferenceSet controller's ensureGatewayAPIInferenceExtension()
+// Proposed change in InferenceSet controller's ensureGatewayAPIInferenceExtension()
 func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
     // Skip GWIE for child InferenceSets managed by MultiRoleInference.
     // Use OwnerReferences (controller-managed) instead of labels (easily user-modifiable)
@@ -940,18 +941,17 @@ curl -s http://<gateway-ip>/v1/chat/completions \
 | **Phase 1: Core** | 1 | MultiRoleInference CRD types (prefill + decode roles) | TODO |
 | | 2 | Controller: create prefill/decode child InferenceSets with `inference-role` label and `kaito.sh/parent` label | TODO |
 | | 3 | Controller: inject default vLLM NixlConnector kv-transfer-config (`kv_both`) into child InferenceSet config | TODO |
-| | 4 | Controller: create OCIRepository + HelmRelease that renders InferencePool (selector: `apps.kubernetes.io/pod-index: "0"` for Ray cluster support) | TODO |
+| | 4 | Controller: create OCIRepository + HelmRelease that renders InferencePool (selector: `apps.kubernetes.io/pod-index: "0"` for Ray cluster support) and EPP (llm-d EPP image, MRI-owned, targetPorts: 8080) | Partially done ([PR #1975](https://github.com/kaito-project/kaito/pull/1975)) — llm-d image override done in InferenceSet controller; MRI ownership + port 8080 change still TODO |
 | | 5 | Controller: auto-generate P/D EPP plugin ConfigMap (`disagg-profile-handler` + `by-label-selector`) | TODO |
-| | 6 | Controller: create OCI Repository + HelmRelease (llm-d EPP image, MRI-owned, targetPorts: 8080) | Partially done ([PR #1975](https://github.com/kaito-project/kaito/pull/1975)) — llm-d image override done in InferenceSet controller; MRI ownership + port 8080 change still TODO |
-| | 7 | Controller: create DestinationRule (TLS bypass) — **temporary, remove after [kaito#1983](https://github.com/kaito-project/kaito/pull/1983)** | TODO (skip if #1983 merges first) |
-| | 8 | Workspace controller: include llm-d routing sidecar in decode StatefulSet spec when `inference-role: decode` label is present | TODO |
-| | 9 | Controller: status aggregation from child InferenceSets + InferencePool → MRI status | TODO |
-| | 10 | Webhook: validation + defaulting | TODO |
-| **Phase 2: Advanced** | 11 | Support custom `eppPluginsConfig` for user-defined EPP plugins | TODO |
-| | 12 | Support MRI `roles[].replicas` sync: controller watches MRI spec changes and updates child InferenceSet `spec.replicas` | TODO |
-| | 13 | E2E tests | TODO |
-| **Phase 3: Autoscaling** ([keda-kaito-scaler](https://github.com/kaito-project/keda-kaito-scaler)) | 14 | Controller: propagate KEDA annotations from MRI to child InferenceSets | TODO |
-| | 15 | keda-kaito-scaler: understand role-specific metrics (prefill vs decode) | TODO |
+| | 6 | Controller: create DestinationRule (TLS bypass) — **temporary, remove after [kaito#1983](https://github.com/kaito-project/kaito/pull/1983)** | TODO (skip if #1983 merges first) |
+| | 7 | Workspace controller: include llm-d routing sidecar in decode StatefulSet spec when `inference-role: decode` label is present | TODO |
+| | 8 | Controller: status aggregation from child InferenceSets + InferencePool → MRI status | TODO |
+| | 9 | Webhook: validation + defaulting | TODO |
+| **Phase 2: Advanced** | 10 | Support custom `eppPluginsConfig` for user-defined EPP plugins | TODO |
+| | 11 | Support MRI `roles[].replicas` sync: controller watches MRI spec changes and updates child InferenceSet `spec.replicas` | TODO |
+| | 12 | E2E tests | TODO |
+| **Phase 3: Autoscaling** ([keda-kaito-scaler](https://github.com/kaito-project/keda-kaito-scaler)) | 13 | Controller: propagate KEDA annotations from MRI to child InferenceSets | TODO |
+| | 14 | keda-kaito-scaler: understand role-specific metrics (prefill vs decode) | TODO |
 
 ## References
 

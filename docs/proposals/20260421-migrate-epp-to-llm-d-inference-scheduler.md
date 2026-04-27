@@ -127,9 +127,9 @@ The EPP scrapes metrics from the InferencePool's `targetPorts` (port 5000, the s
 
 For advanced plugins like `precise-prefix-cache-scorer` or P/D disaggregation, users provide a custom `EndpointPickerConfig` via a **ConfigMap reference** in the InferenceSet spec. This keeps the InferenceSet clean — the plugin configuration lives in a separate ConfigMap.
 
-#### API Changes
+#### Proposed API Changes
 
-Add an optional `eppPluginsConfig` field to InferenceSetSpec:
+Add an optional `eppPluginsConfig` field to InferenceSetSpec (to be implemented in a follow-up PR):
 
 ```go
 type InferenceSetSpec struct {
@@ -324,7 +324,7 @@ BBR is **completely unaffected** by this EPP migration — it is an independent 
 
 EPP runs with `--secure-serving=true` by default, generating a self-signed TLS certificate. Istio's sidecar proxy doesn't trust self-signed certs, so without the DestinationRule, the Gateway → EPP ext-proc connection fails with TLS errors. One DestinationRule is needed per InferencePool/EPP service.
 
-> **Namespace note:** The DestinationRule must be created in the **same namespace** as the EPP service (i.e., the InferenceSet namespace). In Istio, DestinationRules are namespace-scoped and only visible to clients in the same namespace by default. Since KAITO deploys the Gateway/Envoy and EPP in the same namespace, this works out of the box. If a custom deployment places the Gateway in a different namespace, the DestinationRule must either be created in the Gateway's namespace or exported via `exportTo: ["*"]`.
+> **Namespace note:** The DestinationRule must be created in the **same namespace** as the EPP service (i.e., the InferenceSet namespace). In Istio, DestinationRules are namespace-scoped and only visible to clients in the same namespace by default. In the recommended quickstart deployment, the Gateway/Envoy and EPP are in the same namespace, so this works out of the box. If a custom deployment places the Gateway in a different namespace, the DestinationRule must either be created in the Gateway's namespace or exported via `exportTo: ["*"]`.
 
 ```yaml
 apiVersion: networking.istio.io/v1

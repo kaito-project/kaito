@@ -173,22 +173,15 @@ When `eppPluginsConfig` is set:
 
 #### Configuration Update Behavior
 
-The llm-d EPP (v0.7.1) loads the plugin configuration **once at startup** via `--configFile` and does not support hot-reload. When the `eppPluginsConfig` ConfigMap is updated, the EPP pod must be restarted to pick up the new configuration.
+The llm-d EPP (v0.7.1) loads the plugin configuration **once at startup** via `--configFile` and does not support hot-reload.
 
-KAITO handles this automatically:
+The controller only tracks changes to the `eppPluginsConfig` field value (i.e., the ConfigMap name). When the name changes, the controller updates the HelmRelease values with the new ConfigMap reference, and Flux reconciles the EPP Deployment accordingly.
 
-1. The InferenceSet controller watches the referenced ConfigMap for changes
-2. On change, the controller computes a SHA-256 checksum of the ConfigMap's `config.yaml` content and updates the HelmRelease values with a checksum annotation on the EPP Deployment pod template:
-   ```yaml
-   podAnnotations:
-     checksum/epp-plugins-config: <sha256 of config.yaml>
-   ```
-3. Flux reconciles the HelmRelease → the annotation change triggers a rolling restart of the EPP Deployment
-4. The new EPP pod starts with the updated configuration
+If users need to update the ConfigMap content without changing the name, they can either:
+1. Create a new ConfigMap with a different name and update `eppPluginsConfig` to reference it, or
+2. Manually restart the EPP pod after updating the ConfigMap content (`kubectl rollout restart`)
 
-This makes ConfigMap updates transparent to the user — they only need to update the ConfigMap, and KAITO handles the restart automatically.
-
-> **Note**: If llm-d adds hot-reload support in a future version, KAITO can remove the checksum annotation mechanism. The ConfigMap volume mount would be sufficient since Kubernetes automatically propagates ConfigMap updates to mounted volumes (with the kubelet sync delay, typically ~60s).
+This approach keeps the controller simple — no ConfigMap watches, no checksum annotations — and is consistent with how most Kubernetes operators handle referenced config (e.g., Istio, Argo CD).
 
 #### Validation
 

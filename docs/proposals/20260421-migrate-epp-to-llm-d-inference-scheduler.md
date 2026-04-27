@@ -169,7 +169,6 @@ When `eppPluginsConfig` is set:
        custom-plugins.yaml: <content from ConfigMap>
    ```
 3. Flux reconciles the HelmRelease → EPP deployment picks up the custom config
-4. Controller watches the referenced ConfigMap for changes and triggers re-reconciliation
 
 #### Configuration Update Behavior
 

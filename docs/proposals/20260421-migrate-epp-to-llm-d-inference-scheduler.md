@@ -129,18 +129,18 @@ For advanced plugins like `precise-prefix-cache-scorer` or P/D disaggregation, u
 
 #### API Changes
 
-Add an optional `eppPluginsConfigRef` field to InferenceSetSpec:
+Add an optional `eppPluginsConfig` field to InferenceSetSpec:
 
 ```go
 type InferenceSetSpec struct {
     // ...existing fields...
 
-    // EPPPluginsConfigRef references a ConfigMap containing custom EPP plugins configuration.
+    // EPPPluginsConfig is the name of a ConfigMap containing custom EPP plugins configuration.
     // The ConfigMap must contain a key "config.yaml" with the EndpointPickerConfig content.
     // If not specified, the default llm-d plugins (queue-scorer, kv-cache-utilization-scorer,
     // prefix-cache-scorer) are used.
     // +optional
-    EPPPluginsConfigRef *corev1.LocalObjectReference `json:"eppPluginsConfigRef,omitempty"`
+    EPPPluginsConfig string `json:"eppPluginsConfig,omitempty"`
 }
 ```
 
@@ -152,14 +152,13 @@ kind: InferenceSet
 metadata:
   name: phi-4-mini
 spec:
-  eppPluginsConfigRef:
-    name: phi-4-mini-epp-plugins   # references a ConfigMap in the same namespace
+  eppPluginsConfig: phi-4-mini-epp-plugins   # ConfigMap name in the same namespace
   # ...other fields unchanged...
 ```
 
 #### Controller Behavior
 
-When `eppPluginsConfigRef` is set:
+When `eppPluginsConfig` is set:
 
 1. Controller reads the referenced ConfigMap's `config.yaml` key
 2. Injects the content into the InferencePool HelmRelease values:
@@ -174,7 +173,7 @@ When `eppPluginsConfigRef` is set:
 
 #### Configuration Update Behavior
 
-The llm-d EPP (v0.7.1) loads the plugin configuration **once at startup** via `--configFile` and does not support hot-reload. When the `eppPluginsConfigRef` ConfigMap is updated, the EPP pod must be restarted to pick up the new configuration.
+The llm-d EPP (v0.7.1) loads the plugin configuration **once at startup** via `--configFile` and does not support hot-reload. When the `eppPluginsConfig` ConfigMap is updated, the EPP pod must be restarted to pick up the new configuration.
 
 KAITO handles this automatically:
 
@@ -302,9 +301,9 @@ data:
 | Feature | Extra Config Needed? | Notes |
 |---------|---------------------|-------|
 | Basic inference routing (queue/kv-cache/prefix-cache) | ❌ No | Default plugins work out of the box |
-| Precise prefix cache matching | ✅ Yes | ConfigMap with `eppPluginsConfigRef` |
+| Precise prefix cache matching | ✅ Yes | ConfigMap with `eppPluginsConfig` |
 | P/D disaggregated scheduling | ✅ Yes | ConfigMap + separate prefill/decode pods |
-| Label-based pod filtering | ✅ Yes | ConfigMap with `eppPluginsConfigRef` |
+| Label-based pod filtering | ✅ Yes | ConfigMap with `eppPluginsConfig` |
 | BBR multi-model routing | ❌ No | Independent component, unchanged |
 
 ### Request Flow

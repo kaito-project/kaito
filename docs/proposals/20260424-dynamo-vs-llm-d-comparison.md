@@ -5,9 +5,13 @@ authors:
 creation-date: 2026-04-24
 last-updated: 2026-04-24
 status: informational
+see-also:
+  - "[Multi-Role Inference P/D Disaggregation Proposal](./20260424-multiroleinference-pd-disaggregation.md)"
 ---
 
 # Dynamo vs llm-d: Distributed LLM Inference Orchestration Framework Comparison
+
+> **Note:** This document is part of the [Multi-Role Inference with Prefill/Decode Disaggregation proposal](./20260424-multiroleinference-pd-disaggregation.md).
 
 Both are **orchestration layers** for LLM inference, sitting above inference engines (vLLM/SGLang/TRT-LLM) to solve multi-GPU/multi-node distributed serving challenges. Core capabilities overlap significantly, but design philosophies and implementation paths differ.
 

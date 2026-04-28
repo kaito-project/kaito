@@ -192,7 +192,7 @@ KAITO Workspace CRD (extend with P/D mode declaration)
 
 ### Additional Findings from Dynamo Deep-Dive Walkthrough
 
-After hands-on walkthrough, Dynamo revealed additional practical concerns:
+After a hands-on walkthrough, Dynamo revealed additional practical concerns:
 
 #### 1. Dynamo Is Essentially a Showcase Platform for NVIDIA's Full-Stack Software
 

@@ -195,13 +195,6 @@ def _normalize_policy_scanner_configs(
 
     return scanner_configs
 
-
-def _coerce_policy_scanner_configs(
-    value: Any, policy_path: str
-) -> list[NormalizedScannerConfig]:
-    return _normalize_policy_scanner_configs(value, policy_path)
-
-
 def _build_scanner(
     scanner_config: NormalizedScannerConfig,
     action_on_hit: str,

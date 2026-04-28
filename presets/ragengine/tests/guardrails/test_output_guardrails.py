@@ -298,7 +298,7 @@ def test_build_scanners_supports_normalized_ban_substrings_type(monkeypatch):
         raising=False,
     )
 
-    scanner_configs = output_guardrails_module._coerce_policy_scanner_configs(
+    scanner_configs = output_guardrails_module._normalize_policy_scanner_configs(
         [{"type": "ban-substrings", "substrings": ["secret"]}],
         "guardrails.yaml",
     )

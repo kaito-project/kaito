@@ -95,14 +95,14 @@ func UpdateInferenceSetWithRetry(ctx context.Context, c client.Client, iObj *kai
 	})
 }
 
-// ListWorkspaces lists all workspace objects in the cluster that are created by the given InferenceSet.
+// ListWorkspaces lists all workspace objects in the InferenceSet's namespace that are created by the given InferenceSet.
 func ListWorkspaces(ctx context.Context, iObj *kaitov1alpha1.InferenceSet, kubeClient client.Client) (*kaitov1beta1.WorkspaceList, error) {
 	if iObj == nil {
 		return nil, fmt.Errorf("InferenceSet object is nil")
 	}
 	workspaceList := &kaitov1beta1.WorkspaceList{}
 
-	// List all the workspaces that are created by this inferenceset.
+	// List all the workspaces in iObj.Namespace that are created by this inferenceset.
 	// We use label selector to find the workspaces.
 	// The label is "inferenceset.kaito.sh/created-by": <inferenceset-name>
 	ls := labels.Set{
@@ -112,7 +112,10 @@ func ListWorkspaces(ctx context.Context, iObj *kaitov1alpha1.InferenceSet, kubeC
 	err := retry.OnError(retry.DefaultBackoff, func(err error) bool {
 		return true
 	}, func() error {
-		return kubeClient.List(ctx, workspaceList, client.InNamespace(iObj.Namespace), &client.MatchingLabelsSelector{Selector: ls.AsSelector()})
+		return kubeClient.List(ctx, workspaceList,
+			client.InNamespace(iObj.Namespace),
+			&client.MatchingLabelsSelector{Selector: ls.AsSelector()},
+		)
 	})
 	return workspaceList, err
 }

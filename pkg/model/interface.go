@@ -27,6 +27,7 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type Model interface {
@@ -331,7 +332,13 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 }
 
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
-	if p.VLLM.ModelName != "" {
+	// If the Workspace was created by an InferenceSet, expose the InferenceSet
+	// name as the served model name so all replicas behind the InferenceSet
+	// share a single, stable model identifier in the OpenAI-compatible API.
+	// Standalone Workspaces keep the model's default served name.
+	if isName, ok := rc.WorkspaceMetadata.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; ok && isName != "" {
+		p.VLLM.ModelRunParams["served-model-name"] = isName
+	} else if p.VLLM.ModelName != "" {
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}
 	if rc.MaxModelLen > 0 {

@@ -22,6 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestPresetParamDeepCopy(t *testing.T) {
@@ -207,6 +208,73 @@ func TestGetInferenceCommandVLLMSingleNode(t *testing.T) {
 	require.Len(t, cmd, 3)
 	assert.Contains(t, cmd[2], "vllm serve")
 	assert.Contains(t, cmd[2], "tensor-parallel-size=2")
+}
+
+func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
+	tests := []struct {
+		name              string
+		vllmModelName     string
+		workspaceLabels   map[string]string
+		expectedServed    string
+		notExpectedServed string
+	}{
+		{
+			name:           "standalone workspace uses VLLM.ModelName",
+			vllmModelName:  "default-model",
+			expectedServed: "served-model-name=default-model",
+		},
+		{
+			name:          "InferenceSet workspace uses InferenceSet name",
+			vllmModelName: "default-model",
+			workspaceLabels: map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: "my-inferenceset",
+			},
+			expectedServed:    "served-model-name=my-inferenceset",
+			notExpectedServed: "served-model-name=default-model",
+		},
+		{
+			name: "InferenceSet workspace overrides even when VLLM.ModelName is empty",
+			workspaceLabels: map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: "my-inferenceset",
+			},
+			expectedServed: "served-model-name=my-inferenceset",
+		},
+		{
+			name:          "InferenceSet label with empty value falls back to VLLM.ModelName",
+			vllmModelName: "default-model",
+			workspaceLabels: map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: "",
+			},
+			expectedServed: "served-model-name=default-model",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &PresetParam{
+				RuntimeParam: RuntimeParam{
+					VLLM: VLLMParam{
+						BaseCommand:    "vllm serve",
+						ModelName:      tt.vllmModelName,
+						ModelRunParams: map[string]string{},
+					},
+				},
+			}
+			rc := RuntimeContext{
+				RuntimeName:          RuntimeNameVLLM,
+				SKUNumGPUs:           1,
+				NumNodes:             1,
+				DistributedInference: false,
+				WorkspaceMetadata:    metav1.ObjectMeta{Name: "ws", Namespace: "default", Labels: tt.workspaceLabels},
+			}
+			cmd := p.GetInferenceCommand(rc)
+			require.Len(t, cmd, 3)
+			assert.Contains(t, cmd[2], tt.expectedServed)
+			if tt.notExpectedServed != "" {
+				assert.NotContains(t, cmd[2], tt.notExpectedServed)
+			}
+		})
+	}
 }
 
 func TestGetInferenceCommandVLLMMultiNode(t *testing.T) {

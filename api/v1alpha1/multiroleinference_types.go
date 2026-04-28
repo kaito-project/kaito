@@ -73,6 +73,7 @@ type MultiRoleInferenceSpec struct {
 	// The InferencePool uses this selector (plus apps.kubernetes.io/pod-index: "0" for
 	// Ray cluster support) to discover all prefill and decode workspaces.
 	// +required
+	// +kubebuilder:validation:XValidation:rule="(has(self.matchLabels) && size(self.matchLabels) > 0) || (has(self.matchExpressions) && size(self.matchExpressions) > 0)",message="labelSelector must have at least one matchLabels or matchExpressions entry"
 	LabelSelector *metav1.LabelSelector `json:"labelSelector"`
 
 	// Model defines the shared model configuration across all roles.

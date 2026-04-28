@@ -51,9 +51,10 @@ type MultiRoleInferenceRoleSpec struct {
 
 	// Replicas is the number of workspaces (InferenceSet replicas) for this role.
 	// Each replica maps to one Workspace → one StatefulSet.
-	// +kubebuilder:default=1
+	// +kubebuilder:default:=1
 	// +kubebuilder:validation:Minimum=1
-	Replicas int32 `json:"replicas"`
+	// +optional
+	Replicas int32 `json:"replicas,omitempty"`
 
 	// InstanceType specifies the GPU node SKU for this role.
 	// Different roles may use different instance types (e.g., larger GPU for prefill).
@@ -106,8 +107,9 @@ type MultiRoleInferenceStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:path=multiroleinferences,scope=Namespaced,categories={kaito},shortName=mri
 // +kubebuilder:printcolumn:name="Model",type="string",JSONPath=".spec.model.name"
-// +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
+// +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status"
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // MultiRoleInference is the Schema for the multiroleinferences API.

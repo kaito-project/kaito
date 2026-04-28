@@ -1,0 +1,19 @@
+# permissions for end users to view multiroleinferences.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: multiroleinference-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: kaito
+    app.kubernetes.io/part-of: kaito
+    app.kubernetes.io/managed-by: kustomize
+  name: multiroleinference-viewer-role
+rules:
+- apiGroups: ["kaito.sh"]
+  resources: ["multiroleinferences"]
+  verbs: ["get","list","watch"]
+- apiGroups: ["kaito.sh"]
+  resources: ["multiroleinferences/status"]
+  verbs: ["get","list","watch"]

@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"knative.dev/pkg/apis"
 )
 
 func TestMultiRoleInference_SupportedVerbs(t *testing.T) {
@@ -181,8 +182,68 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 }
 
 func TestMultiRoleInference_validateUpdate(t *testing.T) {
-	m := &MultiRoleInference{}
-	old := &MultiRoleInference{}
-	err := m.validateUpdate(old)
-	assert.Nil(t, err)
+	validMRI := func() *MultiRoleInference {
+		return &MultiRoleInference{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "valid-name",
+				Namespace: "default",
+			},
+			Spec: MultiRoleInferenceSpec{
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"app": "test"},
+				},
+				Model: MultiRoleInferenceModelSpec{Name: "deepseek-ai/DeepSeek-V3"},
+				Roles: []MultiRoleInferenceRoleSpec{
+					{Type: MultiRoleInferenceRolePrefill, Replicas: 1, InstanceType: "Standard_NC24ads_A100_v4"},
+					{Type: MultiRoleInferenceRoleDecode, Replicas: 1, InstanceType: "Standard_NC24ads_A100_v4"},
+				},
+			},
+		}
+	}
+
+	tests := []struct {
+		name    string
+		mri     *MultiRoleInference
+		old     *MultiRoleInference
+		wantErr bool
+	}{
+		{
+			name:    "valid update",
+			mri:     validMRI(),
+			old:     validMRI(),
+			wantErr: false,
+		},
+		{
+			name: "update with empty model name should fail",
+			mri: func() *MultiRoleInference {
+				m := validMRI()
+				m.Spec.Model.Name = ""
+				return m
+			}(),
+			old:     validMRI(),
+			wantErr: true,
+		},
+		{
+			name: "update with empty instanceType should fail",
+			mri: func() *MultiRoleInference {
+				m := validMRI()
+				m.Spec.Roles[0].InstanceType = ""
+				return m
+			}(),
+			old:     validMRI(),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := apis.WithinUpdate(context.Background(), tt.old)
+			err := tt.mri.Validate(ctx)
+			if tt.wantErr {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }

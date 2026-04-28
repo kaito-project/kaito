@@ -29,28 +29,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_BLOCK_MESSAGE = "The model output was blocked by output guardrails."
 
 SUPPORTED_POLICY_SCANNERS = {
-    "ban_code": "BanCode",
-    "ban_competitors": "BanCompetitors",
     "ban_substrings": "BanSubstrings",
-    "ban_topics": "BanTopics",
-    "bias": "Bias",
-    "code": "Code",
-    "factual_consistency": "FactualConsistency",
-    "gibberish": "Gibberish",
-    "json": "JSON",
-    "language": "Language",
-    "language_same": "LanguageSame",
-    "malicious_urls": "MaliciousURLs",
-    "no_refusal": "NoRefusal",
-    "no_refusal_light": "NoRefusalLight",
-    "reading_time": "ReadingTime",
     "regex": "Regex",
-    "relevance": "Relevance",
-    "secret_detection": "Sensitive",
-    "sensitive": "Sensitive",
-    "sentiment": "Sentiment",
-    "toxicity": "Toxicity",
-    "url_reachability": "URLReachability",
 }
 
 
@@ -260,10 +240,6 @@ def _build_scanner_kwargs(
         ):
             continue
 
-        if name in config_values:
-            kwargs[name] = config_values[name]
-            continue
-
         if name == "redact":
             kwargs[name] = action_on_hit == "redact"
             continue
@@ -274,6 +250,10 @@ def _build_scanner_kwargs(
 
         if name == "substrings" and scanner_config.get("type") == "ban_substrings":
             kwargs[name] = _coerce_string_list(scanner_config.get("substrings"))
+            continue
+
+        if name in config_values:
+            kwargs[name] = config_values[name]
             continue
 
         if parameter.default is inspect.Signature.empty:

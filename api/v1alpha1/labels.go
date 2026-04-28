@@ -65,11 +65,11 @@ const (
 
 	// LabelMultiRoleInferenceParent identifies the parent MultiRoleInference CR.
 	// Set on child InferenceSets created by the MultiRoleInference controller.
-	LabelMultiRoleInferenceParent = KAITOPrefix + "parent"
+	LabelMultiRoleInferenceParent = KAITOPrefix + "multiroleinference-parent"
 
 	// LabelInferenceRole identifies the inference role (prefill or decode).
 	// Set on child InferenceSets and propagated to workspace pods.
-	LabelInferenceRole = "inference-role"
+	LabelInferenceRole = KAITOPrefix + "inference-role"
 )
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.

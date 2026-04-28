@@ -57,4 +57,16 @@ const (
 	WorkspaceConditionTypeSucceeded ConditionType = ConditionType("WorkspaceSucceeded")
 
 	RAGEngineConditionTypeSucceeded ConditionType = ConditionType("RAGEngineSucceeded")
+
+	// MultiRoleInferenceConditionTypePrefillReady indicates the prefill InferenceSet is ready.
+	MultiRoleInferenceConditionTypePrefillReady = ConditionType("PrefillReady")
+
+	// MultiRoleInferenceConditionTypeDecodeReady indicates the decode InferenceSet is ready.
+	MultiRoleInferenceConditionTypeDecodeReady = ConditionType("DecodeReady")
+
+	// MultiRoleInferenceConditionTypeInferencePoolReady indicates the shared InferencePool is ready.
+	MultiRoleInferenceConditionTypeInferencePoolReady = ConditionType("InferencePoolReady")
+
+	// MultiRoleInferenceConditionTypeReady indicates the overall MultiRoleInference is ready.
+	MultiRoleInferenceConditionTypeReady = ConditionType("Ready")
 )

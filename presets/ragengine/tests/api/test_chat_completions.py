@@ -425,12 +425,6 @@ async def test_chat_completions_output_guardrails_policy_file(
     monkeypatch.setattr(
         ragengine.config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path)
     )
-    monkeypatch.setattr(ragengine.config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
-    monkeypatch.setattr(
-        ragengine.config,
-        "OUTPUT_GUARDRAILS_BLOCK_MESSAGE",
-        "env-block-message",
-    )
     monkeypatch.setattr(
         ragengine.main,
         "output_guardrails",

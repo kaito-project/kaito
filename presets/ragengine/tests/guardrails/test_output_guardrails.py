@@ -45,10 +45,6 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
 
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ENABLED", True)
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path))
-    monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
-    monkeypatch.setattr(
-        config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE
-    )
 
     guardrails = OutputGuardrails.from_config()
 
@@ -65,10 +61,6 @@ def test_from_config_keeps_empty_scanners_when_policy_path_missing(monkeypatch):
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ENABLED", True)
     monkeypatch.setattr(
         config, "OUTPUT_GUARDRAILS_POLICY_PATH", "/tmp/missing-guardrails.yaml"
-    )
-    monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
-    monkeypatch.setattr(
-        config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE
     )
 
     guardrails = OutputGuardrails.from_config()
@@ -96,10 +88,6 @@ def test_from_config_replaces_scanners_with_policy_values(tmp_path, monkeypatch)
 
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ENABLED", True)
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path))
-    monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
-    monkeypatch.setattr(
-        config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE
-    )
 
     guardrails = OutputGuardrails.from_config()
 
@@ -126,10 +114,6 @@ def test_from_config_invalid_action_falls_back_to_env_value(tmp_path, monkeypatc
 
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ENABLED", True)
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path))
-    monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
-    monkeypatch.setattr(
-        config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE
-    )
 
     guardrails = OutputGuardrails.from_config()
 
@@ -156,10 +140,6 @@ def test_from_config_returns_empty_scanners_when_policy_scanners_is_not_a_list(
 
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ENABLED", True)
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path))
-    monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
-    monkeypatch.setattr(
-        config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE
-    )
 
     guardrails = OutputGuardrails.from_config()
 
@@ -203,10 +183,6 @@ def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
 
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ENABLED", True)
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path))
-    monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ACTION_ON_HIT", "redact")
-    monkeypatch.setattr(
-        config, "OUTPUT_GUARDRAILS_BLOCK_MESSAGE", DEFAULT_BLOCK_MESSAGE
-    )
     monkeypatch.setattr(
         output_guardrails_module.llm_guard_output_scanners,
         "Regex",

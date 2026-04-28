@@ -35,21 +35,18 @@ SUPPORTED_POLICY_SCANNERS = {
     "regex": "Regex",
 }
 
+DEFAULT_ACTION_ON_HIT = "redact"
 
 @dataclass
 class OutputGuardrails:
     enabled: bool
-    action_on_hit: str
+    action_on_hit: str = DEFAULT_ACTION_ON_HIT
     block_message: str = DEFAULT_BLOCK_MESSAGE
     scanner_configs: list[NormalizedScannerConfig] = field(default_factory=list)
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
-        guardrails = cls(
-            enabled=config.OUTPUT_GUARDRAILS_ENABLED,
-            action_on_hit=config.OUTPUT_GUARDRAILS_ACTION_ON_HIT,
-            block_message=config.OUTPUT_GUARDRAILS_BLOCK_MESSAGE,
-        )
+        guardrails = cls(enabled=config.OUTPUT_GUARDRAILS_ENABLED)
         return guardrails._apply_policy_file(config.OUTPUT_GUARDRAILS_POLICY_PATH)
 
     def _apply_policy_file(self, policy_path: str) -> "OutputGuardrails":

@@ -12,15 +12,14 @@
 # limitations under the License.
 
 import argparse
+import importlib
 import os
 import sys
-from unittest import mock  # noqa: I001
+from unittest import mock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-from inference_api import (  # noqa: E402
-    set_nixl_kv_transfer_config_if_applicable,
-)
+inference_api = importlib.import_module("inference_api")
+set_nixl_kv_transfer_config_if_applicable = inference_api.set_nixl_kv_transfer_config_if_applicable
 
 
 EXPECTED_NIXL_CONFIG = {

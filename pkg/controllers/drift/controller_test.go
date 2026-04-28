@@ -374,6 +374,9 @@ func TestReconcile_UpgradingNoLongerDrifted_DisablesDrift(t *testing.T) {
 
 	infSet := newInferenceSet("default", "my-infset")
 	ws := newWorkspaceForInferenceSet("default", "ws-0", "my-infset")
+	ws.Status.Conditions = []metav1.Condition{
+		{Type: string(kaitov1beta1.WorkspaceConditionTypeSucceeded), Status: metav1.ConditionTrue},
+	}
 	np := newNodePoolWithDriftBudget("default-ws-0", "1")               // upgrading
 	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", false) // no longer drifted
 
@@ -381,6 +384,7 @@ func TestReconcile_UpgradingNoLongerDrifted_DisablesDrift(t *testing.T) {
 	mockClient.CreateOrUpdateObjectInMap(infSet)
 	wsMap := mockClient.CreateMapWithType(&kaitov1beta1.WorkspaceList{})
 	wsMap[client.ObjectKeyFromObject(ws)] = ws
+	mockClient.CreateOrUpdateObjectInMap(ws) // also store for Get-by-type
 	mockClient.CreateOrUpdateObjectInMap(np) // Get-accessed
 	ncMap := mockClient.CreateMapWithType(&karpenterv1.NodeClaimList{})
 	ncMap[client.ObjectKeyFromObject(nc)] = nc
@@ -393,6 +397,8 @@ func TestReconcile_UpgradingNoLongerDrifted_DisablesDrift(t *testing.T) {
 		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
+		mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
 
 	mockProv := &mockProvisioner{}
 	mockProv.On("DisableDriftRemediation", mock.Anything, "default", "ws-0").Return(nil)
@@ -408,6 +414,50 @@ func TestReconcile_UpgradingNoLongerDrifted_DisablesDrift(t *testing.T) {
 	// Verify DisableDriftRemediation was called for the correct workspace.
 	mockProv.AssertCalled(t, "DisableDriftRemediation", mock.Anything, "default", "ws-0")
 	mockProv.AssertNumberOfCalls(t, "DisableDriftRemediation", 1)
+}
+
+func TestReconcile_UpgradingNoLongerDrifted_WorkloadNotReady_Requeues(t *testing.T) {
+	mockClient := test.NewClient()
+
+	infSet := newInferenceSet("default", "my-infset")
+	ws := newWorkspaceForInferenceSet("default", "ws-0", "my-infset")
+	// Workspace NOT ready — no WorkspaceSucceeded condition
+	np := newNodePoolWithDriftBudget("default-ws-0", "1")               // upgrading
+	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", false) // no longer drifted
+
+	mockClient.CreateMapWithType(&kaitov1alpha1.InferenceSetList{})
+	mockClient.CreateOrUpdateObjectInMap(infSet)
+	wsMap := mockClient.CreateMapWithType(&kaitov1beta1.WorkspaceList{})
+	wsMap[client.ObjectKeyFromObject(ws)] = ws
+	mockClient.CreateOrUpdateObjectInMap(ws) // also store for Get-by-type
+	mockClient.CreateOrUpdateObjectInMap(np)
+	ncMap := mockClient.CreateMapWithType(&karpenterv1.NodeClaimList{})
+	ncMap[client.ObjectKeyFromObject(nc)] = nc
+
+	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
+		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
+	mockClient.On("List", mock.IsType(context.Background()),
+		mock.IsType(&kaitov1beta1.WorkspaceList{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
+		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
+	mockClient.On("List", mock.IsType(context.Background()),
+		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
+		mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
+
+	mockProv := &mockProvisioner{}
+	// DisableDriftRemediation should NOT be called
+
+	recorder := record.NewFakeRecorder(10)
+	r := NewDriftReconciler(mockClient, nil, recorder, mockProv)
+	result, err := r.Reconcile(context.Background(), ctrl.Request{
+		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
+	})
+	assert.NilError(t, err)
+	assert.Equal(t, driftRequeueInterval, result.RequeueAfter)
+
+	// Verify DisableDriftRemediation was NOT called — workload not ready yet.
+	mockProv.AssertNumberOfCalls(t, "DisableDriftRemediation", 0)
 }
 
 func TestReconcile_MultipleDrifted_OnlyOneEnabled(t *testing.T) {

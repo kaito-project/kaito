@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
@@ -33,6 +34,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	karpenterpkg "github.com/kaito-project/kaito/pkg/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -82,7 +84,8 @@ func getDriftBudgetNodes(np *karpenterv1.NodePool) (string, error) {
 //  2. For each Workspace, get its NodePool and read the drift budget
 //  3. If one has budget "1" (upgrade in progress):
 //     - If it still has drifted NodeClaims: requeue (wait)
-//     - If no drifted NodeClaims: set budget back to "0", requeue
+//     - If no drifted NodeClaims but workload not ready: requeue (wait)
+//     - If no drifted NodeClaims and workload ready: set budget back to "0", requeue
 //  4. If none has budget "1" (no upgrade in progress):
 //     - Find next workspace with drifted NodeClaims
 //     - Set its budget to "1" (enable drift), requeue
@@ -180,7 +183,26 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 			return ctrl.Result{RequeueAfter: driftRequeueInterval}, nil
 		}
 
-		// No longer drifted — disable drift remediation (set budget back to "0").
+		// No drifted NodeClaims — check that the workload is actually ready before
+		// moving on. Karpenter removes the Drifted condition once the new node is
+		// Ready, but the inference pod may still be scheduling/pulling/starting.
+		// Without this check we could start upgrading the next workspace while the
+		// current one's workload is not yet serving.
+		ws := &kaitov1beta1.Workspace{}
+		if err := r.Get(ctx, types.NamespacedName{
+			Namespace: upgrading.workspaceNamespace,
+			Name:      upgrading.workspaceName,
+		}, ws); err != nil {
+			return ctrl.Result{}, fmt.Errorf("getting workspace %s/%s: %w",
+				upgrading.workspaceNamespace, upgrading.workspaceName, err)
+		}
+		if !isWorkspaceReady(ws) {
+			klog.V(2).InfoS("Workspace workload not yet ready after drift replacement, waiting",
+				"workspace", klog.KRef(upgrading.workspaceNamespace, upgrading.workspaceName))
+			return ctrl.Result{RequeueAfter: driftRequeueInterval}, nil
+		}
+
+		// No longer drifted and workload is ready — disable drift remediation (set budget back to "0").
 		if err := r.Provisioner.DisableDriftRemediation(ctx, upgrading.workspaceNamespace, upgrading.workspaceName); err != nil {
 			return ctrl.Result{}, fmt.Errorf("disabling drift remediation for workspace %s/%s: %w",
 				upgrading.workspaceNamespace, upgrading.workspaceName, err)
@@ -214,6 +236,16 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		"Started drift replacement for workspace %s/%s",
 		candidate.workspaceNamespace, candidate.workspaceName)
 	return ctrl.Result{RequeueAfter: driftRequeueInterval}, nil
+}
+
+// isWorkspaceReady returns true if the workspace has WorkspaceSucceeded=True.
+func isWorkspaceReady(ws *kaitov1beta1.Workspace) bool {
+	for _, c := range ws.Status.Conditions {
+		if c.Type == string(kaitov1beta1.WorkspaceConditionTypeSucceeded) {
+			return c.Status == metav1.ConditionTrue
+		}
+	}
+	return false
 }
 
 // inferenceSetNodeClaimPredicate filters to only NodeClaims with the

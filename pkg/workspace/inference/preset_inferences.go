@@ -183,6 +183,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		GenerateInferencePodSpec(gpuConfig, numNodes),
 		SetModelDownloadInfo,
 		SetAdapterPuller,
+		SetInferenceRoleEnv,
 	}
 
 	// Use StatefulSet for all use cases to ensure consistent pod identity and storage management
@@ -679,5 +680,25 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 
 func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	spec.Volumes = append(spec.Volumes, utils.DefaultModelWeightsVolume)
+	return nil
+}
+
+// SetInferenceRoleEnv propagates the kaito.sh/inference-role label from the workspace
+// to the KAITO_INFERENCE_ROLE environment variable on all containers.
+// This is used by the vLLM inference_api.py to inject NixlConnector kv-transfer-config
+// for P/D disaggregated inference. The label is set by the InferenceSet controller
+// when creating child workspaces for MultiRoleInference.
+func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]
+	if !ok || (role != "prefill" && role != "decode") {
+		return nil
+	}
+	envVar := corev1.EnvVar{
+		Name:  "KAITO_INFERENCE_ROLE",
+		Value: role,
+	}
+	for i := range spec.Containers {
+		spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)
+	}
 	return nil
 }

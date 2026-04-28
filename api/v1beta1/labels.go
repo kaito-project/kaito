@@ -66,6 +66,11 @@ const (
 	// benchmark after the model loads before marking the container as ready.
 	AnnotationRunBenchmark = KAITOPrefix + "run-benchmark"
 
+	// LabelInferenceRole indicates the inference role of a workspace in P/D disaggregated serving.
+	// Set by the InferenceSet controller when creating child workspaces for MultiRoleInference.
+	// Valid values: "prefill", "decode".
+	LabelInferenceRole = KAITOPrefix + "inference-role"
+
 	// AnnotationPerformanceMode selects the vLLM performance preset.
 	// Valid values are "balanced" (default), "interactivity", and "throughput".
 	//   - "interactivity": optimizes for low per-request latency (fine-grained CUDA

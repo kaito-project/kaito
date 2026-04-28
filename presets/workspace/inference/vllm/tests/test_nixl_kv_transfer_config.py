@@ -19,7 +19,9 @@ from unittest import mock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 inference_api = importlib.import_module("inference_api")
-set_nixl_kv_transfer_config_if_applicable = inference_api.set_nixl_kv_transfer_config_if_applicable
+set_nixl_kv_transfer_config_if_applicable = (
+    inference_api.set_nixl_kv_transfer_config_if_applicable
+)
 
 
 EXPECTED_NIXL_CONFIG = {

@@ -248,13 +248,16 @@ func isWorkspaceReady(ws *kaitov1beta1.Workspace) bool {
 	return false
 }
 
-// inferenceSetNodeClaimPredicate filters to only NodeClaims with the
-// InferenceSet label. This prevents the controller from receiving events
-// for standalone workspace NodeClaims, RAGEngine NodeClaims, etc.
+// inferenceSetNodeClaimPredicate filters to only NodeClaims with both the
+// InferenceSet name and namespace labels. This prevents the controller from
+// receiving events for standalone workspace NodeClaims, RAGEngine NodeClaims,
+// or partially labeled NodeClaims that cannot be mapped back to an InferenceSet.
 func inferenceSetNodeClaimPredicate() predicate.Predicate {
 	return predicate.NewPredicateFuncs(func(obj client.Object) bool {
-		_, ok := obj.GetLabels()[consts.KarpenterInferenceSetKey]
-		return ok
+		labels := obj.GetLabels()
+		name, hasName := labels[consts.KarpenterInferenceSetKey]
+		namespace, hasNamespace := labels[consts.KarpenterInferenceSetNamespaceKey]
+		return hasName && hasNamespace && name != "" && namespace != ""
 	})
 }
 

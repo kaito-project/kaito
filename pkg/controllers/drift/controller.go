@@ -119,7 +119,7 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	}
 
 	var upgrading *workspaceDriftInfo
-	var driftedCandidates []workspaceDriftInfo
+	var nextCandidate *workspaceDriftInfo
 
 	for i := range wsList.Items {
 		ws := &wsList.Items[i]
@@ -152,17 +152,19 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 			break // Only one should be upgrading at a time
 		}
 
-		// Check if this workspace has drifted NodeClaims.
-		hasDrifted, err := nodeclaim.HasDriftedNodeClaims(ctx, r.Client, nodePoolName)
-		if err != nil {
-			return ctrl.Result{}, fmt.Errorf("checking drifted NodeClaims for NodePool %q: %w", nodePoolName, err)
-		}
-		if hasDrifted {
-			driftedCandidates = append(driftedCandidates, workspaceDriftInfo{
-				workspaceNamespace: ws.Namespace,
-				workspaceName:      ws.Name,
-				nodePoolName:       nodePoolName,
-			})
+		// Check if this workspace has drifted NodeClaims (only if we haven't found a candidate yet).
+		if nextCandidate == nil {
+			hasDrifted, err := nodeclaim.HasDriftedNodeClaims(ctx, r.Client, nodePoolName)
+			if err != nil {
+				return ctrl.Result{}, fmt.Errorf("checking drifted NodeClaims for NodePool %q: %w", nodePoolName, err)
+			}
+			if hasDrifted {
+				nextCandidate = &workspaceDriftInfo{
+					workspaceNamespace: ws.Namespace,
+					workspaceName:      ws.Name,
+					nodePoolName:       nodePoolName,
+				}
+			}
 		}
 	}
 
@@ -218,13 +220,13 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	}
 
 	// Case B: No workspace is upgrading. Find next candidate.
-	if len(driftedCandidates) == 0 {
+	if nextCandidate == nil {
 		// Nothing drifted — done.
 		return ctrl.Result{}, nil
 	}
 
-	// Enable drift remediation on the first candidate.
-	candidate := driftedCandidates[0]
+	// Enable drift remediation on the next candidate.
+	candidate := *nextCandidate
 	if err := r.Provisioner.EnableDriftRemediation(ctx, candidate.workspaceNamespace, candidate.workspaceName); err != nil {
 		return ctrl.Result{}, fmt.Errorf("enabling drift remediation for workspace %s/%s: %w",
 			candidate.workspaceNamespace, candidate.workspaceName, err)

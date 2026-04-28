@@ -152,7 +152,8 @@ func TestInferenceSetNodeClaimPredicate_WithLabel(t *testing.T) {
 	nc := &karpenterv1.NodeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				consts.KarpenterInferenceSetKey: "my-infset",
+				consts.KarpenterInferenceSetKey:          "my-infset",
+				consts.KarpenterInferenceSetNamespaceKey: "default",
 			},
 		},
 	}

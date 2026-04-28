@@ -112,7 +112,7 @@ func ListWorkspaces(ctx context.Context, iObj *kaitov1alpha1.InferenceSet, kubeC
 	err := retry.OnError(retry.DefaultBackoff, func(err error) bool {
 		return true
 	}, func() error {
-		return kubeClient.List(ctx, workspaceList, &client.MatchingLabelsSelector{Selector: ls.AsSelector()})
+		return kubeClient.List(ctx, workspaceList, client.InNamespace(iObj.Namespace), &client.MatchingLabelsSelector{Selector: ls.AsSelector()})
 	})
 	return workspaceList, err
 }

@@ -34,7 +34,7 @@ func (m *MultiRoleInference) SupportedVerbs() []admissionregistrationv1.Operatio
 func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldError) {
 	errmsgs := validation.IsDNS1123Label(m.Name)
 	if len(errmsgs) > 0 {
-		errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "name"))
+		errs = errs.Also(apis.ErrInvalidValue(m.Name, "name", strings.Join(errmsgs, ", ")))
 	}
 	base := apis.GetBaseline(ctx)
 	if base == nil {

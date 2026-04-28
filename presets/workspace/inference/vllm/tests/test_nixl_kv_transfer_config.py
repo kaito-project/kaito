@@ -16,10 +16,11 @@ import os
 import sys
 from unittest import mock
 
-# Add parent directory to path so we can import inference_api
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from inference_api import set_nixl_kv_transfer_config_if_applicable  # noqa: E402
+from inference_api import (  # noqa: E402
+    set_nixl_kv_transfer_config_if_applicable,
+)
 
 
 EXPECTED_NIXL_CONFIG = {

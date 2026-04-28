@@ -2,16 +2,16 @@
 title: "Dynamo vs llm-d: Distributed LLM Inference Orchestration Framework Comparison"
 authors:
   - "@andyzhangx"
+reviewers:
+  - 
 creation-date: 2026-04-24
 last-updated: 2026-04-24
-status: informational
-see-also:
-  - "[Multi-Role Inference P/D Disaggregation Proposal](./20260424-multiroleinference-pd-disaggregation.md)"
+status: provisional
 ---
 
 # Dynamo vs llm-d: Distributed LLM Inference Orchestration Framework Comparison
 
-> **Note:** This document is part of the [Multi-Role Inference with Prefill/Decode Disaggregation proposal](./20260424-multiroleinference-pd-disaggregation.md).
+> **Note:** This document is part of the broader Multi-Role Inference with Prefill/Decode Disaggregation proposal work.
 
 Both are **orchestration layers** for LLM inference, sitting above inference engines (vLLM/SGLang/TRT-LLM) to solve multi-GPU/multi-node distributed serving challenges. Core capabilities overlap significantly, but design philosophies and implementation paths differ.
 
@@ -173,7 +173,7 @@ llm-d's plugin architecture is significantly stronger — routing strategies can
 
 4. **Declarative extensibility**: llm-d's SchedulingProfile orchestrates filter/scorer chains via YAML; KAITO can map CRD parameters to different scheduling strategies without code changes. Dynamo requires modifying Rust logic.
 
-5. **Community direction alignment**: llm-d is led by Red Hat + IBM community, aligned with KAITO's open-source K8s ecosystem positioning. Gateway API Inference Extension (formerly IGW) is already the K8s SIG direction.
+5. **Community direction alignment**: llm-d is led by Red Hat + IBM community, aligned with KAITO's open-source K8s ecosystem positioning. Gateway API Inference Extension (GWIE) is already the K8s SIG direction.
 
 ### Recommended Integration Path
 

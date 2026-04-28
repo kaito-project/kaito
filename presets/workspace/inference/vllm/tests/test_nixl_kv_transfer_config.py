@@ -14,7 +14,7 @@
 import argparse
 import os
 import sys
-from unittest import mock
+from unittest import mock  # noqa: I001
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 

@@ -132,6 +132,15 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "empty labelSelector",
+			mri: func() *MultiRoleInference {
+				m := validMRI()
+				m.Spec.LabelSelector = &metav1.LabelSelector{}
+				return m
+			}(),
+			wantErr: true,
+		},
+		{
 			name: "wrong number of roles",
 			mri: func() *MultiRoleInference {
 				m := validMRI()

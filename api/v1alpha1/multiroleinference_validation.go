@@ -92,5 +92,7 @@ func (m *MultiRoleInference) validateCreate() (errs *apis.FieldError) {
 }
 
 func (m *MultiRoleInference) validateUpdate(_ *MultiRoleInference) (errs *apis.FieldError) {
+	// Run the same validations as create to prevent invalid updates.
+	errs = errs.Also(m.validateCreate())
 	return errs
 }

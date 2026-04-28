@@ -39,7 +39,6 @@ class TestSetNixlKvTransferConfig:
         """Without KAITO_INFERENCE_ROLE, kv_transfer_config should not be set."""
         args = self._make_args()
         with mock.patch.dict(os.environ, {}, clear=True):
-            os.environ.pop("KAITO_INFERENCE_ROLE", None)
             set_nixl_kv_transfer_config_if_applicable(args)
         assert args.kv_transfer_config is None
 
@@ -79,7 +78,7 @@ class TestSetNixlKvTransferConfig:
         assert args.kv_transfer_config == EXPECTED_NIXL_CONFIG
 
     def test_overrides_user_provided_config(self):
-        """Controller-managed NixlConnector overrides any user-provided config."""
+        """NixlConnector for P/D disaggregation overrides any user-provided config."""
         user_config = {
             "kv_connector": "SomeOtherConnector",
             "kv_role": "kv_sender",

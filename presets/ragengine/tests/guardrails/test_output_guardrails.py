@@ -318,4 +318,3 @@ def test_build_scanners_supports_normalized_ban_substrings_type(monkeypatch):
     assert isinstance(scanners[0], FakeBanSubstrings)
     assert scanners[0].substrings == ["secret"]
     assert scanners[0].redact is True
-

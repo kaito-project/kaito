@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_BLOCK_MESSAGE = "The model output was blocked by output guardrails."
 
+ScannerConfig = dict[str, Any]
+
 SUPPORTED_POLICY_SCANNERS = {
     "ban_substrings": "BanSubstrings",
     "regex": "Regex",
@@ -39,7 +41,7 @@ class OutputGuardrails:
     enabled: bool
     action_on_hit: str
     block_message: str = DEFAULT_BLOCK_MESSAGE
-    scanner_configs: list[dict[str, Any]] = field(default_factory=list)
+    scanner_configs: list[ScannerConfig] = field(default_factory=list)
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
@@ -169,14 +171,14 @@ def _coerce_string_list(value: Any) -> list[str]:
 
 def _coerce_policy_scanner_configs(
     value: Any, policy_path: str
-) -> list[dict[str, Any]]:
+) -> list[ScannerConfig]:
     if value is None:
         return []
     if not isinstance(value, list):
         logger.warning("output_guardrails_policy_invalid_scanners path=%s", policy_path)
         return []
 
-    scanner_configs: list[dict[str, Any]] = []
+    scanner_configs: list[ScannerConfig] = []
     for scanner in value:
         if not isinstance(scanner, dict):
             continue
@@ -194,18 +196,10 @@ def _coerce_policy_scanner_configs(
     return scanner_configs
 
 
-def _build_scanner(scanner_config: dict[str, Any], action_on_hit: str) -> Any | None:
+def _build_scanner(scanner_config: ScannerConfig, action_on_hit: str) -> Any | None:
     scanner_type = str(scanner_config.get("type", "")).lower()
-    class_name = SUPPORTED_POLICY_SCANNERS.get(scanner_type)
-    if not class_name:
-        logger.warning("output_guardrails_policy_unknown_scanner type=%s", scanner_type)
-        return None
-
-    scanner_class = getattr(llm_guard_output_scanners, class_name, None)
+    scanner_class = _resolve_scanner_class(scanner_type)
     if scanner_class is None:
-        logger.warning(
-            "output_guardrails_policy_unavailable_scanner type=%s", scanner_type
-        )
         return None
 
     kwargs = _build_scanner_kwargs(scanner_class, scanner_config, action_on_hit)
@@ -224,47 +218,89 @@ def _build_scanner(scanner_config: dict[str, Any], action_on_hit: str) -> Any | 
 
 def _build_scanner_kwargs(
     scanner_class: type[Any],
-    scanner_config: dict[str, Any],
+    scanner_config: ScannerConfig,
     action_on_hit: str,
 ) -> dict[str, Any] | None:
     signature = inspect.signature(scanner_class)
     kwargs: dict[str, Any] = {}
+    scanner_type = str(scanner_config.get("type", "")).lower()
     config_values = {
         key: value for key, value in scanner_config.items() if key != "type"
     }
 
     for name, parameter in signature.parameters.items():
-        if parameter.kind not in (
-            inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            inspect.Parameter.KEYWORD_ONLY,
-        ):
+        if not _is_supported_scanner_parameter(parameter):
             continue
 
-        if name == "redact":
-            kwargs[name] = action_on_hit == "redact"
+        value_found, value = _resolve_scanner_argument(
+            name,
+            scanner_type,
+            scanner_config,
+            config_values,
+            action_on_hit,
+        )
+        if value_found:
+            kwargs[name] = value
             continue
 
-        if name == "patterns" and scanner_config.get("type") == "regex":
-            kwargs[name] = _coerce_string_list(scanner_config.get("patterns"))
-            continue
-
-        if name == "substrings" and scanner_config.get("type") == "ban_substrings":
-            kwargs[name] = _coerce_string_list(scanner_config.get("substrings"))
-            continue
-
-        if name in config_values:
-            kwargs[name] = config_values[name]
-            continue
-
-        if parameter.default is inspect.Signature.empty:
+        if _is_required_scanner_parameter(parameter):
             logger.warning(
                 "output_guardrails_policy_invalid_scanner_config type=%s missing=%s",
-                scanner_config.get("type"),
+                scanner_type,
                 name,
             )
             return None
 
     return kwargs
+
+
+def _resolve_scanner_class(scanner_type: str) -> type[Any] | None:
+    class_name = SUPPORTED_POLICY_SCANNERS.get(scanner_type)
+    if not class_name:
+        logger.warning("output_guardrails_policy_unknown_scanner type=%s", scanner_type)
+        return None
+
+    scanner_class = getattr(llm_guard_output_scanners, class_name, None)
+    if scanner_class is None:
+        logger.warning(
+            "output_guardrails_policy_unavailable_scanner type=%s", scanner_type
+        )
+        return None
+
+    return scanner_class
+
+
+def _resolve_scanner_argument(
+    name: str,
+    scanner_type: str,
+    scanner_config: ScannerConfig,
+    config_values: dict[str, Any],
+    action_on_hit: str,
+) -> tuple[bool, Any]:
+    if name == "redact":
+        return True, action_on_hit == "redact"
+
+    if name == "patterns" and scanner_type == "regex":
+        return True, _coerce_string_list(scanner_config.get("patterns"))
+
+    if name == "substrings" and scanner_type == "ban_substrings":
+        return True, _coerce_string_list(scanner_config.get("substrings"))
+
+    if name in config_values:
+        return True, config_values[name]
+
+    return False, None
+
+
+def _is_supported_scanner_parameter(parameter: inspect.Parameter) -> bool:
+    return parameter.kind in (
+        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        inspect.Parameter.KEYWORD_ONLY,
+    )
+
+
+def _is_required_scanner_parameter(parameter: inspect.Parameter) -> bool:
+    return parameter.default is inspect.Signature.empty
 
 
 def _normalize_scanner_key(value: str) -> str:

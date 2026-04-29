@@ -1336,11 +1336,12 @@ func toParameterMap(in []string) map[string]string {
 
 func TestSetInferenceRoleEnv(t *testing.T) {
 	tests := []struct {
-		name          string
-		labels        map[string]string
-		containers    int
-		expectEnvSet  bool
-		expectedValue string
+		name           string
+		labels         map[string]string
+		containers     int
+		preExistingEnv bool
+		expectEnvSet   bool
+		expectedValue  string
 	}{
 		{
 			name:         "no label - no env set",
@@ -1369,11 +1370,12 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 			expectedValue: "decode",
 		},
 		{
-			name:          "prefill role - upsert existing env var without duplicates",
-			labels:        map[string]string{v1beta1.LabelInferenceRole: "prefill"},
-			containers:    1,
-			expectEnvSet:  true,
-			expectedValue: "prefill",
+			name:           "prefill role - upsert existing env var without duplicates",
+			labels:         map[string]string{v1beta1.LabelInferenceRole: "prefill"},
+			containers:     1,
+			preExistingEnv: true,
+			expectEnvSet:   true,
+			expectedValue:  "prefill",
 		},
 	}
 
@@ -1387,8 +1389,7 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 				c := corev1.Container{
 					Name: fmt.Sprintf("container-%d", i),
 				}
-				// For the upsert test, pre-populate a stale env var
-				if tc.name == "prefill role - upsert existing env var without duplicates" {
+				if tc.preExistingEnv {
 					c.Env = []corev1.EnvVar{
 						{Name: "KAITO_INFERENCE_ROLE", Value: "old-value"},
 					}

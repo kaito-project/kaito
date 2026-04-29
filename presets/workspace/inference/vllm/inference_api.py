@@ -273,7 +273,9 @@ if __name__ == "__main__":
     parser = KAITOArgumentParser(description="KAITO wrapper of vLLM serving server")
     args = parser.parse_args()
 
-    # Track whether the user explicitly provided kv-transfer-config in configmap
+    # Track whether kv-transfer-config was already set before any automatic
+    # configuration (e.g., via CLI args or inference configmap). This is checked
+    # before set_kv_cache_offloading_if_appliable which may also set it.
     user_provided_kv_config = args.kv_transfer_config is not None
 
     # set LoRA adapters

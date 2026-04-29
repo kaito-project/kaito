@@ -403,22 +403,3 @@ func IsNodeClaimReadyNotDeleting(nodeClaim *karpenterv1.NodeClaim) bool {
 	return nodeClaim.Status.NodeName != ""
 }
 
-// HasDriftedNodeClaims returns true if any NodeClaim belonging to the given
-// NodePool has a Drifted condition with status True.
-func HasDriftedNodeClaims(ctx context.Context, c client.Client, nodePoolName string) (bool, error) {
-	nodeClaimList := &karpenterv1.NodeClaimList{}
-	if err := c.List(ctx, nodeClaimList,
-		client.MatchingLabels{karpenterv1.NodePoolLabelKey: nodePoolName},
-	); err != nil {
-		return false, fmt.Errorf("listing NodeClaims for NodePool %q: %w", nodePoolName, err)
-	}
-
-	for i := range nodeClaimList.Items {
-		for _, condition := range nodeClaimList.Items[i].Status.Conditions {
-			if condition.Type == karpenterv1.ConditionTypeDrifted && condition.Status == metav1.ConditionTrue {
-				return true, nil
-			}
-		}
-	}
-	return false, nil
-}

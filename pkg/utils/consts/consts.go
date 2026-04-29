@@ -106,6 +106,15 @@ const (
 	EPPImageName = "llm-d-inference-scheduler"
 	EPPImageTag  = "v0.7.1"
 
+	// Routing sidecar for P/D disaggregation on decode workspaces.
+	// The sidecar sits in front of the vLLM engine on decode pods:
+	// incoming requests hit the sidecar (port 8080), which orchestrates
+	// prefill (if needed) and forwards to local vLLM (port 5000).
+	// See: https://github.com/llm-d/llm-d-routing-sidecar
+	RoutingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
+	RoutingSidecarTag   = "v0.7.0"
+	RoutingSidecarPort  = 8080
+
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"
 

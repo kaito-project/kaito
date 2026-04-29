@@ -184,6 +184,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		SetModelDownloadInfo,
 		SetAdapterPuller,
 		SetInferenceRoleEnv,
+		SetRoutingSidecar,
 	}
 
 	// Use StatefulSet for all use cases to ensure consistent pod identity and storage management
@@ -711,5 +712,54 @@ func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.
 			spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)
 		}
 	}
+	return nil
+}
+
+// SetRoutingSidecar adds the llm-d routing sidecar container to decode workspace pods.
+// When the workspace has the inference-role: decode label, the sidecar is injected
+// alongside the main vLLM container. The sidecar receives requests from the EPP on
+// port 8080, orchestrates P/D disaggregation (contacting prefill pods if needed),
+// and forwards to the local vLLM engine on port 5000.
+// Prefill workspaces (inference-role: prefill) do not get the sidecar.
+func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]
+	if !ok || role != "decode" {
+		return nil
+	}
+
+	// Check if sidecar already exists to avoid duplicates
+	for _, c := range spec.Containers {
+		if c.Name == "llm-d-routing-sidecar" {
+			return nil
+		}
+	}
+
+	sidecar := corev1.Container{
+		Name:  "llm-d-routing-sidecar",
+		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+		Ports: []corev1.ContainerPort{
+			{
+				ContainerPort: int32(consts.RoutingSidecarPort),
+				Name:          "sidecar",
+				Protocol:      corev1.ProtocolTCP,
+			},
+		},
+		Env: []corev1.EnvVar{
+			{
+				Name:  "BACKEND_URL",
+				Value: fmt.Sprintf("http://localhost:%d", consts.PortInferenceServer),
+			},
+			{
+				Name: "POD_IP",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{
+						FieldPath: "status.podIP",
+					},
+				},
+			},
+		},
+	}
+
+	spec.Containers = append(spec.Containers, sidecar)
 	return nil
 }

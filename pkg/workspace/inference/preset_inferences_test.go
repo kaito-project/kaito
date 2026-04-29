@@ -1428,3 +1428,113 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 		})
 	}
 }
+
+func TestSetRoutingSidecar(t *testing.T) {
+	tests := []struct {
+		name            string
+		labels          map[string]string
+		existingContainers []corev1.Container
+		expectSidecar   bool
+	}{
+		{
+			name:          "no label - no sidecar",
+			labels:        map[string]string{},
+			expectSidecar: false,
+		},
+		{
+			name:          "prefill role - no sidecar",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: "prefill"},
+			expectSidecar: false,
+		},
+		{
+			name:          "decode role - sidecar injected",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: "decode"},
+			expectSidecar: true,
+		},
+		{
+			name:   "decode role - sidecar already exists - no duplicate",
+			labels: map[string]string{v1beta1.LabelInferenceRole: "decode"},
+			existingContainers: []corev1.Container{
+				{Name: "llm-d-routing-sidecar", Image: "old-image"},
+			},
+			expectSidecar: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			workspace := &v1beta1.Workspace{}
+			workspace.Labels = tc.labels
+
+			spec := &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{Name: "vllm"},
+				},
+			}
+			if tc.existingContainers != nil {
+				spec.Containers = append(spec.Containers, tc.existingContainers...)
+			}
+
+			ctx := &generator.WorkspaceGeneratorContext{
+				Workspace: workspace,
+			}
+
+			err := SetRoutingSidecar(ctx, spec)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			sidecarCount := 0
+			for _, c := range spec.Containers {
+				if c.Name == "llm-d-routing-sidecar" {
+					sidecarCount++
+				}
+			}
+
+			if tc.expectSidecar && sidecarCount == 0 {
+				t.Error("expected routing sidecar to be present")
+			}
+			if !tc.expectSidecar && sidecarCount > 0 {
+				t.Error("routing sidecar should not be present")
+			}
+			if sidecarCount > 1 {
+				t.Errorf("found %d sidecar containers, expected at most 1", sidecarCount)
+			}
+
+			// Verify sidecar config for decode role (newly injected case)
+			if tc.expectSidecar && tc.existingContainers == nil {
+				var sidecar *corev1.Container
+				for i, c := range spec.Containers {
+					if c.Name == "llm-d-routing-sidecar" {
+						sidecar = &spec.Containers[i]
+						break
+					}
+				}
+				if sidecar == nil {
+					t.Fatal("sidecar not found")
+				}
+				expectedImage := fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag)
+				if sidecar.Image != expectedImage {
+					t.Errorf("expected image %q, got %q", expectedImage, sidecar.Image)
+				}
+				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != int32(consts.RoutingSidecarPort) {
+					t.Errorf("expected port %d, got %v", consts.RoutingSidecarPort, sidecar.Ports)
+				}
+				// Check BACKEND_URL env
+				foundBackend := false
+				for _, env := range sidecar.Env {
+					if env.Name == "BACKEND_URL" {
+						expectedURL := fmt.Sprintf("http://localhost:%d", consts.PortInferenceServer)
+						if env.Value != expectedURL {
+							t.Errorf("expected BACKEND_URL %q, got %q", expectedURL, env.Value)
+						}
+						foundBackend = true
+					}
+				}
+				if !foundBackend {
+					t.Error("BACKEND_URL env not found on sidecar")
+				}
+			}
+		})
+	}
+}

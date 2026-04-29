@@ -40,6 +40,10 @@ DEFAULT_ACTION_ON_HIT = "redact"
 # corresponding llm_guard scanner. To add a new scanner:
 #   1. Define a dataclass with from_dict() and build()
 #   2. Register it in SCANNER_REGISTRY below
+#
+# TODO: Once this scanner config surface stabilizes, move schema
+# validation to the admission webhook so that invalid policies are
+# rejected at apply-time instead of being silently skipped at runtime.
 # ===============================
 
 

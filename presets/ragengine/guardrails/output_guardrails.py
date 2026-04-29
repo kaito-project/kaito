@@ -44,6 +44,12 @@ DEFAULT_ACTION_ON_HIT = "redact"
 # TODO: Once this scanner config surface stabilizes, move schema
 # validation to the admission webhook so that invalid policies are
 # rejected at apply-time instead of being silently skipped at runtime.
+#
+# TODO: Many llm_guard scanners (e.g. Toxicity, Bias, Language) do not
+# support redaction; pairing them with action=redact would be a no-op.
+# When adding such scanners, declare a per-schema `supports_redact` flag
+# and reject the (action=redact + non-redact scanner) combination here
+# in the schema layer, instead of trying to fix it at runtime.
 # ===============================
 
 

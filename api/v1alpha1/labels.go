@@ -62,6 +62,14 @@ const (
 	// AnnotationRunBenchmark enables the post-load inference benchmark when set to "true".
 	// When set on an InferenceSet, it is propagated to all Workspaces the InferenceSet creates.
 	AnnotationRunBenchmark = KAITOPrefix + "run-benchmark"
+
+	// LabelMultiRoleInferenceParent identifies the parent MultiRoleInference CR.
+	// Set on child InferenceSets created by the MultiRoleInference controller.
+	LabelMultiRoleInferenceParent = KAITOPrefix + "multiroleinference-parent"
+
+	// LabelInferenceRole identifies the inference role (prefill or decode).
+	// Set on child InferenceSets and propagated to workspace pods.
+	LabelInferenceRole = KAITOPrefix + "inference-role"
 )
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.

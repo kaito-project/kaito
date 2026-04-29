@@ -21,7 +21,7 @@ import pytest
 import respx
 
 from ragengine.guardrails import OutputGuardrails
-from ragengine.guardrails.output_guardrails import ParsedScannerConfig, RegexConfig
+from ragengine.guardrails.scanner_schemas import ParsedScannerConfig, RegexConfig
 
 
 @pytest.fixture(autouse=True)

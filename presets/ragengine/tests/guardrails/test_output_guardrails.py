@@ -17,11 +17,14 @@ import textwrap
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
 import ragengine.guardrails.output_guardrails as output_guardrails_module
+import ragengine.guardrails.scanner_schemas as scanner_schemas_module
 from ragengine import config
 from ragengine.guardrails.output_guardrails import (
     DEFAULT_BLOCK_MESSAGE,
-    BanSubstringsConfig,
     OutputGuardrails,
+)
+from ragengine.guardrails.scanner_schemas import (
+    BanSubstringsConfig,
     ParsedScannerConfig,
     RegexConfig,
 )
@@ -211,13 +214,13 @@ def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ENABLED", True)
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path))
     monkeypatch.setattr(
-        output_guardrails_module.llm_guard_output_scanners,
+        scanner_schemas_module.llm_guard_output_scanners,
         "Regex",
         FakeRegex,
         raising=False,
     )
     monkeypatch.setattr(
-        output_guardrails_module.llm_guard_output_scanners,
+        scanner_schemas_module.llm_guard_output_scanners,
         "BanSubstrings",
         FakeBanSubstrings,
         raising=False,
@@ -278,7 +281,7 @@ def test_build_scanners_supports_normalized_ban_substrings_type(monkeypatch):
             self.redact = redact
 
     monkeypatch.setattr(
-        output_guardrails_module.llm_guard_output_scanners,
+        scanner_schemas_module.llm_guard_output_scanners,
         "BanSubstrings",
         FakeBanSubstrings,
         raising=False,

@@ -1368,6 +1368,13 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 			expectEnvSet:  true,
 			expectedValue: "decode",
 		},
+		{
+			name:          "prefill role - upsert existing env var without duplicates",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: "prefill"},
+			containers:    1,
+			expectEnvSet:  true,
+			expectedValue: "prefill",
+		},
 	}
 
 	for _, tc := range tests {
@@ -1377,9 +1384,16 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 
 			spec := &corev1.PodSpec{}
 			for i := 0; i < tc.containers; i++ {
-				spec.Containers = append(spec.Containers, corev1.Container{
+				c := corev1.Container{
 					Name: fmt.Sprintf("container-%d", i),
-				})
+				}
+				// For the upsert test, pre-populate a stale env var
+				if tc.name == "prefill role - upsert existing env var without duplicates" {
+					c.Env = []corev1.EnvVar{
+						{Name: "KAITO_INFERENCE_ROLE", Value: "old-value"},
+					}
+				}
+				spec.Containers = append(spec.Containers, c)
 			}
 
 			ctx := &generator.WorkspaceGeneratorContext{
@@ -1392,10 +1406,10 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 			}
 
 			for i, c := range spec.Containers {
-				found := false
+				count := 0
 				for _, env := range c.Env {
 					if env.Name == "KAITO_INFERENCE_ROLE" {
-						found = true
+						count++
 						if !tc.expectEnvSet {
 							t.Errorf("container %d: env KAITO_INFERENCE_ROLE should not be set", i)
 						}
@@ -1404,8 +1418,11 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 						}
 					}
 				}
-				if tc.expectEnvSet && !found {
+				if tc.expectEnvSet && count == 0 {
 					t.Errorf("container %d: expected KAITO_INFERENCE_ROLE to be set", i)
+				}
+				if count > 1 {
+					t.Errorf("container %d: found %d entries for KAITO_INFERENCE_ROLE, expected at most 1", i, count)
 				}
 			}
 		})

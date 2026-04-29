@@ -67,7 +67,7 @@ const (
 	AnnotationRunBenchmark = KAITOPrefix + "run-benchmark"
 
 	// LabelInferenceRole indicates the inference role of a workspace in P/D disaggregated serving.
-	// Set by the InferenceSet controller when creating child workspaces for MultiRoleInference.
+	// Propagated from InferenceSet.Spec.Template.Labels onto child workspaces by the InferenceSet controller.
 	// Valid values: "prefill", "decode".
 	LabelInferenceRole = KAITOPrefix + "inference-role"
 

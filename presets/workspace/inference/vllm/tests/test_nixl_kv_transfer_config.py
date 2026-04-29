@@ -74,16 +74,45 @@ class TestSetNixlKvTransferConfig:
         }
         args = self._make_args(kv_transfer_config=lmcache_config)
         with mock.patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "prefill"}):
-            set_nixl_kv_transfer_config_if_applicable(args)
+            set_nixl_kv_transfer_config_if_applicable(
+                args, user_provided_kv_config=False
+            )
         assert args.kv_transfer_config == EXPECTED_NIXL_CONFIG
 
-    def test_overrides_user_provided_config(self):
-        """NixlConnector for P/D disaggregation overrides any user-provided config."""
+    def test_respects_user_provided_config(self):
+        """User-provided kv-transfer-config from inference configmap is respected."""
         user_config = {
-            "kv_connector": "SomeOtherConnector",
-            "kv_role": "kv_sender",
+            "kv_connector": "NixlConnector",
+            "kv_role": "kv_both",
+            "kv_load_failure_policy": "fail",
         }
         args = self._make_args(kv_transfer_config=user_config)
         with mock.patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "decode"}):
-            set_nixl_kv_transfer_config_if_applicable(args)
+            set_nixl_kv_transfer_config_if_applicable(
+                args, user_provided_kv_config=True
+            )
+        assert args.kv_transfer_config == user_config
+
+    def test_user_provided_custom_config_preserved(self):
+        """User-provided custom kv-transfer-config is preserved even if different."""
+        user_config = {
+            "kv_connector": "NixlConnector",
+            "kv_role": "kv_both",
+            "kv_load_failure_policy": "fail",
+            "custom_field": "custom_value",
+        }
+        args = self._make_args(kv_transfer_config=user_config)
+        with mock.patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "prefill"}):
+            set_nixl_kv_transfer_config_if_applicable(
+                args, user_provided_kv_config=True
+            )
+        assert args.kv_transfer_config == user_config
+
+    def test_no_user_config_still_injects_nixl(self):
+        """When user did not provide config, NixlConnector is still injected."""
+        args = self._make_args()
+        with mock.patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "prefill"}):
+            set_nixl_kv_transfer_config_if_applicable(
+                args, user_provided_kv_config=False
+            )
         assert args.kv_transfer_config == EXPECTED_NIXL_CONFIG

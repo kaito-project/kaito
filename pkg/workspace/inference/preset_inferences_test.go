@@ -1333,3 +1333,81 @@ func toParameterMap(in []string) map[string]string {
 	}
 	return ret
 }
+
+func TestSetInferenceRoleEnv(t *testing.T) {
+	tests := []struct {
+		name          string
+		labels        map[string]string
+		containers    int
+		expectEnvSet  bool
+		expectedValue string
+	}{
+		{
+			name:         "no label - no env set",
+			labels:       map[string]string{},
+			containers:   1,
+			expectEnvSet: false,
+		},
+		{
+			name:         "invalid role - no env set",
+			labels:       map[string]string{v1beta1.LabelInferenceRole: "invalid"},
+			containers:   1,
+			expectEnvSet: false,
+		},
+		{
+			name:          "prefill role - env set on all containers",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: "prefill"},
+			containers:    2,
+			expectEnvSet:  true,
+			expectedValue: "prefill",
+		},
+		{
+			name:          "decode role - env set on all containers",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: "decode"},
+			containers:    1,
+			expectEnvSet:  true,
+			expectedValue: "decode",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			workspace := &v1beta1.Workspace{}
+			workspace.Labels = tc.labels
+
+			spec := &corev1.PodSpec{}
+			for i := 0; i < tc.containers; i++ {
+				spec.Containers = append(spec.Containers, corev1.Container{
+					Name: fmt.Sprintf("container-%d", i),
+				})
+			}
+
+			ctx := &generator.WorkspaceGeneratorContext{
+				Workspace: workspace,
+			}
+
+			err := SetInferenceRoleEnv(ctx, spec)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			for i, c := range spec.Containers {
+				found := false
+				for _, env := range c.Env {
+					if env.Name == "KAITO_INFERENCE_ROLE" {
+						found = true
+						if !tc.expectEnvSet {
+							t.Errorf("container %d: env KAITO_INFERENCE_ROLE should not be set", i)
+						}
+						if env.Value != tc.expectedValue {
+							t.Errorf("container %d: expected value %q, got %q", i, tc.expectedValue, env.Value)
+						}
+					}
+				}
+				if tc.expectEnvSet && !found {
+					t.Errorf("container %d: expected KAITO_INFERENCE_ROLE to be set", i)
+				}
+			}
+		})
+	}
+}

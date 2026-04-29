@@ -704,3 +704,47 @@ func TestBuildVLLMInferenceCommandDTypeDynamic(t *testing.T) {
 		assert.Contains(t, cmd[2], "dtype=bfloat16")
 	})
 }
+
+func TestBuildVLLMInferenceCommandDisablesKVCacheForHybridModels(t *testing.T) {
+	p := &PresetParam{
+		Metadata: Metadata{
+			Architectures: []string{"NemotronHForCausalLM"},
+		},
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  2,
+		NumNodes:    1,
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization=0")
+}
+
+func TestBuildVLLMInferenceCommandNoKVCacheOverrideForNonHybrid(t *testing.T) {
+	p := &PresetParam{
+		Metadata: Metadata{
+			Architectures: []string{"LlamaForCausalLM"},
+		},
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  2,
+		NumNodes:    1,
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.NotContains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization")
+}

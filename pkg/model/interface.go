@@ -371,6 +371,13 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["performance-mode"] = rc.PerformanceMode
 	}
 
+	// Hybrid Mamba/Attention models (e.g., NemotronH) require the hybrid KV cache
+	// manager in vLLM, which is incompatible with LMCache KV cache CPU offloading.
+	// Disable offloading for these architectures to prevent startup crashes.
+	if p.isVLLMHybridKVCacheManagerRequired() {
+		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
+	}
+
 	// Parallelism strategy follows a 3-tier hierarchy (see configureParallelism):
 	//  1. Data Parallelism (DP)   – model fits on a single GPU
 	//  2. Tensor Parallelism (TP) – model fits on a single node (multiple GPUs)
@@ -480,6 +487,19 @@ func (p *PresetParam) getModelFileSize() *resource.Quantity {
 		}
 	}
 	return nil
+}
+
+// isVLLMHybridKVCacheManagerRequired returns true if the model uses a hybrid
+// architecture (e.g., Mamba/Attention) that requires vLLM's hybrid KV cache manager
+// (https://docs.vllm.ai/en/latest/design/hybrid_kv_cache_manager/)
+func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
+	for _, arch := range p.Architectures {
+		switch arch {
+		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM":
+			return true
+		}
+	}
+	return false
 }
 
 // modelFitsOnSingleGPU returns true when the model file size is smaller than

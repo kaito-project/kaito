@@ -63,7 +63,7 @@ var configKeyMap = map[string][]string{
 
 // optionalKeyMap holds catalog fields that are only stored when present and > 0.
 var optionalKeyMap = map[string][]string{
-	"headDim":       {"head_dim"},
+	"headDim":       {"head_dim", "attention_head_dim"},
 	"kvLoraRank":    {"kv_lora_rank"},
 	"qkRopeHeadDim": {"qk_rope_head_dim"},
 }

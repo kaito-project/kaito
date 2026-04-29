@@ -69,6 +69,8 @@ var (
 		"MiniMaxM2ForCausalLM":                   "minimax_m2_append_think",
 		"MistralForCausalLM":                     "mistral",
 		"NemotronForCausalLM":                    "nemotron_v3",
+		"NemotronHForCausalLM":                   "nemotron_v3",
+		"NemotronH_Nano_VL_V2":                   "nemotron_v3",
 		"OlmoForCausalLM":                        "olmo3",
 		"Qwen3ForCausalLM":                       "qwen3",
 		"Qwen3MoeForCausalLM":                    "qwen3",
@@ -146,6 +148,8 @@ var (
 		"Ernie4_5_MoeForCausalLM":                "ernie45",
 		"Step3TextForCausalLM":                   "step3",
 		"Step3p5TextForCausalLM":                 "step3p5",
+		"NemotronHForCausalLM":                   "qwen3_coder",
+		"NemotronH_Nano_VL_V2":                   "qwen3_coder",
 		"Phi4MiniForCausalLM":                    "phi4_mini_json",
 		"KimiK2ForCausalLM":                      "kimi_k2",
 		"GigaChat3ForCausalLM":                   "gigachat3",
@@ -377,10 +381,28 @@ func (g *Generator) fetchAndParseConfig() error {
 		return fmt.Errorf("error fetching config: %v", err)
 	}
 
+	configBody = sanitizeJSON(configBody)
+
 	if err := json.Unmarshal(configBody, &g.ModelConfig); err != nil {
 		return fmt.Errorf("error parsing config: %v", err)
 	}
 	return nil
+}
+
+// vLLM delegates the loading of config.json to HuggingFace transformer library
+// (https://github.com/huggingface/transformers/blob/main/src/transformers/configuration_utils.py#L552).
+// The library uses Python's json.loads which accepts non-standard JSON literals (e.g. Infinity, NaN).
+// However, Go's standard library encoding/json only supports standard JSON values. sanitizeJSON replaces
+// non-standard JSON literals (Infinity, -Infinity, NaN) with null so the data can be parsed by encoding/json.
+func sanitizeJSON(data []byte) []byte {
+	// Replace standalone Infinity, -Infinity, NaN with null
+	re := regexp.MustCompile(`(?:(?:^|[,\[:\s])\s*)-?Infinity|(?:(?:^|[,\[:\s])\s*)NaN`)
+	return re.ReplaceAllFunc(data, func(match []byte) []byte {
+		// Preserve the prefix (comma, bracket, colon, whitespace) before the value
+		trimmed := strings.TrimLeft(string(match), " \t\n\r,[:") //nolint:gocritic
+		prefix := string(match[:len(match)-len(trimmed)])
+		return []byte(prefix + "null")
+	})
 }
 
 func (g *Generator) fetchConfigFile(name string) ([]byte, error) {
@@ -388,15 +410,21 @@ func (g *Generator) fetchConfigFile(name string) ([]byte, error) {
 	return g.fetchURL(url)
 }
 
-// mergeTextConfig promotes fields from a nested "text_config" object into the
-// top-level config. This is needed for multimodal models (e.g., Gemma-3,
-// Ministral-3) where architecture-specific parameters live under text_config.
+// mergeTextConfig promotes fields from a nested "text_config" or "llm_config"
+// object into the top-level config. This is needed for multimodal models
+// (e.g., Gemma-3, Ministral-3, Nemotron-VL) where architecture-specific
+// parameters live under a nested config key.
 func (g *Generator) mergeTextConfig() {
-	textConfig, ok := g.ModelConfig["text_config"].(map[string]interface{})
-	if !ok {
+	var nested map[string]interface{}
+	if tc, ok := g.ModelConfig["text_config"].(map[string]interface{}); ok {
+		nested = tc
+	} else if lc, ok := g.ModelConfig["llm_config"].(map[string]interface{}); ok {
+		nested = lc
+	}
+	if nested == nil {
 		return
 	}
-	for k, v := range textConfig {
+	for k, v := range nested {
 		if _, exists := g.ModelConfig[k]; !exists {
 			g.ModelConfig[k] = v
 		}

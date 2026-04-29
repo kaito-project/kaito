@@ -58,7 +58,10 @@ class BanSubstringsConfig:
     def from_dict(cls, raw: dict) -> "BanSubstringsConfig":
         substrings = _coerce_string_list(raw.get("substrings"))
         if not substrings:
-            raise ValueError("ban_substrings requires non-empty 'substrings'")
+            raise ValueError(
+                "ban_substrings scanner requires 'substrings' to be a "
+                "non-empty list of strings"
+            )
         return cls(
             substrings=substrings,
             match_type=str(raw.get("match_type", "word")).lower(),
@@ -86,7 +89,9 @@ class RegexConfig:
     def from_dict(cls, raw: dict) -> "RegexConfig":
         patterns = _coerce_string_list(raw.get("patterns"))
         if not patterns:
-            raise ValueError("regex requires non-empty 'patterns'")
+            raise ValueError(
+                "regex scanner requires 'patterns' to be a non-empty list of strings"
+            )
         return cls(
             patterns=patterns,
             is_blocked=bool(raw.get("is_blocked", True)),

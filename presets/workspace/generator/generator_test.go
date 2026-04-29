@@ -41,10 +41,10 @@ func TestGeneratePreset(t *testing.T) {
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
-					ModelFileSize:          "8Gi",
+					ModelFileSize:          "7.15Gi",
 					BytesPerToken:          131072,
 					ModelTokenLimit:        131072,
-					DiskStorageRequirement: "88Gi", // 8 + 80
+					DiskStorageRequirement: "87Gi", // 7.15 + 80
 				},
 				AttnType: "GQA",
 			},
@@ -68,10 +68,10 @@ func TestGeneratePreset(t *testing.T) {
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "tiiuae/falcon-7b-instruct"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
-					ModelFileSize:          "14Gi", // Python test expects 27Gi due to double counting (bin+safetensors). We fix this to use safetensors only.
+					ModelFileSize:          "13.44Gi", // Python test expects 27Gi due to double counting (bin+safetensors). We fix this to use safetensors only.
 					BytesPerToken:          8192,
 					ModelTokenLimit:        2048,
-					DiskStorageRequirement: "94Gi", // 14 + 80
+					DiskStorageRequirement: "93Gi", // 13.44 + 80
 				},
 				AttnType: "MQA",
 			},
@@ -95,10 +95,11 @@ func TestGeneratePreset(t *testing.T) {
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
-					ModelFileSize:          "10Gi",
+					ModelFileSize:          "9.70Gi",
 					BytesPerToken:          139264,
 					ModelTokenLimit:        262144,
-					DiskStorageRequirement: "90Gi", // 10 + 80
+					DiskStorageRequirement: "89Gi", // 9.70 + 80
+					QuantMethod:            "fp8",
 				},
 				AttnType: "GQA",
 			},
@@ -122,11 +123,12 @@ func TestGeneratePreset(t *testing.T) {
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-Large-3-675B-Instruct-2512"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
-					ModelFileSize:          "635Gi",
+					ModelFileSize:          "634.70Gi",
 					BytesPerToken:          70272,
 					ModelTokenLimit:        294912,
-					DiskStorageRequirement: "715Gi", // 635 + 80
+					DiskStorageRequirement: "714Gi", // 634.70 + 80
 					ToolCallParser:         "mistral",
+					QuantMethod:            "compressed-tensors",
 				},
 				AttnType: "MLA",
 			},
@@ -150,10 +152,10 @@ func TestGeneratePreset(t *testing.T) {
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-Coder-30B-A3B-Instruct"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
-					ModelFileSize:          "57Gi",
+					ModelFileSize:          "56.87Gi",
 					BytesPerToken:          98304,
 					ModelTokenLimit:        262144,
-					DiskStorageRequirement: "137Gi", // 57 + 80
+					DiskStorageRequirement: "136Gi", // 56.87 + 80
 					ReasoningParser:        "qwen3",
 					ToolCallParser:         "qwen3_xml",
 				},
@@ -179,10 +181,10 @@ func TestGeneratePreset(t *testing.T) {
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
-					ModelFileSize:          "16Gi",
+					ModelFileSize:          "15.26Gi",
 					BytesPerToken:          147456,
 					ModelTokenLimit:        40960,
-					DiskStorageRequirement: "96Gi", // 16 + 80
+					DiskStorageRequirement: "95Gi", // 15.26 + 80
 					ReasoningParser:        "qwen3",
 					ToolCallParser:         "hermes",
 				},
@@ -208,12 +210,13 @@ func TestGeneratePreset(t *testing.T) {
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3.1"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
-					ModelFileSize:          "642Gi",
+					ModelFileSize:          "641.30Gi",
 					BytesPerToken:          70272,
 					ModelTokenLimit:        163840,
-					DiskStorageRequirement: "722Gi", // 642 + 80
+					DiskStorageRequirement: "721Gi", // 641.30 + 80
 					ReasoningParser:        "deepseek_v3",
 					ToolCallParser:         "deepseek_v31",
+					QuantMethod:            "fp8",
 				},
 				AttnType: "MLA",
 			},
@@ -237,12 +240,13 @@ func TestGeneratePreset(t *testing.T) {
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
-					ModelFileSize:          "642Gi",
+					ModelFileSize:          "641.30Gi",
 					BytesPerToken:          70272,
 					ModelTokenLimit:        163840,
-					DiskStorageRequirement: "722Gi", // 642 + 80
+					DiskStorageRequirement: "721Gi", // 641.30 + 80
 					ReasoningParser:        "deepseek_v3",
 					ToolCallParser:         "deepseek_v3",
+					QuantMethod:            "fp8",
 				},
 				AttnType: "MLA",
 			},
@@ -266,10 +270,10 @@ func TestGeneratePreset(t *testing.T) {
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "nvidia/Nemotron-Orchestrator-8B"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
-					ModelFileSize:          "31Gi",
+					ModelFileSize:          "30.51Gi",
 					BytesPerToken:          147456,
 					ModelTokenLimit:        40960,
-					DiskStorageRequirement: "111Gi", // 31 + 80
+					DiskStorageRequirement: "110Gi", // 30.51 + 80
 					ReasoningParser:        "qwen3",
 					ToolCallParser:         "hermes",
 				},
@@ -277,6 +281,37 @@ func TestGeneratePreset(t *testing.T) {
 			},
 			expectedVLLM: model.VLLMParam{
 				ModelName: "nemotron-orchestrator-8b",
+				ModelRunParams: map[string]string{
+					"load_format":    "auto",
+					"config_format":  "auto",
+					"tokenizer_mode": "auto",
+				},
+				DisallowLoRA: false,
+			},
+		},
+		{
+			modelRepo: "Qwen/Qwen3-8B-AWQ",
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "qwen3-8b-awq",
+					Architectures:          []string{"Qwen3ForCausalLM"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B-AWQ"),
+					DownloadAtRuntime:      true,
+					DownloadAuthRequired:   false,
+					ModelFileSize:          "5.68Gi",
+					BytesPerToken:          147456,
+					ModelTokenLimit:        40960,
+					DiskStorageRequirement: "85Gi", // 5.68 + 80
+					ReasoningParser:        "qwen3",
+					ToolCallParser:         "hermes",
+					QuantMethod:            "awq",
+					QuantBits:              4,
+				},
+				AttnType: "GQA",
+			},
+			expectedVLLM: model.VLLMParam{
+				ModelName: "qwen3-8b-awq",
 				ModelRunParams: map[string]string{
 					"load_format":    "auto",
 					"config_format":  "auto",
@@ -305,6 +340,8 @@ func TestGeneratePreset(t *testing.T) {
 			assert.Equal(t, tc.expectedParam.Metadata.ModelTokenLimit, param.Metadata.ModelTokenLimit)
 			assert.Equal(t, tc.expectedParam.Metadata.ReasoningParser, param.Metadata.ReasoningParser)
 			assert.Equal(t, tc.expectedParam.Metadata.ToolCallParser, param.Metadata.ToolCallParser)
+			assert.Equal(t, tc.expectedParam.Metadata.QuantMethod, param.Metadata.QuantMethod)
+			assert.Equal(t, tc.expectedParam.Metadata.QuantBits, param.Metadata.QuantBits)
 
 			// Struct fields
 			assert.Equal(t, tc.expectedParam.Metadata.DiskStorageRequirement, param.Metadata.DiskStorageRequirement)
@@ -449,10 +486,10 @@ func TestLoadFromCatalog(t *testing.T) {
 					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
 					DownloadAtRuntime:      true,
-					ModelFileSize:          "8Gi",
+					ModelFileSize:          "7.15Gi",
 					BytesPerToken:          131072,
 					ModelTokenLimit:        131072,
-					DiskStorageRequirement: "88Gi",
+					DiskStorageRequirement: "87Gi",
 				},
 				AttnType: "GQA",
 			},
@@ -467,10 +504,10 @@ func TestLoadFromCatalog(t *testing.T) {
 					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/phi-4"),
 					DownloadAtRuntime:      true,
-					ModelFileSize:          "28Gi",
+					ModelFileSize:          "27.31Gi",
 					BytesPerToken:          204800,
 					ModelTokenLimit:        16384,
-					DiskStorageRequirement: "108Gi",
+					DiskStorageRequirement: "107Gi",
 				},
 				AttnType: "GQA",
 			},
@@ -485,10 +522,10 @@ func TestLoadFromCatalog(t *testing.T) {
 					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "google/gemma-3-4b-it"),
 					DownloadAtRuntime:      true,
-					ModelFileSize:          "9Gi",
+					ModelFileSize:          "8.01Gi",
 					BytesPerToken:          139264,
 					ModelTokenLimit:        131072,
-					DiskStorageRequirement: "89Gi",
+					DiskStorageRequirement: "88Gi",
 					ToolCallParser:         "functiongemma",
 				},
 				AttnType: "GQA",
@@ -504,10 +541,10 @@ func TestLoadFromCatalog(t *testing.T) {
 					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-7B-v0.3"),
 					DownloadAtRuntime:      true,
-					ModelFileSize:          "14Gi",
+					ModelFileSize:          "13.50Gi",
 					BytesPerToken:          131072,
 					ModelTokenLimit:        32768,
-					DiskStorageRequirement: "94Gi",
+					DiskStorageRequirement: "93Gi",
 					ToolCallParser:         "mistral",
 				},
 				AttnType: "GQA",
@@ -523,10 +560,10 @@ func TestLoadFromCatalog(t *testing.T) {
 					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
 					DownloadAtRuntime:      true,
-					ModelFileSize:          "10Gi",
+					ModelFileSize:          "9.70Gi",
 					BytesPerToken:          139264,
 					ModelTokenLimit:        262144,
-					DiskStorageRequirement: "90Gi",
+					DiskStorageRequirement: "89Gi",
 				},
 				AttnType: "GQA",
 			},

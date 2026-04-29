@@ -402,4 +402,3 @@ func IsNodeClaimReadyNotDeleting(nodeClaim *karpenterv1.NodeClaim) bool {
 
 	return nodeClaim.Status.NodeName != ""
 }
-

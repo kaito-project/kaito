@@ -59,8 +59,7 @@ class BanSubstringsConfig:
         substrings = _coerce_string_list(raw.get("substrings"))
         if not substrings:
             raise ValueError(
-                "ban_substrings scanner requires 'substrings' to be a "
-                "non-empty list of strings"
+                "ban_substrings requires 'substrings' to be a non-empty list of strings"
             )
         return cls(
             substrings=substrings,
@@ -90,7 +89,7 @@ class RegexConfig:
         patterns = _coerce_string_list(raw.get("patterns"))
         if not patterns:
             raise ValueError(
-                "regex scanner requires 'patterns' to be a non-empty list of strings"
+                "regex requires 'patterns' to be a non-empty list of strings"
             )
         return cls(
             patterns=patterns,

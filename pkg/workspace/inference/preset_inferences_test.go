@@ -1413,8 +1413,7 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 						count++
 						if !tc.expectEnvSet {
 							t.Errorf("container %d: env KAITO_INFERENCE_ROLE should not be set", i)
-						}
-						if env.Value != tc.expectedValue {
+						} else if env.Value != tc.expectedValue {
 							t.Errorf("container %d: expected value %q, got %q", i, tc.expectedValue, env.Value)
 						}
 					}

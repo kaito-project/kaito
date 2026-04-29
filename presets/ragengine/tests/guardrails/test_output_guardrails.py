@@ -20,7 +20,10 @@ import ragengine.guardrails.output_guardrails as output_guardrails_module
 from ragengine import config
 from ragengine.guardrails.output_guardrails import (
     DEFAULT_BLOCK_MESSAGE,
+    BanSubstringsConfig,
     OutputGuardrails,
+    ParsedScannerConfig,
+    RegexConfig,
 )
 
 
@@ -52,8 +55,14 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
     assert guardrails.action_on_hit == "block"
     assert guardrails.block_message == "blocked-by-policy"
     assert guardrails.scanner_configs == [
-        {"type": "regex", "patterns": [r"https?://\S+"]},
-        {"type": "ban_substrings", "substrings": ["secret"]},
+        ParsedScannerConfig(
+            type="regex",
+            config=RegexConfig(patterns=[r"https?://\S+"]),
+        ),
+        ParsedScannerConfig(
+            type="ban_substrings",
+            config=BanSubstringsConfig(substrings=["secret"]),
+        ),
     ]
 
 
@@ -93,7 +102,10 @@ def test_from_config_replaces_scanners_with_policy_values(tmp_path, monkeypatch)
 
     assert guardrails.action_on_hit == "block"
     assert guardrails.scanner_configs == [
-        {"type": "ban_substrings", "substrings": ["yaml-only"]},
+        ParsedScannerConfig(
+            type="ban_substrings",
+            config=BanSubstringsConfig(substrings=["yaml-only"]),
+        ),
     ]
 
 
@@ -119,7 +131,10 @@ def test_from_config_invalid_action_falls_back_to_env_value(tmp_path, monkeypatc
 
     assert guardrails.action_on_hit == "redact"
     assert guardrails.scanner_configs == [
-        {"type": "regex", "patterns": [r"https?://\S+"]},
+        ParsedScannerConfig(
+            type="regex",
+            config=RegexConfig(patterns=[r"https?://\S+"]),
+        ),
     ]
 
 
@@ -151,13 +166,25 @@ def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
     tmp_path, monkeypatch
 ):
     class FakeRegex:
-        def __init__(self, patterns, redact=False):
+        def __init__(self, patterns, is_blocked=True, match_type=None, redact=False):
             self.patterns = patterns
+            self.is_blocked = is_blocked
+            self.match_type = match_type
             self.redact = redact
 
     class FakeBanSubstrings:
-        def __init__(self, substrings, redact=False):
+        def __init__(
+            self,
+            substrings,
+            match_type=None,
+            case_sensitive=False,
+            contains_all=False,
+            redact=False,
+        ):
             self.substrings = substrings
+            self.match_type = match_type
+            self.case_sensitive = case_sensitive
+            self.contains_all = contains_all
             self.redact = redact
 
     policy_path = tmp_path / "guardrails.yaml"
@@ -199,8 +226,14 @@ def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.scanner_configs == [
-        {"type": "regex", "patterns": [r"https?://\S+", "", 123]},
-        {"type": "ban_substrings", "substrings": ["secret", None, ""]},
+        ParsedScannerConfig(
+            type="regex",
+            config=RegexConfig(patterns=[r"https?://\S+"]),
+        ),
+        ParsedScannerConfig(
+            type="ban_substrings",
+            config=BanSubstringsConfig(substrings=["secret"]),
+        ),
     ]
 
     scanners = guardrails._build_scanners()
@@ -212,59 +245,36 @@ def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
     assert scanners[1].redact is True
 
 
-def test_build_scanners_skips_unknown_and_missing_required_scanners(monkeypatch):
-    class FakeRequiredScanner:
-        def __init__(self, required_value):
-            self.required_value = required_value
-
-    class FakeOkScanner:
-        def __init__(self, redact=False):
-            self.redact = redact
-
-    monkeypatch.setitem(
-        output_guardrails_module.SUPPORTED_POLICY_SCANNERS,
-        "fake_required",
-        "FakeRequiredScanner",
-    )
-    monkeypatch.setitem(
-        output_guardrails_module.SUPPORTED_POLICY_SCANNERS,
-        "fake_ok",
-        "FakeOkScanner",
-    )
-    monkeypatch.setattr(
-        output_guardrails_module.llm_guard_output_scanners,
-        "FakeRequiredScanner",
-        FakeRequiredScanner,
-        raising=False,
-    )
-    monkeypatch.setattr(
-        output_guardrails_module.llm_guard_output_scanners,
-        "FakeOkScanner",
-        FakeOkScanner,
-        raising=False,
-    )
-
-    guardrails = OutputGuardrails(
-        enabled=True,
-        action_on_hit="redact",
-        scanner_configs=[
+def test_parse_policy_scanner_configs_skips_unknown_and_invalid_schema():
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [
             {"type": "unknown_scanner"},
-            {"type": "fake_required"},
-            {"type": "fake_ok"},
+            {"type": "regex"},  # missing required 'patterns'
+            {"type": "ban_substrings"},  # missing required 'substrings'
+            {"type": "regex", "patterns": ["a"]},
         ],
+        "guardrails.yaml",
     )
 
-    scanners = guardrails._build_scanners()
-
-    assert len(scanners) == 1
-    assert isinstance(scanners[0], FakeOkScanner)
-    assert scanners[0].redact is True
+    assert parsed == [
+        ParsedScannerConfig(type="regex", config=RegexConfig(patterns=["a"])),
+    ]
 
 
 def test_build_scanners_supports_normalized_ban_substrings_type(monkeypatch):
     class FakeBanSubstrings:
-        def __init__(self, substrings, redact=False):
+        def __init__(
+            self,
+            substrings,
+            match_type=None,
+            case_sensitive=False,
+            contains_all=False,
+            redact=False,
+        ):
             self.substrings = substrings
+            self.match_type = match_type
+            self.case_sensitive = case_sensitive
+            self.contains_all = contains_all
             self.redact = redact
 
     monkeypatch.setattr(
@@ -274,7 +284,7 @@ def test_build_scanners_supports_normalized_ban_substrings_type(monkeypatch):
         raising=False,
     )
 
-    scanner_configs = output_guardrails_module._normalize_policy_scanner_configs(
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
         [{"type": "ban-substrings", "substrings": ["secret"]}],
         "guardrails.yaml",
     )
@@ -282,13 +292,16 @@ def test_build_scanners_supports_normalized_ban_substrings_type(monkeypatch):
     guardrails = OutputGuardrails(
         enabled=True,
         action_on_hit="redact",
-        scanner_configs=scanner_configs,
+        scanner_configs=parsed,
     )
 
     scanners = guardrails._build_scanners()
 
-    assert guardrails.scanner_configs == [
-        {"type": "ban_substrings", "substrings": ["secret"]},
+    assert parsed == [
+        ParsedScannerConfig(
+            type="ban_substrings",
+            config=BanSubstringsConfig(substrings=["secret"]),
+        ),
     ]
     assert len(scanners) == 1
     assert isinstance(scanners[0], FakeBanSubstrings)

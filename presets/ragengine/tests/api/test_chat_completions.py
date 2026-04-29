@@ -21,6 +21,7 @@ import pytest
 import respx
 
 from ragengine.guardrails import OutputGuardrails
+from ragengine.guardrails.output_guardrails import ParsedScannerConfig, RegexConfig
 
 
 @pytest.fixture(autouse=True)
@@ -300,7 +301,12 @@ async def test_chat_completions_output_guardrails_redact(
         OutputGuardrails(
             enabled=True,
             action_on_hit="redact",
-            scanner_configs=[{"type": "regex", "patterns": [r"https?://\S+"]}],
+            scanner_configs=[
+                ParsedScannerConfig(
+                    type="regex",
+                    config=RegexConfig(patterns=[r"https?://\S+"]),
+                ),
+            ],
         ),
     )
 
@@ -356,7 +362,12 @@ async def test_chat_completions_output_guardrails_block(
             enabled=True,
             action_on_hit="block",
             block_message="blocked-by-policy",
-            scanner_configs=[{"type": "regex", "patterns": [r"https?://\S+"]}],
+            scanner_configs=[
+                ParsedScannerConfig(
+                    type="regex",
+                    config=RegexConfig(patterns=[r"https?://\S+"]),
+                ),
+            ],
         ),
     )
 

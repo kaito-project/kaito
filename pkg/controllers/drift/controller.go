@@ -36,14 +36,13 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
-	karpenterpkg "github.com/kaito-project/kaito/pkg/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
-	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 )
 
 const (
-	driftRequeueInterval = 30 * time.Second
+	// driftActiveRequeueInterval is used only when drift is actively in progress
+	// (budget "1") and we're waiting for Karpenter to complete node replacement.
+	driftActiveRequeueInterval = 30 * time.Second
 )
 
 // DriftReconciler orchestrates rolling drift upgrades for InferenceSet-managed Workspaces.
@@ -77,19 +76,24 @@ func getDriftBudgetNodes(np *karpenterv1.NodePool) (string, error) {
 	return "", fmt.Errorf("NodePool %q has no budget entry with Drifted reason", np.Name)
 }
 
+// hasDriftedNodeClaimsInGroup checks whether any NodeClaim in the slice has the Drifted condition.
+func hasDriftedNodeClaimsInGroup(nodeClaims []*karpenterv1.NodeClaim) bool {
+	for _, nc := range nodeClaims {
+		for _, condition := range nc.Status.Conditions {
+			if condition.Type == karpenterv1.ConditionTypeDrifted && condition.Status == metav1.ConditionTrue {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // Reconcile implements the drift upgrade state machine for a single InferenceSet.
 //
-// State machine:
-//  1. List all Workspaces for this InferenceSet
-//  2. For each Workspace, get its NodePool and read the drift budget
-//  3. If one has budget "1" (upgrade in progress):
-//     - If it still has drifted NodeClaims: requeue (wait)
-//     - If no drifted NodeClaims but workload not ready: requeue (wait)
-//     - If no drifted NodeClaims and workload ready: set budget back to "0", requeue
-//  4. If none has budget "1" (no upgrade in progress):
-//     - Find next workspace with drifted NodeClaims
-//     - Set its budget to "1" (enable drift), requeue
-//     - If no drifted workspaces: done (no requeue)
+//  1. Get InferenceSet
+//  2. List NodePools by InferenceSet labels
+//  3. List NodeClaims by InferenceSet labels, group by NodePool name
+//  4. For each NodePool, check drift budget and apply state machine
 func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// 1. Get InferenceSet.
 	inferenceSet := &kaitov1alpha1.InferenceSet{}
@@ -100,96 +104,97 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		return ctrl.Result{}, err
 	}
 
-	// 2. List Workspaces for this InferenceSet.
-	wsList, err := inferencesetutil.ListWorkspaces(ctx, inferenceSet, r.Client)
-	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("listing workspaces for InferenceSet %s/%s: %w",
+	// 2. List NodePools for this InferenceSet.
+	nodePoolList := &karpenterv1.NodePoolList{}
+	if err := r.List(ctx, nodePoolList,
+		client.MatchingLabels{
+			consts.KarpenterInferenceSetKey:          inferenceSet.Name,
+			consts.KarpenterInferenceSetNamespaceKey: inferenceSet.Namespace,
+		},
+	); err != nil {
+		return ctrl.Result{}, fmt.Errorf("listing NodePools for InferenceSet %s/%s: %w",
 			inferenceSet.Namespace, inferenceSet.Name, err)
 	}
-	if len(wsList.Items) == 0 {
+	if len(nodePoolList.Items) == 0 {
 		return ctrl.Result{}, nil
 	}
 
-	// 3. For each Workspace, get its NodePool and check the budget.
-	//    Track the workspace with budget "1" (if any) and workspaces with drifted NodeClaims.
-	type workspaceDriftInfo struct {
-		workspaceNamespace string
-		workspaceName      string
-		nodePoolName       string
+	// 3. List all NodeClaims for this InferenceSet and group by NodePool name.
+	nodeClaimList := &karpenterv1.NodeClaimList{}
+	if err := r.List(ctx, nodeClaimList,
+		client.MatchingLabels{
+			consts.KarpenterInferenceSetKey:          inferenceSet.Name,
+			consts.KarpenterInferenceSetNamespaceKey: inferenceSet.Namespace,
+		},
+	); err != nil {
+		return ctrl.Result{}, fmt.Errorf("listing NodeClaims for InferenceSet %s/%s: %w",
+			inferenceSet.Namespace, inferenceSet.Name, err)
 	}
 
-	var upgrading *workspaceDriftInfo
-	var nextCandidate *workspaceDriftInfo
-
-	for i := range wsList.Items {
-		ws := &wsList.Items[i]
-		nodePoolName := karpenterpkg.NodePoolName(ws.Namespace, ws.Name)
-
-		np := &karpenterv1.NodePool{}
-		if err := r.Get(ctx, types.NamespacedName{Name: nodePoolName}, np); err != nil {
-			if errors.IsNotFound(err) {
-				klog.V(2).InfoS("NodePool not found, skipping workspace",
-					"workspace", klog.KRef(ws.Namespace, ws.Name),
-					"nodePool", nodePoolName)
-				continue
-			}
-			return ctrl.Result{}, fmt.Errorf("getting NodePool %q: %w", nodePoolName, err)
+	// Group NodeClaims by their NodePool name label.
+	nodeClaimsByPool := make(map[string][]*karpenterv1.NodeClaim)
+	for i := range nodeClaimList.Items {
+		nc := &nodeClaimList.Items[i]
+		poolName := nc.Labels[karpenterv1.NodePoolLabelKey]
+		if poolName != "" {
+			nodeClaimsByPool[poolName] = append(nodeClaimsByPool[poolName], nc)
 		}
+	}
+
+	// 4. State machine: find upgrading NodePool or next candidate.
+	type nodePoolInfo struct {
+		nodePoolName       string
+		workspaceName      string
+		workspaceNamespace string
+	}
+
+	var upgrading *nodePoolInfo
+	var nextCandidate *nodePoolInfo
+
+	for i := range nodePoolList.Items {
+		np := &nodePoolList.Items[i]
 
 		budgetNodes, err := getDriftBudgetNodes(np)
 		if err != nil {
 			klog.V(2).InfoS("NodePool has no Drifted budget, skipping",
-				"nodePool", nodePoolName, "error", err)
+				"nodePool", np.Name, "error", err)
 			continue
 		}
 
+		wsName := np.Labels[consts.KarpenterWorkspaceNameKey]
+		wsNamespace := np.Labels[consts.KarpenterWorkspaceNamespaceKey]
+
 		if budgetNodes == "1" {
-			upgrading = &workspaceDriftInfo{
-				workspaceNamespace: ws.Namespace,
-				workspaceName:      ws.Name,
-				nodePoolName:       nodePoolName,
+			upgrading = &nodePoolInfo{
+				nodePoolName:       np.Name,
+				workspaceName:      wsName,
+				workspaceNamespace: wsNamespace,
 			}
-			break // Only one should be upgrading at a time
+			break
 		}
 
-		// Check if this workspace has drifted NodeClaims (only if we haven't found a candidate yet).
+		// Check if this NodePool has drifted NodeClaims.
 		if nextCandidate == nil {
-			hasDrifted, err := nodeclaim.HasDriftedNodeClaims(ctx, r.Client, nodePoolName)
-			if err != nil {
-				return ctrl.Result{}, fmt.Errorf("checking drifted NodeClaims for NodePool %q: %w", nodePoolName, err)
-			}
-			if hasDrifted {
-				nextCandidate = &workspaceDriftInfo{
-					workspaceNamespace: ws.Namespace,
-					workspaceName:      ws.Name,
-					nodePoolName:       nodePoolName,
+			if hasDriftedNodeClaimsInGroup(nodeClaimsByPool[np.Name]) {
+				nextCandidate = &nodePoolInfo{
+					nodePoolName:       np.Name,
+					workspaceName:      wsName,
+					workspaceNamespace: wsNamespace,
 				}
 			}
 		}
 	}
 
-	// 4. Handle the state machine transitions.
-
-	// Case A: One workspace is upgrading (budget "1").
+	// Case A: One NodePool is upgrading (budget "1").
 	if upgrading != nil {
-		hasDrifted, err := nodeclaim.HasDriftedNodeClaims(ctx, r.Client, upgrading.nodePoolName)
-		if err != nil {
-			return ctrl.Result{}, fmt.Errorf("checking drifted NodeClaims for upgrading NodePool %q: %w",
-				upgrading.nodePoolName, err)
-		}
-		if hasDrifted {
-			// Still drifted — requeue and wait for karpenter to finish replacement.
+		if hasDriftedNodeClaimsInGroup(nodeClaimsByPool[upgrading.nodePoolName]) {
 			klog.V(2).InfoS("Workspace still has drifted NodeClaims, waiting",
 				"workspace", klog.KRef(upgrading.workspaceNamespace, upgrading.workspaceName),
 				"nodePool", upgrading.nodePoolName)
-			return ctrl.Result{RequeueAfter: driftRequeueInterval}, nil
+			return ctrl.Result{}, nil
 		}
 
-		// No drifted NodeClaims — check that the workload is actually ready before
-		// moving on. Karpenter removes the Drifted condition once the new node is
-		// Ready, but the inference pod may still be scheduling/pulling/starting.
-		// Without this check we could start upgrading the next workspace while the
-		// current one's workload is not yet serving.
+		// No drifted NodeClaims — check workspace readiness.
 		ws := &kaitov1beta1.Workspace{}
 		if err := r.Get(ctx, types.NamespacedName{
 			Namespace: upgrading.workspaceNamespace,
@@ -201,10 +206,10 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		if !isWorkspaceReady(ws) {
 			klog.V(2).InfoS("Workspace workload not yet ready after drift replacement, waiting",
 				"workspace", klog.KRef(upgrading.workspaceNamespace, upgrading.workspaceName))
-			return ctrl.Result{RequeueAfter: driftRequeueInterval}, nil
+			return ctrl.Result{}, nil
 		}
 
-		// No longer drifted and workload is ready — disable drift remediation (set budget back to "0").
+		// Workload ready — disable drift remediation.
 		if err := r.Provisioner.DisableDriftRemediation(ctx, upgrading.workspaceNamespace, upgrading.workspaceName); err != nil {
 			return ctrl.Result{}, fmt.Errorf("disabling drift remediation for workspace %s/%s: %w",
 				upgrading.workspaceNamespace, upgrading.workspaceName, err)
@@ -215,29 +220,28 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		r.Recorder.Eventf(inferenceSet, "Normal", "DriftComplete",
 			"Drift replacement complete for workspace %s/%s",
 			upgrading.workspaceNamespace, upgrading.workspaceName)
-		// Requeue to check if more workspaces need upgrading.
-		return ctrl.Result{RequeueAfter: driftRequeueInterval}, nil
+		// Requeue to check if more NodePools need upgrading (no event will fire for
+		// already-drifted NodeClaims sitting stable in other pools).
+		return ctrl.Result{RequeueAfter: driftActiveRequeueInterval}, nil
 	}
 
-	// Case B: No workspace is upgrading. Find next candidate.
+	// Case B: No NodePool is upgrading. Find next candidate.
 	if nextCandidate == nil {
-		// Nothing drifted — done.
 		return ctrl.Result{}, nil
 	}
 
 	// Enable drift remediation on the next candidate.
-	candidate := *nextCandidate
-	if err := r.Provisioner.EnableDriftRemediation(ctx, candidate.workspaceNamespace, candidate.workspaceName); err != nil {
+	if err := r.Provisioner.EnableDriftRemediation(ctx, nextCandidate.workspaceNamespace, nextCandidate.workspaceName); err != nil {
 		return ctrl.Result{}, fmt.Errorf("enabling drift remediation for workspace %s/%s: %w",
-			candidate.workspaceNamespace, candidate.workspaceName, err)
+			nextCandidate.workspaceNamespace, nextCandidate.workspaceName, err)
 	}
 	klog.V(2).InfoS("Enabled drift remediation",
-		"workspace", klog.KRef(candidate.workspaceNamespace, candidate.workspaceName),
-		"nodePool", candidate.nodePoolName)
+		"workspace", klog.KRef(nextCandidate.workspaceNamespace, nextCandidate.workspaceName),
+		"nodePool", nextCandidate.nodePoolName)
 	r.Recorder.Eventf(inferenceSet, "Normal", "DriftStarted",
 		"Started drift replacement for workspace %s/%s",
-		candidate.workspaceNamespace, candidate.workspaceName)
-	return ctrl.Result{RequeueAfter: driftRequeueInterval}, nil
+		nextCandidate.workspaceNamespace, nextCandidate.workspaceName)
+	return ctrl.Result{}, nil
 }
 
 // isWorkspaceReady returns true if the workspace has WorkspaceSucceeded=True.
@@ -251,9 +255,7 @@ func isWorkspaceReady(ws *kaitov1beta1.Workspace) bool {
 }
 
 // inferenceSetNodeClaimPredicate filters to only NodeClaims with both the
-// InferenceSet name and namespace labels. This prevents the controller from
-// receiving events for standalone workspace NodeClaims, RAGEngine NodeClaims,
-// or partially labeled NodeClaims that cannot be mapped back to an InferenceSet.
+// InferenceSet name and namespace labels.
 func inferenceSetNodeClaimPredicate() predicate.Predicate {
 	return predicate.NewPredicateFuncs(func(obj client.Object) bool {
 		labels := obj.GetLabels()
@@ -280,6 +282,31 @@ func mapNodeClaimToInferenceSet(_ context.Context, o client.Object) []reconcile.
 // enqueueInferenceSetForNodeClaim maps NodeClaim events to the owning InferenceSet.
 var enqueueInferenceSetForNodeClaim = handler.EnqueueRequestsFromMapFunc(mapNodeClaimToInferenceSet)
 
+// inferenceSetWorkspacePredicate filters to only Workspaces created by an InferenceSet.
+func inferenceSetWorkspacePredicate() predicate.Predicate {
+	return predicate.NewPredicateFuncs(func(obj client.Object) bool {
+		labels := obj.GetLabels()
+		val, has := labels[consts.WorkspaceCreatedByInferenceSetLabel]
+		return has && val != ""
+	})
+}
+
+// mapWorkspaceToInferenceSet extracts InferenceSet name from the workspace's
+// created-by label and returns a reconcile request using the workspace's namespace.
+func mapWorkspaceToInferenceSet(_ context.Context, o client.Object) []reconcile.Request {
+	labels := o.GetLabels()
+	name := labels[consts.WorkspaceCreatedByInferenceSetLabel]
+	if name == "" {
+		return nil
+	}
+	return []reconcile.Request{{
+		NamespacedName: types.NamespacedName{Name: name, Namespace: o.GetNamespace()},
+	}}
+}
+
+// enqueueInferenceSetForWorkspace maps Workspace events to the owning InferenceSet.
+var enqueueInferenceSetForWorkspace = handler.EnqueueRequestsFromMapFunc(mapWorkspaceToInferenceSet)
+
 // SetupWithManager registers the controller with the manager.
 func (r *DriftReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
@@ -288,6 +315,10 @@ func (r *DriftReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Watches(&karpenterv1.NodeClaim{},
 			enqueueInferenceSetForNodeClaim,
 			builder.WithPredicates(inferenceSetNodeClaimPredicate()),
+		).
+		Watches(&kaitov1beta1.Workspace{},
+			enqueueInferenceSetForWorkspace,
+			builder.WithPredicates(inferenceSetWorkspacePredicate()),
 		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5}).
 		Complete(r)

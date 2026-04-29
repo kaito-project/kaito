@@ -68,9 +68,18 @@ func (m *mockProvisioner) DisableDriftRemediation(ctx context.Context, ns, name 
 	return args.Error(0)
 }
 
-func newNodePoolWithDriftBudget(name, nodes string) *karpenterv1.NodePool {
+func newNodePoolWithDriftBudget(name, nodes, wsName, wsNamespace, infSetName, infSetNamespace string) *karpenterv1.NodePool {
 	return &karpenterv1.NodePool{
-		ObjectMeta: metav1.ObjectMeta{Name: name},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+			Labels: map[string]string{
+				consts.KarpenterLabelManagedBy:           consts.KarpenterManagedByValue,
+				consts.KarpenterWorkspaceNameKey:         wsName,
+				consts.KarpenterWorkspaceNamespaceKey:    wsNamespace,
+				consts.KarpenterInferenceSetKey:          infSetName,
+				consts.KarpenterInferenceSetNamespaceKey: infSetNamespace,
+			},
+		},
 		Spec: karpenterv1.NodePoolSpec{
 			Disruption: karpenterv1.Disruption{
 				Budgets: []karpenterv1.Budget{
@@ -105,11 +114,15 @@ func newWorkspaceForInferenceSet(ns, name, infSetName string) *kaitov1beta1.Work
 	}
 }
 
-func newNodeClaimWithDriftCondition(name, nodePoolName string, drifted bool) *karpenterv1.NodeClaim {
+func newNodeClaimWithDriftCondition(name, nodePoolName, infSetName, infSetNamespace string, drifted bool) *karpenterv1.NodeClaim {
 	nc := &karpenterv1.NodeClaim{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   name,
-			Labels: map[string]string{karpenterv1.NodePoolLabelKey: nodePoolName},
+			Name: name,
+			Labels: map[string]string{
+				karpenterv1.NodePoolLabelKey:             nodePoolName,
+				consts.KarpenterInferenceSetKey:          infSetName,
+				consts.KarpenterInferenceSetNamespaceKey: infSetNamespace,
+			},
 		},
 	}
 	if drifted {
@@ -127,7 +140,7 @@ func newNodeClaimWithDriftCondition(name, nodePoolName string, drifted bool) *ka
 // --- getDriftBudgetNodes tests ---
 
 func TestGetDriftBudgetNodes_Found(t *testing.T) {
-	np := newNodePoolWithDriftBudget("test-np", "0")
+	np := newNodePoolWithDriftBudget("test-np", "0", "ws", "default", "infset", "default")
 	nodes, err := getDriftBudgetNodes(np)
 	assert.NilError(t, err)
 	assert.Equal(t, "0", nodes)
@@ -171,7 +184,7 @@ func TestInferenceSetNodeClaimPredicate_WithoutLabel(t *testing.T) {
 	assert.Assert(t, !p.Generic(event.GenericEvent{Object: nc}))
 }
 
-// --- Mapper tests (test the actual function) ---
+// --- Mapper tests ---
 
 func TestMapNodeClaimToInferenceSet_WithLabels(t *testing.T) {
 	nc := &karpenterv1.NodeClaim{
@@ -205,7 +218,6 @@ func TestMapNodeClaimToInferenceSet_PartialLabels(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
 				consts.KarpenterInferenceSetKey: "my-infset",
-				// Missing namespace label
 			},
 		},
 	}
@@ -214,13 +226,63 @@ func TestMapNodeClaimToInferenceSet_PartialLabels(t *testing.T) {
 	assert.Assert(t, len(reqs) == 0)
 }
 
-// --- Reconcile state machine tests ---
+// --- Workspace mapper tests ---
 
-// These tests use the mock client from pkg/utils/test/mock_client.go.
-// Important: mock List does NOT apply label selectors — it returns all objects
+func TestMapWorkspaceToInferenceSet_WithLabel(t *testing.T) {
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ws-0",
+			Namespace: "default",
+			Labels: map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: "my-infset",
+			},
+		},
+	}
+
+	reqs := mapWorkspaceToInferenceSet(context.Background(), ws)
+	assert.Equal(t, 1, len(reqs))
+	assert.Equal(t, "my-infset", reqs[0].Name)
+	assert.Equal(t, "default", reqs[0].Namespace)
+}
+
+func TestMapWorkspaceToInferenceSet_WithoutLabel(t *testing.T) {
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ws-0",
+			Namespace: "default",
+			Labels:    map[string]string{},
+		},
+	}
+
+	reqs := mapWorkspaceToInferenceSet(context.Background(), ws)
+	assert.Assert(t, len(reqs) == 0)
+}
+
+func TestInferenceSetWorkspacePredicate_WithLabel(t *testing.T) {
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: "my-infset",
+			},
+		},
+	}
+	p := inferenceSetWorkspacePredicate()
+	assert.Assert(t, p.Generic(event.GenericEvent{Object: ws}))
+}
+
+func TestInferenceSetWorkspacePredicate_WithoutLabel(t *testing.T) {
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: map[string]string{},
+		},
+	}
+	p := inferenceSetWorkspacePredicate()
+	assert.Assert(t, !p.Generic(event.GenericEvent{Object: ws}))
+}
+
+// --- Reconcile state machine tests ---
+// Note: mock List does NOT apply label selectors — it returns all objects
 // of that type. Tests must be designed with this in mind.
-// Important: mock Update does NOT write back to ObjectMap — verify updates by
-// inspecting mockClient.Calls arguments.
 
 func TestReconcile_InferenceSetNotFound(t *testing.T) {
 	mockClient := test.NewClient()
@@ -239,18 +301,18 @@ func TestReconcile_InferenceSetNotFound(t *testing.T) {
 	assert.Equal(t, ctrl.Result{}, result)
 }
 
-func TestReconcile_NoWorkspaces(t *testing.T) {
+func TestReconcile_NoNodePools(t *testing.T) {
 	mockClient := test.NewClient()
 
 	infSet := newInferenceSet("default", "my-infset")
 	mockClient.CreateMapWithType(&kaitov1alpha1.InferenceSetList{})
 	mockClient.CreateOrUpdateObjectInMap(infSet)
-	mockClient.CreateMapWithType(&kaitov1beta1.WorkspaceList{}) // empty
+	mockClient.CreateMapWithType(&karpenterv1.NodePoolList{}) // empty
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
 		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
-		mock.IsType(&kaitov1beta1.WorkspaceList{}), mock.Anything).Return(nil)
+		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 
 	r := NewDriftReconciler(mockClient, nil, record.NewFakeRecorder(10), &mockProvisioner{})
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
@@ -260,27 +322,23 @@ func TestReconcile_NoWorkspaces(t *testing.T) {
 	assert.Equal(t, ctrl.Result{}, result)
 }
 
-func TestReconcile_NoDriftedWorkspaces(t *testing.T) {
+func TestReconcile_NoDriftedNodeClaims(t *testing.T) {
 	mockClient := test.NewClient()
 
 	infSet := newInferenceSet("default", "my-infset")
-	ws := newWorkspaceForInferenceSet("default", "ws-0", "my-infset")
-	np := newNodePoolWithDriftBudget("default-ws-0", "0")
-	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", false) // NOT drifted
+	np := newNodePoolWithDriftBudget("default-ws-0", "0", "ws-0", "default", "my-infset", "default")
+	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", "my-infset", "default", false) // NOT drifted
 
 	mockClient.CreateOrUpdateObjectInMap(infSet)
-	wsMap := mockClient.CreateMapWithType(&kaitov1beta1.WorkspaceList{})
-	wsMap[client.ObjectKeyFromObject(ws)] = ws
-	mockClient.CreateOrUpdateObjectInMap(np) // Get-accessed: use CreateOrUpdateObjectInMap
+	npMap := mockClient.CreateMapWithType(&karpenterv1.NodePoolList{})
+	npMap[client.ObjectKeyFromObject(np)] = np
 	ncMap := mockClient.CreateMapWithType(&karpenterv1.NodeClaimList{})
 	ncMap[client.ObjectKeyFromObject(nc)] = nc
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
 		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
-		mock.IsType(&kaitov1beta1.WorkspaceList{}), mock.Anything).Return(nil)
-	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
+		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 
@@ -296,23 +354,19 @@ func TestReconcile_OneDrifted_EnablesDrift(t *testing.T) {
 	mockClient := test.NewClient()
 
 	infSet := newInferenceSet("default", "my-infset")
-	ws := newWorkspaceForInferenceSet("default", "ws-0", "my-infset")
-	np := newNodePoolWithDriftBudget("default-ws-0", "0")
-	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", true) // drifted
+	np := newNodePoolWithDriftBudget("default-ws-0", "0", "ws-0", "default", "my-infset", "default")
+	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", "my-infset", "default", true) // drifted
 
 	mockClient.CreateOrUpdateObjectInMap(infSet)
-	wsMap := mockClient.CreateMapWithType(&kaitov1beta1.WorkspaceList{})
-	wsMap[client.ObjectKeyFromObject(ws)] = ws
-	mockClient.CreateOrUpdateObjectInMap(np) // Get-accessed
+	npMap := mockClient.CreateMapWithType(&karpenterv1.NodePoolList{})
+	npMap[client.ObjectKeyFromObject(np)] = np
 	ncMap := mockClient.CreateMapWithType(&karpenterv1.NodeClaimList{})
 	ncMap[client.ObjectKeyFromObject(nc)] = nc
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
 		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
-		mock.IsType(&kaitov1beta1.WorkspaceList{}), mock.Anything).Return(nil)
-	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
+		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 
@@ -325,9 +379,8 @@ func TestReconcile_OneDrifted_EnablesDrift(t *testing.T) {
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})
 	assert.NilError(t, err)
-	assert.Equal(t, driftRequeueInterval, result.RequeueAfter)
+	assert.Equal(t, ctrl.Result{}, result)
 
-	// Verify EnableDriftRemediation was called exactly once.
 	mockProv.AssertNumberOfCalls(t, "EnableDriftRemediation", 1)
 }
 
@@ -335,24 +388,19 @@ func TestReconcile_UpgradingStillDrifted_Requeues(t *testing.T) {
 	mockClient := test.NewClient()
 
 	infSet := newInferenceSet("default", "my-infset")
-	ws := newWorkspaceForInferenceSet("default", "ws-0", "my-infset")
-	np := newNodePoolWithDriftBudget("default-ws-0", "1")              // upgrading
-	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", true) // still drifted
+	np := newNodePoolWithDriftBudget("default-ws-0", "1", "ws-0", "default", "my-infset", "default") // upgrading
+	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", "my-infset", "default", true)       // still drifted
 
-	mockClient.CreateMapWithType(&kaitov1alpha1.InferenceSetList{})
 	mockClient.CreateOrUpdateObjectInMap(infSet)
-	wsMap := mockClient.CreateMapWithType(&kaitov1beta1.WorkspaceList{})
-	wsMap[client.ObjectKeyFromObject(ws)] = ws
-	mockClient.CreateOrUpdateObjectInMap(np) // Get-accessed
+	npMap := mockClient.CreateMapWithType(&karpenterv1.NodePoolList{})
+	npMap[client.ObjectKeyFromObject(np)] = np
 	ncMap := mockClient.CreateMapWithType(&karpenterv1.NodeClaimList{})
 	ncMap[client.ObjectKeyFromObject(nc)] = nc
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
 		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
-		mock.IsType(&kaitov1beta1.WorkspaceList{}), mock.Anything).Return(nil)
-	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
+		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 
@@ -363,9 +411,8 @@ func TestReconcile_UpgradingStillDrifted_Requeues(t *testing.T) {
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})
 	assert.NilError(t, err)
-	assert.Equal(t, driftRequeueInterval, result.RequeueAfter)
+	assert.Equal(t, ctrl.Result{}, result)
 
-	// Verify neither Enable nor Disable was called (still waiting for drift to complete).
 	mockProv.AssertNotCalled(t, "EnableDriftRemediation", mock.Anything, mock.Anything, mock.Anything)
 	mockProv.AssertNotCalled(t, "DisableDriftRemediation", mock.Anything, mock.Anything, mock.Anything)
 }
@@ -378,24 +425,20 @@ func TestReconcile_UpgradingNoLongerDrifted_DisablesDrift(t *testing.T) {
 	ws.Status.Conditions = []metav1.Condition{
 		{Type: string(kaitov1beta1.WorkspaceConditionTypeSucceeded), Status: metav1.ConditionTrue},
 	}
-	np := newNodePoolWithDriftBudget("default-ws-0", "1")               // upgrading
-	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", false) // no longer drifted
+	np := newNodePoolWithDriftBudget("default-ws-0", "1", "ws-0", "default", "my-infset", "default") // upgrading
+	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", "my-infset", "default", false)      // no longer drifted
 
-	mockClient.CreateMapWithType(&kaitov1alpha1.InferenceSetList{})
 	mockClient.CreateOrUpdateObjectInMap(infSet)
-	wsMap := mockClient.CreateMapWithType(&kaitov1beta1.WorkspaceList{})
-	wsMap[client.ObjectKeyFromObject(ws)] = ws
-	mockClient.CreateOrUpdateObjectInMap(ws) // also store for Get-by-type
-	mockClient.CreateOrUpdateObjectInMap(np) // Get-accessed
+	mockClient.CreateOrUpdateObjectInMap(ws) // for Get workspace
+	npMap := mockClient.CreateMapWithType(&karpenterv1.NodePoolList{})
+	npMap[client.ObjectKeyFromObject(np)] = np
 	ncMap := mockClient.CreateMapWithType(&karpenterv1.NodeClaimList{})
 	ncMap[client.ObjectKeyFromObject(nc)] = nc
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
 		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
-		mock.IsType(&kaitov1beta1.WorkspaceList{}), mock.Anything).Return(nil)
-	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
+		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
@@ -410,9 +453,8 @@ func TestReconcile_UpgradingNoLongerDrifted_DisablesDrift(t *testing.T) {
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})
 	assert.NilError(t, err)
-	assert.Equal(t, driftRequeueInterval, result.RequeueAfter)
+	assert.Equal(t, driftActiveRequeueInterval, result.RequeueAfter)
 
-	// Verify DisableDriftRemediation was called for the correct workspace.
 	mockProv.AssertCalled(t, "DisableDriftRemediation", mock.Anything, "default", "ws-0")
 	mockProv.AssertNumberOfCalls(t, "DisableDriftRemediation", 1)
 }
@@ -423,31 +465,26 @@ func TestReconcile_UpgradingNoLongerDrifted_WorkloadNotReady_Requeues(t *testing
 	infSet := newInferenceSet("default", "my-infset")
 	ws := newWorkspaceForInferenceSet("default", "ws-0", "my-infset")
 	// Workspace NOT ready — no WorkspaceSucceeded condition
-	np := newNodePoolWithDriftBudget("default-ws-0", "1")               // upgrading
-	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", false) // no longer drifted
+	np := newNodePoolWithDriftBudget("default-ws-0", "1", "ws-0", "default", "my-infset", "default") // upgrading
+	nc := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", "my-infset", "default", false)      // no longer drifted
 
-	mockClient.CreateMapWithType(&kaitov1alpha1.InferenceSetList{})
 	mockClient.CreateOrUpdateObjectInMap(infSet)
-	wsMap := mockClient.CreateMapWithType(&kaitov1beta1.WorkspaceList{})
-	wsMap[client.ObjectKeyFromObject(ws)] = ws
-	mockClient.CreateOrUpdateObjectInMap(ws) // also store for Get-by-type
-	mockClient.CreateOrUpdateObjectInMap(np)
+	mockClient.CreateOrUpdateObjectInMap(ws) // for Get workspace
+	npMap := mockClient.CreateMapWithType(&karpenterv1.NodePoolList{})
+	npMap[client.ObjectKeyFromObject(np)] = np
 	ncMap := mockClient.CreateMapWithType(&karpenterv1.NodeClaimList{})
 	ncMap[client.ObjectKeyFromObject(nc)] = nc
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
 		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
-		mock.IsType(&kaitov1beta1.WorkspaceList{}), mock.Anything).Return(nil)
-	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
+		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
 		mock.IsType(&kaitov1beta1.Workspace{}), mock.Anything).Return(nil)
 
 	mockProv := &mockProvisioner{}
-	// DisableDriftRemediation should NOT be called
 
 	recorder := record.NewFakeRecorder(10)
 	r := NewDriftReconciler(mockClient, nil, recorder, mockProv)
@@ -455,9 +492,8 @@ func TestReconcile_UpgradingNoLongerDrifted_WorkloadNotReady_Requeues(t *testing
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})
 	assert.NilError(t, err)
-	assert.Equal(t, driftRequeueInterval, result.RequeueAfter)
+	assert.Equal(t, ctrl.Result{}, result)
 
-	// Verify DisableDriftRemediation was NOT called — workload not ready yet.
 	mockProv.AssertNumberOfCalls(t, "DisableDriftRemediation", 0)
 }
 
@@ -465,20 +501,15 @@ func TestReconcile_MultipleDrifted_OnlyOneEnabled(t *testing.T) {
 	mockClient := test.NewClient()
 
 	infSet := newInferenceSet("default", "my-infset")
-	ws0 := newWorkspaceForInferenceSet("default", "ws-0", "my-infset")
-	ws1 := newWorkspaceForInferenceSet("default", "ws-1", "my-infset")
-	np0 := newNodePoolWithDriftBudget("default-ws-0", "0")
-	np1 := newNodePoolWithDriftBudget("default-ws-1", "0")
-	nc0 := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", true)
-	nc1 := newNodeClaimWithDriftCondition("nc-1", "default-ws-1", true)
+	np0 := newNodePoolWithDriftBudget("default-ws-0", "0", "ws-0", "default", "my-infset", "default")
+	np1 := newNodePoolWithDriftBudget("default-ws-1", "0", "ws-1", "default", "my-infset", "default")
+	nc0 := newNodeClaimWithDriftCondition("nc-0", "default-ws-0", "my-infset", "default", true)
+	nc1 := newNodeClaimWithDriftCondition("nc-1", "default-ws-1", "my-infset", "default", true)
 
-	mockClient.CreateMapWithType(&kaitov1alpha1.InferenceSetList{})
 	mockClient.CreateOrUpdateObjectInMap(infSet)
-	wsMap := mockClient.CreateMapWithType(&kaitov1beta1.WorkspaceList{})
-	wsMap[client.ObjectKeyFromObject(ws0)] = ws0
-	wsMap[client.ObjectKeyFromObject(ws1)] = ws1
-	mockClient.CreateOrUpdateObjectInMap(np0) // Get-accessed
-	mockClient.CreateOrUpdateObjectInMap(np1) // Get-accessed
+	npMap := mockClient.CreateMapWithType(&karpenterv1.NodePoolList{})
+	npMap[client.ObjectKeyFromObject(np0)] = np0
+	npMap[client.ObjectKeyFromObject(np1)] = np1
 	ncMap := mockClient.CreateMapWithType(&karpenterv1.NodeClaimList{})
 	ncMap[client.ObjectKeyFromObject(nc0)] = nc0
 	ncMap[client.ObjectKeyFromObject(nc1)] = nc1
@@ -486,9 +517,7 @@ func TestReconcile_MultipleDrifted_OnlyOneEnabled(t *testing.T) {
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
 		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
-		mock.IsType(&kaitov1beta1.WorkspaceList{}), mock.Anything).Return(nil)
-	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(nil)
+		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodeClaimList{}), mock.Anything).Return(nil)
 
@@ -501,41 +530,24 @@ func TestReconcile_MultipleDrifted_OnlyOneEnabled(t *testing.T) {
 		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
 	})
 	assert.NilError(t, err)
-	assert.Equal(t, driftRequeueInterval, result.RequeueAfter)
+	assert.Equal(t, ctrl.Result{}, result)
 
-	// Verify exactly one EnableDriftRemediation was called (serial: only first candidate enabled).
+	// Only one should be enabled at a time.
 	mockProv.AssertNumberOfCalls(t, "EnableDriftRemediation", 1)
 }
 
-func TestReconcile_NodePoolNotFound_SkipsWorkspace(t *testing.T) {
-	mockClient := test.NewClient()
+// --- hasDriftedNodeClaimsInGroup tests ---
 
-	infSet := newInferenceSet("default", "my-infset")
-	ws := newWorkspaceForInferenceSet("default", "ws-0", "my-infset")
-	// No NodePool seeded — it will be NotFound.
+func TestHasDriftedNodeClaimsInGroup_Empty(t *testing.T) {
+	assert.Assert(t, !hasDriftedNodeClaimsInGroup(nil))
+}
 
-	mockClient.CreateMapWithType(&kaitov1alpha1.InferenceSetList{})
-	mockClient.CreateOrUpdateObjectInMap(infSet)
-	wsMap := mockClient.CreateMapWithType(&kaitov1beta1.WorkspaceList{})
-	wsMap[client.ObjectKeyFromObject(ws)] = ws
-	mockClient.CreateMapWithType(&karpenterv1.NodePoolList{})  // empty
-	mockClient.CreateMapWithType(&karpenterv1.NodeClaimList{}) // empty
+func TestHasDriftedNodeClaimsInGroup_NoDrifted(t *testing.T) {
+	nc := newNodeClaimWithDriftCondition("nc-0", "pool", "inf", "ns", false)
+	assert.Assert(t, !hasDriftedNodeClaimsInGroup([]*karpenterv1.NodeClaim{nc}))
+}
 
-	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
-	mockClient.On("List", mock.IsType(context.Background()),
-		mock.IsType(&kaitov1beta1.WorkspaceList{}), mock.Anything).Return(nil)
-	notFoundErr := k8serrors.NewNotFound(
-		schema.GroupResource{Group: "karpenter.sh", Resource: "nodepools"}, "default-ws-0")
-	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&karpenterv1.NodePool{}), mock.Anything).Return(notFoundErr)
-
-	recorder := record.NewFakeRecorder(10)
-	r := NewDriftReconciler(mockClient, nil, recorder, &mockProvisioner{})
-	result, err := r.Reconcile(context.Background(), ctrl.Request{
-		NamespacedName: types.NamespacedName{Name: "my-infset", Namespace: "default"},
-	})
-	// Should succeed (skip the workspace) and not requeue.
-	assert.NilError(t, err)
-	assert.Equal(t, ctrl.Result{}, result)
+func TestHasDriftedNodeClaimsInGroup_HasDrifted(t *testing.T) {
+	nc := newNodeClaimWithDriftCondition("nc-0", "pool", "inf", "ns", true)
+	assert.Assert(t, hasDriftedNodeClaimsInGroup([]*karpenterv1.NodeClaim{nc}))
 }

@@ -183,8 +183,8 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		GenerateInferencePodSpec(gpuConfig, numNodes),
 		SetModelDownloadInfo,
 		SetAdapterPuller,
-		SetInferenceRoleEnv,
 		SetRoutingSidecar,
+		SetInferenceRoleEnv,
 	}
 
 	// Use StatefulSet for all use cases to ensure consistent pod identity and storage management

@@ -242,7 +242,7 @@ def set_nixl_kv_transfer_config_if_applicable(
     if inference_role not in ("prefill", "decode"):
         return
 
-    # Respect user-provided kv-transfer-config from inference configmap
+    # Respect user-provided kv-transfer-config (e.g. from CLI args, inference configmap, or other sources)
     if user_provided_kv_config and args.kv_transfer_config is not None:
         logger.info(
             f"Respecting user-provided kv_transfer_config for inference role "

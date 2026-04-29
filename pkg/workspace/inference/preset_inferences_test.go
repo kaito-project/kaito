@@ -1431,10 +1431,10 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 
 func TestSetRoutingSidecar(t *testing.T) {
 	tests := []struct {
-		name            string
-		labels          map[string]string
+		name               string
+		labels             map[string]string
 		existingContainers []corev1.Container
-		expectSidecar   bool
+		expectSidecar      bool
 	}{
 		{
 			name:          "no label - no sidecar",

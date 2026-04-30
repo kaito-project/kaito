@@ -29,6 +29,7 @@ and reject the (action=redact + non-redact scanner) combination at parse
 time, instead of trying to fix it at runtime.
 """
 
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -37,6 +38,12 @@ from llm_guard.input_scanners.ban_substrings import (
     MatchType as BanSubstringsMatchType,
 )
 from llm_guard.input_scanners.regex import MatchType as RegexMatchType
+
+# Allowed match_type values, mirrored from llm_guard's enum *values* (not names).
+# Keeping these here lets us reject invalid policies at parse time instead of
+# letting the error surface only when the scanner is built.
+_BAN_SUBSTRINGS_MATCH_TYPES = frozenset(m.value for m in BanSubstringsMatchType)
+_REGEX_MATCH_TYPES = frozenset(m.value for m in RegexMatchType)
 
 
 @dataclass
@@ -53,9 +60,15 @@ class BanSubstringsConfig:
             raise ValueError(
                 "ban_substrings requires 'substrings' to be a non-empty list of strings"
             )
+        match_type = str(raw.get("match_type", "word")).lower()
+        if match_type not in _BAN_SUBSTRINGS_MATCH_TYPES:
+            raise ValueError(
+                f"ban_substrings 'match_type' must be one of "
+                f"{sorted(_BAN_SUBSTRINGS_MATCH_TYPES)}, got {match_type!r}"
+            )
         return cls(
             substrings=substrings,
-            match_type=str(raw.get("match_type", "word")).lower(),
+            match_type=match_type,
             case_sensitive=bool(raw.get("case_sensitive", False)),
             contains_all=bool(raw.get("contains_all", False)),
         )
@@ -63,7 +76,7 @@ class BanSubstringsConfig:
     def build(self, action_on_hit: str) -> Any:
         return llm_guard_output_scanners.BanSubstrings(
             substrings=list(self.substrings),
-            match_type=BanSubstringsMatchType[self.match_type.upper()],
+            match_type=BanSubstringsMatchType(self.match_type),
             case_sensitive=self.case_sensitive,
             contains_all=self.contains_all,
             redact=(action_on_hit == "redact"),
@@ -83,17 +96,30 @@ class RegexConfig:
             raise ValueError(
                 "regex requires 'patterns' to be a non-empty list of strings"
             )
+        for pattern in patterns:
+            try:
+                re.compile(pattern)
+            except re.error as exc:
+                raise ValueError(
+                    f"regex pattern {pattern!r} is not a valid regular expression: {exc}"
+                ) from exc
+        match_type = str(raw.get("match_type", "search")).lower()
+        if match_type not in _REGEX_MATCH_TYPES:
+            raise ValueError(
+                f"regex 'match_type' must be one of "
+                f"{sorted(_REGEX_MATCH_TYPES)}, got {match_type!r}"
+            )
         return cls(
             patterns=patterns,
             is_blocked=bool(raw.get("is_blocked", True)),
-            match_type=str(raw.get("match_type", "search")).lower(),
+            match_type=match_type,
         )
 
     def build(self, action_on_hit: str) -> Any:
         return llm_guard_output_scanners.Regex(
             patterns=list(self.patterns),
             is_blocked=self.is_blocked,
-            match_type=RegexMatchType[self.match_type.upper()],
+            match_type=RegexMatchType(self.match_type),
             redact=(action_on_hit == "redact"),
         )
 

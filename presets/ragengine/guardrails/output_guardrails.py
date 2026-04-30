@@ -41,7 +41,13 @@ class OutputGuardrails:
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
-        guardrails = cls(enabled=config.OUTPUT_GUARDRAILS_ENABLED)
+        # When the feature flag is off, skip policy I/O entirely: there is no
+        # need to open / parse / validate the YAML file, and a malformed
+        # policy must not surface warnings while guardrails are disabled.
+        if not config.OUTPUT_GUARDRAILS_ENABLED:
+            return cls(enabled=False)
+
+        guardrails = cls(enabled=True)
         return guardrails._apply_policy_file(config.OUTPUT_GUARDRAILS_POLICY_PATH)
 
     def _apply_policy_file(self, policy_path: str) -> "OutputGuardrails":

@@ -357,7 +357,7 @@ models:
   quantMethod: compressed-tensors
 - name: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
-  license: other
+  license: nvidia-nemotron-open-model-license
   pipelineTag: text-generation
   modelFileSize: 230.25Gi
   architectures:
@@ -369,7 +369,7 @@ models:
   numKeyValueHeads: 2
 - name: nvidia/Nemotron-Cascade-2-30B-A3B
   description: https://huggingface.co/nvidia/Nemotron-Cascade-2-30B-A3B
-  license: other
+  license: nvidia-open-model-license
   pipelineTag: text-generation
   modelFileSize: 58.82Gi
   architectures:
@@ -382,7 +382,7 @@ models:
   headDim: 128
 - name: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
-  license: other
+  license: nvidia-nemotron-open-model-license
   pipelineTag: text-generation
   modelFileSize: 58.82Gi
   architectures:
@@ -395,7 +395,7 @@ models:
   headDim: 128
 - name: nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16
-  license: other
+  license: nvidia-open-model-license
   pipelineTag: image-text-to-text
   modelFileSize: 24.55Gi
   architectures:
@@ -407,7 +407,7 @@ models:
   numKeyValueHeads: 8
 - name: nvidia/NVIDIA-Nemotron-Nano-9B-v2
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-9B-v2
-  license: other
+  license: nvidia-open-model-license
   pipelineTag: text-generation
   baseModel:
   - nvidia/NVIDIA-Nemotron-Nano-12B-v2-Base
@@ -423,7 +423,7 @@ models:
   headDim: 128
 - name: nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16
-  license: other
+  license: nvidia-nemotron-open-model-license
   pipelineTag: text-generation
   baseModel:
   - nvidia/NVIDIA-Nemotron-Nano-9B-v2

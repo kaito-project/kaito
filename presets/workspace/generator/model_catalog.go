@@ -95,6 +95,13 @@ func fetchModelInfo(g *Generator, repo string) (license, pipelineTag string, bas
 		if l, ok := cardData["license"].(string); ok {
 			license = l
 		}
+		// When license is "other", HuggingFace stores the actual license
+		// identifier in the license_name field.
+		if license == "other" {
+			if ln, ok := cardData["license_name"].(string); ok && ln != "" {
+				license = ln
+			}
+		}
 		if pipelineTag == "" {
 			if pt, ok := cardData["pipeline_tag"].(string); ok {
 				pipelineTag = pt

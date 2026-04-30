@@ -1,0 +1,150 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: ai-manager-debug-filter
+  namespace: default
+spec:
+  configPatches:
+  # -------------------------------------------------------------------------
+  # Patch 1: INSERT_FIRST — runs at the very beginning of the HTTP filter
+  # chain, BEFORE BBR and EPP ext_proc filters are invoked.
+  # Use this to observe the raw client request exactly as it arrives at Envoy.
+  # -------------------------------------------------------------------------
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+    patch:
+      operation: INSERT_FIRST
+      value:
+        name: envoy.filters.http.lua.pre_bbr
+        typed_config:
+          "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+          defaultSourceCode:
+            inlineString: |
+              function envoy_on_request(request_handle)
+                local headers    = request_handle:headers()
+                local method     = headers:get(":method") or ""
+                local path       = headers:get(":path") or ""
+
+                -- Skip health checks and any non-inference traffic.
+                -- Only log POST requests to /v1/* (i.e., actual OpenAI-style inference calls).
+                if method ~= "POST" or not string.find(path, "^/v1/") then
+                  return
+                end
+
+                -- x-request-id is injected by Envoy per request and survives the whole filter chain.
+                -- Use it to correlate PRE-BBR / POST-EPP / RESPONSE log lines for a single request
+                -- even when multiple threads are processing requests concurrently.
+                local req_id = headers:get("x-request-id") or "unknown"
+
+                -- At this point BBR and EPP have NOT run yet.
+                -- X-Gateway-Model-Name and x-gateway-destination-endpoint are intentionally omitted
+                -- here because they are always nil before BBR runs — they are logged in POST-EPP.
+                request_handle:logWarn("[PRE-BBR][" .. req_id .. "] Method: " .. method .. " Path: " .. path)
+
+                -- Buffer and log the original request body (contains the OpenAI JSON payload).
+                -- Envoy Lua buffer API uses camelCase: getBytes (NOT get_bytes).
+                -- Gate on length > 0 to avoid getBytes(0, 0) returning nil.
+                -- Also inject request_body_size as a header NOW so POST-EPP can read it directly.
+                local body = request_handle:body()
+                if body and body:length() > 0 then
+                  local body_data = body:getBytes(0, body:length())
+                  if body_data then
+                    request_handle:logInfo("[PRE-BBR][" .. req_id .. "] Request body: " .. body_data)
+                  end
+                end
+              end
+
+  # -------------------------------------------------------------------------
+  # Patch 2: INSERT_BEFORE router — runs after ALL ext_proc filters (BBR then
+  # EPP) have already processed the request, just before Envoy forwards it to
+  # the selected inference pod.
+  #
+  # What you will see here vs Patch 1:
+  #   - x-gateway-model-name        → injected by BBR (extracted from JSON body)
+  #   - x-gateway-destination-endpoint → injected by EPP (the chosen pod IP:port)
+  #
+  # envoy_on_response() captures the HTTP response that the inference pod
+  # sends back. NOTE: streaming (SSE) responses are buffered entirely before
+  # this callback fires, which adds latency. Disable body logging for
+  # streaming workloads.
+  # -------------------------------------------------------------------------
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+            subFilter:
+              name: envoy.filters.http.router
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua.post_epp
+        typed_config:
+          "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+          defaultSourceCode:
+            inlineString: |
+              function envoy_on_request(request_handle)
+                local headers = request_handle:headers()
+                local method  = headers:get(":method") or ""
+                local path    = headers:get(":path") or ""
+
+                -- Determine whether this is an inference request we care about.
+                -- Use Dynamic Metadata to pass this decision to envoy_on_response,
+                -- because that callback cannot access request headers directly.
+                local is_inference = (method == "POST" and string.find(path, "^/v1/") ~= nil)
+                local req_id       = headers:get("x-request-id") or "unknown"
+                request_handle:streamInfo():dynamicMetadata():set("lua.debug", "is_inference", is_inference)
+                request_handle:streamInfo():dynamicMetadata():set("lua.debug", "req_id", req_id)
+
+                -- Skip health checks and any non-inference traffic.
+                if not is_inference then
+                  return
+                end
+
+                -- Log only the headers injected by BBR and EPP.
+                -- Dumping all headers is too noisy (x-envoy-peer-metadata, x-forwarded-*, etc.).
+                -- BBR injects: x-gateway-model-name
+                -- EPP injects: x-gateway-destination-endpoint
+                local log_prefix = "[POST-EPP][" .. req_id .. "] "
+                request_handle:logWarn(log_prefix .. "x-gateway-model-name           : " .. (headers:get("x-gateway-model-name") or "nil"))
+                request_handle:logWarn(log_prefix .. "x-gateway-destination-endpoint : " .. (headers:get("x-gateway-destination-endpoint") or "nil"))
+                -- x-envoy-decorator-operation shows which InferencePool service was selected by the HTTPRoute.
+                request_handle:logWarn(log_prefix .. "x-envoy-decorator-operation    : " .. (headers:get("x-envoy-decorator-operation") or "nil"))
+              end
+
+              function envoy_on_response(response_handle)
+                -- Read the flag set by envoy_on_request via Dynamic Metadata.
+                -- Only log responses for actual inference requests (POST /v1/*).
+                -- Health check probes (GET /) will have is_inference=false and are skipped here.
+                local meta = response_handle:streamInfo():dynamicMetadata():get("lua.debug")
+                if not meta or not meta["is_inference"] then
+                  return
+                end
+
+                local req_id       = meta["req_id"] or "unknown"
+                local headers      = response_handle:headers()
+                local status         = headers:get(":status") or "nil"
+                local content_type   = headers:get("content-type") or "nil"
+                local content_length = headers:get("content-length") or "nil"
+
+                response_handle:logWarn("[RESPONSE][" .. req_id .. "] Status: " .. status .. " Content-Type: " .. content_type .. " Content-Length: " .. content_length)
+
+                -- Log the full response body using the correct camelCase API: getBytes (NOT get_bytes).
+                -- Gate on length > 0 because getBytes(0, 0) returns nil for empty bodies.
+                -- WARNING: this buffers the entire response before sending to client.
+                -- Comment out for streaming (SSE) workloads to avoid latency and memory overhead.
+                local body = response_handle:body()
+                if body and body:length() > 0 then
+                  local body_data = body:getBytes(0, body:length())
+                  if body_data then
+                    response_handle:logInfo("[RESPONSE][" .. req_id .. "] Body: " .. body_data)
+                  end
+                end
+              end

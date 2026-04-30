@@ -32,7 +32,7 @@ Both are **orchestration layers** for LLM inference, sitting above inference eng
 | KV-cache aware routing | ✅ | ✅ (prefix-cache aware) |
 | Multi-tier KV offloading (GPU→CPU→SSD→remote) | ✅ (KVBM) | ✅ (vLLM KVConnector + filesystem backend) |
 | SLA/SLO-driven autoscaling | ✅ (Planner) | ✅ (Workload Variant Autoscaler) |
-| vLLM / SGLang backend support | ✅ Both supported | vLLM primary, SGLang in progress |
+| vLLM / SGLang backend support | ✅ vLLM + SGLang | vLLM primary, SGLang in progress |
 | NIXL for KV transfer | ✅ | ✅ |
 | OpenAI-compatible API | ✅ | ✅ |
 

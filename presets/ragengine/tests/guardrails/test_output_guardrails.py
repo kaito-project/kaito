@@ -430,6 +430,23 @@ def test_parse_policy_scanner_configs_skips_uncompilable_regex_pattern():
     assert parsed == [_regex_cfg(patterns=[r"\d+"])]
 
 
+def test_parse_policy_scanner_configs_rejects_non_bool_flags():
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [
+            # String "false" is truthy in Python; must be rejected, not silently
+            # treated as True.
+            {"type": "ban_substrings", "substrings": ["a"], "case_sensitive": "false"},
+            {"type": "ban_substrings", "substrings": ["a"], "contains_all": 1},
+            {"type": "regex", "patterns": ["a"], "is_blocked": "no"},
+            # Native YAML booleans (already parsed to Python bool) are accepted.
+            {"type": "ban_substrings", "substrings": ["a"], "case_sensitive": True},
+        ],
+        "guardrails.yaml",
+    )
+
+    assert parsed == [_ban_subs_cfg(substrings=["a"], case_sensitive=True)]
+
+
 # ---------------------------------------------------------------------------
 # _build_scanners
 # ---------------------------------------------------------------------------

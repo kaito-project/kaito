@@ -41,9 +41,7 @@ class OutputGuardrails:
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
-        # When the feature flag is off, skip policy I/O entirely: there is no
-        # need to open / parse / validate the YAML file, and a malformed
-        # policy must not surface warnings while guardrails are disabled.
+        # Skip policy I/O when disabled so a malformed policy stays silent.
         if not config.OUTPUT_GUARDRAILS_ENABLED:
             return cls(enabled=False)
 
@@ -52,6 +50,9 @@ class OutputGuardrails:
 
     def _apply_policy_file(self, policy_path: str) -> "OutputGuardrails":
         if not policy_path:
+            # No policy configured: returns self with empty scanner_configs.
+            # Combined with enabled=True this is effectively fail-open.
+            # TODO(next-PR): ship a default policy or refuse to start.
             return self
 
         try:

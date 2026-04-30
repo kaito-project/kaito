@@ -18,9 +18,10 @@ to build the corresponding scanner instance. To add a new scanner:
   1. Define a dataclass with `from_dict()` and `build()`
   2. Register it in SCANNER_REGISTRY below
 
-TODO: Once this scanner config surface stabilizes, move schema validation
-to the admission webhook so that invalid policies are rejected at
-apply-time instead of being silently skipped at runtime.
+NOTE: Validation here is the runtime safety net for cases the
+admission webhook cannot cover (failurePolicy=Ignore, pre-existing
+CRs, ConfigMap-mounted policies, version skew). Bad configs are
+logged and skipped so the rest of the chain still runs.
 
 TODO: Many llm_guard scanners (e.g. Toxicity, Bias, Language) do not
 support redaction; pairing them with action=redact would be a no-op.
@@ -69,8 +70,12 @@ class BanSubstringsConfig:
         return cls(
             substrings=substrings,
             match_type=match_type,
-            case_sensitive=bool(raw.get("case_sensitive", False)),
-            contains_all=bool(raw.get("contains_all", False)),
+            case_sensitive=_coerce_bool(
+                raw.get("case_sensitive"), False, field="case_sensitive"
+            ),
+            contains_all=_coerce_bool(
+                raw.get("contains_all"), False, field="contains_all"
+            ),
         )
 
     def build(self, action_on_hit: str) -> Any:
@@ -111,7 +116,7 @@ class RegexConfig:
             )
         return cls(
             patterns=patterns,
-            is_blocked=bool(raw.get("is_blocked", True)),
+            is_blocked=_coerce_bool(raw.get("is_blocked"), True, field="is_blocked"),
             match_type=match_type,
         )
 
@@ -142,3 +147,13 @@ def _coerce_string_list(value: Any) -> list[str]:
     if not isinstance(value, list):
         return []
     return [item for item in value if isinstance(item, str) and item]
+
+
+def _coerce_bool(value: Any, fallback: bool, *, field: str) -> bool:
+    # bool("false") is True, so we reject non-bool inputs explicitly instead of
+    # silently inverting user intent. YAML native true/false parses to Python bool.
+    if value is None:
+        return fallback
+    if isinstance(value, bool):
+        return value
+    raise ValueError(f"{field!r} must be a boolean (true/false), got {value!r}")

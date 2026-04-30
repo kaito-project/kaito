@@ -879,12 +879,9 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			// Ensure image is up to date
 			spec.Containers[i].Image = fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag)
 			// Ensure port is set correctly
-			if len(spec.Containers[i].Ports) == 0 {
-				spec.Containers[i].Ports = []corev1.ContainerPort{
-					{ContainerPort: consts.PortInferenceServer, Name: "sidecar", Protocol: corev1.ProtocolTCP},
-				}
-			} else {
-				spec.Containers[i].Ports[0].ContainerPort = consts.PortInferenceServer
+			// Set ports to exactly the expected single port struct for deterministic spec
+			spec.Containers[i].Ports = []corev1.ContainerPort{
+				{ContainerPort: consts.PortInferenceServer, Name: "sidecar", Protocol: corev1.ProtocolTCP},
 			}
 			// Ensure POD_IP env is present
 			podIPFound := false

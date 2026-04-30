@@ -150,6 +150,7 @@ jobs:
             labelSelector:
               matchLabels:
                 apps: aikit-test
+                kaito.sh/inference-role: decode
             replicas: 1
             template:
               inference:

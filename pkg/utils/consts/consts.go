@@ -90,6 +90,10 @@ const (
 	// PortInferenceServer is the default port for the inference server.
 	PortInferenceServer = int32(5000)
 
+	// PortKVCacheEvents is the default ZMQ port for vLLM KV cache events.
+	// See https://docs.vllm.ai/en/stable/api/vllm/config/kv_events/
+	PortKVCacheEvents = int32(5557)
+
 	// InferencePoolChartURL is the OCI registry URL for the Gateway API Inference Extension inferencepool chart.
 	InferencePoolChartURL = "oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool"
 

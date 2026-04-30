@@ -88,6 +88,10 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             "swap_space": 4,
             "disable_log_stats": False,
             "uvicorn_log_level": "error",
+            # Enable KV cache events by default for tracking block storage
+            # and removal. Events are published via ZMQ for external consumers.
+            # See https://docs.vllm.ai/en/stable/api/vllm/config/kv_events/
+            "kv_events_config": {"enable_kv_cache_events": True},
         }
         self.vllm_parser.set_defaults(**engine_default_args)
 

@@ -90,6 +90,13 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 					Port:       80,
 					TargetPort: intstr.FromInt32(consts.PortInferenceServer),
 				},
+				// KV cache events ZMQ port
+				{
+					Name:       "kv-events",
+					Protocol:   corev1.ProtocolTCP,
+					Port:       int32(consts.PortKVCacheEvents),
+					TargetPort: intstr.FromInt32(consts.PortKVCacheEvents),
+				},
 				{
 					Name:       "ray",
 					Protocol:   corev1.ProtocolTCP,

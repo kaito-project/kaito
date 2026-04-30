@@ -106,6 +106,21 @@ const (
 	EPPImageName = "llm-d-inference-scheduler"
 	EPPImageTag  = "v0.7.1"
 
+	// Routing sidecar for P/D disaggregation on decode workspaces.
+	// The sidecar takes over the public-facing port (5000) so the Service
+	// routes traffic to it. It then forwards to vLLM on the internal port (5001).
+	// See: https://github.com/llm-d/llm-d-routing-sidecar
+	RoutingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
+	RoutingSidecarTag   = "v0.7.1"
+
+	// When the routing sidecar is present, vLLM moves to this internal port.
+	PortInferenceServerInternal = int32(5001)
+
+	// Inference role constants for P/D disaggregated serving.
+	InferenceRoleEnvName = "KAITO_INFERENCE_ROLE"
+	InferenceRolePrefill = "prefill"
+	InferenceRoleDecode  = "decode"
+
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"
 

@@ -222,15 +222,68 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
         }
 
 
+def set_nixl_kv_transfer_config_if_applicable(
+    args: argparse.Namespace, user_provided_kv_config: bool = False
+) -> None:
+    """
+    Inject NixlConnector kv-transfer-config for P/D disaggregated inference.
+
+    When a workspace is created by the MultiRoleInference controller, the pod
+    will have the KAITO_INFERENCE_ROLE environment variable set to "prefill" or
+    "decode". Both roles use kv_both so each pod can both send and receive KV
+    cache via NixlConnector (RDMA/TCP fallback).
+
+    If the user explicitly provided kv-transfer-config (via CLI args,
+    inference configmap, or other sources), that value is respected and
+    not overridden. Otherwise, any existing kv_transfer_config (e.g. from
+    KV cache offloading) will be overridden with NixlConnector config.
+    """
+    inference_role = os.environ.get("KAITO_INFERENCE_ROLE", "")
+    if inference_role not in ("prefill", "decode"):
+        return
+
+    # Respect user-provided kv-transfer-config (e.g. from CLI args, inference configmap, or other sources)
+    if user_provided_kv_config and args.kv_transfer_config is not None:
+        logger.info(
+            f"Respecting user-provided kv_transfer_config for inference role "
+            f"'{inference_role}': {args.kv_transfer_config}"
+        )
+        return
+
+    nixl_config = {
+        "kv_connector": "NixlConnector",
+        "kv_role": "kv_both",
+        "kv_load_failure_policy": "fail",
+    }
+
+    if args.kv_transfer_config is not None:
+        logger.info(
+            f"Overriding LMCache kv_transfer_config with NixlConnector for "
+            f"inference role '{inference_role}': {args.kv_transfer_config} -> {nixl_config}"
+        )
+    else:
+        logger.info(
+            f"Setting NixlConnector kv_transfer_config for inference role '{inference_role}'"
+        )
+
+    args.kv_transfer_config = nixl_config
+
+
 if __name__ == "__main__":
     parser = KAITOArgumentParser(description="KAITO wrapper of vLLM serving server")
     args = parser.parse_args()
+
+    # Track whether kv-transfer-config was already set before any automatic
+    # configuration (e.g., via CLI args or inference configmap). This is checked
+    # before set_kv_cache_offloading_if_appliable which may also set it.
+    user_provided_kv_config = args.kv_transfer_config is not None
 
     # set LoRA adapters
     if args.lora_modules is None:
         args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
 
     set_kv_cache_offloading_if_appliable(args)
+    set_nixl_kv_transfer_config_if_applicable(args, user_provided_kv_config)
 
     # Run the serving server
     logger.info(f"Starting server on port {args.port}")

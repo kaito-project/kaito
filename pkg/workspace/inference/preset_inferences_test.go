@@ -28,6 +28,7 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -1332,4 +1333,293 @@ func toParameterMap(in []string) map[string]string {
 		}
 	}
 	return ret
+}
+
+func TestSetInferenceRoleEnv(t *testing.T) {
+	tests := []struct {
+		name           string
+		labels         map[string]string
+		containers     int
+		preExistingEnv bool
+		expectEnvSet   bool
+		expectedValue  string
+	}{
+		{
+			name:         "no label - no env set",
+			labels:       map[string]string{},
+			containers:   1,
+			expectEnvSet: false,
+		},
+		{
+			name:         "invalid role - no env set",
+			labels:       map[string]string{v1beta1.LabelInferenceRole: "invalid"},
+			containers:   1,
+			expectEnvSet: false,
+		},
+		{
+			name:          "prefill role - env set on all containers",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
+			containers:    2,
+			expectEnvSet:  true,
+			expectedValue: consts.InferenceRolePrefill,
+		},
+		{
+			name:          "decode role - env set on all containers",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
+			containers:    1,
+			expectEnvSet:  true,
+			expectedValue: consts.InferenceRoleDecode,
+		},
+		{
+			name:           "prefill role - upsert existing env var without duplicates",
+			labels:         map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
+			containers:     1,
+			preExistingEnv: true,
+			expectEnvSet:   true,
+			expectedValue:  "prefill",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			workspace := &v1beta1.Workspace{}
+			workspace.Labels = tc.labels
+
+			spec := &corev1.PodSpec{}
+			for i := 0; i < tc.containers; i++ {
+				c := corev1.Container{
+					Name: fmt.Sprintf("container-%d", i),
+				}
+				if tc.preExistingEnv {
+					c.Env = []corev1.EnvVar{
+						{Name: consts.InferenceRoleEnvName, Value: "old-value"},
+					}
+				}
+				spec.Containers = append(spec.Containers, c)
+			}
+
+			ctx := &generator.WorkspaceGeneratorContext{
+				Workspace: workspace,
+			}
+
+			err := SetInferenceRoleEnv(ctx, spec)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			for i, c := range spec.Containers {
+				count := 0
+				for _, env := range c.Env {
+					if env.Name == consts.InferenceRoleEnvName {
+						count++
+						if !tc.expectEnvSet {
+							t.Errorf("container %d: env KAITO_INFERENCE_ROLE should not be set", i)
+						} else if env.Value != tc.expectedValue {
+							t.Errorf("container %d: expected value %q, got %q", i, tc.expectedValue, env.Value)
+						}
+					}
+				}
+				if tc.expectEnvSet && count == 0 {
+					t.Errorf("container %d: expected KAITO_INFERENCE_ROLE to be set", i)
+				}
+				if count > 1 {
+					t.Errorf("container %d: found %d entries for KAITO_INFERENCE_ROLE, expected at most 1", i, count)
+				}
+			}
+		})
+	}
+}
+
+func TestSetRoutingSidecar(t *testing.T) {
+	tests := []struct {
+		name               string
+		labels             map[string]string
+		existingContainers []corev1.Container
+		multiNode          bool
+		expectSidecar      bool
+	}{
+		{
+			name:          "no label - no sidecar",
+			labels:        map[string]string{},
+			expectSidecar: false,
+		},
+		{
+			name:          "prefill role - no sidecar",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
+			expectSidecar: false,
+		},
+		{
+			name:          "decode role - sidecar injected",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
+			expectSidecar: true,
+		},
+		{
+			name:   "decode role - sidecar already exists - no duplicate",
+			labels: map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
+			existingContainers: []corev1.Container{
+				{Name: "llm-d-routing-sidecar", Image: "old-image"},
+			},
+			expectSidecar: true,
+		},
+		{
+			name:               "decode role - multi-node shell command",
+			labels:             map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
+			existingContainers: nil,
+			multiNode:          true,
+			expectSidecar:      true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// Enable vLLM feature gate for runtime detection
+			originalVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+			defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = originalVLLM }()
+
+			workspace := &v1beta1.Workspace{}
+			workspace.Labels = tc.labels
+
+			spec := &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "vllm",
+						Ports: []corev1.ContainerPort{
+							{ContainerPort: int32(consts.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
+						},
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py --served-model-name test"},
+						ReadinessProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Port: intstr.FromInt32(int32(consts.PortInferenceServer)),
+									Path: "/health",
+								},
+							},
+						},
+						LivenessProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Port: intstr.FromInt32(int32(consts.PortInferenceServer)),
+									Path: "/health",
+								},
+							},
+						},
+					},
+				},
+			}
+			// Multi-node uses a shell if/else script wrapping inference_api.py
+			if tc.multiNode {
+				spec.Containers[0].Command = []string{"/bin/sh", "-c",
+					"if [ \"$RAY_HEAD\" = \"true\" ]; then ray start --head && python3 /workspace/vllm/inference_api.py --served-model-name test; else ray start && sleep infinity; fi"}
+			}
+			if tc.existingContainers != nil {
+				spec.Containers = append(spec.Containers, tc.existingContainers...)
+			}
+
+			ctx := &generator.WorkspaceGeneratorContext{
+				Workspace: workspace,
+			}
+
+			err := SetRoutingSidecar(ctx, spec)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			sidecarCount := 0
+			for _, c := range spec.Containers {
+				if c.Name == "llm-d-routing-sidecar" {
+					sidecarCount++
+				}
+			}
+
+			if tc.expectSidecar && sidecarCount == 0 {
+				t.Error("expected routing sidecar to be present")
+			}
+			if !tc.expectSidecar && sidecarCount > 0 {
+				t.Error("routing sidecar should not be present")
+			}
+			if sidecarCount > 1 {
+				t.Errorf("found %d sidecar containers, expected at most 1", sidecarCount)
+			}
+
+			// Verify sidecar config for decode role (newly injected case)
+			if tc.expectSidecar && tc.existingContainers == nil {
+				var sidecar *corev1.Container
+				for i, c := range spec.Containers {
+					if c.Name == "llm-d-routing-sidecar" {
+						sidecar = &spec.Containers[i]
+						break
+					}
+				}
+				if sidecar == nil {
+					t.Fatal("sidecar not found")
+				}
+				expectedImage := fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag)
+				if sidecar.Image != expectedImage {
+					t.Errorf("expected image %q, got %q", expectedImage, sidecar.Image)
+				}
+				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != int32(consts.PortInferenceServer) {
+					t.Errorf("expected port %d, got %v", consts.PortInferenceServer, sidecar.Ports)
+				}
+				// Check BACKEND_URL env
+				foundBackend := false
+				for _, env := range sidecar.Env {
+					if env.Name == "BACKEND_URL" {
+						expectedURL := fmt.Sprintf("http://localhost:%d", consts.PortInferenceServerInternal)
+						if env.Value != expectedURL {
+							t.Errorf("expected BACKEND_URL %q, got %q", expectedURL, env.Value)
+						}
+						foundBackend = true
+					}
+				}
+				if !foundBackend {
+					t.Error("BACKEND_URL env not found on sidecar")
+				}
+			}
+
+			// Verify vLLM port/probe/command rewrites for ALL decode cases (including sidecar-exists)
+			if tc.expectSidecar {
+				for _, c := range spec.Containers {
+					if c.Name == "llm-d-routing-sidecar" {
+						continue
+					}
+					for _, p := range c.Ports {
+						if p.ContainerPort == int32(consts.PortInferenceServer) {
+							t.Errorf("vLLM container still has port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
+						}
+					}
+					// Verify command has --port override inserted (not appended after fi)
+					for _, cmd := range c.Command {
+						if strings.Contains(cmd, "inference_api.py") {
+							expectedPortArg := fmt.Sprintf("inference_api.py --port %d", consts.PortInferenceServerInternal)
+							if !strings.Contains(cmd, expectedPortArg) {
+								t.Errorf("expected command to contain %q, got %q", expectedPortArg, cmd)
+							}
+							// Multi-node: ensure --port is NOT after 'fi'
+							if strings.Contains(cmd, "; fi") {
+								fiIdx := strings.Index(cmd, "; fi")
+								portStr := fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)
+								portIdx := strings.Index(cmd, portStr)
+								if portIdx > fiIdx {
+									t.Errorf("--port was appended after 'fi' instead of after inference_api.py: %q", cmd)
+								}
+							}
+						}
+					}
+					// Verify readiness probe port updated
+					if c.ReadinessProbe != nil && c.ReadinessProbe.HTTPGet != nil {
+						if c.ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+							t.Errorf("readiness probe still targets port %d", consts.PortInferenceServer)
+						}
+					}
+					// Verify liveness probe port updated
+					if c.LivenessProbe != nil && c.LivenessProbe.HTTPGet != nil {
+						if c.LivenessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+							t.Errorf("liveness probe still targets port %d", consts.PortInferenceServer)
+						}
+					}
+				}
+			}
+		})
+	}
 }

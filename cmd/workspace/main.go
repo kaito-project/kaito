@@ -48,6 +48,7 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	drift "github.com/kaito-project/kaito/pkg/controllers/drift"
+	gc "github.com/kaito-project/kaito/pkg/controllers/gc"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
@@ -289,6 +290,17 @@ func main() {
 			)
 			if err = driftReconciler.SetupWithManager(mgr); err != nil {
 				klog.ErrorS(err, "unable to create controller", "controller", "Drift")
+				exitWithErrorFunc()
+			}
+		}
+
+		if consts.IsKarpenterProvisioner() {
+			gcController := gc.NewLegacyNodeClaimGCController(
+				kClient,
+				mgr.GetEventRecorderFor("legacy-gc-controller"),
+			)
+			if err = mgr.Add(gcController); err != nil {
+				klog.ErrorS(err, "unable to add controller", "controller", "LegacyNodeClaimGC")
 				exitWithErrorFunc()
 			}
 		}

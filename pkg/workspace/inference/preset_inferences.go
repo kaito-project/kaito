@@ -824,27 +824,45 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			// Insert or rewrite --port to override vLLM's default listen port.
 			// Use string replacement to handle both single-node and multi-node
 			// shell script commands (where appending at end would break the script).
-			// If --port already exists with a different value, rewrite it to the internal port.
-			internalPort := fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)
+			// Handles both "--port <n>" (space form) and "--port=<n>" (equals form).
+			internalPortSpace := fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)
+			internalPortEquals := fmt.Sprintf("--port=%d", consts.PortInferenceServerInternal)
 			if !portOverrideAdded && strings.Contains(cmd, "inference_api.py") {
-				// Check for any existing --port flag and rewrite it
-				if idx := strings.Index(cmd, "--port "); idx >= 0 {
-					// Find the end of the port number
-					portStart := idx + len("--port ")
+				rewritten := false
+				// Check for "--port=<n>" form first (e.g., from BuildCmdStr)
+				if idx := strings.Index(cmd, "--port="); idx >= 0 {
+					portStart := idx + len("--port=")
 					portEnd := portStart
 					for portEnd < len(cmd) && cmd[portEnd] >= '0' && cmd[portEnd] <= '9' {
 						portEnd++
 					}
 					if portEnd > portStart {
 						existing := cmd[idx:portEnd]
-						spec.Containers[i].Command[j] = strings.Replace(cmd, existing, internalPort, 1)
+						spec.Containers[i].Command[j] = strings.Replace(cmd, existing, internalPortEquals, 1)
+						rewritten = true
 					}
-				} else {
-					// No existing --port, insert after inference_api.py
+				}
+				// Check for "--port <n>" form (space-separated)
+				if !rewritten {
+					if idx := strings.Index(cmd, "--port "); idx >= 0 {
+						portStart := idx + len("--port ")
+						portEnd := portStart
+						for portEnd < len(cmd) && cmd[portEnd] >= '0' && cmd[portEnd] <= '9' {
+							portEnd++
+						}
+						if portEnd > portStart {
+							existing := cmd[idx:portEnd]
+							spec.Containers[i].Command[j] = strings.Replace(cmd, existing, internalPortSpace, 1)
+							rewritten = true
+						}
+					}
+				}
+				// No existing --port flag, insert after inference_api.py
+				if !rewritten {
 					spec.Containers[i].Command[j] = strings.Replace(
 						cmd,
 						"inference_api.py",
-						"inference_api.py "+internalPort,
+						"inference_api.py "+internalPortSpace,
 						1,
 					)
 				}
@@ -890,6 +908,24 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 				}
 			} else {
 				spec.Containers[i].Ports[0].ContainerPort = consts.PortInferenceServer
+			}
+			// Ensure POD_IP env is present
+			podIPFound := false
+			for j := range spec.Containers[i].Env {
+				if spec.Containers[i].Env[j].Name == "POD_IP" {
+					podIPFound = true
+					break
+				}
+			}
+			if !podIPFound {
+				spec.Containers[i].Env = append(spec.Containers[i].Env, corev1.EnvVar{
+					Name: "POD_IP",
+					ValueFrom: &corev1.EnvVarSource{
+						FieldRef: &corev1.ObjectFieldSelector{
+							FieldPath: "status.podIP",
+						},
+					},
+				})
 			}
 			break
 		}

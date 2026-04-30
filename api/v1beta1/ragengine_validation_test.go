@@ -296,6 +296,9 @@ func TestRAGEngineValidateGuardrails(t *testing.T) {
 					Guardrails: &GuardrailsSpec{Enabled: true},
 				},
 			},
+			objects: []runtime.Object{
+				&v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: DefaultGuardrailsPolicyConfigMapTemplate, Namespace: "kaito-system"}, Data: map[string]string{GuardrailsPolicyFileName: "action: block\nscanners: []\n"}},
+			},
 		},
 		{
 			name: "missing guardrails policy file is rejected",
@@ -337,6 +340,7 @@ func TestRAGEngineValidateGuardrails(t *testing.T) {
 			scheme := runtime.NewScheme()
 			_ = v1.AddToScheme(scheme)
 			k8sclient.Client = ctrlclientfake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
+			t.Setenv(consts.DefaultReleaseNamespaceEnvVar, "kaito-system")
 
 			err := tt.ragEngine.validateGuardrails(context.Background())
 			if tt.wantErr == "" {

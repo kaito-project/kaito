@@ -25,6 +25,11 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
+const (
+	GuardrailsPolicyMountDir = "/etc/kaito/guardrails"
+	GuardrailsPolicyFilePath = GuardrailsPolicyMountDir + "/" + kaitov1beta1.GuardrailsPolicyFileName
+)
+
 func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisionNum string, imageName string,
 	imagePullSecretRefs []corev1.LocalObjectReference, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
@@ -273,6 +278,19 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 				envs = append(envs, accessSecretEnv)
 			}
 		}
+	}
+
+	if ragEngineObj.Spec.Guardrails != nil && ragEngineObj.Spec.Guardrails.Enabled {
+		envs = append(envs,
+			corev1.EnvVar{
+				Name:  "OUTPUT_GUARDRAILS_ENABLED",
+				Value: "true",
+			},
+			corev1.EnvVar{
+				Name:  "OUTPUT_GUARDRAILS_POLICY_PATH",
+				Value: GuardrailsPolicyFilePath,
+			},
+		)
 	}
 
 	return envs

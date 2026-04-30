@@ -17,6 +17,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	DefaultGuardrailsPolicyConfigMapTemplate = "ragengine-guardrails-policy-template"
+	GuardrailsPolicyFileName                 = "guardrails.yaml"
+)
+
 type ConfigMapReference struct {
 	// Name is the name of the ConfigMap in the same namespace as the RAGEngine.
 	Name string `json:"name"`
@@ -27,6 +32,8 @@ type GuardrailsSpec struct {
 	// +optional
 	Enabled bool `json:"enabled,omitempty"`
 	// ConfigMapRef points to a ConfigMap that contains a guardrails.yaml policy document.
+	// When omitted and guardrails are enabled, the controller copies the default
+	// ragengine-guardrails-policy-template ConfigMap from the release namespace.
 	// +optional
 	ConfigMapRef *ConfigMapReference `json:"configMapRef,omitempty"`
 }

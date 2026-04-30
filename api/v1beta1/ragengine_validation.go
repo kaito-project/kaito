@@ -99,25 +99,39 @@ func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldErr
 	}
 
 	guardrails := w.Spec.Guardrails
-	if guardrails.ConfigMapRef == nil || guardrails.ConfigMapRef.Name == "" {
+	if !guardrails.Enabled {
 		return nil
 	}
 	if k8sclient.Client == nil {
 		return apis.ErrGeneric("Failed to obtain client from context.Context")
 	}
 
+	cmName := DefaultGuardrailsPolicyConfigMapTemplate
+	cmNamespace := w.Namespace
+	field := "configMapRef.name"
+	if guardrails.ConfigMapRef != nil && guardrails.ConfigMapRef.Name != "" {
+		cmName = guardrails.ConfigMapRef.Name
+	} else {
+		releaseNamespace, err := utils.GetReleaseNamespace()
+		if err != nil {
+			return apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace")
+		}
+		cmNamespace = releaseNamespace
+		field = "enabled"
+	}
+
 	var cm corev1.ConfigMap
-	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: guardrails.ConfigMapRef.Name, Namespace: w.Namespace}, &cm)
+	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: cmName, Namespace: cmNamespace}, &cm)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return apis.ErrGeneric(
-				fmt.Sprintf("ConfigMap '%s' specified in guardrails.configMapRef not found in namespace '%s'", guardrails.ConfigMapRef.Name, w.Namespace),
-				"configMapRef.name",
+				fmt.Sprintf("ConfigMap '%s' specified for guardrails not found in namespace '%s'", cmName, cmNamespace),
+				field,
 			)
 		}
 		return apis.ErrGeneric(
-			fmt.Sprintf("Failed to get ConfigMap '%s' in namespace '%s': %v", guardrails.ConfigMapRef.Name, w.Namespace, err),
-			"configMapRef.name",
+			fmt.Sprintf("Failed to get ConfigMap '%s' in namespace '%s': %v", cmName, cmNamespace, err),
+			field,
 		)
 	}
 
@@ -125,8 +139,8 @@ func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldErr
 }
 
 func validateGuardrailsPolicyConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
-	if _, ok := cm.Data[guardrailsPolicyFileName]; !ok {
-		return apis.ErrMissingField(fmt.Sprintf("%s in ConfigMap", guardrailsPolicyFileName))
+	if _, ok := cm.Data[GuardrailsPolicyFileName]; !ok {
+		return apis.ErrMissingField(fmt.Sprintf("%s in ConfigMap", GuardrailsPolicyFileName))
 	}
 
 	return nil

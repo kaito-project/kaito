@@ -31,8 +31,9 @@ import (
 )
 
 const (
-	ProbePath           = "/health"
-	PortInferenceServer = 5000
+	ProbePath            = "/health"
+	PortInferenceServer  = 5000
+	guardrailsVolumeName = "guardrails-policy"
 )
 
 var (
@@ -140,6 +141,45 @@ func configStorageVolume(storageSpec *v1beta1.StorageSpec) (corev1.Volume, corev
 	return volume, volumeMount
 }
 
+func configGuardrailsPolicyVolume(cmName string) (corev1.Volume, corev1.VolumeMount) {
+	return corev1.Volume{
+			Name: guardrailsVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: cmName,
+					},
+					Items: []corev1.KeyToPath{{
+						Key:  v1beta1.GuardrailsPolicyFileName,
+						Path: v1beta1.GuardrailsPolicyFileName,
+					}},
+				},
+			},
+		}, corev1.VolumeMount{
+			Name:      guardrailsVolumeName,
+			MountPath: manifests.GuardrailsPolicyMountDir,
+			ReadOnly:  true,
+		}
+}
+
+func ensureGuardrailsPolicyConfigMap(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, kubeClient client.Client) (*corev1.ConfigMap, error) {
+	if ragEngineObj.Spec == nil || ragEngineObj.Spec.Guardrails == nil || !ragEngineObj.Spec.Guardrails.Enabled {
+		return nil, nil
+	}
+
+	userProvided := client.ObjectKey{Namespace: ragEngineObj.Namespace}
+	if ragEngineObj.Spec.Guardrails.ConfigMapRef != nil {
+		userProvided.Name = ragEngineObj.Spec.Guardrails.ConfigMapRef.Name
+	}
+
+	return resources.EnsureConfigOrCopyFromDefault(
+		ctx,
+		kubeClient,
+		userProvided,
+		client.ObjectKey{Name: v1beta1.DefaultGuardrailsPolicyConfigMapTemplate},
+	)
+}
+
 func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
@@ -153,6 +193,16 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 		storageVolume, storageVolumeMount := configStorageVolume(ragEngineObj.Spec.Storage)
 		volumes = append(volumes, storageVolume)
 		volumeMounts = append(volumeMounts, storageVolumeMount)
+	}
+
+	guardrailsConfigMap, err := ensureGuardrailsPolicyConfigMap(ctx, ragEngineObj, kubeClient)
+	if err != nil {
+		return nil, err
+	}
+	if guardrailsConfigMap != nil {
+		guardrailsVolume, guardrailsVolumeMount := configGuardrailsPolicyVolume(guardrailsConfigMap.Name)
+		volumes = append(volumes, guardrailsVolume)
+		volumeMounts = append(volumeMounts, guardrailsVolumeMount)
 	}
 
 	var resourceReq corev1.ResourceRequirements
@@ -192,7 +242,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 	depObj := manifests.GenerateRAGDeploymentManifest(ragEngineObj, revisionNum, image, imagePullSecretRefs, commands,
 		containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts)
 
-	err := resources.CreateResource(ctx, depObj, kubeClient)
+	err = resources.CreateResource(ctx, depObj, kubeClient)
 	if client.IgnoreAlreadyExists(err) != nil {
 		return nil, err
 	}

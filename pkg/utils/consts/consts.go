@@ -107,13 +107,15 @@ const (
 	EPPImageTag  = "v0.7.1"
 
 	// Routing sidecar for P/D disaggregation on decode workspaces.
-	// The sidecar sits in front of the vLLM engine on decode pods:
-	// incoming requests hit the sidecar (port 8080), which orchestrates
-	// prefill (if needed) and forwards to local vLLM (port 5000).
+	// The sidecar takes over the public-facing port (5000) so the Service
+	// routes traffic to it. It then forwards to vLLM on the internal port (5001).
 	// See: https://github.com/llm-d/llm-d-routing-sidecar
 	RoutingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
 	RoutingSidecarTag   = "v0.7.1"
-	RoutingSidecarPort  = 8080
+	RoutingSidecarPort  = 5000 // Sidecar takes over the public-facing port
+
+	// When the routing sidecar is present, vLLM moves to this internal port.
+	PortInferenceServerInternal = 5001
 
 	// Inference role constants for P/D disaggregated serving.
 	InferenceRoleEnvName = "KAITO_INFERENCE_ROLE"

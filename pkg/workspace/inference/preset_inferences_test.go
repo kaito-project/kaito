@@ -1524,7 +1524,7 @@ func TestSetRoutingSidecar(t *testing.T) {
 				foundBackend := false
 				for _, env := range sidecar.Env {
 					if env.Name == "BACKEND_URL" {
-						expectedURL := fmt.Sprintf("http://localhost:%d", consts.PortInferenceServer)
+						expectedURL := fmt.Sprintf("http://localhost:%d", consts.PortInferenceServerInternal)
 						if env.Value != expectedURL {
 							t.Errorf("expected BACKEND_URL %q, got %q", expectedURL, env.Value)
 						}

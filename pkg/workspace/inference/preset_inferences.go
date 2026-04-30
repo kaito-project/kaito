@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -734,6 +735,39 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 		}
 	}
 
+	// Move vLLM to internal port so the sidecar can take over the public-facing port.
+	// Update container ports, readiness/liveness probes, and vllm-port arg.
+	oldPort := strconv.Itoa(consts.PortInferenceServer)
+	newPort := strconv.Itoa(consts.PortInferenceServerInternal)
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == "llm-d-routing-sidecar" {
+			continue
+		}
+		for j := range spec.Containers[i].Ports {
+			if spec.Containers[i].Ports[j].ContainerPort == int32(consts.PortInferenceServer) {
+				spec.Containers[i].Ports[j].ContainerPort = int32(consts.PortInferenceServerInternal)
+			}
+		}
+		// Update readiness probe port
+		if spec.Containers[i].ReadinessProbe != nil && spec.Containers[i].ReadinessProbe.HTTPGet != nil {
+			if spec.Containers[i].ReadinessProbe.HTTPGet.Port.IntValue() == consts.PortInferenceServer {
+				spec.Containers[i].ReadinessProbe.HTTPGet.Port = intstr.FromInt32(int32(consts.PortInferenceServerInternal))
+			}
+		}
+		// Update liveness probe port
+		if spec.Containers[i].LivenessProbe != nil && spec.Containers[i].LivenessProbe.HTTPGet != nil {
+			if spec.Containers[i].LivenessProbe.HTTPGet.Port.IntValue() == consts.PortInferenceServer {
+				spec.Containers[i].LivenessProbe.HTTPGet.Port = intstr.FromInt32(int32(consts.PortInferenceServerInternal))
+			}
+		}
+		// Update --vllm-port in container args
+		for j, arg := range spec.Containers[i].Args {
+			if strings.Contains(arg, "--vllm-port="+oldPort) {
+				spec.Containers[i].Args[j] = strings.Replace(arg, "--vllm-port="+oldPort, "--vllm-port="+newPort, 1)
+			}
+		}
+	}
+
 	sidecar := corev1.Container{
 		Name:  "llm-d-routing-sidecar",
 		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
@@ -747,7 +781,7 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 		Env: []corev1.EnvVar{
 			{
 				Name:  "BACKEND_URL",
-				Value: fmt.Sprintf("http://localhost:%d", consts.PortInferenceServer),
+				Value: fmt.Sprintf("http://localhost:%d", consts.PortInferenceServerInternal),
 			},
 			{
 				Name: "POD_IP",

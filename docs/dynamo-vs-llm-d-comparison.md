@@ -201,7 +201,7 @@ Dynamo is not just an inference orchestration layer — it's an integrated showc
 #### 2. Runtime Wrapper Complexity Exceeds Expectations
 
 Dynamo's runtime wrapper doesn't just handle inference forwarding — it also includes built-in reasoning and tool parsing logic. This means:
-- **KAITO's existing model presets will fail** — Dynamo's wrapper has its own assumptions about model input/output
+- **Some existing KAITO model presets may be incompatible without adaptation** — Dynamo's wrapper makes its own assumptions about request/response handling. For example, presets that expect KAITO's current prompt formatting or raw model I/O may need changes to align with Dynamo-specific reasoning/tool-parsing behavior before they work correctly.
 - **Extended version dependency chain**: Each new model release requires waiting for ① a vLLM release ② a Dynamo release before support is available
 - The wrapper is written in **Python + Rust** hybrid, making debugging and maintenance difficult
 
@@ -224,7 +224,7 @@ Based on comprehensive architecture evaluation and hands-on walkthrough, **llm-d
 
 | Dimension | Dynamo | llm-d |
 |---|---|---|
-| Integration complexity | High (full-stack framework, NATS/etcd dependencies) | Low (K8s-native, no extra dependencies) |
+| Integration complexity | High (full-stack framework, requires additional infra beyond Kubernetes: NATS + its own service discovery store) | Low (K8s-native, no additional infra beyond the Kubernetes control plane / Gateway API stack) |
 | Version dependency chain | vLLM → Dynamo → KAITO (three-tier) | vLLM → KAITO (two-tier) |
 | Code maintainability | Python + Rust + Go hybrid | Pure Go (EPP) + Python (vLLM) |
 | P/D disaggregation capability | EPP mode ≈ llm-d, but with extra NATS layer | Native support, sidecar pattern |

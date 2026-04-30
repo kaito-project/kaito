@@ -692,7 +692,7 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 // to the KAITO_INFERENCE_ROLE environment variable on all containers.
 // This is used by the vLLM inference_api.py to inject NixlConnector kv-transfer-config
 // for P/D disaggregated inference. The label is propagated from
-// InferenceSet.Spec.Template.Labels onto child workspaces by the InferenceSet controller.
+// InferenceSet.Spec.Template.Metadata.Labels onto child workspaces by the InferenceSet controller.
 func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]
 	if !ok || (role != consts.InferenceRolePrefill && role != consts.InferenceRoleDecode) {

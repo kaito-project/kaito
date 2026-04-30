@@ -3,8 +3,9 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.2.8
+    tag: 0.3.0
     # Tag history:
+    # 0.3.0 - bump vllm to 0.19.1, transformers to 5.6.0
     # 0.2.8 - update benchmark_entrypoint.py to poll kv cache size for concurrency calculation and pin venv transformer to 5.3.0
     # 0.2.7 - bump vllm to 0.17.1
     # 0.2.6 - update benchmark_entrypoint.py: re-emit config before result, add max_concurrency output

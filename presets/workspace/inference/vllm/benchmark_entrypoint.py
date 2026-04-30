@@ -33,23 +33,14 @@ own sys.stdout if /proc/1/fd/1 is not accessible.
 """
 
 import asyncio
-import glob
 import os
 import sys
 import time
 import urllib.request
 from pathlib import Path
 
+from huggingface_hub import scan_cache_dir
 from prometheus_client.parser import text_string_to_metric_families
-
-# Inject guidellm's isolated venv into sys.path before any huggingface_hub
-# import so that guidellm's newer huggingface_hub (which exports is_offline_mode
-# and other symbols) is loaded instead of the older system-installed version.
-_sp = glob.glob("/opt/guidellm-venv/lib/python*/site-packages")
-if _sp and _sp[0] not in sys.path:
-    sys.path.insert(0, _sp[0])
-
-from huggingface_hub import scan_cache_dir  # noqa: E402
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 BENCHMARK_DURATION = 60

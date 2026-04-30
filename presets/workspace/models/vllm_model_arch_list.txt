@@ -29,11 +29,15 @@ ChatGLMForConditionalGeneration
 ChatGLMModel
 Cohere2ForCausalLM
 Cohere2VisionForConditionalGeneration
+CohereAsrForConditionalGeneration
 CohereForCausalLM
 ColBERTJinaRobertaModel
+ColBERTLfm2Model
 ColBERTModernBertModel
 ColModernVBertForRetrieval
+ColPaliForRetrieval
 ColQwen3
+ColQwen3_5
 CwmForCausalLM
 DbrxForCausalLM
 DeciLMForCausalLM
@@ -48,6 +52,8 @@ DeepseekVLV2ForCausalLM
 Dots1ForCausalLM
 DotsOCRForCausalLM
 Eagle2_5_VLForConditionalGeneration
+Eagle3DeepseekV2ForCausalLM
+Eagle3DeepseekV3ForCausalLM
 Eagle3LlamaForCausalLM
 Eagle3Qwen2_5vlForCausalLM
 Eagle3Qwen3vlForCausalLM
@@ -60,7 +66,10 @@ Emu3ForConditionalGeneration
 Ernie4_5ForCausalLM
 Ernie4_5_MoeForCausalLM
 Ernie4_5_VLMoeForConditionalGeneration
+ErnieForSequenceClassification
+ErnieForTokenClassification
 ErnieMTPModel
+ErnieModel
 Exaone4ForCausalLM
 ExaoneForCausalLM
 ExaoneMoEForCausalLM
@@ -88,6 +97,8 @@ Gemma3ForConditionalGeneration
 Gemma3TextModel
 Gemma3nForCausalLM
 Gemma3nForConditionalGeneration
+Gemma4ForCausalLM
+Gemma4ForConditionalGeneration
 GemmaForCausalLM
 Glm4ForCausalLM
 Glm4MoeForCausalLM
@@ -115,10 +126,12 @@ GteNewForSequenceClassification
 GteNewModel
 H2OVLChatModel
 HCXVisionForCausalLM
+HCXVisionV2ForCausalLM
 HF_ColBERT
 HunYuanDenseV1ForCausalLM
 HunYuanMoEV1ForCausalLM
 HunYuanVLForConditionalGeneration
+HyperCLOVAXForCausalLM
 IQuestCoderForCausalLM
 IQuestLoopCoderForCausalLM
 Idefics3ForConditionalGeneration
@@ -192,6 +205,7 @@ ModernBertForTokenClassification
 ModernBertModel
 Molmo2ForConditionalGeneration
 MolmoForCausalLM
+MoonshotKimiaForCausalLM
 MptForCausalLM
 MusicFlamingoForConditionalGeneration
 NVLM_D
@@ -206,6 +220,7 @@ OPTForCausalLM
 Olmo2ForCausalLM
 Olmo3ForCausalLM
 OlmoForCausalLM
+OlmoHybridForCausalLM
 OlmoeForCausalLM
 OpenCUAForConditionalGeneration
 OpenPanguMTPModel
@@ -244,6 +259,7 @@ Qwen2_5OmniForConditionalGeneration
 Qwen2_5OmniModel
 Qwen2_5_VLForConditionalGeneration
 Qwen3ASRForConditionalGeneration
+Qwen3ASRForcedAlignerForTokenClassification
 Qwen3ASRRealtimeGeneration
 Qwen3ForCausalLM
 Qwen3MoeForCausalLM
@@ -263,6 +279,8 @@ RWForCausalLM
 RobertaForMaskedLM
 RobertaForSequenceClassification
 RobertaModel
+SarvamMLAForCausalLM
+SarvamMoEForCausalLM
 SeedOssForCausalLM
 SiglipModel
 SkyworkR1VChatModel

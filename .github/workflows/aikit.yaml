@@ -152,8 +152,9 @@ jobs:
                 apps: aikit-test
             replicas: 1
             template:
-              labels:
-                kaito.sh/inference-role: decode
+              metadata:
+                labels:
+                  kaito.sh/inference-role: decode
               inference:
                 template:
                   spec:

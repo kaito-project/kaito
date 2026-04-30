@@ -119,6 +119,8 @@ jobs:
           kind: Workspace
           metadata:
             name: workspace-aikit-test
+            labels:
+              kaito.sh/inference-role: decode
           resource:
             labelSelector:
               matchLabels:
@@ -152,9 +154,6 @@ jobs:
                 apps: aikit-test
             replicas: 1
             template:
-              metadata:
-                labels:
-                  kaito.sh/inference-role: decode
               inference:
                 template:
                   spec:

@@ -12,42 +12,47 @@
 # limitations under the License.
 
 import logging
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from typing import Any
 
 import yaml
 from llm_guard import scan_output
-from llm_guard.output_scanners import BanSubstrings, Regex
 
 from ragengine import config
+from ragengine.guardrails.scanner_schemas import (
+    SCANNER_REGISTRY,
+    ParsedScannerConfig,
+)
 from ragengine.models import ChatCompletionResponse, get_message_content
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_BLOCK_MESSAGE = "The model output was blocked by output guardrails."
+DEFAULT_ACTION_ON_HIT = "redact"
 
 
 @dataclass
 class OutputGuardrails:
     enabled: bool
-    action_on_hit: str
-    regex_patterns: list[str]
-    banned_substrings: list[str]
+    action_on_hit: str = DEFAULT_ACTION_ON_HIT
     block_message: str = DEFAULT_BLOCK_MESSAGE
+    scanner_configs: list[ParsedScannerConfig] = field(default_factory=list)
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
-        guardrails = cls(
-            enabled=config.OUTPUT_GUARDRAILS_ENABLED,
-            action_on_hit=config.OUTPUT_GUARDRAILS_ACTION_ON_HIT,
-            regex_patterns=list(config.OUTPUT_GUARDRAILS_REGEX_PATTERNS),
-            banned_substrings=list(config.OUTPUT_GUARDRAILS_BANNED_SUBSTRINGS),
-            block_message=config.OUTPUT_GUARDRAILS_BLOCK_MESSAGE,
-        )
+        # Skip policy I/O when disabled so a malformed policy stays silent.
+        if not config.OUTPUT_GUARDRAILS_ENABLED:
+            return cls(enabled=False)
+
+        guardrails = cls(enabled=True)
         return guardrails._apply_policy_file(config.OUTPUT_GUARDRAILS_POLICY_PATH)
 
     def _apply_policy_file(self, policy_path: str) -> "OutputGuardrails":
         if not policy_path:
+            # No policy configured: returns self with empty scanner_configs.
+            # Combined with enabled=True this is effectively fail-open.
+            # TODO(next-PR): ship a default policy or refuse to start.
             return self
 
         try:
@@ -66,43 +71,20 @@ class OutputGuardrails:
             logger.warning("output_guardrails_policy_invalid path=%s", policy_path)
             return self
 
-        regex_patterns = list(self.regex_patterns)
-        banned_substrings = list(self.banned_substrings)
+        scanner_configs = list(self.scanner_configs)
         if "scanners" in policy:
-            regex_patterns = []
-            banned_substrings = []
-            scanners = policy.get("scanners") or []
-            if not isinstance(scanners, list):
-                logger.warning(
-                    "output_guardrails_policy_invalid_scanners path=%s", policy_path
-                )
-                scanners = []
-
-            for scanner in scanners:
-                if not isinstance(scanner, dict):
-                    continue
-
-                scanner_type = str(scanner.get("type", "")).lower()
-                if scanner_type == "regex":
-                    regex_patterns.extend(_coerce_string_list(scanner.get("patterns")))
-                elif scanner_type == "ban_substrings":
-                    banned_substrings.extend(
-                        _coerce_string_list(scanner.get("substrings"))
-                    )
-                elif scanner_type:
-                    logger.warning(
-                        "output_guardrails_policy_unknown_scanner type=%s",
-                        scanner_type,
-                    )
+            scanner_configs = _parse_policy_scanner_configs(
+                policy.get("scanners"),
+                policy_path,
+            )
 
         return OutputGuardrails(
             enabled=self.enabled,
             action_on_hit=_normalize_action(policy.get("action"), self.action_on_hit),
-            regex_patterns=regex_patterns,
-            banned_substrings=banned_substrings,
             block_message=_coerce_string(
                 policy.get("blockMessage"), self.block_message
             ),
+            scanner_configs=scanner_configs,
         )
 
     def guard_response(
@@ -157,18 +139,14 @@ class OutputGuardrails:
 
     def _build_scanners(self) -> list[Any]:
         scanners: list[Any] = []
-
-        if self.regex_patterns:
-            scanners.append(Regex(patterns=self.regex_patterns, redact=True))
-
-        if self.banned_substrings:
-            scanners.append(
-                BanSubstrings(
-                    substrings=self.banned_substrings,
-                    redact=self.action_on_hit == "redact",
+        for parsed in self.scanner_configs:
+            try:
+                scanners.append(parsed.config.build(self.action_on_hit))
+            except Exception:
+                logger.exception(
+                    "output_guardrails_policy_scanner_build_failed type=%s",
+                    parsed.type,
                 )
-            )
-
         return scanners
 
     def _extract_prompt(self, request: dict[str, Any]) -> str:
@@ -187,10 +165,54 @@ class OutputGuardrails:
         return "\n\n".join(prompt_parts)
 
 
-def _coerce_string_list(value: Any) -> list[str]:
-    if not isinstance(value, list):
+def _parse_policy_scanner_configs(
+    value: Any, policy_path: str
+) -> list[ParsedScannerConfig]:
+    if value is None:
         return []
-    return [item for item in value if isinstance(item, str) and item]
+    if not isinstance(value, list):
+        logger.warning("output_guardrails_policy_invalid_scanners path=%s", policy_path)
+        return []
+
+    parsed_configs: list[ParsedScannerConfig] = []
+    for raw in value:
+        if not isinstance(raw, dict):
+            continue
+
+        scanner_type = _normalize_scanner_key(str(raw.get("type", "")).strip())
+        if not scanner_type:
+            continue
+
+        schema_cls = SCANNER_REGISTRY.get(scanner_type)
+        if schema_cls is None:
+            logger.warning(
+                "output_guardrails_policy_unknown_scanner type=%s", scanner_type
+            )
+            continue
+
+        normalized_raw = {
+            _normalize_scanner_key(str(key)): item
+            for key, item in raw.items()
+            if key != "type"
+        }
+        try:
+            cfg = schema_cls.from_dict(normalized_raw)
+        except (TypeError, ValueError) as e:
+            logger.warning(
+                "output_guardrails_policy_invalid_scanner_config type=%s error=%s",
+                scanner_type,
+                e,
+            )
+            continue
+
+        parsed_configs.append(ParsedScannerConfig(type=scanner_type, config=cfg))
+
+    return parsed_configs
+
+
+def _normalize_scanner_key(value: str) -> str:
+    value = value.replace("-", "_")
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", value).lower()
 
 
 def _coerce_string(value: Any, fallback: str) -> str:

@@ -112,8 +112,13 @@ const (
 	// prefill (if needed) and forwards to local vLLM (port 5000).
 	// See: https://github.com/llm-d/llm-d-routing-sidecar
 	RoutingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
-	RoutingSidecarTag   = "v0.7.0"
+	RoutingSidecarTag   = "v0.7.1"
 	RoutingSidecarPort  = 8080
+
+	// Inference role constants for P/D disaggregated serving.
+	InferenceRoleEnvName = "KAITO_INFERENCE_ROLE"
+	InferenceRolePrefill = "prefill"
+	InferenceRoleDecode  = "decode"
 
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"

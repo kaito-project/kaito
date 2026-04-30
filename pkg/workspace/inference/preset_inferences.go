@@ -691,18 +691,18 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 // InferenceSet.Spec.Template.Labels onto child workspaces by the InferenceSet controller.
 func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]
-	if !ok || (role != "prefill" && role != "decode") {
+	if !ok || (role != consts.InferenceRolePrefill && role != consts.InferenceRoleDecode) {
 		return nil
 	}
 	envVar := corev1.EnvVar{
-		Name:  "KAITO_INFERENCE_ROLE",
+		Name:  consts.InferenceRoleEnvName,
 		Value: role,
 	}
 	for i := range spec.Containers {
 		// Upsert: replace existing entry if present to avoid duplicates
 		found := false
 		for j, env := range spec.Containers[i].Env {
-			if env.Name == "KAITO_INFERENCE_ROLE" {
+			if env.Name == consts.InferenceRoleEnvName {
 				spec.Containers[i].Env[j] = envVar
 				found = true
 				break
@@ -723,7 +723,7 @@ func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.
 // Prefill workspaces (inference-role: prefill) do not get the sidecar.
 func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]
-	if !ok || role != "decode" {
+	if !ok || role != consts.InferenceRoleDecode {
 		return nil
 	}
 

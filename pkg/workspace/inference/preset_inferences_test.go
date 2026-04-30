@@ -1357,21 +1357,21 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 		},
 		{
 			name:          "prefill role - env set on all containers",
-			labels:        map[string]string{v1beta1.LabelInferenceRole: "prefill"},
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
 			containers:    2,
 			expectEnvSet:  true,
-			expectedValue: "prefill",
+			expectedValue: consts.InferenceRolePrefill,
 		},
 		{
 			name:          "decode role - env set on all containers",
-			labels:        map[string]string{v1beta1.LabelInferenceRole: "decode"},
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
 			containers:    1,
 			expectEnvSet:  true,
-			expectedValue: "decode",
+			expectedValue: consts.InferenceRoleDecode,
 		},
 		{
 			name:           "prefill role - upsert existing env var without duplicates",
-			labels:         map[string]string{v1beta1.LabelInferenceRole: "prefill"},
+			labels:         map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
 			containers:     1,
 			preExistingEnv: true,
 			expectEnvSet:   true,
@@ -1391,7 +1391,7 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 				}
 				if tc.preExistingEnv {
 					c.Env = []corev1.EnvVar{
-						{Name: "KAITO_INFERENCE_ROLE", Value: "old-value"},
+						{Name: consts.InferenceRoleEnvName, Value: "old-value"},
 					}
 				}
 				spec.Containers = append(spec.Containers, c)
@@ -1409,7 +1409,7 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 			for i, c := range spec.Containers {
 				count := 0
 				for _, env := range c.Env {
-					if env.Name == "KAITO_INFERENCE_ROLE" {
+					if env.Name == consts.InferenceRoleEnvName {
 						count++
 						if !tc.expectEnvSet {
 							t.Errorf("container %d: env KAITO_INFERENCE_ROLE should not be set", i)
@@ -1443,17 +1443,17 @@ func TestSetRoutingSidecar(t *testing.T) {
 		},
 		{
 			name:          "prefill role - no sidecar",
-			labels:        map[string]string{v1beta1.LabelInferenceRole: "prefill"},
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
 			expectSidecar: false,
 		},
 		{
 			name:          "decode role - sidecar injected",
-			labels:        map[string]string{v1beta1.LabelInferenceRole: "decode"},
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
 			expectSidecar: true,
 		},
 		{
 			name:   "decode role - sidecar already exists - no duplicate",
-			labels: map[string]string{v1beta1.LabelInferenceRole: "decode"},
+			labels: map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
 			existingContainers: []corev1.Container{
 				{Name: "llm-d-routing-sidecar", Image: "old-image"},
 			},

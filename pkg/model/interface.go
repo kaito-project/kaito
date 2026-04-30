@@ -153,6 +153,18 @@ type Metadata struct {
 	// This field is only for best effort supported vLLM models.
 	// +optional
 	AllowRemoteFiles bool `yaml:"allowRemoteFiles,omitempty"`
+
+	// QuantMethod specifies the weight quantization method used by the model
+	// (e.g., "awq", "gptq"). Maps to quantization_config.quant_method in the
+	// model's HuggingFace config.json.
+	// +optional
+	QuantMethod string `yaml:"quantMethod,omitempty"`
+
+	// QuantBits specifies the number of bits used for weight quantization
+	// (e.g., 4 for 4-bit AWQ). Maps to quantization_config.bits in the
+	// model's HuggingFace config.json.
+	// +optional
+	QuantBits int `yaml:"quantBits,omitempty"`
 }
 
 // Validate checks if the Metadata is valid.

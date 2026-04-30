@@ -109,12 +109,23 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 		templateLabels[consts.KarpenterInferenceSetNamespaceKey] = ws.Namespace
 	}
 
+	// NodePool-level labels for management and lookup.
+	nodePoolLabels := map[string]string{
+		consts.KarpenterLabelManagedBy:        consts.KarpenterManagedByValue,
+		consts.KarpenterWorkspaceNameKey:      ws.Name,
+		consts.KarpenterWorkspaceNamespaceKey: ws.Namespace,
+	}
+	// InferenceSet workspaces get labels on NodePool ObjectMeta so the drift
+	// controller can List NodePools by InferenceSet directly.
+	if isInferenceSetWorkspace(ws) {
+		nodePoolLabels[consts.KarpenterInferenceSetKey] = ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel]
+		nodePoolLabels[consts.KarpenterInferenceSetNamespaceKey] = ws.Namespace
+	}
+
 	np := &karpenterv1.NodePool{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: nodePoolName,
-			Labels: map[string]string{
-				consts.KarpenterLabelManagedBy: consts.KarpenterManagedByValue,
-			},
+			Name:   nodePoolName,
+			Labels: nodePoolLabels,
 		},
 		Spec: karpenterv1.NodePoolSpec{
 			Replicas: lo.ToPtr(int64(ws.Status.TargetNodeCount)),

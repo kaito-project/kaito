@@ -35,3 +35,9 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | deepseek-ai/DeepSeek-R1-0528 | vllm | 5.06 | 7.90 | 7.30 | 3.85 | 2.65 | 1.65 | 5.55 | 5.55 | 6.05 | 2026-04-17 |
 | deepseek-ai/DeepSeek-V3-0324 | vllm | 8.07 | 8.20 | 7.95 | 7.35 | 9.50 | 8.20 | 8.30 | 7.00 | 8.05 | 2026-04-17 |
 | mistralai/Mistral-Large-3-675B-Instruct-2512 | vllm | 7.86 | 8.05 | 7.65 | 7.75 | 9.05 | 7.90 | 8.50 | 7.25 | 6.70 | 2026-04-17 |
+| nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16 | vllm | 6.37 | 6.35 | 5.65 | 6.65 | 9.10 | 5.85 | 7.05 | 6.10 | 4.20 | 2026-04-29 |
+| nvidia/NVIDIA-Nemotron-Nano-9B-v2 | vllm | 5.54 | 6.05 | 4.50 | 5.65 | 7.45 | 4.20 | 6.75 | 5.25 | 4.50 | 2026-04-29 |
+| nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16 | vllm | 7.08 | 7.55 | 6.45 | 6.80 | 9.50 | 6.60 | 6.55 | 6.35 | 6.85 | 2026-04-29 |
+| nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 | vllm | 6.89 | 6.45 | 7.20 | 6.60 | 9.95 | 5.30 | 7.05 | 6.15 | 6.40 | 2026-04-29 |
+| nvidia/Nemotron-Cascade-2-30B-A3B | vllm | 5.71 | 3.40 | 6.85 | 6.60 | 9.20 | 5.65 | 4.15 | 4.90 | 4.95 | 2026-04-29 |
+| nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 | vllm | 6.91 | 7.35 | 7.30 | 7.05 | 9.65 | 6.35 | 7.25 | 5.40 | 4.90 | 2026-04-29 |

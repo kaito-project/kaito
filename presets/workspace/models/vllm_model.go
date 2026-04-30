@@ -137,6 +137,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		Runtime:              "tfs",
 		DownloadAtRuntime:    true,
 		DownloadAuthRequired: m.model.DownloadAuthRequired,
+		Architectures:        m.model.Architectures,
 	}
 
 	runParamsVLLM := make(map[string]string)

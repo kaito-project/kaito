@@ -24,8 +24,11 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -819,65 +822,140 @@ func TestMarshalInferenceSetFields(t *testing.T) {
 }
 
 func TestListWorkspaces(t *testing.T) {
-	t.Run("Should return error for nil InferenceSet", func(t *testing.T) {
-		mockClient := test.NewClient()
-		ctx := context.Background()
+	scheme := runtime.NewScheme()
+	assert.NoError(t, kaitov1beta1.AddToScheme(scheme))
 
-		workspaceList, err := ListWorkspaces(ctx, nil, mockClient)
-
-		assert.Error(t, err)
-		assert.Nil(t, workspaceList)
-		assert.Equal(t, "InferenceSet object is nil", err.Error())
-		mockClient.AssertExpectations(t)
-	})
-
-	t.Run("Should list Workspaces associated with InferenceSet", func(t *testing.T) {
-		mockClient := test.NewClient()
-		ctx := context.Background()
-
-		inferenceset := &kaitov1alpha1.InferenceSet{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-inferenceset",
-				Namespace: "default",
-			},
+	mkWS := func(name, ns, createdBy string) *kaitov1beta1.Workspace {
+		ws := &kaitov1beta1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns},
 		}
-
-		expectedWorkspaces := &kaitov1beta1.WorkspaceList{
-			Items: []kaitov1beta1.Workspace{
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "workspace-1",
-						Namespace: "default",
-						Labels: map[string]string{
-							consts.WorkspaceCreatedByInferenceSetLabel: "test-inferenceset",
-						},
-					},
-				},
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "workspace-2",
-						Namespace: "default",
-						Labels: map[string]string{
-							consts.WorkspaceCreatedByInferenceSetLabel: "test-inferenceset",
-						},
-					},
-				},
-			},
+		if createdBy != "" {
+			ws.Labels = map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: createdBy,
+			}
 		}
+		return ws
+	}
 
-		// Mock the List call
-		mockClient.On("List", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1beta1.WorkspaceList{}),
-			mock.Anything).Run(func(args mock.Arguments) {
-			wsList := args.Get(1).(*kaitov1beta1.WorkspaceList)
-			*wsList = *expectedWorkspaces
-		}).Return(nil)
+	listErr := fmt.Errorf("simulated list failure")
 
-		workspaceList, err := ListWorkspaces(ctx, inferenceset, mockClient)
+	tests := []struct {
+		name            string
+		inferenceSet    *kaitov1alpha1.InferenceSet
+		existingObjects []client.Object
+		// listInterceptor, when non-nil, replaces the fake client's List
+		// implementation. Used to simulate a List error from the API server.
+		listInterceptor func(ctx context.Context, c client.WithWatch, list client.ObjectList, opts ...client.ListOption) error
+		expectErr       bool
+		expectedErrMsg  string
+		// expectedNames is the set of Workspace names the call should
+		// return. nil means do not validate; an empty slice means expect
+		// zero items.
+		expectedNames []string
+	}{
+		{
+			name:           "Should return error for nil InferenceSet",
+			inferenceSet:   nil,
+			expectErr:      true,
+			expectedErrMsg: "InferenceSet object is nil",
+		},
+		{
+			name: "Should return empty list when no Workspaces exist",
+			inferenceSet: &kaitov1alpha1.InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "no-match-infset", Namespace: "empty-ns"},
+			},
+			expectedNames: []string{},
+		},
+		{
+			name: "Should list Workspaces associated with InferenceSet in same namespace",
+			inferenceSet: &kaitov1alpha1.InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-inferenceset", Namespace: "default"},
+			},
+			existingObjects: []client.Object{
+				mkWS("workspace-1", "default", "test-inferenceset"),
+				mkWS("workspace-2", "default", "test-inferenceset"),
+			},
+			expectedNames: []string{"workspace-1", "workspace-2"},
+		},
+		{
+			name: "Should only return Workspaces matching namespace and label out of many",
+			inferenceSet: &kaitov1alpha1.InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "target-infset", Namespace: "tenant-a"},
+			},
+			existingObjects: []client.Object{
+				// 2 in target ns with matching created-by label -> SHOULD be returned
+				mkWS("match-1", "tenant-a", "target-infset"),
+				mkWS("match-2", "tenant-a", "target-infset"),
+				// in target ns with a DIFFERENT created-by label -> should NOT be returned
+				mkWS("other-label", "tenant-a", "other-infset"),
+				// in target ns with NO created-by label -> should NOT be returned
+				mkWS("no-label", "tenant-a", ""),
+				// in another namespace with the MATCHING label -> should NOT be returned
+				// (this verifies the namespace-scoping fix)
+				mkWS("cross-ns-match", "tenant-b", "target-infset"),
+			},
+			expectedNames: []string{"match-1", "match-2"},
+		},
+		{
+			name: "Should propagate List error from client",
+			inferenceSet: &kaitov1alpha1.InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-inferenceset", Namespace: "default"},
+			},
+			listInterceptor: func(ctx context.Context, c client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {
+				return listErr
+			},
+			expectErr:      true,
+			expectedErrMsg: listErr.Error(),
+		},
+	}
 
-		assert.NoError(t, err)
-		assert.NotNil(t, workspaceList)
-		assert.Equal(t, len(expectedWorkspaces.Items), len(workspaceList.Items))
-		mockClient.AssertExpectations(t)
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			builder := fake.NewClientBuilder().WithScheme(scheme)
+			if len(tt.existingObjects) > 0 {
+				builder = builder.WithObjects(tt.existingObjects...)
+			}
+			if tt.listInterceptor != nil {
+				builder = builder.WithInterceptorFuncs(interceptor.Funcs{
+					List: tt.listInterceptor,
+				})
+			}
+			cl := builder.Build()
+
+			got, err := ListWorkspaces(context.Background(), tt.inferenceSet, cl)
+
+			if tt.expectErr {
+				assert.Error(t, err)
+				if tt.expectedErrMsg != "" {
+					assert.Contains(t, err.Error(), tt.expectedErrMsg)
+				}
+				// nil-InferenceSet path returns a nil list; the List-error
+				// path still returns a non-nil (possibly empty) list pointer.
+				if tt.inferenceSet == nil {
+					assert.Nil(t, got)
+				} else {
+					assert.NotNil(t, got)
+				}
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.NotNil(t, got)
+
+			if tt.expectedNames != nil {
+				gotNames := make([]string, 0, len(got.Items))
+				for _, w := range got.Items {
+					gotNames = append(gotNames, w.Name)
+					// Sanity: every returned item must satisfy both filters.
+					assert.Equal(t, tt.inferenceSet.Namespace, w.Namespace,
+						"returned Workspace has wrong namespace")
+					assert.Equal(t, tt.inferenceSet.Name,
+						w.Labels[consts.WorkspaceCreatedByInferenceSetLabel],
+						"returned Workspace has wrong created-by label")
+				}
+				assert.ElementsMatch(t, tt.expectedNames, gotNames,
+					"returned Workspace set does not match expectation")
+			}
+		})
+	}
 }

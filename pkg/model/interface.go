@@ -27,6 +27,7 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type Model interface {
@@ -331,7 +332,13 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 }
 
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
-	if p.VLLM.ModelName != "" {
+	// If the Workspace was created by an InferenceSet, expose the InferenceSet
+	// name as the served model name so all replicas behind the InferenceSet
+	// share a single, stable model identifier in the OpenAI-compatible API.
+	// Standalone Workspaces keep the model's default served name.
+	if isName, ok := rc.WorkspaceMetadata.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; ok && isName != "" {
+		p.VLLM.ModelRunParams["served-model-name"] = isName
+	} else if p.VLLM.ModelName != "" {
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}
 	if rc.MaxModelLen > 0 {
@@ -362,6 +369,13 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	}
 	if rc.PerformanceMode != "" && rc.PerformanceMode != "balanced" {
 		p.VLLM.ModelRunParams["performance-mode"] = rc.PerformanceMode
+	}
+
+	// Hybrid Mamba/Attention models (e.g., NemotronH) require the hybrid KV cache
+	// manager in vLLM, which is incompatible with LMCache KV cache CPU offloading.
+	// Disable offloading for these architectures to prevent startup crashes.
+	if p.isVLLMHybridKVCacheManagerRequired() {
+		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
 	}
 
 	// Parallelism strategy follows a 3-tier hierarchy (see configureParallelism):
@@ -473,6 +487,19 @@ func (p *PresetParam) getModelFileSize() *resource.Quantity {
 		}
 	}
 	return nil
+}
+
+// isVLLMHybridKVCacheManagerRequired returns true if the model uses a hybrid
+// architecture (e.g., Mamba/Attention) that requires vLLM's hybrid KV cache manager
+// (https://docs.vllm.ai/en/latest/design/hybrid_kv_cache_manager/)
+func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
+	for _, arch := range p.Architectures {
+		switch arch {
+		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM":
+			return true
+		}
+	}
+	return false
 }
 
 // modelFitsOnSingleGPU returns true when the model file size is smaller than

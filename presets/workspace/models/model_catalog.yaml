@@ -298,6 +298,7 @@ models:
   numHiddenLayers: 62
   numAttentionHeads: 32
   numKeyValueHeads: 16
+  headDim: 128
 - name: deepseek-ai/DeepSeek-R1-0528
   description: https://huggingface.co/deepseek-ai/DeepSeek-R1-0528
   license: mit
@@ -346,3 +347,84 @@ models:
   headDim: 192
   kvLoraRank: 512
   qkRopeHeadDim: 64
+- name: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
+  description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
+  license: other
+  pipelineTag: text-generation
+  modelFileSize: 230.25Gi
+  architectures:
+  - NemotronHForCausalLM
+  modelTokenLimit: 262144
+  hiddenSize: 4096
+  numHiddenLayers: 88
+  numAttentionHeads: 32
+  numKeyValueHeads: 2
+- name: nvidia/Nemotron-Cascade-2-30B-A3B
+  description: https://huggingface.co/nvidia/Nemotron-Cascade-2-30B-A3B
+  license: other
+  pipelineTag: text-generation
+  modelFileSize: 58.82Gi
+  architectures:
+  - NemotronHForCausalLM
+  modelTokenLimit: 262144
+  hiddenSize: 2688
+  numHiddenLayers: 52
+  numAttentionHeads: 32
+  numKeyValueHeads: 2
+  headDim: 128
+- name: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
+  description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
+  license: other
+  pipelineTag: text-generation
+  modelFileSize: 58.82Gi
+  architectures:
+  - NemotronHForCausalLM
+  modelTokenLimit: 262144
+  hiddenSize: 2688
+  numHiddenLayers: 52
+  numAttentionHeads: 32
+  numKeyValueHeads: 2
+  headDim: 128
+- name: nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16
+  description: https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16
+  license: other
+  pipelineTag: image-text-to-text
+  modelFileSize: 24.55Gi
+  architectures:
+  - NemotronH_Nano_VL_V2
+  modelTokenLimit: 131072
+  hiddenSize: 5120
+  numHiddenLayers: 62
+  numAttentionHeads: 40
+  numKeyValueHeads: 8
+- name: nvidia/NVIDIA-Nemotron-Nano-9B-v2
+  description: https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-9B-v2
+  license: other
+  pipelineTag: text-generation
+  baseModel:
+  - nvidia/NVIDIA-Nemotron-Nano-12B-v2-Base
+  - nvidia/NVIDIA-Nemotron-Nano-12B-v2
+  modelFileSize: 16.56Gi
+  architectures:
+  - NemotronHForCausalLM
+  modelTokenLimit: 131072
+  hiddenSize: 4480
+  numHiddenLayers: 56
+  numAttentionHeads: 40
+  numKeyValueHeads: 8
+  headDim: 128
+- name: nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16
+  description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16
+  license: other
+  pipelineTag: text-generation
+  baseModel:
+  - nvidia/NVIDIA-Nemotron-Nano-9B-v2
+  modelFileSize: 7.40Gi
+  architectures:
+  - NemotronHForCausalLM
+  modelTokenLimit: 262144
+  hiddenSize: 3136
+  numHiddenLayers: 42
+  numAttentionHeads: 40
+  numKeyValueHeads: 8
+  headDim: 128

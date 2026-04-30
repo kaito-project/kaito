@@ -704,3 +704,80 @@ func TestSelectWeightFiles(t *testing.T) {
 		})
 	}
 }
+
+func TestSanitizeJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "replaces Infinity value",
+			input:    `{"rope_scaling": {"factor": Infinity}}`,
+			expected: `{"rope_scaling": {"factor": null}}`,
+		},
+		{
+			name:     "replaces -Infinity value",
+			input:    `{"value": -Infinity}`,
+			expected: `{"value": null}`,
+		},
+		{
+			name:     "replaces NaN value",
+			input:    `{"value": NaN}`,
+			expected: `{"value": null}`,
+		},
+		{
+			name:     "replaces multiple non-standard values",
+			input:    `{"a": Infinity, "b": -Infinity, "c": NaN}`,
+			expected: `{"a": null, "b": null, "c": null}`,
+		},
+		{
+			name:     "does not replace Infinity in string values",
+			input:    `{"name": "Infinity"}`,
+			expected: `{"name": "Infinity"}`,
+		},
+		{
+			name:     "standard JSON unaffected",
+			input:    `{"hidden_size": 4096, "num_layers": 32}`,
+			expected: `{"hidden_size": 4096, "num_layers": 32}`,
+		},
+		{
+			name:     "Infinity in array",
+			input:    `{"values": [1, Infinity, 3]}`,
+			expected: `{"values": [1, null, 3]}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := sanitizeJSON([]byte(tt.input))
+			assert.Equal(t, tt.expected, string(result))
+		})
+	}
+}
+
+func TestMergeTextConfigWithLLMConfig(t *testing.T) {
+	// Tests that llm_config is merged the same way text_config is
+	gen := NewGenerator("test/model", "")
+	gen.ModelConfig = map[string]interface{}{
+		"architectures":           []interface{}{"NemotronH_Nano_VL_V2"},
+		"max_position_embeddings": float64(4096),
+		"llm_config": map[string]interface{}{
+			"hidden_size":         float64(3072),
+			"num_hidden_layers":   float64(32),
+			"num_attention_heads": float64(24),
+			"num_key_value_heads": float64(8),
+		},
+	}
+
+	gen.mergeTextConfig()
+
+	// llm_config fields should be promoted to top-level
+	assert.Equal(t, float64(3072), gen.ModelConfig["hidden_size"])
+	assert.Equal(t, float64(32), gen.ModelConfig["num_hidden_layers"])
+	assert.Equal(t, float64(24), gen.ModelConfig["num_attention_heads"])
+	assert.Equal(t, float64(8), gen.ModelConfig["num_key_value_heads"])
+
+	// Existing top-level value should not be overwritten
+	assert.Equal(t, float64(4096), gen.ModelConfig["max_position_embeddings"])
+}

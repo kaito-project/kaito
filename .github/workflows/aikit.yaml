@@ -231,6 +231,159 @@ jobs:
             echo "✓ Confirmed: GWIE resources not created for AIKit custom template (only vLLM preset supported)"
           fi
 
+      - name: Create preset InferenceSet for GWIE resource chain test
+        run: |
+          # Strategy: Pre-create a dummy Workspace with the correct label so the
+          # InferenceSet controller finds it during reconciliation and proceeds to
+          # ensureGatewayAPIInferenceExtension(). We can't let the controller create
+          # the Workspace itself because the Workspace webhook calls the HuggingFace
+          # API for preset validation, which fails on CI without a token.
+          #
+          # 1. Create dummy Workspace first (with matching label, custom template to avoid HF API)
+          # 2. Create InferenceSet with preset (triggers GWIE code path)
+          # 3. Controller sees workspace count >= 1, skips creation, proceeds to GWIE
+
+          # Create a dummy Workspace with the controller's label so it counts as
+          # an existing workspace. Use custom template (no preset) to avoid webhook
+          # calling HuggingFace API.
+          cat << 'EOF' > dummy-workspace.yaml
+          apiVersion: kaito.sh/v1beta1
+          kind: Workspace
+          metadata:
+            name: inferenceset-preset-gwie-test-dummy
+            labels:
+              inferenceset.kaito.sh/created-by: inferenceset-preset-gwie-test
+              apps: gwie-preset-test
+          resource:
+            labelSelector:
+              matchLabels:
+                apps: gwie-preset-test
+          inference:
+            template:
+              spec:
+                containers:
+                  - name: dummy
+                    image: registry.k8s.io/pause:3.10
+          EOF
+          kubectl apply -f dummy-workspace.yaml
+
+          # Now create the preset InferenceSet
+          cat << 'EOF' > preset-inferenceset.yaml
+          apiVersion: kaito.sh/v1alpha1
+          kind: InferenceSet
+          metadata:
+            name: inferenceset-preset-gwie-test
+          spec:
+            labelSelector:
+              matchLabels:
+                apps: gwie-preset-test
+            replicas: 1
+            template:
+              resource:
+                instanceType: ""
+              inference:
+                preset:
+                  name: phi-4-mini-instruct
+          EOF
+          kubectl apply -f preset-inferenceset.yaml
+
+          # Add ownerReference to the dummy workspace for proper garbage collection.
+          # Note: the controller finds workspaces by the inferenceset.kaito.sh/created-by label,
+          # not by ownerReferences. The ownerRef ensures K8s GC cleans up the workspace.
+          IS_UID=$(kubectl get inferenceset inferenceset-preset-gwie-test -o jsonpath='{.metadata.uid}')
+          kubectl patch workspace inferenceset-preset-gwie-test-dummy --type=merge -p "{
+            \"metadata\": {
+              \"ownerReferences\": [{
+                \"apiVersion\": \"kaito.sh/v1alpha1\",
+                \"kind\": \"InferenceSet\",
+                \"name\": \"inferenceset-preset-gwie-test\",
+                \"uid\": \"$IS_UID\",
+                \"controller\": true,
+                \"blockOwnerDeletion\": true
+              }]
+            }
+          }"
+
+          echo "✓ Created dummy Workspace + preset InferenceSet for GWIE test"
+
+      - name: Wait for GWIE resource chain to be created
+        run: |
+          POOL_NAME="inferenceset-preset-gwie-test-inferencepool"
+
+          # The dummy Workspace is already created. Wait for the InferenceSet controller
+          # to reconcile and create GWIE resources (OCIRepository, HelmRelease).
+
+          # Wait for OCIRepository to be created (indicates GWIE reconciliation ran)
+          echo "Waiting for GWIE OCIRepository to be created..."
+          OCI_FOUND=false
+          for i in $(seq 1 60); do
+            if kubectl get ocirepository "$POOL_NAME" 2>/dev/null; then
+              echo "✓ OCIRepository $POOL_NAME created"
+              OCI_FOUND=true
+              break
+            fi
+            echo "  Attempt $i/60: waiting for OCIRepository..."
+            sleep 5
+          done
+          if [ "$OCI_FOUND" != "true" ]; then
+            echo "✗ Timed out waiting for OCIRepository $POOL_NAME (300s)"
+            exit 1
+          fi
+
+          # Wait for HelmRelease to be created
+          echo "Waiting for GWIE HelmRelease to be created..."
+          HR_FOUND=false
+          for i in $(seq 1 60); do
+            if kubectl get helmrelease "$POOL_NAME" 2>/dev/null; then
+              echo "✓ HelmRelease $POOL_NAME created"
+              HR_FOUND=true
+              break
+            fi
+            echo "  Attempt $i/60: waiting for HelmRelease..."
+            sleep 5
+          done
+          if [ "$HR_FOUND" != "true" ]; then
+            echo "✗ Timed out waiting for HelmRelease $POOL_NAME (300s)"
+            exit 1
+          fi
+
+      - name: Validate GWIE resource chain for preset InferenceSet
+        run: |
+          POOL_NAME="inferenceset-preset-gwie-test-inferencepool"
+
+          echo "=== Validating OCIRepository ==="
+          if ! kubectl get ocirepository "$POOL_NAME" -o yaml; then
+            echo "✗ OCIRepository $POOL_NAME not found"
+            exit 1
+          fi
+          echo "✓ OCIRepository exists"
+
+          echo "=== Validating HelmRelease ==="
+          if ! kubectl get helmrelease "$POOL_NAME" -o yaml; then
+            echo "✗ HelmRelease $POOL_NAME not found"
+            exit 1
+          fi
+          echo "✓ HelmRelease exists"
+
+          # Validate HelmRelease references the correct OCIRepository
+          CHART_REF=$(kubectl get helmrelease "$POOL_NAME" -o jsonpath='{.spec.chartRef.name}')
+          if [ "$CHART_REF" != "$POOL_NAME" ]; then
+            echo "✗ HelmRelease chartRef.name is '$CHART_REF', expected '$POOL_NAME'"
+            exit 1
+          fi
+          echo "✓ HelmRelease references correct OCIRepository"
+
+          # Validate HelmRelease has correct owner reference
+          OWNER=$(kubectl get helmrelease "$POOL_NAME" -o json | jq -r '.metadata.ownerReferences[] | select(.kind=="InferenceSet") | .kind')
+          if [ "$OWNER" != "InferenceSet" ]; then
+            echo "✗ HelmRelease owner is '$OWNER', expected 'InferenceSet'"
+            exit 1
+          fi
+          echo "✓ HelmRelease has correct InferenceSet owner reference"
+
+          echo "=== GWIE resource chain validation passed ==="
+          echo "✓ Full GWIE resource chain created for vLLM preset InferenceSet"
+
       - name: Validate response content
         run: |
           # Set up port forwarding to the workspace service
@@ -340,3 +493,12 @@ jobs:
 
           echo "=== GWIE: EPP Pod Logs ==="
           kubectl logs -l app=inferenceset-aikit-test-inferencepool-epp --tail=50 || true
+
+          echo "=== Preset GWIE Test: InferenceSet Status ==="
+          kubectl get inferenceset inferenceset-preset-gwie-test -o yaml || true
+
+          echo "=== Preset GWIE Test: Child Workspaces ==="
+          kubectl get workspace -l inferenceset.kaito.sh/created-by=inferenceset-preset-gwie-test -o yaml || true
+
+          echo "=== Preset GWIE Test: Node Labels ==="
+          kubectl get nodes --show-labels || true

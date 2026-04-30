@@ -47,6 +47,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	drift "github.com/kaito-project/kaito/pkg/controllers/drift"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
@@ -277,6 +278,19 @@ func main() {
 		if err = inferenceSetReconciler.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "InferenceSet")
 			exitWithErrorFunc()
+		}
+
+		if consts.IsKarpenterProvisioner() {
+			driftReconciler := drift.NewDriftReconciler(
+				kClient,
+				mgr.GetScheme(),
+				mgr.GetEventRecorderFor("drift-controller"),
+				nodeProvisioner,
+			)
+			if err = driftReconciler.SetupWithManager(mgr); err != nil {
+				klog.ErrorS(err, "unable to create controller", "controller", "Drift")
+				exitWithErrorFunc()
+			}
 		}
 	}
 

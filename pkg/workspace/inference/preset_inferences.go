@@ -201,7 +201,11 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
 	}
 
-	if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
+	if pvcName := workspaceObj.Inference.Preset.PresetOptions.ModelWeightsPVC; pvcName != "" {
+		// User-provided PVC: add as pod-level volume, skip NVMe entirely
+		subPath := workspaceObj.Inference.Preset.PresetOptions.ModelWeightsSubPath
+		podOpts = append(podOpts, SetUserModelWeightsVolume(pvcName, subPath))
+	} else if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
 		ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
 	} else {
 		podOpts = append(podOpts, SetDefaultModelWeightsVolume)
@@ -680,4 +684,37 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	spec.Volumes = append(spec.Volumes, utils.DefaultModelWeightsVolume)
 	return nil
+}
+
+// SetUserModelWeightsVolume returns a PodSpec modifier that adds the user-provided
+// PVC as the model-weights-volume source and optionally applies a subPath.
+// Must run AFTER SetModelDownloadInfo so init container VolumeMounts exist to patch.
+func SetUserModelWeightsVolume(pvcName, subPath string) generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec] {
+	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+		spec.Volumes = append(spec.Volumes, corev1.Volume{
+			Name: "model-weights-volume",
+			VolumeSource: corev1.VolumeSource{
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+					ClaimName: pvcName,
+				},
+			},
+		})
+		if subPath != "" {
+			for i := range spec.InitContainers {
+				for j := range spec.InitContainers[i].VolumeMounts {
+					if spec.InitContainers[i].VolumeMounts[j].Name == "model-weights-volume" {
+						spec.InitContainers[i].VolumeMounts[j].SubPath = subPath
+					}
+				}
+			}
+			for i := range spec.Containers {
+				for j := range spec.Containers[i].VolumeMounts {
+					if spec.Containers[i].VolumeMounts[j].Name == "model-weights-volume" {
+						spec.Containers[i].VolumeMounts[j].SubPath = subPath
+					}
+				}
+			}
+		}
+		return nil
+	}
 }

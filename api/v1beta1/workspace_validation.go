@@ -26,6 +26,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
@@ -263,6 +264,14 @@ func (r *TuningSpec) validateCreate(ctx context.Context, workspaceNamespace stri
 		errs = errs.Also(apis.ErrMissingField("Preset"))
 	} else if presetName := string(r.Preset.Name); !plugin.IsValidPreset(presetName) {
 		errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported tuning preset name %s", presetName), "presetName"))
+	} else {
+		// Reject BYO PVC fields for tuning workspaces
+		if r.Preset.PresetOptions.ModelWeightsPVC != "" || r.Preset.PresetOptions.ModelWeightsSubPath != "" {
+			errs = errs.Also(apis.ErrInvalidValue(
+				"modelWeightsPVC and modelWeightsSubPath are not supported for tuning workspaces",
+				"presetOptions.modelWeightsPVC",
+			))
+		}
 	}
 	return errs
 }
@@ -544,6 +553,33 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		}
 	}
 
+	// Validate BYO PVC access mode for multi-node inference
+	if inference != nil && inference.Preset != nil {
+		if pvcName := inference.Preset.PresetOptions.ModelWeightsPVC; pvcName != "" && machineCount > 1 {
+			pvc := &corev1.PersistentVolumeClaim{}
+			if err := k8sclient.Client.Get(ctx, types.NamespacedName{
+				Name:      pvcName,
+				Namespace: wsNamespace,
+			}, pvc); err == nil {
+				hasRWX := false
+				for _, accessMode := range pvc.Spec.AccessModes {
+					if accessMode == corev1.ReadWriteMany {
+						hasRWX = true
+						break
+					}
+				}
+				if !hasRWX {
+					errs = errs.Also(apis.ErrInvalidValue(
+						fmt.Sprintf(
+							"PVC '%s' does not have ReadWriteMany access mode but resource.count is %d; use a ReadWriteMany PVC for multi-node inference",
+							pvcName, machineCount),
+						"presetOptions.modelWeightsPVC",
+					))
+				}
+			}
+		}
+	}
+
 	return errs
 }
 
@@ -636,6 +672,41 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 			}
 		} else if i.Preset.PresetOptions.ModelAccessSecret != "" {
 			errs = errs.Also(apis.ErrGeneric("This preset does not require a modelAccessSecret with HF_TOKEN key under presetOptions"))
+		}
+
+		// Validate BYO PVC fields
+		if i.Preset.PresetOptions.ModelWeightsSubPath != "" && i.Preset.PresetOptions.ModelWeightsPVC == "" {
+			errs = errs.Also(apis.ErrInvalidValue(
+				"modelWeightsSubPath requires modelWeightsPVC to be set",
+				"presetOptions.modelWeightsSubPath",
+			))
+		}
+
+		if pvcName := i.Preset.PresetOptions.ModelWeightsPVC; pvcName != "" {
+			pvc := &corev1.PersistentVolumeClaim{}
+			if err := k8sclient.Client.Get(ctx, types.NamespacedName{
+				Name:      pvcName,
+				Namespace: wsNamespace,
+			}, pvc); err != nil {
+				errs = errs.Also(apis.ErrInvalidValue(
+					fmt.Sprintf("PVC '%s' not found in namespace '%s'", pvcName, wsNamespace),
+					"presetOptions.modelWeightsPVC",
+				))
+			} else {
+				if params.DiskStorageRequirement != "" {
+					requiredSize, parseErr := resource.ParseQuantity(params.DiskStorageRequirement)
+					if parseErr == nil {
+						pvcSize := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
+						if pvcSize.Cmp(requiredSize) < 0 {
+							errs = errs.Also(apis.ErrInvalidValue(
+								fmt.Sprintf("PVC capacity (%s) is less than required model size (%s)",
+									pvcSize.String(), requiredSize.String()),
+								"presetOptions.modelWeightsPVC",
+							))
+						}
+					}
+				}
+			}
 		}
 	}
 	if len(i.Adapters) > MaxAdaptersNumber {

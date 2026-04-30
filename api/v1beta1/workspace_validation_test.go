@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"
@@ -57,6 +58,7 @@ func (*testModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
+		DiskStorageRequirement:  "100Gi",
 		ModelTokenLimit:         4096, // Add ModelTokenLimit for validation testing
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -160,12 +162,25 @@ func (*testModelSmallA10) SupportTuning() bool {
 	return false
 }
 
+type testModelNoDiskReq struct{}
+
+func (*testModelNoDiskReq) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		GPUCountRequirement:     "1",
+		TotalSafeTensorFileSize: "16Gi",
+	}
+}
+func (*testModelNoDiskReq) GetTuningParameters() *model.PresetParam { return nil }
+func (*testModelNoDiskReq) SupportDistributedInference() bool       { return false }
+func (*testModelNoDiskReq) SupportTuning() bool                     { return false }
+
 func RegisterValidationTestModels() {
 	var test testModel
 	var testStatic testModelStatic
 	var testDownload testModelDownload
 	var testLarge testModelLarge
 	var testSmallA10 testModelSmallA10
+	var testNoDiskReq testModelNoDiskReq
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation",
 		Instance: &test,
@@ -185,6 +200,10 @@ func RegisterValidationTestModels() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-small-a10",
 		Instance: &testSmallA10,
+	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-validation-noreq",
+		Instance: &testNoDiskReq,
 	})
 }
 
@@ -1133,6 +1152,24 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 				"other_key": "some value",
 			},
 		},
+		&v1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{Name: "valid-model-pvc", Namespace: ""},
+			Spec: v1.PersistentVolumeClaimSpec{
+				AccessModes: []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce},
+				Resources: v1.VolumeResourceRequirements{
+					Requests: v1.ResourceList{v1.ResourceStorage: resource.MustParse("200Gi")},
+				},
+			},
+		},
+		&v1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{Name: "small-model-pvc", Namespace: ""},
+			Spec: v1.PersistentVolumeClaimSpec{
+				AccessModes: []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce},
+				Resources: v1.VolumeResourceRequirements{
+					Requests: v1.ResourceList{v1.ResourceStorage: resource.MustParse("5Gi")},
+				},
+			},
+		},
 	).Build()
 	k8sclient.SetGlobalClient(client)
 
@@ -1387,6 +1424,69 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			},
 			errContent: "This preset does not require a modelAccessSecret with HF_TOKEN key under presetOptions",
 			expectErrs: true,
+		},
+		{
+			name: "SubPath without PVC is rejected",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsSubPath: "models/test"},
+				},
+			},
+			errContent: "modelWeightsSubPath requires modelWeightsPVC to be set",
+			expectErrs: true,
+		},
+		{
+			name: "PVC not found is rejected",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "nonexistent-pvc"},
+				},
+			},
+			errContent: "not found in namespace",
+			expectErrs: true,
+		},
+		{
+			name: "PVC too small is rejected",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "small-model-pvc"},
+				},
+			},
+			errContent: "is less than required model size",
+			expectErrs: true,
+		},
+		{
+			name: "Valid PVC accepted",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "valid-model-pvc"},
+				},
+			},
+			expectErrs: false,
+		},
+		{
+			name: "Valid PVC with subPath accepted",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "valid-model-pvc", ModelWeightsSubPath: "models/test"},
+				},
+			},
+			expectErrs: false,
+		},
+		{
+			name: "Empty DiskStorageRequirement skips size check",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation-noreq"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "small-model-pvc"},
+				},
+			},
+			expectErrs: false,
 		},
 	}
 
@@ -2364,6 +2464,22 @@ func TestTuningSpecValidateCreate(t *testing.T) {
 			wantErr:   true,
 			errFields: []string{"Image"},
 		},
+		{
+			name: "BYO PVC rejected for tuning",
+			tuningSpec: &TuningSpec{
+				Input:  &DataSource{Name: "valid-input", Image: "kaito.azurecr.io/test:0.0.0"},
+				Output: &DataDestination{Image: "kaito.azurecr.io/test:0.0.0", ImagePushSecret: "secret"},
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{Name: ModelName("test-validation")},
+					PresetOptions: PresetOptions{
+						ModelWeightsPVC: "some-pvc",
+					},
+				},
+				Method: TuningMethodLora,
+			},
+			wantErr:   true,
+			errFields: []string{"presetOptions"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -2861,6 +2977,143 @@ vllm:
 				errMsg := errs.Error()
 				if !strings.Contains(errMsg, tc.errContent) {
 					t.Errorf("validateInferenceConfig() error message = %v, expected to contain = %v", errMsg, tc.errContent)
+				}
+			}
+		})
+	}
+}
+
+func TestValidateCreateWithInferenceRWOPVC(t *testing.T) {
+	RegisterValidationTestModels()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		&v1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{Name: "rwo-pvc", Namespace: ""},
+			Spec: v1.PersistentVolumeClaimSpec{
+				AccessModes: []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce},
+				Resources: v1.VolumeResourceRequirements{
+					Requests: v1.ResourceList{v1.ResourceStorage: resource.MustParse("200Gi")},
+				},
+			},
+		},
+		&v1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{Name: "rwx-pvc", Namespace: ""},
+			Spec: v1.PersistentVolumeClaimSpec{
+				AccessModes: []v1.PersistentVolumeAccessMode{v1.ReadWriteMany},
+				Resources: v1.VolumeResourceRequirements{
+					Requests: v1.ResourceList{v1.ResourceStorage: resource.MustParse("200Gi")},
+				},
+			},
+		},
+		&v1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{Name: "rwop-pvc", Namespace: ""},
+			Spec: v1.PersistentVolumeClaimSpec{
+				AccessModes: []v1.PersistentVolumeAccessMode{v1.ReadWriteOncePod},
+				Resources: v1.VolumeResourceRequirements{
+					Requests: v1.ResourceList{v1.ResourceStorage: resource.MustParse("200Gi")},
+				},
+			},
+		},
+	).Build()
+	k8sclient.SetGlobalClient(fakeClient)
+
+	tests := []struct {
+		name       string
+		resource   *ResourceSpec
+		inference  *InferenceSpec
+		errContent string
+		expectErrs bool
+	}{
+		{
+			name: "RWO PVC with count=2 rejected",
+			resource: &ResourceSpec{
+				InstanceType: "Standard_NC24ads_A100_v4",
+				Count:        pointerToInt(2),
+			},
+			inference: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "rwo-pvc"},
+				},
+			},
+			errContent: "does not have ReadWriteMany",
+			expectErrs: true,
+		},
+		{
+			name: "RWOP PVC with count=2 rejected",
+			resource: &ResourceSpec{
+				InstanceType: "Standard_NC24ads_A100_v4",
+				Count:        pointerToInt(2),
+			},
+			inference: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "rwop-pvc"},
+				},
+			},
+			errContent: "does not have ReadWriteMany",
+			expectErrs: true,
+		},
+		{
+			name: "RWX PVC with count=2 accepted",
+			resource: &ResourceSpec{
+				InstanceType: "Standard_NC24ads_A100_v4",
+				Count:        pointerToInt(2),
+			},
+			inference: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "rwx-pvc"},
+				},
+			},
+			expectErrs: false,
+		},
+		{
+			name: "RWO PVC with count=1 accepted",
+			resource: &ResourceSpec{
+				InstanceType: "Standard_NC24ads_A100_v4",
+				Count:        pointerToInt(1),
+			},
+			inference: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "rwo-pvc"},
+				},
+			},
+			expectErrs: false,
+		},
+		{
+			name: "RWOP PVC with count=1 accepted",
+			resource: &ResourceSpec{
+				InstanceType: "Standard_NC24ads_A100_v4",
+				Count:        pointerToInt(1),
+			},
+			inference: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta:    PresetMeta{Name: "test-validation"},
+					PresetOptions: PresetOptions{ModelWeightsPVC: "rwop-pvc"},
+				},
+			},
+			expectErrs: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			gpuCountRequirement = "1"
+			totalSafeTensorFileSize = "16Gi"
+			errs := tc.resource.validateCreateWithInference(
+				context.TODO(), tc.inference, false, model.RuntimeNameVLLM, "")
+			hasErrs := errs != nil
+			if hasErrs != tc.expectErrs {
+				t.Errorf("validateCreateWithInference() errors = %v, expectErrs %v", errs, tc.expectErrs)
+			}
+			if hasErrs && tc.errContent != "" {
+				if !strings.Contains(errs.Error(), tc.errContent) {
+					t.Errorf("error = %v, expected to contain %q", errs, tc.errContent)
 				}
 			}
 		})

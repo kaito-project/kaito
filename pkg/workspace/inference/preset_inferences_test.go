@@ -28,6 +28,7 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -1463,6 +1464,11 @@ func TestSetRoutingSidecar(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			// Enable vLLM feature gate for runtime detection
+			originalVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+			defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = originalVLLM }()
+
 			workspace := &v1beta1.Workspace{}
 			workspace.Labels = tc.labels
 
@@ -1472,6 +1478,23 @@ func TestSetRoutingSidecar(t *testing.T) {
 						Name: "vllm",
 						Ports: []corev1.ContainerPort{
 							{ContainerPort: int32(consts.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
+						},
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py --served-model-name test"},
+						ReadinessProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Port: intstr.FromInt32(int32(consts.PortInferenceServer)),
+									Path: "/health",
+								},
+							},
+						},
+						LivenessProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Port: intstr.FromInt32(int32(consts.PortInferenceServer)),
+									Path: "/health",
+								},
+							},
 						},
 					},
 				},
@@ -1548,6 +1571,27 @@ func TestSetRoutingSidecar(t *testing.T) {
 					for _, p := range c.Ports {
 						if p.ContainerPort == int32(consts.PortInferenceServer) {
 							t.Errorf("vLLM container still has port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
+						}
+					}
+					// Verify command has --port override inserted
+					for _, cmd := range c.Command {
+						if strings.Contains(cmd, "inference_api.py") {
+							expectedPortArg := fmt.Sprintf("inference_api.py --port %d", consts.PortInferenceServerInternal)
+							if !strings.Contains(cmd, expectedPortArg) {
+								t.Errorf("expected command to contain %q, got %q", expectedPortArg, cmd)
+							}
+						}
+					}
+					// Verify readiness probe port updated
+					if c.ReadinessProbe != nil && c.ReadinessProbe.HTTPGet != nil {
+						if c.ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+							t.Errorf("readiness probe still targets port %d", consts.PortInferenceServer)
+						}
+					}
+					// Verify liveness probe port updated
+					if c.LivenessProbe != nil && c.LivenessProbe.HTTPGet != nil {
+						if c.LivenessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+							t.Errorf("liveness probe still targets port %d", consts.PortInferenceServer)
 						}
 					}
 				}

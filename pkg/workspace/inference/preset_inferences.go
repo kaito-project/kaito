@@ -729,10 +729,18 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 		return nil
 	}
 
-	// Check if sidecar already exists to avoid duplicates
+	// Only apply to vLLM runtime — other runtimes don't support P/D disaggregation
+	runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
+	if runtimeName != pkgmodel.RuntimeNameVLLM {
+		return nil
+	}
+
+	// Check if sidecar already exists to avoid duplicate injection
+	sidecarExists := false
 	for _, c := range spec.Containers {
 		if c.Name == "llm-d-routing-sidecar" {
-			return nil
+			sidecarExists = true
+			break
 		}
 	}
 
@@ -810,9 +818,16 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			if strings.Contains(cmd, "--vllm-port="+oldPort) {
 				spec.Containers[i].Command[j] = strings.ReplaceAll(cmd, "--vllm-port="+oldPort, "--vllm-port="+newPort)
 			}
-			// Append --port to override vLLM's default listen port in the inference command
+			// Insert --port to override vLLM's default listen port.
+			// Use string replacement to handle both single-node and multi-node
+			// shell script commands (where appending at end would break the script).
 			if !portOverrideAdded && strings.Contains(cmd, "inference_api.py") {
-				spec.Containers[i].Command[j] = cmd + fmt.Sprintf(" --port %d", consts.PortInferenceServerInternal)
+				spec.Containers[i].Command[j] = strings.Replace(
+					spec.Containers[i].Command[j],
+					"inference_api.py",
+					fmt.Sprintf("inference_api.py --port %d", consts.PortInferenceServerInternal),
+					1,
+				)
 				portOverrideAdded = true
 			}
 		}
@@ -823,32 +838,34 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 		}
 	}
 
-	sidecar := corev1.Container{
-		Name:  "llm-d-routing-sidecar",
-		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
-		Ports: []corev1.ContainerPort{
-			{
-				ContainerPort: int32(consts.RoutingSidecarPort),
-				Name:          "sidecar",
-				Protocol:      corev1.ProtocolTCP,
+	// Only inject sidecar container if not already present
+	if !sidecarExists {
+		sidecar := corev1.Container{
+			Name:  "llm-d-routing-sidecar",
+			Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+			Ports: []corev1.ContainerPort{
+				{
+					ContainerPort: int32(consts.RoutingSidecarPort),
+					Name:          "sidecar",
+					Protocol:      corev1.ProtocolTCP,
+				},
 			},
-		},
-		Env: []corev1.EnvVar{
-			{
-				Name:  "BACKEND_URL",
-				Value: fmt.Sprintf("http://localhost:%d", consts.PortInferenceServerInternal),
-			},
-			{
-				Name: "POD_IP",
-				ValueFrom: &corev1.EnvVarSource{
-					FieldRef: &corev1.ObjectFieldSelector{
-						FieldPath: "status.podIP",
+			Env: []corev1.EnvVar{
+				{
+					Name:  "BACKEND_URL",
+					Value: fmt.Sprintf("http://localhost:%d", consts.PortInferenceServerInternal),
+				},
+				{
+					Name: "POD_IP",
+					ValueFrom: &corev1.EnvVarSource{
+						FieldRef: &corev1.ObjectFieldSelector{
+							FieldPath: "status.podIP",
+						},
 					},
 				},
 			},
-		},
+		}
+		spec.Containers = append(spec.Containers, sidecar)
 	}
-
-	spec.Containers = append(spec.Containers, sidecar)
 	return nil
 }

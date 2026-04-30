@@ -31,6 +31,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/mock"
@@ -40,7 +41,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 var ValidStrength string = "0.5"

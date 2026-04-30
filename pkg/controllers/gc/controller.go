@@ -59,6 +59,12 @@ type workspaceKey struct {
 	namespace string
 }
 
+// NeedLeaderElection implements controller-runtime's LeaderElectionRunnable
+// so that the GC loop only runs on the leader replica.
+func (c *LegacyNodeClaimGCController) NeedLeaderElection() bool {
+	return true
+}
+
 func (c *LegacyNodeClaimGCController) Start(ctx context.Context) error {
 	ticker := time.NewTicker(c.interval)
 	defer ticker.Stop()

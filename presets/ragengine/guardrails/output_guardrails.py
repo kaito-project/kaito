@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 DEFAULT_BLOCK_MESSAGE = "The model output was blocked by output guardrails."
 DEFAULT_ACTION_ON_HIT = "redact"
 
-
 @dataclass
 class OutputGuardrails:
     enabled: bool

@@ -34,7 +34,6 @@ from ragengine.guardrails.scanner_schemas import (
 )
 from ragengine.models import ChatCompletionResponse
 
-
 # ---------------------------------------------------------------------------
 # Test helpers / fixtures
 # ---------------------------------------------------------------------------

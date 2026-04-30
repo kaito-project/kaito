@@ -669,3 +669,205 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 	spec.Volumes = append(spec.Volumes, utils.DefaultModelWeightsVolume)
 	return nil
 }
+
+// SetInferenceRoleEnv propagates the kaito.sh/inference-role label from the workspace
+// to the KAITO_INFERENCE_ROLE environment variable on all containers.
+// This is used by the vLLM inference_api.py to inject NixlConnector kv-transfer-config
+// for P/D disaggregated inference. The label is propagated from
+// InferenceSet.Spec.Template.Labels onto child workspaces by the InferenceSet controller.
+func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]
+	if !ok || (role != consts.InferenceRolePrefill && role != consts.InferenceRoleDecode) {
+		return nil
+	}
+	envVar := corev1.EnvVar{
+		Name:  consts.InferenceRoleEnvName,
+		Value: role,
+	}
+	for i := range spec.Containers {
+		// Upsert: replace existing entry if present to avoid duplicates
+		found := false
+		for j, env := range spec.Containers[i].Env {
+			if env.Name == consts.InferenceRoleEnvName {
+				spec.Containers[i].Env[j] = envVar
+				found = true
+				break
+			}
+		}
+		if !found {
+			spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)
+		}
+	}
+	return nil
+}
+
+// SetRoutingSidecar adds the llm-d routing sidecar container to decode workspace pods.
+// When the workspace has the inference-role: decode label, the sidecar is injected
+// alongside the main vLLM container. The sidecar takes over the public-facing port (5000)
+// and vLLM is moved to an internal port (5001). The sidecar orchestrates P/D disaggregation
+// (contacting prefill pods if needed via x-prefiller-host-port header) and forwards to
+// the local vLLM engine on port 5001. When no header is present, it transparently proxies.
+// Prefill workspaces (inference-role: prefill) do not get the sidecar.
+func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]
+	if !ok || role != consts.InferenceRoleDecode {
+		return nil
+	}
+
+	// Only apply to vLLM runtime — other runtimes don't support P/D disaggregation
+	runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
+	if runtimeName != pkgmodel.RuntimeNameVLLM {
+		return nil
+	}
+
+	// Check if sidecar already exists to avoid duplicate injection
+	sidecarExists := false
+	for _, c := range spec.Containers {
+		if c.Name == "llm-d-routing-sidecar" {
+			sidecarExists = true
+			break
+		}
+	}
+
+	// Move vLLM to internal port so the sidecar can take over the public-facing port.
+	// Update container ports, readiness/liveness probes, and vllm-port arg/command.
+	// Deep-copy mutable slices to avoid contaminating shared package-level defaults.
+	oldPort := strconv.Itoa(int(consts.PortInferenceServer))
+	newPort := strconv.Itoa(int(consts.PortInferenceServerInternal))
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == "llm-d-routing-sidecar" {
+			continue
+		}
+		// Deep-copy ports to avoid mutating shared defaults
+		if len(spec.Containers[i].Ports) > 0 {
+			portsCopy := make([]corev1.ContainerPort, len(spec.Containers[i].Ports))
+			copy(portsCopy, spec.Containers[i].Ports)
+			spec.Containers[i].Ports = portsCopy
+			for j := range spec.Containers[i].Ports {
+				if spec.Containers[i].Ports[j].ContainerPort == int32(consts.PortInferenceServer) {
+					spec.Containers[i].Ports[j].ContainerPort = int32(consts.PortInferenceServerInternal)
+				}
+			}
+		}
+		// Update readiness probe port (HTTPGet or Exec)
+		if spec.Containers[i].ReadinessProbe != nil {
+			spec.Containers[i].ReadinessProbe = spec.Containers[i].ReadinessProbe.DeepCopy()
+			if spec.Containers[i].ReadinessProbe.HTTPGet != nil {
+				if spec.Containers[i].ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+					spec.Containers[i].ReadinessProbe.HTTPGet.Port = intstr.FromInt32(int32(consts.PortInferenceServerInternal))
+				}
+			}
+			if spec.Containers[i].ReadinessProbe.Exec != nil {
+				for j, cmd := range spec.Containers[i].ReadinessProbe.Exec.Command {
+					if strings.Contains(cmd, "--vllm-port="+oldPort) {
+						spec.Containers[i].ReadinessProbe.Exec.Command[j] = strings.ReplaceAll(cmd, "--vllm-port="+oldPort, "--vllm-port="+newPort)
+					}
+				}
+			}
+		}
+		// Update liveness probe port (HTTPGet or Exec)
+		if spec.Containers[i].LivenessProbe != nil {
+			spec.Containers[i].LivenessProbe = spec.Containers[i].LivenessProbe.DeepCopy()
+			if spec.Containers[i].LivenessProbe.HTTPGet != nil {
+				if spec.Containers[i].LivenessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+					spec.Containers[i].LivenessProbe.HTTPGet.Port = intstr.FromInt32(int32(consts.PortInferenceServerInternal))
+				}
+			}
+			if spec.Containers[i].LivenessProbe.Exec != nil {
+				for j, cmd := range spec.Containers[i].LivenessProbe.Exec.Command {
+					if strings.Contains(cmd, "--vllm-port="+oldPort) {
+						spec.Containers[i].LivenessProbe.Exec.Command[j] = strings.ReplaceAll(cmd, "--vllm-port="+oldPort, "--vllm-port="+newPort)
+					}
+				}
+			}
+		}
+		// Update startup probe port (HTTPGet or Exec)
+		if spec.Containers[i].StartupProbe != nil {
+			spec.Containers[i].StartupProbe = spec.Containers[i].StartupProbe.DeepCopy()
+			if spec.Containers[i].StartupProbe.HTTPGet != nil {
+				if spec.Containers[i].StartupProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+					spec.Containers[i].StartupProbe.HTTPGet.Port = intstr.FromInt32(int32(consts.PortInferenceServerInternal))
+				}
+			}
+			if spec.Containers[i].StartupProbe.Exec != nil {
+				for j, cmd := range spec.Containers[i].StartupProbe.Exec.Command {
+					if strings.Contains(cmd, "--vllm-port="+oldPort) {
+						spec.Containers[i].StartupProbe.Exec.Command[j] = strings.ReplaceAll(cmd, "--vllm-port="+oldPort, "--vllm-port="+newPort)
+					}
+				}
+			}
+		}
+		// Update --vllm-port in container command and args
+		portOverrideAdded := false
+		for j, cmd := range spec.Containers[i].Command {
+			if strings.Contains(cmd, "--vllm-port="+oldPort) {
+				spec.Containers[i].Command[j] = strings.ReplaceAll(cmd, "--vllm-port="+oldPort, "--vllm-port="+newPort)
+			}
+			// Insert or rewrite --port to override vLLM's default listen port.
+			// Use string replacement to handle both single-node and multi-node
+			// shell script commands (where appending at end would break the script).
+			// If --port already exists with a different value, rewrite it to the internal port.
+			internalPort := fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)
+			if !portOverrideAdded && strings.Contains(cmd, "inference_api.py") {
+				// Check for any existing --port flag and rewrite it
+				if idx := strings.Index(cmd, "--port "); idx >= 0 {
+					// Find the end of the port number
+					portStart := idx + len("--port ")
+					portEnd := portStart
+					for portEnd < len(cmd) && cmd[portEnd] >= '0' && cmd[portEnd] <= '9' {
+						portEnd++
+					}
+					if portEnd > portStart {
+						existing := cmd[idx:portEnd]
+						spec.Containers[i].Command[j] = strings.Replace(cmd, existing, internalPort, 1)
+					}
+				} else {
+					// No existing --port, insert after inference_api.py
+					spec.Containers[i].Command[j] = strings.Replace(
+						cmd,
+						"inference_api.py",
+						"inference_api.py "+internalPort,
+						1,
+					)
+				}
+				portOverrideAdded = true
+			}
+		}
+		for j, arg := range spec.Containers[i].Args {
+			if strings.Contains(arg, "--vllm-port="+oldPort) {
+				spec.Containers[i].Args[j] = strings.ReplaceAll(arg, "--vllm-port="+oldPort, "--vllm-port="+newPort)
+			}
+		}
+	}
+
+	// Only inject sidecar container if not already present
+	if !sidecarExists {
+		sidecar := corev1.Container{
+			Name:  "llm-d-routing-sidecar",
+			Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+			Ports: []corev1.ContainerPort{
+				{
+					ContainerPort: consts.PortInferenceServer,
+					Name:          "sidecar",
+					Protocol:      corev1.ProtocolTCP,
+				},
+			},
+			Env: []corev1.EnvVar{
+				{
+					Name:  "BACKEND_URL",
+					Value: fmt.Sprintf("http://localhost:%d", consts.PortInferenceServerInternal),
+				},
+				{
+					Name: "POD_IP",
+					ValueFrom: &corev1.EnvVarSource{
+						FieldRef: &corev1.ObjectFieldSelector{
+							FieldPath: "status.podIP",
+						},
+					},
+				},
+			},
+		}
+		spec.Containers = append(spec.Containers, sidecar)
+	}
+	return nil
+}

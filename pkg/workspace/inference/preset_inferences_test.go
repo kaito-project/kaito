@@ -1460,6 +1460,12 @@ func TestSetRoutingSidecar(t *testing.T) {
 			},
 			expectSidecar: true,
 		},
+		{
+			name:   "decode role - multi-node shell command",
+			labels: map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
+			existingContainers: nil,
+			expectSidecar:      true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -1498,6 +1504,11 @@ func TestSetRoutingSidecar(t *testing.T) {
 						},
 					},
 				},
+			}
+			// Multi-node uses a shell if/else script wrapping inference_api.py
+			if tc.name == "decode role - multi-node shell command" {
+				spec.Containers[0].Command = []string{"/bin/sh", "-c",
+					"if [ \"$RAY_HEAD\" = \"true\" ]; then ray start --head && python3 /workspace/vllm/inference_api.py --served-model-name test; else ray start && sleep infinity; fi"}
 			}
 			if tc.existingContainers != nil {
 				spec.Containers = append(spec.Containers, tc.existingContainers...)
@@ -1562,8 +1573,10 @@ func TestSetRoutingSidecar(t *testing.T) {
 				if !foundBackend {
 					t.Error("BACKEND_URL env not found on sidecar")
 				}
+			}
 
-				// Verify vLLM container port was moved to internal port
+			// Verify vLLM port/probe/command rewrites for ALL decode cases (including sidecar-exists)
+			if tc.expectSidecar {
 				for _, c := range spec.Containers {
 					if c.Name == "llm-d-routing-sidecar" {
 						continue
@@ -1573,12 +1586,21 @@ func TestSetRoutingSidecar(t *testing.T) {
 							t.Errorf("vLLM container still has port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
 						}
 					}
-					// Verify command has --port override inserted
+					// Verify command has --port override inserted (not appended after fi)
 					for _, cmd := range c.Command {
 						if strings.Contains(cmd, "inference_api.py") {
 							expectedPortArg := fmt.Sprintf("inference_api.py --port %d", consts.PortInferenceServerInternal)
 							if !strings.Contains(cmd, expectedPortArg) {
 								t.Errorf("expected command to contain %q, got %q", expectedPortArg, cmd)
+							}
+							// Multi-node: ensure --port is NOT after 'fi'
+							if strings.Contains(cmd, "; fi") {
+								fiIdx := strings.Index(cmd, "; fi")
+								portStr := fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)
+								portIdx := strings.Index(cmd, portStr)
+								if portIdx > fiIdx {
+									t.Errorf("--port was appended after 'fi' instead of after inference_api.py: %q", cmd)
+								}
 							}
 						}
 					}

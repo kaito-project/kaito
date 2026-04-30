@@ -80,7 +80,7 @@ class TestSetNixlKvTransferConfig:
         assert args.kv_transfer_config == EXPECTED_NIXL_CONFIG
 
     def test_respects_user_provided_config(self):
-        """User-provided kv-transfer-config from inference configmap is respected."""
+        """User-provided kv-transfer-config (from CLI args, inference configmap, or other sources) is respected."""
         user_config = {
             "kv_connector": "NixlConnector",
             "kv_role": "kv_both",

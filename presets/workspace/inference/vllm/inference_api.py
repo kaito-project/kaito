@@ -233,10 +233,10 @@ def set_nixl_kv_transfer_config_if_applicable(
     "decode". Both roles use kv_both so each pod can both send and receive KV
     cache via NixlConnector (RDMA/TCP fallback).
 
-    If the user explicitly provided kv-transfer-config in their inference
-    configmap, that value is respected and not overridden. Otherwise, any
-    existing kv_transfer_config (e.g. from KV cache offloading) will be
-    overridden with NixlConnector config.
+    If the user explicitly provided kv-transfer-config (via CLI args,
+    inference configmap, or other sources), that value is respected and
+    not overridden. Otherwise, any existing kv_transfer_config (e.g. from
+    KV cache offloading) will be overridden with NixlConnector config.
     """
     inference_role = os.environ.get("KAITO_INFERENCE_ROLE", "")
     if inference_role not in ("prefill", "decode"):

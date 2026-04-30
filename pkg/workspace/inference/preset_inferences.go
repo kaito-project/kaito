@@ -184,8 +184,6 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		GenerateInferencePodSpec(gpuConfig, numNodes),
 		SetModelDownloadInfo,
 		SetAdapterPuller,
-		SetRoutingSidecar,
-		SetInferenceRoleEnv,
 	}
 
 	// Use StatefulSet for all use cases to ensure consistent pod identity and storage management
@@ -199,6 +197,11 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	if v1beta1.IsRunBenchmarkEnabled(workspaceObj) {
 		podOpts = append(podOpts, SetBenchmarkConfig(distributed))
 	}
+
+	// SetRoutingSidecar and SetInferenceRoleEnv run after all conditional modifiers
+	// (SetDistributedInferenceProbe, SetBenchmarkConfig) so port/probe rewrites
+	// apply to the final pod spec and are not overwritten.
+	podOpts = append(podOpts, SetRoutingSidecar, SetInferenceRoleEnv)
 
 	ssOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]{
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
@@ -821,11 +824,13 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			// Insert --port to override vLLM's default listen port.
 			// Use string replacement to handle both single-node and multi-node
 			// shell script commands (where appending at end would break the script).
-			if !portOverrideAdded && strings.Contains(cmd, "inference_api.py") {
+			// Skip if --port is already present (idempotent).
+			portFlag := fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)
+			if !portOverrideAdded && strings.Contains(cmd, "inference_api.py") && !strings.Contains(cmd, portFlag) {
 				spec.Containers[i].Command[j] = strings.Replace(
 					spec.Containers[i].Command[j],
 					"inference_api.py",
-					fmt.Sprintf("inference_api.py --port %d", consts.PortInferenceServerInternal),
+					"inference_api.py "+portFlag,
 					1,
 				)
 				portOverrideAdded = true

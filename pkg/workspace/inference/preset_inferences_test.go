@@ -21,6 +21,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/samber/lo"
+	"github.com/stretchr/testify/mock"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -32,15 +41,6 @@ import (
 	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
-
-	"github.com/samber/lo"
-	"github.com/stretchr/testify/mock"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	storagev1 "k8s.io/api/storage/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 var ValidStrength string = "0.5"
@@ -1435,6 +1435,7 @@ func TestSetRoutingSidecar(t *testing.T) {
 		name               string
 		labels             map[string]string
 		existingContainers []corev1.Container
+		multiNode          bool
 		expectSidecar      bool
 	}{
 		{
@@ -1461,9 +1462,10 @@ func TestSetRoutingSidecar(t *testing.T) {
 			expectSidecar: true,
 		},
 		{
-			name:   "decode role - multi-node shell command",
-			labels: map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
+			name:               "decode role - multi-node shell command",
+			labels:             map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
 			existingContainers: nil,
+			multiNode:          true,
 			expectSidecar:      true,
 		},
 	}
@@ -1506,7 +1508,7 @@ func TestSetRoutingSidecar(t *testing.T) {
 				},
 			}
 			// Multi-node uses a shell if/else script wrapping inference_api.py
-			if tc.name == "decode role - multi-node shell command" {
+			if tc.multiNode {
 				spec.Containers[0].Command = []string{"/bin/sh", "-c",
 					"if [ \"$RAY_HEAD\" = \"true\" ]; then ray start --head && python3 /workspace/vllm/inference_api.py --served-model-name test; else ray start && sleep infinity; fi"}
 			}
@@ -1556,8 +1558,8 @@ func TestSetRoutingSidecar(t *testing.T) {
 				if sidecar.Image != expectedImage {
 					t.Errorf("expected image %q, got %q", expectedImage, sidecar.Image)
 				}
-				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != int32(consts.RoutingSidecarPort) {
-					t.Errorf("expected port %d, got %v", consts.RoutingSidecarPort, sidecar.Ports)
+				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != int32(consts.PortInferenceServer) {
+					t.Errorf("expected port %d, got %v", consts.PortInferenceServer, sidecar.Ports)
 				}
 				// Check BACKEND_URL env
 				foundBackend := false

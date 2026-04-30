@@ -821,18 +821,33 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			if strings.Contains(cmd, "--vllm-port="+oldPort) {
 				spec.Containers[i].Command[j] = strings.ReplaceAll(cmd, "--vllm-port="+oldPort, "--vllm-port="+newPort)
 			}
-			// Insert --port to override vLLM's default listen port.
+			// Insert or rewrite --port to override vLLM's default listen port.
 			// Use string replacement to handle both single-node and multi-node
 			// shell script commands (where appending at end would break the script).
-			// Skip if --port is already present (idempotent).
-			portFlag := fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)
-			if !portOverrideAdded && strings.Contains(cmd, "inference_api.py") && !strings.Contains(cmd, portFlag) {
-				spec.Containers[i].Command[j] = strings.Replace(
-					spec.Containers[i].Command[j],
-					"inference_api.py",
-					"inference_api.py "+portFlag,
-					1,
-				)
+			// If --port already exists with a different value, rewrite it to the internal port.
+			internalPort := fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)
+			if !portOverrideAdded && strings.Contains(cmd, "inference_api.py") {
+				// Check for any existing --port flag and rewrite it
+				if idx := strings.Index(cmd, "--port "); idx >= 0 {
+					// Find the end of the port number
+					portStart := idx + len("--port ")
+					portEnd := portStart
+					for portEnd < len(cmd) && cmd[portEnd] >= '0' && cmd[portEnd] <= '9' {
+						portEnd++
+					}
+					if portEnd > portStart {
+						existing := cmd[idx:portEnd]
+						spec.Containers[i].Command[j] = strings.Replace(cmd, existing, internalPort, 1)
+					}
+				} else {
+					// No existing --port, insert after inference_api.py
+					spec.Containers[i].Command[j] = strings.Replace(
+						cmd,
+						"inference_api.py",
+						"inference_api.py "+internalPort,
+						1,
+					)
+				}
 				portOverrideAdded = true
 			}
 		}
@@ -850,7 +865,7 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
 			Ports: []corev1.ContainerPort{
 				{
-					ContainerPort: int32(consts.RoutingSidecarPort),
+					ContainerPort: consts.PortInferenceServer,
 					Name:          "sidecar",
 					Protocol:      corev1.ProtocolTCP,
 				},

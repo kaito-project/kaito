@@ -112,7 +112,6 @@ const (
 	// See: https://github.com/llm-d/llm-d-routing-sidecar
 	RoutingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
 	RoutingSidecarTag   = "v0.7.1"
-	RoutingSidecarPort  = 5000 // Sidecar takes over the public-facing port
 
 	// When the routing sidecar is present, vLLM moves to this internal port.
 	PortInferenceServerInternal = 5001

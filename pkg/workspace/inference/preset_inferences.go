@@ -763,7 +763,7 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			spec.Containers[i].Ports = portsCopy
 			for j := range spec.Containers[i].Ports {
 				if spec.Containers[i].Ports[j].ContainerPort == int32(consts.PortInferenceServer) {
-					spec.Containers[i].Ports[j].ContainerPort = int32(consts.PortInferenceServerInternal)
+					spec.Containers[i].Ports[j].ContainerPort = consts.PortInferenceServerInternal
 				}
 			}
 		}
@@ -772,7 +772,7 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			spec.Containers[i].ReadinessProbe = spec.Containers[i].ReadinessProbe.DeepCopy()
 			if spec.Containers[i].ReadinessProbe.HTTPGet != nil {
 				if spec.Containers[i].ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-					spec.Containers[i].ReadinessProbe.HTTPGet.Port = intstr.FromInt32(int32(consts.PortInferenceServerInternal))
+					spec.Containers[i].ReadinessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
 				}
 			}
 			if spec.Containers[i].ReadinessProbe.Exec != nil {
@@ -788,7 +788,7 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			spec.Containers[i].LivenessProbe = spec.Containers[i].LivenessProbe.DeepCopy()
 			if spec.Containers[i].LivenessProbe.HTTPGet != nil {
 				if spec.Containers[i].LivenessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-					spec.Containers[i].LivenessProbe.HTTPGet.Port = intstr.FromInt32(int32(consts.PortInferenceServerInternal))
+					spec.Containers[i].LivenessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
 				}
 			}
 			if spec.Containers[i].LivenessProbe.Exec != nil {
@@ -804,7 +804,7 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			spec.Containers[i].StartupProbe = spec.Containers[i].StartupProbe.DeepCopy()
 			if spec.Containers[i].StartupProbe.HTTPGet != nil {
 				if spec.Containers[i].StartupProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-					spec.Containers[i].StartupProbe.HTTPGet.Port = intstr.FromInt32(int32(consts.PortInferenceServerInternal))
+					spec.Containers[i].StartupProbe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
 				}
 			}
 			if spec.Containers[i].StartupProbe.Exec != nil {
@@ -858,8 +858,43 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 		}
 	}
 
-	// Only inject sidecar container if not already present
-	if !sidecarExists {
+	expectedBackendURL := fmt.Sprintf("http://localhost:%d", consts.PortInferenceServerInternal)
+
+	if sidecarExists {
+		// Reconcile existing sidecar to ensure its config matches expected values
+		for i := range spec.Containers {
+			if spec.Containers[i].Name != "llm-d-routing-sidecar" {
+				continue
+			}
+			// Ensure BACKEND_URL points to the internal port
+			backendFound := false
+			for j := range spec.Containers[i].Env {
+				if spec.Containers[i].Env[j].Name == "BACKEND_URL" {
+					spec.Containers[i].Env[j].Value = expectedBackendURL
+					backendFound = true
+					break
+				}
+			}
+			if !backendFound {
+				spec.Containers[i].Env = append(spec.Containers[i].Env, corev1.EnvVar{
+					Name:  "BACKEND_URL",
+					Value: expectedBackendURL,
+				})
+			}
+			// Ensure image is up to date
+			spec.Containers[i].Image = fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag)
+			// Ensure port is set correctly
+			if len(spec.Containers[i].Ports) == 0 {
+				spec.Containers[i].Ports = []corev1.ContainerPort{
+					{ContainerPort: consts.PortInferenceServer, Name: "sidecar", Protocol: corev1.ProtocolTCP},
+				}
+			} else {
+				spec.Containers[i].Ports[0].ContainerPort = consts.PortInferenceServer
+			}
+			break
+		}
+	} else {
+		// Inject new sidecar container
 		sidecar := corev1.Container{
 			Name:  "llm-d-routing-sidecar",
 			Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
@@ -873,7 +908,7 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			Env: []corev1.EnvVar{
 				{
 					Name:  "BACKEND_URL",
-					Value: fmt.Sprintf("http://localhost:%d", consts.PortInferenceServerInternal),
+					Value: expectedBackendURL,
 				},
 				{
 					Name: "POD_IP",

@@ -1468,7 +1468,12 @@ func TestSetRoutingSidecar(t *testing.T) {
 
 			spec := &corev1.PodSpec{
 				Containers: []corev1.Container{
-					{Name: "vllm"},
+					{
+						Name: "vllm",
+						Ports: []corev1.ContainerPort{
+							{ContainerPort: int32(consts.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
+						},
+					},
 				},
 			}
 			if tc.existingContainers != nil {
@@ -1533,6 +1538,18 @@ func TestSetRoutingSidecar(t *testing.T) {
 				}
 				if !foundBackend {
 					t.Error("BACKEND_URL env not found on sidecar")
+				}
+
+				// Verify vLLM container port was moved to internal port
+				for _, c := range spec.Containers {
+					if c.Name == "llm-d-routing-sidecar" {
+						continue
+					}
+					for _, p := range c.Ports {
+						if p.ContainerPort == int32(consts.PortInferenceServer) {
+							t.Errorf("vLLM container still has port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
+						}
+					}
 				}
 			}
 		})

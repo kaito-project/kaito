@@ -42,9 +42,6 @@ outputs:
   registry:
     description: "Registry value"
 
-env:
-  GO_VERSION: "1.26.2"
-
 runs:
   using: "composite"
   steps:

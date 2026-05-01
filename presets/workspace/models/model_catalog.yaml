@@ -148,6 +148,7 @@ models:
   numAttentionHeads: 64
   numKeyValueHeads: 8
   headDim: 64
+  quantMethod: mxfp4
 - name: openai/gpt-oss-120b
   description: https://huggingface.co/openai/gpt-oss-120b
   license: apache-2.0
@@ -161,6 +162,7 @@ models:
   numAttentionHeads: 64
   numKeyValueHeads: 8
   headDim: 64
+  quantMethod: mxfp4
 - name: meta-llama/Llama-3.1-8B-Instruct
   description: https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
   license: llama3.1
@@ -236,6 +238,7 @@ models:
   configFormat: mistral
   tokenizerMode: mistral
   headDim: 128
+  quantMethod: fp8
 - name: mistralai/Ministral-3-8B-Instruct-2512
   description: https://huggingface.co/mistralai/Ministral-3-8B-Instruct-2512
   license: apache-2.0
@@ -252,6 +255,7 @@ models:
   loadFormat: mistral
   configFormat: mistral
   tokenizerMode: mistral
+  quantMethod: fp8
 - name: mistralai/Ministral-3-14B-Instruct-2512
   description: https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512
   license: apache-2.0
@@ -269,6 +273,7 @@ models:
   configFormat: mistral
   tokenizerMode: mistral
   headDim: 128
+  quantMethod: fp8
 - name: google/gemma-3-4b-it
   description: https://huggingface.co/google/gemma-3-4b-it
   license: gemma
@@ -313,6 +318,7 @@ models:
   numKeyValueHeads: 128
   kvLoraRank: 512
   qkRopeHeadDim: 64
+  quantMethod: fp8
 - name: deepseek-ai/DeepSeek-V3-0324
   description: https://huggingface.co/deepseek-ai/DeepSeek-V3-0324
   license: mit
@@ -327,6 +333,7 @@ models:
   numKeyValueHeads: 128
   kvLoraRank: 512
   qkRopeHeadDim: 64
+  quantMethod: fp8
 - name: mistralai/Mistral-Large-3-675B-Instruct-2512
   description: https://huggingface.co/mistralai/Mistral-Large-3-675B-Instruct-2512
   license: apache-2.0
@@ -347,9 +354,10 @@ models:
   headDim: 192
   kvLoraRank: 512
   qkRopeHeadDim: 64
+  quantMethod: compressed-tensors
 - name: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
-  license: other
+  license: nvidia-nemotron-open-model-license
   pipelineTag: text-generation
   modelFileSize: 230.25Gi
   architectures:
@@ -361,7 +369,7 @@ models:
   numKeyValueHeads: 2
 - name: nvidia/Nemotron-Cascade-2-30B-A3B
   description: https://huggingface.co/nvidia/Nemotron-Cascade-2-30B-A3B
-  license: other
+  license: nvidia-open-model-license
   pipelineTag: text-generation
   modelFileSize: 58.82Gi
   architectures:
@@ -374,7 +382,7 @@ models:
   headDim: 128
 - name: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
-  license: other
+  license: nvidia-nemotron-open-model-license
   pipelineTag: text-generation
   modelFileSize: 58.82Gi
   architectures:
@@ -387,7 +395,7 @@ models:
   headDim: 128
 - name: nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16
-  license: other
+  license: nvidia-open-model-license
   pipelineTag: image-text-to-text
   modelFileSize: 24.55Gi
   architectures:
@@ -399,7 +407,7 @@ models:
   numKeyValueHeads: 8
 - name: nvidia/NVIDIA-Nemotron-Nano-9B-v2
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-9B-v2
-  license: other
+  license: nvidia-open-model-license
   pipelineTag: text-generation
   baseModel:
   - nvidia/NVIDIA-Nemotron-Nano-12B-v2-Base
@@ -415,7 +423,7 @@ models:
   headDim: 128
 - name: nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16
-  license: other
+  license: nvidia-nemotron-open-model-license
   pipelineTag: text-generation
   baseModel:
   - nvidia/NVIDIA-Nemotron-Nano-9B-v2
@@ -428,3 +436,19 @@ models:
   numAttentionHeads: 40
   numKeyValueHeads: 8
   headDim: 128
+- name: Qwen/Qwen3-8B-AWQ
+  description: https://huggingface.co/Qwen/Qwen3-8B-AWQ
+  license: apache-2.0
+  pipelineTag: text-generation
+  baseModel:
+  - Qwen/Qwen3-8B
+  modelFileSize: 5.68Gi
+  architectures:
+  - Qwen3ForCausalLM
+  modelTokenLimit: 40960
+  hiddenSize: 4096
+  numHiddenLayers: 36
+  numAttentionHeads: 32
+  numKeyValueHeads: 8
+  quantMethod: awq
+  quantBits: 4

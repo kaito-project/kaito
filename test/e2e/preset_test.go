@@ -51,6 +51,7 @@ const (
 	PresetGPT_OSS_20BModel          = "gpt-oss-20b"
 	PresetGPT_OSS_120BModel         = "gpt-oss-120b"
 	PresetMinistral33BInstructModel = "mistralai/ministral-3-3b-instruct-2512"
+	PresetQwen3_8BAWQModel          = "Qwen/Qwen3-8B-AWQ"
 	WorkspaceHashAnnotation         = "workspace.kaito.io/hash"
 	// WorkspaceRevisionAnnotation represents the revision number of the workload managed by the workspace
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"

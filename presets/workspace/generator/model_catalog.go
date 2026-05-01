@@ -44,6 +44,8 @@ type CatalogEntry struct {
 	HeadDim           int      `yaml:"headDim,omitempty"`
 	KVLoraRank        int      `yaml:"kvLoraRank,omitempty"`
 	QKRopeHeadDim     int      `yaml:"qkRopeHeadDim,omitempty"`
+	QuantMethod       string   `yaml:"quantMethod,omitempty"`
+	QuantBits         int      `yaml:"quantBits,omitempty"`
 }
 
 // ModelCatalog holds the list of pre-computed model entries.
@@ -92,6 +94,13 @@ func fetchModelInfo(g *Generator, repo string) (license, pipelineTag string, bas
 	if cardData != nil {
 		if l, ok := cardData["license"].(string); ok {
 			license = l
+		}
+		// When license is "other", HuggingFace stores the actual license
+		// identifier in the license_name field.
+		if license == "other" {
+			if ln, ok := cardData["license_name"].(string); ok && ln != "" {
+				license = ln
+			}
 		}
 		if pipelineTag == "" {
 			if pt, ok := cardData["pipeline_tag"].(string); ok {
@@ -160,6 +169,14 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 		if entry.HeadDim == entry.HiddenSize/entry.NumAttentionHeads {
 			entry.HeadDim = 0
 		}
+	}
+
+	// Extract quantization config (e.g., AWQ, GPTQ) from HuggingFace config.json.
+	if qc, ok := config["quantization_config"].(map[string]interface{}); ok {
+		if qm, ok := qc["quant_method"].(string); ok {
+			entry.QuantMethod = qm
+		}
+		entry.QuantBits = getInt(qc, []string{"bits"}, 0)
 	}
 
 	// Copy format fields from generator (only when non-default)

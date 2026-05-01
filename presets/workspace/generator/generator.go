@@ -523,6 +523,14 @@ func (g *Generator) ParseModelMetadata() {
 			break
 		}
 	}
+
+	// Parse quantization config (e.g., AWQ, GPTQ) from HuggingFace config.json.
+	if qc, ok := g.ModelConfig["quantization_config"].(map[string]interface{}); ok {
+		if qm, ok := qc["quant_method"].(string); ok {
+			g.Param.Metadata.QuantMethod = qm
+		}
+		g.Param.Metadata.QuantBits = getInt(qc, []string{"bits"}, 0)
+	}
 }
 
 func (g *Generator) calculateStorageSize() string {
@@ -577,6 +585,7 @@ func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 	}
 
 	totalElements := elementsPerToken * hiddenLayers
+	// TODO: honor kv-cache quantization instead of hardcoding fp16
 	tokenSize := totalElements * 2 // fp16
 
 	return tokenSize, attnType
@@ -649,6 +658,14 @@ func (g *Generator) loadFromCatalog() bool {
 	}
 	if entry.QKRopeHeadDim > 0 {
 		g.ModelConfig["qk_rope_head_dim"] = entry.QKRopeHeadDim
+	}
+
+	// Restore quantization_config so ParseModelMetadata can pick it up.
+	if entry.QuantMethod != "" {
+		g.ModelConfig["quantization_config"] = map[string]interface{}{
+			"quant_method": entry.QuantMethod,
+			"bits":         entry.QuantBits,
+		}
 	}
 
 	// Set architectures in config for ParseModelMetadata to pick up

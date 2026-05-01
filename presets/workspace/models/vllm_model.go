@@ -138,6 +138,8 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		DownloadAtRuntime:    true,
 		DownloadAuthRequired: m.model.DownloadAuthRequired,
 		Architectures:        m.model.Architectures,
+		QuantMethod:          m.model.QuantMethod,
+		QuantBits:            m.model.QuantBits,
 	}
 
 	runParamsVLLM := make(map[string]string)
@@ -148,8 +150,13 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	if _, ok := runParamsVLLM["trust-remote-code"]; !ok {
 		runParamsVLLM["trust-remote-code"] = ""
 	}
+
+	// For quantized models, let vLLM auto-detect the optimal dtype
+	// TODO: test if we can always set dtype to "auto"
 	if _, ok := runParamsVLLM["dtype"]; !ok {
-		if m.model.DType != "" {
+		if m.model.QuantMethod != "" {
+			runParamsVLLM["dtype"] = "auto"
+		} else if m.model.DType != "" {
 			runParamsVLLM["dtype"] = m.model.DType
 		} else {
 			runParamsVLLM["dtype"] = "bfloat16"

@@ -39,12 +39,6 @@ const (
 
 	// ConditionTypeDeleting indicates the MRI is being deleted.
 	ConditionTypeDeleting = "Deleting"
-
-	// ConditionTypeInferenceSetsReady indicates whether child InferenceSets are created.
-	ConditionTypeInferenceSetsReady = "InferenceSetsReady"
-
-	// ConditionTypeReady is the condition type for overall readiness.
-	ConditionTypeReady = "Ready"
 )
 
 // MultiRoleInferenceReconciler reconciles a MultiRoleInference object.
@@ -182,7 +176,7 @@ func (r *MultiRoleInferenceReconciler) addOrUpdateMultiRoleInference(ctx context
 				"Failed to reconcile %s InferenceSet: %v", role.Type, err)
 
 			meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
-				Type:               ConditionTypeInferenceSetsReady,
+				Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeReady),
 				Status:             metav1.ConditionFalse,
 				Reason:             "ReconcileFailed",
 				Message:            fmt.Sprintf("Failed to reconcile %s InferenceSet: %v", role.Type, err),
@@ -201,23 +195,128 @@ func (r *MultiRoleInferenceReconciler) addOrUpdateMultiRoleInference(ctx context
 		return ctrl.Result{}, err
 	}
 
-	// Update status: InferenceSets are ready.
-	meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
-		Type:               ConditionTypeInferenceSetsReady,
-		Status:             metav1.ConditionTrue,
-		Reason:             "InferenceSetsCreated",
-		Message:            "All child InferenceSets have been created or updated",
-		ObservedGeneration: mri.Generation,
-	})
-	mri.Status.ObservedGeneration = mri.Generation
-
-	if err := r.Status().Update(ctx, mri); err != nil {
-		log.Error(err, "Failed to update MultiRoleInference status")
+	// Aggregate status from child InferenceSets.
+	if err := r.aggregateStatus(ctx, log, mri); err != nil {
+		log.Error(err, "Failed to aggregate status")
 		return ctrl.Result{}, err
 	}
 
 	r.Recorder.Event(mri, "Normal", "Reconciled", "MultiRoleInference reconciled successfully")
 	return ctrl.Result{}, nil
+}
+
+// aggregateStatus reads child InferenceSet conditions and updates MRI status accordingly.
+func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log logr.Logger, mri *kaitov1alpha1.MultiRoleInference) error {
+	// List all child InferenceSets.
+	isList := &kaitov1alpha1.InferenceSetList{}
+	if err := r.List(ctx, isList, client.InNamespace(mri.Namespace), client.MatchingLabels{
+		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
+	}); err != nil {
+		return err
+	}
+
+	// Build a map from role → InferenceSet.
+	roleISMap := make(map[string]*kaitov1alpha1.InferenceSet)
+	for i := range isList.Items {
+		is := &isList.Items[i]
+		if roleLabel, ok := is.Labels[kaitov1alpha1.LabelInferenceRole]; ok {
+			roleISMap[roleLabel] = is
+		}
+	}
+
+	allReady := true
+
+	// Check prefill InferenceSet readiness.
+	prefillReady := r.isInferenceSetReady(roleISMap["prefill"])
+	condStatus := metav1.ConditionFalse
+	reason := "PrefillNotReady"
+	message := "Prefill InferenceSet is not ready"
+	if prefillReady {
+		condStatus = metav1.ConditionTrue
+		reason = "PrefillReady"
+		message = "Prefill InferenceSet is ready"
+	} else {
+		allReady = false
+		if _, exists := roleISMap["prefill"]; !exists {
+			reason = "PrefillNotFound"
+			message = "Prefill InferenceSet not found"
+		}
+	}
+	meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
+		Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypePrefillReady),
+		Status:             condStatus,
+		Reason:             reason,
+		Message:            message,
+		ObservedGeneration: mri.Generation,
+	})
+
+	// Check decode InferenceSet readiness.
+	decodeReady := r.isInferenceSetReady(roleISMap["decode"])
+	condStatus = metav1.ConditionFalse
+	reason = "DecodeNotReady"
+	message = "Decode InferenceSet is not ready"
+	if decodeReady {
+		condStatus = metav1.ConditionTrue
+		reason = "DecodeReady"
+		message = "Decode InferenceSet is ready"
+	} else {
+		allReady = false
+		if _, exists := roleISMap["decode"]; !exists {
+			reason = "DecodeNotFound"
+			message = "Decode InferenceSet not found"
+		}
+	}
+	meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
+		Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeDecodeReady),
+		Status:             condStatus,
+		Reason:             reason,
+		Message:            message,
+		ObservedGeneration: mri.Generation,
+	})
+
+	// TODO: Check InferencePool readiness (Step 4 — InferencePool not yet created by this controller).
+	// For now, mark InferencePoolReady as False with reason "NotImplemented".
+	meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
+		Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeInferencePoolReady),
+		Status:             metav1.ConditionFalse,
+		Reason:             "NotImplemented",
+		Message:            "InferencePool creation is not yet implemented",
+		ObservedGeneration: mri.Generation,
+	})
+	allReady = false // InferencePool not ready yet
+
+	// Set overall Ready condition.
+	overallStatus := metav1.ConditionFalse
+	overallReason := "NotReady"
+	overallMessage := "Not all components are ready"
+	if allReady {
+		overallStatus = metav1.ConditionTrue
+		overallReason = "Ready"
+		overallMessage = "All components are ready"
+	}
+	meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
+		Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeReady),
+		Status:             overallStatus,
+		Reason:             overallReason,
+		Message:            overallMessage,
+		ObservedGeneration: mri.Generation,
+	})
+
+	mri.Status.ObservedGeneration = mri.Generation
+	return r.Status().Update(ctx, mri)
+}
+
+// isInferenceSetReady checks if an InferenceSet has the InferenceSetReady condition set to True.
+func (r *MultiRoleInferenceReconciler) isInferenceSetReady(is *kaitov1alpha1.InferenceSet) bool {
+	if is == nil {
+		return false
+	}
+	for _, cond := range is.Status.Conditions {
+		if cond.Type == string(kaitov1alpha1.InferenceSetConditionTypeReady) && cond.Status == metav1.ConditionTrue {
+			return true
+		}
+	}
+	return false
 }
 
 // cleanupOrphanedInferenceSets deletes InferenceSets that no longer correspond to any role in the MRI spec.

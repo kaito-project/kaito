@@ -1565,6 +1565,7 @@ func TestSetRoutingSidecar(t *testing.T) {
 				expectedArgs := []string{
 					fmt.Sprintf("--port=%d", consts.PortInferenceServer),
 					fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
+					"--secure-proxy=false",
 				}
 				if len(sidecar.Args) != len(expectedArgs) {
 					t.Errorf("expected %d args, got %d: %v", len(expectedArgs), len(sidecar.Args), sidecar.Args)

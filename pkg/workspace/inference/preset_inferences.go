@@ -862,6 +862,7 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 	sidecarArgs := []string{
 		fmt.Sprintf("--port=%d", consts.PortInferenceServer),
 		fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
+		"--secure-proxy=false",
 	}
 
 	if sidecarExists {

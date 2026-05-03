@@ -1561,19 +1561,25 @@ func TestSetRoutingSidecar(t *testing.T) {
 				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != int32(consts.PortInferenceServer) {
 					t.Errorf("expected port %d, got %v", consts.PortInferenceServer, sidecar.Ports)
 				}
-				// Check BACKEND_URL env
-				foundBackend := false
-				for _, env := range sidecar.Env {
-					if env.Name == "BACKEND_URL" {
-						expectedURL := fmt.Sprintf("http://localhost:%d", consts.PortInferenceServerInternal)
-						if env.Value != expectedURL {
-							t.Errorf("expected BACKEND_URL %q, got %q", expectedURL, env.Value)
+				// Check sidecar args (--port and --vllm-port flags)
+				expectedArgs := []string{
+					fmt.Sprintf("--port=%d", consts.PortInferenceServer),
+					fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
+				}
+				if len(sidecar.Args) != len(expectedArgs) {
+					t.Errorf("expected %d args, got %d: %v", len(expectedArgs), len(sidecar.Args), sidecar.Args)
+				} else {
+					for i, expected := range expectedArgs {
+						if sidecar.Args[i] != expected {
+							t.Errorf("expected arg[%d] %q, got %q", i, expected, sidecar.Args[i])
 						}
-						foundBackend = true
 					}
 				}
-				if !foundBackend {
-					t.Error("BACKEND_URL env not found on sidecar")
+				// BACKEND_URL should NOT be present (sidecar uses flags, not env)
+				for _, env := range sidecar.Env {
+					if env.Name == "BACKEND_URL" {
+						t.Error("BACKEND_URL env should not be present on sidecar (uses --vllm-port flag instead)")
+					}
 				}
 			}
 

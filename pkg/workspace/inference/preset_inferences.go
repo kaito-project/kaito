@@ -858,7 +858,16 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 		}
 	}
 
-	expectedBackendURL := fmt.Sprintf("http://localhost:%d", consts.PortInferenceServerInternal)
+
+	// The llm-d routing sidecar uses command-line flags (not environment variables)
+	// to configure its listening port and backend vLLM port:
+	//   --port=<listen-port>       (default: 8000)
+	//   --vllm-port=<backend-port> (default: 8001)
+	// We must explicitly set these to match our port scheme (5000 / 5001).
+	sidecarArgs := []string{
+		fmt.Sprintf("--port=%d", consts.PortInferenceServer),
+		fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
+	}
 
 	if sidecarExists {
 		// Reconcile existing sidecar to ensure its config matches expected values
@@ -866,24 +875,10 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			if spec.Containers[i].Name != "llm-d-routing-sidecar" {
 				continue
 			}
-			// Ensure BACKEND_URL points to the internal port
-			backendFound := false
-			for j := range spec.Containers[i].Env {
-				if spec.Containers[i].Env[j].Name == "BACKEND_URL" {
-					spec.Containers[i].Env[j].Value = expectedBackendURL
-					backendFound = true
-					break
-				}
-			}
-			if !backendFound {
-				spec.Containers[i].Env = append(spec.Containers[i].Env, corev1.EnvVar{
-					Name:  "BACKEND_URL",
-					Value: expectedBackendURL,
-				})
-			}
 			// Ensure image is up to date
 			spec.Containers[i].Image = fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag)
-			// Ensure port is set correctly
+			// Ensure args include correct port flags
+			spec.Containers[i].Args = sidecarArgs
 			// Set ports to exactly the expected single port struct for deterministic spec
 			spec.Containers[i].Ports = []corev1.ContainerPort{
 				{ContainerPort: consts.PortInferenceServer, Name: "sidecar", Protocol: corev1.ProtocolTCP},
@@ -906,6 +901,14 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 					},
 				})
 			}
+			// Remove stale BACKEND_URL env if present (no longer used)
+			envs := spec.Containers[i].Env[:0]
+			for _, e := range spec.Containers[i].Env {
+				if e.Name != "BACKEND_URL" {
+					envs = append(envs, e)
+				}
+			}
+			spec.Containers[i].Env = envs
 			break
 		}
 	} else {
@@ -913,6 +916,7 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 		sidecar := corev1.Container{
 			Name:  "llm-d-routing-sidecar",
 			Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+			Args:  sidecarArgs,
 			Ports: []corev1.ContainerPort{
 				{
 					ContainerPort: consts.PortInferenceServer,
@@ -921,10 +925,6 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 				},
 			},
 			Env: []corev1.EnvVar{
-				{
-					Name:  "BACKEND_URL",
-					Value: expectedBackendURL,
-				},
 				{
 					Name: "POD_IP",
 					ValueFrom: &corev1.EnvVarSource{

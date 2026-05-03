@@ -38,7 +38,7 @@ func TestNewControllerWebhooks(t *testing.T) {
 		{
 			name:                     "InferenceSet controller enabled",
 			enableInferenceSet:       true,
-			expectedConstructorCount: 3,
+			expectedConstructorCount: 4,
 		},
 	}
 

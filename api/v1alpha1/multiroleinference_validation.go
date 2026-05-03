@@ -56,9 +56,11 @@ func (m *MultiRoleInference) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrMissingField("model.name"))
 	}
 
-	// Validate labelSelector is not nil.
+	// Validate labelSelector is not nil and not empty.
 	if m.Spec.LabelSelector == nil {
 		errs = errs.Also(apis.ErrMissingField("labelSelector"))
+	} else if len(m.Spec.LabelSelector.MatchLabels) == 0 && len(m.Spec.LabelSelector.MatchExpressions) == 0 {
+		errs = errs.Also(apis.ErrInvalidValue("labelSelector must have at least one matchLabels or matchExpressions entry", "labelSelector"))
 	}
 
 	// Validate roles.

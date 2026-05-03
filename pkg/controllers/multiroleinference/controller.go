@@ -224,10 +224,11 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 		}
 	}
 
-	allReady := true
-
-	// Check prefill InferenceSet readiness.
-	prefillReady := r.isInferenceSetReady(roleISMap["prefill"])
+	allReady := prefillReady && decodeReady
+	// TODO: include inferencePoolReady once InferencePool creation is implemented (Step 4).
+	// For now, InferencePool is always not ready.
+	inferencePoolReady := false
+	allReady = allReady && inferencePoolReady
 	condStatus := metav1.ConditionFalse
 	reason := "PrefillNotReady"
 	message := "Prefill InferenceSet is not ready"
@@ -236,7 +237,6 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 		reason = "PrefillReady"
 		message = "Prefill InferenceSet is ready"
 	} else {
-		allReady = false
 		if _, exists := roleISMap["prefill"]; !exists {
 			reason = "PrefillNotFound"
 			message = "Prefill InferenceSet not found"
@@ -260,7 +260,6 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 		reason = "DecodeReady"
 		message = "Decode InferenceSet is ready"
 	} else {
-		allReady = false
 		if _, exists := roleISMap["decode"]; !exists {
 			reason = "DecodeNotFound"
 			message = "Decode InferenceSet not found"
@@ -283,7 +282,6 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 		Message:            "InferencePool creation is not yet implemented",
 		ObservedGeneration: mri.Generation,
 	})
-	allReady = false // InferencePool not ready yet
 
 	// Set overall Ready condition.
 	overallStatus := metav1.ConditionFalse

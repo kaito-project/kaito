@@ -795,8 +795,12 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 		// Update --vllm-port in container command and args
 		portOverrideAdded := false
 		for j, cmd := range spec.Containers[i].Command {
-			if strings.Contains(cmd, "--vllm-port="+oldPort) {
-				spec.Containers[i].Command[j] = strings.ReplaceAll(cmd, "--vllm-port="+oldPort, "--vllm-port="+newPort)
+			// Use a working copy so all transformations within the same
+			// command string are cumulative (avoid clobbering earlier rewrites).
+			updated := cmd
+
+			if strings.Contains(updated, "--vllm-port="+oldPort) {
+				updated = strings.ReplaceAll(updated, "--vllm-port="+oldPort, "--vllm-port="+newPort)
 			}
 			// Insert or rewrite --port to override vLLM's default listen port.
 			// Use string replacement to handle both single-node and multi-node
@@ -804,40 +808,40 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 			// Handles both "--port <n>" (space form) and "--port=<n>" (equals form).
 			internalPortSpace := fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)
 			internalPortEquals := fmt.Sprintf("--port=%d", consts.PortInferenceServerInternal)
-			if !portOverrideAdded && strings.Contains(cmd, "inference_api.py") {
+			if !portOverrideAdded && strings.Contains(updated, "inference_api.py") {
 				rewritten := false
 				// Check for "--port=<n>" form first (e.g., from BuildCmdStr)
-				if idx := strings.Index(cmd, "--port="); idx >= 0 {
+				if idx := strings.Index(updated, "--port="); idx >= 0 {
 					portStart := idx + len("--port=")
 					portEnd := portStart
-					for portEnd < len(cmd) && cmd[portEnd] >= '0' && cmd[portEnd] <= '9' {
+					for portEnd < len(updated) && updated[portEnd] >= '0' && updated[portEnd] <= '9' {
 						portEnd++
 					}
 					if portEnd > portStart {
-						existing := cmd[idx:portEnd]
-						spec.Containers[i].Command[j] = strings.Replace(cmd, existing, internalPortEquals, 1)
+						existing := updated[idx:portEnd]
+						updated = strings.Replace(updated, existing, internalPortEquals, 1)
 						rewritten = true
 					}
 				}
 				// Check for "--port <n>" form (space-separated)
 				if !rewritten {
-					if idx := strings.Index(cmd, "--port "); idx >= 0 {
+					if idx := strings.Index(updated, "--port "); idx >= 0 {
 						portStart := idx + len("--port ")
 						portEnd := portStart
-						for portEnd < len(cmd) && cmd[portEnd] >= '0' && cmd[portEnd] <= '9' {
+						for portEnd < len(updated) && updated[portEnd] >= '0' && updated[portEnd] <= '9' {
 							portEnd++
 						}
 						if portEnd > portStart {
-							existing := cmd[idx:portEnd]
-							spec.Containers[i].Command[j] = strings.Replace(cmd, existing, internalPortSpace, 1)
+							existing := updated[idx:portEnd]
+							updated = strings.Replace(updated, existing, internalPortSpace, 1)
 							rewritten = true
 						}
 					}
 				}
 				// No existing --port flag, insert after inference_api.py
 				if !rewritten {
-					spec.Containers[i].Command[j] = strings.Replace(
-						cmd,
+					updated = strings.Replace(
+						updated,
 						"inference_api.py",
 						"inference_api.py "+internalPortSpace,
 						1,
@@ -845,6 +849,7 @@ func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Po
 				}
 				portOverrideAdded = true
 			}
+			spec.Containers[i].Command[j] = updated
 		}
 		for j, arg := range spec.Containers[i].Args {
 			if strings.Contains(arg, "--vllm-port="+oldPort) {

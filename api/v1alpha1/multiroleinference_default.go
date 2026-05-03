@@ -17,10 +17,9 @@ import (
 	"context"
 )
 
-// SetDefaults for the MultiRoleInference
+// SetDefaults for the MultiRoleInference.
 func (m *MultiRoleInference) SetDefaults(_ context.Context) {
-	// Default replicas to 1 for each role if zero (the zero-value covers both
-	// omitted and explicitly-set-to-0 cases for a non-pointer int32 field).
+	// Default replicas to 1 for each role if not set or explicitly set to 0.
 	for i := range m.Spec.Roles {
 		if m.Spec.Roles[i].Replicas == 0 {
 			m.Spec.Roles[i].Replicas = 1

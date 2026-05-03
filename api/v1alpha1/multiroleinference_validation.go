@@ -32,10 +32,12 @@ func (m *MultiRoleInference) SupportedVerbs() []admissionregistrationv1.Operatio
 }
 
 func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldError) {
+	// Validate name is a valid DNS label.
 	errmsgs := validation.IsDNS1123Label(m.Name)
 	if len(errmsgs) > 0 {
-		errs = errs.Also(apis.ErrInvalidValue(m.Name, "name", strings.Join(errmsgs, ", ")))
+		errs = errs.Also(apis.ErrInvalidValue(strings.Join(errmsgs, ", "), "name"))
 	}
+
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "multiroleinference", fmt.Sprintf("%s/%s", m.Namespace, m.Name))
@@ -49,52 +51,88 @@ func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldErro
 }
 
 func (m *MultiRoleInference) validateCreate() (errs *apis.FieldError) {
-	// Validate exactly 2 roles
-	if len(m.Spec.Roles) != 2 {
-		errs = errs.Also(apis.ErrInvalidValue(len(m.Spec.Roles), "roles", "exactly 2 roles required (one prefill and one decode)"))
-	}
-
-	// Validate role types: one prefill and one decode
-	var hasPrefill, hasDecode bool
-	for i, role := range m.Spec.Roles {
-		switch role.Type {
-		case MultiRoleInferenceRolePrefill:
-			hasPrefill = true
-		case MultiRoleInferenceRoleDecode:
-			hasDecode = true
-		default:
-			errs = errs.Also(apis.ErrInvalidValue(role.Type, fmt.Sprintf("roles[%d].type", i), "must be prefill or decode"))
-		}
-		// Validate replicas >= 1
-		if role.Replicas < 1 {
-			errs = errs.Also(apis.ErrInvalidValue(role.Replicas, fmt.Sprintf("roles[%d].replicas", i), "must be at least 1"))
-		}
-		// Validate instanceType is not empty
-		if role.InstanceType == "" {
-			errs = errs.Also(apis.ErrMissingField(fmt.Sprintf("roles[%d].instanceType", i)))
-		}
-	}
-	if len(m.Spec.Roles) == 2 && (!hasPrefill || !hasDecode) {
-		errs = errs.Also(apis.ErrInvalidValue("missing prefill or decode role", "roles", "exactly one prefill and one decode role required"))
-	}
-
-	// Validate model name is not empty
+	// Validate model name is not empty.
 	if m.Spec.Model.Name == "" {
 		errs = errs.Also(apis.ErrMissingField("model.name"))
 	}
 
-	// Validate labelSelector is not nil and has at least one selector
+	// Validate labelSelector is not nil.
 	if m.Spec.LabelSelector == nil {
 		errs = errs.Also(apis.ErrMissingField("labelSelector"))
-	} else if len(m.Spec.LabelSelector.MatchLabels) == 0 && len(m.Spec.LabelSelector.MatchExpressions) == 0 {
-		errs = errs.Also(apis.ErrInvalidValue(m.Spec.LabelSelector, "labelSelector", "at least one matchLabels or matchExpressions entry is required"))
 	}
+
+	// Validate roles.
+	errs = errs.Also(m.validateRoles())
 
 	return errs
 }
 
-func (m *MultiRoleInference) validateUpdate(_ *MultiRoleInference) (errs *apis.FieldError) {
-	// Run the same validations as create to prevent invalid updates.
-	errs = errs.Also(m.validateCreate())
+func (m *MultiRoleInference) validateUpdate(old *MultiRoleInference) (errs *apis.FieldError) {
+	// Model name is immutable.
+	if m.Spec.Model.Name != old.Spec.Model.Name {
+		errs = errs.Also(apis.ErrInvalidValue(
+			fmt.Sprintf("model name is immutable, was %q, now %q", old.Spec.Model.Name, m.Spec.Model.Name),
+			"model.name",
+		))
+	}
+
+	// Validate roles (same as create).
+	errs = errs.Also(m.validateRoles())
+
+	return errs
+}
+
+func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
+	// Validate exactly 2 roles.
+	if len(m.Spec.Roles) != 2 {
+		errs = errs.Also(apis.ErrInvalidValue(
+			fmt.Sprintf("exactly 2 roles required (one prefill, one decode), got %d", len(m.Spec.Roles)),
+			"roles",
+		))
+		return errs
+	}
+
+	hasPrefill := false
+	hasDecode := false
+	for i, role := range m.Spec.Roles {
+		field := fmt.Sprintf("roles[%d]", i)
+
+		// Validate role type.
+		switch role.Type {
+		case MultiRoleInferenceRolePrefill:
+			if hasPrefill {
+				errs = errs.Also(apis.ErrInvalidValue("duplicate prefill role", field+".type"))
+			}
+			hasPrefill = true
+		case MultiRoleInferenceRoleDecode:
+			if hasDecode {
+				errs = errs.Also(apis.ErrInvalidValue("duplicate decode role", field+".type"))
+			}
+			hasDecode = true
+		default:
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("unsupported role type %q, must be prefill or decode", role.Type),
+				field+".type",
+			))
+		}
+
+		// Validate instanceType is not empty.
+		if role.InstanceType == "" {
+			errs = errs.Also(apis.ErrMissingField(field + ".instanceType"))
+		}
+
+		// Validate replicas >= 1.
+		if role.Replicas < 1 {
+			errs = errs.Also(apis.ErrInvalidValue(role.Replicas, field+".replicas", "must be at least 1"))
+		}
+	}
+
+	if !hasPrefill {
+		errs = errs.Also(apis.ErrMissingField("roles", "missing prefill role"))
+	}
+	if !hasDecode {
+		errs = errs.Also(apis.ErrMissingField("roles", "missing decode role"))
+	}
+
 	return errs
 }

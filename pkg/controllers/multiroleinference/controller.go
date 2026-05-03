@@ -34,11 +34,17 @@ import (
 )
 
 const (
-	// ConditionTypeReady is the condition type for overall readiness.
-	ConditionTypeReady = "Ready"
+	// MultiRoleInferenceFinalizer is the finalizer for MultiRoleInference objects.
+	MultiRoleInferenceFinalizer = "multiroleinference.kaito.sh/finalizer"
+
+	// ConditionTypeDeleting indicates the MRI is being deleted.
+	ConditionTypeDeleting = "Deleting"
 
 	// ConditionTypeInferenceSetsReady indicates whether child InferenceSets are created.
 	ConditionTypeInferenceSetsReady = "InferenceSetsReady"
+
+	// ConditionTypeReady is the condition type for overall readiness.
+	ConditionTypeReady = "Ready"
 )
 
 // MultiRoleInferenceReconciler reconciles a MultiRoleInference object.
@@ -71,11 +77,101 @@ func (r *MultiRoleInferenceReconciler) Reconcile(ctx context.Context, req ctrl.R
 	mri := &kaitov1alpha1.MultiRoleInference{}
 	if err := r.Get(ctx, req.NamespacedName, mri); err != nil {
 		if apierrors.IsNotFound(err) {
+			klog.InfoS("MultiRoleInference not found, might be deleted already", "multiroleinference", req.Name)
 			return ctrl.Result{}, nil
 		}
 		return ctrl.Result{}, err
 	}
 
+	// Handle deletion vs normal reconciliation.
+	if mri.DeletionTimestamp.IsZero() {
+		// Ensure finalizer is present.
+		if err := r.ensureFinalizer(ctx, mri); err != nil {
+			return ctrl.Result{}, err
+		}
+		return r.addOrUpdateMultiRoleInference(ctx, log, mri)
+	}
+
+	// MRI is being deleted — run garbage collection.
+	return r.deleteMultiRoleInference(ctx, log, mri)
+}
+
+// ensureFinalizer adds the finalizer to the MRI if not already present.
+func (r *MultiRoleInferenceReconciler) ensureFinalizer(ctx context.Context, mri *kaitov1alpha1.MultiRoleInference) error {
+	if !controllerutil.ContainsFinalizer(mri, MultiRoleInferenceFinalizer) {
+		controllerutil.AddFinalizer(mri, MultiRoleInferenceFinalizer)
+		if err := r.Update(ctx, mri); err != nil {
+			klog.ErrorS(err, "failed to ensure the finalizer on the multiroleinference", "multiroleinference", klog.KObj(mri))
+			return err
+		}
+	}
+	return nil
+}
+
+// deleteMultiRoleInference handles MRI deletion: sets Deleting condition, GCs children, removes finalizer.
+func (r *MultiRoleInferenceReconciler) deleteMultiRoleInference(ctx context.Context, log logr.Logger, mri *kaitov1alpha1.MultiRoleInference) (ctrl.Result, error) {
+	klog.InfoS("deleteMultiRoleInference", "multiroleinference", klog.KObj(mri))
+
+	// Set Deleting condition.
+	meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
+		Type:               ConditionTypeDeleting,
+		Status:             metav1.ConditionTrue,
+		Reason:             "MultiRoleInferenceDeleted",
+		Message:            "MultiRoleInference is being deleted",
+		ObservedGeneration: mri.Generation,
+	})
+	if err := r.Status().Update(ctx, mri); err != nil {
+		if apierrors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		klog.ErrorS(err, "failed to update deleting status", "multiroleinference", klog.KObj(mri))
+	}
+
+	return r.garbageCollectMultiRoleInference(ctx, log, mri)
+}
+
+// garbageCollectMultiRoleInference deletes all child InferenceSets and removes the finalizer.
+func (r *MultiRoleInferenceReconciler) garbageCollectMultiRoleInference(ctx context.Context, log logr.Logger, mri *kaitov1alpha1.MultiRoleInference) (ctrl.Result, error) {
+	// List all child InferenceSets owned by this MRI.
+	isList := &kaitov1alpha1.InferenceSetList{}
+	if err := r.List(ctx, isList, client.InNamespace(mri.Namespace), client.MatchingLabels{
+		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
+	}); err != nil {
+		klog.ErrorS(err, "failed to list child InferenceSets", "multiroleinference", klog.KObj(mri))
+		return ctrl.Result{}, err
+	}
+
+	// Delete each child InferenceSet that hasn't been deleted yet.
+	for i := range isList.Items {
+		is := &isList.Items[i]
+		if is.DeletionTimestamp.IsZero() {
+			klog.InfoS("Deleting child InferenceSet", "inferenceset", klog.KObj(is), "multiroleinference", klog.KObj(mri))
+			if err := r.Delete(ctx, is, &client.DeleteOptions{}); err != nil {
+				if !apierrors.IsNotFound(err) {
+					klog.ErrorS(err, "failed to delete child InferenceSet", "inferenceset", klog.KObj(is))
+					return ctrl.Result{}, err
+				}
+			}
+		}
+	}
+
+	// Remove the finalizer.
+	controllerutil.RemoveFinalizer(mri, MultiRoleInferenceFinalizer)
+	if err := r.Update(ctx, mri); err != nil {
+		if apierrors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		klog.ErrorS(err, "failed to update the multiroleinference to remove finalizer", "multiroleinference", klog.KObj(mri))
+		return ctrl.Result{}, err
+	}
+
+	klog.InfoS("Successfully removed the multiroleinference finalizer", "multiroleinference", klog.KObj(mri))
+	r.Recorder.Event(mri, "Normal", "Deleted", "MultiRoleInference deleted and child InferenceSets cleaned up")
+	return ctrl.Result{}, nil
+}
+
+// addOrUpdateMultiRoleInference handles normal reconciliation: create/update child InferenceSets.
+func (r *MultiRoleInferenceReconciler) addOrUpdateMultiRoleInference(ctx context.Context, log logr.Logger, mri *kaitov1alpha1.MultiRoleInference) (ctrl.Result, error) {
 	log.Info("Reconciling MultiRoleInference", "name", mri.Name)
 
 	// Create or update child InferenceSets for each role.
@@ -99,6 +195,12 @@ func (r *MultiRoleInferenceReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}
 	}
 
+	// Clean up orphaned InferenceSets (roles removed from spec).
+	if err := r.cleanupOrphanedInferenceSets(ctx, mri); err != nil {
+		log.Error(err, "Failed to cleanup orphaned InferenceSets")
+		return ctrl.Result{}, err
+	}
+
 	// Update status: InferenceSets are ready.
 	meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
 		Type:               ConditionTypeInferenceSetsReady,
@@ -116,6 +218,34 @@ func (r *MultiRoleInferenceReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 	r.Recorder.Event(mri, "Normal", "Reconciled", "MultiRoleInference reconciled successfully")
 	return ctrl.Result{}, nil
+}
+
+// cleanupOrphanedInferenceSets deletes InferenceSets that no longer correspond to any role in the MRI spec.
+func (r *MultiRoleInferenceReconciler) cleanupOrphanedInferenceSets(ctx context.Context, mri *kaitov1alpha1.MultiRoleInference) error {
+	// Build set of expected InferenceSet names.
+	expectedNames := make(map[string]bool, len(mri.Spec.Roles))
+	for _, role := range mri.Spec.Roles {
+		expectedNames[fmt.Sprintf("%s-%s", mri.Name, role.Type)] = true
+	}
+
+	// List all child InferenceSets.
+	isList := &kaitov1alpha1.InferenceSetList{}
+	if err := r.List(ctx, isList, client.InNamespace(mri.Namespace), client.MatchingLabels{
+		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
+	}); err != nil {
+		return err
+	}
+
+	for i := range isList.Items {
+		is := &isList.Items[i]
+		if !expectedNames[is.Name] && is.DeletionTimestamp.IsZero() {
+			klog.InfoS("Deleting orphaned InferenceSet", "inferenceset", klog.KObj(is), "multiroleinference", klog.KObj(mri))
+			if err := r.Delete(ctx, is, &client.DeleteOptions{}); err != nil && !apierrors.IsNotFound(err) {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // reconcileInferenceSet creates or updates a child InferenceSet for the given role.

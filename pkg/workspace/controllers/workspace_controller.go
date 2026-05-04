@@ -709,7 +709,7 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 		setWorkspaceCondition(status, generation, appendMessage,
 			kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue, "WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully")
 
-		if kaitov1beta1.IsRunBenchmarkEnabled(wObj) {
+		if kaitov1beta1.ShouldRunBenchmark(wObj) {
 			if err := applyBenchmarkStatus(ctx, status, wObj, generation, appendMessage); err != nil {
 				setWorkspaceCondition(status, generation, appendMessage,
 					kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "BenchmarkFailed", err.Error())
@@ -730,7 +730,7 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 		kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", "workspace is waiting for inference workload readiness")
 	// Clear benchmark state so applyBenchmarkStatus re-runs once inference recovers.
 	// This ensures a pod restart or rolling update doesn't leave stale results.
-	if kaitov1beta1.IsRunBenchmarkEnabled(wObj) {
+	if kaitov1beta1.ShouldRunBenchmark(wObj) {
 		meta.RemoveStatusCondition(&status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
 		status.Performance = nil
 	}

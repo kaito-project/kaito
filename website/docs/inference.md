@@ -139,6 +139,35 @@ Key vLLM parameters include:
 
 For the complete list of vLLM parameters, refer to the [vLLM documentation](https://docs.vllm.ai/en/latest/serving/engine_args.html).
 
+### Inference benchmark
+
+When using the vLLM runtime, KAITO automatically runs a post-load throughput benchmark (via [guidellm](https://github.com/neuralmagic/guidellm)) after the model loads and before marking the workspace as ready. The benchmark result is stored in `status.performance.metrics` and the `BenchmarkCompleted` condition is set on the workspace.
+
+To disable the benchmark, set the `kaito.sh/disable-benchmark` annotation to `"true"` on a Workspace or InferenceSet:
+
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-phi-4-mini
+  annotations:
+    kaito.sh/disable-benchmark: "true"
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: phi-4-mini
+inference:
+  preset:
+    name: "phi-4-mini"
+```
+
+When set on an InferenceSet, the annotation is propagated to all child Workspaces it creates.
+
+:::note
+The benchmark only runs with the vLLM runtime. It is not supported with the `transformers` runtime.
+:::
+
 ### Inference with LoRA adapters
 
 KAITO also supports running the inference workload with LoRA adapters produced by [model fine-tuning jobs](./tuning.md). Users can specify one or more adapters in the `adapters` field of the `inference` spec. For example,

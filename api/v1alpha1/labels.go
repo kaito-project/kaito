@@ -59,9 +59,10 @@ const (
 	// AnnotationNodeImageFamily specifies node image family used by generated NodeClaim.
 	AnnotationNodeImageFamily = KAITOPrefix + "node-image-family"
 
-	// AnnotationRunBenchmark enables the post-load inference benchmark when set to "true".
+	// AnnotationDisableBenchmark disables the post-load inference benchmark.
+	// The benchmark is enabled by default. Set to "true" to disable it.
 	// When set on an InferenceSet, it is propagated to all Workspaces the InferenceSet creates.
-	AnnotationRunBenchmark = KAITOPrefix + "run-benchmark"
+	AnnotationDisableBenchmark = KAITOPrefix + "disable-benchmark"
 )
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.
@@ -107,8 +108,19 @@ func GetInferenceSetRuntimeName(iObj *InferenceSet) model.RuntimeName {
 	return runtime
 }
 
-// IsRunBenchmarkEnabled reports whether the InferenceSet has the benchmark
-// annotation set to "true".
+// IsRunBenchmarkEnabled reports whether the InferenceSet benchmark is enabled.
+// The benchmark is on by default; it is only disabled when the annotation
+// kaito.sh/disable-benchmark is explicitly set to "true".
 func IsRunBenchmarkEnabled(iObj *InferenceSet) bool {
-	return iObj.Annotations[AnnotationRunBenchmark] == "true"
+	return iObj.Annotations[AnnotationDisableBenchmark] != "true"
+}
+
+// ShouldRunBenchmark reports whether the InferenceSet's child workspaces should
+// run the post-load benchmark. Same criteria as the Workspace-level check:
+// benchmark must be enabled, runtime must be vLLM, and the template must use a
+// preset (not a custom container template).
+func ShouldRunBenchmark(iObj *InferenceSet) bool {
+	return IsRunBenchmarkEnabled(iObj) &&
+		GetInferenceSetRuntimeName(iObj) == model.RuntimeNameVLLM &&
+		iObj.Spec.Template.Inference.Preset != nil
 }

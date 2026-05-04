@@ -284,13 +284,13 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 
 			// Start with annotations from the template metadata.
 			workspaceAnnotations := maps.Clone(iObj.Spec.Template.Annotations)
-			// Propagate the run-benchmark annotation so each workspace runs the
-			// post-load benchmark and the InferenceSet can aggregate the TPM results.
-			if kaitov1alpha1.IsRunBenchmarkEnabled(iObj) {
+			// Propagate the disable-benchmark opt-out so each child workspace inherits it.
+			// Benchmark is on by default; only propagate when explicitly disabled.
+			if !kaitov1alpha1.IsRunBenchmarkEnabled(iObj) {
 				if workspaceAnnotations == nil {
 					workspaceAnnotations = make(map[string]string)
 				}
-				workspaceAnnotations[kaitov1beta1.AnnotationRunBenchmark] = "true"
+				workspaceAnnotations[kaitov1beta1.AnnotationDisableBenchmark] = "true"
 			}
 			workspaceObj.Annotations = workspaceAnnotations
 			workspaceObj.OwnerReferences = []metav1.OwnerReference{
@@ -319,7 +319,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		status.ReadyReplicas = readyReplicas
 		// set selector for HPA/VPA
 		status.Selector = fmt.Sprintf("%s=%s", consts.WorkspaceCreatedByInferenceSetLabel, iObj.Name)
-		if kaitov1alpha1.IsRunBenchmarkEnabled(iObj) {
+		if kaitov1alpha1.ShouldRunBenchmark(iObj) {
 			if hasBenchmarkTPMResult {
 				if status.Performance == nil {
 					status.Performance = &kaitov1alpha1.Performance{}
@@ -374,7 +374,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	}
 
 	// Surface benchmark progress when the annotation is set.
-	if kaitov1alpha1.IsRunBenchmarkEnabled(iObj) {
+	if kaitov1alpha1.ShouldRunBenchmark(iObj) {
 		if benchmarkedReplicas == iObj.Spec.Replicas && iObj.Spec.Replicas > 0 {
 			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
 				"BenchmarkCompleted", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, iObj.Spec.Replicas)); err != nil {

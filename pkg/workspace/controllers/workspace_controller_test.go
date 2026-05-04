@@ -1005,7 +1005,11 @@ func TestSyncWorkspaceStatus(t *testing.T) {
 			expectedSucceededStatus:  v1.ConditionFalse,
 		},
 		"inference ready": {
-			workspace: test.MockWorkspaceDistributedModel.DeepCopy(),
+			workspace: func() *v1beta1.Workspace {
+				ws := test.MockWorkspaceDistributedModel.DeepCopy()
+				ws.Annotations = map[string]string{v1beta1.AnnotationDisableBenchmark: "true"}
+				return ws
+			}(),
 			statefulSet: &appsv1.StatefulSet{
 				ObjectMeta: v1.ObjectMeta{Name: test.MockWorkspaceDistributedModel.Name, Namespace: test.MockWorkspaceDistributedModel.Namespace},
 				Spec: appsv1.StatefulSetSpec{
@@ -1168,7 +1172,8 @@ func TestBuildReconcileErrMessageAppender(t *testing.T) {
 func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 	t.Run("ready when inference and resource are ready", func(t *testing.T) {
 		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
-		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue)
+		wObj := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: map[string]string{v1beta1.AnnotationDisableBenchmark: "true"}}}
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue)
 
 		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
 		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
@@ -1190,10 +1195,13 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
 	})
 
-	t.Run("not-ready path clears benchmark condition and result when annotation is set", func(t *testing.T) {
+	t.Run("not-ready path clears benchmark condition and result (benchmark on by default)", func(t *testing.T) {
 		wObj := &v1beta1.Workspace{
-			ObjectMeta: v1.ObjectMeta{
-				Annotations: map[string]string{v1beta1.AnnotationRunBenchmark: "true"},
+			ObjectMeta: v1.ObjectMeta{},
+			Inference: &v1beta1.InferenceSpec{
+				Preset: &v1beta1.PresetSpec{
+					PresetMeta: v1beta1.PresetMeta{Name: "test-model"},
+				},
 			},
 		}
 		// Pre-populate status as if a previous reconcile completed the benchmark.
@@ -1224,9 +1232,8 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 	t.Run("benchmark guard skips StreamLogs when BenchmarkCompleted is already True", func(t *testing.T) {
 		wObj := &v1beta1.Workspace{
 			ObjectMeta: v1.ObjectMeta{
-				Name:        "ws",
-				Namespace:   "default",
-				Annotations: map[string]string{v1beta1.AnnotationRunBenchmark: "true"},
+				Name:      "ws",
+				Namespace: "default",
 			},
 		}
 		status := &v1beta1.WorkspaceStatus{

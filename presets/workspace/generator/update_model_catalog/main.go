@@ -125,6 +125,12 @@ func catalogFields(e *generator.CatalogEntry) map[string]string {
 	if e.QKRopeHeadDim > 0 {
 		m["qkRopeHeadDim"] = fmt.Sprintf("%d", e.QKRopeHeadDim)
 	}
+	if e.QuantMethod != "" {
+		m["quantMethod"] = e.QuantMethod
+	}
+	if e.QuantBits > 0 {
+		m["quantBits"] = fmt.Sprintf("%d", e.QuantBits)
+	}
 	if e.LoadFormat != "" {
 		m["loadFormat"] = e.LoadFormat
 	}

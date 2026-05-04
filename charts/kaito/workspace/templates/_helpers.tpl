@@ -191,3 +191,14 @@ toYamlStrMap function
 {{- end -}}
 {{- toYaml $strMap -}}
 {{- end -}}
+
+{{/*
+joinKeyValueStrPairs joins a map into "key=value,key=value" format (string values).
+*/}}
+{{- define "utils.joinKeyValueStrPairs" -}}
+{{- $pairs := list -}}
+{{- range $key, $value := . -}}
+{{- $pairs = append $pairs (printf "%s=%s" $key (toString $value)) -}}
+{{- end -}}
+{{- join "," $pairs -}}
+{{- end -}}

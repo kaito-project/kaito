@@ -56,6 +56,7 @@ var _ = Describe("Workspace Preset AzureLinux", utils.GinkgoLabelAzureLinux, fun
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})

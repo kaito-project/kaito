@@ -47,7 +47,7 @@ const (
 	// InferenceSetConditionTypeReady is the InferenceSet state when starts to get ready.
 	InferenceSetConditionTypeReady = ConditionType("InferenceSetReady")
 
-	// InferenceSetConditionTypeBenchmarkCompleted is set when benchmark annotation is present.
+	// InferenceSetConditionTypeBenchmarkCompleted is set when benchmark is enabled (default).
 	// True means all desired replicas have a benchmark result; False means some are still pending.
 	InferenceSetConditionTypeBenchmarkCompleted = ConditionType("BenchmarkCompleted")
 

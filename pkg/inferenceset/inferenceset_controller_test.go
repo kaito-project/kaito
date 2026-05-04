@@ -388,14 +388,14 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 		return ws
 	}
 
-	makeInferenceSet := func(replicas int, withBenchmarkAnnotation bool) *v1alpha1.InferenceSet {
+	makeInferenceSet := func(replicas int, benchmarkOff bool) *v1alpha1.InferenceSet {
 		iObj := &v1alpha1.InferenceSet{
 			ObjectMeta: v1.ObjectMeta{Name: "phi-4-mini", Namespace: "default"},
 			Spec:       v1alpha1.InferenceSetSpec{Replicas: replicas},
 		}
-		if withBenchmarkAnnotation {
+		if benchmarkOff {
 			iObj.Annotations = map[string]string{
-				v1alpha1.AnnotationRunBenchmark: "true",
+				v1alpha1.AnnotationDisableBenchmark: "true",
 			}
 		}
 		return iObj
@@ -414,7 +414,7 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 				makeWorkspace("ws-0", "100000"),
 				makeWorkspace("ws-1", "200000"),
 			},
-			inferenceset:          makeInferenceSet(2, true),
+			inferenceset:          makeInferenceSet(2, false),
 			expectedTPM:           "300000",
 			expectBenchmarkCond:   true,
 			expectBenchmarkStatus: v1.ConditionTrue,
@@ -425,7 +425,7 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 				makeWorkspace("ws-0", "100000"),
 				makeWorkspace("ws-1", ""), // no result yet
 			},
-			inferenceset:          makeInferenceSet(2, true),
+			inferenceset:          makeInferenceSet(2, false),
 			expectedTPM:           "100000",
 			expectBenchmarkCond:   true,
 			expectBenchmarkStatus: v1.ConditionFalse,
@@ -436,18 +436,18 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 				makeWorkspace("ws-0", ""),
 				makeWorkspace("ws-1", ""),
 			},
-			inferenceset:          makeInferenceSet(2, true),
+			inferenceset:          makeInferenceSet(2, false),
 			expectedTPM:           "",
 			expectBenchmarkCond:   true,
 			expectBenchmarkStatus: v1.ConditionFalse,
 			expectBenchmarkMsg:    "0/2 replicas benchmarked",
 		},
-		"benchmark annotation absent — no condition set, TPM not written": {
+		"benchmark explicitly disabled — no condition set, TPM not written": {
 			workspaces: []v1beta1.Workspace{
 				makeWorkspace("ws-0", "100000"),
 			},
-			inferenceset: makeInferenceSet(1, false),
-			// TPM is aggregated regardless, but not written to status without the annotation.
+			inferenceset: makeInferenceSet(1, true),
+			// TPM is aggregated regardless, but not written to status when benchmark is disabled.
 			// We verify only that the annotation gate works, not the aggregation itself.
 			expectedTPM:         "100000",
 			expectBenchmarkCond: false,
@@ -458,7 +458,7 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 				makeWorkspace("ws-0", "100000"),
 				makeWorkspace("ws-1", "200000"),
 			},
-			inferenceset:          makeInferenceSet(3, true),
+			inferenceset:          makeInferenceSet(3, false),
 			expectedTPM:           "300000",
 			expectBenchmarkCond:   true,
 			expectBenchmarkStatus: v1.ConditionFalse,

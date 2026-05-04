@@ -55,6 +55,12 @@ var (
 		},
 	})
 
+	KarpenterWorkspaceSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{Key: consts.KarpenterWorkspaceKey, Operator: metav1.LabelSelectorOpExists},
+		},
+	})
+
 	RagEngineSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
 			{Key: kaitov1beta1.LabelRAGEngineName, Operator: metav1.LabelSelectorOpExists},
@@ -67,10 +73,7 @@ var (
 			if !ok {
 				return false
 			}
-			if !WorkspaceSelector.Matches(labels.Set(nodeclaim.GetLabels())) && !RagEngineSelector.Matches(labels.Set(nodeclaim.GetLabels())) {
-				return false
-			}
-			return true
+			return isRelevantNodeClaim(nodeclaim.GetLabels())
 		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			oldNodeClaim, ok := e.ObjectOld.(*karpenterv1.NodeClaim)
@@ -82,11 +85,11 @@ var (
 			if !ok {
 				return false
 			}
-			if !WorkspaceSelector.Matches(labels.Set(oldNodeClaim.GetLabels())) && !RagEngineSelector.Matches(labels.Set(oldNodeClaim.GetLabels())) {
+			if !isRelevantNodeClaim(oldNodeClaim.GetLabels()) {
 				return false
 			}
 
-			if !WorkspaceSelector.Matches(labels.Set(newNodeClaim.GetLabels())) && !RagEngineSelector.Matches(labels.Set(newNodeClaim.GetLabels())) {
+			if !isRelevantNodeClaim(newNodeClaim.GetLabels()) {
 				return false
 			}
 
@@ -105,13 +108,17 @@ var (
 			if !ok {
 				return false
 			}
-			if !WorkspaceSelector.Matches(labels.Set(nodeclaim.GetLabels())) && !RagEngineSelector.Matches(labels.Set(nodeclaim.GetLabels())) {
-				return false
-			}
-			return true
+			return isRelevantNodeClaim(nodeclaim.GetLabels())
 		},
 	}
 )
+
+// isRelevantNodeClaim returns true if the NodeClaim has labels indicating it
+// belongs to a Workspace (legacy kaito.sh/* or karpenter.kaito.sh/*) or a RAGEngine.
+func isRelevantNodeClaim(lbls map[string]string) bool {
+	s := labels.Set(lbls)
+	return WorkspaceSelector.Matches(s) || KarpenterWorkspaceSelector.Matches(s) || RagEngineSelector.Matches(s)
+}
 
 type ManifestOptions struct {
 	DefaultNodeImageFamily string

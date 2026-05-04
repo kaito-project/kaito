@@ -12,8 +12,9 @@
 // limitations under the License.
 
 // Package apis provides a lightweight replacement for knative.dev/pkg/apis
-// error types used in webhook validation. It implements the same chaining
-// API (Also, ViaField) so validation code requires only an import path change.
+// types used by KAITO. This first slice exposes only what non-webhook callers
+// need; chaining helpers (Also, ViaField, ErrGeneric) will be added in the
+// follow-up PR that migrates the validation files themselves.
 package apis
 
 import (
@@ -21,98 +22,22 @@ import (
 	"strings"
 )
 
-// FieldError represents one or more validation errors, supporting
-// nil-safe chaining with Also() and field-path scoping with ViaField().
+// FieldError represents a validation error for one or more fields. It satisfies
+// the error interface so it can be returned from APIs typed as error.
 type FieldError struct {
 	Message string
 	Paths   []string
-	Details string
-	errors  []*FieldError // child errors accumulated via Also()
 }
 
 // Error implements the error interface.
 func (fe *FieldError) Error() string {
-	if fe == nil {
+	if fe == nil || fe.Message == "" {
 		return ""
 	}
-	var msgs []string
-	fe.collectMessages(&msgs)
-	return strings.Join(msgs, "; ")
-}
-
-func (fe *FieldError) collectMessages(msgs *[]string) {
-	if fe == nil {
-		return
+	if path := strings.Join(fe.Paths, ", "); path != "" {
+		return fmt.Sprintf("%s: %s", fe.Message, path)
 	}
-	if fe.Message != "" {
-		path := strings.Join(fe.Paths, ", ")
-		if path != "" {
-			*msgs = append(*msgs, fmt.Sprintf("%s: %s", fe.Message, path))
-		} else {
-			*msgs = append(*msgs, fe.Message)
-		}
-	}
-	for _, child := range fe.errors {
-		child.collectMessages(msgs)
-	}
-}
-
-// Also accumulates another FieldError. Both receiver and argument may be nil.
-func (fe *FieldError) Also(others ...*FieldError) *FieldError {
-	var nonNil []*FieldError
-	if fe != nil {
-		nonNil = append(nonNil, fe)
-	}
-	for _, o := range others {
-		if o != nil {
-			nonNil = append(nonNil, o)
-		}
-	}
-	switch len(nonNil) {
-	case 0:
-		return nil
-	case 1:
-		return nonNil[0]
-	default:
-		return &FieldError{errors: nonNil}
-	}
-}
-
-// ViaField prepends a field path segment to all errors in this FieldError.
-func (fe *FieldError) ViaField(field string) *FieldError {
-	if fe == nil || field == "" {
-		return fe
-	}
-	fe.prependPath(field)
-	return fe
-}
-
-func (fe *FieldError) prependPath(prefix string) {
-	if fe == nil {
-		return
-	}
-	if len(fe.Paths) > 0 {
-		for i, p := range fe.Paths {
-			if p == "" {
-				fe.Paths[i] = prefix
-			} else {
-				fe.Paths[i] = prefix + "." + p
-			}
-		}
-	} else if fe.Message != "" {
-		fe.Paths = []string{prefix}
-	}
-	for _, child := range fe.errors {
-		child.prependPath(prefix)
-	}
-}
-
-// ErrGeneric creates a FieldError with the given message and optional field paths.
-func ErrGeneric(msg string, paths ...string) *FieldError {
-	return &FieldError{
-		Message: msg,
-		Paths:   paths,
-	}
+	return fe.Message
 }
 
 // ErrInvalidValue creates a FieldError indicating an invalid value.
@@ -131,9 +56,10 @@ func ErrMissingField(fields ...string) *FieldError {
 	}
 }
 
-// ConditionType is a type for condition type constants.
+// ConditionType is a type for condition type constants. It mirrors
+// knative.dev/pkg/apis.ConditionType so call sites can be migrated one
+// package at a time.
 type ConditionType string
 
 // ConditionReady is a condition type indicating readiness.
-// This replaces knative.dev/pkg/apis.ConditionReady.
 const ConditionReady ConditionType = "Ready"

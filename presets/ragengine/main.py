@@ -42,10 +42,6 @@ from models import (  # noqa: E402
     UpdateDocumentRequest,
     UpdateDocumentResponse,
 )
-from ragengine.guardrails import (  # noqa: E402
-    OutputGuardrails,
-    OutputGuardrailsError,
-)
 from vector_store_manager.manager import VectorStoreManager  # noqa: E402
 
 from ragengine.config import (  # noqa: E402
@@ -57,6 +53,10 @@ from ragengine.config import (  # noqa: E402
     VECTOR_DB_ACCESS_SECRET,
     VECTOR_DB_TYPE,
     VECTOR_DB_URL,
+)
+from ragengine.guardrails import (  # noqa: E402
+    OutputGuardrails,
+    OutputGuardrailsError,
 )
 from ragengine.metrics.prometheus_metrics import (  # noqa: E402
     MODE_LOCAL,

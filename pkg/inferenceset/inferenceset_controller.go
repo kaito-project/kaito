@@ -598,11 +598,12 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
 	if featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
-		// Verify that all prerequisite CRDs exist before configuring watches that depend on them.
-		// - FluxCD HelmRelease / OCIRepository: required for installing and reconciling the InferencePool Helm chart.
-		// - Gateway API Inference Extension InferencePool / InferenceModel: required runtime CRDs that the Workspace
-		//   controller indirectly relies on (Helm chart renders resources referencing them).
-		// Failing fast here provides a clear, actionable error instead of deferred reconcile failures later.
+		// Check if prerequisite CRDs exist for Gateway API Inference Extension.
+		// If CRDs are not yet installed, log a warning and skip GAIE-specific watches.
+		// The controller can still start and handle non-GAIE InferenceSet reconciliation.
+		// GAIE resources will be reconciled once the CRDs are installed and the controller is restarted,
+		// or handled at reconcile time by ensureGatewayAPIInferenceExtension().
+		gaieReady := true
 		for _, gvk := range []schema.GroupVersionKind{
 			helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind),
 			sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind),
@@ -611,17 +612,23 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		} {
 			found, err := utils.EnsureKindExists(mgr.GetConfig(), gvk)
 			if err != nil {
-				return fmt.Errorf("failed to ensure kind %s exists: %w", gvk.Kind, err)
+				klog.Warningf("Failed to check if %s CRD exists: %v, skipping GAIE watches", gvk.Kind, err)
+				gaieReady = false
+				break
 			}
 			if !found {
-				return fmt.Errorf("%s not found in the cluster, please ensure the Gateway API Inference Extension is installed", gvk.String())
+				klog.Warningf("%s CRD not found in the cluster, skipping GAIE watches. Install Gateway API Inference Extension CRDs and restart the controller to enable GAIE support", gvk.String())
+				gaieReady = false
+				break
 			}
 		}
 
-		// We don't need to own InferencePool and InferenceModel because they are managed by Flux's HelmRelease
-		builder = builder.
-			Owns(&helmv2.HelmRelease{}).
-			Owns(&sourcev1.OCIRepository{})
+		if gaieReady {
+			// We don't need to own InferencePool and InferenceModel because they are managed by Flux's HelmRelease
+			builder = builder.
+				Owns(&helmv2.HelmRelease{}).
+				Owns(&sourcev1.OCIRepository{})
+		}
 	}
 
 	go monitorInferenceSets(context.Background(), c.Client)

@@ -157,9 +157,7 @@ class GuardrailsReloader:
             return
 
         self._current = new_instance
-        guardrails_policy_reload_total.labels(
-            **{"result": RELOAD_RESULT_SUCCESS}
-        ).inc()
+        guardrails_policy_reload_total.labels(**{"result": RELOAD_RESULT_SUCCESS}).inc()
         guardrails_policy_loaded_timestamp.set(time.time())
         logger.info(
             "output_guardrails_policy_reloaded path=%s enabled=%s scanners=%d",

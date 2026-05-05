@@ -17,9 +17,7 @@ import sys
 
 import pytest
 
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
-)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
 from ragengine.guardrails.output_guardrails import OutputGuardrails
 from ragengine.guardrails.reload import GuardrailsReloader

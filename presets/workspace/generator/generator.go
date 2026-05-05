@@ -42,11 +42,12 @@ var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
 	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
-	// source: https://github.com/vllm-project/vllm/blob/v0.17.1/vllm/reasoning/__init__.py
+	// source: https://github.com/vllm-project/vllm/blob/main/vllm/reasoning/__init__.py
 	reasoningParserModeNamePrefixMap = map[string]string{
 		"deepseek-r1":  "deepseek_r1",
 		"deepseek-v3":  "deepseek_v3",
 		"ernie-4.5":    "ernie45",
+		"gemma-4":      "gemma4",
 		"glm-4.5":      "glm45",
 		"holo2":        "holo2",
 		"hunyuan-a13b": "hunyuan_a13b",
@@ -62,6 +63,7 @@ var (
 		"DeepseekV3ForCausalLM":                  "deepseek_v3",
 		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
 		"Ernie4_5_MoeForCausalLM":                "ernie45",
+		"Gemma4ForConditionalGeneration":         "gemma4",
 		"Glm4MoeForCausalLM":                     "glm45",
 		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
 		"GraniteForCausalLM":                     "granite",
@@ -79,7 +81,7 @@ var (
 		"Step3VLForConditionalGeneration":        "step3",
 	}
 
-	// source: https://github.com/vllm-project/vllm/blob/main/docs/features/tool_calling.md
+	// source: https://github.com/vllm-project/vllm/blob/main/vllm/tool_parsers/__init__.py
 	// key is model name prefix, value is ToolCallParser mode name
 	toolCallParserModeNamePrefixMap = map[string]string{
 		"hermes-2":      "hermes",
@@ -115,6 +117,7 @@ var (
 		"step3":         "step3",
 		"seed-oss":      "seed_oss",
 		"gemma-3":       "functiongemma",
+		"gemma-4":       "gemma4",
 	}
 
 	// key is model architecture name, value is ToolCallParser mode name
@@ -142,6 +145,7 @@ var (
 		"Glm4MoeForCausalLM":                     "glm45",
 		"Glm47MoeForCausalLM":                    "glm47",
 		"Gemma3ForCausalLM":                      "functiongemma",
+		"Gemma4ForConditionalGeneration":         "gemma4",
 		"Olmo3ForCausalLM":                       "olmo3",
 		"SeedOssForCausalLM":                     "seed_oss",
 		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",

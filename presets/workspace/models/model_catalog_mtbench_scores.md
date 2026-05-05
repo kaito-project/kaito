@@ -42,3 +42,7 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | nvidia/Nemotron-Cascade-2-30B-A3B | vllm | 5.71 | 3.40 | 6.85 | 6.60 | 9.20 | 5.65 | 4.15 | 4.90 | 4.95 | 2026-04-29 |
 | nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 | vllm | 6.91 | 7.35 | 7.30 | 7.05 | 9.65 | 6.35 | 7.25 | 5.40 | 4.90 | 2026-04-29 |
 | Qwen/Qwen3-8B-AWQ | vllm | 3.98 | 6.05 | 6.20 | 2.60 | 1.95 | 1.95 | 5.30 | 3.55 | 4.25 | 2026-04-29 |
+| google/gemma-4-31B-it | vllm | 8.56 | 8.20 | 8.50 | 8.70 | 9.90 | 8.35 | 8.35 | 8.35 | 8.10 | 2026-05-04 |
+| google/gemma-4-26B-A4B-it | vllm | 8.49 | 8.30 | 8.50 | 8.80 | 10.00 | 8.25 | 8.20 | 8.05 | 7.85 | 2026-05-04 |
+| google/gemma-4-E4B-it | vllm | 7.88 | 8.00 | 8.25 | 8.00 | 9.45 | 7.00 | 8.10 | 7.10 | 7.10 | 2026-05-04 |
+| google/gemma-4-E2B-it | vllm | 7.30 | 7.50 | 7.25 | 6.50 | 9.45 | 6.35 | 7.95 | 6.60 | 6.80 | 2026-05-04 |

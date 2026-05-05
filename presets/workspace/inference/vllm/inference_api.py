@@ -85,7 +85,6 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             "model": "/workspace/vllm/weights",
             "cpu_offload_gb": 0,
             "gpu_memory_utilization": get_max_gpu_memory_utilization(),
-            "swap_space": 4,
             "disable_log_stats": False,
             "uvicorn_log_level": "error",
         }

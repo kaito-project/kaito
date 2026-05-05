@@ -7,6 +7,7 @@ metadata:
 webhooks:
   - name: validation.ragengine.kaito.sh
     admissionReviewVersions: ["v1"]
+    matchPolicy: Exact
     clientConfig:
       service:
         name: {{ include "kaito.fullname" . }}

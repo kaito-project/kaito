@@ -87,8 +87,20 @@ in ConfigMap YAML, not in the CRD.
 
 ### Default ConfigMap Support
 
-Follow-up implementation may provide a default ConfigMap and default mount path so that
-guardrail policy can be enabled without introducing a broad CRD surface in the same step.
+If `Spec.Guardrails.Enabled` is `true` and no `ConfigMapRef` is set, the
+controller copies the chart-installed template
+(`ragengine-guardrails-policy-template`, in the release namespace) into the
+RAGEngine's namespace and mounts it into the Pod at the standard guardrails path. The runtime watches the file and
+hot-reloads on change.
+
+- Auto-copied ConfigMaps carry an `OwnerReference` to the RAGEngine and are
+  garbage-collected with it.
+- User-provided ConfigMaps are read-only to the controller — never patched,
+  never owned.
+- The template is copied **once per namespace**. Chart upgrades that change
+  the template do **not** rewrite existing copies, to protect operator edits.
+  To pick up a new template, delete the copy and let the controller recreate
+  it.
 
 ### Runtime Failure Semantics
 
@@ -159,7 +171,6 @@ This proposal defines the UX shape only. The following items are deferred to fol
 implementation PRs:
 
 - YAML policy loading implementation
-- default ConfigMap wiring
 - scanner registry and additional scanners
 - audit event model
 - streaming scanning behavior
@@ -174,7 +185,7 @@ This proposal is intended to support the following implementation sequence:
   behavior plus `OutputGuardrailsError → HTTP 500`; configurable failure handling is
   deferred.)*
 3. Introduce a runtime YAML policy loader.
-4. Add default ConfigMap support.
+4. Add default ConfigMap support. (done — see "Default ConfigMap Support" above)
 5. Refactor scanner construction into a registry/factory structure.
 6. Add more scanners in small batches.
 7. Add audit foundations.

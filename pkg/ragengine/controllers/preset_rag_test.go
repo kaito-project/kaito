@@ -273,6 +273,17 @@ func TestCreatePresetRAGGuardrailsUsesDefaultTemplate(t *testing.T) {
 	if _, ok := copiedCM.Data[v1beta1.GuardrailsPolicyFileName]; !ok {
 		t.Fatalf("expected copied guardrails ConfigMap to contain %s", v1beta1.GuardrailsPolicyFileName)
 	}
+
+	foundOwner := false
+	for _, ref := range copiedCM.GetOwnerReferences() {
+		if ref.Kind == "RAGEngine" && ref.Name == ragEngine.Name && ref.Controller != nil && *ref.Controller {
+			foundOwner = true
+			break
+		}
+	}
+	if !foundOwner {
+		t.Fatalf("expected copied guardrails ConfigMap to have a controller OwnerReference to RAGEngine %s, got %+v", ragEngine.Name, copiedCM.GetOwnerReferences())
+	}
 }
 
 func TestCreatePresetRAGGuardrailsUsesCustomConfigMap(t *testing.T) {

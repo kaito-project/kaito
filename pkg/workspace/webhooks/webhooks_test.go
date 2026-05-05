@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -42,7 +43,7 @@ func TestKaitoValidatorTypeMismatch(t *testing.T) {
 	// A v1alpha1 Workspace is the wrong type for this validator instance.
 	wrong := &kaitov1alpha1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "x"}}
 	_, err := v.ValidateCreate(context.Background(), wrong)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 // TestKaitoValidatorDeleteIsNoop confirms ValidateDelete never blocks delete
@@ -57,7 +58,7 @@ func TestKaitoValidatorDeleteIsNoop(t *testing.T) {
 		},
 	}
 	warnings, err := v.ValidateDelete(context.Background(), &kaitov1beta1.Workspace{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, warnings)
 }
 
@@ -80,12 +81,12 @@ func TestKaitoValidatorUpdateSetsBaseline(t *testing.T) {
 	}
 
 	_, err := v.ValidateUpdate(context.Background(), old, newer)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Same(t, old, sawBaseline, "ValidateUpdate must seed apis.GetBaseline with the old object")
 
 	// Create path must NOT have a baseline.
 	sawBaseline = nil
 	_, err = v.ValidateCreate(context.Background(), newer)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, sawBaseline, "ValidateCreate must not seed a baseline")
 }

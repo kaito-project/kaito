@@ -69,7 +69,7 @@ import (
 const (
 	WebhookServiceName = "WEBHOOK_SERVICE"
 	WebhookServicePort = "WEBHOOK_PORT"
-	WebhookNamespace   = "WEBHOOK_NAMESPACE"
+	WebhookNamespace   = "SYSTEM_NAMESPACE"
 
 	// webhookCertDir is the on-disk location cert-controller writes its
 	// rotated key/cert pair to and that controller-runtime's webhook server
@@ -211,18 +211,22 @@ func main() {
 
 	// kubeClient is built up-front because the Secret-informer-based webhook
 	// cert loader (below) needs a kubernetes.Interface before the manager is
-	// constructed. It is also re-used as the global client-go client.
+	// constructed. It is also reused as the global client-go client.
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		klog.ErrorS(err, "unable to create kubernetes client")
 		exitWithErrorFunc()
 	}
 
-	// certReady is closed by cert-controller once it has populated the cert
-	// Secret (and disk). We block webhook handler registration on it so the
-	// server never serves a request before a real cert exists, but the TCP
-	// listener itself binds immediately thanks to the Secret-informer-backed
-	// GetCertificate callback installed on the webhook server below.
+	// certReady is wired into the cert-rotator solely to satisfy its API; we
+	// no longer block webhook registration on it. cert-controller's IsReady
+	// is gated on ensureCertsMounted, which only writes to disk during a
+	// refresh — when the Secret already has valid material from a previous
+	// run, no refresh occurs, no disk write happens, and IsReady never
+	// closes. Instead, the Secret-informer-backed GetCertificate callback
+	// installed on the webhook server below returns (nil, nil) until the
+	// Secret is populated, which causes handshakes to fail cleanly without
+	// tearing down the listener.
 	certReady := make(chan struct{})
 
 	// webhookServer is wired into ctrl.Options.WebhookServer so that
@@ -411,23 +415,19 @@ func main() {
 			exitWithErrorFunc()
 		}
 
-		// Register webhook handlers only after cert-controller signals the
-		// cert is on disk. Done in a goroutine so it doesn't block mgr.Start.
-		go func() {
-			select {
-			case <-certReady:
-				klog.InfoS("cert rotator reports certs are ready, registering webhooks")
-				if err := webhooks.SetupWebhooksWithManager(mgr); err != nil {
-					klog.ErrorS(err, "unable to register webhooks")
-					exitWithErrorFunc()
-				}
-			case <-ctx.Done():
-				return
-			}
-		}()
-	} else {
-		// No webhook: don't make downstream code wait on certReady.
-		close(certReady)
+		// Register webhook handlers immediately. The Secret-informer-backed
+		// GetCertificate callback returns (nil, nil) until cert-controller
+		// populates the Secret, which causes handshakes to fail cleanly
+		// without tearing down the listener. Once the Secret exists, the
+		// loader serves the cached cert. Gating registration on certReady is
+		// unsafe here: cert-controller's IsReady predicate depends on
+		// ensureCertsMounted, which only writes to disk during a refresh —
+		// when the Secret already has valid material from a previous run, no
+		// refresh occurs, no disk write happens, and IsReady never closes.
+		if err := webhooks.SetupWebhooksWithManager(mgr); err != nil {
+			klog.ErrorS(err, "unable to register webhooks")
+			exitWithErrorFunc()
+		}
 	}
 
 	klog.InfoS("starting manager")

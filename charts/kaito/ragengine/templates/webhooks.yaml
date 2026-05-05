@@ -12,6 +12,7 @@ webhooks:
         name: {{ include "kaito.fullname" . }}
         namespace: {{ .Release.Namespace }}
         port: {{ .Values.webhook.port }}
+        path: /validate-kaito-sh-v1beta1-ragengine
     failurePolicy: Fail
     sideEffects: None
     rules:

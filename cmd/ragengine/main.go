@@ -21,7 +21,6 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
-	"time"
 
 	//+kubebuilder:scaffold:imports
 	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
@@ -244,8 +243,6 @@ func main() {
 		// No webhook: don't make downstream code wait on certReady.
 		close(certReady)
 	}
-
-	_ = time.Second // keep the time import in use across edits
 
 	klog.InfoS("starting manager")
 	if err := mgr.Start(ctx); err != nil {

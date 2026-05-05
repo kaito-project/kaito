@@ -74,6 +74,17 @@ OUTPUT_GUARDRAILS_ENABLED = (
     os.getenv("OUTPUT_GUARDRAILS_ENABLED", "false").lower() == "true"
 )
 OUTPUT_GUARDRAILS_POLICY_PATH = os.getenv("OUTPUT_GUARDRAILS_POLICY_PATH", "")
+# Hot reload: when enabled, the runtime watches OUTPUT_GUARDRAILS_POLICY_PATH and
+# applies policy changes without a Pod restart.
+OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED = (
+    os.getenv("OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED", "true").lower() == "true"
+)
+# Debounce window (seconds) collapsing bursts of filesystem events from a single
+# ConfigMap update into one reload. Also acts as a safety-net poll interval if
+# the underlying watcher misses an event.
+OUTPUT_GUARDRAILS_HOT_RELOAD_DEBOUNCE_SECONDS = float(
+    os.getenv("OUTPUT_GUARDRAILS_HOT_RELOAD_DEBOUNCE_SECONDS", "60")
+)
 
 """
 =========================================================================

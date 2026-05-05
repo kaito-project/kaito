@@ -281,3 +281,19 @@ rag_hybrid_sparse_only_count = Histogram(
     "Number of final result nodes that came from sparse (BM25) search only",
     buckets=(0, 1, 2, 3, 5, 10, 20, 50),
 )
+
+# Output guardrails hot-reload metrics
+RELOAD_RESULT_LABEL = "result"
+RELOAD_RESULT_SUCCESS = "success"
+RELOAD_RESULT_FAILURE = "failure"
+RELOAD_RESULT_NOOP = "noop"
+
+guardrails_policy_reload_total = Counter(
+    "guardrails_policy_reload_total",
+    "Count of output guardrails policy reload attempts.",
+    labelnames=[RELOAD_RESULT_LABEL],
+)
+guardrails_policy_loaded_timestamp = Gauge(
+    "guardrails_policy_loaded_timestamp_seconds",
+    "Unix timestamp of the most recent successful output guardrails policy load.",
+)

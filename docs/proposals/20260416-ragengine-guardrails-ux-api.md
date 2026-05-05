@@ -5,7 +5,7 @@ authors:
 reviewers:
   - "@Fei-Guo"
 creation-date: 2026-04-16
-last-updated: 2026-04-16
+last-updated: 2026-05-19
 status: provisional
 see-also:
   - "/docs/proposals/20250715-inference-aware-routing-layer.md"
@@ -106,15 +106,40 @@ implementation PRs:
 
 This proposal is intended to support the following implementation sequence:
 
-1. Land the initial non-streaming output guardrails hook.
-2. Define explicit error-handling semantics.
-3. Introduce a runtime YAML policy loader.
-4. Add default ConfigMap support.
-5. Refactor scanner construction into a registry/factory structure.
-6. Add more scanners in small batches.
-7. Add audit foundations.
-8. Add minimal streaming scanning support.
-9. Polish graceful UX and operational behavior.
+1. Land the initial non-streaming output guardrails hook. (done)
+2. Define explicit error-handling semantics. (done — fail-open with metrics)
+3. Introduce a runtime YAML policy loader. (done)
+4. Add hot-reload of the guardrails policy ConfigMap. (done)
+5. Add default ConfigMap support.
+6. Refactor scanner construction into a registry/factory structure.
+7. Add more scanners in small batches.
+8. Add audit foundations.
+9. Add minimal streaming scanning support.
+10. Polish graceful UX and operational behavior.
+
+### Hot-reload runtime behavior (implemented)
+
+The RAG runtime watches the guardrails policy file (`OUTPUT_GUARDRAILS_POLICY_PATH`)
+for changes using `watchfiles` (inotify on Linux) and atomically swaps the active
+`OutputGuardrails` instance when the file content changes. ConfigMap volume updates
+are picked up because the runtime watches the parent directory, which catches the
+atomic `..data` symlink swap performed by kubelet.
+
+Reload semantics:
+
+- Fail-safe: if the new policy fails to load, the previous policy stays in effect
+  and a failure metric is incremented.
+- Debounced: changes are coalesced over a configurable window
+  (`OUTPUT_GUARDRAILS_HOT_RELOAD_DEBOUNCE_SECONDS`, default `60`) to avoid reload
+  storms during rolling ConfigMap updates.
+- Optional: hot-reload can be disabled via
+  `OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED=false`, in which case the policy is loaded
+  once at startup.
+
+Observability:
+
+- `guardrails_policy_reload_total{result="success|failure|noop"}` counter.
+- `guardrails_policy_loaded_timestamp_seconds` gauge.
 
 The CRD exposure for `guardrails.enabled` can be added later if we decide the final user
 experience should include an explicit RAGEngine spec toggle rather than relying only on

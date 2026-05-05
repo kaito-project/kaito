@@ -12,5 +12,6 @@
 # limitations under the License.
 
 from .output_guardrails import OutputGuardrails
+from .reload import GuardrailsReloader
 
-__all__ = ["OutputGuardrails"]
+__all__ = ["GuardrailsReloader", "OutputGuardrails"]

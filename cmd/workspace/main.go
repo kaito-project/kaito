@@ -85,6 +85,13 @@ const (
 	// patches with the rotated CA bundle. Matches what the validation webhook
 	// registers under (validation.workspace.kaito.sh).
 	validatingWebhookConfigName = "validation.workspace.kaito.sh"
+
+	// inferenceSetValidatingWebhookConfigName is the ValidatingWebhookConfiguration
+	// shipped (gated) in charts/kaito/workspace/templates/webhooks.yaml when the
+	// inferenceset controller is enabled. cert-controller must inject the CA
+	// bundle into it as well; otherwise apiserver TLS verification fails with
+	// "x509: certificate signed by unknown authority".
+	inferenceSetValidatingWebhookConfigName = "validation.inferenceset.kaito.sh"
 )
 
 var (
@@ -396,6 +403,17 @@ func main() {
 		webhookNamespace := os.Getenv(WebhookNamespace)
 		webhookServiceName := os.Getenv(WebhookServiceName)
 
+		webhookInfos := []rotator.WebhookInfo{{
+			Name: validatingWebhookConfigName,
+			Type: rotator.Validating,
+		}}
+		if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+			webhookInfos = append(webhookInfos, rotator.WebhookInfo{
+				Name: inferenceSetValidatingWebhookConfigName,
+				Type: rotator.Validating,
+			})
+		}
+
 		if err := rotator.AddRotator(mgr, &rotator.CertRotator{
 			SecretKey: types.NamespacedName{
 				Namespace: webhookNamespace,
@@ -406,10 +424,7 @@ func main() {
 			CAOrganization: "kaito",
 			DNSName:        fmt.Sprintf("%s.%s.svc", webhookServiceName, webhookNamespace),
 			IsReady:        certReady,
-			Webhooks: []rotator.WebhookInfo{{
-				Name: validatingWebhookConfigName,
-				Type: rotator.Validating,
-			}},
+			Webhooks:       webhookInfos,
 		}); err != nil {
 			klog.ErrorS(err, "unable to set up cert rotator")
 			exitWithErrorFunc()

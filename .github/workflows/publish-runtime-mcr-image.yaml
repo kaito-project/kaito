@@ -1,4 +1,4 @@
-name: Build and Push Preset Models 1ES
+name: Publish KAITO runtime image
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -15,7 +15,6 @@ on:
 env:
     GO_VERSION: "1.26.2"
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-    WEIGHTS_DIR: "/mnt/storage"
 
 permissions:
   id-token: write
@@ -67,7 +66,7 @@ jobs:
     if: needs.determine-models.outputs.is_matrix_empty == 'false'
     runs-on:
       - self-hosted
-      - 1ES.Pool=1es-aks-kaito-image-build-agent-pool-ubuntu
+      - 1ES.Pool=1es-aks-kaito-agent-pool-ubuntu
       - JobId=buildModels-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
     environment: preset-env
     strategy:
@@ -82,95 +81,11 @@ jobs:
           submodules: true
           fetch-depth: 0
 
-      - name: Install Azure CLI latest
-        run: |
-          if ! which az > /dev/null; then
-              echo "Azure CLI not found. Installing..."
-              curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          else
-              echo "Azure CLI already installed."
-          fi
-
-      - name: Ensure Docker is Installed
-        run: |
-          # Add Docker's official GPG key:
-          sudo apt-get update
-          sudo apt-get install ca-certificates curl -y
-          sudo install -m 0755 -d /etc/apt/keyrings
-          sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-          sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-          # Add the repository to Apt sources:
-          echo \
-            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-            $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-            sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-          sudo apt-get update
-          sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-
-          # User Permissions
-          sudo usermod -aG docker $(whoami)
-          sudo systemctl restart docker
-          sudo chmod 666 /var/run/docker.sock
-
-      - name: Test Docker Access
-        run: |
-          ls -l /var/run/docker.sock
-          docker run hello-world
-
-      - name: List All Disks
-        run: |
-          lsblk
-          if ! mountpoint -q /mnt/storage; then
-            echo "Failed to find required storage partition /mnt/storage"
-            exit 1
-          fi
-
       - name: Ensure Python is Installed
         run: |
           sudo apt-get update
           sudo apt-get install -y python3
           sudo apt install python3-pip -y
-
-      - name: Ensure git and git LFS is Installed
-        run: |
-          if ! command -v git &> /dev/null; then
-            sudo apt-get update
-            sudo apt-get install -y git
-          fi
-          if ! git lfs --version &> /dev/null; then
-            sudo apt-get update
-            curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-            sudo apt-get install -y git-lfs
-            git lfs install
-          fi
-
-      - name: Configure Docker to Use /mnt/storage/docker
-        run: |
-          sudo systemctl stop docker
-          sudo mkdir -p /mnt/storage/docker
-          # Move existing Docker data
-          if [ -d /var/lib/docker ]; then
-            sudo rsync -aP /var/lib/docker/ /mnt/storage/docker/
-          fi
-          echo '{"data-root":"/mnt/storage/docker"}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl start docker
-
-      - name: Verify Docker Configuration
-        run: |
-          docker info | grep "Docker Root Dir"
-
-      - name: Set Permissions for DataDrive /mnt/storage
-        run : |
-          sudo chown -R $(whoami) /mnt/storage
-          sudo chmod -R 775 /mnt/storage
-
-          sudo apt-get update
-          sudo apt-get install acl -y
-
-          sudo setfacl -dm u::rwx /mnt/storage  # Default user permissions
-          sudo setfacl -dm g::rwx /mnt/storage  # Default group permissions
-          sudo setfacl -dm o::rx /mnt/storage   # Default others permissions
 
       - name: Authenticate to ACR
         run: |

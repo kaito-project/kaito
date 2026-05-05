@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
-	"knative.dev/pkg/apis"
+	"github.com/kaito-project/kaito/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"

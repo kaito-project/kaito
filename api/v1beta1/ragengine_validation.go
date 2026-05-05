@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
-	"knative.dev/pkg/apis"
+	"github.com/kaito-project/kaito/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/k8sclient"

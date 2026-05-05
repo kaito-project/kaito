@@ -153,8 +153,10 @@ func TestBaselineRoundTrip(t *testing.T) {
 		t.Errorf("baseline round trip mismatch: %v vs %v", got, original)
 	}
 
-	// nil ctx must not panic.
-	if got := GetBaseline(nil); got != nil { //nolint:staticcheck // intentional nil ctx
+	// nil ctx must not panic. We construct it via a variable so static
+	// analyzers don't flag the literal nil context argument.
+	var nilCtx context.Context
+	if got := GetBaseline(nilCtx); got != nil {
 		t.Errorf("expected nil baseline from nil ctx, got %v", got)
 	}
 }

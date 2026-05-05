@@ -121,10 +121,20 @@ func (fe *FieldError) flatten() []FieldError {
 	return out
 }
 
-// Also accumulates errs as a sibling of the receiver and returns the combined
-// FieldError. Both sides are nil-safe: Also(nil) returns the receiver, and
-// (*FieldError)(nil).Also(x) returns x.
-func (fe *FieldError) Also(errs *FieldError) *FieldError {
+// Also accumulates errs as siblings of the receiver and returns the combined
+// FieldError. The variant is variadic to match Knative's signature so callers
+// can write fe.Also(a, b, c). Both sides are nil-safe: Also() and Also(nil)
+// return the receiver, and (*FieldError)(nil).Also(x) returns x.
+func (fe *FieldError) Also(others ...*FieldError) *FieldError {
+	out := fe
+	for _, o := range others {
+		out = out.alsoOne(o)
+	}
+	return out
+}
+
+// alsoOne is the single-argument worker for Also.
+func (fe *FieldError) alsoOne(errs *FieldError) *FieldError {
 	// Drop empty / nil inputs.
 	if errs == nil || errs.isEmpty() {
 		if fe == nil || fe.isEmpty() {
@@ -195,11 +205,13 @@ func (fe *FieldError) ViaIndex(index int) *FieldError {
 }
 
 // ErrInvalidValue creates a FieldError indicating an invalid value at the
-// given field path.
-func ErrInvalidValue(value any, field string) *FieldError {
+// given field path. Optional extra strings are joined with ", " and stored as
+// Details, matching Knative's variadic signature.
+func ErrInvalidValue(value any, field string, details ...string) *FieldError {
 	return &FieldError{
 		Message: fmt.Sprintf("invalid value: %v", value),
 		Paths:   []string{field},
+		Details: strings.Join(details, ", "),
 	}
 }
 
@@ -239,6 +251,18 @@ type baselineKey struct{}
 // call GetBaseline(ctx) to retrieve it.
 func WithBaseline(ctx context.Context, obj any) context.Context {
 	return context.WithValue(ctx, baselineKey{}, obj)
+}
+
+// WithinUpdate is an alias for WithBaseline that reads more naturally at
+// admission-controller call sites (and matches the Knative spelling).
+func WithinUpdate(ctx context.Context, base any) context.Context {
+	return WithBaseline(ctx, base)
+}
+
+// WithinCreate returns ctx unchanged. It exists as the create-side counterpart
+// to WithinUpdate so callers can be explicit about intent.
+func WithinCreate(ctx context.Context) context.Context {
+	return ctx
 }
 
 // GetBaseline returns the baseline object previously stored on ctx by

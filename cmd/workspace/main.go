@@ -15,12 +15,14 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	//+kubebuilder:scaffold:imports
 	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
@@ -28,13 +30,17 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/open-policy-agent/cert-controller/pkg/rotator"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	runtimecache "sigs.k8s.io/controller-runtime/pkg/cache"
@@ -53,6 +59,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	nodeprovisionmanager "github.com/kaito-project/kaito/pkg/nodeprovision/manager"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	kaitocert "github.com/kaito-project/kaito/pkg/utils/cert"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
@@ -202,11 +209,75 @@ func main() {
 	cfg.UserAgent = workspaceController
 	setRestConfig(cfg, kubeClientQPS, kubeClientBurst)
 
+	// kubeClient is built up-front because the Secret-informer-based webhook
+	// cert loader (below) needs a kubernetes.Interface before the manager is
+	// constructed. It is also re-used as the global client-go client.
+	kubeClient, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		klog.ErrorS(err, "unable to create kubernetes client")
+		exitWithErrorFunc()
+	}
+
+	// certReady is closed by cert-controller once it has populated the cert
+	// Secret (and disk). We block webhook handler registration on it so the
+	// server never serves a request before a real cert exists, but the TCP
+	// listener itself binds immediately thanks to the Secret-informer-backed
+	// GetCertificate callback installed on the webhook server below.
+	certReady := make(chan struct{})
+
+	// webhookServer is wired into ctrl.Options.WebhookServer so that
+	// controller-runtime constructs the server with our TLSOpts in place.
+	// Mutating mgr.GetWebhookServer() *after* NewManager does not work: the
+	// webhook server's Start path checks `cfg.GetCertificate == nil` and
+	// otherwise calls certwatcher.New, which fails synchronously when the
+	// cert files are not yet on disk and brings the whole manager down.
+	// Setting GetCertificate here bypasses certwatcher entirely.
+	var webhookServer webhook.Server
+	if enableWebhook {
+		p, err := strconv.Atoi(os.Getenv(WebhookServicePort))
+		if err != nil || p == 0 {
+			klog.ErrorS(err, "unable to parse the webhook port number")
+			exitWithErrorFunc()
+		}
+		webhookNS := os.Getenv(WebhookNamespace)
+		if webhookNS == "" {
+			klog.ErrorS(fmt.Errorf("%s env var not set", WebhookNamespace), "unable to determine webhook namespace")
+			exitWithErrorFunc()
+		}
+
+		// Namespace-scoped, single-Secret-name informer factory: the lister
+		// cache only ever holds the one webhook cert Secret.
+		factory := informers.NewSharedInformerFactoryWithOptions(
+			kubeClient,
+			24*time.Hour,
+			informers.WithNamespace(webhookNS),
+			informers.WithTweakListOptions(func(o *metav1.ListOptions) {
+				o.FieldSelector = fields.OneTermEqualSelector("metadata.name", webhookSecretName).String()
+			}),
+		)
+		secretInformer := factory.Core().V1().Secrets().Informer()
+		secretLister := factory.Core().V1().Secrets().Lister()
+		factory.Start(ctx.Done())
+		if !cache.WaitForCacheSync(ctx.Done(), secretInformer.HasSynced) {
+			klog.ErrorS(fmt.Errorf("timed out waiting for informer cache sync"), "unable to sync webhook cert informer")
+			exitWithErrorFunc()
+		}
+
+		certLoader := kaitocert.NewServerCertLoader(secretLister, webhookNS, webhookSecretName, "tls.crt", "tls.key")
+		webhookServer = webhook.NewServer(webhook.Options{
+			Port: p,
+			TLSOpts: []func(*tls.Config){
+				func(c *tls.Config) { c.GetCertificate = certLoader },
+			},
+		})
+	}
+
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
 			BindAddress: metricsAddr,
 		},
+		WebhookServer:          webhookServer,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "ef60f9b0.io",
@@ -233,11 +304,6 @@ func main() {
 	k8sclient.SetGlobalClient(mgr.GetClient())
 	kClient := k8sclient.GetGlobalClient()
 
-	kubeClient, err := kubernetes.NewForConfig(cfg)
-	if err != nil {
-		klog.ErrorS(err, "unable to create kubernetes client")
-		exitWithErrorFunc()
-	}
 	k8sclient.SetGlobalClientGoClient(kubeClient)
 
 	// Create a direct (non-cached) client for provisioner initialization.
@@ -321,26 +387,10 @@ func main() {
 		exitWithErrorFunc()
 	}
 
-	// certReady is closed by cert-controller once the TLS material on disk is
-	// usable. We block webhook handler registration on it so the webhook server
-	// never serves a request without a valid cert.
-	certReady := make(chan struct{})
-
 	if enableWebhook {
 		klog.InfoS("setting up cert rotator for webhook")
-		p, err := strconv.Atoi(os.Getenv(WebhookServicePort))
-		if err != nil {
-			klog.ErrorS(err, "unable to parse the webhook port number")
-			exitWithErrorFunc()
-		}
 		webhookNamespace := os.Getenv(WebhookNamespace)
 		webhookServiceName := os.Getenv(WebhookServiceName)
-
-		// Configure the controller-runtime webhook server to read its TLS
-		// material from the same directory cert-controller writes to, and to
-		// listen on the port the Service forwards to.
-		mgr.GetWebhookServer().(*webhook.DefaultServer).Options.CertDir = webhookCertDir
-		mgr.GetWebhookServer().(*webhook.DefaultServer).Options.Port = p
 
 		if err := rotator.AddRotator(mgr, &rotator.CertRotator{
 			SecretKey: types.NamespacedName{

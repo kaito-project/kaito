@@ -1542,8 +1542,8 @@ func TestSetRoutingSidecar(t *testing.T) {
 				t.Errorf("found %d sidecar containers, expected at most 1", sidecarCount)
 			}
 
-			// Verify sidecar config for decode role (newly injected case)
-			if tc.expectSidecar && tc.existingContainers == nil {
+			// Verify sidecar config for decode role (both newly injected and reconciled cases)
+			if tc.expectSidecar {
 				var sidecar *corev1.Container
 				for i, c := range spec.Containers {
 					if c.Name == "llm-d-routing-sidecar" {

@@ -5,7 +5,7 @@ authors:
 reviewers:
   - "@Fei-Guo"
 creation-date: 2026-04-16
-last-updated: 2026-04-16
+last-updated: 2026-05-05
 status: provisional
 see-also:
   - "/docs/proposals/20250715-inference-aware-routing-layer.md"
@@ -90,24 +90,63 @@ in ConfigMap YAML, not in the CRD.
 Follow-up implementation may provide a default ConfigMap and default mount path so that
 guardrail policy can be enabled without introducing a broad CRD surface in the same step.
 
+### Runtime Failure Semantics
+
+Output guardrails wrap an external ML pipeline (`llm_guard`) whose scanners may fail at
+runtime (e.g. GPU OOM, model download failure, tokenizer errors, library bugs). The
+runtime exposes an operator-level switch to choose between availability and safety when
+this happens.
+
+The switch is delivered as a pod-level environment variable rather than a policy-file
+field, because it must remain effective even when the policy file itself fails to load.
+
+| Env Var                          | Default | Description                                                                                  |
+| -------------------------------- | ------- | -------------------------------------------------------------------------------------------- |
+| `OUTPUT_GUARDRAILS_ENABLED`      | `false` | Master switch for output scanning.                                                           |
+| `OUTPUT_GUARDRAILS_FAIL_OPEN`    | `true`  | On scan failure: `true` returns the unscanned response; `false` returns HTTP 500.            |
+| `OUTPUT_GUARDRAILS_POLICY_PATH`  | `""`    | Filesystem path to the policy YAML (typically a ConfigMap mount).                            |
+
+Behavior:
+
+- **Fail-open** (`OUTPUT_GUARDRAILS_FAIL_OPEN=true`, default): If a scanner raises during
+  `guard_response`, the runtime logs `output_guardrails_failed` with the response id and
+  returns the original LLM response unchanged. Preserves availability; trades safety. This
+  matches the prior implicit behavior and is the default for backward compatibility.
+- **Fail-closed** (`OUTPUT_GUARDRAILS_FAIL_OPEN=false`): On the same failure, the runtime
+  raises `OutputGuardrailsError`, which the `/v1/chat/completions` handler maps to
+  `HTTP 500` with a fixed detail message
+  (`"Output guardrails failed while scanning the model response."`). The original
+  exception is preserved via `__cause__` for logs, but is not exposed in the HTTP body.
+  Recommended for regulated workloads (PII, PHI, public-facing endpoints).
+
+Operator guidance: fail-closed should be paired with model pre-warming, dedicated GPU
+quota for guardrails, and Prometheus alerts on `output_guardrails_failed` log volume to
+avoid converting transient ML failures into request errors.
+
+Future work may introduce per-scanner fail modes inside the policy YAML; the env-level
+switch will remain as the global default and as the fallback when policy parsing itself
+fails.
+
 ## Deferred Scope
 
 This proposal defines the UX shape only. The following items are deferred to follow-up
 implementation PRs:
 
-- runtime error-handling semantics
 - YAML policy loading implementation
 - default ConfigMap wiring
 - scanner registry and additional scanners
 - audit event model
 - streaming scanning behavior
+- per-scanner fail modes inside the policy YAML
 
 ## Follow-Up Implementation Plan
 
 This proposal is intended to support the following implementation sequence:
 
 1. Land the initial non-streaming output guardrails hook.
-2. Define explicit error-handling semantics.
+2. Define explicit error-handling semantics. *(implemented: `OUTPUT_GUARDRAILS_FAIL_OPEN`
+   env switch and `OutputGuardrailsError → HTTP 500` mapping; see Runtime Failure
+   Semantics above.)*
 3. Introduce a runtime YAML policy loader.
 4. Add default ConfigMap support.
 5. Refactor scanner construction into a registry/factory structure.

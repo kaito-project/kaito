@@ -259,12 +259,6 @@ func WithinUpdate(ctx context.Context, base any) context.Context {
 	return WithBaseline(ctx, base)
 }
 
-// WithinCreate returns ctx unchanged. It exists as the create-side counterpart
-// to WithinUpdate so callers can be explicit about intent.
-func WithinCreate(ctx context.Context) context.Context {
-	return ctx
-}
-
 // GetBaseline returns the baseline object previously stored on ctx by
 // WithBaseline, or nil if no baseline is present (e.g. during CREATE).
 func GetBaseline(ctx context.Context) any {

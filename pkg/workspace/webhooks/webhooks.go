@@ -19,7 +19,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
@@ -124,10 +123,4 @@ func setupValidator(mgr ctrl.Manager, obj runtime.Object, v admission.CustomVali
 		For(obj).
 		WithValidator(v).
 		Complete()
-}
-
-// WebhookServer returns the underlying webhook server so callers (cmd/main.go)
-// can configure cert paths after cert-controller has populated them.
-func WebhookServer(mgr ctrl.Manager) webhook.Server {
-	return mgr.GetWebhookServer()
 }

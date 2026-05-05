@@ -140,6 +140,25 @@ func configStorageVolume(storageSpec *v1beta1.StorageSpec) (corev1.Volume, corev
 	return volume, volumeMount
 }
 
+// configGuardrailsVolume creates a read-only ConfigMap-backed volume containing
+// the guardrails policy document.
+func configGuardrailsVolume(configMapName string) (corev1.Volume, corev1.VolumeMount) {
+	return corev1.Volume{
+			Name: manifests.GuardrailsPolicyVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: configMapName,
+					},
+				},
+			},
+		}, corev1.VolumeMount{
+			Name:      manifests.GuardrailsPolicyVolumeName,
+			MountPath: manifests.GuardrailsPolicyMountPath,
+			ReadOnly:  true,
+		}
+}
+
 func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
@@ -153,6 +172,15 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 		storageVolume, storageVolumeMount := configStorageVolume(ragEngineObj.Spec.Storage)
 		volumes = append(volumes, storageVolume)
 		volumeMounts = append(volumeMounts, storageVolumeMount)
+	}
+
+	// Mount the guardrails policy ConfigMap when one is referenced. The Python
+	// runtime reads OUTPUT_GUARDRAILS_POLICY_PATH (set in RAGSetEnv) which points
+	// at this mount.
+	if g := ragEngineObj.Spec.Guardrails; g != nil && g.ConfigMapRef != nil && g.ConfigMapRef.Name != "" {
+		gv, gm := configGuardrailsVolume(g.ConfigMapRef.Name)
+		volumes = append(volumes, gv)
+		volumeMounts = append(volumeMounts, gm)
 	}
 
 	var resourceReq corev1.ResourceRequirements

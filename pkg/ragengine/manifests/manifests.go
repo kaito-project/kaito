@@ -15,6 +15,7 @@ package manifests
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -23,6 +24,18 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+)
+
+const (
+	// GuardrailsPolicyVolumeName is the name of the volume that mounts the
+	// guardrails policy ConfigMap into the RAG engine pod.
+	GuardrailsPolicyVolumeName = "guardrails-policy"
+	// GuardrailsPolicyMountPath is the directory where the guardrails policy
+	// ConfigMap is mounted inside the container.
+	GuardrailsPolicyMountPath = "/etc/ragengine/guardrails"
+	// GuardrailsPolicyFileName is the expected key inside the policy ConfigMap
+	// (validated by the RAGEngine admission webhook).
+	GuardrailsPolicyFileName = "guardrails.yaml"
 )
 
 func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisionNum string, imageName string,
@@ -272,6 +285,31 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 				}
 				envs = append(envs, accessSecretEnv)
 			}
+		}
+	}
+
+	// Output guardrails configuration. The Python runtime reads these env vars at
+	// startup; see presets/ragengine/config.py.
+	if g := ragEngineObj.Spec.Guardrails; g != nil {
+		envs = append(envs, corev1.EnvVar{
+			Name:  "OUTPUT_GUARDRAILS_ENABLED",
+			Value: strconv.FormatBool(g.Enabled),
+		})
+		// fail_open defaults to true when the field is unset, preserving the
+		// pre-existing implicit behavior.
+		failOpen := true
+		if g.FailOpen != nil {
+			failOpen = *g.FailOpen
+		}
+		envs = append(envs, corev1.EnvVar{
+			Name:  "OUTPUT_GUARDRAILS_FAIL_OPEN",
+			Value: strconv.FormatBool(failOpen),
+		})
+		if g.ConfigMapRef != nil && g.ConfigMapRef.Name != "" {
+			envs = append(envs, corev1.EnvVar{
+				Name:  "OUTPUT_GUARDRAILS_POLICY_PATH",
+				Value: GuardrailsPolicyMountPath + "/" + GuardrailsPolicyFileName,
+			})
 		}
 	}
 

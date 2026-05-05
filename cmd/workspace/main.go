@@ -27,16 +27,16 @@ import (
 	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/open-policy-agent/cert-controller/pkg/rotator"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
-	"knative.dev/pkg/injection/sharedmain"
-	"knative.dev/pkg/webhook"
 	ctrl "sigs.k8s.io/controller-runtime"
 	runtimecache "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -44,6 +44,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -62,6 +63,22 @@ import (
 const (
 	WebhookServiceName = "WEBHOOK_SERVICE"
 	WebhookServicePort = "WEBHOOK_PORT"
+	WebhookNamespace   = "WEBHOOK_NAMESPACE"
+
+	// webhookCertDir is the on-disk location cert-controller writes its
+	// rotated key/cert pair to and that controller-runtime's webhook server
+	// reads from. Kept as a constant so the two halves stay in sync.
+	webhookCertDir = "/tmp/k8s-webhook-server/serving-certs"
+
+	// webhookSecretName is the Secret cert-controller manages on behalf of
+	// the workspace webhook. Matches the legacy Knative SecretName so that
+	// existing Helm charts / operator manifests do not need to change.
+	webhookSecretName = "workspace-webhook-cert"
+
+	// validatingWebhookConfigName is the cluster-scoped object cert-controller
+	// patches with the rotated CA bundle. Matches what the validation webhook
+	// registers under (validation.workspace.kaito.sh).
+	validatingWebhookConfigName = "validation.workspace.kaito.sh"
 )
 
 var (
@@ -305,28 +322,69 @@ func main() {
 		exitWithErrorFunc()
 	}
 
+	// certReady is closed by cert-controller once the TLS material on disk is
+	// usable. We block webhook handler registration on it so the webhook server
+	// never serves a request without a valid cert.
+	certReady := make(chan struct{})
+
 	if enableWebhook {
-		klog.InfoS("starting webhook reconcilers")
+		klog.InfoS("setting up cert rotator for webhook")
 		p, err := strconv.Atoi(os.Getenv(WebhookServicePort))
 		if err != nil {
 			klog.ErrorS(err, "unable to parse the webhook port number")
 			exitWithErrorFunc()
 		}
-		ctx := webhook.WithOptions(ctx, webhook.Options{
-			ServiceName: os.Getenv(WebhookServiceName),
-			Port:        p,
-			SecretName:  "workspace-webhook-cert",
-		})
-		ctx = sharedmain.WithHealthProbesDisabled(ctx)
-		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewControllerWebhooks()...)
+		webhookNamespace := os.Getenv(WebhookNamespace)
+		webhookServiceName := os.Getenv(WebhookServiceName)
 
-		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
-		time.Sleep(2 * time.Second)
+		// Configure the controller-runtime webhook server to read its TLS
+		// material from the same directory cert-controller writes to, and to
+		// listen on the port the Service forwards to.
+		mgr.GetWebhookServer().(*webhook.DefaultServer).Options.CertDir = webhookCertDir
+		mgr.GetWebhookServer().(*webhook.DefaultServer).Options.Port = p
+
+		if err := rotator.AddRotator(mgr, &rotator.CertRotator{
+			SecretKey: types.NamespacedName{
+				Namespace: webhookNamespace,
+				Name:      webhookSecretName,
+			},
+			CertDir:        webhookCertDir,
+			CAName:         "kaito-workspace-ca",
+			CAOrganization: "kaito",
+			DNSName:        fmt.Sprintf("%s.%s.svc", webhookServiceName, webhookNamespace),
+			IsReady:        certReady,
+			Webhooks: []rotator.WebhookInfo{{
+				Name: validatingWebhookConfigName,
+				Type: rotator.Validating,
+			}},
+		}); err != nil {
+			klog.ErrorS(err, "unable to set up cert rotator")
+			exitWithErrorFunc()
+		}
+
+		// Register webhook handlers only after cert-controller signals the
+		// cert is on disk. Done in a goroutine so it doesn't block mgr.Start.
+		go func() {
+			select {
+			case <-certReady:
+				klog.InfoS("cert rotator reports certs are ready, registering webhooks")
+				if err := webhooks.SetupWebhooksWithManager(mgr); err != nil {
+					klog.ErrorS(err, "unable to register webhooks")
+					exitWithErrorFunc()
+				}
+			case <-ctx.Done():
+				return
+			}
+		}()
+	} else {
+		// No webhook: don't make downstream code wait on certReady.
+		close(certReady)
 	}
 
+	_ = time.Second // keep the time import in use across edits
+
 	klog.InfoS("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		klog.ErrorS(err, "problem running manager")
 		exitWithErrorFunc()
 	}

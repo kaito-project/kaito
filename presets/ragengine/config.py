@@ -70,9 +70,12 @@ LLM_CONTEXT_WINDOW = int(
 # LLM_RESPONSE_FIELD = os.getenv("LLM_RESPONSE_FIELD", "result")  # Uncomment if needed in the future
 
 
-OUTPUT_GUARDRAILS_ENABLED = (
-    os.getenv("OUTPUT_GUARDRAILS_ENABLED", "false").lower() == "true"
-)
+def _parse_bool_env(name: str, default: str = "false") -> bool:
+    return os.getenv(name, default).lower() == "true"
+
+
+OUTPUT_GUARDRAILS_ENABLED = _parse_bool_env("OUTPUT_GUARDRAILS_ENABLED")
+OUTPUT_GUARDRAILS_FAIL_OPEN = _parse_bool_env("OUTPUT_GUARDRAILS_FAIL_OPEN", "true")
 OUTPUT_GUARDRAILS_POLICY_PATH = os.getenv("OUTPUT_GUARDRAILS_POLICY_PATH", "")
 
 """

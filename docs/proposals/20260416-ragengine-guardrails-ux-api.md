@@ -102,9 +102,9 @@ field, because it must remain effective even when the policy file itself fails t
 
 | Env Var                          | Default | Description                                                                                  |
 | -------------------------------- | ------- | -------------------------------------------------------------------------------------------- |
-| `OUTPUT_GUARDRAILS_ENABLED`      | `false` | Master switch for output scanning.                                                           |
-| `OUTPUT_GUARDRAILS_FAIL_OPEN`    | `true`  | On scan failure: `true` returns the unscanned response; `false` returns HTTP 500.            |
-| `OUTPUT_GUARDRAILS_POLICY_PATH`  | `""`    | Filesystem path to the policy YAML (typically a ConfigMap mount).                            |
+| `OUTPUT_GUARDRAILS_ENABLED`      | `false` | Master switch. When `false`, guardrails are bypassed entirely. |
+| `OUTPUT_GUARDRAILS_FAIL_OPEN`    | `true`  | When guardrails themselves break (e.g. GPU OOM, model load error). `true` lets the response through unscanned; `false` returns HTTP 500. Has no effect on normal redact/block behavior. |
+| `OUTPUT_GUARDRAILS_POLICY_PATH`  | `""`    | Path to the policy ConfigMap YAML. When unset, the runtime falls back to the default ConfigMap shipped with the system. |
 
 Behavior:
 
@@ -122,6 +122,42 @@ Behavior:
 Operator guidance: fail-closed should be paired with model pre-warming, dedicated GPU
 quota for guardrails, and Prometheus alerts on `output_guardrails_failed` log volume to
 avoid converting transient ML failures into request errors.
+
+Example deployment (fail-closed for a regulated workload):
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ragengine-guardrails-failclosed
+spec:
+  containers:
+    - name: ragengine
+      image: kaito/ragengine:latest
+      env:
+        - name: OUTPUT_GUARDRAILS_ENABLED
+          value: "true"
+        - name: OUTPUT_GUARDRAILS_FAIL_OPEN
+          value: "false"
+        - name: OUTPUT_GUARDRAILS_POLICY_PATH
+          value: /etc/ragengine/guardrails.yaml
+      volumeMounts:
+        - name: guardrails-policy
+          mountPath: /etc/ragengine
+  volumes:
+    - name: guardrails-policy
+      configMap:
+        name: ragengine-guardrails-policy
+```
+
+Sample HTTP response when a scanner fails under fail-closed:
+
+```http
+HTTP/1.1 500 Internal Server Error
+Content-Type: application/json
+
+{"detail": "Output guardrails failed while scanning the model response."}
+```
 
 Future work may introduce per-scanner fail modes inside the policy YAML; the env-level
 switch will remain as the global default and as the fallback when policy parsing itself

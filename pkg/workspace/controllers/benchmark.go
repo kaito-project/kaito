@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -175,9 +176,18 @@ func extractTagPayload(line, tag string) string {
 func reconcileBenchmarkResult(ctx context.Context, wObj *kaitov1beta1.Workspace) (*kaitov1beta1.Performance, error) {
 	podName := wObj.Name + benchmarkPodIndexSuffix
 
+	// Determine container name for log streaming. When the pod has a sidecar
+	// (e.g., llm-d-routing-sidecar), Kubernetes requires an explicit container
+	// name. We fetch the pod to check, and only set Container when needed.
+	var containerName string
+	pod, err := k8sclient.GetGlobalClientGoClient().CoreV1().Pods(wObj.Namespace).Get(ctx, podName, metav1.GetOptions{})
+	if err == nil && len(pod.Spec.Containers) > 1 {
+		containerName = wObj.Name
+	}
+
 	tailLines := benchmarkLogTailLines
 	req := k8sclient.GetGlobalClientGoClient().CoreV1().Pods(wObj.Namespace).GetLogs(podName, &corev1.PodLogOptions{
-		Container: wObj.Name,
+		Container: containerName,
 		TailLines: &tailLines,
 	})
 	stream, err := req.Stream(ctx)

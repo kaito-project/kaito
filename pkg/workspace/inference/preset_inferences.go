@@ -196,7 +196,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		podOpts = append(podOpts, SetDefaultModelWeightsVolume)
 	}
 
-	podOpts = append(podOpts, SetInferenceRoleEnv, SetRoutingSidecar)
+	podOpts = append(podOpts, SetRoutingSidecar, SetInferenceRoleEnv)
 
 	podSpec, err := generator.GenerateManifest(gctx, podOpts...)
 	if err != nil {
@@ -674,7 +674,9 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 }
 
 // SetInferenceRoleEnv propagates the kaito.sh/inference-role label from the workspace
-// to the KAITO_INFERENCE_ROLE environment variable on all containers.
+// to the KAITO_INFERENCE_ROLE environment variable on existing containers in the pod spec.
+// Note: This modifier should run after SetRoutingSidecar so that the sidecar container
+// also receives the environment variable. If ordering changes, verify all containers are covered.
 // This is used by the vLLM inference_api.py to inject NixlConnector kv-transfer-config
 // for P/D disaggregated inference. The label is propagated from
 // InferenceSet.Spec.Template.Metadata.Labels onto child workspaces by the InferenceSet controller.

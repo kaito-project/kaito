@@ -412,7 +412,7 @@ func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov
 
 func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
 	inferenceSetObj := &kaitov1alpha1.InferenceSet{}
-	By("Creating a InferenceSet CR with Gemma 4 preset public mode and vLLM", func() {
+	By("Creating a InferenceSet CR with Gemma 3 preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-gemma3-is-", rand.Intn(1000))
 		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{

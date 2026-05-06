@@ -32,20 +32,26 @@ DEFAULT_BLOCK_MESSAGE = "The model output was blocked by output guardrails."
 DEFAULT_ACTION_ON_HIT = "redact"
 
 
+class OutputGuardrailsError(RuntimeError):
+    pass
+
+
 @dataclass
 class OutputGuardrails:
     enabled: bool
+    fail_open: bool = True
     action_on_hit: str = DEFAULT_ACTION_ON_HIT
     block_message: str = DEFAULT_BLOCK_MESSAGE
     scanner_configs: list[ParsedScannerConfig] = field(default_factory=list)
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
+        fail_open = config.OUTPUT_GUARDRAILS_FAIL_OPEN
         # Skip policy I/O when disabled so a malformed policy stays silent.
         if not config.OUTPUT_GUARDRAILS_ENABLED:
-            return cls(enabled=False)
+            return cls(enabled=False, fail_open=fail_open)
 
-        guardrails = cls(enabled=True)
+        guardrails = cls(enabled=True, fail_open=fail_open)
         return guardrails._apply_policy_file(config.OUTPUT_GUARDRAILS_POLICY_PATH)
 
     def _apply_policy_file(self, policy_path: str) -> "OutputGuardrails":
@@ -80,6 +86,7 @@ class OutputGuardrails:
 
         return OutputGuardrails(
             enabled=self.enabled,
+            fail_open=self.fail_open,
             action_on_hit=_normalize_action(policy.get("action"), self.action_on_hit),
             block_message=_coerce_string(
                 policy.get("blockMessage"), self.block_message
@@ -95,11 +102,11 @@ class OutputGuardrails:
         if not self.enabled:
             return response
 
-        scanners = self._build_scanners()
-        if not scanners:
-            return response
-
         try:
+            scanners = self._build_scanners()
+            if not scanners:
+                return response
+
             prompt = self._extract_prompt(request)
             response_data = response.model_dump(mode="python")
 
@@ -133,9 +140,17 @@ class OutputGuardrails:
                 )
 
             return ChatCompletionResponse(**response_data)
-        except Exception:
-            logger.exception("output_guardrails_failed")
-            return response
+        except Exception as exc:
+            logger.exception(
+                "output_guardrails_failed fail_open=%s response_id=%s",
+                self.fail_open,
+                response.id,
+            )
+            if self.fail_open:
+                return response
+            raise OutputGuardrailsError(
+                "Output guardrails failed while scanning the model response."
+            ) from exc
 
     def _build_scanners(self) -> list[Any]:
         scanners: list[Any] = []

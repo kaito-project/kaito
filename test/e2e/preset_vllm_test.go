@@ -117,9 +117,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a Gemma InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a Gemma 4 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplicas := 2
-		inferenceSetObj := createGemmaInferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
+		inferenceSetObj := createGemma4InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)
 		time.Sleep(120 * time.Second)
 
@@ -233,9 +233,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gemma-3-4b-it workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a gemma-4-E2B-it workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		workspaceObj := createGemma3_4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -256,9 +256,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gemma-3-27b-it workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+	It("should create a gemma-4-26B-A4B-it workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
 		numOfNode := 1
-		workspaceObj := createGemma3_27BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createGemma4_26BA4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -387,15 +387,14 @@ func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov
 	return workspaceObj
 }
 
-func createGemmaInferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
-	modelSecret := createAndValidateModelSecret()
+func createGemma4InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
 	inferenceSetObj := &kaitov1alpha1.InferenceSet{}
-	By("Creating a InferenceSet CR with Gemma preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gemma-is-", rand.Intn(1000))
+	By("Creating a InferenceSet CR with Gemma 4 preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-gemma4-is-", rand.Intn(1000))
 		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm"},
-			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma4-vllm"},
+			}, PresetGemma4_E2BInstructModel, nil, nil, "")
 		createAndValidateInferenceSet(inferenceSetObj)
 
 	})
@@ -430,16 +429,15 @@ func createLlama3_3_70BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode in
 	return workspaceObj
 }
 
-func createGemma3_4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
-	modelSecret := createAndValidateModelSecret()
+func createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
 
-	By("Creating a workspace CR with Gemma 3 4B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gemma-3-4b-", rand.Intn(1000))
+	By("Creating a workspace CR with Gemma 4 E2B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-gemma-4-e2b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-3-4b-vllm"},
-			}, nil, PresetGemma3_4BInstructModel, nil, nil, nil, modelSecret.Name, "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-e2b-vllm"},
+			}, nil, PresetGemma4_E2BInstructModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -447,16 +445,15 @@ func createGemma3_4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) 
 	return workspaceObj
 }
 
-func createGemma3_27BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
-	modelSecret := createAndValidateModelSecret()
+func createGemma4_26BA4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
 
-	By("Creating a workspace CR with Gemma 3 27B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gemma-3-27b-", rand.Intn(1000))
+	By("Creating a workspace CR with Gemma 4 26B-A4B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-gemma-4-26b-a4b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-3-27b-vllm"},
-			}, nil, PresetGemma3_27BInstructModel, nil, nil, nil, modelSecret.Name, "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-26b-a4b-vllm"},
+			}, nil, PresetGemma4_26BA4BInstructModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})

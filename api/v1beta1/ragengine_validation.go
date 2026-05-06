@@ -21,14 +21,20 @@ import (
 	"regexp"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
+
+const guardrailsPolicyFileName = "guardrails.yaml"
 
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {
 	return []admissionregistrationv1.OperationType{
@@ -41,23 +47,27 @@ func (w *RAGEngine) Validate(ctx context.Context) (errs *apis.FieldError) {
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
-		errs = errs.Also(w.validateCreate().ViaField("spec"))
+		errs = errs.Also(
+			w.validateCreate().ViaField("spec"),
+			w.validateGuardrails(ctx).ViaField("spec.guardrails"),
+		)
 	} else {
 		klog.InfoS("Validate update", "ragengine", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		old := base.(*RAGEngine)
 		errs = errs.Also(
 			w.validateCreate().ViaField("spec"),
-			w.Spec.Compute.validateUpdate(old.Spec.Compute).ViaField("resource"),
+			w.validateGuardrails(ctx).ViaField("spec.guardrails"),
+			w.validateUpdate(old).ViaField("resource"),
 		)
 	}
 	return errs
 }
 
 func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
-	if w.Spec.InferenceService == nil {
-		errs = errs.Also(apis.ErrGeneric("InferenceService must be specified", ""))
+	if w.Spec.InferenceService != nil {
+		errs = errs.Also(w.Spec.InferenceService.validateCreate())
 	}
-	errs = errs.Also(w.Spec.InferenceService.validateCreate())
+
 	if w.Spec.Embedding == nil {
 		errs = errs.Also(apis.ErrGeneric("Embedding must be specified", ""))
 		return errs
@@ -68,14 +78,70 @@ func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
 	if w.Spec.Embedding.Local != nil && w.Spec.Embedding.Remote != nil {
 		errs = errs.Also(apis.ErrGeneric("Either remote embedding or local embedding must be specified, but not both", ""))
 	}
-	errs = errs.Also(w.Spec.Compute.validateRAGCreate())
-	if w.Spec.Embedding.Local != nil {
-		w.Spec.Embedding.Local.validateCreate().ViaField("embedding")
-	}
-	if w.Spec.Embedding.Remote != nil {
-		w.Spec.Embedding.Remote.validateCreate().ViaField("embedding")
+
+	if w.Spec.Compute != nil {
+		errs = errs.Also(w.Spec.Compute.validateRAGCreate())
 	}
 
+	if w.Spec.Embedding.Local != nil {
+		errs = errs.Also(w.Spec.Embedding.Local.validateCreate().ViaField("embedding"))
+	}
+	if w.Spec.Embedding.Remote != nil {
+		errs = errs.Also(w.Spec.Embedding.Remote.validateCreate().ViaField("embedding"))
+	}
+
+	return errs
+}
+
+func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldError) {
+	if w.Spec == nil || w.Spec.Guardrails == nil {
+		return nil
+	}
+
+	guardrails := w.Spec.Guardrails
+	if guardrails.ConfigMapRef == nil || guardrails.ConfigMapRef.Name == "" {
+		return nil
+	}
+	if k8sclient.Client == nil {
+		return apis.ErrGeneric("Failed to obtain client from context.Context")
+	}
+
+	var cm corev1.ConfigMap
+	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: guardrails.ConfigMapRef.Name, Namespace: w.Namespace}, &cm)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return apis.ErrGeneric(
+				fmt.Sprintf("ConfigMap '%s' specified in guardrails.configMapRef not found in namespace '%s'", guardrails.ConfigMapRef.Name, w.Namespace),
+				"configMapRef.name",
+			)
+		}
+		return apis.ErrGeneric(
+			fmt.Sprintf("Failed to get ConfigMap '%s' in namespace '%s': %v", guardrails.ConfigMapRef.Name, w.Namespace, err),
+			"configMapRef.name",
+		)
+	}
+
+	return validateGuardrailsPolicyConfigMap(&cm)
+}
+
+func validateGuardrailsPolicyConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
+	if _, ok := cm.Data[guardrailsPolicyFileName]; !ok {
+		return apis.ErrMissingField(fmt.Sprintf("%s in ConfigMap", guardrailsPolicyFileName))
+	}
+
+	return nil
+}
+
+func (w *RAGEngine) validateUpdate(old *RAGEngine) (errs *apis.FieldError) {
+	if w.Spec.Compute != nil && old.Spec.Compute == nil {
+		errs = errs.Also(apis.ErrGeneric("Compute resources cannot be added after creation", "compute"))
+	}
+	if w.Spec.Compute == nil && old.Spec.Compute != nil {
+		errs = errs.Also(apis.ErrGeneric("Compute resources cannot be removed after creation", "compute"))
+	}
+	if w.Spec.Compute != nil && old.Spec.Compute != nil {
+		errs = errs.Also(w.Spec.Compute.validateUpdate(old.Spec.Compute).ViaField("resource"))
+	}
 	return errs
 }
 

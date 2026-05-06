@@ -411,13 +411,14 @@ func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov
 }
 
 func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
+	modelSecret := createAndValidateModelSecret()
 	inferenceSetObj := &kaitov1alpha1.InferenceSet{}
 	By("Creating an InferenceSet CR with Gemma 3 preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-gemma3-is-", rand.Intn(1000))
 		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm"},
-			}, PresetGemma3_4BInstructModel, nil, nil, "")
+			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
 		// Add inference-role label to test NixlConnector kv-transfer-config injection
 		if inferenceSetObj.Spec.Template.Labels == nil {
 			inferenceSetObj.Spec.Template.Labels = make(map[string]string)

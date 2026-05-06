@@ -674,7 +674,7 @@ spec:
               performance:
                 description: |-
                   Performance holds the metrics from the post-load inference benchmark.
-                  Populated by default; omitted when kaito.sh/disable-benchmark is set to "true".
+                  Only populated when the kaito.sh/run-benchmark annotation is "true".
                 properties:
                   metrics:
                     additionalProperties:

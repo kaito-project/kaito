@@ -234,7 +234,7 @@ type WorkspaceStatus struct {
 	TargetNodeCount int32 `json:"targetNodeCount,omitempty"`
 
 	// Performance holds the metrics from the post-load inference benchmark.
-	// Populated by default; omitted when kaito.sh/disable-benchmark is set to "true".
+	// Only populated when the kaito.sh/run-benchmark annotation is "true".
 	// +optional
 	Performance *Performance `json:"performance,omitempty"`
 }

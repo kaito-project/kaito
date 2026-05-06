@@ -56,6 +56,6 @@ const (
 
 	// WorkspaceConditionTypeBenchmarkCompleted is the state after the post-load benchmark has run.
 	// True means the benchmark completed and results are stored in status.benchmarkResult.
-	// Set by default; omitted when kaito.sh/disable-benchmark is "true".
+	// Only set when the kaito.sh/run-benchmark annotation is "true".
 	WorkspaceConditionTypeBenchmarkCompleted = ConditionType("BenchmarkCompleted")
 )

@@ -215,9 +215,12 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
     )
 
     if args.kv_transfer_config is None:
+        inference_role = os.environ.get("KAITO_INFERENCE_ROLE", "")
+        kv_role_map = {"prefill": "kv_producer", "decode": "kv_consumer"}
+        kv_role = kv_role_map.get(inference_role, "kv_both")
         args.kv_transfer_config = {
             "kv_connector": "LMCacheConnectorV1",
-            "kv_role": "kv_both",
+            "kv_role": kv_role,
         }
 
 

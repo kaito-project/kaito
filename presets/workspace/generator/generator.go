@@ -49,11 +49,12 @@ var (
 		"ernie-4.5":    "ernie45",
 		"gemma-4":      "gemma4",
 		"glm-4.5":      "glm45",
+		"granite-3.2":  "granite",
 		"holo2":        "holo2",
 		"hunyuan-a13b": "hunyuan_a13b",
-		"granite-3.2":  "granite",
 		"kimi-k2":      "kimi_k2",
 		"minimax-m2":   "minimax_m2_append_think",
+		"mistral":      "mistral",
 		"olmo-3":       "olmo3",
 		"qwen3":        "qwen3",
 		"qwq-32b":      "deepseek_r1",
@@ -69,6 +70,7 @@ var (
 		"GraniteForCausalLM":                     "granite",
 		"KimiK2ForCausalLM":                      "kimi_k2",
 		"MiniMaxM2ForCausalLM":                   "minimax_m2_append_think",
+		"Mistral3ForConditionalGeneration":       "mistral",
 		"MistralForCausalLM":                     "mistral",
 		"NemotronForCausalLM":                    "nemotron_v3",
 		"NemotronHForCausalLM":                   "nemotron_v3",
@@ -171,10 +173,20 @@ var (
 	}
 
 	// attentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
+	// source: https://docs.vllm.ai/en/latest/design/attention_backends/
 	attentionBackendPrefixMap = map[string]string{
 		// flashinfer attention backend is chosen by default for LLaMA 3 models, which requires the FlashInfer library to be installed lively.
 		// Pin to triton backend as a workaround.
 		"llama-3": "TRITON_ATTN",
+	}
+
+	// vllmMoeBackendOverride maps exact model names to their vLLM MoE backend.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-moe-backend
+	vllmMoeBackendOverride = map[string]string{
+		// Mistral Small 4 FP8 defaults to FlashInfer CUTLASS MoE backend which requires
+		// JIT compilation with CUDA dev headers (nvcc, cublasLt, nvrtc).
+		// Pin to triton backend to avoid the JIT dependency for now.
+		"mistral-small-4-119b-2603": "triton",
 	}
 
 	// catalogOverrides provides hardcoded values for models whose HuggingFace
@@ -453,6 +465,17 @@ func getInt(config map[string]interface{}, keys []string, defaultVal int) int {
 	return defaultVal
 }
 
+// getString looks up the first matching key in config that has a non-empty
+// string value. Keys are tried in order; the first hit wins.
+func getString(config map[string]interface{}, keys []string) string {
+	for _, key := range keys {
+		if val, ok := config[key].(string); ok && val != "" {
+			return val
+		}
+	}
+	return ""
+}
+
 func (g *Generator) ParseModelMetadata() {
 	maxPos := getInt(g.ModelConfig, configKeyMap["modelTokenLimit"], DefaultModelTokenLimit)
 
@@ -613,6 +636,11 @@ func (g *Generator) FinalizeParams() {
 			g.Param.VLLM.ModelRunParams["attention-backend"] = backend
 			break
 		}
+	}
+
+	// Set MoE backend based on exact model name match
+	if backend, ok := vllmMoeBackendOverride[g.Param.Metadata.Name]; ok {
+		g.Param.VLLM.ModelRunParams["moe-backend"] = backend
 	}
 
 	bpt, attnType := g.calculateKVCacheTokenSize()

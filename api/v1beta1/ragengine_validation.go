@@ -34,8 +34,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
-const guardrailsPolicyFileName = "guardrails.yaml"
-
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {
 	return []admissionregistrationv1.OperationType{
 		admissionregistrationv1.Create,

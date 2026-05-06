@@ -57,7 +57,7 @@ var (
 
 	KarpenterWorkspaceSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
-			{Key: consts.KarpenterWorkspaceKey, Operator: metav1.LabelSelectorOpExists},
+			{Key: consts.KarpenterWorkspaceNameKey, Operator: metav1.LabelSelectorOpExists},
 		},
 	})
 

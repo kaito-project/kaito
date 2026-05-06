@@ -28,7 +28,6 @@ import (
 
 const (
 	maxNodePoolNameLen = 253
-	maxLabelValueLen   = 63
 	hashSuffixLen      = 9
 )
 
@@ -52,14 +51,6 @@ func NodePoolName(workspaceNamespace, workspaceName string) string {
 	return truncatedName(workspaceNamespace, workspaceName, maxNodePoolNameLen)
 }
 
-// WorkspaceLabelValue returns a deterministic, label-safe value (≤63 chars)
-// derived from the workspace namespace and name.
-// Used for labels, taints, tolerations, and nodeSelectors — all of which
-// enforce the Kubernetes 63-character label value limit.
-func WorkspaceLabelValue(workspaceNamespace, workspaceName string) string {
-	return truncatedName(workspaceNamespace, workspaceName, maxLabelValueLen)
-}
-
 // resolveNodeClassName determines the NodeClass resource name for a Workspace.
 // It checks for the node-class-name annotation on the workspace, then falls
 // back to the configured default.
@@ -79,7 +70,6 @@ func isInferenceSetWorkspace(ws *kaitov1beta1.Workspace) bool {
 // generateNodePool builds a karpenter NodePool manifest for the given Workspace.
 func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpenterv1.NodePool {
 	nodePoolName := NodePoolName(ws.Namespace, ws.Name)
-	workspaceLabelVal := WorkspaceLabelValue(ws.Namespace, ws.Name)
 	nodeClassName := resolveNodeClassName(ws, cfg)
 
 	// Drift budget: InferenceSet workspaces start with "0" (blocked),
@@ -91,7 +81,6 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 
 	// Template labels propagated to NodeClaims and Nodes.
 	templateLabels := map[string]string{
-		consts.KarpenterWorkspaceKey:          workspaceLabelVal,
 		consts.KarpenterWorkspaceNameKey:      ws.Name,
 		consts.KarpenterWorkspaceNamespaceKey: ws.Namespace,
 	}
@@ -148,8 +137,8 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 					},
 					Taints: []corev1.Taint{
 						{
-							Key:    consts.KarpenterWorkspaceKey,
-							Value:  workspaceLabelVal,
+							Key:    consts.SKUString,
+							Value:  consts.GPUString,
 							Effect: corev1.TaintEffectNoSchedule,
 						},
 					},

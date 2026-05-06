@@ -196,6 +196,8 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		podOpts = append(podOpts, SetDefaultModelWeightsVolume)
 	}
 
+	podOpts = append(podOpts, SetInferenceRoleEnv, SetRoutingSidecar)
+
 	podSpec, err := generator.GenerateManifest(gctx, podOpts...)
 	if err != nil {
 		return nil, err

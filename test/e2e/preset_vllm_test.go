@@ -423,7 +423,7 @@ func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1a
 		if inferenceSetObj.Spec.Template.Labels == nil {
 			inferenceSetObj.Spec.Template.Labels = make(map[string]string)
 		}
-		inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = "decode"
+		inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = consts.InferenceRoleDecode
 		createAndValidateInferenceSet(inferenceSetObj)
 
 	})

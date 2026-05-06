@@ -29,10 +29,13 @@ type GuardrailsSpec struct {
 	// ConfigMapRef points to a ConfigMap that contains a guardrails.yaml policy document.
 	// +optional
 	ConfigMapRef *ConfigMapReference `json:"configMapRef,omitempty"`
-	// FailOpen controls runtime behavior when the guardrails subsystem itself fails
-	// (e.g. scanner model load error, GPU OOM). When true (default), the response is
-	// returned unscanned. When false, the request fails with HTTP 500. This has no
-	// effect on normal redact/block decisions made by a healthy guardrails pipeline.
+	// FailOpen controls what happens when output guardrails fail to execute
+	// (for example, scanner initialization, model load, or scan execution failures).
+	//
+	// When true (default), the original response is returned unscanned.
+	// When false, the request fails with HTTP 500.
+	//
+	// This does not affect normal scanner hits, such as redact or block decisions.
 	// +optional
 	FailOpen *bool `json:"failOpen,omitempty"`
 }

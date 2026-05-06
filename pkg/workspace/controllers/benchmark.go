@@ -178,15 +178,12 @@ func reconcileBenchmarkResult(ctx context.Context, wObj *kaitov1beta1.Workspace)
 
 	// Determine container name for log streaming. When the pod has a sidecar
 	// (e.g., llm-d-routing-sidecar), Kubernetes requires an explicit container
-	// name. We fetch the pod to check, and only set Container when needed.
+	// name. We always use wObj.Name which matches the primary inference container
+	// name set by the workspace generator, regardless of container ordering.
 	var containerName string
 	pod, podErr := k8sclient.GetGlobalClientGoClient().CoreV1().Pods(wObj.Namespace).Get(ctx, podName, metav1.GetOptions{})
-	if podErr != nil {
-		// If we can't fetch the pod, fall back to workspace name as container name
-		// to handle multi-container pods gracefully.
+	if podErr != nil || len(pod.Spec.Containers) > 1 {
 		containerName = wObj.Name
-	} else if len(pod.Spec.Containers) > 1 {
-		containerName = pod.Spec.Containers[0].Name
 	}
 
 	tailLines := benchmarkLogTailLines

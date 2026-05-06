@@ -677,7 +677,7 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 // to the KAITO_INFERENCE_ROLE environment variable on existing containers in the pod spec.
 // Note: This modifier should run after SetRoutingSidecar so that the sidecar container
 // also receives the environment variable. If ordering changes, verify all containers are covered.
-// This is used by the vLLM inference_api.py to inject NixlConnector kv-transfer-config
+// This is used by the vLLM inference_api.py to set LMCache kv_transfer_config
 // for P/D disaggregated inference. The label is propagated from
 // InferenceSet.Spec.Template.Metadata.Labels onto child workspaces by the InferenceSet controller.
 func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {

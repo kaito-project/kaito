@@ -19,7 +19,7 @@ package v1beta1
 
 import (
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -160,11 +160,6 @@ func (in *GuardrailsSpec) DeepCopyInto(out *GuardrailsSpec) {
 	if in.ConfigMapRef != nil {
 		in, out := &in.ConfigMapRef, &out.ConfigMapRef
 		*out = new(ConfigMapReference)
-		**out = **in
-	}
-	if in.FailOpen != nil {
-		in, out := &in.FailOpen, &out.FailOpen
-		*out = new(bool)
 		**out = **in
 	}
 }

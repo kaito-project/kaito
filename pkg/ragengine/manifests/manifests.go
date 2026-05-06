@@ -295,16 +295,6 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 			Name:  "OUTPUT_GUARDRAILS_ENABLED",
 			Value: strconv.FormatBool(g.Enabled),
 		})
-		// fail_open defaults to true when the field is unset, preserving the
-		// pre-existing implicit behavior.
-		failOpen := true
-		if g.FailOpen != nil {
-			failOpen = *g.FailOpen
-		}
-		envs = append(envs, corev1.EnvVar{
-			Name:  "OUTPUT_GUARDRAILS_FAIL_OPEN",
-			Value: strconv.FormatBool(failOpen),
-		})
 		if g.ConfigMapRef != nil && g.ConfigMapRef.Name != "" {
 			envs = append(envs, corev1.EnvVar{
 				Name:  "OUTPUT_GUARDRAILS_POLICY_PATH",

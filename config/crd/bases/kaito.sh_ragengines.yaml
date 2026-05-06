@@ -478,16 +478,6 @@ spec:
                   enabled:
                     description: Enabled turns response guardrails on for chat completions.
                     type: boolean
-                  failOpen:
-                    description: |-
-                      FailOpen controls what happens when output guardrails fail to execute
-                      (for example, scanner initialization, model load, or scan execution failures).
-
-                      When true (default), the original response is returned unscanned.
-                      When false, the request fails with HTTP 500.
-
-                      This does not affect normal scanner hits, such as redact or block decisions.
-                    type: boolean
                 type: object
               inferenceService:
                 description: |-

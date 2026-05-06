@@ -46,7 +46,9 @@ class OutputGuardrails:
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
-        fail_open = config.OUTPUT_GUARDRAILS_FAIL_OPEN
+        # Guardrails currently hard-code fail-closed behavior; there is no
+        # runtime API or env override for fail-open.
+        fail_open = False
         # Skip policy I/O when disabled so a malformed policy stays silent.
         if not config.OUTPUT_GUARDRAILS_ENABLED:
             return cls(enabled=False, fail_open=fail_open)

@@ -186,14 +186,14 @@ func TestRAGSetEnvGuardrails(t *testing.T) {
 			Spec:       baseSpec(),
 		}
 		envs := RAGSetEnv(re)
-		for _, name := range []string{"OUTPUT_GUARDRAILS_ENABLED", "OUTPUT_GUARDRAILS_FAIL_OPEN", "OUTPUT_GUARDRAILS_POLICY_PATH"} {
+		for _, name := range []string{"OUTPUT_GUARDRAILS_ENABLED", "OUTPUT_GUARDRAILS_POLICY_PATH"} {
 			if _, ok := findEnv(envs, name); ok {
 				t.Errorf("expected %s to be absent when Guardrails is nil", name)
 			}
 		}
 	})
 
-	t.Run("guardrails enabled with default fail_open and policy", func(t *testing.T) {
+	t.Run("guardrails enabled with policy", func(t *testing.T) {
 		spec := baseSpec()
 		spec.Guardrails = &kaitov1beta1.GuardrailsSpec{
 			Enabled:      true,
@@ -206,7 +206,6 @@ func TestRAGSetEnvGuardrails(t *testing.T) {
 		envs := RAGSetEnv(re)
 		want := map[string]string{
 			"OUTPUT_GUARDRAILS_ENABLED":     "true",
-			"OUTPUT_GUARDRAILS_FAIL_OPEN":   "true",
 			"OUTPUT_GUARDRAILS_POLICY_PATH": GuardrailsPolicyMountPath + "/" + GuardrailsPolicyFileName,
 		}
 		for name, expected := range want {
@@ -221,25 +220,16 @@ func TestRAGSetEnvGuardrails(t *testing.T) {
 		}
 	})
 
-	t.Run("guardrails fail_open=false is honored and no ConfigMap means no policy path", func(t *testing.T) {
-		failOpen := false
+	t.Run("guardrails without ConfigMap emits no policy path", func(t *testing.T) {
 		spec := baseSpec()
 		spec.Guardrails = &kaitov1beta1.GuardrailsSpec{
-			Enabled:  true,
-			FailOpen: &failOpen,
+			Enabled: true,
 		}
 		re := &kaitov1beta1.RAGEngine{
 			ObjectMeta: metav1.ObjectMeta{Name: "rg", Namespace: "ns"},
 			Spec:       spec,
 		}
 		envs := RAGSetEnv(re)
-		got, ok := findEnv(envs, "OUTPUT_GUARDRAILS_FAIL_OPEN")
-		if !ok {
-			t.Fatalf("missing OUTPUT_GUARDRAILS_FAIL_OPEN")
-		}
-		if got.Value != "false" {
-			t.Errorf("OUTPUT_GUARDRAILS_FAIL_OPEN = %q, want %q", got.Value, "false")
-		}
 		if _, ok := findEnv(envs, "OUTPUT_GUARDRAILS_POLICY_PATH"); ok {
 			t.Errorf("OUTPUT_GUARDRAILS_POLICY_PATH should be absent without ConfigMapRef")
 		}

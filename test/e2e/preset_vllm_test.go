@@ -417,7 +417,7 @@ func createGemma4InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1a
 		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm"},
-			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
+			}, PresetGemma3_4BInstructModel, nil, nil, "")
 		// Add inference-role label to test NixlConnector kv-transfer-config injection
 		if inferenceSetObj.Spec.Template.Labels == nil {
 			inferenceSetObj.Spec.Template.Labels = make(map[string]string)

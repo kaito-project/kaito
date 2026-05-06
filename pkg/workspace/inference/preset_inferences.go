@@ -33,7 +33,6 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -103,17 +102,6 @@ func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
 			Key:      consts.SpotInstanceKey,
 			Operator: corev1.TolerationOpEqual,
 			Value:    consts.SpotInstanceValue,
-		})
-	}
-
-	// Tolerate the karpenter workspace taint so inference pods can schedule
-	// on karpenter-provisioned GPU nodes.
-	if consts.IsKarpenterProvisioner() {
-		tolerations = append(tolerations, corev1.Toleration{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Key:      consts.KarpenterWorkspaceKey,
-			Operator: corev1.TolerationOpEqual,
-			Value:    karpenter.WorkspaceLabelValue(ws.Namespace, ws.Name),
 		})
 	}
 
@@ -478,11 +466,6 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			},
 		})
 
-		if consts.IsKarpenterProvisioner() {
-			spec.NodeSelector = map[string]string{
-				consts.KarpenterWorkspaceKey: karpenter.WorkspaceLabelValue(ctx.Workspace.Namespace, ctx.Workspace.Name),
-			}
-		}
 		spec.Affinity = &corev1.Affinity{
 			NodeAffinity: &corev1.NodeAffinity{
 				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{

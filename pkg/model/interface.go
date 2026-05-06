@@ -507,7 +507,8 @@ func (p *PresetParam) getModelFileSize() *resource.Quantity {
 func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
-		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM":
+		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
+			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration":
 			return true
 		}
 	}

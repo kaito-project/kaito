@@ -117,7 +117,6 @@ const (
 	SpotInstanceValue         = "spot"
 
 	// Karpenter NodePool management labels and values.
-	KarpenterWorkspaceKey             = "karpenter.kaito.sh/workspace"
 	KarpenterWorkspaceNameKey         = "karpenter.kaito.sh/workspace-name"
 	KarpenterWorkspaceNamespaceKey    = "karpenter.kaito.sh/workspace-namespace"
 	KarpenterInferenceSetKey          = "karpenter.kaito.sh/inferenceset"

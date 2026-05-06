@@ -452,3 +452,55 @@ models:
   numKeyValueHeads: 8
   quantMethod: awq
   quantBits: 4
+- name: google/gemma-4-31B-it
+  description: https://huggingface.co/google/gemma-4-31B-it
+  license: apache-2.0
+  pipelineTag: image-text-to-text
+  modelFileSize: 58.25Gi
+  architectures:
+  - Gemma4ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 5376
+  numHiddenLayers: 60
+  numAttentionHeads: 32
+  numKeyValueHeads: 16
+  headDim: 256
+- name: google/gemma-4-26B-A4B-it
+  description: https://huggingface.co/google/gemma-4-26B-A4B-it
+  license: apache-2.0
+  pipelineTag: image-text-to-text
+  modelFileSize: 48.07Gi
+  architectures:
+  - Gemma4ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 2816
+  numHiddenLayers: 30
+  numAttentionHeads: 16
+  numKeyValueHeads: 8
+  headDim: 256
+- name: google/gemma-4-E4B-it
+  description: https://huggingface.co/google/gemma-4-E4B-it
+  license: apache-2.0
+  pipelineTag: any-to-any
+  modelFileSize: 14.89Gi
+  architectures:
+  - Gemma4ForConditionalGeneration
+  modelTokenLimit: 131072
+  hiddenSize: 2560
+  numHiddenLayers: 42
+  numAttentionHeads: 8
+  numKeyValueHeads: 2
+  headDim: 256
+- name: google/gemma-4-E2B-it
+  description: https://huggingface.co/google/gemma-4-E2B-it
+  license: apache-2.0
+  pipelineTag: any-to-any
+  modelFileSize: 9.54Gi
+  architectures:
+  - Gemma4ForConditionalGeneration
+  modelTokenLimit: 131072
+  hiddenSize: 1536
+  numHiddenLayers: 35
+  numAttentionHeads: 8
+  numKeyValueHeads: 1
+  headDim: 256

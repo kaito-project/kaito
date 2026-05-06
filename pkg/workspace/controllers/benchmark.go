@@ -182,7 +182,7 @@ func reconcileBenchmarkResult(ctx context.Context, wObj *kaitov1beta1.Workspace)
 	var containerName string
 	pod, err := k8sclient.GetGlobalClientGoClient().CoreV1().Pods(wObj.Namespace).Get(ctx, podName, metav1.GetOptions{})
 	if err == nil && len(pod.Spec.Containers) > 1 {
-		containerName = wObj.Name
+		containerName = pod.Spec.Containers[0].Name
 	}
 
 	tailLines := benchmarkLogTailLines

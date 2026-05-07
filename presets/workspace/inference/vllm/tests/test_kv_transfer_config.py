@@ -21,9 +21,9 @@ from unittest.mock import patch
 
 # Add parent directory to sys.path for inference_api imports
 parent_dir = str(Path(__file__).resolve().parent.parent)
-sys.path.append(parent_dir)
+sys.path.insert(0, parent_dir)
 
-from inference_api import set_kv_transfer_config_if_appliable  # noqa: E402
+from inference_api import set_kv_transfer_config_if_applicable  # noqa: E402, I001
 
 
 def _make_args(**kwargs):
@@ -38,13 +38,13 @@ def _make_args(**kwargs):
 
 
 class TestSetKvTransferConfig:
-    """Tests for set_kv_transfer_config_if_appliable()."""
+    """Tests for set_kv_transfer_config_if_applicable()."""
 
     def test_nixl_connector_when_role_is_prefill(self):
         """When KAITO_INFERENCE_ROLE=prefill, should set NixlConnector."""
         args = _make_args()
         with patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "prefill"}):
-            set_kv_transfer_config_if_appliable(args)
+            set_kv_transfer_config_if_applicable(args)
         assert args.kv_transfer_config == {
             "kv_connector": "NixlConnector",
             "kv_role": "kv_both",
@@ -55,7 +55,7 @@ class TestSetKvTransferConfig:
         """When KAITO_INFERENCE_ROLE=decode, should set NixlConnector."""
         args = _make_args()
         with patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "decode"}):
-            set_kv_transfer_config_if_appliable(args)
+            set_kv_transfer_config_if_applicable(args)
         assert args.kv_transfer_config == {
             "kv_connector": "NixlConnector",
             "kv_role": "kv_both",
@@ -67,7 +67,7 @@ class TestSetKvTransferConfig:
         args = _make_args()
         with patch.dict(os.environ, {}, clear=True):
             os.environ.pop("KAITO_INFERENCE_ROLE", None)
-            set_kv_transfer_config_if_appliable(args)
+            set_kv_transfer_config_if_applicable(args)
         assert args.kv_transfer_config is None
 
     def test_lmcache_default_when_offload_enabled_no_role(self):
@@ -75,7 +75,7 @@ class TestSetKvTransferConfig:
         args = _make_args(kaito_kv_cache_cpu_memory_utilization=0.5)
         with patch.dict(os.environ, {}, clear=True):
             os.environ.pop("KAITO_INFERENCE_ROLE", None)
-            set_kv_transfer_config_if_appliable(args)
+            set_kv_transfer_config_if_applicable(args)
         assert args.kv_transfer_config == {
             "kv_connector": "LMCacheConnectorV1",
             "kv_role": "kv_both",
@@ -85,7 +85,7 @@ class TestSetKvTransferConfig:
         """When role is set AND offload enabled, NixlConnector should not be overwritten."""
         args = _make_args(kaito_kv_cache_cpu_memory_utilization=0.5)
         with patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "decode"}):
-            set_kv_transfer_config_if_appliable(args)
+            set_kv_transfer_config_if_applicable(args)
         assert args.kv_transfer_config["kv_connector"] == "NixlConnector"
 
     def test_user_provided_config_not_overridden(self):
@@ -93,7 +93,7 @@ class TestSetKvTransferConfig:
         user_config = {"kv_connector": "CustomConnector", "kv_role": "kv_both"}
         args = _make_args(kv_transfer_config=user_config)
         with patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "decode"}):
-            set_kv_transfer_config_if_appliable(args)
+            set_kv_transfer_config_if_applicable(args)
         assert args.kv_transfer_config == user_config
 
 

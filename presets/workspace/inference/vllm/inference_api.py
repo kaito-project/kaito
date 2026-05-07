@@ -191,7 +191,7 @@ def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
     return gpu_memory_utilization
 
 
-def set_kv_transfer_config_if_appliable(args: argparse.Namespace) -> None:
+def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
     """
     Set KV transfer config and optionally enable KV cache offloading to CPU RAM.
     - When KAITO_INFERENCE_ROLE is set: use NixlConnector (kv_both + fail policy).
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     if args.lora_modules is None:
         args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
 
-    set_kv_transfer_config_if_appliable(args)
+    set_kv_transfer_config_if_applicable(args)
 
     # Run the serving server
     logger.info(f"Starting server on port {args.port}")

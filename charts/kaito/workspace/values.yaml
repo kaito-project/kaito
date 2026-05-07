@@ -43,7 +43,7 @@ featureGates:
   enableInferenceSetController: false
   enableMultiRoleInferenceController: false
 defaultNodeImageFamily: ""
-nodeProvisioner: ""
+nodeProvisioner: "karpenter"
 karpenterProvider: "azure"
 karpenterProviders:
   azure:

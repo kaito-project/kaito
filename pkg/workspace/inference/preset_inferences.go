@@ -697,8 +697,18 @@ func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.
 		Name:  consts.InferenceRoleEnvName,
 		Value: role,
 	}
-	// Only set on the main inference container (index 0)
-	c := &spec.Containers[0]
+	// Find the main inference container by workspace name (consistent with other modifiers).
+	// Fall back to index 0 if not found by name.
+	var c *corev1.Container
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == ctx.Workspace.Name {
+			c = &spec.Containers[i]
+			break
+		}
+	}
+	if c == nil {
+		c = &spec.Containers[0]
+	}
 	found := false
 	for j, env := range c.Env {
 		if env.Name == consts.InferenceRoleEnvName {

@@ -202,7 +202,14 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	if err != nil {
 		return nil, err
 	}
-	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec), InjectRoutingSidecar)
+
+	// If this is a decode workspace on vLLM, inject the routing sidecar directly.
+	// The sidecar takes the public port (5000), vLLM moves to internal port (5001).
+	if needsRoutingSidecar(workspaceObj) {
+		injectRoutingSidecarInline(podSpec)
+	}
+
+	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
 
 	return generator.GenerateManifest(gctx, ssOpts...)
 }
@@ -704,244 +711,112 @@ func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.
 	return nil
 }
 
-// InjectRoutingSidecar is a StatefulSet-level modifier that adds the llm-d routing sidecar
-// to decode workspace pods. When the workspace has inference-role: decode and uses the vLLM
-// runtime, the sidecar is injected alongside the main container. The sidecar takes over
-// the public-facing port (5000) and vLLM is moved to an internal port (5001).
-func InjectRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
-	role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]
+// needsRoutingSidecar returns true if the workspace requires the llm-d routing sidecar.
+func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
+	role, ok := ws.Labels[v1beta1.LabelInferenceRole]
 	if !ok || role != consts.InferenceRoleDecode {
-		return nil
+		return false
 	}
-
-	runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
-	if runtimeName != pkgmodel.RuntimeNameVLLM {
-		return nil
-	}
-
-	spec := &ss.Spec.Template.Spec
-
-	// Check if sidecar already exists to avoid duplicate injection
-	sidecarExists := false
-	for _, c := range spec.Containers {
-		if c.Name == "llm-d-routing-sidecar" {
-			sidecarExists = true
-			break
-		}
-	}
-
-	// Move vLLM to internal port so the sidecar can take over the public-facing port.
-	// Update container ports, readiness/liveness probes, and vllm-port arg/command.
-	// Deep-copy mutable slices to avoid contaminating shared package-level defaults.
-	oldPort := strconv.Itoa(int(consts.PortInferenceServer))
-	newPort := strconv.Itoa(int(consts.PortInferenceServerInternal))
-	for i := range spec.Containers {
-		if spec.Containers[i].Name == "llm-d-routing-sidecar" {
-			continue
-		}
-		// Deep-copy ports to avoid mutating shared defaults
-		if len(spec.Containers[i].Ports) > 0 {
-			portsCopy := make([]corev1.ContainerPort, len(spec.Containers[i].Ports))
-			copy(portsCopy, spec.Containers[i].Ports)
-			spec.Containers[i].Ports = portsCopy
-			for j := range spec.Containers[i].Ports {
-				if spec.Containers[i].Ports[j].ContainerPort == int32(consts.PortInferenceServer) {
-					spec.Containers[i].Ports[j].ContainerPort = consts.PortInferenceServerInternal
-				}
-			}
-		}
-		// Update readiness probe port (HTTPGet or Exec)
-		if spec.Containers[i].ReadinessProbe != nil {
-			spec.Containers[i].ReadinessProbe = spec.Containers[i].ReadinessProbe.DeepCopy()
-			if spec.Containers[i].ReadinessProbe.HTTPGet != nil {
-				if spec.Containers[i].ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-					spec.Containers[i].ReadinessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
-				}
-			}
-			if spec.Containers[i].ReadinessProbe.Exec != nil {
-				for j, cmd := range spec.Containers[i].ReadinessProbe.Exec.Command {
-					if strings.Contains(cmd, "--vllm-port="+oldPort) {
-						spec.Containers[i].ReadinessProbe.Exec.Command[j] = strings.ReplaceAll(cmd, "--vllm-port="+oldPort, "--vllm-port="+newPort)
-					}
-				}
-			}
-		}
-		// Update liveness probe port (HTTPGet or Exec)
-		if spec.Containers[i].LivenessProbe != nil {
-			spec.Containers[i].LivenessProbe = spec.Containers[i].LivenessProbe.DeepCopy()
-			if spec.Containers[i].LivenessProbe.HTTPGet != nil {
-				if spec.Containers[i].LivenessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-					spec.Containers[i].LivenessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
-				}
-			}
-			if spec.Containers[i].LivenessProbe.Exec != nil {
-				for j, cmd := range spec.Containers[i].LivenessProbe.Exec.Command {
-					if strings.Contains(cmd, "--vllm-port="+oldPort) {
-						spec.Containers[i].LivenessProbe.Exec.Command[j] = strings.ReplaceAll(cmd, "--vllm-port="+oldPort, "--vllm-port="+newPort)
-					}
-				}
-			}
-		}
-		// Update startup probe port (HTTPGet or Exec)
-		if spec.Containers[i].StartupProbe != nil {
-			spec.Containers[i].StartupProbe = spec.Containers[i].StartupProbe.DeepCopy()
-			if spec.Containers[i].StartupProbe.HTTPGet != nil {
-				if spec.Containers[i].StartupProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-					spec.Containers[i].StartupProbe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
-				}
-			}
-			if spec.Containers[i].StartupProbe.Exec != nil {
-				for j, cmd := range spec.Containers[i].StartupProbe.Exec.Command {
-					if strings.Contains(cmd, "--vllm-port="+oldPort) {
-						spec.Containers[i].StartupProbe.Exec.Command[j] = strings.ReplaceAll(cmd, "--vllm-port="+oldPort, "--vllm-port="+newPort)
-					}
-				}
-			}
-		}
-		// Update --vllm-port in container command and args
-		portOverrideAdded := false
-		for j, cmd := range spec.Containers[i].Command {
-			// Use a working copy so all transformations within the same
-			// command string are cumulative (avoid clobbering earlier rewrites).
-			updated := cmd
-
-			if strings.Contains(updated, "--vllm-port="+oldPort) {
-				updated = strings.ReplaceAll(updated, "--vllm-port="+oldPort, "--vllm-port="+newPort)
-			}
-			// Insert or rewrite --port to override vLLM's default listen port.
-			// Use string replacement to handle both single-node and multi-node
-			// shell script commands (where appending at end would break the script).
-			// Handles both "--port <n>" (space form) and "--port=<n>" (equals form).
-			internalPortSpace := fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)
-			internalPortEquals := fmt.Sprintf("--port=%d", consts.PortInferenceServerInternal)
-			if !portOverrideAdded && strings.Contains(updated, "inference_api.py") {
-				rewritten := false
-				// Check for "--port=<n>" form first (e.g., from BuildCmdStr)
-				if idx := strings.Index(updated, "--port="); idx >= 0 {
-					portStart := idx + len("--port=")
-					portEnd := portStart
-					for portEnd < len(updated) && updated[portEnd] >= '0' && updated[portEnd] <= '9' {
-						portEnd++
-					}
-					if portEnd > portStart {
-						existing := updated[idx:portEnd]
-						updated = strings.Replace(updated, existing, internalPortEquals, 1)
-						rewritten = true
-					}
-				}
-				// Check for "--port <n>" form (space-separated)
-				if !rewritten {
-					if idx := strings.Index(updated, "--port "); idx >= 0 {
-						portStart := idx + len("--port ")
-						portEnd := portStart
-						for portEnd < len(updated) && updated[portEnd] >= '0' && updated[portEnd] <= '9' {
-							portEnd++
-						}
-						if portEnd > portStart {
-							existing := updated[idx:portEnd]
-							updated = strings.Replace(updated, existing, internalPortSpace, 1)
-							rewritten = true
-						}
-					}
-				}
-				// No existing --port flag, insert after inference_api.py
-				if !rewritten {
-					updated = strings.Replace(
-						updated,
-						"inference_api.py",
-						"inference_api.py "+internalPortSpace,
-						1,
-					)
-				}
-				portOverrideAdded = true
-			}
-			spec.Containers[i].Command[j] = updated
-		}
-		for j, arg := range spec.Containers[i].Args {
-			if strings.Contains(arg, "--vllm-port="+oldPort) {
-				spec.Containers[i].Args[j] = strings.ReplaceAll(arg, "--vllm-port="+oldPort, "--vllm-port="+newPort)
-			}
-		}
-	}
-
-	// The llm-d routing sidecar uses command-line flags (not environment variables)
-	// to configure its listening port and backend vLLM port:
-	//   --port=<listen-port>       (default: 8000)
-	//   --vllm-port=<backend-port> (default: 8001)
-	// We must explicitly set these to match our port scheme (5000 / 5001).
-	sidecarArgs := []string{
-		fmt.Sprintf("--port=%d", consts.PortInferenceServer),
-		fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
-		"--secure-proxy=false",
-	}
-
-	if sidecarExists {
-		// Reconcile existing sidecar to ensure its config matches expected values
-		for i := range spec.Containers {
-			if spec.Containers[i].Name != "llm-d-routing-sidecar" {
-				continue
-			}
-			// Ensure image is up to date
-			spec.Containers[i].Image = fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag)
-			// Ensure args include correct port flags
-			spec.Containers[i].Args = sidecarArgs
-			// Set ports to exactly the expected single port struct for deterministic spec
-			spec.Containers[i].Ports = []corev1.ContainerPort{
-				{ContainerPort: consts.PortInferenceServer, Name: "sidecar", Protocol: corev1.ProtocolTCP},
-			}
-			// Ensure POD_IP env is present
-			podIPFound := false
-			for j := range spec.Containers[i].Env {
-				if spec.Containers[i].Env[j].Name == "POD_IP" {
-					podIPFound = true
-					break
-				}
-			}
-			if !podIPFound {
-				spec.Containers[i].Env = append(spec.Containers[i].Env, corev1.EnvVar{
-					Name: "POD_IP",
-					ValueFrom: &corev1.EnvVarSource{
-						FieldRef: &corev1.ObjectFieldSelector{
-							FieldPath: "status.podIP",
-						},
-					},
-				})
-			}
-			// Remove stale BACKEND_URL env if present (no longer used)
-			envs := spec.Containers[i].Env[:0]
-			for _, e := range spec.Containers[i].Env {
-				if e.Name != "BACKEND_URL" {
-					envs = append(envs, e)
-				}
-			}
-			spec.Containers[i].Env = envs
-			break
-		}
-	} else {
-		// Inject new sidecar container
-		sidecar := corev1.Container{
-			Name:  "llm-d-routing-sidecar",
-			Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
-			Args:  sidecarArgs,
-			Ports: []corev1.ContainerPort{
-				{
-					ContainerPort: consts.PortInferenceServer,
-					Name:          "sidecar",
-					Protocol:      corev1.ProtocolTCP,
-				},
-			},
-			Env: []corev1.EnvVar{
-				{
-					Name: "POD_IP",
-					ValueFrom: &corev1.EnvVarSource{
-						FieldRef: &corev1.ObjectFieldSelector{
-							FieldPath: "status.podIP",
-						},
-					},
-				},
-			},
-		}
-		spec.Containers = append(spec.Containers, sidecar)
-	}
-	return nil
+	return v1beta1.GetWorkspaceRuntimeName(ws) == pkgmodel.RuntimeNameVLLM
 }
+
+// injectRoutingSidecarInline modifies the podSpec in-place:
+// 1. Moves the main container's port from 5000 to 5001
+// 2. Updates probes to use the internal port
+// 3. Updates command args to use --port=5001
+// 4. Appends the llm-d routing sidecar container on port 5000
+func injectRoutingSidecarInline(spec *corev1.PodSpec) {
+	internalPort := consts.PortInferenceServerInternal
+	publicPort := consts.PortInferenceServer
+
+	// Rewrite the main container (always index 0 at this point)
+	c := &spec.Containers[0]
+
+	// Ports
+	for j := range c.Ports {
+		if c.Ports[j].ContainerPort == int32(publicPort) {
+			c.Ports[j].ContainerPort = internalPort
+		}
+	}
+
+	// Probes
+	rewriteProbePort := func(probe *corev1.Probe) {
+		if probe == nil {
+			return
+		}
+		if probe.HTTPGet != nil && probe.HTTPGet.Port.IntValue() == int(publicPort) {
+			probe.HTTPGet.Port = intstr.FromInt32(internalPort)
+		}
+	}
+	// DeepCopy probes to avoid mutating shared package-level defaults
+	if c.ReadinessProbe != nil {
+		c.ReadinessProbe = c.ReadinessProbe.DeepCopy()
+		rewriteProbePort(c.ReadinessProbe)
+	}
+	if c.LivenessProbe != nil {
+		c.LivenessProbe = c.LivenessProbe.DeepCopy()
+		rewriteProbePort(c.LivenessProbe)
+	}
+	if c.StartupProbe != nil {
+		c.StartupProbe = c.StartupProbe.DeepCopy()
+		rewriteProbePort(c.StartupProbe)
+	}
+
+	// Command: rewrite --port and --vllm-port references
+	oldPortStr := strconv.Itoa(int(publicPort))
+	newPortStr := strconv.Itoa(int(internalPort))
+	for j, cmd := range c.Command {
+		updated := cmd
+		// Rewrite --vllm-port=5000 -> --vllm-port=5001
+		updated = strings.ReplaceAll(updated, "--vllm-port="+oldPortStr, "--vllm-port="+newPortStr)
+		// Rewrite or insert --port for inference_api.py
+		if strings.Contains(updated, "inference_api.py") {
+			portArg := fmt.Sprintf("--port=%d", internalPort)
+			portArgSpace := fmt.Sprintf("--port %d", internalPort)
+			if strings.Contains(updated, "--port=") {
+				// Replace existing --port=N
+				idx := strings.Index(updated, "--port=")
+				end := idx + len("--port=")
+				for end < len(updated) && updated[end] >= '0' && updated[end] <= '9' {
+					end++
+				}
+				updated = updated[:idx] + portArg + updated[end:]
+			} else if strings.Contains(updated, "--port ") {
+				// Replace existing --port N
+				idx := strings.Index(updated, "--port ")
+				end := idx + len("--port ")
+				for end < len(updated) && updated[end] >= '0' && updated[end] <= '9' {
+					end++
+				}
+				updated = updated[:idx] + portArgSpace + updated[end:]
+			} else {
+				// Insert after inference_api.py
+				updated = strings.Replace(updated, "inference_api.py", "inference_api.py "+portArgSpace, 1)
+			}
+		}
+		c.Command[j] = updated
+	}
+
+	// Append sidecar container
+	spec.Containers = append(spec.Containers, corev1.Container{
+		Name:  "llm-d-routing-sidecar",
+		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+		Args: []string{
+			fmt.Sprintf("--port=%d", publicPort),
+			fmt.Sprintf("--vllm-port=%d", internalPort),
+			"--secure-proxy=false",
+		},
+		Ports: []corev1.ContainerPort{
+			{ContainerPort: int32(publicPort), Name: "sidecar", Protocol: corev1.ProtocolTCP},
+		},
+		Env: []corev1.EnvVar{
+			{
+				Name: "POD_IP",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
+				},
+			},
+		},
+	})
+}
+

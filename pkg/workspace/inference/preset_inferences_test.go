@@ -1407,7 +1407,7 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			for i, c := range ss.Spec.Template.Spec.Containers {
+			for i, c := range spec.Containers {
 				count := 0
 				for _, env := range c.Env {
 					if env.Name == consts.InferenceRoleEnvName {
@@ -1430,7 +1430,7 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 	}
 }
 
-func TestInjectRoutingSidecar(t *testing.T) {
+func TestInjectRoutingSidecarInline(t *testing.T) {
 	tests := []struct {
 		name               string
 		labels             map[string]string
@@ -1451,14 +1451,6 @@ func TestInjectRoutingSidecar(t *testing.T) {
 		{
 			name:          "decode role - sidecar injected",
 			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
-			expectSidecar: true,
-		},
-		{
-			name:   "decode role - sidecar already exists - no duplicate",
-			labels: map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
-			existingContainers: []corev1.Container{
-				{Name: "llm-d-routing-sidecar", Image: "old-image"},
-			},
 			expectSidecar: true,
 		},
 		{
@@ -1516,20 +1508,15 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				spec.Containers = append(spec.Containers, tc.existingContainers...)
 			}
 
-			ctx := &generator.WorkspaceGeneratorContext{
-				Workspace: workspace,
+			shouldInject := needsRoutingSidecar(workspace)
+			if shouldInject {
+				injectRoutingSidecarInline(spec)
 			}
 
-			ss := &appsv1.StatefulSet{}
-			ss.Spec.Template.Spec = *spec
-
-			err := InjectRoutingSidecar(ctx, ss)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
+			// Use spec directly (not ss)
 
 			sidecarCount := 0
-			for _, c := range ss.Spec.Template.Spec.Containers {
+			for _, c := range spec.Containers {
 				if c.Name == "llm-d-routing-sidecar" {
 					sidecarCount++
 				}
@@ -1548,9 +1535,9 @@ func TestInjectRoutingSidecar(t *testing.T) {
 			// Verify sidecar config for decode role (both newly injected and reconciled cases)
 			if tc.expectSidecar {
 				var sidecar *corev1.Container
-				for i, c := range ss.Spec.Template.Spec.Containers {
+				for i, c := range spec.Containers {
 					if c.Name == "llm-d-routing-sidecar" {
-						sidecar = &ss.Spec.Template.Spec.Containers[i]
+						sidecar = &spec.Containers[i]
 						break
 					}
 				}
@@ -1589,7 +1576,7 @@ func TestInjectRoutingSidecar(t *testing.T) {
 
 			// Verify vLLM port/probe/command rewrites for ALL decode cases (including sidecar-exists)
 			if tc.expectSidecar {
-				for _, c := range ss.Spec.Template.Spec.Containers {
+				for _, c := range spec.Containers {
 					if c.Name == "llm-d-routing-sidecar" {
 						continue
 					}

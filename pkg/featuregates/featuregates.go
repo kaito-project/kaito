@@ -17,9 +17,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-
 	cliflag "k8s.io/component-base/cli/flag"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 var (

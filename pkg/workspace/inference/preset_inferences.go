@@ -694,19 +694,18 @@ func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.
 		Name:  consts.InferenceRoleEnvName,
 		Value: role,
 	}
-	for i := range spec.Containers {
-		// Upsert: replace existing entry if present to avoid duplicates
-		found := false
-		for j, env := range spec.Containers[i].Env {
-			if env.Name == consts.InferenceRoleEnvName {
-				spec.Containers[i].Env[j] = envVar
-				found = true
-				break
-			}
+	// Only set on the main inference container (index 0)
+	c := &spec.Containers[0]
+	found := false
+	for j, env := range c.Env {
+		if env.Name == consts.InferenceRoleEnvName {
+			c.Env[j] = envVar
+			found = true
+			break
 		}
-		if !found {
-			spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)
-		}
+	}
+	if !found {
+		c.Env = append(c.Env, envVar)
 	}
 	return nil
 }
@@ -732,7 +731,10 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 	// Rewrite the main container (always index 0 at this point)
 	c := &spec.Containers[0]
 
-	// Ports
+	// Ports: deep-copy to avoid mutating the package-level containerPorts slice
+	newPorts := make([]corev1.ContainerPort, len(c.Ports))
+	copy(newPorts, c.Ports)
+	c.Ports = newPorts
 	for j := range c.Ports {
 		if c.Ports[j].ContainerPort == int32(publicPort) {
 			c.Ports[j].ContainerPort = internalPort
@@ -762,38 +764,12 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 		rewriteProbePort(c.StartupProbe)
 	}
 
-	// Command: rewrite --port and --vllm-port references
+	// Command: rewrite port references (format is known: --port=5000, --vllm-port=5000)
 	oldPortStr := strconv.Itoa(int(publicPort))
 	newPortStr := strconv.Itoa(int(internalPort))
 	for j, cmd := range c.Command {
-		updated := cmd
-		// Rewrite --vllm-port=5000 -> --vllm-port=5001
-		updated = strings.ReplaceAll(updated, "--vllm-port="+oldPortStr, "--vllm-port="+newPortStr)
-		// Rewrite or insert --port for inference_api.py
-		if strings.Contains(updated, "inference_api.py") {
-			portArg := fmt.Sprintf("--port=%d", internalPort)
-			portArgSpace := fmt.Sprintf("--port %d", internalPort)
-			if strings.Contains(updated, "--port=") {
-				// Replace existing --port=N
-				idx := strings.Index(updated, "--port=")
-				end := idx + len("--port=")
-				for end < len(updated) && updated[end] >= '0' && updated[end] <= '9' {
-					end++
-				}
-				updated = updated[:idx] + portArg + updated[end:]
-			} else if strings.Contains(updated, "--port ") {
-				// Replace existing --port N
-				idx := strings.Index(updated, "--port ")
-				end := idx + len("--port ")
-				for end < len(updated) && updated[end] >= '0' && updated[end] <= '9' {
-					end++
-				}
-				updated = updated[:idx] + portArgSpace + updated[end:]
-			} else {
-				// Insert after inference_api.py
-				updated = strings.Replace(updated, "inference_api.py", "inference_api.py "+portArgSpace, 1)
-			}
-		}
+		updated := strings.ReplaceAll(cmd, "--vllm-port="+oldPortStr, "--vllm-port="+newPortStr)
+		updated = strings.ReplaceAll(updated, "--port="+oldPortStr, "--port="+newPortStr)
 		c.Command[j] = updated
 	}
 
@@ -819,4 +795,3 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 		},
 	})
 }
-

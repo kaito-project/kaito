@@ -1357,14 +1357,14 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 			expectEnvSet: false,
 		},
 		{
-			name:          "prefill role - env set on all containers",
+			name:          "prefill role - env set on main container only",
 			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
 			containers:    2,
 			expectEnvSet:  true,
 			expectedValue: consts.InferenceRolePrefill,
 		},
 		{
-			name:          "decode role - env set on all containers",
+			name:          "decode role - env set on main container only",
 			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
 			containers:    1,
 			expectEnvSet:  true,
@@ -1407,19 +1407,22 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
+			// Only the main container (index 0) should have the env var set
 			for i, c := range spec.Containers {
 				count := 0
 				for _, env := range c.Env {
 					if env.Name == consts.InferenceRoleEnvName {
 						count++
-						if !tc.expectEnvSet {
+						if i == 0 && !tc.expectEnvSet {
 							t.Errorf("container %d: env KAITO_INFERENCE_ROLE should not be set", i)
-						} else if env.Value != tc.expectedValue {
+						} else if i == 0 && env.Value != tc.expectedValue {
 							t.Errorf("container %d: expected value %q, got %q", i, tc.expectedValue, env.Value)
+						} else if i > 0 {
+							t.Errorf("container %d: env KAITO_INFERENCE_ROLE should not be set on non-main container", i)
 						}
 					}
 				}
-				if tc.expectEnvSet && count == 0 {
+				if i == 0 && tc.expectEnvSet && count == 0 {
 					t.Errorf("container %d: expected KAITO_INFERENCE_ROLE to be set", i)
 				}
 				if count > 1 {
@@ -1479,7 +1482,7 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 						Ports: []corev1.ContainerPort{
 							{ContainerPort: int32(consts.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
 						},
-						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py --served-model-name test"},
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py --port=5000 --vllm-port=5000 --served-model-name test"},
 						ReadinessProbe: &corev1.Probe{
 							ProbeHandler: corev1.ProbeHandler{
 								HTTPGet: &corev1.HTTPGetAction{
@@ -1502,7 +1505,7 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 			// Multi-node uses a shell if/else script wrapping inference_api.py
 			if tc.multiNode {
 				spec.Containers[0].Command = []string{"/bin/sh", "-c",
-					"if [ \"$RAY_HEAD\" = \"true\" ]; then ray start --head && python3 /workspace/vllm/inference_api.py --served-model-name test; else ray start && sleep infinity; fi"}
+					"if [ \"$RAY_HEAD\" = \"true\" ]; then ray start --head && python3 /workspace/vllm/inference_api.py --port=5000 --vllm-port=5000 --served-model-name test; else ray start && sleep infinity; fi"}
 			}
 			if tc.existingContainers != nil {
 				spec.Containers = append(spec.Containers, tc.existingContainers...)
@@ -1585,21 +1588,14 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 							t.Errorf("vLLM container still has port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
 						}
 					}
-					// Verify command has --port override inserted (not appended after fi)
+					// Verify command has --port rewritten
 					for _, cmd := range c.Command {
 						if strings.Contains(cmd, "inference_api.py") {
-							expectedPortArg := fmt.Sprintf("inference_api.py --port %d", consts.PortInferenceServerInternal)
-							if !strings.Contains(cmd, expectedPortArg) {
-								t.Errorf("expected command to contain %q, got %q", expectedPortArg, cmd)
+							if strings.Contains(cmd, fmt.Sprintf("--port=%d", consts.PortInferenceServer)) {
+								t.Errorf("command still has --port=%d, expected %d: %q", consts.PortInferenceServer, consts.PortInferenceServerInternal, cmd)
 							}
-							// Multi-node: ensure --port is NOT after 'fi'
-							if strings.Contains(cmd, "; fi") {
-								fiIdx := strings.Index(cmd, "; fi")
-								portStr := fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)
-								portIdx := strings.Index(cmd, portStr)
-								if portIdx > fiIdx {
-									t.Errorf("--port was appended after 'fi' instead of after inference_api.py: %q", cmd)
-								}
+							if strings.Contains(cmd, fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServer)) {
+								t.Errorf("command still has --vllm-port=%d: %q", consts.PortInferenceServer, cmd)
 							}
 						}
 					}

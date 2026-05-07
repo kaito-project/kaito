@@ -690,6 +690,9 @@ func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.
 	if !ok || (role != consts.InferenceRolePrefill && role != consts.InferenceRoleDecode) {
 		return nil
 	}
+	if len(spec.Containers) == 0 {
+		return nil
+	}
 	envVar := corev1.EnvVar{
 		Name:  consts.InferenceRoleEnvName,
 		Value: role,
@@ -725,6 +728,9 @@ func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
 // 3. Updates command args to use --port=5001
 // 4. Appends the llm-d routing sidecar container on port 5000
 func injectRoutingSidecarInline(spec *corev1.PodSpec) {
+	if len(spec.Containers) == 0 {
+		return
+	}
 	internalPort := consts.PortInferenceServerInternal
 	publicPort := consts.PortInferenceServer
 

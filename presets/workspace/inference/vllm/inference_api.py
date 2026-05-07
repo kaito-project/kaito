@@ -189,6 +189,16 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
     Set KV cache offloading to CPU RAM if applicable.
     This is only applicable when kaito_kv_cache_cpu_memory_utilization is set.
     """
+    # Always configure kv_transfer_config based on inference role, regardless of CPU offload.
+    if args.kv_transfer_config is None:
+        inference_role = os.environ.get("KAITO_INFERENCE_ROLE", "")
+        kv_role_map = {"prefill": "kv_producer", "decode": "kv_consumer"}
+        kv_role = kv_role_map.get(inference_role, "kv_both")
+        args.kv_transfer_config = {
+            "kv_connector": "LMCacheConnectorV1",
+            "kv_role": kv_role,
+        }
+
     if (
         args.kaito_kv_cache_cpu_memory_utilization is None
         or args.kaito_kv_cache_cpu_memory_utilization <= 0
@@ -213,15 +223,6 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
     os.environ["LMCACHE_MAX_LOCAL_CPU_SIZE"] = (
         f"{available_memory_gb * args.kaito_kv_cache_cpu_memory_utilization / args.tensor_parallel_size}"
     )
-
-    if args.kv_transfer_config is None:
-        inference_role = os.environ.get("KAITO_INFERENCE_ROLE", "")
-        kv_role_map = {"prefill": "kv_producer", "decode": "kv_consumer"}
-        kv_role = kv_role_map.get(inference_role, "kv_both")
-        args.kv_transfer_config = {
-            "kv_connector": "LMCacheConnectorV1",
-            "kv_role": kv_role,
-        }
 
 
 if __name__ == "__main__":

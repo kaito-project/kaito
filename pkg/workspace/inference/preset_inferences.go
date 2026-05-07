@@ -794,28 +794,16 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 	}
 
 	// Command: rewrite port references (format is known: --port=5000, --vllm-port=5000)
-	portArgFound := false
 	for j, cmd := range c.Command {
-		if strings.Contains(cmd, "--port="+oldPortStr) || strings.Contains(cmd, "--port "+oldPortStr) {
-			portArgFound = true
-		}
 		updated := strings.ReplaceAll(cmd, "--vllm-port="+oldPortStr, "--vllm-port="+newPortStr)
 		updated = strings.ReplaceAll(updated, "--port="+oldPortStr, "--port="+newPortStr)
 		updated = strings.ReplaceAll(updated, "--port "+oldPortStr, "--port "+newPortStr)
 		c.Command[j] = updated
 	}
-	// If no --port argument was found in the command, inject it so vLLM binds
-	// to the internal port instead of its default (5000).
-	if !portArgFound && len(c.Command) > 0 {
-		// For shell commands ("/bin/sh", "-c", "script..."), append to the script string.
-		// For direct exec commands, append as extra slice elements.
-		lastIdx := len(c.Command) - 1
-		if len(c.Command) >= 3 && c.Command[0] == "/bin/sh" && c.Command[1] == "-c" {
-			c.Command[lastIdx] = c.Command[lastIdx] + " --port=" + newPortStr
-		} else {
-			c.Command = append(c.Command, "--port="+newPortStr)
-		}
-	}
+	// Note: if no --port argument exists in the command, we rely on KAITO_VLLM_PORT
+	// env var (set below) which inference_api.py reads as the final --port override.
+	// We do NOT append --port to the shell script to avoid breaking multi-statement
+	// commands (e.g., "if ...; fi --port=5001" would be invalid).
 
 	// Set KAITO_VLLM_PORT env var to ensure the internal port takes priority
 	// even if a config file overrides --port (inference_api.py reads this last).

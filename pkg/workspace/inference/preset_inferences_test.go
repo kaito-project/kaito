@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1598,8 +1599,7 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 							t.Errorf("vLLM container still has port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
 						}
 					}
-					// Verify command has --port rewritten or appended
-					hasPortArg := false
+					// Verify command has --port rewritten (if it existed) and old port is gone
 					for _, cmd := range c.Command {
 						if strings.Contains(cmd, "inference_api.py") {
 							if strings.Contains(cmd, fmt.Sprintf("--port=%d", consts.PortInferenceServer)) {
@@ -1609,13 +1609,16 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 								t.Errorf("command still has --vllm-port=%d: %q", consts.PortInferenceServer, cmd)
 							}
 						}
-						if strings.Contains(cmd, fmt.Sprintf("--port=%d", consts.PortInferenceServerInternal)) ||
-							strings.Contains(cmd, fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)) {
-							hasPortArg = true
+					}
+					// Verify KAITO_VLLM_PORT env var is set for port override
+					vllmPortEnvFound := false
+					for _, env := range c.Env {
+						if env.Name == "KAITO_VLLM_PORT" && env.Value == strconv.Itoa(int(consts.PortInferenceServerInternal)) {
+							vllmPortEnvFound = true
 						}
 					}
-					if !hasPortArg {
-						t.Errorf("expected --port=%d in command, got: %v", consts.PortInferenceServerInternal, c.Command)
+					if !vllmPortEnvFound {
+						t.Errorf("expected KAITO_VLLM_PORT=%d env var on container", consts.PortInferenceServerInternal)
 					}
 					// Verify readiness probe port updated
 					if c.ReadinessProbe != nil && c.ReadinessProbe.HTTPGet != nil {

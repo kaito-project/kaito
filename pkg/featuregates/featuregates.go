@@ -17,18 +17,19 @@ import (
 	"errors"
 	"fmt"
 
-	cliflag "k8s.io/component-base/cli/flag"
-
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+
+	cliflag "k8s.io/component-base/cli/flag"
 )
 
 var (
 	// FeatureGates is a map that holds the feature gate names and their default values for KAITO.
 	FeatureGates = map[string]bool{
-		consts.FeatureFlagVLLM:                         true,
-		consts.FeatureFlagDisableNodeAutoProvisioning:  false,
-		consts.FeatureFlagGatewayAPIInferenceExtension: false,
-		consts.FeatureFlagEnableInferenceSetController: false,
+		consts.FeatureFlagVLLM:                              true,
+		consts.FeatureFlagDisableNodeAutoProvisioning:        false,
+		consts.FeatureFlagGatewayAPIInferenceExtension:      false,
+		consts.FeatureFlagEnableInferenceSetController:      false,
+		consts.FeatureFlagEnableMultiRoleInferenceController: false,
 		//	Add more feature gates here
 	}
 )

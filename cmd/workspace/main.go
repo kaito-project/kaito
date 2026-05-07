@@ -295,8 +295,9 @@ func main() {
 		}
 	}
 
-	// MultiRoleInference controller — requires both InferenceSet controller and GAIE (creates InferencePool + EPP).
-	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] &&
+	// MultiRoleInference controller — requires enableMultiRoleInferenceController, InferenceSet controller, and GAIE.
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] &&
+		featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] &&
 		featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
 		mriReconciler := multiroleinference.NewMultiRoleInferenceReconciler(
 			kClient,

@@ -47,6 +47,8 @@ const (
 	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
 	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
 
+	FeatureFlagEnableMultiRoleInferenceController = "enableMultiRoleInferenceController"
+
 	// Node provisioner types
 	NodeProvisionerAzureGPU  = "azure-gpu-provisioner"
 	NodeProvisionerKarpenter = "karpenter"

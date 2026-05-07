@@ -17,7 +17,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1458,6 +1457,11 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 			expectSidecar: true,
 		},
 		{
+			name:          "decode role - command with existing --port",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
+			expectSidecar: true,
+		},
+		{
 			name:               "decode role - multi-node shell command",
 			labels:             map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
 			existingContainers: nil,
@@ -1483,7 +1487,7 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 						Ports: []corev1.ContainerPort{
 							{ContainerPort: int32(consts.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
 						},
-						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py --port=5000 --vllm-port=5000 --served-model-name test"},
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py --served-model-name test"},
 						ReadinessProbe: &corev1.Probe{
 							ProbeHandler: corev1.ProbeHandler{
 								HTTPGet: &corev1.HTTPGetAction{
@@ -1502,6 +1506,11 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 						},
 					},
 				},
+			}
+			// "with existing --port" case uses explicit port in command
+			if tc.name == "decode role - command with existing --port" {
+				spec.Containers[0].Command = []string{"/bin/sh", "-c",
+					"python3 /workspace/vllm/inference_api.py --port=5000 --vllm-port=5000 --served-model-name test"}
 			}
 			// Multi-node uses a shell if/else script wrapping inference_api.py
 			if tc.multiNode {
@@ -1601,18 +1610,12 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 							}
 						}
 						if strings.Contains(cmd, fmt.Sprintf("--port=%d", consts.PortInferenceServerInternal)) ||
-							strings.Contains(cmd, fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)) ||
-							cmd == "--port" || cmd == strconv.Itoa(int(consts.PortInferenceServerInternal)) {
+							strings.Contains(cmd, fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)) {
 							hasPortArg = true
 						}
 					}
-					// When command has no inline --port (single-node), --port 5001 should be appended
-					if !hasPortArg && len(c.Command) > 0 {
-						// Check the last two elements for "--port" "5001"
-						cmdLen := len(c.Command)
-						if cmdLen < 2 || c.Command[cmdLen-2] != "--port" || c.Command[cmdLen-1] != strconv.Itoa(int(consts.PortInferenceServerInternal)) {
-							t.Errorf("expected --port %d to be appended to command, got: %v", consts.PortInferenceServerInternal, c.Command)
-						}
+					if !hasPortArg {
+						t.Errorf("expected --port=%d in command, got: %v", consts.PortInferenceServerInternal, c.Command)
 					}
 					// Verify readiness probe port updated
 					if c.ReadinessProbe != nil && c.ReadinessProbe.HTTPGet != nil {

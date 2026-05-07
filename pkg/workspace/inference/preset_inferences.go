@@ -747,13 +747,25 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 		}
 	}
 
-	// Probes
+	oldPortStr := strconv.Itoa(int(publicPort))
+	newPortStr := strconv.Itoa(int(internalPort))
+
+	// Probes: rewrite both HTTPGet and Exec probe ports
 	rewriteProbePort := func(probe *corev1.Probe) {
 		if probe == nil {
 			return
 		}
 		if probe.HTTPGet != nil && probe.HTTPGet.Port.IntValue() == int(publicPort) {
 			probe.HTTPGet.Port = intstr.FromInt32(internalPort)
+		}
+		// Also rewrite Exec probes (e.g., multi-node-health-check.py with vllm-port=5000)
+		if probe.Exec != nil {
+			for j, cmd := range probe.Exec.Command {
+				updated := strings.ReplaceAll(cmd, "--vllm-port="+oldPortStr, "--vllm-port="+newPortStr)
+				updated = strings.ReplaceAll(updated, "--port="+oldPortStr, "--port="+newPortStr)
+				updated = strings.ReplaceAll(updated, "--port "+oldPortStr, "--port "+newPortStr)
+				probe.Exec.Command[j] = updated
+			}
 		}
 	}
 	// DeepCopy probes to avoid mutating shared package-level defaults
@@ -771,8 +783,6 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 	}
 
 	// Command: rewrite port references (format is known: --port=5000, --vllm-port=5000)
-	oldPortStr := strconv.Itoa(int(publicPort))
-	newPortStr := strconv.Itoa(int(internalPort))
 	portArgFound := false
 	for j, cmd := range c.Command {
 		if strings.Contains(cmd, "--port="+oldPortStr) || strings.Contains(cmd, "--port "+oldPortStr) {
@@ -783,31 +793,47 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 		updated = strings.ReplaceAll(updated, "--port "+oldPortStr, "--port "+newPortStr)
 		c.Command[j] = updated
 	}
-	// If no --port argument was found in the command, append it explicitly
-	// so vLLM binds to the internal port instead of its default (5000).
+	// If no --port argument was found in the command, inject it so vLLM binds
+	// to the internal port instead of its default (5000).
 	if !portArgFound && len(c.Command) > 0 {
-		c.Command = append(c.Command, "--port", newPortStr)
+		// For shell commands ("/bin/sh", "-c", "script..."), append to the script string.
+		// For direct exec commands, append as extra slice elements.
+		lastIdx := len(c.Command) - 1
+		if len(c.Command) >= 3 && c.Command[0] == "/bin/sh" && c.Command[1] == "-c" {
+			c.Command[lastIdx] = c.Command[lastIdx] + " --port=" + newPortStr
+		} else {
+			c.Command = append(c.Command, "--port="+newPortStr)
+		}
 	}
 
-	// Append sidecar container
-	spec.Containers = append(spec.Containers, corev1.Container{
-		Name:  "llm-d-routing-sidecar",
-		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
-		Args: []string{
-			fmt.Sprintf("--port=%d", publicPort),
-			fmt.Sprintf("--vllm-port=%d", internalPort),
-			"--secure-proxy=false",
-		},
-		Ports: []corev1.ContainerPort{
-			{ContainerPort: int32(publicPort), Name: "sidecar", Protocol: corev1.ProtocolTCP},
-		},
-		Env: []corev1.EnvVar{
-			{
-				Name: "POD_IP",
-				ValueFrom: &corev1.EnvVarSource{
-					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
+	// Append sidecar container (upsert: skip if already present)
+	hasSidecar := false
+	for _, existing := range spec.Containers {
+		if existing.Name == "llm-d-routing-sidecar" {
+			hasSidecar = true
+			break
+		}
+	}
+	if !hasSidecar {
+		spec.Containers = append(spec.Containers, corev1.Container{
+			Name:  "llm-d-routing-sidecar",
+			Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+			Args: []string{
+				fmt.Sprintf("--port=%d", publicPort),
+				fmt.Sprintf("--vllm-port=%d", internalPort),
+				"--secure-proxy=false",
+			},
+			Ports: []corev1.ContainerPort{
+				{ContainerPort: int32(publicPort), Name: "sidecar", Protocol: corev1.ProtocolTCP},
+			},
+			Env: []corev1.EnvVar{
+				{
+					Name: "POD_IP",
+					ValueFrom: &corev1.EnvVarSource{
+						FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
+					},
 				},
 			},
-		},
-	})
+		})
+	}
 }

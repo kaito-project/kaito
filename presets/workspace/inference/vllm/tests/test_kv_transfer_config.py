@@ -1,6 +1,15 @@
 # Copyright (c) KAITO authors.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 """Unit tests for kv_transfer_config injection and KAITO_VLLM_PORT override."""
 
@@ -10,13 +19,11 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 # Add parent directory to sys.path for inference_api imports
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(parent_dir)
 
-from inference_api import KAITOArgumentParser, set_kv_transfer_config_if_appliable
+from inference_api import KAITOArgumentParser, set_kv_transfer_config_if_appliable  # noqa: E402
 
 
 def _make_args(**kwargs):

@@ -78,6 +78,8 @@ var (
 		"OlmoForCausalLM":                        "olmo3",
 		"Qwen3ForCausalLM":                       "qwen3",
 		"Qwen3MoeForCausalLM":                    "qwen3",
+		"Qwen3_5ForConditionalGeneration":        "qwen3",
+		"Qwen3_5MoeForConditionalGeneration":     "qwen3",
 		"GptOssForCausalLM":                      "openai_gptoss",
 		"Step3TextForCausalLM":                   "step3",
 		"Step3VLForConditionalGeneration":        "step3",
@@ -111,6 +113,8 @@ var (
 		"glm-4.7":       "glm47",
 		"qwen3":         "hermes",
 		"qwen3-coder":   "qwen3_xml",
+		"qwen3.5":       "qwen3_coder",
+		"qwen3.6":       "qwen3_coder",
 		"olmo-3":        "olmo3",
 		"gigachat3":     "gigachat3",
 		"ernie-4.5":     "ernie45",
@@ -137,6 +141,8 @@ var (
 		"Qwen2ForCausalLM":                       "hermes",
 		"Qwen3ForCausalLM":                       "hermes",
 		"Qwen3MoeForCausalLM":                    "qwen3_xml",
+		"Qwen3_5ForConditionalGeneration":        "qwen3_coder",
+		"Qwen3_5MoeForConditionalGeneration":     "qwen3_coder",
 		"MiniMaxM1ForCausalLM":                   "minimax",
 		"MiniMaxM2ForCausalLM":                   "minimax_m2",
 		"DeepseekV3ForCausalLM":                  "deepseek_v3",
@@ -172,9 +178,9 @@ var (
 		"qwen2.5":     "tool-chat-hermes.jinja",
 	}
 
-	// attentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
+	// vllmAttentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
 	// source: https://docs.vllm.ai/en/latest/design/attention_backends/
-	attentionBackendPrefixMap = map[string]string{
+	vllmAttentionBackendPrefixMap = map[string]string{
 		// flashinfer attention backend is chosen by default for LLaMA 3 models, which requires the FlashInfer library to be installed lively.
 		// Pin to triton backend as a workaround.
 		"llama-3": "TRITON_ATTN",
@@ -187,6 +193,15 @@ var (
 		// JIT compilation with CUDA dev headers (nvcc, cublasLt, nvrtc).
 		// Pin to triton backend to avoid the JIT dependency for now.
 		"mistral-small-4-119b-2603": "triton",
+	}
+
+	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.
+	// Qwen3.5/3.6 models use hybrid GDN (Gated DeltaNet) attention which defaults to
+	// FlashInfer JIT compilation requiring nvcc. Pin to triton to avoid the dependency.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-gdn-prefill-backend
+	vllmGdnPrefillBackendPrefixMap = map[string]string{
+		"qwen3.5": "triton",
+		"qwen3.6": "triton",
 	}
 
 	// catalogOverrides provides hardcoded values for models whose HuggingFace
@@ -631,7 +646,7 @@ func (g *Generator) FinalizeParams() {
 	g.Param.VLLM.ModelRunParams["tokenizer_mode"] = g.TokenizerMode
 
 	// Set attention backend based on model name prefix
-	for prefix, backend := range attentionBackendPrefixMap {
+	for prefix, backend := range vllmAttentionBackendPrefixMap {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
 			g.Param.VLLM.ModelRunParams["attention-backend"] = backend
 			break
@@ -641,6 +656,14 @@ func (g *Generator) FinalizeParams() {
 	// Set MoE backend based on exact model name match
 	if backend, ok := vllmMoeBackendOverride[g.Param.Metadata.Name]; ok {
 		g.Param.VLLM.ModelRunParams["moe-backend"] = backend
+	}
+
+	// Set GDN prefill backend based on model name prefix
+	for prefix, backend := range vllmGdnPrefillBackendPrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.VLLM.ModelRunParams["gdn-prefill-backend"] = backend
+			break
+		}
 	}
 
 	bpt, attnType := g.calculateKVCacheTokenSize()

@@ -767,10 +767,20 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 	// Command: rewrite port references (format is known: --port=5000, --vllm-port=5000)
 	oldPortStr := strconv.Itoa(int(publicPort))
 	newPortStr := strconv.Itoa(int(internalPort))
+	portArgFound := false
 	for j, cmd := range c.Command {
+		if strings.Contains(cmd, "--port="+oldPortStr) || strings.Contains(cmd, "--port "+oldPortStr) {
+			portArgFound = true
+		}
 		updated := strings.ReplaceAll(cmd, "--vllm-port="+oldPortStr, "--vllm-port="+newPortStr)
 		updated = strings.ReplaceAll(updated, "--port="+oldPortStr, "--port="+newPortStr)
+		updated = strings.ReplaceAll(updated, "--port "+oldPortStr, "--port "+newPortStr)
 		c.Command[j] = updated
+	}
+	// If no --port argument was found in the command, append it explicitly
+	// so vLLM binds to the internal port instead of its default (5000).
+	if !portArgFound && len(c.Command) > 0 {
+		c.Command = append(c.Command, "--port", newPortStr)
 	}
 
 	// Append sidecar container

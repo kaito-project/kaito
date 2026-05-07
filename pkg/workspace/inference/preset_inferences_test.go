@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1588,7 +1589,8 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 							t.Errorf("vLLM container still has port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
 						}
 					}
-					// Verify command has --port rewritten
+					// Verify command has --port rewritten or appended
+					hasPortArg := false
 					for _, cmd := range c.Command {
 						if strings.Contains(cmd, "inference_api.py") {
 							if strings.Contains(cmd, fmt.Sprintf("--port=%d", consts.PortInferenceServer)) {
@@ -1597,6 +1599,19 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 							if strings.Contains(cmd, fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServer)) {
 								t.Errorf("command still has --vllm-port=%d: %q", consts.PortInferenceServer, cmd)
 							}
+						}
+						if strings.Contains(cmd, fmt.Sprintf("--port=%d", consts.PortInferenceServerInternal)) ||
+							strings.Contains(cmd, fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)) ||
+							cmd == "--port" || cmd == strconv.Itoa(int(consts.PortInferenceServerInternal)) {
+							hasPortArg = true
+						}
+					}
+					// When command has no inline --port (single-node), --port 5001 should be appended
+					if !hasPortArg && len(c.Command) > 0 {
+						// Check the last two elements for "--port" "5001"
+						cmdLen := len(c.Command)
+						if cmdLen < 2 || c.Command[cmdLen-2] != "--port" || c.Command[cmdLen-1] != strconv.Itoa(int(consts.PortInferenceServerInternal)) {
+							t.Errorf("expected --port %d to be appended to command, got: %v", consts.PortInferenceServerInternal, c.Command)
 						}
 					}
 					// Verify readiness probe port updated

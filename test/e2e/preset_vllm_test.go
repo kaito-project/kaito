@@ -421,9 +421,10 @@ func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1a
 			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
 		// Add inference-role label to exercise the P/D disaggregated inference path:
 		// SetInferenceRoleEnv sets KAITO_INFERENCE_ROLE=decode, inference_api.py
-		// unconditionally maps it to kv_role=kv_consumer in kv_transfer_config,
-		// and the routing sidecar is injected. The workspace reaching Ready status
-		// validates that both modifiers work correctly with vLLM startup.
+		// maps it to kv_role=kv_consumer in kv_transfer_config (when no user-provided
+		// kv_transfer_config is set), and the routing sidecar is injected.
+		// The workspace reaching Ready status validates that both modifiers work
+		// correctly with vLLM startup.
 		if inferenceSetObj.Spec.Template.Labels == nil {
 			inferenceSetObj.Spec.Template.Labels = make(map[string]string)
 		}

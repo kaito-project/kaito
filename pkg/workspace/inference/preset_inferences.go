@@ -806,34 +806,53 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 		}
 	}
 
-	// Append sidecar container (upsert: skip if already present)
-	hasSidecar := false
-	for _, existing := range spec.Containers {
-		if existing.Name == "llm-d-routing-sidecar" {
-			hasSidecar = true
+	// Set KAITO_VLLM_PORT env var to ensure the internal port takes priority
+	// even if a config file overrides --port (inference_api.py reads this last).
+	portEnv := corev1.EnvVar{Name: "KAITO_VLLM_PORT", Value: newPortStr}
+	portEnvFound := false
+	for j, env := range c.Env {
+		if env.Name == "KAITO_VLLM_PORT" {
+			c.Env[j] = portEnv
+			portEnvFound = true
 			break
 		}
 	}
-	if !hasSidecar {
-		spec.Containers = append(spec.Containers, corev1.Container{
-			Name:  "llm-d-routing-sidecar",
-			Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
-			Args: []string{
-				fmt.Sprintf("--port=%d", publicPort),
-				fmt.Sprintf("--vllm-port=%d", internalPort),
-				"--secure-proxy=false",
-			},
-			Ports: []corev1.ContainerPort{
-				{ContainerPort: int32(publicPort), Name: "sidecar", Protocol: corev1.ProtocolTCP},
-			},
-			Env: []corev1.EnvVar{
-				{
-					Name: "POD_IP",
-					ValueFrom: &corev1.EnvVarSource{
-						FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
-					},
+	if !portEnvFound {
+		c.Env = append(c.Env, portEnv)
+	}
+
+	// Upsert sidecar container
+	desiredSidecar := corev1.Container{
+		Name:  "llm-d-routing-sidecar",
+		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+		Args: []string{
+			fmt.Sprintf("--port=%d", publicPort),
+			fmt.Sprintf("--vllm-port=%d", internalPort),
+			"--secure-proxy=false",
+		},
+		Ports: []corev1.ContainerPort{
+			{ContainerPort: int32(publicPort), Name: "sidecar", Protocol: corev1.ProtocolTCP},
+		},
+		Env: []corev1.EnvVar{
+			{
+				Name: "POD_IP",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
 				},
 			},
-		})
+		},
+	}
+	sidecarIdx := -1
+	for i, existing := range spec.Containers {
+		if existing.Name == "llm-d-routing-sidecar" {
+			sidecarIdx = i
+			break
+		}
+	}
+	if sidecarIdx >= 0 {
+		// Reconcile existing sidecar to desired spec
+		spec.Containers[sidecarIdx] = desiredSidecar
+	} else {
+		spec.Containers = append(spec.Containers, desiredSidecar)
 	}
 }

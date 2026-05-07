@@ -109,6 +109,13 @@ class KAITOArgumentParser(argparse.ArgumentParser):
                 runtime_args.append(f"--{key}")
                 runtime_args.append(str(value))
 
+        # KAITO_VLLM_PORT overrides any --port from CLI or config file (set by
+        # routing sidecar injection to ensure vLLM uses the internal port).
+        port_override = os.environ.get("KAITO_VLLM_PORT")
+        if port_override:
+            runtime_args.append("--port")
+            runtime_args.append(port_override)
+
         vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
         # Merge KAITO and vLLM args
         return argparse.Namespace(**vars(kaito_args), **vars(vllm_args))

@@ -203,8 +203,7 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
         args.kv_transfer_config = {
             "kv_connector": "NixlConnector",
             "kv_role": "kv_both",
-            "kv_parallel_size": 1,
-            "kv_buffer_size": 2e9,
+            "kv_load_failure_policy": "fail",
         }
 
     if (

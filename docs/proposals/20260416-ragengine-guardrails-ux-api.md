@@ -87,20 +87,14 @@ in ConfigMap YAML, not in the CRD.
 
 ### Default ConfigMap Support
 
-If `Spec.Guardrails.Enabled` is `true` and no `ConfigMapRef` is set, the
-controller copies the chart-installed template
-(`ragengine-guardrails-policy-template`, in the release namespace) into the
-RAGEngine's namespace and mounts it into the Pod at the standard guardrails path. The runtime watches the file and
-hot-reloads on change.
+If `spec.guardrails.enabled` is `true` and `configMapRef` is not set, the
+controller copies the default guardrails policy ConfigMap
+(`ragengine-guardrails-policy-template`) into the RAGEngine namespace and mounts
+it into the Pod.
 
-- Auto-copied ConfigMaps carry an `OwnerReference` to the RAGEngine and are
-  garbage-collected with it.
-- User-provided ConfigMaps are read-only to the controller — never patched,
-  never owned.
-- The template is copied **once per namespace**. Chart upgrades that change
-  the template do **not** rewrite existing copies, to protect operator edits.
-  To pick up a new template, delete the copy and let the controller recreate
-  it.
+- Auto-copied ConfigMaps carry an `OwnerReference` to the RAGEngine.
+- User-provided ConfigMaps are not modified or owned by the controller.
+- Hot reload is not part of this PR.
 
 ### Runtime Failure Semantics
 

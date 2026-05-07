@@ -196,13 +196,13 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		podOpts = append(podOpts, SetDefaultModelWeightsVolume)
 	}
 
-	podOpts = append(podOpts, SetRoutingSidecar, SetInferenceRoleEnv)
+	podOpts = append(podOpts, SetInferenceRoleEnv)
 
 	podSpec, err := generator.GenerateManifest(gctx, podOpts...)
 	if err != nil {
 		return nil, err
 	}
-	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
+	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec), InjectRoutingSidecar)
 
 	return generator.GenerateManifest(gctx, ssOpts...)
 }
@@ -674,9 +674,7 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 }
 
 // SetInferenceRoleEnv propagates the kaito.sh/inference-role label from the workspace
-// to the KAITO_INFERENCE_ROLE environment variable on existing containers in the pod spec.
-// Note: This modifier should run after SetRoutingSidecar so that the sidecar container
-// also receives the environment variable. If ordering changes, verify all containers are covered.
+// to the KAITO_INFERENCE_ROLE environment variable on the main inference container.
 // This is used by the vLLM inference_api.py to set LMCache kv_transfer_config
 // for P/D disaggregated inference. The label is propagated from
 // InferenceSet.Spec.Template.Metadata.Labels onto child workspaces by the InferenceSet controller.
@@ -706,24 +704,22 @@ func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.
 	return nil
 }
 
-// SetRoutingSidecar adds the llm-d routing sidecar container to decode workspace pods.
-// When the workspace has the inference-role: decode label, the sidecar is injected
-// alongside the main vLLM container. The sidecar takes over the public-facing port (5000)
-// and vLLM is moved to an internal port (5001). The sidecar orchestrates P/D disaggregation
-// (contacting prefill pods if needed via x-prefiller-host-port header) and forwards to
-// the local vLLM engine on port 5001. When no header is present, it transparently proxies.
-// Prefill workspaces (inference-role: prefill) do not get the sidecar.
-func SetRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+// InjectRoutingSidecar is a StatefulSet-level modifier that adds the llm-d routing sidecar
+// to decode workspace pods. When the workspace has inference-role: decode and uses the vLLM
+// runtime, the sidecar is injected alongside the main container. The sidecar takes over
+// the public-facing port (5000) and vLLM is moved to an internal port (5001).
+func InjectRoutingSidecar(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
 	role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]
 	if !ok || role != consts.InferenceRoleDecode {
 		return nil
 	}
 
-	// Only apply to vLLM runtime — other runtimes don't support P/D disaggregation
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
 	if runtimeName != pkgmodel.RuntimeNameVLLM {
 		return nil
 	}
+
+	spec := &ss.Spec.Template.Spec
 
 	// Check if sidecar already exists to avoid duplicate injection
 	sidecarExists := false

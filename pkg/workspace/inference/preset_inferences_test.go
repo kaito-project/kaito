@@ -1407,7 +1407,7 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			for i, c := range spec.Containers {
+			for i, c := range ss.Spec.Template.Spec.Containers {
 				count := 0
 				for _, env := range c.Env {
 					if env.Name == consts.InferenceRoleEnvName {
@@ -1430,7 +1430,7 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 	}
 }
 
-func TestSetRoutingSidecar(t *testing.T) {
+func TestInjectRoutingSidecar(t *testing.T) {
 	tests := []struct {
 		name               string
 		labels             map[string]string
@@ -1520,13 +1520,16 @@ func TestSetRoutingSidecar(t *testing.T) {
 				Workspace: workspace,
 			}
 
-			err := SetRoutingSidecar(ctx, spec)
+			ss := &appsv1.StatefulSet{}
+			ss.Spec.Template.Spec = *spec
+
+			err := InjectRoutingSidecar(ctx, ss)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
 			sidecarCount := 0
-			for _, c := range spec.Containers {
+			for _, c := range ss.Spec.Template.Spec.Containers {
 				if c.Name == "llm-d-routing-sidecar" {
 					sidecarCount++
 				}
@@ -1545,9 +1548,9 @@ func TestSetRoutingSidecar(t *testing.T) {
 			// Verify sidecar config for decode role (both newly injected and reconciled cases)
 			if tc.expectSidecar {
 				var sidecar *corev1.Container
-				for i, c := range spec.Containers {
+				for i, c := range ss.Spec.Template.Spec.Containers {
 					if c.Name == "llm-d-routing-sidecar" {
-						sidecar = &spec.Containers[i]
+						sidecar = &ss.Spec.Template.Spec.Containers[i]
 						break
 					}
 				}
@@ -1586,7 +1589,7 @@ func TestSetRoutingSidecar(t *testing.T) {
 
 			// Verify vLLM port/probe/command rewrites for ALL decode cases (including sidecar-exists)
 			if tc.expectSidecar {
-				for _, c := range spec.Containers {
+				for _, c := range ss.Spec.Template.Spec.Containers {
 					if c.Name == "llm-d-routing-sidecar" {
 						continue
 					}

@@ -360,6 +360,18 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
+	It("should create a Gemma 3 InferenceSet with decode label successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		numOfReplicas := 1
+		inferenceSetObj := createGemma3InferenceSetWithDecodeLabelAndVLLM(numOfReplicas)
+		defer cleanupResourcesForInferenceSet(inferenceSetObj)
+		time.Sleep(120 * time.Second)
+
+		validateInferenceSetStatus(inferenceSetObj)
+		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
+		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
+	})
+
 	It("should create a Gemma 3 InferenceSet with preset public mode successfully", Serial, utils.GinkgoLabelFastCheck, func() {
 		numOfReplicas := 1
 		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
@@ -419,6 +431,20 @@ func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1a
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm"},
 			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
+		createAndValidateInferenceSet(inferenceSetObj)
+	})
+	return inferenceSetObj
+}
+
+func createGemma3InferenceSetWithDecodeLabelAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
+	modelSecret := createAndValidateModelSecret()
+	inferenceSetObj := &kaitov1alpha1.InferenceSet{}
+	By("Creating an InferenceSet CR with Gemma 3 and decode label for P/D disaggregation", func() {
+		uniqueID := fmt.Sprint("preset-gemma3-is-", rand.Intn(1000))
+		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm-decode"},
+			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
 		// Add inference-role label to exercise the P/D disaggregated inference path:
 		// SetInferenceRoleEnv sets KAITO_INFERENCE_ROLE=decode, inference_api.py
 		// injects NixlConnector kv_transfer_config with kv_both (when no
@@ -430,7 +456,6 @@ func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1a
 		}
 		inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = consts.InferenceRoleDecode
 		createAndValidateInferenceSet(inferenceSetObj)
-
 	})
 	return inferenceSetObj
 }

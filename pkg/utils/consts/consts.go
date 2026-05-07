@@ -136,6 +136,10 @@ const (
 	SpotInstanceKey           = "kubernetes.azure.com/scalesetpriority"
 	SpotInstanceValue         = "spot"
 
+	// Azure karpenter-provider-azure labels.
+	AzurePlacementScopeLabel = "karpenter.azure.com/placement-scope"
+	AzurePlacementRegional   = "regional"
+
 	// Karpenter NodePool management labels and values.
 	KarpenterWorkspaceNameKey         = "karpenter.kaito.sh/workspace-name"
 	KarpenterWorkspaceNamespaceKey    = "karpenter.kaito.sh/workspace-namespace"

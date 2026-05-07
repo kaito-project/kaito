@@ -133,6 +133,11 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 							Operator: corev1.NodeSelectorOpIn,
 							Values:   []string{ws.Resource.InstanceType},
 						},
+						{
+							Key:      consts.AzurePlacementScopeLabel,
+							Operator: corev1.NodeSelectorOpIn,
+							Values:   []string{consts.AzurePlacementRegional},
+						},
 					},
 					Taints: []corev1.Taint{
 						{

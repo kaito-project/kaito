@@ -196,15 +196,22 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
     Set KV cache offloading to CPU RAM if applicable.
     This is only applicable when kaito_kv_cache_cpu_memory_utilization is set.
     """
-    # Configure kv_transfer_config for P/D disaggregation using NixlConnector.
-    # Only set when KAITO_INFERENCE_ROLE is explicitly specified (prefill or decode).
+    # Configure kv_transfer_config for P/D disaggregation.
+    # When KAITO_INFERENCE_ROLE is set (prefill/decode): use NixlConnector with kv_both.
+    # Otherwise: default to LMCacheConnectorV1 with kv_both.
     inference_role = os.environ.get("KAITO_INFERENCE_ROLE", "")
-    if args.kv_transfer_config is None and inference_role in ("prefill", "decode"):
-        args.kv_transfer_config = {
-            "kv_connector": "NixlConnector",
-            "kv_role": "kv_both",
-            "kv_load_failure_policy": "fail",
-        }
+    if args.kv_transfer_config is None:
+        if inference_role in ("prefill", "decode"):
+            args.kv_transfer_config = {
+                "kv_connector": "NixlConnector",
+                "kv_role": "kv_both",
+                "kv_load_failure_policy": "fail",
+            }
+        else:
+            args.kv_transfer_config = {
+                "kv_connector": "LMCacheConnectorV1",
+                "kv_role": "kv_both",
+            }
 
     if (
         args.kaito_kv_cache_cpu_memory_utilization is None

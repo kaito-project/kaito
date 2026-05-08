@@ -1144,7 +1144,7 @@ func TestSetModelDownloadInfo(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "container-1",
+						Name: "test-workspace",
 					},
 				},
 			},

@@ -382,10 +382,20 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 		// Spec.
 		desired.Spec.Replicas = int(role.Replicas)
 
-		// LabelSelector — use the MRI's labelSelector.
+		// LabelSelector — start from the MRI's labelSelector and inject role info.
+		// The InferenceSet controller propagates Spec.Selector to workspace.Resource.LabelSelector,
+		// so role-specific labels must be in the selector to ensure correct node selection.
 		desired.Spec.Selector = mri.Spec.LabelSelector.DeepCopy()
+		if desired.Spec.Selector == nil {
+			desired.Spec.Selector = &metav1.LabelSelector{}
+		}
+		if desired.Spec.Selector.MatchLabels == nil {
+			desired.Spec.Selector.MatchLabels = make(map[string]string)
+		}
+		desired.Spec.Selector.MatchLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mri.Name
+		desired.Spec.Selector.MatchLabels[kaitov1alpha1.LabelInferenceRole] = roleStr
 
-		// Template metadata labels: propagate MRI labelSelector matchLabels + role labels.
+		// Template metadata labels: propagate selector matchLabels (includes role labels).
 		templateLabels := make(map[string]string)
 		if mri.Spec.LabelSelector != nil && mri.Spec.LabelSelector.MatchLabels != nil {
 			for k, v := range mri.Spec.LabelSelector.MatchLabels {

@@ -1474,12 +1474,12 @@ func TestInjectRoutingSidecar(t *testing.T) {
 			// "with existing --port" case uses explicit port in command
 			if tc.name == "decode role - command with existing --port" {
 				spec.Containers[0].Command = []string{"/bin/sh", "-c",
-					"python3 /workspace/vllm/inference_api.py --port=5000 --vllm-port=5000 --served-model-name test"}
+					"python3 /workspace/vllm/inference_api.py --port=5000 --served-model-name test"}
 			}
 			// Multi-node uses a shell if/else script wrapping inference_api.py
 			if tc.multiNode {
 				spec.Containers[0].Command = []string{"/bin/sh", "-c",
-					"if [ \"$RAY_HEAD\" = \"true\" ]; then ray start --head && python3 /workspace/vllm/inference_api.py --port=5000 --vllm-port=5000 --served-model-name test; else ray start && sleep infinity; fi"}
+					"if [ \"$RAY_HEAD\" = \"true\" ]; then ray start --head && python3 /workspace/vllm/inference_api.py --port=5000 --served-model-name test; else ray start && sleep infinity; fi"}
 			}
 
 			// When sidecar is needed, simulate what GenerateInferencePodSpec does:

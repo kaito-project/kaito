@@ -800,21 +800,10 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 		updated = strings.ReplaceAll(updated, "--port "+oldPortStr, "--port "+newPortStr)
 		c.Command[j] = updated
 	}
-	// If no --port argument was found in the command, append it explicitly.
-	// This is critical for backward compatibility: older preset images don't
-	// read KAITO_VLLM_PORT, so the only way to override the port is via CLI args.
-	// The command format is ["/bin/sh", "-c", "<script>"], so we append to the
-	// last element of the command slice which is the shell script body.
-	portArgFound := false
-	for _, cmd := range c.Command {
-		if strings.Contains(cmd, "--port=") || strings.Contains(cmd, "--port ") {
-			portArgFound = true
-			break
-		}
-	}
-	if !portArgFound && len(c.Command) > 0 {
-		c.Command[len(c.Command)-1] = c.Command[len(c.Command)-1] + " --port=" + newPortStr
-	}
+	// Note: if no --port argument exists in the command, we rely on KAITO_VLLM_PORT
+	// env var (set below) which inference_api.py reads as the final --port override.
+	// We do NOT append --port to the shell script to avoid breaking multi-statement
+	// commands (e.g., "if ...; fi --port=5001" would be invalid).
 
 	// Set KAITO_VLLM_PORT env var to ensure the internal port takes priority
 	// even if a config file overrides --port (inference_api.py reads this last).

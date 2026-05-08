@@ -1523,7 +1523,38 @@ func TestInjectRoutingSidecar(t *testing.T) {
 
 			shouldInject := needsRoutingSidecar(workspace)
 			if shouldInject {
-				injectRoutingSidecar(spec)
+				// Mirror what GenerateInferencePodSpec does
+				c := &spec.Containers[0]
+				c.Ports = []corev1.ContainerPort{{ContainerPort: consts.PortInferenceServerInternal}}
+				c.Command = rewritePortInCommands(c.Command, consts.PortInferenceServer, consts.PortInferenceServerInternal)
+				if c.ReadinessProbe != nil && c.ReadinessProbe.HTTPGet != nil && c.ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+					c.ReadinessProbe = c.ReadinessProbe.DeepCopy()
+					c.ReadinessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
+				}
+				if c.LivenessProbe != nil && c.LivenessProbe.HTTPGet != nil && c.LivenessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+					c.LivenessProbe = c.LivenessProbe.DeepCopy()
+					c.LivenessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
+				}
+				spec.Containers = append(spec.Containers, corev1.Container{
+					Name:  "llm-d-routing-sidecar",
+					Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+					Args: []string{
+						fmt.Sprintf("--port=%d", consts.PortInferenceServer),
+						fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
+						"--secure-proxy=false",
+					},
+					Ports: []corev1.ContainerPort{
+						{ContainerPort: int32(consts.PortInferenceServer), Name: "sidecar", Protocol: corev1.ProtocolTCP},
+					},
+					Env: []corev1.EnvVar{
+						{
+							Name: "POD_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
+							},
+						},
+					},
+				})
 			}
 
 			// Use spec directly (not ss)

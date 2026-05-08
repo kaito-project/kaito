@@ -446,11 +446,11 @@ func createGemma3InferenceSetWithDecodeLabelAndVLLM(replicas int) *kaitov1alpha1
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm-decode"},
 			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
 		// Add inference-role label to exercise the P/D disaggregated inference path:
-		// GenerateInferencePodSpec sets KAITO_INFERENCE_ROLE=decode, inference_api.py
-		// injects NixlConnector kv_transfer_config with kv_both (when no
-		// user-provided kv_transfer_config is set), and the routing sidecar
-		// is injected. The workspace reaching Ready status validates that
-		// both modifiers work correctly with vLLM startup.
+		// GenerateInferencePodSpec sets KAITO_INFERENCE_ROLE=decode env var and injects
+		// the routing sidecar. inference_api.py uses the env var to configure
+		// NixlConnector kv_transfer_config with kv_both (when no user-provided
+		// kv_transfer_config is set). The workspace reaching Ready status validates
+		// that the inline sidecar injection works correctly with vLLM startup.
 		if inferenceSetObj.Spec.Template.Labels == nil {
 			inferenceSetObj.Spec.Template.Labels = make(map[string]string)
 		}

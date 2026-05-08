@@ -592,8 +592,10 @@ func SetModelDownloadInfo(ctx *generator.WorkspaceGeneratorContext, spec *corev1
 			}
 
 			for i := range spec.Containers {
-				// add HF_TOKEN env var to all containers
-				spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
+				// add HF_TOKEN env var to the main inference container only
+				if spec.Containers[i].Name == ctx.Workspace.Name {
+					spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
+				}
 			}
 		}
 		return nil

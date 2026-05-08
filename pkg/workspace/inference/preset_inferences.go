@@ -196,8 +196,6 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		podOpts = append(podOpts, SetDefaultModelWeightsVolume)
 	}
 
-	podOpts = append(podOpts, SetInferenceRoleEnv)
-
 	podSpec, err := generator.GenerateManifest(gctx, podOpts...)
 	if err != nil {
 		return nil, err
@@ -518,6 +516,16 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			},
 		}
 
+		// Set KAITO_INFERENCE_ROLE env var for P/D disaggregated inference.
+		// inference_api.py uses this to configure kv_transfer_config (NixlConnector).
+		if role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]; ok &&
+			(role == consts.InferenceRolePrefill || role == consts.InferenceRoleDecode) {
+			spec.Containers[0].Env = append(spec.Containers[0].Env, corev1.EnvVar{
+				Name:  consts.InferenceRoleEnvName,
+				Value: role,
+			})
+		}
+
 		if needsRoutingSidecar(ctx.Workspace) {
 			// Rewrite probes to use the internal port
 			c := &spec.Containers[0]
@@ -721,50 +729,6 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 
 func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	spec.Volumes = append(spec.Volumes, utils.DefaultModelWeightsVolume)
-	return nil
-}
-
-// SetInferenceRoleEnv propagates the kaito.sh/inference-role label from the workspace
-// to the KAITO_INFERENCE_ROLE environment variable on the main inference container.
-// This is used by the vLLM inference_api.py to configure kv_transfer_config for
-// P/D disaggregated inference (NixlConnector when role is set, LMCacheConnectorV1
-// when CPU offload is enabled). The label is propagated from
-// InferenceSet.Spec.Template.Metadata.Labels onto child workspaces by the InferenceSet controller.
-func SetInferenceRoleEnv(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
-	role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]
-	if !ok || (role != consts.InferenceRolePrefill && role != consts.InferenceRoleDecode) {
-		return nil
-	}
-	if len(spec.Containers) == 0 {
-		return nil
-	}
-	envVar := corev1.EnvVar{
-		Name:  consts.InferenceRoleEnvName,
-		Value: role,
-	}
-	// Find the main inference container by workspace name (consistent with other modifiers).
-	// Fall back to index 0 if not found by name.
-	var c *corev1.Container
-	for i := range spec.Containers {
-		if spec.Containers[i].Name == ctx.Workspace.Name {
-			c = &spec.Containers[i]
-			break
-		}
-	}
-	if c == nil {
-		c = &spec.Containers[0]
-	}
-	found := false
-	for j, env := range c.Env {
-		if env.Name == consts.InferenceRoleEnvName {
-			c.Env[j] = envVar
-			found = true
-			break
-		}
-	}
-	if !found {
-		c.Env = append(c.Env, envVar)
-	}
 	return nil
 }
 

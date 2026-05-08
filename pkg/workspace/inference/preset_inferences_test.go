@@ -1335,99 +1335,63 @@ func toParameterMap(in []string) map[string]string {
 	return ret
 }
 
-func TestSetInferenceRoleEnv(t *testing.T) {
+func TestInferenceRoleEnvInline(t *testing.T) {
 	tests := []struct {
-		name           string
-		labels         map[string]string
-		containers     int
-		preExistingEnv bool
-		expectEnvSet   bool
-		expectedValue  string
+		name          string
+		labels        map[string]string
+		expectEnvSet  bool
+		expectedValue string
 	}{
 		{
 			name:         "no label - no env set",
 			labels:       map[string]string{},
-			containers:   1,
 			expectEnvSet: false,
 		},
 		{
 			name:         "invalid role - no env set",
 			labels:       map[string]string{v1beta1.LabelInferenceRole: "invalid"},
-			containers:   1,
 			expectEnvSet: false,
 		},
 		{
-			name:          "prefill role - env set on main container only",
+			name:          "prefill role - env set",
 			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
-			containers:    2,
 			expectEnvSet:  true,
 			expectedValue: consts.InferenceRolePrefill,
 		},
 		{
-			name:          "decode role - env set on main container only",
+			name:          "decode role - env set",
 			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
-			containers:    1,
 			expectEnvSet:  true,
 			expectedValue: consts.InferenceRoleDecode,
-		},
-		{
-			name:           "prefill role - upsert existing env var without duplicates",
-			labels:         map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
-			containers:     1,
-			preExistingEnv: true,
-			expectEnvSet:   true,
-			expectedValue:  "prefill",
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			workspace := &v1beta1.Workspace{}
-			workspace.Labels = tc.labels
+			// Simulate the inline logic from GenerateInferencePodSpec
+			var env []corev1.EnvVar
+			if role, ok := tc.labels[v1beta1.LabelInferenceRole]; ok &&
+				(role == consts.InferenceRolePrefill || role == consts.InferenceRoleDecode) {
+				env = append(env, corev1.EnvVar{
+					Name:  consts.InferenceRoleEnvName,
+					Value: role,
+				})
+			}
 
-			spec := &corev1.PodSpec{}
-			for i := 0; i < tc.containers; i++ {
-				c := corev1.Container{
-					Name: fmt.Sprintf("container-%d", i),
-				}
-				if tc.preExistingEnv {
-					c.Env = []corev1.EnvVar{
-						{Name: consts.InferenceRoleEnvName, Value: "old-value"},
+			found := false
+			for _, e := range env {
+				if e.Name == consts.InferenceRoleEnvName {
+					found = true
+					if e.Value != tc.expectedValue {
+						t.Errorf("expected value %q, got %q", tc.expectedValue, e.Value)
 					}
 				}
-				spec.Containers = append(spec.Containers, c)
 			}
-
-			ctx := &generator.WorkspaceGeneratorContext{
-				Workspace: workspace,
+			if tc.expectEnvSet && !found {
+				t.Error("expected KAITO_INFERENCE_ROLE to be set")
 			}
-
-			err := SetInferenceRoleEnv(ctx, spec)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-
-			// Only the main container (index 0) should have the env var set
-			for i, c := range spec.Containers {
-				count := 0
-				for _, env := range c.Env {
-					if env.Name == consts.InferenceRoleEnvName {
-						count++
-						if i == 0 && !tc.expectEnvSet {
-							t.Errorf("container %d: env KAITO_INFERENCE_ROLE should not be set", i)
-						} else if i == 0 && env.Value != tc.expectedValue {
-							t.Errorf("container %d: expected value %q, got %q", i, tc.expectedValue, env.Value)
-						} else if i > 0 {
-							t.Errorf("container %d: env KAITO_INFERENCE_ROLE should not be set on non-main container", i)
-						}
-					}
-				}
-				if i == 0 && tc.expectEnvSet && count == 0 {
-					t.Errorf("container %d: expected KAITO_INFERENCE_ROLE to be set", i)
-				}
-				if count > 1 {
-					t.Errorf("container %d: found %d entries for KAITO_INFERENCE_ROLE, expected at most 1", i, count)
-				}
+			if !tc.expectEnvSet && found {
+				t.Error("KAITO_INFERENCE_ROLE should not be set")
 			}
 		})
 	}

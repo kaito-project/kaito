@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Unit tests for kv_transfer_config injection and KAITO_VLLM_PORT override."""
+"""Unit tests for kv_transfer_config injection."""
 
 import argparse
 import os
@@ -95,50 +95,3 @@ class TestSetKvTransferConfig:
         with patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "decode"}):
             set_kv_transfer_config_if_applicable(args)
         assert args.kv_transfer_config == user_config
-
-
-class TestKaitoVllmPortOverride:
-    """Tests for KAITO_VLLM_PORT env var override logic in KAITOArgumentParser.parse_args."""
-
-    def test_port_override_appended_to_runtime_args(self):
-        """KAITO_VLLM_PORT should append --port to runtime_args (last wins in argparse)."""
-        # Simulate what parse_args does: runtime_args are passed to vllm_parser
-        runtime_args = ["--port", "5000"]
-        with patch.dict(os.environ, {"KAITO_VLLM_PORT": "5001"}):
-            port_override = os.environ.get("KAITO_VLLM_PORT")
-            if port_override:
-                runtime_args.append("--port")
-                runtime_args.append(port_override)
-        # argparse last-wins: --port 5001 should take effect
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--port", type=int, default=5000)
-        args = parser.parse_args(runtime_args)
-        assert args.port == 5001
-
-    def test_port_override_over_config_value(self):
-        """KAITO_VLLM_PORT should override a config-file derived --port."""
-        # Simulates config file adding --port 8000, then env override appends --port 5001
-        runtime_args = ["--port", "8000"]
-        with patch.dict(os.environ, {"KAITO_VLLM_PORT": "5001"}):
-            port_override = os.environ.get("KAITO_VLLM_PORT")
-            if port_override:
-                runtime_args.append("--port")
-                runtime_args.append(port_override)
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--port", type=int, default=5000)
-        args = parser.parse_args(runtime_args)
-        assert args.port == 5001
-
-    def test_no_override_when_env_unset(self):
-        """Without KAITO_VLLM_PORT, --port should be used as-is."""
-        runtime_args = ["--port", "5000"]
-        with patch.dict(os.environ, {}, clear=True):
-            os.environ.pop("KAITO_VLLM_PORT", None)
-            port_override = os.environ.get("KAITO_VLLM_PORT")
-            if port_override:
-                runtime_args.append("--port")
-                runtime_args.append(port_override)
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--port", type=int, default=5000)
-        args = parser.parse_args(runtime_args)
-        assert args.port == 5000

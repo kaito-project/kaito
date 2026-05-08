@@ -203,12 +203,6 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		return nil, err
 	}
 
-	// If this is a decode workspace on vLLM, inject the routing sidecar directly.
-	// The sidecar takes the public port (5000), vLLM moves to internal port (5001).
-	if needsRoutingSidecar(workspaceObj) {
-		injectRoutingSidecarInline(podSpec)
-	}
-
 	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
 
 	return generator.GenerateManifest(gctx, ssOpts...)
@@ -517,6 +511,12 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		spec.Tolerations = defaultTolerations(ctx.Workspace)
 		spec.Volumes = volumes
 
+		// If this is a decode workspace on vLLM, inject the routing sidecar.
+		// The sidecar takes the public port (5000), vLLM moves to internal port (5001).
+		if needsRoutingSidecar(ctx.Workspace) {
+			injectRoutingSidecar(spec)
+		}
+
 		return nil
 	}
 }
@@ -733,12 +733,12 @@ func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
 	return v1beta1.GetWorkspaceRuntimeName(ws) == pkgmodel.RuntimeNameVLLM
 }
 
-// injectRoutingSidecarInline modifies the podSpec in-place:
+// injectRoutingSidecar modifies the podSpec in-place:
 // 1. Moves the main container's port from 5000 to 5001
 // 2. Updates probes to use the internal port
-// 3. Updates command args to use --port=5001
+// 3. Updates command args to use --port 5001 (appends if not present)
 // 4. Appends the llm-d routing sidecar container on port 5000
-func injectRoutingSidecarInline(spec *corev1.PodSpec) {
+func injectRoutingSidecar(spec *corev1.PodSpec) {
 	if len(spec.Containers) == 0 {
 		return
 	}
@@ -793,31 +793,21 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 		rewriteProbePort(c.StartupProbe)
 	}
 
-	// Command: rewrite port references (format is known: --port=5000, --vllm-port=5000)
+	// Command: rewrite existing port references and append --port if not present
+	portFound := false
 	for j, cmd := range c.Command {
+		if strings.Contains(cmd, "--port="+oldPortStr) || strings.Contains(cmd, "--port "+oldPortStr) {
+			portFound = true
+		}
 		updated := strings.ReplaceAll(cmd, "--vllm-port="+oldPortStr, "--vllm-port="+newPortStr)
 		updated = strings.ReplaceAll(updated, "--port="+oldPortStr, "--port="+newPortStr)
 		updated = strings.ReplaceAll(updated, "--port "+oldPortStr, "--port "+newPortStr)
 		c.Command[j] = updated
 	}
-	// Note: if no --port argument exists in the command, we rely on KAITO_VLLM_PORT
-	// env var (set below) which inference_api.py reads as the final --port override.
-	// We do NOT append --port to the shell script to avoid breaking multi-statement
-	// commands (e.g., "if ...; fi --port=5001" would be invalid).
-
-	// Set KAITO_VLLM_PORT env var to ensure the internal port takes priority
-	// even if a config file overrides --port (inference_api.py reads this last).
-	portEnv := corev1.EnvVar{Name: "KAITO_VLLM_PORT", Value: newPortStr}
-	portEnvFound := false
-	for j, env := range c.Env {
-		if env.Name == "KAITO_VLLM_PORT" {
-			c.Env[j] = portEnv
-			portEnvFound = true
-			break
-		}
-	}
-	if !portEnvFound {
-		c.Env = append(c.Env, portEnv)
+	// If no --port was found in the command, append it to the shell script.
+	// Command format is ["/bin/sh", "-c", "<script>"], so we append to the last element.
+	if !portFound && len(c.Command) > 0 {
+		c.Command[len(c.Command)-1] += " --port " + newPortStr
 	}
 
 	// Upsert sidecar container
@@ -849,7 +839,6 @@ func injectRoutingSidecarInline(spec *corev1.PodSpec) {
 		}
 	}
 	if sidecarIdx >= 0 {
-		// Reconcile existing sidecar to desired spec
 		spec.Containers[sidecarIdx] = desiredSidecar
 	} else {
 		spec.Containers = append(spec.Containers, desiredSidecar)

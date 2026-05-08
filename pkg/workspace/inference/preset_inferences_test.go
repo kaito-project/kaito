@@ -17,7 +17,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1434,7 +1433,7 @@ func TestSetInferenceRoleEnv(t *testing.T) {
 	}
 }
 
-func TestInjectRoutingSidecarInline(t *testing.T) {
+func TestInjectRoutingSidecar(t *testing.T) {
 	tests := []struct {
 		name               string
 		labels             map[string]string
@@ -1524,7 +1523,7 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 
 			shouldInject := needsRoutingSidecar(workspace)
 			if shouldInject {
-				injectRoutingSidecarInline(spec)
+				injectRoutingSidecar(spec)
 			}
 
 			// Use spec directly (not ss)
@@ -1610,15 +1609,16 @@ func TestInjectRoutingSidecarInline(t *testing.T) {
 							}
 						}
 					}
-					// Verify KAITO_VLLM_PORT env var is set for port override
-					vllmPortEnvFound := false
-					for _, env := range c.Env {
-						if env.Name == "KAITO_VLLM_PORT" && env.Value == strconv.Itoa(int(consts.PortInferenceServerInternal)) {
-							vllmPortEnvFound = true
+					// Verify --port is set to internal port in the command
+					portInCmd := false
+					for _, cmd := range c.Command {
+						if strings.Contains(cmd, fmt.Sprintf("--port=%d", consts.PortInferenceServerInternal)) ||
+							strings.Contains(cmd, fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)) {
+							portInCmd = true
 						}
 					}
-					if !vllmPortEnvFound {
-						t.Errorf("expected KAITO_VLLM_PORT=%d env var on container", consts.PortInferenceServerInternal)
+					if !portInCmd {
+						t.Errorf("expected --port %d in command, got: %v", consts.PortInferenceServerInternal, c.Command)
 					}
 					// Verify readiness probe port updated
 					if c.ReadinessProbe != nil && c.ReadinessProbe.HTTPGet != nil {

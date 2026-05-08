@@ -14,6 +14,8 @@
 package v1beta1
 
 import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -135,4 +137,51 @@ func GetPerformanceMode(ws *Workspace) string {
 		return v
 	}
 	return PerformanceModeBalanced
+}
+
+// reservedSelectorLabelKeys are labels that KAITO controllers apply to their
+// own NodeClaims/Nodes/NodePools. Users must not include them in resource
+// label selectors; if they do, the values are silently ignored to prevent
+// cross-resource targeting (e.g. matching another Workspace's nodes).
+var reservedSelectorLabelKeys = map[string]struct{}{
+	// KAITO workspace/ragengine identity labels.
+	LabelWorkspaceName:      {},
+	LabelRAGEngineName:      {},
+	LabelWorkspaceNamespace: {},
+	LabelRAGEngineNamespace: {},
+
+	// Karpenter NodePool management labels.
+	consts.KarpenterWorkspaceNameKey:         {},
+	consts.KarpenterWorkspaceNamespaceKey:    {},
+	consts.KarpenterInferenceSetKey:          {},
+	consts.KarpenterInferenceSetNamespaceKey: {},
+}
+
+// IsReservedSelectorLabel reports whether the given label key is reserved by
+// KAITO and must not be honored when supplied via a user-defined selector.
+func IsReservedSelectorLabel(key string) bool {
+	_, ok := reservedSelectorLabelKeys[key]
+	return ok
+}
+
+// SanitizedMatchLabels returns the MatchLabels of selector with any
+// KAITO-reserved keys removed. Returns nil when selector is nil or has no
+// non-reserved entries. The returned map is always a fresh copy when at
+// least one entry is preserved; callers must not assume identity with the
+// input map.
+func SanitizedMatchLabels(selector *metav1.LabelSelector) map[string]string {
+	if selector == nil || len(selector.MatchLabels) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(selector.MatchLabels))
+	for k, v := range selector.MatchLabels {
+		if IsReservedSelectorLabel(k) {
+			continue
+		}
+		out[k] = v
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }

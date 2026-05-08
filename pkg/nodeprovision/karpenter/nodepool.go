@@ -85,11 +85,10 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 		consts.KarpenterWorkspaceNamespaceKey: ws.Namespace,
 	}
 	// Include the user's matchLabels so that inference pods' nodeAffinity
-	// (built from matchLabels) is satisfied.
-	if ws.Resource.LabelSelector != nil {
-		for k, v := range ws.Resource.LabelSelector.MatchLabels {
-			templateLabels[k] = v
-		}
+	// (built from matchLabels) is satisfied. KAITO-reserved keys are stripped
+	// to avoid clobbering controller-managed labels.
+	for k, v := range kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector) {
+		templateLabels[k] = v
 	}
 	// InferenceSet workspaces get additional labels so the drift controller
 	// can map NodeClaim events back to the owning InferenceSet.

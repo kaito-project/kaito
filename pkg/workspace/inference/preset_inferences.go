@@ -456,7 +456,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		// When the routing sidecar is needed, vLLM must use the internal port
 		// to avoid conflicting with the sidecar on the public port.
 		isSidecarNeeded := needsRoutingSidecar(ctx.Workspace)
-		if isSidecarNeeded && inferenceParam.VLLM.ModelRunParams != nil {
+		if isSidecarNeeded {
+			if inferenceParam.VLLM.ModelRunParams == nil {
+				inferenceParam.VLLM.ModelRunParams = make(map[string]string)
+			}
 			inferenceParam.VLLM.ModelRunParams["port"] = strconv.FormatInt(int64(consts.PortInferenceServerInternal), 10)
 		}
 

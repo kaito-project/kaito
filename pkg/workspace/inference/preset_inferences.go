@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -454,6 +453,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			}
 		}
 
+		// When the routing sidecar is needed, vLLM must use the internal port
+		// to avoid conflicting with the sidecar on the public port.
+		isSidecarNeeded := needsRoutingSidecar(ctx.Workspace)
+		if isSidecarNeeded && inferenceParam.VLLM.ModelRunParams != nil {
+			inferenceParam.VLLM.ModelRunParams["port"] = strconv.FormatInt(int64(consts.PortInferenceServerInternal), 10)
+		}
+
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
@@ -493,20 +499,17 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
-		// Determine if the routing sidecar is needed (decode workspace on vLLM).
-		// When present, vLLM uses the internal port (5001) and the sidecar takes the public port (5000).
+		// Determine container port based on whether the routing sidecar is needed.
 		inferencePort := containerPorts
-		inferenceCommands := commands
-		if needsRoutingSidecar(ctx.Workspace) {
+		if isSidecarNeeded {
 			inferencePort = []corev1.ContainerPort{{ContainerPort: consts.PortInferenceServerInternal}}
-			inferenceCommands = rewritePortInCommands(commands, consts.PortInferenceServer, consts.PortInferenceServerInternal)
 		}
 
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
 				Image:          GetBaseImageName(),
-				Command:        inferenceCommands,
+				Command:        commands,
 				Resources:      resourceReq,
 				Ports:          inferencePort,
 				StartupProbe:   buildStartupProbe(readinessTimeout),
@@ -526,7 +529,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			})
 		}
 
-		if needsRoutingSidecar(ctx.Workspace) {
+		if isSidecarNeeded {
 			// Rewrite probes to use the internal port
 			c := &spec.Containers[0]
 			rewriteProbePort := func(probe *corev1.Probe) {
@@ -739,31 +742,4 @@ func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
 		return false
 	}
 	return v1beta1.GetWorkspaceRuntimeName(ws) == pkgmodel.RuntimeNameVLLM
-}
-
-// rewritePortInCommands rewrites port references in the command slice.
-// If --port=<oldPort> or --port <oldPort> is found, it's replaced with the new port.
-// If no --port is found, appends --port <newPort> to the last command element.
-func rewritePortInCommands(commands []string, oldPort, newPort int32) []string {
-	oldPortStr := strconv.Itoa(int(oldPort))
-	newPortStr := strconv.Itoa(int(newPort))
-
-	result := make([]string, len(commands))
-	copy(result, commands)
-
-	portFound := false
-	for j, cmd := range result {
-		if strings.Contains(cmd, "--port="+oldPortStr) || strings.Contains(cmd, "--port "+oldPortStr) {
-			portFound = true
-		}
-		updated := strings.ReplaceAll(cmd, "--vllm-port="+oldPortStr, "--vllm-port="+newPortStr)
-		updated = strings.ReplaceAll(updated, "--port="+oldPortStr, "--port="+newPortStr)
-		updated = strings.ReplaceAll(updated, "--port "+oldPortStr, "--port "+newPortStr)
-		result[j] = updated
-	}
-	// If no --port was found, append it to the last element (shell script body).
-	if !portFound && len(result) > 0 {
-		result[len(result)-1] += " --port " + newPortStr
-	}
-	return result
 }

@@ -1481,16 +1481,27 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				spec.Containers[0].Command = []string{"/bin/sh", "-c",
 					"if [ \"$RAY_HEAD\" = \"true\" ]; then ray start --head && python3 /workspace/vllm/inference_api.py --port=5000 --vllm-port=5000 --served-model-name test; else ray start && sleep infinity; fi"}
 			}
+
+			// When sidecar is needed, simulate what GenerateInferencePodSpec does:
+			// --port is set in ModelRunParams before GetInferenceCommand, so the
+			// generated command already contains --port=5001.
 			if tc.existingContainers != nil {
 				spec.Containers = append(spec.Containers, tc.existingContainers...)
 			}
-
 			shouldInject := needsRoutingSidecar(workspace)
 			if shouldInject {
-				// Mirror what GenerateInferencePodSpec does
+				// Simulate the command having --port=5001 from ModelRunParams
 				c := &spec.Containers[0]
+				if !strings.Contains(c.Command[len(c.Command)-1], "--port=") {
+					// No explicit --port in command: add --port 5001 (simulates ModelRunParams injection)
+					c.Command[len(c.Command)-1] += fmt.Sprintf(" --port %d", consts.PortInferenceServerInternal)
+				} else {
+					// Existing --port=5000: replace with 5001 (simulates ModelRunParams override)
+					for j, cmd := range c.Command {
+						c.Command[j] = strings.ReplaceAll(cmd, "--port=5000", fmt.Sprintf("--port=%d", consts.PortInferenceServerInternal))
+					}
+				}
 				c.Ports = []corev1.ContainerPort{{ContainerPort: consts.PortInferenceServerInternal}}
-				c.Command = rewritePortInCommands(c.Command, consts.PortInferenceServer, consts.PortInferenceServerInternal)
 				if c.ReadinessProbe != nil && c.ReadinessProbe.HTTPGet != nil && c.ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
 					c.ReadinessProbe = c.ReadinessProbe.DeepCopy()
 					c.ReadinessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)

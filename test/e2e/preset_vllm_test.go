@@ -440,13 +440,13 @@ func createGemma3InferenceSetWithDecodeLabelAndVLLM(replicas int) *kaitov1alpha1
 	modelSecret := createAndValidateModelSecret()
 	inferenceSetObj := &kaitov1alpha1.InferenceSet{}
 	By("Creating an InferenceSet CR with Gemma 3 and decode label for P/D disaggregation", func() {
-		uniqueID := fmt.Sprint("preset-gemma3-is-", rand.Intn(1000))
+		uniqueID := fmt.Sprint("preset-gemma3-is-decode-", rand.Intn(1000))
 		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm-decode"},
 			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
 		// Add inference-role label to exercise the P/D disaggregated inference path:
-		// SetInferenceRoleEnv sets KAITO_INFERENCE_ROLE=decode, inference_api.py
+		// GenerateInferencePodSpec sets KAITO_INFERENCE_ROLE=decode, inference_api.py
 		// injects NixlConnector kv_transfer_config with kv_both (when no
 		// user-provided kv_transfer_config is set), and the routing sidecar
 		// is injected. The workspace reaching Ready status validates that

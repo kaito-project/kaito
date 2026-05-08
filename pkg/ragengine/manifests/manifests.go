@@ -28,9 +28,9 @@ import (
 
 const (
 	GuardrailsPolicyVolumeName = "guardrails-policy"
-	GuardrailsPolicyMountPath = "/etc/ragengine/guardrails"
-	GuardrailsPolicyFileName  = kaitov1beta1.GuardrailsPolicyFileName
-	GuardrailsPolicyFilePath  = GuardrailsPolicyMountPath + "/" + GuardrailsPolicyFileName
+	GuardrailsPolicyMountPath  = "/etc/ragengine/guardrails"
+	GuardrailsPolicyFileName   = kaitov1beta1.GuardrailsPolicyFileName
+	GuardrailsPolicyFilePath   = GuardrailsPolicyMountPath + "/" + GuardrailsPolicyFileName
 )
 
 func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisionNum string, imageName string,

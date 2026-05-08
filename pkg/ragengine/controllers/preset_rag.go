@@ -31,8 +31,8 @@ import (
 )
 
 const (
-	ProbePath            = "/health"
-	PortInferenceServer  = 5000
+	ProbePath           = "/health"
+	PortInferenceServer = 5000
 )
 
 var (

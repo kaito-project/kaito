@@ -17,7 +17,6 @@ import yaml
 
 from ragengine.guardrails.output_guardrails import _parse_policy_scanner_configs
 
-
 CHART_TEMPLATE = (
     Path(__file__).resolve().parents[3]
     / "charts"

@@ -124,10 +124,7 @@ func ExtractObjFields(obj client.Object) (instanceType, namespace, name string, 
 
 // GetReadyNodes finds all ready nodes that match the workspace's label selector
 func GetReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, error) {
-	var matchLabels client.MatchingLabels
-	if wObj.Resource.LabelSelector != nil {
-		matchLabels = wObj.Resource.LabelSelector.MatchLabels
-	}
+	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(wObj.Resource.LabelSelector))
 
 	nodeList, err := ListNodes(ctx, c, matchLabels)
 	if err != nil {

@@ -407,8 +407,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		volumeMounts = append(volumeMounts, shmVolumeMount)
 
 		// node selector
-		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ctx.Workspace.Resource.LabelSelector.MatchLabels))
-		for key, value := range ctx.Workspace.Resource.LabelSelector.MatchLabels {
+		selectorLabels := v1beta1.SanitizedMatchLabels(ctx.Workspace.Resource.LabelSelector)
+		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(selectorLabels))
+		for key, value := range selectorLabels {
 			nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
 				Key:      key,
 				Operator: corev1.NodeSelectorOpIn,
@@ -466,16 +467,20 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			},
 		})
 
-		spec.Affinity = &corev1.Affinity{
-			NodeAffinity: &corev1.NodeAffinity{
-				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-					NodeSelectorTerms: []corev1.NodeSelectorTerm{
-						{
-							MatchExpressions: nodeRequirements,
+		// Only set nodeAffinity when the user supplied selector labels.
+		// An empty MatchExpressions list is rejected by the Kubernetes API server.
+		if len(nodeRequirements) > 0 {
+			spec.Affinity = &corev1.Affinity{
+				NodeAffinity: &corev1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+						NodeSelectorTerms: []corev1.NodeSelectorTerm{
+							{
+								MatchExpressions: nodeRequirements,
+							},
 						},
 					},
 				},
-			},
+			}
 		}
 		spec.ImagePullSecrets = GetInferenceImageInfo(ctx.Ctx, ctx.Workspace)
 

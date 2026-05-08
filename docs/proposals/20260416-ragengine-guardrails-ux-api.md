@@ -92,9 +92,25 @@ controller copies the default guardrails policy ConfigMap
 (`ragengine-guardrails-policy-template`) into the RAGEngine namespace and mounts
 it into the Pod.
 
-- Auto-copied ConfigMaps carry an `OwnerReference` to the RAGEngine.
+- Auto-copied ConfigMaps are namespace-scoped shared resources and do not carry
+  an `OwnerReference` to any individual RAGEngine. This avoids deleting a
+  shared ConfigMap during cleanup of one RAGEngine while other RAGEngines in the
+  same namespace still depend on it.
 - User-provided ConfigMaps are not modified or owned by the controller.
 - Hot reload is not part of this PR.
+
+The default template provides a conservative baseline of regex scanners for
+obvious credential leakage, including:
+
+- PEM private key headers
+- AWS access key IDs (`AKIA...`)
+- Google API keys (`AIza...`)
+- GitHub tokens (`ghp_`, `gho_`, `ghu_`, `ghs_`, `ghr_`)
+- `sk-...` style API keys
+- `Bearer ...` authorization tokens
+
+This is baseline protection, not a complete content-safety policy. Broader
+scanners can still be added via a custom ConfigMap.
 
 ### Runtime Failure Semantics
 

@@ -22,7 +22,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
@@ -185,30 +184,9 @@ func ensureGuardrailsPolicyConfigMap(ctx context.Context, ragEngineObj *v1beta1.
 	}
 
 	// User-provided ConfigMaps belong to the user; never patch them.
-	// Only the auto-copied default template should follow the RAGEngine
-	// lifecycle so it is garbage-collected when the RAGEngine is deleted.
-	if userOwned {
-		return cm, nil
-	}
-
-	if err := setControllerOwnerIfMissing(ctx, kubeClient, ragEngineObj, cm); err != nil {
-		return nil, fmt.Errorf("failed to set owner reference on guardrails ConfigMap: %w", err)
-	}
+	// The copied default ConfigMap is shared namespace-wide, so it must stay
+	// unowned by any individual RAGEngine to avoid breaking other workloads.
 	return cm, nil
-}
-
-// setControllerOwnerIfMissing makes child a controller-owned dependent of owner,
-// updating it in the cluster only when the reference is not already present.
-func setControllerOwnerIfMissing(ctx context.Context, kubeClient client.Client, owner, child client.Object) error {
-	for _, ref := range child.GetOwnerReferences() {
-		if ref.UID != "" && ref.UID == owner.GetUID() {
-			return nil
-		}
-	}
-	if err := controllerutil.SetControllerReference(owner, child, kubeClient.Scheme()); err != nil {
-		return err
-	}
-	return kubeClient.Update(ctx, child)
 }
 
 func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {

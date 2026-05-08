@@ -104,7 +104,7 @@ func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldErr
 		return apis.ErrGeneric("Failed to obtain client from context.Context")
 	}
 
-		cmName := DefaultGuardrailsPolicyConfigMapName
+	cmName := DefaultGuardrailsPolicyConfigMapName
 	cmNamespace := w.Namespace
 	field := "configMapRef.name"
 	if guardrails.ConfigMapRef != nil && guardrails.ConfigMapRef.Name != "" {

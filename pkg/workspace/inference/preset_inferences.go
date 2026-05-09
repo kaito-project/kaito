@@ -572,6 +572,18 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 		return nil
 	}
 
+	// Find the main inference container by workspace name.
+	mainIdx := -1
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == ctx.Workspace.Name {
+			mainIdx = i
+			break
+		}
+	}
+	if mainIdx == -1 {
+		return fmt.Errorf("main inference container %q not found", ctx.Workspace.Name)
+	}
+
 	// Separate adapters by source type
 	var imageAdapters []v1beta1.AdapterSpec
 	var volumeAdapters []v1beta1.AdapterSpec
@@ -587,18 +599,14 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 	if len(imageAdapters) > 0 {
 		adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume(nil)
 		spec.Volumes = append(spec.Volumes, adapterVolume)
-		for i := range spec.Containers { // FIXME: assume only one container in the pod
-			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, adapterVolumeMount)
-		}
+		spec.Containers[mainIdx].VolumeMounts = append(spec.Containers[mainIdx].VolumeMounts, adapterVolumeMount)
 
 		// add container to pull adapters
 		volumeMounts := []corev1.VolumeMount{adapterVolumeMount}
 		pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(ctx.Workspace, imageAdapters, volumeMounts)
 		spec.InitContainers = append(spec.InitContainers, pullerContainers...)
 		spec.Volumes = append(spec.Volumes, pullerVolumes...)
-		for i := range spec.Containers { // FIXME: assume only one container in the pod
-			spec.Containers[i].Env = append(spec.Containers[i].Env, pullerEnvVars...)
-		}
+		spec.Containers[mainIdx].Env = append(spec.Containers[mainIdx].Env, pullerEnvVars...)
 	}
 
 	// Handle volume-based adapters (mount volume directly, no puller needed)
@@ -616,9 +624,7 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 			MountPath: mountPath,
 		}
 		spec.Volumes = append(spec.Volumes, volume)
-		for i := range spec.Containers {
-			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, volumeMount)
-		}
+		spec.Containers[mainIdx].VolumeMounts = append(spec.Containers[mainIdx].VolumeMounts, volumeMount)
 
 		// Propagate strength env vars for volume adapters
 		if adapter.Strength != nil {
@@ -626,9 +632,7 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 				Name:  sourceName,
 				Value: *adapter.Strength,
 			}
-			for i := range spec.Containers {
-				spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)
-			}
+			spec.Containers[mainIdx].Env = append(spec.Containers[mainIdx].Env, envVar)
 		}
 	}
 

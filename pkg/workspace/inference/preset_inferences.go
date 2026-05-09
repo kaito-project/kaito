@@ -724,13 +724,24 @@ func applyInferenceRoleEnv(labels map[string]string, spec *corev1.PodSpec) {
 	})
 }
 
-// injectRoutingSidecar rewrites the first container's probes/ports to the internal port
-// and appends the llm-d routing sidecar container to the pod spec.
+// injectRoutingSidecar rewrites the first container's containerPorts and probes
+// from the public inference port to the internal port, then appends the llm-d
+// routing sidecar container to the pod spec.
 func injectRoutingSidecar(spec *corev1.PodSpec) {
 	if len(spec.Containers) == 0 {
 		return
 	}
 	c := &spec.Containers[0]
+
+	// Rewrite containerPorts: public port → internal port so there is no
+	// conflict with the sidecar that will listen on the public port.
+	for i := range c.Ports {
+		if c.Ports[i].ContainerPort == int32(consts.PortInferenceServer) {
+			c.Ports[i].ContainerPort = consts.PortInferenceServerInternal
+		}
+	}
+
+	// Rewrite probe ports.
 	rewriteProbePort := func(probe *corev1.Probe) {
 		if probe == nil {
 			return

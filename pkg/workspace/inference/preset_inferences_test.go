@@ -1566,15 +1566,13 @@ func TestInjectRoutingSidecar(t *testing.T) {
 					}
 				}
 
-				// Verify containerPorts were rewritten on the main container
+				// Verify containerPorts and probe ports were rewritten on the main container
+				main := spec.Containers[0]
 				for _, p := range main.Ports {
 					if p.ContainerPort == int32(consts.PortInferenceServer) {
 						t.Errorf("main container still has containerPort %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
 					}
 				}
-
-				// Verify probe ports were rewritten on the main container
-				main := spec.Containers[0]
 				if main.ReadinessProbe != nil && main.ReadinessProbe.HTTPGet != nil {
 					if main.ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
 						t.Errorf("readiness probe still targets port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)

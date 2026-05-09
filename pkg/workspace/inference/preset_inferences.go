@@ -259,7 +259,8 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 }
 
 // getDistributedInferenceProbe returns a container probe configuration for the distributed inference workload.
-func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32) *corev1.Probe {
+// vllmPort specifies the port vLLM is listening on (may differ from the public port when a routing sidecar is present).
+func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, vllmPort int32, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32) *corev1.Probe {
 	args := map[string]string{
 		"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
 	}
@@ -267,7 +268,7 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	case probeTypeLiveness:
 		args["ray-port"] = strconv.Itoa(pkgmodel.PortRayCluster)
 	case probeTypeReadiness:
-		args["vllm-port"] = strconv.FormatInt(int64(consts.PortInferenceServer), 10)
+		args["vllm-port"] = strconv.FormatInt(int64(vllmPort), 10)
 	}
 
 	// for distributed inference, we cannot use the default http probe since only the leader pod
@@ -312,11 +313,11 @@ func buildStartupProbe(timeout time.Duration) *corev1.Probe {
 	}
 }
 
-func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace) *corev1.Probe {
+func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, vllmPort int32) *corev1.Probe {
 	const periodSeconds = int32(10)
 	const timeoutSeconds = int32(1)
 	failureThreshold := int32(math.Ceil(timeout.Seconds() / float64(periodSeconds)))
-	return getDistributedInferenceProbe(probeTypeReadiness, wObj, 0, periodSeconds, timeoutSeconds, failureThreshold)
+	return getDistributedInferenceProbe(probeTypeReadiness, wObj, vllmPort, 0, periodSeconds, timeoutSeconds, failureThreshold)
 }
 
 // buildBenchmarkStartupProbe returns an exec startup probe that runs
@@ -711,10 +712,16 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 		readinessTimeout = defaultStartupProbeTimeout
 	}
 
+	// When the routing sidecar is present, vLLM runs on the internal port.
+	vllmPort := consts.PortInferenceServer
+	if needsRoutingSidecar(ctx.Workspace) {
+		vllmPort = consts.PortInferenceServerInternal
+	}
+
 	// 60 seconds initial delay for liveness probe to allow workers to join the cluster
-	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5, 1)
-	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1)
-	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace)
+	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, vllmPort, 60, 10, 5, 1)
+	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, vllmPort, 0, 10, 1, 1)
+	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace, vllmPort)
 	envVar := corev1.EnvVar{
 		Name: "POD_INDEX",
 		ValueFrom: &corev1.EnvVarSource{

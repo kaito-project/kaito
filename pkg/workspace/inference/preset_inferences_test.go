@@ -1430,7 +1430,7 @@ func TestApplyInferenceRoleEnv(t *testing.T) {
 					{Name: "test-workspace"},
 				},
 			}
-			applyInferenceRoleEnv(tc.labels, "test-container", spec)
+			applyInferenceRoleEnv(tc.labels, "test-workspace", spec)
 
 			found := false
 			for _, e := range spec.Containers[0].Env {

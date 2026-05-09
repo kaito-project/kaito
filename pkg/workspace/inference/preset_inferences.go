@@ -523,7 +523,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			},
 		}
 
-		applyInferenceRoleEnv(ctx.Workspace.Labels, spec)
+		applyInferenceRoleEnv(ctx.Workspace.Labels, ctx.Workspace.Name, spec)
 
 		if isSidecarNeeded {
 			injectRoutingSidecar(spec)
@@ -708,22 +708,24 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 	return nil
 }
 
-// applyInferenceRoleEnv sets KAITO_INFERENCE_ROLE env var on the first container
-// (the main inference container) when the workspace has a valid inference-role
-// label (prefill or decode). Only the main container needs this env var;
-// sidecar containers do not use it.
-func applyInferenceRoleEnv(labels map[string]string, spec *corev1.PodSpec) {
-	if len(spec.Containers) == 0 {
-		return
-	}
+// applyInferenceRoleEnv sets KAITO_INFERENCE_ROLE env var on the main inference
+// container (identified by containerName) when the workspace has a valid
+// inference-role label (prefill or decode). Only the main container needs this
+// env var; sidecar containers do not use it.
+func applyInferenceRoleEnv(labels map[string]string, containerName string, spec *corev1.PodSpec) {
 	role, ok := labels[v1beta1.LabelInferenceRole]
 	if !ok || (role != consts.InferenceRolePrefill && role != consts.InferenceRoleDecode) {
 		return
 	}
-	spec.Containers[0].Env = append(spec.Containers[0].Env, corev1.EnvVar{
-		Name:  consts.InferenceRoleEnvName,
-		Value: role,
-	})
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == containerName {
+			spec.Containers[i].Env = append(spec.Containers[i].Env, corev1.EnvVar{
+				Name:  consts.InferenceRoleEnvName,
+				Value: role,
+			})
+			return
+		}
+	}
 }
 
 // injectRoutingSidecar rewrites the first container's containerPorts and probes

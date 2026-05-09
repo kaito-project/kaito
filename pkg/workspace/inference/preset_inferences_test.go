@@ -806,7 +806,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -835,7 +835,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -871,7 +871,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -901,7 +901,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -930,10 +930,10 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "container-1",
+						Name: "test-workspace",
 					},
 					{
-						Name: "container-2",
+						Name: "sidecar",
 					},
 				},
 			},
@@ -966,7 +966,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -1006,7 +1006,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -1041,46 +1041,54 @@ func TestSetAdapterPuller(t *testing.T) {
 				t.Errorf("volumes mismatch: expected %v, got %v", tc.expectedVolumes, actualVolumes)
 			}
 
-			// Check volume mounts on containers (only adapter volumes, not docker-config secret volumes)
+			// Check volume mounts on the main container only (adapter volumes, not docker-config secret volumes)
 			if len(tc.expectedVolumes) > 0 {
-				for _, container := range tc.spec.Containers {
+				var mainContainer *corev1.Container
+				for i := range tc.spec.Containers {
+					if tc.spec.Containers[i].Name == tc.workspace.Name {
+						mainContainer = &tc.spec.Containers[i]
+						break
+					}
+				}
+				if mainContainer != nil {
 					for _, expectedVol := range tc.expectedVolumes {
 						if !strings.HasPrefix(expectedVol, "adapter-volume") {
 							continue // docker-config volumes are only mounted on init containers
 						}
 						foundMount := false
-						for _, mount := range container.VolumeMounts {
+						for _, mount := range mainContainer.VolumeMounts {
 							if mount.Name == expectedVol {
 								foundMount = true
 								break
 							}
 						}
 						if !foundMount {
-							t.Errorf("volume mount %s not found in container %s", expectedVol, container.Name)
+							t.Errorf("volume mount %s not found in main container %s", expectedVol, mainContainer.Name)
 						}
 					}
 				}
 			}
 
-			// Check environment variables
+			// Check environment variables on the main container only
 			if len(tc.expectedEnvVars) > 0 {
-				for _, container := range tc.spec.Containers {
-					actualEnvVarNames := make([]string, 0)
-					for _, env := range container.Env {
-						actualEnvVarNames = append(actualEnvVarNames, env.Name)
+				var mainContainer *corev1.Container
+				for i := range tc.spec.Containers {
+					if tc.spec.Containers[i].Name == tc.workspace.Name {
+						mainContainer = &tc.spec.Containers[i]
+						break
 					}
-
-					// Check if all expected env vars are present
+				}
+				if mainContainer != nil {
 					for _, expectedVar := range tc.expectedEnvVars {
 						found := false
-						for _, actualVar := range actualEnvVarNames {
-							if actualVar == expectedVar {
+						for _, env := range mainContainer.Env {
+							if env.Name == expectedVar {
 								found = true
 								break
 							}
 						}
 						if !found {
-							t.Errorf("expected env var %s not found in container %s", expectedVar, container.Name)
+							t.Errorf("expected env var %s not found in main container %s", expectedVar, mainContainer.Name)
 						}
 					}
 				}
@@ -1226,7 +1234,7 @@ func TestSetModelDownloadInfo(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -1419,7 +1427,7 @@ func TestApplyInferenceRoleEnv(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			spec := &corev1.PodSpec{
 				Containers: []corev1.Container{
-					{Name: "test-container"},
+					{Name: "test-workspace"},
 				},
 			}
 			applyInferenceRoleEnv(tc.labels, "test-container", spec)

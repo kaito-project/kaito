@@ -1164,6 +1164,50 @@ func TestSetModelDownloadInfo(t *testing.T) {
 			expectedInitContainer: 0,
 			expectError:           false,
 		},
+		"download at runtime - HF_TOKEN only on main container, not sidecar": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model-download",
+						},
+						PresetOptions: v1beta1.PresetOptions{
+							ModelAccessSecret: "hf-secret",
+						},
+					},
+				},
+			},
+			modelName: "test-model-download",
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-workspace",
+					},
+					{
+						Name: "llm-d-routing-sidecar",
+					},
+				},
+			},
+			expectedEnvVars: []corev1.EnvVar{
+				{
+					Name: "HF_TOKEN",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: "hf-secret",
+							},
+							Key: "HF_TOKEN",
+						},
+					},
+				},
+			},
+			expectedInitContainer: 0,
+			expectError:           false,
+		},
 		"model puller - add init containers": {
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
@@ -1225,19 +1269,24 @@ func TestSetModelDownloadInfo(t *testing.T) {
 
 			// Check environment variables if expected
 			if len(tc.expectedEnvVars) > 0 {
+				// HF_TOKEN should only be on the main container (matching workspace name)
+				mainContainerName := tc.workspace.Name
 				for i, container := range tc.spec.Containers {
 					found := false
 					for _, env := range container.Env {
 						if env.Name == "HF_TOKEN" {
 							found = true
 							if !reflect.DeepEqual(env, tc.expectedEnvVars[0]) {
-								t.Errorf("container %d: HF_TOKEN env var mismatch: expected %+v, got %+v",
-									i, tc.expectedEnvVars[0], env)
+								t.Errorf("container %d (%s): HF_TOKEN env var mismatch: expected %+v, got %+v",
+									i, container.Name, tc.expectedEnvVars[0], env)
 							}
 						}
 					}
-					if !found {
-						t.Errorf("container %d: HF_TOKEN env var not found", i)
+					if container.Name == mainContainerName && !found {
+						t.Errorf("container %d (%s): HF_TOKEN env var not found on main container", i, container.Name)
+					}
+					if container.Name != mainContainerName && found {
+						t.Errorf("container %d (%s): HF_TOKEN should not be on non-main container", i, container.Name)
 					}
 				}
 			} else {

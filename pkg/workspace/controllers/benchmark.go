@@ -185,7 +185,15 @@ func reconcileBenchmarkResult(ctx context.Context, wObj *kaitov1beta1.Workspace)
 
 	pod, err := k8sclient.GetGlobalClientGoClient().CoreV1().Pods(wObj.Namespace).Get(ctx, podName, metav1.GetOptions{})
 	if err == nil && len(pod.Spec.Containers) > 1 {
-		logOpts.Container = wObj.Name
+		// Prefer a container named after the Workspace; fall back to the first container.
+		containerName := pod.Spec.Containers[0].Name
+		for _, c := range pod.Spec.Containers {
+			if c.Name == wObj.Name {
+				containerName = wObj.Name
+				break
+			}
+		}
+		logOpts.Container = containerName
 	}
 
 	req := k8sclient.GetGlobalClientGoClient().CoreV1().Pods(wObj.Namespace).GetLogs(podName, logOpts)

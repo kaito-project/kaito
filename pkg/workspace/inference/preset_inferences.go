@@ -333,7 +333,7 @@ func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace
 // workers to the standard multi-node health check.
 //
 // timeoutSeconds is set to 600 to prevent kubelet killing the process mid-benchmark.
-func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, distributed bool) *corev1.Probe {
+func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, distributed bool, vllmPort int32) *corev1.Probe {
 	const periodSeconds = int32(10)
 	const timeoutSeconds = int32(600) // covers benchmark duration + drain + buffer
 	failureThreshold := int32(math.Ceil(timeout.Seconds() / float64(periodSeconds)))
@@ -346,7 +346,7 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 			fmt.Sprintf("%s readiness", DefaultVLLMMultiNodeHealthCheckCommand),
 			map[string]string{
 				"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
-				"vllm-port":      strconv.FormatInt(int64(consts.PortInferenceServer), 10),
+				"vllm-port":      strconv.FormatInt(int64(vllmPort), 10),
 			},
 		)
 		cmd := fmt.Sprintf(
@@ -694,7 +694,12 @@ func SetBenchmarkConfig(distributed bool) generator.TypedManifestModifier[genera
 		if distributed {
 			wObj = ctx.Workspace
 		}
-		startupProbe := buildBenchmarkStartupProbe(readinessTimeout, wObj, distributed)
+		// When the routing sidecar is present, vLLM runs on the internal port.
+		vllmPort := consts.PortInferenceServer
+		if needsRoutingSidecar(ctx.Workspace) {
+			vllmPort = consts.PortInferenceServerInternal
+		}
+		startupProbe := buildBenchmarkStartupProbe(readinessTimeout, wObj, distributed, vllmPort)
 
 		for i := range spec.Containers {
 			if spec.Containers[i].Name == ctx.Workspace.Name {

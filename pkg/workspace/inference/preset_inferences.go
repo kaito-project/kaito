@@ -709,7 +709,9 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 }
 
 // applyInferenceRoleEnv sets KAITO_INFERENCE_ROLE env var on the first container
-// when the workspace has a valid inference-role label (prefill or decode).
+// (the main inference container) when the workspace has a valid inference-role
+// label (prefill or decode). Only the main container needs this env var;
+// sidecar containers do not use it.
 func applyInferenceRoleEnv(labels map[string]string, spec *corev1.PodSpec) {
 	if len(spec.Containers) == 0 {
 		return

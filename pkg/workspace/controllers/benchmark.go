@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -175,15 +176,19 @@ func extractTagPayload(line, tag string) string {
 func reconcileBenchmarkResult(ctx context.Context, wObj *kaitov1beta1.Workspace) (*kaitov1beta1.Performance, error) {
 	podName := wObj.Name + benchmarkPodIndexSuffix
 
-	// Always set Container to wObj.Name which matches the primary inference
-	// container name set by the workspace generator. This works for both
-	// single-container and multi-container (sidecar) pods, avoiding an
-	// extra Pod GET call.
+	// Only set Container when the pod has multiple containers (e.g., routing sidecar).
+	// For single-container pods, leaving it empty lets Kubernetes auto-select.
 	tailLines := benchmarkLogTailLines
-	req := k8sclient.GetGlobalClientGoClient().CoreV1().Pods(wObj.Namespace).GetLogs(podName, &corev1.PodLogOptions{
-		Container: wObj.Name,
+	logOpts := &corev1.PodLogOptions{
 		TailLines: &tailLines,
-	})
+	}
+
+	pod, err := k8sclient.GetGlobalClientGoClient().CoreV1().Pods(wObj.Namespace).Get(ctx, podName, metav1.GetOptions{})
+	if err == nil && len(pod.Spec.Containers) > 1 {
+		logOpts.Container = wObj.Name
+	}
+
+	req := k8sclient.GetGlobalClientGoClient().CoreV1().Pods(wObj.Namespace).GetLogs(podName, logOpts)
 	stream, err := req.Stream(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("streaming logs for pod %s/%s: %w", wObj.Namespace, podName, err)

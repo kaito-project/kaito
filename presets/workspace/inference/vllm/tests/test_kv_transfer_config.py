@@ -84,7 +84,7 @@ class TestSetKvTransferConfig:
     def test_nixl_not_overridden_by_offload(self):
         """When role is set AND offload enabled, NixlConnector should not be overwritten."""
         args = _make_args(kaito_kv_cache_cpu_memory_utilization=0.5)
-        with patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "decode"}):
+        with patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "decode"}, clear=True):
             set_kv_transfer_config_if_applicable(args)
         assert args.kv_transfer_config["kv_connector"] == "NixlConnector"
 

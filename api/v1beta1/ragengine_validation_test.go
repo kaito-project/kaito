@@ -301,6 +301,17 @@ func TestRAGEngineValidateGuardrails(t *testing.T) {
 			},
 		},
 		{
+			name: "enabled guardrails without configmap ref reports missing default policy clearly",
+			ragEngine: &RAGEngine{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-rag", Namespace: "default"},
+				Spec: &RAGEngineSpec{
+					Embedding:  &EmbeddingSpec{Local: &LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"}},
+					Guardrails: &GuardrailsSpec{Enabled: true},
+				},
+			},
+			wantErr: "kubectl get configmap ragengine-guardrails-policy-template -n kaito-system",
+		},
+		{
 			name: "missing guardrails policy file is rejected",
 			ragEngine: &RAGEngine{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-rag", Namespace: "default"},
@@ -316,6 +327,20 @@ func TestRAGEngineValidateGuardrails(t *testing.T) {
 				&v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "guardrails-policy", Namespace: "default"}, Data: map[string]string{"other.yaml": "action: passthrough"}},
 			},
 			wantErr: "guardrails.yaml in ConfigMap",
+		},
+		{
+			name: "missing explicit guardrails configmap reports configMapRef",
+			ragEngine: &RAGEngine{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-rag", Namespace: "default"},
+				Spec: &RAGEngineSpec{
+					Embedding: &EmbeddingSpec{Local: &LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"}},
+					Guardrails: &GuardrailsSpec{
+						Enabled:      true,
+						ConfigMapRef: &ConfigMapReference{Name: "missing-guardrails-policy"},
+					},
+				},
+			},
+			wantErr: "guardrails.configMapRef.name references ConfigMap \"missing-guardrails-policy\"",
 		},
 		{
 			name: "valid guardrails policy passes",

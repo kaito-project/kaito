@@ -1384,7 +1384,7 @@ func toParameterMap(in []string) map[string]string {
 	return ret
 }
 
-func TestInferenceRoleEnvInline(t *testing.T) {
+func TestApplyInferenceRoleEnv(t *testing.T) {
 	tests := []struct {
 		name          string
 		labels        map[string]string
@@ -1417,18 +1417,15 @@ func TestInferenceRoleEnvInline(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Simulate the inline logic from GenerateInferencePodSpec
-			var env []corev1.EnvVar
-			if role, ok := tc.labels[v1beta1.LabelInferenceRole]; ok &&
-				(role == consts.InferenceRolePrefill || role == consts.InferenceRoleDecode) {
-				env = append(env, corev1.EnvVar{
-					Name:  consts.InferenceRoleEnvName,
-					Value: role,
-				})
+			spec := &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{Name: "test-container"},
+				},
 			}
+			applyInferenceRoleEnv(tc.labels, spec)
 
 			found := false
-			for _, e := range env {
+			for _, e := range spec.Containers[0].Env {
 				if e.Name == consts.InferenceRoleEnvName {
 					found = true
 					if e.Value != tc.expectedValue {
@@ -1448,11 +1445,9 @@ func TestInferenceRoleEnvInline(t *testing.T) {
 
 func TestInjectRoutingSidecar(t *testing.T) {
 	tests := []struct {
-		name               string
-		labels             map[string]string
-		existingContainers []corev1.Container
-		multiNode          bool
-		expectSidecar      bool
+		name          string
+		labels        map[string]string
+		expectSidecar bool
 	}{
 		{
 			name:          "no label - no sidecar",
@@ -1468,18 +1463,6 @@ func TestInjectRoutingSidecar(t *testing.T) {
 			name:          "decode role - sidecar injected",
 			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
 			expectSidecar: true,
-		},
-		{
-			name:          "decode role - command with existing --port",
-			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
-			expectSidecar: true,
-		},
-		{
-			name:               "decode role - multi-node shell command",
-			labels:             map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
-			existingContainers: nil,
-			multiNode:          true,
-			expectSidecar:      true,
 		},
 	}
 
@@ -1500,7 +1483,6 @@ func TestInjectRoutingSidecar(t *testing.T) {
 						Ports: []corev1.ContainerPort{
 							{ContainerPort: int32(consts.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
 						},
-						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py --served-model-name test"},
 						ReadinessProbe: &corev1.Probe{
 							ProbeHandler: corev1.ProbeHandler{
 								HTTPGet: &corev1.HTTPGetAction{
@@ -1520,68 +1502,12 @@ func TestInjectRoutingSidecar(t *testing.T) {
 					},
 				},
 			}
-			// "with existing --port" case uses explicit port in command
-			if tc.name == "decode role - command with existing --port" {
-				spec.Containers[0].Command = []string{"/bin/sh", "-c",
-					"python3 /workspace/vllm/inference_api.py --port=5000 --served-model-name test"}
-			}
-			// Multi-node uses a shell if/else script wrapping inference_api.py
-			if tc.multiNode {
-				spec.Containers[0].Command = []string{"/bin/sh", "-c",
-					"if [ \"$RAY_HEAD\" = \"true\" ]; then ray start --head && python3 /workspace/vllm/inference_api.py --port=5000 --served-model-name test; else ray start && sleep infinity; fi"}
-			}
 
-			// When sidecar is needed, simulate what GenerateInferencePodSpec does:
-			// --port is set in ModelRunParams before GetInferenceCommand, so the
-			// generated command already contains --port=5001.
-			if tc.existingContainers != nil {
-				spec.Containers = append(spec.Containers, tc.existingContainers...)
-			}
+			// Call production code
 			shouldInject := needsRoutingSidecar(workspace)
 			if shouldInject {
-				// Simulate the command having --port=5001 from ModelRunParams
-				c := &spec.Containers[0]
-				if !strings.Contains(c.Command[len(c.Command)-1], "--port=") {
-					// No explicit --port in command: add --port 5001 (simulates ModelRunParams injection)
-					c.Command[len(c.Command)-1] += fmt.Sprintf(" --port %d", consts.PortInferenceServerInternal)
-				} else {
-					// Existing --port=5000: replace with 5001 (simulates ModelRunParams override)
-					for j, cmd := range c.Command {
-						c.Command[j] = strings.ReplaceAll(cmd, "--port=5000", fmt.Sprintf("--port=%d", consts.PortInferenceServerInternal))
-					}
-				}
-				c.Ports = []corev1.ContainerPort{{ContainerPort: consts.PortInferenceServerInternal}}
-				if c.ReadinessProbe != nil && c.ReadinessProbe.HTTPGet != nil && c.ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-					c.ReadinessProbe = c.ReadinessProbe.DeepCopy()
-					c.ReadinessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
-				}
-				if c.LivenessProbe != nil && c.LivenessProbe.HTTPGet != nil && c.LivenessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-					c.LivenessProbe = c.LivenessProbe.DeepCopy()
-					c.LivenessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
-				}
-				spec.Containers = append(spec.Containers, corev1.Container{
-					Name:  "llm-d-routing-sidecar",
-					Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
-					Args: []string{
-						fmt.Sprintf("--port=%d", consts.PortInferenceServer),
-						fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
-						"--secure-proxy=false",
-					},
-					Ports: []corev1.ContainerPort{
-						{ContainerPort: int32(consts.PortInferenceServer), Name: "sidecar", Protocol: corev1.ProtocolTCP},
-					},
-					Env: []corev1.EnvVar{
-						{
-							Name: "POD_IP",
-							ValueFrom: &corev1.EnvVarSource{
-								FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
-							},
-						},
-					},
-				})
+				injectRoutingSidecar(spec)
 			}
-
-			// Use spec directly (not ss)
 
 			sidecarCount := 0
 			for _, c := range spec.Containers {
@@ -1600,7 +1526,7 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				t.Errorf("found %d sidecar containers, expected at most 1", sidecarCount)
 			}
 
-			// Verify sidecar config for decode role (both newly injected and reconciled cases)
+			// Verify sidecar config for decode role
 			if tc.expectSidecar {
 				var sidecar *corev1.Container
 				for i, c := range spec.Containers {
@@ -1619,7 +1545,6 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != int32(consts.PortInferenceServer) {
 					t.Errorf("expected port %d, got %v", consts.PortInferenceServer, sidecar.Ports)
 				}
-				// Check sidecar args (--port and --vllm-port flags)
 				expectedArgs := []string{
 					fmt.Sprintf("--port=%d", consts.PortInferenceServer),
 					fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
@@ -1634,58 +1559,23 @@ func TestInjectRoutingSidecar(t *testing.T) {
 						}
 					}
 				}
-				// BACKEND_URL should NOT be present (sidecar uses flags, not env)
+				// BACKEND_URL should NOT be present
 				for _, env := range sidecar.Env {
 					if env.Name == "BACKEND_URL" {
-						t.Error("BACKEND_URL env should not be present on sidecar (uses --vllm-port flag instead)")
+						t.Error("BACKEND_URL env should not be present on sidecar")
 					}
 				}
-			}
 
-			// Verify vLLM port/probe/command rewrites for ALL decode cases (including sidecar-exists)
-			if tc.expectSidecar {
-				for _, c := range spec.Containers {
-					if c.Name == "llm-d-routing-sidecar" {
-						continue
+				// Verify probe ports were rewritten on the main container
+				main := spec.Containers[0]
+				if main.ReadinessProbe != nil && main.ReadinessProbe.HTTPGet != nil {
+					if main.ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+						t.Errorf("readiness probe still targets port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
 					}
-					for _, p := range c.Ports {
-						if p.ContainerPort == int32(consts.PortInferenceServer) {
-							t.Errorf("vLLM container still has port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
-						}
-					}
-					// Verify command has --port rewritten (if it existed) and old port is gone
-					for _, cmd := range c.Command {
-						if strings.Contains(cmd, "inference_api.py") {
-							if strings.Contains(cmd, fmt.Sprintf("--port=%d", consts.PortInferenceServer)) {
-								t.Errorf("command still has --port=%d, expected %d: %q", consts.PortInferenceServer, consts.PortInferenceServerInternal, cmd)
-							}
-							if strings.Contains(cmd, fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServer)) {
-								t.Errorf("command still has --vllm-port=%d: %q", consts.PortInferenceServer, cmd)
-							}
-						}
-					}
-					// Verify --port is set to internal port in the command
-					portInCmd := false
-					for _, cmd := range c.Command {
-						if strings.Contains(cmd, fmt.Sprintf("--port=%d", consts.PortInferenceServerInternal)) ||
-							strings.Contains(cmd, fmt.Sprintf("--port %d", consts.PortInferenceServerInternal)) {
-							portInCmd = true
-						}
-					}
-					if !portInCmd {
-						t.Errorf("expected --port %d in command, got: %v", consts.PortInferenceServerInternal, c.Command)
-					}
-					// Verify readiness probe port updated
-					if c.ReadinessProbe != nil && c.ReadinessProbe.HTTPGet != nil {
-						if c.ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-							t.Errorf("readiness probe still targets port %d", consts.PortInferenceServer)
-						}
-					}
-					// Verify liveness probe port updated
-					if c.LivenessProbe != nil && c.LivenessProbe.HTTPGet != nil {
-						if c.LivenessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-							t.Errorf("liveness probe still targets port %d", consts.PortInferenceServer)
-						}
+				}
+				if main.LivenessProbe != nil && main.LivenessProbe.HTTPGet != nil {
+					if main.LivenessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+						t.Errorf("liveness probe still targets port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
 					}
 				}
 			}

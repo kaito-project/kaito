@@ -523,54 +523,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			},
 		}
 
-		// Set KAITO_INFERENCE_ROLE env var for P/D disaggregated inference.
-		// inference_api.py uses this to configure kv_transfer_config (NixlConnector).
-		if role, ok := ctx.Workspace.Labels[v1beta1.LabelInferenceRole]; ok &&
-			(role == consts.InferenceRolePrefill || role == consts.InferenceRoleDecode) {
-			spec.Containers[0].Env = append(spec.Containers[0].Env, corev1.EnvVar{
-				Name:  consts.InferenceRoleEnvName,
-				Value: role,
-			})
-		}
+		applyInferenceRoleEnv(ctx.Workspace.Labels, spec)
 
 		if isSidecarNeeded {
-			// Rewrite probes to use the internal port
-			c := &spec.Containers[0]
-			rewriteProbePort := func(probe *corev1.Probe) {
-				if probe == nil {
-					return
-				}
-				if probe.HTTPGet != nil && probe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-					probe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
-				}
-			}
-			c.ReadinessProbe = c.ReadinessProbe.DeepCopy()
-			rewriteProbePort(c.ReadinessProbe)
-			c.LivenessProbe = c.LivenessProbe.DeepCopy()
-			rewriteProbePort(c.LivenessProbe)
-			c.StartupProbe = c.StartupProbe.DeepCopy()
-			rewriteProbePort(c.StartupProbe)
-
-			spec.Containers = append(spec.Containers, corev1.Container{
-				Name:  "llm-d-routing-sidecar",
-				Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
-				Args: []string{
-					fmt.Sprintf("--port=%d", consts.PortInferenceServer),
-					fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
-					"--secure-proxy=false",
-				},
-				Ports: []corev1.ContainerPort{
-					{ContainerPort: int32(consts.PortInferenceServer), Name: "sidecar", Protocol: corev1.ProtocolTCP},
-				},
-				Env: []corev1.EnvVar{
-					{
-						Name: "POD_IP",
-						ValueFrom: &corev1.EnvVarSource{
-							FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
-						},
-					},
-				},
-			})
+			injectRoutingSidecar(spec)
 		}
 
 		spec.Tolerations = defaultTolerations(ctx.Workspace)
@@ -750,6 +706,72 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	spec.Volumes = append(spec.Volumes, utils.DefaultModelWeightsVolume)
 	return nil
+}
+
+// applyInferenceRoleEnv sets KAITO_INFERENCE_ROLE env var on the first container
+// when the workspace has a valid inference-role label (prefill or decode).
+func applyInferenceRoleEnv(labels map[string]string, spec *corev1.PodSpec) {
+	if len(spec.Containers) == 0 {
+		return
+	}
+	role, ok := labels[v1beta1.LabelInferenceRole]
+	if !ok || (role != consts.InferenceRolePrefill && role != consts.InferenceRoleDecode) {
+		return
+	}
+	spec.Containers[0].Env = append(spec.Containers[0].Env, corev1.EnvVar{
+		Name:  consts.InferenceRoleEnvName,
+		Value: role,
+	})
+}
+
+// injectRoutingSidecar rewrites the first container's probes/ports to the internal port
+// and appends the llm-d routing sidecar container to the pod spec.
+func injectRoutingSidecar(spec *corev1.PodSpec) {
+	if len(spec.Containers) == 0 {
+		return
+	}
+	c := &spec.Containers[0]
+	rewriteProbePort := func(probe *corev1.Probe) {
+		if probe == nil {
+			return
+		}
+		if probe.HTTPGet != nil && probe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
+			probe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
+		}
+	}
+	if c.ReadinessProbe != nil {
+		c.ReadinessProbe = c.ReadinessProbe.DeepCopy()
+		rewriteProbePort(c.ReadinessProbe)
+	}
+	if c.LivenessProbe != nil {
+		c.LivenessProbe = c.LivenessProbe.DeepCopy()
+		rewriteProbePort(c.LivenessProbe)
+	}
+	if c.StartupProbe != nil {
+		c.StartupProbe = c.StartupProbe.DeepCopy()
+		rewriteProbePort(c.StartupProbe)
+	}
+
+	spec.Containers = append(spec.Containers, corev1.Container{
+		Name:  "llm-d-routing-sidecar",
+		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+		Args: []string{
+			fmt.Sprintf("--port=%d", consts.PortInferenceServer),
+			fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
+			"--secure-proxy=false",
+		},
+		Ports: []corev1.ContainerPort{
+			{ContainerPort: int32(consts.PortInferenceServer), Name: "sidecar", Protocol: corev1.ProtocolTCP},
+		},
+		Env: []corev1.EnvVar{
+			{
+				Name: "POD_IP",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
+				},
+			},
+		},
+	})
 }
 
 // needsRoutingSidecar returns true if the workspace requires the llm-d routing sidecar.

@@ -10,6 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import builtins
 import os
 import sys
@@ -27,15 +28,15 @@ from ragengine.guardrails.output_guardrails import (
     DEFAULT_BLOCK_MESSAGE,
     OutputGuardrails,
 )
-from ragengine.metrics.prometheus_metrics import (
-    output_guardrails_actions_total,
-    output_guardrails_policy_load_total,
-    output_guardrails_scanner_build_total,
-)
 from ragengine.guardrails.scanner_schemas import (
     BanSubstringsConfig,
     ParsedScannerConfig,
     RegexConfig,
+)
+from ragengine.metrics.prometheus_metrics import (
+    output_guardrails_actions_total,
+    output_guardrails_policy_load_total,
+    output_guardrails_scanner_build_total,
 )
 from ragengine.models import ChatCompletionResponse
 

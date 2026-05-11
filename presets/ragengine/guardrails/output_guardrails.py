@@ -13,8 +13,8 @@
 
 import logging
 import re
-from hashlib import sha256
 from dataclasses import dataclass, field
+from hashlib import sha256
 from typing import Any
 
 import yaml

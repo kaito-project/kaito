@@ -240,6 +240,16 @@ func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 			expectedServed: "served-model-name=my-inferenceset",
 		},
 		{
+			name:          "MRI workspace uses model name over InferenceSet name",
+			vllmModelName: "phi-4-mini-instruct",
+			workspaceLabels: map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: "phi-4-decode",
+				"multiroleinference.kaito.sh/created-by":   "phi-4",
+			},
+			expectedServed:    "served-model-name=phi-4-mini-instruct",
+			notExpectedServed: "served-model-name=phi-4-decode",
+		},
+		{
 			name:          "InferenceSet label with empty value falls back to VLLM.ModelName",
 			vllmModelName: "default-model",
 			workspaceLabels: map[string]string{

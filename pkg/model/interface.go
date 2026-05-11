@@ -344,12 +344,11 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 }
 
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
-	// If the Workspace was created by an InferenceSet, expose the InferenceSet
-	// name as the served model name so all replicas behind the InferenceSet
-	// share a single, stable model identifier in the OpenAI-compatible API.
-	// Standalone Workspaces keep the model's default served name.
-	if isName, ok := rc.WorkspaceMetadata.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; ok && isName != "" {
-		p.VLLM.ModelRunParams["served-model-name"] = isName
+	// For InferenceSet-managed workspaces (both MRI and standalone), use the model name
+	// as served-model-name so all roles share a single model identifier for EPP routing.
+	// p.VLLM.ModelName is derived from the workspace's inference.preset.name field.
+	if _, ok := rc.WorkspaceMetadata.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; ok && p.VLLM.ModelName != "" {
+		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	} else if p.VLLM.ModelName != "" {
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}

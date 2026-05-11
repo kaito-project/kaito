@@ -279,6 +279,14 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			if workspaceLabels == nil {
 				workspaceLabels = make(map[string]string)
 			}
+			// Also propagate select labels from the InferenceSet's own metadata,
+			// in case template.metadata.labels was pruned by the API server.
+			if role, ok := iObj.Labels[kaitov1alpha1.LabelInferenceRole]; ok {
+				workspaceLabels[kaitov1alpha1.LabelInferenceRole] = role
+			}
+			if mriParent, ok := iObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; ok {
+				workspaceLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mriParent
+			}
 			workspaceLabels[consts.WorkspaceCreatedByInferenceSetLabel] = iObj.Name
 			workspaceObj.Labels = workspaceLabels
 
@@ -306,6 +314,43 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			if err := c.Client.Create(ctx, workspaceObj); err != nil {
 				klog.ErrorS(err, "failed to create workspace", "workspace", workspaceObj.Name)
 				return reconcile.Result{}, err
+			}
+		}
+	}
+
+	// Reconcile labels on existing workspaces to match template labels and InferenceSet metadata labels.
+	// This ensures label changes (e.g., adding kaito.sh/inference-role) propagate
+	// to workspaces that were created before the label was set.
+	desiredLabels := make(map[string]string)
+	for k, v := range iObj.Spec.Template.Labels {
+		desiredLabels[k] = v
+	}
+	// Propagate inference-role from InferenceSet metadata (reliable even if template labels are pruned).
+	if role, ok := iObj.Labels[kaitov1alpha1.LabelInferenceRole]; ok {
+		desiredLabels[kaitov1alpha1.LabelInferenceRole] = role
+	}
+	if mriParent, ok := iObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; ok {
+		desiredLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mriParent
+	}
+	if len(desiredLabels) > 0 {
+		for i := range wsList.Items {
+			ws := &wsList.Items[i]
+			needsUpdate := false
+			if ws.Labels == nil {
+				ws.Labels = make(map[string]string)
+			}
+			for k, v := range desiredLabels {
+				if ws.Labels[k] != v {
+					ws.Labels[k] = v
+					needsUpdate = true
+				}
+			}
+			if needsUpdate {
+				klog.InfoS("Reconciling workspace labels", "workspace", klog.KObj(ws))
+				if err := c.Client.Update(ctx, ws); err != nil {
+					klog.ErrorS(err, "failed to update workspace labels", "workspace", klog.KObj(ws))
+					return ctrl.Result{}, err
+				}
 			}
 		}
 	}
@@ -415,6 +460,19 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 	if iObj == nil {
 		return fmt.Errorf("InferenceSet object is nil")
 	}
+
+	// Skip GWIE for child InferenceSets managed by MultiRoleInference.
+	// The MRI controller creates a shared InferencePool + EPP for all child InferenceSets.
+	// Use OwnerReferences (controller-managed) instead of labels (easily user-modifiable)
+	// to prevent accidental GWIE bypass on standalone InferenceSets.
+	for _, owner := range iObj.OwnerReferences {
+		if owner.Controller != nil && *owner.Controller &&
+			owner.Kind == "MultiRoleInference" &&
+			owner.APIVersion == kaitov1alpha1.GroupVersion.String() {
+			return nil
+		}
+	}
+
 	runtimeName := kaitov1alpha1.GetInferenceSetRuntimeName(iObj)
 	isPresetInference := iObj.Spec.Template.Inference.Preset != nil
 

@@ -14,6 +14,7 @@
 package e2e
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"math/rand"
@@ -43,6 +44,43 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 	BeforeEach(func() {
 		loadTestEnvVars()
 		loadModelVersions()
+	})
+
+	// MRI and InferenceSet tests run first so they are not interrupted by
+	// slow/flaky GPU-provisioning timeouts in the preset workspace tests below.
+	It("should create a MultiRoleInference with prefill and decode roles successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		mriObj := createGemma3MultiRoleInference()
+		defer cleanupResourcesForMultiRoleInference(mriObj)
+
+		validateMultiRoleInferenceChildInferenceSets(mriObj)
+
+		// Validate each child InferenceSet's status, replicas, benchmark, and GWIE resources
+		childInferenceSets := getMultiRoleInferenceChildInferenceSets(mriObj)
+		for i := range childInferenceSets {
+			is := &childInferenceSets[i]
+			validateInferenceSetStatus(is)
+			validateInferenceSetReplicas(is, *mriObj.Spec.Roles[0].Replicas)
+			validateInferenceSetBenchmarkCompleted(is)
+		}
+
+		// Validate MRI-owned InferencePool and GWIE resources (shared across all roles)
+		validateMultiRoleInferenceGWIEResources(mriObj)
+		validateMultiRoleInferenceStatus(mriObj)
+
+		// Validate chat completions endpoint via a decode pod
+		validateMultiRoleInferenceChatCompletions(mriObj)
+	})
+
+	It("should create a Gemma 3 InferenceSet with preset public mode successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		numOfReplicas := 1
+		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
+		defer cleanupResourcesForInferenceSet(inferenceSetObj)
+		time.Sleep(120 * time.Second)
+
+		validateInferenceSetStatus(inferenceSetObj)
+		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
+		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
 	})
 
 	It("should create a qwen3-coder-30b-a3b-instruct two-node workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
@@ -491,7 +529,7 @@ func cleanupResourcesForMultiRoleInference(mriObj *kaitov1alpha1.MultiRoleInfere
 					return client.IgnoreNotFound(err)
 				}
 				return utils.TestingCluster.KubeClient.Delete(ctx, mriObj, &client.DeleteOptions{})
-			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete MultiRoleInference")
+			}, 5*time.Minute, utils.PollInterval).Should(Succeed(), "Failed to delete MultiRoleInference")
 		} else {
 			GinkgoWriter.Printf("test failed, keep %s\n", mriObj.Name)
 		}
@@ -559,6 +597,130 @@ func validateMultiRoleInferenceStatus(mriObj *kaitov1alpha1.MultiRoleInference) 
 			return prefillReady && decodeReady
 		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(),
 			"Expected PrefillReady and DecodeReady conditions on MultiRoleInference %s", mriObj.Name)
+	})
+}
+
+// getMultiRoleInferenceChildInferenceSets returns the child InferenceSets for an MRI.
+func getMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRoleInference) []kaitov1alpha1.InferenceSet {
+	var children []kaitov1alpha1.InferenceSet
+	Eventually(func() bool {
+		isList := &kaitov1alpha1.InferenceSetList{}
+		err := utils.TestingCluster.KubeClient.List(ctx, isList,
+			client.InNamespace(mriObj.Namespace),
+			client.MatchingLabels{kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name})
+		if err != nil {
+			return false
+		}
+		if len(isList.Items) != len(mriObj.Spec.Roles) {
+			return false
+		}
+		children = isList.Items
+		return true
+	}, 20*time.Minute, utils.PollInterval).Should(BeTrue(),
+		"Expected %d child InferenceSets for MultiRoleInference %s", len(mriObj.Spec.Roles), mriObj.Name)
+	return children
+}
+
+// validateMultiRoleInferenceGWIEResources validates the MRI-owned InferencePool
+// Flux resources (OCIRepository + HelmRelease) are ready.
+func validateMultiRoleInferenceGWIEResources(mriObj *kaitov1alpha1.MultiRoleInference) {
+	poolName := kaitoutils.InferencePoolName(mriObj.Name)
+
+	By("Checking MRI-owned Flux OCIRepository is Ready", func() {
+		Eventually(func() bool {
+			ociRepository := &sourcev1.OCIRepository{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: mriObj.Namespace,
+				Name:      poolName,
+			}, ociRepository, &client.GetOptions{})
+			if err != nil {
+				return false
+			}
+			for _, cond := range ociRepository.Status.Conditions {
+				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
+					return true
+				}
+			}
+			return false
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"Failed to validate MRI Flux OCIRepository is Ready for %s", mriObj.Name)
+	})
+
+	By("Checking MRI-owned Flux HelmRelease is Ready", func() {
+		Eventually(func() bool {
+			helmRelease := &helmv2.HelmRelease{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: mriObj.Namespace,
+				Name:      poolName,
+			}, helmRelease, &client.GetOptions{})
+			if err != nil {
+				return false
+			}
+			for _, cond := range helmRelease.Status.Conditions {
+				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
+					return true
+				}
+			}
+			return false
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"Failed to validate MRI Flux HelmRelease is Ready for %s", mriObj.Name)
+	})
+}
+
+// validateMultiRoleInferenceChatCompletions validates the /v1/chat/completions
+// endpoint by exec-ing curl into a decode pod.
+func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleInference) {
+	modelName := getModelName(mriObj.Spec.Model.Name)
+
+	By("Validating /v1/chat/completions via decode pod", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred(), "Failed to create core client")
+
+		k8sConfig, err := utils.GetK8sConfig()
+		Expect(err).NotTo(HaveOccurred(), "Failed to get k8s config")
+
+		Eventually(func() bool {
+			// Find the decode Workspace to get the service name and pod name
+			wsList := &kaitov1beta1.WorkspaceList{}
+			err = utils.TestingCluster.KubeClient.List(ctx, wsList,
+				client.InNamespace(namespaceName),
+				client.MatchingLabels{
+					kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name,
+					kaitov1alpha1.LabelInferenceRole:            string(kaitov1alpha1.MultiRoleInferenceRoleDecode),
+				})
+			if err != nil || len(wsList.Items) == 0 {
+				GinkgoWriter.Printf("Failed to find decode Workspace: %v\n", err)
+				return false
+			}
+			decodeWS := &wsList.Items[0]
+
+			// StatefulSet pod name is <workspace.Name>-0
+			podName := decodeWS.Name + "-0"
+			// Decode workspace service name matches workspace name, exposed on port 80
+			svcEndpoint := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/chat/completions", decodeWS.Name, mriObj.Namespace)
+
+			expectedCompletion := `"object":"chat.completion`
+			execOption := corev1.PodExecOptions{
+				Command: []string{"bash", "-c", fmt.Sprintf(
+					`curl -s --max-time 30 -X POST -H "Content-Type: application/json" `+
+						`-d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' `+
+						`%s | tee /dev/stderr | grep -q '%s'`,
+					modelName, svcEndpoint, expectedCompletion)},
+				Container: decodeWS.Name,
+				Stdout:    true,
+				Stderr:    true,
+			}
+
+			execCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
+			stdout, err := utils.ExecSync(execCtx, k8sConfig, coreClient, mriObj.Namespace, podName, execOption)
+			if err != nil {
+				GinkgoWriter.Printf("validate chat completions fails: %v, stdout: %s\n", err, stdout)
+				return false
+			}
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"Failed to validate /v1/chat/completions endpoint on MRI decode pod")
 	})
 }
 
@@ -846,6 +1008,7 @@ func logBenchmarkPhaseElapsed(coreClient *kubernetes.Clientset, wsName, wsNamesp
 	podName := wsName + "-0"
 	req := coreClient.CoreV1().Pods(wsNamespace).GetLogs(podName, &corev1.PodLogOptions{
 		TailLines: &tailLines,
+		Container: wsName, // specify container name to handle multi-container pods (e.g., with routing sidecar)
 	})
 	stream, err := req.Stream(ctx)
 	if err != nil {

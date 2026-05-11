@@ -84,7 +84,9 @@ class OutputGuardrails:
             logger.warning("output_guardrails_policy_missing path=%s", policy_path)
             return self
         except Exception:
-            output_guardrails_policy_load_total.labels(policy_status="load_failed").inc()
+            output_guardrails_policy_load_total.labels(
+                policy_status="load_failed"
+            ).inc()
             logger.exception(
                 "output_guardrails_policy_load_failed path=%s", policy_path
             )

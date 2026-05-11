@@ -108,7 +108,7 @@ func (g *AzureGPUProvisioner) DisableDriftRemediation(ctx context.Context, works
 func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
 	// List nodes once and derive both readyNodes (for NodeClaim check) and
 	// readyCount with correct instance type (for node readiness check).
-	nodeList, err := resources.ListNodes(ctx, g.nodeClaimManager.Client, ws.Resource.LabelSelector.MatchLabels)
+	nodeList, err := resources.ListNodes(ctx, g.nodeClaimManager.Client, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
 	if err != nil {
 		return false, false, fmt.Errorf("failed to list nodes: %w", err)
 	}
@@ -180,7 +180,7 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 		Reason: "workspaceResourceStatusNotReady", Message: "node claim or node status condition not ready",
 	}
 
-	nodeList, err := resources.ListNodes(ctx, g.nodeClaimManager.Client, ws.Resource.LabelSelector.MatchLabels)
+	nodeList, err := resources.ListNodes(ctx, g.nodeClaimManager.Client, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list nodes: %w", err)
 	}

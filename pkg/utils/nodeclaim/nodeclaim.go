@@ -147,8 +147,8 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		nameLabel:            name,
 		namespaceLabel:       namespace,
 	}
-	if labelSelector != nil && len(labelSelector.MatchLabels) != 0 {
-		nodeClaimLabels = lo.Assign(nodeClaimLabels, labelSelector.MatchLabels)
+	if sanitized := kaitov1beta1.SanitizedMatchLabels(labelSelector); len(sanitized) != 0 {
+		nodeClaimLabels = lo.Assign(nodeClaimLabels, sanitized)
 	}
 
 	nodeClaimAnnotations := map[string]string{

@@ -45,8 +45,9 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisio
 
 	var affinity *corev1.Affinity
 	if ragEngineObj.Spec.Compute != nil && ragEngineObj.Spec.Compute.LabelSelector != nil {
-		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ragEngineObj.Spec.Compute.LabelSelector.MatchLabels))
-		for key, value := range ragEngineObj.Spec.Compute.LabelSelector.MatchLabels {
+		selectorLabels := kaitov1beta1.SanitizedMatchLabels(ragEngineObj.Spec.Compute.LabelSelector)
+		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(selectorLabels))
+		for key, value := range selectorLabels {
 			nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
 				Key:      key,
 				Operator: corev1.NodeSelectorOpIn,

@@ -243,7 +243,7 @@ func countCoveredNodes(ctx context.Context, c client.Client, ws *kaitov1beta1.Wo
 	}
 
 	// Count ready nodes (all types).
-	nodeList, err := resources.ListNodes(ctx, c, ws.Resource.LabelSelector.MatchLabels)
+	nodeList, err := resources.ListNodes(ctx, c, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
 	if err != nil {
 		return 0, 0, fmt.Errorf("listing nodes: %w", err)
 	}

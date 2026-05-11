@@ -191,6 +191,20 @@ func updateModelCatalog(repos []string, dryRun bool, token, catalogPath string) 
 			continue
 		}
 
+		// Infer missing architectures from base model on HuggingFace.
+		if len(newEntry.Architectures) == 0 && len(newEntry.BaseModel) > 0 {
+			for _, bm := range newEntry.BaseModel {
+				baseEntry, err := generator.FetchCatalogEntry(bm, token)
+				if err != nil {
+					continue
+				}
+				if len(baseEntry.Architectures) > 0 {
+					newEntry.Architectures = baseEntry.Architectures
+					break
+				}
+			}
+		}
+
 		idx, exists := existingByRepo[strings.ToLower(repo)]
 		if !exists {
 			diff := formatDiff(nil, newEntry)

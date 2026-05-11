@@ -27,6 +27,11 @@ from ragengine.guardrails.output_guardrails import (
     DEFAULT_BLOCK_MESSAGE,
     OutputGuardrails,
 )
+from ragengine.metrics.prometheus_metrics import (
+    output_guardrails_actions_total,
+    output_guardrails_policy_load_total,
+    output_guardrails_scanner_build_total,
+)
 from ragengine.guardrails.scanner_schemas import (
     BanSubstringsConfig,
     ParsedScannerConfig,
@@ -109,6 +114,10 @@ def _patch_scan_output(monkeypatch, fn):
     monkeypatch.setattr(output_guardrails_module, "scan_output", fn)
 
 
+def _counter_value(metric, **labels) -> float:
+    return metric.labels(**labels)._value.get()
+
+
 @pytest.fixture
 def fake_llm_guard_scanners(monkeypatch):
     """Replace llm_guard's Regex / BanSubstrings with simple recording stubs.
@@ -182,10 +191,41 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
     assert guardrails.enabled is True
     assert guardrails.action_on_hit == "block"
     assert guardrails.block_message == "blocked-by-policy"
+    assert guardrails.policy_hash
+    assert guardrails.policy_path.endswith("guardrails.yaml")
     assert guardrails.scanner_configs == [
         _regex_cfg(patterns=[r"https?://\S+"]),
         _ban_subs_cfg(substrings=["secret"]),
     ]
+
+
+def test_from_config_records_policy_load_metrics(tmp_path, monkeypatch):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        scanners:
+          - type: regex
+            patterns:
+              - a
+        """,
+    )
+
+    before = _counter_value(
+        output_guardrails_policy_load_total,
+        policy_status="success",
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.policy_hash
+    assert (
+        _counter_value(
+            output_guardrails_policy_load_total,
+            policy_status="success",
+        )
+        == before + 1
+    )
 
 
 def test_from_config_keeps_empty_scanners_when_policy_path_missing(monkeypatch):
@@ -499,8 +539,35 @@ def test_build_scanners_skips_configs_whose_build_raises(monkeypatch):
         scanner_configs=[_regex_cfg(patterns=["a"]), _regex_cfg(patterns=["b"])],
     )
 
+    success_before = _counter_value(
+        output_guardrails_scanner_build_total,
+        type="regex",
+        status="success",
+    )
+    failure_before = _counter_value(
+        output_guardrails_scanner_build_total,
+        type="regex",
+        status="failure",
+    )
+
     # First config raised -> skipped; second was built successfully.
     assert guardrails._build_scanners() == [sentinel]
+    assert (
+        _counter_value(
+            output_guardrails_scanner_build_total,
+            type="regex",
+            status="success",
+        )
+        == success_before + 1
+    )
+    assert (
+        _counter_value(
+            output_guardrails_scanner_build_total,
+            type="regex",
+            status="failure",
+        )
+        == failure_before + 1
+    )
 
 
 def test_regex_config_build_uses_value_lookup_for_fullmatch(
@@ -612,8 +679,11 @@ def test_guard_response_applies_action(
         scanner_configs=[_regex_cfg(patterns=[r"\S+"])],
     )
 
+    before = _counter_value(output_guardrails_actions_total, action=action)
+
     out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
     assert out.choices[0].message.content == expected_content
+    assert _counter_value(output_guardrails_actions_total, action=action) == before + 1
 
 
 # ---------------------------------------------------------------------------

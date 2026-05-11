@@ -13,6 +13,7 @@
 
 import logging
 import re
+from hashlib import sha256
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -23,6 +24,14 @@ from ragengine import config
 from ragengine.guardrails.scanner_schemas import (
     SCANNER_REGISTRY,
     ParsedScannerConfig,
+)
+from ragengine.metrics.prometheus_metrics import (
+    STATUS_FAILURE,
+    STATUS_SUCCESS,
+    output_guardrails_actions_total,
+    output_guardrails_policy_info,
+    output_guardrails_policy_load_total,
+    output_guardrails_scanner_build_total,
 )
 from ragengine.models import ChatCompletionResponse, get_message_content
 
@@ -43,6 +52,8 @@ class OutputGuardrails:
     action_on_hit: str = DEFAULT_ACTION_ON_HIT
     block_message: str = DEFAULT_BLOCK_MESSAGE
     scanner_configs: list[ParsedScannerConfig] = field(default_factory=list)
+    policy_hash: str = ""
+    policy_path: str = ""
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
@@ -64,20 +75,33 @@ class OutputGuardrails:
             return self
 
         try:
-            with open(policy_path, encoding="utf-8") as policy_file:
-                policy = yaml.safe_load(policy_file) or {}
+            with open(policy_path, "rb") as policy_file:
+                policy_bytes = policy_file.read()
+            policy_hash = sha256(policy_bytes).hexdigest()
+            policy = yaml.safe_load(policy_bytes.decode("utf-8")) or {}
         except FileNotFoundError:
+            output_guardrails_policy_load_total.labels(policy_status="missing").inc()
             logger.warning("output_guardrails_policy_missing path=%s", policy_path)
             return self
         except Exception:
+            output_guardrails_policy_load_total.labels(policy_status="load_failed").inc()
             logger.exception(
                 "output_guardrails_policy_load_failed path=%s", policy_path
             )
             return self
 
         if not isinstance(policy, dict):
+            output_guardrails_policy_load_total.labels(policy_status="invalid").inc()
             logger.warning("output_guardrails_policy_invalid path=%s", policy_path)
             return self
+
+        output_guardrails_policy_load_total.labels(policy_status="success").inc()
+        output_guardrails_policy_info.info(
+            {
+                "path": policy_path,
+                "sha256": policy_hash,
+            }
+        )
 
         scanner_configs = list(self.scanner_configs)
         if "scanners" in policy:
@@ -94,6 +118,8 @@ class OutputGuardrails:
                 policy.get("blockMessage"), self.block_message
             ),
             scanner_configs=scanner_configs,
+            policy_hash=policy_hash,
+            policy_path=policy_path,
         )
 
     def guard_response(
@@ -134,11 +160,13 @@ class OutputGuardrails:
                 else:
                     message["content"] = sanitized_output
 
+                output_guardrails_actions_total.labels(action=self.action_on_hit).inc()
                 logger.info(
-                    "output_guardrails_triggered action=%s response_id=%s scanners=%s",
+                    "output_guardrails_triggered action=%s response_id=%s scanners=%s policy_hash=%s",
                     self.action_on_hit,
                     response.id,
                     triggered_scanners,
+                    self.policy_hash,
                 )
 
             return ChatCompletionResponse(**response_data)
@@ -159,10 +187,18 @@ class OutputGuardrails:
         for parsed in self.scanner_configs:
             try:
                 scanners.append(parsed.config.build(self.action_on_hit))
+                output_guardrails_scanner_build_total.labels(
+                    type=parsed.type, status=STATUS_SUCCESS
+                ).inc()
             except Exception:
+                output_guardrails_scanner_build_total.labels(
+                    type=parsed.type, status=STATUS_FAILURE
+                ).inc()
                 logger.exception(
-                    "output_guardrails_policy_scanner_build_failed type=%s",
+                    "output_guardrails_policy_scanner_build_failed type=%s policy_hash=%s path=%s",
                     parsed.type,
+                    self.policy_hash,
+                    self.policy_path,
                 )
         return scanners
 

@@ -15,10 +15,16 @@ package multiroleinference
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,6 +38,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -64,6 +71,9 @@ func NewMultiRoleInferenceReconciler(client client.Client, scheme *runtime.Schem
 // +kubebuilder:rbac:groups=kaito.sh,resources=multiroleinferences/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kaito.sh,resources=multiroleinferences/finalizers,verbs=update
 // +kubebuilder:rbac:groups=kaito.sh,resources=inferencesets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=ocirepositories,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=helm.toolkit.fluxcd.io,resources=helmreleases,verbs=get;list;watch;create;update;patch;delete
 
 func (r *MultiRoleInferenceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("multiroleinference", req.NamespacedName)
@@ -125,7 +135,8 @@ func (r *MultiRoleInferenceReconciler) deleteMultiRoleInference(ctx context.Cont
 	return r.garbageCollectMultiRoleInference(ctx, log, mri)
 }
 
-// garbageCollectMultiRoleInference deletes all child InferenceSets and removes the finalizer.
+// garbageCollectMultiRoleInference deletes all child InferenceSets, cleans up auto-generated
+// ConfigMaps, and removes the finalizer. OCIRepository and HelmRelease are GC'd via ownerReferences.
 func (r *MultiRoleInferenceReconciler) garbageCollectMultiRoleInference(ctx context.Context, log logr.Logger, mri *kaitov1alpha1.MultiRoleInference) (ctrl.Result, error) {
 	// List all child InferenceSets owned by this MRI.
 	isList := &kaitov1alpha1.InferenceSetList{}
@@ -154,6 +165,21 @@ func (r *MultiRoleInferenceReconciler) garbageCollectMultiRoleInference(ctx cont
 	if len(isList.Items) > 0 {
 		klog.InfoS("Waiting for child InferenceSets to be fully deleted", "remaining", len(isList.Items), "multiroleinference", klog.KObj(mri))
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+	}
+
+	// Clean up auto-generated EPP plugins ConfigMap (only if we created it).
+	if mri.Spec.EPPPluginsConfig == "" {
+		cmName := eppPluginsConfigMapName(mri.Name)
+		cm := &corev1.ConfigMap{}
+		if err := r.Get(ctx, client.ObjectKey{Name: cmName, Namespace: mri.Namespace}, cm); err == nil {
+			klog.InfoS("Deleting auto-generated EPP plugins ConfigMap", "configmap", cmName, "multiroleinference", klog.KObj(mri))
+			if err := r.Delete(ctx, cm); err != nil && !apierrors.IsNotFound(err) {
+				klog.ErrorS(err, "failed to delete EPP plugins ConfigMap", "configmap", cmName)
+				return ctrl.Result{}, err
+			}
+		} else if !apierrors.IsNotFound(err) {
+			return ctrl.Result{}, err
+		}
 	}
 
 	// Remove the finalizer.
@@ -202,6 +228,42 @@ func (r *MultiRoleInferenceReconciler) addOrUpdateMultiRoleInference(ctx context
 		return ctrl.Result{}, err
 	}
 
+	// Reconcile EPP plugins ConfigMap (Step 5).
+	if err := r.reconcileEPPPluginsConfigMap(ctx, mri); err != nil {
+		log.Error(err, "Failed to reconcile EPP plugins ConfigMap")
+		r.Recorder.Eventf(mri, "Warning", "ReconcileFailed",
+			"Failed to reconcile EPP plugins ConfigMap: %v", err)
+		meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
+			Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeReady),
+			Status:             metav1.ConditionFalse,
+			Reason:             "ReconcileFailed",
+			Message:            fmt.Sprintf("Failed to reconcile EPP plugins ConfigMap: %v", err),
+			ObservedGeneration: mri.Generation,
+		})
+		if statusErr := r.Status().Update(ctx, mri); statusErr != nil {
+			log.Error(statusErr, "Failed to update status")
+		}
+		return ctrl.Result{}, err
+	}
+
+	// Reconcile InferencePool via Flux OCIRepository + HelmRelease (Step 4).
+	if err := r.reconcileInferencePool(ctx, mri); err != nil {
+		log.Error(err, "Failed to reconcile InferencePool")
+		r.Recorder.Eventf(mri, "Warning", "ReconcileFailed",
+			"Failed to reconcile InferencePool: %v", err)
+		meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
+			Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeReady),
+			Status:             metav1.ConditionFalse,
+			Reason:             "ReconcileFailed",
+			Message:            fmt.Sprintf("Failed to reconcile InferencePool: %v", err),
+			ObservedGeneration: mri.Generation,
+		})
+		if statusErr := r.Status().Update(ctx, mri); statusErr != nil {
+			log.Error(statusErr, "Failed to update status")
+		}
+		return ctrl.Result{}, err
+	}
+
 	// Aggregate status from child InferenceSets.
 	if err := r.aggregateStatus(ctx, log, mri); err != nil {
 		log.Error(err, "Failed to aggregate status")
@@ -237,7 +299,7 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 
 	// TODO: include inferencePoolReady once InferencePool creation is implemented (Step 4).
 	// For now, InferencePool is always not ready.
-	inferencePoolReady := false
+	inferencePoolReady := r.isInferencePoolReady(ctx, mri)
 	allReady := prefillReady && decodeReady && inferencePoolReady
 
 	// Set prefill condition.
@@ -284,13 +346,20 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 		ObservedGeneration: mri.Generation,
 	})
 
-	// TODO: Check InferencePool readiness (Step 4 — InferencePool not yet created by this controller).
-	// For now, mark InferencePoolReady as False with reason "NotImplemented".
+	// Check InferencePool readiness.
+	condStatus = metav1.ConditionFalse
+	reason = "InferencePoolNotReady"
+	message = "InferencePool is not ready"
+	if inferencePoolReady {
+		condStatus = metav1.ConditionTrue
+		reason = "InferencePoolReady"
+		message = "InferencePool is ready"
+	}
 	meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
 		Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeInferencePoolReady),
-		Status:             metav1.ConditionFalse,
-		Reason:             "NotImplemented",
-		Message:            "InferencePool creation is not yet implemented",
+		Status:             condStatus,
+		Reason:             reason,
+		Message:            message,
 		ObservedGeneration: mri.Generation,
 	})
 
@@ -454,11 +523,242 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 	return nil
 }
 
+const (
+	// eppPluginsConfigMapKey is the key used in the ConfigMap data for EPP plugins config.
+	eppPluginsConfigMapKey = "plugins-config.yaml"
+
+	// defaultPDPluginsConfig is the default EPP plugins YAML for P/D disaggregated serving.
+	defaultPDPluginsConfig = `plugins:
+  preSchedule:
+    - name: disagg-profile-handler
+  filter:
+    - name: by-label-selector
+      args:
+        key: "kaito.sh/inference-role"
+        value: "decode"
+  scorer:
+    - name: prefix-cache-scorer
+      weight: 80
+    - name: load-aware-scorer
+      weight: 20
+  postSchedule:
+    - name: disagg-headers-handler
+  prefillFilter:
+    - name: by-label-selector
+      args:
+        key: "kaito.sh/inference-role"
+        value: "prefill"
+  prefillScorer:
+    - name: prefix-cache-scorer
+      weight: 50
+    - name: load-aware-scorer
+      weight: 50
+`
+	// portRoutingSidecar is the port the routing sidecar listens on for decode pods.
+	portRoutingSidecar = int32(8080)
+)
+
+// eppPluginsConfigMapName returns the name of the auto-generated EPP plugins ConfigMap.
+func eppPluginsConfigMapName(mriName string) string {
+	return fmt.Sprintf("%s-epp-plugins", mriName)
+}
+
+// inferencePoolName returns the name of the InferencePool resources for the MRI.
+func inferencePoolName(mriName string) string {
+	return fmt.Sprintf("%s-inferencepool", mriName)
+}
+
+// reconcileEPPPluginsConfigMap creates or updates the default P/D EPP plugins ConfigMap
+// when spec.eppPluginsConfig is not set. If the user has provided a custom ConfigMap name,
+// this is a no-op.
+func (r *MultiRoleInferenceReconciler) reconcileEPPPluginsConfigMap(
+	ctx context.Context,
+	mri *kaitov1alpha1.MultiRoleInference,
+) error {
+	// If the user provided a custom EPP plugins ConfigMap, skip auto-generation.
+	if mri.Spec.EPPPluginsConfig != "" {
+		return nil
+	}
+
+	cmName := eppPluginsConfigMapName(mri.Name)
+	desired := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cmName,
+			Namespace: mri.Namespace,
+		},
+	}
+
+	result, err := controllerutil.CreateOrUpdate(ctx, r.Client, desired, func() error {
+		if err := controllerutil.SetControllerReference(mri, desired, r.Scheme); err != nil {
+			return err
+		}
+		if desired.Labels == nil {
+			desired.Labels = make(map[string]string)
+		}
+		desired.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mri.Name
+
+		desired.Data = map[string]string{
+			eppPluginsConfigMapKey: defaultPDPluginsConfig,
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("CreateOrUpdate EPP plugins ConfigMap %s: %w", cmName, err)
+	}
+
+	klog.V(2).InfoS("Reconciled EPP plugins ConfigMap",
+		"name", cmName,
+		"result", result,
+	)
+	return nil
+}
+
+// reconcileInferencePool creates or updates the Flux OCIRepository and HelmRelease
+// that render an InferencePool CR + EPP deployment, owned by the MRI.
+func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
+	ctx context.Context,
+	mri *kaitov1alpha1.MultiRoleInference,
+) error {
+	poolName := inferencePoolName(mri.Name)
+
+	// --- OCIRepository ---
+	ociRepo := &sourcev1.OCIRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      poolName,
+			Namespace: mri.Namespace,
+		},
+	}
+
+	ociResult, err := controllerutil.CreateOrUpdate(ctx, r.Client, ociRepo, func() error {
+		if err := controllerutil.SetControllerReference(mri, ociRepo, r.Scheme); err != nil {
+			return err
+		}
+		ociRepo.Spec = sourcev1.OCIRepositorySpec{
+			URL: consts.InferencePoolChartURL,
+			Reference: &sourcev1.OCIRepositoryRef{
+				Tag: consts.InferencePoolChartVersion,
+			},
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("CreateOrUpdate OCIRepository %s: %w", poolName, err)
+	}
+	klog.V(2).InfoS("Reconciled InferencePool OCIRepository",
+		"name", poolName,
+		"result", ociResult,
+	)
+
+	// --- HelmRelease ---
+	// Build matchLabels: MRI's labelSelector matchLabels + pod-index "0".
+	matchLabels := make(map[string]string)
+	if mri.Spec.LabelSelector != nil && mri.Spec.LabelSelector.MatchLabels != nil {
+		for k, v := range mri.Spec.LabelSelector.MatchLabels {
+			matchLabels[k] = v
+		}
+	}
+	matchLabels[appsv1.PodIndexLabel] = "0"
+
+	// Build EPP extension values with llm-d image and P/D plugins config.
+	eppValues := map[string]any{
+		"image": map[string]string{
+			"hub":        consts.EPPImageHub,
+			"name":       consts.EPPImageName,
+			"tag":        consts.EPPImageTag,
+			"pullPolicy": string(corev1.PullIfNotPresent),
+		},
+	}
+
+	// Load plugins config: either from user-provided ConfigMap or auto-generated default.
+	pluginsYAML := defaultPDPluginsConfig
+	if mri.Spec.EPPPluginsConfig != "" {
+		cm := &corev1.ConfigMap{}
+		if err := r.Get(ctx, client.ObjectKey{Name: mri.Spec.EPPPluginsConfig, Namespace: mri.Namespace}, cm); err != nil {
+			return fmt.Errorf("get user-provided EPP plugins ConfigMap %s: %w", mri.Spec.EPPPluginsConfig, err)
+		}
+		if data, ok := cm.Data[eppPluginsConfigMapKey]; ok {
+			pluginsYAML = data
+		} else {
+			return fmt.Errorf("EPP plugins ConfigMap %s missing key %s", mri.Spec.EPPPluginsConfig, eppPluginsConfigMapKey)
+		}
+	}
+	eppValues["pluginsConfigFile"] = eppPluginsConfigMapKey
+	eppValues["pluginsCustomConfig"] = map[string]string{
+		eppPluginsConfigMapKey: pluginsYAML,
+	}
+
+	helmValues := map[string]any{
+		"inferenceExtension": eppValues,
+		"inferencePool": map[string]any{
+			"targetPorts": []map[string]any{{
+				"number": portRoutingSidecar,
+			}},
+			"modelServers": map[string]any{
+				"matchLabels": matchLabels,
+			},
+		},
+	}
+	rawHelmValues, err := json.Marshal(helmValues)
+	if err != nil {
+		return fmt.Errorf("marshal HelmRelease values: %w", err)
+	}
+
+	helmRelease := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      poolName,
+			Namespace: mri.Namespace,
+		},
+	}
+
+	helmResult, err := controllerutil.CreateOrUpdate(ctx, r.Client, helmRelease, func() error {
+		if err := controllerutil.SetControllerReference(mri, helmRelease, r.Scheme); err != nil {
+			return err
+		}
+		helmRelease.Spec = helmv2.HelmReleaseSpec{
+			ChartRef: &helmv2.CrossNamespaceSourceReference{
+				Kind:      sourcev1.OCIRepositoryKind,
+				Namespace: mri.Namespace,
+				Name:      poolName,
+			},
+			Values: &apiextensionsv1.JSON{
+				Raw: rawHelmValues,
+			},
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("CreateOrUpdate HelmRelease %s: %w", poolName, err)
+	}
+	klog.V(2).InfoS("Reconciled InferencePool HelmRelease",
+		"name", poolName,
+		"result", helmResult,
+	)
+
+	return nil
+}
+
+// isInferencePoolReady checks if the InferencePool HelmRelease is ready.
+func (r *MultiRoleInferenceReconciler) isInferencePoolReady(ctx context.Context, mri *kaitov1alpha1.MultiRoleInference) bool {
+	poolName := inferencePoolName(mri.Name)
+	hr := &helmv2.HelmRelease{}
+	if err := r.Get(ctx, client.ObjectKey{Name: poolName, Namespace: mri.Namespace}, hr); err != nil {
+		return false
+	}
+	for _, cond := range hr.Status.Conditions {
+		if cond.Type == "Ready" && cond.Status == metav1.ConditionTrue {
+			return true
+		}
+	}
+	return false
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *MultiRoleInferenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1alpha1.MultiRoleInference{}).
 		Owns(&kaitov1alpha1.InferenceSet{}).
+		Owns(&sourcev1.OCIRepository{}).
+		Owns(&helmv2.HelmRelease{}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 3}).
 		Complete(r)
 }

@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
@@ -525,38 +526,74 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 
 const (
 	// eppPluginsConfigMapKey is the key used in the ConfigMap data for EPP plugins config.
-	eppPluginsConfigMapKey = "plugins-config.yaml"
+	eppPluginsConfigMapKey = "config.yaml"
 
-	// defaultPDPluginsConfig is the default EPP plugins YAML for P/D disaggregated serving.
-	defaultPDPluginsConfig = `plugins:
-  preSchedule:
-    - name: disagg-profile-handler
-  filter:
-    - name: by-label-selector
-      args:
-        key: "kaito.sh/inference-role"
-        value: "decode"
-  scorer:
-    - name: prefix-cache-scorer
-      weight: 80
-    - name: load-aware-scorer
-      weight: 20
-  postSchedule:
-    - name: disagg-headers-handler
-  prefillFilter:
-    - name: by-label-selector
-      args:
-        key: "kaito.sh/inference-role"
-        value: "prefill"
-  prefillScorer:
-    - name: prefix-cache-scorer
-      weight: 50
-    - name: load-aware-scorer
-      weight: 50
-`
 	// portRoutingSidecar is the port the routing sidecar listens on for decode pods.
 	portRoutingSidecar = int32(8080)
 )
+
+// defaultPDPluginsConfigTemplate is the default EPP plugins YAML template for P/D disaggregated serving.
+// Uses the llm-d EndpointPickerConfig format with schedulingProfiles for prefill and decode.
+// The %%MODEL_NAME%% placeholder is replaced with the actual model name from the MRI spec.
+const defaultPDPluginsConfigTemplate = `apiVersion: inference.networking.k8s.io/v1
+kind: EndpointPickerConfig
+featureGates:
+  - prepareDataPlugins
+plugins:
+  - type: disagg-headers-handler
+  - type: prefix-based-pd-decider
+    parameters:
+      nonCachedTokens: 4
+  - type: disagg-profile-handler
+    parameters:
+      deciders:
+        prefill: prefix-based-pd-decider
+  - type: precise-prefix-cache-scorer
+    parameters:
+      tokenProcessorConfig:
+        blockSize: 64
+      indexerConfig:
+        kvBlockIndexConfig:
+          enableMetrics: true
+        tokenizersPoolConfig:
+          modelName: %%MODEL_NAME%%
+  - type: by-label-selector
+    name: prefill-filter
+    parameters:
+      matchLabels:
+        inference-role: prefill
+  - type: by-label-selector
+    name: decode-filter
+    parameters:
+      matchLabels:
+        inference-role: decode
+  - type: load-aware-scorer
+    parameters:
+      threshold: 10
+  - type: max-score-picker
+schedulingProfiles:
+  - name: prefill
+    plugins:
+      - pluginRef: prefill-filter
+      - pluginRef: precise-prefix-cache-scorer
+        weight: 50
+      - pluginRef: load-aware-scorer
+        weight: 10
+      - pluginRef: max-score-picker
+  - name: decode
+    plugins:
+      - pluginRef: decode-filter
+      - pluginRef: precise-prefix-cache-scorer
+        weight: 50
+      - pluginRef: load-aware-scorer
+        weight: 10
+      - pluginRef: max-score-picker
+`
+
+// defaultPDPluginsConfig returns the default P/D plugins config with the model name substituted.
+func defaultPDPluginsConfig(modelName string) string {
+	return strings.ReplaceAll(defaultPDPluginsConfigTemplate, "%%MODEL_NAME%%", modelName)
+}
 
 // eppPluginsConfigMapName returns the name of the auto-generated EPP plugins ConfigMap.
 func eppPluginsConfigMapName(mriName string) string {
@@ -598,7 +635,7 @@ func (r *MultiRoleInferenceReconciler) reconcileEPPPluginsConfigMap(
 		desired.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mri.Name
 
 		desired.Data = map[string]string{
-			eppPluginsConfigMapKey: defaultPDPluginsConfig,
+			eppPluginsConfigMapKey: defaultPDPluginsConfig(mri.Spec.Model.Name),
 		}
 		return nil
 	})
@@ -670,7 +707,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	}
 
 	// Load plugins config: either from user-provided ConfigMap or auto-generated default.
-	pluginsYAML := defaultPDPluginsConfig
+	pluginsYAML := defaultPDPluginsConfig(mri.Spec.Model.Name)
 	if mri.Spec.EPPPluginsConfig != "" {
 		cm := &corev1.ConfigMap{}
 		if err := r.Get(ctx, client.ObjectKey{Name: mri.Spec.EPPPluginsConfig, Namespace: mri.Namespace}, cm); err != nil {

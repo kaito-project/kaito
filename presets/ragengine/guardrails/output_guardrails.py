@@ -72,15 +72,17 @@ class OutputGuardrails:
             return self
 
         scanner_configs = list(self.scanner_configs)
+        action_on_hit = _normalize_action(policy.get("action"), self.action_on_hit)
         if "scanners" in policy:
             scanner_configs = _parse_policy_scanner_configs(
                 policy.get("scanners"),
                 policy_path,
+                action_on_hit=action_on_hit,
             )
 
         return OutputGuardrails(
             enabled=self.enabled,
-            action_on_hit=_normalize_action(policy.get("action"), self.action_on_hit),
+            action_on_hit=action_on_hit,
             block_message=_coerce_string(
                 policy.get("blockMessage"), self.block_message
             ),
@@ -166,7 +168,7 @@ class OutputGuardrails:
 
 
 def _parse_policy_scanner_configs(
-    value: Any, policy_path: str
+    value: Any, policy_path: str, *, action_on_hit: str = DEFAULT_ACTION_ON_HIT
 ) -> list[ParsedScannerConfig]:
     if value is None:
         return []
@@ -187,6 +189,15 @@ def _parse_policy_scanner_configs(
         if schema_cls is None:
             logger.warning(
                 "output_guardrails_policy_unknown_scanner type=%s", scanner_type
+            )
+            continue
+        if action_on_hit == "redact" and not getattr(
+            schema_cls, "supports_redact", True
+        ):
+            logger.warning(
+                "output_guardrails_policy_incompatible_scanner_action type=%s action=%s",
+                scanner_type,
+                action_on_hit,
             )
             continue
 

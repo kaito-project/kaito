@@ -148,10 +148,13 @@ func configGuardrailsPolicyVolume(cmName string) (corev1.Volume, corev1.VolumeMo
 					LocalObjectReference: corev1.LocalObjectReference{
 						Name: cmName,
 					},
-					Items: []corev1.KeyToPath{{
-						Key:  manifests.GuardrailsPolicyFileName,
-						Path: manifests.GuardrailsPolicyFileName,
-					}},
+					// The ConfigMap data key and the mounted filename are intentionally the same.
+					Items: []corev1.KeyToPath{
+						{
+							Key:  manifests.GuardrailsPolicyFileName,
+							Path: manifests.GuardrailsPolicyFileName,
+						},
+					},
 				},
 			},
 		}, corev1.VolumeMount{

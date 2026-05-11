@@ -377,10 +377,14 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["enable-lora"] = ""
 	}
 	if p.DownloadAtRuntime {
-		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
-		p.VLLM.ModelRunParams["model"] = repoId
-		if revision != "" {
-			p.VLLM.ModelRunParams["code-revision"] = revision
+		// Only set --model from Version URL if not already set by the generator
+		// (e.g., GGUF models set --model to repo_id:quant_type in FinalizeParams).
+		if _, hasModel := p.VLLM.ModelRunParams["model"]; !hasModel {
+			repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
+			p.VLLM.ModelRunParams["model"] = repoId
+			if revision != "" {
+				p.VLLM.ModelRunParams["code-revision"] = revision
+			}
 		}
 		p.VLLM.ModelRunParams["download-dir"] = utils.DefaultWeightsVolumePath
 	}

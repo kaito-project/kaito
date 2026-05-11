@@ -42,15 +42,16 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 		return nil
 	}
 
+	registryKey := strings.ToLower(hfModelCardID)
 	model := &vLLMCompatibleModel{
 		model:              param.Metadata,
 		generatedRunParams: param.VLLM.ModelRunParams,
 	}
 	r := &plugin.Registration{
-		Name:     hfModelCardID,
+		Name:     registryKey,
 		Instance: model,
 	}
-	klog.InfoS("Registering VLLM-compatible model", "model", hfModelCardID, "metadata", param.Metadata)
+	klog.InfoS("Registering VLLM-compatible model", "model", registryKey, "metadata", param.Metadata)
 	plugin.KaitoModelRegister.Register(r)
 	return model
 }
@@ -60,13 +61,14 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 // Kubernetes Secret lookups; the caller is responsible for obtaining the token beforehand.
 // Pass an empty string for token when working with public models that require no authentication.
 func GetModelByNameWithToken(ctx context.Context, modelName, token string) (model.Model, error) {
-	modelName = strings.ToLower(modelName)
+	lookupKey := strings.ToLower(modelName)
 	// Redirect legacy preset names (e.g. "phi-4") to their full HuggingFace
 	// model ID (e.g. "microsoft/phi-4").
-	if hfName, ok := plugin.LegacyBuiltinToCatalog[modelName]; ok {
+	if hfName, ok := plugin.LegacyBuiltinToCatalog[lookupKey]; ok {
 		modelName = hfName
+		lookupKey = strings.ToLower(hfName)
 	}
-	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
+	if m := plugin.KaitoModelRegister.MustGet(lookupKey); m != nil {
 		return m, nil
 	}
 	if strings.Contains(modelName, "/") {
@@ -81,13 +83,14 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 // then generates a preset for the corresponding HuggingFace model.
 // Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
 func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
-	modelName = strings.ToLower(modelName)
+	lookupKey := strings.ToLower(modelName)
 	// Redirect legacy preset names (e.g. "phi-4") to their full HuggingFace
 	// model ID (e.g. "microsoft/phi-4").
-	if hfName, ok := plugin.LegacyBuiltinToCatalog[modelName]; ok {
+	if hfName, ok := plugin.LegacyBuiltinToCatalog[lookupKey]; ok {
 		modelName = hfName
+		lookupKey = strings.ToLower(hfName)
 	}
-	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
+	if m := plugin.KaitoModelRegister.MustGet(lookupKey); m != nil {
 		return m, nil
 	}
 	if !strings.Contains(modelName, "/") {

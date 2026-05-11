@@ -39,7 +39,6 @@ models:
 - name: deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
   description: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
   license: mit
-  pipelineTag: text-generation
   modelFileSize: 27.51Gi
   architectures:
   - Qwen2ForCausalLM
@@ -738,3 +737,18 @@ models:
   configFormat: mistral
   tokenizerMode: mistral
   quantMethod: fp8
+- name: Qwen/Qwen3-8B-GGUF:Q4_K_M
+  description: https://huggingface.co/Qwen/Qwen3-8B-GGUF
+  license: apache-2.0
+  pipelineTag: text-generation
+  baseModel:
+  - Qwen/Qwen3-8B
+  modelFileSize: 4.68Gi
+  architectures:
+  - Qwen3ForCausalLM
+  modelTokenLimit: 40960
+  hiddenSize: 4096
+  numHiddenLayers: 36
+  numAttentionHeads: 32
+  numKeyValueHeads: 8
+  loadFormat: gguf

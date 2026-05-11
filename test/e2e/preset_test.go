@@ -57,6 +57,7 @@ const (
 	PresetMinistral33BInstructModel  = "mistralai/ministral-3-3b-instruct-2512"
 	PresetQwen3_8BAWQModel           = "Qwen/Qwen3-8B-AWQ"
 	PresetQwen3_5_2BModel            = "Qwen/Qwen3.5-2B"
+	PresetQwen3_8BGGUFModel          = "Qwen/Qwen3-8B-GGUF:Q4_K_M"
 	WorkspaceHashAnnotation          = "workspace.kaito.io/hash"
 	// WorkspaceRevisionAnnotation represents the revision number of the workload managed by the workspace
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"
@@ -1370,6 +1371,11 @@ func validateInferenceConfig(workspaceObj *kaitov1beta1.Workspace) {
 
 // getModelName: extract the model name from the preset name, e.g., "meta-llama/Llama-3-8B-Instruct" -> "llama-3-8b-instruct"
 func getModelName(presetName string) string {
+	// Strip GGUF quant suffix (e.g. ":Q4_K_M") before extracting the model name,
+	// matching how the generator computes the served-model-name.
+	if idx := strings.Index(presetName, ":"); idx != -1 {
+		presetName = presetName[:idx]
+	}
 	nameParts := strings.Split(strings.ToLower(presetName), "/")
 	return strings.ToLower(nameParts[len(nameParts)-1])
 }

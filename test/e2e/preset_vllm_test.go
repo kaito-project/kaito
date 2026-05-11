@@ -458,6 +458,29 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
+
+	It("should create a qwen3-8b-gguf workspace with GGUF quantization successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createQwen3_8BGGUFWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
+	})
 })
 
 func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
@@ -917,6 +940,20 @@ func validateInferenceSetNodePools(inferenceSetObj *kaitov1alpha1.InferenceSet, 
 
 	// Verify isolation between child workspaces
 	utils.ValidateNodePoolIsolation(ctx, workspaces)
+}
+
+func createQwen3_8BGGUFWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Qwen3-8B-GGUF preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-qwen3-8b-gguf-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-8b-gguf-vllm"},
+			}, nil, PresetQwen3_8BGGUFModel, nil, nil, nil, "", "")
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
 }
 
 func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1alpha1.InferenceSet) {

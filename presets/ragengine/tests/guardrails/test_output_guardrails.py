@@ -661,7 +661,7 @@ def test_guard_response_applies_action(
         enabled=True,
         action_on_hit=action,
         block_message=block_message,
-            scanner_configs=[_regex_cfg(patterns=[r"\S+"], action_on_hit=action)],
+        scanner_configs=[_regex_cfg(patterns=[r"\S+"], action_on_hit=action)],
     )
 
     out = guardrails.guard_response(_make_response("dirty"), {"messages": []})

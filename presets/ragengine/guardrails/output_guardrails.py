@@ -181,9 +181,7 @@ class OutputGuardrails:
         for parsed in self.scanner_configs:
             try:
                 scanner_action_on_hit = parsed.action_on_hit or self.action_on_hit
-                scanners.append(
-                    (parsed, parsed.config.build(scanner_action_on_hit))
-                )
+                scanners.append((parsed, parsed.config.build(scanner_action_on_hit)))
             except Exception:
                 logger.exception(
                     "output_guardrails_policy_scanner_build_failed type=%s",

@@ -71,6 +71,16 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 	podNameForIndex0 := fmt.Sprintf("%s-0", workspaceObj.Name)
 	selector["statefulset.kubernetes.io/pod-name"] = podNameForIndex0
 
+	// When the routing sidecar is present (decode role + vLLM), route
+	// external traffic through the sidecar port so that all requests
+	// pass through the routing layer. Probes and monitoring still hit
+	// vLLM directly on PortInferenceServer.
+	httpTargetPort := consts.PortInferenceServer
+	role, hasRole := workspaceObj.Labels[kaitov1beta1.LabelInferenceRole]
+	if hasRole && role == consts.InferenceRoleDecode && kaitov1beta1.GetWorkspaceRuntimeName(workspaceObj) == pkgmodel.RuntimeNameVLLM {
+		httpTargetPort = consts.PortRoutingSidecar
+	}
+
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      workspaceObj.Name,
@@ -87,7 +97,7 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 					Name:       "http",
 					Protocol:   corev1.ProtocolTCP,
 					Port:       80,
-					TargetPort: intstr.FromInt32(consts.PortInferenceServer),
+					TargetPort: intstr.FromInt32(httpTargetPort),
 				},
 				{
 					Name:       "ray",
@@ -397,7 +407,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 		},
 		"inferencePool": map[string]any{
 			"targetPorts": []map[string]any{{
-				"number": consts.PortInferenceServer,
+				"number": consts.PortRoutingSidecar,
 			}},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,

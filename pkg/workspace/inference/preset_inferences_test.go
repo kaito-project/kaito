@@ -1550,12 +1550,12 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				if sidecar.Image != expectedImage {
 					t.Errorf("expected image %q, got %q", expectedImage, sidecar.Image)
 				}
-				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != int32(consts.PortInferenceServer) {
-					t.Errorf("expected port %d, got %v", consts.PortInferenceServer, sidecar.Ports)
+				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != consts.PortRoutingSidecar {
+					t.Errorf("expected port %d, got %v", consts.PortRoutingSidecar, sidecar.Ports)
 				}
 				expectedArgs := []string{
-					fmt.Sprintf("--port=%d", consts.PortInferenceServer),
-					fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
+					fmt.Sprintf("--port=%d", consts.PortRoutingSidecar),
+					fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServer),
 					"--secure-proxy=false",
 				}
 				if len(sidecar.Args) != len(expectedArgs) {
@@ -1574,21 +1574,26 @@ func TestInjectRoutingSidecar(t *testing.T) {
 					}
 				}
 
-				// Verify containerPorts and probe ports were rewritten on the main container
+				// With the new sidecar approach, vLLM keeps its default port (5000)
+				// and probes continue to target vLLM directly — no rewriting needed.
 				main := spec.Containers[0]
+				hasDefaultPort := false
 				for _, p := range main.Ports {
 					if p.ContainerPort == int32(consts.PortInferenceServer) {
-						t.Errorf("main container still has containerPort %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
+						hasDefaultPort = true
 					}
 				}
+				if !hasDefaultPort {
+					t.Errorf("main container should keep containerPort %d", consts.PortInferenceServer)
+				}
 				if main.ReadinessProbe != nil && main.ReadinessProbe.HTTPGet != nil {
-					if main.ReadinessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-						t.Errorf("readiness probe still targets port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
+					if main.ReadinessProbe.HTTPGet.Port.IntValue() != int(consts.PortInferenceServer) {
+						t.Errorf("readiness probe should target port %d", consts.PortInferenceServer)
 					}
 				}
 				if main.LivenessProbe != nil && main.LivenessProbe.HTTPGet != nil {
-					if main.LivenessProbe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-						t.Errorf("liveness probe still targets port %d, expected %d", consts.PortInferenceServer, consts.PortInferenceServerInternal)
+					if main.LivenessProbe.HTTPGet.Port.IntValue() != int(consts.PortInferenceServer) {
+						t.Errorf("liveness probe should target port %d", consts.PortInferenceServer)
 					}
 				}
 			}

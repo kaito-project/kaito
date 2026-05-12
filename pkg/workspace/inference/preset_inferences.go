@@ -259,8 +259,7 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 }
 
 // getDistributedInferenceProbe returns a container probe configuration for the distributed inference workload.
-// vllmPort specifies the port vLLM is listening on (may differ from the public port when a routing sidecar is present).
-func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, vllmPort int32, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32) *corev1.Probe {
+func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32) *corev1.Probe {
 	args := map[string]string{
 		"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
 	}
@@ -268,7 +267,7 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	case probeTypeLiveness:
 		args["ray-port"] = strconv.Itoa(pkgmodel.PortRayCluster)
 	case probeTypeReadiness:
-		args["vllm-port"] = strconv.FormatInt(int64(vllmPort), 10)
+		args["vllm-port"] = strconv.FormatInt(int64(consts.PortInferenceServer), 10)
 	}
 
 	// for distributed inference, we cannot use the default http probe since only the leader pod
@@ -313,11 +312,11 @@ func buildStartupProbe(timeout time.Duration) *corev1.Probe {
 	}
 }
 
-func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, vllmPort int32) *corev1.Probe {
+func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace) *corev1.Probe {
 	const periodSeconds = int32(10)
 	const timeoutSeconds = int32(1)
 	failureThreshold := int32(math.Ceil(timeout.Seconds() / float64(periodSeconds)))
-	return getDistributedInferenceProbe(probeTypeReadiness, wObj, vllmPort, 0, periodSeconds, timeoutSeconds, failureThreshold)
+	return getDistributedInferenceProbe(probeTypeReadiness, wObj, 0, periodSeconds, timeoutSeconds, failureThreshold)
 }
 
 // buildBenchmarkStartupProbe returns an exec startup probe that runs
@@ -333,7 +332,7 @@ func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace
 // workers to the standard multi-node health check.
 //
 // timeoutSeconds is set to 600 to prevent kubelet killing the process mid-benchmark.
-func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, distributed bool, vllmPort int32) *corev1.Probe {
+func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, distributed bool) *corev1.Probe {
 	const periodSeconds = int32(10)
 	const timeoutSeconds = int32(600) // covers benchmark duration + drain + buffer
 	failureThreshold := int32(math.Ceil(timeout.Seconds() / float64(periodSeconds)))
@@ -346,7 +345,7 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 			fmt.Sprintf("%s readiness", DefaultVLLMMultiNodeHealthCheckCommand),
 			map[string]string{
 				"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
-				"vllm-port":      strconv.FormatInt(int64(vllmPort), 10),
+				"vllm-port":      strconv.FormatInt(int64(consts.PortInferenceServer), 10),
 			},
 		)
 		cmd := fmt.Sprintf(
@@ -454,15 +453,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			}
 		}
 
-		// When the routing sidecar is needed, vLLM must use the internal port
-		// to avoid conflicting with the sidecar on the public port.
+		// When the routing sidecar is needed, it will be injected after the
+		// main container is created. vLLM keeps its default port (5000).
 		isSidecarNeeded := needsRoutingSidecar(ctx.Workspace)
-		if isSidecarNeeded {
-			if inferenceParam.VLLM.ModelRunParams == nil {
-				inferenceParam.VLLM.ModelRunParams = make(map[string]string)
-			}
-			inferenceParam.VLLM.ModelRunParams["port"] = strconv.FormatInt(int64(consts.PortInferenceServerInternal), 10)
-		}
 
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
@@ -503,19 +496,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
-		// Determine container port based on whether the routing sidecar is needed.
-		inferencePort := containerPorts
-		if isSidecarNeeded {
-			inferencePort = []corev1.ContainerPort{{ContainerPort: consts.PortInferenceServerInternal}}
-		}
-
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
 				Image:          GetBaseImageName(),
 				Command:        commands,
 				Resources:      resourceReq,
-				Ports:          inferencePort,
+				Ports:          containerPorts,
 				StartupProbe:   buildStartupProbe(readinessTimeout),
 				LivenessProbe:  defaultLivenessProbe,
 				ReadinessProbe: defaultReadinessProbe,
@@ -654,12 +641,7 @@ func SetBenchmarkConfig(distributed bool) generator.TypedManifestModifier[genera
 		if distributed {
 			wObj = ctx.Workspace
 		}
-		// When the routing sidecar is present, vLLM runs on the internal port.
-		vllmPort := consts.PortInferenceServer
-		if needsRoutingSidecar(ctx.Workspace) {
-			vllmPort = consts.PortInferenceServerInternal
-		}
-		startupProbe := buildBenchmarkStartupProbe(readinessTimeout, wObj, distributed, vllmPort)
+		startupProbe := buildBenchmarkStartupProbe(readinessTimeout, wObj, distributed)
 
 		for i := range spec.Containers {
 			if spec.Containers[i].Name == ctx.Workspace.Name {
@@ -677,16 +659,10 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 		readinessTimeout = defaultStartupProbeTimeout
 	}
 
-	// When the routing sidecar is present, vLLM runs on the internal port.
-	vllmPort := consts.PortInferenceServer
-	if needsRoutingSidecar(ctx.Workspace) {
-		vllmPort = consts.PortInferenceServerInternal
-	}
-
 	// 60 seconds initial delay for liveness probe to allow workers to join the cluster
-	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, vllmPort, 60, 10, 5, 1)
-	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, vllmPort, 0, 10, 1, 1)
-	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace, vllmPort)
+	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5, 1)
+	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1)
+	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace)
 	envVar := corev1.EnvVar{
 		Name: "POD_INDEX",
 		ValueFrom: &corev1.EnvVarSource{
@@ -732,55 +708,25 @@ func applyInferenceRoleEnv(labels map[string]string, containerName string, spec 
 	}
 }
 
-// injectRoutingSidecar rewrites the first container's containerPorts and probes
-// from the public inference port to the internal port, then appends the llm-d
-// routing sidecar container to the pod spec.
+// injectRoutingSidecar appends the llm-d routing sidecar container to the pod
+// spec. The sidecar listens on PortRoutingSidecar (5001) and proxies to the
+// main vLLM container which keeps its default PortInferenceServer (5000).
+// No port or probe rewriting is needed on the main container.
 func injectRoutingSidecar(spec *corev1.PodSpec) {
 	if len(spec.Containers) == 0 {
 		return
-	}
-	c := &spec.Containers[0]
-
-	// Rewrite containerPorts: public port → internal port so there is no
-	// conflict with the sidecar that will listen on the public port.
-	for i := range c.Ports {
-		if c.Ports[i].ContainerPort == int32(consts.PortInferenceServer) {
-			c.Ports[i].ContainerPort = consts.PortInferenceServerInternal
-		}
-	}
-
-	// Rewrite probe ports.
-	rewriteProbePort := func(probe *corev1.Probe) {
-		if probe == nil {
-			return
-		}
-		if probe.HTTPGet != nil && probe.HTTPGet.Port.IntValue() == int(consts.PortInferenceServer) {
-			probe.HTTPGet.Port = intstr.FromInt32(consts.PortInferenceServerInternal)
-		}
-	}
-	if c.ReadinessProbe != nil {
-		c.ReadinessProbe = c.ReadinessProbe.DeepCopy()
-		rewriteProbePort(c.ReadinessProbe)
-	}
-	if c.LivenessProbe != nil {
-		c.LivenessProbe = c.LivenessProbe.DeepCopy()
-		rewriteProbePort(c.LivenessProbe)
-	}
-	if c.StartupProbe != nil {
-		c.StartupProbe = c.StartupProbe.DeepCopy()
-		rewriteProbePort(c.StartupProbe)
 	}
 
 	spec.Containers = append(spec.Containers, corev1.Container{
 		Name:  "llm-d-routing-sidecar",
 		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
 		Args: []string{
-			fmt.Sprintf("--port=%d", consts.PortInferenceServer),
-			fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServerInternal),
+			fmt.Sprintf("--port=%d", consts.PortRoutingSidecar),
+			fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServer),
 			"--secure-proxy=false",
 		},
 		Ports: []corev1.ContainerPort{
-			{ContainerPort: int32(consts.PortInferenceServer), Name: "sidecar", Protocol: corev1.ProtocolTCP},
+			{ContainerPort: consts.PortRoutingSidecar, Name: "sidecar", Protocol: corev1.ProtocolTCP},
 		},
 		Env: []corev1.EnvVar{
 			{

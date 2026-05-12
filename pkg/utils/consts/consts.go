@@ -114,7 +114,11 @@ const (
 	RoutingSidecarTag   = "v0.7.1"
 
 	// When the routing sidecar is present, vLLM moves to this internal port.
-	PortInferenceServerInternal = int32(5001)
+	// PortRoutingSidecar is the port the routing sidecar listens on.
+	// When the sidecar is present, the Service targetPort points here
+	// instead of PortInferenceServer so all external traffic flows
+	// through the routing layer. vLLM keeps its default port (5000).
+	PortRoutingSidecar = int32(5001)
 
 	// Inference role constants for P/D disaggregated serving.
 	InferenceRoleEnvName = "KAITO_INFERENCE_ROLE"

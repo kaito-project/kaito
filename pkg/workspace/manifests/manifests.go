@@ -33,6 +33,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -387,13 +388,23 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1alpha1.Inference
 // For decode-role InferenceSets with vLLM runtime, traffic goes through the
 // routing sidecar on PortRoutingSidecar. For all other cases, traffic goes
 // directly to the inference server on PortInferenceServer.
+// Runtime detection mirrors v1beta1.GetWorkspaceRuntimeName: when the vLLM
+// feature gate is enabled (default), the runtime defaults to vLLM unless
+// explicitly overridden by the kaito.sh/runtime annotation.
 func inferencePoolTargetPort(inferenceSetObj *kaitov1alpha1.InferenceSet) int32 {
 	role := inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole]
-	runtime := pkgmodel.RuntimeName(inferenceSetObj.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime])
-	if role == consts.InferenceRoleDecode && runtime == pkgmodel.RuntimeNameVLLM {
-		return consts.PortRoutingSidecar
+	if role != consts.InferenceRoleDecode {
+		return consts.PortInferenceServer
 	}
-	return consts.PortInferenceServer
+	// Mirror GetWorkspaceRuntimeName logic: default to vLLM when feature gate is on.
+	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+		return consts.PortInferenceServer
+	}
+	runtime := inferenceSetObj.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime]
+	if runtime == string(pkgmodel.RuntimeNameHuggingfaceTransformers) {
+		return consts.PortInferenceServer
+	}
+	return consts.PortRoutingSidecar
 }
 
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.

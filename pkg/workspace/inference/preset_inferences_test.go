@@ -482,7 +482,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, consts.PortInferenceServer, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds, tc.failureThreshold)
+			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds, tc.failureThreshold)
 			if actualProbe.Exec != nil && tc.expectedProbe.Exec != nil {
 				expected := toParameterMap(tc.expectedProbe.Exec.Command)
 				actual := toParameterMap(actualProbe.Exec.Command)
@@ -526,7 +526,7 @@ func TestBuildDistributedStartupProbe(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			probe := buildDistributedStartupProbe(tc.timeout, tc.workspace, consts.PortInferenceServer)
+			probe := buildDistributedStartupProbe(tc.timeout, tc.workspace)
 			if probe == nil {
 				t.Fatal("expected non-nil probe")
 			}

@@ -113,7 +113,6 @@ const (
 	RoutingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
 	RoutingSidecarTag   = "v0.7.1"
 
-	// When the routing sidecar is present, vLLM moves to this internal port.
 	// PortRoutingSidecar is the port the routing sidecar listens on.
 	// When the sidecar is present, the Service targetPort points here
 	// instead of PortInferenceServer so all external traffic flows

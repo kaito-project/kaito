@@ -76,6 +76,41 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				"inferencePool": map[string]any{
 					"targetPorts": []any{
 						map[string]any{
+							"number": float64(consts.PortInferenceServer),
+						},
+					},
+					"modelServers": map[string]any{
+						"matchLabels": map[string]any{
+							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
+							appsv1.PodIndexLabel:                       "0",
+						},
+					},
+				},
+			},
+		},
+
+		{
+			name: "decode role uses routing sidecar port",
+			workspace: func() *kaitov1alpha1.InferenceSet {
+				ws := base.DeepCopy()
+				if ws.Spec.Template.Labels == nil {
+					ws.Spec.Template.Labels = map[string]string{}
+				}
+				ws.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = consts.InferenceRoleDecode
+				return ws
+			}(),
+			expected: map[string]any{
+				"inferenceExtension": map[string]any{
+					"image": map[string]any{
+						"hub":        consts.EPPImageHub,
+						"name":       consts.EPPImageName,
+						"tag":        consts.EPPImageTag,
+						"pullPolicy": string(corev1.PullIfNotPresent),
+					},
+				},
+				"inferencePool": map[string]any{
+					"targetPorts": []any{
+						map[string]any{
 							"number": float64(consts.PortRoutingSidecar),
 						},
 					},

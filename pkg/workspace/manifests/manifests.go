@@ -382,6 +382,18 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1alpha1.Inference
 	}
 }
 
+// inferencePoolTargetPort returns the target port for the InferencePool.
+// For decode-role InferenceSets (with vLLM runtime), traffic goes through the
+// routing sidecar on PortRoutingSidecar. For all other cases, traffic goes
+// directly to the inference server on PortInferenceServer.
+func inferencePoolTargetPort(inferenceSetObj *kaitov1alpha1.InferenceSet) int32 {
+	role := inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole]
+	if role == consts.InferenceRoleDecode {
+		return consts.PortRoutingSidecar
+	}
+	return consts.PortInferenceServer
+}
+
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
 func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSet) (*helmv2.HelmRelease, error) {
 	matchLabels := map[string]string{
@@ -407,7 +419,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 		},
 		"inferencePool": map[string]any{
 			"targetPorts": []map[string]any{{
-				"number": consts.PortRoutingSidecar,
+				"number": inferencePoolTargetPort(inferenceSetObj),
 			}},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,
